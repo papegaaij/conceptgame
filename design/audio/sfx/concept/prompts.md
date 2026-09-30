@@ -285,3 +285,57 @@ Edit: leading silence trimmed, cut to 1.70 s, 0.60 s fade-out, 4-pole 500 Hz low
 Source: <https://freesound.org/people/Sheyvan/sounds/519008/> — CC0 1.0. Use: `water`, surface naval kills.
 Why: Explosion with water spray, sharp attack; for kills on the water surface.
 Edit: leading silence trimmed, cut to 1.90 s, 0.70 s fade-out; peak -1.5 dBFS.
+
+# Concept round 04 — audible beams, Sonar Pulse, extra huge and under-water explosions
+
+The round 03 beam loops were rejected ("I can't even hear B"): both had ~100% of their energy
+below 200 Hz, so they were loud on a meter but inaudible on small speakers. Round 04 candidates
+were measured for their 200 Hz–5 kHz share, and beams (plus start/stop) are normalised on that
+band's RMS (−30 dB, `band_rms=` in `tools/concept/audio/import_sfx.py`), the level the chosen
+shots reach. Loop seams use a linear cross-fade when the overlapping parts correlate (> 0.5),
+equal-power otherwise (`loop=(…, "auto")`).
+
+### shot-beam-r04-a — "laser beam" by peepholecircus
+Source: <https://freesound.org/people/peepholecircus/sounds/169991/> — CC0 1.0. Use: `beam` loop a, 2.6 s, smooth ~850 Hz hum (Ion Beam).
+Why: 100% of its energy in 200 Hz–5 kHz (median 845 Hz); a steady 2.6 s stretch between its slow swells gives a smooth loop. 6k downloads.
+Edit: seamless 2.60 s loop from 5.60 s with 0.12 s cross-fade; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -3.0 dBFS).
+
+### shot-beam-r04-b — "Weapons Beam Loop" by unfa
+Source: <https://freesound.org/people/unfa/sounds/584191/> — CC0 1.0. Use: `beam` loop b, 1.9 s, gritty pulsing texture.
+Why: Made as a beam loop by unfa; 72% mid-band with some grit on top, the most 'weapon-like' texture.
+Edit: seamless 1.90 s loop from 0.00 s with 0.10 s cross-fade; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -3.0 dBFS).
+
+### shot-beam-r04-c — "SonicDeathRay_1.2KHzNoCrackle.wav" by zimbot
+Source: <https://freesound.org/people/zimbot/sounds/177100/> — CC-BY 4.0. Use: `beam` loop c, 2.0 s, piercing ray (Orbital Lance).
+Why: Very steady ray tone (~1.65 kHz, 100% mid-band): the most clearly audible option, suited to the Orbital Lance.
+Edit: seamless 2.00 s loop from 1.00 s with 0.10 s cross-fade; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -3.0 dBFS).
+
+### shot-beam-start-r04-a — "Machine Charge.wav" by Glitchedtones
+Source: <https://freesound.org/people/Glitchedtones/sounds/375925/> — CC0 1.0. Use: `beam` start, 0.9 s rising charge.
+Why: Rising machine charge, 71% mid-band; the last 0.9 s of the rise leads into the loop.
+Edit: leading silence trimmed, offset 1.10 s, cut to 0.90 s, 0.15 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -3.0 dBFS).
+
+### shot-beam-stop-r04-a — "Power Down" by noirenex
+Source: <https://freesound.org/people/noirenex/sounds/159399/> — CC0 1.0. Use: `beam` stop, 1.3 s power-down.
+Why: Short power-down whine, 72% mid-band (the peepholecircus 'Power Down' was 100% sub-bass, so rejected).
+Edit: leading silence trimmed, cut to 1.30 s, 0.60 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -3.0 dBFS).
+
+### special-sonar-r04-a — "Sonar Ping" by SamsterBirdies
+Source: <https://freesound.org/people/SamsterBirdies/sounds/539957/> — CC0 1.0. Use: Sonar Pulse, clean single ping.
+Why: Classic single submarine ping, all energy in the mid band; decays within ~2.5 s.
+Edit: leading silence trimmed, cut to 3.00 s, 1.00 s fade-out; peak-normalised to -4.0 dBFS.
+
+### special-sonar-r04-b — "Ping!" by unfa
+Source: <https://freesound.org/people/unfa/sounds/215415/> — CC0 1.0. Use: Sonar Pulse, long ringing ping.
+Why: unfa's ping (13k downloads): longer, ringing tail for a more dramatic reveal.
+Edit: leading silence trimmed, cut to 3.50 s, 1.50 s fade-out; peak-normalised to -4.0 dBFS.
+
+### explosion-huge-r04-a — "Explosion with debris - authentic. 4kg TNT" by sidohzen
+Source: <https://freesound.org/people/sidohzen/sounds/165808/> — CC0 1.0. Use: `huge` b, 6 s real blast.
+Why: Authentic recorded 4 kg TNT blast with debris; 65% of its energy in the mid band, so it complements the sub-heavy huge a instead of doubling it.
+Edit: leading silence trimmed, offset 1.63 s, cut to 6.00 s, 2.50 s fade-out; peak-normalised to -1.0 dBFS.
+
+### explosion-underwater-r04-a — "underwater explosion" by mokasza
+Source: <https://freesound.org/people/mokasza/sounds/810765/> — CC-BY 4.0. Use: `underwater` b.
+Why: Muffled under-water blast with rumble; second recorded under-water variant for Act 4.
+Edit: leading silence trimmed, cut to 3.50 s, 1.20 s fade-out; peak-normalised to -1.5 dBFS.

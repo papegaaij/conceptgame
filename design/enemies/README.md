@@ -39,6 +39,45 @@ rosters.
 Unmarked Ascendancy machines in Acts 3–4 (Ghost Drone, Revenant Walker, Depth Hunter) are grey
 with no trim. They are recognisably human-made, but belong to no known faction.
 
+#### Role colours (draft)
+
+Round 03 feedback: the Vrell read as uniformly magenta. From round 04 every unit gets its own
+colour identity inside its faction, so players learn threats by colour (draft rule, awaiting the
+user; colour values live in `tools/concept/render/enemy_models.py`):
+
+- **Vrell chitin base = role family**
+
+  | Base | Hex (mid / dark / spike) | Role family | Round 04 units |
+  |---|---|---|---|
+  | Plum | `A020A8 40004A C890D8` | Swarm fodder | Skitter |
+  | Rust | `B04A2C 3A1008 E0B890` | Fast attackers, divers | Stinger |
+  | Bone / ivory | `DCCFB4 5C4A5C F4ECD8` | Ranged gunners and snipers | Needler, Mantis |
+  | Olive | `7C8C3A 263010 C8C890` | Bombers, area denial from the air | Spore Bomber |
+  | Slate (mauve-grey) | `7C6878 241A24 C8B8C0` | Rooted ground units | Spine Turret, Polyp Mortar |
+  | Teal-black | `1E5C5A 06201E 8AB8A8` | Spawners and carriers | Brood Pod, Brood Carrier |
+
+- **Vrell glow hue = kind of threat** (seams, eyes, veins, weapon tips)
+
+  | Glow | Hex | Threat | Round 04 units |
+  |---|---|---|---|
+  | Teal | `00FF9A` | Contact, ramming, spawning | Skitter, Brood Pod, Brood Carrier veins |
+  | Violet | `9A4DFF` | Aimed shots | Needler, Spine Turret |
+  | Crimson | `FF3038` | Lasers, sweeps and dives (lines of danger) | Stinger, Mantis |
+  | Lime | `A8FF2A` | Area denial: mines, spores, acid | Spore Bomber, Polyp Mortar |
+
+- **Weak points** glow in the unit's glow hue at full brightness (slightly whitened). Multi-part
+  bosses may use a contrasting glow for weak points: the Brood Carrier is teal-veined with
+  **lime** bay sacs and core.
+- **Ascendancy** stay black & gold; each unit adds one secondary accent (Talon red, Gilded
+  Gunship white, Rail Bunker gunmetal) and every Ascendancy sprite gets a 1 px **rim light**:
+  gold on edges facing the key light (top-left), red on edges facing away.
+- **Reserved hues are never used on bodies or glows**: enemy-bullet magenta `FF40FF`, needle
+  yellow `FFFF40` and orange (see [art direction](../art-direction/README.md#readability-rules)),
+  player blue / white / cyan. Vrell needles are drawn yellow, orbs magenta, as the bullet rules
+  require (round 03 drew needles magenta).
+- New units pick a base by role and a glow by threat; a unit whose combination is already
+  taken differs by shape and size, never by a new hue outside the tables.
+
 ### Stat block template
 
 When an enemy is promoted from a roster row to its own directory, its README gets this stat
@@ -183,7 +222,13 @@ Concept [round 03](../concept-rounds/round-03/README.md) gives the enemies their
 
 | File | What | Status |
 |---|---|---|
-| [concept/lineup-r03-a.png](concept/lineup-r03-a.png) | All round-03 enemies at native scale next to the player on four backgrounds, then at 2× with names, plus the Brood Carrier at 1/4 scale — size and readability check | proposed |
+| [concept/lineup-r03-a.png](concept/lineup-r03-a.png) | All round-03 enemies at native scale next to the player on four backgrounds, then at 2× with names, plus the Brood Carrier at 1/4 scale — size and readability check | chosen — reference; redo after the colour pass |
+
+Concept [round 04](../concept-rounds/round-04/README.md) — colour pass on the chosen enemies with the [role colours](../README.md#role-colours-draft) (chitin base = role family, glow = kind of threat; Ascendancy black & gold with a per-unit accent and a thin gold/red rim light). Same models and sheet layout; generator `tools/concept/enemies_r04.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/lineup-r04-a.png](concept/lineup-r04-a.png) | Round-04 lineup: all chosen enemies in their role colours at native scale on four backgrounds, 2× with names, the Brood Carrier at 1/4 scale, and the role-colour legend | proposed |
 
 ## Implementation
 
@@ -198,7 +243,8 @@ Concept [round 03](../concept-rounds/round-03/README.md) gives the enemies their
 ## Open questions
 
 - **Vrell design language** (concept round 03): A "Sleek chitin" or B "Armoured brood", or a mix (e.g. B for ground and heavy units, A for fliers)? The choice applies to every Vrell enemy.
-- **Ascendancy readability**: black-and-gold hulls read well on light and busy backgrounds but get dark on the darkest ones (see the lineup, dark strip). Proposal: a thin gold or red rim light on all Ascendancy sprites at native size.
+- **Ascendancy readability**: black-and-gold hulls read well on light and busy backgrounds but get dark on the darkest ones (see the round-03 lineup, dark strip). Proposal: a thin gold or red rim light on all Ascendancy sprites at native size — **applied in r04, awaiting the user**.
+- **Role colours** (round 04): is the chitin-by-role / glow-by-threat scheme above the right rule for all Vrell units?
 - Layer rules: should `ground` targets really be hittable by *all* weapons (Tyrian-style, simple),
   or only by `anti-ground` weapons and bombs (Raptor-style, more loadout pressure)? The proposal
   is all weapons, with hardened targets as the pressure point.
@@ -214,3 +260,6 @@ Concept [round 03](../concept-rounds/round-03/README.md) gives the enemies their
 - 2026-09-30: Bullet colours tied to the faction colours; score vs credits deferred to scoring.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-09-30: Concept round 03: first enemy visuals and the lineup sheet; Vrell design-language choice put to the user.
+- 2026-09-30: Concept round 03: Vrell design language is mainly **A "sleek chitin"**, with B "armoured brood" allowed where it gives a unit character (the Needler uses B). Chosen: Skitter A, Needler B, Stinger, Spore Bomber, Brood Pod, Mantis, Spine Turret A, Polyp Mortar, Talon, Gilded Gunship, Rail Bunker, Brood Carrier.
+- 2026-09-30: Concept round 03 feedback: enemies need more distinct colours — the Vrell set reads too uniformly magenta. Colour differentiation pass in round 04.
+- 2026-09-30: Concept round 04: role colours drafted (chitin base = role family, glow = kind of threat; Ascendancy accent + rim light); all chosen enemies re-rendered as r04 proposals. Vrell needles now yellow per the bullet rules.

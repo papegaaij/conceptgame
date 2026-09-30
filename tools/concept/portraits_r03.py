@@ -28,7 +28,7 @@ from PIL import Image, ImageDraw, ImageFilter
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import hud_r02  # noqa: E402  (HUD A metal panel helpers and colours)
 from render import raster, sdf, sprite  # noqa: E402
-from render.config import ROOT  # noqa: E402
+from render.config import ROOT, out_path  # noqa: E402
 from render.palette import B  # noqa: E402
 from render.sdf import Material, vec  # noqa: E402
 
@@ -521,9 +521,9 @@ STYLE_NOTE = {
 }
 
 
-def character_sheet(slug, style, brief, hud):
+def character_sheet(slug, style, brief, hud, round_label="CONCEPT ROUND 03"):
     c = CAST[slug]
-    img = raster.sheet(1216, 540, f"{c['name']} - {STYLE_TITLE[style]}", "CONCEPT ROUND 03")
+    img = raster.sheet(1216, 540, f"{c['name']} - {STYLE_TITLE[style]}", round_label)
     raster.draw_text(img, 16, 38, "BRIEFING 144X144 (1X)", raster.LABEL_DIM)
     img.alpha_composite(briefing_frame(slug, brief), (16, 50))
     raster.draw_text(img, 16, 280, "HUD RADIO 72X72 IN HUD A FRAME (1X)", raster.LABEL_DIM)
@@ -540,8 +540,8 @@ def character_sheet(slug, style, brief, hud):
     return img
 
 
-def cast_sheet(style, results):
-    img = raster.sheet(1216, 520, f"BRIEFING CAST - {STYLE_TITLE[style]}", "CONCEPT ROUND 03")
+def cast_sheet(style, results, round_label="CONCEPT ROUND 03"):
+    img = raster.sheet(1216, 520, f"BRIEFING CAST - {STYLE_TITLE[style]}", round_label)
     raster.draw_text(img, 16, 38, "BRIEFING PORTRAITS AT 1.5X (NEAREST) WITH NAME PLATES",
                      raster.LABEL_DIM)
     for i, slug in enumerate(CAST):
@@ -572,13 +572,13 @@ def main():
         for style, fn in (("a", style_a), ("b", style_b)):
             brief, hud = fn(slug, bust)
             results[style][slug] = (brief, hud)
-            out = CHAR_DIR / slug / "concept" / f"portrait-r03-{style}.png"
+            out = out_path(CHAR_DIR / slug / "concept", f"portrait-r03-{style}.png")
             out.parent.mkdir(parents=True, exist_ok=True)
             character_sheet(slug, style, brief, hud).convert("RGB").save(out, optimize=True)
             print("wrote", out.relative_to(ROOT))
     if len(results["a"]) == len(CAST):
         for style in ("a", "b"):
-            out = CHAR_DIR / "concept" / f"cast-r03-{style}.png"
+            out = out_path(CHAR_DIR / "concept", f"cast-r03-{style}.png")
             out.parent.mkdir(parents=True, exist_ok=True)
             cast_sheet(style, results[style]).convert("RGB").save(out, optimize=True)
             print("wrote", out.relative_to(ROOT))

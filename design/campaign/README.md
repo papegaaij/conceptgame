@@ -136,7 +136,9 @@ directory `level-NN-slug/` with a README holding these sections (after Summary):
    objectives with bonus credits.
 4. **Layout** – the level split into named sections along a **scroll timeline** (time in
    seconds and scroll distance in px at the 960×540 baseline, see [art direction](../art-direction/README.md)). Per section: terrain and
-   parallax content per layer, scroll speed, and what the player should learn or feel there.
+   parallax content per layer, scroll speed, **atmosphere intensity** (`clear` / `light` /
+   `medium` / `heavy`, see [art direction](../art-direction/README.md)), and what the player
+   should learn or feel there.
 5. **Waves** – table `| t (s) | Section | Formation | Enemies (link) | Count | Enter from | Notes |`.
    Enemies and formations are referenced by link and vocabulary name, never re-specified.
 6. **Ground targets** – static and ground-layer targets (turrets, buildings, hive nodes), with
@@ -181,3 +183,4 @@ criteria), Open questions, Decisions. The worked example is
   [economy](../systems/economy/README.md)); `homing` becomes available at L06 (the
   Micro-missile Pod) instead of L10.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
+- 2026-09-30: Level template: each section declares an atmosphere intensity so fog, cloud and dust vary through a level (user feedback, concept round 03).

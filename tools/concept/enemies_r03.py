@@ -91,6 +91,16 @@ ANIM = {
 
 _cache = {}
 
+# Titles and labels (round 04 re-uses this module with its own values, see enemies_r04.py)
+BOSS_TITLE = "BROOD CARRIER - ACT 1 BOSS (VRELL LANGUAGE A)"
+LINEUP_TITLE = "ENEMY LINEUP - ROUND 03, NATIVE SCALE (1X AND 2X)"
+LINEUP_NOTE = "2X WITH NAMES (A/B = VRELL DESIGN LANGUAGE A / B)"
+LINEUP_RESERVE = 0          # px kept free at the right of each 2x row (for the boss thumbnail)
+
+
+def lineup_name(key):
+    return key.upper().replace("-", " ")
+
 
 # --------------------------------------------------------------------------- rendering
 
@@ -470,7 +480,7 @@ def model_to_px(mx, my):
 def boss_sheet():
     full = carrier_render()
     W, H = 1300, 760
-    img = raster.sheet(W, H, "BROOD CARRIER - ACT 1 BOSS (VRELL LANGUAGE A)", SUB)
+    img = raster.sheet(W, H, BOSS_TITLE, SUB)
     # 1) full sprite with callouts
     ox, oy = 40, 70
     label(img, 16, 38, f"FULL SPRITE 1X ({BW}X{BH}), FACING DOWN")
@@ -564,7 +574,7 @@ def boss_sheet():
 def lineup_sheet():
     keys = list(em.ENEMIES)
     W, H = 1300, 860
-    img = raster.sheet(W, H, "ENEMY LINEUP - ROUND 03, NATIVE SCALE (1X AND 2X)", SUB)
+    img = raster.sheet(W, H, LINEUP_TITLE, SUB)
     player = player_sprite()
     strips = [("DARK NEUTRAL", None), ("STATION HULL", hull_plating(W - 32, 90, 3)),
               ("LUNAR REGOLITH", regolith(W - 32, 90, 8)), ("EARTH FROM ORBIT", orbit(W - 32, 90, 4))]
@@ -583,18 +593,18 @@ def lineup_sheet():
         img.alpha_composite(strip, (16, y + 12))
         y += 108
     # 2x labelled rows (wrap), then the boss at 1/4 scale
-    label(img, 16, y, "2X WITH NAMES (A/B = VRELL DESIGN LANGUAGE A / B)")
+    label(img, 16, y, LINEUP_NOTE)
     x, row_y = 16, y + 14
     cell_h = 150
     for key in ["player"] + keys:
         sp = player if key == "player" else render(em.ENEMIES[key][4], em.ENEMIES[key][3])[1]
         big = sprite.enlarge(sp, 2)
-        if x + big.width > W - 16:
+        if x + big.width > W - 16 - LINEUP_RESERVE:
             x, row_y = 16, row_y + cell_h + 30
         cell = checker(big.width, cell_h)
         sprite.paste_center(cell, big, big.width / 2, cell_h / 2)
         img.alpha_composite(cell, (x, row_y))
-        name = "AF-12 (PLAYER)" if key == "player" else key.upper().replace("-", " ")
+        name = "AF-12 (PLAYER)" if key == "player" else lineup_name(key)
         for j, part in enumerate(wrap(name, max(5, big.width // 6))):
             raster.draw_text(img, x, row_y + cell_h + 4 + j * 10, part, raster.LABEL)
         x += big.width + 12

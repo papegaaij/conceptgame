@@ -82,3 +82,68 @@ Prompts for polished versions of the round-03 mockups. The mockups are rendered 
 - **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, three-quarter view, side view, text, watermark, busy background, anti-aliased soft edges, motion blur.
 - **Mockup generator:** `python3 tools/concept/enemies_r03.py gilded-gunship` (models in `tools/concept/render/enemy_models.py`)
 
+# Round 04 — role colours
+
+## skitter-r04-a
+
+**Skitter, round 04 role colours** — plum chitin, teal glow.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Biomechanical alien Vrell creature: tiny dart-like flyer with two swept scythe wings. Glossy plum chitin (#a020a8, shadows #40004a, spikes #c890d8), bioluminescent teal glow (#00ff9a) in seams, veins and eyes; weak points glow brightest in #00ff9a. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, orange glow, blue or cyan body colour.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py skitter`
+
+## needler-r04-a
+
+**Needler, round 04 role colours** — bone chitin, violet glow.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Biomechanical alien Vrell creature: crab-like crustacean: flat carapace wider than long, two large claws forward around a thorn launcher, splayed legs. Glossy bone chitin (#dccfb4, shadows #5c4a5c, spikes #f4ecd8), bioluminescent violet glow (#9a4dff) in seams, veins and eyes; weak points glow brightest in #9a4dff. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, orange glow, blue or cyan body colour.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py needler`
+
+## stinger-r04-a
+
+**Stinger, round 04 role colours** — rust chitin, crimson glow.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Biomechanical alien Vrell creature: wasp-like diver with long narrow swept wings and a forward stinger. Glossy rust chitin (#b04a2c, shadows #3a1008, spikes #e0b890), bioluminescent crimson glow (#ff3038) in seams, veins and eyes; weak points glow brightest in #ff3038. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, orange glow, blue or cyan body colour.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py stinger`
+
+## spore-bomber-r04-a
+
+**Spore Bomber, round 04 role colours** — olive chitin, lime glow.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Biomechanical alien Vrell creature: elongated gas-bag blimp with a small head, tail fins and rows of spore bulbs along its flanks. Glossy olive chitin (#7c8c3a, shadows #263010, spikes #c8c890), bioluminescent lime glow (#a8ff2a) in seams, veins and eyes; weak points glow brightest in #a8ff2a. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, orange glow, blue or cyan body colour.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py spore-bomber`
+
+## brood-pod-r04-a
+
+**Brood Pod, round 04 role colours** — teal-black chitin, teal glow.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Biomechanical alien Vrell creature: round egg sac wrapped in chitin ribs with a ring of fine cilia and a crown eye. Glossy teal-black chitin (#1e5c5a, shadows #06201e, spikes #8ab8a8), bioluminescent teal glow (#00ff9a) in seams, veins and eyes; weak points glow brightest in #00ff9a. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, orange glow, blue or cyan body colour.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py brood-pod`
+
+## mantis-r04-a
+
+**Mantis, round 04 role colours** — bone chitin, crimson glow.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Biomechanical alien Vrell creature: praying-mantis silhouette with a long thorax, raptorial arms and translucent wings. Glossy bone chitin (#dccfb4, shadows #5c4a5c, spikes #f4ecd8), bioluminescent crimson glow (#ff3038) in seams, veins and eyes; weak points glow brightest in #ff3038. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, orange glow, blue or cyan body colour.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py mantis`
+
+## talon-r04-a
+
+**Talon, round 04** — black & gold with a #c8202a secondary accent and a gold/red rim light.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Human-built stealth military machine: fast forward-swept interceptor with a long pointed nose and twin engines. Angular faceted gloss-black hull (#201430 to #4c3a68) with hex panel lines, gold (#ffa800) trim, secondary accent colour #c8202a, red running lights, a thin gold rim light on the top-left edges and red on the bottom-right edges. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, blue or cyan body colour, curves, organic shapes.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py talon`
+
+## gilded-gunship-r04-a
+
+**Gilded Gunship, round 04** — black & gold with a #e8e4f0 secondary accent and a gold/red rim light.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Human-built stealth military machine: heavy wedge gunship with thick gold front armour, a red glass dome and four exposed rear engines. Angular faceted gloss-black hull (#201430 to #4c3a68) with hex panel lines, gold (#ffa800) trim, secondary accent colour #e8e4f0, red running lights, a thin gold rim light on the top-left edges and red on the bottom-right edges. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, blue or cyan body colour, curves, organic shapes.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py gilded-gunship`

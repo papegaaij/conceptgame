@@ -64,11 +64,13 @@ procedural faces only show the style (framing, lighting, colour treatment, frame
 
 | File | What | Status |
 |---|---|---|
-| [concept/portrait-r03-a.png](concept/portrait-r03-a.png) | Style A "pre-rendered 3D bust": Vorne at 144×144 (briefing), 72×72 in the HUD A radio frame, 3× enlargement | proposed |
-| [concept/portrait-r03-b.png](concept/portrait-r03-b.png) | Style B "comm-screen pixel portrait": Vorne as a 72 px dithered amber enemy-channel portrait, 2× for the briefing, HUD radio frame | proposed |
+| [concept/rejected/portrait-r03-a.png](concept/rejected/portrait-r03-a.png) | Style A "pre-rendered 3D bust": Vorne at 144×144 (briefing), 72×72 in the HUD A radio frame, 3× enlargement | rejected — style B preferred |
+| [concept/portrait-r03-b.png](concept/portrait-r03-b.png) | Style B "comm-screen pixel portrait": Vorne as a 72 px dithered amber enemy-channel portrait, 2× for the briefing, HUD radio frame | chosen — keep a little more colour (round 04) |
+| [concept/portrait-r04-a.png](concept/portrait-r04-a.png) | Round 04: style B with retained colour — Vorne's own colours under the amber enemy-channel tint, 36 colours, soft dither; briefing 144×144, HUD 72×72, 3× (`tools/concept/portraits_r04.py`) | proposed |
 
 ## Decisions
 
 - 2026-09-30: Vorne as pulp villain, revealed end of Act 4.
 - 2026-09-30: Vorne survives Act 6 and dies in Act 7 (L48, Vorne's Chimera), matching the
   campaign: his escape is what the UTC fleet follows through the gate.
+- 2026-09-30: Concept round 03: portrait style **B** (comm-screen pixel portrait) chosen, with a bit more colour retained so it looks less flat.

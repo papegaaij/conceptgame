@@ -2,7 +2,7 @@
 title: Story
 design: draft
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-09-30
 ---
 

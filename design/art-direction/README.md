@@ -2,7 +2,7 @@
 title: Art direction
 design: draft
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-09-30
 ---
 
@@ -159,6 +159,13 @@ every scene gets a clearly visible **atmosphere layer** and, where the setting a
   Europa's ice, Vrell biomass (creep, spore fields) on infested areas.
 - Decoration never competes with gameplay: it stays lower in contrast and saturation than
   enemies and bullets.
+- **Atmosphere intensity varies through a level** (user feedback on round 03): the round-03
+  scenes show the *heavy* end and must not be used like that for a whole level. Each level
+  section gets an intensity — `clear` (no banks, a few wisps), `light` (~10–15 % bank
+  coverage), `medium` (~20–25 %) or `heavy` (25–40 %, the round-03 look). Most of a level is
+  clear to medium; heavy is a short peak (a storm front, a fog bank before an ambush), and
+  transitions ramp over several seconds rather than switching. Vegetation and other organic
+  detail follow the terrain, not this curve.
 - Rules learned in round 03:
   - **Coverage**: low-air banks cover roughly 25–40 % of the screen and leave the lanes of the
     level (avenues, canyon, spine gaps) readable most of the time.
@@ -251,12 +258,12 @@ under ~8 MB; the PNG sheets show full colour:
 
 | File | What | Status |
 |---|---|---|
-| [concept/parallax-r03-a.png](concept/parallax-r03-a.png) | Parallax A + decoration: a cyclone and cloud fronts on the deep Earth, pale cloud decks on low-air drifting between the station and the play plane (shadowing the station, catching flyer shadows), haze wisps and ice streaks on high-air | proposed |
-| [concept/parallax-r03-a.gif](concept/parallax-r03-a.gif) | Parallax A + decoration: scroll loop | proposed |
-| [concept/parallax-r03-b.png](concept/parallax-r03-b.png) | Parallax B + decoration: tree-lined avenues, more and richer parks (paths, ponds), rooftop gardens, rolling fog banks on low-air lit amber by the avenue lamps; still calm | proposed |
-| [concept/parallax-r03-b.gif](concept/parallax-r03-b.gif) | Parallax B + decoration: scroll loop | proposed |
-| [concept/parallax-r03-c.png](concept/parallax-r03-c.png) | Parallax C + decoration: ochre dust-storm banks on low-air, dust veil and heavier streaks on high-air, greenhouse tunnels, algae ponds and lichen fields around the colony | proposed |
-| [concept/parallax-r03-c.gif](concept/parallax-r03-c.gif) | Parallax C + decoration: scroll loop | proposed |
+| [concept/parallax-r03-a.png](concept/parallax-r03-a.png) | Parallax A + decoration: a cyclone and cloud fronts on the deep Earth, pale cloud decks on low-air drifting between the station and the play plane (shadowing the station, catching flyer shadows), haze wisps and ice streaks on high-air | chosen — shows the heavy end of the atmosphere range |
+| [concept/parallax-r03-a.gif](concept/parallax-r03-a.gif) | Parallax A + decoration: scroll loop | chosen — shows the heavy end of the atmosphere range |
+| [concept/parallax-r03-b.png](concept/parallax-r03-b.png) | Parallax B + decoration: tree-lined avenues, more and richer parks (paths, ponds), rooftop gardens, rolling fog banks on low-air lit amber by the avenue lamps; still calm | chosen — shows the heavy end of the atmosphere range |
+| [concept/parallax-r03-b.gif](concept/parallax-r03-b.gif) | Parallax B + decoration: scroll loop | chosen — shows the heavy end of the atmosphere range |
+| [concept/parallax-r03-c.png](concept/parallax-r03-c.png) | Parallax C + decoration: ochre dust-storm banks on low-air, dust veil and heavier streaks on high-air, greenhouse tunnels, algae ponds and lichen fields around the colony | chosen — shows the heavy end of the atmosphere range |
+| [concept/parallax-r03-c.gif](concept/parallax-r03-c.gif) | Parallax C + decoration: scroll loop | chosen — shows the heavy end of the atmosphere range |
 
 ## Implementation
 
@@ -297,3 +304,4 @@ under ~8 MB; the PNG sheets show full colour:
   960×540, ground speed guideline, density guideline, perspective walls between layers.
 - 2026-09-30: Concept round 02: all three parallax approaches liked — density follows level pace (B calm, C normal, A fast). The revised layer model (far layer, faster foreground factors, speed guideline) is adopted with them.
 - 2026-09-30: Concept round 02 feedback: scenes need more decoration — heavier clouds / mist / dust streaks and vegetation. Decoration guideline added; the three scenes get a decoration pass in round 03.
+- 2026-09-30: Concept round 03: decoration pass chosen for all three scenes; it represents the heavy end. Atmosphere intensity must vary through a level (clear / light / medium / heavy per section, heavy only as a short peak).

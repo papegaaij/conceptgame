@@ -46,10 +46,18 @@ Concept [round 03](../../concept-rounds/round-03/README.md). Two Vrell design la
 
 | File | What | Status |
 |---|---|---|
-| [concept/spine-turret-r03-a.png](concept/spine-turret-r03-a.png) | Spine Turret, language A: smooth bulb with petal collar and one thorn barrel, rooted on a station hull; aim frames | proposed |
-| [concept/spine-turret-r03-b.png](concept/spine-turret-r03-b.png) | Spine Turret, language B: plated barnacle with a triple-spike barrel cluster | proposed |
-| [concept/polyp-mortar-r03-a.png](concept/polyp-mortar-r03-a.png) | Polyp Mortar (A): acid mouth ringed by tentacles; impact markers ahead of the player on lunar regolith | proposed |
-| [concept/rail-bunker-r03-a.png](concept/rail-bunker-r03-a.png) | Rail Bunker (Ascendancy ground turret): octagonal hardened bunker, twin-rail cannon with gold coils, red telegraph line | proposed |
+| [concept/spine-turret-r03-a.png](concept/spine-turret-r03-a.png) | Spine Turret, language A: smooth bulb with petal collar and one thorn barrel, rooted on a station hull; aim frames | chosen — colours to be differentiated (round 04) |
+| [concept/rejected/spine-turret-r03-b.png](concept/rejected/spine-turret-r03-b.png) | Spine Turret, language B: plated barnacle with a triple-spike barrel cluster | rejected — other variant preferred |
+| [concept/polyp-mortar-r03-a.png](concept/polyp-mortar-r03-a.png) | Polyp Mortar (A): acid mouth ringed by tentacles; impact markers ahead of the player on lunar regolith | chosen — colours to be differentiated (round 04) |
+| [concept/rail-bunker-r03-a.png](concept/rail-bunker-r03-a.png) | Rail Bunker (Ascendancy ground turret): octagonal hardened bunker, twin-rail cannon with gold coils, red telegraph line | chosen — colours to be differentiated (round 04) |
+
+Concept [round 04](../../concept-rounds/round-04/README.md) — colour pass on the chosen enemies with the [role colours](../../README.md#role-colours-draft) (chitin base = role family, glow = kind of threat; Ascendancy black & gold with a per-unit accent and a thin gold/red rim light). Same models and sheet layout; generator `tools/concept/enemies_r04.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/spine-turret-r04-a.png](concept/spine-turret-r04-a.png) | Spine Turret — mauve-grey slate chitin, violet glow (rooted, aimed shots); yellow needles | proposed |
+| [concept/polyp-mortar-r04-a.png](concept/polyp-mortar-r04-a.png) | Polyp Mortar — slate chitin, lime acid (rooted, area denial) | proposed |
+| [concept/rail-bunker-r04-a.png](concept/rail-bunker-r04-a.png) | Rail Bunker — black & gold with gunmetal accent and rim light | proposed |
 
 ## Implementation
 
@@ -64,3 +72,4 @@ Concept [round 03](../../concept-rounds/round-03/README.md). Two Vrell design la
 
 - 2026-09-30: Roster of 12 ground enemies drafted.
 - 2026-09-30: Concept round 03: Spine Turret (both Vrell languages), Polyp Mortar and the Ascendancy Rail Bunker drafted as sprites.
+- 2026-09-30: Concept round 04: colour pass on ground enemies with the role colours (r04 proposals).

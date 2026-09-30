@@ -37,12 +37,12 @@ Round 03 proposals; the reused round 02 shots are marked (r02). Files are in `co
 | `vulcan` | Scatter Vulcan (front) | — | [a](concept/player-shot-r02-e.ogg) (r02), [b](concept/shot-vulcan-r03-b.ogg) | Heavy rotary/autocannon chatter; one sound per volley, not per bullet of the fan. |
 | `ballistic` | Autocannon Pod, Swivel Gun (wing) | — | [a](concept/player-shot-r02-d.ogg) (r02) | Recorded single gunshot, dry and short. |
 | `laser` | Lance Laser (front), Rear Lance (rear) | — | [a](concept/player-shot-r02-c.ogg) (r02), [b](concept/shot-laser-r03-b.ogg) | Descending energy sweep; piercing weapons sound "longer" than pulse. |
-| `beam` | Ion Beam (front) | Orbital Lance | [a, loop](concept/shot-beam-r03-a.ogg), [b, loop](concept/shot-beam-r03-b.ogg) | **Seamless loops** played while firing, plus a short start/stop (to source later). a = steady heavy hum for the Ion Beam; b = oscillating beam for the Orbital Lance. |
+| `beam` | Ion Beam (front) | Orbital Lance | loops: [a](concept/shot-beam-r04-a.ogg) (Ion Beam), [b](concept/shot-beam-r04-b.ogg) (alternative), [c](concept/shot-beam-r04-c.ogg) (Orbital Lance); [start](concept/shot-beam-start-r04-a.ogg), [stop](concept/shot-beam-stop-r04-a.ogg) (round 04) | **Seamless loops** played while firing: start → loop → stop. a = smooth mid-range laser hum (~850 Hz), b = gritty pulsing energy loop, c = piercing ~1.65 kHz ray. The round 03 loops were ~100% below 200 Hz (inaudible on small speakers), so beams now keep ≥ 70% of their energy in 200 Hz–5 kHz and are normalised on that band's RMS (−30 dB) to match the shots' loudness. |
 | `missile` | Hornet Launcher (front) | — | [a](concept/shot-missile-r03-a.ogg) | Rocket ignition + whoosh. |
 | `micromissile` | Micro-missile Pod (wing), Swarm Tail (rear) | Decoy Flares (pitched up) | [a](concept/shot-micromissile-r03-a.ogg) | Small, quick rocket launch; frequent, so short. |
 | `mortar` | Hammer Mortar (front) | — | [a](concept/shot-mortar-r03-a.ogg) | Hollow tube thump for lobbed shells. |
 | `bomb` | Bomb Rack (wing) | Airstrike (full-length whistle) | [a](concept/shot-bomb-r03-a.ogg) | Falling-bomb whistle, cut short for the rack; the Airstrike uses the source's full whistle. |
-| `torpedo` | Torpedo Pod (wing), Harpoon Torpedoes (front) | Sonar Pulse (to source) | [a](concept/shot-torpedo-r03-a.ogg) | Muffled underwater launch with bubbles; above water the same file is played drier/brighter. |
+| `torpedo` | Torpedo Pod (wing), Harpoon Torpedoes (front) | Sonar Pulse (see Specials) | [a](concept/shot-torpedo-r03-a.ogg) | Muffled underwater launch with bubbles; above water the same file is played drier/brighter. |
 | `mine` | Proximity Mines, Depth Charges (rear) | — | [a](concept/shot-mine-r03-a.ogg) | Metallic drop-and-bounce clunk; mines add an arming beep (UI synth), depth charges a splash. |
 | `tesla` | Tesla Coil Pod (wing), Plasma Arc (front) | EMP Burst (layered, longer) | [a](concept/shot-tesla-r03-a.ogg) | Electric zap/crackle; Plasma Arc chains replay it per jump at rising pitch. |
 | `resonator` | Choir Resonator (front, captured Vrell tech) | Vrell Swarm Call | [a](concept/shot-resonator-r03-a.ogg) | Big alien energy cannon; later layered with a Choir chord from the music. |
@@ -56,12 +56,12 @@ reused round 02 files marked (r02).
 
 | Rung | Length | Files | Enemies (examples from the [roster](../../enemies/README.md)) |
 |---|---|---|---|
-| `tiny` | ≤ 0.6 s | [a](concept/explosion-tiny-r03-a.ogg), [b](concept/explosion-tiny-r03-b.ogg), [c](concept/explosion-tiny-r03-c.ogg) | Skitter, Asteroid Mite, spores, shootable missiles and mines, Shard Drone links |
+| `tiny` | ≤ 0.6 s | [a](concept/explosion-tiny-r03-a.ogg), [b](concept/explosion-tiny-r03-b.ogg) | Skitter, Asteroid Mite, spores, shootable missiles and mines, Shard Drone links |
 | `small` | 0.7–1.1 s | [a](concept/explosion-r02-a.ogg) (r02), [b](concept/explosion-r02-b.ogg) (r02), [c](concept/explosion-small-r03-a.ogg) | Needler, Stinger, Talon, Ghost Drone, Harrow, Skimmer, Spine Turret, Driftjelly |
-| `medium` | 1.6–2 s | [a](concept/explosion-r02-c.ogg) (r02), [b](concept/explosion-medium-r03-a.ogg), [c](concept/explosion-medium-r03-b.ogg) | Gilded Gunship, Hornet, Chimera, Mantis, Creeper, SAM Nest, Crawler Tank, Reef Spitter, Minelayer, destroyed buildings |
+| `medium` | 1.6–2 s | [a](concept/explosion-r02-c.ogg) (r02), [b](concept/explosion-medium-r03-b.ogg) | Gilded Gunship, Hornet, Chimera, Mantis, Creeper, SAM Nest, Crawler Tank, Reef Spitter, Minelayer, destroyed buildings |
 | `large` | 2.8–3.1 s | [a](concept/explosion-r02-d.ogg) (r02), [b](concept/explosion-r02-e.ogg) (r02), [c](concept/explosion-large-r03-a.ogg) | Hive Node, Sentinel Tower, Rail Bunker, Abyss Ray, Choir Seraph, mid-boss parts, boss phase ends |
-| `huge` | 5–6 s | [a](concept/explosion-huge-r03-a.ogg), [b](concept/explosion-huge-r03-b.ogg) | Act-boss deaths, capital ships, Smart Bomb, Iron Sovereign core |
-| `underwater` | 1.7–3 s | [a, recorded](concept/explosion-underwater-r03-a.ogg), [b, derived](concept/explosion-underwater-r03-b.ogg) | Everything below the surface in Act 4 (Europa); b is the medium r02-c file through a 4-pole 500 Hz low-pass, the documented recipe for deriving muffled versions of any rung |
+| `huge` | 5–6 s | [a](concept/explosion-huge-r03-b.ogg) (sub-heavy boom), [b](concept/explosion-huge-r04-a.ogg) (recorded 4 kg TNT blast with debris, round 04) | Act-boss deaths, capital ships, Smart Bomb, Iron Sovereign core |
+| `underwater` | 3–3.5 s | [a, recorded](concept/explosion-underwater-r03-a.ogg), [b](concept/explosion-underwater-r04-a.ogg) (round 04) | Everything below the surface in Act 4 (Europa). The derived low-pass variant was rejected, so under-water sounds need recorded sources |
 | `water` | 1.9 s | [a](concept/explosion-water-r03-a.ogg) | Surface naval kills (Act 2 ocean, Europa ice floes), depth-charge hits |
 
 ### Player weapons
@@ -128,7 +128,7 @@ reused round 02 files marked (r02).
 | EMP: electric thump + power-down whine | P2 |
 | Decoy flares | P2 |
 | Orbital lance: charge + sustained beam | P3 |
-| Sonar pulse ping | P2 |
+| Sonar pulse ping — [a](concept/special-sonar-r04-a.ogg) (clean single ping), [b](concept/special-sonar-r04-b.ogg) (long ringing ping); round 04 | P2 |
 | Shield overcharge | P3 |
 | Time dilation: slow-down / speed-up sweeps | P3 |
 | Special unavailable (denied buzz) | P1 |
@@ -216,30 +216,46 @@ recorded sounds from Freesound imported by `tools/concept/audio/import_sfx.py`; 
 
 | File | What | Status |
 |---|---|---|
-| [concept/shot-vulcan-r03-b.ogg](concept/shot-vulcan-r03-b.ogg) | "minigun.wav" by pgi (CC0 1.0) — `vulcan` b, rotary chatter | proposed |
-| [concept/shot-laser-r03-b.ogg](concept/shot-laser-r03-b.ogg) | "Laser shot.wav" by michael_grinnell (CC0 1.0) — `laser` b | proposed |
-| [concept/shot-beam-r03-a.ogg](concept/shot-beam-r03-a.ogg) | "heavy beam weapon" by a deleted Freesound user (CC0 1.0) — `beam` a, 1.4 s seamless loop (Ion Beam) | proposed |
-| [concept/shot-beam-r03-b.ogg](concept/shot-beam-r03-b.ogg) | "SFX Oscilating Laser Beam" by bolkmar (CC-BY 4.0) — `beam` b, 2.62 s seamless loop (Orbital Lance) | proposed |
-| [concept/shot-missile-r03-a.ogg](concept/shot-missile-r03-a.ogg) | "Rocket Launch" by Jarusca (CC0 1.0) — `missile` (Hornet Launcher) | proposed |
-| [concept/shot-micromissile-r03-a.ogg](concept/shot-micromissile-r03-a.ogg) | "Rocket Shots" by Audionautics (CC-BY 3.0) — `micromissile`, first shot | proposed |
-| [concept/shot-mortar-r03-a.ogg](concept/shot-mortar-r03-a.ogg) | "Mortar Shots.flac" by qubodup (CC0 1.0) — `mortar`, first shot | proposed |
-| [concept/shot-bomb-r03-a.ogg](concept/shot-bomb-r03-a.ogg) | "Falling Bomb.wav" by Daleonfire (CC0 1.0) — `bomb`, whistle cut to 1.2 s | proposed |
-| [concept/shot-torpedo-r03-a.ogg](concept/shot-torpedo-r03-a.ogg) | "Torpedo launch underwater.wav" by jobro (CC-BY 3.0) — `torpedo` | proposed |
-| [concept/shot-mine-r03-a.ogg](concept/shot-mine-r03-a.ogg) | "small metal object fall" by nicktermer (CC0 1.0) — `mine` drop-and-bounce | proposed |
-| [concept/shot-tesla-r03-a.ogg](concept/shot-tesla-r03-a.ogg) | "Electric zap.wav" by michael_grinnell (CC0 1.0) — `tesla` | proposed |
-| [concept/shot-resonator-r03-a.ogg](concept/shot-resonator-r03-a.ogg) | "sci-fi cannon" by humanoide9000 (CC-BY 4.0) — `resonator` (Choir Resonator) | proposed |
-| [concept/explosion-tiny-r03-a.ogg](concept/explosion-tiny-r03-a.ogg) | "Small Explosion" by Cyberios (CC0 1.0) — `tiny` a | proposed |
-| [concept/explosion-tiny-r03-b.ogg](concept/explosion-tiny-r03-b.ogg) | "Small explosion" by dinodilopho (CC0 1.0) — `tiny` b | proposed |
-| [concept/explosion-tiny-r03-c.ogg](concept/explosion-tiny-r03-c.ogg) | "Firecracker Explosion" by unfa (CC0 1.0) — `tiny` c, sharp crack | proposed |
-| [concept/explosion-small-r03-a.ogg](concept/explosion-small-r03-a.ogg) | "Small Explosion" by lorenzgillner (CC0 1.0) — `small` c | proposed |
-| [concept/explosion-medium-r03-a.ogg](concept/explosion-medium-r03-a.ogg) | "Air Explosion.wav" by 1histori (CC0 1.0) — `medium` b | proposed |
-| [concept/explosion-medium-r03-b.ogg](concept/explosion-medium-r03-b.ogg) | "Explode001" by mitchelk (CC0 1.0) — `medium` c | proposed |
-| [concept/explosion-large-r03-a.ogg](concept/explosion-large-r03-a.ogg) | "explosion_big_02" by derplayer (CC0 1.0) — `large` c | proposed |
-| [concept/explosion-huge-r03-a.ogg](concept/explosion-huge-r03-a.ogg) | "Explosion_01.wav" by tommccann (CC0 1.0) — `huge` a, 5 s | proposed |
-| [concept/explosion-huge-r03-b.ogg](concept/explosion-huge-r03-b.ogg) | "Big Boom" by unfa (CC0 1.0) — `huge` b, 6 s, deep sub-bass | proposed |
-| [concept/explosion-underwater-r03-a.ogg](concept/explosion-underwater-r03-a.ogg) | "underwater explosion.wav" by cubix (CC0 1.0) — `underwater` a, recorded | proposed |
-| [concept/explosion-underwater-r03-b.ogg](concept/explosion-underwater-r03-b.ogg) | "Explosion" by qubodup (CC0 1.0) through a 4-pole 500 Hz low-pass — `underwater` b, derived | proposed |
-| [concept/explosion-water-r03-a.ogg](concept/explosion-water-r03-a.ogg) | "Water Explosion" by Sheyvan (CC0 1.0) — `water`, surface naval kills | proposed |
+| [concept/shot-vulcan-r03-b.ogg](concept/shot-vulcan-r03-b.ogg) | "minigun.wav" by pgi (CC0 1.0) — `vulcan` b, rotary chatter | chosen |
+| [concept/shot-laser-r03-b.ogg](concept/shot-laser-r03-b.ogg) | "Laser shot.wav" by michael_grinnell (CC0 1.0) — `laser` b | chosen |
+| [concept/rejected/shot-beam-r03-a.ogg](concept/rejected/shot-beam-r03-a.ogg) | "heavy beam weapon" by a deleted Freesound user (CC0 1.0) — `beam` a, 1.4 s seamless loop (Ion Beam) | rejected — not good |
+| [concept/rejected/shot-beam-r03-b.ogg](concept/rejected/shot-beam-r03-b.ogg) | "SFX Oscilating Laser Beam" by bolkmar (CC-BY 4.0) — `beam` b, 2.62 s seamless loop (Orbital Lance) | rejected — barely audible |
+| [concept/shot-missile-r03-a.ogg](concept/shot-missile-r03-a.ogg) | "Rocket Launch" by Jarusca (CC0 1.0) — `missile` (Hornet Launcher) | chosen |
+| [concept/shot-micromissile-r03-a.ogg](concept/shot-micromissile-r03-a.ogg) | "Rocket Shots" by Audionautics (CC-BY 3.0) — `micromissile`, first shot | chosen |
+| [concept/shot-mortar-r03-a.ogg](concept/shot-mortar-r03-a.ogg) | "Mortar Shots.flac" by qubodup (CC0 1.0) — `mortar`, first shot | chosen |
+| [concept/shot-bomb-r03-a.ogg](concept/shot-bomb-r03-a.ogg) | "Falling Bomb.wav" by Daleonfire (CC0 1.0) — `bomb`, whistle cut to 1.2 s | chosen |
+| [concept/shot-torpedo-r03-a.ogg](concept/shot-torpedo-r03-a.ogg) | "Torpedo launch underwater.wav" by jobro (CC-BY 3.0) — `torpedo` | chosen |
+| [concept/shot-mine-r03-a.ogg](concept/shot-mine-r03-a.ogg) | "small metal object fall" by nicktermer (CC0 1.0) — `mine` drop-and-bounce | chosen |
+| [concept/shot-tesla-r03-a.ogg](concept/shot-tesla-r03-a.ogg) | "Electric zap.wav" by michael_grinnell (CC0 1.0) — `tesla` | chosen |
+| [concept/shot-resonator-r03-a.ogg](concept/shot-resonator-r03-a.ogg) | "sci-fi cannon" by humanoide9000 (CC-BY 4.0) — `resonator` (Choir Resonator) | chosen |
+| [concept/explosion-tiny-r03-a.ogg](concept/explosion-tiny-r03-a.ogg) | "Small Explosion" by Cyberios (CC0 1.0) — `tiny` a | chosen |
+| [concept/explosion-tiny-r03-b.ogg](concept/explosion-tiny-r03-b.ogg) | "Small explosion" by dinodilopho (CC0 1.0) — `tiny` b | chosen |
+| [concept/rejected/explosion-tiny-r03-c.ogg](concept/rejected/explosion-tiny-r03-c.ogg) | "Firecracker Explosion" by unfa (CC0 1.0) — `tiny` c, sharp crack | rejected — not good |
+| [concept/explosion-small-r03-a.ogg](concept/explosion-small-r03-a.ogg) | "Small Explosion" by lorenzgillner (CC0 1.0) — `small` c | chosen |
+| [concept/rejected/explosion-medium-r03-a.ogg](concept/rejected/explosion-medium-r03-a.ogg) | "Air Explosion.wav" by 1histori (CC0 1.0) — `medium` b | rejected — not good |
+| [concept/explosion-medium-r03-b.ogg](concept/explosion-medium-r03-b.ogg) | "Explode001" by mitchelk (CC0 1.0) — `medium` c | chosen |
+| [concept/explosion-large-r03-a.ogg](concept/explosion-large-r03-a.ogg) | "explosion_big_02" by derplayer (CC0 1.0) — `large` c | chosen |
+| [concept/rejected/explosion-huge-r03-a.ogg](concept/rejected/explosion-huge-r03-a.ogg) | "Explosion_01.wav" by tommccann (CC0 1.0) — `huge` a, 5 s | rejected — not good |
+| [concept/explosion-huge-r03-b.ogg](concept/explosion-huge-r03-b.ogg) | "Big Boom" by unfa (CC0 1.0) — `huge` b, 6 s, deep sub-bass | chosen |
+| [concept/explosion-underwater-r03-a.ogg](concept/explosion-underwater-r03-a.ogg) | "underwater explosion.wav" by cubix (CC0 1.0) — `underwater` a, recorded | chosen |
+| [concept/rejected/explosion-underwater-r03-b.ogg](concept/rejected/explosion-underwater-r03-b.ogg) | "Explosion" by qubodup (CC0 1.0) through a 4-pole 500 Hz low-pass — `underwater` b, derived | rejected — not good (derived low-pass) |
+| [concept/explosion-water-r03-a.ogg](concept/explosion-water-r03-a.ogg) | "Water Explosion" by Sheyvan (CC0 1.0) — `water`, surface naval kills | chosen |
+
+Concept round 04 — audible beam loops with start/stop, Sonar Pulse, extra `huge` and
+`underwater` explosions; imported by `tools/concept/audio/import_sfx.py`, sources in
+[CREDITS.md](../../../CREDITS.md), briefs in [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/shot-beam-r04-a.ogg](concept/shot-beam-r04-a.ogg) | "laser beam" by peepholecircus (CC0 1.0) — `beam` loop a, 2.6 s, smooth ~850 Hz hum (Ion Beam) | proposed |
+| [concept/shot-beam-r04-b.ogg](concept/shot-beam-r04-b.ogg) | "Weapons Beam Loop" by unfa (CC0 1.0) — `beam` loop b, 1.9 s, gritty pulsing texture | proposed |
+| [concept/shot-beam-r04-c.ogg](concept/shot-beam-r04-c.ogg) | "SonicDeathRay_1.2KHzNoCrackle" by zimbot (CC-BY 4.0) — `beam` loop c, 2.0 s, piercing ray (Orbital Lance) | proposed |
+| [concept/shot-beam-start-r04-a.ogg](concept/shot-beam-start-r04-a.ogg) | "Machine Charge" by Glitchedtones (CC0 1.0) — `beam` start, 0.9 s rising charge | proposed |
+| [concept/shot-beam-stop-r04-a.ogg](concept/shot-beam-stop-r04-a.ogg) | "Power Down" by noirenex (CC0 1.0) — `beam` stop, 1.3 s power-down | proposed |
+| [concept/special-sonar-r04-a.ogg](concept/special-sonar-r04-a.ogg) | "Sonar Ping" by SamsterBirdies (CC0 1.0) — Sonar Pulse, clean single ping | proposed |
+| [concept/special-sonar-r04-b.ogg](concept/special-sonar-r04-b.ogg) | "Ping!" by unfa (CC0 1.0) — Sonar Pulse, long ringing ping | proposed |
+| [concept/explosion-huge-r04-a.ogg](concept/explosion-huge-r04-a.ogg) | "Explosion with debris - authentic. 4kg TNT" by sidohzen (CC0 1.0) — `huge` b, 6 s real blast | proposed |
+| [concept/explosion-underwater-r04-a.ogg](concept/explosion-underwater-r04-a.ogg) | "underwater explosion" by mokasza (CC-BY 4.0) — `underwater` b | proposed |
 
 ## Implementation
 
@@ -254,3 +270,4 @@ recorded sounds from Freesound imported by `tools/concept/audio/import_sfx.py`; 
 - 2026-09-30: Concept round 01: all three pickups chosen, one per item type — A standard power-ups, B rare upgrades, C credits.
 - 2026-09-30: Concept round 01: all synthesized player shots and explosions rejected. Explosions must be somewhat realistic; source recorded sound effects from free online libraries instead.
 - 2026-09-30: Concept round 02: recorded shots and explosions are much better; all ten kept as a starting set. Needed next: a distinct shot sound per weapon type (see [weapons](../../player/weapons/README.md)) and more explosions covering the full range from small pops to large booms.
+- 2026-09-30: Concept round 03: rejected huge-a, medium-a, tiny-c, underwater-b and both beam loops (B barely audible); all other r03 shots and explosions chosen. The `beam` family needs new sources (round 04).

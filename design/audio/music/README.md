@@ -2,7 +2,7 @@
 title: Music
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../campaign]
 updated: 2026-09-30
 ---
@@ -111,11 +111,11 @@ keys, tempos, chord progressions, loop points and AI-generator prompts:
 | [concept/boss-theme-r02-a.ogg](concept/boss-theme-r02-a.ogg) | "The Choir Descends" — Vrell boss, 150 BPM, E minor/phrygian, 61.2 s (loop 6.8 s + 51.2 s): the Choir motif alone over a drone → distorted 16th bass, pounding drums, Choir motif with brass and orchestral stabs → tritone synth riff → half-time breakdown with the motif augmented in low brass → build | chosen |
 | [concept/mars-theme-r02-a.ogg](concept/mars-theme-r02-a.ogg) | "Red Dust Run" — Act 3 A, 135 BPM, E phrygian dominant, 53.8 s (loop 7.6 s + 42.7 s): desert wind, hand drums and a lonely reed → breakbeat, reese bass and reed melody → Andalusian-cadence section with 16th arpeggio → dust-storm breakdown (muffled drums, wind swells) → build | chosen |
 | [concept/europa-theme-r02-a.ogg](concept/europa-theme-r02-a.ogg) | "Thera Deep" — Act 4 A, 125 BPM, F minor, 58.1 s (loop 8.2 s + 46.1 s): sonar pings, whale song and bubbles → muffled four-on-the-floor, pumping rolling bass, echoing pluck arp → the filter opens ("surfacing") for the lead melody → deep breakdown without drums → build | chosen |
-| [concept/earth-theme-r03-a.ogg](concept/earth-theme-r03-a.ogg) | "Homefront" — Act 2 A, 147 BPM, C minor, 55.9 s (loop 6.9 s + 45.7 s): air-raid siren, choir and timpani → the main motif turned into a relentless 16th string riff over an urgent breakbeat, orchestral hits and low brass → horns state the motif in full → embattled half-time lament → everything at once, snare roll | proposed |
-| [concept/belt-theme-r03-a.ogg](concept/belt-theme-r03-a.ogg) | "Hollow Rock" — Act 5 A, 135 BPM, B minor, 60.9 s (loop 7.6 s + 49.8 s): radio static and Vorne's broadcast motif in cold brass and organ → industrial groove with anvils and distorted bass, the machines play his arpeggio → Vorne's motif in full brass (B minor ↔ G minor shift) → conveyor breakdown with a lone human horn → build to a brass tutti | proposed |
-| [concept/jovian-theme-r03-a.ogg](concept/jovian-theme-r03-a.ogg) | "Eye of the Storm" — Act 6 A, 140 BPM, G minor, 65.6 s (loop 7.3 s + 54.9 s): thunder, wind and storm strings → the hunt: the main motif in horns over gallop strings and big drums → Vorne's motif in low brass and choir, answered by the main motif in trumpets → storm breakdown (thunder, tremolo, choir) → both motifs at once | proposed |
-| [concept/ascendancy-boss-r03-a.ogg](concept/ascendancy-boss-r03-a.ogg) | "Iron Sovereign" — Ascendancy bosses, 147 BPM, F♯ minor, 62.4 s (loop 6.9 s + 52.2 s): military snare and timpani, Vorne's motif in low brass → march with snare rudiments, trumpets on the motif, low-brass 8ths → machine section with a 16th riff built on the motif → half-time menace with the motif at bar-length notes → tutti with a brass canon | proposed |
-| [concept/final-boss-r03-a.ogg](concept/final-boss-r03-a.ogg) | "Choir Heart" — final boss, 150 BPM, E minor → E major, 67.6 s (loop 6.8 s + 57.6 s): heartbeat, organ and the Choir motif → Vrell fight music → humanity's fanfare answers → both motifs at once in counterpoint → the heart alone, Vorne's motif sung by the Choir → build → humanity's motif in E major | proposed |
+| [concept/earth-theme-r03-a.ogg](concept/earth-theme-r03-a.ogg) | "Homefront" — Act 2 A, 147 BPM, C minor, 55.9 s (loop 6.9 s + 45.7 s): air-raid siren, choir and timpani → the main motif turned into a relentless 16th string riff over an urgent breakbeat, orchestral hits and low brass → horns state the motif in full → embattled half-time lament → everything at once, snare roll | chosen |
+| [concept/belt-theme-r03-a.ogg](concept/belt-theme-r03-a.ogg) | "Hollow Rock" — Act 5 A, 135 BPM, B minor, 60.9 s (loop 7.6 s + 49.8 s): radio static and Vorne's broadcast motif in cold brass and organ → industrial groove with anvils and distorted bass, the machines play his arpeggio → Vorne's motif in full brass (B minor ↔ G minor shift) → conveyor breakdown with a lone human horn → build to a brass tutti | chosen |
+| [concept/jovian-theme-r03-a.ogg](concept/jovian-theme-r03-a.ogg) | "Eye of the Storm" — Act 6 A, 140 BPM, G minor, 65.6 s (loop 7.3 s + 54.9 s): thunder, wind and storm strings → the hunt: the main motif in horns over gallop strings and big drums → Vorne's motif in low brass and choir, answered by the main motif in trumpets → storm breakdown (thunder, tremolo, choir) → both motifs at once | chosen |
+| [concept/ascendancy-boss-r03-a.ogg](concept/ascendancy-boss-r03-a.ogg) | "Iron Sovereign" — Ascendancy bosses, 147 BPM, F♯ minor, 62.4 s (loop 6.9 s + 52.2 s): military snare and timpani, Vorne's motif in low brass → march with snare rudiments, trumpets on the motif, low-brass 8ths → machine section with a 16th riff built on the motif → half-time menace with the motif at bar-length notes → tutti with a brass canon | chosen |
+| [concept/final-boss-r03-a.ogg](concept/final-boss-r03-a.ogg) | "Choir Heart" — final boss, 150 BPM, E minor → E major, 67.6 s (loop 6.8 s + 57.6 s): heartbeat, organ and the Choir motif → Vrell fight music → humanity's fanfare answers → both motifs at once in counterpoint → the heart alone, Vorne's motif sung by the Choir → build → humanity's motif in E major | chosen |
 
 ## Implementation
 
@@ -144,3 +144,4 @@ keys, tempos, chord progressions, loop points and AI-generator prompts:
 - 2026-09-30: Concept round 03 proposed: Act 2 A (Earth), Act 5 A (belt), Act 6 A (Jupiter),
   the Ascendancy boss theme and the final boss theme. Vorne's motif is pinned down as notes
   (1-♭3-5-7, see Motifs).
+- 2026-09-30: Concept round 03: all five themes chosen ("all music is great").

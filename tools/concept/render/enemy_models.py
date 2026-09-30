@@ -681,3 +681,105 @@ ENEMIES = {
                          None),
     "rail-bunker-a": ("RAIL BUNKER", "ASCENDANCY", "ground", 42, rail_bunker, "aim", None),
 }
+
+
+# --------------------------------------------------------------------------- round 04 colour roles
+#
+# Round 03 feedback: the Vrell read as uniformly magenta. Round 04 gives every role its own colour
+# identity inside the faction (see design/enemies/README.md, "Role colours"):
+#   chitin base = role family, glow hue = kind of threat.
+# Reserved hues stay free: enemy bullets (magenta FF40FF orbs, yellow FFFF40 needles, orange),
+# player blue / white / cyan. No Vrell body or glow uses them.
+
+CHITIN_BASES = {           # (mid albedo, dark, bone/spike)
+    "plum":       ("a020a8", "40004a", "c890d8"),   # swarm fodder
+    "rust":       ("b04a2c", "3a1008", "e0b890"),   # fast attackers, divers
+    "bone":       ("dccfb4", "5c4a5c", "f4ecd8"),   # ranged gunners and snipers
+    "olive":      ("7c8c3a", "263010", "c8c890"),   # bombers, area denial from the air
+    "slate":      ("7c6878", "241a24", "c8b8c0"),   # rooted ground units (mauve-grey)
+    "teal-black": ("1e5c5a", "06201e", "8ab8a8"),   # spawners and carriers
+}
+GLOWS = {                  # glow hue = what the unit does to you
+    "teal":    "00ff9a",   # contact / ramming / spawning
+    "violet":  "9a4dff",   # aimed shots
+    "crimson": "ff3038",   # lasers, sweeps and dives (lines of danger)
+    "lime":    "a8ff2a",   # area denial: mines, spores, acid
+}
+ROLE_SCHEMES = {           # unit -> (chitin base, glow, weak-point glow)
+    "skitter":       ("plum", "teal", "teal"),
+    "needler":       ("bone", "violet", "violet"),
+    "stinger":       ("rust", "crimson", "crimson"),
+    "spore-bomber":  ("olive", "lime", "lime"),
+    "brood-pod":     ("teal-black", "teal", "teal"),
+    "mantis":        ("bone", "crimson", "crimson"),
+    "spine-turret":  ("slate", "violet", "violet"),
+    "polyp-mortar":  ("slate", "lime", "lime"),
+    "brood-carrier": ("teal-black", "teal", "lime"),   # weak points in a contrasting glow
+}
+ASC_ACCENTS = {            # Ascendancy: black & gold plus a per-unit secondary accent
+    "talon": "c8202a",           # red
+    "gilded-gunship": "e8e4f0",  # white
+    "rail-bunker": "6a6e78",     # gunmetal
+}
+
+
+def _mix(a, b, t):
+    return tuple(x + (y - x) * t for x, y in zip(a, b))
+
+
+def scheme_colors(unit):
+    base, glow, weak = ROLE_SCHEMES[unit]
+    mid, dark, bone = (hx(c) for c in CHITIN_BASES[base])
+    g = np.array(hx(GLOWS[glow]))
+    w = np.array(_mix(hx(GLOWS[weak]), (1, 1, 1), 0.25))
+    return mid, dark, bone, g, w
+
+
+def vrell_scheme_mats(unit, style="a", glow=1.0):
+    """Same material slots as ``vrell_mats`` with the round 04 role colours of ``unit``."""
+    mid, dark, bone, gl, weak = scheme_colors(unit)
+    body_pat = _ridges(18, 0.2) if style == "a" else _plates(3.0, 0.07)
+    seam_pat = _seam(0.055) if style == "a" else _plate_gaps(3.0, 0.07)
+    seam_body = _ridges(18, 0.15) if style == "a" else _plates(3.0, 0.07)
+    spec = 1.1 if style == "a" else 0.9
+    return [
+        Material(mid, metal=0.3, shininess=110, spec=spec, pattern=body_pat),
+        Material(dark, metal=0.35, shininess=80, spec=0.8),
+        Material(mid, metal=0.3, shininess=110, spec=spec, pattern=seam_body,
+                 emission=tuple(gl * 1.6 * glow), emission_pattern=seam_pat),
+        Material((0.04, 0.04, 0.04), emission=tuple(gl * 1.35 * glow)),
+        Material((0.04, 0.04, 0.04), emission=tuple(weak * 1.5 * glow)),
+        Material(bone, metal=0.2, shininess=70, spec=0.7),
+        Material(_mix(mid, dark, 0.35), metal=0.1, shininess=60, spec=0.9,
+                 emission=tuple(gl * 1.1 * glow), emission_pattern=_veins(9, 0.3, 0.35)),
+    ]
+
+
+def asc_scheme_mats(unit, glow=1.0):
+    """``asc_mats`` with the unit's secondary accent on the facet and gun slots."""
+    acc = hx(ASC_ACCENTS[unit])
+    mats = asc_mats(glow)
+    mats[A_FACET] = Material(_mix(ASC[3], acc, 0.45), metal=0.8, shininess=130, spec=1.2)
+    mats[A_GUN] = Material(acc, metal=0.75, shininess=100, spec=1.0)
+    return mats
+
+
+def brood_carrier_scheme_mats(glow=1.0, bays_open=0.0, core_open=0.0):
+    """Brood Carrier in round 04 colours: teal-black chitin with teal veins; bay sacs and the
+    core (the weak points) glow lime, brighter when open."""
+    mid, dark, bone, gl, weak = scheme_colors("brood-carrier")
+    g = glow
+    return [
+        Material(mid, metal=0.3, shininess=90, spec=1.0, pattern=_ridges(9, 0.22)),
+        Material(_mix(mid, bone, 0.3), metal=0.35, shininess=110, spec=1.1,
+                 pattern=_plates(2.2, 0.05)),
+        Material(dark, metal=0.3, shininess=70, spec=0.8, pattern=_ridges(40, 0.3, axis=0),
+                 emission=tuple(gl * 0.8 * g), emission_pattern=_seam(0.03, x0=0.9)),
+        Material(_mix(dark, weak, 0.25), metal=0.1, shininess=60, spec=0.9,
+                 emission=tuple(weak * (0.45 + 1.1 * bays_open) * g),
+                 emission_pattern=_veins(14, 1.1, 0.6)),
+        Material((0.05, 0.05, 0.05), emission=tuple(weak * (0.5 + 1.0 * core_open) * g)),
+        Material(bone, metal=0.2, shininess=70, spec=0.7),
+        Material(dark, metal=0.3, shininess=70, spec=0.7, pattern=_ridges(30, 0.3)),
+        Material((0.05, 0.05, 0.05), emission=tuple(gl * 1.4 * g)),
+    ]

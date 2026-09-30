@@ -60,7 +60,13 @@ Concept [round 03](../../concept-rounds/round-03/README.md). Prompts: [concept/p
 
 | File | What | Status |
 |---|---|---|
-| [concept/brood-carrier-r03-a.png](concept/brood-carrier-r03-a.png) | Brood Carrier (Act 1 boss, language A): full 288×626 sprite with labelled parts and weak points, phase 2 broadside in the play field, bay and core iris closed/open details | proposed |
+| [concept/brood-carrier-r03-a.png](concept/brood-carrier-r03-a.png) | Brood Carrier (Act 1 boss, language A): full 288×626 sprite with labelled parts and weak points, phase 2 broadside in the play field, bay and core iris closed/open details | chosen — colours to be differentiated (round 04) |
+
+Concept [round 04](../../concept-rounds/round-04/README.md) — colour pass on the chosen enemies with the [role colours](../../README.md#role-colours-draft) (chitin base = role family, glow = kind of threat; Ascendancy black & gold with a per-unit accent and a thin gold/red rim light). Same models and sheet layout; generator `tools/concept/enemies_r04.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/brood-carrier-r04-a.png](concept/brood-carrier-r04-a.png) | Brood Carrier — teal-black chitin with teal veins; bay sacs and core (weak points) in contrasting lime | proposed |
 
 ## Implementation
 
@@ -79,3 +85,4 @@ Concept [round 03](../../concept-rounds/round-03/README.md). Prompts: [concept/p
 
 - 2026-09-30: 7 act bosses and 5 mid-bosses drafted, plus a boss rush at L49.
 - 2026-09-30: Concept round 03: Brood Carrier mockup (language A) with launch bays, bay sacs and core iris as marked weak points.
+- 2026-09-30: Concept round 04: colour pass on the Brood Carrier with the role colours (r04 proposals).

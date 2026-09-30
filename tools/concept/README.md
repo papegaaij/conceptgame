@@ -38,6 +38,12 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 |---|---|---|
 | `enemies_r03.py [slug ...]` | `design/enemies/{air,ground}/concept/<slug>-r03-<v>.png`, `design/enemies/bosses/concept/brood-carrier-r03-a.png`, `design/enemies/concept/lineup-r03-a.png` | Act 1 Vrell set (two design languages for Skitter, Needler, Spine Turret), three Ascendancy units, the Brood Carrier boss and a lineup; models in `render/enemy_models.py`; ~5 min for everything |
 
+## Scripts (visual, round 04 – enemy colour pass)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `enemies_r04.py [slug ...]` | `design/enemies/{air,ground,bosses}/concept/<slug>-r04-a.png`, `design/enemies/concept/lineup-r04-a.png` | re-renders the chosen round-03 enemies with the role colours (`ROLE_SCHEMES` etc. in `render/enemy_models.py`) through the round-03 sheet code; Ascendancy rim light; lineup with colour legend; ~4 min |
+
 ## Audio (round 01)
 
 Audio generators live in [`audio/`](audio/README.md): a small numpy synth (`synth.py`), the

@@ -34,3 +34,28 @@ Prompts for polished versions of the round-03 mockups.
 - **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, three-quarter view, side view, text, watermark, busy background, anti-aliased soft edges, motion blur.
 - **Mockup generator:** `python3 tools/concept/enemies_r03.py rail-bunker` (models in `tools/concept/render/enemy_models.py`)
 
+# Round 04 — role colours
+
+## spine-turret-r04-a
+
+**Spine Turret, round 04 role colours** — slate chitin, violet glow.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Biomechanical alien Vrell creature: smooth bulb with a petal collar and one long thorn barrel, rooted into a station hull. Glossy slate chitin (#7c6878, shadows #241a24, spikes #c8b8c0), bioluminescent violet glow (#9a4dff) in seams, veins and eyes; weak points glow brightest in #9a4dff. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, orange glow, blue or cyan body colour.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py spine-turret`
+
+## polyp-mortar-r04-a
+
+**Polyp Mortar, round 04 role colours** — slate chitin, lime glow.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Biomechanical alien Vrell creature: squat organic tube with a wide acid-filled mouth ringed by tentacles. Glossy slate chitin (#7c6878, shadows #241a24, spikes #c8b8c0), bioluminescent lime glow (#a8ff2a) in seams, veins and eyes; weak points glow brightest in #a8ff2a. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, orange glow, blue or cyan body colour.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py polyp-mortar`
+
+## rail-bunker-r04-a
+
+**Rail Bunker, round 04** — black & gold with a #6a6e78 secondary accent and a gold/red rim light.
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Human-built stealth military machine: octagonal hardened bunker with a long twin-rail cannon and gold coil rings. Angular faceted gloss-black hull (#201430 to #4c3a68) with hex panel lines, gold (#ffa800) trim, secondary accent colour #6a6e78, red running lights, a thin gold rim light on the top-left edges and red on the bottom-right edges. Facing down.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, blue or cyan body colour, curves, organic shapes.
+- **Mockup generator:** `python3 tools/concept/enemies_r04.py rail-bunker`

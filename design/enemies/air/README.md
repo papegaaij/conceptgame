@@ -52,16 +52,29 @@ Concept [round 03](../../concept-rounds/round-03/README.md). Two Vrell design la
 
 | File | What | Status |
 |---|---|---|
-| [concept/skitter-r03-a.png](concept/skitter-r03-a.png) | Skitter, language A: needle dart with scythe wings; snake formation over a station hull | proposed |
-| [concept/skitter-r03-b.png](concept/skitter-r03-b.png) | Skitter, language B: armoured beetle with split glowing elytra | proposed |
-| [concept/needler-r03-a.png](concept/needler-r03-a.png) | Needler, language A: slim body with thorn proboscis; V formation firing aimed thorns | proposed |
-| [concept/needler-r03-b.png](concept/needler-r03-b.png) | Needler, language B: crab with two claws around a thorn launcher | proposed |
-| [concept/stinger-r03-a.png](concept/stinger-r03-a.png) | Stinger (A): wasp-like diver, 3-way fan at the bottom of its dive | proposed |
-| [concept/spore-bomber-r03-a.png](concept/spore-bomber-r03-a.png) | Spore Bomber (A): gas-bag blimp on `low-air` dropping spore mines, over Earth from orbit | proposed |
-| [concept/brood-pod-r03-a.png](concept/brood-pod-r03-a.png) | Brood Pod (A): pulsing egg sac bursting into six Skitters, over lunar regolith | proposed |
-| [concept/mantis-r03-a.png](concept/mantis-r03-a.png) | Mantis (A): side-holding laser sweeper with raptorial arms | proposed |
-| [concept/talon-r03-a.png](concept/talon-r03-a.png) | Talon (Ascendancy fighter): forward-swept black-and-gold stealth interceptor with paired aimed shots, asteroid belt | proposed |
-| [concept/gilded-gunship-r03-a.png](concept/gilded-gunship-r03-a.png) | Gilded Gunship (Ascendancy gunship): gold front armour, ring burst, exposed rear engines | proposed |
+| [concept/skitter-r03-a.png](concept/skitter-r03-a.png) | Skitter, language A: needle dart with scythe wings; snake formation over a station hull | chosen — colours to be differentiated (round 04) |
+| [concept/rejected/skitter-r03-b.png](concept/rejected/skitter-r03-b.png) | Skitter, language B: armoured beetle with split glowing elytra | rejected — other variant preferred |
+| [concept/rejected/needler-r03-a.png](concept/rejected/needler-r03-a.png) | Needler, language A: slim body with thorn proboscis; V formation firing aimed thorns | rejected — other variant preferred |
+| [concept/needler-r03-b.png](concept/needler-r03-b.png) | Needler, language B: crab with two claws around a thorn launcher | chosen — colours to be differentiated (round 04) |
+| [concept/stinger-r03-a.png](concept/stinger-r03-a.png) | Stinger (A): wasp-like diver, 3-way fan at the bottom of its dive | chosen — colours to be differentiated (round 04) |
+| [concept/spore-bomber-r03-a.png](concept/spore-bomber-r03-a.png) | Spore Bomber (A): gas-bag blimp on `low-air` dropping spore mines, over Earth from orbit | chosen — colours to be differentiated (round 04) |
+| [concept/brood-pod-r03-a.png](concept/brood-pod-r03-a.png) | Brood Pod (A): pulsing egg sac bursting into six Skitters, over lunar regolith | chosen — colours to be differentiated (round 04) |
+| [concept/mantis-r03-a.png](concept/mantis-r03-a.png) | Mantis (A): side-holding laser sweeper with raptorial arms | chosen — colours to be differentiated (round 04) |
+| [concept/talon-r03-a.png](concept/talon-r03-a.png) | Talon (Ascendancy fighter): forward-swept black-and-gold stealth interceptor with paired aimed shots, asteroid belt | chosen — colours to be differentiated (round 04) |
+| [concept/gilded-gunship-r03-a.png](concept/gilded-gunship-r03-a.png) | Gilded Gunship (Ascendancy gunship): gold front armour, ring burst, exposed rear engines | chosen — colours to be differentiated (round 04) |
+
+Concept [round 04](../../concept-rounds/round-04/README.md) — colour pass on the chosen enemies with the [role colours](../../README.md#role-colours-draft) (chitin base = role family, glow = kind of threat; Ascendancy black & gold with a per-unit accent and a thin gold/red rim light). Same models and sheet layout; generator `tools/concept/enemies_r04.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/skitter-r04-a.png](concept/skitter-r04-a.png) | Skitter — plum chitin, teal glow (fodder, contact) | proposed |
+| [concept/needler-r04-a.png](concept/needler-r04-a.png) | Needler (language B crab) — bone/ivory carapace, violet glow (gunner, aimed shots); yellow needles | proposed |
+| [concept/stinger-r04-a.png](concept/stinger-r04-a.png) | Stinger — rust chitin, crimson glow (diver) | proposed |
+| [concept/spore-bomber-r04-a.png](concept/spore-bomber-r04-a.png) | Spore Bomber — olive chitin, lime glow and spore bulbs (area denial) | proposed |
+| [concept/brood-pod-r04-a.png](concept/brood-pod-r04-a.png) | Brood Pod — teal-black sac, teal veins (spawner); bursts into plum Skitters | proposed |
+| [concept/mantis-r04-a.png](concept/mantis-r04-a.png) | Mantis — bone/ivory chitin, crimson glow (laser sweeper) | proposed |
+| [concept/talon-r04-a.png](concept/talon-r04-a.png) | Talon — black & gold with red accent and gold/red rim light | proposed |
+| [concept/gilded-gunship-r04-a.png](concept/gilded-gunship-r04-a.png) | Gilded Gunship — black & gold with white accent and rim light | proposed |
 
 ## Implementation
 
@@ -76,3 +89,4 @@ Concept [round 03](../../concept-rounds/round-03/README.md). Two Vrell design la
 - 2026-09-30: Roster of 17 air enemies drafted.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-09-30: Concept round 03: first enemy sheets — Act 1 air enemies (Skitter and Needler in both Vrell design languages) plus Talon and Gilded Gunship for faction contrast.
+- 2026-09-30: Concept round 04: colour pass on air enemies with the role colours (r04 proposals).
