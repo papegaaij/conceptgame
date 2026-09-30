@@ -2,7 +2,7 @@
 title: Art direction
 design: draft
 implementation: n/a
-art: chosen
+art: proposed
 updated: 2026-09-30
 ---
 
@@ -159,6 +159,26 @@ every scene gets a clearly visible **atmosphere layer** and, where the setting a
   Europa's ice, Vrell biomass (creep, spore fields) on infested areas.
 - Decoration never competes with gameplay: it stays lower in contrast and saturation than
   enemies and bullets.
+- Rules learned in round 03:
+  - **Coverage**: low-air banks cover roughly 25–40 % of the screen and leave the lanes of the
+    level (avenues, canyon, spine gaps) readable most of the time.
+  - **Tones**: mix the setting ramp towards a neutral (grey for clouds and fog, ochre for Mars
+    dust) and keep the brightest bank tone clearly below the player's hull in value. Light
+    tints must not land in a reserved hue: sodium orange over violet fog turns pink, so fog
+    uses a greyed base with an amber glow.
+  - **Shape**: clouds are billowy (lighting from a blurred density, lit towards the top-left,
+    shadowed bottom-right); fog and dust banks are stretched 2–4× along the wind so they read
+    as rolling banks rather than blobs.
+  - **Depth**: a bank shadows the ground below it (offset (10, 14), 25–40 %), and flyers cast a
+    second shadow onto bank tops at a smaller offset (12, 17) as well as onto the ground.
+  - **Limited colour**: banks are posterized to about 12 colours and their alpha stepped to about
+    6 levels, like 90s translucency tables; thin veils and wisps need finer steps (about 10) or
+    they break into hard-edged patches. This also keeps scrolling layers cheap.
+  - **Vegetation**: low-value greens (night parks and trees at about 55–60 % brightness;
+    Mars lichen as a dark olive with ragged, speckled edges); trees are small pre-rendered
+    canopy sprites; tree rows stop at crossings.
+  - When a scene is reduced to a small palette (e.g. a GIF preview), reserve the bullet, shot
+    and Vrell glow colours and give key sprites a share of the palette.
 
 - In **space** levels there is no terrain: stations, asteroids and capital ships take the ground
   role at 1.0, and the deep layer becomes several star-field and nebula layers.
@@ -223,6 +243,20 @@ is a seamless 4 s loop (80 frames at 20 fps) at native 480×540:
 | [concept/parallax-r02-b.gif](concept/parallax-r02-b.gif) | Parallax B: scroll loop | chosen — approach; needs more decoration (round 03) |
 | [concept/parallax-r02-c.png](concept/parallax-r02-c.png) | Parallax C "Mars canyon, balanced": canyon floor as a far layer with perspective strata walls, plateau with a colony outpost and Vrell pods, dust plumes and streaks; ground 160 px/s | chosen — approach; needs more decoration (round 03) |
 | [concept/parallax-r02-c.gif](concept/parallax-r02-c.gif) | Parallax C: scroll loop | chosen — approach; needs more decoration (round 03) |
+
+Concept round 03, decoration pass on the round 02 scenes (prompts:
+[concept/prompts.md](concept/prompts.md); generator `tools/concept/parallax_r03.py`, which
+subclasses the round 02 scenes). The GIF loops use reduced palettes (72–128 colours) to stay
+under ~8 MB; the PNG sheets show full colour:
+
+| File | What | Status |
+|---|---|---|
+| [concept/parallax-r03-a.png](concept/parallax-r03-a.png) | Parallax A + decoration: a cyclone and cloud fronts on the deep Earth, pale cloud decks on low-air drifting between the station and the play plane (shadowing the station, catching flyer shadows), haze wisps and ice streaks on high-air | proposed |
+| [concept/parallax-r03-a.gif](concept/parallax-r03-a.gif) | Parallax A + decoration: scroll loop | proposed |
+| [concept/parallax-r03-b.png](concept/parallax-r03-b.png) | Parallax B + decoration: tree-lined avenues, more and richer parks (paths, ponds), rooftop gardens, rolling fog banks on low-air lit amber by the avenue lamps; still calm | proposed |
+| [concept/parallax-r03-b.gif](concept/parallax-r03-b.gif) | Parallax B + decoration: scroll loop | proposed |
+| [concept/parallax-r03-c.png](concept/parallax-r03-c.png) | Parallax C + decoration: ochre dust-storm banks on low-air, dust veil and heavier streaks on high-air, greenhouse tunnels, algae ponds and lichen fields around the colony | proposed |
+| [concept/parallax-r03-c.gif](concept/parallax-r03-c.gif) | Parallax C + decoration: scroll loop | proposed |
 
 ## Implementation
 

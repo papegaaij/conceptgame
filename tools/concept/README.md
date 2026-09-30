@@ -29,7 +29,14 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 | `ships_r02.py` | `design/player/ship/concept/player-ship-r02-a.png`, `design/player/wingmen/concept/rook-craft-r02-{a,b}.png` | ship A at 48x48 and Rook's craft (ship C geometry, 40x40) in two schemes, ~15 s |
 | `parallax_r02.py [a] [b] [c]` | `design/art-direction/concept/parallax-r02-{a,b,c}.{png,gif}` | orbit (fuller, faster), calm night city, Mars canyon; 4 s loops at 20 fps, ~1 min |
 | `hud_r02.py` | `design/ui/hud/concept/hud-r02-a.png` | HUD A at 960x540, reuses parallax scene A of round 02 |
+| `parallax_r03.py [a] [b] [c]` | `design/art-direction/concept/parallax-r03-{a,b,c}.{png,gif}` | round 03 decoration pass: subclasses the round 02 scenes (clouds, fog, dust banks, trees, gardens, greenhouses, lichen); GIFs with reserved bullet colours, ~1 min |
 | `make_all.py` | all of the above (default round) | about three minutes |
+
+## Scripts (visual, round 03 – enemies)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `enemies_r03.py [slug ...]` | `design/enemies/{air,ground}/concept/<slug>-r03-<v>.png`, `design/enemies/bosses/concept/brood-carrier-r03-a.png`, `design/enemies/concept/lineup-r03-a.png` | Act 1 Vrell set (two design languages for Skitter, Needler, Spine Turret), three Ascendancy units, the Brood Carrier boss and a lineup; models in `render/enemy_models.py`; ~5 min for everything |
 
 ## Audio (round 01)
 

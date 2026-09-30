@@ -2,7 +2,7 @@
 title: Bosses
 design: draft
 implementation: not-started
-art: none
+art: proposed
 updated: 2026-09-30
 ---
 
@@ -54,6 +54,14 @@ boss assets with a spectral tint, not new designs.
   and a large **death sequence** (chain explosions, screen flash) followed by a credit shower.
 - Target duration: act bosses 90–180 s at medium, mid-bosses 45–75 s.
 
+## Concept art
+
+Concept [round 03](../../concept-rounds/round-03/README.md). Prompts: [concept/prompts.md](concept/prompts.md); generator `tools/concept/enemies_r03.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/brood-carrier-r03-a.png](concept/brood-carrier-r03-a.png) | Brood Carrier (Act 1 boss, language A): full 288×626 sprite with labelled parts and weak points, phase 2 broadside in the play field, bay and core iris closed/open details | proposed |
+
 ## Implementation
 
 - [ ] Each boss promoted to its own directory with phases, attack scripts and weak-point
@@ -63,9 +71,11 @@ boss assets with a spectral tint, not new designs.
 
 ## Open questions
 
+- **Brood Carrier length**: the roster says "the length of two screens"; the round-03 mockup is 288×626 (about one screen). Scale it up about 1.7× for phase 1, or keep one screen so the broadside of phase 2 still fits? Proposal: keep one screen.
 - Should the Ascendant's third phase (Vorne escaping) be skippable, or is it a scripted end?
   Proposal: scripted. The player can damage the lifeboat for bonus credits, but it always escapes.
 
 ## Decisions
 
 - 2026-09-30: 7 act bosses and 5 mid-bosses drafted, plus a boss rush at L49.
+- 2026-09-30: Concept round 03: Brood Carrier mockup (language A) with launch bays, bay sacs and core iris as marked weak points.

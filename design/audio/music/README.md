@@ -2,7 +2,7 @@
 title: Music
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 depends-on: [../../campaign]
 updated: 2026-09-30
 ---
@@ -22,22 +22,25 @@ everywhere.
 
 | # | Track | Use | Style / notes | Length | Priority | Current material |
 |---|---|---|---|---|---|---|
-| 1 | Title theme | Title & main menu | Heroic main motif, synth-orchestral + beat | 2:00 loop | P1 | [title-theme-r02-a](concept/title-theme-r02-a.ogg) "Terran Vanguard" (proposed) |
-| 2 | Hangar | Hangar | Laid-back electronic, mechanical ambience, main motif hint | 2:30 loop | P1 | [hangar-theme-r02-a](concept/hangar-theme-r02-a.ogg) "Dry Dock" (proposed) |
+| 1 | Title theme | Title & main menu | Heroic main motif, synth-orchestral + beat | 2:00 loop | P1 | [title-theme-r02-a](concept/title-theme-r02-a.ogg) "Terran Vanguard" (chosen) |
+| 2 | Hangar | Hangar | Laid-back electronic, mechanical ambience, main motif hint | 2:30 loop | P1 | [hangar-theme-r02-a](concept/hangar-theme-r02-a.ogg) "Dry Dock" (chosen) |
 | 3 | Briefing | Briefing screens | Tense pads, sparse percussion | 1:30 loop | P2 | — |
 | 4 | Act 1 A: Earth orbit & Luna | Levels 01–07 | Uplifting tracker trance/techno | 3:00 loop | P1 | [music-r01-a](concept/music-r01-a.ogg) "Afterburner" (chosen, to be extended to full length) |
 | 5 | Act 1 B: Earth orbit & Luna | Levels 01–07 | Synth-orchestral, the main motif | 3:00 loop | P1 | [music-r01-b](concept/music-r01-b.ogg) "Coalition Rising" (chosen, to be extended to full length) |
-| 6–7 | Act 2 A/B: Earth surface | Levels 08–14 | Urgent breakbeat, orchestral hits | 3:00 | P2 | — |
-| 8 | Act 3 A: Mars | Levels 15–21 | Dusty breakbeat, desert-scale (phrygian dominant) lead | 3:00 | P2 | [mars-theme-r02-a](concept/mars-theme-r02-a.ogg) "Red Dust Run" (proposed) |
+| 6 | Act 2 A: Earth surface | Levels 08–14 | Urgent breakbeat, orchestral hits, choir; the main motif as a 16th riff | 3:00 | P2 | [earth-theme-r03-a](concept/earth-theme-r03-a.ogg) "Homefront" (proposed) |
+| 7 | Act 2 B: Earth surface | Levels 08–14 | Urgent breakbeat, orchestral hits | 3:00 | P2 | — |
+| 8 | Act 3 A: Mars | Levels 15–21 | Dusty breakbeat, desert-scale (phrygian dominant) lead | 3:00 | P2 | [mars-theme-r02-a](concept/mars-theme-r02-a.ogg) "Red Dust Run" (chosen) |
 | 9 | Act 3 B: Mars | Levels 15–21 | Dusty mid-tempo techno, Vorne's motif as a faint layer | 3:00 | P2 | — |
-| 10 | Act 4 A: Europa | Levels 22–28 | Muffled ambient trance, sonar pings, deep echoes | 3:00 | P2 | [europa-theme-r02-a](concept/europa-theme-r02-a.ogg) "Thera Deep" (proposed) |
+| 10 | Act 4 A: Europa | Levels 22–28 | Muffled ambient trance, sonar pings, deep echoes | 3:00 | P2 | [europa-theme-r02-a](concept/europa-theme-r02-a.ogg) "Thera Deep" (chosen) |
 | 11 | Act 4 B: Europa | Levels 22–28 | Muffled ambient-dnb, Vorne's motif as a faint layer (L27–28) | 3:00 | P2 | — |
-| 12–13 | Act 5 A/B: Asteroid belt | Levels 29–35 | Driving industrial, Vorne's motif in the open | 3:00 | P3 | — |
-| 14–15 | Act 6 A/B: Jupiter | Levels 36–42 | Heavy, stormy, choir + distorted bass | 3:00 | P3 | — |
+| 12 | Act 5 A: Asteroid belt | Levels 29–35 | Driving industrial, metallic percussion, Vorne's motif in the open | 3:00 | P3 | [belt-theme-r03-a](concept/belt-theme-r03-a.ogg) "Hollow Rock" (proposed) |
+| 13 | Act 5 B: Asteroid belt | Levels 29–35 | Driving industrial, Vorne's motif in the open | 3:00 | P3 | — |
+| 14 | Act 6 A: Jupiter | Levels 36–42 | Vast and stormy: storm strings, thunder, choir; Vorne's motif against the main motif | 3:00 | P3 | [jovian-theme-r03-a](concept/jovian-theme-r03-a.ogg) "Eye of the Storm" (proposed) |
+| 15 | Act 6 B: Jupiter | Levels 36–42 | Heavy, stormy, choir + distorted bass | 3:00 | P3 | — |
 | 16–17 | Act 7 A/B: Beyond the gate | Levels 43–50 | Alien, Choir motif fused with the main motif | 3:00 | P3 | — |
-| 18 | Boss: Vrell | Vrell act bosses | Choir, pounding drums | 2:00 loop | P1 | [boss-theme-r02-a](concept/boss-theme-r02-a.ogg) "The Choir Descends" (proposed) |
-| 19 | Boss: Ascendancy | Ascendancy bosses | Industrial, Vorne's motif | 2:00 loop | P3 | — |
-| 20 | Final boss | Level 50 | All motifs, full orchestra + beat | 3:00 loop | P3 | — |
+| 18 | Boss: Vrell | Vrell act bosses | Choir, pounding drums | 2:00 loop | P1 | [boss-theme-r02-a](concept/boss-theme-r02-a.ogg) "The Choir Descends" (chosen) |
+| 19 | Boss: Ascendancy | Ascendancy bosses (Iron Sovereign, Ascendant) | Martial and cold: snare rudiments, timpani, machine riff, Vorne's motif | 2:00 loop | P3 | [ascendancy-boss-r03-a](concept/ascendancy-boss-r03-a.ogg) "Iron Sovereign" (proposed) |
+| 20 | Final boss | Level 50 (Choir Heart) | All motifs, full orchestra + beat; the Choir motif against the main motif | 3:00 loop | P3 | [final-boss-r03-a](concept/final-boss-r03-a.ogg) "Choir Heart" (proposed) |
 | 21 | Mini-boss sting | Mini-boss entrance | 4 s stinger, then back to the level track | 0:04 | P2 | — |
 | 22 | Boss warning | Before the boss | Alarm + riser, 5 s, bridges to the boss track | 0:05 | P1 | — |
 | 23 | Mission complete | Debrief start | Victory jingle | 0:06 | P1 | — |
@@ -64,7 +67,12 @@ Which level uses A or B is set per level in the [campaign](../../campaign/README
   The tritone drop and the ♭2→1 half step make it alien. It is sung by a formant "choir" and
   doubled by low brass; augmented (half speed) in breakdowns. First used in the Vrell boss
   theme.
-- **Vorne's motif** (Ascendancy): a cold 4-note arpeggio. It follows the twist timing in
+- **Vorne's motif** (Ascendancy): a cold 4-note arpeggio on degrees **1 – ♭3 – 5 – 7**, the
+  minor-major-seventh chord whose unresolved major 7th sounds "wrong" over a minor key.
+  Stately rhythm: dotted quarter – eighth – half | whole. In B minor: B3 · D4 · F♯4 · A♯4.
+  It is played by cold low brass (often with an organ an octave down) and, at speed, by
+  machines: the arpeggio sequencers of the belt theme and the 16th riff of the Ascendancy boss
+  theme. In the final boss it is sung by the Choir: Vorne, absorbed. It follows the twist timing in
   [story](../../story/README.md): a faint background layer from the first hints in Act 3 (the
   Act 3 B theme and the L19 Revenant Walker fight) and in Act 4 (L27–28), then in the open from
   Act 5, when Vorne's broadcast reveals the Ascendancy.
@@ -88,10 +96,11 @@ level section asks for it, and fades out 4 s after calm returns.
 
 ## Concept art
 
-Concept rounds 01 and 02 — see [round 01](../../concept-rounds/round-01/README.md). Briefs,
+Concept rounds 01–03 — see [round 01](../../concept-rounds/round-01/README.md). Briefs,
 keys, tempos, chord progressions, loop points and AI-generator prompts:
 [concept/prompts.md](concept/prompts.md). Generated by `tools/concept/audio/music.py`
-(round 01) and `tools/concept/audio/music_r02.py` (round 02).
+(round 01), `tools/concept/audio/music_r02.py` (round 02) and
+`tools/concept/audio/music_r03.py` (round 03).
 
 | File | What | Status |
 |---|---|---|
@@ -102,6 +111,11 @@ keys, tempos, chord progressions, loop points and AI-generator prompts:
 | [concept/boss-theme-r02-a.ogg](concept/boss-theme-r02-a.ogg) | "The Choir Descends" — Vrell boss, 150 BPM, E minor/phrygian, 61.2 s (loop 6.8 s + 51.2 s): the Choir motif alone over a drone → distorted 16th bass, pounding drums, Choir motif with brass and orchestral stabs → tritone synth riff → half-time breakdown with the motif augmented in low brass → build | chosen |
 | [concept/mars-theme-r02-a.ogg](concept/mars-theme-r02-a.ogg) | "Red Dust Run" — Act 3 A, 135 BPM, E phrygian dominant, 53.8 s (loop 7.6 s + 42.7 s): desert wind, hand drums and a lonely reed → breakbeat, reese bass and reed melody → Andalusian-cadence section with 16th arpeggio → dust-storm breakdown (muffled drums, wind swells) → build | chosen |
 | [concept/europa-theme-r02-a.ogg](concept/europa-theme-r02-a.ogg) | "Thera Deep" — Act 4 A, 125 BPM, F minor, 58.1 s (loop 8.2 s + 46.1 s): sonar pings, whale song and bubbles → muffled four-on-the-floor, pumping rolling bass, echoing pluck arp → the filter opens ("surfacing") for the lead melody → deep breakdown without drums → build | chosen |
+| [concept/earth-theme-r03-a.ogg](concept/earth-theme-r03-a.ogg) | "Homefront" — Act 2 A, 147 BPM, C minor, 55.9 s (loop 6.9 s + 45.7 s): air-raid siren, choir and timpani → the main motif turned into a relentless 16th string riff over an urgent breakbeat, orchestral hits and low brass → horns state the motif in full → embattled half-time lament → everything at once, snare roll | proposed |
+| [concept/belt-theme-r03-a.ogg](concept/belt-theme-r03-a.ogg) | "Hollow Rock" — Act 5 A, 135 BPM, B minor, 60.9 s (loop 7.6 s + 49.8 s): radio static and Vorne's broadcast motif in cold brass and organ → industrial groove with anvils and distorted bass, the machines play his arpeggio → Vorne's motif in full brass (B minor ↔ G minor shift) → conveyor breakdown with a lone human horn → build to a brass tutti | proposed |
+| [concept/jovian-theme-r03-a.ogg](concept/jovian-theme-r03-a.ogg) | "Eye of the Storm" — Act 6 A, 140 BPM, G minor, 65.6 s (loop 7.3 s + 54.9 s): thunder, wind and storm strings → the hunt: the main motif in horns over gallop strings and big drums → Vorne's motif in low brass and choir, answered by the main motif in trumpets → storm breakdown (thunder, tremolo, choir) → both motifs at once | proposed |
+| [concept/ascendancy-boss-r03-a.ogg](concept/ascendancy-boss-r03-a.ogg) | "Iron Sovereign" — Ascendancy bosses, 147 BPM, F♯ minor, 62.4 s (loop 6.9 s + 52.2 s): military snare and timpani, Vorne's motif in low brass → march with snare rudiments, trumpets on the motif, low-brass 8ths → machine section with a 16th riff built on the motif → half-time menace with the motif at bar-length notes → tutti with a brass canon | proposed |
+| [concept/final-boss-r03-a.ogg](concept/final-boss-r03-a.ogg) | "Choir Heart" — final boss, 150 BPM, E minor → E major, 67.6 s (loop 6.8 s + 57.6 s): heartbeat, organ and the Choir motif → Vrell fight music → humanity's fanfare answers → both motifs at once in counterpoint → the heart alone, Vorne's motif sung by the Choir → build → humanity's motif in E major | proposed |
 
 ## Implementation
 
@@ -127,3 +141,6 @@ keys, tempos, chord progressions, loop points and AI-generator prompts:
 - 2026-09-30: Concept round 02 proposed: title, hangar, Vrell boss, Act 3 A (Mars) and Act 4 A
   (Europa) themes. The main motif and the Choir motif are pinned down as notes (see Motifs).
 - 2026-09-30: Concept round 02: all five themes chosen ("awesome and spot on"). Keep composing the remaining tracks in this style.
+- 2026-09-30: Concept round 03 proposed: Act 2 A (Earth), Act 5 A (belt), Act 6 A (Jupiter),
+  the Ascendancy boss theme and the final boss theme. Vorne's motif is pinned down as notes
+  (1-♭3-5-7, see Motifs).

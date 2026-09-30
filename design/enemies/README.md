@@ -2,7 +2,7 @@
 title: Enemies
 design: draft
 implementation: not-started
-art: none
+art: proposed
 updated: 2026-09-30
 ---
 
@@ -20,11 +20,11 @@ rosters.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers (17) | draft | not-started | none |
-| [ground](ground/README.md) | Turrets, walkers, bunkers and spawners on the `ground` layer (12) | draft | not-started | none |
+| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers (17) | draft | not-started | proposed |
+| [ground](ground/README.md) | Turrets, walkers, bunkers and spawners on the `ground` layer (12) | draft | not-started | proposed |
 | [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (8) | draft | not-started | none |
 | [space](space/README.md) | Vacuum-only enemies for space levels (7) | draft | not-started | none |
-| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | draft | not-started | none |
+| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | draft | not-started | proposed |
 
 ## Design
 
@@ -177,6 +177,14 @@ adds are **overrides**:
 - Opting out of a multiplier where it would break the enemy (e.g. a boss phase with a fixed
   bullet count).
 
+## Concept art
+
+Concept [round 03](../concept-rounds/round-03/README.md) gives the enemies their first visuals: the Act 1 Vrell set in [air](air/README.md) and [ground](ground/README.md), three Ascendancy units for faction contrast and the Act 1 boss in [bosses](bosses/README.md). Two Vrell design languages are proposed: **A "Sleek chitin"** (smooth, elongated, glossy violet chitin with thin glowing teal seams, pink eye as weak point) and **B "Armoured brood"** (bulky segmented carapace plates, claws and spikes, glow only between plates and in eye clusters). The key Act 1 enemies are shown in both; the others in A. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/lineup-r03-a.png](concept/lineup-r03-a.png) | All round-03 enemies at native scale next to the player on four backgrounds, then at 2× with names, plus the Brood Carrier at 1/4 scale — size and readability check | proposed |
+
 ## Implementation
 
 - [ ] Data-driven enemy definitions using the stat block fields.
@@ -189,6 +197,8 @@ adds are **overrides**:
 
 ## Open questions
 
+- **Vrell design language** (concept round 03): A "Sleek chitin" or B "Armoured brood", or a mix (e.g. B for ground and heavy units, A for fliers)? The choice applies to every Vrell enemy.
+- **Ascendancy readability**: black-and-gold hulls read well on light and busy backgrounds but get dark on the darkest ones (see the lineup, dark strip). Proposal: a thin gold or red rim light on all Ascendancy sprites at native size.
 - Layer rules: should `ground` targets really be hittable by *all* weapons (Tyrian-style, simple),
   or only by `anti-ground` weapons and bombs (Raptor-style, more loadout pressure)? The proposal
   is all weapons, with hardened targets as the pressure point.
@@ -203,3 +213,4 @@ adds are **overrides**:
   [difficulty](../systems/difficulty/README.md) (single source); stat blocks keep overrides.
 - 2026-09-30: Bullet colours tied to the faction colours; score vs credits deferred to scoring.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
+- 2026-09-30: Concept round 03: first enemy visuals and the lineup sheet; Vrell design-language choice put to the user.

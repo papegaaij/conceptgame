@@ -124,3 +124,39 @@ ridges, deep canyon with visible layered strata walls in perspective and a dry r
 below, a small human colony outpost with blue glass domes on the rim, violet alien spore pods on
 the canyon edge, drifting dust plumes, a blue-white interceptor and a V of violet alien darts,
 shadows down-right, key light from top-left, 1990s pre-rendered CGI`
+
+## Round 03 decoration pass
+
+Round 03 keeps the round 02 scenes and adds decoration (see the Decoration paragraph of the
+art-direction document). Generator: [tools/concept/parallax_r03.py](../../../tools/concept/parallax_r03.py).
+Common negative prompt as above, plus `fog or clouds covering the player, bright white clouds,
+pink fog, neon vegetation`.
+
+## parallax-r03-a
+
+Prompt: `top-down orthographic view straight down on an orbital station above Earth, portrait
+480x540 game screen, saturated 90s neon CGI palette, far below a hazy dark blue Earth with a
+large spiral cyclone and cloud fronts, a smaller distant station through a gap, the main station
+of lattice truss spines, chrome habitat drums, blue solar arrays and violet alien growths,
+thick pale grey-blue cloud decks drifting between the station and the fighters, casting soft
+shadows on the station, thin haze wisps and ice streaks racing past in the foreground, a
+blue-white interceptor firing cyan bolts, violet alien darts and a spider-like gunship firing a
+ring of magenta orbs, key light from top-left, 1990s pre-rendered CGI`
+
+## parallax-r03-b
+
+Prompt: `top-down view straight down on a calm futuristic city at night, portrait 480x540 game
+screen, dark violet-blue skyscrapers with subtle perspective walls, two wide avenues lined with
+dark trees and orange street lamps, small parks with paths, ponds and trees, rooftop gardens,
+low rolling grey-violet fog banks drifting between the towers, lit amber from below near the
+avenues, a few hover cars with red trails, a blue-white interceptor and three violet alien
+darts, calm and low contrast, 1990s pre-rendered CGI`
+
+## parallax-r03-c
+
+Prompt: `top-down view straight down into a winding red Mars canyon during a dust storm,
+portrait 480x540 game screen, dark rust plateau with craters, deep canyon with layered strata
+walls and a dry riverbed, heavy ochre dust banks streaming across below the fighters, a thin
+dust veil and streaks in the foreground, a small colony outpost with blue glass domes, green
+greenhouse tunnels, small algae ponds and dark olive lichen fields around it, violet alien spore
+pods on the rim, a blue-white interceptor and a V of violet alien darts, 1990s pre-rendered CGI`

@@ -159,3 +159,129 @@ Source: <https://freesound.org/people/derplayer/sounds/587194/> — CC0 1.0. Sug
 Why: Big, dense blast with rolling secondary crackle and debris over ~2.8 s.
 Edit: 2.86 s, 0.80 s fade-out.
 
+# Concept round 03 — weapon sound families and the explosion ladder (third-party)
+
+The weapon → family mapping and the size ladder are in the [README](../README.md). All files are
+imported by `python3 tools/concept/audio/import_sfx.py` from Freesound HQ previews (production:
+rebuild from the original files with the same settings). Beam files are seamless loops
+(`loop=` in the importer: equal-power cross-fade of the loop end into its start, no fades).
+
+### shot-vulcan-r03-b — "minigun.wav" by pgi
+Source: <https://freesound.org/people/pgi/sounds/98331/> — CC0 1.0. Use: `vulcan` b, rotary chatter.
+Why: Recorded minigun: continuous rotary chatter, so any 0.3 s slice works as one volley; gives the vulcan a second, rougher texture next to r02-e.
+Edit: leading silence trimmed, cut to 0.30 s, 0.12 s fade-out; peak -10.0 dBFS.
+
+### shot-laser-r03-b — "Laser shot.wav" by michael_grinnell
+Source: <https://freesound.org/people/michael_grinnell/sounds/512469/> — CC0 1.0. Use: `laser` b.
+Why: Clean, bright laser with a fast attack (4.6 kHz centroid); a second laser flavour for Rear Lance vs Lance Laser.
+Edit: leading silence trimmed, cut to 0.30 s, 0.14 s fade-out; peak -10.0 dBFS.
+
+### shot-beam-r03-a — "heavy beam weapon" by deleted Freesound user (deleted_user_1941307)
+Source: <https://freesound.org/people/deleted_user_1941307/sounds/152322/> — CC0 1.0. Use: `beam` a, 1.4 s seamless loop (Ion Beam).
+Why: Steady for its first 1.7 s (flat envelope), ideal for a seamless loop; 8.5k downloads.
+Edit: seamless 1.40 s loop from 0.20 s with 0.10 s cross-fade; peak -12.0 dBFS.
+
+### shot-beam-r03-b — "SFX Oscilating Laser Beam" by bolkmar
+Source: <https://freesound.org/people/bolkmar/sounds/420364/> — CC-BY 4.0. Use: `beam` b, 2.62 s seamless loop (Orbital Lance).
+Why: Oscillating beam with a clean 1.31 s period; the loop covers exactly two periods.
+Edit: seamless 2.62 s loop from 0.40 s with 0.08 s cross-fade; peak -12.0 dBFS.
+
+### shot-missile-r03-a — "Rocket Launch" by Jarusca
+Source: <https://freesound.org/people/Jarusca/sounds/521377/> — CC0 1.0. Use: `missile` (Hornet Launcher).
+Why: Short rocket launch with a strong ignition transient and ~0.6 s whoosh; 5.6k downloads.
+Edit: leading silence trimmed, cut to 0.90 s, 0.40 s fade-out; peak -8.0 dBFS.
+
+### shot-micromissile-r03-a — "Rocket Shots" by Audionautics
+Source: <https://freesound.org/people/Audionautics/sounds/171655/> — CC-BY 3.0. Use: `micromissile`, first shot.
+Why: Isolated small rocket shots in a longer take; the first one is cut out.
+Edit: leading silence trimmed, cut to 0.45 s, 0.20 s fade-out; peak -10.0 dBFS.
+
+### shot-mortar-r03-a — "Mortar Shots.flac" by qubodup
+Source: <https://freesound.org/people/qubodup/sounds/184382/> — CC0 1.0. Use: `mortar`, first shot.
+Why: Recorded mortar shots; the first thump decays cleanly within 1 s.
+Edit: leading silence trimmed, cut to 1.00 s, 0.50 s fade-out; peak -8.0 dBFS.
+
+### shot-bomb-r03-a — "Falling Bomb.wav" by Daleonfire
+Source: <https://freesound.org/people/Daleonfire/sounds/506313/> — CC0 1.0. Use: `bomb`, whistle cut to 1.2 s.
+Why: Classic falling-bomb whistle (2.9 s); cut short for the frequent Bomb Rack, full length for the Airstrike special.
+Edit: leading silence trimmed, cut to 1.20 s, 0.60 s fade-out; peak -10.0 dBFS.
+
+### shot-torpedo-r03-a — "Torpedo launch underwater.wav" by jobro
+Source: <https://freesound.org/people/jobro/sounds/35530/> — CC-BY 3.0. Use: `torpedo`.
+Why: Real underwater launch with bubbles; the only good torpedo recording with a usable licence.
+Edit: leading silence trimmed, cut to 1.00 s, 0.50 s fade-out; peak -8.0 dBFS.
+
+### shot-mine-r03-a — "small metal object fall " by nicktermer
+Source: <https://freesound.org/people/nicktermer/sounds/259553/> — CC0 1.0. Use: `mine` drop-and-bounce.
+Why: Metallic object dropping and bouncing: two clunks read as 'dropped and landed'.
+Edit: leading silence trimmed, cut to 0.90 s, 0.30 s fade-out; peak -8.0 dBFS.
+
+### shot-tesla-r03-a — "Electric zap.wav" by michael_grinnell
+Source: <https://freesound.org/people/michael_grinnell/sounds/512471/> — CC0 1.0. Use: `tesla`.
+Why: Tight 0.22 s electric zap, 12.6k downloads; short enough to chain for Plasma Arc.
+Edit: leading silence trimmed, cut to 0.22 s, 0.06 s fade-out; peak -10.0 dBFS.
+
+### shot-resonator-r03-a — "sci-fi cannon" by humanoide9000
+Source: <https://freesound.org/people/humanoide9000/sounds/422440/> — CC-BY 4.0. Use: `resonator` (Choir Resonator).
+Why: Heavy sci-fi cannon with a sustained energy body; alien enough for captured Vrell tech.
+Edit: leading silence trimmed, cut to 0.60 s, 0.30 s fade-out; peak -8.0 dBFS.
+
+### explosion-tiny-r03-a — "Small Explosion" by Cyberios
+Source: <https://freesound.org/people/Cyberios/sounds/145788/> — CC0 1.0. Use: `tiny` a.
+Why: Very short, bass-heavy pop that decays within 0.45 s.
+Edit: leading silence trimmed, cut to 0.45 s, 0.20 s fade-out; peak -4.0 dBFS.
+
+### explosion-tiny-r03-b — "Small explosion" by dinodilopho
+Source: <https://freesound.org/people/dinodilopho/sounds/328833/> — CC0 1.0. Use: `tiny` b.
+Why: Single small blast with quick decay; thinner than a, so the two alternate well.
+Edit: leading silence trimmed, cut to 0.60 s, 0.30 s fade-out; peak -4.0 dBFS.
+
+### explosion-tiny-r03-c — "Firecracker Explosion" by unfa
+Source: <https://freesound.org/people/unfa/sounds/609588/> — CC0 1.0. Use: `tiny` c, sharp crack.
+Why: Firecracker crack: the sharpest transient of the set, decays in ~0.35 s.
+Edit: leading silence trimmed, cut to 0.60 s, 0.30 s fade-out; peak -4.0 dBFS.
+
+### explosion-small-r03-a — "Small Explosion" by lorenzgillner
+Source: <https://freesound.org/people/lorenzgillner/sounds/271979/> — CC0 1.0. Use: `small` c.
+Why: Small explosion with some crackle, a bit longer than the r02 small ones.
+Edit: leading silence trimmed, cut to 1.10 s, 0.40 s fade-out; peak -1.5 dBFS.
+
+### explosion-medium-r03-a — "Air Explosion.wav" by 1histori
+Source: <https://freesound.org/people/1histori/sounds/401609/> — CC0 1.0. Use: `medium` b.
+Why: Sharp airburst with a clean tail; lighter than r02-c.
+Edit: leading silence trimmed, cut to 1.60 s, 0.60 s fade-out; peak -1.5 dBFS.
+
+### explosion-medium-r03-b — "Explode001" by mitchelk
+Source: <https://freesound.org/people/mitchelk/sounds/136765/> — CC0 1.0. Use: `medium` c.
+Why: Dense, rumbling medium blast (10k downloads), cut to 2 s.
+Edit: leading silence trimmed, cut to 2.00 s, 0.80 s fade-out; peak -1.5 dBFS.
+
+### explosion-large-r03-a — "explosion_big_02.ogg" by derplayer
+Source: <https://freesound.org/people/derplayer/sounds/587193/> — CC0 1.0. Use: `large` c.
+Why: Sister file of r02-e: big blast with secondary crackle and debris.
+Edit: leading silence trimmed, cut to 3.10 s, 1.00 s fade-out; peak -1.5 dBFS.
+
+### explosion-huge-r03-a — "Explosion_01.wav" by tommccann
+Source: <https://freesound.org/people/tommccann/sounds/235968/> — CC0 1.0. Use: `huge` a, 5 s.
+Why: Most-downloaded CC0 explosion on Freesound (138k); long natural decay, cut to 5 s.
+Edit: leading silence trimmed, offset 0.36 s, cut to 5.00 s, 2.00 s fade-out; peak -1.0 dBFS.
+
+### explosion-huge-r03-b — "Big Boom" by unfa
+Source: <https://freesound.org/people/unfa/sounds/189779/> — CC0 1.0. Use: `huge` b, 6 s, deep sub-bass.
+Why: Deep cinematic boom dominated by sub-bass (94% of energy below 200 Hz), cut to 6 s.
+Edit: leading silence trimmed, cut to 6.00 s, 2.50 s fade-out; peak -1.0 dBFS.
+
+### explosion-underwater-r03-a — "underwater explosion.wav" by cubix
+Source: <https://freesound.org/people/cubix/sounds/124544/> — CC0 1.0. Use: `underwater` a, recorded.
+Why: Recorded underwater explosion: slow, muffled 'whump' with a long rumble.
+Edit: leading silence trimmed, cut to 3.00 s, 1.20 s fade-out; peak -1.5 dBFS.
+
+### explosion-underwater-r03-b — "Explosion" by qubodup
+Source: <https://freesound.org/people/qubodup/sounds/182429/> — CC0 1.0. Use: `underwater` b, derived.
+Why: Shows the derivation recipe: any explosion through a 4-pole 500 Hz low-pass (import_sfx.py `lowpass=500`).
+Edit: leading silence trimmed, cut to 1.70 s, 0.60 s fade-out, 4-pole 500 Hz low-pass; peak -1.5 dBFS.
+
+### explosion-water-r03-a — "Water Explosion" by Sheyvan
+Source: <https://freesound.org/people/Sheyvan/sounds/519008/> — CC0 1.0. Use: `water`, surface naval kills.
+Why: Explosion with water spray, sharp attack; for kills on the water surface.
+Edit: leading silence trimmed, cut to 1.90 s, 0.70 s fade-out; peak -1.5 dBFS.

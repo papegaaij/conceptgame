@@ -287,3 +287,210 @@ heard through water, steady soft four-on-the-floor kick, sidechain-pumping rolli
 plucked synth arpeggio drowning in ping-pong echoes, sonar pings, whale song, bubbles, lush
 pads, filter slowly opening for a mysterious lead melody, deep sea city, The Abyss, 1990s
 trance, instrumental, seamless loop."*
+
+---
+
+# Round 03 — five more loopable themes
+
+Round 02 outcome: all five themes were chosen. Round 03 covers the rest of the campaign's
+emotional arc: the fight for Earth, the twist in the belt, the hunt through Jupiter's storms,
+the Ascendancy's own boss music, and the finale.
+
+Reproduce with:
+
+```
+python3 tools/concept/audio/music_r03.py        # all five (~5 min)
+python3 tools/concept/audio/music_r03.py belt   # or any of: earth belt jovian ascendancy final
+python3 tools/concept/audio/analyze.py design/audio/music/concept/*-r03-a.ogg
+```
+
+Generator: `tools/concept/audio/music_r03.py` (builds on `music_r02.py`). The loop format
+and mastering are identical to round 02: intro → loop → 2-bar fade-out tail,
+`LOOPSTART`/`LOOPLENGTH` Vorbis comments in samples, −14 LUFS, −2 dBFS ceiling.
+
+**Vorne's motif** is new in this round. It is degrees **1 – ♭3 – 5 – 7**, a minor-major-seventh
+arpeggio, in a stately rhythm (dotted quarter, eighth, half, whole). In B minor:
+B D F♯ A♯. The unresolved major 7th over a minor chord is the "cold" in it: it sounds
+ordered, correct and wrong at the same time.
+
+---
+
+## earth-theme-r03-a — "Homefront" (Act 2 level theme A, 55.9 s)
+
+**Brief**: the fight for home. Urgent and heroic but embattled: megacities under siege,
+stormy seas, the arctic. Humanity's motif in a new guise: diminished into a relentless
+16th-note figure (1-5-8-9-♭3-9-8-5) that the strings hammer under everything, re-rooted on each
+chord (minor or major third as the chord demands). The world doc asks for heavier drums, choir
+pads and the main theme in a minor key: urgent breakbeat, orchestral hits, a human choir, an
+air-raid siren in the intro.
+
+**Tempo / key**: 147 BPM, C minor (G major as the dominant).
+
+**Loop**: `LOOPSTART` 306000 (6.939 s), `LOOPLENGTH` 2016000 (45.714 s = 28 bars).
+
+| Bars | Section | What happens |
+|---|---|---|
+| 1–4 (intro) | Air raid | Siren rising and falling, choir swelling, timpani, the motif called by a far horn; the riff starts as a filtered pluck in bars 3–4; snare roll |
+| L1–8 | A | Breakbeat (kick on 1, 1a, 3, 3&; ghost snares), the riff in strings with a pulse double, low brass pushing 8ths, orchestral hits every 4 bars, choir |
+| L9–16 | B | Horns state the motif in full (C-G-C-D-E♭), trumpets an octave up; the riff drops an octave |
+| L17–20 | C | Embattled: half-time drums, taiko, big choir, a supersaw lament; the riff as a quiet pluck |
+| L21–28 | D | Everything: horns and supersaw lead on the motif, riff, breakbeat; snare roll and riser into the loop |
+
+**Chords**:
+- Intro: `Cm | Cm | A♭ | G`
+- A: `Cm | Cm | A♭ | A♭ | Fm | Fm | G | G`
+- B and D: `Cm | A♭ | Fm | G | Cm | A♭ | B♭ | G`
+- C: `A♭ | Fm | Cm | G`
+
+**AI prompt**: *"Urgent heroic war theme, 147 BPM, C minor, relentless 16th-note string
+ostinato built from a rising heroic motif, driving breakbeat with orchestral hits, big choir
+pads, French horns stating the theme, air raid siren intro, embattled half-time lament
+section, cities under siege, 1990s synth-orchestral video game music, instrumental, seamless
+loop."*
+
+---
+
+## belt-theme-r03-a — "Hollow Rock" (Act 5 level theme A, 60.9 s)
+
+**Brief**: the asteroid belt and its mining stations: industrial, metallic and cold. This is
+where the twist lands. Act 5 opens with Vorne's broadcast, so the intro is radio static,
+two broadcast beeps, and his motif played by cold brass and organ. After that the machines play
+his arpeggio: every sequencer line in the groove is 1-♭3-5-7. Metallic percussion (tuned anvil
+hits on a 16th grid, steam bursts, a conveyor tick) and a distorted syncopated bass. In the
+breakdown, a single distant horn plays humanity's motif, as the stations choose sides.
+
+**Tempo / key**: 135 BPM, B minor, with a cold chromatic shift to G minor under the motif's
+A♯ (= B♭, the third of G minor).
+
+**Loop**: `LOOPSTART` 333200 (7.556 s), `LOOPLENGTH` 2195200 (49.778 s = 28 bars).
+
+| Bars | Section | What happens |
+|---|---|---|
+| 1–4 (intro) | The broadcast | Static and beeps, low drone, Vorne's motif in brass with organ below; anvils start in bars 3–4 |
+| L1–8 | A | Industrial four-on-the-floor, metal-layered snare, anvil pattern, distorted bass, pluck arp and distorted 8th line both playing Vorne's arpeggio |
+| L9–16 | B | Vorne's motif in full brass (doubled low, with organ), answered by its own inversion; timpani |
+| L17–20 | C | Conveyor breakdown: no kick, anvils and 16th metal ticks, long bass, a lone horn with humanity's motif in long echoes |
+| L21–28 | D | Riser and build, then Vorne's motif as a tutti (brass in three octaves); snare roll into the loop |
+
+**Chords**:
+- A: `Bm | Bm | G | G | Em | Em | F♯ | F♯`
+- B: `Bm | Gm | Bm | F♯ | Bm | Gm | Em | F♯`
+- C: `Bm` pedal
+- D: `G | G | F♯ | F♯ | Bm | Gm | Em | F♯`
+
+**AI prompt**: *"Cold industrial techno, 135 BPM, B minor, metallic anvil percussion on a 16th
+grid, steam hiss, distorted syncopated bass, arpeggio sequencer playing a minor-major-seventh
+chord, stately cold brass and organ villain leitmotif, radio broadcast static intro, asteroid
+mining station, 1990s tracker module industrial, Descent, instrumental, seamless loop."*
+
+---
+
+## jovian-theme-r03-a — "Eye of the Storm" (Act 6 level theme A, 65.6 s)
+
+**Brief**: Jupiter's cloud cities and Callisto: vast, stormy and grand, the most bombastic act,
+and the hunt for Vorne. The two motifs duel. Vorne's motif in low brass and choir (on G, then
+on C) is answered each time by humanity's motif in *major* in the trumpets (on E♭, then on D).
+In the final section both play at once, over a Gm/F♯ bass that makes Vorne's major 7th the
+bass note. Thunder, wind and 32nd-note storm strings frame it.
+
+**Tempo / key**: 140 BPM, G minor (D major as the dominant; a G–A♭ phrygian swing in the storm).
+
+**Loop**: `LOOPSTART` 321300 (7.286 s), `LOOPLENGTH` 2419200 (54.857 s = 32 bars).
+
+| Bars | Section | What happens |
+|---|---|---|
+| 1–4 (intro) | Storm front | Thunder, wind, tremolo strings; Vorne's motif far off, a trumpet answers; timpani roll |
+| L1–8 | A | The hunt: humanity's motif in horns over gallop strings, four-on-the-floor, taiko and big pads |
+| L9–16 | B | Vorne's motif (low brass + choir) vs. humanity's motif in major (trumpets), two bars each |
+| L17–20 | C: the storm | No kick; thunder, tremolo strings, the choir swinging between G and A♭ |
+| L21–24 | C: build | Gallop and drums return, snare roll, riser |
+| L25–32 | D | Both motifs at once: humanity's in trumpets and supersaw, Vorne's in the bass brass |
+
+**Chords**:
+- Intro: `Gm | Gm | E♭ | D`
+- A: `Gm | E♭ | B♭ | F | Gm | E♭ | Cm | D`
+- B: `Gm(maj7) | Gm(maj7) | E♭ | E♭ | Cm(maj7) | Cm(maj7) | D | D`
+- C: `Gm | A♭ | Gm | A♭ | E♭ | Cm | D | D`
+- D: `Gm | Gm/F♯ | B♭ | F | Gm | Gm/F♯ | Cm | D`
+
+**AI prompt**: *"Grand stormy orchestral-electronic battle theme, 140 BPM, G minor, thunder
+and wind, tremolo storm strings, galloping string ostinato, taiko and four-on-the-floor,
+choir, a cold villain brass motif answered by a heroic trumpet fanfare in major, both themes
+colliding at the climax, gas giant cloud cities, Bespin, Einhänder, 1990s video game
+music, instrumental, seamless loop."*
+
+---
+
+## ascendancy-boss-r03-a — "Iron Sovereign" (Ascendancy boss theme, 62.4 s)
+
+**Brief**: for the Iron Sovereign battle station and Vorne's flagship Ascendant. Martial,
+cold, human-military menace, deliberately the opposite of the organic Vrell boss theme: no
+choir, strict rhythm, military snare rudiments (accents on 2 and 4 with drags in between),
+timpani, low-brass 8th-note ostinato, trumpets on Vorne's motif, and a machine section where
+a distorted 16th riff runs the motif's arpeggio shape on every chord (mM7 on minor chords,
+maj7 on D, dominant 7th on C♯).
+
+**Tempo / key**: 147 BPM, F♯ minor (C♯ major as the dominant; G major as a cold Neapolitan
+in the half-time section).
+
+**Loop**: `LOOPSTART` 306000 (6.939 s), `LOOPLENGTH` 2304000 (52.245 s = 32 bars).
+
+| Bars | Section | What happens |
+|---|---|---|
+| 1–4 (intro) | Parade | Snare rudiments growing, timpani, Vorne's motif in low brass on F♯ then C♯, organ below |
+| L1–8 | A | March: kick 1, 3, 3&; rudiment snare; low-brass 8ths; trumpets on the motif (F♯, then B); short-short-long brass stab figures |
+| L9–16 | B | Machine: four-on-the-floor, metal hits, 16th riff on the motif shape, off-beat trumpet stabs |
+| L17–20 | C: menace | Half time; the motif at one note per bar in low brass and organ (F♯-A-C♯-E♯) |
+| L21–24 | C: build | Snare roll, riser |
+| L25–32 | D | Tutti: trumpets on the motif with a low-brass canon a bar behind, two octaves down; riff, march, snare roll into the loop |
+
+**Chords**:
+- A and D: `F♯m(maj7) | F♯m | D | D | Bm(maj7) | Bm | C♯ | C♯`
+- B: `F♯m | D | Bm | C♯` × 2
+- C: `F♯m | G | F♯m | G | D | Bm | C♯ | C♯`
+
+**AI prompt**: *"Cold martial boss battle theme, 147 BPM, F sharp minor, military snare
+drum rudiments, timpani, low brass staccato ostinato, trumpets playing a stately
+minor-major-seventh villain motif, distorted 16th-note synth riff, metallic industrial hits,
+brass canon, human military menace, no choir, 1990s synth-orchestral and industrial hybrid,
+instrumental, seamless loop."*
+
+---
+
+## final-boss-r03-a — "Choir Heart" (final boss, 67.6 s)
+
+**Brief**: the final battle against the Choir Heart, with everything at stake and the biggest
+arrangement so far. The Choir motif (descending) and humanity's motif (rising) are written to
+be played *at the same time*: in section C they run in counterpoint (E5 over E4, D5 over B4,
+C5 over E5, B4 over F♯5 …). The Heart beats through the intro and the breakdown. In the
+breakdown the Choir sings Vorne's motif, since he was absorbed at L48. The loop ends with
+humanity's motif in **E major**: hope, before the fight goes round again.
+
+**Tempo / key**: 150 BPM, E minor / phrygian (F as ♭II); E major climax.
+
+**Loop**: `LOOPSTART` 299880 (6.800 s), `LOOPLENGTH` 2540160 (57.600 s = 36 bars).
+
+| Bars | Section | What happens |
+|---|---|---|
+| 1–4 (intro) | The Heart | Heartbeat, organ, the Choir motif huge (choir + low brass); humanity's motif answers far off; snare roll |
+| L1–8 | A | Vrell fight: the Choir motif twice, distorted 16th bass, pounding drums, orchestral stabs, the heartbeat underneath |
+| L9–16 | B | Humanity's fanfare (trumpets + supersaw), gallop strings, rolling bass, four-on-the-floor; the choir holds chords |
+| L17–24 | C | Both motifs at once, in counterpoint; 16th string figures, timpani on every other bar |
+| L25–28 | D: the Heart | Only the heartbeat, a drone and the choir ("oo"): Vorne's motif, then a whispered Choir motif |
+| L29–32 | D: build | Taiko 3-3-2, snare roll, riser |
+| L33–36 | E | Humanity's motif in E major: trumpets, brass, supersaw, choir and organ; then B major back into the loop |
+
+**Chords**:
+- Intro: `Em | F | Em | B`
+- A: `Em | Em | C | C | F | F | B | B`
+- B: `Em | C | Am | B | Em | C | D | B`
+- C: `Em | F | C | B | Em | F | Am | B`
+- D: `Em` × 4 `| C | C | B | B`
+- E: `E | E | C | B`
+
+**AI prompt**: *"Epic final boss battle, 150 BPM, E minor resolving to E major, a huge alien
+choir singing a descending motif in counterpoint against a heroic rising brass fanfare,
+pulsing heartbeat, organ, distorted bass ostinato, pounding taiko and electronic drums,
+galloping strings, orchestral stabs, breakdown with only a heartbeat and whispering choir,
+triumphant major-key climax, 1990s synth-orchestral video game finale, instrumental,
+seamless loop."*

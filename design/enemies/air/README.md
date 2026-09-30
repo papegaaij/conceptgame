@@ -2,7 +2,7 @@
 title: Air enemies
 design: draft
 implementation: not-started
-art: none
+art: proposed
 updated: 2026-09-30
 ---
 
@@ -46,6 +46,23 @@ levels.
   travel on the player plane.
 - Sizes (proposal, at 960×540): fodder 24–30 px, gunners 36 px, heavies 60–84 px.
 
+## Concept art
+
+Concept [round 03](../../concept-rounds/round-03/README.md). Two Vrell design languages are proposed: **A "Sleek chitin"** (smooth, elongated, glossy violet chitin with thin glowing teal seams, pink eye as weak point) and **B "Armoured brood"** (bulky segmented carapace plates, claws and spikes, glow only between plates and in eye clusters). The key Act 1 enemies are shown in both; the others in A. Each sheet: source render, native sprite with palette, animation hint, in-game view with formation, shadows, bullets and the player for scale. Prompts: [concept/prompts.md](concept/prompts.md); generator `tools/concept/enemies_r03.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/skitter-r03-a.png](concept/skitter-r03-a.png) | Skitter, language A: needle dart with scythe wings; snake formation over a station hull | proposed |
+| [concept/skitter-r03-b.png](concept/skitter-r03-b.png) | Skitter, language B: armoured beetle with split glowing elytra | proposed |
+| [concept/needler-r03-a.png](concept/needler-r03-a.png) | Needler, language A: slim body with thorn proboscis; V formation firing aimed thorns | proposed |
+| [concept/needler-r03-b.png](concept/needler-r03-b.png) | Needler, language B: crab with two claws around a thorn launcher | proposed |
+| [concept/stinger-r03-a.png](concept/stinger-r03-a.png) | Stinger (A): wasp-like diver, 3-way fan at the bottom of its dive | proposed |
+| [concept/spore-bomber-r03-a.png](concept/spore-bomber-r03-a.png) | Spore Bomber (A): gas-bag blimp on `low-air` dropping spore mines, over Earth from orbit | proposed |
+| [concept/brood-pod-r03-a.png](concept/brood-pod-r03-a.png) | Brood Pod (A): pulsing egg sac bursting into six Skitters, over lunar regolith | proposed |
+| [concept/mantis-r03-a.png](concept/mantis-r03-a.png) | Mantis (A): side-holding laser sweeper with raptorial arms | proposed |
+| [concept/talon-r03-a.png](concept/talon-r03-a.png) | Talon (Ascendancy fighter): forward-swept black-and-gold stealth interceptor with paired aimed shots, asteroid belt | proposed |
+| [concept/gilded-gunship-r03-a.png](concept/gilded-gunship-r03-a.png) | Gilded Gunship (Ascendancy gunship): gold front armour, ring burst, exposed rear engines | proposed |
+
 ## Implementation
 
 - [ ] Each enemy promoted to its own directory with a stat block before it is implemented.
@@ -58,3 +75,4 @@ levels.
 
 - 2026-09-30: Roster of 17 air enemies drafted.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
+- 2026-09-30: Concept round 03: first enemy sheets — Act 1 air enemies (Skitter and Needler in both Vrell design languages) plus Talon and Gilded Gunship for faction contrast.

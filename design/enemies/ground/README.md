@@ -2,7 +2,7 @@
 title: Ground enemies
 design: draft
 implementation: not-started
-art: none
+art: proposed
 updated: 2026-09-30
 ---
 
@@ -40,6 +40,17 @@ terrain, never collide with the player, and are what `anti-ground` and `area` we
 - Ground targets pay more credits than air enemies of similar toughness, so an `anti-ground`
   loadout is rewarded on surface levels.
 
+## Concept art
+
+Concept [round 03](../../concept-rounds/round-03/README.md). Two Vrell design languages are proposed: **A "Sleek chitin"** (smooth, elongated, glossy violet chitin with thin glowing teal seams, pink eye as weak point) and **B "Armoured brood"** (bulky segmented carapace plates, claws and spikes, glow only between plates and in eye clusters). The key Act 1 enemies are shown in both; the others in A. Prompts: [concept/prompts.md](concept/prompts.md); generator `tools/concept/enemies_r03.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/spine-turret-r03-a.png](concept/spine-turret-r03-a.png) | Spine Turret, language A: smooth bulb with petal collar and one thorn barrel, rooted on a station hull; aim frames | proposed |
+| [concept/spine-turret-r03-b.png](concept/spine-turret-r03-b.png) | Spine Turret, language B: plated barnacle with a triple-spike barrel cluster | proposed |
+| [concept/polyp-mortar-r03-a.png](concept/polyp-mortar-r03-a.png) | Polyp Mortar (A): acid mouth ringed by tentacles; impact markers ahead of the player on lunar regolith | proposed |
+| [concept/rail-bunker-r03-a.png](concept/rail-bunker-r03-a.png) | Rail Bunker (Ascendancy ground turret): octagonal hardened bunker, twin-rail cannon with gold coils, red telegraph line | proposed |
+
 ## Implementation
 
 - [ ] Each enemy promoted to its own directory with a stat block before it is implemented.
@@ -52,3 +63,4 @@ terrain, never collide with the player, and are what `anti-ground` and `area` we
 ## Decisions
 
 - 2026-09-30: Roster of 12 ground enemies drafted.
+- 2026-09-30: Concept round 03: Spine Turret (both Vrell languages), Polyp Mortar and the Ascendancy Rail Bunker drafted as sprites.

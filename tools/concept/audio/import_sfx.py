@@ -6,6 +6,13 @@ downloaded into a cache directory outside the repository, the leading silence is
 sound is cut to `length` seconds with a `fade` second fade-out, peak-normalised to `peak` dBFS
 and written as 44.1 kHz OGG Vorbis. Licences and credits are recorded in CREDITS.md.
 
+Two optional treatments:
+  loop=(start, length, xfade)  cut a seamless loop (for continuous beams): the `xfade` seconds
+                               after the loop end are equal-power cross-faded into its start;
+                               no fades are applied, so the file can be played looped.
+  lowpass=Hz                   4-pole low-pass (two cascaded 2-pole SVFs) applied after the
+                               cut, e.g. to derive a muffled under-water variant.
+
 The previews are lossy (~192 kbps); the production asset should be rebuilt from the original
 file (Freesound login required) with the same settings.
 
@@ -21,7 +28,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from synth import SR, db, decode, normalize_peak, write_ogg  # noqa: E402
+from synth import SR, db, decode, normalize_peak, svf, write_ogg  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 SFX = ROOT / "design" / "audio" / "sfx" / "concept"
@@ -69,6 +76,104 @@ SOURCES = {
         page="https://freesound.org/people/derplayer/sounds/587194/",
         preview="https://cdn.freesound.org/previews/587/587194_13123807-hq.ogg",
         licence="CC0 1.0", offset=0.0, length=2.86, fade=0.80, peak=-1.5),
+    # ---- concept round 03: per-weapon shot families (shot-<family>) and the explosion ladder
+    # (explosion-<size>); see design/audio/sfx/README.md for the weapon/enemy mapping.
+    "shot-vulcan-r03-b": dict(
+        page="https://freesound.org/people/pgi/sounds/98331/",
+        preview="https://cdn.freesound.org/previews/98/98331_1654571-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.30, fade=0.12, peak=-10.0),
+    "shot-laser-r03-b": dict(
+        page="https://freesound.org/people/michael_grinnell/sounds/512469/",
+        preview="https://cdn.freesound.org/previews/512/512469_7372230-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.30, fade=0.14, peak=-10.0),
+    "shot-beam-r03-a": dict(
+        page="https://freesound.org/people/deleted_user_1941307/sounds/152322/",
+        preview="https://cdn.freesound.org/previews/152/152322_1941307-hq.ogg",
+        licence="CC0 1.0", loop=(0.20, 1.40, 0.10), peak=-12.0),
+    "shot-beam-r03-b": dict(
+        page="https://freesound.org/people/bolkmar/sounds/420364/",
+        preview="https://cdn.freesound.org/previews/420/420364_2927958-hq.ogg",
+        licence="CC-BY 4.0", loop=(0.40, 2.62, 0.08), peak=-12.0),
+    "shot-missile-r03-a": dict(
+        page="https://freesound.org/people/Jarusca/sounds/521377/",
+        preview="https://cdn.freesound.org/previews/521/521377_10847299-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.90, fade=0.40, peak=-8.0),
+    "shot-micromissile-r03-a": dict(
+        page="https://freesound.org/people/Audionautics/sounds/171655/",
+        preview="https://cdn.freesound.org/previews/171/171655_2451120-hq.ogg",
+        licence="CC-BY 3.0", offset=0.0, length=0.45, fade=0.20, peak=-10.0),
+    "shot-mortar-r03-a": dict(
+        page="https://freesound.org/people/qubodup/sounds/184382/",
+        preview="https://cdn.freesound.org/previews/184/184382_71257-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.00, fade=0.50, peak=-8.0),
+    "shot-bomb-r03-a": dict(
+        page="https://freesound.org/people/Daleonfire/sounds/506313/",
+        preview="https://cdn.freesound.org/previews/506/506313_150886-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.20, fade=0.60, peak=-10.0),
+    "shot-torpedo-r03-a": dict(
+        page="https://freesound.org/people/jobro/sounds/35530/",
+        preview="https://cdn.freesound.org/previews/35/35530_35187-hq.ogg",
+        licence="CC-BY 3.0", offset=0.0, length=1.00, fade=0.50, peak=-8.0),
+    "shot-mine-r03-a": dict(
+        page="https://freesound.org/people/nicktermer/sounds/259553/",
+        preview="https://cdn.freesound.org/previews/259/259553_2316086-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.90, fade=0.30, peak=-8.0),
+    "shot-tesla-r03-a": dict(
+        page="https://freesound.org/people/michael_grinnell/sounds/512471/",
+        preview="https://cdn.freesound.org/previews/512/512471_7372230-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.22, fade=0.06, peak=-10.0),
+    "shot-resonator-r03-a": dict(
+        page="https://freesound.org/people/humanoide9000/sounds/422440/",
+        preview="https://cdn.freesound.org/previews/422/422440_4361321-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=0.60, fade=0.30, peak=-8.0),
+    "explosion-tiny-r03-a": dict(
+        page="https://freesound.org/people/Cyberios/sounds/145788/",
+        preview="https://cdn.freesound.org/previews/145/145788_2483826-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.45, fade=0.20, peak=-4.0),
+    "explosion-tiny-r03-b": dict(
+        page="https://freesound.org/people/dinodilopho/sounds/328833/",
+        preview="https://cdn.freesound.org/previews/328/328833_4732572-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.60, fade=0.30, peak=-4.0),
+    "explosion-tiny-r03-c": dict(
+        page="https://freesound.org/people/unfa/sounds/609588/",
+        preview="https://cdn.freesound.org/previews/609/609588_1038806-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.60, fade=0.30, peak=-4.0),
+    "explosion-small-r03-a": dict(
+        page="https://freesound.org/people/lorenzgillner/sounds/271979/",
+        preview="https://cdn.freesound.org/previews/271/271979_5169846-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.10, fade=0.40, peak=-1.5),
+    "explosion-medium-r03-a": dict(
+        page="https://freesound.org/people/1histori/sounds/401609/",
+        preview="https://cdn.freesound.org/previews/401/401609_3767503-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.60, fade=0.60, peak=-1.5),
+    "explosion-medium-r03-b": dict(
+        page="https://freesound.org/people/mitchelk/sounds/136765/",
+        preview="https://cdn.freesound.org/previews/136/136765_2482480-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=2.00, fade=0.80, peak=-1.5),
+    "explosion-large-r03-a": dict(
+        page="https://freesound.org/people/derplayer/sounds/587193/",
+        preview="https://cdn.freesound.org/previews/587/587193_13123807-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=3.10, fade=1.00, peak=-1.5),
+    "explosion-huge-r03-a": dict(
+        page="https://freesound.org/people/tommccann/sounds/235968/",
+        preview="https://cdn.freesound.org/previews/235/235968_4265427-hq.ogg",
+        licence="CC0 1.0", offset=0.36, length=5.00, fade=2.00, peak=-1.0),
+    "explosion-huge-r03-b": dict(
+        page="https://freesound.org/people/unfa/sounds/189779/",
+        preview="https://cdn.freesound.org/previews/189/189779_1038806-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=6.00, fade=2.50, peak=-1.0),
+    "explosion-underwater-r03-a": dict(
+        page="https://freesound.org/people/cubix/sounds/124544/",
+        preview="https://cdn.freesound.org/previews/124/124544_276157-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=3.00, fade=1.20, peak=-1.5),
+    "explosion-underwater-r03-b": dict(
+        page="https://freesound.org/people/qubodup/sounds/182429/",
+        preview="https://cdn.freesound.org/previews/182/182429_71257-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.70, fade=0.60, peak=-1.5, lowpass=500),
+    "explosion-water-r03-a": dict(
+        page="https://freesound.org/people/Sheyvan/sounds/519008/",
+        preview="https://cdn.freesound.org/previews/519/519008_3248005-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.90, fade=0.70, peak=-1.5),
 }
 
 
@@ -86,11 +191,25 @@ def trim_leading_silence(x, threshold_db=-40.0, pre=0.003):
     return x[:, max(0, first - int(pre * SR)):]
 
 
+def make_loop(x, start, length, xfade):
+    a, n, f = int(start * SR), int(length * SR), int(xfade * SR)
+    seg = x[:, a:a + n + f].copy()
+    t = np.linspace(0, np.pi / 2, f)
+    seg[:, :f] = seg[:, :f] * np.sin(t) + seg[:, n:n + f] * np.cos(t)
+    return seg[:, :n]
+
+
 def process(src, raw):
     x = trim_leading_silence(decode(raw))
+    if "loop" in src:
+        x = make_loop(x, *src["loop"])
+        x -= x.mean(axis=1, keepdims=True)
+        return normalize_peak(x, src["peak"])
     start = int(src["offset"] * SR)
     x = x[:, start:start + int(src["length"] * SR)].copy()
     x -= x.mean(axis=1, keepdims=True)  # remove DC
+    if "lowpass" in src:
+        x = np.array([svf(svf(ch, src["lowpass"]), src["lowpass"]) for ch in x])
     n_in, n_out = int(0.002 * SR), min(x.shape[1], int(src["fade"] * SR))
     x[:, :n_in] *= np.linspace(0, 1, n_in)
     x[:, -n_out:] *= (0.5 + 0.5 * np.cos(np.linspace(0, np.pi, n_out))) ** 2

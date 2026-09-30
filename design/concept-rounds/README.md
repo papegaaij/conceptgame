@@ -2,7 +2,7 @@
 title: Concept rounds
 design: review
 implementation: n/a
-art: chosen
+art: proposed
 updated: 2026-09-30
 ---
 
@@ -21,6 +21,7 @@ they belong to; a round only collects them.
 |---|---|---|---|---|
 | [round-01](round-01/README.md) | Style exploration: ship, palette, parallax, HUD, title, first SFX and music, story twist | approved | n/a | chosen |
 | [round-02](round-02/README.md) | Parallax redo, recorded shots and explosions, five music themes, ship and HUD at 960×540, Rook's craft | approved | n/a | chosen |
+| [round-03](round-03/README.md) | Decoration pass, weapon shot families, explosion ladder, enemy concepts, briefing portraits, five music themes | review | n/a | proposed |
 
 ## Design
 
@@ -43,3 +44,4 @@ How a round works:
 |---|---|---|---|
 | 01 | 2026-09-30 | closed | Style exploration |
 | 02 | 2026-09-30 | closed | Parallax redo, recorded shots/explosions, five music themes, ship at 960×540, Rook's craft |
+| 03 | 2026-09-30 | open | Decoration, enemies, portraits, weapon SFX, explosions, more music |

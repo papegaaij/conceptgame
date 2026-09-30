@@ -9,12 +9,14 @@ Requires Python 3, numpy and the `ffmpeg` binary (with libvorbis). No other audi
 | `sfx.py` | Concept round 01 sound effects | `design/audio/sfx/concept/*.ogg` |
 | `music.py` | Concept round 01 music sketches (`a` trance/techno, `b` synth-orchestral) | `design/audio/music/concept/*.ogg` |
 | `music_r02.py` | Concept round 02: five loopable themes (`title hangar boss mars europa`). Intro + loop + fade tail per file, loop points in the `LOOPSTART`/`LOOPLENGTH` Vorbis comments, sample-exact loops | `design/audio/music/concept/*-r02-a.ogg` |
+| `music_r03.py` | Concept round 03: five more themes (`earth belt jovian ascendancy final`), same loop format; adds Vorne's motif and new voices (trumpet, storm tremolo strings, organ, anvils, thunder, heartbeat, radio static, siren) | `design/audio/music/concept/*-r03-a.ogg` |
 | `analyze.py` | Objective checks: duration, peak, RMS, DC, LUFS, true peak, edge levels; optional spectrogram PNGs | stdout (+ PNGs in a directory you give it) |
 
 ```
 python3 tools/concept/audio/sfx.py
 python3 tools/concept/audio/music.py            # ~20 s; 'a' or 'b' renders one sketch
 python3 tools/concept/audio/music_r02.py        # ~3.5 min; or name themes: title hangar boss mars europa
+python3 tools/concept/audio/music_r03.py        # ~5 min; or: earth belt jovian ascendancy final
 python3 tools/concept/audio/analyze.py design/audio/*/concept/*.ogg --spectrogram /tmp/spec
 ```
 

@@ -20,16 +20,16 @@ guided by intel about the next level.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [art-direction](art-direction/README.md) | Visual style, resolution, palette, sprite rules, parallax layer model | draft | n/a | chosen |
-| [story](story/README.md) | Premise, factions, characters, timeline and the mid-campaign twist | draft | n/a | none |
+| [art-direction](art-direction/README.md) | Visual style, resolution, palette, sprite rules, parallax layer model | draft | n/a | proposed |
+| [story](story/README.md) | Premise, factions, characters, timeline and the mid-campaign twist | draft | n/a | proposed |
 | [world](world/README.md) | The settings the levels take place in | draft | n/a | none |
 | [campaign](campaign/README.md) | Acts and the 50-level outline, pacing and difficulty curve | draft | not-started | none |
-| [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | draft | not-started | none |
+| [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | draft | not-started | proposed |
 | [player](player/README.md) | The player ship, its loadout slots and all equipment | draft | not-started | chosen |
 | [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | draft | not-started | n/a |
 | [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | draft | not-started | chosen |
 | [audio](audio/README.md) | Music and sound effects | draft | not-started | chosen |
-| [concept-rounds](concept-rounds/README.md) | Batches of concept proposals awaiting the user's choice | review | n/a | chosen |
+| [concept-rounds](concept-rounds/README.md) | Batches of concept proposals awaiting the user's choice | review | n/a | proposed |
 
 ## Design
 
