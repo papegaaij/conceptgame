@@ -2,7 +2,7 @@
 title: Wingmen and drones
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../weapons, ../../story]
 updated: 2026-09-30
 ---
@@ -64,8 +64,8 @@ Round 02 — see [round 02](../../concept-rounds/round-02/README.md). AI-generat
 
 | File | What | Status |
 |---|---|---|
-| [concept/rook-craft-r02-a.png](concept/rook-craft-r02-a.png) | Rook scheme A "Ember": dark slate hull, orange/yellow accents, warm engines — darker and warmer than the player | proposed |
-| [concept/rook-craft-r02-b.png](concept/rook-craft-r02-b.png) | Rook scheme B "Jade": pale lime hull, deep green panels, green engines — same brightness as the player, different hue | proposed |
+| [concept/rook-craft-r02-a.png](concept/rook-craft-r02-a.png) | Rook scheme A "Ember": dark slate hull, orange/yellow accents, warm engines — darker and warmer than the player | chosen |
+| [concept/rejected/rook-craft-r02-b.png](concept/rejected/rook-craft-r02-b.png) | Rook scheme B "Jade": pale lime hull, deep green panels, green engines — same brightness as the player, different hue | rejected — A preferred |
 
 ## Implementation
 
@@ -90,3 +90,4 @@ Round 02 — see [round 02](../../concept-rounds/round-02/README.md). AI-generat
   L27–L29 (heavy drone only), back from L30. Drone unlock levels added.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-09-30: Rook flies the variant-C (blended manta) airframe from ship concept round 01, in his own colours; it replaces the placeholder "F-9 Kestrel".
+- 2026-09-30: Concept round 02: Rook's craft scheme **A "Ember"** (dark slate, orange/yellow accents) chosen; B "Jade" rejected.

@@ -2,7 +2,7 @@
 title: Art direction
 design: draft
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-09-30
 ---
 
@@ -139,10 +139,26 @@ normal 150–170 px/s, fast or chase levels 190–240 px/s. The fastest visible 
 2–2.5× that, which is what sells the speed. Round 02 uses 190 (orbit), 140 (city) and
 160 px/s (canyon).
 
-**Density** (proposed with round 02, scene C as the reference): one dominant ground feature
-that defines clear lanes (a canyon, a station spine, avenues); two or three mid-size set pieces
-per screen; background detail kept calm by posterized textures and sparse light points; in a
-typical frame outside boss fights about 4–6 enemies and at most ~15 enemy bullets.
+**Density** (round 02: all three approaches liked): density follows the level's pace — calm
+levels like scene B, normal levels like scene C, fast or chase levels like scene A. Always: one
+dominant ground feature that defines clear lanes (a canyon, a station spine, avenues); two or
+three mid-size set pieces per screen; background detail kept calm by posterized textures and
+sparse light points; in a typical frame outside boss fights about 4–6 enemies and at most ~15
+enemy bullets.
+
+**Decoration** (user feedback on round 02: "the levels could use a bit more decoration"):
+every scene gets a clearly visible **atmosphere layer** and, where the setting allows,
+**organic detail**.
+- Atmosphere: heavier cloud banks, mist or dust streaks. Dense, opaque banks go on `low-air`
+  (below the play plane, so they never hide bullets); thinner wisps and streaks on `high-air`
+  keep the ~40 % opacity cap. Per setting: clouds and haze (Earth, Earth orbit, Jupiter), dust
+  storms and streaks (Mars, Luna regolith plumes), mist and fog (megacity, arctic), silt and
+  bubbles (Europa), nebula wisps (space, Vrell space).
+- Organic detail: vegetation on ground layers — parks, tree lines, fields and jungle on Earth,
+  greenhouse domes and lichen fields around Mars colonies, kelp and coral-like growth under
+  Europa's ice, Vrell biomass (creep, spore fields) on infested areas.
+- Decoration never competes with gameplay: it stays lower in contrast and saturation than
+  enemies and bullets.
 
 - In **space** levels there is no terrain: stations, asteroids and capital ships take the ground
   role at 1.0, and the deep layer becomes several star-field and nebula layers.
@@ -201,12 +217,12 @@ is a seamless 4 s loop (80 frames at 20 fps) at native 480×540:
 
 | File | What | Status |
 |---|---|---|
-| [concept/parallax-r02-a.png](concept/parallax-r02-a.png) | Parallax A "Earth orbit, fuller and faster": play field at 1× plus a breakdown of 6 layers (Earth, sister station, main station kit-bashed from parts, wreckage, play plane, streaks); ground 190 px/s | proposed |
-| [concept/parallax-r02-a.gif](concept/parallax-r02-a.gif) | Parallax A: scroll loop | proposed |
-| [concept/parallax-r02-b.png](concept/parallax-r02-b.png) | Parallax B "Night megacity, calm": lower-contrast towers, two avenues as lanes, parks, sparse lights, 3 darts and one turret; ground 140 px/s | proposed |
-| [concept/parallax-r02-b.gif](concept/parallax-r02-b.gif) | Parallax B: scroll loop | proposed |
-| [concept/parallax-r02-c.png](concept/parallax-r02-c.png) | Parallax C "Mars canyon, balanced": canyon floor as a far layer with perspective strata walls, plateau with a colony outpost and Vrell pods, dust plumes and streaks; ground 160 px/s | proposed |
-| [concept/parallax-r02-c.gif](concept/parallax-r02-c.gif) | Parallax C: scroll loop | proposed |
+| [concept/parallax-r02-a.png](concept/parallax-r02-a.png) | Parallax A "Earth orbit, fuller and faster": play field at 1× plus a breakdown of 6 layers (Earth, sister station, main station kit-bashed from parts, wreckage, play plane, streaks); ground 190 px/s | chosen — approach; needs more decoration (round 03) |
+| [concept/parallax-r02-a.gif](concept/parallax-r02-a.gif) | Parallax A: scroll loop | chosen — approach; needs more decoration (round 03) |
+| [concept/parallax-r02-b.png](concept/parallax-r02-b.png) | Parallax B "Night megacity, calm": lower-contrast towers, two avenues as lanes, parks, sparse lights, 3 darts and one turret; ground 140 px/s | chosen — approach; needs more decoration (round 03) |
+| [concept/parallax-r02-b.gif](concept/parallax-r02-b.gif) | Parallax B: scroll loop | chosen — approach; needs more decoration (round 03) |
+| [concept/parallax-r02-c.png](concept/parallax-r02-c.png) | Parallax C "Mars canyon, balanced": canyon floor as a far layer with perspective strata walls, plateau with a colony outpost and Vrell pods, dust plumes and streaks; ground 160 px/s | chosen — approach; needs more decoration (round 03) |
+| [concept/parallax-r02-c.gif](concept/parallax-r02-c.gif) | Parallax C: scroll loop | chosen — approach; needs more decoration (round 03) |
 
 ## Implementation
 
@@ -225,8 +241,6 @@ is a seamless 4 s loop (80 frames at 20 fps) at native 480×540:
 
 ## Open questions
 
-- **Parallax density** (round 02): A (orbit, fuller and faster), B (city, calm) or C (canyon,
-  balanced) as the reference for level backgrounds? The Density paragraph above assumes C.
 - **Scaling on 1440p and 720p**: sharp-bilinear (fills the screen, slightly soft) or letterboxed
   integer scaling (crisp, black borders)?
 - **Layer hit rules**: can every weapon hit `ground` and `low-air` targets, or only weapons with
@@ -247,3 +261,5 @@ is a seamless 4 s loop (80 frames at 20 fps) at native 480×540:
 - 2026-09-30: Layer model revised for round 02 (draft, under review with the round 02 parallax
   scenes): new `far` layer, deep 0.12, low-air 1.35, high-air 2.2, shadow offsets scaled to
   960×540, ground speed guideline, density guideline, perspective walls between layers.
+- 2026-09-30: Concept round 02: all three parallax approaches liked — density follows level pace (B calm, C normal, A fast). The revised layer model (far layer, faster foreground factors, speed guideline) is adopted with them.
+- 2026-09-30: Concept round 02 feedback: scenes need more decoration — heavier clouds / mist / dust streaks and vegetation. Decoration guideline added; the three scenes get a decoration pass in round 03.

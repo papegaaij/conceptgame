@@ -2,7 +2,7 @@
 title: HUD
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
 updated: 2026-09-30
 ---
@@ -92,7 +92,7 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 |---|---|---|
 | [concept/hud-r01-a.png](concept/hud-r01-a.png) | HUD A — classic metallic bevelled panels with LCD readouts | chosen |
 | [concept/rejected/hud-r01-b.png](concept/rejected/hud-r01-b.png) | HUD B — dark glass cockpit panels with neon outlines | rejected — does not fit the style |
-| [concept/hud-r02-a.png](concept/hud-r02-a.png) | Round 02: HUD A at 960×540 with 240 px panels in palette B, full element list from this document | proposed — confirm |
+| [concept/hud-r02-a.png](concept/hud-r02-a.png) | Round 02: HUD A at 960×540 with 240 px panels in palette B, full element list from this document | chosen |
 
 ## Implementation
 
@@ -114,3 +114,4 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
   arrows for individual off-screen threats. Power gauge shows enemy drain.
 - 2026-09-30: Concept round 01: HUD **A** (metallic bevelled panels, LCD readouts) chosen; B (glass/neon) rejected as not fitting the style.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
+- 2026-09-30: Concept round 02: HUD A at 960×540 with 240 px panels in palette B confirmed.

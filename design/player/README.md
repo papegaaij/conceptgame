@@ -2,7 +2,7 @@
 title: Player
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../systems, ../ui/hangar]
 updated: 2026-09-30
 ---
@@ -20,12 +20,12 @@ generator limits what can be fitted at the same time.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | draft | not-started | proposed |
+| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | draft | not-started | chosen |
 | [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | draft | not-started | none |
 | [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | draft | not-started | none |
 | [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | draft | not-started | none |
 | [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | draft | not-started | none |
-| [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | draft | not-started | proposed |
+| [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | draft | not-started | chosen |
 | [specials](specials/README.md) | Special abilities: airstrike, smart bomb, EMP, orbital lance, … | draft | not-started | none |
 | [systems](systems/README.md) | Engines and utility-bay modules: magnet, sensors, auto-repair, … | draft | not-started | none |
 

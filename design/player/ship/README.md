@@ -2,7 +2,7 @@
 title: AF-12 Stormhawk
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../art-direction]
 updated: 2026-09-30
 ---
@@ -68,7 +68,7 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 | [concept/player-ship-r01-a.png](concept/player-ship-r01-a.png) | Variant A — forward-swept wing, canards, twin nacelles; aggressive, needle-like | chosen |
 | [concept/rejected/player-ship-r01-b.png](concept/rejected/player-ship-r01-b.png) | Variant B — twin-boom with straight wing and tailplane | rejected — A and C preferred |
 | [concept/player-ship-r01-c.png](concept/player-ship-r01-c.png) | Variant C — blended manta body with canards | chosen — reused as Rook's wingman craft (see [wingmen](../wingmen/README.md)) |
-| [concept/player-ship-r02-a.png](concept/player-ship-r02-a.png) | Round 02: variant A re-rendered at 48×48 in palette B (960×540 baseline) | proposed — confirm |
+| [concept/player-ship-r02-a.png](concept/player-ship-r02-a.png) | Round 02: variant A re-rendered at 48×48 in palette B (960×540 baseline) | chosen |
 
 ## Implementation
 
@@ -90,3 +90,4 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 - 2026-09-30: One hull for the whole game; progression is through the loadout.
 - 2026-09-30: Concept round 01: silhouette **A** (forward-swept wing, canards, twin nacelles) chosen. C (blended manta) also liked and becomes Rook's wingman craft; B rejected.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
+- 2026-09-30: Concept round 02: ship A at 48×48 in palette B confirmed.

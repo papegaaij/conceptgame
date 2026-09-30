@@ -2,7 +2,7 @@
 title: Music
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../campaign]
 updated: 2026-09-30
 ---
@@ -97,11 +97,11 @@ keys, tempos, chord progressions, loop points and AI-generator prompts:
 |---|---|---|
 | [concept/music-r01-a.ogg](concept/music-r01-a.ogg) | "Afterburner" — tracker-style trance/techno, 140 BPM, A minor, 37.5 s: arpeggio intro → lead A section → B section with riser and snare roll | chosen — direction for level themes |
 | [concept/music-r01-b.ogg](concept/music-r01-b.ogg) | "Coalition Rising" — synth-orchestral, 132 BPM, D minor, 40.7 s: string ostinato and horn call → heroic horn theme → theme in strings with brass stabs | chosen — direction for level themes |
-| [concept/title-theme-r02-a.ogg](concept/title-theme-r02-a.ogg) | "Terran Vanguard" — title theme, 126 BPM, D minor, 57.6 s (loop 8.1 s + 45.7 s): timpani and horn call → main motif in brass over gallop strings, taiko and a four-on-the-floor beat → F-major lift with supersaw lead → breakdown with the motif at half speed → build | proposed |
-| [concept/hangar-theme-r02-a.ogg](concept/hangar-theme-r02-a.ogg) | "Dry Dock" — hangar, swung downtempo, 90 BPM, D dorian, 64.7 s (loop 6.0 s + 53.3 s): FM electric piano and round sub bass groove → flute melody with a relaxed main-motif fragment → sparse breakdown with vibes; faint hangar clanks | proposed |
-| [concept/boss-theme-r02-a.ogg](concept/boss-theme-r02-a.ogg) | "The Choir Descends" — Vrell boss, 150 BPM, E minor/phrygian, 61.2 s (loop 6.8 s + 51.2 s): the Choir motif alone over a drone → distorted 16th bass, pounding drums, Choir motif with brass and orchestral stabs → tritone synth riff → half-time breakdown with the motif augmented in low brass → build | proposed |
-| [concept/mars-theme-r02-a.ogg](concept/mars-theme-r02-a.ogg) | "Red Dust Run" — Act 3 A, 135 BPM, E phrygian dominant, 53.8 s (loop 7.6 s + 42.7 s): desert wind, hand drums and a lonely reed → breakbeat, reese bass and reed melody → Andalusian-cadence section with 16th arpeggio → dust-storm breakdown (muffled drums, wind swells) → build | proposed |
-| [concept/europa-theme-r02-a.ogg](concept/europa-theme-r02-a.ogg) | "Thera Deep" — Act 4 A, 125 BPM, F minor, 58.1 s (loop 8.2 s + 46.1 s): sonar pings, whale song and bubbles → muffled four-on-the-floor, pumping rolling bass, echoing pluck arp → the filter opens ("surfacing") for the lead melody → deep breakdown without drums → build | proposed |
+| [concept/title-theme-r02-a.ogg](concept/title-theme-r02-a.ogg) | "Terran Vanguard" — title theme, 126 BPM, D minor, 57.6 s (loop 8.1 s + 45.7 s): timpani and horn call → main motif in brass over gallop strings, taiko and a four-on-the-floor beat → F-major lift with supersaw lead → breakdown with the motif at half speed → build | chosen |
+| [concept/hangar-theme-r02-a.ogg](concept/hangar-theme-r02-a.ogg) | "Dry Dock" — hangar, swung downtempo, 90 BPM, D dorian, 64.7 s (loop 6.0 s + 53.3 s): FM electric piano and round sub bass groove → flute melody with a relaxed main-motif fragment → sparse breakdown with vibes; faint hangar clanks | chosen |
+| [concept/boss-theme-r02-a.ogg](concept/boss-theme-r02-a.ogg) | "The Choir Descends" — Vrell boss, 150 BPM, E minor/phrygian, 61.2 s (loop 6.8 s + 51.2 s): the Choir motif alone over a drone → distorted 16th bass, pounding drums, Choir motif with brass and orchestral stabs → tritone synth riff → half-time breakdown with the motif augmented in low brass → build | chosen |
+| [concept/mars-theme-r02-a.ogg](concept/mars-theme-r02-a.ogg) | "Red Dust Run" — Act 3 A, 135 BPM, E phrygian dominant, 53.8 s (loop 7.6 s + 42.7 s): desert wind, hand drums and a lonely reed → breakbeat, reese bass and reed melody → Andalusian-cadence section with 16th arpeggio → dust-storm breakdown (muffled drums, wind swells) → build | chosen |
+| [concept/europa-theme-r02-a.ogg](concept/europa-theme-r02-a.ogg) | "Thera Deep" — Act 4 A, 125 BPM, F minor, 58.1 s (loop 8.2 s + 46.1 s): sonar pings, whale song and bubbles → muffled four-on-the-floor, pumping rolling bass, echoing pluck arp → the filter opens ("surfacing") for the lead melody → deep breakdown without drums → build | chosen |
 
 ## Implementation
 
@@ -126,3 +126,4 @@ keys, tempos, chord progressions, loop points and AI-generator prompts:
 - 2026-09-30: "Afterburner" and "Coalition Rising" assigned to the Act 1 A and B slots.
 - 2026-09-30: Concept round 02 proposed: title, hangar, Vrell boss, Act 3 A (Mars) and Act 4 A
   (Europa) themes. The main motif and the Choir motif are pinned down as notes (see Motifs).
+- 2026-09-30: Concept round 02: all five themes chosen ("awesome and spot on"). Keep composing the remaining tracks in this style.
