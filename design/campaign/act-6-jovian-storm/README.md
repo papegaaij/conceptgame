@@ -22,10 +22,10 @@ against Vorne's flagship **Ascendant**. Vorne escapes into the Tether Gate.
 |---|---|---|---|---|---|---|---|---|---|
 | 36 | Cloud Divers | [jovian](../../world/jovian/README.md) – upper atmosphere | air, low-air, high-air | front | 4 | forward, homing | [Chimera](../../enemies/air/README.md), a hybrid fighter that regenerates unless killed quickly; foreground cloud banks hide enemies | Act opener; storm bands in the deep layer | idea |
 | 37 | Gilded Cage | [jovian](../../world/jovian/README.md) – cloud city *Aurelia* | ground (platforms), air | front, sides | 4 | anti-ground, spread, shield-breaker | [Graft Turret](../../enemies/ground/README.md) (regrows), [Mirror Interceptor](../../enemies/air/README.md) (reflects non-beam shots) | Black-and-gold Ascendancy architecture, Vrell growth creeping over it | idea |
-| 38 | Lightning Belt | [jovian](../../world/jovian/README.md) – storm layer | air | all | 5 | homing, beam | [Harrow](../../enemies/air/README.md) kamikaze hybrids that burst into a ring on death; lightning strikes | Lightning is telegraphed by a flash, then strikes a vertical line | idea |
-| 39 | Io Flyby | [jovian](../../world/jovian/README.md) – Io refineries | ground, air | front | 4 | anti-ground, piercing | Volcanic eruptions (ground-to-air hazard); refinery targets | `destroy-targets`: cut the Ascendancy's fuel supply | idea |
+| 38 | Lightning Belt | [jovian](../../world/jovian/README.md) – storm layer | air | all | 5 | homing, beam | [Harrow](../../enemies/air/README.md) kamikaze hybrids that burst into a ring on death; lightning strikes | Lightning is telegraphed by a flash, then strikes a vertical line. [Buzzsaw Drone](../../enemies/air/README.md)s return, ricocheting between storm cells | idea |
+| 39 | Io Flyby | [jovian](../../world/jovian/README.md) – Io refineries | ground, air | front | 4 | anti-ground, piercing | Volcanic eruptions (ground-to-air hazard); refinery targets | `destroy-targets`: cut the Ascendancy's fuel supply. [Strider](../../enemies/ground/README.md)s return, guarding the refineries | idea |
 | 40 | Honour Guard | [jovian](../../world/jovian/README.md) – Callisto approach | air | front, sides, rear | 5 | spread, rear | Mid-boss [Honour Guard](../../enemies/bosses/README.md): three ace pilots who attack from three directions | Duel: the aces taunt over the radio | idea |
-| 41 | Callisto Fortress | [jovian](../../world/jovian/README.md) – Helix HQ, Callisto | ground, air | front | 5 | anti-ground, area | [Shield Pylon](../../enemies/ground/README.md) domes protecting fortress sections | Break the pylons to open each section of the fortress | idea |
+| 41 | Callisto Fortress | [jovian](../../world/jovian/README.md) – Helix HQ, Callisto | ground, air | front | 5 | anti-ground, area | [Shield Pylon](../../enemies/ground/README.md) domes protecting fortress sections; [Halo Platform](../../enemies/ground/README.md) rotating turret rings as fortress centrepieces | Break the pylons to open each section of the fortress. [Warden Tank](../../enemies/ground/README.md)s return in black and gold | idea |
 | 42 | Ascendant | [jovian](../../world/jovian/README.md) – Callisto orbit | air, space | all | 5 | piercing, homing | Boss [Ascendant](../../enemies/bosses/README.md), Vorne's flagship | Vorne escapes in a Vrell-grown lifeboat toward the gate | idea |
 
 ## Design
@@ -93,3 +93,4 @@ Act theme "Jovian Storm", Honour Guard duel theme, boss theme; see [audio](../..
 ## Decisions
 
 - 2026-09-30: Vorne survives Act 6 and is dealt with in Act 7 (L48).
+- 2026-09-30: Enemy variety pass: new units added to the level rows so the act passes the [variety checklist](../../enemies/README.md#variety-checklist-per-act).

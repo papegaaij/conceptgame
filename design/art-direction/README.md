@@ -61,9 +61,11 @@ The concept generators take these values from one place: `tools/concept/render/c
 | Player ship (AF-12 Stormhawk) | air | 48×48 |
 | Wingman (Rook's craft) | air | 40×40 (smaller than the player, who stays dominant) |
 | Drones | air | 30–36 |
-| Small enemy (darts, drones) | air / low-air | 30–42 |
-| Medium enemy (gunships) | air | 48–84 |
-| Large enemy (carriers, frigates) | air / ground | 96–192 |
+| Tiny enemy (swarmers, seeds, motes) | air / low-air | 16–24 |
+| Small enemy (darts, drones) | air / low-air | 28–48 |
+| Medium enemy (gunships, walkers) | air / ground | 56–110 |
+| Large enemy (carriers, frigates, mechs, segment chains) | air / ground / sub | 120–250 (a chain's total length; its segments are 24–48) |
+| Huge enemy (leviathans, rotating platforms) | high-air / air / space | ≥ 1/3 of the play field (≥ 160 wide or ≥ 180 tall), may exceed it |
 | Boss | any | 240–480 wide, multi-part, may exceed the play field |
 | Ground turret / emplacement | ground | 24–36 |
 | Vehicles, naval craft | ground / sub | 24–72 |
@@ -73,16 +75,43 @@ The concept generators take these values from one place: `tools/concept/render/c
 | Pickups | air | 18–24 |
 | Explosions | air / ground | 24–144, additive |
 
-All sizes are 1.5× the round 01 values (640×360).
+All sizes are 1.5× the round 01 values (640×360). The enemy rows match the **size tiers** in
+[enemies](../enemies/README.md#size-tiers).
 
 ### Animation rules
 
 - **Banking.** The player ship and the wingman have 5 frames: hard left, left, centre, right,
   hard right (about ±14° and ±28° roll). The concept sheets show 3 (±28°). Frames change over
   about 6 game frames when steering, and return to centre when released.
-- **Rotation.** Enemies that turn to face their movement use 16 directions (22.5° steps); turret
-  barrels and large enemies use 32 directions. All rotations are separate renders (lighting stays
-  fixed at the top-left), never rotated sprites.
+- **Rotation.** Enemies that turn to face their movement are **pre-rendered at 16 angles**
+  (22.5° steps); large or slow enemies and turret barrels use **32 angles** (11.25°). The game
+  shows the frame nearest to the current heading; a turn plays through the in-between frames,
+  never snapping more than one step per game frame. All rotations are separate renders from the
+  3D model with the key light fixed at the top-left, so highlights and shadows stay put while the
+  body turns; sprites are never rotated at runtime. Designs for turning enemies avoid a
+  lighting-dependent "top": they must read from every angle.
+- **Independent parts.** Turrets, heads and weapon arms on vehicles and walkers are separate
+  sprites with their own angle set (e.g. a tank hull at 16 angles, its turret at 32), drawn on a
+  pivot point defined per frame of the body.
+- **Segment chains** (serpents, centipedes, drone trains): rendered **per segment type, not per
+  pose** — head, body segment (one or two variants), tail, each at 16 angles (32 for large
+  chains). At runtime every segment picks its angle from the path it is following, so any curve
+  or loop comes for free. Segments overlap by 20–30 % of their length; a joint piece is only
+  needed when segments would gap in tight turns. Body segments may carry a 2–4 frame ripple
+  (legs, fins, glow pulse) offset per segment so the wave travels down the chain.
+- **Articulated parts** (a leviathan's tail and fins, claws, ring sections): each part is its own
+  sprite with a small angle range (typically ±30° in 8–12 steps) around a pivot, animated
+  procedurally (sine sweeps, lagged follow-through). Destroyable parts also have a damaged frame
+  and a wreck/stump frame.
+- **Walk cycles.** Walkers use 8 frames per cycle for 2 legs (Strider) and 6–8 for 4–6 legs
+  (Scuttler, Creeper), rendered at each of their 16 facing angles; centipede legs ripple as a
+  2–4 frame segment animation. Feet plant on the ground layer (their speed matches the scroll
+  plus their own speed), and heavy walkers leave footprints or dust on the ground layer.
+- **Spinners.** Radially symmetric designs (4-, 5-, 6- or 8-fold) need only as many frames as
+  one symmetry step: a 6-fold spinner at 32 steps per turn needs 6 unique frames. Spin speed is
+  shown by frame rate (4–30 fps), with an optional motion-blur frame set above ~20 fps. The key
+  light is fixed, so a spinner's highlight stays top-left while its body turns under it. Spinners
+  with a single weak point off-axis use the full angle set instead.
 - **Organic motion.** Vrell wing beats and pulsing glows at 8–12 fps; engine flicker 15–20 fps.
 - **Explosions.** Pre-rendered volumetric fireball sequences of 12–16 frames (additive), plus
   debris chunks and a shockwave ring for large kills. A 1–2 frame white **hit flash** on every
@@ -305,3 +334,8 @@ under ~8 MB; the PNG sheets show full colour:
 - 2026-09-30: Concept round 02: all three parallax approaches liked — density follows level pace (B calm, C normal, A fast). The revised layer model (far layer, faster foreground factors, speed guideline) is adopted with them.
 - 2026-09-30: Concept round 02 feedback: scenes need more decoration — heavier clouds / mist / dust streaks and vegetation. Decoration guideline added; the three scenes get a decoration pass in round 03.
 - 2026-09-30: Concept round 03: decoration pass chosen for all three scenes; it represents the heavy end. Atmosphere intensity must vary through a level (clear / light / medium / heavy per section, heavy only as a short peak).
+- 2026-09-30: Enemy variety (user feedback after round 04): turning enemies are pre-rendered at
+  16 angles (32 for large/slow ones and turrets) and the nearest frame is shown; sprite-size
+  table extended with tiny and huge tiers; animation rules added for independent parts, segment
+  chains (per segment type, not per pose), articulated parts, walk cycles and radially
+  symmetric spinners.

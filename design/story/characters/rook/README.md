@@ -2,7 +2,7 @@
 title: Lt. Kenji "Rook" Tanaka
 design: draft
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-09-30
 ---
 
@@ -61,8 +61,8 @@ procedural faces only show the style (framing, lighting, colour treatment, frame
 | File | What | Status |
 |---|---|---|
 | [concept/rejected/portrait-r03-a.png](concept/rejected/portrait-r03-a.png) | Style A "pre-rendered 3D bust": Rook at 144×144 (briefing), 72×72 in the HUD A radio frame, 3× enlargement | rejected — style B preferred |
-| [concept/portrait-r03-b.png](concept/portrait-r03-b.png) | Style B "comm-screen pixel portrait": Rook as a 72 px dithered teal portrait, 2× for the briefing, HUD radio frame | chosen — keep a little more colour (round 04) |
-| [concept/portrait-r04-a.png](concept/portrait-r04-a.png) | Round 04: style B with retained colour — Rook's own colours under the teal CDF tint, 36 colours, soft dither; briefing 144×144, HUD 72×72, 3× (`tools/concept/portraits_r04.py`) | proposed |
+| [concept/portrait-r03-b.png](concept/portrait-r03-b.png) | Style B "comm-screen pixel portrait": Rook as a 72 px dithered teal portrait, 2× for the briefing, HUD radio frame | superseded by r04 |
+| [concept/portrait-r04-a.png](concept/portrait-r04-a.png) | Round 04: style B with retained colour — Rook's own colours under the teal CDF tint, 36 colours, soft dither; briefing 144×144, HUD 72×72, 3× (`tools/concept/portraits_r04.py`) | chosen |
 
 ## Decisions
 
@@ -70,3 +70,4 @@ procedural faces only show the style (framing, lighting, colour treatment, frame
 - 2026-09-30: Timeline aligned with campaign and wingmen: shot down end of L26, captured, freed at
   Ceres Hub in L29, wingman again from L30; heavy drone allowed in the escort slot meanwhile.
 - 2026-09-30: Concept round 03: portrait style **B** (comm-screen pixel portrait) chosen, with a bit more colour retained so it looks less flat.
+- 2026-09-30: Concept round 04: style-B portrait with retained colour chosen.

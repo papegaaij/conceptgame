@@ -147,3 +147,50 @@ Prompts for polished versions of the round-03 mockups. The mockups are rendered 
 - **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. Human-built stealth military machine: heavy wedge gunship with thick gold front armour, a red glass dome and four exposed rear engines. Angular faceted gloss-black hull (#201430 to #4c3a68) with hex panel lines, gold (#ffa800) trim, secondary accent colour #e8e4f0, red running lights, a thin gold rim light on the top-left edges and red on the bottom-right edges. Facing down.
 - **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, text, watermark, magenta or hot-pink glow, yellow glow, blue or cyan body colour, curves, organic shapes.
 - **Mockup generator:** `python3 tools/concept/enemies_r04.py gilded-gunship`
+
+# Round 05 — new archetypes
+
+## coilwyrm-r05-a
+
+**Coilwyrm (Vrell serpent)** — a 58 px head pulling 12 overlapping, tapering segments and a tail (about 330 px long). Files: `coilwyrm-r05-a.png` (sheet) and `coilwyrm-r05-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A segmented alien serpent seen from directly above: horned armoured head with bone mandibles and glowing teal (#00ff9a) eyes, a chain of rounded rust-red chitin segments (#b04a2c, shadows #3a1008) each with a bone dorsal spine and small side fins, a finned tail. Deliver the head, one segment and the tail as separate sprites.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, magenta or hot-pink glow, yellow glow, blue or cyan body colour.
+- **Animation brief:** Every segment follows the exact path the head travelled and turns to the path tangent (16 pre-rendered headings per part, nearest frame). Looping swirl (prolate cycloid) down the screen; jaw snaps open/shut. Head is the weak point, segments absorb shots.
+- **Mockup generator:** `python3 tools/concept/enemies_r05.py coilwyrm` (models `tools/concept/render/archetype_models.py`, rigs `tools/concept/render/enemy_rigs.py`)
+
+## whirl-seed-r05-a
+
+**Whirl Seed (Vrell seed pod)** — a tiny 22 px radially symmetric seed pod. Files: `whirl-seed-r05-a.png` (sheet) and `whirl-seed-r05-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A tiny alien seed pod seen from above: five curved petal blades alternating plum violet (#a020a8) and deep violet (#40004a) around a glowing teal (#00ff9a) core, radially symmetric like a spinning sycamore seed or shuriken.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, magenta or hot-pink glow, yellow glow, blue or cyan body colour.
+- **Animation brief:** Spins fast (8 frames cover 72° thanks to 5-fold symmetry). Clusters of five spiral around a centre that bounces off the play-field edges; the spiral radius breathes. No front or back.
+- **Mockup generator:** `python3 tools/concept/enemies_r05.py whirl-seed` (models `tools/concept/render/archetype_models.py`, rigs `tools/concept/render/enemy_rigs.py`)
+
+## mote-swarm-r05-a
+
+**Mote Swarm (Vrell flock)** — tiny 16 px motes, 30 per flock. Files: `mote-swarm-r05-a.png` (sheet) and `mote-swarm-r05-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A tiny ember-like alien mote seen from above: spiky rust-red husk (#b04a2c) with three swept dark fins and a thin crimson (#ff3038) glowing slit; radially symmetric. The body dominates so it never reads as a round bullet.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, magenta or hot-pink glow, yellow glow, blue or cyan body colour.
+- **Animation brief:** Boids flock (cohesion to a leader path, separation, alignment) swirling in front of the player, leaving the screen at the side and re-entering from behind (rear attack) after a blinking edge warning. 3-frame glow flicker, no facing.
+- **Mockup generator:** `python3 tools/concept/enemies_r05.py mote-swarm` (models `tools/concept/render/archetype_models.py`, rigs `tools/concept/render/enemy_rigs.py`)
+
+## buzzsaw-drone-r05-a
+
+**Buzzsaw Drone (Ascendancy)** — a 42 px radially symmetric spinning blade drone. Files: `buzzsaw-drone-r05-a.png` (sheet) and `buzzsaw-drone-r05-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A human-built spinning blade drone seen from above: six hooked gunmetal (#6a6e78) blades around a black (#201430) armoured disc, a gold (#ffa800) hub ring and a red sensor eye in the centre; thin gold rim light on the top-left edges, red on the bottom-right.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, magenta or hot-pink glow, yellow glow, blue or cyan body colour, organic shapes.
+- **Animation brief:** Spins very fast (8 frames cover 60° with 6-fold symmetry) and ricochets off the play-field edges at high speed; a short after-image trail shows its direction. Contact damage only.
+- **Mockup generator:** `python3 tools/concept/enemies_r05.py buzzsaw-drone` (models `tools/concept/render/archetype_models.py`, rigs `tools/concept/render/enemy_rigs.py`)
+
+## rail-serpent-r05-a
+
+**Rail Serpent (Ascendancy drone train)** — a 40 px head car pulling 8 linked 36 px drone cars. Files: `rail-serpent-r05-a.png` (sheet) and `rail-serpent-r05-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. An angular human-built drone train seen from above: armoured black (#201430) hex-panelled cars with gold spines, red accent side armour (#c8202a), coupling links between cars; the head car has a sharp sensor prow with a red eye; gold/red rim light.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, magenta or hot-pink glow, yellow glow, blue or cyan body colour, organic shapes.
+- **Animation brief:** Rigid cars follow the head's route at even spacing, each turning to the path tangent (16 headings). Cars can be shot off one by one.
+- **Mockup generator:** `python3 tools/concept/enemies_r05.py rail-serpent` (models `tools/concept/render/archetype_models.py`, rigs `tools/concept/render/enemy_rigs.py`)

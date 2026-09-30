@@ -16,3 +16,12 @@
 
 - **Prompt:** not applicable (comparison sheet).
 - **Mockup generator:** `python3 tools/concept/enemies_r04.py lineup`
+
+# Round 05
+
+## size-lineup-r05-a
+
+**Size lineup** — every round-05 archetype and every round-04 unit at native scale (1×), from the 16 px Mote to the Leviathan, next to the player; the Brood Carrier for comparison. A size and silhouette check, not an asset.
+
+- **Prompt:** not applicable (comparison sheet).
+- **Mockup generator:** `python3 tools/concept/enemies_r05.py size-lineup`
