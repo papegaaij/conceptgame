@@ -1,0 +1,63 @@
+---
+title: Chairman Silas Vorne
+design: draft
+implementation: n/a
+art: none
+updated: 2026-09-30
+---
+
+# Chairman Silas Vorne
+
+## Summary
+
+CEO of Helix Dynamics and Chairman of the Jovian Ascendancy. The man who opened the Tether
+Gate. A theatrical, silver-tongued pulp villain who believes he is saving humanity from its own
+mediocrity.
+
+## Design
+
+- **Role**: the human villain. Silent until the Act 4 reveal, then interrupts the radio with
+  transmissions, especially at boss fights in Acts 5–7. Escapes the wreck of his flagship
+  Ascendant at the end of Act 6 (L42) and dies in Act 7 (L48), absorbed by the Choir.
+- **Personality**: charming, grandiose, patient, utterly convinced. Treats the war as a
+  business transaction. Genuinely admires skill — and wants to own it.
+- **Voice**: long, polished sentences, rhetorical flourishes, the occasional quote. Never
+  shouts — until the very end of Act 6. The designated pulp villain: allowed to be
+  over-the-top.
+- **Background**: 60s but looks 40 (Vrell biotech treatments — a detail Varga notices in
+  Act 5). Built Helix on Jovian helium-3. Funded the 2179 gate survey and made first contact in
+  secret.
+- **Arc**:
+  - Act 1–3: a name in political news snippets during briefings.
+  - Act 4 end: reveal. System-wide broadcast declaring the Ascendancy's "partnership".
+  - Act 5: tries to recruit Lancer after the Iron Sovereign falls.
+  - Act 6: the Vrell betray him; he fights on, desperate, from the Ascendant. When it breaks
+    apart he flees toward the gate in a Vrell lifeboat, still believing the Choir will honour
+    the deal (L42).
+  - Act 7: the Choir has fused him with the lifeboat: [Vorne's Chimera](../../../enemies/bosses/README.md),
+    the L48 mid-boss. Death: his last transmission breaks off mid-sentence.
+
+### Sample lines
+
+| Situation | Line |
+|---|---|
+| Reveal broadcast | "Citizens of the solar system. The old order is ending. I merely opened the door." |
+| Boss fight | "Such dedication. Such waste. You could have been on the winning side, pilot." |
+| Recruitment | "Lancer. You are wasted on Okafor. Come to Callisto. Name your price." |
+| Betrayed (Act 6–7) | "They were supposed to… no. No! We had an *agreement*!" |
+| Final (L48) | "Do you know what's coming after them, pilot? Do you have any idea what I was trying to—" |
+
+### Portrait brief
+
+Tall, lean man, looks forty but with old eyes; slicked-back silver hair, sharp cheekbones,
+neatly trimmed beard. High-collared black suit with gold embroidery and the Ascendancy crest (a
+rising sun over a ringed planet) on the lapel. A faint teal shimmer under the skin at his
+temple (Vrell biotech). Neutral: faint smile; alternates: smug (head tilted, one eyebrow up),
+rage (bared teeth, static-distorted). Warm golden rim light against black, scanline overlay,
+late-90s pre-rendered CGI style.
+
+## Decisions
+
+- 2026-09-30: Vorne as pulp villain, revealed end of Act 4.
+- 2026-09-30: Vorne survives Act 6 and dies in Act 7 (L48, Vorne's Chimera), matching the
+  campaign: his escape is what the UTC fleet follows through the gate.

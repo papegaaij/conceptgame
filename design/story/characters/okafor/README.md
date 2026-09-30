@@ -1,0 +1,51 @@
+---
+title: Commander Adaeze Okafor
+design: draft
+implementation: n/a
+art: none
+updated: 2026-09-30
+---
+
+# Commander Adaeze Okafor
+
+## Summary
+
+Commanding officer of Aegis Wing and the voice of the mission briefings. Calm, precise,
+unshakeable in front of her pilots — and carrying every loss privately.
+
+## Design
+
+- **Role**: gives act and mission briefings; radio lines at key moments (objective changes,
+  low armour, level end).
+- **Personality**: disciplined, economical with words, fiercely protective of her pilots.
+  Distrusts politicians, including her own. Rarely jokes; when she does, it lands.
+- **Voice**: short declarative sentences. Military terms without jargon overload. Uses
+  "Lancer" and "Aegis" rather than names.
+- **Background**: 50s, Nigerian-born, veteran of the 2166 Jovian tax riots — she was there
+  when the CDF fired on Aurelia, and has regretted it since. That history makes the Ascendancy
+  personal for her.
+- **Arc**: follows orders in Acts 1–3; in Act 3 she tells Varga to sit on the Helix anomaly
+  (her mistake). After the Act 4 reveal she owns it and goes after Vorne herself — in Act 6 she
+  commands the assault on Callisto from a carrier.
+
+### Sample lines
+
+| Situation | Line |
+|---|---|
+| Briefing | "They hit fast and they hit everywhere. We are not going to out-number them. We are going to out-fly them." |
+| Objective change | "Change of plans. The convoy is under attack. Break off and cover them." |
+| Low armour | "Lancer, your hull is breaking up. Get out of that crossfire." |
+| Level end | "Good work, Aegis. Bring them home." |
+| Act 4 reveal | "Those are not Vrell ships. God help us. Those are ours." |
+| Act 6 | "Vorne. This is Okafor. I was at Aurelia. I remember. So will you." |
+
+### Portrait brief
+
+Black woman in her fifties, close-cropped greying hair, strong jaw, a thin scar over her left
+eyebrow. CDF navy dress-duty uniform with commander's insignia on the collar, headset with a
+boom mic. Expression neutral and steady; alternates: urgent (leaning in, eyes narrowed), grim
+(looking down). Cool blue briefing-room lighting from below, late-90s pre-rendered CGI style.
+
+## Decisions
+
+- 2026-09-30: Okafor as briefing voice, with a personal history at Aurelia.

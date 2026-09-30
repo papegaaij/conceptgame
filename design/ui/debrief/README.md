@@ -1,0 +1,58 @@
+---
+title: Debrief screen
+design: draft
+implementation: not-started
+art: none
+depends-on: [../../systems/scoring, ../../systems/economy]
+updated: 2026-09-30
+---
+
+# Debrief screen
+
+## Summary
+
+After a level is completed, the debrief tallies the results with counting-up numbers and
+satisfying sounds, awards the grade, and adds the grade's credit bonus. Then the game moves on
+to the next briefing.
+
+## Design
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                     MISSION 21 COMPLETE · DUST COLOSSUS                      │
+├──────────────────────────────────────────────────────────────────────────────┤
+│   ENEMIES DESTROYED        184 / 203     91 %          + 18 200              │
+│   ARMOUR DAMAGE TAKEN      12                                                │
+│   SECRETS FOUND            2 / 3                                             │
+│   MAX CHAIN                58   ×3.5                                         │
+│   BOSS TIME                1:42  (par 2:00)            BOSS RUSH + 6 000     │
+│                                                                              │
+│   CREDITS EARNED           2 710                                             │
+│   GRADE BONUS  A  +20 %      542                                             │
+│   ────────────────────────────────                                           │
+│   TOTAL CREDITS           15 702                            ┌─────┐          │
+│   SCORE                1 382 900                            │  A  │          │
+│                                                             └─────┘          │
+│                                                  [ENTER] continue            │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+(Example: level 21 *Dust Colossus*, budget ≈ 3 870 per the
+[economy](../../systems/economy/README.md#per-level-budget) curve; numbers are illustrative.
+Total credits = balance at level start + credits earned + grade bonus.)
+
+- Lines appear one after another, 0.3 s apart, with a tick SFX while numbers count; confirm
+  skips the animation.
+- The grade stamp lands with a heavy SFX. A new best grade for the level gets a "NEW BEST" tag.
+- Data cores found show as a small list with their lore titles (readable later).
+- Act-final debriefs add an act summary (total kills, total credits for the act).
+
+## Implementation
+
+- [ ] Tally sequence with count-up animation and skip
+- [ ] Grade calculation display and credit bonus
+- [ ] Data core list and act summary
+
+## Decisions
+
+- 2026-09-30: Grade and bonuses as defined in [scoring](../../systems/scoring/README.md).

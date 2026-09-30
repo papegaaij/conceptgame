@@ -1,0 +1,48 @@
+---
+title: Game systems
+design: draft
+implementation: not-started
+art: n/a
+depends-on: [../player]
+updated: 2026-09-30
+---
+
+# Game systems
+
+## Summary
+
+The rules around the action: how credits are earned and spent, how score and grades work,
+what the difficulty levels change, what happens when the ship is destroyed, and how the game is
+saved.
+
+## Contents
+
+| Part | Summary | Design | Impl | Art |
+|---|---|---|---|---|
+| [economy](economy/README.md) | Credits: sources, sinks, pricing curve, sell-back, per-level budget | draft | not-started | n/a |
+| [scoring](scoring/README.md) | Score (separate from credits), chain multiplier, level-end bonuses, grades | draft | not-started | n/a |
+| [difficulty](difficulty/README.md) | What easy, medium and hard change | draft | not-started | n/a |
+| [retry](retry/README.md) | Failure model: ship destroyed → retry the level | draft | not-started | n/a |
+| [saves](saves/README.md) | Save slots, autosave, save contents | draft | not-started | n/a |
+
+## Design
+
+Campaign loop:
+
+```
+Main menu ─► New game (difficulty) ─► Intro briefing
+                                         │
+   ┌─────────────────────────────────────┘
+   ▼
+ Briefing (story) ─► Hangar (intel, shop, loadout, repair, save) ─► Level
+   ▲                                                                 │
+   │                         destroyed ◄─────────────────────────────┤
+   │                           │ retry / back to hangar              │ completed
+   │                           ▼                                     ▼
+   └───────────────────────── Debrief (score, credits, grade) ◄──────┘
+```
+
+## Decisions
+
+- 2026-09-30: Loop order is briefing → hangar → level → debrief, so the story sets up the
+  mission before the player equips for it.

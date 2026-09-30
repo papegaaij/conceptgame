@@ -1,0 +1,101 @@
+---
+title: Economy
+design: draft
+implementation: not-started
+art: n/a
+depends-on: [../../player, ../difficulty]
+updated: 2026-09-30
+---
+
+# Economy
+
+## Summary
+
+**Credits** are the one currency. They are earned in levels (bounties, salvage, level-end
+bonuses) and spent in the hangar. The campaign pays out less than it would cost to buy
+everything, so the player has to pick a build and adapt it per level.
+
+## Design
+
+### Sources
+
+All amounts are Act 1 values at medium and scale with the **act factor 1.6^(act−1)**, the same
+growth as prices (1.07⁷ ≈ 1.6 per act), so a level's income stays in line with its budget.
+
+| Source | Amount (first draft, medium, Act 1) |
+|---|---|
+| Enemy bounty | popcorn 5 · light 12 · medium 20 · heavy 60 (the exact value per enemy is in its stat block) |
+| Mid-boss / act boss | about 15 % / 30 % of the level's budget |
+| Salvage pickups | 10 / 50 / 200 |
+| Hidden crates | 5–15 % of the level's budget each, usually 1–3 per level |
+| Level-end bonus | Grade bonus: S +30 %, A +20 %, B +10 % of credits earned in the level |
+| Selling | See sell-back |
+
+Difficulty multiplies all credit income: easy ×1.25, medium ×1.0, hard ×0.9. See
+[difficulty](../difficulty/README.md).
+
+### Per-level budget
+
+This curve is the single source for level credit budgets; level documents and the
+[campaign](../../campaign/README.md#credit-budget) use it. The credits a perfect run of level
+*n* can earn (medium, before grade bonus):
+
+**budget(n) ≈ 1 000 × 1.07^(n−1)**
+
+| Act | Levels | Budget per level | Act total |
+|---|---|---|---|
+| 1 | 01–07 | 1 000 – 1 500 | ≈ 8 700 |
+| 2 | 08–14 | 1 600 – 2 400 | ≈ 13 900 |
+| 3 | 15–21 | 2 600 – 3 900 | ≈ 22 300 |
+| 4 | 22–28 | 4 100 – 6 200 | ≈ 35 800 |
+| 5 | 29–35 | 6 600 – 10 000 | ≈ 57 500 |
+| 6 | 36–42 | 10 700 – 16 000 | ≈ 92 400 |
+| 7 | 43–50 | 17 100 – 27 500 | ≈ 175 900 |
+
+The campaign total is about 406 000. A typical medium run collects about 70 %, roughly
+285 000.
+
+For comparison, maxing out everything would cost roughly 450 000 (generators ≈ 65 000,
+shields ≈ 25 000, plating ≈ 22 000, and several weapons at 7.5–8.5 × their base price each).
+A typical player can afford about 60–65 % of it, so choices matter.
+
+### Sinks
+
+- Weapons, upgrades, core components, utility modules, the 3rd utility bay (5 000)
+- Special charges (consumed)
+- Armour repair (medium 5 cr/point, hard 10 cr/point, easy free)
+- Rook's upgrades and repairs
+
+### Sell-back and undo
+
+- **Undo**: anything bought during the current hangar visit can be returned for 100 %
+  until the player launches. This encourages experimenting.
+- **Sell**: items owned from earlier visits sell for 60 % of the total spent on them
+  (purchase plus upgrades).
+- Unfitted items stay in the inventory for free, so selling is only needed for cash.
+
+### Pricing curve
+
+Base prices grow with the act the item unlocks in (about ×1.6 per act). The upgrade cost
+formula is in [weapons](../../player/weapons/README.md#common-rules).
+
+## Implementation
+
+- [ ] Credit balance, income multiplier by difficulty
+- [ ] Bounty values per enemy class; boss bounty per act
+- [ ] Hangar transaction log for undo; 60 % sell-back otherwise
+- [ ] Balancing sheet (spreadsheet or script) that simulates per-level budgets vs prices
+
+## Open questions
+
+- Do credits earned in a failed attempt really vanish? Yes: the user decided this. The
+  consequence is that grinding by dying is impossible, which is intended.
+
+## Decisions
+
+- 2026-09-30: One currency (credits); score is tracked separately (see
+  [scoring](../scoring/README.md)).
+- 2026-09-30: Full refund within a hangar visit, 60 % sell-back afterwards.
+- 2026-09-30: Budget curve set to 1 000 × 1.07^(n−1) (was 800 ×) so level 01 matches its
+  worked-example budget of 1 000 and a typical run affords 60–65 % of everything; bounties and
+  crates scale with the act factor; boss bounties are a share of the level budget.

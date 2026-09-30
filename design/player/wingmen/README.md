@@ -1,0 +1,79 @@
+---
+title: Wingmen and drones
+design: draft
+implementation: not-started
+art: none
+depends-on: [../weapons, ../../story]
+updated: 2026-09-30
+---
+
+# Wingmen and drones
+
+## Summary
+
+Extra guns that fly themselves. The AI wingman Lt. Kenji "Rook" Tanaka flies his own ship in
+the **escort slot**. Drones are cheaper helpers: light drones use a wing mount, and a heavy
+drone can take the escort slot instead of Rook.
+
+## Design
+
+### Escort slot (recommended answer to "wing slot or separate slot?")
+
+A separate **escort slot**, unlocked at L08 when Rook is assigned as Lancer's wingman (a story
+beat in [act 2](../../campaign/act-2-homefront/README.md); Rook has been in Aegis Wing for years
+and flies in the wider formation before that). It holds either Rook or one heavy drone. It draws no power
+from the Stormhawk's generator: the escort brings its own. Its costs are hiring/upgrade prices
+and repairs.
+
+Why a separate slot: if Rook took a wing mount, players would compare a whole pilot to a
+missile pod, and he would rarely be worth it. A separate slot keeps both choices interesting and
+makes his availability a story lever: Rook is shot down at the end of L26 and is missing for
+L27–L29 (see [Rook](../../story/characters/rook/README.md)). During those levels the escort slot
+can only hold a heavy drone; Rook is freed at Ceres Hub in L29 and is back from L30. His
+upgrades are kept.
+
+### Rook (AI wingman)
+
+| Property | Value (first draft) |
+|---|---|
+| Hire | Free when he is assigned (L08); upgrades are paid |
+| Ship | CDF F-9 Kestrel, 28×28 sprite, armour 80, no shield |
+| Position | Formation slot beside and slightly behind the player (left or right, hangar setting) |
+| Behaviour | Keeps formation, shoots what the player shoots, dodges bullets with a delay, targets enemies closing from the sides |
+| Weapon | One gun from his own list: Autocannon, Scatter, Missiles, Mortar (upgradable L1–L5, 60 % of the player's prices) |
+| Downed | At 0 armour he ejects and returns next level; his repair costs 10 cr/point after the level |
+| Radio | Banters on the radio; warns about threats from the rear ("Six o'clock, Lancer!") |
+
+### Drones
+
+| Name | Slot | Summary | Draw | Price | Unlock | Design |
+|---|---|---|---|---|---|---|
+| Light drone | wing mount | Orbits the ship at 24 px, fires a small forward gun, blocks bullets (breaks after 8 hits, rebuilds in 6 s). Sold as the Light Drone Bay in [weapons](../weapons/README.md) | 2 → 3 | 2 000 | L15 | idea |
+| Rear-guard drone | wing mount | Trails behind, fires backwards (`rear`) | 2 → 3 | 2 400 | L20 | idea |
+| Heavy drone "Warden" | escort | Tough (armour 120), slow-firing cannon, draws enemy fire | 0 | 6 000 | L22 | idea |
+| Hunter drone | escort | Leaves formation to chase homing targets, fragile | 0 | 7 500 | L29 | idea |
+
+Unlock `Lnn` = in the shop from the hangar visit before level *nn*. The Warden arrives before
+Rook's absence (L27–L29) so the escort slot never has to stay empty.
+
+## Implementation
+
+- [ ] Escort slot unlocked by a story flag
+- [ ] Rook AI: formation, targeting, dodging, eject/return
+- [ ] Drone behaviours: orbit, trail, block, rebuild
+- [ ] Wingman radio lines triggered by events (rear threat, low armour, kill streaks)
+
+## Open questions
+
+- Escort slot vs wing mount for the wingman: my recommendation is the separate escort slot
+  described above. Needs user confirmation.
+- Should Rook ever be killed for good in the story? The current story keeps him alive (missing
+  L27–L29 only); see [Rook](../../story/characters/rook/README.md).
+- While Rook is missing, the draft allows a heavy drone in the escort slot. The alternative is
+  to lock the slot completely for those levels, which makes his absence hit harder.
+
+## Decisions
+
+- 2026-09-30: Draft uses a separate escort slot (pending user confirmation).
+- 2026-09-30: Rook's timeline aligned with story and campaign: escort slot at L08, missing
+  L27–L29 (heavy drone only), back from L30. Drone unlock levels added.
