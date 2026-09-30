@@ -23,8 +23,8 @@ together with in-level radio chatter (see [HUD](../hud/README.md)).
 ├───────────────┬──────────────────────────────────────────────────────────────┤
 │ ┌───────────┐ │  ╔════════════════════════════════════════════════════════╗  │
 │ │           │ │  ║                                                        ║  │
-│ │ PORTRAIT  │ │  ║        TACTICAL MAP / MISSION IMAGE (448×160)          ║  │
-│ │  96×96    │ │  ║                                                        ║  │
+│ │ PORTRAIT  │ │  ║        TACTICAL MAP / MISSION IMAGE (672×240)          ║  │
+│ │ 144×144   │ │  ║                                                        ║  │
 │ │           │ │  ╚════════════════════════════════════════════════════════╝  │
 │ └───────────┘ │                                                              │
 │ CMDR OKAFOR   │  "Lancer, the Vrell are in the Nova Lagos outskirts.         │
@@ -44,7 +44,7 @@ the real briefing text is written in each level document.
   transmissions from Vorne or the Choir).
 - Text types out at ~60 characters/s with a soft blip. Confirm shows the full page, then
   continues. Skip jumps to the objectives.
-- Portraits: 96×96, pre-rendered, three expressions per main character (neutral, grim, fierce).
+- Portraits: 144×144, pre-rendered, three expressions per main character (neutral, grim, fierce).
   Interference/static effect for intercepted transmissions.
 - Act start/end briefings may be longer; normal levels are 2–4 pages.
 - Briefing text lives with each level in the [campaign](../../campaign/README.md).
@@ -58,3 +58,4 @@ the real briefing text is written in each level document.
 ## Decisions
 
 - 2026-09-30: Briefing comes before the hangar (see [systems](../../systems/README.md)).
+- 2026-09-30: Converted to the 960×540 baseline (was 640×360).

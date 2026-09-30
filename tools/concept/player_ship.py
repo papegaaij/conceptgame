@@ -18,6 +18,7 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from render import models, raster, sdf, sprite, terrain  # noqa: E402
+from render.config import out_path  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "design" / "player" / "ship" / "concept"
@@ -128,7 +129,7 @@ def make_sheet(key):
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for key in models.PLAYER_SHIPS:
-        path = OUT / f"player-ship-r01-{key}.png"
+        path = out_path(OUT, f"player-ship-r01-{key}.png")
         make_sheet(key).convert("RGB").save(path, optimize=True)
         print("wrote", path.relative_to(ROOT))
 

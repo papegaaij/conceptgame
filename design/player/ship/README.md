@@ -21,19 +21,19 @@ loadout, see [player](../README.md).
 
 | Property | Value (first draft) |
 |---|---|
-| Base speed | 180 px/s (engine Mk I). See [engines](../systems/README.md) |
+| Base speed | 270 px/s (engine Mk I). See [engines](../systems/README.md) |
 | Acceleration | Full speed in 0.08 s; stops in 0.06 s (tight, arcade-like) |
 | Precision mode | Hold button: speed × 0.5 for dodging. See [controls](../../ui/controls/README.md) |
-| Bounds | The whole play field (320×360); 8 px margin at the edges |
+| Bounds | The whole play field (480×540, see [art direction](../../art-direction/README.md)); 12 px margin at the edges |
 | Diagonal | Normalised (no faster diagonals) |
 
 The play field scrolls on its own. The ship never moves the camera.
 
 ### Hitbox
 
-- Hitbox: **6×6 px** around the cockpit, much smaller than the sprite. This is the norm for the
+- Hitbox: **9×9 px** around the cockpit, much smaller than the sprite. This is the norm for the
   genre and makes dense patterns fair.
-- Pickups use a separate collection radius of 24 px, which the magnet enlarges.
+- Pickups use a separate collection radius of 36 px, which the magnet enlarges.
 - Optional setting: show the hitbox as a small bright dot while precision mode is held.
 
 ### Sprite requirements
@@ -43,16 +43,16 @@ top-down camera, light from the top left.
 
 | Asset | Size | Frames |
 |---|---|---|
-| Hull, banking | 32×32 | 5: hard left, left, level, right, hard right (banking follows horizontal speed) |
-| Engine flame | 8×12 each (×2) | 3-frame loop; longer flame at speed, shorter when moving back |
-| Shadow | 32×32, dark translucent | 1, drawn on the ground layer, offset down-right by layer depth |
-| Shield hit | 40×40 | 4-frame hex-shimmer ring |
+| Hull, banking | 48×48 | 5: hard left, left, level, right, hard right (banking follows horizontal speed) |
+| Engine flame | 12×18 each (×2) | 3-frame loop; longer flame at speed, shorter when moving back |
+| Shadow | 48×48, dark translucent | 1, drawn on the ground layer, offset down-right by layer depth |
+| Shield hit | 60×60 | 4-frame hex-shimmer ring |
 | Damage | overlay | Smoke trail below 30 % armour, sparks below 15 % |
-| Wing-mount pods | 8×12 per pod type | 1 (+ muzzle flash); attached at fixed mount points |
-| Explosion (death) | 64×64 | 12 frames |
+| Wing-mount pods | 12×18 per pod type | 1 (+ muzzle flash); attached at fixed mount points |
+| Explosion (death) | 96×96 | 12 frames |
 
-Mount points on the 32×32 sprite (from the top left): front muzzle (16, 2), wing mounts
-(5, 18) and (27, 18), rear muzzle (16, 30), engines (12, 29) and (20, 29).
+Mount points on the 48×48 sprite (from the top left): front muzzle (24, 3), wing mounts
+(8, 27) and (40, 27), rear muzzle (24, 45), engines (18, 44) and (30, 44).
 
 ### Feel
 
@@ -65,9 +65,10 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 
 | File | What | Status |
 |---|---|---|
-| [concept/player-ship-r01-a.png](concept/player-ship-r01-a.png) | Variant A — forward-swept wing, canards, twin nacelles; aggressive, needle-like | proposed |
-| [concept/player-ship-r01-b.png](concept/player-ship-r01-b.png) | Variant B — twin-boom with straight wing and tailplane | proposed |
-| [concept/player-ship-r01-c.png](concept/player-ship-r01-c.png) | Variant C — blended manta body with canards | proposed |
+| [concept/player-ship-r01-a.png](concept/player-ship-r01-a.png) | Variant A — forward-swept wing, canards, twin nacelles; aggressive, needle-like | chosen |
+| [concept/rejected/player-ship-r01-b.png](concept/rejected/player-ship-r01-b.png) | Variant B — twin-boom with straight wing and tailplane | rejected — A and C preferred |
+| [concept/player-ship-r01-c.png](concept/player-ship-r01-c.png) | Variant C — blended manta body with canards | chosen — reused as Rook's wingman craft (see [wingmen](../wingmen/README.md)) |
+| [concept/player-ship-r02-a.png](concept/player-ship-r02-a.png) | Round 02: variant A re-rendered at 48×48 in palette B (960×540 baseline) | proposed — confirm |
 
 ## Implementation
 
@@ -87,3 +88,5 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 ## Decisions
 
 - 2026-09-30: One hull for the whole game; progression is through the loadout.
+- 2026-09-30: Concept round 01: silhouette **A** (forward-swept wing, canards, twin nacelles) chosen. C (blended manta) also liked and becomes Rook's wingman craft; B rejected.
+- 2026-09-30: Converted to the 960×540 baseline (was 640×360).

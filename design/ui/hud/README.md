@@ -11,33 +11,42 @@ updated: 2026-09-30
 
 ## Summary
 
-The play field (320×360) is kept clear. All status information lives in the two 160×360 side
+The play field (480×540) is kept clear. All status information lives in the two 240×540 side
 panels. Only boss health, warnings and pickup pop-ups appear in the play field itself. The
 left panel is about the mission (score, radio), the right panel about the ship.
 
 ## Design
 
-### Layout (640×360; each character ≈ 8×16 px)
+### Layout (960×540; each character cell ≈ 10×20 px)
 
 ```
-┌────────────────────┬────────────────────────────────────────┬────────────────────┐
-│ MISSION 21         │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░ DUST COLOSSUS     │ ARMOUR             │
-│ DUST COLOSSUS      │   (boss bar, only during boss)         │ ████████████░░  64 │
-│                    │                                        │ SHIELD             │
-│ SCORE              │                                        │ ██████░░░░░░░░  18 │
-│      1 204 350     │                                        │ POWER  ▮▮▮▮▮▮▯ +15%│
-│ CREDITS            │                                        │                    │
-│         12 450     │              PLAY FIELD                │ WEAPONS            │
-│ CHAIN 34   ×2.5    │               320×360                  │ F Scatter  ■■■□□   │
-│ ▰▰▰▰▰▱▱▱           │                                        │ R Tail     ■□□□□   │
-│                    │                                        │ L Missile  ■■□□□   │
-│ ┌──────┐ ROOK      │                                        │ R Missile  ■■□□□   │
-│ │PORT- │ "Six      │                                        │ OVERDRIVE ▰▰▰▱ 12s │
-│ │RAIT  │ o'clock,  │                 ▲                      │                    │
-│ └──────┘ Lancer!"  │                ███                     │ SPECIAL  AIRSTRIKE │
-│                    │                                        │ ◉◉○○               │
-│ PROGRESS ▕███░░░░▏ │                                        │ ESCORT ROOK  ███░  │
-└────────────────────┴────────────────────────────────────────┴────────────────────┘
+┌────────────────────────┬────────────────────────────────────────────────┬────────────────────────┐
+│ MISSION 21             │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░  DUST COLOSSUS   │ ARMOUR              64 │
+│ DUST COLOSSUS          │   (boss bar, only during boss fights)          │ █████████████████░░░░░ │
+│                        │                                                │ SHIELD              18 │
+│ SCORE                  │                                                │ ███████░░░░░░░░░░░░░░░ │
+│             1 204 350  │                                                │ POWER ▮▮▮▮▮▮▮▮▯▯  +15% │
+│ CREDITS                │                                                │                        │
+│                12 450  │                                                │ WEAPONS                │
+│ CHAIN 34          ×2.5 │                                                │ F Scatter Vulcan ■■■□□ │
+│ ▰▰▰▰▰▰▰▰▰▰▰▱▱▱▱▱▱▱▱▱▱▱ │                                                │ R Tail Gun       ■□□□□ │
+│                        │                                                │ L Micro-missile  ■■□□□ │
+│ ┌────────┐ ROOK        │                   PLAY FIELD                   │ R Micro-missile  ■■□□□ │
+│ │PORTRAIT│ Aegis Wing  │                    480×540                     │ OVERDRIVE ▰▰▰▰▰▱▱  12s │
+│ │ 72×72  │ ▂▃▅▇▅▃▂     │                                                │                        │
+│ └────────┘             │                                                │ SPECIAL     AIRSTRIKE  │
+│ "Six o'clock, Lancer!  │                                                │ ◉◉○○                   │
+│  Bandits closing on    │                                                │                        │
+│  your tail."           │                                                │ ESCORT  ROOK           │
+│                        │                                                │ ███████████████░░░░░░░ │
+│                        │                                                │                        │
+│                        │                                                │                        │
+│                        │                       ▲                        │                        │
+│                        │                      ███                       │                        │
+│                        │                                                │                        │
+│ PROGRESS               │                                                │                        │
+│ ▕██████████░░░░░░░░░◆▏ │                                                │                        │
+└────────────────────────┴────────────────────────────────────────────────┴────────────────────────┘
 ```
 
 ### Left panel (mission)
@@ -48,7 +57,7 @@ left panel is about the mission (score, radio), the right panel about the ship.
 | Score | 8 digits, counts up quickly |
 | Credits | Earned so far, including level-start balance |
 | Chain | Chain count, multiplier and draining window bar (see [scoring](../../systems/scoring/README.md)) |
-| Radio | 48×48 portrait with static on open/close, name, subtitle up to 4 lines × 11 chars; queued messages; urgent warnings interrupt |
+| Radio | 72×72 portrait with static on open/close, name, subtitle below the portrait up to 3 lines × 22 chars; queued messages; urgent warnings interrupt |
 | Progress | Level progress bar with a boss marker at the end |
 
 ### Right panel (ship)
@@ -81,8 +90,9 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 
 | File | What | Status |
 |---|---|---|
-| [concept/hud-r01-a.png](concept/hud-r01-a.png) | HUD A — classic metallic bevelled panels with LCD readouts | proposed |
-| [concept/hud-r01-b.png](concept/hud-r01-b.png) | HUD B — dark glass cockpit panels with neon outlines | proposed |
+| [concept/hud-r01-a.png](concept/hud-r01-a.png) | HUD A — classic metallic bevelled panels with LCD readouts | chosen |
+| [concept/rejected/hud-r01-b.png](concept/rejected/hud-r01-b.png) | HUD B — dark glass cockpit panels with neon outlines | rejected — does not fit the style |
+| [concept/hud-r02-a.png](concept/hud-r02-a.png) | Round 02: HUD A at 960×540 with 240 px panels in palette B, full element list from this document | proposed — confirm |
 
 ## Implementation
 
@@ -102,3 +112,5 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 - 2026-09-30: Status info in the side panels; the play field stays clean.
 - 2026-09-30: Edge warnings for side and rear waves are always shown; the sensor suite only adds
   arrows for individual off-screen threats. Power gauge shows enemy drain.
+- 2026-09-30: Concept round 01: HUD **A** (metallic bevelled panels, LCD readouts) chosen; B (glass/neon) rejected as not fitting the style.
+- 2026-09-30: Converted to the 960×540 baseline (was 640×360).

@@ -18,7 +18,7 @@ the next level's threat profile are marked.
 
 ## Design
 
-### Layout (640×360)
+### Layout (960×540; columns ≈ 300 / 370 / 290 px)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -96,3 +96,4 @@ inventory. Undo within the visit refunds 100 %, see
 ## Decisions
 
 - 2026-09-30: The intel panel sits in the hangar itself, so the player sees it while shopping.
+- 2026-09-30: Converted to the 960×540 baseline (was 640×360).

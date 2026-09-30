@@ -24,6 +24,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from render import models, raster, sdf, sprite, terrain  # noqa: E402
+from render.config import out_path  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "design" / "art-direction" / "concept"
@@ -541,10 +542,10 @@ def main():
     only = sys.argv[1:] or list(SCENES)
     for key in only:
         scene = get_scene(key)
-        png = OUT / f"parallax-r01-{key}.png"
+        png = out_path(OUT, f"parallax-r01-{key}.png")
         make_sheet(scene).convert("RGB").save(png, optimize=True)
         print("wrote", png.relative_to(ROOT))
-        gif = OUT / f"parallax-r01-{key}.gif"
+        gif = out_path(OUT, f"parallax-r01-{key}.gif")
         make_gif(scene, gif)
         print("wrote", gif.relative_to(ROOT))
 

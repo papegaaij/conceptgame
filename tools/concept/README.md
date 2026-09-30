@@ -19,7 +19,17 @@ DejaVu Sans fonts when present (other system fonts as fallback).
 | `logos.py` | `design/ui/main-menu/concept/logo-r01-{a,b,c,d}.png` | four title/logo candidates |
 | `make_all.py` | all of the above | about two minutes |
 
-Run from the repository root, e.g. `python3 tools/concept/make_all.py`.
+Run from the repository root, e.g. `python3 tools/concept/make_all.py --round 01`. Round 01
+was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/rejected/`.
+
+## Scripts (visual, round 02 – 960x540, palette B)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `ships_r02.py` | `design/player/ship/concept/player-ship-r02-a.png`, `design/player/wingmen/concept/rook-craft-r02-{a,b}.png` | ship A at 48x48 and Rook's craft (ship C geometry, 40x40) in two schemes, ~15 s |
+| `parallax_r02.py [a] [b] [c]` | `design/art-direction/concept/parallax-r02-{a,b,c}.{png,gif}` | orbit (fuller, faster), calm night city, Mars canyon; 4 s loops at 20 fps, ~1 min |
+| `hud_r02.py` | `design/ui/hud/concept/hud-r02-a.png` | HUD A at 960x540, reuses parallax scene A of round 02 |
+| `make_all.py` | all of the above (default round) | about three minutes |
 
 ## Audio (round 01)
 
@@ -41,7 +51,13 @@ Outputs go to `design/audio/sfx/concept/` and `design/audio/music/concept/`.
   orbital station segments and debris.
 - `sprite.py` – render → native sprite pipeline: box downsample with coverage, 1-bit alpha,
   mild unsharp mask, median-cut palette; plus shadows and clipped pasting.
-- `terrain.py` – procedural backgrounds (coastline, Earth from orbit, city streets) and
+- `terrain.py` – procedural backgrounds (coastline with palette stops, Earth from orbit, city streets) and
   `recede()` which pushes a background back so sprites stay readable.
 - `raster.py` – tileable value noise / fBm, colour ramps, glows, starfields, the 5x7 bitmap
   font used for sheet labels and HUD text, and presentation-sheet helpers.
+- `config.py` – **shared screen geometry** (960x540, play field 480x540 at x = 240, 240 px
+  panels, ship 48 px, Rook 40 px; round 01 values in `R01`) and `out_path()`.
+- `palette.py` – the three round 01 palettes as 6-step ramps; `B` (90s Neon CGI) is the
+  reference palette, with helpers for ship and Vrell material colours.
+- `station.py` – round 02 kit of pre-rendered UTC structure parts (trusses, drums, solar
+  arrays, radiators, dock, dish, turret, cargo, Mars dome) that scenes kit-bash in 2D.

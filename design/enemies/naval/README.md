@@ -18,7 +18,7 @@ the core of the underwater Act 4 on Europa, where the `sub` layer becomes the pl
 
 | Name | Faction | Layer | Role/ability | Formations | First level | Design |
 |---|---|---|---|---|---|---|
-| Driftjelly | Vrell | ground (surface) / sub | Floating mine organism. `drift`s; pulses a `ring` when the player comes within 64 px. | swarm | 11 | idea |
+| Driftjelly | Vrell | ground (surface) / sub | Floating mine organism. `drift`s; pulses a `ring` when the player comes within 96 px. | swarm | 11 | idea |
 | Reef Spitter | Vrell | ground (surface) | Barnacle gun grown on floating biomass rafts. `terrain` + 3-way `fan`. | turret nest | 11 | idea |
 | Skimmer | Vrell | ground (surface) | Fast skiff that weaves between ice floes (`sine`) and fires `aimed` shots; comes from all edges. | convoy, cross | 13 | idea |
 | Eel Swarm | Vrell | sub | A long snake of eel segments; each segment has to be destroyed, and the head fires `aimed` shots. | snake | 23 | idea |
@@ -48,3 +48,4 @@ the core of the underwater Act 4 on Europa, where the `sub` layer becomes the pl
 ## Decisions
 
 - 2026-09-30: Roster of 8 naval enemies drafted.
+- 2026-09-30: Converted to the 960×540 baseline (was 640×360).

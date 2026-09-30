@@ -25,7 +25,7 @@ generator limits what can be fitted at the same time.
 | [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | draft | not-started | none |
 | [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | draft | not-started | none |
 | [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | draft | not-started | none |
-| [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | draft | not-started | none |
+| [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | draft | not-started | proposed |
 | [specials](specials/README.md) | Special abilities: airstrike, smart bomb, EMP, orbital lance, … | draft | not-started | none |
 | [systems](systems/README.md) | Engines and utility-bay modules: magnet, sensors, auto-repair, … | draft | not-started | none |
 

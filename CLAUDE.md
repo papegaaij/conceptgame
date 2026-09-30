@@ -1,4 +1,4 @@
-# Conceptgame — working rules
+# Terran Vanguard — working rules
 
 A vertical shoot'em up set in 2185 (see [design/README.md](design/README.md)). The project is
 currently in the **design phase**: there is no game code yet. The `design/` tree is a *living
@@ -79,6 +79,13 @@ the parent's Contents table. Run the checker afterwards.
   shows all images side by side and plays the audio (relative links into the design tree).
   Update `design/concept-rounds/README.md` when a round opens or closes.
 - Binary files (png, gif, wav, ogg, …) are stored in Git LFS (`.gitattributes`).
+- **Third-party assets** (e.g. sound effects from Freesound, OpenGameArt, Kenney): the GitHub
+  repository is public, so only **CC0** or **CC-BY** (any version) assets are allowed — never
+  licences that forbid redistributing the raw files (Pixabay, Sonniss GDC bundles, "royalty
+  free" store packs) or non-commercial ones (CC-BY-NC). Every third-party file is recorded in
+  [CREDITS.md](CREDITS.md) with file path, title, author, source URL, licence and what was
+  changed; the part's `concept/prompts.md` links the source too. CC-BY items must later appear
+  on the in-game credits screen.
 
 ## Art and game fundamentals (decided)
 
@@ -95,6 +102,8 @@ design tree; this list is only a reminder.
 - `python3 tools/check_docs.py` – validates the design tree (README presence, frontmatter,
   Contents tables in sync with children, concept files listed, relative links resolve).
   **Run it after every documentation change** and fix what it reports.
+  `--fix` first syncs the Contents status cells from the children's frontmatter (bottom-up
+  order matters: run it twice when a change ripples up more than one level).
 - `tools/concept/` – reproducible generators for concept mockups (Python 3 + PIL + numpy,
   ffmpeg for audio/GIF encoding). Each script documents its outputs at the top.
 

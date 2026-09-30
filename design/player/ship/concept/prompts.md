@@ -54,3 +54,18 @@ stripes, orange wingtips, dark blue glass canopy, glowing engine slits, key ligh
 
 Artist notes: the most advanced, "sci-fi" option. Watch readability of the thin fins at sprite
 size; the silhouette relies on the arrowhead outline.
+
+## player-ship-r02-a
+
+Round 02: the chosen **ship A** re-rendered at the new 960×540 scale (48×48 sprite) in the
+chosen **palette B "90s Neon CGI"**. Generator:
+[tools/concept/ships_r02.py](../../../../tools/concept/ships_r02.py).
+
+Prompt: `top-down orthographic render of a sleek sci-fi jet interceptor, forward-swept wings,
+small canards, long needle fuselage, twin engines in dark violet-navy nacelles, twin tail fins,
+wingtip gun rails, glossy blue-white chrome hull (#C8D0F4) with violet shadows (#2A3068), cyan
+wingtip and spine stripes (#00A8FF), orange nose band (#FF7A2A), deep blue canopy, cyan engine
+glow (#00C0FF), key light from top-left, saturated late-1990s pre-rendered CGI game sprite,
+plain dark background`
+
+Negative prompt: the common negative prompt above, plus `desaturated, grey, muted colours`.

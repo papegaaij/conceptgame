@@ -408,8 +408,10 @@ def decode(path):
     return np.frombuffer(raw, dtype="<f4").reshape(-1, 2).T.astype(float)
 
 
-def write_ogg(path, stereo, quality=6, max_peak_db=-1.0):
+def write_ogg(path, stereo, quality=6, max_peak_db=-1.0, tags=None):
     """Encode to OGG Vorbis via ffmpeg (deterministic for identical input).
+
+    tags: optional Vorbis comments, e.g. {"LOOPSTART": 123, "LOOPLENGTH": 456} (samples).
 
     Lossy encoding can overshoot the source peak; the encoded file is decoded and, if its
     peak exceeds max_peak_db, re-encoded with correspondingly less gain.
@@ -423,6 +425,7 @@ def write_ogg(path, stereo, quality=6, max_peak_db=-1.0):
             subprocess.run(
                 ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(wav),
                  "-c:a", "libvorbis", "-q:a", str(quality), "-map_metadata", "-1",
+                 *[a for k, v in (tags or {}).items() for a in ("-metadata", f"{k}={v}")],
                  "-fflags", "+bitexact", "-flags:a", "+bitexact", str(path)],
                 check=True)
         if max_peak_db is None:

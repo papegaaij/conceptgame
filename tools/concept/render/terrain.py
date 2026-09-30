@@ -24,10 +24,20 @@ def recede(img, amount=0.3, darken=0.8, tint=(40, 60, 90)):
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
 
 
-def earth_coast(w, h, seed=3, period=True, land_bias=0.52):
+def coast_stops_from(sea, land, land_bias=0.52):
+    """Colour stops for ``earth_coast`` from a sea ramp and a land ramp (6-step palette
+    ramps, e.g. palette B 'EARTH ORBIT' and 'EARTH SURFACE')."""
+    return [
+        (0.00, sea[1]), (0.40, sea[2]), (land_bias - 0.02, sea[3]),
+        (land_bias, land[5]), (land_bias + 0.03, land[3]),
+        (0.70, land[2]), (0.84, land[1]), (1.00, land[4]),
+    ]
+
+
+def earth_coast(w, h, seed=3, period=True, land_bias=0.52, stops=None, cell=64):
     """Daylight Earth surface seen from low altitude: sea, beaches, grass, forest, rock."""
-    hgt = fbm(w, h, 64, seed, octaves=6, period=period)
-    stops = [
+    hgt = fbm(w, h, cell, seed, octaves=6, period=period)
+    stops = stops or [
         (0.00, (12, 34, 70)), (0.40, (22, 70, 112)), (land_bias - 0.02, (40, 118, 140)),
         (land_bias, (196, 186, 140)), (land_bias + 0.03, (92, 128, 60)),
         (0.70, (52, 92, 44)), (0.84, (98, 92, 76)), (1.00, (200, 200, 200)),

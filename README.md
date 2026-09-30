@@ -1,4 +1,6 @@
-# Conceptgame
+# Terran Vanguard
+
+*Working title. Repository: conceptgame.*
 
 A late-90s style vertical shoot'em up. The year is 2185: an alien fleet pours through a gate at
 the edge of the solar system, and it is up to one pilot to defend Earth, its colonies and its

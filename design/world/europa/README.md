@@ -70,7 +70,7 @@ here instead of repeating the numbers. Values are first-draft balancing values.
 
 | Rule | Value |
 |---|---|
-| Hydro-kit | Every Stormhawk (and Rook's Kestrel) gets a free, automatic field refit before L23. It is not a hangar purchase; see [ship systems](../../player/systems/README.md). |
+| Hydro-kit | Every Stormhawk (and Rook's variant-C Stormhawk) gets a free, automatic field refit before L23. It is not a hangar purchase; see [ship systems](../../player/systems/README.md). |
 | Projectile speed | All bullets, the player's and the enemies', move at × 0.7. |
 | Handling | Acceleration × 0.6 (drag, more inertia); top speed −15 %. |
 | Shield | Regeneration −25 %. |
@@ -99,3 +99,4 @@ reveal, which gets a sharp, shocking sting.
 - 2026-09-30: Europa as Act 4 with under-water rules; signature: the descent and ice breakout.
 - 2026-09-30: Conamara Station added as a surface sub-location (Act 4 opening).
 - 2026-09-30: Underwater rules consolidated here as the single owner: free automatic hydro-kit, 50 % damage for non-`anti-sub` weapons, optional pressure hull removes the speed/shield penalties.
+- 2026-09-30: Rook's craft renamed from the placeholder "Kestrel" to his variant-C Stormhawk (see [wingmen](../../player/wingmen/README.md)).

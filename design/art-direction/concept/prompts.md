@@ -68,3 +68,59 @@ air casting shadows onto the city, thin purple clouds lit orange from below drif
 
 Layer contents: ground ×1.0 (streets + towers with true perspective parallax + rooftop turrets),
 low-air ×1.25 (traffic), air (play plane), high-air ×1.75 (clouds, max ~40 % opacity).
+
+## Round 02 parallax scenes
+
+Round 02 redoes the parallax at **960×540** (play field 480×540), in **palette B**, with ship A.
+Generator: [tools/concept/parallax_r02.py](../../../tools/concept/parallax_r02.py). Each GIF is
+a seamless 4 s loop (80 frames at 20 fps). Background textures are posterized to 12–32 colours,
+like palette-limited 90s tile art. Common negative prompt as above, plus `bullet hell, dense
+bullet patterns, cluttered`.
+
+## parallax-r02-a
+
+**Earth orbit, fuller and faster**: ground scrolls at 190 px/s. Layers: deep ×0.12 (Earth,
+hazy and dark) with ×0.2 haze wisps, far ×0.45 (a distant sister station seen through the
+central lane), ground ×1.0 (the main station, built from pre-rendered parts: two truss spines,
+cross trusses, habitat drums, docking node, dish, solar arrays, radiators, cargo, CDF turrets,
+Vrell pods), low-air ×1.4 (tumbling wreckage), air (play plane), high-air ×2.4 (ice and
+debris streaks for speed).
+
+Prompt: `top-down orthographic view straight down on a busy orbital station above Earth, portrait
+480x540 game screen, saturated 90s neon CGI palette, far below a hazy dark blue Earth with green
+continents and thin cloud, a smaller distant station visible through a gap, the main station
+with two long lattice truss spines, cross beams, chrome habitat drums with orange bands, bright
+blue solar panel wings, radiators, a dish and cargo pods, violet alien growths clinging to it,
+tumbling hull wreckage passing close, fast motion streaks of ice in the foreground, a blue-white
+interceptor firing cyan bolts, violet alien darts and a spider-like alien gunship firing a
+ring of magenta orbs, shadows down-right, key light from top-left, 1990s pre-rendered CGI`
+
+## parallax-r02-b
+
+**Night megacity, calm**: ground scrolls at 140 px/s. Fewer, lower-contrast towers in a
+violet-blue ramp, two wide north–south avenues as readable lanes with sodium lamps only there,
+small dark parks, few lit windows, four hover cars on the avenues (low-air ×1.35), one rooftop
+Vrell turret, three darts, thin mist at high-air ×2.0.
+
+Prompt: `top-down view straight down on a calm futuristic city at night, portrait 480x540 game
+screen, dark violet-blue skyscrapers seen from above with subtle perspective walls, few warm lit
+windows, two wide avenues with orange street lamps forming clear lanes, small dark green parks,
+a few hover cars with red tail light trails on the avenues, one alien spore turret on a rooftop,
+a blue-white interceptor and three violet alien darts, very thin mist, low contrast ground,
+uncluttered, 1990s pre-rendered CGI`
+
+## parallax-r02-c
+
+**Mars canyon, balanced density**: ground scrolls at 160 px/s. The canyon floor is a far layer
+(×0.6) and the canyon walls are drawn in true perspective between the plateau rim (scale 1) and
+the floor (scale 0.6), so they turn as they scroll. Plateau (ground ×1.0) with craters and wind
+ridges, a small UTC colony outpost (glass domes, truss, cargo), Vrell pods on the rim firing
+aimed shots, dust plumes at low-air ×1.35, faint dust streaks at high-air ×2.2, a V of four
+darts.
+
+Prompt: `top-down view straight down into a winding red Mars canyon, portrait 480x540 game
+screen, saturated rust and orange palette, dark dusty plateau with craters and wind-carved
+ridges, deep canyon with visible layered strata walls in perspective and a dry riverbed far
+below, a small human colony outpost with blue glass domes on the rim, violet alien spore pods on
+the canyon edge, drifting dust plumes, a blue-white interceptor and a V of violet alien darts,
+shadows down-right, key light from top-left, 1990s pre-rendered CGI`

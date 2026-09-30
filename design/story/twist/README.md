@@ -1,6 +1,6 @@
 ---
 title: The mid-campaign twist
-design: review
+design: approved
 implementation: n/a
 art: n/a
 updated: 2026-09-30
@@ -102,3 +102,4 @@ Act 7 hint of the Silence, which leaves room for a sequel.
 ## Decisions
 
 - 2026-09-30: Three variants written up; A used as working assumption until the user chooses.
+- 2026-09-30: Concept round 01: the user chose **variant A** — the Ascendancy opened the gate. B and C are no longer pursued; C's refugee idea survives only as the late-game Silence hint.

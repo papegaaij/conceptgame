@@ -22,7 +22,7 @@ opened it, trading humanity for alien biotech.
 |---|---|---|---|---|
 | [factions](factions/README.md) | The three powers: Coalition, Vrell, Jovian Ascendancy | draft | n/a | none |
 | [characters](characters/README.md) | Briefing and radio cast, including the player | draft | n/a | none |
-| [twist](twist/README.md) | The mid-campaign twist: three variants to choose from | review | n/a | n/a |
+| [twist](twist/README.md) | The mid-campaign twist: three variants to choose from | approved | n/a | n/a |
 
 ## Design
 

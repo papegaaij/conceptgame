@@ -40,3 +40,25 @@ Wing Commander / Colony Wars cockpit display aesthetic`
 
 Artist notes: a cockpit display rather than a machine casing. Neon lines glow; labels sit in the
 frame gaps. Keep glow on the panels only – nothing bleeds into the play field.
+
+## hud-r02-a
+
+Round 02: the chosen **HUD A** (metallic bevelled panels) at **960×540** with 240 px side
+panels, in **palette B**, showing the level 07 state (rear gun and escort slot still empty).
+Element list as in the HUD document: mission, score, credits, chain with multiplier and window
+bar, radio portrait and subtitle, progress with boss marker; armour and shield bars with
+numbers, power gauge (load vs output, spare and regen bonus), four weapon slots with level
+pips, overdrive, special charges, escort. Generator:
+[tools/concept/hud_r02.py](../../../../tools/concept/hud_r02.py) (play field: parallax scene A
+of round 02).
+
+Prompt: `1998 PC shoot-em-up game screen, 16:9, central vertical play field over an orbital
+station above Earth, left and right side panels of brushed violet-blue chrome (#4E5AA0 to
+#8A96D0) with bevelled edges, rivets and yellow-black hazard stripes, recessed near-black LCD
+wells with bright green (#00FF66) and yellow (#FFFF00) pixel text, segmented orange-red armour
+bar, cyan shield bar, yellow/green power gauge, four weapon slot boxes with level pips, radio
+video feed with a green scanline officer portrait, crisp chunky bitmap font, pre-rendered metal
+textures, saturated 90s neon CGI palette`
+
+Negative prompt: the common negative prompt above, plus `glass panels, neon outlines, flat
+dark UI` (that was the rejected variant B).

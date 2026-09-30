@@ -18,6 +18,7 @@ from PIL import Image, ImageDraw, ImageFilter
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import parallax  # noqa: E402
 from render import raster, sprite  # noqa: E402
+from render.config import out_path  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "design" / "ui" / "hud" / "concept"
@@ -370,7 +371,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for key, cls, title in (("a", Metal, "HUD A: METALLIC BEVELLED PANELS"),
                             ("b", Glass, "HUD B: DARK GLASS NEON COCKPIT")):
-        path = OUT / f"hud-r01-{key}.png"
+        path = out_path(OUT, f"hud-r01-{key}.png")
         make(cls, title).convert("RGB").save(path, optimize=True)
         print("wrote", path.relative_to(ROOT))
 

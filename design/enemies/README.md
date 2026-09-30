@@ -48,10 +48,10 @@ block, followed by behaviour notes and the standard sections.
 |---|---|
 | Faction | Vrell / Ascendancy / Hybrid / Unmarked |
 | Layer | From the layer vocabulary (`ground`, `low-air`, `air`, `high-air`, `sub`, `space`) |
-| Size | Sprite size in px at the 640×360 baseline (e.g. 24×24) |
+| Size | Sprite size in px at the 960×540 baseline (e.g. 36×36; see [art direction](../art-direction/README.md)) |
 | HP | In **damage units**: 1 = one shot of the starting front gun at upgrade level 1 |
 | Armour / shield | Damage reduction or a shield layer with its own HP; the traits that bypass it |
-| Speed | px/s at 640×360 |
+| Speed | px/s at 960×540 |
 | Movement | Pattern name from the movement vocabulary + parameters |
 | Attack | Pattern name(s) from the attack vocabulary + interval, bullet count and bullet speed |
 | Formations | Formation names it appears in |
@@ -157,7 +157,7 @@ Enemy bullets always travel on the player's plane, whatever layer fired them.
   heavy, diamond = homing (shootable).
 - Every laser and area attack is telegraphed: `laser-line` ≥ 0.8 s, `laser-sweep` ≥ 0.6 s,
   `mortar` impact point marked ≥ 1 s ahead.
-- No enemy bullet spawns within 48 px of the player's ship.
+- No enemy bullet spawns within 72 px of the player's ship.
 - Waves entering from the sides or rear get an **edge warning**: an arrow at the edge of the
   play field ≥ 1.5 s ahead, often with a radio call.
 - A **bullet budget** caps the number of enemy bullets on screen (values per difficulty in
@@ -202,3 +202,4 @@ adds are **overrides**:
 - 2026-09-30: Global difficulty levers and the bullet budget moved to
   [difficulty](../systems/difficulty/README.md) (single source); stat blocks keep overrides.
 - 2026-09-30: Bullet colours tied to the faction colours; score vs credits deferred to scoring.
+- 2026-09-30: Converted to the 960×540 baseline (was 640×360).

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Build the review board for a concept round.
 
-Scans design/**/concept/ (not rejected/) for files named <subject>-r<RR>-<variant>.<ext>
-and writes design/concept-rounds/round-<RR>/index.html: one section per subject, variants
-side by side, images shown pixel-sharp, audio with players. Extra text-only choices (e.g.
+Scans design/**/concept/ (including concept/rejected/) for files named
+<subject>-r<RR>-<variant>.<ext> and writes design/concept-rounds/round-<RR>/index.html: one
+section per subject, variants side by side, images shown pixel-sharp, audio with players. Each
+card shows the variant's status as recorded in the owning README's Concept art table. Extra text-only choices (e.g.
 story variants) come from the round README: every markdown link to a .md file in its
 "## Text choices" section is shown as a link card.
 
@@ -44,6 +45,10 @@ h2 a { color:inherit; text-decoration:none; } h2 a:hover { text-decoration:under
             background:#000; border-radius:3px; }
 .card audio { width:100%; margin-top:6px; }
 .card .file { color:var(--dim); font-size:12px; margin-top:6px; word-break:break-all; }
+.status { font-size:12px; font-weight:bold; text-transform:uppercase; margin-left:6px; }
+.status.chosen { color:#66bb6a; } .status.rejected { color:#ef5350; }
+.status.proposed { color:var(--accent); }
+.card.rejected { opacity:.55; }
 .card a { color:var(--accent); }
 footer { max-width:1400px; margin:30px auto; padding:0 16px 30px; color:var(--dim); font-size:13px; }
 """
@@ -55,14 +60,29 @@ LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
 def collect(round_no):
     items = {}
     for f in sorted(DESIGN.rglob("*")):
-        if not f.is_file() or f.parent.name != "concept":
+        if not f.is_file():
+            continue
+        if f.parent.name == "concept":
+            owner = f.parent.parent
+        elif f.parent.name == "rejected" and f.parent.parent.name == "concept":
+            owner = f.parent.parent.parent
+        else:
             continue
         m = NAME.match(f.name)
         if not m or m["round"] != round_no:
             continue
-        key = (f.parent.parent, m["subject"])
+        key = (owner, m["subject"])
         items.setdefault(key, []).append((m["variant"], f))
     return items
+
+
+def status_of(readme, f):
+    """Last cell of the Concept art table row that mentions the file, e.g. 'chosen — ...'."""
+    if readme.exists():
+        for line in readme.read_text(encoding="utf-8").splitlines():
+            if line.startswith("|") and f"/{f.name}" in line:
+                return line.strip().strip("|").split("|")[-1].strip()
+    return "proposed"
 
 
 def text_choices(readme):
@@ -102,7 +122,10 @@ def main():
                 media = f'<audio controls preload="none" src="{link(f)}"></audio>'
             else:
                 media = f'<a href="{link(f)}">open</a>'
-            cards.append(f'<div class="card"><h3>Variant {variant.upper()}</h3>{media}'
+            status = status_of(doc, f)
+            word = status.split()[0].lower() if status else "proposed"
+            cards.append(f'<div class="card {word}"><h3>Variant {variant.upper()}'
+                         f'<span class="status {word}">{html.escape(status)}</span></h3>{media}'
                          f'<div class="file">{html.escape(f.name)}</div></div>')
         parts.append(
             f'<section><h2>{html.escape(subject.replace("-", " "))}</h2>'

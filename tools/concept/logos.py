@@ -19,6 +19,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from render import raster  # noqa: E402
+from render.config import out_path  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "design" / "ui" / "main-menu" / "concept"
@@ -256,7 +257,7 @@ LOGOS = {"a": logo_a, "b": logo_b, "c": logo_c, "d": logo_d}
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for key, fn in LOGOS.items():
-        path = OUT / f"logo-r01-{key}.png"
+        path = out_path(OUT, f"logo-r01-{key}.png")
         fn().convert("RGB").save(path, optimize=True)
         print("wrote", path.relative_to(ROOT))
 

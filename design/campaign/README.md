@@ -135,7 +135,7 @@ directory `level-NN-slug/` with a README holding these sections (after Summary):
 3. **Objective** – primary objective type and win/fail conditions; optional secondary
    objectives with bonus credits.
 4. **Layout** – the level split into named sections along a **scroll timeline** (time in
-   seconds and scroll distance in px at the 640×360 baseline). Per section: terrain and
+   seconds and scroll distance in px at the 960×540 baseline, see [art direction](../art-direction/README.md)). Per section: terrain and
    parallax content per layer, scroll speed, and what the player should learn or feel there.
 5. **Waves** – table `| t (s) | Section | Formation | Enemies (link) | Count | Enter from | Notes |`.
    Enemies and formations are referenced by link and vocabulary name, never re-specified.
@@ -180,3 +180,4 @@ criteria), Open questions, Decisions. The worked example is
 - 2026-09-30: Credit budgets per level follow the economy curve (single owner:
   [economy](../systems/economy/README.md)); `homing` becomes available at L06 (the
   Micro-missile Pod) instead of L10.
+- 2026-09-30: Converted to the 960×540 baseline (was 640×360).

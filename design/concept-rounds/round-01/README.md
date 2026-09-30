@@ -1,8 +1,8 @@
 ---
 title: Concept round 01 — style exploration
-design: review
+design: approved
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-09-30
 ---
 
@@ -26,17 +26,17 @@ iteration. Mixing is fine.
 
 | # | Choice | Variants | Part | Outcome |
 |---|---|---|---|---|
-| 1 | Player ship silhouette (AF-12 Stormhawk) | A forward-swept · B twin-boom · C blended manta | [player/ship](../../player/ship/README.md) | open |
-| 2 | Palette / mood | A cold military steel · B 90s neon CGI · C warm cinematic | [art-direction](../../art-direction/README.md) | open |
-| 3 | Parallax scene style | A Earth orbit · B night megacity (both will be used as settings; this is about the rendering approach and layer treatment) | [art-direction](../../art-direction/README.md) | open |
-| 4 | HUD style | A metallic bevelled panels · B dark glass neon | [ui/hud](../../ui/hud/README.md) | open |
-| 5 | Working title + logo | A STORMHAWK · B AEGIS WING · C LAST LINE 2185 · D TERRAN VANGUARD | [ui/main-menu](../../ui/main-menu/README.md) | open |
-| 6 | Player shot sound | A laser pew · B pulse cannon · C plasma bolt | [audio/sfx](../../audio/sfx/README.md) | open |
-| 7 | Explosion sound | A small crunchy · B big boom with debris · C sci-fi plasma (may become per-faction) | [audio/sfx](../../audio/sfx/README.md) | open |
-| 8 | Pickup sound | A power-up arpeggio · B bell chime · C synth sweep (may become per-pickup-type) | [audio/sfx](../../audio/sfx/README.md) | open |
-| 9 | Music direction | A "Afterburner" tracker trance/techno · B "Coalition Rising" synth-orchestral · or a blend (e.g. A for levels, B for bosses and story moments) | [audio/music](../../audio/music/README.md) | open |
-| 10 | Story twist | A Ascendancy opened the gate (recommended, all docs assume it) · B rogue Coalition AI · C Vrell refugees fleeing the Silence | [story/twist](../../story/twist/README.md) | open |
-| 11 | Internal resolution | 640×360 (recommended, current baseline) · 960×540 | [art-direction](../../art-direction/README.md#open-questions) | open |
+| 1 | Player ship silhouette (AF-12 Stormhawk) | A forward-swept · B twin-boom · C blended manta | [player/ship](../../player/ship/README.md) | **A** chosen; C liked as runner-up; B rejected |
+| 2 | Palette / mood | A cold military steel · B 90s neon CGI · C warm cinematic | [art-direction](../../art-direction/README.md) | **B** 90s neon CGI |
+| 3 | Parallax scene style | A Earth orbit · B night megacity (both will be used as settings; this is about the rendering approach and layer treatment) | [art-direction](../../art-direction/README.md) | both rejected (A too empty, ground too slow; B too crowded/busy) → round 02 |
+| 4 | HUD style | A metallic bevelled panels · B dark glass neon | [ui/hud](../../ui/hud/README.md) | **A** metallic bevelled |
+| 5 | Working title + logo | A STORMHAWK · B AEGIS WING · C LAST LINE 2185 · D TERRAN VANGUARD | [ui/main-menu](../../ui/main-menu/README.md) | **D** Terran Vanguard |
+| 6 | Player shot sound | A laser pew · B pulse cannon · C plasma bolt | [audio/sfx](../../audio/sfx/README.md) | all rejected → source recorded SFX online, round 02 |
+| 7 | Explosion sound | A small crunchy · B big boom with debris · C sci-fi plasma (may become per-faction) | [audio/sfx](../../audio/sfx/README.md) | all rejected, must be more realistic → source recorded SFX online, round 02 |
+| 8 | Pickup sound | A power-up arpeggio · B bell chime · C synth sweep (may become per-pickup-type) | [audio/sfx](../../audio/sfx/README.md) | all chosen: A power-ups, B rare upgrades, C credits |
+| 9 | Music direction | A "Afterburner" tracker trance/techno · B "Coalition Rising" synth-orchestral · or a blend (e.g. A for levels, B for bosses and story moments) | [audio/music](../../audio/music/README.md) | both chosen; more tracks in this style wanted → round 02 |
+| 10 | Story twist | A Ascendancy opened the gate (recommended, all docs assume it) · B rogue Coalition AI · C Vrell refugees fleeing the Silence | [story/twist](../../story/twist/README.md) | **A** Ascendancy opened the gate |
+| 11 | Internal resolution | 640×360 (recommended, current baseline) · 960×540 | [art-direction](../../art-direction/README.md#open-questions) | **960×540** (play field 480×540) — 1024×576 considered, rejected for non-integer scaling |
 
 ## Text choices
 
@@ -46,3 +46,5 @@ iteration. Mixing is fine.
 ## Decisions
 
 - 2026-09-30: Round opened.
+- 2026-09-30: User answered choices 1–10; resolution (11) under discussion. Rejected items carry over to round 02.
+- 2026-09-30: Resolution settled at 960×540; ship C becomes Rook's wingman craft. Round closed.

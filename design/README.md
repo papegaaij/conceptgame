@@ -72,7 +72,7 @@ Used across level, enemy, weapon and hangar-intel documents so they can be compa
 
 ## Open questions
 
-- Working title of the game — candidates are part of concept round 01.
+- None at this level; see the parts and [concept rounds](concept-rounds/README.md).
 
 ## Decisions
 
@@ -82,3 +82,4 @@ Used across level, enemy, weapon and hangar-intel documents so they can be compa
 - 2026-09-30: Alien invasion with a mid-campaign twist; serious tone with pulp edges;
   briefings plus radio chatter; 7 linear acts by setting.
 - 2026-09-30: Armour bar with level retry; single-player; Tyrian-style loadout slots.
+- 2026-09-30: Working title: **Terran Vanguard** (concept round 01, logo D).

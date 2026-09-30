@@ -47,27 +47,33 @@ and every level must follow.
 
 | Item | Value |
 |---|---|
-| Internal resolution | **640×360** (16:9), scaled by integers: 2× = 720p, 3× = 1080p, 4× = 1440p, 6× = 4K; nearest-neighbour; letterbox for non-16:9 displays |
-| Play field | **320×360** at x = 160…479 (portrait, 8:9) |
-| Side panels | 160×360 each: left x = 0…159, right x = 480…639 (HUD, see `design/ui`) |
-| Look-ahead | the player sits in the lower third; enemies entering from the top get about 250 px of warning |
+| Internal resolution | **960×540** (16:9). Integer scaling with nearest-neighbour where it fits: 2× = 1080p, 4× = 4K. 1440p (2.67×) and 720p (1.33×) use sharp-bilinear (integer pre-scale, then bilinear to fit) or letterboxed integer scaling; letterbox for non-16:9 displays |
+| Play field | **480×540** at x = 240…719 (portrait, 8:9) |
+| Side panels | 240×540 each: left x = 0…239, right x = 720…959 (HUD, see `design/ui`) |
+| Look-ahead | the player sits in the lower third; enemies entering from the top get about 375 px of warning |
+
+The concept generators take these values from one place: `tools/concept/render/config.py`.
 
 ### Sprite sizes (native pixels)
 
 | Class | Layer | Size |
 |---|---|---|
-| Player ship (AF-12 Stormhawk) | air | 32×32 |
-| Wingman / drones | air | 20–24 |
-| Small enemy (darts, drones) | air / low-air | 20–28 |
-| Medium enemy (gunships) | air | 32–56 |
-| Large enemy (carriers, frigates) | air / ground | 64–128 |
-| Boss | any | 160–320 wide, multi-part, may exceed the play field |
-| Ground turret / emplacement | ground | 16–24 |
-| Vehicles, naval craft | ground / sub | 16–48 |
-| Enemy bullets | air | 5–9 (never smaller than 5) |
-| Player shots | air | 3×10 typical, beams full height |
-| Pickups | air | 12–16 |
-| Explosions | air / ground | 16–96, additive |
+| Player ship (AF-12 Stormhawk) | air | 48×48 |
+| Wingman (Rook's craft) | air | 40×40 (smaller than the player, who stays dominant) |
+| Drones | air | 30–36 |
+| Small enemy (darts, drones) | air / low-air | 30–42 |
+| Medium enemy (gunships) | air | 48–84 |
+| Large enemy (carriers, frigates) | air / ground | 96–192 |
+| Boss | any | 240–480 wide, multi-part, may exceed the play field |
+| Ground turret / emplacement | ground | 24–36 |
+| Vehicles, naval craft | ground / sub | 24–72 |
+| Station / structure parts | ground / far | trusses 26–34 wide, modules 40–120, solar arrays up to 150 long |
+| Enemy bullets | air | 8–13 (never smaller than 8) |
+| Player shots | air | 5×16 typical, beams full height |
+| Pickups | air | 18–24 |
+| Explosions | air / ground | 24–144, additive |
+
+All sizes are 1.5× the round 01 values (640×360).
 
 ### Animation rules
 
@@ -87,10 +93,17 @@ and every level must follow.
 ### Palette approach
 
 - Colours are organised as **6-step ramps** (dark background → highlight) per faction, per
-  setting, for the UI and for bullets. Round 01 proposes three complete palettes (see Concept
-  art); one will be chosen as the master palette.
+  setting, for the UI and for bullets. The reference palette is **B "90s Neon CGI"**
+  ([concept/palette-r01-b.png](concept/palette-r01-b.png)): saturated, glossy, violet-shadowed
+  chrome. Its hex ramps also live in `tools/concept/render/palette.py`, which all generators use.
+  Key ramps: UTC hull `121632 2A3068 4E5AA0 8A96D0 C8D0F4 FFFFFF`, UTC accents
+  `0050FF 00A8FF 7FF0FF FF2A6A FF7A2A FFE04A`, enemy shots `300030 C000C0 FF40FF FFC0FF FFFFFF
+  FFFF40`, player shots `002060 0060FF 00C0FF A0FFFF FFFFFF 40FF80`.
 - Sprites are limited to 24–48 colours each, but there is no global 256-colour limit; the
   "limited" feel comes from the ramps.
+- Because palette B is saturated everywhere, backgrounds must work harder to recede: they use
+  the darker half of their setting ramp, are **posterized to 12–32 colours** (like palette-limited
+  90s tile art; it also keeps them calm) and are hazed towards the setting colour with depth.
 - **Faction visual language**
   - **UTC / CDF** (humanity): clean grey/white hard-surface hulls, blue and orange accents,
     panel lines, blue-white engines.
@@ -106,33 +119,54 @@ and every level must follow.
 ### Parallax layer model
 
 The play field is a stack of layers, drawn back to front. Scroll factors are relative to the
-**ground layer**, whose speed is the level's scroll speed.
+**ground layer**, whose speed is the level's scroll speed. Revised after round 01 (orbit "too
+empty, ground scrolls too slowly"; city "too crowded"): a new `far` layer fills the gap between
+deep and ground, the near layers are faster so speed is felt, and the ground itself scrolls
+faster.
 
 | Layer | Contents | Scroll factor | Enemies | Depth cues |
 |---|---|---|---|---|
-| `deep` | sky, planet surface far below, star fields, nebulae (may have sub-layers, e.g. stars at 0.05 / 0.1 / 0.2) | 0.05–0.35 (default 0.25) | none | strongest haze towards the setting's atmosphere colour, desaturated, low contrast, may be slightly blurred |
+| `deep` | sky, planet surface far below, star fields, nebulae (may have sub-layers, e.g. Earth 0.12 with haze wisps 0.2) | 0.05–0.2 (default 0.12) | none | strongest haze towards the setting's atmosphere colour, desaturated, darker, low contrast, may be slightly blurred |
+| `far` | distant structure seen through gaps in the ground: a sister station, a canyon floor, lower city levels, cloud decks | 0.4–0.7 (default 0.5) | none (background set pieces only) | 40–60 % haze towards the setting colour, smaller scale, posterized |
 | `ground` | terrain, sea surface, city, station hulls, asteroid surfaces, capital-ship hulls | **1.0** | stationary: turrets, bunkers, tanks, surface ships, growths | full detail; catches shadows of everything above it |
-| `sub` | under water: sea floor and submerged craft seen through the surface | 0.8–0.95 | submarines, mines, sea creatures (surface to attack) | blue-green tint, caustics, reduced contrast |
-| `low-air` | low flyers, traffic, helicopters, low clouds and smoke | 1.1–1.3 (default 1.25) | low flyers | slightly larger than ground scale; small shadow offset (5, 7) |
-| `air` | the **play plane**: player, wingman, most enemies, all bullets, pickups | screen space | most enemies | shadow offset (14, 20) onto the ground layer |
-| `high-air` | clouds, smoke, drifting debris in front of the player | 1.5–2.0 (default 1.75) | none | larger, slightly blurred; **at most ~40 % opacity** over the play plane; never hides bullets |
+| `sub` | under water: sea floor and submerged craft seen through the surface | 0.8–0.9 | submarines, mines, sea creatures (surface to attack) | blue-green tint, caustics, reduced contrast |
+| `low-air` | low flyers, traffic, drifting wreckage, dust plumes, low clouds and smoke | 1.3–1.5 (default 1.35) | low flyers | slightly larger than ground scale; shadow offset (9, 13) |
+| `air` | the **play plane**: player, wingman, most enemies, all bullets, pickups | screen space | most enemies | shadow offset (21, 30) onto the ground layer |
+| `high-air` | clouds, smoke, debris and ice streaks in front of the player | 2.0–2.5 (default 2.2) | none | larger, blurred or drawn as motion streaks; **at most ~40 % opacity** over the play plane; never hides bullets |
+
+**Ground scroll speed** (960×540): calm levels 120–140 px/s (about a quarter screen per second),
+normal 150–170 px/s, fast or chase levels 190–240 px/s. The fastest visible layer then moves
+2–2.5× that, which is what sells the speed. Round 02 uses 190 (orbit), 140 (city) and
+160 px/s (canyon).
+
+**Density** (proposed with round 02, scene C as the reference): one dominant ground feature
+that defines clear lanes (a canyon, a station spine, avenues); two or three mid-size set pieces
+per screen; background detail kept calm by posterized textures and sparse light points; in a
+typical frame outside boss fights about 4–6 enemies and at most ~15 enemy bullets.
 
 - In **space** levels there is no terrain: stations, asteroids and capital ships take the ground
   role at 1.0, and the deep layer becomes several star-field and nebula layers.
 - In **under-water** levels (Europa) the sea floor is the ground layer and submerged enemies live
   in `sub`; what can hit them is a gameplay rule (see Open questions).
 - **Shadows**: every flyer casts its silhouette down-right onto the ground layer (opacity
-  45–55 %, 1 px blur, 85 % scale); in space only onto structures.
-- **Perspective on the ground layer**: tall structures (towers, spires, station masts) are drawn
-  with a true perspective offset of their roofs away from the screen centre (camera height
-  model, see parallax concept B). As they scroll, their walls turn, which gives real depth.
-  Everything else is orthographic.
+  45–55 %, 1–1.5 px blur, 85 % scale); in space only onto structures. Tall parts of the ground
+  layer (modules on a station) also cast a short shadow (6, 8) onto the parts below them.
+- **Perspective between layers**: anything that connects two layers is drawn in true
+  perspective around the screen centre, where a layer with scroll factor *k* is also drawn at
+  scale *k*. Tall structures (towers, spires, masts) push their roofs away from the centre
+  (camera height model, see parallax B); canyon walls and cliffs run from the rim at scale 1.0
+  down to the floor at the `far` scale (0.6 in parallax C). As they scroll, walls turn, which
+  gives real depth. Everything else is orthographic.
+- **Kit-bashed structures**: stations, colonies and similar structures are assembled from a kit
+  of pre-rendered parts (trusses, modules, arrays, domes) rather than rendered as one image, as
+  90s tile sets were. The concept tools do this with `tools/concept/render/station.py`.
 
 ### Readability rules
 
 1. **Enemy bullets pop on every background**: bright white core, saturated ring, 1 px dark rim.
    Their hues (magenta/pink, orange) are reserved: no background uses them at that saturation.
-   Minimum 5 px. Each bullet type has its own shape (orb, needle, ring, beam).
+   Minimum 8 px. Each bullet type has its own shape (orb, needle, ring, beam). In palette B
+   the orbs are magenta `FF40FF` and the needles yellow `FFFF40`, both on a `300030` rim.
 2. **Player shots** are blue / white / cyan and may be semi-transparent; they never share a hue
    with enemy bullets.
 3. **Backgrounds recede**: they are darker (about 70–80 % brightness) and less saturated than
@@ -149,26 +183,38 @@ Concept round 01 (prompts: [concept/prompts.md](concept/prompts.md)):
 
 | File | What | Status |
 |---|---|---|
-| [concept/palette-r01-a.png](concept/palette-r01-a.png) | Palette A "Cold Military Steel": ramps per faction, UI, bullets and setting, with ship and Vrell previews | proposed |
-| [concept/palette-r01-b.png](concept/palette-r01-b.png) | Palette B "90s Neon CGI" | proposed |
-| [concept/palette-r01-c.png](concept/palette-r01-c.png) | Palette C "Warm Cinematic" | proposed |
-| [concept/parallax-r01-a.png](concept/parallax-r01-a.png) | Parallax scene A "Earth orbit": frame at 2× plus layer breakdown (deep Earth, station, play plane, debris) | proposed |
-| [concept/parallax-r01-a.gif](concept/parallax-r01-a.gif) | Parallax scene A: 4 s seamless scroll loop at native 320×360 (view at 2× with pixelated scaling) | proposed |
-| [concept/parallax-r01-b.png](concept/parallax-r01-b.png) | Parallax scene B "Earth megacity at night": frame at 2× plus layer breakdown (city with perspective towers, traffic, play plane, clouds) | proposed |
-| [concept/parallax-r01-b.gif](concept/parallax-r01-b.gif) | Parallax scene B: 4 s seamless scroll loop at native 320×360 | proposed |
+| [concept/rejected/palette-r01-a.png](concept/rejected/palette-r01-a.png) | Palette A "Cold Military Steel": ramps per faction, UI, bullets and setting, with ship and Vrell previews | rejected — B chosen |
+| [concept/palette-r01-b.png](concept/palette-r01-b.png) | Palette B "90s Neon CGI" | chosen |
+| [concept/rejected/palette-r01-c.png](concept/rejected/palette-r01-c.png) | Palette C "Warm Cinematic" | rejected — B chosen |
+| [concept/rejected/parallax-r01-a.png](concept/rejected/parallax-r01-a.png) | Parallax scene A "Earth orbit": frame at 2× plus layer breakdown (deep Earth, station, play plane, debris) | rejected — too empty, ground scrolls too slowly |
+| [concept/rejected/parallax-r01-a.gif](concept/rejected/parallax-r01-a.gif) | Parallax scene A: 4 s seamless scroll loop at native 320×360 (view at 2× with pixelated scaling) | rejected — too empty, ground scrolls too slowly |
+| [concept/rejected/parallax-r01-b.png](concept/rejected/parallax-r01-b.png) | Parallax scene B "Earth megacity at night": frame at 2× plus layer breakdown (city with perspective towers, traffic, play plane, clouds) | rejected — too crowded and busy |
+| [concept/rejected/parallax-r01-b.gif](concept/rejected/parallax-r01-b.gif) | Parallax scene B: 4 s seamless scroll loop at native 320×360 | rejected — too crowded and busy |
 
-The same round also proposes the player ship
-([A](../player/ship/concept/player-ship-r01-a.png), [B](../player/ship/concept/player-ship-r01-b.png),
-[C](../player/ship/concept/player-ship-r01-c.png)), the HUD
-([A](../ui/hud/concept/hud-r01-a.png), [B](../ui/hud/concept/hud-r01-b.png)) and the title logo
-([A](../ui/main-menu/concept/logo-r01-a.png), [B](../ui/main-menu/concept/logo-r01-b.png),
-[C](../ui/main-menu/concept/logo-r01-c.png), [D](../ui/main-menu/concept/logo-r01-d.png)); those
-are listed in their own documents.
+Round 01 also covered the [player ship](../player/ship/README.md), the
+[HUD](../ui/hud/README.md) and the [title logo](../ui/main-menu/README.md); outcomes are
+recorded in those documents.
+
+Concept round 02, at 960×540 in palette B with ship A (prompts:
+[concept/prompts.md](concept/prompts.md); generator `tools/concept/parallax_r02.py`). Each GIF
+is a seamless 4 s loop (80 frames at 20 fps) at native 480×540:
+
+| File | What | Status |
+|---|---|---|
+| [concept/parallax-r02-a.png](concept/parallax-r02-a.png) | Parallax A "Earth orbit, fuller and faster": play field at 1× plus a breakdown of 6 layers (Earth, sister station, main station kit-bashed from parts, wreckage, play plane, streaks); ground 190 px/s | proposed |
+| [concept/parallax-r02-a.gif](concept/parallax-r02-a.gif) | Parallax A: scroll loop | proposed |
+| [concept/parallax-r02-b.png](concept/parallax-r02-b.png) | Parallax B "Night megacity, calm": lower-contrast towers, two avenues as lanes, parks, sparse lights, 3 darts and one turret; ground 140 px/s | proposed |
+| [concept/parallax-r02-b.gif](concept/parallax-r02-b.gif) | Parallax B: scroll loop | proposed |
+| [concept/parallax-r02-c.png](concept/parallax-r02-c.png) | Parallax C "Mars canyon, balanced": canyon floor as a far layer with perspective strata walls, plateau with a colony outpost and Vrell pods, dust plumes and streaks; ground 160 px/s | proposed |
+| [concept/parallax-r02-c.gif](concept/parallax-r02-c.gif) | Parallax C: scroll loop | proposed |
 
 ## Implementation
 
-- [ ] Renderer draws the play field at 640×360 and scales by integer factors with letterboxing.
-- [ ] Layer stack with per-layer scroll factors as in the table, configurable per level.
+- [ ] Renderer draws the screen at 960×540 and scales by integer factors with letterboxing
+      (sharp-bilinear for 1440p and 720p).
+- [ ] Layer stack (deep, far, ground, sub, low-air, air, high-air) with per-layer scroll
+      factors as in the table and a ground scroll speed, configurable per level.
+- [ ] Perspective geometry between layers (canyon walls, cliffs) as well as tall structures.
 - [ ] Runtime drop shadows from sprite alpha, offset per layer, masked to shadow-catching layers.
 - [ ] Perspective roof projection for tall ground structures.
 - [ ] High-air layer opacity capped where it overlaps the play plane.
@@ -179,12 +225,10 @@ are listed in their own documents.
 
 ## Open questions
 
-- **Resolution: 640×360 or 960×540?** 640×360 is the most authentic late-90s look, scales
-  cleanly to every common display (2×, 3×, 4×, 6×) and keeps sprite production cheap (a 32 px
-  ship), but fine detail is limited. 960×540 gives 1.5× more detail per sprite (a 48 px ship)
-  and scales to 1080p (2×) and 4K (4×), but 1440p needs a non-integer 2.67×, sprites cost
-  more to produce, and the pixels read less "retro".
-- **Master palette**: A (Cold Military Steel), B (90s Neon CGI) or C (Warm Cinematic)?
+- **Parallax density** (round 02): A (orbit, fuller and faster), B (city, calm) or C (canyon,
+  balanced) as the reference for level backgrounds? The Density paragraph above assumes C.
+- **Scaling on 1440p and 720p**: sharp-bilinear (fills the screen, slightly soft) or letterboxed
+  integer scaling (crisp, black borders)?
 - **Layer hit rules**: can every weapon hit `ground` and `low-air` targets, or only weapons with
   the `anti-ground` trait (and `anti-sub` for `sub`)? Decided together with the weapon design.
 - **Perspective towers**: keep the true-perspective roof projection of parallax B, or use purely
@@ -195,3 +239,11 @@ are listed in their own documents.
 
 - 2026-09-30: Late-90s pre-rendered CGI sprite look; 16:9 screen with a portrait play field and
   HUD side panels (project kick-off).
+- 2026-09-30: Concept round 01: palette **B "90s Neon CGI"** chosen; A and C rejected.
+- 2026-09-30: Concept round 01: both parallax scenes rejected — A too empty with the ground scrolling too slowly, B too crowded and busy. Redo in round 02.
+- 2026-09-30: Resolution **960×540** chosen (open question resolved): play field 480×540 at
+  x = 240, side panels 240×540, player ship 48×48; all sprite sizes scale 1.5×. Palette B is the
+  reference palette for all art from round 02 on.
+- 2026-09-30: Layer model revised for round 02 (draft, under review with the round 02 parallax
+  scenes): new `far` layer, deep 0.12, low-air 1.35, high-air 2.2, shadow offsets scaled to
+  960×540, ground speed guideline, density guideline, perspective walls between layers.

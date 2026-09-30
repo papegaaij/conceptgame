@@ -49,15 +49,16 @@ and credits, and ends in a large circling Needler formation. There is no boss. A
 
 ## Layout
 
-Baseline scroll speed 40 px/s at 640×360 (play field 320×360). Total ≈ 190 s ≈ 7,600 px.
+Baseline scroll speed 60 px/s at the 960×540 baseline (play field 480×540, see
+[art direction](../../../art-direction/README.md)). Total ≈ 190 s ≈ 11,400 px.
 
 | Section | t (s) | Scroll (px) | Layers and content | Purpose |
 |---|---|---|---|---|
-| 1. Launch | 0–20 | 0–800 | `deep`: Earth's curve with the sunrise terminator, starfield. `ground`: the Gagarin shipyards' launch rail sliding out of view. `air`: Rook's ship alongside. | Get used to movement; no enemies. Control hints in the side HUD. |
-| 2. First Wave | 20–60 | 800–2,400 | `deep`: Earth, the Moon small in the distance. `ground`: open dock frames. | Shooting basics; Skitters (harmless rammers) first, then the first Needlers that shoot back. |
-| 3. Yard Crossing | 60–110 | 2,400–4,400 | `ground`: gantries, cranes, a half-built cruiser hull, cargo containers (destructible, drop credits). | Ground layer as scenery and loot; the first side entry; the secret beacon. |
-| 4. Pursuit | 110–160 | 4,400–6,400 | `ground`: yard perimeter, defence platforms burning. `deep`: debris clouds drifting. | Mixed waves, one warned rear wave, rising density. |
-| 5. Scout Leader | 160–190 | 6,400–7,600 | Open space past the yard; the Vrell strike group's glow on the horizon. | Final set piece: Needler circle plus Skitter streams. Then the level ends. |
+| 1. Launch | 0–20 | 0–1,200 | `deep`: Earth's curve with the sunrise terminator, starfield. `ground`: the Gagarin shipyards' launch rail sliding out of view. `air`: Rook's ship alongside. | Get used to movement; no enemies. Control hints in the side HUD. |
+| 2. First Wave | 20–60 | 1,200–3,600 | `deep`: Earth, the Moon small in the distance. `ground`: open dock frames. | Shooting basics; Skitters (harmless rammers) first, then the first Needlers that shoot back. |
+| 3. Yard Crossing | 60–110 | 3,600–6,600 | `ground`: gantries, cranes, a half-built cruiser hull, cargo containers (destructible, drop credits). | Ground layer as scenery and loot; the first side entry; the secret beacon. |
+| 4. Pursuit | 110–160 | 6,600–9,600 | `ground`: yard perimeter, defence platforms burning. `deep`: debris clouds drifting. | Mixed waves, one warned rear wave, rising density. |
+| 5. Scout Leader | 160–190 | 9,600–11,400 | Open space past the yard; the Vrell strike group's glow on the horizon. | Final set piece: Needler circle plus Skitter streams. Then the level ends. |
 
 ## Waves
 
@@ -167,3 +168,4 @@ Skitter 5, Needler 12.
 ## Decisions
 
 - 2026-09-30: L01 has no boss; the finale is a formation set piece.
+- 2026-09-30: Converted to the 960×540 baseline (was 640×360).

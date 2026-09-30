@@ -44,7 +44,7 @@ levels.
 - `low-air` and `high-air` members follow the [layer rules](../README.md): they don't collide
   with the player, `high-air` is only hit by `homing` and `beam`, and their bullets always
   travel on the player plane.
-- Sizes (proposal, at 640×360): fodder 16–20 px, gunners 24 px, heavies 40–56 px.
+- Sizes (proposal, at 960×540): fodder 24–30 px, gunners 36 px, heavies 60–84 px.
 
 ## Implementation
 
@@ -57,3 +57,4 @@ levels.
 ## Decisions
 
 - 2026-09-30: Roster of 17 air enemies drafted.
+- 2026-09-30: Converted to the 960×540 baseline (was 640×360).

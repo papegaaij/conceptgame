@@ -10,6 +10,7 @@ Checks (see CLAUDE.md for the rules):
   5. relative links in markdown files, depends-on entries and review-board HTML resolve
 
 Usage: python3 tools/check_docs.py        exit code 1 when problems are found
+       python3 tools/check_docs.py --fix  first sync Contents status cells from the children
 """
 import re
 import sys
@@ -29,6 +30,7 @@ MD_LINK = re.compile(r"\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 HTML_LINK = re.compile(r"""(?:src|href)\s*=\s*["']([^"']+)["']""")
 
 problems = []
+FIX = "--fix" in sys.argv[1:]
 
 
 def rel(p):
@@ -89,16 +91,22 @@ def check_contents(readme, subdirs, metas):
     lines = readme.read_text(encoding="utf-8").splitlines()
     for sub in subdirs:
         target = f"{sub.name}/README.md"
-        rows = [l for l in lines if l.lstrip().startswith("|") and f"]({target})" in l]
+        rows = [i for i, l in enumerate(lines) if l.lstrip().startswith("|") and f"]({target})" in l]
         if not rows:
             report(readme, f"Contents table has no row linking '{target}'")
             continue
         child = metas.get(sub / "README.md")
         if not child:
             continue
-        cells = [c.strip().strip("`") for c in rows[0].strip().strip("|").split("|")]
+        cells = [c.strip().strip("`") for c in lines[rows[0]].strip().strip("|").split("|")]
         if len(cells) < 5:
             report(readme, f"Contents row for '{sub.name}' needs Part|Summary|Design|Impl|Art")
+            continue
+        wanted = [child.get(k, "") for k in ("design", "implementation", "art")]
+        if FIX and cells[-3:] != wanted:
+            lines[rows[0]] = "| " + " | ".join(cells[:-3] + wanted) + " |"
+            readme.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            print(f"fixed: {rel(readme)} row '{sub.name}'")
             continue
         for key, got in zip(("design", "implementation", "art"), cells[-3:]):
             if child.get(key) != got:

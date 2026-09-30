@@ -19,7 +19,8 @@ they belong to; a round only collects them.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [round-01](round-01/README.md) | Style exploration: ship, palette, parallax, HUD, title, first SFX and music, story twist | review | n/a | proposed |
+| [round-01](round-01/README.md) | Style exploration: ship, palette, parallax, HUD, title, first SFX and music, story twist | approved | n/a | chosen |
+| [round-02](round-02/README.md) | Parallax redo, recorded shots and explosions, five music themes, ship and HUD at 960×540, Rook's craft | review | n/a | proposed |
 
 ## Design
 
@@ -40,4 +41,5 @@ How a round works:
 
 | Round | Opened | Status | Topic |
 |---|---|---|---|
-| 01 | 2026-09-30 | open | Style exploration |
+| 01 | 2026-09-30 | closed | Style exploration |
+| 02 | 2026-09-30 | open | Parallax redo, recorded shots/explosions, five music themes, ship at 960×540, Rook's craft |

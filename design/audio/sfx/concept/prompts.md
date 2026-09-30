@@ -97,3 +97,65 @@ Brief: a pulse wave sweeping two octaves up (330 → 1320 Hz) with pulse-width m
 vibrato and an opening filter, plus nine random sine sparkles. The "credits collected" candidate.
 AI prompt: *"Sci-fi credits pickup, rising synth sweep with pulse-width modulation, sparkling
 glitter on top, 0.5 seconds, bright, rewarding, 1990s arcade shooter."*
+
+# Concept round 02 — recorded sound effects (third-party)
+
+The round 01 synthesized shots and explosions were rejected. Round 02 uses recorded sounds from
+[Freesound](https://freesound.org), CC0 or CC-BY only (see [CREDITS.md](../../../../CREDITS.md)).
+All files are imported by `python3 tools/concept/audio/import_sfx.py`, which downloads the public
+HQ previews (~192 kbps OGG) into a cache outside the repository, trims the leading silence, cuts,
+fades, peak-normalises (shots −10 dBFS, explosions −1.5 dBFS) and encodes to OGG Vorbis.
+**For the production asset, download the original file from the source page (Freesound login)
+and rebuild with the same settings.** Selection was based on download counts, descriptions,
+licence and measured envelope/spectrum (the files cannot be auditioned by the generator).
+
+### player-shot-r02-a — "Projectile Shoot" by unfa
+Source: <https://freesound.org/people/unfa/sounds/193427/> — CC0 1.0. Suggested use: Pulse Cannon (starter front gun).
+Why: Sharp broadband transient with a short low thump; very fast attack and decay, so it stays clear under rapid fire. Well used (4k+ downloads).
+Edit: 0.25 s, 0.12 s fade-out.
+
+### player-shot-r02-b — "Sci Fi Gun Shot" by Bird_man
+Source: <https://freesound.org/people/Bird_man/sounds/317136/> — CC0 1.0. Suggested use: heavy front gun / Hammer Mortar.
+Why: Punchy sci-fi gun with a lot of low-end weight (~70% of energy below 200 Hz); reads as a heavy weapon.
+Edit: 0.28 s, 0.14 s fade-out.
+
+### player-shot-r02-c — "laser3" by nsstudios
+Source: <https://freesound.org/people/nsstudios/sounds/344276/> — CC-BY 4.0. Suggested use: Lance Laser / light laser weapons.
+Why: Clean descending laser sweep, naturally 0.3 s long; the most "energy weapon" of the set without sounding 8-bit.
+Edit: 0.27 s, 0.10 s fade-out.
+
+### player-shot-r02-d — "Machine Gun 001 - single shot" by pgi
+Source: <https://freesound.org/people/pgi/sounds/212601/> — CC0 1.0. Suggested use: Autocannon Pod / ballistic guns.
+Why: Real recorded single machine-gun shot: realistic crack and body; 10k+ downloads.
+Edit: 0.28 s, 0.16 s fade-out.
+
+### player-shot-r02-e — "Autocannon Three Shot Burst" by qubodup
+Source: <https://freesound.org/people/qubodup/sounds/854186/> — CC0 1.0. Suggested use: Scatter Vulcan / heavy ballistic front gun.
+Why: Recorded autocannon; the first shot of the three-shot burst is cut out. Deep, mechanical, weighty.
+Edit: first shot of the burst, 0.26 s, 0.12 s fade-out.
+
+### explosion-r02-a — "small explosion" by bevibeldesign
+Source: <https://freesound.org/people/bevibeldesign/sounds/315826/> — CC0 1.0. Suggested use: small enemy destroyed (fighters, drones).
+Why: Short, natural decay within 0.4 s, not bass-heavy; fits frequent small kills without masking the mix.
+Edit: 0.70 s, 0.30 s fade-out.
+
+### explosion-r02-b — "Explosion 1" by magnuswaker
+Source: <https://freesound.org/people/magnuswaker/sounds/523089/> — CC0 1.0. Suggested use: small-to-medium enemy (heavy fighters, turrets).
+Why: Dense, bass-heavy (85% below 200 Hz) short blast; a heavier alternative for small kills.
+Edit: 0.90 s, 0.40 s fade-out.
+
+### explosion-r02-c — "Explosion" by qubodup
+Source: <https://freesound.org/people/qubodup/sounds/182429/> — CC0 1.0. Suggested use: medium enemy (gunships, ground vehicles, buildings).
+Why: Well-known game explosion (14k downloads): deep boom with crackle, clean decay by 1.6 s.
+Edit: 1.70 s, 0.50 s fade-out.
+
+### explosion-r02-d — "Nearby explosion with debris" by juskiddink
+Source: <https://freesound.org/people/juskiddink/sounds/108641/> — CC-BY 4.0. Suggested use: large enemy / mid-boss / building collapse.
+Why: Real recorded nearby explosion with falling debris: the most realistic of the set.
+Edit: 2.80 s, 0.90 s fade-out.
+
+### explosion-r02-e — "explosion_big_01" by derplayer
+Source: <https://freesound.org/people/derplayer/sounds/587194/> — CC0 1.0. Suggested use: boss destroyed / capital ship.
+Why: Big, dense blast with rolling secondary crackle and debris over ~2.8 s.
+Edit: 2.86 s, 0.80 s fade-out.
+

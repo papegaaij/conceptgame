@@ -2,7 +2,7 @@
 title: Main menu
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../systems/saves, ../../systems/difficulty]
 updated: 2026-09-30
 ---
@@ -21,7 +21,7 @@ genre-standard.
 ### Title screen
 
 A pre-rendered scene: the Stormhawk banking past Earth with the Vrell fleet emerging from the
-dark, the game logo, and "PRESS START". Title music starts. After 30 s idle it could play an
+dark, the *Terran Vanguard* logo ([concept/logo-r01-d.png](concept/logo-r01-d.png)), and "PRESS START". Title music starts. After 30 s idle it could play an
 attract-mode demo (open question).
 
 ### Menu
@@ -64,10 +64,10 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 
 | File | What | Status |
 |---|---|---|
-| [concept/logo-r01-a.png](concept/logo-r01-a.png) | **STORMHAWK** — *The Vrell War*, chrome | proposed |
-| [concept/logo-r01-b.png](concept/logo-r01-b.png) | **AEGIS WING** — *Defenders of Sol – 2185*, gold with wing emblem | proposed |
-| [concept/logo-r01-c.png](concept/logo-r01-c.png) | **LAST LINE 2185** — brushed steel with red LED year | proposed |
-| [concept/logo-r01-d.png](concept/logo-r01-d.png) | **TERRAN VANGUARD** — blue chrome with 3D extrusion | proposed |
+| [concept/rejected/logo-r01-a.png](concept/rejected/logo-r01-a.png) | **STORMHAWK** — *The Vrell War*, chrome | rejected — D chosen |
+| [concept/rejected/logo-r01-b.png](concept/rejected/logo-r01-b.png) | **AEGIS WING** — *Defenders of Sol – 2185*, gold with wing emblem | rejected — D chosen |
+| [concept/rejected/logo-r01-c.png](concept/rejected/logo-r01-c.png) | **LAST LINE 2185** — brushed steel with red LED year | rejected — D chosen |
+| [concept/logo-r01-d.png](concept/logo-r01-d.png) | **TERRAN VANGUARD** — blue chrome with 3D extrusion | chosen |
 
 ## Implementation
 
@@ -78,9 +78,10 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 
 ## Open questions
 
-- Game title and logo: candidates are in concept round 01.
+- Final title: *Terran Vanguard* is the working title (logo D); confirm before release.
 - Attract-mode demo after idle: worth it? It needs a recorded input playback system.
 
 ## Decisions
 
 - 2026-09-30: Added Continue, Options and Credits to the requested menu items.
+- 2026-09-30: Concept round 01: logo **D** chosen — working title **Terran Vanguard** (blue chrome, 3D extrusion); A, B, C rejected.
