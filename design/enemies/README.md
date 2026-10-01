@@ -317,9 +317,9 @@ damage units per second, Pulse Cannon L1 = 20, interpolated from the
 | DPS | 20 | 26 | 32 | 38 | 45 | 52 | 60 | 60 | 63 | 66 | 70 | 73 | 76 | 80 |
 
 Levels 08–14 were lowered on 2026-10-01 (user decision) to what a typical loadout reaches according to
-`tools/balance.py` (≈ 60–80), instead of growing the economy. **The Act 2 stat blocks still use the old
-values (70–130) and must be rescaled**: multiply each Act 2 unit's HP by new ÷ old reference DPS at its
-first level (e.g. L10 ×0.73, L14 ×0.62) — see Implementation.
+`tools/balance.py` (≈ 60–80), instead of growing the economy. The Act 2 stat blocks have been rescaled
+(2026-10-01): each Act 2 unit's HP was multiplied by new ÷ old reference DPS (70–130) at its first level
+(e.g. L10 ×0.73, L14 ×0.62) and rounded, keeping the time-to-kill targets.
 
 Bosses assume an **effective DPS of 0.6 × reference** (accuracy, dodging, phase windows).
 
@@ -403,7 +403,7 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 
 ## Implementation
 
-- [ ] Rescale the Act 2 unit and boss HP to the lowered reference DPS for L08–L14 (balancing basis)
+- [x] Rescale the Act 2 unit and boss HP to the lowered reference DPS for L08–L14 (balancing basis)
 - [ ] Data-driven enemy definitions using the stat block fields.
 - [ ] Movement patterns from the vocabulary implemented as reusable behaviours.
 - [ ] Attack patterns from the vocabulary implemented as reusable emitters.
@@ -445,3 +445,4 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - 2026-10-01: Returning units use an act HP factor (reference DPS ratio), no elite variants.
 - 2026-10-01: Enemy damage values in the balancing basis confirmed; this document owns them.
 - 2026-10-01: Concept round 09: enemy bullet set chosen.
+- 2026-10-01: Act 2 unit and boss HP rescaled to the lowered L08–L14 reference DPS (Creeper, Hive Node, Ravager, Wraith, Driftjelly, Reef Spitter, Lamprey, Skimmer, Harbour Kraken, Siege Spire); the Mote Swarm stays at 1 HP per mote; bounties unchanged. Act 1 units list no Act 2 HP, so no act factor was applied.

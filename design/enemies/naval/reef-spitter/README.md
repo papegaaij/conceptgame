@@ -27,7 +27,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Size | gun 36×36 px on an 84 px raft; hitbox the gun 26×26 |
 | Parts | gun (`vital`), raft (scenery, sinks when the gun dies) |
 | Orientation | gun 32 angles |
-| HP | 10 (easy 8 / hard 13, from the global multipliers) |
+| HP | 7 (easy 5 / hard 9, from the global multipliers) |
 | Armour / shield | none |
 | Speed | raft drifts 10 px/s with the current |
 | Movement | `terrain` on water (bobbing) |
@@ -58,3 +58,4 @@ Chosen concept: [reef-spitter-r06-a.png](../concept/reef-spitter-r06-a.png), [re
 ## Decisions
 
 - 2026-10-01: Promoted from the naval roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: HP rescaled to the lowered L11 reference DPS (10 → 7, ×70/100).

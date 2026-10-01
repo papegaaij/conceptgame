@@ -27,7 +27,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Size | 36×36 px, hitbox 20×28 |
 | Parts | single |
 | Orientation | 16 angles (4 swim frames, latched pose) |
-| HP | 5 (easy 4 / hard 6, from the global multipliers); ×2 damage taken while latched |
+| HP | 3 (easy 2 / hard 4, from the global multipliers); ×2 damage taken while latched |
 | Armour / shield | none |
 | Speed | 220 px/s, turn rate 180°/s |
 | Movement | `chase` the player for up to 4 s, then `latch` on contact |
@@ -60,3 +60,4 @@ Chosen concept: [lamprey-r06-a.png](../concept/lamprey-r06-a.png), [lamprey-r06-
 ## Decisions
 
 - 2026-10-01: Promoted from the air roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: HP rescaled to the lowered L12 reference DPS (5 → 3, ×73/110).

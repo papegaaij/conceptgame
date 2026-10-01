@@ -27,7 +27,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Size | 76×76 px, hitbox 56×56 |
 | Parts | single |
 | Orientation | `radial` |
-| HP | 80 (easy 60 / hard 104, from the global multipliers) |
+| HP | 64 (easy 48 / hard 83, from the global multipliers) |
 | Armour / shield | **hardened**: only `anti-ground` weapons (and the Airstrike) damage it; other shots spark off |
 | Speed | scrolls with the ground |
 | Movement | `terrain` |
@@ -59,3 +59,4 @@ Chosen concept: [hive-node-r06-a.png](../concept/hive-node-r06-a.png), [hive-nod
 ## Decisions
 
 - 2026-10-01: Promoted from the ground roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: HP rescaled to the lowered L09 reference DPS (80 → 64, ×63/80); time-to-kill stays ≈ 1.0 s.

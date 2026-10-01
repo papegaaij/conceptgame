@@ -27,7 +27,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Size | trunk ≈ 160 px; root spread ≈ 420 px; freed spire 200×260 px |
 | Parts | 4 root turret pods (`destroyable`), 2 acid-mortar roots (`destroyable`), trunk (`armoured`), launch maw (`destroyable`, phase 2), spire core (`vital`, phase 3) |
 | Orientation | turret pods 32 angles; spire 32 angles when airborne |
-| HP | turret pod 600 each (2 400); mortar root 700 each (1 400); maw 2 600; spire core 4 500; total 10 900 (easy ×0.75 / hard ×1.3) |
+| HP | turret pod 370 each (1 480); mortar root 430 each (860); maw 1 600; spire core 2 750; total 6 690 (easy ×0.75 / hard ×1.3) |
 | Armour / shield | trunk armoured; roots and maw are ground targets (all weapons, `anti-ground` ×2) |
 | Speed | rooted; freed spire drifts 50 px/s |
 | Movement | see phases |
@@ -44,13 +44,13 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 
 | Phase | Ends at | Behaviour |
 |---|---|---|
-| 1 — Roots | roots 3 800 → 0 | Turret pods fire `aimed` violet orbs (150 px/s, `medium` = 6) every 1.6 s each, staggered; mortar roots lob acid every 4 s (marker 1.0 s, 10-bullet ring). The scroll creeps at 15 px/s so the roots come into range in turn. |
-| 2 — Maw | maw 2 600 → 0 | The claw crown opens; the maw launches 2 Wraiths every 8 s (they loop behind the player: `rear` matters) and spits a 9-bullet `fan` (spread 80°, 140 px/s) every 2.5 s. Destroyed roots stay dead. |
-| 3 — Free spire | spire 4 500 → 0 | The spire tears free with a shockwave (debris on the ground layer) and rises to `air`; it drifts across the upper half firing a telegraphed `laser-sweep` (120° arc, 0.6 s telegraph, `laser` = 8) every 5 s and `ring`s of 14 in between. The withered stump remains as scenery. |
+| 1 — Roots | roots 2 340 → 0 | Turret pods fire `aimed` violet orbs (150 px/s, `medium` = 6) every 1.6 s each, staggered; mortar roots lob acid every 4 s (marker 1.0 s, 10-bullet ring). The scroll creeps at 15 px/s so the roots come into range in turn. |
+| 2 — Maw | maw 1 600 → 0 | The claw crown opens; the maw launches 2 Wraiths every 8 s (they loop behind the player: `rear` matters) and spits a 9-bullet `fan` (spread 80°, 140 px/s) every 2.5 s. Destroyed roots stay dead. |
+| 3 — Free spire | spire 2 750 → 0 | The spire tears free with a shockwave (debris on the ground layer) and rises to `air`; it drifts across the upper half firing a telegraphed `laser-sweep` (120° arc, 0.6 s telegraph, `laser` = 8) every 5 s and `ring`s of 14 in between. The withered stump remains as scenery. |
 
 ### Arena
 
-Geneva Concord under the Vrell canopy (L14). Target duration 120–180 s at medium.
+Geneva Concord under the Vrell canopy (L14). Target duration 120–180 s at medium; at the effective boss DPS (0.6 × 80 = 48) the total HP lasts ≈ 139 s.
 
 ### Behaviour
 
@@ -72,3 +72,4 @@ Chosen concept: [siege-spire-r06-a.png](../concept/siege-spire-r06-a.png), [sieg
 ## Decisions
 
 - 2026-10-01: Promoted from the bosses roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: HP rescaled to the lowered L14 reference DPS (×80/130): turret pods 600 → 370, mortar roots 700 → 430, maw 2 600 → 1 600, spire core 4 500 → 2 750, total 10 900 → 6 690; duration ≈ 139 s (was ≈ 140 s). Bounty unchanged.

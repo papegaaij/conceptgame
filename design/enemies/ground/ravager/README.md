@@ -27,7 +27,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Size | 56×56 px, hitbox 40×28 |
 | Parts | single |
 | Orientation | 16 angles × 8 gallop frames |
-| HP | 20 (easy 15 / hard 26, from the global multipliers) |
+| HP | 16 (easy 12 / hard 21, from the global multipliers) |
 | Armour / shield | none |
 | Speed | 160 px/s galloping |
 | Movement | `walk` (gallop) in packs of 3–5 along authored ground paths; when within 200 px of the player's ground position it **pounces**: a 0.75 s leap, drawn up to 43 % larger with its shadow sliding away |
@@ -60,3 +60,4 @@ Chosen concept: [ravager-r05-a.png](../concept/ravager-r05-a.png), [ravager-r05-
 ## Decisions
 
 - 2026-10-01: Promoted from the ground roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: HP rescaled to the lowered L09 reference DPS (20 → 16, ×63/80); time-to-kill stays ≈ 0.25 s.

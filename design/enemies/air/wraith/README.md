@@ -27,7 +27,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Size | 72×72 px, hitbox 50×40 |
 | Parts | single |
 | Orientation | 16 angles (4 ripple frames) |
-| HP | 36 (easy 27 / hard 47, from the global multipliers) |
+| HP | 27 (easy 20 / hard 35, from the global multipliers) |
 | Armour / shield | cloaked: only `homing` and `beam` hit it (high-air rule) |
 | Speed | 200 px/s cloaked, 120 px/s decloaked |
 | Movement | cloaked `swoop` down past the player, `loop` behind, `rear-entry` at y = 470–520 px (edge warning 1.5 s plus Rook's "contacts on six"), decloak (0.4 s violet flash), hold 2.5 s, exit up the screen |
@@ -60,3 +60,4 @@ Chosen concept: [wraith-r06-a.png](../concept/wraith-r06-a.png), [wraith-r06-a.g
 ## Decisions
 
 - 2026-10-01: Promoted from the air roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: HP rescaled to the lowered L10 reference DPS (36 → 27, ×66/90, rounded up to keep the 0.4 s medium minimum); time-to-kill ≈ 0.41 s.

@@ -27,7 +27,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Size | mantle and head ≈ 190 px; eight arms of 13 segments; platform 220×150 px |
 | Parts | head/mantle (`vital`; eyes are weak points), 2 slam arms (`destroyable`), 4 gripping arms (`armoured`, scenery), 2 idle arms (submerged scenery) |
 | Orientation | arm segments 32 angles; head fixed |
-| HP | head 2 900; slam arm 500 each; total 3 900 (easy ×0.75 / hard ×1.3) |
+| HP | head 2 000; slam arm 350 each; total 2 700 (easy ×0.75 / hard ×1.3) |
 | Armour / shield | submerged parts: only `anti-sub` (layer rule); surfaced head: mantle ×0.5, eyes ×2 |
 | Speed | stationary (the scroll stops at the platform) |
 | Movement | see phases; surfacing and diving follow the water rules (crown first, top-down) |
@@ -45,12 +45,12 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Phase | Ends at | Behaviour |
 |---|---|---|
 | 1 — Slams | until 3 slams or 20 s | Head submerged. A lane churns and flashes for 1.0 s (red dashed telegraph), then a slam arm rises base-to-tip and slams it (damage `heavy` = 10 on contact with the arm; a line of 6 splash bullets, 120 px/s, fans out). The arm lies awash 1.5 s (hittable) and sinks. |
-| 2 — Head up | head 2 900 → 40 % | Cycle: the head surfaces crown-first (2 s, swell and foam), eyes open for 8 s; the beak glows crimson 0.5 s before each 7-orb `fan` (spread 70°, 140 px/s, `medium` = 6) every 2 s; then it dives and one slam follows. |
+| 2 — Head up | head 2 000 → 40 % | Cycle: the head surfaces crown-first (2 s, swell and foam), eyes open for 8 s; the beak glows crimson 0.5 s before each 7-orb `fan` (spread 70°, 140 px/s, `medium` = 6) every 2 s; then it dives and one slam follows. |
 | 3 — Two lanes | head 40 % → 0 | Head stays up; two lanes are telegraphed and slammed at once every 4 s between fans. Severed slam arms remove their lanes. |
 
 ### Arena
 
-Atlantic convoy (L11): the scroll halts at the platform; convoy ships must stay out of the slammed lanes (secondary objective). Target duration 45–75 s at medium.
+Atlantic convoy (L11): the scroll halts at the platform; convoy ships must stay out of the slammed lanes (secondary objective). Target duration 45–75 s at medium; at the effective boss DPS (0.6 × 70 = 42) the total HP lasts ≈ 64 s.
 
 ### Behaviour
 
@@ -72,3 +72,4 @@ Chosen concept: [harbour-kraken-r07-a.png](../concept/harbour-kraken-r07-a.png),
 ## Decisions
 
 - 2026-10-01: Promoted from the bosses roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: HP rescaled to the lowered L11 reference DPS (×70/100): head 2 900 → 2 000, slam arms 500 → 350, total 3 900 → 2 700; duration ≈ 64 s (was ≈ 65 s). Bounty unchanged.

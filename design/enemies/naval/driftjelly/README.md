@@ -27,7 +27,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Size | 40×40 px, hitbox 28×28 |
 | Parts | single |
 | Orientation | `radial` (4 pulse frames) |
-| HP | 6 (easy 4 / hard 8, from the global multipliers) |
+| HP | 4 (easy 3 / hard 5, from the global multipliers) |
 | Armour / shield | submerged: only `anti-sub` hits it (layer rule) |
 | Speed | 15 px/s drift |
 | Movement | `drift`; surfaced and submerged jellies swap every 6–10 s (a jelly surfacing follows the water rules: foam collar, ripples) |
@@ -59,3 +59,4 @@ Chosen concept: [driftjelly-r07-a.png](../concept/driftjelly-r07-a.png), [driftj
 ## Decisions
 
 - 2026-10-01: Promoted from the naval roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: HP rescaled to the lowered L11 reference DPS (6 → 4, ×70/100).

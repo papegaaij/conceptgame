@@ -27,7 +27,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Size | 40×40 px, hitbox 22×32 |
 | Parts | single |
 | Orientation | 16 angles × 2 tail frames |
-| HP | 8 (easy 6 / hard 10, from the global multipliers) |
+| HP | 5 (easy 4 / hard 6, from the global multipliers) |
 | Armour / shield | none |
 | Speed | 180 px/s |
 | Movement | `sine` weave (amplitude 40 px, period 1.2 s) along lanes between floes; enters from any edge, incl. the rear (edge warning) |
@@ -58,3 +58,4 @@ Chosen concept: [skimmer-r06-a.png](../concept/skimmer-r06-a.png), [skimmer-r06-
 ## Decisions
 
 - 2026-10-01: Promoted from the naval roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: HP rescaled to the lowered L13 reference DPS (8 → 5, ×76/120).
