@@ -104,7 +104,9 @@ Don't:
   down). Never pauses the game. At most one message on screen; low-priority lines are dropped.
 - **Hangar intel**: Varga's comments on the next level, next to the intel panel.
 - **Enemy transmissions**: Vorne and the Choir break into the radio with their own portrait
-  frames (static-distorted), usually at boss fights.
+  frames (static-distorted), usually at boss fights. In Acts 1–2 the Choir only sings
+  ("[the Choir sings]") and Varga interprets it; its first words come in Act 3 (see
+  [the Choir](characters/the-choir/README.md)).
 
 The briefing screen and HUD layout are specified in [ui](../ui/README.md).
 
@@ -151,3 +153,4 @@ this sample only sets the voice.
   the end of Act 6); the Silence is first named at L41 in Vorne's files; Rook is missing
   L27–L29; Vorne's broadcast opens Act 5.
 - 2026-10-01: Twist variant A confirmed (concept round 01). Voices: text with radio blips only, no voice acting for now.
+- 2026-10-01: Choir in Acts 1–2 confirmed by the user: it only sings ("[the Choir sings]") and Varga interprets it; the Choir, story and act documents agree.

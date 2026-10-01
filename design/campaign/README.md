@@ -20,8 +20,8 @@ consecutive levels.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [act-1-first-contact](act-1-first-contact/README.md) | Levels 01–07 · Earth orbit & Luna · the Vrell strike · boss Brood Carrier | draft | not-started | none |
-| [act-2-homefront](act-2-homefront/README.md) | Levels 08–14 · Earth surface: megacities, oceans, arctic · boss Siege Spire | draft | not-started | none |
+| [act-1-first-contact](act-1-first-contact/README.md) | Levels 01–07 · Earth orbit & Luna · the Vrell strike · boss Brood Carrier | draft | not-started | chosen |
+| [act-2-homefront](act-2-homefront/README.md) | Levels 08–14 · Earth surface: megacities, oceans, arctic · boss Siege Spire | draft | not-started | chosen |
 | [act-3-red-dust](act-3-red-dust/README.md) | Levels 15–21 · Mars · first hints of human involvement · boss Dust Colossus | draft | not-started | none |
 | [act-4-deep-water](act-4-deep-water/README.md) | Levels 22–28 · Europa ice & under-ice ocean · underwater play · boss Abyssal Maw | draft | not-started | none |
 | [act-5-the-belt](act-5-the-belt/README.md) | Levels 29–35 · asteroid belt & stations · the betrayal · boss Iron Sovereign | draft | not-started | none |
@@ -66,6 +66,10 @@ consecutive levels.
   unit is lost (each unit lost before that only lowers the reward), `destroy-targets` when a
   named target survives to the end of the scroll. Failing a **secondary** objective only loses
   its bonus.
+- **Lost-mission prompt** (user decision): as soon as a primary objective becomes impossible
+  (a missed hive node, a lost escort, a destroyed relay), the game shows "Mission lost — retry
+  now?" immediately, with an option to fly on to the end; either way the attempt's credits are
+  discarded (see [retry](../systems/retry/README.md)).
 
 ### Difficulty curve
 
@@ -188,3 +192,5 @@ criteria), Open questions, Decisions. The worked example is
 - 2026-09-30: Level template: each section declares an atmosphere intensity so fog, cloud and dust vary through a level (user feedback, concept round 03).
 - 2026-10-01: Objective failure: a failed primary objective (escort, defend, destroy-targets) means mission failed and a retry; a failed secondary objective only loses its bonus.
 - 2026-10-01: No level select in the first build; replaying completed levels may come later.
+- 2026-10-01: Contents art cells for Acts 1 and 2 synced to `chosen` (check_docs --fix).
+- 2026-10-01: Lost-mission prompt: when a primary objective becomes impossible, offer an immediate retry instead of waiting for the end of the scroll (user decision, raised in L09).

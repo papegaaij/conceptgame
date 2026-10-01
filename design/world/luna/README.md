@@ -67,8 +67,10 @@ the main theme in full.
 
 ### Chosen scene
 
-The look of this setting is set by the chosen parallax scene in art direction: Luna (round 06) —
-[sheet](../../art-direction/concept/scene-luna-r06-a.png), [scroll loop](../../art-direction/concept/scene-luna-r06-a.gif).
+The look of this setting is set by the chosen scenes in art direction: Luna (round 06) —
+[sheet](../../art-direction/concept/scene-luna-r06-a.png), [scroll loop](../../art-direction/concept/scene-luna-r06-a.gif);
+the far side (round 09) —
+[sheet](../../art-direction/concept/scene-luna-farside-r09-a.png), [scroll loop](../../art-direction/concept/scene-luna-farside-r09-a.gif).
 The concept files live in [art-direction](../../art-direction/README.md).
 
 ## Decisions
@@ -76,3 +78,4 @@ The concept files live in [art-direction](../../art-direction/README.md).
 - 2026-09-30: Luna is the middle of Act 1 (L04–06); signature set piece: mass-driver sleds.
 - 2026-09-30: Tranquility Base added as a sub-location (used by L04 *Tranquility Run*).
 - 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.
+- 2026-10-01: Chosen far side scene linked (scene-luna-farside-r09-a, round 09).

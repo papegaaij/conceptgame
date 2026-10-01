@@ -37,8 +37,8 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 ## Design
 
-- Above water (Act 2), `sub` units are shadows under the waves: hittable only by `anti-sub` and
-  `area`, per the [layer rules](../README.md). Surfaced units are ground targets.
+- Above water (Act 2), `sub` units are shadows under the waves: hittable only by `anti-sub`,
+  per the [layer rules](../README.md#layer-rules). Surfaced units are ground targets.
 - Underwater (Act 4), the `sub` layer is the play plane: all weapons hit, but weapons without
   `anti-sub` do 50% damage. Enemy bullets and movement are slowed by the water. All numbers:
   [under water rules](../../world/europa/README.md#under-water-rules).
@@ -83,3 +83,4 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — real waterline (
 - 2026-10-01: Concept round 06: Reef Spitter, Skimmer and Spiral Nautilus chosen; Driftjelly chosen but its waterline ring must become real foam/ripples (round 07).
 - 2026-10-01: Concept round 07: Driftjelly waterline fixed; r07 chosen.
 - 2026-10-01: Acts 1–2 units promoted to full specs: Driftjelly, Reef Spitter, Skimmer.
+- 2026-10-01: Above-water `sub` targets are hit by `anti-sub` only (`area` removed), matching the layer rules in the enemies README.

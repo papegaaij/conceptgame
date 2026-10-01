@@ -50,10 +50,18 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 
 ### Arena
 
-Atlantic convoy (L11): the scroll halts at the platform; convoy ships must stay out of the slammed lanes (secondary objective). Target duration 45–75 s at medium; at the effective boss DPS (0.6 × 70 = 42) the total HP lasts ≈ 64 s.
+[Atlantic convoy (L11)](../../../campaign/act-2-homefront/level-11-atlantic-convoy/README.md): the scroll halts at the platform; the [convoy ships](../../../allies/README.md) hold station in some of the lanes below it (secondary objective). Target duration 45–75 s at medium; at the effective boss DPS (0.6 × 70 = 42) the total HP lasts ≈ 64 s.
 
 ### Behaviour
 
+- **Lane choice**: each slam alternates between the lane the player is in and the lane of the
+  nearest surviving friendly ship (when no ship is left, every slam targets the player's lane).
+  In phase 3 the two lanes are the player's and the nearest ship's (the same rule, both at once).
+  Severed slam arms remove their lanes, so cutting the arms during their awash window protects
+  the ships.
+- **Ship damage**: a slam in a lane with a friendly ship hits that ship. A ship survives its
+  first slam (smoke, listing) and sinks on its second. Ships take no other damage from the
+  Kraken (splash bullets and fans travel on the player's plane).
 - Every arm visibly continues under water to the mantle (water rules); the Kraken never pops in.
 - A player with the optional Torpedo Pod (L11) can damage the submerged head in phase 1 — a reward for buying `anti-sub` early.
 
@@ -65,6 +73,7 @@ Chosen concept: [harbour-kraken-r07-a.png](../concept/harbour-kraken-r07-a.png),
 
 - [ ] Water-surface interaction per the art-direction water rules
 - [ ] Lane telegraph → slam → awash → sink cycle
+- [ ] Lane choice alternating player / nearest ship; ships hit by slams sink on the second
 - [ ] Surfacing/diving head with eye windows and fans
 - [ ] Stat block values loaded from data; global difficulty multipliers applied
 - [ ] Death effect, bounty and score per this spec
@@ -73,3 +82,4 @@ Chosen concept: [harbour-kraken-r07-a.png](../concept/harbour-kraken-r07-a.png),
 
 - 2026-10-01: Promoted from the bosses roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: HP rescaled to the lowered L11 reference DPS (×70/100): head 2 900 → 2 000, slam arms 500 → 350, total 3 900 → 2 700; duration ≈ 64 s (was ≈ 65 s). Bounty unchanged.
+- 2026-10-01: Lane choice (alternate the player's lane and the nearest ship's lane) and ship damage (a ship sinks on its second slam) moved here from the L11 level doc.

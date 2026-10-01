@@ -56,15 +56,13 @@ face where it walks, hardened ground targets, and the first special (the Airstri
 
 ### The convoy
 
-- Five CDF heavy crawlers (civilian evacuation haulers) on the `ground` layer, 72×40 px each,
-  in a column 60 px apart along the road. They move with the scroll and drift left and right as
-  the road winds, so they stay in the lower half of the play field (y ≈ 330–520).
-- HP 60 each at medium. Crawlers take damage from **bullets fired by ground-layer enemies**
-  (Spine Turrets and Scuttlers; air-layer enemy bullets pass over them) and from a Scuttler's
-  claws when it walks into the column (10 per second). Skitters and Needlers ignore them.
-- A hit crawler flashes and its damage shows as smoke; a destroyed crawler stops and burns (no
-  explosion debris on the player's layer). The HUD objective tracker shows five crawler pips.
-- The player's shots and the Airstrike never hurt crawlers.
+- Five [civilian crawlers](../../../allies/README.md#civilian-crawler) (size, HP, damage
+  sources and behaviour in the allies spec) in a column 60 px apart along the road, staying in
+  the lower half of the play field (y ≈ 330–520).
+- Here that means: Spine Turrets and Scuttlers hurt them (Scuttler claws when one walks into the
+  column); Skitters and Needlers ignore them. Spine Turrets and Scuttlers use the
+  [target-the-objective hook](../../../enemies/README.md#target-the-objective-hook) in mode
+  `nearest`. The HUD objective tracker shows five crawler pips.
 
 ## Layout
 
@@ -119,14 +117,14 @@ Totals: Brood Pod 6 (36 Skitters released) · Scuttler 8 · Needler 12 · Skitte
 | 3 | 105 | Spine Turret ×2 on the bridge abutments | As above |
 | 4 | 145 | Turret nest: Spine Turret ×4 among the pod husks | As above |
 | 4 | 125 | Collapsed prospector's dugout in a crater rim (**hardened**, 20 HP) | Only `anti-ground` weapons or the Airstrike open it; releases the hidden crate |
-| 2 | 55 | CDF supply drop (ground layer, 3 HP) | Medium salvage (50); also a special charge if a special is fitted |
+| 2 | 55 | CDF supply drop (ground layer, 3 HP) | Medium salvage (50); also a special charge if a special is fitted (on top of the [free first Airstrike charge](../../../player/specials/README.md#airstrike-l04)) |
 
 Spine Turrets: 13 in total. Scuttlers are ground enemies scripted in *Waves*.
 
 ## Hazards
 
 None lethal. The danger is to the convoy: turrets and Scuttlers aim at whichever is closer, the
-player or the nearest crawler. The heavy dust peak in section 4 never hides bullets, but it
+player or the nearest crawler (hook mode `nearest`, see *The convoy*). The heavy dust peak in section 4 never hides bullets, but it
 hides the walkers' bodies (their lime backs glow through it).
 
 ## Secrets and pickups
@@ -231,3 +229,5 @@ Needler 12, Spine Turret 12.
   player and ground enemies threaten the convoy. The mass driver is scenery here and becomes a
   hazard in L05. First hardened target placed as the secret, so `anti-ground` pays off without
   being mandatory.
+- 2026-10-01: The crawler spec moved to [allies](../../../allies/README.md#civilian-crawler); the convoy section keeps only the level setup. Turret and Scuttler targeting expressed with the target-the-objective hook (mode `nearest`).
+- 2026-10-01: Supply-drop text aligned with the free first Airstrike charge: the drop's charge comes on top of it.

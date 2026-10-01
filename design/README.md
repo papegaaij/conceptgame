@@ -25,6 +25,7 @@ guided by intel about the next level.
 | [world](world/README.md) | The settings the levels take place in | draft | n/a | chosen |
 | [campaign](campaign/README.md) | Acts and the 50-level outline, pacing and difficulty curve | draft | not-started | none |
 | [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | draft | not-started | chosen |
+| [allies](allies/README.md) | Friendly units and structures to escort or defend (crawlers, shuttles, convoy, relay) | draft | not-started | none |
 | [player](player/README.md) | The player ship, its loadout slots and all equipment | draft | not-started | chosen |
 | [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | draft | not-started | n/a |
 | [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | draft | not-started | chosen |
@@ -85,3 +86,4 @@ Used across level, enemy, weapon and hangar-intel documents so they can be compa
 - 2026-09-30: Armour bar with level retry; single-player; Tyrian-style loadout slots.
 - 2026-09-30: Working title: **Terran Vanguard** (concept round 01, logo D).
 - 2026-10-01: Acts 1–2 open questions settled (layer hit rules, chain regrow, objective failure, controls, escort slot, utility bays, one special, visible pods, game over on hard, armour on retry, no level select, 5 banking frames, scaling, test fire later, text-only voices); score and credits stay separate. The tech stack is explicitly left open for a thorough evaluation.
+- 2026-10-01: New top-level part [allies](allies/README.md) for friendly units and structures (user decision).

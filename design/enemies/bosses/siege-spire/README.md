@@ -55,7 +55,10 @@ Geneva Concord under the Vrell canopy (L14). Target duration 120–180 s at medi
 ### Behaviour
 
 - The boss teaches the Act 2 lessons in order: ground targets (roots), rear awareness (Wraiths), then dodging in the open.
-- Wraiths launched here use their own spec (rust with blue-violet veins).
+- Wraiths launched here use their own spec (rust with blue-violet veins) and pay the normal
+  [Wraith](../../air/wraith/README.md) bounty at the Act 2 factor (48 per kill), on top of the
+  boss bounty; levels budget them at the expected count (see
+  [economy](../../../systems/economy/README.md#sources)).
 
 ### Concept art
 
@@ -73,3 +76,4 @@ Chosen concept: [siege-spire-r06-a.png](../concept/siege-spire-r06-a.png), [sieg
 
 - 2026-10-01: Promoted from the bosses roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: HP rescaled to the lowered L14 reference DPS (×80/130): turret pods 600 → 370, mortar roots 700 → 430, maw 2 600 → 1 600, spire core 4 500 → 2 750, total 10 900 → 6 690; duration ≈ 139 s (was ≈ 140 s). Bounty unchanged.
+- 2026-10-01: Maw-launched Wraiths pay the normal Wraith bounty at the Act 2 factor, budgeted at the expected count as in L14 (user decision).

@@ -155,9 +155,8 @@ far-flank escorts (radio only).
 
 [Brood Carrier](../../../enemies/bosses/brood-carrier/README.md), the Act 1 boss. Level notes:
 
-- **Arena**: open space at the L1 point, beyond the picket. The scroll slows to 20 px/s. The
-  spec's arena line says "above the Gagarin shipyards"; this level follows the act synopsis (L1).
-  See *Open questions*.
+- **Arena**: open space at the L1 point, beyond the picket, as in the spec. The scroll slows to
+  20 px/s.
 - **Phase 1** (25 s, `high-air`): read in this level as 8 bay-pair openings (every 3 s), each
   pair spawning either 4 Skitters or 2 Needlers, alternating: 16 Skitters and 8 Needlers in all.
   At L07 the player can own the Micro-missile Pod (`homing`, from L06); damage to the bays
@@ -214,15 +213,6 @@ in the total. Spore mines (1 each) are excluded as in L03.
 - [ ] Credit total at medium with perfect collection is 1,501 (± 5%).
 - [ ] Easy/hard variations as in *Difficulty notes*.
 
-## Open questions
-
-- The [Brood Carrier](../../../enemies/bosses/brood-carrier/README.md) spec puts its arena
-  "above the Gagarin shipyards"; the act synopsis, story and Luna docs place the fight at the
-  Earth–Moon L1 point, as this level does. The spec's arena line should follow (owned by the
-  enemies tree).
-- The spec does not say whether phase-1 spawns are per opened bay or per opened pair; this level
-  reads them per pair. To be confirmed in the spec.
-
 ## Decisions
 
 - 2026-10-01: Promoted from the act roster to a draft level document. Approach of about 100 s
@@ -230,3 +220,4 @@ in the total. Spore mines (1 each) are excluded as in L03.
   returns), then the boss. The Choir stays unintelligible ("[the Choir sings]"); Varga's partial
   reading ("many", "late") replaces the earlier spoken line and foreshadows its first words in
   Act 3.
+- 2026-10-01: Open questions resolved in the Brood Carrier spec: arena at the L1 point; phase-1 spawns per bay pair.

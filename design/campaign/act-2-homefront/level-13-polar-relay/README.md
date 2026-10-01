@@ -54,14 +54,20 @@ keep, and spread fire for the boats."
 
 ### Nansen Relay
 
-Level-specific friendly structure (first-draft numbers):
+The [Nansen Relay](../../../allies/README.md#nansen-relay) (footprint, integrity 600 at medium,
+damage rules in the allies spec) stands on the `ground` layer at the centre of the play field
+(x = 480, y ≈ 250 in screen coordinates). It is not repaired; the crew launch supply drones for
+the player at t=160 and t=200 (see *Secrets and pickups*).
 
-| Property | Value |
+Relay targeting uses the
+[target-the-objective hook](../../../enemies/README.md#target-the-objective-hook):
+
+| Units | Mode |
 |---|---|
-| Position | On the `ground` layer at the centre of the play field (x = 480, y ≈ 250 in screen coordinates), footprint 96×96 px: dish array, mast, prefab modules, a helipad |
-| Integrity | 600, no regeneration; a bar in the HUD side panel |
-| What hurts it | Only attacks **aimed at the relay**, never shots aimed at the player that happen to cross it. Skimmers fire every second shot at the relay when it is closer than the player. Scuttlers spit acid at it when it lies in their facing arc. Stingers in the t=156 and t=210 waves dive at the relay (10 per hit). The Polyp Mortar floe lobs at the relay. Relay-aimed bullets have the normal enemy look; the relay flashes on each hit |
-| Repairs | The relay crew launch a supply drone with an armour patch for the player at t=160 and t=200; the relay itself is not repaired |
+| Skimmers (all waves) | `alternate` |
+| Scuttlers (all waves) | `in-arc` |
+| Stingers of the t=156 and t=210 waves | `always` |
+| Polyp Mortar floe (t≈66) | `always` |
 
 ## Layout
 
@@ -201,7 +207,7 @@ relay and Skimmers. The whiteout peak has no concept yet.
 
 - [ ] Approach, halted defend phase and exit as in *Layout*; floes keep drifting while halted.
 - [ ] Nansen Relay: integrity bar, damage only from relay-aimed attacks, hit flash, mission failed at 0.
-- [ ] Relay-targeting behaviour for Skimmers, Scuttlers, the t=156/t=210 Stingers and the mortar floe.
+- [ ] Target-the-objective configuration as in the table under *Nansen Relay*.
 - [ ] Wave script matches the *Waves* table; edge warnings on all side and rear waves, also during the whiteout.
 - [ ] Whiteout banks at the side edges, centre kept readable.
 - [ ] Research hut secret and the two supply drones.
@@ -210,13 +216,9 @@ relay and Skimmers. The whiteout peak has no concept yet.
 - [ ] Credit total at medium with perfect collection is 2,252 (± 5%).
 - [ ] Easy/hard variations as in *Difficulty notes*.
 
-## Open questions
-
-- Relay-targeting is a per-level behaviour override on several enemies. Should the enemy specs
-  gain a general "target the objective" hook, for later defend levels too?
-
 ## Decisions
 
 - 2026-10-01: Promoted from the Act 2 roster to a draft level document.
 - 2026-10-01: Primary `defend`: the relay destroyed means mission failed; failing the secondary
   objective only loses its bonus (user decision).
+- 2026-10-01: The relay's spec moved to [allies](../../../allies/README.md#nansen-relay). Open question resolved: the per-unit relay-targeting overrides are replaced by the general target-the-objective hook in the enemies README, configured here as a small table.

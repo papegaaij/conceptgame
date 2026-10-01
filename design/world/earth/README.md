@@ -73,8 +73,16 @@ city levels.
 
 ### Chosen scene
 
-The look of this setting is set by the chosen parallax scene in art direction: Earth megacity at night (round 03); the ocean, ocean-storm, arctic and capital sub-locations have no chosen scene yet —
-[sheet](../../art-direction/concept/parallax-r03-b.png), [scroll loop](../../art-direction/concept/parallax-r03-b.gif).
+The look of each sub-location is set by its chosen scene in art direction:
+
+| Sub-location | Round | Files |
+|---|---|---|
+| Megacity at night | 03 | [sheet](../../art-direction/concept/parallax-r03-b.png), [scroll loop](../../art-direction/concept/parallax-r03-b.gif) |
+| Open ocean | 10 | [sheet](../../art-direction/concept/scene-ocean-r10-a.png), [scroll loop](../../art-direction/concept/scene-ocean-r10-a.gif) |
+| Ocean storm | 10 | [sheet](../../art-direction/concept/scene-storm-r10-a.png), [scroll loop](../../art-direction/concept/scene-storm-r10-a.gif) |
+| Arctic | 09 | [sheet](../../art-direction/concept/scene-arctic-r09-a.png), [scroll loop](../../art-direction/concept/scene-arctic-r09-a.gif) |
+| Geneva Concord (capital) | 10 | [sheet](../../art-direction/concept/scene-geneva-r10-a.png), [scroll loop](../../art-direction/concept/scene-geneva-r10-a.gif) |
+
 The concept files live in [art-direction](../../art-direction/README.md).
 
 ## Decisions
@@ -82,3 +90,4 @@ The concept files live in [art-direction](../../art-direction/README.md).
 - 2026-09-30: Earth as Act 2 setting with city, ocean and arctic; signature: Siege Spire roots.
 - 2026-09-30: City names Nova Lagos (megacity) and Geneva Concord (UTC capital) adopted from the campaign.
 - 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.
+- 2026-10-01: Chosen scenes linked for every sub-location: ocean (scene-ocean-r10-a), storm (scene-storm-r10-a), arctic (scene-arctic-r09-a) and Geneva (scene-geneva-r10-a), next to the megacity (parallax-r03-b).

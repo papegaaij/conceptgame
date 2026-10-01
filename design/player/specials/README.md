@@ -45,7 +45,7 @@ bonus. "Boss part" = any hittable part of a mid-boss or act boss.
 
 | Property | Value |
 |---|---|
-| Charges | Bought at 300 cr each, at most 4 carried; one call uses one charge |
+| Charges | Bought at 300 cr each, at most 4 carried; one call uses one charge. **1 free charge** when the Airstrike unlocks (hangar visit before L04), so the player can try it without paying |
 | Call | Press special → radio line ("Hammer flight, inbound!", text + blip). After **0.6 s** two CDF bombers enter at the bottom edge at the player's x − 64 px and x + 64 px (clamped to the play field) and fly straight up at 600 px/s (0.9 s across the screen) |
 | Bombs | Each bomber drops a bomb every 36 px of travel (≈ 15 each); a bomb lands 0.25 s after release; blast radius 32 px. The strike covers a corridor about 190 px wide |
 | Damage | Per blast: 100 to `ground` and `low-air` targets (hardened included), 20 to `air` targets. One strike deals at most **300** to a ground/low-air target and **60** to an air target. `high-air` and `sub` are not hit |
@@ -106,6 +106,7 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 - [ ] Special slot, charge counting and cooldown timers
 - [ ] Airstrike, Smart Bomb and Decoy Flares as specified in *Acts 1–2 specials in detail*
+- [ ] One free Airstrike charge granted once, at the unlock before L04
 - [ ] Setting restrictions read from the level data
 - [ ] HUD icon states: ready, charges, cooldown, unavailable
 
@@ -123,3 +124,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-10-01: One special equipped at a time (user accepted the recommendation).
 - 2026-10-01: Airstrike, Smart Bomb and Decoy Flares specified in full for Acts 1–2 (timing, area, damage caps, boss rules, invulnerability, repeat delay).
 - 2026-10-01: Concept round 09: specials chosen.
+- 2026-10-01: Free first Airstrike charge (user decision): 1 charge is granted when the Airstrike unlocks before L04. The balance plan in `balance-data.json` now buys 1 charge at L04 instead of 2 (same 2 charges carried).

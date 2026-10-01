@@ -47,7 +47,7 @@ them, or the Airstrike. No anti-ground, no mission."
 | Sensor-suite detail | **none**: megacity, ground + air, front. **L1**: front 89 / sides 11, density 3, hazard "structural collapse". **L2**: Hive Node (new, hardened), Ravager (new), Creeper, Needler, Spine Turret portraits. **L3**: `anti-ground` and `area` highlighted; the timeline strip marks the three node clusters (≈40, ≈124, ≈172 s); 1 secret. |
 
 Launching without any `anti-ground` source (weapon, Rook's Mortar or the Airstrike) shows a
-launch warning in the hangar (see *Open questions*).
+launch warning in the hangar (generic missing-trait rule in [hangar](../../../ui/hangar/README.md)).
 
 ## Objective
 
@@ -210,17 +210,11 @@ node follow the chosen [Hive Node](../../../enemies/ground/hive-node/README.md) 
 - [ ] Credit total at medium with perfect collection is 1,718 (± 5%).
 - [ ] Easy/hard variations as in *Difficulty notes*.
 
-## Open questions
-
-- A missed node fails the mission only at the end of the scroll (the campaign rule). Should the
-  game instead offer an immediate retry prompt when a node is missed, so the player doesn't fly
-  on for a minute knowing the mission is lost?
-- The hangar launch warning for "no anti-ground source fitted" needs a line in the
-  [hangar](../../../ui/hangar/README.md) spec.
-
 ## Decisions
 
 - 2026-10-01: Promoted from the Act 2 roster to a draft level document.
 - 2026-10-01: Primary `destroy-targets`: a node alive at the end of the scroll fails the mission;
   failing the secondary objective only loses its bonus (user decision).
 - 2026-10-01: L09 introduces the Ravager (round 05 follow-up).
+- 2026-10-01: The "no anti-ground source" launch warning is covered by the generic hangar rule (confirmation when a recommended trait is missing; `anti-ground` is recommended here) — see [hangar](../../../ui/hangar/README.md).
+- 2026-10-01: A missed node triggers the immediate lost-mission prompt (campaign rule), instead of failing only at the end of the scroll.

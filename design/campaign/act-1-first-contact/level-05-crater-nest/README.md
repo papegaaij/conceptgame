@@ -174,8 +174,8 @@ notes:
 
 - **Intro**: triggered by battery D's death. The frigate's shadow crosses the nest heart, then
   it descends into the upper third at 60 px/s; mini-boss sting, name and short health bar.
-- **Arena**: above the nest heart; the scroll slows to 30 px/s and no terrain collides. The
-  spec's arena line ("Earth–Moon convoy lane") does not match this level; see *Open questions*.
+- **Arena**: above the nest heart; the scroll slows to 30 px/s and no terrain collides (as in
+  the spec's arena line).
 - **Duration**: 1,500 HP at an effective 0.6 × 45 = 27 DPS ≈ 55 s, inside the 45–75 s target.
 - Ground targets are all dead by now (battery D is the last), so the fight is air only.
 - On easy and medium, the boss checkpoint is recorded at the mini-boss sting
@@ -229,15 +229,10 @@ streams of a medium-par fight.
 - [ ] Credit total at medium with perfect collection is 1,311 (± 5%).
 - [ ] Easy/hard variations as in *Difficulty notes*.
 
-## Open questions
-
-- The [Gorgon Frigate](../../../enemies/bosses/gorgon-frigate/README.md) spec puts its arena
-  in an "Earth–Moon convoy lane"; this level fights it over the nest crater on Luna. The spec's
-  arena line should follow the level (owned by the enemies tree).
-
 ## Decisions
 
 - 2026-10-01: Promoted from the act roster to a draft level document. The named targets are four
   batteries built from existing units (no new art). A battery missed fails the mission at once,
   not at the end of the scroll, so the mid-boss is only fought on a run that can still succeed.
   The mass-driver sleds (Luna's signature set piece) are introduced here as a hazard.
+- 2026-10-01: Open question resolved: the Gorgon Frigate spec's arena now is the nest crater on Luna.

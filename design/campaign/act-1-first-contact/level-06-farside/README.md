@@ -140,7 +140,8 @@ Pickup types are defined in [player](../../../player/README.md#in-level-pickups)
   until the headlight or the t=112 flare lights it. Three marker lights on its lid; 3 hits open it.
 - **Ore cart** (t≈55): medium salvage 50, under a rail lamp.
 - **Data core** (t≈180): the open airlock's terminal at Daedalus Gate, lit by the dome light.
-  2 hits release the core: the settlement's last log (lore entry, see *Open questions*).
+  2 hits release the core: the settlement's last log (lore entry). It unlocks the Targeting
+  computer from the L07 hangar visit (see [economy](../../../systems/economy/README.md#data-cores)).
 - **Armour patch** ×2: dropped by the second Mantis of the t=56 pincer and by the last Needler
   of the t=162 line.
 - **Overdrive**: dropped by the last Needler of the t=96 line.
@@ -225,14 +226,10 @@ killing the head first pays less but scores a time bonus.
 - [ ] Credit total at medium with perfect collection is 1,403 (± 5%).
 - [ ] Easy/hard variations as in *Difficulty notes*.
 
-## Open questions
-
-- Which shop item does the L06 data core unlock? The player docs say a data core "unlocks an
-  item in the shop catalogue" but no data-core unlock list exists yet.
-
 ## Decisions
 
 - 2026-10-01: Promoted from the act roster to a draft level document. Darkness never hides a
   threat to the ship (bullets, warnings, markers stay visible); it hides bodies, scenery and the
   secret. The settlement's emptiness is shown, not told: open airlocks, lights on, an automated
   beacon, and one line from Varga.
+- 2026-10-01: Open question resolved: the data core unlocks the Targeting computer one act early, from the L07 hangar visit (table in economy).

@@ -216,12 +216,7 @@ concept yet.
 - [ ] Credit total at medium with perfect collection is 2,410 (± 5%).
 - [ ] Easy/hard variations as in *Difficulty notes*.
 
-## Open questions
-
-- Should the maw's Wraiths pay their full bounty? The boss spec doesn't say. The draft budgets
-  them at the expected count; a reduced or zero bounty for boss-launched adds would keep a slow
-  kill from paying more.
-
 ## Decisions
 
 - 2026-10-01: Promoted from the Act 2 roster to a draft level document.
+- 2026-10-01: Open question resolved: the maw's Wraiths pay their full Wraith bounty at the Act 2 factor, as budgeted here (user decision; recorded in the Siege Spire spec).

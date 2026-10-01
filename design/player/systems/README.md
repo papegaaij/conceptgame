@@ -33,7 +33,7 @@ are the "nice extra options": they make the ship better at a job without adding 
 | Sensor suite | Improves hangar intel detail (see below) and shows off-screen threat arrows at L2+ | L1–L3 | 1 | 800 / 2 000 / 4 500 | start | idea |
 | Pickup magnet | Pickup radius 36 → 72 / 108 / 144 px | L1–L3 | 1 | 600 / 1 500 / 3 000 | act 1 | idea |
 | Salvage scanner | +10 / +20 % credits from drops; reveals hidden crates | L1–L2 | 1 | 2 500 / 6 000 | act 2 | idea |
-| Targeting computer | Homing turn rate +20 %, enemy HP bars, boss weak-point markers | L1 | 1 | 3 000 | act 2 | idea |
+| Targeting computer | Homing turn rate +20 %, enemy HP bars, boss weak-point markers | L1 | 1 | 3 000 | act 2 (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores)) | idea |
 | Evasive thrusters | Double-tap direction: 72 px dash, 0.25 s invulnerable, 3 s cooldown | L1 | 2 | 4 000 | act 3 | idea |
 | Auto-repair nanites | Repairs 1 armour per 4 s, up to 50 % of max armour | L1–L2 (2 s at L2) | 3 | 6 000 / 12 000 | act 4 | idea |
 | Pressure hull | Removes the underwater top-speed and shield-regen penalties (see [europa](../../world/europa/README.md#under-water-rules)) | L1 | 1 | 2 000 | L22 | idea |
@@ -84,3 +84,4 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
   (underwater rules owned by [europa](../../world/europa/README.md#under-water-rules)).
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-10-01: Utility bays confirmed: two, a third buyable.
+- 2026-10-01: Targeting computer: unlocked from L07 by the L06 data core (one act early), per the data-core rule in economy.

@@ -105,19 +105,17 @@ loadout stays the main source of strength:
 | Shield cell | Frequent drops | Restores 25 % of shield capacity |
 | Armour patch | Rare (0–2 per level) | Restores 10 armour points |
 | Special charge | Rare | +1 charge (charge-based specials only) |
-| Data core | Hidden / secret areas | Lore entry and unlocks an item in the shop catalogue; counts for the grade |
+| Data core | Hidden / secret areas | Lore entry; unlocks one specific shop item one act early (list in [economy](../systems/economy/README.md#data-cores)); counts for the grade |
 
 A [pickup magnet](systems/README.md) widens the collection radius. Uncollected pickups drift
 down and leave the screen after 6 s.
 
-### Damage scale (first draft)
+### Damage scale
 
-Used by enemies and weapons so numbers stay comparable:
-
-- Player: starts with 20 shield and 60 armour.
-- Enemy bullets: small 5, medium 10, heavy 20. Collision 15–40 by enemy size.
-- Enemy HP: popcorn 5–10, medium 30–60, heavy 150–400, mini-boss ~1500, act boss 5 000–20 000.
-- Starter Pulse Cannon L1: about 20 DPS. A well-upgraded late-game loadout: about 250 DPS.
+The player starts with 20 shield and 60 armour; the starter Pulse Cannon L1 does about 20 DPS
+(1 damage unit = one Pulse Cannon L1 shot). Damage to the player (bullet classes, lasers,
+contact by size), enemy HP and the reference player DPS per level are owned by the enemies'
+[balancing basis](../enemies/README.md#balancing-basis); this document does not repeat them.
 
 ## Concept art
 
@@ -151,3 +149,5 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - 2026-10-01: Controls: hold-to-fire with an auto-fire toggle in Options; fire, special and hold-for-precision buttons (see [controls](../ui/controls/README.md)). Rook takes the separate escort slot (confirmed). Utility bays: two, a third buyable. One special equipped at a time.
 - 2026-10-01: Component availability `act N` defined as the first hangar visit of that act (`act 1` = before L02); balancing numbers centralised in balance-data.json.
 - 2026-10-01: Concept round 09: pickups chosen.
+- 2026-10-01: Data core pickup now links to the data-core unlock table in economy (each core unlocks one specific item one act early).
+- 2026-10-01: Damage scale: the old first-draft numbers (bullets 5/10/20, collisions 15–40, HP ranges) contradicted the enemies balancing basis (4/6/10, contact 6–25); replaced by a link to it, which owns them.

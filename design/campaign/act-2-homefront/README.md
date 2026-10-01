@@ -2,7 +2,7 @@
 title: Act 2 – Homefront
 design: draft
 implementation: not-started
-art: none
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -40,6 +40,9 @@ overnight in the middle of **Geneva Concord**, the UTC capital.
 
 ### Story beats
 
+- Throughout the act the Choir breaks in at the big moments but only sings ("[the Choir
+  sings]"), as in Act 1; Varga interprets what she can. Its first words wait for Act 3 (see
+  [the Choir](../../story/characters/the-choir/README.md)).
 - L08: Rook, a five-year Aegis Wing veteran who has flown in the wider formation so far, is
   assigned as Lancer's wingman (the escort slot unlocks; see [wingmen](../../player/wingmen/README.md)).
 - L10: civilians on the radio. The first loss the player can't prevent (a shuttle is scripted
@@ -127,10 +130,10 @@ Seed (L12), Scuttler (L13). The level documents list the waves.
 ### Music
 
 Per level, from the [track list](../../audio/music/README.md#track-list): L08, L10 and L13 use the
-Act 2 A theme "Homefront"; L09, L11 and the L14 approach use the Act 2 B theme "Firestorm"; the
-Kraken (L11) gets the mini-boss sting; the Siege Spire uses the boss warning and the Vrell boss
-theme "The Choir Descends", then the act complete fanfare. The storm variant planned for L12 is
-not in the track list yet, so L12 uses "Firestorm" for now (see [L12](level-12-storm-front/README.md)).
+Act 2 A theme "Homefront"; L09, L11, L12 and the L14 approach use the Act 2 B theme "Firestorm"
+(L12 has no separate storm variant); the Kraken (L11) gets the mini-boss sting; the Siege Spire
+uses the boss warning and the Vrell boss theme "The Choir Descends", then the act complete
+fanfare.
 
 ## Implementation
 
@@ -150,3 +153,6 @@ not in the track list yet, so L12 uses "Firestorm" for now (see [L12](level-12-s
 - 2026-10-01: L09 introduces the Ravager, an animal-like Vrell pack hunter (round 05 follow-up).
 - 2026-10-01: Objective failure rules applied to L09 (destroy-targets), L10 (escort) and L13 (defend). L10: one scripted shuttle loss for the story; the rest depends on the player.
 - 2026-10-01: Levels 08–14 promoted from the roster to draft level documents; Rook joins as the player's wingman in the escort slot at L08; radio chatter is text plus radio blips only (user decisions). Act intro (title card and briefing) and act debrief added.
+- 2026-10-01: Music: L12 uses "Firestorm"; the promised storm variant is dropped (user decision).
+- 2026-10-01: Choir in Acts 1–2 confirmed by the user: it only sings ("[the Choir sings]") and Varga interprets it; the Choir, story and act documents agree.
+- 2026-10-01: Art status set to `chosen`: every level of the act uses chosen concept art.

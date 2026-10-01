@@ -37,6 +37,25 @@ e.g. the Pulse Cannon's L2 upgrade.
 Difficulty multiplies all credit income: easy ×1.25, medium ×1.0, hard ×0.9. See
 [difficulty](../difficulty/README.md).
 
+Two budgeting conventions, used by level documents and `tools/balance.py`:
+
+- **Act-factor bounties round per kill**: an enemy's Act 1 bounty times the act factor is
+  rounded to whole credits for each kill, not summed first and rounded once.
+- **Spawned adds are budgeted at their expected count**: units that appear during play
+  (Skitters from hive nodes, units launched by a boss) count in the level budget at the number
+  a typical run expects to see, at their normal bounty.
+
+### Data cores
+
+A data core is a hidden lore pickup (see [player](../../player/README.md#in-level-pickups)).
+Besides the lore entry, each core unlocks **one specific shop item one act early**: the item is
+in the shop from the next hangar visit instead of from its normal unlock. Items found this way
+cost their normal price. Later acts add rows as their level documents place cores.
+
+| Data core found in | Item unlocked early | Normal unlock | Why this item |
+|---|---|---|---|
+| [L06 Farside](../../campaign/act-1-first-contact/level-06-farside/README.md) (settlement log, Daedalus Gate) | [Targeting computer](../../player/systems/README.md) utility module | act 2 → from L07 | The settlement's survey sensors; its boss weak-point markers help against the [Brood Carrier](../../enemies/bosses/brood-carrier/README.md) at L07, and its homing bonus suits the Micro-missile Pod that unlocks at L06 |
+
 ### Per-level budget
 
 This curve is the single source for level credit budgets; level documents and the
@@ -103,3 +122,5 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   worked-example budget of 1 000 and a typical run affords 60–65 % of everything; bounties and
   crates scale with the act factor; boss bounties are a share of the level budget.
 - 2026-10-01: Starting credits set to 300 (player spec work); `tools/balance.py` models a typical medium player's purchases for levels 01–14 against this curve.
+- 2026-10-01: Data cores: each unlocks one specific shop item one act early (user decision); table added, L06's core unlocks the Targeting computer from L07.
+- 2026-10-01: Conventions stated: act-factor bounties round per kill; spawned adds (hive-node Skitters, boss-launched units) are budgeted at their expected count.

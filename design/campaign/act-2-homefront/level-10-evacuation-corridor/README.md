@@ -62,16 +62,9 @@ ones decloak at the bottom of the screen. A rear gun or homing missiles will fin
 
 ### The shuttles
 
-Level-specific friendly units (first-draft numbers):
-
-| Property | Value |
-|---|---|
-| Sprite / hitbox | 64×40 / 48×28 px, pre-rendered civilian shuttle with a CDF evac stripe |
-| Layer | `air` (the play plane); player and Rook shots pass through them |
-| Armour | 120 each, no shield, no regeneration. Enemy bullets and contact damage hurt them as they hurt the player |
-| Formation | A loose double column in the band y = 140–300, moving with the scroll, drifting slowly along authored lanes. They never steer into the player |
-| Damaged | Below 50% they trail smoke and their portrait frame flashes in the HUD |
-| Lost | At 0 the shuttle loses power and glides down into the `far` layer trailing smoke (no explosion on screen) |
+Five [evacuation shuttles](../../../allies/README.md#evacuation-shuttle) (size, armour 120,
+damage and loss behaviour in the allies spec). Here they fly a loose double column in the band
+y = 140–300, and each has a portrait frame with an armour bar in the HUD that flashes below 50%.
 
 Because the rear attacks fire **up** the screen, they pass through the shuttle band. Killing the
 rear threat quickly is what protects the convoy.
@@ -216,7 +209,7 @@ No level-specific concept files. The look comes from the chosen megacity scene i
 [parallax-r03-b.png](../../../art-direction/concept/parallax-r03-b.png); the coast road
 borrows the water treatment of the chosen ocean scene
 ([scene-ocean-r10-a.png](../../../art-direction/concept/scene-ocean-r10-a.png)). The shuttle
-sprite has no concept yet (see *Open questions*).
+sprite has no concept yet (see [allies](../../../allies/README.md)).
 
 ## Implementation
 
@@ -231,13 +224,9 @@ sprite has no concept yet (see *Open questions*).
 - [ ] Credit total at medium with perfect collection is 1,838 (± 5%).
 - [ ] Easy/hard variations as in *Difficulty notes*.
 
-## Open questions
-
-- The evacuation shuttle needs a sprite concept (and the L11 convoy ships and the L13 relay
-  need theirs too). Should friendly units get their own part in the design tree?
-
 ## Decisions
 
 - 2026-10-01: Promoted from the Act 2 roster to a draft level document.
 - 2026-10-01: One scripted shuttle loss for the story; every other loss depends on the player,
   and losing all of them fails the mission (user decision).
+- 2026-10-01: Open question resolved: friendly units got their own part, [allies](../../../allies/README.md); the shuttle spec moved there. Sprites come in a later concept round.

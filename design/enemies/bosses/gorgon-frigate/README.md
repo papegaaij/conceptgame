@@ -50,7 +50,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 
 ### Arena
 
-Earth–Moon convoy lane (L05): the scroll slows to 30 px/s; no terrain collision. Target duration 45–75 s at medium.
+Over the Vrell nest crater on Luna ([L05](../../../campaign/act-1-first-contact/level-05-crater-nest/README.md)), after the four nest batteries: the scroll slows to 30 px/s; no terrain collision. Target duration 45–75 s at medium.
 
 ### Behaviour
 
@@ -72,3 +72,4 @@ Chosen concept: [gorgon-frigate-r06-a.png](../concept/gorgon-frigate-r06-a.png),
 ## Decisions
 
 - 2026-10-01: Promoted from the bosses roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: Arena set to the nest crater on Luna (L05), replacing the Earth–Moon convoy lane.

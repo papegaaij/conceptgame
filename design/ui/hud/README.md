@@ -59,6 +59,7 @@ left panel is about the mission (score, radio), the right panel about the ship.
 | Chain | Chain count, multiplier and draining window bar (see [scoring](../../systems/scoring/README.md)) |
 | Radio | 72×72 portrait with static on open/close, name, subtitle below the portrait up to 3 lines × 22 chars; queued messages; urgent warnings interrupt |
 | Progress | Level progress bar with a boss marker at the end |
+| Objective tracker | Only in levels with an objective. Compact box above the progress bar: objective icon and short label (e.g. "DOCKS", "CRAWLERS", "BATTERIES", "HIVE NODES", "SHUTTLES", "RELAY"), then progress as pips or counters (docks, crawler pips, batteries A–D, hive nodes, shuttles, relay integrity bar). A pip flashes green on success and red on a loss or failure; the whole box flashes when the objective is won or lost. Used by [L02](../../campaign/act-1-first-contact/level-02-shipyard-burning/README.md), [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md) and [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md) |
 
 ### Right panel (ship)
 
@@ -110,6 +111,7 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 - [ ] Side panel frames from the UI kit
 - [ ] Left panel: mission, score, credits, chain, radio, progress
+- [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective
 - [ ] Right panel: armour, shield, power, weapons, overdrive, special, escort
 - [ ] Radio message queue with portraits, priority interrupts
 - [ ] Boss bar, warning banners, edge arrows, pickup numbers
@@ -129,3 +131,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-09-30: Concept round 02: HUD A at 960×540 with 240 px panels in palette B confirmed.
 - 2026-10-01: Concept round 08: accepted.
 - 2026-10-01: Concept round 09: edge warnings chosen.
+- 2026-10-01: Objective tracker added to the left panel (user decision) for the objective levels L02, L04, L05, L09, L10 and L13. No concept art for it yet; it follows the HUD A style.

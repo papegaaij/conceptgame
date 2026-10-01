@@ -57,13 +57,11 @@ your damage. Below the surface only anti-sub reaches, and spread fire handles th
 
 ### The convoy
 
-Level-specific friendly units (first-draft numbers): three cargo ships (**Halvorsen**,
-**Mbeki**, **Saint-Laurent**) and the escort frigate **CDFS Ruyter** on the `ground` layer
-(naval surface). They steam at the scroll speed, so they hold station in the lower half of the
-screen while the sea streams past, as in the chosen ocean scene. Before the Kraken they take no
-damage: Reef Spitters and Driftjellies fire at the player, and the frigate's flak bursts are a
-visual cue only. In the Kraken arena each cargo ship survives **one** slam and sinks on the
-second. The frigate stays out of the arena.
+Three [cargo ships](../../../allies/README.md#convoy-cargo-ship) (**Halvorsen**, **Mbeki**,
+**Saint-Laurent**) and the [escort frigate](../../../allies/README.md#escort-frigate) **CDFS
+Ruyter**; specs (layer, damage, behaviour) in the allies part. They hold station in the lower
+half of the screen while the sea streams past, as in the chosen ocean scene. Before the Kraken
+nothing targets them; in the Kraken arena only its slams hurt the cargo ships.
 
 ## Layout
 
@@ -163,11 +161,9 @@ attacks live in the spec. Arena notes for this level:
 - The scroll halts with Tiamat at the top of the play field; the four slam lanes are 120 px wide
   and run the full height below the platform.
 - The three cargo ships hold station in lanes 1, 2 and 4 in the lower band (y ≈ 400–500, on the
-  `ground` layer under the player). A slam in a lane with a ship hits that ship; a second hit
-  sinks it.
-- **Lane choice** (level proposal): the Kraken alternates between the lane the player is in and
-  the lane of the nearest surviving ship. Severed slam arms remove their lanes (spec), so cutting
-  the arms during their awash window is how the player protects the convoy.
+  `ground` layer under the player). Lane choice and ship damage (sinks on the second slam)
+  follow the [spec's behaviour rules](../../../enemies/bosses/harbour-kraken/README.md#behaviour);
+  cutting the slam arms during their awash window is how the player protects the convoy.
 - Players with the optional Torpedo Pod can damage the submerged head in phase 1 (spec).
 - The mini-boss sting plays on entry; the boss checkpoint follows the [retry](../../../systems/retry/README.md) rules.
 - Bounty: **300** absolute (slam arms 50 each, head 200), not act-scaled again.
@@ -217,7 +213,7 @@ sprite concept yet.
 - [ ] Scroll timeline, sections, atmosphere intensity and parallax content per layer as in *Layout*.
 - [ ] Water rules on every surface contact (jellies, rafts, reefs, the Kraken).
 - [ ] Convoy ships holding station at scroll speed; damage only from Kraken slams; sinking.
-- [ ] Halted scroll at Tiamat until the Kraken dies; lane choice as in the arena notes.
+- [ ] Halted scroll at Tiamat until the Kraken dies; lane choice as in the Kraken spec.
 - [ ] `sub` layer shadows (jellies, the passing shape, the snagged pod) hittable only by `anti-sub`.
 - [ ] Wave script matches the *Waves* table.
 - [ ] Floating containers and the sunken-pod secret.
@@ -226,14 +222,10 @@ sprite concept yet.
 - [ ] Credit total at medium with perfect collection is 1,967 (± 5%).
 - [ ] Easy/hard variations as in *Difficulty notes*.
 
-## Open questions
-
-- The Kraken's lane choice (the player's lane, alternating with the nearest ship's lane) is a
-  level proposal. Should it move into the [Harbour Kraken](../../../enemies/bosses/harbour-kraken/README.md)
-  spec?
-
 ## Decisions
 
 - 2026-10-01: Promoted from the Act 2 roster to a draft level document.
 - 2026-10-01: Primary `reach-end`; the convoy ships only matter for the secondary objective, so
   a sunk ship loses its bonus but never fails the mission.
+- 2026-10-01: Open question resolved: the Kraken's lane-choice and ship-damage rules moved into the Harbour Kraken spec; the arena notes link to it.
+- 2026-10-01: The cargo ship and frigate specs moved to [allies](../../../allies/README.md).

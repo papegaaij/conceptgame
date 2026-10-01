@@ -186,7 +186,7 @@ faster.
 | `sub` | under water: sea floor and submerged craft seen through the surface | 0.8–0.9 | submarines, mines, sea creatures (surface to attack) | blue-green tint, caustics, reduced contrast |
 | `low-air` | low flyers, traffic, drifting wreckage, dust plumes, low clouds and smoke | 1.3–1.5 (default 1.35) | low flyers | slightly larger than ground scale; shadow offset (9, 13) |
 | `air` | the **play plane**: player, wingman, most enemies, all bullets, pickups | screen space | most enemies | shadow offset (21, 30) onto the ground layer |
-| `high-air` | clouds, smoke, debris and ice streaks in front of the player | 2.0–2.5 (default 2.2) | none | larger, blurred or drawn as motion streaks; **at most ~40 % opacity** over the play plane; never hides bullets |
+| `high-air` | clouds, smoke, debris and ice streaks in front of the player; rare huge overhead passes (Leviathan, Brood Carrier) | 2.0–2.5 (default 2.2) | rare huge set-piece enemies only | weather and decoration: larger, blurred or drawn as motion streaks, **at most ~40 % opacity** over the play plane, never hides bullets; enemies: fully opaque, scaled per the perspective rule, cast shadows |
 
 **Ground scroll speed** (960×540): calm levels 120–140 px/s (about a quarter screen per second),
 normal 150–170 px/s, fast or chase levels 190–240 px/s. The fastest visible layer then moves
@@ -277,7 +277,9 @@ every scene gets a clearly visible **atmosphere layer** and, where the setting a
    the sprites above them. The concept tools do this with `terrain.recede()`.
 4. **Enemies carry a bright accent** (Vrell glow, UTC stripe, Ascendancy red light) so that a
    dark enemy over a dark background is still found at a glance.
-5. The **high-air layer** stays below ~40 % opacity where it overlaps the play plane.
+5. **High-air weather and decoration** stay below ~40 % opacity where they overlap the play
+   plane. Enemies on `high-air` (the Leviathan's overhead pass, the Brood Carrier's pass) are
+   the exception: fully opaque, scaled per the perspective rule, and they cast shadows.
 6. **Pickups** pulse and have a light outline. The player's hit box is much smaller than the
    sprite (about 6×6 px around the cockpit), which is a gameplay rule in the player docs.
 
@@ -394,7 +396,8 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - [ ] Perspective geometry between layers (canyon walls, cliffs) as well as tall structures.
 - [ ] Runtime drop shadows from sprite alpha, offset per layer, masked to shadow-catching layers.
 - [ ] Perspective roof projection for tall ground structures.
-- [ ] High-air layer opacity capped where it overlaps the play plane.
+- [ ] High-air weather and decoration opacity capped where it overlaps the play plane; high-air
+  enemies drawn opaque, perspective-scaled, with shadows.
 - [ ] Bullet sprites follow the readability rules (core, ring, dark rim, reserved hues).
 - [ ] Hit flash and explosion sequences as described under Animation rules.
 - [ ] Production sprite pipeline (render → downsample → 1-bit alpha → sharpen → palette) is
@@ -432,3 +435,4 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - 2026-10-01: Concept round 08: open-ocean scene deferred — it must be finished first (round 09, with the other Earth scenes).
 - 2026-10-01: Concept round 09: arctic and Luna far side scenes and the explosions chosen; Geneva to be redone (not recognisable as a city); storm and ocean to be calmed and smoothed. New rule: motion budget for scene animation.
 - 2026-10-01: Concept round 10: Geneva, storm and ocean revisions chosen ("much better now").
+- 2026-10-01: High-air drawing rule (user decision): the ~40 % opacity cap applies only to weather and decoration. Enemies on `high-air` (Leviathan overhead pass, Brood Carrier pass) are drawn fully opaque, scaled per the perspective rule, and cast shadows.

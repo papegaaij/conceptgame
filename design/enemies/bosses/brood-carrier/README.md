@@ -38,19 +38,19 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Credits | bays 25 each, core 250 → 450 (≈ 30 % of the L07 budget, 1 501) |
 | Death | `huge`: chained explosions from tail to head over 3 s, screen flash, credit shower |
 | First level / used in | L07; echo version in the L49 boss rush |
-| Difficulty hooks | hard: phase 3 spiral has 4 arms; bays spawn 1 extra Skitter |
+| Difficulty hooks | hard: phase 3 spiral has 4 arms; each bay pair spawns 1 extra Skitter |
 
 ### Phases
 
 | Phase | Ends at | Behaviour |
 |---|---|---|
-| 1 — Overhead pass | timed, 25 s | The hull passes over on `high-air`; bays open in pairs every 3 s and `spawn` 4 Skitters or 2 Needlers. Only `homing`/`beam` reach the hull; the fight is about clearing the spawns. |
+| 1 — Overhead pass | timed, 25 s | The hull passes over on `high-air` (drawn opaque with its shadow, per the art-direction high-air rule); bays open in pairs every 3 s, and each opened **pair** together `spawn`s 4 Skitters or 2 Needlers, alternating (8 pair openings: 16 Skitters, 8 Needlers). Only `homing`/`beam` reach the hull; the fight is about clearing the spawns. |
 | 2 — Broadside | bay sacs 1 440 → 0 (or 70 s) | It descends to `air` and turns broadside across the upper half. Head turrets fire 5-way `fan`s (spread 50°, 150 px/s, `small` = 4) every 2.4 s; between volleys 2 bay sacs open for 2 s at a time. Destroyed bays stop spawning. |
 | 3 — Core | core 2 400 → 0 | The plate iris opens; the core fires a 3-arm `spiral` (rotation 90°/s, 120 px/s, 8 bullets/s) and every 4 s a 16-bullet `ring`. If phase 2 timed out, remaining bays keep spawning Skitters every 6 s. |
 
 ### Arena
 
-Earth orbit above the Gagarin shipyards (L07): scroll slows to 20 px/s during the fight. Target duration 90–150 s at medium.
+Open space at the Earth–Moon L1 point, beyond the Vrell picket ([L07](../../../campaign/act-1-first-contact/level-07-brood-carrier/README.md)): scroll slows to 20 px/s during the fight. Target duration 90–150 s at medium.
 
 ### Behaviour
 
@@ -72,3 +72,4 @@ Chosen concept: [brood-carrier-r04-a.png](../concept/brood-carrier-r04-a.png) (l
 ## Decisions
 
 - 2026-10-01: Promoted from the bosses roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: Arena set to the Earth–Moon L1 point (was Earth orbit above Gagarin), matching story, campaign and Luna docs; phase-1 spawns are per opened bay pair, as L07 assumes.

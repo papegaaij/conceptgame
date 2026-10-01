@@ -2,7 +2,7 @@
 title: Act 1 – First Contact
 design: draft
 implementation: not-started
-art: none
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -184,3 +184,5 @@ and *Act complete*.
   character spec: the spoken "Yield" (L01) and "We are many. You are late." (L07) become Varga's
   readings of its song, foreshadowing its first words in Act 3. The Brood Carrier fight stays
   at L1 as in the synopsis.
+- 2026-10-01: Choir in Acts 1–2 confirmed by the user: it only sings ("[the Choir sings]") and Varga interprets it; the Choir, story and act documents agree.
+- 2026-10-01: Art status set to `chosen`: every level of the act uses chosen concept art.

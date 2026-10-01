@@ -165,9 +165,8 @@ None. The breakout (section 6) is the finale.
 
 ## Music & ambience
 
-The [Act 2 README](../README.md) calls for a storm variant of the act theme for L12, but the
-[track list](../../../audio/music/README.md#track-list) has no such track yet. Until it does, L12
-uses the Act 2 B theme "Firestorm" (track 7), with the intensity stem on from the storm wall to
+L12 uses the Act 2 B theme "Firestorm" (track 7 in the
+[track list](../../../audio/music/README.md#track-list); no separate storm variant), with the intensity stem on from the storm wall to
 the end of the eye. The base stem drops out in the eye and returns at the breakout. Ambience: the
 [ocean storm ambience](../../../audio/sfx/README.md#ambience-per-setting) (rain and thunder), its
 thunder synchronised with the lightning flashes.
@@ -214,13 +213,9 @@ peak; the other sections run lighter. The eye of the storm has no concept yet.
 - [ ] Credit total at medium with perfect collection is 2,105 (± 5%).
 - [ ] Easy/hard variations as in *Difficulty notes*.
 
-## Open questions
-
-- Should the storm variant of the act theme become its own track in the music list, or should
-  L12 keep "Firestorm"?
-
 ## Decisions
 
 - 2026-10-01: Promoted from the Act 2 roster to a draft level document.
 - 2026-10-01: Heavy atmosphere only as a 15 s peak at the storm wall; sea and rain are the two
   strong elements everywhere (motion budget, round 09 feedback).
+- 2026-10-01: Open question resolved: L12 keeps "Firestorm" (Act 2 B); no separate storm variant (user decision).

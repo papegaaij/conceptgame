@@ -22,7 +22,9 @@ end, afraid.
   small ones", later "the small bright one" for Lancer). Audio: many voices in unison, pitched
   and reversed, over a drone.
 - **Evolution across the campaign**:
-  - Acts 1–2: unintelligible song; subtitles show only "[the Choir sings]".
+  - Acts 1–2: the Choir only sings; subtitles show only "[the Choir sings]". Dr. Varga
+    interprets the song on the radio and in briefings ("*yield*" at L02, "*many*" and "*late*"
+    at L07). Those are her readings, never subtitled as the Choir's words.
   - Acts 3–4: first words — "…many… we are many…".
   - Act 5–6: speaks of the door and the "one who opened" (Vorne), with indifference.
   - Act 7: addresses Lancer; lines turn fearful — "…the silence comes… it is behind us…".
@@ -58,3 +60,4 @@ Concept [round 08](../../../concept-rounds/round-08/README.md) — style-B portr
 
 - 2026-09-30: The Choir as a faceless, evolving voice; frightened in Act 7.
 - 2026-10-01: Concept round 08: portraits accepted.
+- 2026-10-01: Choir in Acts 1–2 confirmed by the user: it only sings ("[the Choir sings]") and Varga interprets it; the Choir, story and act documents agree.

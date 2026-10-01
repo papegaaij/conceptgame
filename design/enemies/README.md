@@ -255,8 +255,8 @@ Current coverage (✓ = passes):
 
 | Act | Size tiers | Multi-part | Walker / ground mover | Spinner / radial | Non-front entry | Insectoid share | Pass |
 |---|---|---|---|---|---|---|---|
-| 1 First Contact | tiny, small, medium, large, huge | Coilwyrm, Leviathan, Gorgon Frigate, Brood Carrier | Scuttler (L04) | Whirl Seed (L03) | Mantis sides, Coilwyrm rear loops | 3 of 14 (Skitter, Stinger, Mantis) | ✓ |
-| 2 Homefront | tiny, small, medium, large, huge | Harbour Kraken, Siege Spire | Creeper (L08), Ravager packs (L09), Scuttler returns (L13) | Whirl Seed returns (L12) | Wraith and Mote Swarm rear (L10), all edges (L13) | 3 of 14 (Skitter, Creeper, Wraith) | ✓ |
+| 1 First Contact | tiny, small, medium, large, huge | Coilwyrm (L06), Leviathan (L03), Gorgon Frigate (L05), Brood Carrier (L07) | Scuttler (L04) | Whirl Seed (L03) | Mantis sides (L06, L07), Coilwyrm rear loops (L06), Brood Pod Skitter bursts | 3 of 14 (Skitter, Stinger, Mantis); the 14 used in L01–L07: Skitter, Needler, Stinger, Spine Turret, Spore Bomber, Whirl Seed, Leviathan, Brood Pod, Scuttler, Polyp Mortar, Gorgon Frigate, Coilwyrm, Mantis, Brood Carrier | ✓ |
+| 2 Homefront | tiny, small, medium, large, huge | Harbour Kraken (L11), Siege Spire (L14) | Creeper (L08), Ravager packs (L09, L14), Scuttler returns (L13) | Whirl Seed returns (L12) | Wraith and Mote Swarm rear (L10), Mantis sides (L12, L13), Skimmers from all edges (L13), maw Wraiths (L14) | 5 of 20 (Skitter, Stinger, Creeper, Wraith, Mantis); the 20 used in L08–L14: Needler, Skitter, Stinger, Spine Turret, Polyp Mortar, Creeper, Hive Node, Ravager, Mote Swarm, Wraith, Driftjelly, Reef Spitter, Harbour Kraken, Lamprey, Mantis, Spore Bomber, Whirl Seed, Scuttler, Skimmer, Siege Spire | ✓ |
 | 3 Red Dust | tiny, small, medium, large, huge | Threadcrawler, Revenant Walker, Dust Colossus | Burrower, Threadcrawler, Shellback (L17), Warden Tank | Dust Devil (L18) | L19 rear, L20 reverse scroll, L21 breaches | 3 of 11 (Burrower, Choir Herald, Threadcrawler) | ✓ |
 | 4 Deep Water | small, medium, large, huge | Eel Swarm, Abyssal Maw | Scuttler on the sea floor (L24) | Spiral Nautilus (L25) | Siren side caves, L27 rear | 0 of 10 | ✓ |
 | 5 The Belt | tiny, small, medium, large, huge | Rail Serpent, Shard Drone links, Iron Sovereign | Strider (L32), Crawler Tank (L34) | Buzzsaw Drone (L31), Sovereign rings | Minelayer and Rail Serpent rear (L30), Void Leech rear | 1 of 15 (Asteroid Mite) | ✓ |
@@ -264,7 +264,7 @@ Current coverage (✓ = passes):
 | 7 Beyond the Gate | tiny, small, medium, large, huge | Leviathan and Coilwyrm return, Choir Heart | Threadcrawler returns (L45) | Whirl Seed returns (L45) | all-direction levels (L44, L46–50) | 3 of 10 (Rift Skater, Choir Seraph, Threadcrawler) | ✓ |
 
 When a level's waves are written, keep the act passing; the check is repeated when levels are
-promoted to draft.
+promoted to draft. Acts 1 and 2 were rechecked against their level documents on 2026-10-01.
 
 ### Layer rules
 
@@ -321,6 +321,11 @@ Levels 08–14 were lowered on 2026-10-01 (user decision) to what a typical load
 (2026-10-01): each Act 2 unit's HP was multiplied by new ÷ old reference DPS (70–130) at its first level
 (e.g. L10 ×0.73, L14 ×0.62) and rounded, keeping the time-to-kill targets.
 
+**Early levels are deliberately easy** (user decision 2026-10-01): in L01–L03 a typical
+loadout is about 1.5× stronger than the reference DPS above (`tools/balance.py`). This is
+accepted as gentle onboarding; the L01–L03 stat blocks and the reference curve are not raised to
+compensate.
+
 Bosses assume an **effective DPS of 0.6 × reference** (accuracy, dodging, phase windows).
 
 **Time-to-kill targets** at a unit's first level: `tiny` one hit · `small` ≤ 0.3 s · `medium`
@@ -368,6 +373,27 @@ adds are **overrides**:
 - Opting out of a multiplier where it would break the enemy (e.g. a boss phase with a fixed
   bullet count).
 
+### Target-the-objective hook
+
+In `defend` and `escort` levels some units prefer the objective (a structure to defend or a
+convoy unit, see [allies](../allies/README.md)) over the player. This is a per-level setting,
+not part of a unit's stat block: the level document lists which units or waves get it and in
+which mode. Units without it ignore the objective.
+
+| Mode | Behaviour |
+|---|---|
+| `nearest` | Aimed attacks go at whichever is closer: the player or the nearest objective unit |
+| `alternate` | Every second aimed shot goes at the objective while it is closer than the player |
+| `in-arc` | Attacks the objective whenever it lies in the unit's facing arc, otherwise the player |
+| `always` | The unit's attack goes at the objective: divers dive at it, mortars mark their impact on it, rammers ram it |
+
+- An objective-aimed attack uses the unit's normal pattern, look and damage class; whether and
+  how much it hurts the objective is in the ally's spec. Shots aimed at the player never hurt an
+  objective that only takes objective-aimed damage.
+- Telegraphs still apply (mortar impact markers on the objective, edge warnings).
+- Difficulty: a level may drop the hook on easy (e.g. divers go back to the player) or add
+  units to it on hard.
+
 ## Concept art
 
 Concept [round 03](../concept-rounds/round-03/README.md) gives the enemies their first visuals: the Act 1 Vrell set in [air](air/README.md) and [ground](ground/README.md), three Ascendancy units for faction contrast and the Act 1 boss in [bosses](bosses/README.md). Two Vrell design languages are proposed: **A "Sleek chitin"** (smooth, elongated, glossy violet chitin with thin glowing teal seams, pink eye as weak point) and **B "Armoured brood"** (bulky segmented carapace plates, claws and spikes, glow only between plates and in eye clusters). The key Act 1 enemies are shown in both; the others in A. Prompts: [concept/prompts.md](concept/prompts.md).
@@ -376,7 +402,7 @@ Concept [round 03](../concept-rounds/round-03/README.md) gives the enemies their
 |---|---|---|
 | [concept/lineup-r03-a.png](concept/lineup-r03-a.png) | All round-03 enemies at native scale next to the player on four backgrounds, then at 2× with names, plus the Brood Carrier at 1/4 scale — size and readability check | superseded by the r04 lineup |
 
-Concept [round 04](../concept-rounds/round-04/README.md) — colour pass on the chosen enemies with the [role colours](../README.md#role-colours) (chitin base = role family, glow = kind of threat; Ascendancy black & gold with a per-unit accent and a thin gold/red rim light). Same models and sheet layout; generator `tools/concept/enemies_r04.py`.
+Concept [round 04](../concept-rounds/round-04/README.md) — colour pass on the chosen enemies with the [role colours](#role-colours) (chitin base = role family, glow = kind of threat; Ascendancy black & gold with a per-unit accent and a thin gold/red rim light). Same models and sheet layout; generator `tools/concept/enemies_r04.py`.
 
 | File | What | Status |
 |---|---|---|
@@ -411,6 +437,7 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - [ ] Layer rules for hit detection and collision.
 - [ ] Bullet rendering order, telegraphs, edge warnings and the bullet budget.
 - [ ] Global difficulty multipliers with per-enemy overrides.
+- [ ] Target-the-objective hook: per-level unit/wave configuration with the four modes.
 - [ ] Multi-part enemies: segment chains following the head's path history, articulated parts,
       per-part HP and destroyable/armoured/vital parts, chain splitting.
 - [ ] Angle-set sprites (16/32 angles, nearest frame) and radial spinners.
@@ -446,3 +473,6 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - 2026-10-01: Enemy damage values in the balancing basis confirmed; this document owns them.
 - 2026-10-01: Concept round 09: enemy bullet set chosen.
 - 2026-10-01: Act 2 unit and boss HP rescaled to the lowered L08–L14 reference DPS (Creeper, Hive Node, Ravager, Wraith, Driftjelly, Reef Spitter, Lamprey, Skimmer, Harbour Kraken, Siege Spire); the Mote Swarm stays at 1 HP per mote; bounties unchanged. Act 1 units list no Act 2 HP, so no act factor was applied.
+- 2026-10-01: Balancing basis: the player being about 1.5× stronger than the reference in L01–L03 is accepted as gentle onboarding (user decision).
+- 2026-10-01: Variety coverage rechecked against the level documents: Act 1 uses 14 units (3 insectoid), Act 2 about 20 (5 insectoid: Skitter, Stinger, Creeper, Wraith, Mantis); both still pass.
+- 2026-10-01: New target-the-objective behaviour hook (modes nearest, alternate, in-arc, always), configured per level for defend and escort levels; L04 and L13 use it instead of per-unit overrides.
