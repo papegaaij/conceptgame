@@ -21,7 +21,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [skitter](skitter/README.md) | Tiny swarm fodder that rams; teaches shooting (L01) | approved | not-started | chosen |
+| [skitter](skitter/README.md) | Tiny swarm fodder that rams; teaches shooting (L01) | approved | in-progress | chosen |
 | [needler](needler/README.md) | Basic gunner, hovers and fires aimed thorns (L01) | approved | not-started | chosen |
 | [stinger](stinger/README.md) | Diver that fires a fan at the bottom of its dive (L02) | approved | not-started | chosen |
 | [spore-bomber](spore-bomber/README.md) | Low-air bomber dropping rising spore mines (L03) | approved | not-started | chosen |

@@ -39,8 +39,8 @@ gamepad are both first-class; everything can be remapped in Options.
 
 ## Implementation
 
-- [ ] Input actions abstraction with keyboard and gamepad bindings
-- [ ] Auto-fire option
+- [x] Input actions abstraction with keyboard and gamepad bindings
+- [x] Auto-fire option
 - [ ] Remapping screen in Options with conflict detection
 - [x] Alt+Enter / F11 toggle full screen on every screen
 - [ ] Double-tap dash detection (only when the evasive thrusters module is fitted)
@@ -56,3 +56,4 @@ gamepad are both first-class; everything can be remapped in Options.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-01: Full-screen toggle added (user requirement): Alt+Enter and F11, not remappable, back in review for these details.
 - 2026-10-01: Full-screen toggle keys accepted by the user.
+- 2026-10-01: M1 implementation (`vanguard.game.input`): `Bindings` maps every action to a primary key, an alternative key and a set of gamepad controls (immutable; a remap makes a changed copy), `ActionInput` samples them once per frame into held/pressed states. Menu confirm (Enter / A) and back (Esc / B / Back) are fixed bindings; Enter while Alt is held does not confirm, so Alt+Enter only toggles full screen. Auto-fire is `controls.auto-fire=true` in `settings.properties` until the Options screen (M3). Dash has V and the left bumper; the double-tap primary input comes with the evasive thrusters. Stick dead zone fixed at 20 % for now. In flight, Pause (Esc / P / Start) returns to the title until the pause screen (M3).

@@ -1,7 +1,7 @@
 ---
 title: Skitter
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-01
@@ -17,7 +17,7 @@ Swarm fodder of grown chitin: tiny, fast, one hit to kill. It teaches the player
 
 ### Stat block
 
-Values are first-draft balancing numbers at **medium** (see the [balancing basis](../../README.md#balancing-basis)). HP is in damage units (1 = one Pulse Cannon L1 shot); bullet damage classes and speeds are defined in the balancing basis.
+Values are first-draft balancing numbers at **medium** (see the [balancing basis](../../README.md#balancing-basis)). HP is in damage units (a Pulse Cannon L1 shot does 2); bullet damage classes and speeds are defined in the balancing basis.
 
 | Field | Value |
 |---|---|
@@ -43,7 +43,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 ### Behaviour
 
 - Skitters never fire. Their threat is the path: snakes that sweep across the player's lane and streams that alternate edges.
-- A snake always enters from off-screen along its spline; the whole snake is visible within 1.5 s so the player can read it.
+- A snake always enters from off-screen along its spline; its head is on screen at least 1.5 s before it can reach the player, so the player can read it (see the `snake` formation).
 - Spawned Skitters (Brood Pod, Brood Carrier, Hive Node) leave their spawner on a short `swoop` toward the player, then continue `straight` and exit.
 
 ### Concept art
@@ -53,7 +53,7 @@ Chosen concept: [skitter-r04-a.png](../concept/skitter-r04-a.png) (listed in the
 ## Implementation
 
 - [ ] Snake, stream and swarm entry paths authored as data
-- [ ] Contact damage 6, split shield/armour per the collision rule
+- [x] Contact damage 6, split shield/armour per the collision rule
 - [ ] Pays 5 credits; counts toward chains
 - [ ] Stat block values loaded from data; global difficulty multipliers applied
 - [ ] Death effect, bounty and score per this spec
@@ -62,3 +62,5 @@ Chosen concept: [skitter-r04-a.png](../concept/skitter-r04-a.png) (listed in the
 
 - 2026-10-01: Promoted from the air roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
+- 2026-10-01: M1 implementation (`vanguard.sim.Skitter`, stat block in `SkitterSpec`): HP 1, 16×16 hit box, 190 px/s along hand-made snake paths of 6 with 0.25 s spacing (the whole snake enters within 1.5 s) in the temporary M1 test sortie. A Skitter that rams the ship is destroyed by the impact, so its contact damage lands once. Placeholder: the 3 wing-beat frames of `skitter-r04-a.png`, scaled to the stat block's 24×24 by `:pipeline:importPlaceholders` (the concept draws them at 30×30); death plays the 24 px tiny explosion of `explosions-r09-a.png` and `explosion-tiny-r03-a/b`, hits `hit-organic-r08-a/b`.
+- 2026-10-01: User decisions from M1: the Skitter is 24×24 as in the stat block (the 30×30 concept is scaled for the placeholder; production art renders at 24); a ramming Skitter is destroyed by the impact; snakes of 6–12 stay allowed under the head-based readability rule.

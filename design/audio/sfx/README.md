@@ -1,7 +1,7 @@
 ---
 title: Sound effects
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
 updated: 2026-10-01
@@ -186,7 +186,7 @@ gate. P2–P3, one loop per setting in the [world](../../world/README.md).
 - **Priority** when stealing voices: warnings and player damage > boss sounds > explosions > enemy
   fire > player fire > pickups > ambience.
 - **Levels** (relative, first draft): player fire −12 dB, enemy fire −9 dB, explosions 0 dB,
-  player damage and warnings +2 dB, pickups −6 dB.
+  player damage and warnings +2 dB, pickups −6 dB, enemy hits −6 dB (8 dB below player damage).
 - **Variation**: every frequent sound gets ±5 % random pitch and 2–3 variants.
 - **Stereo**: pan by horizontal play-field position, subtle (max ±40 %).
 - **Underwater**: a low-pass filter on the sfx bus in `sub` settings, and muffled variants for
@@ -342,7 +342,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 ## Implementation
 
 - [ ] SFX playback with instance limits, stealing by priority, pitch variation
-- [ ] Stereo panning by play-field X
+- [x] Stereo panning by play-field X
 - [ ] Underwater low-pass on the sfx bus
 - [ ] All P1 sounds
 
@@ -359,3 +359,5 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 - 2026-10-01: Round 08 verified (peak, 200 Hz–5 kHz band level, DC, edges, loop seams, spectrograms) and fixed: bell and shimmer tails in four synthesized sounds (armour patch, special charge, shield cell, debrief total) ended in a click — the bell now has a release and the armour patch is longer; ship destroyed is high-passed at 20 Hz (sub-sonic drift left a DC offset); shield hit a is low-passed at 7 kHz (83 % of its energy was above 5 kHz); crumble b got a new source (the first was almost all sub-bass and stayed ~8 dB quieter than a on its audible band, even high-passed). Added the missing Acts 1–2 sounds: heavy enemy shot b, Vrell screech d, two Vrell spawn sounds, and synthesized equip, upgrade and grade-stamp UI sounds. Rejected on licence grounds: Artninja's "morphing burst" (built from Warner Bros and Zapsplat library sounds). `sfx.py` now writes the rejected round-01 shots and explosions to `concept/rejected/`.
 - 2026-10-01: Concept round 08: all round-08 sounds chosen except screech a and b, shield hit b, shield restore b and klaxon b (rejected).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-01: M1: the spike's `SfxBank` is carried over (64 OpenAL sources, played only from the render thread because libGDX's source pool is not thread-safe) and now enforces the per-sound instance limits by stopping the oldest instance. Levels relative to player damage: explosions −2 dB, hits −8 dB (the mixing rules give no level for hits), player fire −14 dB; ±5 % pitch (±4 % explosions), two-variant sounds alternate, pan up to ±40 % by play-field x. Voice stealing by priority is not done yet. Copies of the used files are in `assets/sfx/` (rows in CREDITS.md).
+- 2026-10-01: Enemy-hit level added to the mixing rules (user decision): −6 dB on this scale, 8 dB below player damage, as the M1 SFX player uses.
