@@ -1,6 +1,6 @@
 ---
 title: Audio
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../campaign, ../world]
@@ -20,8 +20,8 @@ vocal bark.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [music](music/README.md) | Track list, styles per act, loop and transition rules | draft | not-started | chosen |
-| [sfx](sfx/README.md) | Full sound-effect list with priorities, mixing rules | draft | not-started | chosen |
+| [music](music/README.md) | Track list, styles per act, loop and transition rules | review | not-started | chosen |
+| [sfx](sfx/README.md) | Full sound-effect list with priorities, mixing rules | review | not-started | chosen |
 
 ## Design
 

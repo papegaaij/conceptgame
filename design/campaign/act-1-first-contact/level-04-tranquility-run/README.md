@@ -1,6 +1,6 @@
 ---
 title: Level 04 – Tranquility Run
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/brood-pod, ../../../enemies/ground/scuttler, ../../../world/luna, ../../../player/specials]

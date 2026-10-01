@@ -1,6 +1,6 @@
 ---
 title: Player
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../systems, ../ui/hangar]
@@ -20,14 +20,14 @@ generator limits what can be fitted at the same time.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | draft | not-started | chosen |
-| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | draft | not-started | chosen |
-| [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | draft | not-started | none |
-| [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | draft | not-started | none |
-| [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | draft | not-started | none |
-| [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | draft | not-started | chosen |
-| [specials](specials/README.md) | Special abilities: airstrike, smart bomb, EMP, orbital lance, … | draft | not-started | chosen |
-| [systems](systems/README.md) | Engines and utility-bay modules: magnet, sensors, auto-repair, … | draft | not-started | none |
+| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | review | not-started | chosen |
+| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | review | not-started | chosen |
+| [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | review | not-started | none |
+| [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | review | not-started | none |
+| [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | review | not-started | none |
+| [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | review | not-started | chosen |
+| [specials](specials/README.md) | Special abilities: airstrike, smart bomb, EMP, orbital lance, … | review | not-started | chosen |
+| [systems](systems/README.md) | Engines and utility-bay modules: magnet, sensors, auto-repair, … | review | not-started | none |
 
 ## Design
 

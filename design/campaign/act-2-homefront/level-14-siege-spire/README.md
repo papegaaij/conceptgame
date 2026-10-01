@@ -1,6 +1,6 @@
 ---
 title: Level 14 – Siege Spire
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/bosses/siege-spire]

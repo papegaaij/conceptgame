@@ -1,6 +1,6 @@
 ---
 title: Ground enemies
-design: draft
+design: review
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -20,12 +20,12 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [spine-turret](spine-turret/README.md) | Basic grown turret with aimed thorns (L02) | draft | not-started | chosen |
-| [polyp-mortar](polyp-mortar/README.md) | Acid mortar with a marked impact and ring burst (L05) | draft | not-started | chosen |
-| [scuttler](scuttler/README.md) | Crab walker with frontal claw armour and facing fans (L04) | draft | not-started | chosen |
-| [creeper](creeper/README.md) | Salamander walker crawling in convoys, 5-way fans (L08) | draft | not-started | chosen |
-| [hive-node](hive-node/README.md) | Hardened spawner mound, anti-ground only (L09) | draft | not-started | chosen |
-| [ravager](ravager/README.md) | Animal pack hunter that gallops and pounces (L09) | draft | not-started | chosen |
+| [spine-turret](spine-turret/README.md) | Basic grown turret with aimed thorns (L02) | review | not-started | chosen |
+| [polyp-mortar](polyp-mortar/README.md) | Acid mortar with a marked impact and ring burst (L05) | review | not-started | chosen |
+| [scuttler](scuttler/README.md) | Crab walker with frontal claw armour and facing fans (L04) | review | not-started | chosen |
+| [creeper](creeper/README.md) | Salamander walker crawling in convoys, 5-way fans (L08) | review | not-started | chosen |
+| [hive-node](hive-node/README.md) | Hardened spawner mound, anti-ground only (L09) | review | not-started | chosen |
+| [ravager](ravager/README.md) | Animal pack hunter that gallops and pounces (L09) | review | not-started | chosen |
 
 ## Roster
 

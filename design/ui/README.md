@@ -1,6 +1,6 @@
 ---
 title: User interface
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../art-direction, ../systems]
@@ -22,15 +22,15 @@ frames and chunky bitmap fonts.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | draft | not-started | chosen |
-| [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | draft | not-started | chosen |
-| [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | draft | not-started | chosen |
-| [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | draft | not-started | chosen |
-| [pause](pause/README.md) | Pause menu during a level | draft | not-started | chosen |
-| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | draft | not-started | chosen |
-| [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | draft | not-started | n/a |
-| [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | draft | not-started | chosen |
-| [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | draft | not-started | chosen |
+| [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | review | not-started | chosen |
+| [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | review | not-started | chosen |
+| [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | review | not-started | chosen |
+| [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | review | not-started | chosen |
+| [pause](pause/README.md) | Pause menu during a level | review | not-started | chosen |
+| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | review | not-started | chosen |
+| [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | review | not-started | n/a |
+| [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | review | not-started | chosen |
+| [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | review | not-started | chosen |
 
 ## Design
 

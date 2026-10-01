@@ -1,6 +1,6 @@
 ---
 title: Level 08 – Neon Skyline
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../player/wingmen, ../../../enemies/ground/creeper]

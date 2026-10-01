@@ -1,6 +1,6 @@
 ---
 title: Generator
-design: draft
+design: review
 implementation: not-started
 art: none
 depends-on: [../weapons, ../shields]

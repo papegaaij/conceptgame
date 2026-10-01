@@ -1,6 +1,6 @@
 ---
 title: Commander Adaeze Okafor
-design: draft
+design: review
 implementation: n/a
 art: chosen
 updated: 2026-09-30

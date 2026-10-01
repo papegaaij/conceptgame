@@ -1,6 +1,6 @@
 ---
 title: Allies
-design: draft
+design: review
 implementation: not-started
 art: none
 depends-on: [../enemies, ../art-direction, ../ui/hud]

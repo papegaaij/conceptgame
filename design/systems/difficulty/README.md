@@ -1,6 +1,6 @@
 ---
 title: Difficulty
-design: draft
+design: review
 implementation: not-started
 art: n/a
 depends-on: [../economy, ../retry]

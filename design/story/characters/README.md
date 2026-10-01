@@ -1,6 +1,6 @@
 ---
 title: Characters
-design: draft
+design: review
 implementation: n/a
 art: chosen
 updated: 2026-10-01
@@ -17,12 +17,12 @@ purpose: six voices, each instantly recognisable by portrait and speech style.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [lancer](lancer/README.md) | The player: silent CDF pilot of the AF-12 Stormhawk | draft | n/a | n/a |
-| [okafor](okafor/README.md) | Commander Adaeze Okafor, Aegis Wing CO, gives the briefings | draft | n/a | chosen |
-| [rook](rook/README.md) | Lt. Kenji "Rook" Tanaka, the AI wingman, banter and warnings | draft | n/a | chosen |
-| [varga](varga/README.md) | Dr. Elena Varga, intel officer and xenobiologist, hangar intel | draft | n/a | chosen |
-| [vorne](vorne/README.md) | Chairman Silas Vorne, leader of the Ascendancy, the villain | draft | n/a | chosen |
-| [the-choir](the-choir/README.md) | The collective voice of the Vrell | draft | n/a | chosen |
+| [lancer](lancer/README.md) | The player: silent CDF pilot of the AF-12 Stormhawk | review | n/a | n/a |
+| [okafor](okafor/README.md) | Commander Adaeze Okafor, Aegis Wing CO, gives the briefings | review | n/a | chosen |
+| [rook](rook/README.md) | Lt. Kenji "Rook" Tanaka, the AI wingman, banter and warnings | review | n/a | chosen |
+| [varga](varga/README.md) | Dr. Elena Varga, intel officer and xenobiologist, hangar intel | review | n/a | chosen |
+| [vorne](vorne/README.md) | Chairman Silas Vorne, leader of the Ascendancy, the villain | review | n/a | chosen |
+| [the-choir](the-choir/README.md) | The collective voice of the Vrell | review | n/a | chosen |
 
 ## Design
 

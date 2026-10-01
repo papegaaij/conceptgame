@@ -1,6 +1,6 @@
 ---
 title: Level 03 – Spore Drift
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/spore-bomber, ../../../enemies/air/whirl-seed, ../../../enemies/space/leviathan]

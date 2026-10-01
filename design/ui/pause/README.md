@@ -1,6 +1,6 @@
 ---
 title: Pause menu
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../systems/retry]

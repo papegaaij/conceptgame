@@ -1,6 +1,6 @@
 ---
 title: Level 07 – Brood Carrier
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/bosses/brood-carrier, ../../../world/earth-orbit]

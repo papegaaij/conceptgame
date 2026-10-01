@@ -1,6 +1,6 @@
 ---
 title: Story
-design: draft
+design: review
 implementation: n/a
 art: chosen
 updated: 2026-10-01
@@ -20,8 +20,8 @@ opened it, trading humanity for alien biotech.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [factions](factions/README.md) | The three powers: Coalition, Vrell, Jovian Ascendancy | draft | n/a | none |
-| [characters](characters/README.md) | Briefing and radio cast, including the player | draft | n/a | chosen |
+| [factions](factions/README.md) | The three powers: Coalition, Vrell, Jovian Ascendancy | review | n/a | none |
+| [characters](characters/README.md) | Briefing and radio cast, including the player | review | n/a | chosen |
 | [twist](twist/README.md) | The mid-campaign twist: three variants to choose from | approved | n/a | n/a |
 
 ## Design

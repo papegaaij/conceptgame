@@ -1,6 +1,6 @@
 ---
 title: Music
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../campaign]

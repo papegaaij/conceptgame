@@ -1,6 +1,6 @@
 ---
 title: Lamprey
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]

@@ -1,6 +1,6 @@
 ---
 title: Options
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../controls, ../../art-direction]

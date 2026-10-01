@@ -1,6 +1,6 @@
 ---
 title: Factions
-design: draft
+design: review
 implementation: n/a
 art: none
 updated: 2026-09-30
@@ -18,9 +18,9 @@ who they are fighting and what to expect.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [terran-coalition](terran-coalition/README.md) | The player's side: Earth and its colonies, the CDF | draft | n/a | none |
-| [vrell](vrell/README.md) | Biomechanical hive species that comes through the Tether Gate | draft | n/a | none |
-| [jovian-ascendancy](jovian-ascendancy/README.md) | Secessionist outer colonies that opened the gate | draft | n/a | none |
+| [terran-coalition](terran-coalition/README.md) | The player's side: Earth and its colonies, the CDF | review | n/a | none |
+| [vrell](vrell/README.md) | Biomechanical hive species that comes through the Tether Gate | review | n/a | none |
+| [jovian-ascendancy](jovian-ascendancy/README.md) | Secessionist outer colonies that opened the gate | review | n/a | none |
 
 ## Design
 

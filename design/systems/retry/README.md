@@ -1,6 +1,6 @@
 ---
 title: Retry
-design: draft
+design: review
 implementation: not-started
 art: n/a
 depends-on: [../../player/armor, ../../player/shields, ../difficulty, ../saves]

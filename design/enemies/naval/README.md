@@ -1,6 +1,6 @@
 ---
 title: Naval enemies
-design: draft
+design: review
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -20,9 +20,9 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [driftjelly](driftjelly/README.md) | Jellyfish mine on or below the surface, proximity ring (L11) | draft | not-started | chosen |
-| [reef-spitter](reef-spitter/README.md) | Barnacle gun on a kelp raft, 3-way fans (L11) | draft | not-started | chosen |
-| [skimmer](skimmer/README.md) | Flying-fish skiff weaving between floes from every edge (L13) | draft | not-started | chosen |
+| [driftjelly](driftjelly/README.md) | Jellyfish mine on or below the surface, proximity ring (L11) | review | not-started | chosen |
+| [reef-spitter](reef-spitter/README.md) | Barnacle gun on a kelp raft, 3-way fans (L11) | review | not-started | chosen |
+| [skimmer](skimmer/README.md) | Flying-fish skiff weaving between floes from every edge (L13) | review | not-started | chosen |
 
 ## Roster
 

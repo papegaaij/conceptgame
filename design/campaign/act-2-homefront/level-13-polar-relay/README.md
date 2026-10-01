@@ -1,6 +1,6 @@
 ---
 title: Level 13 – Polar Relay
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/naval/skimmer, ../../../enemies/ground/scuttler]

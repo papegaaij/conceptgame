@@ -1,6 +1,6 @@
 ---
 title: World
-design: draft
+design: review
 implementation: n/a
 art: chosen
 updated: 2026-10-01
@@ -18,9 +18,9 @@ levels of its act build on. Levels reference a setting; they do not redefine it.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [earth-orbit](earth-orbit/README.md) | Shipyards, orbital defence platforms and debris above a blue Earth | draft | n/a | chosen |
-| [luna](luna/README.md) | Grey craters, Shackleton Station and mass-driver tracks | draft | n/a | chosen |
-| [earth](earth/README.md) | Megacities, open ocean and arctic on Earth's surface | draft | n/a | chosen |
+| [earth-orbit](earth-orbit/README.md) | Shipyards, orbital defence platforms and debris above a blue Earth | review | n/a | chosen |
+| [luna](luna/README.md) | Grey craters, Shackleton Station and mass-driver tracks | review | n/a | chosen |
+| [earth](earth/README.md) | Megacities, open ocean and arctic on Earth's surface | review | n/a | chosen |
 | [mars](mars/README.md) | Red canyons, dust storms, terraforming domes, Olympus Mons | draft | n/a | chosen |
 | [europa](europa/README.md) | Cracked ice surface and the dark ocean beneath it | draft | n/a | chosen |
 | [belt](belt/README.md) | Asteroid fields and hollowed-out mining stations | draft | n/a | chosen |

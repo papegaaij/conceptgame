@@ -1,6 +1,6 @@
 ---
 title: Controls
-design: draft
+design: review
 implementation: not-started
 art: n/a
 depends-on: [../../player/ship, ../../player/specials]

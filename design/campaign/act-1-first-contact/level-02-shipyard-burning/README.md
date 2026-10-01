@@ -1,6 +1,6 @@
 ---
 title: Level 02 – Shipyard Burning
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/ground/spine-turret, ../../../enemies/air/stinger, ../../../world/earth-orbit]

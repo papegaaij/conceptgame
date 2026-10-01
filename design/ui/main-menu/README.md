@@ -1,6 +1,6 @@
 ---
 title: Main menu
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../systems/saves, ../../systems/difficulty]

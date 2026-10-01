@@ -1,6 +1,6 @@
 ---
 title: Debrief screen
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../systems/scoring, ../../systems/economy]

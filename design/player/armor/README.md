@@ -1,6 +1,6 @@
 ---
 title: Armour
-design: draft
+design: review
 implementation: not-started
 art: none
 depends-on: [../shields, ../../systems/retry, ../../systems/difficulty]

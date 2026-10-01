@@ -1,6 +1,6 @@
 ---
 title: Economy
-design: draft
+design: review
 implementation: not-started
 art: n/a
 depends-on: [../../player, ../difficulty]

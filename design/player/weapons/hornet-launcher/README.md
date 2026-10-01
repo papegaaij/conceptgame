@@ -1,6 +1,6 @@
 ---
 title: Hornet Launcher
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [.., ../../generator, ../../../systems/economy]

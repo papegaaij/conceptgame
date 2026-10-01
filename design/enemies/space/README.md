@@ -1,6 +1,6 @@
 ---
 title: Space enemies
-design: draft
+design: review
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -20,7 +20,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [leviathan](leviathan/README.md) | Huge whale set piece: high-air pass, then shootable parts (L03) | draft | not-started | chosen |
+| [leviathan](leviathan/README.md) | Huge whale set piece: high-air pass, then shootable parts (L03) | review | not-started | chosen |
 
 ## Roster
 

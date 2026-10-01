@@ -1,6 +1,6 @@
 ---
 title: Saves
-design: draft
+design: review
 implementation: not-started
 art: n/a
 depends-on: [../../ui/main-menu, ../../ui/hangar]

@@ -1,6 +1,6 @@
 ---
 title: Sound effects
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]

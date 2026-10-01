@@ -1,6 +1,6 @@
 ---
 title: Level 11 – Atlantic Convoy
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/bosses/harbour-kraken, ../../../enemies/naval/driftjelly, ../../../enemies/naval/reef-spitter]

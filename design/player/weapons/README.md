@@ -1,6 +1,6 @@
 ---
 title: Weapons
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../generator, ../../systems/economy]
@@ -23,20 +23,20 @@ below.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [pulse-cannon](pulse-cannon/README.md) | Pulse Cannon — Front, forward; DPS 20 → 70; starter; start | draft | not-started | chosen |
-| [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | draft | not-started | chosen |
-| [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | draft | not-started | chosen |
-| [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | draft | not-started | chosen |
-| [hornet-launcher](hornet-launcher/README.md) | Hornet Launcher — Front, homing; DPS 15 → 60; 2 000; L10 | draft | not-started | chosen |
-| [side-splitter](side-splitter/README.md) | Side Splitter — Rear, side; DPS 12 → 40; 1 400; L05 | draft | not-started | chosen |
-| [tail-gun](tail-gun/README.md) | Tail Gun — Rear, rear; DPS 10 → 35; 600; L08 | draft | not-started | chosen |
-| [fan-blaster](fan-blaster/README.md) | Fan Blaster — Rear, rear, spread; DPS 10.2 → 40; 1 200; L10 | draft | not-started | chosen |
-| [proximity-mines](proximity-mines/README.md) | Proximity Mines — Rear, rear, area; DPS 20 → 70; 1 500; L12 | draft | not-started | chosen |
-| [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | draft | not-started | chosen |
-| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | draft | not-started | chosen |
-| [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | draft | not-started | chosen |
-| [swivel-gun](swivel-gun/README.md) | Swivel Gun — Wing (per pod), side, homing; DPS 8 → 26; 1 500; L09 | draft | not-started | chosen |
-| [torpedo-pod](torpedo-pod/README.md) | Torpedo Pod — Wing (per pod), anti-sub; DPS 10 → 32; 1 000; L11 | draft | not-started | chosen |
+| [pulse-cannon](pulse-cannon/README.md) | Pulse Cannon — Front, forward; DPS 20 → 70; starter; start | review | not-started | chosen |
+| [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | review | not-started | chosen |
+| [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | review | not-started | chosen |
+| [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | review | not-started | chosen |
+| [hornet-launcher](hornet-launcher/README.md) | Hornet Launcher — Front, homing; DPS 15 → 60; 2 000; L10 | review | not-started | chosen |
+| [side-splitter](side-splitter/README.md) | Side Splitter — Rear, side; DPS 12 → 40; 1 400; L05 | review | not-started | chosen |
+| [tail-gun](tail-gun/README.md) | Tail Gun — Rear, rear; DPS 10 → 35; 600; L08 | review | not-started | chosen |
+| [fan-blaster](fan-blaster/README.md) | Fan Blaster — Rear, rear, spread; DPS 10.2 → 40; 1 200; L10 | review | not-started | chosen |
+| [proximity-mines](proximity-mines/README.md) | Proximity Mines — Rear, rear, area; DPS 20 → 70; 1 500; L12 | review | not-started | chosen |
+| [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | review | not-started | chosen |
+| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | review | not-started | chosen |
+| [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | review | not-started | chosen |
+| [swivel-gun](swivel-gun/README.md) | Swivel Gun — Wing (per pod), side, homing; DPS 8 → 26; 1 500; L09 | review | not-started | chosen |
+| [torpedo-pod](torpedo-pod/README.md) | Torpedo Pod — Wing (per pod), anti-sub; DPS 10 → 32; 1 000; L11 | review | not-started | chosen |
 
 ## Design
 

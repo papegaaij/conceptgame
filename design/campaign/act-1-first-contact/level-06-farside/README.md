@@ -1,6 +1,6 @@
 ---
 title: Level 06 – Farside
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/mantis, ../../../enemies/air/coilwyrm, ../../../world/luna]

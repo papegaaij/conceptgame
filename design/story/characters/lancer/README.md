@@ -1,6 +1,6 @@
 ---
 title: Lancer (the player)
-design: draft
+design: review
 implementation: n/a
 art: n/a
 updated: 2026-09-30

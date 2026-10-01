@@ -1,6 +1,6 @@
 ---
 title: Hangar
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]

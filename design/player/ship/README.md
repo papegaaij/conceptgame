@@ -1,6 +1,6 @@
 ---
 title: AF-12 Stormhawk
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../art-direction]

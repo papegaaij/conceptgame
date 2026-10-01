@@ -1,6 +1,6 @@
 ---
 title: Campaign
-design: draft
+design: review
 implementation: not-started
 art: none
 updated: 2026-10-01
@@ -20,8 +20,8 @@ consecutive levels.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [act-1-first-contact](act-1-first-contact/README.md) | Levels 01–07 · Earth orbit & Luna · the Vrell strike · boss Brood Carrier | draft | not-started | chosen |
-| [act-2-homefront](act-2-homefront/README.md) | Levels 08–14 · Earth surface: megacities, oceans, arctic · boss Siege Spire | draft | not-started | chosen |
+| [act-1-first-contact](act-1-first-contact/README.md) | Levels 01–07 · Earth orbit & Luna · the Vrell strike · boss Brood Carrier | review | not-started | chosen |
+| [act-2-homefront](act-2-homefront/README.md) | Levels 08–14 · Earth surface: megacities, oceans, arctic · boss Siege Spire | review | not-started | chosen |
 | [act-3-red-dust](act-3-red-dust/README.md) | Levels 15–21 · Mars · first hints of human involvement · boss Dust Colossus | draft | not-started | none |
 | [act-4-deep-water](act-4-deep-water/README.md) | Levels 22–28 · Europa ice & under-ice ocean · underwater play · boss Abyssal Maw | draft | not-started | none |
 | [act-5-the-belt](act-5-the-belt/README.md) | Levels 29–35 · asteroid belt & stations · the betrayal · boss Iron Sovereign | draft | not-started | none |

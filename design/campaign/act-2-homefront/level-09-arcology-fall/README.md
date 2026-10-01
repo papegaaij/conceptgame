@@ -1,6 +1,6 @@
 ---
 title: Level 09 – Arcology Fall
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/ground/hive-node, ../../../enemies/ground/ravager]

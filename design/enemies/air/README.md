@@ -1,6 +1,6 @@
 ---
 title: Air enemies
-design: draft
+design: review
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -21,17 +21,17 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [skitter](skitter/README.md) | Tiny swarm fodder that rams; teaches shooting (L01) | draft | not-started | chosen |
-| [needler](needler/README.md) | Basic gunner, hovers and fires aimed thorns (L01) | draft | not-started | chosen |
-| [stinger](stinger/README.md) | Diver that fires a fan at the bottom of its dive (L02) | draft | not-started | chosen |
-| [spore-bomber](spore-bomber/README.md) | Low-air bomber dropping rising spore mines (L03) | draft | not-started | chosen |
-| [whirl-seed](whirl-seed/README.md) | Tiny radial spinner released in clusters (L03) | draft | not-started | chosen |
-| [brood-pod](brood-pod/README.md) | Egg sac that bursts into Skitters when killed or after 8 s (L04) | draft | not-started | chosen |
-| [mantis](mantis/README.md) | Side-entering laser sweeper (L06) | draft | not-started | chosen |
-| [coilwyrm](coilwyrm/README.md) | Segment-chain serpent that loops to the rear and regrows a head once (L06) | draft | not-started | chosen |
-| [wraith](wraith/README.md) | Cloaked manta that decloaks behind the player (L10) | draft | not-started | chosen |
-| [mote-swarm](mote-swarm/README.md) | Flock of tiny motes that loops round for a rear attack (L10) | draft | not-started | chosen |
-| [lamprey](lamprey/README.md) | Homing eel that latches and drains the shield (L12) | draft | not-started | chosen |
+| [skitter](skitter/README.md) | Tiny swarm fodder that rams; teaches shooting (L01) | review | not-started | chosen |
+| [needler](needler/README.md) | Basic gunner, hovers and fires aimed thorns (L01) | review | not-started | chosen |
+| [stinger](stinger/README.md) | Diver that fires a fan at the bottom of its dive (L02) | review | not-started | chosen |
+| [spore-bomber](spore-bomber/README.md) | Low-air bomber dropping rising spore mines (L03) | review | not-started | chosen |
+| [whirl-seed](whirl-seed/README.md) | Tiny radial spinner released in clusters (L03) | review | not-started | chosen |
+| [brood-pod](brood-pod/README.md) | Egg sac that bursts into Skitters when killed or after 8 s (L04) | review | not-started | chosen |
+| [mantis](mantis/README.md) | Side-entering laser sweeper (L06) | review | not-started | chosen |
+| [coilwyrm](coilwyrm/README.md) | Segment-chain serpent that loops to the rear and regrows a head once (L06) | review | not-started | chosen |
+| [wraith](wraith/README.md) | Cloaked manta that decloaks behind the player (L10) | review | not-started | chosen |
+| [mote-swarm](mote-swarm/README.md) | Flock of tiny motes that loops round for a rear attack (L10) | review | not-started | chosen |
+| [lamprey](lamprey/README.md) | Homing eel that latches and drains the shield (L12) | review | not-started | chosen |
 
 ## Roster
 

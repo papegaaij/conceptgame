@@ -1,6 +1,6 @@
 ---
 title: HUD
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]

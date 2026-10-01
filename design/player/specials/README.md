@@ -1,6 +1,6 @@
 ---
 title: Special abilities
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../campaign, ../../world]

@@ -1,6 +1,6 @@
 ---
 title: Level 12 – Storm Front
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/lamprey, ../../../enemies/air/whirl-seed]

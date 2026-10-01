@@ -1,6 +1,6 @@
 ---
 title: The Vrell
-design: draft
+design: review
 implementation: n/a
 art: none
 updated: 2026-09-30

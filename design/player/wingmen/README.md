@@ -1,6 +1,6 @@
 ---
 title: Wingmen and drones
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../weapons, ../../story]

@@ -1,6 +1,6 @@
 ---
 title: Briefing screen
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../story, ../../campaign]

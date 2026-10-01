@@ -1,6 +1,6 @@
 ---
 title: Shields
-design: draft
+design: review
 implementation: not-started
 art: none
 depends-on: [../generator, ../armor, ../../systems/retry]

@@ -1,6 +1,6 @@
 ---
 title: Bosses
-design: draft
+design: review
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -20,10 +20,10 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [gorgon-frigate](gorgon-frigate/README.md) | Act 1 mid-boss: medusa-bell warship with three serpent-neck turrets (L05) | draft | not-started | chosen |
-| [brood-carrier](brood-carrier/README.md) | Act 1 boss: living carrier, overhead pass, broadside bays, core (L07) | draft | not-started | chosen |
-| [harbour-kraken](harbour-kraken/README.md) | Act 2 mid-boss: cephalopod around a platform, lane slams, surfacing head (L11) | draft | not-started | chosen |
-| [siege-spire](siege-spire/README.md) | Act 2 boss: rooted citadel that tears free and rises (L14) | draft | not-started | chosen |
+| [gorgon-frigate](gorgon-frigate/README.md) | Act 1 mid-boss: medusa-bell warship with three serpent-neck turrets (L05) | review | not-started | chosen |
+| [brood-carrier](brood-carrier/README.md) | Act 1 boss: living carrier, overhead pass, broadside bays, core (L07) | review | not-started | chosen |
+| [harbour-kraken](harbour-kraken/README.md) | Act 2 mid-boss: cephalopod around a platform, lane slams, surfacing head (L11) | review | not-started | chosen |
+| [siege-spire](siege-spire/README.md) | Act 2 boss: rooted citadel that tears free and rises (L14) | review | not-started | chosen |
 
 ## Roster
 

@@ -1,6 +1,6 @@
 ---
 title: Level 10 – Evacuation Corridor
-design: draft
+design: review
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/wraith, ../../../enemies/air/mote-swarm, ../../../player/wingmen]

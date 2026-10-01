@@ -1,6 +1,6 @@
 ---
 title: Game design
-design: draft
+design: review
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -20,17 +20,18 @@ guided by intel about the next level.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [art-direction](art-direction/README.md) | Visual style, resolution, palette, sprite rules, parallax layer model | draft | n/a | chosen |
-| [story](story/README.md) | Premise, factions, characters, timeline and the mid-campaign twist | draft | n/a | chosen |
-| [world](world/README.md) | The settings the levels take place in | draft | n/a | chosen |
-| [campaign](campaign/README.md) | Acts and the 50-level outline, pacing and difficulty curve | draft | not-started | none |
-| [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | draft | not-started | chosen |
-| [allies](allies/README.md) | Friendly units and structures to escort or defend (crawlers, shuttles, convoy, relay) | draft | not-started | none |
-| [player](player/README.md) | The player ship, its loadout slots and all equipment | draft | not-started | chosen |
-| [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | draft | not-started | n/a |
-| [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | draft | not-started | chosen |
-| [audio](audio/README.md) | Music and sound effects | draft | not-started | chosen |
+| [art-direction](art-direction/README.md) | Visual style, resolution, palette, sprite rules, parallax layer model | review | n/a | chosen |
+| [story](story/README.md) | Premise, factions, characters, timeline and the mid-campaign twist | review | n/a | chosen |
+| [world](world/README.md) | The settings the levels take place in | review | n/a | chosen |
+| [campaign](campaign/README.md) | Acts and the 50-level outline, pacing and difficulty curve | review | not-started | none |
+| [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | review | not-started | chosen |
+| [allies](allies/README.md) | Friendly units and structures to escort or defend (crawlers, shuttles, convoy, relay) | review | not-started | none |
+| [player](player/README.md) | The player ship, its loadout slots and all equipment | review | not-started | chosen |
+| [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | review | not-started | n/a |
+| [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | review | not-started | chosen |
+| [audio](audio/README.md) | Music and sound effects | review | not-started | chosen |
 | [concept-rounds](concept-rounds/README.md) | Batches of concept proposals awaiting the user's choice | review | n/a | chosen |
+| [reviews](reviews/README.md) | Formal approval rounds for sets of design documents | review | n/a | n/a |
 
 ## Design
 

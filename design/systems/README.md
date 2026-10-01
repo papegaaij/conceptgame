@@ -1,6 +1,6 @@
 ---
 title: Game systems
-design: draft
+design: review
 implementation: not-started
 art: n/a
 depends-on: [../player]
@@ -19,11 +19,11 @@ saved.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [economy](economy/README.md) | Credits: sources, sinks, pricing curve, sell-back, per-level budget | draft | not-started | n/a |
-| [scoring](scoring/README.md) | Score (separate from credits), chain multiplier, level-end bonuses, grades | draft | not-started | n/a |
-| [difficulty](difficulty/README.md) | What easy, medium and hard change | draft | not-started | n/a |
-| [retry](retry/README.md) | Failure model: ship destroyed → retry the level | draft | not-started | n/a |
-| [saves](saves/README.md) | Save slots, autosave, save contents | draft | not-started | n/a |
+| [economy](economy/README.md) | Credits: sources, sinks, pricing curve, sell-back, per-level budget | review | not-started | n/a |
+| [scoring](scoring/README.md) | Score (separate from credits), chain multiplier, level-end bonuses, grades | review | not-started | n/a |
+| [difficulty](difficulty/README.md) | What easy, medium and hard change | review | not-started | n/a |
+| [retry](retry/README.md) | Failure model: ship destroyed → retry the level | review | not-started | n/a |
+| [saves](saves/README.md) | Save slots, autosave, save contents | review | not-started | n/a |
 
 ## Design
 
