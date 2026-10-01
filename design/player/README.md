@@ -20,8 +20,8 @@ generator limits what can be fitted at the same time.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | draft | not-started | proposed |
-| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | draft | not-started | proposed |
+| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | draft | not-started | chosen |
+| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | draft | not-started | chosen |
 | [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | draft | not-started | none |
 | [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | draft | not-started | none |
 | [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | draft | not-started | none |

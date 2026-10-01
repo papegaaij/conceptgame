@@ -2,7 +2,7 @@
 title: HUD
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
 updated: 2026-10-01
 ---
@@ -98,7 +98,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — HUD A refresh (m
 
 | File | What | Status |
 |---|---|---|
-| [concept/hud-r08-a.png](concept/hud-r08-a.png) | HUD A refresh — L11 Kraken fight: Rook's radio portrait and subtitle queue, overdrive timer, escort box, boss bar with weak point, edge warning | proposed |
+| [concept/hud-r08-a.png](concept/hud-r08-a.png) | HUD A refresh — L11 Kraken fight: Rook's radio portrait and subtitle queue, overdrive timer, escort box, boss bar with weak point, edge warning | chosen |
 
 ## Implementation
 
@@ -121,3 +121,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — HUD A refresh (m
 - 2026-09-30: Concept round 01: HUD **A** (metallic bevelled panels, LCD readouts) chosen; B (glass/neon) rejected as not fitting the style.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-09-30: Concept round 02: HUD A at 960×540 with 240 px panels in palette B confirmed.
+- 2026-10-01: Concept round 08: accepted.

@@ -2,7 +2,7 @@
 title: Briefing screen
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../story, ../../campaign]
 updated: 2026-10-01
 ---
@@ -55,8 +55,8 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 | File | What | Status |
 |---|---|---|
-| [concept/briefing-r08-a.png](concept/briefing-r08-a.png) | Briefing — L10 *Evacuation Corridor*: Okafor portrait, typewriter text, tactical map with the shuttle route, threat summary with direction dial, objectives and hangar teaser | proposed |
-| [concept/act-title-r08-a.png](concept/act-title-r08-a.png) | Act title card — "ACT II / HOMEFRONT" in the logo-D chrome over Nova Lagos | proposed |
+| [concept/briefing-r08-a.png](concept/briefing-r08-a.png) | Briefing — L10 *Evacuation Corridor*: Okafor portrait, typewriter text, tactical map with the shuttle route, threat summary with direction dial, objectives and hangar teaser | chosen |
+| [concept/act-title-r08-a.png](concept/act-title-r08-a.png) | Act title card — "ACT II / HOMEFRONT" in the logo-D chrome over Nova Lagos | chosen |
 
 ## Implementation
 
@@ -68,3 +68,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 - 2026-09-30: Briefing comes before the hangar (see [systems](../../systems/README.md)).
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
+- 2026-10-01: Concept round 08: accepted.

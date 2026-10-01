@@ -2,7 +2,7 @@
 title: Ground enemies
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -81,8 +81,8 @@ Concept [round 05](../../concept-rounds/round-05/README.md) — new archetypes, 
 
 | File | What | Status |
 |---|---|---|
-| [concept/scuttler-r05-a.png](concept/scuttler-r05-a.png) | Scuttler — Vrell six-legged walker (slate/lime): tripod gait, 16 headings × 6 walk phases, turns to its path, spits acid (sheet) | chosen |
-| [concept/scuttler-r05-a.gif](concept/scuttler-r05-a.gif) | Scuttler — Vrell six-legged walker (slate/lime): tripod gait, 16 headings × 6 walk phases, turns to its path, spits acid (motion) | chosen |
+| [concept/scuttler-r05-a.png](concept/scuttler-r05-a.png) | Scuttler — Vrell six-legged walker (slate/lime): tripod gait, 16 headings × 6 walk phases, turns to its path, spits acid (sheet) | superseded by r08 (model-space re-render) |
+| [concept/scuttler-r05-a.gif](concept/scuttler-r05-a.gif) | Scuttler — Vrell six-legged walker (slate/lime): tripod gait, 16 headings × 6 walk phases, turns to its path, spits acid (motion) | superseded by r08 (model-space re-render) |
 | [concept/warden-tank-r05-a.png](concept/warden-tank-r05-a.png) | Warden Tank — Ascendancy tank (white accent): hull 16 headings following a road, turret 32 headings tracking the player, tread marks (sheet) | chosen — Ascendancy only (too mechanical for the Vrell) |
 | [concept/warden-tank-r05-a.gif](concept/warden-tank-r05-a.gif) | Warden Tank — Ascendancy tank (white accent): hull 16 headings following a road, turret 32 headings tracking the player, tread marks (motion) | chosen — Ascendancy only (too mechanical for the Vrell) |
 | [concept/strider-r05-a.png](concept/strider-r05-a.png) | Strider — Ascendancy 120 px biped mech (red accent): 8-frame walk cycle, torso at 32 headings twisting to fire shoulder cannons (sheet) | chosen — Ascendancy only (too mechanical for the Vrell) |
@@ -118,8 +118,8 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-r
 
 | File | What | Status |
 |---|---|---|
-| [concept/scuttler-r08-a.png](concept/scuttler-r08-a.png) | Scuttler re-render (sheet) | proposed |
-| [concept/scuttler-r08-a.gif](concept/scuttler-r08-a.gif) | Scuttler re-render (motion) | proposed |
+| [concept/scuttler-r08-a.png](concept/scuttler-r08-a.png) | Scuttler re-render (sheet) | chosen |
+| [concept/scuttler-r08-a.gif](concept/scuttler-r08-a.gif) | Scuttler re-render (motion) | chosen |
 
 ## Implementation
 
@@ -141,3 +141,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-r
 - 2026-10-01: Concept round 06: Creeper, Hive Node, Threadcrawler and Dust Devil chosen; Halo Platform's idea liked but its rotation too jagged — redo with a dense angle set (round 07).
 - 2026-10-01: Concept round 07: Halo Platform with the dense angle set chosen — rotation now smooth.
 - 2026-10-01: Acts 1–2 units promoted to full specs: Spine Turret, Polyp Mortar, Scuttler, Creeper, Hive Node, Ravager.
+- 2026-10-01: Concept round 08: model-space re-renders accepted; they supersede the r05 sheets.

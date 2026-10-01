@@ -2,7 +2,7 @@
 title: Sound effects
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
 updated: 2026-10-01
 ---
@@ -106,9 +106,9 @@ reused round 02 files marked (r02).
 
 | Sound | Notes | Priority |
 |---|---|---|
-| Shield hit | Electric fizz — [a](concept/player-shield-hit-r08-a.ogg), [b](concept/player-shield-hit-r08-b.ogg) | P1 |
+| Shield hit | Electric fizz — [a](concept/player-shield-hit-r08-a.ogg) | P1 |
 | Shield break | Descending zap + alarm blip — [a](concept/player-shield-break-r08-a.ogg) | P1 |
-| Shield restored | Rising chime — [a](concept/player-shield-restore-r08-a.ogg), [b](concept/player-shield-restore-r08-b.ogg) | P2 |
+| Shield restored | Rising chime — [a](concept/player-shield-restore-r08-a.ogg) | P2 |
 | Armour hit | Metallic crunch — [a](concept/player-armour-hit-r08-a.ogg) | P1 |
 | Low armour warning | Beeps (slow at 30 %, fast at 15 %) — [a](concept/player-low-armour-r08-a.ogg) | P1 |
 | Ship destroyed | Big explosion, then the music sting — [a](concept/player-destroyed-r08-a.ogg) | P1 |
@@ -146,7 +146,7 @@ reused round 02 files marked (r02).
 |---|---|
 | Enemy shot: small [a](concept/enemy-shot-small-r08-a.ogg), [b](concept/enemy-shot-small-r08-b.ogg) / heavy [a](concept/enemy-shot-heavy-r08-a.ogg), [b](concept/enemy-shot-heavy-r08-b.ogg) / laser charge warning [a](concept/enemy-laser-warning-r08-a.ogg) | P1 |
 | Missile launch (enemy) — [a](concept/enemy-missile-r08-a.ogg) | P1 |
-| Vrell screech (spawn/attack cue), 4 variants: [a](concept/enemy-screech-r08-a.ogg), [b](concept/enemy-screech-r08-b.ogg), [c](concept/enemy-screech-r08-c.ogg), [d](concept/enemy-screech-r08-d.ogg) | P2 |
+| Vrell screech (spawn/attack cue), 2 variants: [c](concept/enemy-screech-r08-c.ogg), [d](concept/enemy-screech-r08-d.ogg) | P2 |
 | Turret rotate / lock-on beep — [a](concept/enemy-lock-r08-a.ogg) | P2 |
 | Portal / warp-in; Vrell spawn (Brood Pod bursting, Hive Node and Brood Carrier spawns) — [a](concept/enemy-spawn-r08-a.ogg) (wet creature swell), [b](concept/enemy-spawn-r08-b.ogg) (fleshy burst) | P2 |
 | Carrier launching drones | P3 |
@@ -161,7 +161,7 @@ reused round 02 files marked (r02).
 | Save done | P2 |
 | Typewriter blip (briefing text) — [a](concept/ui-typewriter-r08-a.ogg) | P1 |
 | Radio squelch open / close — [a](concept/ui-radio-open-r08-a.ogg) / [a](concept/ui-radio-close-r08-a.ogg) | P1 |
-| Warning klaxon (boss, rear attack) — [a](concept/ui-klaxon-r08-a.ogg) (seamless loop), [b](concept/ui-klaxon-r08-b.ogg) (single blast) | P1 |
+| Warning klaxon (boss, rear attack) — [a](concept/ui-klaxon-r08-a.ogg) (seamless loop; a single blast can be cut from it) | P1 |
 | Debrief tally tick / grade stamp — tick [a](concept/ui-tally-tick-r08-a.ogg), total [a](concept/ui-tally-total-r08-a.ogg), grade stamp [a](concept/ui-grade-stamp-r08-a.ogg) | P2 |
 
 ### Ambience (per setting)
@@ -277,67 +277,67 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 
 | File | What | Status |
 |---|---|---|
-| [concept/hit-metal-r08-a.ogg](concept/hit-metal-r08-a.ogg) | "HeavyBulletPing.mp3" by wilhellboy (CC0 1.0) — Hit: metal — bullet ping on Ascendancy hulls and machines | proposed |
-| [concept/hit-metal-r08-b.ogg](concept/hit-metal-r08-b.ogg) | "Bullet Hit Metal" by coolguy244e (CC0 1.0) — Hit: metal, variant | proposed |
-| [concept/hit-organic-r08-a.ogg](concept/hit-organic-r08-a.ogg) | "splat.ogg" by gprosser (CC0 1.0) — Hit: organic — wet hit on Vrell chitin | proposed |
-| [concept/hit-organic-r08-b.ogg](concept/hit-organic-r08-b.ogg) | "cracking.wav" by smidoid (CC-BY 4.0) — Hit: organic, chitin crunch | proposed |
-| [concept/hit-crumble-r08-a.ogg](concept/hit-crumble-r08-a.ogg) | "building_collapse02_close.wav" by onteca (CC-BY 3.0) — Ground target destroyed — crumbling structure | proposed |
-| [concept/hit-crumble-r08-b.ogg](concept/hit-crumble-r08-b.ogg) | "Bricks/Stones/Rocks/Gravel Falling" by iwanPlays (CC0 1.0) — Ground target destroyed, small (rubble burst); replaces "Rock Smash" by NeoSpica, which was almost all sub-bass | proposed |
-| [concept/player-shield-hit-r08-a.ogg](concept/player-shield-hit-r08-a.ogg) | "ELECTRIC_ZAP_001.wav" by JoelAudio (CC0 1.0) — Shield hit — electric fizz, low-passed at 7 kHz | proposed |
-| [concept/player-shield-hit-r08-b.ogg](concept/player-shield-hit-r08-b.ogg) | "Sci-Fi Force Field Impact 15.wav" by StormwaveAudio (CC-BY 4.0) — Shield hit, force-field variant | proposed |
-| [concept/player-shield-break-r08-a.ogg](concept/player-shield-break-r08-a.ogg) | "Synthesized_Pitch-Down_Zap" by joe_bou_khalil (CC-BY 4.0) — Shield break — descending zap | proposed |
-| [concept/player-shield-restore-r08-a.ogg](concept/player-shield-restore-r08-a.ogg) | "Power Up Charge [Remix of LegoLunatic's Charged laser 151243]" by qubodup (CC0 1.0) — Shield restored — rising charge | proposed |
-| [concept/player-shield-restore-r08-b.ogg](concept/player-shield-restore-r08-b.ogg) | "Shield recharging" by Bychop (CC0 1.0) — Shield restored, longer recharge | proposed |
-| [concept/player-armour-hit-r08-a.ogg](concept/player-armour-hit-r08-a.ogg) | "Impact on metal" by JoMungus (CC0 1.0) — Armour hit — metallic crunch | proposed |
-| [concept/player-low-armour-r08-a.ogg](concept/player-low-armour-r08-a.ogg) | "Bleeper 1" by magnuswaker (CC0 1.0) — Low armour warning — one beep | proposed |
-| [concept/player-destroyed-r08-a.ogg](concept/player-destroyed-r08-a.ogg) | "spaceship explosion9.WAV" by phantastonia (CC-BY 4.0) — Ship destroyed | proposed |
-| [concept/overdrive-start-r08-a.ogg](concept/overdrive-start-r08-a.ogg) | "Spacey 1up/Power up" by GameAudio (CC0 1.0) — Overdrive start | proposed |
-| [concept/overdrive-end-r08-a.ogg](concept/overdrive-end-r08-a.ogg) | "Teleport Error" by Jerimee (CC0 1.0) — Overdrive end | proposed |
-| [concept/enemy-shot-small-r08-a.ogg](concept/enemy-shot-small-r08-a.ogg) | "Sci-fi gun shot x6" by humanoide9000 (CC0 1.0) — Enemy shot, small | proposed |
-| [concept/enemy-shot-small-r08-b.ogg](concept/enemy-shot-small-r08-b.ogg) | "retro shot blaster" by JavierZumer (CC-BY 4.0) — Enemy shot, small (retro blaster) | proposed |
-| [concept/enemy-shot-heavy-r08-a.ogg](concept/enemy-shot-heavy-r08-a.ogg) | "ScifiHeavyBlasterShot.wav" by SuperPhat (CC0 1.0) — Enemy shot, heavy | proposed |
-| [concept/enemy-shot-heavy-r08-b.ogg](concept/enemy-shot-heavy-r08-b.ogg) | "Heavy blaster shot 05" by xkeril (CC0 1.0) — Enemy shot, heavy b — bassy blaster with a falling sweep | proposed |
-| [concept/enemy-laser-warning-r08-a.ogg](concept/enemy-laser-warning-r08-a.ogg) | "Laser Charging" by plasterbrain (CC0 1.0) — Enemy laser charge warning | proposed |
-| [concept/enemy-missile-r08-a.ogg](concept/enemy-missile-r08-a.ogg) | "Missile firing fl.mp3" by NHMWretched (CC0 1.0) — Enemy missile launch | proposed |
-| [concept/enemy-screech-r08-a.ogg](concept/enemy-screech-r08-a.ogg) | "Monster screech" by Khrinx (CC0 1.0) — Vrell screech (spawn/attack cue) a | proposed |
-| [concept/enemy-screech-r08-b.ogg](concept/enemy-screech-r08-b.ogg) | "inhuman screech.wav" by Wolfsinger (CC-BY 4.0) — Vrell screech b | proposed |
-| [concept/enemy-screech-r08-c.ogg](concept/enemy-screech-r08-c.ogg) | "alien4.wav" by AlienXXX (CC-BY 4.0) — Vrell screech c | proposed |
-| [concept/enemy-screech-r08-d.ogg](concept/enemy-screech-r08-d.ogg) | "alien screech.wav" by jvmyka@gmail.com (CC0 1.0) — Vrell screech d — reversed, processed horse sounds | proposed |
-| [concept/enemy-spawn-r08-a.ogg](concept/enemy-spawn-r08-a.ogg) | "DCA Alien Spawning Birth.aif" by darcyadam (CC0 1.0) — Vrell spawn a — wet creature swell (Hive Node / Brood Carrier spawns) | proposed |
-| [concept/enemy-spawn-r08-b.ogg](concept/enemy-spawn-r08-b.ogg) | "goreSplat.wav" by ThefitzyG (CC0 1.0) — Vrell spawn b — fleshy burst (Brood Pod bursting) | proposed |
-| [concept/enemy-lock-r08-a.ogg](concept/enemy-lock-r08-a.ogg) | "lock on" by SamsterBirdies (CC0 1.0) — Turret lock-on beep | proposed |
-| [concept/special-airstrike-jets-r08-a.ogg](concept/special-airstrike-jets-r08-a.ogg) | "Jet Plane Flyby.flac" by qubodup (CC0 1.0) — Airstrike: jets flyby | proposed |
-| [concept/special-airstrike-bombs-r08-a.ogg](concept/special-airstrike-bombs-r08-a.ogg) | "R11-55-Large Blasts.wav" by craigsmith (CC0 1.0) — Airstrike: bomb carpet | proposed |
-| [concept/special-smartbomb-r08-a.ogg](concept/special-smartbomb-r08-a.ogg) | "Energy Blast" by Kinoton (CC0 1.0) — Smart bomb: charge-up + white-out boom | proposed |
-| [concept/special-flares-r08-a.ogg](concept/special-flares-r08-a.ogg) | "Guns & Explosions Album - Flare gun 5-2.wav" by OGsoundFX (CC-BY 4.0) — Decoy flares | proposed |
-| [concept/special-denied-r08-a.ogg](concept/special-denied-r08-a.ogg) | "acess denied buzz" by Jacco18 (CC0 1.0) — Special unavailable (denied buzz) | proposed |
-| [concept/ui-radio-open-r08-a.ogg](concept/ui-radio-open-r08-a.ogg) | "Power On.wav" by JustinBW (CC-BY 4.0) — Radio squelch open | proposed |
-| [concept/ui-radio-close-r08-a.ogg](concept/ui-radio-close-r08-a.ogg) | "Radio Sign Off / Squelch" by JovianSounds (CC0 1.0) — Radio squelch close | proposed |
-| [concept/ui-klaxon-r08-a.ogg](concept/ui-klaxon-r08-a.ogg) | "Sci-Fi Alarm" by noirenex (CC0 1.0) — Warning klaxon (boss, rear attack) — loop | proposed |
-| [concept/ui-klaxon-r08-b.ogg](concept/ui-klaxon-r08-b.ogg) | "RedAlert_Klaxon_STTOS_recreated.wav" by zimbot (CC-BY 4.0) — Warning klaxon, single blast | proposed |
-| [concept/ambience-orbit-r08-a.ogg](concept/ambience-orbit-r08-a.ogg) | "spacedrone3.wav" by Elektrocell (CC0 1.0) — Ambience: Earth orbit (space hum) | proposed |
-| [concept/ambience-luna-r08-a.ogg](concept/ambience-luna-r08-a.ogg) | "drone Space wind scifi.wav" by ztitchez (CC-BY 4.0) — Ambience: Luna | proposed |
-| [concept/ambience-city-r08-a.ogg](concept/ambience-city-r08-a.ogg) | "201110 Distant sirens, urban, night, quiet, roof 11pm.flac" by TRP (CC0 1.0) — Ambience: megacity | proposed |
-| [concept/ambience-ocean-r08-a.ogg](concept/ambience-ocean-r08-a.ogg) | "Ocean waves hitting bow of moving boat." by byjoshberry (CC-BY 4.0) — Ambience: ocean | proposed |
-| [concept/ambience-storm-r08-a.ogg](concept/ambience-storm-r08-a.ogg) | "Rain and Thunder 4" by FlatHill (CC0 1.0) — Ambience: ocean storm (rain + thunder) | proposed |
-| [concept/ambience-arctic-r08-a.ogg](concept/ambience-arctic-r08-a.ogg) | "Wind__Artic__Cold.wav" by cobratronik (CC0 1.0) — Ambience: arctic wind | proposed |
-| [concept/pickup-salvage-small-r08-a.ogg](concept/pickup-salvage-small-r08-a.ogg) | Synthesized — Salvage small — short, high PWM blip with one sparkle (pickup-r01-c family, which itself is salvage medium) | proposed |
-| [concept/pickup-salvage-large-r08-a.ogg](concept/pickup-salvage-large-r08-a.ogg) | Synthesized — Salvage large — long PWM sweep two octaves up with an octave layer and a sparkle shower | proposed |
-| [concept/pickup-shield-cell-r08-a.ogg](concept/pickup-shield-cell-r08-a.ogg) | Synthesized — Shield cell — cool rising triangle arpeggio (G major) with a chorus shimmer | proposed |
-| [concept/pickup-armour-patch-r08-a.ogg](concept/pickup-armour-patch-r08-a.ogg) | Synthesized — Armour patch — low square 'clunk' plus a metallic ding: a plate bolted on | proposed |
-| [concept/pickup-special-charge-r08-a.ogg](concept/pickup-special-charge-r08-a.ogg) | Synthesized — Special charge — three rising square notes ending in a bell | proposed |
-| [concept/ui-menu-move-r08-a.ogg](concept/ui-menu-move-r08-a.ogg) | Synthesized — Menu move — soft 50 ms triangle blip | proposed |
-| [concept/ui-menu-confirm-r08-a.ogg](concept/ui-menu-confirm-r08-a.ogg) | Synthesized — Menu confirm — two rising square notes (E6–B6) | proposed |
-| [concept/ui-menu-back-r08-a.ogg](concept/ui-menu-back-r08-a.ogg) | Synthesized — Menu back — two falling square notes (B5–E5) | proposed |
-| [concept/ui-shop-buy-r08-a.ogg](concept/ui-shop-buy-r08-a.ogg) | Synthesized — Shop buy — blip plus coin sparkle ('ka-ching') | proposed |
-| [concept/ui-shop-sell-r08-a.ogg](concept/ui-shop-sell-r08-a.ogg) | Synthesized — Shop sell — three descending coin blips | proposed |
-| [concept/ui-shop-denied-r08-a.ogg](concept/ui-shop-denied-r08-a.ogg) | Synthesized — Shop denied (can't afford / won't fit) — low beating square buzz | proposed |
-| [concept/ui-typewriter-r08-a.ogg](concept/ui-typewriter-r08-a.ogg) | Synthesized — Typewriter blip — 30 ms click-blip, played per character of briefing text | proposed |
-| [concept/ui-tally-tick-r08-a.ogg](concept/ui-tally-tick-r08-a.ogg) | Synthesized — Debrief tally tick — 30 ms high sine tick | proposed |
-| [concept/ui-tally-total-r08-a.ogg](concept/ui-tally-total-r08-a.ogg) | Synthesized — Debrief total — C-major bell chord stinger | proposed |
-| [concept/ui-equip-r08-a.ogg](concept/ui-equip-r08-a.ogg) | Synthesized — Hangar equip — square clunk, latch click and a quiet rising two-note blip | proposed |
-| [concept/ui-upgrade-r08-a.ogg](concept/ui-upgrade-r08-a.ogg) | Synthesized — Hangar upgrade — short PWM rise landing on a G6 bell | proposed |
-| [concept/ui-grade-stamp-r08-a.ogg](concept/ui-grade-stamp-r08-a.ogg) | Synthesized — Debrief grade stamp — punchy thump with a paper slap and a low bell | proposed |
+| [concept/hit-metal-r08-a.ogg](concept/hit-metal-r08-a.ogg) | "HeavyBulletPing.mp3" by wilhellboy (CC0 1.0) — Hit: metal — bullet ping on Ascendancy hulls and machines | chosen |
+| [concept/hit-metal-r08-b.ogg](concept/hit-metal-r08-b.ogg) | "Bullet Hit Metal" by coolguy244e (CC0 1.0) — Hit: metal, variant | chosen |
+| [concept/hit-organic-r08-a.ogg](concept/hit-organic-r08-a.ogg) | "splat.ogg" by gprosser (CC0 1.0) — Hit: organic — wet hit on Vrell chitin | chosen |
+| [concept/hit-organic-r08-b.ogg](concept/hit-organic-r08-b.ogg) | "cracking.wav" by smidoid (CC-BY 4.0) — Hit: organic, chitin crunch | chosen |
+| [concept/hit-crumble-r08-a.ogg](concept/hit-crumble-r08-a.ogg) | "building_collapse02_close.wav" by onteca (CC-BY 3.0) — Ground target destroyed — crumbling structure | chosen |
+| [concept/hit-crumble-r08-b.ogg](concept/hit-crumble-r08-b.ogg) | "Bricks/Stones/Rocks/Gravel Falling" by iwanPlays (CC0 1.0) — Ground target destroyed, small (rubble burst); replaces "Rock Smash" by NeoSpica, which was almost all sub-bass | chosen |
+| [concept/player-shield-hit-r08-a.ogg](concept/player-shield-hit-r08-a.ogg) | "ELECTRIC_ZAP_001.wav" by JoelAudio (CC0 1.0) — Shield hit — electric fizz, low-passed at 7 kHz | chosen |
+| [concept/rejected/player-shield-hit-r08-b.ogg](concept/rejected/player-shield-hit-r08-b.ogg) | "Sci-Fi Force Field Impact 15.wav" by StormwaveAudio (CC-BY 4.0) — Shield hit, force-field variant | rejected (user, round 08) |
+| [concept/player-shield-break-r08-a.ogg](concept/player-shield-break-r08-a.ogg) | "Synthesized_Pitch-Down_Zap" by joe_bou_khalil (CC-BY 4.0) — Shield break — descending zap | chosen |
+| [concept/player-shield-restore-r08-a.ogg](concept/player-shield-restore-r08-a.ogg) | "Power Up Charge [Remix of LegoLunatic's Charged laser 151243]" by qubodup (CC0 1.0) — Shield restored — rising charge | chosen |
+| [concept/rejected/player-shield-restore-r08-b.ogg](concept/rejected/player-shield-restore-r08-b.ogg) | "Shield recharging" by Bychop (CC0 1.0) — Shield restored, longer recharge | rejected (user, round 08) |
+| [concept/player-armour-hit-r08-a.ogg](concept/player-armour-hit-r08-a.ogg) | "Impact on metal" by JoMungus (CC0 1.0) — Armour hit — metallic crunch | chosen |
+| [concept/player-low-armour-r08-a.ogg](concept/player-low-armour-r08-a.ogg) | "Bleeper 1" by magnuswaker (CC0 1.0) — Low armour warning — one beep | chosen |
+| [concept/player-destroyed-r08-a.ogg](concept/player-destroyed-r08-a.ogg) | "spaceship explosion9.WAV" by phantastonia (CC-BY 4.0) — Ship destroyed | chosen |
+| [concept/overdrive-start-r08-a.ogg](concept/overdrive-start-r08-a.ogg) | "Spacey 1up/Power up" by GameAudio (CC0 1.0) — Overdrive start | chosen |
+| [concept/overdrive-end-r08-a.ogg](concept/overdrive-end-r08-a.ogg) | "Teleport Error" by Jerimee (CC0 1.0) — Overdrive end | chosen |
+| [concept/enemy-shot-small-r08-a.ogg](concept/enemy-shot-small-r08-a.ogg) | "Sci-fi gun shot x6" by humanoide9000 (CC0 1.0) — Enemy shot, small | chosen |
+| [concept/enemy-shot-small-r08-b.ogg](concept/enemy-shot-small-r08-b.ogg) | "retro shot blaster" by JavierZumer (CC-BY 4.0) — Enemy shot, small (retro blaster) | chosen |
+| [concept/enemy-shot-heavy-r08-a.ogg](concept/enemy-shot-heavy-r08-a.ogg) | "ScifiHeavyBlasterShot.wav" by SuperPhat (CC0 1.0) — Enemy shot, heavy | chosen |
+| [concept/enemy-shot-heavy-r08-b.ogg](concept/enemy-shot-heavy-r08-b.ogg) | "Heavy blaster shot 05" by xkeril (CC0 1.0) — Enemy shot, heavy b — bassy blaster with a falling sweep | chosen |
+| [concept/enemy-laser-warning-r08-a.ogg](concept/enemy-laser-warning-r08-a.ogg) | "Laser Charging" by plasterbrain (CC0 1.0) — Enemy laser charge warning | chosen |
+| [concept/enemy-missile-r08-a.ogg](concept/enemy-missile-r08-a.ogg) | "Missile firing fl.mp3" by NHMWretched (CC0 1.0) — Enemy missile launch | chosen |
+| [concept/rejected/enemy-screech-r08-a.ogg](concept/rejected/enemy-screech-r08-a.ogg) | "Monster screech" by Khrinx (CC0 1.0) — Vrell screech (spawn/attack cue) a | rejected (user, round 08) |
+| [concept/rejected/enemy-screech-r08-b.ogg](concept/rejected/enemy-screech-r08-b.ogg) | "inhuman screech.wav" by Wolfsinger (CC-BY 4.0) — Vrell screech b | rejected (user, round 08) |
+| [concept/enemy-screech-r08-c.ogg](concept/enemy-screech-r08-c.ogg) | "alien4.wav" by AlienXXX (CC-BY 4.0) — Vrell screech c | chosen |
+| [concept/enemy-screech-r08-d.ogg](concept/enemy-screech-r08-d.ogg) | "alien screech.wav" by jvmyka@gmail.com (CC0 1.0) — Vrell screech d — reversed, processed horse sounds | chosen |
+| [concept/enemy-spawn-r08-a.ogg](concept/enemy-spawn-r08-a.ogg) | "DCA Alien Spawning Birth.aif" by darcyadam (CC0 1.0) — Vrell spawn a — wet creature swell (Hive Node / Brood Carrier spawns) | chosen |
+| [concept/enemy-spawn-r08-b.ogg](concept/enemy-spawn-r08-b.ogg) | "goreSplat.wav" by ThefitzyG (CC0 1.0) — Vrell spawn b — fleshy burst (Brood Pod bursting) | chosen |
+| [concept/enemy-lock-r08-a.ogg](concept/enemy-lock-r08-a.ogg) | "lock on" by SamsterBirdies (CC0 1.0) — Turret lock-on beep | chosen |
+| [concept/special-airstrike-jets-r08-a.ogg](concept/special-airstrike-jets-r08-a.ogg) | "Jet Plane Flyby.flac" by qubodup (CC0 1.0) — Airstrike: jets flyby | chosen |
+| [concept/special-airstrike-bombs-r08-a.ogg](concept/special-airstrike-bombs-r08-a.ogg) | "R11-55-Large Blasts.wav" by craigsmith (CC0 1.0) — Airstrike: bomb carpet | chosen |
+| [concept/special-smartbomb-r08-a.ogg](concept/special-smartbomb-r08-a.ogg) | "Energy Blast" by Kinoton (CC0 1.0) — Smart bomb: charge-up + white-out boom | chosen |
+| [concept/special-flares-r08-a.ogg](concept/special-flares-r08-a.ogg) | "Guns & Explosions Album - Flare gun 5-2.wav" by OGsoundFX (CC-BY 4.0) — Decoy flares | chosen |
+| [concept/special-denied-r08-a.ogg](concept/special-denied-r08-a.ogg) | "acess denied buzz" by Jacco18 (CC0 1.0) — Special unavailable (denied buzz) | chosen |
+| [concept/ui-radio-open-r08-a.ogg](concept/ui-radio-open-r08-a.ogg) | "Power On.wav" by JustinBW (CC-BY 4.0) — Radio squelch open | chosen |
+| [concept/ui-radio-close-r08-a.ogg](concept/ui-radio-close-r08-a.ogg) | "Radio Sign Off / Squelch" by JovianSounds (CC0 1.0) — Radio squelch close | chosen |
+| [concept/ui-klaxon-r08-a.ogg](concept/ui-klaxon-r08-a.ogg) | "Sci-Fi Alarm" by noirenex (CC0 1.0) — Warning klaxon (boss, rear attack) — loop | chosen |
+| [concept/rejected/ui-klaxon-r08-b.ogg](concept/rejected/ui-klaxon-r08-b.ogg) | "RedAlert_Klaxon_STTOS_recreated.wav" by zimbot (CC-BY 4.0) — Warning klaxon, single blast | rejected (user, round 08) |
+| [concept/ambience-orbit-r08-a.ogg](concept/ambience-orbit-r08-a.ogg) | "spacedrone3.wav" by Elektrocell (CC0 1.0) — Ambience: Earth orbit (space hum) | chosen |
+| [concept/ambience-luna-r08-a.ogg](concept/ambience-luna-r08-a.ogg) | "drone Space wind scifi.wav" by ztitchez (CC-BY 4.0) — Ambience: Luna | chosen |
+| [concept/ambience-city-r08-a.ogg](concept/ambience-city-r08-a.ogg) | "201110 Distant sirens, urban, night, quiet, roof 11pm.flac" by TRP (CC0 1.0) — Ambience: megacity | chosen |
+| [concept/ambience-ocean-r08-a.ogg](concept/ambience-ocean-r08-a.ogg) | "Ocean waves hitting bow of moving boat." by byjoshberry (CC-BY 4.0) — Ambience: ocean | chosen |
+| [concept/ambience-storm-r08-a.ogg](concept/ambience-storm-r08-a.ogg) | "Rain and Thunder 4" by FlatHill (CC0 1.0) — Ambience: ocean storm (rain + thunder) | chosen |
+| [concept/ambience-arctic-r08-a.ogg](concept/ambience-arctic-r08-a.ogg) | "Wind__Artic__Cold.wav" by cobratronik (CC0 1.0) — Ambience: arctic wind | chosen |
+| [concept/pickup-salvage-small-r08-a.ogg](concept/pickup-salvage-small-r08-a.ogg) | Synthesized — Salvage small — short, high PWM blip with one sparkle (pickup-r01-c family, which itself is salvage medium) | chosen |
+| [concept/pickup-salvage-large-r08-a.ogg](concept/pickup-salvage-large-r08-a.ogg) | Synthesized — Salvage large — long PWM sweep two octaves up with an octave layer and a sparkle shower | chosen |
+| [concept/pickup-shield-cell-r08-a.ogg](concept/pickup-shield-cell-r08-a.ogg) | Synthesized — Shield cell — cool rising triangle arpeggio (G major) with a chorus shimmer | chosen |
+| [concept/pickup-armour-patch-r08-a.ogg](concept/pickup-armour-patch-r08-a.ogg) | Synthesized — Armour patch — low square 'clunk' plus a metallic ding: a plate bolted on | chosen |
+| [concept/pickup-special-charge-r08-a.ogg](concept/pickup-special-charge-r08-a.ogg) | Synthesized — Special charge — three rising square notes ending in a bell | chosen |
+| [concept/ui-menu-move-r08-a.ogg](concept/ui-menu-move-r08-a.ogg) | Synthesized — Menu move — soft 50 ms triangle blip | chosen |
+| [concept/ui-menu-confirm-r08-a.ogg](concept/ui-menu-confirm-r08-a.ogg) | Synthesized — Menu confirm — two rising square notes (E6–B6) | chosen |
+| [concept/ui-menu-back-r08-a.ogg](concept/ui-menu-back-r08-a.ogg) | Synthesized — Menu back — two falling square notes (B5–E5) | chosen |
+| [concept/ui-shop-buy-r08-a.ogg](concept/ui-shop-buy-r08-a.ogg) | Synthesized — Shop buy — blip plus coin sparkle ('ka-ching') | chosen |
+| [concept/ui-shop-sell-r08-a.ogg](concept/ui-shop-sell-r08-a.ogg) | Synthesized — Shop sell — three descending coin blips | chosen |
+| [concept/ui-shop-denied-r08-a.ogg](concept/ui-shop-denied-r08-a.ogg) | Synthesized — Shop denied (can't afford / won't fit) — low beating square buzz | chosen |
+| [concept/ui-typewriter-r08-a.ogg](concept/ui-typewriter-r08-a.ogg) | Synthesized — Typewriter blip — 30 ms click-blip, played per character of briefing text | chosen |
+| [concept/ui-tally-tick-r08-a.ogg](concept/ui-tally-tick-r08-a.ogg) | Synthesized — Debrief tally tick — 30 ms high sine tick | chosen |
+| [concept/ui-tally-total-r08-a.ogg](concept/ui-tally-total-r08-a.ogg) | Synthesized — Debrief total — C-major bell chord stinger | chosen |
+| [concept/ui-equip-r08-a.ogg](concept/ui-equip-r08-a.ogg) | Synthesized — Hangar equip — square clunk, latch click and a quiet rising two-note blip | chosen |
+| [concept/ui-upgrade-r08-a.ogg](concept/ui-upgrade-r08-a.ogg) | Synthesized — Hangar upgrade — short PWM rise landing on a G6 bell | chosen |
+| [concept/ui-grade-stamp-r08-a.ogg](concept/ui-grade-stamp-r08-a.ogg) | Synthesized — Debrief grade stamp — punchy thump with a paper slap and a low bell | chosen |
 
 ## Implementation
 
@@ -357,3 +357,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 - 2026-10-01: Concept round 08: remaining Acts 1–2 sounds proposed — 40 recorded (CC0/CC-BY, band-levelled; five sub-bass-only candidates rejected) and 14 synthesized pickups and UI blips. Overdrive pickup maps to pickup-r01-a, data core to pickup-r01-b, salvage medium to pickup-r01-c. Still open: equip/upgrade and grade-stamp UI sounds, a fourth Vrell screech, an Airstrike radio call (text + squelch for now, no voice).
 - 2026-10-01: Confirmed by the user: pickups and UI sounds stay synthesized; everything else (shots, explosions, hits, enemies, specials, radio, klaxon, ambience) uses recorded CC0/CC-BY sounds.
 - 2026-10-01: Round 08 verified (peak, 200 Hz–5 kHz band level, DC, edges, loop seams, spectrograms) and fixed: bell and shimmer tails in four synthesized sounds (armour patch, special charge, shield cell, debrief total) ended in a click — the bell now has a release and the armour patch is longer; ship destroyed is high-passed at 20 Hz (sub-sonic drift left a DC offset); shield hit a is low-passed at 7 kHz (83 % of its energy was above 5 kHz); crumble b got a new source (the first was almost all sub-bass and stayed ~8 dB quieter than a on its audible band, even high-passed). Added the missing Acts 1–2 sounds: heavy enemy shot b, Vrell screech d, two Vrell spawn sounds, and synthesized equip, upgrade and grade-stamp UI sounds. Rejected on licence grounds: Artninja's "morphing burst" (built from Warner Bros and Zapsplat library sounds). `sfx.py` now writes the rejected round-01 shots and explosions to `concept/rejected/`.
+- 2026-10-01: Concept round 08: all round-08 sounds chosen except screech a and b, shield hit b, shield restore b and klaxon b (rejected).

@@ -2,7 +2,7 @@
 title: Options
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../controls, ../../art-direction]
 updated: 2026-10-01
 ---
@@ -32,7 +32,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 
 | File | What | Status |
 |---|---|---|
-| [concept/options-r08-a.png](concept/options-r08-a.png) | Options — the four tabs as a 2×2 sheet: video with scaling preview, audio sliders, controls with remapping and the auto-fire toggle, gameplay | proposed |
+| [concept/options-r08-a.png](concept/options-r08-a.png) | Options — the four tabs as a 2×2 sheet: video with scaling preview, audio sliders, controls with remapping and the auto-fire toggle, gameplay | chosen |
 
 ## Implementation
 
@@ -44,3 +44,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 ## Decisions
 
 - 2026-10-01: Screen added for the Acts 1–2 vertical slice (concept round 08).
+- 2026-10-01: Concept round 08: accepted.

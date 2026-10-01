@@ -2,7 +2,7 @@
 title: The Choir
 design: draft
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -51,9 +51,10 @@ Concept [round 08](../../../concept-rounds/round-08/README.md) — style-B portr
 
 | File | What | Status |
 |---|---|---|
-| [concept/portrait-r08-a.png](concept/portrait-r08-a.png) | The Choir — alien interference glyph (five-armed violet/teal sigil in rippling rings) at briefing and HUD sizes, loop strip | proposed |
-| [concept/portrait-r08-a.gif](concept/portrait-r08-a.gif) | The Choir — pulsing, turning glyph loop for the radio panel | proposed |
+| [concept/portrait-r08-a.png](concept/portrait-r08-a.png) | The Choir — alien interference glyph (five-armed violet/teal sigil in rippling rings) at briefing and HUD sizes, loop strip | chosen |
+| [concept/portrait-r08-a.gif](concept/portrait-r08-a.gif) | The Choir — pulsing, turning glyph loop for the radio panel | chosen |
 
 ## Decisions
 
 - 2026-09-30: The Choir as a faceless, evolving voice; frightened in Act 7.
+- 2026-10-01: Concept round 08: portraits accepted.

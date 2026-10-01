@@ -2,7 +2,7 @@
 title: Credits
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../../CREDITS.md]
 updated: 2026-10-01
 ---
@@ -29,7 +29,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 
 | File | What | Status |
 |---|---|---|
-| [concept/credits-r08-a.png](concept/credits-r08-a.png) | Credits — scrolling glass column with placeholder roles, the CC-BY sound attributions from CREDITS.md and thanks to CC0 authors | proposed |
+| [concept/credits-r08-a.png](concept/credits-r08-a.png) | Credits — scrolling glass column with placeholder roles, the CC-BY sound attributions from CREDITS.md and thanks to CC0 authors | chosen |
 
 ## Implementation
 
@@ -40,3 +40,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 ## Decisions
 
 - 2026-10-01: Screen added for the Acts 1–2 vertical slice (concept round 08).
+- 2026-10-01: Concept round 08: accepted.

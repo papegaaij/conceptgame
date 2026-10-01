@@ -2,7 +2,7 @@
 title: Pause menu
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../systems/retry]
 updated: 2026-10-01
 ---
@@ -32,7 +32,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 | File | What | Status |
 |---|---|---|
-| [concept/pause-r08-a.png](concept/pause-r08-a.png) | Pause — glass panel over the dimmed HUD frame: resume, restart, options, abort to hangar, quit | proposed |
+| [concept/pause-r08-a.png](concept/pause-r08-a.png) | Pause — glass panel over the dimmed HUD frame: resume, restart, options, abort to hangar, quit | chosen |
 
 ## Implementation
 
@@ -43,3 +43,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 ## Decisions
 
 - 2026-09-30: Restart and abort from the pause menu follow the retry rules.
+- 2026-10-01: Concept round 08: accepted.

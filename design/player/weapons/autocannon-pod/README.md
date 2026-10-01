@@ -2,7 +2,7 @@
 title: Autocannon Pod
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-01
 ---

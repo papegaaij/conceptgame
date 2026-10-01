@@ -347,8 +347,8 @@ Concept [round 08](../concept-rounds/round-08/README.md) — Earth open ocean (L
 
 | File | What | Status |
 |---|---|---|
-| [concept/scene-ocean-r08-a.png](concept/scene-ocean-r08-a.png) | Open ocean (L11) — convoy holding station on an overcast sea, wakes and foam in the surface, surfaced and submerged Driftjellies, Reef Spitter rafts, a dark shape below, sea mist (sheet + layer breakdown) | proposed |
-| [concept/scene-ocean-r08-a.gif](concept/scene-ocean-r08-a.gif) | Open ocean: seamless scroll loop | proposed |
+| [concept/scene-ocean-r08-a.png](concept/scene-ocean-r08-a.png) | Open ocean (L11) — convoy holding station on an overcast sea, wakes and foam in the surface, surfaced and submerged Driftjellies, Reef Spitter rafts, a dark shape below, sea mist (sheet + layer breakdown) | proposed — deferred: finish the scene first (round 09) |
+| [concept/scene-ocean-r08-a.gif](concept/scene-ocean-r08-a.gif) | Open ocean: seamless scroll loop | proposed — deferred: finish the scene first (round 09) |
 
 ## Implementation
 
@@ -394,3 +394,4 @@ Concept [round 08](../concept-rounds/round-08/README.md) — Earth open ocean (L
 - 2026-10-01: Menus and other out-of-game screens use the glass-over-scene style of main menu A; the bevelled metal style is reserved for the in-game HUD (user decision, round 06).
 - 2026-10-01: Concept round 07: Europa A "kelp forest" chosen; B "open water" rejected.
 - 2026-10-01: Scaling: integer scaling with letterboxing by default, sharp-bilinear as an option. Banking: 5 frames for the player ship and wingman. Fitted wing pods are drawn on the ship sprite. Layer hit rules settled in [enemies](../enemies/README.md#layer-rules).
+- 2026-10-01: Concept round 08: open-ocean scene deferred — it must be finished first (round 09, with the other Earth scenes).

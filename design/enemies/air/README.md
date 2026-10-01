@@ -2,7 +2,7 @@
 title: Air enemies
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -96,8 +96,8 @@ Concept [round 05](../../concept-rounds/round-05/README.md) — new archetypes, 
 
 | File | What | Status |
 |---|---|---|
-| [concept/coilwyrm-r05-a.png](concept/coilwyrm-r05-a.png) | Coilwyrm — Vrell serpent (rust/teal): 58 px head + 12 overlapping segments + tail, ~330 px, each part at 16 headings following the head's looping swirl (sheet) | chosen |
-| [concept/coilwyrm-r05-a.gif](concept/coilwyrm-r05-a.gif) | Coilwyrm — Vrell serpent (rust/teal): 58 px head + 12 overlapping segments + tail, ~330 px, each part at 16 headings following the head's looping swirl (motion) | chosen |
+| [concept/coilwyrm-r05-a.png](concept/coilwyrm-r05-a.png) | Coilwyrm — Vrell serpent (rust/teal): 58 px head + 12 overlapping segments + tail, ~330 px, each part at 16 headings following the head's looping swirl (sheet) | superseded by r08 (model-space re-render) |
+| [concept/coilwyrm-r05-a.gif](concept/coilwyrm-r05-a.gif) | Coilwyrm — Vrell serpent (rust/teal): 58 px head + 12 overlapping segments + tail, ~330 px, each part at 16 headings following the head's looping swirl (motion) | superseded by r08 (model-space re-render) |
 | [concept/whirl-seed-r05-a.png](concept/whirl-seed-r05-a.png) | Whirl Seed — tiny 26 px radial seed pod (plum/teal), spinning clusters of five that spiral and bounce (sheet) | chosen |
 | [concept/whirl-seed-r05-a.gif](concept/whirl-seed-r05-a.gif) | Whirl Seed — tiny 26 px radial seed pod (plum/teal), spinning clusters of five that spiral and bounce (motion) | chosen |
 | [concept/mote-swarm-r05-a.png](concept/mote-swarm-r05-a.png) | Mote Swarm — 30 tiny ember motes (rust/crimson) flocking, exiting and returning from behind the player after a REAR! edge warning (sheet) | chosen |
@@ -120,8 +120,8 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-r
 
 | File | What | Status |
 |---|---|---|
-| [concept/coilwyrm-r08-a.png](concept/coilwyrm-r08-a.png) | Coilwyrm re-render (sheet) | proposed |
-| [concept/coilwyrm-r08-a.gif](concept/coilwyrm-r08-a.gif) | Coilwyrm re-render (motion) | proposed |
+| [concept/coilwyrm-r08-a.png](concept/coilwyrm-r08-a.png) | Coilwyrm re-render (sheet) | chosen |
+| [concept/coilwyrm-r08-a.gif](concept/coilwyrm-r08-a.gif) | Coilwyrm re-render (motion) | chosen |
 
 ## Implementation
 
@@ -141,3 +141,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-r
 - 2026-10-01: Concept round 06: Wraith and Lamprey chosen.
 - 2026-10-01: Lamprey latch drains the shield only; it does not slow the ship. A cut Coilwyrm regrows a head once per chain.
 - 2026-10-01: Acts 1–2 units promoted to full specs: Skitter, Needler, Stinger, Spore Bomber, Whirl Seed, Brood Pod, Mantis, Coilwyrm, Wraith, Mote Swarm, Lamprey.
+- 2026-10-01: Concept round 08: model-space re-renders accepted; they supersede the r05 sheets.

@@ -2,7 +2,7 @@
 title: Characters
 design: draft
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -22,7 +22,7 @@ purpose: six voices, each instantly recognisable by portrait and speech style.
 | [rook](rook/README.md) | Lt. Kenji "Rook" Tanaka, the AI wingman, banter and warnings | draft | n/a | chosen |
 | [varga](varga/README.md) | Dr. Elena Varga, intel officer and xenobiologist, hangar intel | draft | n/a | chosen |
 | [vorne](vorne/README.md) | Chairman Silas Vorne, leader of the Ascendancy, the villain | draft | n/a | chosen |
-| [the-choir](the-choir/README.md) | The collective voice of the Vrell | draft | n/a | proposed |
+| [the-choir](the-choir/README.md) | The collective voice of the Vrell | draft | n/a | chosen |
 
 ## Design
 
@@ -64,11 +64,12 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — generic speakers
 
 | File | What | Status |
 |---|---|---|
-| [concept/generic-cdf-r08-a.png](concept/generic-cdf-r08-a.png) | Generic CDF officer (beret, boom mic, grey-green jacket) for convoy, relay and control speakers | proposed |
-| [concept/generic-civilian-r08-a.png](concept/generic-civilian-r08-a.png) | Generic civilian (padded jacket, scarf, handheld radio) for shuttle and evacuation speakers | proposed |
+| [concept/generic-cdf-r08-a.png](concept/generic-cdf-r08-a.png) | Generic CDF officer (beret, boom mic, grey-green jacket) for convoy, relay and control speakers | chosen |
+| [concept/generic-civilian-r08-a.png](concept/generic-civilian-r08-a.png) | Generic civilian (padded jacket, scarf, handheld radio) for shuttle and evacuation speakers | chosen |
 
 ## Decisions
 
 - 2026-09-30: Six-character cast; pre-rendered 3D bust portraits with side-coded frames.
 - 2026-09-30: Concept round 03: portrait style **B** chosen for the whole cast, with a small bit more colour retained so it looks less flat.
 - 2026-09-30: Concept round 04: style-B portraits with retained colour chosen for the whole cast.
+- 2026-10-01: Concept round 08: portraits accepted.

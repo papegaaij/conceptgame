@@ -2,7 +2,7 @@
 title: Space enemies
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -47,15 +47,15 @@ Concept [round 05](../../concept-rounds/round-05/README.md) — new archetypes, 
 
 | File | What | Status |
 |---|---|---|
-| [concept/leviathan-r05-a.png](concept/leviathan-r05-a.png) | Leviathan — huge Vrell whale (bone/violet), ~480 px: body + 3 tail segments + fluke with a travelling wave + flapping fins, each part at 32 headings; dorsal turrets fire aimed orbs (sheet) | chosen |
-| [concept/leviathan-r05-a.gif](concept/leviathan-r05-a.gif) | Leviathan — huge Vrell whale (bone/violet), ~480 px: body + 3 tail segments + fluke with a travelling wave + flapping fins, each part at 32 headings; dorsal turrets fire aimed orbs (motion) | chosen |
+| [concept/leviathan-r05-a.png](concept/leviathan-r05-a.png) | Leviathan — huge Vrell whale (bone/violet), ~480 px: body + 3 tail segments + fluke with a travelling wave + flapping fins, each part at 32 headings; dorsal turrets fire aimed orbs (sheet) | superseded by r08 (model-space re-render) |
+| [concept/leviathan-r05-a.gif](concept/leviathan-r05-a.gif) | Leviathan — huge Vrell whale (bone/violet), ~480 px: body + 3 tail segments + fluke with a travelling wave + flapping fins, each part at 32 headings; dorsal turrets fire aimed orbs (motion) | superseded by r08 (model-space re-render) |
 
 Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-render (seams and patterns now turn with the body), design unchanged; generator `tools/concept/rerender_r08.py`.
 
 | File | What | Status |
 |---|---|---|
-| [concept/leviathan-r08-a.png](concept/leviathan-r08-a.png) | Leviathan re-render (sheet) | proposed |
-| [concept/leviathan-r08-a.gif](concept/leviathan-r08-a.gif) | Leviathan re-render (motion) | proposed |
+| [concept/leviathan-r08-a.png](concept/leviathan-r08-a.png) | Leviathan re-render (sheet) | chosen |
+| [concept/leviathan-r08-a.gif](concept/leviathan-r08-a.gif) | Leviathan re-render (motion) | chosen |
 
 ## Implementation
 
@@ -71,3 +71,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-r
 - 2026-09-30: Roster of 7 space enemies drafted.
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Leviathan.
 - 2026-10-01: Acts 1–2 units promoted to full specs: Leviathan.
+- 2026-10-01: Concept round 08: model-space re-renders accepted; they supersede the r05 sheets.

@@ -2,7 +2,7 @@
 title: AF-12 Stormhawk
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../art-direction]
 updated: 2026-10-01
 ---
@@ -86,7 +86,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — banking and wing
 
 | File | What | Status |
 |---|---|---|
-| [concept/player-ship-r08-a.png](concept/player-ship-r08-a.png) | Stormhawk: 5 banking frames and the five wing-pod types fitted at the mount points, pods across the banking frames, in-game view with Rook | proposed |
+| [concept/player-ship-r08-a.png](concept/player-ship-r08-a.png) | Stormhawk: 5 banking frames and the five wing-pod types fitted at the mount points, pods across the banking frames, in-game view with Rook | chosen |
 
 ## Implementation
 
@@ -110,3 +110,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — banking and wing
 - 2026-09-30: Concept round 02: ship A at 48×48 in palette B confirmed.
 - 2026-10-01: Banking 5 frames; fitted wing pods shown on the ship sprite (hull unchanged); hold-to-fire with auto-fire toggle and a precision button.
 - 2026-10-01: Implementation checklist corrected to the 9×9 hitbox; 0.25 s mercy invulnerability after armour damage (none after shield hits).
+- 2026-10-01: Concept round 08: 5 banking frames and visible wing pods chosen.

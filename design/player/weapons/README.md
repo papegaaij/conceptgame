@@ -2,7 +2,7 @@
 title: Weapons
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../generator, ../../systems/economy]
 updated: 2026-10-01
 ---
@@ -23,20 +23,20 @@ below.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [pulse-cannon](pulse-cannon/README.md) | Pulse Cannon — Front, forward; DPS 20 → 70; starter; start | draft | not-started | proposed |
-| [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | draft | not-started | proposed |
-| [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | draft | not-started | proposed |
-| [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | draft | not-started | proposed |
-| [hornet-launcher](hornet-launcher/README.md) | Hornet Launcher — Front, homing; DPS 15 → 60; 2 000; L10 | draft | not-started | proposed |
-| [side-splitter](side-splitter/README.md) | Side Splitter — Rear, side; DPS 12 → 40; 1 400; L05 | draft | not-started | proposed |
-| [tail-gun](tail-gun/README.md) | Tail Gun — Rear, rear; DPS 10 → 35; 600; L08 | draft | not-started | proposed |
-| [fan-blaster](fan-blaster/README.md) | Fan Blaster — Rear, rear, spread; DPS 10.2 → 40; 1 200; L10 | draft | not-started | proposed |
-| [proximity-mines](proximity-mines/README.md) | Proximity Mines — Rear, rear, area; DPS 20 → 70; 1 500; L12 | draft | not-started | proposed |
-| [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | draft | not-started | proposed |
-| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | draft | not-started | proposed |
-| [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | draft | not-started | proposed |
-| [swivel-gun](swivel-gun/README.md) | Swivel Gun — Wing (per pod), side, homing; DPS 8 → 26; 1 500; L09 | draft | not-started | proposed |
-| [torpedo-pod](torpedo-pod/README.md) | Torpedo Pod — Wing (per pod), anti-sub; DPS 10 → 32; 1 000; L11 | draft | not-started | proposed |
+| [pulse-cannon](pulse-cannon/README.md) | Pulse Cannon — Front, forward; DPS 20 → 70; starter; start | draft | not-started | chosen |
+| [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | draft | not-started | chosen |
+| [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | draft | not-started | chosen |
+| [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | draft | not-started | chosen |
+| [hornet-launcher](hornet-launcher/README.md) | Hornet Launcher — Front, homing; DPS 15 → 60; 2 000; L10 | draft | not-started | chosen |
+| [side-splitter](side-splitter/README.md) | Side Splitter — Rear, side; DPS 12 → 40; 1 400; L05 | draft | not-started | chosen |
+| [tail-gun](tail-gun/README.md) | Tail Gun — Rear, rear; DPS 10 → 35; 600; L08 | draft | not-started | chosen |
+| [fan-blaster](fan-blaster/README.md) | Fan Blaster — Rear, rear, spread; DPS 10.2 → 40; 1 200; L10 | draft | not-started | chosen |
+| [proximity-mines](proximity-mines/README.md) | Proximity Mines — Rear, rear, area; DPS 20 → 70; 1 500; L12 | draft | not-started | chosen |
+| [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | draft | not-started | chosen |
+| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | draft | not-started | chosen |
+| [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | draft | not-started | chosen |
+| [swivel-gun](swivel-gun/README.md) | Swivel Gun — Wing (per pod), side, homing; DPS 8 → 26; 1 500; L09 | draft | not-started | chosen |
+| [torpedo-pod](torpedo-pod/README.md) | Torpedo Pod — Wing (per pod), anti-sub; DPS 10 → 32; 1 000; L11 | draft | not-started | chosen |
 
 ## Design
 
@@ -114,8 +114,8 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — player projectil
 
 | File | What | Status |
 |---|---|---|
-| [concept/projectiles-r08-a.png](concept/projectiles-r08-a.png) | All 13 projectile families: sprite, 3-frame muzzle flash, 4-frame impact, L1/L3/L5 patterns, missile plumes and trails (sheet) | proposed |
-| [concept/projectiles-r08-a.gif](concept/projectiles-r08-a.gif) | The families firing in sequence from the Stormhawk with fitted pods (motion) | proposed |
+| [concept/projectiles-r08-a.png](concept/projectiles-r08-a.png) | All 13 projectile families: sprite, 3-frame muzzle flash, 4-frame impact, L1/L3/L5 patterns, missile plumes and trails (sheet) | chosen — beam needs an impact effect where it hits (round 09) |
+| [concept/projectiles-r08-a.gif](concept/projectiles-r08-a.gif) | The families firing in sequence from the Stormhawk with fitted pods (motion) | chosen — beam needs an impact effect where it hits (round 09) |
 
 ## Implementation
 
@@ -145,3 +145,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — player projectil
 - 2026-09-30: Layer hit rules are owned by [enemies](../../enemies/README.md#layer-rules).
 - 2026-10-01: Layer hit rules settled (see [enemies](../../enemies/README.md#layer-rules)): `anti-ground` does not add hits on `low-air` (every weapon already hits it); hardened ground targets need `anti-ground`.
 - 2026-10-01: The 14 weapons available by L14 promoted to their own documents with per-level numbers in `balance-data.json` (single source, tables generated by `tools/balance.py --sync`). Spread fans (Scatter Vulcan L4–L5, Fan Blaster L4–L5) get a dense core so single-target damage rises with every level.
+- 2026-10-01: Concept round 08: projectile families chosen ("very nice"); the beam needs an impact effect where it hits — it currently ends abruptly at the sprite edge (round 09).

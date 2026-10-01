@@ -2,7 +2,7 @@
 title: Debrief screen
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../systems/scoring, ../../systems/economy]
 updated: 2026-10-01
 ---
@@ -53,9 +53,9 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 | File | What | Status |
 |---|---|---|
-| [concept/debrief-r08-a.png](concept/debrief-r08-a.png) | Debrief — mission 10 complete: tally, credits breakdown, chain and score, grade stamp | proposed |
-| [concept/mission-failed-r08-a.png](concept/mission-failed-r08-a.png) | Mission failed — frozen frame tinted red, retry / retry from boss / hangar / quit, discarded earnings | proposed |
-| [concept/game-over-r08-a.png](concept/game-over-r08-a.png) | Game over (hard, 0/3 retries) — campaign stats, Okafor's last transmission, top-10 with letter-grid name entry | proposed |
+| [concept/debrief-r08-a.png](concept/debrief-r08-a.png) | Debrief — mission 10 complete: tally, credits breakdown, chain and score, grade stamp | chosen |
+| [concept/mission-failed-r08-a.png](concept/mission-failed-r08-a.png) | Mission failed — frozen frame tinted red, retry / retry from boss / hangar / quit, discarded earnings | chosen |
+| [concept/game-over-r08-a.png](concept/game-over-r08-a.png) | Game over (hard, 0/3 retries) — campaign stats, Okafor's last transmission, top-10 with letter-grid name entry | chosen |
 
 ## Implementation
 
@@ -66,3 +66,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 ## Decisions
 
 - 2026-09-30: Grade and bonuses as defined in [scoring](../../systems/scoring/README.md).
+- 2026-10-01: Concept round 08: accepted.
