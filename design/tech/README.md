@@ -111,11 +111,35 @@ RTX 2070) and built and tested by CI on all three OSes:
 | 7 | Tests | A headless JUnit replay test gives the same state hash on Linux, Windows and macOS in CI |
 | 8 | Packaging | Gradle with Construo produces a runnable bundle with a trimmed JRE for each OS; the Linux bundle starts on a clean machine |
 | 9 | Code quality | The user finds the spike code and tests pleasant to review |
+| 10 | Display modes | Borderless full screen ↔ resizable window toggled at runtime (Alt+Enter, F11) without losing textures, audio or game state; letterboxed integer scaling correct in both (see [options](../ui/options/README.md)) |
+
+### Spike results (2026-10-01)
+
+Branch `spike/libgdx`, `spike/RESULTS.md` there has the full numbers. CI run:
+[36916102595](https://github.com/papegaaij/conceptgame/actions/runs/36916102595).
+
+| # | Result |
+|---|---|
+| 1 | Pass: 5,335 fps uncapped, p99 frame time 0.49 ms at full load, scaled to 1920×1080 |
+| 2 | Pass with generational ZGC (longest pause 0.012 ms in 5 min); G1 just misses (2.26 ms first young GC). Use ZGC (`-XX:+ZGenerational` on Java 21) |
+| 3 | Pass on memory: 768 frames of 224 px = 10 atlas pages of 2048², 160 MiB video memory. Exploiting the 6-fold symmetry (128 frames) would cost ~27 MiB. Smoothness: user check pending |
+| 4 | Pass (automated): intro once then loop, sample-identical across two seams (headless test). Listening: user check pending |
+| 5 | Pass: 64 OpenAL sources, bursts of 32 and 16,175 plays without a failure. Latency: user check pending |
+| 6 | Manual: keyboard and gdx-controllers wired with hot-plug logging; gamepad test pending |
+| 7 | Pass: replay hash `e17610307e1c81f0` identical on Linux, Windows and macOS in CI (also on Java 25 locally) |
+| 8 | Pass: Construo cross-builds all four bundles on Linux in ~25 s, 112–116 MB zipped (the atlas is 64 MB of it); Linux bundle runs with its own runtime. Clean-machine test pending |
+| 9 | Pending: user review |
+| 10 | Pass: Alt+Enter / F11 switch a 1920×1080 window ↔ borderless full screen 3840×2160 at runtime; simulation, audio and textures continue; 2–4 slow frames (33–67 ms) per switch. Key check by the user pending |
+
+Lessons for the real project: `StrictMath.sin` allocates on Java 21 (use a lookup table filled
+from it); Construo needs a fat jar; gdx-tools pulls in the LWJGL 2 backend (keep it in a tools
+module); the LWJGL3 audio buffer size is in bytes; `AudioDevice` and sound effects share one
+non-thread-safe source pool; `Sound.play` allocates.
 
 ## Implementation
 
 - [x] Desk research on libGDX (versions, Java 25, Maven, macOS, packaging, audio, input)
-- [ ] Spike built, gates 1–9 measured and reported here
+- [ ] Spike built, gates 1–10 measured and reported here (automated parts done; gate 9 and the manual checks pending)
 - [ ] Decision approved by the user
 - [ ] Project skeleton: Gradle multi-project layout, CI workflow, coding conventions
 
