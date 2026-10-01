@@ -350,6 +350,23 @@ Concept [round 08](../concept-rounds/round-08/README.md) — Earth open ocean (L
 | [concept/scene-ocean-r08-a.png](concept/scene-ocean-r08-a.png) | Open ocean (L11) — convoy holding station on an overcast sea, wakes and foam in the surface, surfaced and submerged Driftjellies, Reef Spitter rafts, a dark shape below, sea mist (sheet + layer breakdown) | proposed — deferred: finish the scene first (round 09) |
 | [concept/scene-ocean-r08-a.gif](concept/scene-ocean-r08-a.gif) | Open ocean: seamless scroll loop | proposed — deferred: finish the scene first (round 09) |
 
+Concept [round 09](../concept-rounds/round-09/README.md) — Acts 1–2 scenes at medium atmosphere (storm peaks heavy), generator `tools/concept/scenes_r09.py`; explosions, generator `tools/concept/vfx_r09.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/scene-ocean-r09-a.png](concept/scene-ocean-r09-a.png) | Open ocean (L11), finished: broken-up wakes, streaky prop-wash, swell-colour depth, darker mist, larger shape under the waves (sheet) | proposed |
+| [concept/scene-ocean-r09-a.gif](concept/scene-ocean-r09-a.gif) | Open ocean (L11), finished: broken-up wakes, streaky prop-wash, swell-colour depth, darker mist, larger shape under the waves (motion) | proposed |
+| [concept/scene-storm-r09-a.png](concept/scene-storm-r09-a.png) | Ocean storm (L12), heavy peak: dark swell, torn whitecaps, wind streaks, rain, scud, a lightning flash (sheet) | proposed |
+| [concept/scene-storm-r09-a.gif](concept/scene-storm-r09-a.gif) | Ocean storm (L12), heavy peak: dark swell, torn whitecaps, wind streaks, rain, scud, a lightning flash (motion) | proposed |
+| [concept/scene-arctic-r09-a.png](concept/scene-arctic-r09-a.png) | Arctic floes (L13): open leads, teal submerged ice, waterline foam, Skimmers with V-wakes, the relay, thin fog (sheet) | proposed |
+| [concept/scene-arctic-r09-a.gif](concept/scene-arctic-r09-a.gif) | Arctic floes (L13): open leads, teal submerged ice, waterline foam, Skimmers with V-wakes, the relay, thin fog (motion) | proposed |
+| [concept/scene-geneva-r09-a.png](concept/scene-geneva-r09-a.png) | Geneva under the Vrell canopy (L14): old-town blocks, sodium lamps, lake, rotunda, roots and creep, canopy shadow, Hive Node (sheet) | proposed |
+| [concept/scene-geneva-r09-a.gif](concept/scene-geneva-r09-a.gif) | Geneva under the Vrell canopy (L14): old-town blocks, sodium lamps, lake, rotunda, roots and creep, canopy shadow, Hive Node (motion) | proposed |
+| [concept/scene-luna-farside-r09-a.png](concept/scene-luna-farside-r09-a.png) | Luna far side (L06): dark regolith lit by flares, dome lights, Vrell glow and the headlight; Mantis and Coilwyrm (sheet) | proposed |
+| [concept/scene-luna-farside-r09-a.gif](concept/scene-luna-farside-r09-a.gif) | Luna far side (L06): dark regolith lit by flares, dome lights, Vrell glow and the headlight; Mantis and Coilwyrm (motion) | proposed |
+| [concept/explosions-r09-a.png](concept/explosions-r09-a.png) | Explosions: size ladder 24–144 px, Vrell organic vs Ascendancy metal, water-surface and under-water, hit flash, shield hit and break (sheet) | proposed |
+| [concept/explosions-r09-a.gif](concept/explosions-r09-a.gif) | Explosions: size ladder 24–144 px, Vrell organic vs Ascendancy metal, water-surface and under-water, hit flash, shield hit and break (motion) | proposed |
+
 ## Implementation
 
 - [ ] Renderer draws the screen at 960×540 and scales by integer factors with letterboxing

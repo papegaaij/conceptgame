@@ -2,7 +2,7 @@
 title: Weapons
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 depends-on: [../generator, ../../systems/economy]
 updated: 2026-10-01
 ---
@@ -116,6 +116,13 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — player projectil
 |---|---|---|
 | [concept/projectiles-r08-a.png](concept/projectiles-r08-a.png) | All 13 projectile families: sprite, 3-frame muzzle flash, 4-frame impact, L1/L3/L5 patterns, missile plumes and trails (sheet) | chosen — beam needs an impact effect where it hits (round 09) |
 | [concept/projectiles-r08-a.gif](concept/projectiles-r08-a.gif) | The families firing in sequence from the Stormhawk with fitted pods (motion) | chosen — beam needs an impact effect where it hits (round 09) |
+
+Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools/concept/vfx_r09.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/beam-impact-r09-a.png](concept/beam-impact-r09-a.png) | Beam impact: the beam bores into the silhouette and ends in a contact flare with back-sparks, scorch and heat shimmer; off-screen when nothing is hit (sheet) | proposed |
+| [concept/beam-impact-r09-a.gif](concept/beam-impact-r09-a.gif) | Beam impact: the beam bores into the silhouette and ends in a contact flare with back-sparks, scorch and heat shimmer; off-screen when nothing is hit (motion) | proposed |
 
 ## Implementation
 

@@ -2,7 +2,7 @@
 title: Player
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 depends-on: [../systems, ../ui/hangar]
 updated: 2026-10-01
 ---
@@ -21,12 +21,12 @@ generator limits what can be fitted at the same time.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | draft | not-started | chosen |
-| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | draft | not-started | chosen |
+| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | draft | not-started | proposed |
 | [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | draft | not-started | none |
 | [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | draft | not-started | none |
 | [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | draft | not-started | none |
-| [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | draft | not-started | chosen |
-| [specials](specials/README.md) | Special abilities: airstrike, smart bomb, EMP, orbital lance, … | draft | not-started | none |
+| [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | draft | not-started | proposed |
+| [specials](specials/README.md) | Special abilities: airstrike, smart bomb, EMP, orbital lance, … | draft | not-started | proposed |
 | [systems](systems/README.md) | Engines and utility-bay modules: magnet, sensors, auto-repair, … | draft | not-started | none |
 
 ## Design
@@ -118,6 +118,15 @@ Used by enemies and weapons so numbers stay comparable:
 - Enemy bullets: small 5, medium 10, heavy 20. Collision 15–40 by enemy size.
 - Enemy HP: popcorn 5–10, medium 30–60, heavy 150–400, mini-boss ~1500, act boss 5 000–20 000.
 - Starter Pulse Cannon L1: about 20 DPS. A well-upgraded late-game loadout: about 250 DPS.
+
+## Concept art
+
+Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/concept/vfx_r09.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/pickups-r09-a.png](concept/pickups-r09-a.png) | The 8 pickups as small 3D models with pulsing outline and halo, rocking so they never read as needles; colour and greyscale bullet-confusion test (sheet) | proposed |
+| [concept/pickups-r09-a.gif](concept/pickups-r09-a.gif) | The 8 pickups as small 3D models with pulsing outline and halo, rocking so they never read as needles; colour and greyscale bullet-confusion test (motion) | proposed |
 
 ## Implementation
 

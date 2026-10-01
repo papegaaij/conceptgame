@@ -2,7 +2,7 @@
 title: Wingmen and drones
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 depends-on: [../weapons, ../../story]
 updated: 2026-10-01
 ---
@@ -142,6 +142,12 @@ Round 02 — see [round 02](../../concept-rounds/round-02/README.md). AI-generat
 |---|---|---|
 | [concept/rook-craft-r02-a.png](concept/rook-craft-r02-a.png) | Rook scheme A "Ember": dark slate hull, orange/yellow accents, warm engines — darker and warmer than the player | chosen |
 | [concept/rejected/rook-craft-r02-b.png](concept/rejected/rook-craft-r02-b.png) | Rook scheme B "Jade": pale lime hull, deep green panels, green engines — same brightness as the player, different hue | rejected — A preferred |
+
+Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools/concept/vfx_r09.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/rook-craft-r09-a.png](concept/rook-craft-r09-a.png) | Rook (Ember) 5 banking frames at 4×, 1× strip beside the Stormhawk with greyscale check, in-game view | proposed |
 
 ## Implementation
 

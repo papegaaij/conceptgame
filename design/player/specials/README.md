@@ -2,7 +2,7 @@
 title: Special abilities
 design: draft
 implementation: not-started
-art: none
+art: proposed
 depends-on: [../../campaign, ../../world]
 updated: 2026-10-01
 ---
@@ -92,6 +92,15 @@ bonus. "Boss part" = any hittable part of a mid-boss or act boss.
 
 The special slot holds **one** special; there is no swap button. Specials are changed in the
 hangar.
+
+## Concept art
+
+Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools/concept/vfx_r09.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/specials-r09-a.png](concept/specials-r09-a.png) | Airstrike (CDF bombers, bomb carpet), Smart Bomb (flash, ring, bullets popping), Decoy Flares (homing shots retarget) (sheet) | proposed |
+| [concept/specials-r09-a.gif](concept/specials-r09-a.gif) | Airstrike (CDF bombers, bomb carpet), Smart Bomb (flash, ring, bullets popping), Decoy Flares (homing shots retarget) (motion) | proposed |
 
 ## Implementation
 

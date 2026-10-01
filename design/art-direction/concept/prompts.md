@@ -296,3 +296,102 @@ downsampled, limited palette, crisp pixels, 2D shoot'em up play field, no HUD.
 
 Negative prompt: photo, film grain, perspective horizon, sky, text, UI, cartoon outlines, flat
 vector art, drawn circle ripples, lens flare, modern photoreal water simulation, bloom haze.
+
+## Round 09 Earth scenes
+
+Generator: `tools/concept/scenes_r09.py` (`python3 tools/concept/scenes_r09.py [ocean] [storm]
+[arctic] [geneva] [luna-farside] [--sheet]`). It subclasses `tools/concept/scenes_r08.py` (scene
+code, water helpers, models in `tools/concept/render/r08_models.py`). Round 09 finishes the
+deferred r08 ocean (broken Kelvin wakes and churned prop-wash that flow with the water instead of
+hatching and dotted lines, depth in the sea colour, lighter mist and wisps) and renders the other
+four scenes for the first time. Each PNG is the play field at 1x plus the layer breakdown; each
+GIF is a seamless 4 s loop.
+
+Shared negative prompt (all five scenes): photo, film grain, perspective horizon, sky, text, UI,
+HUD, cartoon outlines, flat vector art, drawn circle ripples, regular stripe patterns, lens flare,
+modern photoreal simulation, bloom haze, depth of field, magenta or bright orange in the
+background (reserved for enemy bullets).
+
+### scene-ocean-r09-a
+
+Prompt: top-down view of an overcast North Atlantic seen from a low-flying aircraft, slate
+grey-blue ocean with long swell, wind chop and broad darker and paler swaths, sparse small
+whitecaps, a UTC convoy of two container ships (one burning, a smoke column leaning with the
+wind) and a grey escort frigate steaming up the frame, faint broken V-shaped Kelvin wakes and
+long streaky churned white prop-wash trailing down and breaking up, broken foam collars along
+the hulls, glossy olive jellyfish organisms at and just below the surface with tentacles visible
+through the water, floating kelp rafts with barnacle guns, a vast dark many-armed shape gliding
+deep under the waves, a few thin grey sea-mist banks, late-1990s pre-rendered CGI game
+background, 3D rendered and downsampled, limited palette, crisp pixels, 2D shoot'em up play
+field.
+
+### scene-storm-r09-a
+
+Prompt: top-down view of a storm-lashed night ocean, very dark heaving blue-black swell with lit
+crests, only the steepest crests breaking into small torn whitecaps, thin wind-streak foam lines,
+a square offshore fusion platform on four legs with red warning lights and waves breaking into
+churned foam round its legs, a grey patrol boat ploughing through the swell throwing bow spray
+with a streaky white wake, dark grey scud clouds racing sideways below the camera, slanting rain
+streaks, one branching lightning bolt lighting the sea and clouds, eel-like alien Lampreys and
+violet spinning seed creatures in the air, late-1990s pre-rendered CGI game background, 3D
+rendered and downsampled, limited palette, crisp pixels, 2D shoot'em up play field.
+
+### scene-arctic-r09-a
+
+Prompt: top-down view of Arctic pack ice, cracked blue-white ice floes with pressure ridges and
+soft snow texture on near-black water, two winding open leads of dark calm water through the
+pack, a pale teal glow of submerged ice shelves under the water round every floe, broken white
+foam at the waterlines, long cool shadows from a low sun at the top left, a polar relay station
+on an ice shelf with domes, a dish, radiators, a lattice mast, a landing pad and turrets, small
+rust-brown alien skimmer boats weaving along the leads with fine V-shaped wakes and spray, a
+spider-legged walker on the ice, thin grey fog banks and light snow flurries, the ice clearly
+darker than the player's white ship, late-1990s pre-rendered CGI game background, 3D rendered
+and downsampled, limited palette, crisp pixels, 2D shoot'em up play field.
+
+### scene-geneva-r09-a
+
+Prompt: top-down view of an old European lakeside capital at dusk under an alien canopy, a dark
+lake with slow wave bands and a tree-lined promenade along a curving shore, the Jet d'Eau
+fountain plume blown downwind, an irregular old town of hip-roofed buildings in slate,
+verdigris, terracotta and stone with courtyards and small squares, sparse sodium street lamps,
+a domed rotunda in a round plaza ringed by blue flags, thick dark alien roots with glowing teal
+seams running over the roofs and violet-black creep spreading from them, a pulsing alien hive
+node on a square, mottled shadow of a veined membrane canopy with pools of light, a thin violet
+spore haze and drifting teal spores, late-1990s pre-rendered CGI game background, 3D rendered
+and downsampled, limited palette, crisp pixels, 2D shoot'em up play field.
+
+### scene-luna-farside-r09-a
+
+Prompt: top-down view of the far side of the Moon in total darkness, near-black grey regolith
+with craters only visible where light falls, warm pools of light round mining domes and a rail
+track with lamp posts, two falling flares casting moving orange-white light pools, a glowing
+teal alien nest with branching luminous tendrils, the cool headlight cone of a blue-white
+interceptor lighting the ground ahead, pale insectoid Mantis fliers holding at both sides, a
+long rust-red segmented alien serpent swirling in a figure eight between crater rims, faint
+regolith plumes and tumbling ejected rocks, late-1990s pre-rendered CGI game background, 3D
+rendered and downsampled, limited palette, crisp pixels, 2D shoot'em up play field.
+
+
+## explosions-r09-a
+
+Round 09. Mockup generated by [tools/concept/vfx_r09.py](../../../tools/concept/vfx_r09.py) `python3 tools/concept/vfx_r09.py explosions`
+(`explosions-r09-a.png` sheet and `explosions-r09-a.gif`). Size ladder tiny 24 → huge 144 px
+(12–16 frames, shockwave ring from large up), Vrell organic (violet → teal-green fire, ichor
+drops, chitin shards) vs Ascendancy metal (hot orange, black smoke, gold plates, sparks), water
+surface hit and under-water burst, hit flash, player shield hit and shield break. The fireball
+generator is a round-09 copy of the round-08 one with two fixes (no debris on the flash frame,
+no magenta debris highlights); the under-water burst adds a silt cloud, a stronger flash and a
+pressure ring so it reads over the busy Europa scene.
+
+**Prompt:** sprite sheet of pre-rendered volumetric explosion sequences for a late-1990s CGI
+vertical shoot'em up, top-down, transparent background, frames left to right: a white flash
+growing into a billowing orange fireball with spinning debris chunks and sparks that cools into
+dark violet-grey smoke, five sizes from 24 to 144 pixels with a pale shockwave ring on the large
+ones; an alien variant with violet and teal-green fire, lime ichor droplets and violet chitin
+shards; a metal variant with black smoke and gold armour plates; a water-surface hit with a
+white spray column, foam and broken ripple rings; an under-water burst with a cyan flash and a
+rising bubble cloud; a white hit-flash silhouette; a hexagonal blue energy shield lighting up
+and shattering into shards; Raptor / Tyrian 2000 era render look.
+
+**Negative prompt:** photographic fire footage, flat cartoon explosions, magenta or pink debris
+(reserved for enemy bullets), smoke that hides the whole screen, text, watermark.

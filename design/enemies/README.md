@@ -2,7 +2,7 @@
 title: Enemies
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 updated: 2026-10-01
 ---
 
@@ -394,6 +394,12 @@ Concept [round 06](../concept-rounds/round-06/README.md) — lineup of the round
 | File | What | Status |
 |---|---|---|
 | [concept/lineup-r06-a.png](concept/lineup-r06-a.png) | The 11 round-06 units at 1× next to the player, Skitter, Scuttler and Ravager; Threadcrawler chain and assembled Halo Platform below | chosen |
+
+Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/concept/vfx_r09.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/enemy-bullets-r09-a.png](concept/enemy-bullets-r09-a.png) | Enemy bullet set: 9 types in Vrell and Ascendancy colours with a readability test over the chosen scenes | proposed |
 
 ## Implementation
 

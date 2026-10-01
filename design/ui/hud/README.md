@@ -2,7 +2,7 @@
 title: HUD
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
 updated: 2026-10-01
 ---
@@ -99,6 +99,12 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — HUD A refresh (m
 | File | What | Status |
 |---|---|---|
 | [concept/hud-r08-a.png](concept/hud-r08-a.png) | HUD A refresh — L11 Kraken fight: Rook's radio portrait and subtitle queue, overdrive timer, escort box, boss bar with weak point, edge warning | chosen |
+
+Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools/concept/vfx_r09.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/edge-warnings-r09-a.png](concept/edge-warnings-r09-a.png) | Edge warnings (side and rear) with flash cycle, sensor threat arrows, wave and boss banners, close-ups and 1× play-field panels | proposed |
 
 ## Implementation
 
