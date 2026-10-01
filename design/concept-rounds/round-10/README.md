@@ -1,8 +1,8 @@
 ---
 title: Concept round 10 — Geneva, storm and ocean revisions
-design: review
+design: approved
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -19,10 +19,11 @@ frames 0.2 s apart, scroll compensated): storm −48 %, ocean −26 % compared w
 
 | # | Choice | Variants | Part | Outcome |
 |---|---|---|---|---|
-| 1 | Geneva (L14) | Rebuilt as a city: streets, row-house blocks, lake and Jet d'Eau, cathedral, rotunda, overgrowth on top | [art-direction](../../art-direction/README.md) | open |
-| 2 | Storm (L12) | Calmer and smoother, 25 fps, one lightning flash | [art-direction](../../art-direction/README.md) | open |
-| 3 | Ocean (L11) | Calmer and smoother, 25 fps | [art-direction](../../art-direction/README.md) | open |
+| 1 | Geneva (L14) | Rebuilt as a city: streets, row-house blocks, lake and Jet d'Eau, cathedral, rotunda, overgrowth on top | [art-direction](../../art-direction/README.md) | chosen |
+| 2 | Storm (L12) | Calmer and smoother, 25 fps, one lightning flash | [art-direction](../../art-direction/README.md) | chosen |
+| 3 | Ocean (L11) | Calmer and smoother, 25 fps | [art-direction](../../art-direction/README.md) | chosen |
 
 ## Decisions
 
 - 2026-10-01: Round opened.
+- 2026-10-01: All three chosen. Round closed.

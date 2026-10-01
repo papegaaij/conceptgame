@@ -2,7 +2,7 @@
 title: Concept rounds
 design: review
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-09-30
 ---
 
@@ -28,7 +28,7 @@ they belong to; a round only collects them.
 | [round-07](round-07/README.md) | Europa under water, Harbour Kraken, Halo Platform rotation, Driftjelly waterline, hangar in glass style | approved | n/a | chosen |
 | [round-08](round-08/README.md) | Acts 1–2 completion: Earth scenes, combat effects, remaining UI screens, portraits, re-renders, music cues, SFX | approved | n/a | chosen |
 | [round-09](round-09/README.md) | Remaining Acts 1–2 scenes and combat effects, beam impact | approved | n/a | chosen |
-| [round-10](round-10/README.md) | Geneva redo, calmer and smoother storm and ocean | review | n/a | proposed |
+| [round-10](round-10/README.md) | Geneva redo, calmer and smoother storm and ocean | approved | n/a | chosen |
 
 ## Design
 
@@ -58,4 +58,4 @@ How a round works:
 | 07 | 2026-10-01 | closed | Water, rotation and hangar fixes |
 | 08 | 2026-10-01 | closed | Acts 1–2 completion |
 | 09 | 2026-10-01 | closed | Remaining Acts 1–2 scenes and effects |
-| 10 | 2026-10-01 | open | Geneva, storm and ocean revisions |
+| 10 | 2026-10-01 | closed | Geneva, storm and ocean revisions |

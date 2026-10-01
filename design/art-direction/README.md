@@ -2,7 +2,7 @@
 title: Art direction
 design: draft
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -361,14 +361,14 @@ Concept [round 09](../concept-rounds/round-09/README.md) — Acts 1–2 scenes a
 
 | File | What | Status |
 |---|---|---|
-| [concept/scene-ocean-r09-a.png](concept/scene-ocean-r09-a.png) | Open ocean (L11), finished: broken-up wakes, streaky prop-wash, swell-colour depth, darker mist, larger shape under the waves (sheet) | proposed — revise: a bit too busy; calmer and smoother (round 10) |
-| [concept/scene-ocean-r09-a.gif](concept/scene-ocean-r09-a.gif) | Open ocean (L11), finished: broken-up wakes, streaky prop-wash, swell-colour depth, darker mist, larger shape under the waves (motion) | proposed — revise: a bit too busy; calmer and smoother (round 10) |
-| [concept/scene-storm-r09-a.png](concept/scene-storm-r09-a.png) | Ocean storm (L12), heavy peak: dark swell, torn whitecaps, wind streaks, rain, scud, a lightning flash (sheet) | proposed — revise: too much moving at once, hard on the eyes; calmer and smoother (round 10) |
-| [concept/scene-storm-r09-a.gif](concept/scene-storm-r09-a.gif) | Ocean storm (L12), heavy peak: dark swell, torn whitecaps, wind streaks, rain, scud, a lightning flash (motion) | proposed — revise: too much moving at once, hard on the eyes; calmer and smoother (round 10) |
+| [concept/scene-ocean-r09-a.png](concept/scene-ocean-r09-a.png) | Open ocean (L11), finished: broken-up wakes, streaky prop-wash, swell-colour depth, darker mist, larger shape under the waves (sheet) | superseded by r10 |
+| [concept/scene-ocean-r09-a.gif](concept/scene-ocean-r09-a.gif) | Open ocean (L11), finished: broken-up wakes, streaky prop-wash, swell-colour depth, darker mist, larger shape under the waves (motion) | superseded by r10 |
+| [concept/scene-storm-r09-a.png](concept/scene-storm-r09-a.png) | Ocean storm (L12), heavy peak: dark swell, torn whitecaps, wind streaks, rain, scud, a lightning flash (sheet) | superseded by r10 |
+| [concept/scene-storm-r09-a.gif](concept/scene-storm-r09-a.gif) | Ocean storm (L12), heavy peak: dark swell, torn whitecaps, wind streaks, rain, scud, a lightning flash (motion) | superseded by r10 |
 | [concept/scene-arctic-r09-a.png](concept/scene-arctic-r09-a.png) | Arctic floes (L13): open leads, teal submerged ice, waterline foam, Skimmers with V-wakes, the relay, thin fog (sheet) | chosen |
 | [concept/scene-arctic-r09-a.gif](concept/scene-arctic-r09-a.gif) | Arctic floes (L13): open leads, teal submerged ice, waterline foam, Skimmers with V-wakes, the relay, thin fog (motion) | chosen |
-| [concept/scene-geneva-r09-a.png](concept/scene-geneva-r09-a.png) | Geneva under the Vrell canopy (L14): old-town blocks, sodium lamps, lake, rotunda, roots and creep, canopy shadow, Hive Node (sheet) | proposed — redo: not recognisable as a city; buildings don't read (round 10) |
-| [concept/scene-geneva-r09-a.gif](concept/scene-geneva-r09-a.gif) | Geneva under the Vrell canopy (L14): old-town blocks, sodium lamps, lake, rotunda, roots and creep, canopy shadow, Hive Node (motion) | proposed — redo: not recognisable as a city; buildings don't read (round 10) |
+| [concept/scene-geneva-r09-a.png](concept/scene-geneva-r09-a.png) | Geneva under the Vrell canopy (L14): old-town blocks, sodium lamps, lake, rotunda, roots and creep, canopy shadow, Hive Node (sheet) | superseded by r10 |
+| [concept/scene-geneva-r09-a.gif](concept/scene-geneva-r09-a.gif) | Geneva under the Vrell canopy (L14): old-town blocks, sodium lamps, lake, rotunda, roots and creep, canopy shadow, Hive Node (motion) | superseded by r10 |
 | [concept/scene-luna-farside-r09-a.png](concept/scene-luna-farside-r09-a.png) | Luna far side (L06): dark regolith lit by flares, dome lights, Vrell glow and the headlight; Mantis and Coilwyrm (sheet) | chosen |
 | [concept/scene-luna-farside-r09-a.gif](concept/scene-luna-farside-r09-a.gif) | Luna far side (L06): dark regolith lit by flares, dome lights, Vrell glow and the headlight; Mantis and Coilwyrm (motion) | chosen |
 | [concept/explosions-r09-a.png](concept/explosions-r09-a.png) | Explosions: size ladder 24–144 px, Vrell organic vs Ascendancy metal, water-surface and under-water, hit flash, shield hit and break (sheet) | chosen |
@@ -378,12 +378,12 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 
 | File | What | Status |
 |---|---|---|
-| [concept/scene-geneva-r10-a.png](concept/scene-geneva-r10-a.png) | Geneva (L14) rebuilt as a city from above: street network with lamps and traffic, perimeter blocks of row houses with ridged roofs, lake with the Jet d'Eau, Rhône bridges, Saint-Pierre, the rotunda, parks; Vrell overgrowth layered on top (sheet) | proposed |
-| [concept/scene-geneva-r10-a.gif](concept/scene-geneva-r10-a.gif) | Geneva: seamless loop | proposed |
-| [concept/scene-storm-r10-a.png](concept/scene-storm-r10-a.png) | Storm (L12) within the motion budget: sea and rain as the only strong motion, slower scroll and swell, faint motion-blurred rain, swaying scud, one lightning flash; 25 fps (sheet) | proposed |
-| [concept/scene-storm-r10-a.gif](concept/scene-storm-r10-a.gif) | Storm: seamless loop | proposed |
-| [concept/scene-ocean-r10-a.png](concept/scene-ocean-r10-a.png) | Ocean (L11) within the motion budget: sea and wakes as the strong motion, slower swell, lower contrast, fainter whitecaps and wisps; 25 fps (sheet) | proposed |
-| [concept/scene-ocean-r10-a.gif](concept/scene-ocean-r10-a.gif) | Ocean: seamless loop | proposed |
+| [concept/scene-geneva-r10-a.png](concept/scene-geneva-r10-a.png) | Geneva (L14) rebuilt as a city from above: street network with lamps and traffic, perimeter blocks of row houses with ridged roofs, lake with the Jet d'Eau, Rhône bridges, Saint-Pierre, the rotunda, parks; Vrell overgrowth layered on top (sheet) | chosen |
+| [concept/scene-geneva-r10-a.gif](concept/scene-geneva-r10-a.gif) | Geneva: seamless loop | chosen |
+| [concept/scene-storm-r10-a.png](concept/scene-storm-r10-a.png) | Storm (L12) within the motion budget: sea and rain as the only strong motion, slower scroll and swell, faint motion-blurred rain, swaying scud, one lightning flash; 25 fps (sheet) | chosen |
+| [concept/scene-storm-r10-a.gif](concept/scene-storm-r10-a.gif) | Storm: seamless loop | chosen |
+| [concept/scene-ocean-r10-a.png](concept/scene-ocean-r10-a.png) | Ocean (L11) within the motion budget: sea and wakes as the strong motion, slower swell, lower contrast, fainter whitecaps and wisps; 25 fps (sheet) | chosen |
+| [concept/scene-ocean-r10-a.gif](concept/scene-ocean-r10-a.gif) | Ocean: seamless loop | chosen |
 
 ## Implementation
 
@@ -431,3 +431,4 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - 2026-10-01: Scaling: integer scaling with letterboxing by default, sharp-bilinear as an option. Banking: 5 frames for the player ship and wingman. Fitted wing pods are drawn on the ship sprite. Layer hit rules settled in [enemies](../enemies/README.md#layer-rules).
 - 2026-10-01: Concept round 08: open-ocean scene deferred — it must be finished first (round 09, with the other Earth scenes).
 - 2026-10-01: Concept round 09: arctic and Luna far side scenes and the explosions chosen; Geneva to be redone (not recognisable as a city); storm and ocean to be calmed and smoothed. New rule: motion budget for scene animation.
+- 2026-10-01: Concept round 10: Geneva, storm and ocean revisions chosen ("much better now").
