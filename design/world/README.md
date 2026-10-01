@@ -1,6 +1,6 @@
 ---
 title: World
-design: review
+design: approved
 implementation: n/a
 art: chosen
 updated: 2026-10-01
@@ -18,9 +18,9 @@ levels of its act build on. Levels reference a setting; they do not redefine it.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [earth-orbit](earth-orbit/README.md) | Shipyards, orbital defence platforms and debris above a blue Earth | review | n/a | chosen |
-| [luna](luna/README.md) | Grey craters, Shackleton Station and mass-driver tracks | review | n/a | chosen |
-| [earth](earth/README.md) | Megacities, open ocean and arctic on Earth's surface | review | n/a | chosen |
+| [earth-orbit](earth-orbit/README.md) | Shipyards, orbital defence platforms and debris above a blue Earth | approved | n/a | chosen |
+| [luna](luna/README.md) | Grey craters, Shackleton Station and mass-driver tracks | approved | n/a | chosen |
+| [earth](earth/README.md) | Megacities, open ocean and arctic on Earth's surface | approved | n/a | chosen |
 | [mars](mars/README.md) | Red canyons, dust storms, terraforming domes, Olympus Mons | draft | n/a | chosen |
 | [europa](europa/README.md) | Cracked ice surface and the dark ocean beneath it | draft | n/a | chosen |
 | [belt](belt/README.md) | Asteroid fields and hollowed-out mining stations | draft | n/a | chosen |
@@ -69,3 +69,4 @@ Every setting README has these sections under **Design**:
 ## Decisions
 
 - 2026-09-30: Eight settings; fixed directory names; section template for setting documents.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).

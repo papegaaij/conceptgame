@@ -1,6 +1,6 @@
 ---
 title: Wingmen and drones
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../weapons, ../../story]
@@ -176,3 +176,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-10-01: The separate escort slot for Rook is confirmed by the user. Rook's craft uses 5 banking frames like the player.
 - 2026-10-01: Rook's AI specified (formations, reactions, targeting, guns derived from player weapons, eject/return, radio bark triggers); Warden heavy drone specified.
 - 2026-10-01: Concept round 09: Rook's 5 banking frames chosen.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

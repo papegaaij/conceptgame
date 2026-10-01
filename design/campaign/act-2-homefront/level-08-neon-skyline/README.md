@@ -1,6 +1,6 @@
 ---
 title: Level 08 – Neon Skyline
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../player/wingmen, ../../../enemies/ground/creeper]
@@ -205,3 +205,4 @@ end of the atmosphere range; this level runs mostly `clear` to `medium`).
 - 2026-10-01: Promoted from the Act 2 roster to a draft level document.
 - 2026-10-01: Rook joins as the player's wingman in the escort slot at L08 (user decision).
 - 2026-10-01: Radio chatter is text plus radio blips only, no voice acting (user decision).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

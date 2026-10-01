@@ -1,9 +1,9 @@
 ---
 title: The Vrell
-design: review
+design: approved
 implementation: n/a
 art: none
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # The Vrell
@@ -71,3 +71,4 @@ Enemy types themselves are defined in [enemies](../../../enemies/README.md).
 
 - 2026-09-30: Vrell as biomechanical hive; weak points always glow brightest; teal/violet
   bullets.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

@@ -1,6 +1,6 @@
 ---
 title: Level 10 – Evacuation Corridor
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/wraith, ../../../enemies/air/mote-swarm, ../../../player/wingmen]
@@ -230,3 +230,4 @@ sprite has no concept yet (see [allies](../../../allies/README.md)).
 - 2026-10-01: One scripted shuttle loss for the story; every other loss depends on the player,
   and losing all of them fails the mission (user decision).
 - 2026-10-01: Open question resolved: friendly units got their own part, [allies](../../../allies/README.md); the shuttle spec moved there. Sprites come in a later concept round.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

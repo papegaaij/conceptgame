@@ -1,6 +1,6 @@
 ---
 title: Harbour Kraken
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
@@ -83,3 +83,4 @@ Chosen concept: [harbour-kraken-r07-a.png](../concept/harbour-kraken-r07-a.png),
 - 2026-10-01: Promoted from the bosses roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: HP rescaled to the lowered L11 reference DPS (×70/100): head 2 900 → 2 000, slam arms 500 → 350, total 3 900 → 2 700; duration ≈ 64 s (was ≈ 65 s). Bounty unchanged.
 - 2026-10-01: Lane choice (alternate the player's lane and the nearest ship's lane) and ship damage (a ship sinks on its second slam) moved here from the L11 level doc.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

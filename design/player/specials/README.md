@@ -1,6 +1,6 @@
 ---
 title: Special abilities
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../campaign, ../../world]
@@ -125,3 +125,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-10-01: Airstrike, Smart Bomb and Decoy Flares specified in full for Acts 1–2 (timing, area, damage caps, boss rules, invulnerability, repeat delay).
 - 2026-10-01: Concept round 09: specials chosen.
 - 2026-10-01: Free first Airstrike charge (user decision): 1 charge is granted when the Airstrike unlocks before L04. The balance plan in `balance-data.json` now buys 1 charge at L04 instead of 2 (same 2 charges carried).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

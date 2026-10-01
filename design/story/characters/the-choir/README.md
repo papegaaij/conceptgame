@@ -1,6 +1,6 @@
 ---
 title: The Choir
-design: review
+design: approved
 implementation: n/a
 art: chosen
 updated: 2026-10-01
@@ -61,3 +61,4 @@ Concept [round 08](../../../concept-rounds/round-08/README.md) — style-B portr
 - 2026-09-30: The Choir as a faceless, evolving voice; frightened in Act 7.
 - 2026-10-01: Concept round 08: portraits accepted.
 - 2026-10-01: Choir in Acts 1–2 confirmed by the user: it only sings ("[the Choir sings]") and Varga interprets it; the Choir, story and act documents agree.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

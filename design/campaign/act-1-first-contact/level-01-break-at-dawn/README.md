@@ -1,6 +1,6 @@
 ---
 title: Level 01 – Break at Dawn
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/skitter, ../../../enemies/air/needler]
@@ -205,3 +205,4 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
   types (armour patch, small salvage, hidden crate) with the same credit total; music is track 5
   "Coalition Rising"; enemy links point at the unit specs; `art: chosen` (scene and enemies are
   chosen).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

@@ -1,6 +1,6 @@
 ---
 title: Act 2 – Homefront
-design: review
+design: approved
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -19,13 +19,13 @@ Siege Spire, a Vrell citadel that has rooted itself in the heart of the UTC capi
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [level-08-neon-skyline](level-08-neon-skyline/README.md) | Night megacity, Rook joins as wingman, Creeper intro · front · density 3 | review | not-started | chosen |
-| [level-09-arcology-fall](level-09-arcology-fall/README.md) | destroy-targets`: six hardened hive nodes, Ravager packs, the arcology collapse · front · density 3 | review | not-started | chosen |
-| [level-10-evacuation-corridor](level-10-evacuation-corridor/README.md) | escort` of five shuttles, first rear-heavy level (Wraith, Mote Swarm), one scripted loss · rear 42% · density 3 | review | not-started | chosen |
-| [level-11-atlantic-convoy](level-11-atlantic-convoy/README.md) | Naval layer (Driftjelly, Reef Spitter), `sub` shadows, mid-boss Harbour Kraken · front · density 3 | review | not-started | chosen |
-| [level-12-storm-front](level-12-storm-front/README.md) | Weather (rain, lightning, gusts), Lamprey intro, Varga sees the Vrell herd the storm · all · density 4 | review | not-started | chosen |
-| [level-13-polar-relay](level-13-polar-relay/README.md) | defend` the Arctic relay for 180 s, Skimmer intro, whiteout · all edges · density 4 | review | not-started | chosen |
-| [level-14-siege-spire](level-14-siege-spire/README.md) | Geneva Concord approach through the root field, act boss Siege Spire · front · density 4 | review | not-started | chosen |
+| [level-08-neon-skyline](level-08-neon-skyline/README.md) | Night megacity, Rook joins as wingman, Creeper intro · front · density 3 | approved | not-started | chosen |
+| [level-09-arcology-fall](level-09-arcology-fall/README.md) | destroy-targets`: six hardened hive nodes, Ravager packs, the arcology collapse · front · density 3 | approved | not-started | chosen |
+| [level-10-evacuation-corridor](level-10-evacuation-corridor/README.md) | escort` of five shuttles, first rear-heavy level (Wraith, Mote Swarm), one scripted loss · rear 42% · density 3 | approved | not-started | chosen |
+| [level-11-atlantic-convoy](level-11-atlantic-convoy/README.md) | Naval layer (Driftjelly, Reef Spitter), `sub` shadows, mid-boss Harbour Kraken · front · density 3 | approved | not-started | chosen |
+| [level-12-storm-front](level-12-storm-front/README.md) | Weather (rain, lightning, gusts), Lamprey intro, Varga sees the Vrell herd the storm · all · density 4 | approved | not-started | chosen |
+| [level-13-polar-relay](level-13-polar-relay/README.md) | defend` the Arctic relay for 180 s, Skimmer intro, whiteout · all edges · density 4 | approved | not-started | chosen |
+| [level-14-siege-spire](level-14-siege-spire/README.md) | Geneva Concord approach through the root field, act boss Siege Spire · front · density 4 | approved | not-started | chosen |
 
 ## Design
 
@@ -156,3 +156,4 @@ fanfare.
 - 2026-10-01: Music: L12 uses "Firestorm"; the promised storm variant is dropped (user decision).
 - 2026-10-01: Choir in Acts 1–2 confirmed by the user: it only sings ("[the Choir sings]") and Varga interprets it; the Choir, story and act documents agree.
 - 2026-10-01: Art status set to `chosen`: every level of the act uses chosen concept art.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

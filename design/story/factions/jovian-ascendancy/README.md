@@ -1,9 +1,9 @@
 ---
 title: The Jovian Ascendancy
-design: review
+design: approved
 implementation: n/a
 art: none
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # The Jovian Ascendancy
@@ -60,3 +60,4 @@ see [twist](../../twist/README.md)).
 
 - 2026-09-30: Ascendancy visual language: angular stealth, black and gold, red-orange engines;
   Act 6 hybrids with Vrell growths.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

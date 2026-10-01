@@ -1,6 +1,6 @@
 ---
 title: Design reviews
-design: review
+design: approved
 implementation: n/a
 art: n/a
 updated: 2026-10-01
@@ -17,8 +17,9 @@ Formal approval rounds for sets of design documents, separate from the
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [acts-1-2](acts-1-2/README.md) | Final approval of the Acts 1–2 design (levels 01–14) | review | n/a | n/a |
+| [acts-1-2](acts-1-2/README.md) | Final approval of the Acts 1–2 design (levels 01–14) | approved | n/a | n/a |
 
 ## Decisions
 
 - 2026-10-01: Reviews section created for the Acts 1–2 approval.
+- 2026-10-01: Acts 1–2 review closed — all groups approved.

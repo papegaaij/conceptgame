@@ -1,6 +1,6 @@
 ---
 title: Characters
-design: review
+design: approved
 implementation: n/a
 art: chosen
 updated: 2026-10-01
@@ -17,12 +17,12 @@ purpose: six voices, each instantly recognisable by portrait and speech style.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [lancer](lancer/README.md) | The player: silent CDF pilot of the AF-12 Stormhawk | review | n/a | n/a |
-| [okafor](okafor/README.md) | Commander Adaeze Okafor, Aegis Wing CO, gives the briefings | review | n/a | chosen |
-| [rook](rook/README.md) | Lt. Kenji "Rook" Tanaka, the AI wingman, banter and warnings | review | n/a | chosen |
-| [varga](varga/README.md) | Dr. Elena Varga, intel officer and xenobiologist, hangar intel | review | n/a | chosen |
-| [vorne](vorne/README.md) | Chairman Silas Vorne, leader of the Ascendancy, the villain | review | n/a | chosen |
-| [the-choir](the-choir/README.md) | The collective voice of the Vrell | review | n/a | chosen |
+| [lancer](lancer/README.md) | The player: silent CDF pilot of the AF-12 Stormhawk | approved | n/a | n/a |
+| [okafor](okafor/README.md) | Commander Adaeze Okafor, Aegis Wing CO, gives the briefings | approved | n/a | chosen |
+| [rook](rook/README.md) | Lt. Kenji "Rook" Tanaka, the AI wingman, banter and warnings | approved | n/a | chosen |
+| [varga](varga/README.md) | Dr. Elena Varga, intel officer and xenobiologist, hangar intel | approved | n/a | chosen |
+| [vorne](vorne/README.md) | Chairman Silas Vorne, leader of the Ascendancy, the villain | approved | n/a | chosen |
+| [the-choir](the-choir/README.md) | The collective voice of the Vrell | approved | n/a | chosen |
 
 ## Design
 
@@ -73,3 +73,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — generic speakers
 - 2026-09-30: Concept round 03: portrait style **B** chosen for the whole cast, with a small bit more colour retained so it looks less flat.
 - 2026-09-30: Concept round 04: style-B portraits with retained colour chosen for the whole cast.
 - 2026-10-01: Concept round 08: portraits accepted.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

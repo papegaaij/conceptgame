@@ -1,6 +1,6 @@
 ---
 title: Pause menu
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../systems/retry]
@@ -44,3 +44,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 - 2026-09-30: Restart and abort from the pause menu follow the retry rules.
 - 2026-10-01: Concept round 08: accepted.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

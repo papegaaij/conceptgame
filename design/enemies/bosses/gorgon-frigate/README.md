@@ -1,6 +1,6 @@
 ---
 title: Gorgon Frigate
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
@@ -73,3 +73,4 @@ Chosen concept: [gorgon-frigate-r06-a.png](../concept/gorgon-frigate-r06-a.png),
 
 - 2026-10-01: Promoted from the bosses roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: Arena set to the nest crater on Luna (L05), replacing the Earth–Moon convoy lane.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

@@ -1,10 +1,10 @@
 ---
 title: Shields
-design: review
+design: approved
 implementation: not-started
 art: none
 depends-on: [../generator, ../armor, ../../systems/retry]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Shields
@@ -47,3 +47,4 @@ Rules:
 ## Decisions
 
 - 2026-09-30: Shield regenerates, armour does not (user decision).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

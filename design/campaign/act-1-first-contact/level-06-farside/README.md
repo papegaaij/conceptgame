@@ -1,6 +1,6 @@
 ---
 title: Level 06 – Farside
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/mantis, ../../../enemies/air/coilwyrm, ../../../world/luna]
@@ -233,3 +233,4 @@ killing the head first pays less but scores a time bonus.
   secret. The settlement's emptiness is shown, not told: open airlocks, lights on, an automated
   beacon, and one line from Varga.
 - 2026-10-01: Open question resolved: the data core unlocks the Targeting computer one act early, from the L07 hangar visit (table in economy).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

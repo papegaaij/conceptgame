@@ -1,6 +1,6 @@
 ---
 title: Level 13 – Polar Relay
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/naval/skimmer, ../../../enemies/ground/scuttler]
@@ -222,3 +222,4 @@ relay and Skimmers. The whiteout peak has no concept yet.
 - 2026-10-01: Primary `defend`: the relay destroyed means mission failed; failing the secondary
   objective only loses its bonus (user decision).
 - 2026-10-01: The relay's spec moved to [allies](../../../allies/README.md#nansen-relay). Open question resolved: the per-unit relay-targeting overrides are replaced by the general target-the-objective hook in the enemies README, configured here as a small table.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

@@ -1,6 +1,6 @@
 ---
 title: Debrief screen
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../systems/scoring, ../../systems/economy]
@@ -67,3 +67,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 - 2026-09-30: Grade and bonuses as defined in [scoring](../../systems/scoring/README.md).
 - 2026-10-01: Concept round 08: accepted.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

@@ -1,6 +1,6 @@
 ---
 title: Level 03 – Spore Drift
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/spore-bomber, ../../../enemies/air/whirl-seed, ../../../enemies/space/leviathan]
@@ -224,3 +224,4 @@ tolerance.
   the scroll slowed and no other waves. Secondary objective chosen to frame the spores as a
   threat to Earth (a hook for the Act 2 landings). Hammer flight is announced here, so the
   Airstrike is in the shop before L04.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

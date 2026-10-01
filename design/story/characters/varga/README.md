@@ -1,9 +1,9 @@
 ---
 title: Dr. Elena Varga
-design: review
+design: approved
 implementation: n/a
 art: chosen
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Dr. Elena Varga
@@ -66,3 +66,4 @@ procedural faces only show the style (framing, lighting, colour treatment, frame
 - 2026-09-30: Varga voices hangar intel; former Helix researcher.
 - 2026-09-30: Concept round 03: portrait style **B** (comm-screen pixel portrait) chosen, with a bit more colour retained so it looks less flat.
 - 2026-09-30: Concept round 04: style-B portrait with retained colour chosen.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

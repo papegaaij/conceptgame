@@ -1,6 +1,6 @@
 ---
 title: Level 11 – Atlantic Convoy
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/bosses/harbour-kraken, ../../../enemies/naval/driftjelly, ../../../enemies/naval/reef-spitter]
@@ -229,3 +229,4 @@ sprite concept yet.
   a sunk ship loses its bonus but never fails the mission.
 - 2026-10-01: Open question resolved: the Kraken's lane-choice and ship-damage rules moved into the Harbour Kraken spec; the arena notes link to it.
 - 2026-10-01: The cargo ship and frigate specs moved to [allies](../../../allies/README.md).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

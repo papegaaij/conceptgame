@@ -1,10 +1,10 @@
 ---
 title: Armour
-design: review
+design: approved
 implementation: not-started
 art: none
 depends-on: [../shields, ../../systems/retry, ../../systems/difficulty]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Armour
@@ -43,3 +43,4 @@ auto-repair or armour patches). When it reaches zero the ship is destroyed and t
 
 - 2026-09-30: Plating has no downside besides price; the interesting trade-off is repair
   cost vs saving credits.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

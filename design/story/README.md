@@ -1,6 +1,6 @@
 ---
 title: Story
-design: review
+design: approved
 implementation: n/a
 art: chosen
 updated: 2026-10-01
@@ -20,8 +20,8 @@ opened it, trading humanity for alien biotech.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [factions](factions/README.md) | The three powers: Coalition, Vrell, Jovian Ascendancy | review | n/a | none |
-| [characters](characters/README.md) | Briefing and radio cast, including the player | review | n/a | chosen |
+| [factions](factions/README.md) | The three powers: Coalition, Vrell, Jovian Ascendancy | approved | n/a | none |
+| [characters](characters/README.md) | Briefing and radio cast, including the player | approved | n/a | chosen |
 | [twist](twist/README.md) | The mid-campaign twist: three variants to choose from | approved | n/a | n/a |
 
 ## Design
@@ -154,3 +154,4 @@ this sample only sets the voice.
   L27–L29; Vorne's broadcast opens Act 5.
 - 2026-10-01: Twist variant A confirmed (concept round 01). Voices: text with radio blips only, no voice acting for now.
 - 2026-10-01: Choir in Acts 1–2 confirmed by the user: it only sings ("[the Choir sings]") and Varga interprets it; the Choir, story and act documents agree.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).

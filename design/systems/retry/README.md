@@ -1,6 +1,6 @@
 ---
 title: Retry
-design: review
+design: approved
 implementation: not-started
 art: n/a
 depends-on: [../../player/armor, ../../player/shields, ../difficulty, ../saves]
@@ -69,3 +69,4 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 
 - 2026-09-30: Armour bar and level retry; credits of the failed attempt are lost (user decision).
 - 2026-10-01: Armour on retry: level-start value with a 50 % minimum. Game over only on hard after 3 retries.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

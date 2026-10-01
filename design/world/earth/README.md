@@ -1,6 +1,6 @@
 ---
 title: Earth
-design: review
+design: approved
 implementation: n/a
 art: chosen
 updated: 2026-10-01
@@ -91,3 +91,4 @@ The concept files live in [art-direction](../../art-direction/README.md).
 - 2026-09-30: City names Nova Lagos (megacity) and Geneva Concord (UTC capital) adopted from the campaign.
 - 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.
 - 2026-10-01: Chosen scenes linked for every sub-location: ocean (scene-ocean-r10-a), storm (scene-storm-r10-a), arctic (scene-arctic-r09-a) and Geneva (scene-geneva-r10-a), next to the megacity (parallax-r03-b).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

@@ -1,6 +1,6 @@
 ---
 title: User interface
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../art-direction, ../systems]
@@ -22,15 +22,15 @@ frames and chunky bitmap fonts.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | review | not-started | chosen |
-| [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | review | not-started | chosen |
-| [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | review | not-started | chosen |
-| [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | review | not-started | chosen |
-| [pause](pause/README.md) | Pause menu during a level | review | not-started | chosen |
-| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | review | not-started | chosen |
-| [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | review | not-started | n/a |
-| [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | review | not-started | chosen |
-| [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | review | not-started | chosen |
+| [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | approved | not-started | chosen |
+| [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | approved | not-started | chosen |
+| [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | approved | not-started | chosen |
+| [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | approved | not-started | chosen |
+| [pause](pause/README.md) | Pause menu during a level | approved | not-started | chosen |
+| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | not-started | chosen |
+| [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | approved | not-started | n/a |
+| [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | not-started | chosen |
+| [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | approved | not-started | chosen |
 
 ## Design
 
@@ -83,3 +83,4 @@ Concept [round 08](../concept-rounds/round-08/README.md) — the shared UI kit; 
 - 2026-09-30: Fonts were not scaled ×1.5 (that would give 12×12 / 12×24 / 24×24): body text uses 10×20 so the wider panels fit more text per line.
 - 2026-10-01: Concept round 06: out-of-game screens use the glass-over-scene style of main menu A; bevelled metal is reserved for the in-game HUD.
 - 2026-10-01: Concept round 08: accepted.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).

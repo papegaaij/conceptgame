@@ -1,10 +1,10 @@
 ---
 title: Game systems
-design: review
+design: approved
 implementation: not-started
 art: n/a
 depends-on: [../player]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Game systems
@@ -19,11 +19,11 @@ saved.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [economy](economy/README.md) | Credits: sources, sinks, pricing curve, sell-back, per-level budget | review | not-started | n/a |
-| [scoring](scoring/README.md) | Score (separate from credits), chain multiplier, level-end bonuses, grades | review | not-started | n/a |
-| [difficulty](difficulty/README.md) | What easy, medium and hard change | review | not-started | n/a |
-| [retry](retry/README.md) | Failure model: ship destroyed → retry the level | review | not-started | n/a |
-| [saves](saves/README.md) | Save slots, autosave, save contents | review | not-started | n/a |
+| [economy](economy/README.md) | Credits: sources, sinks, pricing curve, sell-back, per-level budget | approved | not-started | n/a |
+| [scoring](scoring/README.md) | Score (separate from credits), chain multiplier, level-end bonuses, grades | approved | not-started | n/a |
+| [difficulty](difficulty/README.md) | What easy, medium and hard change | approved | not-started | n/a |
+| [retry](retry/README.md) | Failure model: ship destroyed → retry the level | approved | not-started | n/a |
+| [saves](saves/README.md) | Save slots, autosave, save contents | approved | not-started | n/a |
 
 ## Design
 
@@ -46,3 +46,4 @@ Main menu ─► New game (difficulty) ─► Intro briefing
 
 - 2026-09-30: Loop order is briefing → hangar → level → debrief, so the story sets up the
   mission before the player equips for it.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).

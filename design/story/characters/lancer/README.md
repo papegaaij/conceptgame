@@ -1,9 +1,9 @@
 ---
 title: Lancer (the player)
-design: review
+design: approved
 implementation: n/a
 art: n/a
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Lancer
@@ -33,3 +33,4 @@ character.
 ## Decisions
 
 - 2026-09-30: Silent protagonist, callsign only, no portrait.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

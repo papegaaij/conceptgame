@@ -1,6 +1,6 @@
 ---
 title: Credits
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../CREDITS.md]
@@ -41,3 +41,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 
 - 2026-10-01: Screen added for the Acts 1–2 vertical slice (concept round 08).
 - 2026-10-01: Concept round 08: accepted.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

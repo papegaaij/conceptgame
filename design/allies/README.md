@@ -1,6 +1,6 @@
 ---
 title: Allies
-design: review
+design: approved
 implementation: not-started
 art: none
 depends-on: [../enemies, ../art-direction, ../ui/hud]
@@ -127,3 +127,4 @@ The Arctic grid relay, a friendly `defend` structure.
   documents: crawlers (L04), shuttles (L10), convoy cargo ships and frigate (L11), the Nansen
   Relay (L13), plus supply drones, the L07 lifeboat and the L02 drydocks as roster rows. Level
   documents now link here instead of repeating the specs.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).

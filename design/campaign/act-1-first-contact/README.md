@@ -1,6 +1,6 @@
 ---
 title: Act 1 – First Contact
-design: review
+design: approved
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -19,13 +19,13 @@ Brood Carrier at the Earth–Moon L1 point.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [level-01-break-at-dawn](level-01-break-at-dawn/README.md) | Vrell scouts hit the Gagarin shipyards at dawn; the tutorial level | review | not-started | chosen |
-| [level-02-shipyard-burning](level-02-shipyard-burning/README.md) | The yards burn; first ground targets (Spine Turret), the Stinger and Crane Four; save the drydocks for a bonus | review | not-started | chosen |
-| [level-03-spore-drift](level-03-spore-drift/README.md) | Spore Bombers in the high lanes, a debris field, and the Leviathan set piece with Whirl Seed clusters | review | not-started | chosen |
-| [level-04-tranquility-run](level-04-tranquility-run/README.md) | First Luna level: escort five civilian crawlers past Brood Pods and Scuttler walkers; first special | review | not-started | chosen |
-| [level-05-crater-nest](level-05-crater-nest/README.md) | Destroy four nest batteries in a crater by the mass driver; Polyp Mortar; mid-boss Gorgon Frigate | review | not-started | chosen |
-| [level-06-farside](level-06-farside/README.md) | The dark far side: empty settlements, Mantis snipers at the edges, Coilwyrm loop-backs from the rear | review | not-started | chosen |
-| [level-07-brood-carrier](level-07-brood-carrier/README.md) | Through the L1 picket and the escort screen to the act boss, the Brood Carrier | review | not-started | chosen |
+| [level-01-break-at-dawn](level-01-break-at-dawn/README.md) | Vrell scouts hit the Gagarin shipyards at dawn; the tutorial level | approved | not-started | chosen |
+| [level-02-shipyard-burning](level-02-shipyard-burning/README.md) | The yards burn; first ground targets (Spine Turret), the Stinger and Crane Four; save the drydocks for a bonus | approved | not-started | chosen |
+| [level-03-spore-drift](level-03-spore-drift/README.md) | Spore Bombers in the high lanes, a debris field, and the Leviathan set piece with Whirl Seed clusters | approved | not-started | chosen |
+| [level-04-tranquility-run](level-04-tranquility-run/README.md) | First Luna level: escort five civilian crawlers past Brood Pods and Scuttler walkers; first special | approved | not-started | chosen |
+| [level-05-crater-nest](level-05-crater-nest/README.md) | Destroy four nest batteries in a crater by the mass driver; Polyp Mortar; mid-boss Gorgon Frigate | approved | not-started | chosen |
+| [level-06-farside](level-06-farside/README.md) | The dark far side: empty settlements, Mantis snipers at the edges, Coilwyrm loop-backs from the rear | approved | not-started | chosen |
+| [level-07-brood-carrier](level-07-brood-carrier/README.md) | Through the L1 picket and the escort screen to the act boss, the Brood Carrier | approved | not-started | chosen |
 
 ## Design
 
@@ -186,3 +186,4 @@ and *Act complete*.
   at L1 as in the synopsis.
 - 2026-10-01: Choir in Acts 1–2 confirmed by the user: it only sings ("[the Choir sings]") and Varga interprets it; the Choir, story and act documents agree.
 - 2026-10-01: Art status set to `chosen`: every level of the act uses chosen concept art.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

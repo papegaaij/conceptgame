@@ -1,6 +1,6 @@
 ---
 title: Ship systems
-design: review
+design: approved
 implementation: not-started
 art: none
 depends-on: [../generator, ../../ui/hangar]
@@ -85,3 +85,4 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-10-01: Utility bays confirmed: two, a third buyable.
 - 2026-10-01: Targeting computer: unlocked from L07 by the L06 data core (one act early), per the data-core rule in economy.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

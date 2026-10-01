@@ -1,6 +1,6 @@
 ---
 title: Level 09 – Arcology Fall
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/ground/hive-node, ../../../enemies/ground/ravager]
@@ -218,3 +218,4 @@ node follow the chosen [Hive Node](../../../enemies/ground/hive-node/README.md) 
 - 2026-10-01: L09 introduces the Ravager (round 05 follow-up).
 - 2026-10-01: The "no anti-ground source" launch warning is covered by the generic hangar rule (confirmation when a recommended trait is missing; `anti-ground` is recommended here) — see [hangar](../../../ui/hangar/README.md).
 - 2026-10-01: A missed node triggers the immediate lost-mission prompt (campaign rule), instead of failing only at the end of the scroll.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

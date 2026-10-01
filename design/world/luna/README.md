@@ -1,6 +1,6 @@
 ---
 title: Luna
-design: review
+design: approved
 implementation: n/a
 art: chosen
 updated: 2026-10-01
@@ -79,3 +79,4 @@ The concept files live in [art-direction](../../art-direction/README.md).
 - 2026-09-30: Tranquility Base added as a sub-location (used by L04 *Tranquility Run*).
 - 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.
 - 2026-10-01: Chosen far side scene linked (scene-luna-farside-r09-a, round 09).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

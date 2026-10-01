@@ -1,6 +1,6 @@
 ---
 title: Main menu
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../systems/saves, ../../systems/difficulty]
@@ -97,3 +97,4 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
 - 2026-09-30: Added Continue, Options and Credits to the requested menu items.
 - 2026-09-30: Concept round 01: logo **D** chosen — working title **Terran Vanguard** (blue chrome, 3D extrusion); A, B, C rejected.
 - 2026-10-01: Concept round 06: variant A (glass menu over the hero scene) chosen for the main menu, difficulty select and load game; the metal console variant B rejected.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

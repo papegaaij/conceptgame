@@ -1,6 +1,6 @@
 ---
 title: Level 02 – Shipyard Burning
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/ground/spine-turret, ../../../enemies/air/stinger, ../../../world/earth-orbit]
@@ -212,3 +212,4 @@ Bounties from the stat blocks: Skitter 5, Needler 12, Stinger 15, Spine Turret 1
   tied to the new ground layer: a dock is saved by killing the turrets rooted on it. Crane Four
   (the Earth-orbit signature set piece) appears here. Varga's reading of the L01 transmission
   ("yield") is given in this briefing, keeping the Choir itself unintelligible in Act 1.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

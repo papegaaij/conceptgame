@@ -1,6 +1,6 @@
 ---
 title: Level 04 – Tranquility Run
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/brood-pod, ../../../enemies/ground/scuttler, ../../../world/luna, ../../../player/specials]
@@ -231,3 +231,4 @@ Needler 12, Spine Turret 12.
   being mandatory.
 - 2026-10-01: The crawler spec moved to [allies](../../../allies/README.md#civilian-crawler); the convoy section keeps only the level setup. Turret and Scuttler targeting expressed with the target-the-objective hook (mode `nearest`).
 - 2026-10-01: Supply-drop text aligned with the free first Airstrike charge: the drop's charge comes on top of it.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

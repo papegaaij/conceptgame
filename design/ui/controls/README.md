@@ -1,6 +1,6 @@
 ---
 title: Controls
-design: review
+design: approved
 implementation: not-started
 art: n/a
 depends-on: [../../player/ship, ../../player/specials]
@@ -48,3 +48,4 @@ gamepad are both first-class; everything can be remapped in Options.
 
 - 2026-09-30: One fire button for all weapons, separate special button, precision hold.
 - 2026-10-01: Controls: hold-to-fire by default with an auto-fire toggle in Options; buttons for fire (all weapons), special and hold-for-precision.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

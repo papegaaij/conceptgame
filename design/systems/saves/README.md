@@ -1,10 +1,10 @@
 ---
 title: Saves
-design: review
+design: approved
 implementation: not-started
 art: n/a
 depends-on: [../../ui/main-menu, ../../ui/hangar]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Saves
@@ -64,3 +64,4 @@ the act.
 ## Decisions
 
 - 2026-09-30: Save only in the hangar; 8 slots + autosave.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

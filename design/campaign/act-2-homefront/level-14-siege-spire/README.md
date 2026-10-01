@@ -1,6 +1,6 @@
 ---
 title: Level 14 – Siege Spire
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/bosses/siege-spire]
@@ -220,3 +220,4 @@ concept yet.
 
 - 2026-10-01: Promoted from the Act 2 roster to a draft level document.
 - 2026-10-01: Open question resolved: the maw's Wraiths pay their full Wraith bounty at the Act 2 factor, as budgeted here (user decision; recorded in the Siege Spire spec).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

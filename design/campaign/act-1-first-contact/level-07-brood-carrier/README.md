@@ -1,6 +1,6 @@
 ---
 title: Level 07 – Brood Carrier
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/bosses/brood-carrier, ../../../world/earth-orbit]
@@ -221,3 +221,4 @@ in the total. Spore mines (1 each) are excluded as in L03.
   reading ("many", "late") replaces the earlier spoken line and foreshadows its first words in
   Act 3.
 - 2026-10-01: Open questions resolved in the Brood Carrier spec: arena at the L1 point; phase-1 spawns per bay pair.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

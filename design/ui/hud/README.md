@@ -1,6 +1,6 @@
 ---
 title: HUD
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
@@ -132,3 +132,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-10-01: Concept round 08: accepted.
 - 2026-10-01: Concept round 09: edge warnings chosen.
 - 2026-10-01: Objective tracker added to the left panel (user decision) for the objective levels L02, L04, L05, L09, L10 and L13. No concept art for it yet; it follows the HUD A style.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

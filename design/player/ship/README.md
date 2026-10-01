@@ -1,6 +1,6 @@
 ---
 title: AF-12 Stormhawk
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../art-direction]
@@ -111,3 +111,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — banking and wing
 - 2026-10-01: Banking 5 frames; fitted wing pods shown on the ship sprite (hull unchanged); hold-to-fire with auto-fire toggle and a precision button.
 - 2026-10-01: Implementation checklist corrected to the 9×9 hitbox; 0.25 s mercy invulnerability after armour damage (none after shield hits).
 - 2026-10-01: Concept round 08: 5 banking frames and visible wing pods chosen.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

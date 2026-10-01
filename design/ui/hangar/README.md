@@ -1,6 +1,6 @@
 ---
 title: Hangar
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
@@ -115,3 +115,4 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the 
 - 2026-10-01: Concept round 06: layout **B** (central ship schematic with the panels around it) chosen, but in the glass style of the menus, not metal — restyle in round 07. Layout A rejected.
 - 2026-10-01: Concept round 07: hangar layout B in the glass style over the tactical map of Mars (r07-b) chosen; the hangar-bay backdrop (r07-a) rejected.
 - 2026-10-01: Test fire comes after the first build; the layout keeps its space.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

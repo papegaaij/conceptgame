@@ -1,6 +1,6 @@
 ---
 title: Creeper
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
@@ -59,3 +59,4 @@ Chosen concept: [creeper-r06-a.png](../concept/creeper-r06-a.png), [creeper-r06-
 
 - 2026-10-01: Promoted from the ground roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: HP rescaled to the lowered L08 reference DPS (36 → 30, ×60/70); time-to-kill stays ≈ 0.5 s.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

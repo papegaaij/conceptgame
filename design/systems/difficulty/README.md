@@ -1,6 +1,6 @@
 ---
 title: Difficulty
-design: review
+design: approved
 implementation: not-started
 art: n/a
 depends-on: [../economy, ../retry]
@@ -56,3 +56,4 @@ the single source of the global levers; enemy stat blocks only add overrides (se
   values for HP and bullet speed; added bullets per pattern, formation size and bullet budget
   from enemies; aimed shots do not lead the player on medium (enemies' proposal).
 - 2026-10-01: Game over only on hard, after 3 failed retries of a level (then reload a save); easy and medium have unlimited retries.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

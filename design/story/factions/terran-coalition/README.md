@@ -1,9 +1,9 @@
 ---
 title: United Terran Coalition
-design: review
+design: approved
 implementation: n/a
 art: none
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # United Terran Coalition (UTC)
@@ -59,3 +59,4 @@ the player (except the AI wingman, see [player](../../../player/README.md)).
 
 - 2026-09-30: Coalition visual language: blocky industrial, grey-white/navy/orange, blue-white
   engines.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

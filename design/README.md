@@ -1,6 +1,6 @@
 ---
 title: Game design
-design: review
+design: approved
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -20,18 +20,18 @@ guided by intel about the next level.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [art-direction](art-direction/README.md) | Visual style, resolution, palette, sprite rules, parallax layer model | review | n/a | chosen |
-| [story](story/README.md) | Premise, factions, characters, timeline and the mid-campaign twist | review | n/a | chosen |
-| [world](world/README.md) | The settings the levels take place in | review | n/a | chosen |
-| [campaign](campaign/README.md) | Acts and the 50-level outline, pacing and difficulty curve | review | not-started | none |
-| [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | review | not-started | chosen |
-| [allies](allies/README.md) | Friendly units and structures to escort or defend (crawlers, shuttles, convoy, relay) | review | not-started | none |
-| [player](player/README.md) | The player ship, its loadout slots and all equipment | review | not-started | chosen |
-| [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | review | not-started | n/a |
-| [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | review | not-started | chosen |
-| [audio](audio/README.md) | Music and sound effects | review | not-started | chosen |
+| [art-direction](art-direction/README.md) | Visual style, resolution, palette, sprite rules, parallax layer model | approved | n/a | chosen |
+| [story](story/README.md) | Premise, factions, characters, timeline and the mid-campaign twist | approved | n/a | chosen |
+| [world](world/README.md) | The settings the levels take place in | approved | n/a | chosen |
+| [campaign](campaign/README.md) | Acts and the 50-level outline, pacing and difficulty curve | approved | not-started | none |
+| [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | approved | not-started | chosen |
+| [allies](allies/README.md) | Friendly units and structures to escort or defend (crawlers, shuttles, convoy, relay) | approved | not-started | none |
+| [player](player/README.md) | The player ship, its loadout slots and all equipment | approved | not-started | chosen |
+| [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | approved | not-started | n/a |
+| [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | approved | not-started | chosen |
+| [audio](audio/README.md) | Music and sound effects | approved | not-started | chosen |
 | [concept-rounds](concept-rounds/README.md) | Batches of concept proposals awaiting the user's choice | review | n/a | chosen |
-| [reviews](reviews/README.md) | Formal approval rounds for sets of design documents | review | n/a | n/a |
+| [reviews](reviews/README.md) | Formal approval rounds for sets of design documents | approved | n/a | n/a |
 
 ## Design
 
@@ -88,3 +88,4 @@ Used across level, enemy, weapon and hangar-intel documents so they can be compa
 - 2026-09-30: Working title: **Terran Vanguard** (concept round 01, logo D).
 - 2026-10-01: Acts 1–2 open questions settled (layer hit rules, chain regrow, objective failure, controls, escort slot, utility bays, one special, visible pods, game over on hard, armour on retry, no level select, 5 banking frames, scaling, test fire later, text-only voices); score and credits stay separate. The tech stack is explicitly left open for a thorough evaluation.
 - 2026-10-01: New top-level part [allies](allies/README.md) for friendly units and structures (user decision).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](reviews/acts-1-2/README.md).

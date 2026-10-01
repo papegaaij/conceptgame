@@ -1,6 +1,6 @@
 ---
 title: Space enemies
-design: review
+design: approved
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -20,7 +20,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [leviathan](leviathan/README.md) | Huge whale set piece: high-air pass, then shootable parts (L03) | review | not-started | chosen |
+| [leviathan](leviathan/README.md) | Huge whale set piece: high-air pass, then shootable parts (L03) | approved | not-started | chosen |
 
 ## Roster
 
@@ -72,3 +72,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-r
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Leviathan.
 - 2026-10-01: Acts 1–2 units promoted to full specs: Leviathan.
 - 2026-10-01: Concept round 08: model-space re-renders accepted; they supersede the r05 sheets.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

@@ -1,6 +1,6 @@
 ---
 title: Siege Spire
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
@@ -77,3 +77,4 @@ Chosen concept: [siege-spire-r06-a.png](../concept/siege-spire-r06-a.png), [sieg
 - 2026-10-01: Promoted from the bosses roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: HP rescaled to the lowered L14 reference DPS (×80/130): turret pods 600 → 370, mortar roots 700 → 430, maw 2 600 → 1 600, spire core 4 500 → 2 750, total 10 900 → 6 690; duration ≈ 139 s (was ≈ 140 s). Bounty unchanged.
 - 2026-10-01: Maw-launched Wraiths pay the normal Wraith bounty at the Act 2 factor, budgeted at the expected count as in L14 (user decision).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

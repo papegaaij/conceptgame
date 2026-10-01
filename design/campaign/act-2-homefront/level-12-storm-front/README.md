@@ -1,6 +1,6 @@
 ---
 title: Level 12 – Storm Front
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/lamprey, ../../../enemies/air/whirl-seed]
@@ -219,3 +219,4 @@ peak; the other sections run lighter. The eye of the storm has no concept yet.
 - 2026-10-01: Heavy atmosphere only as a 15 s peak at the storm wall; sea and rain are the two
   strong elements everywhere (motion budget, round 09 feedback).
 - 2026-10-01: Open question resolved: L12 keeps "Firestorm" (Act 2 B); no separate storm variant (user decision).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

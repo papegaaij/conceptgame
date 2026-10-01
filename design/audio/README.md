@@ -1,6 +1,6 @@
 ---
 title: Audio
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../campaign, ../world]
@@ -20,8 +20,8 @@ vocal bark.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [music](music/README.md) | Track list, styles per act, loop and transition rules | review | not-started | chosen |
-| [sfx](sfx/README.md) | Full sound-effect list with priorities, mixing rules | review | not-started | chosen |
+| [music](music/README.md) | Track list, styles per act, loop and transition rules | approved | not-started | chosen |
+| [sfx](sfx/README.md) | Full sound-effect list with priorities, mixing rules | approved | not-started | chosen |
 
 ## Design
 
@@ -69,3 +69,4 @@ Round 01 audio proposals live in [music](music/README.md) and [sfx](sfx/README.m
 
 - 2026-09-30: Tracker-era electronic + synth-orchestral direction; four mix buses.
 - 2026-10-01: Voices: text and radio blips only for now — no voice acting.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).

@@ -1,6 +1,6 @@
 ---
 title: Level 05 – Crater Nest
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/ground/polyp-mortar, ../../../enemies/bosses/gorgon-frigate, ../../../world/luna]
@@ -236,3 +236,4 @@ streams of a medium-par fight.
   not at the end of the scroll, so the mid-boss is only fought on a run that can still succeed.
   The mass-driver sleds (Luna's signature set piece) are introduced here as a hazard.
 - 2026-10-01: Open question resolved: the Gorgon Frigate spec's arena now is the nest crater on Luna.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

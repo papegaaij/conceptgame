@@ -1,6 +1,6 @@
 ---
 title: Enemies
-design: review
+design: approved
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -22,11 +22,11 @@ directories hold the rosters.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | review | not-started | chosen |
-| [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | review | not-started | chosen |
-| [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | review | not-started | chosen |
-| [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | review | not-started | chosen |
-| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | review | not-started | chosen |
+| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | approved | not-started | chosen |
+| [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | approved | not-started | chosen |
+| [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | approved | not-started | chosen |
+| [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | approved | not-started | chosen |
+| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | approved | not-started | chosen |
 
 ## Design
 
@@ -476,3 +476,4 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - 2026-10-01: Balancing basis: the player being about 1.5× stronger than the reference in L01–L03 is accepted as gentle onboarding (user decision).
 - 2026-10-01: Variety coverage rechecked against the level documents: Act 1 uses 14 units (3 insectoid), Act 2 about 20 (5 insectoid: Skitter, Stinger, Creeper, Wraith, Mantis); both still pass.
 - 2026-10-01: New target-the-objective behaviour hook (modes nearest, alternate, in-arc, always), configured per level for defend and escort levels; L04 and L13 use it instead of per-unit overrides.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).

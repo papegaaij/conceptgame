@@ -1,6 +1,6 @@
 ---
 title: Spine Turret
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
@@ -59,3 +59,4 @@ Chosen concept: [spine-turret-r04-a.png](../concept/spine-turret-r04-a.png) (lis
 ## Decisions
 
 - 2026-10-01: Promoted from the ground roster to a full spec for the Acts 1–2 wrap-up.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

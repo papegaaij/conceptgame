@@ -1,6 +1,6 @@
 ---
 title: Ground enemies
-design: review
+design: approved
 implementation: not-started
 art: chosen
 updated: 2026-10-01
@@ -20,12 +20,12 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [spine-turret](spine-turret/README.md) | Basic grown turret with aimed thorns (L02) | review | not-started | chosen |
-| [polyp-mortar](polyp-mortar/README.md) | Acid mortar with a marked impact and ring burst (L05) | review | not-started | chosen |
-| [scuttler](scuttler/README.md) | Crab walker with frontal claw armour and facing fans (L04) | review | not-started | chosen |
-| [creeper](creeper/README.md) | Salamander walker crawling in convoys, 5-way fans (L08) | review | not-started | chosen |
-| [hive-node](hive-node/README.md) | Hardened spawner mound, anti-ground only (L09) | review | not-started | chosen |
-| [ravager](ravager/README.md) | Animal pack hunter that gallops and pounces (L09) | review | not-started | chosen |
+| [spine-turret](spine-turret/README.md) | Basic grown turret with aimed thorns (L02) | approved | not-started | chosen |
+| [polyp-mortar](polyp-mortar/README.md) | Acid mortar with a marked impact and ring burst (L05) | approved | not-started | chosen |
+| [scuttler](scuttler/README.md) | Crab walker with frontal claw armour and facing fans (L04) | approved | not-started | chosen |
+| [creeper](creeper/README.md) | Salamander walker crawling in convoys, 5-way fans (L08) | approved | not-started | chosen |
+| [hive-node](hive-node/README.md) | Hardened spawner mound, anti-ground only (L09) | approved | not-started | chosen |
+| [ravager](ravager/README.md) | Animal pack hunter that gallops and pounces (L09) | approved | not-started | chosen |
 
 ## Roster
 
@@ -142,3 +142,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-r
 - 2026-10-01: Concept round 07: Halo Platform with the dense angle set chosen — rotation now smooth.
 - 2026-10-01: Acts 1–2 units promoted to full specs: Spine Turret, Polyp Mortar, Scuttler, Creeper, Hive Node, Ravager.
 - 2026-10-01: Concept round 08: model-space re-renders accepted; they supersede the r05 sheets.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

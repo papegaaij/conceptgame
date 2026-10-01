@@ -1,6 +1,6 @@
 ---
 title: Wraith
-design: review
+design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
@@ -61,3 +61,4 @@ Chosen concept: [wraith-r06-a.png](../concept/wraith-r06-a.png), [wraith-r06-a.g
 
 - 2026-10-01: Promoted from the air roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: HP rescaled to the lowered L10 reference DPS (36 → 27, ×66/90, rounded up to keep the 0.4 s medium minimum); time-to-kill ≈ 0.41 s.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).

@@ -1,6 +1,6 @@
 ---
 title: Generator
-design: review
+design: approved
 implementation: not-started
 art: none
 depends-on: [../weapons, ../shields]
@@ -70,3 +70,4 @@ shield regeneration or lowers fire rate. It is a reward, not a risk.
 - 2026-09-30: Enemy drain effects defined (Void Leech, L33): output reduction, shield regen
   stops first, then fire rate scales down.
 - 2026-10-01: Overdrive ignores the power cap (user accepted the recommendation).
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).

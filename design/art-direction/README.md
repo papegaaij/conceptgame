@@ -1,6 +1,6 @@
 ---
 title: Art direction
-design: review
+design: approved
 implementation: n/a
 art: chosen
 updated: 2026-10-01
@@ -436,3 +436,4 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - 2026-10-01: Concept round 09: arctic and Luna far side scenes and the explosions chosen; Geneva to be redone (not recognisable as a city); storm and ocean to be calmed and smoothed. New rule: motion budget for scene animation.
 - 2026-10-01: Concept round 10: Geneva, storm and ocean revisions chosen ("much better now").
 - 2026-10-01: High-air drawing rule (user decision): the ~40 % opacity cap applies only to weather and decoration. Enemies on `high-air` (Leviathan overhead pass, Brood Carrier pass) are drawn fully opaque, scaled per the perspective rule, and cast shadows.
+- 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
