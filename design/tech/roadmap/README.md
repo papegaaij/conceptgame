@@ -1,7 +1,7 @@
 ---
 title: Implementation roadmap
 design: approved
-implementation: not-started
+implementation: in-progress
 art: n/a
 depends-on: [../architecture, ../../campaign]
 updated: 2026-10-01

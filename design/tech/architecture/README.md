@@ -1,7 +1,7 @@
 ---
 title: Architecture
 design: approved
-implementation: not-started
+implementation: in-progress
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
 updated: 2026-10-01
@@ -140,13 +140,13 @@ Screenshot tests are left out until there is a need.
 
 ## Implementation
 
-- [ ] Gradle root build with `sim`, `content`, `game`, `desktop`, `pipeline` and `buildSrc`
-- [ ] Spike foundations carried over as listed, with their tests
+- [x] Gradle root build with `sim`, `content`, `game`, `desktop`, `pipeline` and `buildSrc`
+- [x] Spike foundations carried over as listed, with their tests (`SfxBank` follows with the first sound effects in M1)
 - [ ] Data-file loader with validation; `sync_tables.py`; `check_docs.py` compares rendered tables
 - [ ] Balance checks ported to JUnit; `balance-data.json` migrated to per-part `data.yaml`
 - [ ] Asset pipeline: placeholder import from chosen concept art, angle sets, atlases
-- [ ] CI: build, format check, tests on three OSes; release bundles on tags
-- [ ] Smoke test of the desktop build in CI
+- [x] CI: build, format check, tests on three OSes; release bundles on tags
+- [x] Smoke test of the desktop build in CI
 
 ## Open questions
 
@@ -158,3 +158,18 @@ Screenshot tests are left out until there is a need.
 - 2026-10-01: User decisions: game numbers live in `data.yaml` files next to the documents and
   the README tables are rendered from them; the format is YAML (`balance-data.json` is converted).
 - 2026-10-01: Approved by the user.
+- 2026-10-01: M0 skeleton built. `FixedStepClock` moved to `sim` (it has no libGDX dependency);
+  `InputRecording` lost its `replay` method with the spike's `World`, so `Command` stayed behind
+  too. `SfxBank` is not carried over yet: M0 plays no sound effects, and its effect list named
+  spike files; it returns with the SFX player in M1. palantir-java-format is pinned (2.80.0) in
+  the version catalog.
+- 2026-10-01: Placeholders: `./gradlew :pipeline:importPlaceholders` copies the chosen concept art
+  and music into `assets/` (committed, LFS); the build only reads `assets/`, so CI pulls just
+  `assets/**` from LFS.
+- 2026-10-01: macOS first thread: the Construo launcher (roast) starts the JVM on the first thread
+  by default (`runOnFirstThread`), so the bundles need nothing; `./gradlew :desktop:run` adds
+  `-XstartOnFirstThread` on macOS. libGDX 1.14's `useGlfwAsync()` (LWJGL's `glfw_async`) was not
+  chosen: it is newer, untested here, and would mean a second mechanism next to roast's. The
+  `installDist` start script does not add the flag; it is a Linux smoke-test tool.
+- 2026-10-01: Generational ZGC (`-XX:+UseZGC -XX:+ZGenerational`) in the bundles (roast) and in the
+  `run` task and `installDist` scripts, so development runs match the release.

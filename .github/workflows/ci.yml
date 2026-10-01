@@ -1,0 +1,117 @@
+# Builds the game, checks the formatting and runs the tests on Linux, Windows and macOS; starts
+# the desktop build under a virtual display; on v* tags attaches the Construo bundles to a release.
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: check (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+
+      # Only the LFS files the build packages and tests read; the design tree's concept art and
+      # audio would waste LFS bandwidth.
+      - name: Fetch LFS assets
+        run: git lfs pull --include="assets/**"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Build, format check and tests
+        run: ./gradlew check
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.os }}
+          path: "**/build/reports/tests/"
+
+  smoke:
+    name: smoke test (ubuntu-latest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fetch LFS assets
+        run: git lfs pull --include="assets/**"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Install a virtual display with software OpenGL
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri
+
+      - name: Build the distribution
+        run: ./gradlew :desktop:installDist
+
+      # First start (full screen, writes the settings file), then a start in window mode.
+      - name: Run the game for a few seconds
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+        run: |
+          game=desktop/build/install/terran-vanguard/bin/terran-vanguard
+          settings="$RUNNER_TEMP/settings.properties"
+          xvfb-run -a -s "-screen 0 2560x1440x24" "$game" --bench 5 --settings "$settings" | tee first.log
+          grep -q "display.mode=full-screen" "$settings"
+          sed -i 's/display.mode=full-screen/display.mode=window/' "$settings"
+          xvfb-run -a -s "-screen 0 2560x1440x24" "$game" --bench 5 --settings "$settings" | tee window.log
+          grep -q "^\[bench\]" first.log
+          grep -q "^\[display\] window 1920x1080" window.log
+
+  release:
+    name: release bundles
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [check, smoke]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fetch LFS assets
+        run: git lfs pull --include="assets/**"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      # Construo cross-builds every target on Linux; the macOS bundles are not signed yet.
+      - name: Build the bundles
+        run: ./gradlew :desktop:packageLinuxX64 :desktop:packageWinX64 :desktop:packageMacX64 :desktop:packageMacM1
+
+      - name: Attach the bundles to a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" desktop/build/construo/dist/*.zip --title "$GITHUB_REF_NAME" --generate-notes

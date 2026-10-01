@@ -1,7 +1,7 @@
 ---
 title: Options
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../controls, ../../art-direction]
 updated: 2026-10-01
@@ -23,8 +23,8 @@ Settings screen reachable from the main menu and the pause menu, in the glass st
     video mode switch, so no flicker and no lost desktop layout); the 960×540 image is scaled
     and letterboxed as in windowed mode.
   - **Window** is resizable; it opens at the largest integer multiple of 960×540 that fits the
-    desktop (2× = 1920×1080 on a 1440p or 4K desktop) and keeps the letterboxed scaling at any
-    size.
+    desktop (2× = 1920×1080 on a 1440p, 3× = 2880×1620 on a 4K desktop) and keeps the
+    letterboxed scaling at any size.
   - **Toggle at any moment** — menus, briefings, hangar and during a level — with **Alt+Enter**
     or **F11** (see [controls](../controls/README.md)), or in this tab. Toggling never pauses or
     restarts anything.
@@ -53,7 +53,8 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 - [ ] Remapping with conflict swap; reset to defaults
 - [ ] Settings persisted separately from save slots
 - [ ] Reachable from main menu and pause
-- [ ] Display mode: borderless full screen and resizable window, toggled at runtime (Alt+Enter, F11, Video tab) without losing state; mode, window size/position and monitor persisted
+- [x] Display mode: borderless full screen and resizable window, toggled at runtime (Alt+Enter, F11) without losing state; mode, window size/position and monitor persisted
+- [ ] Display mode switch in the Video tab
 
 ## Decisions
 
@@ -62,3 +63,12 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-01: Full-screen mode with a runtime toggle added (user requirement, noticed in the tech spike). Proposed details for review: borderless full screen rather than a video mode switch, Alt+Enter and F11 as toggle keys, first start in full screen.
 - 2026-10-01: Display-mode details accepted by the user (borderless full screen, Alt+Enter and F11, first start in full screen).
+- 2026-10-01: Display modes built in M0. The settings file is a Java properties file
+  `settings.properties` in the platform's config directory (Linux `$XDG_CONFIG_HOME` or
+  `~/.config/terran-vanguard/`, Windows `%APPDATA%\Terran Vanguard\`, macOS
+  `~/Library/Application Support/Terran Vanguard/`); no new dependency, and unreadable values fall
+  back to the first-start defaults. The window size is measured against the monitor's work area
+  (the desktop minus task bars and docks), so on a 4K desktop with a top bar the window opens at
+  3× = 2880×1620 (4× does not fit beside the bar); the example above was corrected accordingly. A remembered
+  window whose centre is on no monitor any more opens at the default size instead. The Video-tab
+  switch is a separate item, since the options screen comes with M3.
