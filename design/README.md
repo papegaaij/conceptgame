@@ -30,6 +30,7 @@ guided by intel about the next level.
 | [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | approved | not-started | n/a |
 | [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | approved | not-started | chosen |
 | [audio](audio/README.md) | Music and sound effects | approved | not-started | chosen |
+| [tech](tech/README.md) | Tech stack: libGDX on Java, Gradle, desktop only (under evaluation) | draft | not-started | n/a |
 | [concept-rounds](concept-rounds/README.md) | Batches of concept proposals awaiting the user's choice | review | n/a | chosen |
 | [reviews](reviews/README.md) | Formal approval rounds for sets of design documents | approved | n/a | n/a |
 
@@ -58,7 +59,7 @@ guided by intel about the next level.
   credits earned in that attempt are lost. See [systems](systems/README.md).
 - **Players**: single-player; the wingman is AI-controlled.
 - **Difficulty**: easy, medium, hard, chosen when starting a new game.
-- **Tech**: engine-agnostic until a tech stack is chosen.
+- **Tech**: engine-agnostic until a tech stack is chosen; see [tech](tech/README.md).
 
 ### Shared vocabulary
 
@@ -74,8 +75,8 @@ Used across level, enemy, weapon and hangar-intel documents so they can be compa
 
 ## Open questions
 
-- **Tech stack** — to be evaluated thoroughly in a dedicated session; not a one-off choice. No
-  `design/tech/` section yet.
+- **Tech stack** — under evaluation in [tech](tech/README.md): libGDX on Java with Gradle,
+  pending a spike.
 
 ## Decisions
 

@@ -1,0 +1,136 @@
+---
+title: Tech stack
+design: draft
+implementation: not-started
+art: n/a
+depends-on: [../art-direction, ../audio, ../ui/controls]
+updated: 2026-10-01
+---
+
+# Tech stack
+
+## Summary
+
+The technology the game is built on. The evaluation is narrowed to **libGDX on Java, built with
+Gradle**, code-first, desktop only (Linux, Windows, macOS). Before the choice
+is final, a throwaway spike has to pass the measurable gates below. The design tree stays
+engine-agnostic; this section is the only place that names engine APIs.
+
+## Design
+
+### Requirements (user, 2026-10-01)
+
+- Desktop/laptop only (no phone, no web); runs on Linux, Windows and macOS without much trouble.
+- Performance matters; libraries must be mature and stable, a good basis for quality software.
+- Testable.
+- Language: Java or Kotlin. C# rejected (hard to get working properly on Linux); C++ and Rust
+  rejected (too low-level).
+- Workflow: Claude writes most of the code, the user reviews. Code-first framework, no editor.
+- Distribution: free / open source release (itch.io, GitHub). No console ports planned.
+- Testing hardware: Linux only; Windows and macOS are covered by CI.
+
+### Candidate funnel
+
+| Candidate | Outcome | Reason |
+|---|---|---|
+| **libGDX (Java)** | **Shortlisted** | Mature (10+ years), Apache-2.0, code-first, LWJGL3 desktop backend, headless backend for tests |
+| Godot 4 | Dropped | Editor-centric; the typed language path is C# |
+| MonoGame / FNA, Unity | Dropped | C# |
+| SDL3 + own engine, Bevy | Dropped | C++ / Rust; Bevy is also pre-1.0 with frequent breaking changes |
+| LWJGL3 without libGDX | Dropped (user) | libGDX already is the thin layer on LWJGL3; own layer means more code to write and test |
+| KorGE | Dropped | Small team, breaking changes |
+| FXGL / JavaFX, LITIENGINE (Java2D) | Dropped | Not built for hundreds of blended sprites per frame |
+| jMonkeyEngine | Dropped | 3D-focused |
+| Go + Ebitengine | Dropped (user) | Outside candidate; a new language to review |
+
+### Decided choices
+
+| Topic | Choice |
+|---|---|
+| Language | Java 21 (LTS) with libGDX 1.14.2; move to Java 25 once libGDX 1.14.3 (LWJGL 3.4) is released |
+| Framework | libGDX, desktop backend (LWJGL3), pending the spike |
+| Build | Gradle (Kotlin DSL build scripts with the wrapper); packaging with Construo |
+| CI | GitHub Actions, build + tests on Linux, Windows and macOS |
+
+### Desk research findings (2026-10-01)
+
+Sources are recorded in the evaluation session; the key URLs are listed per finding.
+
+| Topic | Finding | Consequence |
+|---|---|---|
+| Activity | Latest release 1.14.2 (2026-06-05); 2–3 releases a year; ~150 commits/year from ~50 authors, small core team (Nathan Sweet, obigu, Berstanio, Tommy Ettinger, …) | Mature and alive, but slow-moving |
+| Shipped games | Slay the Spire, Space Haven, Delver, Shattered Pixel Dungeon (active, on 1.14.0) | Proven for commercial 2D desktop games |
+| Java 25 | 1.14.2 ships LWJGL 3.3.3, which warns on Java 25 (JNI version, `sun.misc.Unsafe`; libGDX issue #7713). Master (unreleased 1.14.3) moves to LWJGL 3.4.3, which uses the FFM API on JDK 25+. Jars are Java 8 bytecode without module names (classpath only) | Java 25 cleanly needs libGDX 1.14.3; until then Java 21 LTS |
+| Maven | All artefacts are on Maven Central; Maven is "possible but not officially supported"; the archetype is dead (2019); LWJGL natives come in transitively for every platform (trim with exclusions), libGDX natives must be declared | Reason to switch to Gradle (user decision) |
+| Packaging | Construo (recommended, cross-builds all OSes) is Gradle-only; packr is stale; jpackage needs one runner per OS; JReleaser's Maven jlink assembler cross-builds runtimes for non-modular apps. A trimmed JRE is ~36 MB (~10–14 MB zipped) | Construo with Gradle; jpackage per runner as fallback |
+| macOS | Apple Silicon supported; `-XstartOnFirstThread` handled by a relaunch helper or 1.14's `useGlfwAsync()`; OpenGL frozen at 4.1; ANGLE backend (GLES 2.0 on Metal) exists as a fallback | Works today; ANGLE is the escape hatch if Apple removes OpenGL. Notarization needs a macOS runner and an Apple account |
+| Testing | The headless backend mocks audio and returns no GL; no official screenshot-test approach | Confirms principle 1: the simulation must not depend on libGDX |
+| Audio | Desktop music loops gaplessly (OpenAL streaming, 3 × 40 KB buffers fed from the main loop); no intro/loop-point support; 16 simultaneous sources by default (configurable) | Raise the source count; build intro + loop sections ourselves; long frame stalls could underrun music |
+| Gamepads | gdx-controllers 2.2.4 (2025-06) on Jamepad (SDL2, GameControllerDB mappings, natives from 2023), hot-plug improvements | Works but slowly maintained; a moderate risk |
+| GC | libGDX advice is pooling; no JVM flag guidance. Generational ZGC is the only ZGC mode since JDK 24 | Pools plus ZGC; gate 2 measures it |
+| Future | No official Vulkan/WebGPU backend; community gdx-webgpu (~0.8) replaces classes rather than the backend | OpenGL remains the rendering path |
+
+### Risks
+
+1. Apple removes OpenGL: mitigated by the ANGLE backend (GLES 2.0 only, so shaders must stay
+   GLES 2 compatible).
+2. Java 25 support waits on the 1.14.3 release (date unknown).
+3. Small core team and slow releases; gamepad library maintained slowly.
+
+### Architecture principles (proposal)
+
+These make the game testable and are what the spike has to demonstrate:
+
+1. **Simulation separate from presentation.** A pure-Java simulation module (no libGDX
+   dependency) owns the game state: entities, movement, bullets, collisions, damage, scoring,
+   economy. A libGDX module renders it, plays audio and feeds input into it.
+2. **Fixed 60 Hz timestep**, rendering interpolated between simulation steps.
+3. **Determinism.** Seeded random generator per level; the simulation uses `StrictMath` (Java
+   floating point has been strict on every platform since Java 17, but `Math` intrinsics may
+   differ per CPU). The same input recording gives the same state hash on every OS.
+4. **Replay tests.** A recorded input stream plus a level gives an expected outcome (state hash,
+   score, credits, armour); these run headless in JUnit on all three CI runners.
+5. **Data-driven content.** Levels, enemies, weapons and economy numbers live in data files
+   derived from the design tree, so balancing is a data change with a test, not a code change.
+6. **No allocation in the frame loop.** Object pools for bullets, particles and effects; the
+   spike measures garbage-collection pauses.
+
+### Spike gates (proposal)
+
+A throwaway prototype, about one level slice, measured on the development machine (Linux,
+RTX 2070) and built and tested by CI on all three OSes:
+
+| # | Gate | Pass when |
+|---|---|---|
+| 1 | Rendering load | 7 parallax layers, 150 enemies, 500 bullets and particles with additive glow, 960×540 integer-scaled to 1920×1080: 99th-percentile frame time under 16.7 ms |
+| 2 | Garbage collection | No GC pause over 2 ms during a 5-minute run |
+| 3 | Angle sprites | A 768-frame angle set (Halo Platform size) loads from texture atlases; video memory use is measured and rotation is smooth |
+| 4 | Music | A round-08 track loops sample-exactly (no gap, no click), including an intro section that plays once before the loop |
+| 5 | Sound effects | 32 simultaneous effects (source count raised from the default 16) without dropouts; shot-to-sound latency acceptable |
+| 6 | Input | Keyboard and a gamepad, gamepad hot-plugging |
+| 7 | Tests | A headless JUnit replay test gives the same state hash on Linux, Windows and macOS in CI |
+| 8 | Packaging | Gradle with Construo produces a runnable bundle with a trimmed JRE for each OS; the Linux bundle starts on a clean machine |
+| 9 | Code quality | The user finds the spike code and tests pleasant to review |
+
+## Implementation
+
+- [x] Desk research on libGDX (versions, Java 25, Maven, macOS, packaging, audio, input)
+- [ ] Spike built, gates 1–9 measured and reported here
+- [ ] Decision approved by the user
+- [ ] Project skeleton: Gradle multi-project layout, CI workflow, coding conventions
+
+## Open questions
+
+- Code licence for the open source release (e.g. MIT, Apache-2.0, GPL-3.0); the art and audio
+  licence may differ from the code licence.
+
+## Decisions
+
+- 2026-10-01: Evaluation started. Desktop only, Java (current LTS), code-first, Maven, CI on
+  all three OSes, free / open source release. libGDX is the only candidate evaluated
+  (user decision); see the candidate funnel for the dropped options.
+- 2026-10-01: After the desk research: the spike uses Java 21 with libGDX 1.14.2 (Java 25 needs
+  the unreleased 1.14.3); the build is **Gradle** instead of Maven, because Maven has no
+  official libGDX support and Construo, the cross-building packager, is Gradle-only. The spike
+  lives on the branch `spike/libgdx` (never merged; findings are recorded here on `main`).
+  Spike gates 1–9 accepted as written.
