@@ -395,3 +395,64 @@ and shattering into shards; Raptor / Tyrian 2000 era render look.
 
 **Negative prompt:** photographic fire footage, flat cartoon explosions, magenta or pink debris
 (reserved for enemy bullets), smoke that hides the whole screen, text, watermark.
+
+## Round 10 Earth scenes
+
+Generator: `tools/concept/scenes_r10.py` (`python3 tools/concept/scenes_r10.py [geneva] [storm]
+[ocean] [--sheet]`). It subclasses `tools/concept/scenes_r09.py` (which subclasses
+`tools/concept/scenes_r08.py`) and only adds. Round 10 rebuilds Geneva as a city seen from above
+and brings the storm and the ocean within the new Motion budget (art-direction README). Each PNG
+is the play field at 1x plus the layer breakdown; each GIF is a seamless 4 s loop. The storm and
+ocean GIFs run at 25 fps (each GIF frame samples the scene between its 80 time units, so speeds
+are unchanged and only the motion is smoother); Geneva stays at 20 fps to fit the ~8 MB budget.
+
+Shared negative prompt (all three scenes): photo, film grain, perspective horizon, sky, text, UI,
+HUD, cartoon outlines, flat vector art, drawn circle ripples, regular stripe patterns, lens flare,
+modern photoreal simulation, bloom haze, depth of field, motion everywhere at once, flickering
+rain, magenta or bright orange in the background (reserved for enemy bullets).
+
+### scene-geneva-r10-a
+
+Prompt: top-down view of Geneva at dusk under a veined alien membrane canopy, seen like a
+SimCity 2000 / late-1990s pre-rendered city from above: a dark lake on the left with a
+tree-lined promenade and quay road along the curving shore, the Jet d'Eau fountain on its jetty
+throwing a tall white plume blown downwind, moored white boats, the Rhone leaving the lake as a
+river crossed by the flag-lined Pont du Mont-Blanc and an avenue bridge, the small wooded Ile
+Rousseau; a clear street network of a main avenue with a dashed centre line and tree rows,
+side streets, a diagonal boulevard and paved squares with sidewalks, zebra crossings, sodium
+street lamps, parked cars and a few moving cars with headlights; European perimeter blocks of
+continuous row houses round inner courtyards and gardens, pitched roofs with clear ridge lines
+and two-tone slopes lit from the top left, terracotta, slate and grey zinc roofs, chimneys and
+skylights, varied eave heights with short cast shadows; the Saint-Pierre cathedral with nave,
+transept, apse, two towers and a green copper spire; a domed rotunda on a paved roundabout
+ringed by blue flags; the Parc des Bastions with gravel paths and trees, the Jardin Anglais
+with its flower clock; two modern glass towers; tall structures leaning away from the screen
+centre; thick dark alien roots with glowing teal seams running over the roofs, violet-black
+creep round a pulsing alien hive node on a square, mottled canopy shadow with pools of light, a
+thin violet spore haze, late-1990s pre-rendered CGI game background, 3D rendered and
+downsampled, limited palette, crisp pixels, 2D shoot'em up play field.
+
+### scene-storm-r10-a
+
+Prompt: top-down view of a storm at night over the ocean, dark blue-black heaving swell rolling
+slowly with softly lit crests, only a few steep crests breaking into small torn whitecaps,
+faint thin wind-streak foam lines, a square offshore fusion platform on four legs with slowly
+blinking red warning lights and churned foam streaming past its legs, a grey patrol boat
+ploughing through the swell with bow spray and a streaky white wake, a few dark grey scud
+clouds drifting slowly below the camera, faint fine motion-blurred slanting rain, a single
+branching lightning bolt briefly lighting the sea, eel-like alien Lampreys and violet spinning
+seed creatures in the air, calm enough to look at for a long time, late-1990s pre-rendered CGI
+game background, 3D rendered and downsampled, limited palette, crisp pixels, 2D shoot'em up
+play field.
+
+### scene-ocean-r10-a
+
+Prompt: top-down view of an overcast North Atlantic seen from a low-flying aircraft, slate
+grey-blue ocean with a slow, soft long swell and broad darker and paler swaths, very sparse
+small whitecaps, a UTC convoy of two container ships (one burning, a slow smoke column leaning
+with the wind) and a grey escort frigate steaming up the frame, faint broken V-shaped Kelvin
+wakes and long streaky churned white prop-wash, soft broken foam collars along the hulls, glossy
+olive jellyfish organisms at and just below the surface, floating kelp rafts with barnacle guns,
+a vast dark many-armed shape gliding deep under the waves, a few thin grey sea-mist banks and
+very faint high wisps, late-1990s pre-rendered CGI game background, 3D rendered and downsampled,
+limited palette, crisp pixels, 2D shoot'em up play field.

@@ -2,7 +2,7 @@
 title: Wingmen and drones
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../weapons, ../../story]
 updated: 2026-10-01
 ---
@@ -147,7 +147,7 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 | File | What | Status |
 |---|---|---|
-| [concept/rook-craft-r09-a.png](concept/rook-craft-r09-a.png) | Rook (Ember) 5 banking frames at 4×, 1× strip beside the Stormhawk with greyscale check, in-game view | proposed |
+| [concept/rook-craft-r09-a.png](concept/rook-craft-r09-a.png) | Rook (Ember) 5 banking frames at 4×, 1× strip beside the Stormhawk with greyscale check, in-game view | chosen |
 
 ## Implementation
 
@@ -175,3 +175,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-09-30: Concept round 02: Rook's craft scheme **A "Ember"** (dark slate, orange/yellow accents) chosen; B "Jade" rejected.
 - 2026-10-01: The separate escort slot for Rook is confirmed by the user. Rook's craft uses 5 banking frames like the player.
 - 2026-10-01: Rook's AI specified (formations, reactions, targeting, guns derived from player weapons, eject/return, radio bark triggers); Warden heavy drone specified.
+- 2026-10-01: Concept round 09: Rook's 5 banking frames chosen.

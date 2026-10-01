@@ -2,7 +2,7 @@
 title: HUD
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
 updated: 2026-10-01
 ---
@@ -104,7 +104,7 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 | File | What | Status |
 |---|---|---|
-| [concept/edge-warnings-r09-a.png](concept/edge-warnings-r09-a.png) | Edge warnings (side and rear) with flash cycle, sensor threat arrows, wave and boss banners, close-ups and 1× play-field panels | proposed |
+| [concept/edge-warnings-r09-a.png](concept/edge-warnings-r09-a.png) | Edge warnings (side and rear) with flash cycle, sensor threat arrows, wave and boss banners, close-ups and 1× play-field panels | chosen |
 
 ## Implementation
 
@@ -128,3 +128,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-09-30: Concept round 02: HUD A at 960×540 with 240 px panels in palette B confirmed.
 - 2026-10-01: Concept round 08: accepted.
+- 2026-10-01: Concept round 09: edge warnings chosen.

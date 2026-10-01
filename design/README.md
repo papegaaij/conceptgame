@@ -24,8 +24,8 @@ guided by intel about the next level.
 | [story](story/README.md) | Premise, factions, characters, timeline and the mid-campaign twist | draft | n/a | chosen |
 | [world](world/README.md) | The settings the levels take place in | draft | n/a | chosen |
 | [campaign](campaign/README.md) | Acts and the 50-level outline, pacing and difficulty curve | draft | not-started | none |
-| [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | draft | not-started | proposed |
-| [player](player/README.md) | The player ship, its loadout slots and all equipment | draft | not-started | proposed |
+| [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | draft | not-started | chosen |
+| [player](player/README.md) | The player ship, its loadout slots and all equipment | draft | not-started | chosen |
 | [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | draft | not-started | n/a |
 | [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | draft | not-started | chosen |
 | [audio](audio/README.md) | Music and sound effects | draft | not-started | chosen |

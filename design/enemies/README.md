@@ -2,7 +2,7 @@
 title: Enemies
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -399,7 +399,7 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 
 | File | What | Status |
 |---|---|---|
-| [concept/enemy-bullets-r09-a.png](concept/enemy-bullets-r09-a.png) | Enemy bullet set: 9 types in Vrell and Ascendancy colours with a readability test over the chosen scenes | proposed |
+| [concept/enemy-bullets-r09-a.png](concept/enemy-bullets-r09-a.png) | Enemy bullet set: 9 types in Vrell and Ascendancy colours with a readability test over the chosen scenes | chosen |
 
 ## Implementation
 
@@ -444,3 +444,4 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - 2026-10-01: Balance: reference DPS for L08–L14 lowered to the typical loadout (≈ 60–80) instead of growing the economy; Act 2 HP to be rescaled.
 - 2026-10-01: Returning units use an act HP factor (reference DPS ratio), no elite variants.
 - 2026-10-01: Enemy damage values in the balancing basis confirmed; this document owns them.
+- 2026-10-01: Concept round 09: enemy bullet set chosen.

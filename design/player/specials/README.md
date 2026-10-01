@@ -2,7 +2,7 @@
 title: Special abilities
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../campaign, ../../world]
 updated: 2026-10-01
 ---
@@ -99,8 +99,8 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 | File | What | Status |
 |---|---|---|
-| [concept/specials-r09-a.png](concept/specials-r09-a.png) | Airstrike (CDF bombers, bomb carpet), Smart Bomb (flash, ring, bullets popping), Decoy Flares (homing shots retarget) (sheet) | proposed |
-| [concept/specials-r09-a.gif](concept/specials-r09-a.gif) | Airstrike (CDF bombers, bomb carpet), Smart Bomb (flash, ring, bullets popping), Decoy Flares (homing shots retarget) (motion) | proposed |
+| [concept/specials-r09-a.png](concept/specials-r09-a.png) | Airstrike (CDF bombers, bomb carpet), Smart Bomb (flash, ring, bullets popping), Decoy Flares (homing shots retarget) (sheet) | chosen |
+| [concept/specials-r09-a.gif](concept/specials-r09-a.gif) | Airstrike (CDF bombers, bomb carpet), Smart Bomb (flash, ring, bullets popping), Decoy Flares (homing shots retarget) (motion) | chosen |
 
 ## Implementation
 
@@ -122,3 +122,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   Underwater limits follow [europa](../../world/europa/README.md#under-water-rules).
 - 2026-10-01: One special equipped at a time (user accepted the recommendation).
 - 2026-10-01: Airstrike, Smart Bomb and Decoy Flares specified in full for Acts 1–2 (timing, area, damage caps, boss rules, invulnerability, repeat delay).
+- 2026-10-01: Concept round 09: specials chosen.
