@@ -22,7 +22,7 @@ directories hold the rosters.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | draft | not-started | proposed |
+| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | draft | not-started | chosen |
 | [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | draft | not-started | proposed |
 | [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | draft | not-started | proposed |
 | [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | draft | not-started | chosen |
@@ -67,9 +67,9 @@ user; colour values live in `tools/concept/render/enemy_models.py`):
   | Crimson | `FF3038` | Lasers, sweeps and dives (lines of danger) | Stinger, Mantis |
   | Lime | `A8FF2A` | Area denial: mines, spores, acid | Spore Bomber, Polyp Mortar |
 
-- **Weak points** glow in the unit's glow hue at full brightness (slightly whitened). Multi-part
-  bosses may use a contrasting glow for weak points: the Brood Carrier is teal-veined with
-  **lime** bay sacs and core.
+- **Weak points** glow in the unit's glow hue at full brightness (slightly whitened). **Bosses and
+  mid-bosses always mark their weak points in lime** (`A8FF2A`), whatever their own colours, so
+  players learn one rule for where to shoot (user decision, round 06).
 - **Ascendancy** stay black & gold; each unit adds one secondary accent (Talon red, Gilded
   Gunship white, Rail Bunker gunmetal) and every Ascendancy sprite gets a 1 px **rim light**:
   gold on edges facing the key light (top-left), red on edges facing away.
@@ -340,7 +340,7 @@ Concept [round 06](../concept-rounds/round-06/README.md) — lineup of the round
 
 | File | What | Status |
 |---|---|---|
-| [concept/lineup-r06-a.png](concept/lineup-r06-a.png) | The 11 round-06 units at 1× next to the player, Skitter, Scuttler and Ravager; Threadcrawler chain and assembled Halo Platform below | proposed |
+| [concept/lineup-r06-a.png](concept/lineup-r06-a.png) | The 11 round-06 units at 1× next to the player, Skitter, Scuttler and Ravager; Threadcrawler chain and assembled Halo Platform below | chosen |
 
 ## Implementation
 
@@ -389,3 +389,5 @@ Concept [round 06](../concept-rounds/round-06/README.md) — lineup of the round
 - 2026-09-30: Concept round 04: role colours adopted ("the new colors are much better") — chitin base = role family, glow = kind of threat; Ascendancy black & gold with a per-unit accent and the 1 px gold/red rim light. All r04 re-colours chosen.
 - 2026-10-01: Round 05 review: the new archetypes are liked. Warden Tank and Strider are kept for the Ascendancy (the Warden Tank keeps its unmarked Act 3 hint at L19); two animal-like Vrell ground walkers added — Ravager (Act 2) and Shellback (Act 3).
 - 2026-10-01: Concept round 05 closed: Ravager and Shellback chosen; size lineup r05-b is the reference.
+- 2026-10-01: Concept round 06: all new enemies and bosses liked except the Harbour Kraken (doesn't read as a creature from the depths) and the Halo Platform (rotation too jagged); Driftjelly's waterline ring reads as a drawn circle. All three are redone in round 07 under the new water and smooth-rotation rules in art direction.
+- 2026-10-01: Boss and mid-boss weak points always glow lime (user decision). The Wraith uses rust chitin with blue-violet veins everywhere (its own round-06 sheet); the bone/violet Wraiths in the Siege Spire mockup are superseded.

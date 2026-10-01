@@ -42,14 +42,21 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 
 | File | What | Status |
 |---|---|---|
-| [concept/driftjelly-r06-a.png](concept/driftjelly-r06-a.png) | Driftjelly — jellyfish mine (olive bell, lime veins), surface and submerged, pulses a ring of shots (sheet) | proposed |
-| [concept/driftjelly-r06-a.gif](concept/driftjelly-r06-a.gif) | Driftjelly — jellyfish mine (olive bell, lime veins), surface and submerged, pulses a ring of shots (motion) | proposed |
-| [concept/reef-spitter-r06-a.png](concept/reef-spitter-r06-a.png) | Reef Spitter — barnacle gun at 32 headings on a bobbing kelp raft, 3-way fans (sheet) | proposed |
-| [concept/reef-spitter-r06-a.gif](concept/reef-spitter-r06-a.gif) | Reef Spitter — barnacle gun at 32 headings on a bobbing kelp raft, 3-way fans (motion) | proposed |
-| [concept/skimmer-r06-a.png](concept/skimmer-r06-a.png) | Skimmer — flying-fish skiff (rust, fan fins) weaving through ice floes with foam wakes (sheet) | proposed |
-| [concept/skimmer-r06-a.gif](concept/skimmer-r06-a.gif) | Skimmer — flying-fish skiff (rust, fan fins) weaving through ice floes with foam wakes (motion) | proposed |
-| [concept/spiral-nautilus-r06-a.png](concept/spiral-nautilus-r06-a.png) | Spiral Nautilus — rolling striped shell with a tentacle crown, orbiting pairs under Europa's ice (sheet) | proposed |
-| [concept/spiral-nautilus-r06-a.gif](concept/spiral-nautilus-r06-a.gif) | Spiral Nautilus — rolling striped shell with a tentacle crown, orbiting pairs under Europa's ice (motion) | proposed |
+| [concept/driftjelly-r06-a.png](concept/driftjelly-r06-a.png) | Driftjelly — jellyfish mine (olive bell, lime veins), surface and submerged, pulses a ring of shots (sheet) | chosen — redo the waterline ring (round 07) |
+| [concept/driftjelly-r06-a.gif](concept/driftjelly-r06-a.gif) | Driftjelly — jellyfish mine (olive bell, lime veins), surface and submerged, pulses a ring of shots (motion) | chosen — redo the waterline ring (round 07) |
+| [concept/reef-spitter-r06-a.png](concept/reef-spitter-r06-a.png) | Reef Spitter — barnacle gun at 32 headings on a bobbing kelp raft, 3-way fans (sheet) | chosen |
+| [concept/reef-spitter-r06-a.gif](concept/reef-spitter-r06-a.gif) | Reef Spitter — barnacle gun at 32 headings on a bobbing kelp raft, 3-way fans (motion) | chosen |
+| [concept/skimmer-r06-a.png](concept/skimmer-r06-a.png) | Skimmer — flying-fish skiff (rust, fan fins) weaving through ice floes with foam wakes (sheet) | chosen |
+| [concept/skimmer-r06-a.gif](concept/skimmer-r06-a.gif) | Skimmer — flying-fish skiff (rust, fan fins) weaving through ice floes with foam wakes (motion) | chosen |
+| [concept/spiral-nautilus-r06-a.png](concept/spiral-nautilus-r06-a.png) | Spiral Nautilus — rolling striped shell with a tentacle crown, orbiting pairs under Europa's ice (sheet) | chosen |
+| [concept/spiral-nautilus-r06-a.gif](concept/spiral-nautilus-r06-a.gif) | Spiral Nautilus — rolling striped shell with a tentacle crown, orbiting pairs under Europa's ice (motion) | chosen |
+
+Concept [round 07](../../concept-rounds/round-07/README.md) — real waterline (art-direction Water rules); generator `tools/concept/enemies_r07.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/driftjelly-r07-a.png](concept/driftjelly-r07-a.png) | Driftjelly r07 — bell cut at the water plane, lower bell and tentacles visible under water, broken foam collar, ripple trains; trigger radius now a labelled diagram (sheet) | proposed |
+| [concept/driftjelly-r07-a.gif](concept/driftjelly-r07-a.gif) | Driftjelly r07 — surfaced and submerged jellies drifting, ripples left behind as they pulse | proposed |
 
 ## Implementation
 
@@ -66,3 +73,4 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 - 2026-09-30: Roster of 8 naval enemies drafted.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Spiral Nautilus (roster fork addition).
+- 2026-10-01: Concept round 06: Reef Spitter, Skimmer and Spiral Nautilus chosen; Driftjelly chosen but its waterline ring must become real foam/ripples (round 07).

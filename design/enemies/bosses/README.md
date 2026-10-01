@@ -72,12 +72,19 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 
 | File | What | Status |
 |---|---|---|
-| [concept/gorgon-frigate-r06-a.png](concept/gorgon-frigate-r06-a.png) | Gorgon Frigate (Act 1 mid-boss) — medusa-bell warship with three serpent-neck turrets, phases: turrets → stumps → crown opens over the core (sheet) | proposed |
-| [concept/gorgon-frigate-r06-a.gif](concept/gorgon-frigate-r06-a.gif) | Gorgon Frigate (Act 1 mid-boss) — medusa-bell warship with three serpent-neck turrets, phases: turrets → stumps → crown opens over the core (motion) | proposed |
-| [concept/harbour-kraken-r06-a.png](concept/harbour-kraken-r06-a.png) | Harbour Kraken (Act 2 mid-boss) — cephalopod wrapped around an offshore platform, telegraphed arm slams, head surfaces to fire fans (sheet) | proposed |
-| [concept/harbour-kraken-r06-a.gif](concept/harbour-kraken-r06-a.gif) | Harbour Kraken (Act 2 mid-boss) — cephalopod wrapped around an offshore platform, telegraphed arm slams, head surfaces to fire fans (motion) | proposed |
-| [concept/siege-spire-r06-a.png](concept/siege-spire-r06-a.png) | Siege Spire (Act 2 boss) — rooted citadel with turret and mortar roots, Wraith-launching maw; tears free and rises in its last phase (sheet) | proposed |
-| [concept/siege-spire-r06-a.gif](concept/siege-spire-r06-a.gif) | Siege Spire (Act 2 boss) — rooted citadel with turret and mortar roots, Wraith-launching maw; tears free and rises in its last phase (motion) | proposed |
+| [concept/gorgon-frigate-r06-a.png](concept/gorgon-frigate-r06-a.png) | Gorgon Frigate (Act 1 mid-boss) — medusa-bell warship with three serpent-neck turrets, phases: turrets → stumps → crown opens over the core (sheet) | chosen |
+| [concept/gorgon-frigate-r06-a.gif](concept/gorgon-frigate-r06-a.gif) | Gorgon Frigate (Act 1 mid-boss) — medusa-bell warship with three serpent-neck turrets, phases: turrets → stumps → crown opens over the core (motion) | chosen |
+| [concept/rejected/harbour-kraken-r06-a.png](concept/rejected/harbour-kraken-r06-a.png) | Harbour Kraken (Act 2 mid-boss) — cephalopod wrapped around an offshore platform, telegraphed arm slams, head surfaces to fire fans (sheet) | rejected — doesn't read as rising from the depths; redo (round 07) |
+| [concept/rejected/harbour-kraken-r06-a.gif](concept/rejected/harbour-kraken-r06-a.gif) | Harbour Kraken (Act 2 mid-boss) — cephalopod wrapped around an offshore platform, telegraphed arm slams, head surfaces to fire fans (motion) | rejected — doesn't read as rising from the depths; redo (round 07) |
+| [concept/siege-spire-r06-a.png](concept/siege-spire-r06-a.png) | Siege Spire (Act 2 boss) — rooted citadel with turret and mortar roots, Wraith-launching maw; tears free and rises in its last phase (sheet) | chosen |
+| [concept/siege-spire-r06-a.gif](concept/siege-spire-r06-a.gif) | Siege Spire (Act 2 boss) — rooted citadel with turret and mortar roots, Wraith-launching maw; tears free and rises in its last phase (motion) | chosen |
+
+Concept [round 07](../../concept-rounds/round-07/README.md) — Kraken redone as a creature from the depths; generator `tools/concept/kraken_r07.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/harbour-kraken-r07-a.png](concept/harbour-kraken-r07-a.png) | Harbour Kraken r07 — one connected animal: arms continue under water to the mantle (four depth bands), foam collars where arms break the surface, swell-band water, top-down surfacing and diving, slam sequence, phases (sheet) | proposed |
+| [concept/harbour-kraken-r07-a.gif](concept/harbour-kraken-r07-a.gif) | Harbour Kraken r07 — 10.4 s loop at 15 fps: churning lane telegraph, arm rises and slams with spray, head surfaces crown-first, lime eyes, 7-orb fan, dives | proposed |
 
 ## Implementation
 
@@ -97,3 +104,4 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 - 2026-09-30: 7 act bosses and 5 mid-bosses drafted, plus a boss rush at L49.
 - 2026-09-30: Concept round 03: Brood Carrier mockup (language A) with launch bays, bay sacs and core iris as marked weak points.
 - 2026-09-30: Concept round 04: colour pass on the Brood Carrier with the role colours (r04 proposals).
+- 2026-10-01: Concept round 06: Gorgon Frigate and Siege Spire chosen. Harbour Kraken rejected: the arms look detached, the waves are plain circles, it pops up instead of surfacing top-down, and the arms' submerged parts and splash where they enter the water are missing — redo in round 07.

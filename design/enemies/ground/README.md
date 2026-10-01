@@ -89,16 +89,23 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 
 | File | What | Status |
 |---|---|---|
-| [concept/creeper-r06-a.png](concept/creeper-r06-a.png) | Creeper — six-legged salamander walker (slate, violet fan gland), convoy along a megacity road (sheet) | proposed |
-| [concept/creeper-r06-a.gif](concept/creeper-r06-a.gif) | Creeper — six-legged salamander walker (slate, violet fan gland), convoy along a megacity road (motion) | proposed |
-| [concept/hive-node-r06-a.png](concept/hive-node-r06-a.png) | Hive Node — hardened spawner mound (teal-black, bone plates) in Vrell creep, iris releases Skitters (sheet) | proposed |
-| [concept/hive-node-r06-a.gif](concept/hive-node-r06-a.gif) | Hive Node — hardened spawner mound (teal-black, bone plates) in Vrell creep, iris releases Skitters (motion) | proposed |
-| [concept/threadcrawler-r06-a.png](concept/threadcrawler-r06-a.png) | Threadcrawler — centipede chain (olive/lime) ~300 px, leg ripple, spore pores firing as a travelling wave (sheet) | proposed |
-| [concept/threadcrawler-r06-a.gif](concept/threadcrawler-r06-a.gif) | Threadcrawler — centipede chain (olive/lime) ~300 px, leg ripple, spore pores firing as a travelling wave (motion) | proposed |
-| [concept/halo-platform-r06-a.png](concept/halo-platform-r06-a.png) | Halo Platform — Ascendancy turret ring: shielded core, six ring segments and turrets at 32 headings, shield drops when turrets die (sheet) | proposed |
-| [concept/halo-platform-r06-a.gif](concept/halo-platform-r06-a.gif) | Halo Platform — Ascendancy turret ring: shielded core, six ring segments and turrets at 32 headings, shield drops when turrets die (motion) | proposed |
-| [concept/dust-devil-r06-a.png](concept/dust-devil-r06-a.png) | Dust Devil — Vrell vortex organism (teal-black vanes, lime core) spinning in a grit swirl, pulling in pickups (sheet) | proposed |
-| [concept/dust-devil-r06-a.gif](concept/dust-devil-r06-a.gif) | Dust Devil — Vrell vortex organism (teal-black vanes, lime core) spinning in a grit swirl, pulling in pickups (motion) | proposed |
+| [concept/creeper-r06-a.png](concept/creeper-r06-a.png) | Creeper — six-legged salamander walker (slate, violet fan gland), convoy along a megacity road (sheet) | chosen |
+| [concept/creeper-r06-a.gif](concept/creeper-r06-a.gif) | Creeper — six-legged salamander walker (slate, violet fan gland), convoy along a megacity road (motion) | chosen |
+| [concept/hive-node-r06-a.png](concept/hive-node-r06-a.png) | Hive Node — hardened spawner mound (teal-black, bone plates) in Vrell creep, iris releases Skitters (sheet) | chosen |
+| [concept/hive-node-r06-a.gif](concept/hive-node-r06-a.gif) | Hive Node — hardened spawner mound (teal-black, bone plates) in Vrell creep, iris releases Skitters (motion) | chosen |
+| [concept/threadcrawler-r06-a.png](concept/threadcrawler-r06-a.png) | Threadcrawler — centipede chain (olive/lime) ~300 px, leg ripple, spore pores firing as a travelling wave (sheet) | chosen |
+| [concept/threadcrawler-r06-a.gif](concept/threadcrawler-r06-a.gif) | Threadcrawler — centipede chain (olive/lime) ~300 px, leg ripple, spore pores firing as a travelling wave (motion) | chosen |
+| [concept/rejected/halo-platform-r06-a.png](concept/rejected/halo-platform-r06-a.png) | Halo Platform — Ascendancy turret ring: shielded core, six ring segments and turrets at 32 headings, shield drops when turrets die (sheet) | rejected — rotation far too jagged; redo with a dense angle set (round 07) |
+| [concept/rejected/halo-platform-r06-a.gif](concept/rejected/halo-platform-r06-a.gif) | Halo Platform — Ascendancy turret ring: shielded core, six ring segments and turrets at 32 headings, shield drops when turrets die (motion) | rejected — rotation far too jagged; redo with a dense angle set (round 07) |
+| [concept/dust-devil-r06-a.png](concept/dust-devil-r06-a.png) | Dust Devil — Vrell vortex organism (teal-black vanes, lime core) spinning in a grit swirl, pulling in pickups (sheet) | chosen |
+| [concept/dust-devil-r06-a.gif](concept/dust-devil-r06-a.gif) | Dust Devil — Vrell vortex organism (teal-black vanes, lime core) spinning in a grit swirl, pulling in pickups (motion) | chosen |
+
+Concept [round 07](../../concept-rounds/round-07/README.md) — smooth rotation (art-direction rule); generator `tools/concept/enemies_r07.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/halo-platform-r07-a.png](concept/halo-platform-r07-a.png) | Halo Platform r07 — ring as one 6-fold model at 128 frames per 60° step (768 per turn, ~0.9 px edge step), turrets at 64 headings; comparison with r06 and a rotation-over-time chart (sheet) | proposed |
+| [concept/halo-platform-r07-a.gif](concept/halo-platform-r07-a.gif) | Halo Platform r07 — smooth rotation with eased speed-ups as turrets die, shield drops | proposed |
 
 ## Implementation
 
@@ -117,3 +124,4 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Scuttler, Threadcrawler, Warden Tank, Strider, Halo Platform, and Dust Devil (roster fork addition).
 - 2026-10-01: Ravager (L09) and Shellback (L17) added: animal-like Vrell ground walkers, after the user found the Warden Tank and Strider too mechanical for the Vrell. Both mechanical units stay Ascendancy; the Warden Tank keeps its unmarked Act 3 hint at L19.
 - 2026-10-01: Concept round 05: Ravager and Shellback concepts chosen ("very nice").
+- 2026-10-01: Concept round 06: Creeper, Hive Node, Threadcrawler and Dust Devil chosen; Halo Platform's idea liked but its rotation too jagged — redo with a dense angle set (round 07).

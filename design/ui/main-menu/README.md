@@ -2,7 +2,7 @@
 title: Main menu
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../../systems/saves, ../../systems/difficulty]
 updated: 2026-10-01
 ---
@@ -73,12 +73,12 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
 
 | File | What | Status |
 |---|---|---|
-| [concept/main-menu-r06-a.png](concept/main-menu-r06-a.png) | Main menu A — glass menu panel over a pre-rendered hero scene (Stormhawk climbing over Earth's limb, Vrell fleet) | proposed |
-| [concept/main-menu-r06-b.png](concept/main-menu-r06-b.png) | Main menu B — full-screen HUD A metal console with logo viewscreen, LCD buttons, ship blueprint and last-save panel | proposed |
-| [concept/difficulty-r06-a.png](concept/difficulty-r06-a.png) | Difficulty select A — three rank cards (Recruit / Pilot / Ace) over the hero scene | proposed |
-| [concept/difficulty-r06-b.png](concept/difficulty-r06-b.png) | Difficulty select B — console with the full lever table | proposed |
-| [concept/load-game-r06-a.png](concept/load-game-r06-a.png) | Load game A — autosave + 8 glass slot rows with a preview panel | proposed |
-| [concept/load-game-r06-b.png](concept/load-game-r06-b.png) | Load game B — console save archive with load / delete / back | proposed |
+| [concept/main-menu-r06-a.png](concept/main-menu-r06-a.png) | Main menu A — glass menu panel over a pre-rendered hero scene (Stormhawk climbing over Earth's limb, Vrell fleet) | chosen |
+| [concept/rejected/main-menu-r06-b.png](concept/rejected/main-menu-r06-b.png) | Main menu B — full-screen HUD A metal console with logo viewscreen, LCD buttons, ship blueprint and last-save panel | rejected — A preferred; metal is for the in-game HUD only |
+| [concept/difficulty-r06-a.png](concept/difficulty-r06-a.png) | Difficulty select A — three rank cards (Recruit / Pilot / Ace) over the hero scene | chosen |
+| [concept/rejected/difficulty-r06-b.png](concept/rejected/difficulty-r06-b.png) | Difficulty select B — console with the full lever table | rejected — A preferred |
+| [concept/load-game-r06-a.png](concept/load-game-r06-a.png) | Load game A — autosave + 8 glass slot rows with a preview panel | chosen |
+| [concept/rejected/load-game-r06-b.png](concept/rejected/load-game-r06-b.png) | Load game B — console save archive with load / delete / back | rejected — A preferred |
 
 ## Implementation
 
@@ -96,3 +96,4 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
 
 - 2026-09-30: Added Continue, Options and Credits to the requested menu items.
 - 2026-09-30: Concept round 01: logo **D** chosen — working title **Terran Vanguard** (blue chrome, 3D extrusion); A, B, C rejected.
+- 2026-10-01: Concept round 06: variant A (glass menu over the hero scene) chosen for the main menu, difficulty select and load game; the metal console variant B rejected.

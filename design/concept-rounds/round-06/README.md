@@ -1,8 +1,8 @@
 ---
 title: Concept round 06 — more enemies and bosses, setting scenes, menu and shop
-design: review
+design: approved
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -28,16 +28,17 @@ Notes for review:
 
 | # | Choice | Variants | Part | Outcome |
 |---|---|---|---|---|
-| 1 | Act 2 enemies | Creeper (salamander walker), Hive Node, Wraith (manta ghost, rear decloak), Lamprey (latching eel), Driftjelly, Reef Spitter, Skimmer | [enemies](../../enemies/README.md) | open |
-| 2 | Round-05 additions | Threadcrawler (centipede chain), Halo Platform (Ascendancy turret ring), Dust Devil (vortex organism), Spiral Nautilus (rolling shell) | [enemies](../../enemies/README.md) | open |
-| 3 | Gorgon Frigate (Act 1 mid-boss) | Medusa-bell warship with serpent-neck turrets | [enemies/bosses](../../enemies/bosses/README.md) | open |
-| 4 | Harbour Kraken (Act 2 mid-boss) | Cephalopod around an offshore platform, telegraphed arm slams | [enemies/bosses](../../enemies/bosses/README.md) | open |
-| 5 | Siege Spire (Act 2 boss) | Rooted citadel that tears free and rises | [enemies/bosses](../../enemies/bosses/README.md) | open |
-| 6 | Boss weak-point colour | Lime on all bosses (as the Brood Carrier) | [enemies](../../enemies/README.md) | open |
-| 7 | Setting scenes | Luna · Europa under water · asteroid belt · Jupiter (Aurelia) · Vrell space | [art-direction](../../art-direction/README.md) | open |
-| 8 | Main menu | A glass menu over a hero scene · B full-screen metal console (with matching difficulty and load-game screens) | [ui/main-menu](../../ui/main-menu/README.md) | open |
-| 9 | Hangar / shop | A three columns (loadout / shop / intel) · B central ship schematic | [ui/hangar](../../ui/hangar/README.md) | open |
+| 1 | Act 2 enemies | Creeper (salamander walker), Hive Node, Wraith (manta ghost, rear decloak), Lamprey (latching eel), Driftjelly, Reef Spitter, Skimmer | [enemies](../../enemies/README.md) | all chosen |
+| 2 | Round-05 additions | Threadcrawler (centipede chain), Halo Platform (Ascendancy turret ring), Dust Devil (vortex organism), Spiral Nautilus (rolling shell) | [enemies](../../enemies/README.md) | Threadcrawler, Dust Devil, Spiral Nautilus chosen; Halo Platform too jagged → round 07 |
+| 3 | Gorgon Frigate (Act 1 mid-boss) | Medusa-bell warship with serpent-neck turrets | [enemies/bosses](../../enemies/bosses/README.md) | chosen |
+| 4 | Harbour Kraken (Act 2 mid-boss) | Cephalopod around an offshore platform, telegraphed arm slams | [enemies/bosses](../../enemies/bosses/README.md) | rejected — doesn't surface from the depths, detached arms, circle waves → round 07 |
+| 5 | Siege Spire (Act 2 boss) | Rooted citadel that tears free and rises | [enemies/bosses](../../enemies/bosses/README.md) | chosen |
+| 6 | Boss weak-point colour | Lime on all bosses (as the Brood Carrier) | [enemies](../../enemies/README.md) | lime for all bosses — confirmed |
+| 7 | Setting scenes | Luna · Europa under water · asteroid belt · Jupiter (Aurelia) · Vrell space | [art-direction](../../art-direction/README.md) | Luna, belt, Jupiter, Vrell space chosen; Europa not recognisably under water → round 07 |
+| 8 | Main menu | A glass menu over a hero scene · B full-screen metal console (with matching difficulty and load-game screens) | [ui/main-menu](../../ui/main-menu/README.md) | **A** for main menu, difficulty and load game |
+| 9 | Hangar / shop | A three columns (loadout / shop / intel) · B central ship schematic | [ui/hangar](../../ui/hangar/README.md) | layout **B** in the menu's glass style → round 07 |
 
 ## Decisions
 
 - 2026-10-01: Round opened.
+- 2026-10-01: User answered; follow-ups (Europa, Kraken, Halo Platform, Driftjelly waterline, hangar restyle) go to round 07. Round closed.

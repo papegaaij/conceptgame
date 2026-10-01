@@ -83,8 +83,15 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
 
 | File | What | Status |
 |---|---|---|
-| [concept/hangar-r06-a.png](concept/hangar-r06-a.png) | Hangar A — three columns: loadout diagram, shop list with ◆ / NEW / locked and item detail with test fire, intel panel with Varga (before L15) | proposed |
-| [concept/hangar-r06-b.png](concept/hangar-r06-b.png) | Hangar B — central ship schematic with callouts to the slots, shop drawer left, intel with the large Varga portrait right | proposed |
+| [concept/rejected/hangar-r06-a.png](concept/rejected/hangar-r06-a.png) | Hangar A — three columns: loadout diagram, shop list with ◆ / NEW / locked and item detail with test fire, intel panel with Varga (before L15) | rejected — B layout preferred |
+| [concept/hangar-r06-b.png](concept/hangar-r06-b.png) | Hangar B — central ship schematic with callouts to the slots, shop drawer left, intel with the large Varga portrait right | chosen layout — restyle in the menu's glass style (round 07) |
+
+Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the menu's glass style; generator `tools/concept/ui_r07.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/hangar-r07-a.png](concept/hangar-r07-a.png) | Hangar r07 A — glass panels over a pre-rendered hangar bay; the parked Stormhawk is the schematic, with slot callouts, module tiles, power bar, shop drawer, intel with Varga (before L15) | proposed |
+| [concept/hangar-r07-b.png](concept/hangar-r07-b.png) | Hangar r07 B — same layout over a darkened tactical map of Mars with the descent route; holographic blueprint in the centre | proposed |
 
 ## Implementation
 
@@ -106,3 +113,4 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
 
 - 2026-09-30: The intel panel sits in the hangar itself, so the player sees it while shopping.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
+- 2026-10-01: Concept round 06: layout **B** (central ship schematic with the panels around it) chosen, but in the glass style of the menus, not metal — restyle in round 07. Layout A rejected.

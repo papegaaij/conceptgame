@@ -2,7 +2,7 @@
 title: Air enemies
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -104,10 +104,10 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 
 | File | What | Status |
 |---|---|---|
-| [concept/wraith-r06-a.png](concept/wraith-r06-a.png) | Wraith — Vrell manta ghost (rust membrane, blue-violet veins), cloaked shimmer, loops behind the player and decloaks for a rear attack (sheet) | proposed |
-| [concept/wraith-r06-a.gif](concept/wraith-r06-a.gif) | Wraith — Vrell manta ghost (rust membrane, blue-violet veins), cloaked shimmer, loops behind the player and decloaks for a rear attack (motion) | proposed |
-| [concept/lamprey-r06-a.png](concept/lamprey-r06-a.png) | Lamprey — Vrell eel (rust, teal mouth disc): homing stream, latches on and drains shield until shaken off (sheet) | proposed |
-| [concept/lamprey-r06-a.gif](concept/lamprey-r06-a.gif) | Lamprey — Vrell eel (rust, teal mouth disc): homing stream, latches on and drains shield until shaken off (motion) | proposed |
+| [concept/wraith-r06-a.png](concept/wraith-r06-a.png) | Wraith — Vrell manta ghost (rust membrane, blue-violet veins), cloaked shimmer, loops behind the player and decloaks for a rear attack (sheet) | chosen |
+| [concept/wraith-r06-a.gif](concept/wraith-r06-a.gif) | Wraith — Vrell manta ghost (rust membrane, blue-violet veins), cloaked shimmer, loops behind the player and decloaks for a rear attack (motion) | chosen |
+| [concept/lamprey-r06-a.png](concept/lamprey-r06-a.png) | Lamprey — Vrell eel (rust, teal mouth disc): homing stream, latches on and drains shield until shaken off (sheet) | chosen |
+| [concept/lamprey-r06-a.gif](concept/lamprey-r06-a.gif) | Lamprey — Vrell eel (rust, teal mouth disc): homing stream, latches on and drains shield until shaken off (motion) | chosen |
 
 ## Implementation
 
@@ -124,3 +124,4 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 - 2026-09-30: Concept round 03: first enemy sheets — Act 1 air enemies (Skitter and Needler in both Vrell design languages) plus Talon and Gilded Gunship for faction contrast.
 - 2026-09-30: Concept round 04: colour pass on air enemies with the role colours (r04 proposals).
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Whirl Seed, Coilwyrm, Mote Swarm, Buzzsaw Drone, Rail Serpent.
+- 2026-10-01: Concept round 06: Wraith and Lamprey chosen.

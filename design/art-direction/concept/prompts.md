@@ -238,3 +238,41 @@ yellow thorns, an acid mortar polyp with a lime impact marker, translucent glowi
 and dark tendrils drifting below the fighters, soft violet spore clouds, a long rust-coloured
 segmented serpent with teal glow looping in a figure eight, a cluster of spinning plum seed
 pods, a blue-white interceptor firing cyan bolts, outlined bright enemy bullets`
+
+## Round 07 Europa redo
+
+User feedback on round 06: Europa did not read as under water. Round 07 adds the under-water
+cues from the art-direction Water rules: swaying kelp and sea grass, anemones and fan corals,
+rising bubble streams, caustic light on the floor, light shafts, fish schools, marine snow and
+depth haze in the water colour. Generator: `tools/concept/scenes_r07.py` (`a`, `b`; add
+`--sheet` to skip the GIF). Builds on `scenes_r06.py` (Europa) and uses the chosen enemy-sheet
+models from `enemies_r06.py` for the Driftjelly and Spiral Nautilus.
+
+Negative prompt (both): `dry land, sky, clouds, desert, space, stars, photo, realistic
+photography, 3D game engine screenshot, isometric, side view, horizon, text, watermark, neon
+saturated vegetation, bright orange or magenta plants`
+
+## scene-europa-r07-a
+
+Prompt: `top-down view straight down through clear teal-green water onto the floor of an alien
+ocean under an ice sheet, portrait 480x540 game screen, 1990s pre-rendered CGI, dense forest of
+tall olive-golden kelp with leafy blades and gas bladders rising towards the camera and leaning
+away from the centre, swaying in the swell, floating kelp canopies, sea-grass meadows bending in
+the current, pale anemones and muted fan corals, starfish, a bright net of caustic light lines
+rippling over the sand and rocks, glass pressure domes with warm windows and tube corridors,
+a black smoker vent releasing a stream of air bubbles that grow as they rise, small bubble
+seeps from the floor, a silver fish school turning together, marine snow, soft diagonal light
+shafts from cracks in the ice, edges fading into deep blue-green haze, a blue-white interceptor
+trailing bubbles from its engines, ivory nautilus shells with violet glow and olive jellyfish
+mines below it`
+
+## scene-europa-r07-b
+
+Prompt: `top-down view straight down through bright clear teal water onto a sandy alien sea
+floor under an ice sheet, portrait 480x540 game screen, 1990s pre-rendered CGI, open water with
+wide sea-grass meadows bending in the current and only a few kelp stands, strong diagonal light
+shafts from cracks in the ice, a vivid shimmering net of caustic light over the sand, many
+rising bubble streams from vents and seeps, larger fish schools turning together, marine snow,
+pale anemones and fan corals, glass pressure domes with warm windows and tube corridors, a
+blue-white interceptor trailing bubbles, ivory nautilus shells with violet glow and olive
+jellyfish mines below it`

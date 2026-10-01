@@ -90,6 +90,13 @@ All sizes are 1.5× the round 01 values (640×360). The enemy rows match the **s
   3D model with the key light fixed at the top-left, so highlights and shadows stay put while the
   body turns; sprites are never rotated at runtime. Designs for turning enemies avoid a
   lighting-dependent "top": they must read from every angle.
+- **Smooth slow rotation** (user feedback on round 06: the Halo Platform's rotation was "very
+  jagged"). 16/32 angles only work for small sprites or quick turns. The angle step must move
+  the sprite's outer edge by at most ~2 px per frame change: for a part at radius *r* px that is
+  roughly 2π·r / 2 frames — a 150 px ring needs about **256 angles** (or a radially symmetric
+  design so one symmetry step covers it: a 6-fold ring then needs ~43 unique frames). Large
+  slowly rotating structures therefore get dense angle sets or a symmetric design; their
+  rotation speed is chosen so a frame change never jumps more than one step.
 - **Independent parts.** Turrets, heads and weapon arms on vehicles and walkers are separate
   sprites with their own angle set (e.g. a tank hull at 16 angles, its turret at 32), drawn on a
   pivot point defined per frame of the body.
@@ -113,6 +120,24 @@ All sizes are 1.5× the round 01 values (640×360). The enemy rows match the **s
   light is fixed, so a spinner's highlight stays top-left while its body turns under it. Spinners
   with a single weak point off-axis use the full angle set instead.
 - **Organic motion.** Vrell wing beats and pulsing glows at 8–12 fps; engine flicker 15–20 fps.
+- **Water** (user feedback on round 06: the Kraken's and Driftjelly's water rings read as
+  plain drawn circles, and the Kraken "just appears"). Wherever something meets the water
+  surface:
+  - **Waterline:** an irregular, animated foam collar where a body or limb breaks the surface —
+    broken, uneven white/cyan foam that wobbles and sheds bits, never a clean outline.
+  - **Ripples and wakes:** expanding ripple *trains* (several uneven rings that distort,
+    break up and fade, with light/dark wave bands), splashes with spray particles, V-wakes
+    behind moving parts. No single-pixel geometric circles.
+  - **Below the surface:** submerged parts stay visible through the water — tinted towards the
+    water colour, darker, blurred and slightly wavy — and connect continuously to the parts
+    above it (an arm that dives in can be followed under water to the body).
+  - **Surfacing / diving:** the highest parts break the surface first, then the rest follows
+    from top to bottom (and the reverse when diving), with a swell and foam ring growing as it
+    rises and water streaming off afterwards. Nothing pops in.
+  - **Under water** scenes (Europa) must read as under water at a glance: swaying vegetation
+    (kelp, sea grass, anemones), rising air-bubble streams, drifting particles, caustic light
+    patterns and light shafts, and fish.
+
 - **Explosions.** Pre-rendered volumetric fireball sequences of 12–16 frames (additive), plus
   debris chunks and a shockwave ring for large kills. A 1–2 frame white **hit flash** on every
   damaged enemy.
@@ -298,16 +323,25 @@ Concept [round 06](../concept-rounds/round-06/README.md) — five more settings 
 
 | File | What | Status |
 |---|---|---|
-| [concept/scene-luna-r06-a.png](concept/scene-luna-r06-a.png) | Luna — regolith with earthshine-tinted crater shadows, Tranquility Base, mass-driver rail, Vrell nest crater, regolith plumes (sheet + layer breakdown) | proposed |
-| [concept/scene-luna-r06-a.gif](concept/scene-luna-r06-a.gif) | Luna: seamless scroll loop | proposed |
-| [concept/scene-europa-r06-a.png](concept/scene-europa-r06-a.png) | Europa under water — Thera Deep domes and kelp farms on the sea floor, Vrell coral, silt and fish on the sub layer, light shafts, headlight cone (sheet + layer breakdown) | proposed |
-| [concept/scene-europa-r06-a.gif](concept/scene-europa-r06-a.gif) | Europa under water: seamless scroll loop | proposed |
-| [concept/scene-belt-r06-a.png](concept/scene-belt-r06-a.png) | Asteroid belt — refinery pit and conveyors on a large rock, Helix block with Rail Bunker, tumbling rocks and haulers, ricocheting Buzzsaw (sheet + layer breakdown) | proposed |
-| [concept/scene-belt-r06-a.gif](concept/scene-belt-r06-a.gif) | Asteroid belt: seamless scroll loop | proposed |
-| [concept/scene-jovian-r06-a.png](concept/scene-jovian-r06-a.png) | Jupiter — Aurelia's Art Deco decks over cloud bands and a storm vortex, anti-grav ring and balloons, lightning flash (sheet + layer breakdown) | proposed |
-| [concept/scene-jovian-r06-a.gif](concept/scene-jovian-r06-a.gif) | Jupiter: seamless scroll loop | proposed |
-| [concept/scene-vrell-space-r06-a.png](concept/scene-vrell-space-r06-a.png) | Vrell space — violet/teal nebula, hive surface with glowing veins and spawning pits, spore sacs and tendrils, Coilwyrm on a figure-8 (sheet + layer breakdown) | proposed |
-| [concept/scene-vrell-space-r06-a.gif](concept/scene-vrell-space-r06-a.gif) | Vrell space: seamless scroll loop | proposed |
+| [concept/scene-luna-r06-a.png](concept/scene-luna-r06-a.png) | Luna — regolith with earthshine-tinted crater shadows, Tranquility Base, mass-driver rail, Vrell nest crater, regolith plumes (sheet + layer breakdown) | chosen |
+| [concept/scene-luna-r06-a.gif](concept/scene-luna-r06-a.gif) | Luna: seamless scroll loop | chosen |
+| [concept/rejected/scene-europa-r06-a.png](concept/rejected/scene-europa-r06-a.png) | Europa under water — Thera Deep domes and kelp farms on the sea floor, Vrell coral, silt and fish on the sub layer, light shafts, headlight cone (sheet + layer breakdown) | rejected — not clear enough that it is under water |
+| [concept/rejected/scene-europa-r06-a.gif](concept/rejected/scene-europa-r06-a.gif) | Europa under water: seamless scroll loop | rejected — not clear enough that it is under water |
+| [concept/scene-belt-r06-a.png](concept/scene-belt-r06-a.png) | Asteroid belt — refinery pit and conveyors on a large rock, Helix block with Rail Bunker, tumbling rocks and haulers, ricocheting Buzzsaw (sheet + layer breakdown) | chosen |
+| [concept/scene-belt-r06-a.gif](concept/scene-belt-r06-a.gif) | Asteroid belt: seamless scroll loop | chosen |
+| [concept/scene-jovian-r06-a.png](concept/scene-jovian-r06-a.png) | Jupiter — Aurelia's Art Deco decks over cloud bands and a storm vortex, anti-grav ring and balloons, lightning flash (sheet + layer breakdown) | chosen |
+| [concept/scene-jovian-r06-a.gif](concept/scene-jovian-r06-a.gif) | Jupiter: seamless scroll loop | chosen |
+| [concept/scene-vrell-space-r06-a.png](concept/scene-vrell-space-r06-a.png) | Vrell space — violet/teal nebula, hive surface with glowing veins and spawning pits, spore sacs and tendrils, Coilwyrm on a figure-8 (sheet + layer breakdown) | chosen |
+| [concept/scene-vrell-space-r06-a.gif](concept/scene-vrell-space-r06-a.gif) | Vrell space: seamless scroll loop | chosen |
+
+Concept [round 07](../concept-rounds/round-07/README.md) — Europa redone to read as under water (new Water rules); generator `tools/concept/scenes_r07.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/scene-europa-r07-a.png](concept/scene-europa-r07-a.png) | Europa A "kelp forest" — swaying kelp stands and sea grass, anemones and fan corals, caustic light on the floor, rising bubble streams, fish schools, marine snow, light shafts (sheet + layer breakdown) | proposed |
+| [concept/scene-europa-r07-a.gif](concept/scene-europa-r07-a.gif) | Europa A: seamless scroll loop | proposed |
+| [concept/scene-europa-r07-b.png](concept/scene-europa-r07-b.png) | Europa B "open water" — brighter sandy floor, wider meadows, fewer kelp stands, stronger light shafts and caustics, larger fish school (sheet) | proposed |
+| [concept/scene-europa-r07-b.gif](concept/scene-europa-r07-b.gif) | Europa B: seamless scroll loop | proposed |
 
 ## Implementation
 
@@ -354,3 +388,5 @@ Concept [round 06](../concept-rounds/round-06/README.md) — five more settings 
   table extended with tiny and huge tiers; animation rules added for independent parts, segment
   chains (per segment type, not per pose), articulated parts, walk cycles and radially
   symmetric spinners.
+- 2026-10-01: Concept round 06: Luna, belt, Jupiter and Vrell-space scenes chosen; Europa rejected (not recognisably under water) — redo with vegetation, bubbles and caustics. New rules: smooth slow rotation (dense angle sets for large rotating structures) and water-surface interaction (waterline foam, ripple trains, visible submerged parts, top-down surfacing).
+- 2026-10-01: Menus and other out-of-game screens use the glass-over-scene style of main menu A; the bevelled metal style is reserved for the in-game HUD (user decision, round 06).

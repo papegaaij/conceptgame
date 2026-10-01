@@ -65,6 +65,15 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 | `scenes_r06.py [luna europa belt jovian vrell-space]` | `design/art-direction/concept/scene-<setting>-r06-a.{png,gif}` | five setting scenes at medium atmosphere; models in `render/scene_models.py`; ~5–8 min per scene |
 | `ui_r06.py [menu] [difficulty] [load] [hangar]` | `design/ui/main-menu/concept/{main-menu,difficulty,load-game}-r06-{a,b}.png`, `design/ui/hangar/concept/hangar-r06-{a,b}.png` | main menu, difficulty select, load game and hangar screens; ~35 s |
 
+## Scripts (round 07)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `scenes_r07.py [a] [b] [--sheet]` | `design/art-direction/concept/scene-europa-r07-{a,b}.{png,gif}` | Europa under water (kelp, bubbles, caustics, fish); subclasses `scenes_r06.EuropaScene`; ~4 min per GIF |
+| `kraken_r07.py` | `design/enemies/bosses/concept/harbour-kraken-r07-a.{png,gif}` | water as a height field, depth-banded submerged parts, top-down surfacing; ~8 min |
+| `enemies_r07.py [halo-platform] [driftjelly]` | `design/enemies/{ground,naval}/concept/{halo-platform,driftjelly}-r07-a.{png,gif}` | dense 6-fold angle set for the Halo ring (frames cached outside the repo), water-plane clipping for the Driftjelly; models in `render/r07_models.py` |
+| `ui_r07.py [a] [b]` | `design/ui/hangar/concept/hangar-r07-{a,b}.png` | hangar layout B in the menu's glass style; ~16 s |
+
 ## Audio (round 01)
 
 Audio generators live in [`audio/`](audio/README.md): a small numpy synth (`synth.py`), the

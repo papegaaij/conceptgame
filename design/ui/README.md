@@ -4,7 +4,7 @@ design: draft
 implementation: not-started
 art: chosen
 depends-on: [../art-direction, ../systems]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # User interface
@@ -12,14 +12,17 @@ updated: 2026-09-30
 ## Summary
 
 Every screen outside the action and the HUD around it: main menu, briefing, hangar, in-level
-HUD, pause, debrief, and the controls. The style is late-90s military tech: bevelled metal
-panels, green/amber phosphor readouts, portrait frames, chunky bitmap fonts.
+HUD, pause, debrief, and the controls. Two styles (user decision, round 06): **out-of-game
+screens** (menus, difficulty, load game, hangar/shop, briefing, debrief) use translucent glass
+panels with thin metal trim over a pre-rendered scene, as in main menu A; the **in-game HUD**
+alone uses bevelled metal panels with green/amber phosphor readouts. Both share portrait
+frames and chunky bitmap fonts.
 
 ## Contents
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | draft | not-started | proposed |
+| [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | draft | not-started | chosen |
 | [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | draft | not-started | none |
 | [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | draft | not-started | proposed |
 | [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | draft | not-started | chosen |
@@ -68,3 +71,4 @@ The HUD and logo concepts for round 01 live in [hud](hud/README.md) and
 - 2026-09-30: Controls are a UI part (`controls/`), since remapping lives in the options screen.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-09-30: Fonts were not scaled ×1.5 (that would give 12×12 / 12×24 / 24×24): body text uses 10×20 so the wider panels fit more text per line.
+- 2026-10-01: Concept round 06: out-of-game screens use the glass-over-scene style of main menu A; bevelled metal is reserved for the in-game HUD.
