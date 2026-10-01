@@ -27,7 +27,10 @@ previews; production: rebuild from the original files). Pickups and UI sounds st
 Round 08 follows the same split: recorded hits, player damage, enemy, special, radio-squelch,
 klaxon and ambience sounds (`import_sfx.py`); synthesized pickups by type and UI blips in the
 family of the chosen round-01 pickups (`tools/concept/audio/sfx_r08.py`). Recorded one-shots are
-levelled on the 200 Hz–5 kHz band so sub-heavy sources stay audible on small speakers.
+levelled on the 200 Hz–5 kHz band so sub-heavy sources stay audible on small speakers;
+where a source needs EQ (sub-sonic drift, a harsh top end) the high- or low-pass is set and
+commented on its `import_sfx.py` entry. A source that is almost all sub-bass is replaced, not
+boosted.
 
 ### Weapon sound families
 
@@ -141,11 +144,11 @@ reused round 02 files marked (r02).
 
 | Sound | Priority |
 |---|---|
-| Enemy shot: small [a](concept/enemy-shot-small-r08-a.ogg), [b](concept/enemy-shot-small-r08-b.ogg) / heavy [a](concept/enemy-shot-heavy-r08-a.ogg) / laser charge warning [a](concept/enemy-laser-warning-r08-a.ogg) | P1 |
+| Enemy shot: small [a](concept/enemy-shot-small-r08-a.ogg), [b](concept/enemy-shot-small-r08-b.ogg) / heavy [a](concept/enemy-shot-heavy-r08-a.ogg), [b](concept/enemy-shot-heavy-r08-b.ogg) / laser charge warning [a](concept/enemy-laser-warning-r08-a.ogg) | P1 |
 | Missile launch (enemy) — [a](concept/enemy-missile-r08-a.ogg) | P1 |
-| Vrell screech (spawn/attack cue), 4 variants — 3 so far: [a](concept/enemy-screech-r08-a.ogg), [b](concept/enemy-screech-r08-b.ogg), [c](concept/enemy-screech-r08-c.ogg) | P2 |
+| Vrell screech (spawn/attack cue), 4 variants: [a](concept/enemy-screech-r08-a.ogg), [b](concept/enemy-screech-r08-b.ogg), [c](concept/enemy-screech-r08-c.ogg), [d](concept/enemy-screech-r08-d.ogg) | P2 |
 | Turret rotate / lock-on beep — [a](concept/enemy-lock-r08-a.ogg) | P2 |
-| Portal / warp-in | P2 |
+| Portal / warp-in; Vrell spawn (Brood Pod bursting, Hive Node and Brood Carrier spawns) — [a](concept/enemy-spawn-r08-a.ogg) (wet creature swell), [b](concept/enemy-spawn-r08-b.ogg) (fleshy burst) | P2 |
 | Carrier launching drones | P3 |
 | Boss roars and phase-change cues (per boss) | P3 |
 
@@ -154,12 +157,12 @@ reused round 02 files marked (r02).
 | Sound | Priority |
 |---|---|
 | Menu move / confirm / back — [a](concept/ui-menu-move-r08-a.ogg) / [a](concept/ui-menu-confirm-r08-a.ogg) / [a](concept/ui-menu-back-r08-a.ogg) | P1 |
-| Buy / sell / equip / upgrade / can't afford / won't fit (power) — buy [a](concept/ui-shop-buy-r08-a.ogg), sell [a](concept/ui-shop-sell-r08-a.ogg), can't afford / won't fit [a](concept/ui-shop-denied-r08-a.ogg); equip/upgrade still open | P1 |
+| Buy / sell / equip / upgrade / can't afford / won't fit (power) — buy [a](concept/ui-shop-buy-r08-a.ogg), sell [a](concept/ui-shop-sell-r08-a.ogg), can't afford / won't fit [a](concept/ui-shop-denied-r08-a.ogg), equip [a](concept/ui-equip-r08-a.ogg), upgrade [a](concept/ui-upgrade-r08-a.ogg) | P1 |
 | Save done | P2 |
 | Typewriter blip (briefing text) — [a](concept/ui-typewriter-r08-a.ogg) | P1 |
 | Radio squelch open / close — [a](concept/ui-radio-open-r08-a.ogg) / [a](concept/ui-radio-close-r08-a.ogg) | P1 |
 | Warning klaxon (boss, rear attack) — [a](concept/ui-klaxon-r08-a.ogg) (seamless loop), [b](concept/ui-klaxon-r08-b.ogg) (single blast) | P1 |
-| Debrief tally tick / grade stamp — tick [a](concept/ui-tally-tick-r08-a.ogg), total [a](concept/ui-tally-total-r08-a.ogg); grade stamp still open | P2 |
+| Debrief tally tick / grade stamp — tick [a](concept/ui-tally-tick-r08-a.ogg), total [a](concept/ui-tally-total-r08-a.ogg), grade stamp [a](concept/ui-grade-stamp-r08-a.ogg) | P2 |
 
 ### Ambience (per setting)
 
@@ -279,8 +282,8 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 | [concept/hit-organic-r08-a.ogg](concept/hit-organic-r08-a.ogg) | "splat.ogg" by gprosser (CC0 1.0) — Hit: organic — wet hit on Vrell chitin | proposed |
 | [concept/hit-organic-r08-b.ogg](concept/hit-organic-r08-b.ogg) | "cracking.wav" by smidoid (CC-BY 4.0) — Hit: organic, chitin crunch | proposed |
 | [concept/hit-crumble-r08-a.ogg](concept/hit-crumble-r08-a.ogg) | "building_collapse02_close.wav" by onteca (CC-BY 3.0) — Ground target destroyed — crumbling structure | proposed |
-| [concept/hit-crumble-r08-b.ogg](concept/hit-crumble-r08-b.ogg) | "Rock Smash" by NeoSpica (CC0 1.0) — Ground target destroyed, small (rock smash) | proposed |
-| [concept/player-shield-hit-r08-a.ogg](concept/player-shield-hit-r08-a.ogg) | "ELECTRIC_ZAP_001.wav" by JoelAudio (CC0 1.0) — Shield hit — electric fizz | proposed |
+| [concept/hit-crumble-r08-b.ogg](concept/hit-crumble-r08-b.ogg) | "Bricks/Stones/Rocks/Gravel Falling" by iwanPlays (CC0 1.0) — Ground target destroyed, small (rubble burst); replaces "Rock Smash" by NeoSpica, which was almost all sub-bass | proposed |
+| [concept/player-shield-hit-r08-a.ogg](concept/player-shield-hit-r08-a.ogg) | "ELECTRIC_ZAP_001.wav" by JoelAudio (CC0 1.0) — Shield hit — electric fizz, low-passed at 7 kHz | proposed |
 | [concept/player-shield-hit-r08-b.ogg](concept/player-shield-hit-r08-b.ogg) | "Sci-Fi Force Field Impact 15.wav" by StormwaveAudio (CC-BY 4.0) — Shield hit, force-field variant | proposed |
 | [concept/player-shield-break-r08-a.ogg](concept/player-shield-break-r08-a.ogg) | "Synthesized_Pitch-Down_Zap" by joe_bou_khalil (CC-BY 4.0) — Shield break — descending zap | proposed |
 | [concept/player-shield-restore-r08-a.ogg](concept/player-shield-restore-r08-a.ogg) | "Power Up Charge [Remix of LegoLunatic's Charged laser 151243]" by qubodup (CC0 1.0) — Shield restored — rising charge | proposed |
@@ -293,11 +296,15 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 | [concept/enemy-shot-small-r08-a.ogg](concept/enemy-shot-small-r08-a.ogg) | "Sci-fi gun shot x6" by humanoide9000 (CC0 1.0) — Enemy shot, small | proposed |
 | [concept/enemy-shot-small-r08-b.ogg](concept/enemy-shot-small-r08-b.ogg) | "retro shot blaster" by JavierZumer (CC-BY 4.0) — Enemy shot, small (retro blaster) | proposed |
 | [concept/enemy-shot-heavy-r08-a.ogg](concept/enemy-shot-heavy-r08-a.ogg) | "ScifiHeavyBlasterShot.wav" by SuperPhat (CC0 1.0) — Enemy shot, heavy | proposed |
+| [concept/enemy-shot-heavy-r08-b.ogg](concept/enemy-shot-heavy-r08-b.ogg) | "Heavy blaster shot 05" by xkeril (CC0 1.0) — Enemy shot, heavy b — bassy blaster with a falling sweep | proposed |
 | [concept/enemy-laser-warning-r08-a.ogg](concept/enemy-laser-warning-r08-a.ogg) | "Laser Charging" by plasterbrain (CC0 1.0) — Enemy laser charge warning | proposed |
 | [concept/enemy-missile-r08-a.ogg](concept/enemy-missile-r08-a.ogg) | "Missile firing fl.mp3" by NHMWretched (CC0 1.0) — Enemy missile launch | proposed |
 | [concept/enemy-screech-r08-a.ogg](concept/enemy-screech-r08-a.ogg) | "Monster screech" by Khrinx (CC0 1.0) — Vrell screech (spawn/attack cue) a | proposed |
 | [concept/enemy-screech-r08-b.ogg](concept/enemy-screech-r08-b.ogg) | "inhuman screech.wav" by Wolfsinger (CC-BY 4.0) — Vrell screech b | proposed |
 | [concept/enemy-screech-r08-c.ogg](concept/enemy-screech-r08-c.ogg) | "alien4.wav" by AlienXXX (CC-BY 4.0) — Vrell screech c | proposed |
+| [concept/enemy-screech-r08-d.ogg](concept/enemy-screech-r08-d.ogg) | "alien screech.wav" by jvmyka@gmail.com (CC0 1.0) — Vrell screech d — reversed, processed horse sounds | proposed |
+| [concept/enemy-spawn-r08-a.ogg](concept/enemy-spawn-r08-a.ogg) | "DCA Alien Spawning Birth.aif" by darcyadam (CC0 1.0) — Vrell spawn a — wet creature swell (Hive Node / Brood Carrier spawns) | proposed |
+| [concept/enemy-spawn-r08-b.ogg](concept/enemy-spawn-r08-b.ogg) | "goreSplat.wav" by ThefitzyG (CC0 1.0) — Vrell spawn b — fleshy burst (Brood Pod bursting) | proposed |
 | [concept/enemy-lock-r08-a.ogg](concept/enemy-lock-r08-a.ogg) | "lock on" by SamsterBirdies (CC0 1.0) — Turret lock-on beep | proposed |
 | [concept/special-airstrike-jets-r08-a.ogg](concept/special-airstrike-jets-r08-a.ogg) | "Jet Plane Flyby.flac" by qubodup (CC0 1.0) — Airstrike: jets flyby | proposed |
 | [concept/special-airstrike-bombs-r08-a.ogg](concept/special-airstrike-bombs-r08-a.ogg) | "R11-55-Large Blasts.wav" by craigsmith (CC0 1.0) — Airstrike: bomb carpet | proposed |
@@ -328,6 +335,9 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 | [concept/ui-typewriter-r08-a.ogg](concept/ui-typewriter-r08-a.ogg) | Synthesized — Typewriter blip — 30 ms click-blip, played per character of briefing text | proposed |
 | [concept/ui-tally-tick-r08-a.ogg](concept/ui-tally-tick-r08-a.ogg) | Synthesized — Debrief tally tick — 30 ms high sine tick | proposed |
 | [concept/ui-tally-total-r08-a.ogg](concept/ui-tally-total-r08-a.ogg) | Synthesized — Debrief total — C-major bell chord stinger | proposed |
+| [concept/ui-equip-r08-a.ogg](concept/ui-equip-r08-a.ogg) | Synthesized — Hangar equip — square clunk, latch click and a quiet rising two-note blip | proposed |
+| [concept/ui-upgrade-r08-a.ogg](concept/ui-upgrade-r08-a.ogg) | Synthesized — Hangar upgrade — short PWM rise landing on a G6 bell | proposed |
+| [concept/ui-grade-stamp-r08-a.ogg](concept/ui-grade-stamp-r08-a.ogg) | Synthesized — Debrief grade stamp — punchy thump with a paper slap and a low bell | proposed |
 
 ## Implementation
 
@@ -346,3 +356,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 - 2026-09-30: Concept round 04: all new sounds chosen (beam loops, start/stop, huge and under-water explosions, sonar A); sonar B rejected — A is enough.
 - 2026-10-01: Concept round 08: remaining Acts 1–2 sounds proposed — 40 recorded (CC0/CC-BY, band-levelled; five sub-bass-only candidates rejected) and 14 synthesized pickups and UI blips. Overdrive pickup maps to pickup-r01-a, data core to pickup-r01-b, salvage medium to pickup-r01-c. Still open: equip/upgrade and grade-stamp UI sounds, a fourth Vrell screech, an Airstrike radio call (text + squelch for now, no voice).
 - 2026-10-01: Confirmed by the user: pickups and UI sounds stay synthesized; everything else (shots, explosions, hits, enemies, specials, radio, klaxon, ambience) uses recorded CC0/CC-BY sounds.
+- 2026-10-01: Round 08 verified (peak, 200 Hz–5 kHz band level, DC, edges, loop seams, spectrograms) and fixed: bell and shimmer tails in four synthesized sounds (armour patch, special charge, shield cell, debrief total) ended in a click — the bell now has a release and the armour patch is longer; ship destroyed is high-passed at 20 Hz (sub-sonic drift left a DC offset); shield hit a is low-passed at 7 kHz (83 % of its energy was above 5 kHz); crumble b got a new source (the first was almost all sub-bass and stayed ~8 dB quieter than a on its audible band, even high-passed). Added the missing Acts 1–2 sounds: heavy enemy shot b, Vrell screech d, two Vrell spawn sounds, and synthesized equip, upgrade and grade-stamp UI sounds. Rejected on licence grounds: Artninja's "morphing burst" (built from Warner Bros and Zapsplat library sounds). `sfx.py` now writes the rejected round-01 shots and explosions to `concept/rejected/`.

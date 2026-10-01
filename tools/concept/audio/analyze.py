@@ -19,8 +19,9 @@ from synth import SR, db, decode, lufs  # noqa: E402
 
 def spectrogram(x, out_png, height=256, width=900):
     from PIL import Image
-    mono = x.mean(axis=0)
-    nfft, hop = 2048, max(64, len(mono) // width)
+    nfft = 2048
+    mono = np.pad(x.mean(axis=0), (0, max(0, nfft + 1 - x.shape[1])))  # very short UI ticks
+    hop = max(64, len(mono) // width)
     win = np.hanning(nfft)
     frames = [mono[i:i + nfft] * win for i in range(0, max(1, len(mono) - nfft), hop)]
     spec = db(np.abs(np.fft.rfft(np.array(frames), axis=1)) + 1e-9).T  # (freq, time)

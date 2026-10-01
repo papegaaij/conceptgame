@@ -21,6 +21,10 @@ Optional treatments:
   rejected=True                the user rejected the file; it is written to concept/rejected/.
   lowpass=Hz                   4-pole low-pass (two cascaded 2-pole SVFs) applied after the
                                cut, e.g. to derive a muffled under-water variant.
+  highpass=Hz                  4-pole high-pass (two cascaded 2-pole SVFs) applied after the
+                               cut and before the fades: removes sub-sonic drift (which leaves
+                               a DC offset after the fade-out) or tames a sub-heavy source so
+                               its audible band can be levelled up without hitting the ceiling.
   fadein=sec                   fade-in length (default 2 ms), for cuts that start in the middle
                                of a sound, e.g. a jet flyby.
 
@@ -246,14 +250,17 @@ SOURCES = {
         page="https://freesound.org/people/onteca/sounds/197772/",
         preview="https://cdn.freesound.org/previews/197/197772_1011133-hq.ogg",
         licence="CC-BY 3.0", offset=0.0, length=2.4, fade=0.8, peak=-1.5),
+    # replaced the first b (NeoSpica "Rock Smash", 512243): almost all sub-bass with one spike,
+    # so even high-passed it stayed peak-limited ~8 dB below a on its audible band.
     "hit-crumble-r08-b": dict(
-        page="https://freesound.org/people/NeoSpica/sounds/512243/",
-        preview="https://cdn.freesound.org/previews/512/512243_7704891-hq.ogg",
-        licence="CC0 1.0", offset=0.0, length=1.5, fade=0.6, peak=-1.5),
+        page="https://freesound.org/people/iwanPlays/sounds/567249/",
+        preview="https://cdn.freesound.org/previews/567/567249_7108319-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.6, fade=0.6, band_rms=-25.0, peak=-1.5),
     "player-shield-hit-r08-a": dict(
         page="https://freesound.org/people/JoelAudio/sounds/136542/",
         preview="https://cdn.freesound.org/previews/136/136542_1206321-hq.ogg",
-        licence="CC0 1.0", offset=0.0, length=0.5, fade=0.2, band_rms=-24.0, peak=-2.0),
+        licence="CC0 1.0", offset=0.0, length=0.5, fade=0.2, band_rms=-24.0, peak=-2.0,
+        lowpass=7000),  # 83 % of its energy was above 5 kHz: harsh for a frequent sound
     "player-shield-hit-r08-b": dict(
         page="https://freesound.org/people/StormwaveAudio/sounds/330629/",
         preview="https://cdn.freesound.org/previews/330/330629_3594951-hq.ogg",
@@ -281,7 +288,8 @@ SOURCES = {
     "player-destroyed-r08-a": dict(
         page="https://freesound.org/people/phantastonia/sounds/270616/",
         preview="https://cdn.freesound.org/previews/270/270616_5137631-hq.ogg",
-        licence="CC-BY 4.0", offset=0.0, length=3.5, fade=1.5, peak=-1.0),
+        licence="CC-BY 4.0", offset=0.0, length=3.5, fade=1.5, peak=-1.0,
+        highpass=20),  # sub-sonic drift left a 0.008 DC offset after the fade-out
     "overdrive-start-r08-a": dict(
         page="https://freesound.org/people/GameAudio/sounds/220173/",
         preview="https://cdn.freesound.org/previews/220/220173_4100837-hq.ogg",
@@ -302,6 +310,10 @@ SOURCES = {
         page="https://freesound.org/people/SuperPhat/sounds/531861/",
         preview="https://cdn.freesound.org/previews/531/531861_7542558-hq.ogg",
         licence="CC0 1.0", offset=0.0, length=0.75, fade=0.3, band_rms=-30.0, peak=-8.0),
+    "enemy-shot-heavy-r08-b": dict(
+        page="https://freesound.org/people/xkeril/sounds/702000/",
+        preview="https://cdn.freesound.org/previews/702/702000_13504080-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.9, fade=0.4, band_rms=-30.0, peak=-8.0),
     "enemy-laser-warning-r08-a": dict(
         page="https://freesound.org/people/plasterbrain/sounds/351807/",
         preview="https://cdn.freesound.org/previews/351/351807_4284968-hq.ogg",
@@ -322,6 +334,19 @@ SOURCES = {
         page="https://freesound.org/people/AlienXXX/sounds/78539/",
         preview="https://cdn.freesound.org/previews/78/78539_97763-hq.ogg",
         licence="CC-BY 4.0", offset=0.0, length=1.6, fade=0.5, band_rms=-30.0, peak=-8.0),
+    "enemy-screech-r08-d": dict(
+        page="https://freesound.org/people/jvmyka@gmail.com/sounds/556535/",
+        preview="https://cdn.freesound.org/previews/556/556535_7802703-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=2.0, fade=0.5, band_rms=-30.0, peak=-8.0),
+    # Vrell warp-in / spawn (Brood Pod bursting, Hive Node and Brood Carrier spawns)
+    "enemy-spawn-r08-a": dict(
+        page="https://freesound.org/people/darcyadam/sounds/651487/",
+        preview="https://cdn.freesound.org/previews/651/651487_3379512-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.6, fade=0.6, band_rms=-30.0, peak=-6.0),
+    "enemy-spawn-r08-b": dict(
+        page="https://freesound.org/people/ThefitzyG/sounds/414296/",
+        preview="https://cdn.freesound.org/previews/414/414296_6629239-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.7, fade=0.5, band_rms=-30.0, peak=-6.0),
     "enemy-lock-r08-a": dict(
         page="https://freesound.org/people/SamsterBirdies/sounds/467881/",
         preview="https://cdn.freesound.org/previews/467/467881_5487341-hq.ogg",
@@ -443,6 +468,9 @@ def process(src, raw):
     start = int(src["offset"] * SR)
     x = x[:, start:start + int(src["length"] * SR)].copy()
     x -= x.mean(axis=1, keepdims=True)  # remove DC
+    if "highpass" in src:
+        x = np.array([svf(svf(ch, src["highpass"], mode="hp"), src["highpass"], mode="hp")
+                      for ch in x])
     if "lowpass" in src:
         x = np.array([svf(svf(ch, src["lowpass"]), src["lowpass"]) for ch in x])
     n_in = int(src.get("fadein", 0.002) * SR)

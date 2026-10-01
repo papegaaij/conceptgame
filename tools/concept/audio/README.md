@@ -6,7 +6,9 @@ Requires Python 3, numpy and the `ffmpeg` binary (with libvorbis). No other audi
 | Script | Purpose | Output |
 |---|---|---|
 | `synth.py` | Library: PolyBLEP saw/pulse, triangle, sine, noise, supersaw; ADSR and ramps; resonant state-variable filter; delay, convolution reverb, bitcrush, saturation, panning; tracker-style pattern parser and mixer; look-ahead limiter, loudness mastering (via ffmpeg `loudnorm`), OGG writer with a post-encode peak check | — |
-| `sfx.py` | Concept round 01 sound effects | `design/audio/sfx/concept/*.ogg` |
+| `sfx.py` | Concept round 01 sound effects | `design/audio/sfx/concept/*-r01-*.ogg` (the rejected shots and explosions in `concept/rejected/`) |
+| `sfx_r08.py` | Concept round 08: synthesized pickups and UI sounds (pickup-r01 family) | `design/audio/sfx/concept/{pickup,ui}-*-r08-*.ogg` |
+| `import_sfx.py` | Recorded CC0/CC-BY sound effects from Freesound (trim, cut, fades, optional loop, high/low-pass, peak or 200 Hz–5 kHz band levelling); sources in `CREDITS.md` | `design/audio/sfx/concept/*.ogg` (+ `rejected/`) |
 | `music.py` | Concept round 01 music sketches (`a` trance/techno, `b` synth-orchestral) | `design/audio/music/concept/*.ogg` |
 | `music_r02.py` | Concept round 02: five loopable themes (`title hangar boss mars europa`). Intro + loop + fade tail per file, loop points in the `LOOPSTART`/`LOOPLENGTH` Vorbis comments, sample-exact loops | `design/audio/music/concept/*-r02-a.ogg` |
 | `music_r03.py` | Concept round 03: five more themes (`earth belt jovian ascendancy final`), same loop format; adds Vorne's motif and new voices (trumpet, storm tremolo strings, organ, anvils, thunder, heartbeat, radio static, siren) | `design/audio/music/concept/*-r03-a.ogg` |

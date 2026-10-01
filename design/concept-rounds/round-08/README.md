@@ -29,7 +29,7 @@ and Rook's banking frames.
 | 7 | Portraits | The Choir glyph, generic CDF officer, generic civilian | [story/characters](../../story/characters/README.md) | open |
 | 8 | Re-renders | Scuttler, Coilwyrm, Leviathan with seams that turn with the body | [enemies](../../enemies/README.md) | open |
 | 9 | Music | 8 cues (briefing, Act 2 B, mini-boss sting, boss warning, mission complete, act complete, mission failed, game over) and full-length versions of title, hangar, Afterburner, Coalition Rising, Homefront, The Choir Descends | [audio/music](../../audio/music/README.md) | open |
-| 10 | Sound effects | 54 sounds: hits, shield/armour, enemy shots, screeches, specials, pickups by type, UI and radio, six ambience loops | [audio/sfx](../../audio/sfx/README.md) | open |
+| 10 | Sound effects | 61 sounds: hits, shield/armour, enemy shots, screeches, Vrell spawns, specials, pickups by type, UI (incl. equip, upgrade, grade stamp) and radio, six ambience loops — verified and fixed in a completion pass | [audio/sfx](../../audio/sfx/README.md) | open |
 
 ## Decisions
 

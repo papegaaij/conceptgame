@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """Concept round 01 sound effects.
 
-Outputs (design/audio/sfx/concept/):
-  player-shot-r01-a.ogg   classic square-wave laser "pew"
-  player-shot-r01-b.ogg   pulse cannon: thump + short noise snap
-  player-shot-r01-c.ogg   plasma bolt: resonant-swept saw "zwip"
-  explosion-r01-a.ogg     small, crunchy, bit-crushed 8-bit style pop
-  explosion-r01-b.ogg     big boomy blast with sub drop and debris tail
-  explosion-r01-c.ogg     sci-fi plasma detonation: resonant sweep + ring-mod whoom
+Outputs (design/audio/sfx/concept/; the rejected shots and explosions go to concept/rejected/):
+  rejected/player-shot-r01-a.ogg   classic square-wave laser "pew"
+  rejected/player-shot-r01-b.ogg   pulse cannon: thump + short noise snap
+  rejected/player-shot-r01-c.ogg   plasma bolt: resonant-swept saw "zwip"
+  rejected/explosion-r01-a.ogg     small, crunchy, bit-crushed 8-bit style pop
+  rejected/explosion-r01-b.ogg     big boomy blast with sub drop and debris tail
+  rejected/explosion-r01-c.ogg     sci-fi plasma detonation: resonant sweep + ring-mod whoom
   pickup-r01-a.ogg        4-note square arpeggio power-up
   pickup-r01-b.ogg        bright bell chime pair with echo
   pickup-r01-c.ogg        rising PWM sweep with sparkles (credits)
 
-Usage: python3 tools/concept/audio/sfx.py [OUTDIR]
+Usage: python3 tools/concept/audio/sfx.py [OUTDIR]   (rejected files go to OUTDIR/rejected/)
 Deterministic: every sound uses its own fixed seed.
 """
 import sys
@@ -195,6 +195,10 @@ SOUNDS = {
     "pickup-r01-c": (pickup_c, PEAK_PICKUP - 3),  # sustained tone: sounds louder
 }
 
+# The user rejected the synthesized shots and explosions (recorded ones replaced them).
+REJECTED = {"player-shot-r01-a", "player-shot-r01-b", "player-shot-r01-c",
+            "explosion-r01-a", "explosion-r01-b", "explosion-r01-c"}
+
 
 def main():
     out = Path(sys.argv[1]) if len(sys.argv) > 1 else OUT
@@ -202,7 +206,7 @@ def main():
         sig = fn()
         sig = sig - sig.mean(axis=1, keepdims=True)
         sig = fade(normalize_peak(sig, peak), 0.0005, 0.005)
-        path = write_ogg(out / f"{name}.ogg", sig)
+        path = write_ogg((out / "rejected" if name in REJECTED else out) / f"{name}.ogg", sig)
         print(f"{path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}  "
               f"{sig.shape[1] / SR:.2f}s")
 
