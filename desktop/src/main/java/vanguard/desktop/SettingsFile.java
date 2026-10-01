@@ -14,6 +14,7 @@ import java.util.Properties;
 import vanguard.game.display.Bounds;
 import vanguard.game.display.DisplaySettings;
 import vanguard.game.display.WindowMode;
+import vanguard.game.input.ControlSettings;
 
 /**
  * The settings file: a Java properties file, kept apart from the save slots (design/ui/options).
@@ -32,6 +33,7 @@ final class SettingsFile {
     private static final String WINDOW_HEIGHT = "window.height";
     private static final String FULL_SCREEN = "full-screen";
     private static final String WINDOWED = "window";
+    private static final String AUTO_FIRE = "controls.auto-fire";
 
     private final Path path;
 
@@ -43,21 +45,37 @@ final class SettingsFile {
         return path;
     }
 
-    /** The settings in the file, or the first-start defaults when there is no usable file. */
+    /** The display settings in the file, or the first-start defaults when there is no usable file. */
     DisplaySettings read() {
-        Properties properties = new Properties();
-        try (Reader in = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            properties.load(in);
-        } catch (NoSuchFileException e) {
-            return DisplaySettings.firstStart();
-        } catch (IOException | IllegalArgumentException e) {
-            LOG.log(Level.WARNING, "ignoring unreadable settings file " + path, e);
+        Optional<Properties> loaded = load();
+        if (loaded.isEmpty()) {
             return DisplaySettings.firstStart();
         }
+        Properties properties = loaded.get();
         WindowMode mode = WINDOWED.equals(properties.getProperty(MODE)) ? WindowMode.WINDOWED : WindowMode.FULL_SCREEN;
         Optional<String> monitor =
                 Optional.ofNullable(properties.getProperty(MONITOR)).filter(name -> !name.isBlank());
         return new DisplaySettings(mode, monitor, window(properties));
+    }
+
+    /** The control settings in the file; hold to fire unless {@code controls.auto-fire=true}. */
+    ControlSettings readControls() {
+        return load().map(properties -> new ControlSettings(Boolean.parseBoolean(properties.getProperty(AUTO_FIRE))))
+                .orElseGet(ControlSettings::defaults);
+    }
+
+    /** The file's properties; empty when there is no file or it cannot be read. */
+    private Optional<Properties> load() {
+        Properties properties = new Properties();
+        try (Reader in = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            properties.load(in);
+            return Optional.of(properties);
+        } catch (NoSuchFileException e) {
+            return Optional.empty();
+        } catch (IOException | IllegalArgumentException e) {
+            LOG.log(Level.WARNING, "ignoring unreadable settings file " + path, e);
+            return Optional.empty();
+        }
     }
 
     private static Optional<Bounds> window(Properties properties) {
@@ -73,9 +91,17 @@ final class SettingsFile {
         }
     }
 
-    /** Writes the settings; a failure is logged, since losing them must not crash the game. */
+    /**
+     * Writes the display settings, keeping the file's other settings; a failure is logged, since
+     * losing them must not crash the game.
+     */
     void write(DisplaySettings settings) {
-        Properties properties = new Properties();
+        Properties properties = load().orElseGet(Properties::new);
+        properties.remove(MONITOR);
+        properties.remove(WINDOW_X);
+        properties.remove(WINDOW_Y);
+        properties.remove(WINDOW_WIDTH);
+        properties.remove(WINDOW_HEIGHT);
         properties.setProperty(MODE, settings.mode() == WindowMode.WINDOWED ? WINDOWED : FULL_SCREEN);
         settings.monitor().ifPresent(name -> properties.setProperty(MONITOR, name));
         settings.window().ifPresent(window -> {

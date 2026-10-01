@@ -1,7 +1,7 @@
 ---
 title: Armour
 design: approved
-implementation: not-started
+implementation: in-progress
 art: none
 depends-on: [../shields, ../../systems/retry, ../../systems/difficulty]
 updated: 2026-10-01
@@ -44,3 +44,4 @@ auto-repair or armour patches). When it reaches zero the ship is destroyed and t
 - 2026-09-30: Plating has no downside besides price; the interesting trade-off is repair
   cost vs saving credits.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-01: M1 implementation: standard plating (60) in `vanguard.sim.Plating`, damage after the shield and destruction at 0 (`Defences`), which triggers the [retry](../../systems/retry/README.md) restart. Other plating levels, repairs and the low-armour warnings are later milestones.

@@ -6,28 +6,43 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.Optional;
 import vanguard.game.display.DisplayModes;
-import vanguard.game.input.BackButton;
+import vanguard.game.input.ActionInput;
+import vanguard.game.input.Bindings;
+import vanguard.game.input.ControlSettings;
+import vanguard.game.input.DeviceState;
+import vanguard.game.input.GdxDevices;
 import vanguard.game.render.PixelScreen;
+import vanguard.game.screen.FlightScreen;
 import vanguard.game.screen.ScreenFlow;
 import vanguard.game.screen.TitleScreen;
 
-/** The game: runs the screen flow in the 960x540 pixel screen and toggles the display mode on every screen. */
+/**
+ * The game: runs the screen flow in the 960x540 pixel screen, samples the input actions once per
+ * frame and toggles the display mode on every screen. In bench mode it flies the test sortie
+ * straight away and exits after the set time.
+ */
 public final class TerranVanguard extends ApplicationAdapter {
     /** Frames longer than this (a stall, a dragged window) count as this long. */
     private static final float MAX_FRAME_SECONDS = 0.25f;
 
     private final DisplayModes displayModes;
+    private final ControlSettings controls;
     private final Optional<BenchRun> bench;
+    private final DeviceState devices = new GdxDevices();
     private SpriteBatch batch;
     private PixelScreen pixelScreen;
+    private GameServices services;
     private ScreenFlow screens;
 
     /**
      * @param displayModes the display mode switcher, set up from the settings file
-     * @param benchSeconds exit after this many seconds and log the frame count; 0 runs until quit
+     * @param controls the control settings from the settings file
+     * @param benchSeconds fly the test sortie, exit after this many seconds and log the frame count;
+     *     0 starts at the title screen and runs until quit
      */
-    public TerranVanguard(DisplayModes displayModes, double benchSeconds) {
+    public TerranVanguard(DisplayModes displayModes, ControlSettings controls, double benchSeconds) {
         this.displayModes = displayModes;
+        this.controls = controls;
         this.bench = benchSeconds > 0 ? Optional.of(new BenchRun(benchSeconds)) : Optional.empty();
     }
 
@@ -36,13 +51,15 @@ public final class TerranVanguard extends ApplicationAdapter {
         Gdx.app.log("gl", Gdx.gl.glGetString(GL20.GL_RENDERER) + " / " + Gdx.gl.glGetString(GL20.GL_VERSION));
         batch = new SpriteBatch();
         pixelScreen = new PixelScreen();
-        screens = new ScreenFlow(new TitleScreen(Gdx.files, Gdx.audio, new BackButton()));
+        services = new GameServices(Gdx.files, Gdx.audio, new ActionInput(Bindings.defaults()), controls);
+        screens = new ScreenFlow(bench.isPresent() ? new FlightScreen(services) : new TitleScreen(services));
     }
 
     @Override
     public void render() {
         float frameSeconds = Gdx.graphics.getDeltaTime();
         displayModes.poll();
+        services.input.update(devices);
         screens.update(Math.min(frameSeconds, MAX_FRAME_SECONDS));
         pixelScreen.begin(batch);
         screens.draw(batch);
@@ -62,6 +79,7 @@ public final class TerranVanguard extends ApplicationAdapter {
     public void dispose() {
         displayModes.storeCurrent();
         screens.dispose();
+        services.dispose();
         pixelScreen.dispose();
         batch.dispose();
     }

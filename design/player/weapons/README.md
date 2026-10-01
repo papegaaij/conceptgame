@@ -23,7 +23,7 @@ below.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [pulse-cannon](pulse-cannon/README.md) | Pulse Cannon — Front, forward; DPS 20 → 70; starter; start | approved | not-started | chosen |
+| [pulse-cannon](pulse-cannon/README.md) | Pulse Cannon — Front, forward; DPS 20 → 70; starter; start | approved | in-progress | chosen |
 | [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | approved | not-started | chosen |
 | [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | approved | not-started | chosen |
 | [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | approved | not-started | chosen |

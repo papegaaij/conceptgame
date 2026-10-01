@@ -1,7 +1,7 @@
 ---
 title: Shields
 design: approved
-implementation: not-started
+implementation: in-progress
 art: none
 depends-on: [../generator, ../armor, ../../systems/retry]
 updated: 2026-10-01
@@ -40,11 +40,12 @@ Rules:
 
 ## Implementation
 
-- [ ] Shield capacity, regen, delay and break behaviour
-- [ ] Damage routing shield → armour, collision split
+- [x] Shield capacity, regen, delay and break behaviour
+- [x] Damage routing shield → armour, collision split
 - [ ] Shield hit/break feedback (sprite shimmer, SFX, HUD flash)
 
 ## Decisions
 
 - 2026-09-30: Shield regenerates, armour does not (user decision).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-01: M1 implementation (`vanguard.sim.Defences`, Mk I numbers in `ShieldModel`): every hit that lands (shield or armour) restarts the 2.0 s delay; a break holds the shield at 0 for 1.0 s + the delay; in a collision the shield's half overflows to armour like a bullet's. Feedback so far: shield-hit and break sounds, a blue shimmer on the hull, the HUD shield bar flickering while down after a break; the hex-ring shimmer sprite is still to come.

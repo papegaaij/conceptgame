@@ -28,10 +28,17 @@ Requires JDK 21 (`JAVA_HOME` pointing at it) and the Git LFS files; Gradle comes
 ```
 
 The first start opens in borderless full screen; **Alt+Enter** or **F11** switch to a window
-and back, **Esc** (or B / Back on a gamepad) quits. The display mode, monitor and window
-position are kept in `settings.properties` in the platform's config directory
-(`~/.config/terran-vanguard/` on Linux, `%APPDATA%\Terran Vanguard\` on Windows,
-`~/Library/Application Support/Terran Vanguard/` on macOS).
+and back. On the title screen **Enter** (or A on a gamepad) starts the M1 test sortie and **Esc**
+(or B / Back) quits; in flight, arrows / WASD or the left stick move, **Space** / Z / A fire,
+**Left Shift** / C / right bumper hold precision mode, and **Esc** / P / Start return to the
+title. The display mode, monitor and window position are kept in `settings.properties` in the
+platform's config directory (`~/.config/terran-vanguard/` on Linux, `%APPDATA%\Terran Vanguard\`
+on Windows, `~/Library/Application Support/Terran Vanguard/` on macOS); add
+`controls.auto-fire=true` there to fire without holding the button.
 
-Options: `--bench <seconds>` exits after that time and logs the frame count;
+Options: `--bench <seconds>` flies the test sortie, exits after that time and logs the frame count;
 `--settings <file>` uses another settings file.
+
+Placeholder art and audio come from the chosen concept files: `./gradlew :pipeline:importPlaceholders`
+copies them and cuts the sprite frames into `assets/` (committed); the build packs the frames
+into texture atlases (`:pipeline:packAtlases`, build output only).

@@ -1,0 +1,46 @@
+package vanguard.game.input;
+
+import com.badlogic.gdx.controllers.Controller;
+import com.badlogic.gdx.controllers.ControllerMapping;
+
+/** A gamepad button or stick direction, named by its position on a standard (Xbox-layout) pad. */
+public enum GamepadControl {
+    A,
+    B,
+    START,
+    BACK,
+    LEFT_BUMPER,
+    RIGHT_BUMPER,
+    RIGHT_TRIGGER,
+    DPAD_UP,
+    DPAD_DOWN,
+    DPAD_LEFT,
+    DPAD_RIGHT,
+    LEFT_STICK_UP,
+    LEFT_STICK_DOWN,
+    LEFT_STICK_LEFT,
+    LEFT_STICK_RIGHT;
+
+    /** Whether this control is pressed on the pad; a stick counts beyond the dead zone (0..1). */
+    boolean pressedOn(Controller pad, float deadZone) {
+        ControllerMapping m = pad.getMapping();
+        return switch (this) {
+            case A -> pad.getButton(m.buttonA);
+            case B -> pad.getButton(m.buttonB);
+            case START -> pad.getButton(m.buttonStart);
+            case BACK -> pad.getButton(m.buttonBack);
+            case LEFT_BUMPER -> pad.getButton(m.buttonL1);
+            case RIGHT_BUMPER -> pad.getButton(m.buttonR1);
+            case RIGHT_TRIGGER -> pad.getButton(m.buttonR2);
+            case DPAD_UP -> pad.getButton(m.buttonDpadUp);
+            case DPAD_DOWN -> pad.getButton(m.buttonDpadDown);
+            case DPAD_LEFT -> pad.getButton(m.buttonDpadLeft);
+            case DPAD_RIGHT -> pad.getButton(m.buttonDpadRight);
+            // Stick y points down on every mapping gdx-controllers supports.
+            case LEFT_STICK_UP -> pad.getAxis(m.axisLeftY) < -deadZone;
+            case LEFT_STICK_DOWN -> pad.getAxis(m.axisLeftY) > deadZone;
+            case LEFT_STICK_LEFT -> pad.getAxis(m.axisLeftX) < -deadZone;
+            case LEFT_STICK_RIGHT -> pad.getAxis(m.axisLeftX) > deadZone;
+        };
+    }
+}

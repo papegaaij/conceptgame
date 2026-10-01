@@ -17,7 +17,7 @@ A slate acid mouth ringed by tentacles that lobs acid blobs at the player's posi
 
 ### Stat block
 
-Values are first-draft balancing numbers at **medium** (see the [balancing basis](../../README.md#balancing-basis)). HP is in damage units (1 = one Pulse Cannon L1 shot); bullet damage classes and speeds are defined in the balancing basis.
+Values are first-draft balancing numbers at **medium** (see the [balancing basis](../../README.md#balancing-basis)). HP is in damage units (a Pulse Cannon L1 shot does 2); bullet damage classes and speeds are defined in the balancing basis.
 
 | Field | Value |
 |---|---|

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 import vanguard.game.display.Bounds;
 import vanguard.game.display.DisplaySettings;
 import vanguard.game.display.WindowMode;
+import vanguard.game.input.ControlSettings;
 
 class SettingsFileTest {
     @TempDir
@@ -63,5 +64,27 @@ class SettingsFileTest {
         assertEquals(
                 new DisplaySettings(WindowMode.WINDOWED, Optional.empty(), Optional.empty()),
                 new SettingsFile(path).read());
+    }
+
+    @Test
+    void holdsToFireUnlessAutoFireIsOn() throws IOException {
+        Path path = directory.resolve("settings.properties");
+        assertEquals(ControlSettings.defaults(), new SettingsFile(path).readControls());
+
+        Files.writeString(path, "controls.auto-fire=true\n");
+
+        assertEquals(new ControlSettings(true), new SettingsFile(path).readControls());
+    }
+
+    @Test
+    void writingTheDisplaySettingsKeepsTheOtherSettings() throws IOException {
+        Path path = directory.resolve("settings.properties");
+        Files.writeString(path, "controls.auto-fire=true\nwindow.x=5\n");
+        var file = new SettingsFile(path);
+
+        file.write(new DisplaySettings(WindowMode.FULL_SCREEN, Optional.empty(), Optional.empty()));
+
+        assertEquals(new ControlSettings(true), file.readControls());
+        assertFalse(Files.readString(path).contains("window."), "stale window bounds are dropped");
     }
 }

@@ -1,7 +1,7 @@
 ---
 title: AF-12 Stormhawk
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../../art-direction]
 updated: 2026-10-01
@@ -24,7 +24,7 @@ loadout, see [player](../README.md).
 | Base speed | 270 px/s (engine Mk I). See [engines](../systems/README.md) |
 | Acceleration | Full speed in 0.08 s; stops in 0.06 s (tight, arcade-like) |
 | Precision mode | Hold button: speed × 0.5 for dodging. See [controls](../../ui/controls/README.md) |
-| Bounds | The whole play field (480×540, see [art direction](../../art-direction/README.md)); 12 px margin at the edges |
+| Bounds | The whole play field (480×540, see [art direction](../../art-direction/README.md)); the 48×48 hull keeps a 12 px gap to every edge (centre at least 36 px from it) |
 | Diagonal | Normalised (no faster diagonals) |
 
 The play field scrolls on its own. The ship never moves the camera.
@@ -90,10 +90,10 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — banking and wing
 
 ## Implementation
 
-- [ ] Movement with acceleration, precision mode and play field bounds
+- [x] Movement with acceleration, precision mode and play field bounds
 - [ ] 9×9 hitbox separate from the sprite and pickup radius
-- [ ] Mercy invulnerability after armour damage
-- [ ] Banking frames driven by horizontal velocity
+- [x] Mercy invulnerability after armour damage
+- [x] Banking frames driven by horizontal velocity
 - [ ] Engine flame and shadow sprites
 - [ ] Shield-hit and armour-hit feedback, damage smoke
 - [ ] Mount points for weapons and pods
@@ -112,3 +112,5 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — banking and wing
 - 2026-10-01: Implementation checklist corrected to the 9×9 hitbox; 0.25 s mercy invulnerability after armour damage (none after shield hits).
 - 2026-10-01: Concept round 08: 5 banking frames and visible wing pods chosen.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-01: M1 implementation (`vanguard.sim.Ship`, numbers in `ShipSpec`): each axis accelerates to its target speed at 270 px/s ÷ 0.08 s and brakes at 270 px/s ÷ 0.06 s (5 and 4 steps at 60 Hz); the 12 px edge margin was first read as the closest the ship's *centre* may come to an edge (corrected below), and pressing against an edge drops that speed component, so banking levels out. Banking aims at round(2 · vx ÷ 270) and moves one frame every 3 steps (hard over after about 6 frames), so precision mode banks one frame. The 9×9 hitbox is an axis-aligned box; the pickup radius follows with the pickups. The hull blinks white (flash shader) during the 0.25 s mercy time and shimmers blue for a few frames on shield hits; the 60×60 hex-ring shield sprite, engine flames, shadow and damage smoke are not in M1. Placeholder sprites: the 5 banking frames of `player-ship-r08-a.png`.
+- 2026-10-01: Edge margin (user decision): the whole hull stays 12 px inside the play field, so the ship is always fully visible with breathing room; the centre stops 36 px from each edge (`ShipSpec.edgeLimit()`).

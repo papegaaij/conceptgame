@@ -1,7 +1,7 @@
 ---
 title: Enemies
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 updated: 2026-10-01
 ---
@@ -223,7 +223,7 @@ that move in any direction must read from any angle:
 | `V-wing` | A V of 3–9 units led by the tip. |
 | `line abreast` | A horizontal line moving down together. |
 | `column` | A vertical line, one behind the other, on the same path. |
-| `snake` | A column following a curving `path`, each unit delayed by a fixed interval. |
+| `snake` | A column following a curving `path`, each unit delayed by a fixed interval. Readability: the head is on screen at least 1.5 s before it can reach the player, however long the snake. |
 | `stream` | A continuous trickle of single units from alternating edges. |
 | `pincer` | Two groups entering from the left and right edges at the same time. |
 | `rear ambush` | A group entering from the bottom edge (always warned; see readability). |
@@ -346,6 +346,9 @@ the same; no elite variants. The reference DPS curve is extended act by act as l
 | `heavy` hit | 10 | mortar direct hits, slam arms, rail shots |
 | `laser` | 8 per touch | `laser-sweep` / `laser-line` (once per sweep or line) |
 | Contact | tiny 6 · small 10 · medium 15 · large 20 · huge 25 | rammers and bodies on the player's layer |
+
+**Ramming:** a `tiny` or `small` unit that touches the ship is destroyed by the impact, so its
+contact damage lands once.
 
 For scale: the starting ship (shield 20 + armour 60) survives about 20 small bullets.
 
@@ -477,3 +480,5 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - 2026-10-01: Variety coverage rechecked against the level documents: Act 1 uses 14 units (3 insectoid), Act 2 about 20 (5 insectoid: Skitter, Stinger, Creeper, Wraith, Mantis); both still pass.
 - 2026-10-01: New target-the-objective behaviour hook (modes nearest, alternate, in-arc, always), configured per level for defend and escort levels; L04 and L13 use it instead of per-unit overrides.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
+- 2026-10-01: M1: the layer rules for weapons without special traits are encoded in `vanguard.sim.Layer` (hit by standard shots: air, low-air, ground; contact: air only); `sub`, hardened ground targets and the trait exceptions follow with the units that need them.
+- 2026-10-01: Rules from M1 (user decisions): HP wording — a Pulse Cannon L1 shot does 2 damage units; `tiny` and `small` rammers are destroyed on impact; the snake readability rule is about the head (on screen ≥ 1.5 s before it can reach the player), so snakes of any length stay allowed.

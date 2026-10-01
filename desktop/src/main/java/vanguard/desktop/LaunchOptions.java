@@ -6,7 +6,8 @@ import java.util.Optional;
 /**
  * The command-line options.
  *
- * @param benchSeconds run this long, log the frame count and exit (smoke tests); 0 runs until quit
+ * @param benchSeconds fly the test sortie this long, log the frame count and exit (smoke tests); 0 runs
+ *     until quit
  * @param settingsFile use this settings file instead of the one in the platform's config directory
  */
 record LaunchOptions(double benchSeconds, Optional<Path> settingsFile) {

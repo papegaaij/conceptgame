@@ -7,7 +7,14 @@ plugins {
     alias(libs.plugins.construo)
 }
 
+/** The texture atlases packed by the pipeline from assets/sprites and assets/backdrop. */
+val atlases by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+
 dependencies {
+    atlases(project(":pipeline", "atlases"))
     implementation(project(":game"))
     implementation(libs.gdx.backend.lwjgl3)
     implementation(variantOf(libs.gdx.platform) { classifier("natives-desktop") })
@@ -24,7 +31,13 @@ application {
 }
 
 tasks.processResources {
-    from(rootProject.layout.projectDirectory.dir("assets"))
+    // The sprite frames reach the game packed into atlases, not one by one.
+    from(rootProject.layout.projectDirectory.dir("assets")) {
+        exclude("sprites/**", "backdrop/**")
+    }
+    from(atlases) {
+        into("atlas")
+    }
 }
 
 tasks.named<JavaExec>("run") {
