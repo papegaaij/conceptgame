@@ -1,10 +1,13 @@
 # Terran Vanguard — working rules
 
-A vertical shoot'em up set in 2185 (see [design/README.md](design/README.md)). The project is
-currently in the **design phase**: there is no game code yet. The `design/` tree is a *living
+A vertical shoot'em up set in 2185 (see [design/README.md](design/README.md)). The design is
+approved for Acts 1–2 and the game is being **implemented** in milestones
+([roadmap](design/tech/roadmap/README.md)): libGDX on Java 21 with a Gradle build at the
+repository root ([tech stack](design/tech/README.md),
+[architecture](design/tech/architecture/README.md)). The `design/` tree is a *living
 documentation* that is the single source of truth for the game and doubles as the
 implementation backlog (every README is a ticket). Keep it up to date in the same change as
-the work it describes.
+the work it describes, and tick a ticket's checklist in the same change as its code.
 
 ## The design tree
 
@@ -107,6 +110,28 @@ design tree; this list is only a reminder.
   order matters: run it twice when a change ripples up more than one level).
 - `tools/concept/` – reproducible generators for concept mockups (Python 3 + PIL + numpy,
   ffmpeg for audio/GIF encoding). Each script documents its outputs at the top.
+
+### Game build (Gradle, JDK 21)
+
+Modules (root package `vanguard`, dependencies point downwards):
+`desktop` (LWJGL3 launcher, settings file, Construo packaging) → `game` (libGDX screens,
+rendering, audio, input) → `content` (data model and loader, no libGDX) → `sim` (deterministic
+simulation, no libGDX); `pipeline` holds build-time asset tools. Shared conventions live in
+`buildSrc` (Java 21, `-Xlint:all -Werror`, JUnit 5, Spotless with palantir-java-format),
+versions in `gradle/libs.versions.toml`.
+
+- `./gradlew check` – compiles, checks the formatting and runs all tests. Run it before
+  reporting code work; `./gradlew spotlessApply` fixes the formatting.
+- `./gradlew :desktop:run --args="--bench 3 --settings <file>"` – starts the game; `--bench <s>`
+  exits after `<s>` seconds, `--settings` uses another settings file than the one in the
+  platform's config directory. Automated runs always pass `--bench`.
+- `./gradlew :desktop:installDist` – the start script in `desktop/build/install/terran-vanguard/`.
+- `./gradlew :desktop:packageLinuxX64` (also `packageWinX64`, `packageMacX64`, `packageMacM1`) –
+  Construo bundles with a trimmed JRE in `desktop/build/construo/dist/`.
+- `./gradlew :pipeline:importPlaceholders` – copies the chosen concept art and music the game
+  uses into `assets/` (commit the result); the build only reads `assets/`.
+- CI: `.github/workflows/ci.yml` (check on three OSes, smoke test under xvfb, release bundles on
+  `v*` tags).
 
 ## Git
 

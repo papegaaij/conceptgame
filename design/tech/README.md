@@ -20,8 +20,8 @@ engine-agnostic; this section is the only place that names engine APIs.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [architecture](architecture/README.md) | Module layout, simulation, data files next to the documents, testing, conventions, CI | approved | not-started | n/a |
-| [roadmap](roadmap/README.md) | Seven milestones from skeleton to the Acts 1–2 release | approved | not-started | n/a |
+| [architecture](architecture/README.md) | Module layout, simulation, data files next to the documents, testing, conventions, CI | approved | in-progress | n/a |
+| [roadmap](roadmap/README.md) | Seven milestones from skeleton to the Acts 1–2 release | approved | in-progress | n/a |
 
 ## Design
 

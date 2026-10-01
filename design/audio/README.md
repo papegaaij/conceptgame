@@ -20,7 +20,7 @@ vocal bark.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [music](music/README.md) | Track list, styles per act, loop and transition rules | approved | not-started | chosen |
+| [music](music/README.md) | Track list, styles per act, loop and transition rules | approved | in-progress | chosen |
 | [sfx](sfx/README.md) | Full sound-effect list with priorities, mixing rules | approved | not-started | chosen |
 
 ## Design

@@ -1,7 +1,7 @@
 ---
 title: Controls
 design: approved
-implementation: not-started
+implementation: in-progress
 art: n/a
 depends-on: [../../player/ship, ../../player/specials]
 updated: 2026-10-01
@@ -42,7 +42,7 @@ gamepad are both first-class; everything can be remapped in Options.
 - [ ] Input actions abstraction with keyboard and gamepad bindings
 - [ ] Auto-fire option
 - [ ] Remapping screen in Options with conflict detection
-- [ ] Alt+Enter / F11 toggle full screen on every screen
+- [x] Alt+Enter / F11 toggle full screen on every screen
 - [ ] Double-tap dash detection (only when the evasive thrusters module is fitted)
 
 ## Open questions

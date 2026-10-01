@@ -1,7 +1,7 @@
 ---
 title: Implementation roadmap
 design: approved
-implementation: not-started
+implementation: in-progress
 art: n/a
 depends-on: [../architecture, ../../campaign]
 updated: 2026-10-01
@@ -44,7 +44,7 @@ milestone lists which documents it covers, it does not copy their items.
 
 ## Implementation
 
-- [ ] M0 Skeleton
+- [x] M0 Skeleton
 - [ ] M1 First flight
 - [ ] M2 Level 01
 - [ ] M3 The campaign loop
@@ -62,3 +62,4 @@ milestone lists which documents it covers, it does not copy their items.
 - 2026-10-01: User decisions: a branch per milestone, merged after the user has played the
   build; production art starts after M2.
 - 2026-10-01: Approved by the user.
+- 2026-10-01: M0 Skeleton done: played and accepted by the user, CI green on three OSes.
