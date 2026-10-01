@@ -30,7 +30,7 @@ guided by intel about the next level.
 | [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | approved | not-started | n/a |
 | [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | approved | not-started | chosen |
 | [audio](audio/README.md) | Music and sound effects | approved | not-started | chosen |
-| [tech](tech/README.md) | Tech stack: libGDX on Java, Gradle, desktop only (under evaluation) | draft | not-started | n/a |
+| [tech](tech/README.md) | Tech stack: libGDX on Java, Gradle, desktop only, Apache-2.0 | approved | not-started | n/a |
 | [concept-rounds](concept-rounds/README.md) | Batches of concept proposals awaiting the user's choice | review | n/a | chosen |
 | [reviews](reviews/README.md) | Formal approval rounds for sets of design documents | approved | n/a | n/a |
 
@@ -59,7 +59,8 @@ guided by intel about the next level.
   credits earned in that attempt are lost. See [systems](systems/README.md).
 - **Players**: single-player; the wingman is AI-controlled.
 - **Difficulty**: easy, medium, hard, chosen when starting a new game.
-- **Tech**: engine-agnostic until a tech stack is chosen; see [tech](tech/README.md).
+- **Tech**: libGDX on Java 21 with Gradle, desktop only; see [tech](tech/README.md). The
+  rest of the design stays engine-agnostic.
 
 ### Shared vocabulary
 
@@ -75,8 +76,7 @@ Used across level, enemy, weapon and hangar-intel documents so they can be compa
 
 ## Open questions
 
-- **Tech stack** — under evaluation in [tech](tech/README.md): libGDX on Java with Gradle,
-  pending a spike.
+- None open.
 
 ## Decisions
 
@@ -90,3 +90,4 @@ Used across level, enemy, weapon and hangar-intel documents so they can be compa
 - 2026-10-01: Acts 1–2 open questions settled (layer hit rules, chain regrow, objective failure, controls, escort slot, utility bays, one special, visible pods, game over on hard, armour on retry, no level select, 5 banking frames, scaling, test fire later, text-only voices); score and credits stay separate. The tech stack is explicitly left open for a thorough evaluation.
 - 2026-10-01: New top-level part [allies](allies/README.md) for friendly units and structures (user decision).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](reviews/acts-1-2/README.md).
+- 2026-10-01: Tech stack decided after the spike: libGDX on Java with Gradle, Apache-2.0 (user decision, see [tech](tech/README.md)).

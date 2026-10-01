@@ -19,8 +19,9 @@ the work it describes.
   the roster row by a Contents row.
 - Naming: lowercase kebab-case. Acts: `act-N-slug`. Levels: `level-NN-slug` with **global**
   numbering `01`–`50` (not per act). Enemies/weapons: `slug` (e.g. `swarmer-drone`).
-- The design is **engine-agnostic** until a tech stack is chosen (that decision will get a
-  `design/tech/` section). Describe behaviour, numbers and assets, not engine APIs.
+- The tech stack is decided in [design/tech/](design/tech/README.md): libGDX on Java 21 with
+  Gradle, Apache-2.0. Only `design/tech/` names engine APIs; the rest of the design stays
+  engine-agnostic: describe behaviour, numbers and assets.
 
 ## README format
 

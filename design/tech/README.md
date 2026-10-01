@@ -1,6 +1,6 @@
 ---
 title: Tech stack
-design: draft
+design: approved
 implementation: not-started
 art: n/a
 depends-on: [../art-direction, ../audio, ../ui/controls]
@@ -11,9 +11,9 @@ updated: 2026-10-01
 
 ## Summary
 
-The technology the game is built on. The evaluation is narrowed to **libGDX on Java, built with
-Gradle**, code-first, desktop only (Linux, Windows, macOS). Before the choice
-is final, a throwaway spike has to pass the measurable gates below. The design tree stays
+The technology the game is built on. The game is built with **libGDX on Java, with Gradle**,
+code-first, desktop only (Linux, Windows, macOS), released as open source under Apache-2.0.
+The choice was confirmed by a throwaway spike measured against the gates below. The design tree stays
 engine-agnostic; this section is the only place that names engine APIs.
 
 ## Design
@@ -51,6 +51,8 @@ engine-agnostic; this section is the only place that names engine APIs.
 | Framework | libGDX, desktop backend (LWJGL3), pending the spike |
 | Build | Gradle (Kotlin DSL build scripts with the wrapper); packaging with Construo |
 | CI | GitHub Actions, build + tests on Linux, Windows and macOS |
+| Licence | Apache-2.0 for the repository (the existing `LICENSE`); third-party files keep their own licences, recorded in [CREDITS.md](../../CREDITS.md) |
+| Garbage collector | Generational ZGC (`-XX:+UseZGC -XX:+ZGenerational` on Java 21) |
 
 ### Desk research findings (2026-10-01)
 
@@ -128,8 +130,8 @@ Branch `spike/libgdx`, `spike/RESULTS.md` there has the full numbers. CI run:
 | 6 | Manual: keyboard and gdx-controllers wired with hot-plug logging; gamepad test pending |
 | 7 | Pass: replay hash `e17610307e1c81f0` identical on Linux, Windows and macOS in CI (also on Java 25 locally) |
 | 8 | Pass: Construo cross-builds all four bundles on Linux in ~25 s, 112–116 MB zipped (the atlas is 64 MB of it); Linux bundle runs with its own runtime. Clean-machine test pending |
-| 9 | Pending: user review |
-| 10 | Pass: Alt+Enter / F11 switch a 1920×1080 window ↔ borderless full screen 3840×2160 at runtime; simulation, audio and textures continue; 2–4 slow frames (33–67 ms) per switch. Key check by the user pending |
+| 9 | Pass: approved by the user |
+| 10 | Pass: Alt+Enter / F11 switch a 1920×1080 window ↔ borderless full screen 3840×2160 at runtime; simulation, audio and textures continue; 2–4 slow frames (33–67 ms) per switch. Approved by the user |
 
 Lessons for the real project: `StrictMath.sin` allocates on Java 21 (use a lookup table filled
 from it); Construo needs a fat jar; gdx-tools pulls in the LWJGL 2 backend (keep it in a tools
@@ -139,14 +141,13 @@ non-thread-safe source pool; `Sound.play` allocates.
 ## Implementation
 
 - [x] Desk research on libGDX (versions, Java 25, Maven, macOS, packaging, audio, input)
-- [ ] Spike built, gates 1–10 measured and reported here (automated parts done; gate 9 and the manual checks pending)
-- [ ] Decision approved by the user
+- [x] Spike built, gates 1–10 measured and reported here
+- [x] Decision approved by the user
 - [ ] Project skeleton: Gradle multi-project layout, CI workflow, coding conventions
 
 ## Open questions
 
-- Code licence for the open source release (e.g. MIT, Apache-2.0, GPL-3.0); the art and audio
-  licence may differ from the code licence.
+- None open.
 
 ## Decisions
 
@@ -158,3 +159,6 @@ non-thread-safe source pool; `Sound.play` allocates.
   official libGDX support and Construo, the cross-building packager, is Gradle-only. The spike
   lives on the branch `spike/libgdx` (never merged; findings are recorded here on `main`).
   Spike gates 1–9 accepted as written.
+- 2026-10-01: Spike approved by the user: **libGDX 1.14.2 on Java 21 with Gradle** is the tech
+  stack (Java 25 once libGDX 1.14.3 is released). Second CI run green on all three OSes.
+- 2026-10-01: Licence **Apache-2.0** (user decision), matching the repository's `LICENSE`.
