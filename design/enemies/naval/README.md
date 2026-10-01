@@ -2,7 +2,7 @@
 title: Naval enemies
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -42,8 +42,8 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 
 | File | What | Status |
 |---|---|---|
-| [concept/driftjelly-r06-a.png](concept/driftjelly-r06-a.png) | Driftjelly — jellyfish mine (olive bell, lime veins), surface and submerged, pulses a ring of shots (sheet) | chosen — redo the waterline ring (round 07) |
-| [concept/driftjelly-r06-a.gif](concept/driftjelly-r06-a.gif) | Driftjelly — jellyfish mine (olive bell, lime veins), surface and submerged, pulses a ring of shots (motion) | chosen — redo the waterline ring (round 07) |
+| [concept/driftjelly-r06-a.png](concept/driftjelly-r06-a.png) | Driftjelly — jellyfish mine (olive bell, lime veins), surface and submerged, pulses a ring of shots (sheet) | superseded by r07 (waterline) |
+| [concept/driftjelly-r06-a.gif](concept/driftjelly-r06-a.gif) | Driftjelly — jellyfish mine (olive bell, lime veins), surface and submerged, pulses a ring of shots (motion) | superseded by r07 (waterline) |
 | [concept/reef-spitter-r06-a.png](concept/reef-spitter-r06-a.png) | Reef Spitter — barnacle gun at 32 headings on a bobbing kelp raft, 3-way fans (sheet) | chosen |
 | [concept/reef-spitter-r06-a.gif](concept/reef-spitter-r06-a.gif) | Reef Spitter — barnacle gun at 32 headings on a bobbing kelp raft, 3-way fans (motion) | chosen |
 | [concept/skimmer-r06-a.png](concept/skimmer-r06-a.png) | Skimmer — flying-fish skiff (rust, fan fins) weaving through ice floes with foam wakes (sheet) | chosen |
@@ -55,8 +55,8 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — real waterline (
 
 | File | What | Status |
 |---|---|---|
-| [concept/driftjelly-r07-a.png](concept/driftjelly-r07-a.png) | Driftjelly r07 — bell cut at the water plane, lower bell and tentacles visible under water, broken foam collar, ripple trains; trigger radius now a labelled diagram (sheet) | proposed |
-| [concept/driftjelly-r07-a.gif](concept/driftjelly-r07-a.gif) | Driftjelly r07 — surfaced and submerged jellies drifting, ripples left behind as they pulse | proposed |
+| [concept/driftjelly-r07-a.png](concept/driftjelly-r07-a.png) | Driftjelly r07 — bell cut at the water plane, lower bell and tentacles visible under water, broken foam collar, ripple trains; trigger radius now a labelled diagram (sheet) | chosen |
+| [concept/driftjelly-r07-a.gif](concept/driftjelly-r07-a.gif) | Driftjelly r07 — surfaced and submerged jellies drifting, ripples left behind as they pulse | chosen |
 
 ## Implementation
 
@@ -74,3 +74,4 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — real waterline (
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Spiral Nautilus (roster fork addition).
 - 2026-10-01: Concept round 06: Reef Spitter, Skimmer and Spiral Nautilus chosen; Driftjelly chosen but its waterline ring must become real foam/ripples (round 07).
+- 2026-10-01: Concept round 07: Driftjelly waterline fixed; r07 chosen.

@@ -2,7 +2,7 @@
 title: Art direction
 design: draft
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -338,10 +338,10 @@ Concept [round 07](../concept-rounds/round-07/README.md) — Europa redone to re
 
 | File | What | Status |
 |---|---|---|
-| [concept/scene-europa-r07-a.png](concept/scene-europa-r07-a.png) | Europa A "kelp forest" — swaying kelp stands and sea grass, anemones and fan corals, caustic light on the floor, rising bubble streams, fish schools, marine snow, light shafts (sheet + layer breakdown) | proposed |
-| [concept/scene-europa-r07-a.gif](concept/scene-europa-r07-a.gif) | Europa A: seamless scroll loop | proposed |
-| [concept/scene-europa-r07-b.png](concept/scene-europa-r07-b.png) | Europa B "open water" — brighter sandy floor, wider meadows, fewer kelp stands, stronger light shafts and caustics, larger fish school (sheet) | proposed |
-| [concept/scene-europa-r07-b.gif](concept/scene-europa-r07-b.gif) | Europa B: seamless scroll loop | proposed |
+| [concept/scene-europa-r07-a.png](concept/scene-europa-r07-a.png) | Europa A "kelp forest" — swaying kelp stands and sea grass, anemones and fan corals, caustic light on the floor, rising bubble streams, fish schools, marine snow, light shafts (sheet + layer breakdown) | chosen |
+| [concept/scene-europa-r07-a.gif](concept/scene-europa-r07-a.gif) | Europa A: seamless scroll loop | chosen |
+| [concept/rejected/scene-europa-r07-b.png](concept/rejected/scene-europa-r07-b.png) | Europa B "open water" — brighter sandy floor, wider meadows, fewer kelp stands, stronger light shafts and caustics, larger fish school (sheet) | rejected — A preferred |
+| [concept/rejected/scene-europa-r07-b.gif](concept/rejected/scene-europa-r07-b.gif) | Europa B: seamless scroll loop | rejected — A preferred |
 
 ## Implementation
 
@@ -390,3 +390,4 @@ Concept [round 07](../concept-rounds/round-07/README.md) — Europa redone to re
   symmetric spinners.
 - 2026-10-01: Concept round 06: Luna, belt, Jupiter and Vrell-space scenes chosen; Europa rejected (not recognisably under water) — redo with vegetation, bubbles and caustics. New rules: smooth slow rotation (dense angle sets for large rotating structures) and water-surface interaction (waterline foam, ripple trains, visible submerged parts, top-down surfacing).
 - 2026-10-01: Menus and other out-of-game screens use the glass-over-scene style of main menu A; the bevelled metal style is reserved for the in-game HUD (user decision, round 06).
+- 2026-10-01: Concept round 07: Europa A "kelp forest" chosen; B "open water" rejected.

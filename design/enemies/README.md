@@ -2,7 +2,7 @@
 title: Enemies
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -23,10 +23,10 @@ directories hold the rosters.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | draft | not-started | chosen |
-| [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | draft | not-started | proposed |
-| [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | draft | not-started | proposed |
+| [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | draft | not-started | chosen |
+| [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | draft | not-started | chosen |
 | [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | draft | not-started | chosen |
-| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | draft | not-started | proposed |
+| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | draft | not-started | chosen |
 
 ## Design
 
