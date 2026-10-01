@@ -16,7 +16,7 @@ Outputs (design/audio/music/concept/):
     title-theme-full-r08-a.ogg      "Terran Vanguard"   126 BPM, D minor, 64-bar loop
     hangar-theme-full-r08-a.ogg     "Dry Dock"          90 BPM swing, D dorian, 56-bar loop
     afterburner-full-r08-a.ogg      "Afterburner"       140 BPM, A minor, 80-bar loop
-    coalition-rising-full-r08-a.ogg "Coalition Rising"  135 BPM (was 132), D minor, 72-bar loop
+    coalition-rising-full-r08-a.ogg "Coalition Rising"  132 BPM, D minor, 72-bar loop
     homefront-full-r08-a.ogg        "Homefront"         147 BPM, C minor, 80-bar loop
     choir-descends-full-r08-a.ogg   "The Choir Descends" 150 BPM, E minor, 72-bar loop
 
@@ -25,8 +25,13 @@ Usage: python3 tools/concept/audio/music_r08.py [name ...] [--out DIR]
               title hangar afterburner coalition homefront choir
 
 Loops use the round-02 format (intro + loop + 2-bar fade tail, LOOPSTART / LOOPLENGTH Vorbis
-comments, sample-exact). "Coalition Rising" moves from 132 to 135 BPM because a loop needs a
-16th step of a whole number of samples. Stings are one-shot files with a short fade.
+comments, sample-exact). "Coalition Rising" keeps its original 132 BPM although a 16th there is
+5011.36 samples: FracLoopSong rounds the loop length (not the step) to whole samples and puts
+every event on the nearest sample of the exact grid, so the loop still repeats sample-exactly.
+Stings are one-shot files with a short fade.
+
+Mix pass (2026-10-01): MIX_EQ applies a zero-phase corrective EQ to the whole mix of some
+loops before assembly (hangar: less sub below 60 Hz; briefing: less 150-400 Hz mud).
 """
 import sys
 from pathlib import Path
@@ -46,8 +51,8 @@ from music_r02 import (ARP16, B_AUG, B_BASS, B_CH, B_RIFF, CHOIR_MOTIF_E, GALLOP
 from music_r03 import (EA_CH, EA_HORNS, EA_INTRO, EA_LAMENT, earth_riff,  # noqa: E402
                        human_motif, mixdown, radio_static, siren, thunder, v_tremolo,
                        v_trumpet)
-from synth import (SR, db, decode, delay, fade, master, note_freq, parse_track,  # noqa: E402
-                   pulse, ramp, reverb, svf, write_ogg)
+from synth import (SR, Timeline, db, decode, delay, fade, master, noise, note_freq,  # noqa: E402
+                   parse_track, pulse, ramp, reverb, svf, write_ogg)
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / "design" / "audio" / "music" / "concept"
@@ -59,6 +64,88 @@ def shifted(bars, steps):
     toks = ["."] * steps + sum((b.split() for b in bars), [])
     toks += ["."] * ((-len(toks)) % 16)
     return [" ".join(toks[i:i + 16]) for i in range(0, len(toks), 16)]
+
+
+class FracLoopSong(LoopSong):
+    """LoopSong for tempos whose 16th is not a whole number of samples (132 BPM: 5011.36).
+    The loop length is rounded to whole samples and the step derived from it, so every event
+    lands on the nearest sample of the exact grid (at most 0.5 sample = 11 us off) and pass k+1
+    is pass k shifted by exactly LOOPLENGTH samples: the loop stays sample-exact."""
+
+    def __init__(self, bpm, intro_bars, loop_bars, swing=0.0, xf_steps=4):
+        self.loop_n = int(round(16 * loop_bars * 15 * SR / bpm))
+        self.step_n = self.loop_n / (16 * loop_bars)
+        self.step = self.step_n / SR
+        self.bar = 16 * self.step
+        self.intro, self.loop, self.xf_steps = intro_bars, loop_bars, xf_steps
+        self.swing_n = int(round(swing * self.step_n))
+        self.total_steps = 16 * (intro_bars + 2 * loop_bars) + xf_steps
+        self.intro_n = int(round(16 * intro_bars * self.step_n))
+        self.xf_n = int(round(xf_steps * self.step_n))
+        self.tl = Timeline(1.0)
+        self.tl.n = self.intro_n + 2 * self.loop_n + self.xf_n
+
+    def pos(self, bar, step=0):
+        steps = bar * 16 + step
+        return round(steps * self.step_n + (self.swing_n if steps % 2 else 0)) / SR
+
+    def live(self, bar, step=0):
+        return round((bar * 16 + step) * self.step_n) < self.tl.n
+
+    def curve(self, points):
+        xs, ys = [], []
+        for bar, v in points:
+            if bar < 0:
+                xs.append(round((bar + self.intro) * 16 * self.step_n))
+                ys.append(v)
+        for k in range(3):
+            for bar, v in points:
+                if bar >= 0:
+                    xs.append(self.intro_n + k * self.loop_n + round(bar * 16 * self.step_n))
+                    ys.append(v)
+        order = np.argsort(xs, kind="stable")
+        return np.interp(np.arange(self.tl.n), np.array(xs)[order], np.array(ys)[order])
+
+    def assemble(self, rendered):
+        i_n, l_n, x_n = self.intro_n, self.loop_n, self.xf_n
+        w = 0.5 - 0.5 * np.cos(np.linspace(0, np.pi, x_n))
+        xf = rendered[:, i_n:i_n + x_n] * (1 - w) + rendered[:, i_n + l_n:i_n + l_n + x_n] * w
+        audio = np.concatenate([rendered[:, :i_n], xf,
+                                rendered[:, i_n + l_n + x_n:i_n + 2 * l_n + x_n]], axis=1)
+        return audio, i_n + x_n, l_n
+
+
+def eq(stereo, points):
+    """Zero-phase corrective EQ: gain curve through (Hz, dB) breakpoints, interpolated on a
+    log-frequency axis and held flat outside them. Linear and time-invariant, so applied to a
+    rendered loop timeline it keeps the passes identical (seams stay exact)."""
+    n = stereo.shape[1]
+    pad = 1 << int(np.ceil(np.log2(n + SR)))
+    f = np.fft.rfftfreq(pad, 1 / SR)
+    fx, gx = zip(*points)
+    gain = 10 ** (np.interp(np.log10(np.maximum(f, 1.0)), np.log10(fx), gx) / 20)
+    return np.fft.irfft(np.fft.rfft(stereo, pad, axis=1) * gain, pad, axis=1)[:, :n]
+
+
+def looped_static(s, gain, seed=131):
+    """radio_static (round 03) made loop-periodic: one loop length of static, its slow fade
+    rounded to whole cycles per loop and its end crossfaded into its start, tiled so that a
+    tile boundary falls on the loop start. It therefore does not jump at the seam."""
+    l_n = s.loop * 16 * s.step_n
+    i_n = s.intro * 16 * s.step_n
+    m = ns(0.1)
+    rng = np.random.default_rng(seed)
+    t = np.arange(l_n + m) / SR
+    rate = round(0.7 * l_n / SR) / (l_n / SR)
+    x = svf(noise(l_n + m, rng), 1900, q=0.8, mode="bp") * (0.5 + 0.5 * np.sin(2 * np.pi * rate * t) ** 2)
+    crackle = (rng.random(l_n + m) > 0.9993) * rng.uniform(-1, 1, l_n + m) * 3
+    one = np.vstack([x + crackle, x * 0.9 + crackle])
+    w = np.linspace(0, 1, m)
+    one[:, :m] = one[:, :m] * w + one[:, l_n:] * (1 - w)
+    one = one[:, :l_n]
+    reps = int(np.ceil(s.tl.n / l_n)) + 2
+    start = (-i_n) % l_n
+    s.tl.add("fx", np.tile(one, reps)[:, start:start + s.tl.n], 0, 0, gain)
 
 
 def plan_len(plan):
@@ -572,7 +659,7 @@ CR_CALL = TF_CALL
 
 
 def coalition_full():
-    s = LoopSong(135, 4, plan_len(CR_PLAN))
+    s = FracLoopSong(132, 4, plan_len(CR_PLAN))
     for bar, name in enumerate(["Dm", "Dm", "Bb", "A"]):
         pad, root, stab = B_CHORDS[name]
         s.chord("strings", v_strings_long, pad, bar, gain=0.25 + 0.08 * bar, spread=0.7)
@@ -698,8 +785,10 @@ def coalition_full():
     harp = delay(tl.group("harp"), s.step * 3, feedback=0.35, mix=0.3, damp=3000, tail=0)[:, :tl.n]
     harp = reverb(harp, seconds=2.4, mix=0.3, seed=36)[:, :tl.n]
     wood = reverb(tl.group("wood"), seconds=2.4, mix=0.3, seed=37)[:, :tl.n]
+    # mix pass: the lyrical interlude (loop bars 24-31) sat 5-6 LU under the rest; +3 dB
+    lift = s.curve([(0, 1.0), (23.75, 1.0), (24.25, 1.41), (31.5, 1.41), (32, 1.0)])
     return s, (ost * 0.7 + strings * 0.6 + brass * 0.8 + perc * 0.8 + choir * 0.45 + harp * 0.5
-               + wood * 0.6 + tl.group("fx"))
+               + wood * 0.6 + tl.group("fx")) * lift
 
 
 # ================================================================ 5 homefront (full)
@@ -844,6 +933,15 @@ def homefront_full():
             elif kind == "A3":
                 s.play("brass", v_trumpet, HO_COUNTER, st0, gain=0.4, position=0.15)
                 s.play("strings_mel", v_strings_long, HO_COUNTER, st0, gain=0.35, attack=0.08)
+            elif kind == "TA":  # mix pass: the turnaround had no melody and dipped 4 LU
+                s.play("brass", v_brass, human_motif("C4"), st0, gain=0.5, position=-0.1)
+                s.play("brass", v_brass, human_motif("G#3", major=True), st0 + 2, gain=0.5,
+                       position=-0.1)
+                s.play("strings_mel", v_strings_long, ["C5 - - - - - - - - - - - - - - -",
+                                                       "D5 - - - - - - - D#5 - - - - - - -",
+                                                       "C5 - - - - - - - - - - - - - - -",
+                                                       "C5 - - - - - - - - - - - - - - -"],
+                       st0, gain=0.3, attack=0.08)
     for bar in siren_bars:  # siren swell in the turnaround
         i = int(round(s.pos(bar) * SR))
         if i < s.tl.n:
@@ -1070,7 +1168,7 @@ def briefing():
                 name = [c for _, cs in BR_PLAN for c in cs][b]
                 s.hit("blip", v_pluck(note_freq(BR_CH[name][2][k]), round(s.step * 0.4, 4), 3500.0),
                       bar, st, 0.1, p)
-    s.tl.add("fx", radio_static(s.tl.n), 0, 0, 0.035)
+    looped_static(s, 0.035)
     return s, mixdown(s, {
         "pad": dict(hp=80, rev=(3.5, 0.4), wid=1.6, seed=311, gain=0.6),
         "strings": dict(hp=150, rev=(3.5, 0.4), wid=1.5, seed=312, gain=0.45),
@@ -1478,12 +1576,22 @@ def validate_patterns():
             parse_track(val)
 
 
+# Mix pass (2026-10-01): corrective EQ per loop, (Hz, dB) breakpoints, see eq().
+MIX_EQ = {
+    "hangar": [(32, -4.5), (50, -4.0), (80, 0.0)],     # sub below 60 Hz ~3 dB above the rest
+    "briefing": [(100, 0.0), (240, -4.5), (520, 0.0)],  # 150-400 Hz was the loudest band (mud)
+}
+
+
 def render_loop(key, out):
     name, fn = LOOPS[key]
     s, mix = fn()
+    if key in MIX_EQ:  # extend by the next second of the loop first: eq() looks ahead
+        n, l_n = mix.shape[1], int(round(s.loop * 16 * s.step_n))
+        mix = eq(np.concatenate([mix, mix[:, n - l_n:n - l_n + SR]], axis=1), MIX_EQ[key])[:, :n]
     mix = mix - mix.mean(axis=1, keepdims=True)
     audio, loop_start, loop_len = s.assemble(mix)
-    audio = add_tail(audio, loop_start, 2, 16 * s.step_n)
+    audio = add_tail(audio, loop_start, 2, int(round(16 * s.step_n)))
     audio = master(audio, -14.0, -2.0)
     audio[:, :ns(0.005)] *= np.linspace(0, 1, ns(0.005))
     path = write_ogg(out / f"{name}.ogg", audio, tags={"LOOPSTART": loop_start, "LOOPLENGTH": loop_len})

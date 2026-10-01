@@ -82,7 +82,8 @@ def status_of(readme, f):
     """Last cell of the Concept art table row that mentions the file, e.g. 'chosen — ...'."""
     if readme.exists():
         for line in readme.read_text(encoding="utf-8").splitlines():
-            if line.startswith("|") and f"/{f.name}" in line:
+            # only Concept art rows: they start with a link to the file itself
+            if line.startswith(("| [concept/", "| [concept/rejected/")) and f"/{f.name}](" in line:
                 return line.strip().strip("|").split("|")[-1].strip()
     return "proposed"
 

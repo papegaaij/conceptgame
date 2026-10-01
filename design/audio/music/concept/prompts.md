@@ -505,6 +505,19 @@ homefront choir`). Deterministic; loops use the round-02 format (intro + loop + 
 tail, `LOOPSTART` / `LOOPLENGTH` in samples). Stings are one-shot files mastered to −14 LUFS
 with a −2 dBFS ceiling (peak after encoding ≤ −1 dBFS).
 
+**Verification and mix pass (2026-10-01)**: all 14 files measured (`analyze.py`, spectrograms,
+octave-band balance against the chosen r01–r03 tracks, loudness per 4 bars, seam jump) and
+re-rendered where needed. All are at −14.0 LUFS (−13.9 for "Game Over"), peak ≤ −1.6 dBFS
+after encoding, no DC, clean starts and ends; every loop's seam jump is below the local
+sample-to-sample change (ratio ≤ 0.65), and re-rendering gives bit-identical files. Fixes:
+"Dry Dock" full length −4 dB below 60 Hz (its sub was ~3 dB above the other tracks);
+"Situation Room" −4.5 dB around 240 Hz (150–400 Hz was its loudest band) and its radio static
+made loop-periodic (it jumped slightly at the seam); "Coalition Rising" back at 132 BPM and
+its lyrical interlude +3 dB (it sat 5–6 LU under the rest); "Homefront" turnaround now carries
+humanity's motif (it dipped 4 LU). The EQ is a zero-phase corrective EQ on the whole mix
+(`MIX_EQ` in the generator). Remaining dips of ~3–5 LU are the intended breakdowns
+("Afterburner" pluck breakdown, title and boss breakdowns, the "Firestorm" lament).
+
 ## miniboss-sting-r08-a — "Contact Heavy" (#21 mini-boss stinger, 4.6 s)
 
 **Brief**: a riser into three orchestral hits on a 3-3 rhythm (A minor brass stabs, timpani,
@@ -584,7 +597,7 @@ melancholic ending, 1990s synth-orchestral, instrumental."*
 
 **Brief**: tense but quiet, under Okafor's and Varga's briefing text. Dark low-passed pads,
 a clock-tick rim on every beat, telemetry blips (short plucks on chord tones through a
-ping-pong delay), a sonar ping every four bars and faint radio static. Then pulse bass and a
+ping-pong delay), a sonar ping every four bars and faint radio static (loop-periodic, so it does not jump at the seam). Then pulse bass and a
 soft kick, muted-horn fragments of humanity's motif (D-A-D, B♭-F-B♭), a D minor / E♭
 (Neapolitan) tension section with tremolo strings and timpani, and a thin bar back to the
 loop start.
@@ -626,9 +639,16 @@ style.
 | title-theme-full-r08-a — "Terran Vanguard" | 126 BPM, D minor | 357000 + 5376000 (64 bars) | A motif · B major lift · A2 motif in strings + brass counter-line · new G minor bridge (`Gm E♭ B♭ F Gm E♭ C A`) · breakdown/build · B2 + trumpets · A3 tutti · horn-call turnaround |
 | hangar-theme-full-r08-a — "Dry Dock" | 90 BPM swing, D dorian | 264600 + 6585600 (56 bars) | groove · flute · vibes counter-line · new e-piano solo (`B♭maj9 Am7 Gm9 A7 B♭maj9 C9 Dm9 A7`) · breakdown · flute + vibes · half-time walking bass · breakdown |
 | afterburner-full-r08-a — "Afterburner" | 140 BPM, A minor | 623700 + 6048000 (80 bars) | A · B · pluck breakdown · build · A2 · B2 + counter-arp · breakbeat/acid tracker break · new C melody (`C G Am F C G F E`) · A3 · turnaround |
-| coalition-rising-full-r08-a — "Coalition Rising" | 135 BPM (was 132), D minor | 333200 + 5644800 (72 bars) | horn theme · string theme · battle (trumpet counter-melody, 3-3-2 stabs) · lyrical interlude (strings, flute, harp) · A2/B2 + choir, trumpets · humanity's motif · build · horn-call reprise |
-| homefront-full-r08-a — "Homefront" | 147 BPM, C minor | 306000 + 5760000 (80 bars) | A + string/choir counter-melody · horns · lead variation · lament · siege (augmented motif in choir) · counterattack in E♭ major · lament in strings · horns · tutti · A3 · turnaround with siren |
+| coalition-rising-full-r08-a — "Coalition Rising" | 132 BPM, D minor | 340772 + 5773091 (72 bars) | horn theme · string theme · battle (trumpet counter-melody, 3-3-2 stabs) · lyrical interlude (strings, flute, harp; +3 dB in the mix pass) · A2/B2 + choir, trumpets · humanity's motif · build · horn-call reprise |
+| homefront-full-r08-a — "Homefront" | 147 BPM, C minor | 306000 + 5760000 (80 bars) | A + string/choir counter-melody · horns · lead variation · lament · siege (augmented motif in choir) · counterattack in E♭ major · lament in strings · horns · tutti · A3 · turnaround with humanity's motif in brass and siren |
 | choir-descends-full-r08-a — "The Choir Descends" | 150 BPM, E minor | 299880 + 5080320 (72 bars) | A · riff · A2 · half-time/build · phase 2 tritone grind · chase with the Choir motif in canon · riff + brass · breakdown, motif augmented in the choir · tutti |
+
+**132 BPM with a sample-exact loop**: a 16th at 132 BPM is 5011.36 samples, so the round-02
+integer-sample grid cannot hold it (the first render moved to 135 BPM). `FracLoopSong` rounds
+the *loop length* instead: 72 bars = 5773091 samples (131.99999 BPM), the step is derived from
+it, and every event is placed on the nearest sample of that exact grid (at most ½ sample =
+11 µs early or late, inaudible). Each loop pass is then the previous one shifted by exactly
+`LOOPLENGTH` samples, so the seam stays sample-exact.
 
 **AI prompt** (per track): use the round-01/02/03 prompt of the original sketch and add
 *"full-length 2–3 minute arrangement with varied sections, bridge and breakdown, seamless
