@@ -53,6 +53,10 @@ desktop/build/install/terran-vanguard-spike/bin/terran-vanguard-spike [options]
 | `--bench <s>` | after a 2 s warm-up, measure for `<s>` seconds, print a report and exit |
 | `--no-vsync` | uncapped frame rate, for frame-time measurements |
 | `--record <file>` | write the commands of the run as a replay (prints the final state hash) |
+| `--fullscreen` | start in borderless full screen instead of the 1920×1080 window |
+| `--toggle-every <s>` | switch between full screen and window every `<s>` seconds (gate 10) |
+
+**Alt+Enter** or **F11** switch between borderless full screen and the window at any time.
 
 Gamepad connects and disconnects are logged (`[input] gamepad connected: …`).
 

@@ -13,9 +13,10 @@ them is in [README.md](README.md#benchmarks-used-for-resultsmd).
 | 4 | Music | **pass** (automated); listening: manual | sample-exact over two loop boundaries |
 | 5 | Sound effects | **pass** (latency: manual) | 384 + 16,175 plays, 0 without a source |
 | 6 | Input | **manual** | hot-plug logging implemented |
-| 7 | Tests | **pass locally**; CI written, not yet run | replay hash identical on Java 21 and 25 |
+| 7 | Tests | **pass** | replay hash identical on Java 21 and 25 locally and on Linux, Windows and macOS in CI |
 | 8 | Packaging | **pass** (clean machine: not tested) | 4 bundles from Linux, 112–116 MB zipped |
 | 9 | Code quality | for the user's review | see [README.md](README.md) |
+| 10 | Display modes | **pass** (keys: manual) | 10 toggles window 1920×1080 ↔ full screen 3840×2160, state kept; 2–4 slow frames per switch |
 
 ## 1. Rendering load: pass
 
@@ -119,13 +120,15 @@ Keyboard (arrows/WASD, space/Z) and gamepads (left stick or d-pad, A) via gdx-co
 are logged (`[input] gamepad connected: <name>`). No gamepad was attached during these runs; the
 controller manager started without errors.
 
-## 7. Tests: pass locally, CI not yet run
+## 7. Tests: pass
 
 `ReplayTest` replays a run recorded from the real game (`--autopilot --record`, 3,720 steps =
 62 s) and compares the final state hash with the one the game printed live: `e17610307e1c81f0`.
 It passes on Java 21 and Java 25 (Linux). 24 tests in total, all green (`./gradlew test`).
 `.github/workflows/spike.yml` runs them on ubuntu-latest, windows-latest and macos-latest with
-Temurin 21; validated with actionlint 1.7.12, but it only runs once the branch is pushed.
+Temurin 21; validated with actionlint 1.7.12. The first CI run
+([36916102595](https://github.com/papegaaij/conceptgame/actions/runs/36916102595)) passed on all
+three: the replay hash is the same on Linux, Windows and macOS.
 
 ## 8. Packaging: pass (the clean-machine check is still open)
 
@@ -151,6 +154,30 @@ per-OS natives.
 
 For the user to judge. Structure, conventions and how to run everything are in
 [README.md](README.md).
+
+## 10. Display modes: pass (the keys are checked by hand)
+
+Added after the first spike run, when the user asked for a full-screen toggle (see
+`design/ui/options` on `main`). `DisplayModes` switches with Alt+Enter or F11 between a 1920×1080
+window and borderless full screen: `setFullscreenMode` with the monitor's *current* display mode,
+so GLFW attaches the window to the monitor without a video mode switch. `--fullscreen` starts in
+full screen; `--toggle-every <s>` switches automatically for measuring.
+
+```bash
+$BIN --autopilot --bench 10 --toggle-every 2
+$BIN --scene halo --bench 6 --toggle-every 2
+```
+
+| Run | Toggles | Sizes | Result |
+|---|---|---|---|
+| play, autopilot, 12 s | 6 | window 1920×1080 ↔ full screen 3840×2160 (4× integer scale) | 720 simulation steps in 12 s (no stall), 613 SFX plays without failures, music continuous, no GL errors |
+| halo, 8 s | 4 | same | atlas pages kept, rotation continued |
+
+Each switch costs 2–4 frames of 33–67 ms while the monitor reconfigures (with vsync on); nothing
+is reloaded or lost. The new back buffer size only arrives with the next `resize` event, so the
+outcome is logged there. The NVIDIA video-memory figure is not comparable after a switch (the
+4K swap chain counts against it). Not done in the spike: restoring the window position and
+remembering the mode in a settings file.
 
 ## Surprises and harder-than-expected points
 
@@ -183,5 +210,7 @@ For the user to judge. Structure, conventions and how to run everything are in
 - **Rotation**: `--scene halo`, watch the ring turn at 0.35 rad/s for smoothness.
 - **SFX**: `--scene sfx`, listen for dropouts or crackle in the 32-sound bursts, and judge shot
   latency in `--scene play` while firing.
+- **Full screen**: press Alt+Enter and F11 in any scene; the picture stays crisp and
+  letterboxed in both modes and nothing restarts.
 - **Clean machine**: unzip `terran-vanguard-spike-linuxX64.zip` on a machine without Java and
   run `./terran-vanguard-spike`.

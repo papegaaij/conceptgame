@@ -13,7 +13,7 @@ import vanguard.game.GameOptions.SceneKind;
 class GameOptionsTest {
     @Test
     void defaultsToAnInteractivePlaySceneWithVsync() {
-        assertEquals(new GameOptions(SceneKind.PLAY, false, 0, true, Optional.empty()), GameOptions.parse());
+        assertEquals(new GameOptions(SceneKind.PLAY, false, 0, true, Optional.empty(), false, 0), GameOptions.parse());
     }
 
     @Test
@@ -24,6 +24,13 @@ class GameOptionsTest {
         assertTrue(options.benchmark());
         assertFalse(options.vsync());
         assertEquals(Optional.of(Path.of("run.rec")), options.recordTo());
+    }
+
+    @Test
+    void parsesDisplayModeOptions() {
+        GameOptions options = GameOptions.parse("--fullscreen", "--toggle-every", "2.5");
+        assertTrue(options.fullscreen());
+        assertEquals(2.5, options.toggleEvery());
     }
 
     @Test

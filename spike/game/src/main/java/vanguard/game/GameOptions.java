@@ -12,9 +12,11 @@ import java.util.Optional;
  * @param benchSeconds run this long, print a report and exit; 0 runs until closed
  * @param vsync        synchronise with the display (off to measure frame times)
  * @param recordTo     write the commands of the run to this file as a replay
+ * @param fullscreen   start in borderless full screen instead of a window
+ * @param toggleEvery  switch between full screen and window every this many seconds; 0 never
  */
 public record GameOptions(SceneKind scene, boolean autopilot, double benchSeconds, boolean vsync,
-                          Optional<Path> recordTo) {
+                          Optional<Path> recordTo, boolean fullscreen, double toggleEvery) {
 
     /** The scenes of the spike, one per gate that needs a window. */
     public enum SceneKind {
@@ -32,7 +34,7 @@ public record GameOptions(SceneKind scene, boolean autopilot, double benchSecond
 
     /**
      * Parses {@code [--scene play|halo|sfx] [--autopilot] [--bench <seconds>] [--no-vsync]
-     * [--record <file>]}.
+     * [--record <file>] [--fullscreen] [--toggle-every <seconds>]}.
      */
     public static GameOptions parse(String... args) {
         SceneKind scene = SceneKind.PLAY;
@@ -40,6 +42,8 @@ public record GameOptions(SceneKind scene, boolean autopilot, double benchSecond
         double benchSeconds = 0;
         boolean vsync = true;
         Path recordTo = null;
+        boolean fullscreen = false;
+        double toggleEvery = 0;
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
                 case "--scene" -> scene = SceneKind.valueOf(value(args, ++i).toUpperCase(Locale.ROOT));
@@ -47,10 +51,13 @@ public record GameOptions(SceneKind scene, boolean autopilot, double benchSecond
                 case "--bench" -> benchSeconds = Double.parseDouble(value(args, ++i));
                 case "--no-vsync" -> vsync = false;
                 case "--record" -> recordTo = Path.of(value(args, ++i));
+                case "--fullscreen" -> fullscreen = true;
+                case "--toggle-every" -> toggleEvery = Double.parseDouble(value(args, ++i));
                 default -> throw new IllegalArgumentException("unknown option " + args[i]);
             }
         }
-        return new GameOptions(scene, autopilot, benchSeconds, vsync, Optional.ofNullable(recordTo));
+        return new GameOptions(scene, autopilot, benchSeconds, vsync, Optional.ofNullable(recordTo), fullscreen,
+                toggleEvery);
     }
 
     private static String value(String[] args, int index) {

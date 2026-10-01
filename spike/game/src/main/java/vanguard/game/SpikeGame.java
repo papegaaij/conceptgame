@@ -16,12 +16,17 @@ import vanguard.game.scene.SharedGraphics;
 
 /** The spike application: sets up the shared graphics, runs one scene, optionally benchmarks it. */
 public final class SpikeGame extends ApplicationAdapter {
+    /** The window size: the 960x540 internal screen at 2x. */
+    public static final int WINDOW_WIDTH = 1920;
+    public static final int WINDOW_HEIGHT = 1080;
     private static final float MAX_FRAME_SECONDS = 0.25f;
 
     private final GameOptions options;
     private SharedGraphics graphics;
     private Scene scene;
     private Benchmark benchmark;
+    private DisplayModes displayModes;
+    private double secondsToToggle;
 
     public SpikeGame(GameOptions options) {
         this.options = options;
@@ -36,6 +41,8 @@ public final class SpikeGame extends ApplicationAdapter {
             case HALO -> new HaloScene(graphics);
             case SFX -> new SfxScene(graphics);
         };
+        displayModes = new DisplayModes(WINDOW_WIDTH, WINDOW_HEIGHT);
+        secondsToToggle = options.toggleEvery();
         if (options.benchmark()) {
             benchmark = new Benchmark(options.benchSeconds());
         }
@@ -44,6 +51,11 @@ public final class SpikeGame extends ApplicationAdapter {
     @Override
     public void render() {
         long now = System.nanoTime();
+        displayModes.poll();
+        if (options.toggleEvery() > 0 && (secondsToToggle -= Gdx.graphics.getDeltaTime()) <= 0) {
+            secondsToToggle += options.toggleEvery();
+            displayModes.toggle();
+        }
         if (benchmark != null) {
             benchmark.frame(now);
         }
@@ -52,10 +64,16 @@ public final class SpikeGame extends ApplicationAdapter {
             System.out.println("=== benchmark: scene " + options.scene() + ", vsync " + options.vsync() + ", "
                     + Gdx.graphics.getBackBufferWidth() + "x" + Gdx.graphics.getBackBufferHeight() + ", "
                     + System.getProperty("java.vm.name") + " " + Runtime.version() + "\n"
-                    + benchmark.report() + scene.report());
+                    + benchmark.report() + "display toggles: " + displayModes.toggles() + "\n"
+                    + scene.report());
             benchmark = null;
             Gdx.app.exit();
         }
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        displayModes.resized();
     }
 
     @Override
