@@ -16,6 +16,13 @@ code-first, desktop only (Linux, Windows, macOS), released as open source under 
 The choice was confirmed by a throwaway spike measured against the gates below. The design tree stays
 engine-agnostic; this section is the only place that names engine APIs.
 
+## Contents
+
+| Part | Summary | Design | Impl | Art |
+|---|---|---|---|---|
+| [architecture](architecture/README.md) | Module layout, simulation, data files next to the documents, testing, conventions, CI | approved | not-started | n/a |
+| [roadmap](roadmap/README.md) | Seven milestones from skeleton to the Acts 1–2 release | approved | not-started | n/a |
+
 ## Design
 
 ### Requirements (user, 2026-10-01)
@@ -143,7 +150,7 @@ non-thread-safe source pool; `Sound.play` allocates.
 - [x] Desk research on libGDX (versions, Java 25, Maven, macOS, packaging, audio, input)
 - [x] Spike built, gates 1–10 measured and reported here
 - [x] Decision approved by the user
-- [ ] Project skeleton: Gradle multi-project layout, CI workflow, coding conventions
+- [ ] Project skeleton planned in [architecture](architecture/README.md) and [roadmap](roadmap/README.md)
 
 ## Open questions
 
