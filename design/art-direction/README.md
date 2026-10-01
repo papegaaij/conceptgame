@@ -2,7 +2,7 @@
 title: Art direction
 design: draft
 implementation: n/a
-art: chosen
+art: proposed
 updated: 2026-10-01
 ---
 
@@ -47,7 +47,7 @@ and every level must follow.
 
 | Item | Value |
 |---|---|
-| Internal resolution | **960×540** (16:9). Integer scaling with nearest-neighbour where it fits: 2× = 1080p, 4× = 4K. 1440p (2.67×) and 720p (1.33×) use sharp-bilinear (integer pre-scale, then bilinear to fit) or letterboxed integer scaling; letterbox for non-16:9 displays |
+| Internal resolution | **960×540** (16:9). Integer scaling with nearest-neighbour where it fits: 2× = 1080p, 4× = 4K. 1440p (2.67×) and 720p (1.33×) default to **letterboxed integer scaling** (crisp, black borders); **sharp-bilinear** (integer pre-scale, then bilinear to fit) is an option; letterbox for non-16:9 displays |
 | Play field | **480×540** at x = 240…719 (portrait, 8:9) |
 | Side panels | 240×540 each: left x = 0…239, right x = 720…959 (HUD, see `design/ui`) |
 | Look-ahead | the player sits in the lower third; enemies entering from the top get about 375 px of warning |
@@ -343,6 +343,13 @@ Concept [round 07](../concept-rounds/round-07/README.md) — Europa redone to re
 | [concept/rejected/scene-europa-r07-b.png](concept/rejected/scene-europa-r07-b.png) | Europa B "open water" — brighter sandy floor, wider meadows, fewer kelp stands, stronger light shafts and caustics, larger fish school (sheet) | rejected — A preferred |
 | [concept/rejected/scene-europa-r07-b.gif](concept/rejected/scene-europa-r07-b.gif) | Europa B: seamless scroll loop | rejected — A preferred |
 
+Concept [round 08](../concept-rounds/round-08/README.md) — Earth open ocean (L11) under the Water rules; generator `tools/concept/scenes_r08.py` (storm, arctic, Geneva and Luna far side are implemented there but not rendered yet).
+
+| File | What | Status |
+|---|---|---|
+| [concept/scene-ocean-r08-a.png](concept/scene-ocean-r08-a.png) | Open ocean (L11) — convoy holding station on an overcast sea, wakes and foam in the surface, surfaced and submerged Driftjellies, Reef Spitter rafts, a dark shape below, sea mist (sheet + layer breakdown) | proposed |
+| [concept/scene-ocean-r08-a.gif](concept/scene-ocean-r08-a.gif) | Open ocean: seamless scroll loop | proposed |
+
 ## Implementation
 
 - [ ] Renderer draws the screen at 960×540 and scales by integer factors with letterboxing
@@ -360,13 +367,8 @@ Concept [round 07](../concept-rounds/round-07/README.md) — Europa redone to re
 
 ## Open questions
 
-- **Scaling on 1440p and 720p**: sharp-bilinear (fills the screen, slightly soft) or letterboxed
-  integer scaling (crisp, black borders)?
-- **Layer hit rules**: can every weapon hit `ground` and `low-air` targets, or only weapons with
-  the `anti-ground` trait (and `anti-sub` for `sub`)? Decided together with the weapon design.
 - **Perspective towers**: keep the true-perspective roof projection of parallax B, or use purely
   orthographic pre-rendered tiles for all ground structures?
-- **Banking frames**: 5 (proposed) or 3?
 
 ## Decisions
 
@@ -391,3 +393,4 @@ Concept [round 07](../concept-rounds/round-07/README.md) — Europa redone to re
 - 2026-10-01: Concept round 06: Luna, belt, Jupiter and Vrell-space scenes chosen; Europa rejected (not recognisably under water) — redo with vegetation, bubbles and caustics. New rules: smooth slow rotation (dense angle sets for large rotating structures) and water-surface interaction (waterline foam, ripple trains, visible submerged parts, top-down surfacing).
 - 2026-10-01: Menus and other out-of-game screens use the glass-over-scene style of main menu A; the bevelled metal style is reserved for the in-game HUD (user decision, round 06).
 - 2026-10-01: Concept round 07: Europa A "kelp forest" chosen; B "open water" rejected.
+- 2026-10-01: Scaling: integer scaling with letterboxing by default, sharp-bilinear as an option. Banking: 5 frames for the player ship and wingman. Fitted wing pods are drawn on the ship sprite. Layer hit rules settled in [enemies](../enemies/README.md#layer-rules).

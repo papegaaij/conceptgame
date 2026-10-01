@@ -2,7 +2,7 @@
 title: Ground enemies
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 updated: 2026-10-01
 ---
 
@@ -14,14 +14,23 @@ Stationary and crawling enemies on the `ground` layer: turrets, walkers, bunkers
 shield pylons, on planetary surfaces, station hulls and asteroid rock. They scroll with the
 terrain, never collide with the player, and are what `anti-ground` and `area` weapons are for.
 
+## Contents
+
+Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units stay in the roster below.
+
+| Part | Summary | Design | Impl | Art |
+|---|---|---|---|---|
+| [spine-turret](spine-turret/README.md) | Basic grown turret with aimed thorns (L02) | draft | not-started | chosen |
+| [polyp-mortar](polyp-mortar/README.md) | Acid mortar with a marked impact and ring burst (L05) | draft | not-started | chosen |
+| [scuttler](scuttler/README.md) | Crab walker with frontal claw armour and facing fans (L04) | draft | not-started | chosen |
+| [creeper](creeper/README.md) | Salamander walker crawling in convoys, 5-way fans (L08) | draft | not-started | chosen |
+| [hive-node](hive-node/README.md) | Hardened spawner mound, anti-ground only (L09) | draft | not-started | chosen |
+| [ravager](ravager/README.md) | Animal pack hunter that gallops and pounces (L09) | draft | not-started | chosen |
+
 ## Roster
 
 | Name | Faction | Layer | Tier | Role/ability | Formations | First level | Design |
 |---|---|---|---|---|---|---|---|
-| Spine Turret | Vrell | ground | small | Grown turret. `terrain` + rotating `aimed` thorns. The basic ground threat. | turret nest | 02 | idea |
-| Polyp Mortar | Vrell | ground | small | `mortar`: lobs acid blobs at the player's position; the impact point is marked 1 s ahead and bursts into a small `ring`. | turret nest | 05 | idea |
-| Creeper | Vrell | ground | medium | Six-legged walker. `crawl`s over rooftops and roads, firing a 5-way `fan`. | convoy | 08 | idea |
-| Hive Node | Vrell | ground | medium | **Hardened** spawner. `spawn`s Skitters every 4 s until destroyed. Needs `anti-ground` or `area`. | turret nest | 09 | idea |
 | Burrower | Vrell | ground | medium | `burrow`: surfaces in sand, fires a `ring`, submerges after 2 s; invulnerable while submerged. | swarm (scattered) | 15 | idea |
 | Tendril Anchor | Vrell | ground | small | Pairs of anchors on canyon walls stretch a damaging `link` tendril across the path; destroy one to break the barrier (`beam` burns through). | turret nest (pairs) | 16 | idea |
 | SAM Nest | Ascendancy | ground | small | Launches 2 shootable `homing` missiles at the player. | turret nest | 29 | idea |
@@ -30,10 +39,8 @@ terrain, never collide with the player, and are what `anti-ground` and `area` we
 | Crawler Tank | Ascendancy | ground | medium | Tracked tank that `crawl`s along hulls and roads; has a front turret **and a rear turret**, so it shoots back after you pass. | convoy | 34 | idea |
 | Graft Turret | Hybrid | ground | small | An Ascendancy turret overgrown with Vrell tissue. **Regrows** 5 s after destruction unless its tissue root (weak point) is destroyed too. | turret nest | 37 | idea |
 | Shield Pylon | Ascendancy | ground | medium | Hardened pylon projecting a dome that makes every enemy inside it invulnerable. Destroy pylons to open fortress sections. | turret nest | 41 | idea |
-| Scuttler | Vrell | ground | medium | Crab-like six-legged walker (`walk`, 16 angles) that strides across the terrain on its own heading, turning to face where it goes, and fires a 5-way `fan` in its facing direction. Claws are `armoured` from the front; the glowing back is the weak point. | convoy, pincer (walking in from both sides) | 04 | idea |
 | Threadcrawler | Vrell | ground | large | Centipede of 10–16 segments (`chain`) that crawls along canyon floors, walls and hulls following the terrain, legs rippling down its body. Every segment fires a slow `aimed` spore in turn (a travelling wave of shots); the head is `vital`. | snake (solo) | 16 | idea |
 | Dust Devil | Vrell | ground → low-air | medium | *(roster fork addition)* A whirling vortex organism: a radially symmetric spinning funnel (`radial`, `spin`) that wanders across Martian plains in a `swirl`, pulling loose pickups and the player's ship slightly toward it and spitting a `spiral` of grit. The core is visible (and hittable) only at the top of each spin cycle. | swarm (2–3 roaming) | 18 | idea |
-| Ravager | Vrell | ground → low-air | medium | Four-legged pack hunter, hound/raptor-like body of grown chitin and sinew with a balancing tail. Gallops (`walk`, 8-frame gallop, 16 angles) in packs of 3–5 across streets and plains and **pounces**: a short leap to `low-air` towards the player's ground position (contact damage, shadow detaches during the leap). Animal, not insect. | pack (3–5) | 09 | idea |
 | Shellback | Vrell | ground | large | Lumbering four-legged armoured beast, tortoise/armadillo-like, with overlapping shell plates and a spore-mortar vent on its back (`mortar`, area shots). Slow heavy walk (16 angles). Badly damaged it **curls into a ball and rolls** along its path (`spin`), crushing ground targets, then uncurls; belly and vent are the weak points. Animal, not insect. | single / pair | 17 | idea |
 | Warden Tank | Unmarked (Ascendancy) → Ascendancy | ground | medium | Tracked tank: hull at 16 angles drives its own heading along roads and conveyors (`walk`), turret at 32 angles tracks the player independently and fires `burst`s. In Act 3 unmarked grey (a hint), from Act 5 in black and gold. Rear hull plate is the weak point. | convoy | 19 | idea |
 | Strider | Ascendancy | ground | large | Two-legged walker mech (8-frame walk cycle, 16 angles) that stalks across hulls and tunnel floors, arms with twin cannons (`fan`) and a shoulder `homing` pod. Legs are `destroyable`: destroying one topples it (a telegraphed fall across the ground layer). | solo, pairs | 32 | idea |
@@ -42,7 +49,7 @@ terrain, never collide with the player, and are what `anti-ground` and `area` we
 ## Design
 
 - Ground targets use the [layer rules](../README.md): all weapons hit them, `anti-ground`
-  does ×2, and **hardened** targets take only 25% from weapons without `anti-ground` or `area`.
+  does ×2, and **hardened** targets can only be damaged by `anti-ground` weapons.
 - Destroyed ground targets leave wreckage (a crater or burnt husk) on the ground layer for the
   rest of the level, a staple of late-90s shooters.
 - Ground targets pay more credits than air enemies of similar toughness, so an `anti-ground`
@@ -107,6 +114,13 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — smooth rotation 
 | [concept/halo-platform-r07-a.png](concept/halo-platform-r07-a.png) | Halo Platform r07 — ring as one 6-fold model at 128 frames per 60° step (768 per turn, ~0.9 px edge step), turrets at 64 headings; comparison with r06 and a rotation-over-time chart (sheet) | chosen |
 | [concept/halo-platform-r07-a.gif](concept/halo-platform-r07-a.gif) | Halo Platform r07 — smooth rotation with eased speed-ups as turrets die, shield drops | chosen |
 
+Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-render (seams and patterns now turn with the body), design unchanged; generator `tools/concept/rerender_r08.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/scuttler-r08-a.png](concept/scuttler-r08-a.png) | Scuttler re-render (sheet) | proposed |
+| [concept/scuttler-r08-a.gif](concept/scuttler-r08-a.gif) | Scuttler re-render (motion) | proposed |
+
 ## Implementation
 
 - [ ] Each enemy promoted to its own directory with a stat block before it is implemented.
@@ -126,3 +140,4 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — smooth rotation 
 - 2026-10-01: Concept round 05: Ravager and Shellback concepts chosen ("very nice").
 - 2026-10-01: Concept round 06: Creeper, Hive Node, Threadcrawler and Dust Devil chosen; Halo Platform's idea liked but its rotation too jagged — redo with a dense angle set (round 07).
 - 2026-10-01: Concept round 07: Halo Platform with the dense angle set chosen — rotation now smooth.
+- 2026-10-01: Acts 1–2 units promoted to full specs: Spine Turret, Polyp Mortar, Scuttler, Creeper, Hive Node, Ravager.

@@ -62,3 +62,11 @@ textures, saturated 90s neon CGI palette`
 
 Negative prompt: the common negative prompt above, plus `glass panels, neon outlines, flat
 dark UI` (that was the rejected variant B).
+
+## hud-r08-a
+
+Round 08 refresh of HUD A, unchanged in style, with the current element set (generator [tools/concept/ui_r08.py](../../../../tools/concept/ui_r08.py), `python3 tools/concept/ui_r08.py hud`): mission 11 *Atlantic Convoy* during the Harbour Kraken fight (play field is a frame of the chosen kraken-r07 animation), style-B radio portrait of Rook with signal bars and a message queue, overdrive timer bar, escort box with Rook's craft and armour, boss bar with name and weak point at the top of the play field, an edge warning at the left edge and a floating credit number.
+
+Prompt: `late 1990s PC vertical shoot'em up in-game screen, 16:9, central portrait play field showing a giant octopus wrapped round an offshore platform at night with bullets, left and right bevelled brushed blue-violet metal side panels with rivets and recessed LCD wells: score, credits, chain, a pixel-art comm-screen portrait of a grinning pilot with signal bars and green subtitle text, armour and shield bars, power pips, four weapon slots with level pips, a magenta overdrive bar, airstrike icons, an escort box with a small wingman ship and its armour bar; red boss health bar across the top of the play field, flashing amber arrows at the left edge, crisp pixels`
+
+Negative prompt: the common negative prompt above, plus `glass panels, neon outlines, flat dark UI`.

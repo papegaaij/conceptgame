@@ -276,3 +276,23 @@ rising bubble streams from vents and seeps, larger fish schools turning together
 pale anemones and fan corals, glass pressure domes with warm windows and tube corridors, a
 blue-white interceptor trailing bubbles, ivory nautilus shells with violet glow and olive
 jellyfish mines below it`
+
+## Round 08 Earth scenes
+
+Generator: `tools/concept/scenes_r08.py` (`python3 tools/concept/scenes_r08.py ocean`). Only the
+ocean scene was produced in this pass; storm, arctic, Geneva and the Luna far side are
+implemented in the script but not yet rendered or reviewed.
+
+### scene-ocean-r08-a
+
+Prompt: top-down view of an overcast North Atlantic seen from a low-flying aircraft, slate
+grey-blue ocean with long swell and wind chop, a UTC convoy of two container ships (one with a
+fire and a smoke column leaning with the wind) and a grey escort frigate steaming up the frame,
+long V-shaped Kelvin wakes and churned white stern wakes trailing down, glossy olive jellyfish
+organisms floating at and just below the surface with tentacles visible through the water,
+floating kelp rafts with barnacle guns, a vast dark shape gliding deep under the waves, thin sea
+mist banks and cloud wisps, late-1990s pre-rendered CGI game background, 3D rendered and
+downsampled, limited palette, crisp pixels, 2D shoot'em up play field, no HUD.
+
+Negative prompt: photo, film grain, perspective horizon, sky, text, UI, cartoon outlines, flat
+vector art, drawn circle ripples, lens flare, modern photoreal water simulation, bloom haze.

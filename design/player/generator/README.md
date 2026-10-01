@@ -4,7 +4,7 @@ design: draft
 implementation: not-started
 art: none
 depends-on: [../weapons, ../shields]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Generator
@@ -48,6 +48,12 @@ Some enemies attack the power budget instead of the hull, first the
   exceeds the output. A heavy loadout on a small generator is the most vulnerable, which is the
   point of L33 (see its threat profile in [act 5](../../campaign/act-5-the-belt/README.md)).
 
+### Overdrive and the power cap
+
+An overdrive pickup (all weapons +1 level for 20 s, see [player](../README.md)) **ignores the
+power cap**: the extra draw of the overdrive patterns is not counted, so overdrive never stops
+shield regeneration or lowers fire rate. It is a reward, not a risk.
+
 ## Implementation
 
 - [ ] Generator models and output values in the item data
@@ -56,12 +62,11 @@ Some enemies attack the power budget instead of the hull, first the
 
 ## Open questions
 
-- Should overdrive pickups temporarily ignore the power cap (they do in this draft), or should
-  an over-cap state carry a risk, such as a shield regen stop? Recommendation: ignore the cap,
-  since overdrive is a reward.
+- None open.
 
 ## Decisions
 
 - 2026-09-30: Six generator tiers; top two are captured tech tied to the story.
 - 2026-09-30: Enemy drain effects defined (Void Leech, L33): output reduction, shield regen
   stops first, then fire rate scales down.
+- 2026-10-01: Overdrive ignores the power cap (user accepted the recommendation).

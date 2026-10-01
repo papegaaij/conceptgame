@@ -3,7 +3,7 @@ title: Campaign
 design: draft
 implementation: not-started
 art: none
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Campaign
@@ -60,6 +60,12 @@ consecutive levels.
 - **Objective types**: `reach-end` (default), `escort`, `defend` (scroll halts and waves come
   from all sides), `destroy-targets` (a set of named ground targets), `survive` (timer),
   `boss`. A level has one primary objective. Optional secondary objectives give bonus credits.
+- **Objective failure**: failing the **primary** objective is mission failed — the level is
+  retried (see [retry](../systems/retry/README.md)). Each level doc sets the failure condition;
+  defaults: `defend` fails when the defended station is destroyed, `escort` when every escorted
+  unit is lost (each unit lost before that only lowers the reward), `destroy-targets` when a
+  named target survives to the end of the scroll. Failing a **secondary** objective only loses
+  its bonus.
 
 ### Difficulty curve
 
@@ -169,11 +175,7 @@ criteria), Open questions, Decisions. The worked example is
 
 ## Open questions
 
-- Should failing an `escort`/`defend` objective fail the level, or only cost the bonus?
-  Proposal: `defend` fails the level if the defended station is destroyed; `escort` only
-  reduces the reward unless every escorted ship is lost.
-- Is a level-select screen for replaying cleared levels (for credits and high scores) wanted,
-  or is it strictly one level after another?
+- None open.
 
 ## Decisions
 
@@ -184,3 +186,5 @@ criteria), Open questions, Decisions. The worked example is
   Micro-missile Pod) instead of L10.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-09-30: Level template: each section declares an atmosphere intensity so fog, cloud and dust vary through a level (user feedback, concept round 03).
+- 2026-10-01: Objective failure: a failed primary objective (escort, defend, destroy-targets) means mission failed and a retry; a failed secondary objective only loses its bonus.
+- 2026-10-01: No level select in the first build; replaying completed levels may come later.

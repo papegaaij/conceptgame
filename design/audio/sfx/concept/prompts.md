@@ -339,3 +339,265 @@ Edit: leading silence trimmed, offset 1.63 s, cut to 6.00 s, 2.50 s fade-out; pe
 Source: <https://freesound.org/people/mokasza/sounds/810765/> — CC-BY 4.0. Use: `underwater` b.
 Why: Muffled under-water blast with rumble; second recorded under-water variant for Act 4.
 Edit: leading silence trimmed, cut to 3.50 s, 1.20 s fade-out; peak-normalised to -1.5 dBFS.
+
+## Round 08 — remaining Acts 1–2 sounds
+
+Sourced with the same rules as rounds 02–04 (CC0/CC-BY, licence checked on each page, Freesound HQ previews for concept; rebuild from the originals for production). One-shots are levelled on the 200 Hz–5 kHz band (`band_rms`) so sub-heavy sources stay audible; candidates with more than ~85 % of their energy below 200 Hz were rejected (Movie Trailer Boom, PlasmaCannon, Heavy Blast, Big Sci-Fi Cinematic Explosion, ATP2 power-down). Ambience files are seamless loops. Regenerate: `python3 tools/concept/audio/import_sfx.py <name ...>`.
+
+Pickups and UI blips stay **synthesized** (see Sourcing in the README), extending the family of the three chosen round-01 pickups: `python3 tools/concept/audio/sfx_r08.py`.
+
+### hit-metal-r08-a — "HeavyBulletPing.mp3" by wilhellboy
+Source: <https://freesound.org/people/wilhellboy/sounds/351371/> — CC0 1.0. Use: Hit: metal — bullet ping on Ascendancy hulls and machines.
+Why: Short heavy bullet ping, 77% mid-band; reads as 'shot hits armour' at rapid fire.
+Edit: leading silence trimmed, cut to 0.30 s, 0.12 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### hit-metal-r08-b — "Bullet Hit Metal" by coolguy244e
+Source: <https://freesound.org/people/coolguy244e/sounds/267893/> — CC0 1.0. Use: Hit: metal, variant.
+Why: Clean metallic bullet impact, 86% mid-band; alternates with a.
+Edit: leading silence trimmed, cut to 0.45 s, 0.20 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### hit-organic-r08-a — "splat.ogg" by gprosser
+Source: <https://freesound.org/people/gprosser/sounds/360942/> — CC0 1.0. Use: Hit: organic — wet hit on Vrell chitin.
+Why: Short wet splat; gives the Vrell a fleshy hit distinct from metal.
+Edit: leading silence trimmed, cut to 0.30 s, 0.12 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### hit-organic-r08-b — "cracking.wav" by smidoid
+Source: <https://freesound.org/people/smidoid/sounds/49139/> — CC-BY 4.0. Use: Hit: organic, chitin crunch.
+Why: Dry cracking crunch (64% above 5 kHz) for armoured Vrell plates.
+Edit: leading silence trimmed, cut to 0.40 s, 0.15 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### hit-crumble-r08-a — "building_collapse02_close.wav" by onteca
+Source: <https://freesound.org/people/onteca/sounds/197772/> — CC-BY 3.0. Use: Ground target destroyed — crumbling structure.
+Why: Close building collapse with debris clatter; 2.4 s.
+Edit: leading silence trimmed, cut to 2.40 s, 0.80 s fade-out; peak-normalised to -1.5 dBFS.
+
+### hit-crumble-r08-b — "Rock Smash" by NeoSpica
+Source: <https://freesound.org/people/NeoSpica/sounds/512243/> — CC0 1.0. Use: Ground target destroyed, small (rock smash).
+Why: Single rock smash for small ground targets; sub-heavy (77% below 200 Hz), so quieter on small speakers than a.
+Edit: leading silence trimmed, cut to 1.50 s, 0.60 s fade-out; peak-normalised to -1.5 dBFS.
+
+### player-shield-hit-r08-a — "ELECTRIC_ZAP_001.wav" by JoelAudio
+Source: <https://freesound.org/people/JoelAudio/sounds/136542/> — CC0 1.0. Use: Shield hit — electric fizz.
+Why: 37k-download electric zap, mostly above 5 kHz: a crisp fizz that never masks the music's low end.
+Edit: leading silence trimmed, cut to 0.50 s, 0.20 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -2.0 dBFS).
+
+### player-shield-hit-r08-b — "Sci-Fi Force Field Impact 15.wav" by StormwaveAudio
+Source: <https://freesound.org/people/StormwaveAudio/sounds/330629/> — CC-BY 4.0. Use: Shield hit, force-field variant.
+Why: Sci-fi force-field impact with a glassy tail.
+Edit: leading silence trimmed, cut to 0.90 s, 0.35 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -2.0 dBFS).
+
+### player-shield-break-r08-a — "Synthesized_Pitch-Down_Zap" by joe_bou_khalil
+Source: <https://freesound.org/people/joe_bou_khalil/sounds/861848/> — CC-BY 4.0. Use: Shield break — descending zap.
+Why: Synthesized pitch-down zap, 100% mid-band; reads as 'shield collapsed'.
+Edit: leading silence trimmed, cut to 1.40 s, 0.50 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -2.0 dBFS).
+
+### player-shield-restore-r08-a — "Power Up Charge [Remix of LegoLunatic's Charged laser 151243]" by qubodup
+Source: <https://freesound.org/people/qubodup/sounds/172631/> — CC0 1.0. Use: Shield restored — rising charge.
+Why: Short rising power-up charge (remix of LegoLunatic's charged laser).
+Edit: leading silence trimmed, cut to 0.80 s, 0.25 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -2.0 dBFS).
+
+### player-shield-restore-r08-b — "Shield recharging" by Bychop
+Source: <https://freesound.org/people/Bychop/sounds/136881/> — CC0 1.0. Use: Shield restored, longer recharge.
+Why: Shield recharge hum rising over 1.6 s; for a full restore.
+Edit: leading silence trimmed, cut to 1.60 s, 0.60 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -2.0 dBFS).
+
+### player-armour-hit-r08-a — "Impact on metal" by JoMungus
+Source: <https://freesound.org/people/JoMungus/sounds/726486/> — CC0 1.0. Use: Armour hit — metallic crunch.
+Why: Heavy impact on metal; distinct from the shield fizz so the player hears armour damage.
+Edit: leading silence trimmed, cut to 0.60 s, 0.30 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -2.0 dBFS).
+
+### player-low-armour-r08-a — "Bleeper 1" by magnuswaker
+Source: <https://freesound.org/people/magnuswaker/sounds/522162/> — CC0 1.0. Use: Low armour warning — one beep.
+Why: Single clean bleep (88% mid-band); the game repeats it slowly at 30 % and fast at 15 % armour.
+Edit: leading silence trimmed, cut to 0.40 s, 0.08 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -2.0 dBFS).
+
+### player-destroyed-r08-a — "spaceship explosion9.WAV" by phantastonia
+Source: <https://freesound.org/people/phantastonia/sounds/270616/> — CC-BY 4.0. Use: Ship destroyed.
+Why: Spaceship explosion with a long rumble; the music sting follows it.
+Edit: leading silence trimmed, cut to 3.50 s, 1.50 s fade-out; peak-normalised to -1.0 dBFS.
+
+### overdrive-start-r08-a — "Spacey 1up/Power up" by GameAudio
+Source: <https://freesound.org/people/GameAudio/sounds/220173/> — CC0 1.0. Use: Overdrive start.
+Why: Spacey 1-up / power-up sweep, 99% mid-band.
+Edit: leading silence trimmed, cut to 0.60 s, 0.15 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -2.0 dBFS).
+
+### overdrive-end-r08-a — "Teleport Error" by Jerimee
+Source: <https://freesound.org/people/Jerimee/sounds/521776/> — CC0 1.0. Use: Overdrive end.
+Why: Falling 'teleport error' wind-down; the ATP2 power-down candidate was 89% sub-bass, so rejected.
+Edit: leading silence trimmed, cut to 1.10 s, 0.40 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -2.0 dBFS).
+
+### enemy-shot-small-r08-a — "Sci-fi gun shot x6" by humanoide9000
+Source: <https://freesound.org/people/humanoide9000/sounds/330293/> — CC0 1.0. Use: Enemy shot, small.
+Why: First shot of a six-shot sci-fi gun take; light and short.
+Edit: leading silence trimmed, cut to 0.45 s, 0.20 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### enemy-shot-small-r08-b — "retro shot blaster" by JavierZumer
+Source: <https://freesound.org/people/JavierZumer/sounds/257232/> — CC-BY 4.0. Use: Enemy shot, small (retro blaster).
+Why: Retro blaster zap; alternates with a.
+Edit: leading silence trimmed, cut to 0.32 s, 0.12 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### enemy-shot-heavy-r08-a — "ScifiHeavyBlasterShot.wav" by SuperPhat
+Source: <https://freesound.org/people/SuperPhat/sounds/531861/> — CC0 1.0. Use: Enemy shot, heavy.
+Why: Heavy sci-fi blaster shot, 47% mid-band (PlasmaCannon and Heavy Blast candidates were >85% sub-bass, rejected).
+Edit: leading silence trimmed, cut to 0.75 s, 0.30 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### enemy-laser-warning-r08-a — "Laser Charging" by plasterbrain
+Source: <https://freesound.org/people/plasterbrain/sounds/351807/> — CC0 1.0. Use: Enemy laser charge warning.
+Why: First 1.2 s of a laser charge-up: the telegraph before a laser sweep or rail shot.
+Edit: leading silence trimmed, cut to 1.20 s, 0.30 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### enemy-missile-r08-a — "Missile firing fl.mp3" by NHMWretched
+Source: <https://freesound.org/people/NHMWretched/sounds/151858/> — CC0 1.0. Use: Enemy missile launch.
+Why: Missile firing with a short exhaust tail (Jarusca's rocket is the player missile, so not reused).
+Edit: leading silence trimmed, cut to 1.60 s, 0.60 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### enemy-screech-r08-a — "Monster screech" by Khrinx
+Source: <https://freesound.org/people/Khrinx/sounds/565024/> — CC0 1.0. Use: Vrell screech (spawn/attack cue) a.
+Why: Monster screech, 90% mid-band.
+Edit: leading silence trimmed, cut to 2.20 s, 0.50 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### enemy-screech-r08-b — "inhuman screech.wav" by Wolfsinger
+Source: <https://freesound.org/people/Wolfsinger/sounds/25713/> — CC-BY 4.0. Use: Vrell screech b.
+Why: Inhuman screech, cut to 1.6 s.
+Edit: leading silence trimmed, cut to 1.60 s, 0.50 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### enemy-screech-r08-c — "alien4.wav" by AlienXXX
+Source: <https://freesound.org/people/AlienXXX/sounds/78539/> — CC-BY 4.0. Use: Vrell screech c.
+Why: Alien call, cut to 1.6 s.
+Edit: leading silence trimmed, cut to 1.60 s, 0.50 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### enemy-lock-r08-a — "lock on" by SamsterBirdies
+Source: <https://freesound.org/people/SamsterBirdies/sounds/467881/> — CC0 1.0. Use: Turret lock-on beep.
+Why: Rising lock-on beep sequence, first 1.06 s.
+Edit: leading silence trimmed, cut to 1.06 s, 0.08 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### special-airstrike-jets-r08-a — "Jet Plane Flyby.flac" by qubodup
+Source: <https://freesound.org/people/qubodup/sounds/189446/> — CC0 1.0. Use: Airstrike: jets flyby.
+Why: Jet plane flyby, cut around its loudest pass (4.5 s with 0.6 s fade-in).
+Edit: leading silence trimmed, offset 3.40 s, cut to 4.50 s, 0.60 s fade-in, 1.50 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -1.5 dBFS).
+
+### special-airstrike-bombs-r08-a — "R11-55-Large Blasts.wav" by craigsmith
+Source: <https://freesound.org/people/craigsmith/sounds/483284/> — CC0 1.0. Use: Airstrike: bomb carpet.
+Why: A series of large blasts recorded in sequence: a natural carpet-bombing run.
+Edit: leading silence trimmed, offset 0.95 s, cut to 5.00 s, 1.50 s fade-out; peak-normalised to -1.5 dBFS.
+
+### special-smartbomb-r08-a — "Energy Blast" by Kinoton
+Source: <https://freesound.org/people/Kinoton/sounds/369516/> — CC0 1.0. Use: Smart bomb: charge-up + white-out boom.
+Why: Energy blast with build and long tail, 62% mid-band (the Movie Trailer Boom candidate was 100% sub-bass, rejected).
+Edit: leading silence trimmed, cut to 4.20 s, 1.50 s fade-out; peak-normalised to -1.5 dBFS.
+
+### special-flares-r08-a — "Guns & Explosions Album - Flare gun 5-2.wav" by OGsoundFX
+Source: <https://freesound.org/people/OGsoundFX/sounds/423109/> — CC-BY 4.0. Use: Decoy flares.
+Why: Flare-gun launch with fizz.
+Edit: leading silence trimmed, cut to 1.40 s, 0.60 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -1.5 dBFS).
+
+### special-denied-r08-a — "acess denied buzz" by Jacco18
+Source: <https://freesound.org/people/Jacco18/sounds/419023/> — CC0 1.0. Use: Special unavailable (denied buzz).
+Why: Short access-denied buzz.
+Edit: leading silence trimmed, cut to 0.31 s, 0.05 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -4.0 dBFS).
+
+### ui-radio-open-r08-a — "Power On.wav" by JustinBW
+Source: <https://freesound.org/people/JustinBW/sounds/70107/> — CC-BY 4.0. Use: Radio squelch open.
+Why: Walkie-talkie power-on click before a radio line.
+Edit: leading silence trimmed, cut to 0.30 s, 0.05 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -4.0 dBFS).
+
+### ui-radio-close-r08-a — "Radio Sign Off / Squelch" by JovianSounds
+Source: <https://freesound.org/people/JovianSounds/sounds/524205/> — CC0 1.0. Use: Radio squelch close.
+Why: Radio sign-off squelch after a radio line.
+Edit: leading silence trimmed, cut to 0.50 s, 0.20 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -4.0 dBFS).
+
+### ui-klaxon-r08-a — "Sci-Fi Alarm" by noirenex
+Source: <https://freesound.org/people/noirenex/sounds/159453/> — CC0 1.0. Use: Warning klaxon (boss, rear attack) — loop.
+Why: Sci-fi alarm cut to two cycles (2 × 2.38 s) as a seamless loop.
+Edit: leading silence trimmed, seamless 4.76 s loop from 0.00 s with a 0.08 s cross-fade; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -4.0 dBFS).
+
+### ui-klaxon-r08-b — "RedAlert_Klaxon_STTOS_recreated.wav" by zimbot
+Source: <https://freesound.org/people/zimbot/sounds/178032/> — CC-BY 4.0. Use: Warning klaxon, single blast.
+Why: Red-alert klaxon recreation, one blast.
+Edit: leading silence trimmed, cut to 0.95 s, 0.10 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -4.0 dBFS).
+
+### ambience-orbit-r08-a — "spacedrone3.wav" by Elektrocell
+Source: <https://freesound.org/people/Elektrocell/sounds/20705/> — CC0 1.0. Use: Ambience: Earth orbit (space hum).
+Why: Slow evolving space drone; 16 s loop.
+Edit: leading silence trimmed, seamless 16.00 s loop from 20.00 s with a 1.50 s cross-fade; 200 Hz–5 kHz band RMS normalised to -36.0 dB (peak ceiling -10.0 dBFS).
+
+### ambience-luna-r08-a — "drone Space wind scifi.wav" by ztitchez
+Source: <https://freesound.org/people/ztitchez/sounds/370754/> — CC-BY 4.0. Use: Ambience: Luna.
+Why: Desolate sci-fi space-wind drone; 16 s loop.
+Edit: leading silence trimmed, seamless 16.00 s loop from 10.00 s with a 1.50 s cross-fade; 200 Hz–5 kHz band RMS normalised to -36.0 dB (peak ceiling -10.0 dBFS).
+
+### ambience-city-r08-a — "201110 Distant sirens, urban, night, quiet, roof 11pm.flac" by TRP
+Source: <https://freesound.org/people/TRP/sounds/568975/> — CC0 1.0. Use: Ambience: megacity.
+Why: Night city from a rooftop with distant sirens; 20 s loop.
+Edit: leading silence trimmed, seamless 20.00 s loop from 30.00 s with a 2.00 s cross-fade; 200 Hz–5 kHz band RMS normalised to -36.0 dB (peak ceiling -10.0 dBFS).
+
+### ambience-ocean-r08-a — "Ocean waves hitting bow of moving boat." by byjoshberry
+Source: <https://freesound.org/people/byjoshberry/sounds/435668/> — CC-BY 4.0. Use: Ambience: ocean.
+Why: Waves against a moving bow: open sea at speed; 16 s loop.
+Edit: leading silence trimmed, seamless 16.00 s loop from 2.00 s with a 2.00 s cross-fade; 200 Hz–5 kHz band RMS normalised to -36.0 dB (peak ceiling -10.0 dBFS).
+
+### ambience-storm-r08-a — "Rain and Thunder 4" by FlatHill
+Source: <https://freesound.org/people/FlatHill/sounds/237729/> — CC0 1.0. Use: Ambience: ocean storm (rain + thunder).
+Why: Rain and thunder (132k downloads); 24 s loop with one thunder roll near the start.
+Edit: leading silence trimmed, seamless 24.00 s loop from 1.00 s with a 2.00 s cross-fade; 200 Hz–5 kHz band RMS normalised to -36.0 dB (peak ceiling -10.0 dBFS).
+
+### ambience-arctic-r08-a — "Wind__Artic__Cold.wav" by cobratronik
+Source: <https://freesound.org/people/cobratronik/sounds/117136/> — CC0 1.0. Use: Ambience: arctic wind.
+Why: Cold arctic wind; 16 s loop.
+Edit: leading silence trimmed, seamless 16.00 s loop from 30.00 s with a 2.00 s cross-fade; 200 Hz–5 kHz band RMS normalised to -36.0 dB (peak ceiling -10.0 dBFS).
+
+### pickup-salvage-small-r08-a (synthesized)
+Salvage small — short, high PWM blip with one sparkle (pickup-r01-c family, which itself is salvage medium). Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, short, high PWM blip with one sparkle (pickup-r01-c family, which itself is salvage medium), clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### pickup-salvage-large-r08-a (synthesized)
+Salvage large — long PWM sweep two octaves up with an octave layer and a sparkle shower. Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, long PWM sweep two octaves up with an octave layer and a sparkle shower, clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### pickup-shield-cell-r08-a (synthesized)
+Shield cell — cool rising triangle arpeggio (G major) with a chorus shimmer. Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, cool rising triangle arpeggio (G major) with a chorus shimmer, clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### pickup-armour-patch-r08-a (synthesized)
+Armour patch — low square 'clunk' plus a metallic ding: a plate bolted on. Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, low square 'clunk' plus a metallic ding: a plate bolted on, clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### pickup-special-charge-r08-a (synthesized)
+Special charge — three rising square notes ending in a bell. Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, three rising square notes ending in a bell, clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### ui-menu-move-r08-a (synthesized)
+Menu move — soft 50 ms triangle blip. Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, soft 50 ms triangle blip, clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### ui-menu-confirm-r08-a (synthesized)
+Menu confirm — two rising square notes (E6–B6). Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, two rising square notes (E6–B6), clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### ui-menu-back-r08-a (synthesized)
+Menu back — two falling square notes (B5–E5). Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, two falling square notes (B5–E5), clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### ui-shop-buy-r08-a (synthesized)
+Shop buy — blip plus coin sparkle ('ka-ching'). Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, blip plus coin sparkle ('ka-ching'), clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### ui-shop-sell-r08-a (synthesized)
+Shop sell — three descending coin blips. Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, three descending coin blips, clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### ui-shop-denied-r08-a (synthesized)
+Shop denied (can't afford / won't fit) — low beating square buzz. Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, low beating square buzz, clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### ui-typewriter-r08-a (synthesized)
+Typewriter blip — 30 ms click-blip, played per character of briefing text. Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, 30 ms click-blip, played per character of briefing text, clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### ui-tally-tick-r08-a (synthesized)
+Debrief tally tick — 30 ms high sine tick. Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, 30 ms high sine tick, clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"
+
+### ui-tally-total-r08-a (synthesized)
+Debrief total — C-major bell chord stinger. Generator: `tools/concept/audio/sfx_r08.py`.
+AI prompt: "late-90s game UI/pickup sound, C-major bell chord stinger, clean synthesized chiptune-meets-FM timbre, short, no reverb wash, no voice"

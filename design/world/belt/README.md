@@ -2,8 +2,8 @@
 title: The belt
 design: draft
 implementation: n/a
-art: none
-updated: 2026-09-30
+art: chosen
+updated: 2026-10-01
 ---
 
 # The belt
@@ -71,6 +71,13 @@ Touchstones: *Outland* (1981), the belt in *The Expanse*, Descent's mines.
 Industrial and aggressive. Metallic percussion, distorted bass, the Ascendancy leitmotif
 (brass, stately and cold) introduced here.
 
+### Chosen scene
+
+The look of this setting is set by the chosen parallax scene in art direction: Asteroid belt (round 06) —
+[sheet](../../art-direction/concept/scene-belt-r06-a.png), [scroll loop](../../art-direction/concept/scene-belt-r06-a.gif).
+The concept files live in [art-direction](../../art-direction/README.md).
+
 ## Decisions
 
 - 2026-09-30: The belt as Act 5; signature: a station turning sides mid-level.
+- 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.

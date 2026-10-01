@@ -4,7 +4,7 @@ design: draft
 implementation: not-started
 art: n/a
 depends-on: [../economy, ../retry]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Difficulty
@@ -47,8 +47,7 @@ the single source of the global levers; enemy stat blocks only add overrides (se
 
 ## Open questions
 
-- Hard mode game over after 3 failed retries: too harsh? The alternative is unlimited retries
-  with a score penalty.
+- None open.
 
 ## Decisions
 
@@ -56,3 +55,4 @@ the single source of the global levers; enemy stat blocks only add overrides (se
 - 2026-09-30: Merged with the enemy scaling hooks: this table is the single source. Kept these
   values for HP and bullet speed; added bullets per pattern, formation size and bullet budget
   from enemies; aimed shots do not lead the player on medium (enemies' proposal).
+- 2026-10-01: Game over only on hard, after 3 failed retries of a level (then reload a save); easy and medium have unlimited retries.

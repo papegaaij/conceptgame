@@ -4,7 +4,7 @@ design: draft
 implementation: not-started
 art: n/a
 depends-on: [../../player, ../difficulty]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Economy
@@ -30,6 +30,9 @@ growth as prices (1.07⁷ ≈ 1.6 per act), so a level's income stays in line wi
 | Hidden crates | 5–15 % of the level's budget each, usually 1–3 per level |
 | Level-end bonus | Grade bonus: S +30 %, A +20 %, B +10 % of credits earned in the level |
 | Selling | See sell-back |
+
+**Starting credits: 300** — enough for one small choice at the first hangar visit (before L01),
+e.g. the Pulse Cannon's L2 upgrade.
 
 Difficulty multiplies all credit income: easy ×1.25, medium ×1.0, hard ×0.9. See
 [difficulty](../difficulty/README.md).
@@ -99,3 +102,4 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 - 2026-09-30: Budget curve set to 1 000 × 1.07^(n−1) (was 800 ×) so level 01 matches its
   worked-example budget of 1 000 and a typical run affords 60–65 % of everything; bounties and
   crates scale with the act factor; boss bounties are a share of the level budget.
+- 2026-10-01: Starting credits set to 300 (player spec work); `tools/balance.py` models a typical medium player's purchases for levels 01–14 against this curve.

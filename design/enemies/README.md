@@ -22,10 +22,10 @@ directories hold the rosters.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | draft | not-started | chosen |
-| [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | draft | not-started | chosen |
+| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | draft | not-started | proposed |
+| [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | draft | not-started | proposed |
 | [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | draft | not-started | chosen |
-| [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | draft | not-started | chosen |
+| [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | draft | not-started | proposed |
 | [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | draft | not-started | chosen |
 
 ## Design
@@ -134,7 +134,8 @@ most one on screen, announced by radio, with a bounty close to a mid-boss.
   no damage), `destroyable` (break off, pay a part bounty, may change the enemy's behaviour) or
   `vital` (the weak point; destroying it kills the whole enemy).
 - **Chains:** the head is vital. Destroying a body segment splits the chain: on the Coilwyrm
-  the rear half grows a new head and becomes its own, faster chain; on machines (Rail Serpent)
+  the rear half grows a new head and becomes its own, faster chain — **once per chain**: a regrown
+  chain that is cut again simply dies from the cut backwards; on machines (Rail Serpent)
   the rear half stops, turns into drifting wreckage and explodes after 1 s. The tail pays a
   bonus when destroyed first.
 - **Scoring:** part bounties add up to at least the whole-enemy bounty, so dismantling a big
@@ -265,15 +266,15 @@ Current coverage (✓ = passes):
 When a level's waves are written, keep the act passing; the check is repeated when levels are
 promoted to draft.
 
-### Layer rules (proposal)
+### Layer rules
 
 | Enemy layer | Hit by player weapons | Collides with player | Notes |
 |---|---|---|---|
 | `air` / `space` | All weapons | Yes (contact damage) | The player's own plane. `space` = `air` in vacuum-only levels. |
 | `low-air` | All weapons | No | Drawn smaller and lower; its bullets rise to the player plane. |
-| `ground` | All weapons; `anti-ground` does ×2 | No | **Hardened** ground targets (bunkers, nodes) take 25% from weapons without `anti-ground` or `area`. |
+| `ground` | All weapons; `anti-ground` does ×2 | No | **Hardened** ground targets (bunkers, nodes) can only be damaged by `anti-ground` weapons (incl. the Airstrike); other shots glance off with a spark. |
 | `high-air` | `homing` and `beam` only | No | Drawn larger and above the player; drops or deploys things. Descends to `air` to become fully hittable. |
-| `sub` (player above water) | `anti-sub` and `area` only | No | Seen as a shadow under the waves. When it surfaces it becomes a `ground` (naval surface) target. |
+| `sub` (player above water) | `anti-sub` only | No | Seen as a shadow under the waves. When it surfaces it becomes a `ground` (naval surface) target. |
 | `sub` (underwater mode, Act 4) | All weapons; without `anti-sub` 50% damage | Yes | The `sub` layer is the play plane; see the [under water rules](../world/europa/README.md#under-water-rules). |
 | `deep` | Nothing | No | Background only. |
 
@@ -301,6 +302,58 @@ Enemy bullets always travel on the player's plane, whatever layer fired them.
 - A **bullet budget** caps the number of enemy bullets on screen (values per difficulty in
   [difficulty](../systems/difficulty/README.md)). Patterns degrade gracefully (fewer bullets per
   burst) when the budget is hit.
+
+### Balancing basis
+
+The Acts 1–2 stat blocks (round of 2026-10-01) use these first-draft assumptions; the economy
+balancing sheet should use the same numbers.
+
+**Reference player DPS** (single target, medium, a typical affordable loadout at that level;
+damage units per second, Pulse Cannon L1 = 20, interpolated from the
+[weapon roster](../player/weapons/README.md) and the [level budget](../systems/economy/README.md#per-level-budget)):
+
+| Level | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 | 13 | 14 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| DPS | 20 | 26 | 32 | 38 | 45 | 52 | 60 | 60 | 63 | 66 | 70 | 73 | 76 | 80 |
+
+Levels 08–14 were lowered on 2026-10-01 (user decision) to what a typical loadout reaches according to
+`tools/balance.py` (≈ 60–80), instead of growing the economy. **The Act 2 stat blocks still use the old
+values (70–130) and must be rescaled**: multiply each Act 2 unit's HP by new ÷ old reference DPS at its
+first level (e.g. L10 ×0.73, L14 ×0.62) — see Implementation.
+
+Bosses assume an **effective DPS of 0.6 × reference** (accuracy, dodging, phase windows).
+
+**Time-to-kill targets** at a unit's first level: `tiny` one hit · `small` ≤ 0.3 s · `medium`
+0.4–1.5 s · `large` parts and heads 1–3 s · `huge` set pieces 20–40 s · mid-bosses 45–75 s ·
+act bosses 90–180 s (matches [bosses](bosses/README.md)).
+
+**Act HP factor** (user decision 2026-10-01): a unit returning in a later level gets
+`HP × (reference DPS at that level ÷ reference DPS at its first level)`, so its time-to-kill stays
+the same; no elite variants. The reference DPS curve is extended act by act as levels are written.
+
+**Damage to the player** (shield first, overflow to armour; collisions split half/half — see
+[shields](../player/shields/README.md)):
+
+| Class | Damage | Used for |
+|---|---|---|
+| `small` bullet | 4 | thorns, standard orbs, fan and ring bullets |
+| `medium` bullet | 6 | large orbs, bursts from heavies, acid spit |
+| `heavy` hit | 10 | mortar direct hits, slam arms, rail shots |
+| `laser` | 8 per touch | `laser-sweep` / `laser-line` (once per sweep or line) |
+| Contact | tiny 6 · small 10 · medium 15 · large 20 · huge 25 | rammers and bodies on the player's layer |
+
+For scale: the starting ship (shield 20 + armour 60) survives about 20 small bullets.
+
+**Bullet speed classes:** slow 90–120 px/s · standard 140–170 px/s · fast 190–260 px/s (the
+play field is 540 px tall).
+
+**Bounties** (Act 1 terms, medium; the act factor 1.6^(act−1) is applied automatically, see
+[economy](../systems/economy/README.md)): `tiny` 2–5 · `small` 10–15 · `medium` 18–30 ·
+hardened and `large` 40–60 · `huge` set pieces ≈ 15 % of their level's budget (sum of part
+bounties). Mid-bosses and act bosses are given as **absolute** medium credits in their level
+(15 % / 30 % of that level's budget) and are not act-scaled again. Check: level 01's worked
+budget (Skitter 5, Needler 12) is unchanged; a typical Act 1 level of 90–120 kills earns
+600–900 credits from kills plus ground targets and caches, inside the 1 000–1 500 budget.
 
 ### Difficulty scaling hooks
 
@@ -344,6 +397,7 @@ Concept [round 06](../concept-rounds/round-06/README.md) — lineup of the round
 
 ## Implementation
 
+- [ ] Rescale the Act 2 unit and boss HP to the lowered reference DPS for L08–L14 (balancing basis)
 - [ ] Data-driven enemy definitions using the stat block fields.
 - [ ] Movement patterns from the vocabulary implemented as reusable behaviours.
 - [ ] Attack patterns from the vocabulary implemented as reusable emitters.
@@ -355,19 +409,6 @@ Concept [round 06](../concept-rounds/round-06/README.md) — lineup of the round
       per-part HP and destroyable/armoured/vital parts, chain splitting.
 - [ ] Angle-set sprites (16/32 angles, nearest frame) and radial spinners.
 - [ ] Every act passes the variety checklist.
-
-## Open questions
-
-- **Vrell design language** (concept round 03): A "Sleek chitin" or B "Armoured brood", or a mix (e.g. B for ground and heavy units, A for fliers)? The choice applies to every Vrell enemy.
-- Layer rules: should `ground` targets really be hittable by *all* weapons (Tyrian-style, simple),
-  or only by `anti-ground` weapons and bombs (Raptor-style, more loadout pressure)? The proposal
-  is all weapons, with hardened targets as the pressure point.
-- Should `high-air` enemies be hittable at all, or only become targets when they descend?
-- **Chain splitting**: should a Vrell chain (Coilwyrm) really regrow a head on its rear half when cut
-  (more enemies, more chaos), or should cut-off segments simply die? Proposal: regrow for Vrell,
-  die for machines (Rail Serpent).
-- Score vs credits is decided in [scoring](../systems/scoring/README.md) (currently separate,
-  with the score derived from the enemy's bounty).
 
 ## Decisions
 
@@ -391,3 +432,9 @@ Concept [round 06](../concept-rounds/round-06/README.md) — lineup of the round
 - 2026-10-01: Concept round 05 closed: Ravager and Shellback chosen; size lineup r05-b is the reference.
 - 2026-10-01: Concept round 06: all new enemies and bosses liked except the Harbour Kraken (doesn't read as a creature from the depths) and the Halo Platform (rotation too jagged); Driftjelly's waterline ring reads as a drawn circle. All three are redone in round 07 under the new water and smooth-rotation rules in art direction.
 - 2026-10-01: Boss and mid-boss weak points always glow lime (user decision). The Wraith uses rust chitin with blue-violet veins everywhere (its own round-06 sheet); the bone/violet Wraiths in the Siege Spire mockup are superseded.
+- 2026-10-01: Layer hit rules settled (user accepted the recommendation): all weapons hit `air`, `low-air` and `ground`; `anti-ground` deals ×2 to ground and is required for hardened ground targets; only `homing` and `beam` hit `high-air`; only `anti-sub` hits `sub` (seen from above). Low-air and ground enemies don't collide with the player.
+- 2026-10-01: Chain splitting: a cut Coilwyrm's tail end grows a new head once per chain; a second cut kills the severed part. Machines (Rail Serpent) never regrow.
+- 2026-10-01: The 25 units of levels 01–14 promoted to full specs in their category directories; balancing basis (reference DPS, TTK targets, damage classes, bullet speeds, bounty classes) added.
+- 2026-10-01: Balance: reference DPS for L08–L14 lowered to the typical loadout (≈ 60–80) instead of growing the economy; Act 2 HP to be rescaled.
+- 2026-10-01: Returning units use an act HP factor (reference DPS ratio), no elite variants.
+- 2026-10-01: Enemy damage values in the balancing basis confirmed; this document owns them.

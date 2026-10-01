@@ -2,8 +2,8 @@
 title: Earth
 design: draft
 implementation: n/a
-art: none
-updated: 2026-09-30
+art: chosen
+updated: 2026-10-01
 ---
 
 # Earth
@@ -71,7 +71,14 @@ stages, *Ghost in the Shell* skylines, 90s naval disaster films.
 Bigger, more desperate. Heavier drums, choir pads, the main theme in a minor key during the
 city levels.
 
+### Chosen scene
+
+The look of this setting is set by the chosen parallax scene in art direction: Earth megacity at night (round 03); the ocean, ocean-storm, arctic and capital sub-locations have no chosen scene yet —
+[sheet](../../art-direction/concept/parallax-r03-b.png), [scroll loop](../../art-direction/concept/parallax-r03-b.gif).
+The concept files live in [art-direction](../../art-direction/README.md).
+
 ## Decisions
 
 - 2026-09-30: Earth as Act 2 setting with city, ocean and arctic; signature: Siege Spire roots.
 - 2026-09-30: City names Nova Lagos (megacity) and Geneva Concord (UTC capital) adopted from the campaign.
+- 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.

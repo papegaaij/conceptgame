@@ -4,7 +4,7 @@ design: draft
 implementation: not-started
 art: chosen
 depends-on: [../weapons, ../../story]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Wingmen and drones
@@ -40,9 +40,85 @@ upgrades are kept.
 | Ship | An AF-12 Stormhawk built on the variant-C airframe (the blended manta from the [ship concepts](../ship/README.md)) in Rook's own colours; 42×42 sprite, slightly smaller than the player's 48×48 so the player's ship always reads first; armour 80, no shield |
 | Position | Formation slot beside and slightly behind the player (left or right, hangar setting) |
 | Behaviour | Keeps formation, shoots what the player shoots, dodges bullets with a delay, targets enemies closing from the sides |
-| Weapon | One gun from his own list: Autocannon, Scatter, Missiles, Mortar (upgradable L1–L5, 60 % of the player's prices) |
+| Weapon | One gun from his own list (see *Rook's guns* below), upgradable L1–L5 at 60 % of the player's prices |
 | Downed | At 0 armour he ejects and returns next level; his repair costs 10 cr/point after the level |
 | Radio | Banters on the radio; warns about threats from the rear ("Six o'clock, Lancer!") |
+
+### Rook's AI (first-draft parameters)
+
+Coordinates are relative to the player's centre, +y pointing down the screen; the side (left or
+right) is the hangar setting and mirrors the x values.
+
+**Ship**
+
+| Property | Value |
+|---|---|
+| Armour | 80, no shield; takes enemy bullets and contact damage like the player |
+| Hitbox | 11×11 px |
+| Movement | Top speed 250 px/s, full speed in 0.2 s; never closer than 40 px to the player; keeps the 12 px play-field margin |
+| Collision with an `air` enemy | Rook takes the enemy's full contact damage and deals 20 to it |
+
+**Formations** — he switches automatically and glides to the new slot over 0.6 s.
+
+| Formation | Offset | When |
+|---|---|---|
+| Wing (default) | (64, +28) | No other condition |
+| Wide | (120, +10) | A `sides` wave is active, or an enemy is within 160 px of him horizontally |
+| Trail | (40, +90) | A `rear` wave is active: pursuers overtake him first and enter his firing cone sooner |
+
+**Reactions**
+
+| Property | Value |
+|---|---|
+| Reaction delay | 0.25 s for target switches, formation changes and dodges |
+| Dodging | Every 0.1 s he predicts enemy bullets 0.4 s ahead; if one would pass within 14 px, he sidesteps up to 48 px at right angles to it, then returns to his slot. Because of the delay he avoids about 70 % of single bullets and fewer in dense patterns |
+| Firing cone | 30° ahead of his ship, range 360 px; his craft never turns (banking frames only), so he fires up the screen |
+| Fire | Fires while the player is firing and a target is in his cone; never fires at nothing |
+| Target priority | (1) an enemy the player damaged in the last 1.0 s; (2) an enemy within 160 px of him horizontally (flank threat); (3) the nearest enemy — all within his cone. Layers follow his gun's traits (Missiles can hit `high-air`; Mortar only `ground`) |
+
+**Rook's guns** — each uses a player weapon's per-level table, scaled; prices are 60 % of the
+player weapon's base price, upgrades follow the [weapons](../weapons/README.md#common-rules)
+formula on that price.
+
+| Gun | Based on | Scale | DPS L1 → L5 | Price | Available |
+|---|---|---|---|---|---|
+| Autocannon | [Autocannon Pod](../weapons/autocannon-pod/README.md) | × 1.5 | 12 → 37 | free (fitted when he joins) | L08 |
+| Scatter | [Scatter Vulcan](../weapons/scatter-vulcan/README.md) | × 0.6 (volley) | 11 → 39 | 720 | L08 |
+| Missiles | [Micro-missile Pod](../weapons/micro-missile-pod/README.md) | × 1.5 | 12 → 42 | 480 | L08 |
+| Mortar | [Hammer Mortar](../weapons/hammer-mortar/README.md) | × 0.6 | 15 → 54 | 900 | L08 |
+
+**Shot down**
+
+- At 0 armour he ejects: the pod pops out and drifts off-screen while the ship explodes (`medium`
+  explosion). He is out for the rest of the level. This never fails the mission and costs no score.
+- He returns next level at full armour; repairs cost 10 cr per point of armour lost (free on easy)
+  and are charged in the hangar after the level.
+- On a retry he starts again with his level-start state, like the player.
+
+**Radio barks** (text + radio blip, at least 8 s apart; when several fire at once the highest
+priority wins; 3–4 line variants each, to be written in [Rook](../../story/characters/rook/README.md)):
+
+| Priority | Trigger | Example |
+|---|---|---|
+| 1 | Boss warning | "Here comes the big one." |
+| 2 | A `rear` wave enters within 1.5 s | "Six o'clock, Lancer!" |
+| 3 | A `sides` wave enters | "Contacts on your flank!" |
+| 4 | Player armour below 30 % | "You're smoking, Lancer — ease off!" |
+| 5 | Rook's armour below 30 % | "Taking a beating over here!" |
+| 6 | Rook ejects | "Punching out — give 'em hell!" |
+| 7 | 10 kills within 5 s | "Nice shooting!" |
+| 8 | An overdrive pickup appears | "Power-up, two o'clock!" |
+
+### Heavy drone "Warden" (escort alternative, L22)
+
+| Property | Value |
+|---|---|
+| Ship | Armour 120, no shield, top speed 200 px/s, hitbox 14×14 px |
+| Formation | Wing slot (56, +20), no automatic formation changes |
+| Weapon | Slow cannon straight ahead: 1 shell/s, 14 damage (14 DPS), not upgradable |
+| Draws fire | While within 150 px of the player, 30 % of enemy aimed shots that would target the player target the Warden instead |
+| Destroyed | Out for the rest of the level; rebuilt for the next level, repairs 8 cr per point |
+| Radio | None (a drone) |
 
 ### Drones
 
@@ -70,14 +146,14 @@ Round 02 — see [round 02](../../concept-rounds/round-02/README.md). AI-generat
 ## Implementation
 
 - [ ] Escort slot unlocked by a story flag
-- [ ] Rook AI: formation, targeting, dodging, eject/return
+- [ ] Rook AI as in *Rook's AI*: formations Wing / Wide / Trail, reaction delay, dodging, targeting priority, firing cone, eject and return
+- [ ] Rook's four guns derived from the player weapon tables
+- [ ] Warden heavy drone: formation, cannon, draw-fire rule
 - [ ] Drone behaviours: orbit, trail, block, rebuild
 - [ ] Wingman radio lines triggered by events (rear threat, low armour, kill streaks)
 
 ## Open questions
 
-- Escort slot vs wing mount for the wingman: my recommendation is the separate escort slot
-  described above. Needs user confirmation.
 - Should Rook ever be killed for good in the story? The current story keeps him alive (missing
   L27–L29 only); see [Rook](../../story/characters/rook/README.md).
 - While Rook is missing, the draft allows a heavy drone in the escort slot. The alternative is
@@ -91,3 +167,5 @@ Round 02 — see [round 02](../../concept-rounds/round-02/README.md). AI-generat
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-09-30: Rook flies the variant-C (blended manta) airframe from ship concept round 01, in his own colours; it replaces the placeholder "F-9 Kestrel".
 - 2026-09-30: Concept round 02: Rook's craft scheme **A "Ember"** (dark slate, orange/yellow accents) chosen; B "Jade" rejected.
+- 2026-10-01: The separate escort slot for Rook is confirmed by the user. Rook's craft uses 5 banking frames like the player.
+- 2026-10-01: Rook's AI specified (formations, reactions, targeting, guns derived from player weapons, eject/return, radio bark triggers); Warden heavy drone specified.

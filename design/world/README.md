@@ -2,8 +2,8 @@
 title: World
 design: draft
 implementation: n/a
-art: none
-updated: 2026-09-30
+art: chosen
+updated: 2026-10-01
 ---
 
 # World
@@ -18,14 +18,14 @@ levels of its act build on. Levels reference a setting; they do not redefine it.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [earth-orbit](earth-orbit/README.md) | Shipyards, orbital defence platforms and debris above a blue Earth | draft | n/a | none |
-| [luna](luna/README.md) | Grey craters, Shackleton Station and mass-driver tracks | draft | n/a | none |
-| [earth](earth/README.md) | Megacities, open ocean and arctic on Earth's surface | draft | n/a | none |
-| [mars](mars/README.md) | Red canyons, dust storms, terraforming domes, Olympus Mons | draft | n/a | none |
-| [europa](europa/README.md) | Cracked ice surface and the dark ocean beneath it | draft | n/a | none |
-| [belt](belt/README.md) | Asteroid fields and hollowed-out mining stations | draft | n/a | none |
-| [jovian](jovian/README.md) | Jupiter's storms, floating cloud cities, Callisto HQ | draft | n/a | none |
-| [vrell-space](vrell-space/README.md) | The Tether Gate and the living, dying Vrell worlds beyond | draft | n/a | none |
+| [earth-orbit](earth-orbit/README.md) | Shipyards, orbital defence platforms and debris above a blue Earth | draft | n/a | chosen |
+| [luna](luna/README.md) | Grey craters, Shackleton Station and mass-driver tracks | draft | n/a | chosen |
+| [earth](earth/README.md) | Megacities, open ocean and arctic on Earth's surface | draft | n/a | chosen |
+| [mars](mars/README.md) | Red canyons, dust storms, terraforming domes, Olympus Mons | draft | n/a | chosen |
+| [europa](europa/README.md) | Cracked ice surface and the dark ocean beneath it | draft | n/a | chosen |
+| [belt](belt/README.md) | Asteroid fields and hollowed-out mining stations | draft | n/a | chosen |
+| [jovian](jovian/README.md) | Jupiter's storms, floating cloud cities, Callisto HQ | draft | n/a | chosen |
+| [vrell-space](vrell-space/README.md) | The Tether Gate and the living, dying Vrell worlds beyond | draft | n/a | chosen |
 
 ## Design
 

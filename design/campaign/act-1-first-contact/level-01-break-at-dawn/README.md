@@ -3,7 +3,7 @@ title: Level 01 – Break at Dawn
 design: draft
 implementation: not-started
 art: none
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Level 01 – Break at Dawn
@@ -59,6 +59,13 @@ Baseline scroll speed 60 px/s at the 960×540 baseline (play field 480×540, see
 | 3. Yard Crossing | 60–110 | 3,600–6,600 | `ground`: gantries, cranes, a half-built cruiser hull, cargo containers (destructible, drop credits). | Ground layer as scenery and loot; the first side entry; the secret beacon. |
 | 4. Pursuit | 110–160 | 6,600–9,600 | `ground`: yard perimeter, defence platforms burning. `deep`: debris clouds drifting. | Mixed waves, one warned rear wave, rising density. |
 | 5. Scout Leader | 160–190 | 9,600–11,400 | Open space past the yard; the Vrell strike group's glow on the horizon. | Final set piece: Needler circle plus Skitter streams. Then the level ends. |
+
+### Launch and control prompts
+
+The level opens with a **5-second non-playable launch**: the Stormhawk accelerates off the
+Gagarin rail while the briefing's last line plays; control starts in open space. There is no
+separate tutorial: contextual control prompts appear in the side HUD (move, fire, precision in
+L01; special in L03–L04 when the first special unlocks), shown once and skippable.
 
 ## Waves
 
@@ -162,10 +169,10 @@ Skitter 5, Needler 12.
 
 ## Open questions
 
-- Should the first launch be playable (the ship accelerating off the rail), or start with the
-  ship already in open space?
+- None open.
 
 ## Decisions
 
 - 2026-09-30: L01 has no boss; the finale is a formation set piece.
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
+- 2026-10-01: Launch: 5-second non-playable launch, then control; no separate tutorial, contextual prompts in L01–L03.

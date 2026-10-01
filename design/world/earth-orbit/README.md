@@ -2,8 +2,8 @@
 title: Earth orbit
 design: draft
 implementation: n/a
-art: none
-updated: 2026-09-30
+art: chosen
+updated: 2026-10-01
 ---
 
 # Earth orbit
@@ -70,6 +70,13 @@ In space, "ground" means large structures below the player's plane.
 Urgent, heroic, hopeful. Driving tempo, bright lead melody — the "main theme" act. The theme
 returns in darker versions later in the campaign.
 
+### Chosen scene
+
+The look of this setting is set by the chosen parallax scene in art direction: Earth orbit (round 03, decoration pass) —
+[sheet](../../art-direction/concept/parallax-r03-a.png), [scroll loop](../../art-direction/concept/parallax-r03-a.gif).
+The concept files live in [art-direction](../../art-direction/README.md).
+
 ## Decisions
 
 - 2026-09-30: Earth orbit as Act 1 opening setting; signature set piece: shipyard crane.
+- 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.

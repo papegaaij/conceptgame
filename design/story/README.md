@@ -3,7 +3,7 @@ title: Story
 design: draft
 implementation: n/a
 art: chosen
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Story
@@ -21,7 +21,7 @@ opened it, trading humanity for alien biotech.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [factions](factions/README.md) | The three powers: Coalition, Vrell, Jovian Ascendancy | draft | n/a | none |
-| [characters](characters/README.md) | Briefing and radio cast, including the player | draft | n/a | chosen |
+| [characters](characters/README.md) | Briefing and radio cast, including the player | draft | n/a | proposed |
 | [twist](twist/README.md) | The mid-campaign twist: three variants to choose from | approved | n/a | n/a |
 
 ## Design
@@ -136,13 +136,10 @@ this sample only sets the voice.
 
 ## Open questions
 
-- Which twist variant to use (see [twist](twist/README.md)). All other documents assume
-  variant A.
 - Vorne's death: in Act 7 (L48, absorbed by the Choir; current) or at the end of Act 6 with his
   flagship (the earlier draft)? Act 7 gives the fleet a reason to cross the gate and the act a
   villain finale.
 - Is there an ending variation (e.g. based on difficulty or secrets found), or one ending?
-- Voice acting for radio lines, or text only (with a radio-static "blip" sound)?
 
 ## Decisions
 
@@ -153,3 +150,4 @@ this sample only sets the voice.
 - 2026-09-30: Arc aligned with the campaign: Vorne escapes at L42 and dies at L48 (was: dies at
   the end of Act 6); the Silence is first named at L41 in Vorne's files; Rook is missing
   L27–L29; Vorne's broadcast opens Act 5.
+- 2026-10-01: Twist variant A confirmed (concept round 01). Voices: text with radio blips only, no voice acting for now.

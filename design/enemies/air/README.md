@@ -2,7 +2,7 @@
 title: Air enemies
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 updated: 2026-10-01
 ---
 
@@ -15,18 +15,28 @@ Flying enemies on the `air` layer (the player's plane), plus `low-air` flyers be
 in [space](../space/README.md). This is the largest category and carries most waves in most
 levels.
 
+## Contents
+
+Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units stay in the roster below.
+
+| Part | Summary | Design | Impl | Art |
+|---|---|---|---|---|
+| [skitter](skitter/README.md) | Tiny swarm fodder that rams; teaches shooting (L01) | draft | not-started | chosen |
+| [needler](needler/README.md) | Basic gunner, hovers and fires aimed thorns (L01) | draft | not-started | chosen |
+| [stinger](stinger/README.md) | Diver that fires a fan at the bottom of its dive (L02) | draft | not-started | chosen |
+| [spore-bomber](spore-bomber/README.md) | Low-air bomber dropping rising spore mines (L03) | draft | not-started | chosen |
+| [whirl-seed](whirl-seed/README.md) | Tiny radial spinner released in clusters (L03) | draft | not-started | chosen |
+| [brood-pod](brood-pod/README.md) | Egg sac that bursts into Skitters when killed or after 8 s (L04) | draft | not-started | chosen |
+| [mantis](mantis/README.md) | Side-entering laser sweeper (L06) | draft | not-started | chosen |
+| [coilwyrm](coilwyrm/README.md) | Segment-chain serpent that loops to the rear and regrows a head once (L06) | draft | not-started | chosen |
+| [wraith](wraith/README.md) | Cloaked manta that decloaks behind the player (L10) | draft | not-started | chosen |
+| [mote-swarm](mote-swarm/README.md) | Flock of tiny motes that loops round for a rear attack (L10) | draft | not-started | chosen |
+| [lamprey](lamprey/README.md) | Homing eel that latches and drains the shield (L12) | draft | not-started | chosen |
+
 ## Roster
 
 | Name | Faction | Layer | Tier | Role/ability | Formations | First level | Design |
 |---|---|---|---|---|---|---|---|
-| Skitter | Vrell | air | tiny | Swarm fodder. `path`/`swoop` movement, `none` attack: rams on contact. 1 HP. Teaches shooting. | snake, stream, line abreast, swarm | 01 | idea |
-| Needler | Vrell | air | small | Basic gunner. `hover` or `swoop`, fires a slow `aimed` thorn every 2.5 s. 4 HP. | V-wing, line abreast, pincer, circle | 01 | idea |
-| Stinger | Vrell | air | small | `dive`: enters, locks on, dives past the player; fires a 3-way `fan` at the bottom of its dive. | V-wing, column | 02 | idea |
-| Spore Bomber | Vrell | low-air | medium | Slow, bulbous; drops drifting spore `mine`s that rise to the player plane after 1 s. Spread fire clears the spores. | line abreast, convoy | 03 | idea |
-| Brood Pod | Vrell | air | medium | A slow, pulsing sac. `spawn`: bursts into 6 Skitters when killed **or** after 8 s, so kill it fast with focused fire. | carrier + escorts | 04 | idea |
-| Mantis | Vrell | air | medium | Enters from a side edge and holds position (`hover`), sweeping a short `laser-sweep` across the lower screen. Needs `side` or `spread`. | pincer | 06 | idea |
-| Wraith | Vrell | high-air → air | medium | Cloaked shimmer passing overhead; decloaks **behind** the player and fires a `burst` up the screen. | rear ambush | 10 | idea |
-| Lamprey | Vrell | air | small | `chase`, then `latch` onto the player and `drain` the shield until shaken off by hard left–right movement. | swarm, stream | 12 | idea |
 | Choir Herald | Vrell | air | medium | Support: `aura` gives nearby enemies a shield ring. A priority target, with a glowing crest as weak point. | carrier + escorts, circle | 17 | idea |
 | Ghost Drone | Unmarked (Ascendancy) | air | small | Grey, angular, no Vrell biology. `strafe` with a precise `burst`. The first hint of human involvement. | line abreast, pincer | 18 | idea |
 | Talon | Ascendancy | air | small | Fast interceptor. `swoop` with paired `aimed` shots; small hex shield (2 HP). | V-wing, line abreast | 29 | idea |
@@ -36,9 +46,6 @@ levels.
 | Mirror Interceptor | Ascendancy | air | medium | Frontal `reflect` shield bounces non-`beam` shots back. Vulnerable from the sides and rear, or to `beam`/`shield-breaker`. | pincer, rear ambush | 37 | idea |
 | Harrow | Hybrid | air | small | `kamikaze` with a Vrell biomass payload; `death-burst` of 8 bullets whether shot or impacting. Kill it at range. | stream, cross | 38 | idea |
 | Choir Seraph | Vrell (elite) | air | medium | Elite. `teleport` next to the player's flank and `mirror` its movement while firing a `spiral`. 40 HP. | circle (pairs) | 47 | idea |
-| Whirl Seed | Vrell | air | tiny | Radial seed pod (6-fold) that `spin`s, `ricochet`s off the play field edges and `spiral-out`s from its release point; released in clusters of 5–8 by Leviathans and spawning reefs. Contact only; pops in one hit into a 3-bullet puff on hard. Orientation `radial`. | whirl cluster (burst of seeds spiralling outward), stream | 03 | idea |
-| Coilwyrm | Vrell | air | large | Serpent of 8–12 segments (`chain`) whose head follows `swirl`, `loop` and `figure-8` paths across the screen, often looping round to strike from the **rear**. Head is `vital` and fires a 3-way `fan`; each body segment is `destroyable` (1–2 HP) and **splits** the chain, the rear half growing a new head. Orientation 16 angles per segment. | snake (solo), pairs crossing | 06 | idea |
-| Mote Swarm | Vrell | air | tiny | 12–30 tiny motes (~16 px) moving as one `flock` with boids-like swirls; the cloud sweeps past, **loops round** (`loop`, `rear-entry`) and dives at the player from behind. 1 HP each; spread and area weapons shred it. Orientation 16 angles. | swarm, rear ambush | 10 | idea |
 | Buzzsaw Drone | Ascendancy | air / space | small | Radially symmetric spinning blade drone (4 blades, `radial`). `chase`s the player, then `ricochet`s off edges and asteroids at speed; contact damage only, but lethal in groups. Blades spin faster just before a dash (telegraph). | stream, circle | 31 | idea |
 | Rail Serpent | Ascendancy | air / space | large | Armoured drone train of 8–14 cars (`chain`) that snakes across the screen (`swirl`, `cross`) and **enters from the sides or the rear**. Every third car carries a turret firing `aimed` shots; the engine car is `vital`. Destroying a car splits the train: the rear half stops and explodes. Orientation 32 angles per car. | snake, pincer (two trains) | 30 | idea |
 
@@ -109,13 +116,20 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 | [concept/lamprey-r06-a.png](concept/lamprey-r06-a.png) | Lamprey — Vrell eel (rust, teal mouth disc): homing stream, latches on and drains shield until shaken off (sheet) | chosen |
 | [concept/lamprey-r06-a.gif](concept/lamprey-r06-a.gif) | Lamprey — Vrell eel (rust, teal mouth disc): homing stream, latches on and drains shield until shaken off (motion) | chosen |
 
+Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-render (seams and patterns now turn with the body), design unchanged; generator `tools/concept/rerender_r08.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/coilwyrm-r08-a.png](concept/coilwyrm-r08-a.png) | Coilwyrm re-render (sheet) | proposed |
+| [concept/coilwyrm-r08-a.gif](concept/coilwyrm-r08-a.gif) | Coilwyrm re-render (motion) | proposed |
+
 ## Implementation
 
 - [ ] Each enemy promoted to its own directory with a stat block before it is implemented.
 
 ## Open questions
 
-- Should the Lamprey's `latch` also slow the ship, or only drain the shield?
+- None open.
 
 ## Decisions
 
@@ -125,3 +139,5 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools
 - 2026-09-30: Concept round 04: colour pass on air enemies with the role colours (r04 proposals).
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Whirl Seed, Coilwyrm, Mote Swarm, Buzzsaw Drone, Rail Serpent.
 - 2026-10-01: Concept round 06: Wraith and Lamprey chosen.
+- 2026-10-01: Lamprey latch drains the shield only; it does not slow the ship. A cut Coilwyrm regrows a head once per chain.
+- 2026-10-01: Acts 1–2 units promoted to full specs: Skitter, Needler, Stinger, Spore Bomber, Whirl Seed, Brood Pod, Mantis, Coilwyrm, Wraith, Mote Swarm, Lamprey.

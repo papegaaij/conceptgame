@@ -4,7 +4,7 @@ design: draft
 implementation: not-started
 art: chosen
 depends-on: [../systems, ../ui/hangar]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Player
@@ -20,8 +20,8 @@ generator limits what can be fitted at the same time.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | draft | not-started | chosen |
-| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | draft | not-started | none |
+| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | draft | not-started | proposed |
+| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | draft | not-started | proposed |
 | [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | draft | not-started | none |
 | [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | draft | not-started | none |
 | [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | draft | not-started | none |
@@ -61,6 +61,11 @@ generator limits what can be fitted at the same time.
   sell-back.
 - An item can only be fitted when the projected **power load** does not exceed the generator
   output (see below). The hangar prevents over-budget fits and shows the missing MW.
+- **Availability** in the component tables (`start`, `act N`) means: in the shop from the first
+  hangar visit of that act; `act 1` items appear from the visit before L02, `act 2` items from
+  the visit before L08, and so on. Weapons and specials use exact levels (`Lnn`).
+- All balancing numbers for Acts 1–2 live in [balance-data.json](balance-data.json); check them
+  with `python3 tools/balance.py` (see [weapons](weapons/README.md#data-and-balancing)).
 
 ### Power budget
 
@@ -125,10 +130,7 @@ Used by enemies and weapons so numbers stay comparable:
 
 ## Open questions
 
-- Is the 3rd utility bay (and utility bays at all) welcome, or does it make the loadout too busy?
-  My recommendation: keep it. It gives a home to the extra options without adding more guns.
-- Should weapons fire only on button hold, or is an auto-fire toggle enough? See
-  [controls](../ui/controls/README.md).
+- None open.
 
 ## Decisions
 
@@ -137,3 +139,5 @@ Used by enemies and weapons so numbers stay comparable:
 - 2026-09-30: Static power budget with spare-power bonus rather than a draining energy pool
   (easier to read in the hangar; the choice happens before the level).
 - 2026-09-30: Upgrades are bought only; in-level pickups are credits and temporary boosts.
+- 2026-10-01: Controls: hold-to-fire with an auto-fire toggle in Options; fire, special and hold-for-precision buttons (see [controls](../ui/controls/README.md)). Rook takes the separate escort slot (confirmed). Utility bays: two, a third buyable. One special equipped at a time.
+- 2026-10-01: Component availability `act N` defined as the first hangar visit of that act (`act 1` = before L02); balancing numbers centralised in balance-data.json.

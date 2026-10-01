@@ -2,8 +2,8 @@
 title: Europa
 design: draft
 implementation: n/a
-art: none
-updated: 2026-09-30
+art: chosen
+updated: 2026-10-01
 ---
 
 # Europa
@@ -81,7 +81,7 @@ here instead of repeating the numbers. Values are first-draft balancing values.
 | Pressure hull | Optional utility module that removes the top-speed and shield-regeneration penalties (the drag stays); see [ship systems](../../player/systems/README.md). |
 
 Which layers can be hit above water (the `sub` layer seen from the surface in Act 2) is part of
-the layer rules in [enemies](../../enemies/README.md#layer-rules-proposal).
+the layer rules in [enemies](../../enemies/README.md#layer-rules).
 
 ### Natives
 
@@ -94,9 +94,16 @@ the layer rules in [enemies](../../enemies/README.md#layer-rules-proposal).
 Slow, deep and eerie. Submerged pads, sonar pings, heartbeat bass; pressure building to the
 reveal, which gets a sharp, shocking sting.
 
+### Chosen scene
+
+The look of this setting is set by the chosen parallax scene in art direction: Europa under water, kelp forest (round 07) —
+[sheet](../../art-direction/concept/scene-europa-r07-a.png), [scroll loop](../../art-direction/concept/scene-europa-r07-a.gif).
+The concept files live in [art-direction](../../art-direction/README.md).
+
 ## Decisions
 
 - 2026-09-30: Europa as Act 4 with under-water rules; signature: the descent and ice breakout.
 - 2026-09-30: Conamara Station added as a surface sub-location (Act 4 opening).
 - 2026-09-30: Underwater rules consolidated here as the single owner: free automatic hydro-kit, 50 % damage for non-`anti-sub` weapons, optional pressure hull removes the speed/shield penalties.
 - 2026-09-30: Rook's craft renamed from the placeholder "Kestrel" to his variant-C Stormhawk (see [wingmen](../../player/wingmen/README.md)).
+- 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.

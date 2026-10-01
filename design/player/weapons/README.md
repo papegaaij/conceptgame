@@ -2,9 +2,9 @@
 title: Weapons
 design: draft
 implementation: not-started
-art: none
+art: proposed
 depends-on: [../generator, ../../systems/economy]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Weapons
@@ -15,6 +15,28 @@ Every weapon belongs to one slot type (front, rear or wing mount) and is describ
 shared **weapon traits** from the [design index](../../README.md#shared-vocabulary). Level
 threat profiles recommend traits, and the hangar marks the weapons that have them. That is how
 "choose the right loadout for the next level" works.
+
+## Contents
+
+The weapons available by L14 (Acts 1–2) have full designs; later weapons are still roster rows
+below.
+
+| Part | Summary | Design | Impl | Art |
+|---|---|---|---|---|
+| [pulse-cannon](pulse-cannon/README.md) | Pulse Cannon — Front, forward; DPS 20 → 70; starter; start | draft | not-started | proposed |
+| [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | draft | not-started | proposed |
+| [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | draft | not-started | proposed |
+| [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | draft | not-started | proposed |
+| [hornet-launcher](hornet-launcher/README.md) | Hornet Launcher — Front, homing; DPS 15 → 60; 2 000; L10 | draft | not-started | proposed |
+| [side-splitter](side-splitter/README.md) | Side Splitter — Rear, side; DPS 12 → 40; 1 400; L05 | draft | not-started | proposed |
+| [tail-gun](tail-gun/README.md) | Tail Gun — Rear, rear; DPS 10 → 35; 600; L08 | draft | not-started | proposed |
+| [fan-blaster](fan-blaster/README.md) | Fan Blaster — Rear, rear, spread; DPS 10.2 → 40; 1 200; L10 | draft | not-started | proposed |
+| [proximity-mines](proximity-mines/README.md) | Proximity Mines — Rear, rear, area; DPS 20 → 70; 1 500; L12 | draft | not-started | proposed |
+| [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | draft | not-started | proposed |
+| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | draft | not-started | proposed |
+| [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | draft | not-started | proposed |
+| [swivel-gun](swivel-gun/README.md) | Swivel Gun — Wing (per pod), side, homing; DPS 8 → 26; 1 500; L09 | draft | not-started | proposed |
+| [torpedo-pod](torpedo-pod/README.md) | Torpedo Pod — Wing (per pod), anti-sub; DPS 10 → 32; 1 000; L11 | draft | not-started | proposed |
 
 ## Design
 
@@ -31,54 +53,41 @@ threat profiles recommend traits, and the hangar marks the weapons that have the
   levels here are set to match it. Some items are unlocked by data cores or story events
   (captured tech).
 - **Layers**: which weapons hit which layer is defined once in the enemy
-  [layer rules](../../enemies/README.md#layer-rules-proposal). In short: all weapons hit `air`,
-  `low-air` and `ground`, hardened ground targets need `anti-ground` or `area`, `high-air` takes
+  [layer rules](../../enemies/README.md#layer-rules). In short: all weapons hit `air`,
+  `low-air` and `ground`, hardened ground targets need `anti-ground`, `high-air` takes
   only `homing` and `beam`, and the `sub` layer seen from above water takes only `anti-sub` and
   `area`. Weapons marked "ground only" (bombs, mortar shells) do not hit flying targets. Under
   water the [Europa rules](../../world/europa/README.md#under-water-rules) apply. The layer
   model itself is in [art direction](../../art-direction/README.md).
-- DPS figures are for L1 / L5 against a single target and are first-draft balancing values.
+- DPS figures are first-draft balancing values; see *Data and balancing* below.
 
-### Roster — front guns
+### Data and balancing
 
-| Name | Traits | DPS L1/L5 | Draw L1→L5 | Base price | Unlock | Design |
-|---|---|---|---|---|---|---|
-| Pulse Cannon | forward | 20 / 70 | 2 → 4 | starter (upgrades priced as 600) | start | idea |
-| Scatter Vulcan | spread | 18 / 65 (3-way → 7-way fan) | 3 → 5 | 1 200 | L02 | idea |
-| Hornet Launcher | homing | 15 / 60 | 3 → 6 | 2 000 | L10 | idea |
-| Hammer Mortar | anti-ground, area | 25 / 90 (ground only) | 3 → 5 | 1 500 | L07 | idea |
-| Lance Laser | piercing, forward | 25 / 95 | 4 → 7 | 2 500 | L05 | idea |
-| Harpoon Torpedoes | anti-sub, forward | 30 / 100 (sub + surface) | 3 → 5 | 2 000 | L22 | idea |
-| Ion Beam | beam | 35 / 130 (continuous) | 5 → 9 | 5 000 | L15 | idea |
-| Plasma Arc | area, spread | 30 / 120 (short range, chains to 3–6 targets) | 5 → 8 | 6 000 | L31 | idea |
-| Choir Resonator | spread, piercing | 45 / 160 | 7 → 11 | 12 000 | L44 (captured Vrell tech) | idea |
+All per-level numbers of the designed weapons (pattern, rate, damage, speed, draw, prices) live
+in [balance-data.json](../balance-data.json), the single source. Each weapon's per-level table
+is generated from it with `python3 tools/balance.py --sync`; `python3 tools/balance.py` checks a
+typical player's purchases for levels 01–14 against the [credit budget](../../systems/economy/README.md#per-level-budget),
+the power cap and the DPS available (and time-to-kill once enemy stat data exists, see the
+script's docstring). DPS is given two ways: **volley DPS** (all shots) and **single-target DPS**
+(shots that hit a 36 px target 100 px away; seeking, lobbed and dropped weapons count every
+shot).
 
-### Roster — rear guns
+### Roster — later weapons
 
-| Name | Traits | DPS L1/L5 | Draw L1→L5 | Base price | Unlock | Design |
-|---|---|---|---|---|---|---|
-| Tail Gun | rear | 10 / 35 | 1 → 3 | 600 | L08 | idea |
-| Fan Blaster | rear, spread | 10 / 40 (3 → 5 shots angled back) | 2 → 4 | 1 200 | L10 | idea |
-| Side Splitter | side | 12 / 40 (fires left and right, 90°) | 2 → 4 | 1 400 | L05 | idea |
-| Proximity Mines | rear, area | 20 / 70 (dropped, 4 s life) | 2 → 4 | 1 500 | L12 | idea |
-| Depth Charges | anti-sub, rear | 25 / 80 (sink into the `sub` layer) | 2 → 3 | 1 300 | L22 | idea |
-| Rear Lance | rear, piercing | 18 / 60 | 3 → 5 | 2 800 | L17 | idea |
-| Swarm Tail | rear, homing | 15 / 55 (micro-missiles that curve back up) | 3 → 5 | 3 500 | L30 | idea |
+Still at `idea`; they get a directory when they are designed (Act 3 onwards).
 
-### Roster — wing mounts
-
-Prices and draw are per pod; most players fit a pair.
-
-| Name | Traits | DPS L1/L5 | Draw L1→L5 | Base price | Unlock | Design |
-|---|---|---|---|---|---|---|
-| Autocannon Pod | forward | 8 / 25 | 1 → 2 | 500 | L02 | idea |
-| Micro-missile Pod | homing | 8 / 28 | 1 → 3 | 800 | L06 | idea |
-| Bomb Rack | anti-ground | 12 / 40 (ground only) | 1 → 2 | 900 | L03 | idea |
-| Swivel Gun | side, homing | 8 / 26 (auto-aims at the nearest enemy, 360°) | 2 → 3 | 1 500 | L09 | idea |
-| Torpedo Pod | anti-sub | 10 / 32 | 1 → 3 | 1 000 | L11 | idea |
-| Deflector Pod | — (defensive) | absorbs up to 3 bullets per 2 s on its side | 2 → 3 | 1 600 | L18 | idea |
-| Light Drone Bay | forward (drone) | 10 / 30. See [wingmen](../wingmen/README.md) | 2 → 3 | 2 000 | L15 | idea |
-| Tesla Coil Pod | area, shield-breaker | 12 / 40 (short-range zap) | 2 → 4 | 3 000 | L29 | idea |
+| Name | Slot | Traits | DPS L1/L5 | Draw L1→L5 | Base price | Unlock | Design |
+|---|---|---|---|---|---|---|---|
+| Harpoon Torpedoes | front | anti-sub, forward | 30 / 100 (sub + surface) | 3 → 5 | 2 000 | L22 | idea |
+| Ion Beam | front | beam | 35 / 130 (continuous) | 5 → 9 | 5 000 | L15 | idea |
+| Plasma Arc | front | area, spread | 30 / 120 (short range, chains to 3–6 targets) | 5 → 8 | 6 000 | L31 | idea |
+| Choir Resonator | front | spread, piercing | 45 / 160 | 7 → 11 | 12 000 | L44 (captured Vrell tech) | idea |
+| Depth Charges | rear | anti-sub, rear | 25 / 80 (sink into the `sub` layer) | 2 → 3 | 1 300 | L22 | idea |
+| Rear Lance | rear | rear, piercing | 18 / 60 | 3 → 5 | 2 800 | L17 | idea |
+| Swarm Tail | rear | rear, homing | 15 / 55 (micro-missiles that curve back up) | 3 → 5 | 3 500 | L30 | idea |
+| Deflector Pod | wing | — (defensive) | absorbs up to 3 bullets per 2 s on its side | 2 → 3 | 1 600 | L18 | idea |
+| Light Drone Bay | wing | forward (drone) | 10 / 30. See [wingmen](../wingmen/README.md) | 2 → 3 | 2 000 | L15 | idea |
+| Tesla Coil Pod | wing | area, shield-breaker | 12 / 40 (short-range zap) | 2 → 4 | 3 000 | L29 | idea |
 
 ### Coverage check
 
@@ -99,20 +108,30 @@ trait (the campaign table is the reference for the levels):
 | beam | L15 | Ion Beam L15 |
 | shield-breaker | L29 | Tesla Coil Pod L29 (the EMP Burst special strips shields from L15) |
 
+## Concept art
+
+Concept [round 08](../../concept-rounds/round-08/README.md) — player projectile families; generator `tools/concept/vfx_r08.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/projectiles-r08-a.png](concept/projectiles-r08-a.png) | All 13 projectile families: sprite, 3-frame muzzle flash, 4-frame impact, L1/L3/L5 patterns, missile plumes and trails (sheet) | proposed |
+| [concept/projectiles-r08-a.gif](concept/projectiles-r08-a.gif) | The families firing in sequence from the Stormhawk with fitted pods (motion) | proposed |
+
 ## Implementation
 
-- [ ] Weapon data format: slot, traits, per-level damage/pattern/draw, price, unlock
-- [ ] Projectile patterns for every roster entry with L1–L5 (+ overdrive) variants
+- [ ] Weapon data format: slot, traits, per-level damage/pattern/draw, price, unlock (the
+  fields of [balance-data.json](../balance-data.json))
+- [ ] Projectile patterns for every designed weapon with L1–L5 (+ overdrive) variants
 - [ ] Layer hit rules per trait (anti-ground, anti-sub, beam, area)
 - [ ] Hangar trait markers linked to the level threat profile
 
 ## Open questions
 
-- Should `anti-ground` shots also hit `low-air`? Recommendation: no, so the choice stays clear.
 - Should the Ion Beam keep `shield-breaker` after all? That would make shield-breaking available
   from L15 instead of L29 and weaken the Act 5 shop moment.
-- The roster is large (24 entries). For the first playable build, implement Pulse Cannon,
-  Scatter Vulcan, Tail Gun, Micro-missile Pod and Bomb Rack.
+- The roster is large (24 entries). For the first playable build (Acts 1–2) the 14 designed
+  weapons are needed; the earlier suggestion to start with Pulse Cannon, Scatter Vulcan, Tail
+  Gun, Micro-missile Pod and Bomb Rack still holds as the order of implementation.
 
 ## Decisions
 
@@ -123,4 +142,6 @@ trait (the campaign table is the reference for the levels):
   Torpedo Pod to L11 (optional early anti-sub). The Ion Beam loses `shield-breaker` (it is the
   `beam` answer from L15); the Tesla Coil Pod brings `shield-breaker` at L29, as the campaign
   paces it.
-- 2026-09-30: Layer hit rules are owned by [enemies](../../enemies/README.md#layer-rules-proposal).
+- 2026-09-30: Layer hit rules are owned by [enemies](../../enemies/README.md#layer-rules).
+- 2026-10-01: Layer hit rules settled (see [enemies](../../enemies/README.md#layer-rules)): `anti-ground` does not add hits on `low-air` (every weapon already hits it); hardened ground targets need `anti-ground`.
+- 2026-10-01: The 14 weapons available by L14 promoted to their own documents with per-level numbers in `balance-data.json` (single source, tables generated by `tools/balance.py --sync`). Spread fans (Scatter Vulcan L4–L5, Fan Blaster L4–L5) get a dense core so single-target damage rises with every level.

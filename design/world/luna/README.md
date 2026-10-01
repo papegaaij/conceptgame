@@ -2,8 +2,8 @@
 title: Luna
 design: draft
 implementation: n/a
-art: none
-updated: 2026-09-30
+art: chosen
+updated: 2026-10-01
 ---
 
 # Luna
@@ -65,7 +65,14 @@ across the craters. Touchstones: *Moon* (2009), Apollo photography, Tyrian's lun
 Tense and sparse at first (echoing synths, low pulse), building to the act-final battle with
 the main theme in full.
 
+### Chosen scene
+
+The look of this setting is set by the chosen parallax scene in art direction: Luna (round 06) —
+[sheet](../../art-direction/concept/scene-luna-r06-a.png), [scroll loop](../../art-direction/concept/scene-luna-r06-a.gif).
+The concept files live in [art-direction](../../art-direction/README.md).
+
 ## Decisions
 
 - 2026-09-30: Luna is the middle of Act 1 (L04–06); signature set piece: mass-driver sleds.
 - 2026-09-30: Tranquility Base added as a sub-location (used by L04 *Tranquility Run*).
+- 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.

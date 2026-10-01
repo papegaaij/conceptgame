@@ -2,9 +2,9 @@
 title: HUD
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # HUD
@@ -93,6 +93,12 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 | [concept/hud-r01-a.png](concept/hud-r01-a.png) | HUD A — classic metallic bevelled panels with LCD readouts | chosen |
 | [concept/rejected/hud-r01-b.png](concept/rejected/hud-r01-b.png) | HUD B — dark glass cockpit panels with neon outlines | rejected — does not fit the style |
 | [concept/hud-r02-a.png](concept/hud-r02-a.png) | Round 02: HUD A at 960×540 with 240 px panels in palette B, full element list from this document | chosen |
+
+Concept [round 08](../../concept-rounds/round-08/README.md) — HUD A refresh (metal, unchanged style) with the current element set; generator `tools/concept/ui_r08.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/hud-r08-a.png](concept/hud-r08-a.png) | HUD A refresh — L11 Kraken fight: Rook's radio portrait and subtitle queue, overdrive timer, escort box, boss bar with weak point, edge warning | proposed |
 
 ## Implementation
 

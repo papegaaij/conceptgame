@@ -2,7 +2,7 @@
 title: Concept rounds
 design: review
 implementation: n/a
-art: chosen
+art: proposed
 updated: 2026-09-30
 ---
 
@@ -26,6 +26,7 @@ they belong to; a round only collects them.
 | [round-05](round-05/README.md) | Enemy variety: size range, multi-part serpent and leviathan, walkers, spinners, tank and mech, swirl and rear-attack movement | approved | n/a | chosen |
 | [round-06](round-06/README.md) | More enemies and bosses, five setting scenes, main menu and hangar/shop screens | approved | n/a | chosen |
 | [round-07](round-07/README.md) | Europa under water, Harbour Kraken, Halo Platform rotation, Driftjelly waterline, hangar in glass style | approved | n/a | chosen |
+| [round-08](round-08/README.md) | Acts 1–2 completion: Earth scenes, combat effects, remaining UI screens, portraits, re-renders, music cues, SFX | review | n/a | proposed |
 
 ## Design
 
@@ -53,3 +54,4 @@ How a round works:
 | 05 | 2026-09-30 | closed | Enemy variety: sizes, multi-part, walkers, spinners, movement |
 | 06 | 2026-10-01 | closed | More enemies and bosses, setting scenes, menu and shop |
 | 07 | 2026-10-01 | closed | Water, rotation and hangar fixes |
+| 08 | 2026-10-01 | open | Acts 1–2 completion |

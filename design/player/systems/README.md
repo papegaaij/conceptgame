@@ -4,7 +4,7 @@ design: draft
 implementation: not-started
 art: none
 depends-on: [../generator, ../../ui/hangar]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Ship systems
@@ -60,6 +60,11 @@ sensor suite decides how much of it is visible:
 Dr. Varga speaks one line per intel item. With low sensors, her lines are more uncertain
 ("Our scans are patchy, Lancer…").
 
+### Utility bays (confirmed)
+
+The ship has **two utility bays**; a **third** can be bought (from Act 3, see
+[player](../README.md)). Every system on this page occupies one bay.
+
 ## Implementation
 
 - [ ] Engine speed per model
@@ -78,3 +83,4 @@ Dr. Varga speaks one line per intel item. With low sensors, her lines are more u
 - 2026-09-30: The hydro-kit is an automatic free refit; the pressure hull is an optional L22 module
   (underwater rules owned by [europa](../../world/europa/README.md#under-water-rules)).
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
+- 2026-10-01: Utility bays confirmed: two, a third buyable.

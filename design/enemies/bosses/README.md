@@ -14,14 +14,23 @@ Seven act bosses end each act; five mid-bosses break up the longer stretches. Ev
 multi-part set piece that tests the mechanics its act introduced. Level 49 is a boss rush of
 shortened re-creations of earlier bosses.
 
+## Contents
+
+Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units stay in the roster below.
+
+| Part | Summary | Design | Impl | Art |
+|---|---|---|---|---|
+| [gorgon-frigate](gorgon-frigate/README.md) | Act 1 mid-boss: medusa-bell warship with three serpent-neck turrets (L05) | draft | not-started | chosen |
+| [brood-carrier](brood-carrier/README.md) | Act 1 boss: living carrier, overhead pass, broadside bays, core (L07) | draft | not-started | chosen |
+| [harbour-kraken](harbour-kraken/README.md) | Act 2 mid-boss: cephalopod around a platform, lane slams, surfacing head (L11) | draft | not-started | chosen |
+| [siege-spire](siege-spire/README.md) | Act 2 boss: rooted citadel that tears free and rises (L14) | draft | not-started | chosen |
+
 ## Roster
 
 ### Act bosses
 
 | Name | Faction | Layer | Role/ability | Formations | First level | Design |
 |---|---|---|---|---|---|---|
-| Brood Carrier | Vrell | high-air → air | A living carrier the length of two screens. **Phase 1**: its hull scrolls past overhead (`high-air`) while launch bays `spawn` Skitters and Needlers. **Phase 2**: it turns broadside, and glowing bay sacs (weak points) open between `fan` volleys. **Phase 3**: the exposed core fires `spiral`s. Tests piercing and target priority. | carrier + escorts | 07 | idea |
-| Siege Spire | Vrell | ground + air | A citadel rooted in the capital. Ground-layer root turrets (`aimed`, `mortar`) protect a central spire that launches Wraiths. When the roots die, the spire tears itself free and becomes airborne for a final `laser-sweep` phase. Tests anti-ground and rear awareness. | turret nest | 14 | idea |
 | Dust Colossus | Vrell | ground (burrowing) | A colony-sized sand organism that `burrow`s under the arena and breaches from the sides, the rear and the front in turn. Each breach exposes a mouth (weak point) that fires a `ring` and sucks debris toward it. Tests side and rear weapons. | – | 21 | idea |
 | Abyssal Maw | Vrell | sub | Underwater leviathan guarding the hatchery. Rises from below in a jaw-snap (a telegraphed shadow), trails Eel Swarms, and fires bioluminescent `fan` walls. Wrecked Helix implants on its body are the last clue before the reveal. | carrier + escorts | 28 | idea |
 | Iron Sovereign | Ascendancy | space + ground | A battle station with three concentric rotating rings. Each ring carries batteries (rail, SAM, laser) that rotate into view; destroy the batteries to stop a ring, and stop all rings to expose the core. Tests piercing and positioning. | turret nest | 35 | idea |
@@ -32,8 +41,6 @@ shortened re-creations of earlier bosses.
 
 | Name | Faction | Layer | Role/ability | Formations | First level | Design |
 |---|---|---|---|---|---|---|
-| Gorgon Frigate | Vrell | air | A medium ship with three tentacle turrets that fire `aimed` bursts; each turret can be destroyed separately. The first multi-part enemy. | carrier + escorts | 05 | idea |
-| Harbour Kraken | Vrell | ground (surface) + sub | A Vrell organism wrapped around a harbour platform. Tentacles rise from the water (`sub` → surface) to slam lanes; its head surfaces to fire. | – | 11 | idea |
 | Revenant Walker | Unmarked (Ascendancy) | ground | A human-built war walker with filed-off serials. Missile pods (`homing`) and a rear-facing flamer that attacks after you pass. **Hint 2.** | – | 19 | idea |
 | Honour Guard | Ascendancy | air | Three ace pilots in custom gold Talons attacking from front, sides and rear in turn. Each ace has its own pattern (sniper `laser-line`, `spiral` dancer, `kamikaze` feints) and taunts over the radio. | pincer, rear ambush | 40 | idea |
 | Vorne's Chimera | Hybrid | air + ground | Vorne fused with his Vrell lifeboat inside a Vrell-grown citadel. Alternates between Ascendancy tactics (shields, missiles) and Vrell ones (spawning, regeneration). Pulp villain monologue; a tragic last line. | – | 48 | idea |
@@ -95,7 +102,6 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — Kraken redone as
 
 ## Open questions
 
-- **Brood Carrier length**: the roster says "the length of two screens"; the round-03 mockup is 288×626 (about one screen). Scale it up about 1.7× for phase 1, or keep one screen so the broadside of phase 2 still fits? Proposal: keep one screen.
 - Should the Ascendant's third phase (Vorne escaping) be skippable, or is it a scripted end?
   Proposal: scripted. The player can damage the lifeboat for bonus credits, but it always escapes.
 
@@ -106,3 +112,5 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — Kraken redone as
 - 2026-09-30: Concept round 04: colour pass on the Brood Carrier with the role colours (r04 proposals).
 - 2026-10-01: Concept round 06: Gorgon Frigate and Siege Spire chosen. Harbour Kraken rejected: the arms look detached, the waves are plain circles, it pops up instead of surfacing top-down, and the arms' submerged parts and splash where they enter the water are missing — redo in round 07.
 - 2026-10-01: Concept round 07: the redone Harbour Kraken chosen ("great").
+- 2026-10-01: Brood Carrier length: about one screen, as in the chosen concept (the roster's "two screens" is dropped).
+- 2026-10-01: Acts 1–2 units promoted to full specs: Gorgon Frigate, Brood Carrier, Harbour Kraken, Siege Spire.

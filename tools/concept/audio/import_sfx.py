@@ -21,6 +21,8 @@ Optional treatments:
   rejected=True                the user rejected the file; it is written to concept/rejected/.
   lowpass=Hz                   4-pole low-pass (two cascaded 2-pole SVFs) applied after the
                                cut, e.g. to derive a muffled under-water variant.
+  fadein=sec                   fade-in length (default 2 ms), for cuts that start in the middle
+                               of a sound, e.g. a jet flyby.
 
 The previews are lossy (~192 kbps); the production asset should be rebuilt from the original
 file (Freesound login required) with the same settings.
@@ -221,6 +223,169 @@ SOURCES = {
         page="https://freesound.org/people/mokasza/sounds/810765/",
         preview="https://cdn.freesound.org/previews/810/810765_17437502-hq.ogg",
         licence="CC-BY 4.0", offset=0.0, length=3.50, fade=1.20, peak=-1.5),
+    # ---- concept round 08: remaining Acts 1-2 sounds. One-shots are levelled on their
+    # 200 Hz-5 kHz band (band_rms) with a peak ceiling, so sub-heavy sources stay audible;
+    # explosion-like ones are peak-normalised like the explosion ladder. Ambience = loops.
+    "hit-metal-r08-a": dict(
+        page="https://freesound.org/people/wilhellboy/sounds/351371/",
+        preview="https://cdn.freesound.org/previews/351/351371_4603244-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.3, fade=0.12, band_rms=-30.0, peak=-8.0),
+    "hit-metal-r08-b": dict(
+        page="https://freesound.org/people/coolguy244e/sounds/267893/",
+        preview="https://cdn.freesound.org/previews/267/267893_4657534-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.45, fade=0.2, band_rms=-30.0, peak=-8.0),
+    "hit-organic-r08-a": dict(
+        page="https://freesound.org/people/gprosser/sounds/360942/",
+        preview="https://cdn.freesound.org/previews/360/360942_5406151-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.3, fade=0.12, band_rms=-30.0, peak=-8.0),
+    "hit-organic-r08-b": dict(
+        page="https://freesound.org/people/smidoid/sounds/49139/",
+        preview="https://cdn.freesound.org/previews/49/49139_485393-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=0.4, fade=0.15, band_rms=-30.0, peak=-8.0),
+    "hit-crumble-r08-a": dict(
+        page="https://freesound.org/people/onteca/sounds/197772/",
+        preview="https://cdn.freesound.org/previews/197/197772_1011133-hq.ogg",
+        licence="CC-BY 3.0", offset=0.0, length=2.4, fade=0.8, peak=-1.5),
+    "hit-crumble-r08-b": dict(
+        page="https://freesound.org/people/NeoSpica/sounds/512243/",
+        preview="https://cdn.freesound.org/previews/512/512243_7704891-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.5, fade=0.6, peak=-1.5),
+    "player-shield-hit-r08-a": dict(
+        page="https://freesound.org/people/JoelAudio/sounds/136542/",
+        preview="https://cdn.freesound.org/previews/136/136542_1206321-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.5, fade=0.2, band_rms=-24.0, peak=-2.0),
+    "player-shield-hit-r08-b": dict(
+        page="https://freesound.org/people/StormwaveAudio/sounds/330629/",
+        preview="https://cdn.freesound.org/previews/330/330629_3594951-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=0.9, fade=0.35, band_rms=-24.0, peak=-2.0),
+    "player-shield-break-r08-a": dict(
+        page="https://freesound.org/people/joe_bou_khalil/sounds/861848/",
+        preview="https://cdn.freesound.org/previews/861/861848_19038210-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=1.4, fade=0.5, band_rms=-24.0, peak=-2.0),
+    "player-shield-restore-r08-a": dict(
+        page="https://freesound.org/people/qubodup/sounds/172631/",
+        preview="https://cdn.freesound.org/previews/172/172631_71257-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.8, fade=0.25, band_rms=-24.0, peak=-2.0),
+    "player-shield-restore-r08-b": dict(
+        page="https://freesound.org/people/Bychop/sounds/136881/",
+        preview="https://cdn.freesound.org/previews/136/136881_2139644-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.6, fade=0.6, band_rms=-24.0, peak=-2.0),
+    "player-armour-hit-r08-a": dict(
+        page="https://freesound.org/people/JoMungus/sounds/726486/",
+        preview="https://cdn.freesound.org/previews/726/726486_11865776-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.6, fade=0.3, band_rms=-24.0, peak=-2.0),
+    "player-low-armour-r08-a": dict(
+        page="https://freesound.org/people/magnuswaker/sounds/522162/",
+        preview="https://cdn.freesound.org/previews/522/522162_11537497-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.4, fade=0.08, band_rms=-24.0, peak=-2.0),
+    "player-destroyed-r08-a": dict(
+        page="https://freesound.org/people/phantastonia/sounds/270616/",
+        preview="https://cdn.freesound.org/previews/270/270616_5137631-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=3.5, fade=1.5, peak=-1.0),
+    "overdrive-start-r08-a": dict(
+        page="https://freesound.org/people/GameAudio/sounds/220173/",
+        preview="https://cdn.freesound.org/previews/220/220173_4100837-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.6, fade=0.15, band_rms=-24.0, peak=-2.0),
+    "overdrive-end-r08-a": dict(
+        page="https://freesound.org/people/Jerimee/sounds/521776/",
+        preview="https://cdn.freesound.org/previews/521/521776_3202600-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.1, fade=0.4, band_rms=-24.0, peak=-2.0),
+    "enemy-shot-small-r08-a": dict(
+        page="https://freesound.org/people/humanoide9000/sounds/330293/",
+        preview="https://cdn.freesound.org/previews/330/330293_4361321-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.45, fade=0.2, band_rms=-30.0, peak=-8.0),
+    "enemy-shot-small-r08-b": dict(
+        page="https://freesound.org/people/JavierZumer/sounds/257232/",
+        preview="https://cdn.freesound.org/previews/257/257232_2836758-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=0.32, fade=0.12, band_rms=-30.0, peak=-8.0),
+    "enemy-shot-heavy-r08-a": dict(
+        page="https://freesound.org/people/SuperPhat/sounds/531861/",
+        preview="https://cdn.freesound.org/previews/531/531861_7542558-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.75, fade=0.3, band_rms=-30.0, peak=-8.0),
+    "enemy-laser-warning-r08-a": dict(
+        page="https://freesound.org/people/plasterbrain/sounds/351807/",
+        preview="https://cdn.freesound.org/previews/351/351807_4284968-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.2, fade=0.3, band_rms=-30.0, peak=-8.0),
+    "enemy-missile-r08-a": dict(
+        page="https://freesound.org/people/NHMWretched/sounds/151858/",
+        preview="https://cdn.freesound.org/previews/151/151858_2754532-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.6, fade=0.6, band_rms=-30.0, peak=-8.0),
+    "enemy-screech-r08-a": dict(
+        page="https://freesound.org/people/Khrinx/sounds/565024/",
+        preview="https://cdn.freesound.org/previews/565/565024_1187042-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=2.2, fade=0.5, band_rms=-30.0, peak=-8.0),
+    "enemy-screech-r08-b": dict(
+        page="https://freesound.org/people/Wolfsinger/sounds/25713/",
+        preview="https://cdn.freesound.org/previews/25/25713_176969-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=1.6, fade=0.5, band_rms=-30.0, peak=-8.0),
+    "enemy-screech-r08-c": dict(
+        page="https://freesound.org/people/AlienXXX/sounds/78539/",
+        preview="https://cdn.freesound.org/previews/78/78539_97763-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=1.6, fade=0.5, band_rms=-30.0, peak=-8.0),
+    "enemy-lock-r08-a": dict(
+        page="https://freesound.org/people/SamsterBirdies/sounds/467881/",
+        preview="https://cdn.freesound.org/previews/467/467881_5487341-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.06, fade=0.08, band_rms=-30.0, peak=-8.0),
+    "special-airstrike-jets-r08-a": dict(
+        page="https://freesound.org/people/qubodup/sounds/189446/",
+        preview="https://cdn.freesound.org/previews/189/189446_71257-hq.ogg",
+        licence="CC0 1.0", offset=3.4, length=4.5, fade=1.5, fadein=0.6, band_rms=-24.0, peak=-1.5),
+    "special-airstrike-bombs-r08-a": dict(
+        page="https://freesound.org/people/craigsmith/sounds/483284/",
+        preview="https://cdn.freesound.org/previews/483/483284_2524442-hq.ogg",
+        licence="CC0 1.0", offset=0.95, length=5.0, fade=1.5, peak=-1.5),
+    "special-smartbomb-r08-a": dict(
+        page="https://freesound.org/people/Kinoton/sounds/369516/",
+        preview="https://cdn.freesound.org/previews/369/369516_2247456-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=4.2, fade=1.5, peak=-1.5),
+    "special-flares-r08-a": dict(
+        page="https://freesound.org/people/OGsoundFX/sounds/423109/",
+        preview="https://cdn.freesound.org/previews/423/423109_3325582-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=1.4, fade=0.6, band_rms=-24.0, peak=-1.5),
+    "special-denied-r08-a": dict(
+        page="https://freesound.org/people/Jacco18/sounds/419023/",
+        preview="https://cdn.freesound.org/previews/419/419023_215268-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.31, fade=0.05, band_rms=-27.0, peak=-4.0),
+    "ui-radio-open-r08-a": dict(
+        page="https://freesound.org/people/JustinBW/sounds/70107/",
+        preview="https://cdn.freesound.org/previews/70/70107_1022651-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=0.3, fade=0.05, band_rms=-27.0, peak=-4.0),
+    "ui-radio-close-r08-a": dict(
+        page="https://freesound.org/people/JovianSounds/sounds/524205/",
+        preview="https://cdn.freesound.org/previews/524/524205_9561949-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.5, fade=0.2, band_rms=-27.0, peak=-4.0),
+    "ui-klaxon-r08-a": dict(
+        page="https://freesound.org/people/noirenex/sounds/159453/",
+        preview="https://cdn.freesound.org/previews/159/159453_1656228-hq.ogg",
+        licence="CC0 1.0", loop=(0.0, 4.76, 0.08, 'auto'), band_rms=-27.0, peak=-4.0),
+    "ui-klaxon-r08-b": dict(
+        page="https://freesound.org/people/zimbot/sounds/178032/",
+        preview="https://cdn.freesound.org/previews/178/178032_1449999-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=0.95, fade=0.1, band_rms=-27.0, peak=-4.0),
+    "ambience-orbit-r08-a": dict(
+        page="https://freesound.org/people/Elektrocell/sounds/20705/",
+        preview="https://cdn.freesound.org/previews/20/20705_53896-hq.ogg",
+        licence="CC0 1.0", loop=(20.0, 16.0, 1.5), band_rms=-36.0, peak=-10.0),
+    "ambience-luna-r08-a": dict(
+        page="https://freesound.org/people/ztitchez/sounds/370754/",
+        preview="https://cdn.freesound.org/previews/370/370754_3104030-hq.ogg",
+        licence="CC-BY 4.0", loop=(10.0, 16.0, 1.5), band_rms=-36.0, peak=-10.0),
+    "ambience-city-r08-a": dict(
+        page="https://freesound.org/people/TRP/sounds/568975/",
+        preview="https://cdn.freesound.org/previews/568/568975_97550-hq.ogg",
+        licence="CC0 1.0", loop=(30.0, 20.0, 2.0), band_rms=-36.0, peak=-10.0),
+    "ambience-ocean-r08-a": dict(
+        page="https://freesound.org/people/byjoshberry/sounds/435668/",
+        preview="https://cdn.freesound.org/previews/435/435668_5409980-hq.ogg",
+        licence="CC-BY 4.0", loop=(2.0, 16.0, 2.0), band_rms=-36.0, peak=-10.0),
+    "ambience-storm-r08-a": dict(
+        page="https://freesound.org/people/FlatHill/sounds/237729/",
+        preview="https://cdn.freesound.org/previews/237/237729_3839718-hq.ogg",
+        licence="CC0 1.0", loop=(1.0, 24.0, 2.0), band_rms=-36.0, peak=-10.0),
+    "ambience-arctic-r08-a": dict(
+        page="https://freesound.org/people/cobratronik/sounds/117136/",
+        preview="https://cdn.freesound.org/previews/117/117136_732072-hq.ogg",
+        licence="CC0 1.0", loop=(30.0, 16.0, 2.0), band_rms=-36.0, peak=-10.0),
 }
 
 
@@ -280,7 +445,8 @@ def process(src, raw):
     x -= x.mean(axis=1, keepdims=True)  # remove DC
     if "lowpass" in src:
         x = np.array([svf(svf(ch, src["lowpass"]), src["lowpass"]) for ch in x])
-    n_in, n_out = int(0.002 * SR), min(x.shape[1], int(src["fade"] * SR))
+    n_in = int(src.get("fadein", 0.002) * SR)
+    n_out = min(x.shape[1], int(src["fade"] * SR))
     x[:, :n_in] *= np.linspace(0, 1, n_in)
     x[:, -n_out:] *= (0.5 + 0.5 * np.cos(np.linspace(0, np.pi, n_out))) ** 2
     return normalize(x, src)

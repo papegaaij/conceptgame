@@ -494,3 +494,142 @@ pulsing heartbeat, organ, distorted bass ostinato, pounding taiko and electronic
 galloping strings, orchestral stabs, breakdown with only a heartbeat and whispering choir,
 triumphant major-key climax, 1990s synth-orchestral video game finale, instrumental,
 seamless loop."*
+
+---
+
+# Round 08 — cues for Acts 1–2 and full-length versions
+
+Generator: `python3 tools/concept/audio/music_r08.py [name ...]` (names: `briefing act2b
+miniboss warning complete actcomplete failed gameover title hangar afterburner coalition
+homefront choir`). Deterministic; loops use the round-02 format (intro + loop + 2-bar fade
+tail, `LOOPSTART` / `LOOPLENGTH` in samples). Stings are one-shot files mastered to −14 LUFS
+with a −2 dBFS ceiling (peak after encoding ≤ −1 dBFS).
+
+## miniboss-sting-r08-a — "Contact Heavy" (#21 mini-boss stinger, 4.6 s)
+
+**Brief**: a riser into three orchestral hits on a 3-3 rhythm (A minor brass stabs, timpani,
+taiko, distorted low A), then a sustained A minor chord with a dissonant ♭9 in the choir
+(B♭ over A) and a high string E. Key-neutral enough to cut in over any level track, which
+resumes after it.
+
+**Tempo / key**: 120 BPM feel, A minor (♭9 colour).
+
+**AI prompt**: *"4-second orchestral stinger for a video game mini-boss entrance, short
+riser into three heavy brass and timpani hits, then a dissonant sustained choir and string
+chord, 1990s synth-orchestral, punchy, instrumental."*
+
+## boss-warning-r08-a — "Red Alert" (#22 boss warning, 3 bars at 150 BPM = 4.8 s + tail)
+
+**Brief**: two-tone klaxon on every beat, a 3-bar riser, an E drone in choir ("oo"), strings
+and distorted bass, taiko getting denser (half notes → quarters → eighths), snare and timpani
+roll in the last bar. The final beat is silent so the Vrell boss theme (150 BPM, E minor)
+starts on the downbeat; only a short reverb tail remains.
+
+**Tempo / key**: 150 BPM, E (matches "The Choir Descends").
+
+**AI prompt**: *"5-second boss warning cue, alternating two-tone alarm klaxon, rising noise
+sweep, low choir drone in E, accelerating taiko drums and snare roll, stops dead on the last
+beat before the boss music, 1990s arcade shoot 'em up, instrumental."*
+
+## mission-complete-r08-a — "Mission Complete" (#23 victory jingle, 6.4 s)
+
+**Brief**: humanity's motif in **D major** (D-A-D-E-F♯) in horns, trumpets and low brass over
+D | G – A, a snare build, then a ringing D major tutti (strings, choir, brass, timpani,
+crash).
+
+**Tempo / key**: 126 BPM (the title tempo), D major.
+
+**AI prompt**: *"6-second victory jingle, heroic brass fanfare on a rising five-note motif in
+D major, timpani and snare roll, final big orchestral D major chord with cymbal, 1990s
+synth-orchestral game music, instrumental."*
+
+## act-complete-r08-a — "Act Complete" (#24 fanfare, 16.3 s)
+
+**Brief**: the longer fanfare after an act boss. Horns state humanity's motif over
+D | B♭ | G | A (the ♭10 on B♭ keeps a hint of the minor), then trumpets take it up from B♭
+over B♭ | C with choir, taiko and an arpeggio shimmer, a snare roll and riser, and the final
+D major chord.
+
+**Tempo / key**: 108 BPM, D major with ♭VI–♭VII.
+
+**AI prompt**: *"15-second triumphant act-complete fanfare, horns then trumpets on a heroic
+rising motif, choir, timpani, taiko, shimmering synth arpeggio, snare roll into a huge D major
+chord, 1990s synth-orchestral video game, instrumental."*
+
+## mission-failed-r08-a — "Mission Failed" (#25 downbeat sting, 5.8 s)
+
+**Brief**: low brass descending D-C-B♭-A in two octaves over D minor, then a dark D minor
+chord with timpani and a low "oo" choir; the whole mix sinks through a low-pass sweep (7 kHz
+→ 350 Hz), like the ship's systems powering down.
+
+**Tempo / key**: 80 BPM, D minor.
+
+**AI prompt**: *"5-second mission failed sting, slow descending low brass line in D minor,
+timpani hit, dark low choir chord, sound filtering down as if powering off, somber, 1990s
+synth-orchestral game, instrumental."*
+
+## game-over-r08-a — "Game Over" (#26 somber, 20.7 s)
+
+**Brief**: humanity's motif slowly and in minor on a lone horn over Dm | B♭ | Gm | A | Dm,
+soft strings and "oo" choir, a flute echoing the last phrase an octave up, ending on a low D
+minor chord.
+
+**Tempo / key**: 72 BPM, D minor.
+
+**AI prompt**: *"20-second somber game over theme, lone French horn playing a slow heroic
+motif in D minor, soft strings and distant wordless choir, flute echo, quiet timpani,
+melancholic ending, 1990s synth-orchestral, instrumental."*
+
+## briefing-theme-r08-a — "Situation Room" (#3 briefing, 96.6 s)
+
+**Brief**: tense but quiet, under Okafor's and Varga's briefing text. Dark low-passed pads,
+a clock-tick rim on every beat, telemetry blips (short plucks on chord tones through a
+ping-pong delay), a sonar ping every four bars and faint radio static. Then pulse bass and a
+soft kick, muted-horn fragments of humanity's motif (D-A-D, B♭-F-B♭), a D minor / E♭
+(Neapolitan) tension section with tremolo strings and timpani, and a thin bar back to the
+loop start.
+
+**Tempo / key**: 100 BPM, D minor. **Loop**: `LOOPSTART` 238140 (5.400 s), `LOOPLENGTH`
+3810240 (86.400 s = 36 bars). **Chords**: `Dm Dm B♭ B♭ Gm Gm A A` × 2 | `B♭ C Dm Dm B♭ C A A`
+| `Dm E♭ Dm E♭ Gm Gm A A` | `Dm Dm B♭ A`.
+
+**AI prompt**: *"Tense military briefing room music, 100 BPM, D minor, dark ambient synth
+pads, ticking clock percussion, sparse telemetry beeps and sonar pings, quiet radio static,
+soft pulsing bass, distant muted horn motif, 1990s sci-fi game, understated, instrumental,
+seamless loop."*
+
+## act2-b-theme-r08-a — "Firestorm" (#7 Act 2 B, 120.4 s)
+
+**Brief**: the second Earth-surface theme, contrasting with "Homefront": an amen-style
+breakbeat, reese bass, orchestral hits and a syncopated brass-and-string stab riff. A string
+and choir melody in A; humanity's motif in brass (G-D-G-A-B♭) in B; a 16th pluck figure on
+the motif's shape; a half-time lament; a storm section (toms, thunder, tremolo strings,
+choir stabs); and an acid-arp tracker break.
+
+**Tempo / key**: 140 BPM, G minor. **Loop**: `LOOPSTART` 321300 (7.286 s), `LOOPLENGTH`
+4838400 (109.714 s = 64 bars). **Chords**: A `Gm Gm E♭ E♭ Cm Cm D D`; B `E♭ B♭ F Gm E♭ B♭ Cm D`;
+C `Cm Cm E♭ E♭ F F D D`; storm `Cm E♭ B♭ F Cm E♭ D D`; break `Gm E♭ Cm D` × 2.
+
+**AI prompt**: *"Urgent 1990s breakbeat and orchestral hybrid level theme, 140 BPM, G
+minor, amen break drums, growling reese bass, orchestral brass stabs and hits, heroic brass
+motif, choir, storm section with toms, thunder and tremolo strings, acid synth arpeggio
+break, video game action, instrumental, seamless loop."*
+
+## Full-length versions (round 08)
+
+Each is the chosen sketch extended to production length with the same instruments, motifs
+and mix. New sections are added for variation; the chosen sketch remains the reference for
+style.
+
+| File | Tempo / key | Loop (samples) | Sections (loop) |
+|---|---|---|---|
+| title-theme-full-r08-a — "Terran Vanguard" | 126 BPM, D minor | 357000 + 5376000 (64 bars) | A motif · B major lift · A2 motif in strings + brass counter-line · new G minor bridge (`Gm E♭ B♭ F Gm E♭ C A`) · breakdown/build · B2 + trumpets · A3 tutti · horn-call turnaround |
+| hangar-theme-full-r08-a — "Dry Dock" | 90 BPM swing, D dorian | 264600 + 6585600 (56 bars) | groove · flute · vibes counter-line · new e-piano solo (`B♭maj9 Am7 Gm9 A7 B♭maj9 C9 Dm9 A7`) · breakdown · flute + vibes · half-time walking bass · breakdown |
+| afterburner-full-r08-a — "Afterburner" | 140 BPM, A minor | 623700 + 6048000 (80 bars) | A · B · pluck breakdown · build · A2 · B2 + counter-arp · breakbeat/acid tracker break · new C melody (`C G Am F C G F E`) · A3 · turnaround |
+| coalition-rising-full-r08-a — "Coalition Rising" | 135 BPM (was 132), D minor | 333200 + 5644800 (72 bars) | horn theme · string theme · battle (trumpet counter-melody, 3-3-2 stabs) · lyrical interlude (strings, flute, harp) · A2/B2 + choir, trumpets · humanity's motif · build · horn-call reprise |
+| homefront-full-r08-a — "Homefront" | 147 BPM, C minor | 306000 + 5760000 (80 bars) | A + string/choir counter-melody · horns · lead variation · lament · siege (augmented motif in choir) · counterattack in E♭ major · lament in strings · horns · tutti · A3 · turnaround with siren |
+| choir-descends-full-r08-a — "The Choir Descends" | 150 BPM, E minor | 299880 + 5080320 (72 bars) | A · riff · A2 · half-time/build · phase 2 tritone grind · chase with the Choir motif in canon · riff + brass · breakdown, motif augmented in the choir · tutti |
+
+**AI prompt** (per track): use the round-01/02/03 prompt of the original sketch and add
+*"full-length 2–3 minute arrangement with varied sections, bridge and breakdown, seamless
+loop"*.

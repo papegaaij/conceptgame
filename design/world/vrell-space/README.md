@@ -2,8 +2,8 @@
 title: Vrell space
 design: draft
 implementation: n/a
-art: none
-updated: 2026-09-30
+art: chosen
+updated: 2026-10-01
 ---
 
 # Vrell space
@@ -72,6 +72,13 @@ signs of death: withered hives, grey husks, silence. Touchstones: *Event Horizon
 Alien and overwhelming, then desolate. Choir voices, reversed textures, the main theme
 transformed; the dead worlds nearly silent; the final battle all themes at once.
 
+### Chosen scene
+
+The look of this setting is set by the chosen parallax scene in art direction: Vrell space (round 06) —
+[sheet](../../art-direction/concept/scene-vrell-space-r06-a.png), [scroll loop](../../art-direction/concept/scene-vrell-space-r06-a.gif).
+The concept files live in [art-direction](../../art-direction/README.md).
+
 ## Decisions
 
 - 2026-09-30: Vrell space as Act 7; signature: transit through the Tether Gate.
+- 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.

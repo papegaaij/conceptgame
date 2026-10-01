@@ -2,7 +2,7 @@
 title: User interface
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 depends-on: [../art-direction, ../systems]
 updated: 2026-10-01
 ---
@@ -23,12 +23,14 @@ frames and chunky bitmap fonts.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | draft | not-started | chosen |
-| [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | draft | not-started | none |
+| [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | draft | not-started | proposed |
 | [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | draft | not-started | chosen |
-| [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | draft | not-started | chosen |
-| [pause](pause/README.md) | Pause menu during a level | draft | not-started | none |
-| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | draft | not-started | none |
+| [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | draft | not-started | proposed |
+| [pause](pause/README.md) | Pause menu during a level | draft | not-started | proposed |
+| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | draft | not-started | proposed |
 | [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | draft | not-started | n/a |
+| [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | draft | not-started | proposed |
+| [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | draft | not-started | proposed |
 
 ## Design
 
@@ -59,6 +61,14 @@ Level ─► Pause ─► Resume / Restart / Options / Quit
 
 The HUD and logo concepts for round 01 live in [hud](hud/README.md) and
 [main-menu](main-menu/README.md).
+
+## Concept art
+
+Concept [round 08](../concept-rounds/round-08/README.md) — the shared UI kit; generator `tools/concept/ui_r08.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/ui-kit-r08-a.png](concept/ui-kit-r08-a.png) | Shared UI kit: glass widgets (panels, menu states, chips, sliders, toggles, tabs, dialogs), metal HUD widgets, and bitmap font specimens 8×12 / 10×20 / 20×30 with the full character set | proposed |
 
 ## Implementation
 

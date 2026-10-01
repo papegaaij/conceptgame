@@ -4,7 +4,7 @@ design: draft
 implementation: not-started
 art: chosen
 depends-on: [../campaign, ../world]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Audio
@@ -20,8 +20,8 @@ vocal bark.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [music](music/README.md) | Track list, styles per act, loop and transition rules | draft | not-started | chosen |
-| [sfx](sfx/README.md) | Full sound-effect list with priorities, mixing rules | draft | not-started | chosen |
+| [music](music/README.md) | Track list, styles per act, loop and transition rules | draft | not-started | proposed |
+| [sfx](sfx/README.md) | Full sound-effect list with priorities, mixing rules | draft | not-started | proposed |
 
 ## Design
 
@@ -63,10 +63,9 @@ Round 01 audio proposals live in [music](music/README.md) and [sfx](sfx/README.m
 
 ## Open questions
 
-- Voice acting for radio chatter and briefings: none (text + blips), short barks only, or
-  full voice? Recommendation: short barks ("Copy that", "Six o'clock!") plus text. That's very
-  90s and cheap to produce.
+- None open.
 
 ## Decisions
 
 - 2026-09-30: Tracker-era electronic + synth-orchestral direction; four mix buses.
+- 2026-10-01: Voices: text and radio blips only for now — no voice acting.

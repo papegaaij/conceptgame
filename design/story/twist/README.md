@@ -3,7 +3,7 @@ title: The mid-campaign twist
 design: approved
 implementation: n/a
 art: n/a
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # The mid-campaign twist
@@ -97,7 +97,7 @@ Act 7 hint of the Silence, which leaves room for a sequel.
 
 ## Open questions
 
-- Which variant? (User choice, concept round 01.)
+- None open.
 
 ## Decisions
 

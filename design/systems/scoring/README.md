@@ -4,7 +4,7 @@ design: draft
 implementation: not-started
 art: n/a
 depends-on: [../economy]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Scoring
@@ -73,15 +73,9 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
 
 ## Open questions
 
-- **Score vs credits.** The original brief said "in levels you can collect points, which you
-  can use to spend on your ship". The alternative to this draft is exactly that: **one number,
-  points = credits**, earned in levels and spent in the hangar, with no separate score (the
-  high-score table would then rank total points earned, not the balance). This draft instead
-  keeps two numbers: credits to spend (no chain multiplier, so the economy stays predictable)
-  and a score that is never spent (chain multiplier, bonuses, high-score table).
-  Recommendation: separate, because spending would otherwise make the score go down and chain
-  play would inflate the economy. All documents currently follow the separate model.
+- None open.
 
 ## Decisions
 
 - 2026-09-30: Draft separates score from credits.
+- 2026-10-01: Score and credits stay **separate** (user decision). The alternative — one number, points = credits, as in the original brief — was considered and rejected: spending would lower the score and chain play would inflate the economy.

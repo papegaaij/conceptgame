@@ -2,8 +2,8 @@
 title: Mars
 design: draft
 implementation: n/a
-art: none
-updated: 2026-09-30
+art: chosen
+updated: 2026-10-01
 ---
 
 # Mars
@@ -69,7 +69,14 @@ ground itself heaves. Touchstones: *Total Recall* (1990), Red Faction, Tyrian's 
 Mysterious and dry. Tribal percussion, detuned synths, a desert-wind drone; a lonely lead
 melody.
 
+### Chosen scene
+
+The look of this setting is set by the chosen parallax scene in art direction: Mars canyon (round 03) —
+[sheet](../../art-direction/concept/parallax-r03-c.png), [scroll loop](../../art-direction/concept/parallax-r03-c.gif).
+The concept files live in [art-direction](../../art-direction/README.md).
+
 ## Decisions
 
 - 2026-09-30: Mars as Act 3; signature: Valles Marineris canyon walls.
 - 2026-09-30: Tharsis Foundry and Hellas basin added as sub-locations; the Dust Colossus fight is in the Hellas basin (L21), matching the campaign.
+- 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.

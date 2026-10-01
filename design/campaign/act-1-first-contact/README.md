@@ -3,7 +3,7 @@ title: Act 1 – First Contact
 design: draft
 implementation: not-started
 art: none
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Act 1 – First Contact
@@ -25,9 +25,9 @@ Brood Carrier at the Earth–Moon L1 point.
 
 | # | Name | Setting | Layers | Directions | Density | Recommended traits | Introduces | Notes | Design |
 |---|---|---|---|---|---|---|---|---|---|
-| 02 | Shipyard Burning | [earth-orbit](../../world/earth-orbit/README.md) | air, ground | front, sides | 2 | forward, spread | [Spine Turret](../../enemies/ground/README.md) on station hulls (first `ground` targets), [Stinger](../../enemies/air/README.md) | Save the drydocks: every intact dock pays bonus credits | idea |
+| 02 | Shipyard Burning | [earth-orbit](../../world/earth-orbit/README.md) | air, ground | front, sides | 2 | forward, spread | [Spine Turret](../../enemies/ground/README.md) on station hulls (first `ground` targets), [Stinger](../../enemies/air/README.md) | Save the drydocks: every intact dock pays bonus credits (secondary objective: lost docks only cost the bonus) | idea |
 | 03 | Spore Drift | [earth-orbit](../../world/earth-orbit/README.md) | air, low-air, high-air | front | 2 | spread | [Spore Bomber](../../enemies/air/README.md), drifting spore mines, debris field hazard; [Leviathan](../../enemies/space/README.md) set piece drifting over on `high-air`, releasing [Whirl Seed](../../enemies/air/README.md) clusters | First level where a spread weapon clearly pays off. First `huge` enemy and first spinners | idea |
-| 04 | Tranquility Run | [luna](../../world/luna/README.md) | ground, air | front | 2 | forward, anti-ground | [Brood Pod](../../enemies/air/README.md), `escort` objective (lunar convoy crawlers on the ground layer); [Scuttler](../../enemies/ground/README.md) walkers stalking the convoy | First planetary surface; first special ability available. First walker: it turns to face where it walks | idea |
+| 04 | Tranquility Run | [luna](../../world/luna/README.md) | ground, air | front | 2 | forward, anti-ground | [Brood Pod](../../enemies/air/README.md), primary `escort` objective (lunar convoy crawlers on the ground layer; losing the whole convoy fails the mission); [Scuttler](../../enemies/ground/README.md) walkers stalking the convoy | First planetary surface; first special ability available. First walker: it turns to face where it walks | idea |
 | 05 | Crater Nest | [luna](../../world/luna/README.md) | ground, air | front, sides | 3 | anti-ground, spread | [Polyp Mortar](../../enemies/ground/README.md), mid-boss [Gorgon Frigate](../../enemies/bosses/README.md) | `destroy-targets`: a Vrell nest seeded inside a crater | idea |
 | 06 | Farside | [luna](../../world/luna/README.md) | air, ground | sides, front, rear | 3 | side, spread | [Mantis](../../enemies/air/README.md) holding at the screen sides; [Coilwyrm](../../enemies/air/README.md) serpents swirling between crater rims and looping round to strike from the rear | The dark far side: long shadows, lights from mining domes. First segment-chain enemy; cut segments regrow a head. Its rear loops are dodged, not shot: rear guns arrive at L08 | idea |
 | 07 | Brood Carrier | [earth-orbit](../../world/earth-orbit/README.md) | air, high-air | front | 3 | forward, piercing | Boss [Brood Carrier](../../enemies/bosses/README.md); `high-air` layer (carrier hull passes over the player) | Short approach through the carrier's escorts, then the boss | idea |
@@ -89,10 +89,10 @@ Act theme "First Contact" plus the boss theme; see [audio](../../audio/README.md
 
 ## Open questions
 
-- Should L01 have a skippable in-level tutorial (control prompts), or should the briefing and
-  radio chatter teach everything?
+- None open.
 
 ## Decisions
 
 - 2026-09-30: Act split: Earth orbit (L01–03, L07) and Luna (L04–06).
 - 2026-09-30: Enemy variety pass: new units added to the level rows so the act passes the [variety checklist](../../enemies/README.md#variety-checklist-per-act).
+- 2026-10-01: Objective failure rules applied to L02 (secondary: drydocks) and L04 (primary escort). No separate tutorial: contextual control prompts in the side HUD during L01–L03.

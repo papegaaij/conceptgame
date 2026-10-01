@@ -2,8 +2,8 @@
 title: Space enemies
 design: draft
 implementation: not-started
-art: chosen
-updated: 2026-09-30
+art: proposed
+updated: 2026-10-01
 ---
 
 # Space enemies
@@ -13,6 +13,14 @@ updated: 2026-09-30
 Vacuum-only enemies for space levels: the belt, the gate and Vrell space. On the `space` layer
 they behave like `air` units (the player's plane) but never appear in atmosphere or water. Many
 use the space environment: clinging to asteroids, laying mines, draining energy or bending space.
+
+## Contents
+
+Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units stay in the roster below.
+
+| Part | Summary | Design | Impl | Art |
+|---|---|---|---|---|
+| [leviathan](leviathan/README.md) | Huge whale set piece: high-air pass, then shootable parts (L03) | draft | not-started | chosen |
 
 ## Roster
 
@@ -25,7 +33,6 @@ use the space environment: clinging to asteroids, laying mines, draining energy 
 | Gate Warden | Vrell | space | medium | Shielded sentinel. Its shield opens only while it fires a `laser-line`; `shield-breaker` strips it at any time. | line abreast | 43 | idea |
 | Rift Skater | Vrell | space | small | Phase-jumps (`teleport`) short distances along the distorted scroll; fires a `burst` after each jump. | stream | 44 | idea |
 | Husk | Vrell (Silence-touched) | space | medium | A drifting derelict hollowed from inside. When damaged it cracks and sprays crystalline shards (`death-burst` + `fan`). | swarm (scattered) | 46 | idea |
-| Leviathan | Vrell | high-air → air / space | huge | Whale-like creature several times the player's length: body, articulated tail and fins, belly spawn vents and two tentacle turrets. First pass drifts over on `high-air` while vents release Whirl Seed clusters; the second pass descends to the play plane, where the fins and turrets (`destroyable`) fire `fan`s and the vents become `vital` weak points. A set piece: at most one per level, announced by radio. Orientation 32 angles for the body, articulated parts ±30°. | solo set piece | 03 | idea |
 
 ## Design
 
@@ -43,6 +50,13 @@ Concept [round 05](../../concept-rounds/round-05/README.md) — new archetypes, 
 | [concept/leviathan-r05-a.png](concept/leviathan-r05-a.png) | Leviathan — huge Vrell whale (bone/violet), ~480 px: body + 3 tail segments + fluke with a travelling wave + flapping fins, each part at 32 headings; dorsal turrets fire aimed orbs (sheet) | chosen |
 | [concept/leviathan-r05-a.gif](concept/leviathan-r05-a.gif) | Leviathan — huge Vrell whale (bone/violet), ~480 px: body + 3 tail segments + fluke with a travelling wave + flapping fins, each part at 32 headings; dorsal turrets fire aimed orbs (motion) | chosen |
 
+Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-render (seams and patterns now turn with the body), design unchanged; generator `tools/concept/rerender_r08.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/leviathan-r08-a.png](concept/leviathan-r08-a.png) | Leviathan re-render (sheet) | proposed |
+| [concept/leviathan-r08-a.gif](concept/leviathan-r08-a.gif) | Leviathan re-render (motion) | proposed |
+
 ## Implementation
 
 - [ ] Each enemy promoted to its own directory with a stat block before it is implemented.
@@ -56,3 +70,4 @@ Concept [round 05](../../concept-rounds/round-05/README.md) — new archetypes, 
 
 - 2026-09-30: Roster of 7 space enemies drafted.
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Leviathan.
+- 2026-10-01: Acts 1–2 units promoted to full specs: Leviathan.

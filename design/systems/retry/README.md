@@ -4,7 +4,7 @@ design: draft
 implementation: not-started
 art: n/a
 depends-on: [../../player/armor, ../../player/shields, ../difficulty, ../saves]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Retry
@@ -47,6 +47,13 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 | Special charges | Level-start count |
 | Rook | Back in formation with his level-start armour |
 
+### Settled rules
+
+- **Game over** exists only on **hard**: after 3 failed retries of a level the campaign ends and
+  the player reloads a save. Easy and medium retry without limit.
+- **Armour on retry** is restored to its **level-start value, but at least 50 %** of maximum, so a
+  save started on near-zero armour can never trap the player.
+
 ## Implementation
 
 - [ ] Snapshot of player state at level start (and at boss checkpoint)
@@ -56,10 +63,9 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 
 ## Open questions
 
-- Should armour be restored to full on retry, to prevent a player who started a level on low
-  armour from getting stuck? The hangar's repair option covers this, and on easy repairs are
-  free. Recommendation: keep the level-start value.
+- None open.
 
 ## Decisions
 
 - 2026-09-30: Armour bar and level retry; credits of the failed attempt are lost (user decision).
+- 2026-10-01: Armour on retry: level-start value with a 50 % minimum. Game over only on hard after 3 retries.

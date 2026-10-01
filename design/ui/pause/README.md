@@ -2,9 +2,9 @@
 title: Pause menu
 design: draft
 implementation: not-started
-art: none
+art: proposed
 depends-on: [../../systems/retry]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Pause menu
@@ -25,6 +25,14 @@ panels stay visible.
 | Quit to main menu | Progress since the last save is lost. Confirmation |
 
 The game also pauses automatically when the window loses focus or a gamepad disconnects.
+
+## Concept art
+
+Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out-of-game) per the ui style rule; generator `tools/concept/ui_r08.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/pause-r08-a.png](concept/pause-r08-a.png) | Pause — glass panel over the dimmed HUD frame: resume, restart, options, abort to hangar, quit | proposed |
 
 ## Implementation
 

@@ -14,13 +14,20 @@ Enemies on water: surface units (treated as `ground` layer targets on the water 
 submerged units on the `sub` layer. They appear on Earth's oceans and arctic in Act 2, and are
 the core of the underwater Act 4 on Europa, where the `sub` layer becomes the play plane.
 
+## Contents
+
+Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units stay in the roster below.
+
+| Part | Summary | Design | Impl | Art |
+|---|---|---|---|---|
+| [driftjelly](driftjelly/README.md) | Jellyfish mine on or below the surface, proximity ring (L11) | draft | not-started | chosen |
+| [reef-spitter](reef-spitter/README.md) | Barnacle gun on a kelp raft, 3-way fans (L11) | draft | not-started | chosen |
+| [skimmer](skimmer/README.md) | Flying-fish skiff weaving between floes from every edge (L13) | draft | not-started | chosen |
+
 ## Roster
 
 | Name | Faction | Layer | Tier | Role/ability | Formations | First level | Design |
 |---|---|---|---|---|---|---|---|
-| Driftjelly | Vrell | ground (surface) / sub | small | Floating mine organism. `drift`s; pulses a `ring` when the player comes within 96 px. | swarm | 11 | idea |
-| Reef Spitter | Vrell | ground (surface) | small | Barnacle gun grown on floating biomass rafts. `terrain` + 3-way `fan`. | turret nest | 11 | idea |
-| Skimmer | Vrell | ground (surface) | small | Fast skiff that weaves between ice floes (`sine`) and fires `aimed` shots; comes from all edges. | convoy, cross | 13 | idea |
 | Eel Swarm | Vrell | sub | large | A long snake of eel segments; each segment has to be destroyed, and the head fires `aimed` shots. | snake | 23 | idea |
 | Abyss Ray | Vrell | sub | large | A large manta rising from the depths (it grows from a shadow); fires a wide `fan` wave, then glides away. | carrier + escorts | 24 | idea |
 | Siren | Vrell | sub | medium | Sends out sonar `ring`s that do no damage but **slow** the player for 2 s. Dangerous in combination with others. | turret nest (in walls) | 25 | idea |
@@ -75,3 +82,4 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — real waterline (
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Spiral Nautilus (roster fork addition).
 - 2026-10-01: Concept round 06: Reef Spitter, Skimmer and Spiral Nautilus chosen; Driftjelly chosen but its waterline ring must become real foam/ripples (round 07).
 - 2026-10-01: Concept round 07: Driftjelly waterline fixed; r07 chosen.
+- 2026-10-01: Acts 1–2 units promoted to full specs: Driftjelly, Reef Spitter, Skimmer.

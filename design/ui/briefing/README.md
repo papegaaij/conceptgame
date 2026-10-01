@@ -2,9 +2,9 @@
 title: Briefing screen
 design: draft
 implementation: not-started
-art: none
+art: proposed
 depends-on: [../../story, ../../campaign]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Briefing screen
@@ -48,6 +48,15 @@ the real briefing text is written in each level document.
   Interference/static effect for intercepted transmissions.
 - Act start/end briefings may be longer; normal levels are 2–4 pages.
 - Briefing text lives with each level in the [campaign](../../campaign/README.md).
+
+## Concept art
+
+Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out-of-game) per the ui style rule; generator `tools/concept/ui_r08.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/briefing-r08-a.png](concept/briefing-r08-a.png) | Briefing — L10 *Evacuation Corridor*: Okafor portrait, typewriter text, tactical map with the shuttle route, threat summary with direction dial, objectives and hangar teaser | proposed |
+| [concept/act-title-r08-a.png](concept/act-title-r08-a.png) | Act title card — "ACT II / HOMEFRONT" in the logo-D chrome over Nova Lagos | proposed |
 
 ## Implementation
 

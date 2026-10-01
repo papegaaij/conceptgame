@@ -99,15 +99,14 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the 
 - [ ] Slot selection filters the shop; owned/buyable/locked sorting
 - [ ] Power bar with projected load and refusal
 - [ ] Comparison deltas vs the fitted item
-- [ ] Test-fire preview box
+- [ ] Test-fire preview box — **after the first build** (keep the layout space)
 - [ ] Intel panel from the level threat profile, gated by sensor level, with Varga's lines
 - [ ] Trait-match markers in the shop
 - [ ] Launch warnings (missing recommended trait, low armour)
 
 ## Open questions
 
-- Test fire needs a mini simulation of weapons in the UI. Worth the effort for the first
-  playable build, or later? Recommendation: later, but keep the layout space for it.
+- None open.
 
 ## Decisions
 
@@ -115,3 +114,4 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the 
 - 2026-09-30: Converted to the 960×540 baseline (was 640×360).
 - 2026-10-01: Concept round 06: layout **B** (central ship schematic with the panels around it) chosen, but in the glass style of the menus, not metal — restyle in round 07. Layout A rejected.
 - 2026-10-01: Concept round 07: hangar layout B in the glass style over the tactical map of Mars (r07-b) chosen; the hangar-bay backdrop (r07-a) rejected.
+- 2026-10-01: Test fire comes after the first build; the layout keeps its space.

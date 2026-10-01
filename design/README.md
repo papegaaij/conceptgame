@@ -3,7 +3,7 @@ title: Game design
 design: draft
 implementation: not-started
 art: chosen
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Game design
@@ -20,16 +20,16 @@ guided by intel about the next level.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [art-direction](art-direction/README.md) | Visual style, resolution, palette, sprite rules, parallax layer model | draft | n/a | chosen |
+| [art-direction](art-direction/README.md) | Visual style, resolution, palette, sprite rules, parallax layer model | draft | n/a | proposed |
 | [story](story/README.md) | Premise, factions, characters, timeline and the mid-campaign twist | draft | n/a | chosen |
-| [world](world/README.md) | The settings the levels take place in | draft | n/a | none |
+| [world](world/README.md) | The settings the levels take place in | draft | n/a | chosen |
 | [campaign](campaign/README.md) | Acts and the 50-level outline, pacing and difficulty curve | draft | not-started | none |
 | [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | draft | not-started | chosen |
 | [player](player/README.md) | The player ship, its loadout slots and all equipment | draft | not-started | chosen |
 | [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | draft | not-started | n/a |
-| [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | draft | not-started | chosen |
+| [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | draft | not-started | proposed |
 | [audio](audio/README.md) | Music and sound effects | draft | not-started | chosen |
-| [concept-rounds](concept-rounds/README.md) | Batches of concept proposals awaiting the user's choice | review | n/a | chosen |
+| [concept-rounds](concept-rounds/README.md) | Batches of concept proposals awaiting the user's choice | review | n/a | proposed |
 
 ## Design
 
@@ -72,7 +72,8 @@ Used across level, enemy, weapon and hangar-intel documents so they can be compa
 
 ## Open questions
 
-- None at this level; see the parts and [concept rounds](concept-rounds/README.md).
+- **Tech stack** — to be evaluated thoroughly in a dedicated session; not a one-off choice. No
+  `design/tech/` section yet.
 
 ## Decisions
 
@@ -83,3 +84,4 @@ Used across level, enemy, weapon and hangar-intel documents so they can be compa
   briefings plus radio chatter; 7 linear acts by setting.
 - 2026-09-30: Armour bar with level retry; single-player; Tyrian-style loadout slots.
 - 2026-09-30: Working title: **Terran Vanguard** (concept round 01, logo D).
+- 2026-10-01: Acts 1–2 open questions settled (layer hit rules, chain regrow, objective failure, controls, escort slot, utility bays, one special, visible pods, game over on hard, armour on retry, no level select, 5 banking frames, scaling, test fire later, text-only voices); score and credits stay separate. The tech stack is explicitly left open for a thorough evaluation.

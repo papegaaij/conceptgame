@@ -2,8 +2,8 @@
 title: The Choir
 design: draft
 implementation: n/a
-art: none
-updated: 2026-09-30
+art: proposed
+updated: 2026-10-01
 ---
 
 # The Choir
@@ -44,6 +44,15 @@ end, afraid.
 No face. A square frame of teal and violet bioluminescent patterns pulsing to the voice, like
 a sound waveform made of living tissue; in Act 7 the pattern briefly forms something
 face-like, then scatters. Heavy static and interference, late-90s pre-rendered CGI style.
+
+## Concept art
+
+Concept [round 08](../../../concept-rounds/round-08/README.md) — style-B portrait; generator `tools/concept/portraits_r08.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/portrait-r08-a.png](concept/portrait-r08-a.png) | The Choir — alien interference glyph (five-armed violet/teal sigil in rippling rings) at briefing and HUD sizes, loop strip | proposed |
+| [concept/portrait-r08-a.gif](concept/portrait-r08-a.gif) | The Choir — pulsing, turning glyph loop for the radio panel | proposed |
 
 ## Decisions
 

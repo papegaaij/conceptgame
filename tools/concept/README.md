@@ -74,6 +74,18 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 | `enemies_r07.py [halo-platform] [driftjelly]` | `design/enemies/{ground,naval}/concept/{halo-platform,driftjelly}-r07-a.{png,gif}` | dense 6-fold angle set for the Halo ring (frames cached outside the repo), water-plane clipping for the Driftjelly; models in `render/r07_models.py` |
 | `ui_r07.py [a] [b]` | `design/ui/hangar/concept/hangar-r07-{a,b}.png` | hangar layout B in the menu's glass style; ~16 s |
 
+## Scripts (round 08)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `scenes_r08.py [ocean storm arctic geneva luna-farside] [--sheet]` | `design/art-direction/concept/scene-<name>-r08-a.{png,gif}` | Earth scenes with reusable water code (wave surface, wakes, foam); only `ocean` rendered so far; ~3.5 min per scene |
+| `vfx_r08.py [ship] [projectiles] …` | `design/player/{ship,weapons}/concept/…-r08-a.*` | combat effects; rendered: ship (5 banking frames, wing pods) and projectiles. Explosions, enemy bullets, pickups, specials, edge warnings and Rook banking are written but not rendered |
+| `ui_r08.py [briefing act-title debrief failed gameover pause options credits hud kit]` | `design/ui/*/concept/*-r08-a.png` | remaining UI screens, HUD refresh, UI kit with font specimens; ~1 min |
+| `portraits_r08.py [choir cdf civilian]` | Choir glyph (png+gif), generic CDF and civilian portraits | ~20 s |
+| `rerender_r08.py [scuttler coilwyrm leviathan]` | `…/<name>-r08-a.{png,gif}` | r05 units re-rendered with `ModelSpaceAngleSprites`; ~5 min each |
+
+Audio round 08: `audio/music_r08.py` (cues and full-length tracks) and `audio/sfx_r08.py` (synthesized pickups and UI sounds); recorded sounds via `audio/import_sfx.py`. The balancing script is `tools/balance.py` (see `design/player/balance-data.json`).
+
 ## Audio (round 01)
 
 Audio generators live in [`audio/`](audio/README.md): a small numpy synth (`synth.py`), the
