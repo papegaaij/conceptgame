@@ -2,7 +2,7 @@
 title: Concept rounds
 design: review
 implementation: n/a
-art: chosen
+art: proposed
 updated: 2026-09-30
 ---
 
@@ -24,6 +24,7 @@ they belong to; a round only collects them.
 | [round-03](round-03/README.md) | Decoration pass, weapon shot families, explosion ladder, enemy concepts, briefing portraits, five music themes | approved | n/a | chosen |
 | [round-04](round-04/README.md) | Enemy colour pass, portraits with more colour, beam loops and remaining SFX | approved | n/a | chosen |
 | [round-05](round-05/README.md) | Enemy variety: size range, multi-part serpent and leviathan, walkers, spinners, tank and mech, swirl and rear-attack movement | approved | n/a | chosen |
+| [round-06](round-06/README.md) | More enemies and bosses, five setting scenes, main menu and hangar/shop screens | review | n/a | proposed |
 
 ## Design
 
@@ -49,3 +50,4 @@ How a round works:
 | 03 | 2026-09-30 | closed | Decoration, enemies, portraits, weapon SFX, explosions, more music |
 | 04 | 2026-09-30 | closed | Enemy colours, portrait colour, beam sounds |
 | 05 | 2026-09-30 | closed | Enemy variety: sizes, multi-part, walkers, spinners, movement |
+| 06 | 2026-10-01 | open | More enemies and bosses, setting scenes, menu and shop |

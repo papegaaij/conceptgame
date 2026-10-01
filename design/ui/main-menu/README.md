@@ -2,9 +2,9 @@
 title: Main menu
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 depends-on: [../../systems/saves, ../../systems/difficulty]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Main menu
@@ -68,6 +68,17 @@ Concept round 01 — see [round 01](../../concept-rounds/round-01/README.md). AI
 | [concept/rejected/logo-r01-b.png](concept/rejected/logo-r01-b.png) | **AEGIS WING** — *Defenders of Sol – 2185*, gold with wing emblem | rejected — D chosen |
 | [concept/rejected/logo-r01-c.png](concept/rejected/logo-r01-c.png) | **LAST LINE 2185** — brushed steel with red LED year | rejected — D chosen |
 | [concept/logo-r01-d.png](concept/logo-r01-d.png) | **TERRAN VANGUARD** — blue chrome with 3D extrusion | chosen |
+
+Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 screens at 1× plus a 2× detail crop; generator `tools/concept/ui_r06.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/main-menu-r06-a.png](concept/main-menu-r06-a.png) | Main menu A — glass menu panel over a pre-rendered hero scene (Stormhawk climbing over Earth's limb, Vrell fleet) | proposed |
+| [concept/main-menu-r06-b.png](concept/main-menu-r06-b.png) | Main menu B — full-screen HUD A metal console with logo viewscreen, LCD buttons, ship blueprint and last-save panel | proposed |
+| [concept/difficulty-r06-a.png](concept/difficulty-r06-a.png) | Difficulty select A — three rank cards (Recruit / Pilot / Ace) over the hero scene | proposed |
+| [concept/difficulty-r06-b.png](concept/difficulty-r06-b.png) | Difficulty select B — console with the full lever table | proposed |
+| [concept/load-game-r06-a.png](concept/load-game-r06-a.png) | Load game A — autosave + 8 glass slot rows with a preview panel | proposed |
+| [concept/load-game-r06-b.png](concept/load-game-r06-b.png) | Load game B — console save archive with load / delete / back | proposed |
 
 ## Implementation
 

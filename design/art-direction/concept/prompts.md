@@ -160,3 +160,81 @@ walls and a dry riverbed, heavy ochre dust banks streaming across below the figh
 dust veil and streaks in the foreground, a small colony outpost with blue glass domes, green
 greenhouse tunnels, small algae ponds and dark olive lichen fields around it, violet alien spore
 pods on the rim, a blue-white interceptor and a V of violet alien darts, 1990s pre-rendered CGI`
+
+## Round 06 setting scenes
+
+Generator: [tools/concept/scenes_r06.py](../../../tools/concept/scenes_r06.py) (`python3
+tools/concept/scenes_r06.py [luna] [europa] [belt] [jovian] [vrell-space]`; models and rock
+sprites in [tools/concept/render/scene_models.py](../../../tools/concept/render/scene_models.py)).
+Five more settings in the round-02/03 parallax style, at **medium** atmosphere intensity (banks
+cover about 20–25 %; round 03 showed the heavy end). Each PNG is the play field at 1× plus the
+layer breakdown; each GIF is a seamless 4 s loop at 20 fps with the bullet colours reserved in
+its palette. Enemies are the chosen round-04/05 units in their role colours.
+
+Shared negative prompt: `isometric, perspective camera, horizon, side view, photo, realistic
+photograph, painterly brush strokes, blurry, low contrast bullets, text, watermark, UI, modern
+flat vector, anime`.
+
+## scene-luna-r06-a
+
+Prompt: `top-down orthographic view straight down on the grey lunar surface, portrait 480x540
+game screen, 1990s pre-rendered CGI, saturated 90s neon palette for actors only, hard low sun
+from the top-left casting long black crater shadows tinted faint blue by earthshine, a graded
+convoy road with tyre tracks and orange marker posts winding through craters, Tranquility Base
+habitat domes with warm yellow windows and pools of light, a landing pad with a yellow ring, a
+long electromagnetic mass-driver rail with pylons and blinking orange hazard lights and a launch
+sled racing up it, purple alien roots with glowing teal cores spreading from a teal-black nest
+crater with egg pods, grey regolith dust plumes drifting below the fighters, a blue-white
+interceptor firing cyan bolts, a snake of plum alien skitters, an ivory crab-like gunner firing
+yellow thorns, a six-legged slate walker patrolling beside the road`
+
+## scene-europa-r06-a
+
+Prompt: `top-down view straight down onto the dark sea floor of an alien ocean under an ice
+sheet, portrait 480x540 game screen, 1990s pre-rendered CGI, near-black blue water, the play
+field edges fade into darkness, a soft headlight cone ahead of a blue-white interceptor lights
+the floor, sand ripples and rock ridges, an underwater research town of glass pressure domes
+with warm windows joined by tube corridors, rectangular kelp farm plots with float lines and
+small buoy lights, a black smoker vent glowing orange at its base, violet alien coral reefs
+with glowing violet and teal tips, drifting silt banks and particles, a school of silver fish,
+ivory nautilus-like shells with violet glow orbiting below the ship, olive jellyfish mines
+pulsing rings of yellow-white orbs, soft diagonal light shafts from cracks in the ice above,
+large bright magenta enemy orbs with dark rims`
+
+## scene-belt-r06-a
+
+Prompt: `top-down view straight down on the asteroid belt, portrait 480x540 game screen, 1990s
+pre-rendered CGI, black space with stars, a faint dust band and a bright distant sun, hazed
+distant asteroids, a huge dark brown-grey cratered asteroid filling half the screen with
+long shadows, a terraced refinery pit with a molten orange ore pool and dark crust, conveyor
+tubes bridging to a white Coalition station of habitat drums, docking node and solar panels,
+a gloss black and gold Helix facility with red lights and a rail-cannon bunker, smaller rocks
+tumbling below, an ore hauler of cargo containers, thin brown dust clouds, a large tumbling
+asteroid in the play plane, black-and-gold alien-hunting fighters swooping with paired gold
+shots, a spinning gunmetal blade drone, a red telegraph line and a gold rail beam, a
+blue-white interceptor firing cyan bolts, blurred close rock fragments in the foreground`
+
+## scene-jovian-r06-a
+
+Prompt: `top-down view straight down over Jupiter, portrait 480x540 game screen, 1990s
+pre-rendered CGI, deep streaky cream ochre rust and brown cloud bands curling round a storm
+vortex far below, billowy towering cumulus cloud tops lit from the top-left in cream with rust
+shadows, an Art Deco cloud city of octagonal cream and gold deck platforms with a central gold
+glass dome, small domes, red rim lights and lit windows, a gilded walkway, stepped gold
+spires on small pads, black and gold gun turrets, a faint glowing anti-gravity ring, cream
+lift balloons with gold bands on thin cables, the city casting long soft shadows onto the
+clouds below, thin storm wisps in the foreground, one blue-white lightning bolt, a black and
+gold gunship firing a ring of magenta orbs, black and gold fighters, an olive alien gas-bag
+bomber dropping spores, a blue-white interceptor`
+
+## scene-vrell-space-r06-a
+
+Prompt: `top-down view straight down on a living alien hive-reef floating in space, portrait
+480x540 game screen, 1990s pre-rendered CGI, dark violet and teal nebula with strange stars,
+distant dark coral-like hive masses with tiny glowing points, a huge organic surface of domed
+dark plum-brown chitin plates separated by thin glowing teal and violet veins, ragged edges and
+a hole showing the nebula, spawning pits with pulsing teal rims, slate spine turrets firing
+yellow thorns, an acid mortar polyp with a lime impact marker, translucent glowing spore sacs
+and dark tendrils drifting below the fighters, soft violet spore clouds, a long rust-coloured
+segmented serpent with teal glow looping in a figure eight, a cluster of spinning plum seed
+pods, a blue-white interceptor firing cyan bolts, outlined bright enemy bullets`

@@ -32,3 +32,9 @@
 
 - **Prompt:** not applicable (comparison sheet).
 - **Mockup generator:** `python3 tools/concept/enemies_r05b.py size-lineup`
+
+## lineup-r06-a
+
+**Round 06 lineup** — the round-06 units at native 1× scale, sorted by area, next to the player and reference units from rounds 04 and 05 (Skitter, Scuttler, Ravager); below them the Threadcrawler chain and the assembled Halo Platform. A reference sheet, not an art item, so there is no image prompt.
+
+- **Mockup generator:** `python3 tools/concept/enemies_r06.py lineup`

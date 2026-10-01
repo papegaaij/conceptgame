@@ -2,8 +2,8 @@
 title: Naval enemies
 design: draft
 implementation: not-started
-art: none
-updated: 2026-09-30
+art: proposed
+updated: 2026-10-01
 ---
 
 # Naval enemies
@@ -35,6 +35,21 @@ the core of the underwater Act 4 on Europa, where the `sub` layer becomes the pl
 - Underwater (Act 4), the `sub` layer is the play plane: all weapons hit, but weapons without
   `anti-sub` do 50% damage. Enemy bullets and movement are slowed by the water. All numbers:
   [under water rules](../../world/europa/README.md#under-water-rules).
+
+## Concept art
+
+Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools/concept/enemies_r06.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/driftjelly-r06-a.png](concept/driftjelly-r06-a.png) | Driftjelly — jellyfish mine (olive bell, lime veins), surface and submerged, pulses a ring of shots (sheet) | proposed |
+| [concept/driftjelly-r06-a.gif](concept/driftjelly-r06-a.gif) | Driftjelly — jellyfish mine (olive bell, lime veins), surface and submerged, pulses a ring of shots (motion) | proposed |
+| [concept/reef-spitter-r06-a.png](concept/reef-spitter-r06-a.png) | Reef Spitter — barnacle gun at 32 headings on a bobbing kelp raft, 3-way fans (sheet) | proposed |
+| [concept/reef-spitter-r06-a.gif](concept/reef-spitter-r06-a.gif) | Reef Spitter — barnacle gun at 32 headings on a bobbing kelp raft, 3-way fans (motion) | proposed |
+| [concept/skimmer-r06-a.png](concept/skimmer-r06-a.png) | Skimmer — flying-fish skiff (rust, fan fins) weaving through ice floes with foam wakes (sheet) | proposed |
+| [concept/skimmer-r06-a.gif](concept/skimmer-r06-a.gif) | Skimmer — flying-fish skiff (rust, fan fins) weaving through ice floes with foam wakes (motion) | proposed |
+| [concept/spiral-nautilus-r06-a.png](concept/spiral-nautilus-r06-a.png) | Spiral Nautilus — rolling striped shell with a tentacle crown, orbiting pairs under Europa's ice (sheet) | proposed |
+| [concept/spiral-nautilus-r06-a.gif](concept/spiral-nautilus-r06-a.gif) | Spiral Nautilus — rolling striped shell with a tentacle crown, orbiting pairs under Europa's ice (motion) | proposed |
 
 ## Implementation
 

@@ -56,6 +56,15 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 |---|---|---|
 | `enemies_r05b.py [ravager] [shellback] [size-lineup]` | `design/enemies/ground/concept/{ravager,shellback}-r05-a.{png,gif}`, `design/enemies/concept/size-lineup-r05-b.png` | animal-like Vrell ground units; models in `render/beast_models.py`, rendered with `enemy_rigs.ModelSpaceAngleSprites` (patterns turn with the body). Shares sheet helpers with `enemies_r05.py`; ~10 min per beast |
 
+## Scripts (round 06)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `enemies_r06.py [name ...] [lineup]` | `design/enemies/{air,ground,naval}/concept/<name>-r06-a.{png,gif}`, `design/enemies/concept/lineup-r06-a.png` | Creeper, Hive Node, Wraith, Lamprey, Driftjelly, Reef Spitter, Skimmer, Threadcrawler, Halo Platform, Dust Devil, Spiral Nautilus; models in `render/r06_models.py`, rendered with `ModelSpaceAngleSprites` |
+| `bosses_r06.py [gorgon] [kraken] [spire]` | `design/enemies/bosses/concept/{gorgon-frigate,harbour-kraken,siege-spire}-r06-a.{png,gif}` | models in `render/boss_models.py` (with the `bounded()` speed-up); ~16 min for all three |
+| `scenes_r06.py [luna europa belt jovian vrell-space]` | `design/art-direction/concept/scene-<setting>-r06-a.{png,gif}` | five setting scenes at medium atmosphere; models in `render/scene_models.py`; ~5–8 min per scene |
+| `ui_r06.py [menu] [difficulty] [load] [hangar]` | `design/ui/main-menu/concept/{main-menu,difficulty,load-game}-r06-{a,b}.png`, `design/ui/hangar/concept/hangar-r06-{a,b}.png` | main menu, difficulty select, load game and hangar screens; ~35 s |
+
 ## Audio (round 01)
 
 Audio generators live in [`audio/`](audio/README.md): a small numpy synth (`synth.py`), the

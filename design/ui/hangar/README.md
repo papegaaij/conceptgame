@@ -2,9 +2,9 @@
 title: Hangar
 design: draft
 implementation: not-started
-art: none
+art: proposed
 depends-on: [../../player, ../../systems/economy, ../../campaign]
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Hangar
@@ -76,6 +76,15 @@ illustrative and come from [player](../../player/README.md).)
 Buying fits the item immediately when the power budget allows, otherwise it goes to the
 inventory. Undo within the visit refunds 100 %, see
 [economy](../../systems/economy/README.md#sell-back-and-undo).
+
+## Concept art
+
+Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 screens at 1× plus a 2× detail crop; generator `tools/concept/ui_r06.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/hangar-r06-a.png](concept/hangar-r06-a.png) | Hangar A — three columns: loadout diagram, shop list with ◆ / NEW / locked and item detail with test fire, intel panel with Varga (before L15) | proposed |
+| [concept/hangar-r06-b.png](concept/hangar-r06-b.png) | Hangar B — central ship schematic with callouts to the slots, shop drawer left, intel with the large Varga portrait right | proposed |
 
 ## Implementation
 

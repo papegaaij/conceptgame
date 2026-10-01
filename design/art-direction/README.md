@@ -2,8 +2,8 @@
 title: Art direction
 design: draft
 implementation: n/a
-art: chosen
-updated: 2026-09-30
+art: proposed
+updated: 2026-10-01
 ---
 
 # Art direction
@@ -293,6 +293,21 @@ under ~8 MB; the PNG sheets show full colour:
 | [concept/parallax-r03-b.gif](concept/parallax-r03-b.gif) | Parallax B + decoration: scroll loop | chosen — shows the heavy end of the atmosphere range |
 | [concept/parallax-r03-c.png](concept/parallax-r03-c.png) | Parallax C + decoration: ochre dust-storm banks on low-air, dust veil and heavier streaks on high-air, greenhouse tunnels, algae ponds and lichen fields around the colony | chosen — shows the heavy end of the atmosphere range |
 | [concept/parallax-r03-c.gif](concept/parallax-r03-c.gif) | Parallax C + decoration: scroll loop | chosen — shows the heavy end of the atmosphere range |
+
+Concept [round 06](../concept-rounds/round-06/README.md) — five more settings at `medium` atmosphere intensity; generator `tools/concept/scenes_r06.py`. The GIFs posterize the base terrain to stay under 8 MB; the PNG sheets show full colour.
+
+| File | What | Status |
+|---|---|---|
+| [concept/scene-luna-r06-a.png](concept/scene-luna-r06-a.png) | Luna — regolith with earthshine-tinted crater shadows, Tranquility Base, mass-driver rail, Vrell nest crater, regolith plumes (sheet + layer breakdown) | proposed |
+| [concept/scene-luna-r06-a.gif](concept/scene-luna-r06-a.gif) | Luna: seamless scroll loop | proposed |
+| [concept/scene-europa-r06-a.png](concept/scene-europa-r06-a.png) | Europa under water — Thera Deep domes and kelp farms on the sea floor, Vrell coral, silt and fish on the sub layer, light shafts, headlight cone (sheet + layer breakdown) | proposed |
+| [concept/scene-europa-r06-a.gif](concept/scene-europa-r06-a.gif) | Europa under water: seamless scroll loop | proposed |
+| [concept/scene-belt-r06-a.png](concept/scene-belt-r06-a.png) | Asteroid belt — refinery pit and conveyors on a large rock, Helix block with Rail Bunker, tumbling rocks and haulers, ricocheting Buzzsaw (sheet + layer breakdown) | proposed |
+| [concept/scene-belt-r06-a.gif](concept/scene-belt-r06-a.gif) | Asteroid belt: seamless scroll loop | proposed |
+| [concept/scene-jovian-r06-a.png](concept/scene-jovian-r06-a.png) | Jupiter — Aurelia's Art Deco decks over cloud bands and a storm vortex, anti-grav ring and balloons, lightning flash (sheet + layer breakdown) | proposed |
+| [concept/scene-jovian-r06-a.gif](concept/scene-jovian-r06-a.gif) | Jupiter: seamless scroll loop | proposed |
+| [concept/scene-vrell-space-r06-a.png](concept/scene-vrell-space-r06-a.png) | Vrell space — violet/teal nebula, hive surface with glowing veins and spawning pits, spore sacs and tendrils, Coilwyrm on a figure-8 (sheet + layer breakdown) | proposed |
+| [concept/scene-vrell-space-r06-a.gif](concept/scene-vrell-space-r06-a.gif) | Vrell space: seamless scroll loop | proposed |
 
 ## Implementation
 

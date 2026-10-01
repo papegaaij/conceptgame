@@ -2,8 +2,8 @@
 title: Air enemies
 design: draft
 implementation: not-started
-art: chosen
-updated: 2026-09-30
+art: proposed
+updated: 2026-10-01
 ---
 
 # Air enemies
@@ -99,6 +99,15 @@ Concept [round 05](../../concept-rounds/round-05/README.md) — new archetypes, 
 | [concept/buzzsaw-drone-r05-a.gif](concept/buzzsaw-drone-r05-a.gif) | Buzzsaw Drone — Ascendancy six-blade spinning drone (gunmetal/gold, rim light), ricochets off the edges (motion) | chosen |
 | [concept/rail-serpent-r05-a.png](concept/rail-serpent-r05-a.png) | Rail Serpent — Ascendancy drone train (red accent): head car + 8 cars at 16 headings on a winding route (sheet) | chosen |
 | [concept/rail-serpent-r05-a.gif](concept/rail-serpent-r05-a.gif) | Rail Serpent — Ascendancy drone train (red accent): head car + 8 cars at 16 headings on a winding route (motion) | chosen |
+
+Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools/concept/enemies_r06.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/wraith-r06-a.png](concept/wraith-r06-a.png) | Wraith — Vrell manta ghost (rust membrane, blue-violet veins), cloaked shimmer, loops behind the player and decloaks for a rear attack (sheet) | proposed |
+| [concept/wraith-r06-a.gif](concept/wraith-r06-a.gif) | Wraith — Vrell manta ghost (rust membrane, blue-violet veins), cloaked shimmer, loops behind the player and decloaks for a rear attack (motion) | proposed |
+| [concept/lamprey-r06-a.png](concept/lamprey-r06-a.png) | Lamprey — Vrell eel (rust, teal mouth disc): homing stream, latches on and drains shield until shaken off (sheet) | proposed |
+| [concept/lamprey-r06-a.gif](concept/lamprey-r06-a.gif) | Lamprey — Vrell eel (rust, teal mouth disc): homing stream, latches on and drains shield until shaken off (motion) | proposed |
 
 ## Implementation
 

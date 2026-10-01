@@ -108,3 +108,51 @@ Prompts for polished versions of the round-03 mockups.
 - **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, insect, crab, centipede, robot, mechanical parts, rivets, metal plating, magenta or hot-pink glow, yellow glow, blue or cyan body colour.
 - **Animation brief:** heavy 6-frame diagonal-pair walk at 16 headings. The vent swells for 0.5 s and lobs a spore blob in an arc; the impact point is marked 1.2 s ahead and bursts into a small ring. When badly damaged it tucks in head and legs, curls into a ball and rolls along its path (8 roll frames per band pair at 16 headings) crushing ground targets, then tucks and uncurls. Weak points: the vent, and the belly while it uncurls.
 - **Mockup generator:** `python3 tools/concept/enemies_r05b.py shellback` (models `tools/concept/render/beast_models.py`, rendered with `ModelSpaceAngleSprites` from `tools/concept/render/enemy_rigs.py`)
+
+# Round 06 — Act 2 introductions and roster additions
+
+## creeper-r06-a
+
+**Creeper (Vrell six-legged salamander)** — a 60 px long, low lizard-like walker. Files: `creeper-r06-a.png` (sheet) and `creeper-r06-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A long, low alien salamander seen from directly above: a wide flat gecko-like head on a narrow neck, a frilled fan gland behind the eyes with five glowing violet (#9a4dff) pores, a sinuous body of mauve-grey slate chitin (#7c6878, shadows #241a24) with a double row of pale bone studs, a long tapering tail, three pairs of splayed jointed legs (front pair reaching forward, hind pair back) ending in pale sticky toe pads.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, robot, mechanical parts, rivets, metal plating, magenta or hot-pink glow, yellow glow, blue or cyan body colour, insect, beetle, crab, spider
+- **Animation brief:** 6-frame diagonal walk at 16 headings; body and tail sway in an S-curve with the gait; the walk phase advances with distance walked. Convoys of three crawl along roads and over rooftops; the fan gland flashes and fires a 5-way fan of shots. Gland = weak point.
+- **Mockup generator:** `python3 tools/concept/enemies_r06.py creeper` (models `tools/concept/render/r06_models.py`, rendered with `ModelSpaceAngleSprites` from `tools/concept/render/enemy_rigs.py`)
+
+## hive-node-r06-a
+
+**Hive Node (hardened Vrell spawner)** — a 76 px radial spawner mound. Files: `hive-node-r06-a.png` (sheet) and `hive-node-r06-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A grown alien spawner mound seen from directly above, radially symmetric: seven glossy fleshy lobes in teal-black chitin (#1e5c5a, shadows #06201e) between pale bone armour plates and long bone spikes, small glowing teal (#00ff9a) spawn buds on the lobes, a central iris of dark petals over a glowing teal throat, root tendrils spreading into dark biomass creep on the ground.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, robot, mechanical parts, rivets, metal plating, magenta or hot-pink glow, yellow glow, blue or cyan body colour, insect, crab
+- **Animation brief:** Static (no headings). The lobes pulse slowly (3 frames). Every 4 s the iris opens over 0.5 s (5 frames), two Skitters burst out of the throat, and it closes again. Hardened: only anti-ground or area weapons hurt it; the open throat takes double damage.
+- **Mockup generator:** `python3 tools/concept/enemies_r06.py hive-node` (models `tools/concept/render/r06_models.py`, rendered with `ModelSpaceAngleSprites` from `tools/concept/render/enemy_rigs.py`)
+
+## threadcrawler-r06-a
+
+**Threadcrawler (Vrell centipede chain)** — a ~360 px segmented centipede. Files: `threadcrawler-r06-a.png` (sheet) and `threadcrawler-r06-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A giant alien centipede seen from directly above: a flat armoured head plate with curved bone forcipules and long antennae, lime (#a8ff2a) eye clusters; twelve wide flat olive chitin tergites (#7c8c3a, shadows #263010) shrinking towards the tail, each with a glowing lime spore pore and a pair of long jointed legs with bone tips; a tail plate with two long cerci. Render head, one segment and tail as separate sprites.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, robot, mechanical parts, rivets, metal plating, magenta or hot-pink glow, yellow glow, blue or cyan body colour
+- **Animation brief:** Chain rig: every part follows the head's travelled path at 16 headings, spaced by segment size. The legs ripple in a wave down the body (4 leg frames, phase offset per segment). Each spore pore fires in turn, head to tail, giving a travelling wave of slow aimed spores. Head = vital weak point.
+- **Mockup generator:** `python3 tools/concept/enemies_r06.py threadcrawler` (models `tools/concept/render/r06_models.py`, rendered with `ModelSpaceAngleSprites` from `tools/concept/render/enemy_rigs.py`)
+
+## halo-platform-r06-a
+
+**Halo Platform (Ascendancy rotating turret ring)** — a ~300 px multi-part fortress centrepiece. Files: `halo-platform-r06-a.png` (sheet) and `halo-platform-r06-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A human-built fortress weapon seen from directly above: a shielded octagonal armoured core in black-violet (#201430) with gold trim and a red reactor eye under a glass dome, surrounded by a ring of six curved armoured rail segments with gold edge trim, each carrying a domed turret with twin barrels and a white (#e8e4f0) accent; thin gold/red rim light. Render core, one ring segment and one turret as separate sprites.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, organic shapes, magenta or hot-pink glow, yellow glow, blue or cyan body colour
+- **Animation brief:** The ring rotates around the core (segments at 32 headings); each turret aims at the player independently (32 headings) and fires gold shells as it swings round. Each destroyed turret speeds the ring up; with half the ring gone the red hexagonal shield around the core drops and the core is exposed.
+- **Mockup generator:** `python3 tools/concept/enemies_r06.py halo-platform` (models `tools/concept/render/r06_models.py`, rendered with `ModelSpaceAngleSprites` from `tools/concept/render/enemy_rigs.py`)
+
+## dust-devil-r06-a
+
+**Dust Devil (Vrell vortex organism)** — a 72 px radial spinning funnel. Files: `dust-devil-r06-a.png` (sheet) and `dust-devil-r06-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A spinning alien vortex organism seen from directly above, 5-fold radially symmetric: curved membrane vanes in teal-black (#1e5c5a) spiralling around a fleshy central cup, bone hooks at the vane tips, faint lime (#a8ff2a) seams; in the open state the vanes part to reveal a glowing lime core orb. Surrounded in game by a translucent swirl of ochre Martian grit (drawn separately).
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, robot, mechanical parts, rivets, metal plating, magenta or hot-pink glow, yellow glow, blue or cyan body colour, insect
+- **Animation brief:** Spins fast (8 frames cover 72° thanks to the 5-fold symmetry) inside a rotating grit swirl, wandering in a swirl path; it pulls loose pickups towards it and spits spirals of grit. At the top of each spin cycle the vanes part (second frame set) and the lime core is exposed and hittable.
+- **Mockup generator:** `python3 tools/concept/enemies_r06.py dust-devil` (models `tools/concept/render/r06_models.py`, rendered with `ModelSpaceAngleSprites` from `tools/concept/render/enemy_rigs.py`)
+

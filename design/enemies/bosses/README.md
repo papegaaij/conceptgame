@@ -2,8 +2,8 @@
 title: Bosses
 design: draft
 implementation: not-started
-art: chosen
-updated: 2026-09-30
+art: proposed
+updated: 2026-10-01
 ---
 
 # Bosses
@@ -67,6 +67,17 @@ Concept [round 04](../../concept-rounds/round-04/README.md) — colour pass on t
 | File | What | Status |
 |---|---|---|
 | [concept/brood-carrier-r04-a.png](concept/brood-carrier-r04-a.png) | Brood Carrier — teal-black chitin with teal veins; bay sacs and core (weak points) in contrasting lime | chosen |
+
+Concept [round 06](../../concept-rounds/round-06/README.md) — generator `tools/concept/bosses_r06.py`; all weak points glow lime like the Brood Carrier.
+
+| File | What | Status |
+|---|---|---|
+| [concept/gorgon-frigate-r06-a.png](concept/gorgon-frigate-r06-a.png) | Gorgon Frigate (Act 1 mid-boss) — medusa-bell warship with three serpent-neck turrets, phases: turrets → stumps → crown opens over the core (sheet) | proposed |
+| [concept/gorgon-frigate-r06-a.gif](concept/gorgon-frigate-r06-a.gif) | Gorgon Frigate (Act 1 mid-boss) — medusa-bell warship with three serpent-neck turrets, phases: turrets → stumps → crown opens over the core (motion) | proposed |
+| [concept/harbour-kraken-r06-a.png](concept/harbour-kraken-r06-a.png) | Harbour Kraken (Act 2 mid-boss) — cephalopod wrapped around an offshore platform, telegraphed arm slams, head surfaces to fire fans (sheet) | proposed |
+| [concept/harbour-kraken-r06-a.gif](concept/harbour-kraken-r06-a.gif) | Harbour Kraken (Act 2 mid-boss) — cephalopod wrapped around an offshore platform, telegraphed arm slams, head surfaces to fire fans (motion) | proposed |
+| [concept/siege-spire-r06-a.png](concept/siege-spire-r06-a.png) | Siege Spire (Act 2 boss) — rooted citadel with turret and mortar roots, Wraith-launching maw; tears free and rises in its last phase (sheet) | proposed |
+| [concept/siege-spire-r06-a.gif](concept/siege-spire-r06-a.gif) | Siege Spire (Act 2 boss) — rooted citadel with turret and mortar roots, Wraith-launching maw; tears free and rises in its last phase (motion) | proposed |
 
 ## Implementation
 

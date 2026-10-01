@@ -194,3 +194,24 @@ Prompts for polished versions of the round-03 mockups. The mockups are rendered 
 - **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, magenta or hot-pink glow, yellow glow, blue or cyan body colour, organic shapes.
 - **Animation brief:** Rigid cars follow the head's route at even spacing, each turning to the path tangent (16 headings). Cars can be shot off one by one.
 - **Mockup generator:** `python3 tools/concept/enemies_r05.py rail-serpent` (models `tools/concept/render/archetype_models.py`, rigs `tools/concept/render/enemy_rigs.py`)
+
+# Round 06 — Act 2 introductions and roster additions
+
+## wraith-r06-a
+
+**Wraith (cloaked Vrell manta)** — a 72 px manta-ray-like ambusher. Files: `wraith-r06-a.png` (sheet) and `wraith-r06-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A ghostly alien manta ray seen from directly above: wide rippling membrane wings in dark rust (#b04a2c, shadows #3a1008) with radiating blue-violet (#6a5cff) veins, a ridged central body with a pale bone spine, two glowing violet (#9a4dff) eye glands, a thin whip tail and four trailing veil tendrils.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, robot, mechanical parts, rivets, metal plating, magenta or hot-pink glow, yellow glow, blue or cyan body colour, insect, bat
+- **Animation brief:** 16 headings x 4 wing-ripple frames. Cloaked it is drawn only as a refraction shimmer of the background under its silhouette with a faint edge glint; it passes over the player, loops round behind (edge warning), decloaks in a violet flash and fires bursts up the screen, then leaves. Only hittable while visible; the eyes are the weak point.
+- **Mockup generator:** `python3 tools/concept/enemies_r06.py wraith` (models `tools/concept/render/r06_models.py`, rendered with `ModelSpaceAngleSprites` from `tools/concept/render/enemy_rigs.py`)
+
+## lamprey-r06-a
+
+**Lamprey (Vrell eel chaser)** — a 36 px eel that latches onto the player. Files: `lamprey-r06-a.png` (sheet) and `lamprey-r06-a.gif` (motion in the 480×540 play field).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A small alien eel seen from directly above: a sinuous rust-red body (#b04a2c) with a thin glowing teal (#00ff9a) line along the back and teal gill pores, a round dark oral disc at the front ringed by glowing teal hooked teeth, a low pale fin along the tail.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, robot, mechanical parts, rivets, metal plating, magenta or hot-pink glow, yellow glow, blue or cyan body colour, worm, snake head, insect
+- **Animation brief:** 16 headings x 4 swim frames (S-curve) plus a latched pose with the disc flattened forward. Lampreys stream in and home on the player with a limited turn rate; one that reaches the ship latches on and drains the shield until shaken off by hard left-right movement, then tumbles away.
+- **Mockup generator:** `python3 tools/concept/enemies_r06.py lamprey` (models `tools/concept/render/r06_models.py`, rendered with `ModelSpaceAngleSprites` from `tools/concept/render/enemy_rigs.py`)
+

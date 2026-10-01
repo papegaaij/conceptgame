@@ -2,7 +2,7 @@
 title: Enemies
 design: draft
 implementation: not-started
-art: chosen
+art: proposed
 updated: 2026-10-01
 ---
 
@@ -22,11 +22,11 @@ directories hold the rosters.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | draft | not-started | chosen |
-| [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | draft | not-started | chosen |
-| [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | draft | not-started | none |
+| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | draft | not-started | proposed |
+| [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | draft | not-started | proposed |
+| [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | draft | not-started | proposed |
 | [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | draft | not-started | chosen |
-| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | draft | not-started | chosen |
+| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | draft | not-started | proposed |
 
 ## Design
 
@@ -335,6 +335,12 @@ Concept [round 05](../concept-rounds/round-05/README.md) — size lineup from th
 |---|---|---|
 | [concept/size-lineup-r05-a.png](concept/size-lineup-r05-a.png) | Every round-04 and round-05 unit plus the player at 1×, sorted by area; Coilwyrm, Leviathan and Brood Carrier below | superseded by r05-b |
 | [concept/size-lineup-r05-b.png](concept/size-lineup-r05-b.png) | Size lineup with the Ravager, Shellback and its curled ball added | chosen |
+
+Concept [round 06](../concept-rounds/round-06/README.md) — lineup of the round-06 units; generator `tools/concept/enemies_r06.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/lineup-r06-a.png](concept/lineup-r06-a.png) | The 11 round-06 units at 1× next to the player, Skitter, Scuttler and Ravager; Threadcrawler chain and assembled Halo Platform below | proposed |
 
 ## Implementation
 
