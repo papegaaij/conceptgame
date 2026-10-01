@@ -3,7 +3,7 @@ title: Ground enemies
 design: draft
 implementation: not-started
 art: proposed
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Ground enemies
@@ -33,6 +33,8 @@ terrain, never collide with the player, and are what `anti-ground` and `area` we
 | Scuttler | Vrell | ground | medium | Crab-like six-legged walker (`walk`, 16 angles) that strides across the terrain on its own heading, turning to face where it goes, and fires a 5-way `fan` in its facing direction. Claws are `armoured` from the front; the glowing back is the weak point. | convoy, pincer (walking in from both sides) | 04 | idea |
 | Threadcrawler | Vrell | ground | large | Centipede of 10–16 segments (`chain`) that crawls along canyon floors, walls and hulls following the terrain, legs rippling down its body. Every segment fires a slow `aimed` spore in turn (a travelling wave of shots); the head is `vital`. | snake (solo) | 16 | idea |
 | Dust Devil | Vrell | ground → low-air | medium | *(roster fork addition)* A whirling vortex organism: a radially symmetric spinning funnel (`radial`, `spin`) that wanders across Martian plains in a `swirl`, pulling loose pickups and the player's ship slightly toward it and spitting a `spiral` of grit. The core is visible (and hittable) only at the top of each spin cycle. | swarm (2–3 roaming) | 18 | idea |
+| Ravager | Vrell | ground → low-air | medium | Four-legged pack hunter, hound/raptor-like body of grown chitin and sinew with a balancing tail. Gallops (`walk`, 8-frame gallop, 16 angles) in packs of 3–5 across streets and plains and **pounces**: a short leap to `low-air` towards the player's ground position (contact damage, shadow detaches during the leap). Animal, not insect. | pack (3–5) | 09 | idea |
+| Shellback | Vrell | ground | large | Lumbering four-legged armoured beast, tortoise/armadillo-like, with overlapping shell plates and a spore-mortar vent on its back (`mortar`, area shots). Slow heavy walk (16 angles). Badly damaged it **curls into a ball and rolls** along its path (`spin`), crushing ground targets, then uncurls; belly and vent are the weak points. Animal, not insect. | single / pair | 17 | idea |
 | Warden Tank | Unmarked (Ascendancy) → Ascendancy | ground | medium | Tracked tank: hull at 16 angles drives its own heading along roads and conveyors (`walk`), turret at 32 angles tracks the player independently and fires `burst`s. In Act 3 unmarked grey (a hint), from Act 5 in black and gold. Rear hull plate is the weak point. | convoy | 19 | idea |
 | Strider | Ascendancy | ground | large | Two-legged walker mech (8-frame walk cycle, 16 angles) that stalks across hulls and tunnel floors, arms with twin cannons (`fan`) and a shoulder `homing` pod. Legs are `destroyable`: destroying one topples it (a telegraphed fall across the ground layer). | solo, pairs | 32 | idea |
 | Halo Platform | Ascendancy | ground (fortress mount) | large | A ring of 6 turret segments rotating around a shielded core (`radial` ring + 32-angle turrets). Each turret is `destroyable` and fires as it swings round (`aimed`, `laser-line`); the core's shield drops when half the ring is gone. The ring's rotation speeds up as turrets die. | turret nest (solo centrepiece) | 41 | idea |
@@ -72,12 +74,16 @@ Concept [round 05](../../concept-rounds/round-05/README.md) — new archetypes, 
 
 | File | What | Status |
 |---|---|---|
-| [concept/scuttler-r05-a.png](concept/scuttler-r05-a.png) | Scuttler — Vrell six-legged walker (slate/lime): tripod gait, 16 headings × 6 walk phases, turns to its path, spits acid (sheet) | proposed |
-| [concept/scuttler-r05-a.gif](concept/scuttler-r05-a.gif) | Scuttler — Vrell six-legged walker (slate/lime): tripod gait, 16 headings × 6 walk phases, turns to its path, spits acid (motion) | proposed |
-| [concept/warden-tank-r05-a.png](concept/warden-tank-r05-a.png) | Warden Tank — Ascendancy tank (white accent): hull 16 headings following a road, turret 32 headings tracking the player, tread marks (sheet) | proposed |
-| [concept/warden-tank-r05-a.gif](concept/warden-tank-r05-a.gif) | Warden Tank — Ascendancy tank (white accent): hull 16 headings following a road, turret 32 headings tracking the player, tread marks (motion) | proposed |
-| [concept/strider-r05-a.png](concept/strider-r05-a.png) | Strider — Ascendancy 120 px biped mech (red accent): 8-frame walk cycle, torso at 32 headings twisting to fire shoulder cannons (sheet) | proposed |
-| [concept/strider-r05-a.gif](concept/strider-r05-a.gif) | Strider — Ascendancy 120 px biped mech (red accent): 8-frame walk cycle, torso at 32 headings twisting to fire shoulder cannons (motion) | proposed |
+| [concept/scuttler-r05-a.png](concept/scuttler-r05-a.png) | Scuttler — Vrell six-legged walker (slate/lime): tripod gait, 16 headings × 6 walk phases, turns to its path, spits acid (sheet) | chosen |
+| [concept/scuttler-r05-a.gif](concept/scuttler-r05-a.gif) | Scuttler — Vrell six-legged walker (slate/lime): tripod gait, 16 headings × 6 walk phases, turns to its path, spits acid (motion) | chosen |
+| [concept/warden-tank-r05-a.png](concept/warden-tank-r05-a.png) | Warden Tank — Ascendancy tank (white accent): hull 16 headings following a road, turret 32 headings tracking the player, tread marks (sheet) | chosen — Ascendancy only (too mechanical for the Vrell) |
+| [concept/warden-tank-r05-a.gif](concept/warden-tank-r05-a.gif) | Warden Tank — Ascendancy tank (white accent): hull 16 headings following a road, turret 32 headings tracking the player, tread marks (motion) | chosen — Ascendancy only (too mechanical for the Vrell) |
+| [concept/strider-r05-a.png](concept/strider-r05-a.png) | Strider — Ascendancy 120 px biped mech (red accent): 8-frame walk cycle, torso at 32 headings twisting to fire shoulder cannons (sheet) | chosen — Ascendancy only (too mechanical for the Vrell) |
+| [concept/strider-r05-a.gif](concept/strider-r05-a.gif) | Strider — Ascendancy 120 px biped mech (red accent): 8-frame walk cycle, torso at 32 headings twisting to fire shoulder cannons (motion) | chosen — Ascendancy only (too mechanical for the Vrell) |
+| [concept/ravager-r05-a.png](concept/ravager-r05-a.png) | Ravager — Vrell pack hunter (rust/teal), 56 px: 16 headings, 8-frame gallop, pounce from ground to apex (sheet); generator `tools/concept/enemies_r05b.py` | proposed |
+| [concept/ravager-r05-a.gif](concept/ravager-r05-a.gif) | Ravager — packs sweeping across lunar regolith, two hunters pouncing at the player's ground position (motion) | proposed |
+| [concept/shellback-r05-a.png](concept/shellback-r05-a.png) | Shellback — armoured Vrell beast (slate/lime), 112 px: 16 headings, 6-frame heavy walk, curl sequence (sheet) | proposed |
+| [concept/shellback-r05-a.gif](concept/shellback-r05-a.gif) | Shellback — lobs spore blobs with marked impacts, curls into a ball and rolls over boulders on a Mars plateau, uncurls (motion) | proposed |
 
 ## Implementation
 
@@ -94,3 +100,4 @@ Concept [round 05](../../concept-rounds/round-05/README.md) — new archetypes, 
 - 2026-09-30: Concept round 03: Spine Turret (both Vrell languages), Polyp Mortar and the Ascendancy Rail Bunker drafted as sprites.
 - 2026-09-30: Concept round 04: colour pass on ground enemies with the role colours (r04 proposals).
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Scuttler, Threadcrawler, Warden Tank, Strider, Halo Platform, and Dust Devil (roster fork addition).
+- 2026-10-01: Ravager (L09) and Shellback (L17) added: animal-like Vrell ground walkers, after the user found the Warden Tank and Strider too mechanical for the Vrell. Both mechanical units stay Ascendancy; the Warden Tank keeps its unmarked Act 3 hint at L19.

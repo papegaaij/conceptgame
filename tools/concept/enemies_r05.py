@@ -693,7 +693,8 @@ def rail_serpent():
 
 # --------------------------------------------------------------------------- size lineup
 
-def size_lineup():
+def size_lineup(extra=(), title="SIZE LINEUP - ROUND 05 ARCHETYPES WITH ROUND 04 UNITS, 1X"):
+    """``extra``: additional (name, sprite) items for the first row (round 05 follow-ups)."""
     W = 1300
     small = [("MOTE", mote[1.1].frame(0)), ("WHIRL SEED", seed.frame(0))]
     r04 = [(e4.R04[k][0], e3.render(e4.R04[k][4], e4.R04[k][3])[1]) for k in e4.R04]
@@ -701,24 +702,29 @@ def size_lineup():
            ("RAIL CAR", rail_head.get(np.pi / 2)), ("WARDEN TANK", _tank_still()),
            ("STRIDER", _strider_still())]
     player = [("AF-12 PLAYER", e3.player_sprite())]
-    row1 = sorted(small + player + r04 + mid, key=lambda v: v[1].width * v[1].height)
-    img = raster.sheet(W, 1010, "SIZE LINEUP - ROUND 05 ARCHETYPES WITH ROUND 04 UNITS, 1X", SUB)
-    x, y = 16, 44
-    strip = Image.new("RGBA", (W - 32, 150), (22, 24, 34, 255))
-    xx = 10
-    labels = []
+    row1 = sorted(small + player + r04 + mid + list(extra), key=lambda v: v[1].width * v[1].height)
+    # split the sorted units into strips that fit the width (one strip unless extras overflow)
+    rows, cur, xx = [], [], 10
     for name, sp in row1:
-        if xx + sp.width > strip.width - 10:
-            break
-        sprite.paste_center(strip, sp, xx + sp.width / 2, 75)
-        labels.append((xx, name))
+        if xx + sp.width > W - 32 - 10 and cur:
+            rows.append(cur)
+            cur, xx = [], 10
+        cur.append((xx, name, sp))
         xx += sp.width + 12
-    img.alpha_composite(strip, (x, y + 12))
+    rows.append(cur)
+    img = raster.sheet(W, 1010 + 200 * (len(rows) - 1), title, SUB)
+    x, y = 16, 44
     raster.draw_text(img, x, y, "SMALL TO MEDIUM, SORTED BY AREA (1X)", raster.LABEL_DIM)
-    for i, (lx, name) in enumerate(labels):
-        raster.draw_text(img, x + lx, y + 166 + (i % 2) * 10, name[:12], raster.LABEL)
+    for r, row in enumerate(rows):
+        ys = y + r * 200
+        strip = Image.new("RGBA", (W - 32, 150), (22, 24, 34, 255))
+        for lx, name, sp in row:
+            sprite.paste_center(strip, sp, lx + sp.width / 2, 75)
+        img.alpha_composite(strip, (x, ys + 12))
+        for i, (lx, name, sp) in enumerate(row):
+            raster.draw_text(img, x + lx, ys + 166 + (i % 2) * 10, name[:12], raster.LABEL)
     # big row: coilwyrm chain, brood carrier (1/2 not allowed -> 1x), leviathan
-    y2 = y + 200
+    y2 = y + 200 * len(rows)
     raster.draw_text(img, x, y2, "LARGE (1X): COILWYRM (STRETCHED), LEVIATHAN, BROOD CARRIER",
                      raster.LABEL_DIM)
     big = Image.new("RGBA", (W - 32, 740), (22, 24, 34, 255))

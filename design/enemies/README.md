@@ -3,14 +3,14 @@ title: Enemies
 design: draft
 implementation: not-started
 art: proposed
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Enemies
 
 ## Summary
 
-All hostile units in the game: 57 regular enemies across the Vrell, the Jovian Ascendancy and
+All hostile units in the game: 59 regular enemies across the Vrell, the Jovian Ascendancy and
 Ascendancy/Vrell hybrids, plus 7 act bosses and 5 mid-bosses. They range from tiny swarmers to
 huge multi-part creatures, and include serpents, walkers, spinners and machines as well as
 flyers. This document defines the shared vocabulary for enemy specifications: the stat block,
@@ -22,10 +22,10 @@ directories hold the rosters.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | draft | not-started | proposed |
+| [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | draft | not-started | chosen |
 | [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | draft | not-started | proposed |
 | [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | draft | not-started | none |
-| [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | draft | not-started | proposed |
+| [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | draft | not-started | chosen |
 | [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | draft | not-started | chosen |
 
 ## Design
@@ -255,8 +255,8 @@ Current coverage (✓ = passes):
 | Act | Size tiers | Multi-part | Walker / ground mover | Spinner / radial | Non-front entry | Insectoid share | Pass |
 |---|---|---|---|---|---|---|---|
 | 1 First Contact | tiny, small, medium, large, huge | Coilwyrm, Leviathan, Gorgon Frigate, Brood Carrier | Scuttler (L04) | Whirl Seed (L03) | Mantis sides, Coilwyrm rear loops | 3 of 14 (Skitter, Stinger, Mantis) | ✓ |
-| 2 Homefront | tiny, small, medium, large, huge | Harbour Kraken, Siege Spire | Creeper (L08), Scuttler returns (L13) | Whirl Seed returns (L12) | Wraith and Mote Swarm rear (L10), all edges (L13) | 3 of 13 (Skitter, Creeper, Wraith) | ✓ |
-| 3 Red Dust | tiny, small, medium, large, huge | Threadcrawler, Revenant Walker, Dust Colossus | Burrower, Threadcrawler, Warden Tank | Dust Devil (L18) | L19 rear, L20 reverse scroll, L21 breaches | 3 of 10 (Burrower, Choir Herald, Threadcrawler) | ✓ |
+| 2 Homefront | tiny, small, medium, large, huge | Harbour Kraken, Siege Spire | Creeper (L08), Ravager packs (L09), Scuttler returns (L13) | Whirl Seed returns (L12) | Wraith and Mote Swarm rear (L10), all edges (L13) | 3 of 14 (Skitter, Creeper, Wraith) | ✓ |
+| 3 Red Dust | tiny, small, medium, large, huge | Threadcrawler, Revenant Walker, Dust Colossus | Burrower, Threadcrawler, Shellback (L17), Warden Tank | Dust Devil (L18) | L19 rear, L20 reverse scroll, L21 breaches | 3 of 11 (Burrower, Choir Herald, Threadcrawler) | ✓ |
 | 4 Deep Water | small, medium, large, huge | Eel Swarm, Abyssal Maw | Scuttler on the sea floor (L24) | Spiral Nautilus (L25) | Siren side caves, L27 rear | 0 of 10 | ✓ |
 | 5 The Belt | tiny, small, medium, large, huge | Rail Serpent, Shard Drone links, Iron Sovereign | Strider (L32), Crawler Tank (L34) | Buzzsaw Drone (L31), Sovereign rings | Minelayer and Rail Serpent rear (L30), Void Leech rear | 1 of 15 (Asteroid Mite) | ✓ |
 | 6 Jovian Storm | small, medium, large, huge | Halo Platform, Ascendant | Warden Tank and Strider return (L39, L41) | Halo Platform (L41), Buzzsaw Drone returns (L38) | Honour Guard rear (L40), Harrow all edges | 0 of 12 | ✓ |
@@ -333,7 +333,8 @@ Concept [round 05](../concept-rounds/round-05/README.md) — size lineup from th
 
 | File | What | Status |
 |---|---|---|
-| [concept/size-lineup-r05-a.png](concept/size-lineup-r05-a.png) | Every round-04 and round-05 unit plus the player at 1×, sorted by area; Coilwyrm, Leviathan and Brood Carrier below | proposed |
+| [concept/size-lineup-r05-a.png](concept/size-lineup-r05-a.png) | Every round-04 and round-05 unit plus the player at 1×, sorted by area; Coilwyrm, Leviathan and Brood Carrier below | chosen — superseded by r05-b when the animal walkers are added |
+| [concept/size-lineup-r05-b.png](concept/size-lineup-r05-b.png) | Size lineup with the Ravager, Shellback and its curled ball added | proposed |
 
 ## Implementation
 
@@ -380,3 +381,4 @@ Concept [round 05](../concept-rounds/round-05/README.md) — size lineup from th
   Threadcrawler, Whirl Seed, Mote Swarm, Warden Tank, Strider, Buzzsaw Drone, Rail Serpent, Halo
   Platform, plus Dust Devil and Spiral Nautilus (roster fork's own additions).
 - 2026-09-30: Concept round 04: role colours adopted ("the new colors are much better") — chitin base = role family, glow = kind of threat; Ascendancy black & gold with a per-unit accent and the 1 px gold/red rim light. All r04 re-colours chosen.
+- 2026-10-01: Round 05 review: the new archetypes are liked. Warden Tank and Strider are kept for the Ascendancy (the Warden Tank keeps its unmarked Act 3 hint at L19); two animal-like Vrell ground walkers added — Ravager (Act 2) and Shellback (Act 3).

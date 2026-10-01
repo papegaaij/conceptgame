@@ -156,3 +156,37 @@ def catmull_rom(points, times):
         return 0.5 * ((2 * p1) + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u * u
                       + (-p0 + 3 * p1 - 3 * p2 + p3) * u ** 3)
     return path
+
+
+def model_space_materials(mats, rotation):
+    """Copies of ``mats`` whose surface patterns are evaluated in model space instead of screen
+    space, so seams, plates and veins turn with a rotated model."""
+    from dataclasses import replace
+
+    def wrap(fn):
+        if fn is None:
+            return None
+        return lambda p, n, f=fn: f(sdf.rotate_z(p, rotation), sdf.rotate_z(n, rotation))
+    return [replace(m, pattern=wrap(m.pattern), emission_pattern=wrap(m.emission_pattern))
+            for m in mats]
+
+
+class ModelSpaceAngleSprites(AngleSprites):
+    """``AngleSprites`` whose material patterns rotate with the model (round 05 follow-ups);
+    the base class keeps screen-space patterns so earlier renders stay reproducible."""
+
+    def frame(self, k, **kw):
+        key = (k, tuple(sorted((a, round(float(b), 4) if not isinstance(b, str) else b)
+                               for a, b in kw.items())))
+        if key not in self.cache:
+            scene0, mats = self.make(**kw)
+            rot = model_rotation(k * TAU / self.count)
+            scene = lambda p, s=scene0, r=rot: s(sdf.rotate_z(p, r))
+            w, h = self.size
+            hi = sdf.render(scene, model_space_materials(mats, rot),
+                            (w * self.factor, h * self.factor), self.extent)
+            sp = sprite.make_sprite(hi, self.factor, self.colors, crisp=self.crisp)
+            if self.post:
+                sp = self.post(sp)
+            self.cache[key] = sp
+        return self.cache[key]

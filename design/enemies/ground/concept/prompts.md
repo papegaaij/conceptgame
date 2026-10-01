@@ -88,3 +88,23 @@ Prompts for polished versions of the round-03 mockups.
 - **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, magenta or hot-pink glow, yellow glow, blue or cyan body colour, organic shapes.
 - **Animation brief:** Legs walk towards the player (8-frame cycle, 16 headings for turns); the torso is a separate sprite at 32 headings that twists up to ±57° to aim, firing the arm cannons alternately. Casts a large ground shadow.
 - **Mockup generator:** `python3 tools/concept/enemies_r05.py strider` (models `tools/concept/render/archetype_models.py`, rigs `tools/concept/render/enemy_rigs.py`)
+
+# Round 05 follow-up — animal-like Vrell beasts
+
+## ravager-r05-a
+
+**Ravager (Vrell pack hunter)** — a 56 px lean four-legged beast. Files: `ravager-r05-a.png` (sheet) and `ravager-r05-a.gif` (a pack galloping and pouncing on lunar regolith).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A lean, muscular alien hound/raptor-like predator seen from directly above: deep chest narrowing to strong haunches, grown rust-red chitin plates (#b04a2c, shadows #3a1008) over dark sinew, a dark ridge of short bone spines along the back, long jointed legs with bone claws, a long balancing tail, a narrow head with two hinged bone jaws around a glowing teal (#00ff9a) maw, teal eyes. Reads as an animal, not an insect.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, insect, crab, centipede, robot, mechanical parts, rivets, metal plating, magenta or hot-pink glow, yellow glow, blue or cyan body colour.
+- **Animation brief:** 8-frame rotary gallop at 16 headings (front pair and hind pair alternate, the spine stretches and gathers, the tail swings); the gallop phase advances with distance run. Packs of 3–5 turn smoothly along their paths. Pounce: a 0.75 s leap to `low-air` at the player's ground position: front legs reach forward, hind legs stretch back, jaws open wide; the sprite is drawn 14–43 % larger at the apex and the shadow slides away from it, then it lands and runs on.
+- **Mockup generator:** `python3 tools/concept/enemies_r05b.py ravager` (models `tools/concept/render/beast_models.py`, rendered with `ModelSpaceAngleSprites` from `tools/concept/render/enemy_rigs.py`)
+
+## shellback-r05-a
+
+**Shellback (large armoured Vrell beast)** — a 112 px tortoise/armadillo-like creature. Files: `shellback-r05-a.png` (sheet) and `shellback-r05-a.gif` (walking, firing its spore mortar, curling into a ball and rolling over boulders on a Mars plateau).
+
+- **Prompt:** late-1990s pre-rendered CGI game sprite, 3D model rendered straight top-down orthographic, key light from the top-left, glossy specular highlights, crisp silhouette, isolated on a flat dark background. A huge lumbering alien beast seen from directly above: a high domed carapace of overlapping rounded scutes in mauve-grey slate (#7c6878, shadows #241a24) with lime (#a8ff2a) glowing veins in the grooves between them, a fleshy spore-mortar vent with a glowing lime core on the rear of the back, four thick elephantine legs with bone claws at the corners, a heavy beaked head with lime eyes, a short tail. Second sprite set: the same creature curled into a tight banded armour ball.
+- **Negative prompt:** photograph, painterly brush strokes, soft focus, perspective camera, side view, three-quarter view, text, watermark, motion blur, insect, crab, centipede, robot, mechanical parts, rivets, metal plating, magenta or hot-pink glow, yellow glow, blue or cyan body colour.
+- **Animation brief:** heavy 6-frame diagonal-pair walk at 16 headings. The vent swells for 0.5 s and lobs a spore blob in an arc; the impact point is marked 1.2 s ahead and bursts into a small ring. When badly damaged it tucks in head and legs, curls into a ball and rolls along its path (8 roll frames per band pair at 16 headings) crushing ground targets, then tucks and uncurls. Weak points: the vent, and the belly while it uncurls.
+- **Mockup generator:** `python3 tools/concept/enemies_r05b.py shellback` (models `tools/concept/render/beast_models.py`, rendered with `ModelSpaceAngleSprites` from `tools/concept/render/enemy_rigs.py`)

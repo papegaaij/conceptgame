@@ -3,7 +3,7 @@ title: Act 3 – Red Dust
 design: draft
 implementation: not-started
 art: none
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Act 3 – Red Dust
@@ -22,7 +22,7 @@ Colossus in the Hellas basin.
 |---|---|---|---|---|---|---|---|---|---|
 | 15 | Olympus Descent | [mars](../../world/mars/README.md) – orbit to surface | ground, low-air, air | front | 3 | forward, anti-ground | [Burrower](../../enemies/ground/README.md) (only hittable when surfaced) | Opens with a descent through the atmosphere (clouds scroll past in the foreground), then the slopes of Olympus Mons | idea |
 | 16 | Valles Canyon Run | [mars](../../world/mars/README.md) – canyon | ground, low-air | front | 4 | forward, piercing, beam | Canyon walls (terrain collision); [Tendril Anchor](../../enemies/ground/README.md) barriers; [Threadcrawler](../../enemies/ground/README.md) centipedes crawling along the canyon walls | Fast scroll, narrowing and branching canyon; `beam` burns through tendrils | idea |
-| 17 | Dome Siege | [mars](../../world/mars/README.md) – colony domes | air, ground | front, sides | 4 | spread, anti-ground | [Choir Herald](../../enemies/air/README.md) (shield aura for nearby enemies) | Secondary objective: no bomber reaches the domes | idea |
+| 17 | Dome Siege | [mars](../../world/mars/README.md) – colony domes | air, ground | front, sides | 4 | spread, anti-ground | [Choir Herald](../../enemies/air/README.md) (shield aura for nearby enemies); [Shellback](../../enemies/ground/README.md) beasts lumbering towards the domes | Secondary objective: no bomber reaches the domes | idea |
 | 18 | Dust Storm | [mars](../../world/mars/README.md) – plains | air, low-air | all | 3 | homing, spread | [Ghost Drone](../../enemies/air/README.md), an unmarked human-built drone (**hint 1**); visibility drops to a radius around the ship; [Dust Devil](../../enemies/ground/README.md) vortex spinners roaming the plains | Varga: "*That's not Vrell. That signature is... ours?*" | idea |
 | 19 | Foundry of Tharsis | [mars](../../world/mars/README.md) – industrial zone | ground, air | front, rear | 4 | anti-ground, rear | Mid-boss [Revenant Walker](../../enemies/bosses/README.md), an unmarked human war machine (**hint 2**); [Warden Tank](../../enemies/ground/README.md), unmarked grey, on the conveyors | Conveyor belts and furnace vents on the ground layer; turrets fire from behind as you pass | idea |
 | 20 | Retreat from Hellas | [mars](../../world/mars/README.md) – Hellas rim | air, ground | rear | 4 | rear, homing | **Reverse scroll**: the screen scrolls downward while a Vrell swarm pursues from the bottom edge | The ship faces up but flies "backwards"; rear guns are essential. The pursuing swarm is a [Mote Swarm](../../enemies/air/README.md) | idea |
@@ -93,3 +93,4 @@ Act theme "Red Dust", boss theme; see [audio](../../audio/README.md).
 
 - 2026-09-30: The twist hints are the Ghost Drone (L18) and the Revenant Walker (L19).
 - 2026-09-30: Enemy variety pass: new units added to the level rows so the act passes the [variety checklist](../../enemies/README.md#variety-checklist-per-act).
+- 2026-10-01: L17 introduces the Shellback, an animal-like Vrell armoured beast that threatens the domes (round 05 follow-up).

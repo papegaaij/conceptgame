@@ -50,6 +50,12 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 |---|---|---|
 | `enemies_r05.py [name ...]` | `design/enemies/{air,ground,space}/concept/<name>-r05-a.{png,gif}`, `design/enemies/concept/size-lineup-r05-a.png` | Coilwyrm, Leviathan, Scuttler, Whirl Seed, Mote Swarm, Warden Tank, Strider, Buzzsaw Drone, Rail Serpent: PNG sheet + GIF in the play field each. Models in `render/archetype_models.py`; rigs (`AngleSprites` at 16/32 headings, segment chains, spline paths, GIF writer) in `render/enemy_rigs.py`. Units render independently, so they can run in parallel processes; ~4 min per unit, lineup ~3 min |
 
+## Scripts (visual, round 05 follow-up – Vrell beasts)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `enemies_r05b.py [ravager] [shellback] [size-lineup]` | `design/enemies/ground/concept/{ravager,shellback}-r05-a.{png,gif}`, `design/enemies/concept/size-lineup-r05-b.png` | animal-like Vrell ground units; models in `render/beast_models.py`, rendered with `enemy_rigs.ModelSpaceAngleSprites` (patterns turn with the body). Shares sheet helpers with `enemies_r05.py`; ~10 min per beast |
+
 ## Audio (round 01)
 
 Audio generators live in [`audio/`](audio/README.md): a small numpy synth (`synth.py`), the

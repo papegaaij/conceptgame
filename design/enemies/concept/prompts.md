@@ -25,3 +25,10 @@
 
 - **Prompt:** not applicable (comparison sheet).
 - **Mockup generator:** `python3 tools/concept/enemies_r05.py size-lineup`
+
+## size-lineup-r05-b
+
+**Size lineup with the Vrell beasts** — the round-05 size lineup with the Ravager, the Shellback and the Shellback ball added to the first row at native scale (1×). A size and silhouette check, not an asset.
+
+- **Prompt:** not applicable (comparison sheet).
+- **Mockup generator:** `python3 tools/concept/enemies_r05b.py size-lineup`

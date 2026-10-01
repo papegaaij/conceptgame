@@ -3,7 +3,7 @@ title: Act 2 – Homefront
 design: draft
 implementation: not-started
 art: none
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Act 2 – Homefront
@@ -20,7 +20,7 @@ Siege Spire, a Vrell citadel that has rooted itself in the heart of the UTC capi
 | # | Name | Setting | Layers | Directions | Density | Recommended traits | Introduces | Notes | Design |
 |---|---|---|---|---|---|---|---|---|---|
 | 08 | Neon Skyline | [earth](../../world/earth/README.md) – megacity | ground, low-air, air | front | 3 | forward, anti-ground | [Creeper](../../enemies/ground/README.md) walkers crawling over rooftops; city parallax with traffic lanes | Night-time megacity, neon under smoke; Rook joins as AI wingman | idea |
-| 09 | Arcology Fall | [earth](../../world/earth/README.md) – megacity | ground, air | front | 3 | anti-ground, area | [Hive Node](../../enemies/ground/README.md) (hardened spawner) | `destroy-targets`: kill the nodes before the hive spreads over the arcology; nodes left alive keep spawning | idea |
+| 09 | Arcology Fall | [earth](../../world/earth/README.md) – megacity | ground, air | front | 3 | anti-ground, area | [Hive Node](../../enemies/ground/README.md) (hardened spawner); [Ravager](../../enemies/ground/README.md) packs galloping through the ruined streets | `destroy-targets`: kill the nodes before the hive spreads over the arcology; nodes left alive keep spawning | idea |
 | 10 | Evacuation Corridor | [earth](../../world/earth/README.md) – megacity outskirts | air, high-air | rear, front | 3 | rear, forward | [Wraith](../../enemies/air/README.md) rear ambushes; [Mote Swarm](../../enemies/air/README.md) flocks that sweep past, loop round and dive from behind | **First rear-heavy level** (~40% of waves from the bottom edge). `escort`: evacuation shuttles | idea |
 | 11 | Atlantic Convoy | [earth](../../world/earth/README.md) – ocean | ground (naval surface), sub, air | front | 3 | spread, anti-ground | Naval layer: [Driftjelly](../../enemies/naval/README.md), [Reef Spitter](../../enemies/naval/README.md); mid-boss [Harbour Kraken](../../enemies/bosses/README.md) | First glimpse of the `sub` layer (shadows under the waves); anti-sub is optional here | idea |
 | 12 | Storm Front | [earth](../../world/earth/README.md) – ocean storm | air, low-air | all | 4 | homing, spread | [Lamprey](../../enemies/air/README.md); weather: lightning flashes, rain, wind drift | Low visibility; `homing` shines. [Whirl Seed](../../enemies/air/README.md) clusters return, carried by the storm winds | idea |
@@ -88,3 +88,4 @@ Act theme "Homefront", storm variant for L12, boss theme; see [audio](../../audi
 
 - 2026-09-30: Earth megacity names Nova Lagos and Geneva Concord, now recorded as sub-locations in [earth](../../world/earth/README.md).
 - 2026-09-30: Enemy variety pass: new units added to the level rows so the act passes the [variety checklist](../../enemies/README.md#variety-checklist-per-act).
+- 2026-10-01: L09 introduces the Ravager, an animal-like Vrell pack hunter (round 05 follow-up).
