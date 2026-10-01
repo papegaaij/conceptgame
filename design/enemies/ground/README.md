@@ -2,7 +2,7 @@
 title: Ground enemies
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -80,10 +80,10 @@ Concept [round 05](../../concept-rounds/round-05/README.md) — new archetypes, 
 | [concept/warden-tank-r05-a.gif](concept/warden-tank-r05-a.gif) | Warden Tank — Ascendancy tank (white accent): hull 16 headings following a road, turret 32 headings tracking the player, tread marks (motion) | chosen — Ascendancy only (too mechanical for the Vrell) |
 | [concept/strider-r05-a.png](concept/strider-r05-a.png) | Strider — Ascendancy 120 px biped mech (red accent): 8-frame walk cycle, torso at 32 headings twisting to fire shoulder cannons (sheet) | chosen — Ascendancy only (too mechanical for the Vrell) |
 | [concept/strider-r05-a.gif](concept/strider-r05-a.gif) | Strider — Ascendancy 120 px biped mech (red accent): 8-frame walk cycle, torso at 32 headings twisting to fire shoulder cannons (motion) | chosen — Ascendancy only (too mechanical for the Vrell) |
-| [concept/ravager-r05-a.png](concept/ravager-r05-a.png) | Ravager — Vrell pack hunter (rust/teal), 56 px: 16 headings, 8-frame gallop, pounce from ground to apex (sheet); generator `tools/concept/enemies_r05b.py` | proposed |
-| [concept/ravager-r05-a.gif](concept/ravager-r05-a.gif) | Ravager — packs sweeping across lunar regolith, two hunters pouncing at the player's ground position (motion) | proposed |
-| [concept/shellback-r05-a.png](concept/shellback-r05-a.png) | Shellback — armoured Vrell beast (slate/lime), 112 px: 16 headings, 6-frame heavy walk, curl sequence (sheet) | proposed |
-| [concept/shellback-r05-a.gif](concept/shellback-r05-a.gif) | Shellback — lobs spore blobs with marked impacts, curls into a ball and rolls over boulders on a Mars plateau, uncurls (motion) | proposed |
+| [concept/ravager-r05-a.png](concept/ravager-r05-a.png) | Ravager — Vrell pack hunter (rust/teal), 56 px: 16 headings, 8-frame gallop, pounce from ground to apex (sheet); generator `tools/concept/enemies_r05b.py` | chosen |
+| [concept/ravager-r05-a.gif](concept/ravager-r05-a.gif) | Ravager — packs sweeping across lunar regolith, two hunters pouncing at the player's ground position (motion) | chosen |
+| [concept/shellback-r05-a.png](concept/shellback-r05-a.png) | Shellback — armoured Vrell beast (slate/lime), 112 px: 16 headings, 6-frame heavy walk, curl sequence (sheet) | chosen |
+| [concept/shellback-r05-a.gif](concept/shellback-r05-a.gif) | Shellback — lobs spore blobs with marked impacts, curls into a ball and rolls over boulders on a Mars plateau, uncurls (motion) | chosen |
 
 ## Implementation
 
@@ -101,3 +101,4 @@ Concept [round 05](../../concept-rounds/round-05/README.md) — new archetypes, 
 - 2026-09-30: Concept round 04: colour pass on ground enemies with the role colours (r04 proposals).
 - 2026-09-30: Enemy variety pass: size tier column added to every row; new units Scuttler, Threadcrawler, Warden Tank, Strider, Halo Platform, and Dust Devil (roster fork addition).
 - 2026-10-01: Ravager (L09) and Shellback (L17) added: animal-like Vrell ground walkers, after the user found the Warden Tank and Strider too mechanical for the Vrell. Both mechanical units stay Ascendancy; the Warden Tank keeps its unmarked Act 3 hint at L19.
+- 2026-10-01: Concept round 05: Ravager and Shellback concepts chosen ("very nice").

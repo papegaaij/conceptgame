@@ -1,8 +1,8 @@
 ---
 title: Concept round 05 — enemy variety: sizes, multi-part, walkers, spinners, movement
-design: review
+design: approved
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-09-30
 ---
 
@@ -31,10 +31,11 @@ Open [index.html](index.html) in a browser — **watch the GIFs**, they show the
 | 8 | Buzzsaw Drone — spinner | Ricochets with an after-image trail | [enemies/air](../../enemies/air/README.md) | chosen |
 | 9 | Rail Serpent — drone train | Head car + 8 cars on a winding route | [enemies/air](../../enemies/air/README.md) | chosen |
 | 10 | Size range and the new rules | Size lineup; size tiers, multi-part, orientation, movement vocabulary, variety checklist in the enemies doc; 13 new roster units incl. Threadcrawler, Halo Platform, Dust Devil and Spiral Nautilus (no concept art yet) | [enemies](../../enemies/README.md) | accepted |
-| 11 | Ravager — animal-like pack hunter | Hound/raptor-like four-legged beast, gallop cycle, pounces to low-air; first at L09 | [enemies/ground](../../enemies/ground/README.md) | open |
-| 12 | Shellback — armoured beast | Tortoise/armadillo-like, spore mortar, curls into a ball and rolls; first at L17 | [enemies/ground](../../enemies/ground/README.md) | open |
+| 11 | Ravager — animal-like pack hunter | Hound/raptor-like four-legged beast, gallop cycle, pounces to low-air; first at L09 | [enemies/ground](../../enemies/ground/README.md) | chosen |
+| 12 | Shellback — armoured beast | Tortoise/armadillo-like, spore mortar, curls into a ball and rolls; first at L17 | [enemies/ground](../../enemies/ground/README.md) | chosen |
 
 ## Decisions
 
 - 2026-09-30: Round opened.
 - 2026-10-01: Choices 1–10 answered: all archetypes liked; Warden Tank and Strider are too mechanical for the Vrell and stay Ascendancy-only. Follow-up: two animal-like Vrell ground walkers (Ravager, Shellback) added to this round.
+- 2026-10-01: Ravager and Shellback chosen. Round closed.

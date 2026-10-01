@@ -2,7 +2,7 @@
 title: Enemies
 design: draft
 implementation: not-started
-art: proposed
+art: chosen
 updated: 2026-10-01
 ---
 
@@ -23,7 +23,7 @@ directories hold the rosters.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | draft | not-started | chosen |
-| [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | draft | not-started | proposed |
+| [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | draft | not-started | chosen |
 | [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | draft | not-started | none |
 | [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | draft | not-started | chosen |
 | [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | draft | not-started | chosen |
@@ -333,8 +333,8 @@ Concept [round 05](../concept-rounds/round-05/README.md) — size lineup from th
 
 | File | What | Status |
 |---|---|---|
-| [concept/size-lineup-r05-a.png](concept/size-lineup-r05-a.png) | Every round-04 and round-05 unit plus the player at 1×, sorted by area; Coilwyrm, Leviathan and Brood Carrier below | chosen — superseded by r05-b when the animal walkers are added |
-| [concept/size-lineup-r05-b.png](concept/size-lineup-r05-b.png) | Size lineup with the Ravager, Shellback and its curled ball added | proposed |
+| [concept/size-lineup-r05-a.png](concept/size-lineup-r05-a.png) | Every round-04 and round-05 unit plus the player at 1×, sorted by area; Coilwyrm, Leviathan and Brood Carrier below | superseded by r05-b |
+| [concept/size-lineup-r05-b.png](concept/size-lineup-r05-b.png) | Size lineup with the Ravager, Shellback and its curled ball added | chosen |
 
 ## Implementation
 
@@ -382,3 +382,4 @@ Concept [round 05](../concept-rounds/round-05/README.md) — size lineup from th
   Platform, plus Dust Devil and Spiral Nautilus (roster fork's own additions).
 - 2026-09-30: Concept round 04: role colours adopted ("the new colors are much better") — chitin base = role family, glow = kind of threat; Ascendancy black & gold with a per-unit accent and the 1 px gold/red rim light. All r04 re-colours chosen.
 - 2026-10-01: Round 05 review: the new archetypes are liked. Warden Tank and Strider are kept for the Ascendancy (the Warden Tank keeps its unmarked Act 3 hint at L19); two animal-like Vrell ground walkers added — Ravager (Act 2) and Shellback (Act 3).
+- 2026-10-01: Concept round 05 closed: Ravager and Shellback chosen; size lineup r05-b is the reference.
