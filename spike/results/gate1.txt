@@ -1,0 +1,12 @@
+[gl] NVIDIA GeForce RTX 2070/PCIe/SSE2 / 4.6.0 NVIDIA 580.178.04
+=== benchmark: scene PLAY, vsync false, 1920x1080, OpenJDK 64-Bit Server VM 21.0.12.1+1-1-26.04.4-Ubuntu
+frames            320074 in 60.0 s (5335 fps)
+frame time ms     p50 0.174  p95 0.212  p99 0.490  p99.9 0.870  max 61.034
+frames > 16.7 ms  3
+render thread     17024944 bytes allocated (53.2 bytes/frame, 277.1 KB/s)
+gc                1 collections, 2 ms total (G1 Young Generation + G1 Concurrent GC + G1 Old Generation)
+load              150 enemies, avg 334 bullets + 310 sparks = 645 glowing sprites
+halo platform     768 frames on 10 pages of 2048x2048, video memory 159.9 MiB
+sfx               3290 plays, 0 without a free source
+simulation        3720 steps, score 218700, retries 6, state hash e17610307e1c81f0
+[replay] recorded 3720 steps to sim/src/test/resources/replay/autopilot-2185.rec, final state hash e17610307e1c81f0

@@ -1,0 +1,9 @@
+[gl] NVIDIA GeForce RTX 2070/PCIe/SSE2 / 4.6.0 NVIDIA 580.178.04
+=== benchmark: scene SFX, vsync true, 1920x1080, OpenJDK 64-Bit Server VM 21.0.12.1+1-1-26.04.4-Ubuntu
+frames            600 in 10.0 s (60 fps)
+frame time ms     p50 16.667  p95 16.773  p99 16.815  p99.9 16.848  max 16.848
+frames > 16.7 ms  299
+render thread     324328 bytes allocated (540.5 bytes/frame, 31.7 KB/s)
+gc                0 collections, 0 ms total (G1 Young Generation + G1 Concurrent GC + G1 Old Generation)
+frames > 25 ms    none
+sfx               12 bursts of 32, 384 plays, 0 without a free source

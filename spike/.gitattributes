@@ -1,0 +1,5 @@
+# Keep scripts and the replay recording byte-identical on every OS (CI runs on Windows too).
+gradlew text eol=lf
+*.bat text eol=crlf
+*.rec text eol=lf
+*.jar binary

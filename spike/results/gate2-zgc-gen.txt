@@ -1,0 +1,12 @@
+[gl] NVIDIA GeForce RTX 2070/PCIe/SSE2 / 4.6.0 NVIDIA 580.178.04
+=== benchmark: scene PLAY, vsync false, 1920x1080, OpenJDK 64-Bit Server VM 21.0.12.1+1-1-26.04.4-Ubuntu
+frames            1612407 in 300.0 s (5375 fps)
+frame time ms     p50 0.174  p95 0.201  p99 0.553  p99.9 0.638  max 5.316
+frames > 16.7 ms  0
+render thread     123336600 bytes allocated (76.5 bytes/frame, 401.5 KB/s)
+gc                30 collections, 102 ms total (ZGC Minor Cycles + ZGC Minor Pauses + ZGC Major Cycles + ZGC Major Pauses)
+slow frames       none
+load              150 enemies, avg 338 bullets + 317 sparks = 656 glowing sprites
+halo platform     768 frames on 10 pages of 2048x2048, video memory 159.9 MiB
+sfx               16174 plays, 0 without a free source
+simulation        18120 steps, score 1080700, retries 37, state hash 9db83f616862f608

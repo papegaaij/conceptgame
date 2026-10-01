@@ -1,0 +1,9 @@
+[gl] NVIDIA GeForce RTX 2070/PCIe/SSE2 / 4.6.0 NVIDIA 580.178.04
+[halo] 768 frames on 10 pages of 2048x2048, video memory 161.4 MiB
+=== benchmark: scene HALO, vsync true, 1920x1080, OpenJDK 64-Bit Server VM 21.0.12.1+1-1-26.04.4-Ubuntu
+frames            1200 in 20.0 s (60 fps)
+frame time ms     p50 16.669  p95 16.783  p99 16.836  p99.9 21.045  max 28.060
+frames > 16.7 ms  620
+render thread     119152 bytes allocated (99.3 bytes/frame, 5.8 KB/s)
+gc                0 collections, 0 ms total (G1 Young Generation + G1 Concurrent GC + G1 Old Generation)
+halo platform     768 frames on 10 pages of 2048x2048, video memory 161.4 MiB

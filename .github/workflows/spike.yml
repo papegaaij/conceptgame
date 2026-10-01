@@ -1,0 +1,54 @@
+# Builds the libGDX tech spike and runs its tests on all three desktop OSes. The replay test
+# compares a recorded run's state hash, so a green matrix means the simulation is deterministic
+# across Linux, Windows and macOS (gate 7).
+name: spike
+
+on:
+  push:
+    branches: [spike/libgdx]
+    paths: ["spike/**", ".github/workflows/spike.yml"]
+  pull_request:
+    paths: ["spike/**", ".github/workflows/spike.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: spike
+    steps:
+      - uses: actions/checkout@v5
+
+      # Only the two LFS files the build reads: the halo sheet (atlas generator) and the music
+      # track (loop test). Pulling the whole design tree would waste LFS bandwidth.
+      - name: Fetch LFS assets used by the build
+        working-directory: .
+        run: >-
+          git lfs pull --include="design/enemies/ground/concept/halo-platform-r07-a.png,design/audio/music/concept/coalition-rising-full-r08-a.ogg"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Test
+        run: ./gradlew test
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.os }}
+          path: spike/**/build/reports/tests/

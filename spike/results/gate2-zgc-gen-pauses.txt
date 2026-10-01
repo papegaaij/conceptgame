@@ -1,0 +1,40 @@
+[0,522s][info][gc,phases   ] GC(0) Y: Pause Mark Start (Major) 0,012ms
+[0,524s][info][gc,phases   ] GC(0) Y: Pause Mark End 0,004ms
+[0,528s][info][gc,phases   ] GC(0) Y: Pause Relocate Start 0,004ms
+[0,530s][info][gc,phases   ] GC(0) O: Pause Mark End 0,005ms
+[0,539s][info][gc,phases   ] GC(0) O: Pause Relocate Start 0,003ms
+[0,799s][info][gc,phases   ] GC(1) Y: Pause Mark Start (Major) 0,009ms
+[0,802s][info][gc,phases   ] GC(1) Y: Pause Mark End 0,005ms
+[0,872s][info][gc,phases   ] GC(1) Y: Pause Relocate Start 0,009ms
+[0,874s][info][gc,phases   ] GC(1) O: Pause Mark End 0,007ms
+[0,950s][info][gc,phases   ] GC(1) O: Pause Relocate Start 0,008ms
+[1,320s][info][gc,phases   ] GC(2) Y: Pause Mark Start (Major) 0,009ms
+[1,323s][info][gc,phases   ] GC(2) Y: Pause Mark End 0,004ms
+[1,326s][info][gc,phases   ] GC(2) Y: Pause Relocate Start 0,004ms
+[1,329s][info][gc,phases   ] GC(2) O: Pause Mark End 0,005ms
+[1,339s][info][gc,phases   ] GC(2) O: Pause Relocate Start 0,004ms
+[13,501s][info][gc,phases   ] GC(3) Y: Pause Mark Start (Major) 0,010ms
+[13,504s][info][gc,phases   ] GC(3) Y: Pause Mark End 0,005ms
+[13,506s][info][gc,phases   ] GC(3) Y: Pause Relocate Start 0,003ms
+[13,511s][info][gc,phases   ] GC(3) O: Pause Mark End 0,005ms
+[13,524s][info][gc,phases   ] GC(3) O: Pause Relocate Start 0,005ms
+[80,415s][info][gc,phases   ] GC(4) Y: Pause Mark Start (Major) 0,009ms
+[80,418s][info][gc,phases   ] GC(4) Y: Pause Mark End 0,005ms
+[80,420s][info][gc,phases   ] GC(4) Y: Pause Relocate Start 0,003ms
+[80,425s][info][gc,phases   ] GC(4) O: Pause Mark End 0,005ms
+[80,435s][info][gc,phases   ] GC(4) O: Pause Relocate Start 0,004ms
+[147,091s][info][gc,phases   ] GC(5) Y: Pause Mark Start (Major) 0,009ms
+[147,092s][info][gc,phases   ] GC(5) Y: Pause Mark End 0,005ms
+[147,094s][info][gc,phases   ] GC(5) Y: Pause Relocate Start 0,003ms
+[147,099s][info][gc,phases   ] GC(5) O: Pause Mark End 0,005ms
+[147,108s][info][gc,phases   ] GC(5) O: Pause Relocate Start 0,004ms
+[214,415s][info][gc,phases   ] GC(6) Y: Pause Mark Start (Major) 0,009ms
+[214,417s][info][gc,phases   ] GC(6) Y: Pause Mark End 0,004ms
+[214,419s][info][gc,phases   ] GC(6) Y: Pause Relocate Start 0,003ms
+[214,425s][info][gc,phases   ] GC(6) O: Pause Mark End 0,005ms
+[214,435s][info][gc,phases   ] GC(6) O: Pause Relocate Start 0,004ms
+[281,652s][info][gc,phases   ] GC(7) Y: Pause Mark Start (Major) 0,009ms
+[281,654s][info][gc,phases   ] GC(7) Y: Pause Mark End 0,004ms
+[281,655s][info][gc,phases   ] GC(7) Y: Pause Relocate Start 0,003ms
+[281,659s][info][gc,phases   ] GC(7) O: Pause Mark End 0,005ms
+[281,669s][info][gc,phases   ] GC(7) O: Pause Relocate Start 0,004ms
