@@ -24,17 +24,17 @@ below.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [pulse-cannon](pulse-cannon/README.md) | Pulse Cannon — Front, forward; DPS 20 → 70; starter; start | approved | done | final |
-| [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | approved | done | chosen |
-| [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | approved | done | chosen |
-| [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | approved | done | chosen |
+| [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | approved | done | final |
+| [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | approved | done | final |
+| [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | approved | done | final |
 | [hornet-launcher](hornet-launcher/README.md) | Hornet Launcher — Front, homing; DPS 15 → 60; 2 000; L10 | approved | not-started | chosen |
-| [side-splitter](side-splitter/README.md) | Side Splitter — Rear, side; DPS 12 → 40; 1 400; L05 | approved | done | chosen |
+| [side-splitter](side-splitter/README.md) | Side Splitter — Rear, side; DPS 12 → 40; 1 400; L05 | approved | done | final |
 | [tail-gun](tail-gun/README.md) | Tail Gun — Rear, rear; DPS 10 → 35; 600; L08 | approved | not-started | chosen |
 | [fan-blaster](fan-blaster/README.md) | Fan Blaster — Rear, rear, spread; DPS 10.2 → 40; 1 200; L10 | approved | not-started | chosen |
 | [proximity-mines](proximity-mines/README.md) | Proximity Mines — Rear, rear, area; DPS 20 → 70; 1 500; L12 | approved | not-started | chosen |
-| [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | approved | done | chosen |
-| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | approved | done | chosen |
-| [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | approved | done | chosen |
+| [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | approved | done | final |
+| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | approved | done | final |
+| [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | approved | done | final |
 | [swivel-gun](swivel-gun/README.md) | Swivel Gun — Wing (per pod), side, homing; DPS 8 → 26; 1 500; L09 | approved | not-started | chosen |
 | [torpedo-pod](torpedo-pod/README.md) | Torpedo Pod — Wing (per pod), anti-sub; DPS 10 → 32; 1 000; L11 | approved | not-started | chosen |
 
@@ -131,9 +131,9 @@ Concept [round 14](../../concept-rounds/round-14/README.md) — the Act 1 arsena
 
 | File | What | Status |
 |---|---|---|
-| [concept/weapons-final-r14-a.png](concept/weapons-final-r14-a.png) | Final effects: the Scatter Vulcan, Autocannon and Side Splitter shots at every angle their patterns use, the lance per level, the micro-missile at 32 headings, the bomb and the shell, the ballistic and launcher muzzle flashes, the ballistic and explosive impacts (sheet) | proposed |
-| [concept/weapons-final-r14-a.gif](concept/weapons-final-r14-a.gif) | The Stormhawk firing the fan, the pods and the side guns, a missile turning through its headings (motion) | proposed |
-| [concept/weapons-capture-final-r14-a.png](concept/weapons-capture-final-r14-a.png) | Game captures of Level 01 with `--loadout`: Vulcan, Side Splitter and bombs; the Lance and two missile pods; the Mortar, bombs and the Autocannon | proposed |
+| [concept/weapons-final-r14-a.png](concept/weapons-final-r14-a.png) | Final effects: the Scatter Vulcan, Autocannon and Side Splitter shots at every angle their patterns use, the lance per level, the micro-missile at 32 headings, the bomb and the shell, the ballistic and launcher muzzle flashes, the ballistic and explosive impacts (sheet) | chosen |
+| [concept/weapons-final-r14-a.gif](concept/weapons-final-r14-a.gif) | The Stormhawk firing the fan, the pods and the side guns, a missile turning through its headings (motion) | chosen |
+| [concept/weapons-capture-final-r14-a.png](concept/weapons-capture-final-r14-a.png) | Game captures of Level 01 with `--loadout`: Vulcan, Side Splitter and bombs; the Lance and two missile pods; the Mortar, bombs and the Autocannon | chosen |
 
 ## Implementation
 
@@ -174,3 +174,4 @@ Concept [round 14](../../concept-rounds/round-14/README.md) — the Act 1 arsena
   recommends, shown from sensor L3 on (the level at which the intel reveals the recommendation).
   Only the Pulse Cannon flies so far; the others fly from M4.
 - 2026-10-02: M4 part A built (user decisions at the part's start: a `--loadout` debug option to fly them on Level 01; the micro-missile's `range` is its seek radius and it lives 1.2 s; missiles seek enemies only and the mortar snaps to destructible ground targets, never a secret's beacon; the effects come from a production generator, reviewed in round 14). The simulation flies every weapon whose delivery it knows (bolts, homing, dropped, lobbed): the Act 1 arsenal, and the Act 2 Tail Gun, Fan Blaster, Hornet Launcher and Swivel Gun with borrowed effects until their levels; the mines and the Torpedo Pod do not fly yet.
+- 2026-10-02: Concept round 14 closed (user decision): the Act 1 arsenal's effects approved as **final**; the seven weapons have `art: final`. This doc's `art` stays `chosen` while the Act 2 weapons have concept art only.

@@ -2,7 +2,7 @@
 title: Hammer Mortar
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-02
 ---
@@ -69,3 +69,4 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - 2026-10-02: M4 part A (user decision): the auto-aim snaps to destructible ground targets, loot containers included, never to a secret's beacon (the blast still hits a beacon in range); the landing point is fixed on the ground at release. `flight` and `snap` added to the data.
 - 2026-10-02: M4 part A: flies in the simulation (`vanguard.sim.WeaponSpec` built by `SimSpecs.weapon`), with its effects from `tools/art/weapon_fx.py` and its family's sound; the effects are proposed as final in [concept round 14](../../../concept-rounds/round-14/README.md).
 - 2026-10-02: No landing reticle (user decision, round 14): a shell lands on the ground spot that was 200 px ahead when it was fired, which has scrolled down by the time it lands, so crosshairs drawn ahead of the ship read as "the shells fall short"; the auto-aim snap does the aiming instead.
+- 2026-10-02: Concept round 14 closed (user decision): its effects (`tools/art/weapon_fx.py`) approved as **final**, `art: final`.

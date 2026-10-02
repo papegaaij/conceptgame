@@ -2,7 +2,7 @@
 title: Lance Laser
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-02
 ---
@@ -67,3 +67,4 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
 - 2026-10-02: Numbers moved into [data.yaml](data.yaml) (M2 data files); the property and per-level tables are rendered from it by `tools/sync_tables.py`.
 - 2026-10-02: M4 part A: flies in the simulation (`vanguard.sim.WeaponSpec` built by `SimSpecs.weapon`), with its effects from `tools/art/weapon_fx.py` and its family's sound; the effects are proposed as final in [concept round 14](../../../concept-rounds/round-14/README.md).
+- 2026-10-02: Concept round 14 closed (user decision): its effects (`tools/art/weapon_fx.py`) approved as **final**, `art: final`.

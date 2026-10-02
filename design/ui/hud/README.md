@@ -156,7 +156,7 @@ Concept [round 14](../../concept-rounds/round-14/README.md) — the right panel 
 
 | File | What | Status |
 |---|---|---|
-| [concept/hud-capture-final-r14-a.png](concept/hud-capture-final-r14-a.png) | Game capture of Level 01 with `--loadout` (Hammer Mortar, Bomb Rack, Autocannon Pod, Side Splitter): the power row and the four weapon rows with pips and the overdrive timer | proposed |
+| [concept/hud-capture-final-r14-a.png](concept/hud-capture-final-r14-a.png) | Game capture of Level 01 with `--loadout` (Hammer Mortar, Bomb Rack, Autocannon Pod, Side Splitter): the power row and the four weapon rows with pips and the overdrive timer | chosen |
 
 ## Implementation
 
@@ -269,3 +269,4 @@ Concept [round 14](../../concept-rounds/round-14/README.md) — the right panel 
   Okafor's level-end "…The rest are coming." grim; the rest neutral.
 - 2026-10-02: Concept round 13 closed (user decision): the HUD's production metal parts (side-panel plates, label plate, LCD and portrait wells, phosphor fill, readout glow; `tools/art/hud.py`) approved as **final**, `art: final`.
 - 2026-10-02: M4 part A: the right panel shows the power row (spare power as a bar, the regen bonus as a number, glowing amber during an overdrive), a weapons box with one row per slot (F, R, L, R as in the mock: the weapon's name, a pod named by what it fires, and five level pips) and the overdrive timer row (ten pips and the seconds left). "Not yet available" now lists only the special and the utility modules.
+- 2026-10-02: Concept round 14 closed (user decision): the right panel with the power row, the weapon rows and the overdrive timer approved as final.
