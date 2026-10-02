@@ -59,7 +59,7 @@ shield regeneration or lowers fire rate. It is a reward, not a risk.
 ## Implementation
 
 - [x] Generator models and output values in the item data
-- [ ] Load vs output check in the hangar with a projected-load bar
+- [x] Load vs output check in the hangar with a projected-load bar
 - [ ] Spare-power shield regen bonus
 
 ## Open questions
@@ -74,3 +74,6 @@ shield regeneration or lowers fire rate. It is a reward, not a risk.
 - 2026-10-01: Overdrive ignores the power cap (user accepted the recommendation).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-02: The generator models and the spare-power bonus moved into [data.yaml](data.yaml) (M2 data files); the model table is rendered from it.
+- 2026-10-02: M3 part B2: generators are bought in the hangar (the old one goes to the inventory);
+  a smaller one cannot be fitted while the load exceeds its output. The power bar shows the load,
+  the projected load of the selected choice (red when it would not fit) and the output.

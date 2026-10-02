@@ -86,7 +86,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
   (primary, alternative, gamepad for move up/down/left/right, fire, special, precision, dash and
   pause; the move actions keep the stick and the D-pad), auto-fire, stick dead zone (5–50 %,
   default 20 %) and reset to defaults; see [controls](../controls/README.md). Gameplay: text speed
-  (10–90 characters/s, default 30: the radio's typing), screen shake (0–100 %, stored only: the game
+  (10–90 characters/s, default 30: the radio's typing; briefings type at twice it), screen shake (0–100 %, stored only: the game
   has no screen shake yet) and flash reduction (the white hit flash of loot targets and the ship's
   invulnerability blink at 35 %). Settings file keys: `video.scaling` (`integer` /
   `sharp-bilinear`), `video.scanlines`, `audio.master|music|effects|radio` (0..1),
@@ -97,3 +97,5 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
   The sound test is not built yet (new open item). The mock's extra rows (resolution, VSync,
   brightness, interface volume, music style, floating credit numbers, radio subtitle box, HUD
   brightness, pause on focus loss, language) are not in this document and were not built.
+- 2026-10-02: The text speed is the radio's; briefings type at twice it (user decision, see
+  [briefing](../briefing/README.md)).

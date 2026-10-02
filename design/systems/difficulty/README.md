@@ -59,7 +59,7 @@ the single source of the global levers; enemy stat blocks only add overrides (se
 
 - [x] Difficulty stored in the save and applied through a single table
 - [ ] Per-bullet difficulty tags in pattern data
-- [ ] Easy-mode intel bonus
+- [x] Easy-mode intel bonus
 
 ## Open questions
 
@@ -94,3 +94,5 @@ the single source of the global levers; enemy stat blocks only add overrides (se
 - 2026-10-02: M3 part B1: the difficulty is part of the campaign state and its saves; the level is
   built at the campaign's difficulty. Hard's 3 retries per level are counted by the campaign (see
   [retry](../retry/README.md)).
+- 2026-10-02: M3 part B2: the hangar charges the repair cost per armour point and adds the sensor
+  bonus (easy +1) to the intel's sensor level.

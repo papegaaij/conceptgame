@@ -18,6 +18,7 @@ import vanguard.sim.PlayField;
  * @param pickups pickups placed by the script (normal drops come from the enemies)
  * @param radio the radio chatter
  * @param backdrop the parallax layers behind and above the play plane
+ * @param threatProfile what the hangar intel panel shows before the level (design/ui/hangar)
  * @param briefing the mission briefing before the level (design/ui/briefing)
  */
 public record LevelData(
@@ -34,6 +35,7 @@ public record LevelData(
         Music music,
         Difficulties difficulty,
         BackdropData backdrop,
+        ThreatProfile threatProfile,
         Briefing briefing) {
     public LevelData {
         Check.positive("scroll_speed", scrollSpeed);
@@ -317,6 +319,53 @@ public record LevelData(
     public record Music(int track, int startSection, int fullSection, String ambience, String endJingle) {
         public Music {
             Check.that(startSection <= fullSection, "full_section must not come before start_section");
+        }
+    }
+
+    /**
+     * The level's threat profile (design/campaign, level template; design/player/systems, Sensor
+     * levels and hangar intel); the attack directions, enemy types, waves and secrets are derived
+     * from the script.
+     *
+     * @param layers the dominant gameplay layers
+     * @param density 1–5
+     * @param traits the recommended weapon traits
+     * @param boss the boss or mid-boss, {@code none} without one
+     * @param specials the special availability, where the level limits it ("No air support under the ice")
+     * @param varga Dr. Varga's intel line per sensor level: {@code none}, {@code l1}, {@code l2}, {@code l3}
+     */
+    public record ThreatProfile(
+            String setting,
+            List<String> layers,
+            int density,
+            List<String> traits,
+            List<String> hazards,
+            String boss,
+            Optional<String> specials,
+            Map<String, String> varga) {
+        /** The keys of Varga's lines, from no sensor suite to L3. */
+        public static final List<String> SENSOR_KEYS = List.of("none", "l1", "l2", "l3");
+
+        public ThreatProfile {
+            Check.that(density >= 1 && density <= 5, "density: 1–5, was " + density);
+            Check.that(
+                    SENSOR_KEYS.containsAll(varga.keySet()),
+                    "varga: keys are " + SENSOR_KEYS + ", found " + varga.keySet());
+            layers = List.copyOf(layers);
+            traits = List.copyOf(traits);
+            hazards = List.copyOf(hazards);
+            varga = Map.copyOf(varga);
+        }
+
+        /** Varga's line for a sensor level (0–3): the one of the highest level at or below it. */
+        public Optional<String> vargaLine(int sensor) {
+            for (int level = sensor; level >= 0; level--) {
+                String line = varga.get(SENSOR_KEYS.get(level));
+                if (line != null) {
+                    return Optional.of(line);
+                }
+            }
+            return Optional.empty();
         }
     }
 

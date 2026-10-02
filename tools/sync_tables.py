@@ -323,8 +323,9 @@ def directions(level):
 
 def threat_profile(d):
     level = data(d)
-    values = {"directions": directions(level)}
-    rows = [[field, fill(text, values)] for field, text in level["notes"]["threat_profile"].items()]
+    profile = level["threat_profile"]
+    values = {**profile, "directions": directions(level), "traits": ", ".join(f"`{t}`" for t in profile["traits"])}
+    rows = [[field, fill(text, values)] for field, text in profile["notes"].items()]
     return table(["Field", "Value"], rows)
 
 

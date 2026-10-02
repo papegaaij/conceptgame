@@ -335,3 +335,7 @@ in `assets/backdrop/level-01/` changed; every other piece is byte-identical.
   A with every warning, and the music plays the base stem from section 2 and the full mix from
   section 4 (round 11 choices). The level is flown from the campaign: its armour at the start is the
   campaign's, a destroyed ship leads to the mission failed screen, and a won level is banked.
+- 2026-10-02: M3 part B2: the threat profile is structured data now (`threat_profile` in
+  [data.yaml](data.yaml): setting, layers, density, traits, hazards, boss, Varga's no-sensor line,
+  with the table's rows as notes that use them), read by the hangar intel; the table renders the
+  same text.

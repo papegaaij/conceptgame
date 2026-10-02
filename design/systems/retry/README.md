@@ -19,16 +19,23 @@ charges are all restored. Whatever was earned in the failed attempt is lost. The
 
 ### On destruction
 
-1. Death explosion, slow-motion for 1 s, music cuts to the failure sting.
+1. Death explosion, slow-motion for 1 s, music cuts to the failure sting. The mission failed
+   screen follows **3 s** after the destruction (the explosion, the slow motion and the start of
+   the sting).
 2. **Mission failed** screen with Okafor's portrait and a short line
    ("Pull back, Lancer. Regroup and try again."). Options:
    - **Retry**: restart the level immediately with the level-start state.
    - **Back to hangar**: return to the hangar with the level-start state, to change the
      loadout. Purchases there are normal purchases. Then launch again.
    - **Quit to main menu**: progress since the last save is lost (confirmation).
-3. On hard, the screen shows the retries left (3 per level). With none left the
-   campaign ends: game over screen, high-score entry, back to the main menu, where the last save
-   can be loaded.
+3. On hard, the screen shows the retries left (3 per level). The failure **uses its retry at
+   once** and the autosave is written then, so quitting from this screen and continuing cannot
+   give it back. With none left the campaign ends: game over screen, high-score entry, back to the
+   main menu, where the last save can be loaded.
+4. From the pause menu, **Restart mission** and **Abort to hangar** each use a retry on hard too
+   (otherwise aborting just before dying would be a free retry); with no retry left both are
+   disabled. A restart writes the autosave like a failure; an abort opens the hangar, which
+   autosaves.
 
 ### Boss checkpoint (easy and medium)
 
@@ -63,14 +70,10 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 
 ## Open questions
 
-- Abort to hangar from the pause menu is "same as Back to hangar after a failure": does it use a
-  hard-mode retry? Built: yes (like Restart), otherwise aborting just before dying would be a free
-  retry; with no retry left, Restart and Abort are disabled.
-- On hard, quitting to the main menu from the mission failed screen and continuing the autosave
-  restores the retries the hangar visit had: progress since the last save is lost as the pause menu
-  says, but so are the used retries. Accept, or store the retries outside the saves?
-- From the ship's destruction to the mission failed screen: built as 3 s (the explosion, the 1 s
-  slow motion and the start of the sting); the document gives no time.
+- On hard, the game over comes from an attempt with no retry left; the autosave written at the
+  failure before it holds 0 retries, so Continue after a game over gives that level's last
+  attempt again (before B2 it gave all three back). Delete or mark the autosave at game over, or
+  accept "reload the last save" as it is?
 
 ## Decisions
 
@@ -96,3 +99,7 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
   snapshot item stays open, and the game over screen's last transmission (no text yet) and top-10
   name entry. The Level 01 replay keeps its state hash (`e602b2264976076f`): the recorded run
   never loses the ship.
+- 2026-10-02: User decisions: Abort to hangar uses a hard-mode retry (as built); the used retries
+  are written to the autosave the moment an attempt fails (`Campaign.fail()` uses the retry,
+  `LevelScreen` autosaves; the pause menu's restart autosaves too); 3 s from the destruction to
+  the mission failed screen. The three open questions are closed.

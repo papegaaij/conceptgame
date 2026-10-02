@@ -19,7 +19,9 @@ slot. "Load game" in the main menu lists them. There is no mid-level saving: a l
 
 ### When
 
-- **Autosave**: every time the hangar opens (after a debrief, or after "back to hangar").
+- **Autosave**: every time the hangar opens (after a debrief, or after "back to hangar"), when the
+  player quits from the hangar to the main menu, and when an attempt fails or is restarted (so a
+  used hard-mode retry is kept, see [retry](../retry/README.md)).
 - **Manual save**: from the hangar's Save tab, into one of 8 slots (overwrite with
   confirmation).
 - **Continue** in the main menu loads the most recent save of any kind.
@@ -36,7 +38,7 @@ A versioned document (engine-agnostic; for example JSON):
 | `nextLevel` | Level number 1–50 (and act) |
 | `credits`, `score` | |
 | `loadout` | Fitted item per slot, with upgrade level |
-| `inventory` | Owned unfitted items with upgrade levels |
+| `inventory` | Owned unfitted items with upgrade levels, by kind (front, rear, wing, generator, shield, plating, engine, utility) |
 | `unlocks` | Shop items unlocked (by act, data cores or story) |
 | `specials` | Charges per special type |
 | `armour` | Current armour (repair is not automatic) |
@@ -83,3 +85,10 @@ the act.
   confirmation); the slot list is the one of the main menu's Load game. Storage per *Files* above;
   the document did not say where, so the saves sit next to the settings. Tests: round trip, newer,
   unknown and missing versions, malformed files, a failed write leaving the old save untouched.
+- 2026-10-02: M3 part B2: the inventory is saved by kind (`{"WING": [{"item": "autocannon-pod",
+  "level": 1}], …}`), because the shields' and the engines' model names are the same (`Mk I`…);
+  still format version 1, as B1's format was never released (a B1 test save with an empty
+  inventory list reads as unreadable). The autosave is also written when the player quits from the
+  hangar (the quit dialog promises the visit is kept), when an attempt fails and when it is
+  restarted (user decision: the used retry must not come back by quitting). Test: a fitted loadout
+  with inventory, a new plating and its armour survive the round trip.

@@ -12,6 +12,7 @@ import vanguard.content.ContentLoader;
 import vanguard.content.Difficulty;
 import vanguard.content.campaign.Campaign;
 import vanguard.content.campaign.CampaignRules;
+import vanguard.content.campaign.Catalogue;
 import vanguard.content.campaign.SaveSlots;
 import vanguard.game.audio.Mixer;
 import vanguard.game.audio.Sfx;
@@ -53,6 +54,8 @@ public final class GameServices implements Disposable {
 
     public final Content content;
     public final CampaignRules campaignRules;
+    /** What the hangar shop sells, with its sell-back and repair rules. */
+    public final Catalogue catalogue;
     /** The save slots in the saves directory next to the settings file. */
     public final SaveSlots saves;
 
@@ -90,6 +93,7 @@ public final class GameServices implements Disposable {
         menu = new MenuInput(input);
         content = ContentLoader.fromClasspath();
         campaignRules = CampaignRules.of(content);
+        catalogue = Catalogue.of(content);
         this.saves = saves;
         sprites = new Sprites(files);
         mixer = new Mixer(settings.audio());

@@ -165,7 +165,10 @@ first entry of a part's model list is the starter (price 0, `start`).
   `distorted`); `objectives` (`primary`, `secondary` `kill_ratio` and `credits`); `music`
   (`track`, `start_section`, `full_section`, `ambience`, `end_jingle`); `difficulty` (level-wide
   `easy` / `hard` enemy changes such as `burst`, and `extra_pickups` placed like `pickups`);
-  `notes.threat_profile` (the *Threat profile* rows; `{directions}` is derived); `briefing`
+  `threat_profile` (the hangar intel: `setting`, `layers`, `density` 1–5, recommended `traits`,
+  `hazards`, `boss`, optional `specials` limits, `varga` lines per sensor level `none`/`l1`/`l2`/
+  `l3`, and `notes` with the *Threat profile* rows, where `{directions}` is derived and the other
+  `{fields}` come from the profile); `briefing`
   (`pages` of `speaker` and `line`, and the hangar `teaser`, rendered into *Briefing*); `backdrop`
   (presentation only, see below). The credit budget
   table is derived: kills × bounties, ground targets, crates, the secondary objective, against
@@ -410,3 +413,16 @@ Screenshot tests are left out until there is a need.
   the campaign's armour and the constructor takes the first attempt's armour. New data files: the
   act's `data.yaml` and `systems/retry/data.yaml`; level data gained `briefing`; `sync_tables.py`
   renders the briefings (`briefing`, `teaser`, `act-title-card`, `act-briefing`).
+- 2026-10-02: M3 part B2. `vanguard.content.campaign` gained the hangar's rules: `ItemKind` (what
+  fits a slot), `Gear` (the immutable credits, loadout, inventory by kind, charges and armour the
+  hangar changes; the visit's undo keeps one per transaction), `Catalogue` (every shop item from
+  the data with price, upgrades, draw per level, unlock, traits and shown numbers; sell-back,
+  repair cost and sensor bonus), `Hangar` (a visit: shop rows with their choices and refusals,
+  buy / upgrade / fit / unfit / sell / charge, repair, undo, load and output, sensor level),
+  `Intel` (the next level's threat profile and what the sensor level shows) and `Flight` (what a
+  sortie flies of the loadout: `SimSpecs.loadout(engine, Pulse Cannon level, shield, plating)`).
+  `game` gained `vanguard.game.hangar`: `HangarState` (the screen's focus and keys, headless and
+  tested), `HangarView` with `ShopPanel`, `LoadoutPanel`, `IntelPanel` and the code-drawn
+  `TacticalMap`, and `Names`. `sim`: `PulseCannon.pattern` fires a level's parallel bolts (the
+  replay hash is unchanged at L1). Level data: `threat_profile` is structured (above); the save's
+  inventory is a map by kind.

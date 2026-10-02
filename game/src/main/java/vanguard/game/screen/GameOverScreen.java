@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import vanguard.content.campaign.Campaign;
 import vanguard.game.GameServices;
 import vanguard.game.audio.Sfx;
+import vanguard.game.hangar.Names;
 import vanguard.game.render.PixelScreen;
 import vanguard.game.ui.Glass;
 
@@ -56,8 +57,8 @@ public final class GameOverScreen implements GameScreen {
         String[][] rows = {
             {"DIFFICULTY", campaign.difficulty().name()},
             {"ENDED IN", mission},
-            {"SCORE", HangarScreen.grouped(campaign.score())},
-            {"KILLS", HangarScreen.grouped(campaign.kills())},
+            {"SCORE", Names.grouped(campaign.score())},
+            {"KILLS", Names.grouped(campaign.kills())},
             {"SHIPS LOST", Integer.toString(campaign.deaths())},
             {"PLAYTIME", SlotsScreen.playtime(campaign.playtime())}
         };

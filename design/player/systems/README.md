@@ -71,9 +71,9 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
 
 ## Implementation
 
-- [ ] Engine speed per model
+- [x] Engine speed per model
 - [ ] Utility bays (2, third purchasable) and module effects
-- [ ] Sensor level controls the intel panel detail
+- [x] Sensor level controls the intel panel detail
 - [ ] Underwater penalties and the pressure hull
 
 ## Open questions
@@ -91,3 +91,8 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
 - 2026-10-01: Targeting computer: unlocked from L07 by the L06 data core (one act early), per the data-core rule in economy.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-02: The engines and utility modules moved into [data.yaml](data.yaml) (M2 data files); both tables are rendered from it.
+- 2026-10-02: M3 part B2: engines and utility modules are sold in the hangar; the fitted engine's
+  speed flies. The intel shows what the best fitted sensor suite's level plus the difficulty's
+  sensor bonus (easy +1) allows, at most L3 (`vanguard.content.campaign.Intel`). Two utility bays;
+  the same module may be fitted in both (the document does not forbid it). The modules' flight
+  effects (magnet, scanner, threat arrows, …) and the third bay (Act 3) follow.

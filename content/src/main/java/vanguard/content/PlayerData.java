@@ -1,6 +1,7 @@
 package vanguard.content;
 
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -18,6 +19,19 @@ public record PlayerData(
         availability = Map.copyOf(availability);
         Check.positive("pickup_seconds", pickupSeconds);
         Check.positive("pickup_drift_speed", pickupDriftSpeed);
+    }
+
+    /** The level from whose hangar visit an item with this availability is in the shop: 2 for {@code act 1}, 22 for {@code L22}. */
+    public int firstLevel(String available) {
+        Integer level = availability.get(available);
+        if (level != null) {
+            return level;
+        }
+        Matcher matcher = LEVEL.matcher(available);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("unknown availability '" + available + "'");
+        }
+        return Integer.parseInt(matcher.group(1));
     }
 
     /** Whether {@code available} is an availability key or an exact level ({@code L22}). */

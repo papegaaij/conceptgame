@@ -60,8 +60,9 @@ announces it).
 ### Act intro and outro
 
 Format: [briefing screen](../../ui/briefing/README.md) (act briefings may be longer than level
-briefings). Order at a new game: title card → act briefing → first hangar visit (300 starting
-credits) → L01 mission briefing → L01.
+briefings). Order at a new game: title card → act briefing → L01 mission briefing → first hangar
+visit (300 starting credits) → L01, as the [ui](../../ui/README.md) screen flow puts every mission
+briefing before its hangar visit.
 
 **Title card** (over a still of the Gagarin shipyards at dawn, Earth's terminator behind):
 
@@ -179,13 +180,7 @@ and *Act complete*.
 
 ## Open questions
 
-- *Act intro and outro* orders a new game as title card → act briefing → first hangar visit →
-  L01 mission briefing → L01, but the [ui](../../ui/README.md) screen flow (and the decision that
-  the briefing comes before the hangar) puts every mission briefing before its hangar visit. Built
-  as the screen flow: title card → act briefing → L01 briefing → hangar → L01. Which order?
-- The act briefing ("on the fourteenth of March … eleven days later … this morning") and the L01
-  briefing ("six weeks ago something came through the Tether Gate. Forty minutes ago it arrived
-  at L1") now play back to back and tell the timeline differently.
+- None open.
 
 ## Decisions
 
@@ -206,3 +201,8 @@ and *Act complete*.
   the game shows them before the L01 briefing at a new game (title card held 3.5 s, its chrome
   lettering from `tools/concept/ui_assets.py`, over the title scene until a still of the yards
   exists). The outro follows with L07 (M4), so the title card item stays open.
+- 2026-10-02: User decisions: the L01 briefing comes **before** the first hangar visit (the UI
+  screen flow wins; *Act intro and outro* corrected); the act briefing's "eleven days later" and
+  the L01 briefing's "six weeks ago" agree with the story timeline (the gate opens on 14 March,
+  the outer stations fall silent 11 days later, the Vrell reach Earth orbit about six weeks after
+  the gate), so the texts stay as they are.

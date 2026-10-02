@@ -27,6 +27,7 @@ public final class Hud {
      * @param prompts the control prompts to show
      * @param weapon the front weapon's name
      * @param weaponLevel its upgrade level, 1..5
+     * @param notFlown the fitted items the sortie leaves out until they fly (M4)
      */
     public void draw(
             SpriteBatch batch,
@@ -34,9 +35,10 @@ public final class Hud {
             RadioQueue radio,
             List<PromptTexts.Text> prompts,
             String weapon,
-            int weaponLevel) {
+            int weaponLevel,
+            List<String> notFlown) {
         mission.draw(batch, sortie, radio, prompts);
-        ship.draw(batch, sortie.ship().defences(), weapon, weaponLevel);
+        ship.draw(batch, sortie.ship().defences(), weapon, weaponLevel, notFlown);
         batch.setColor(1, 1, 1, 1);
     }
 }

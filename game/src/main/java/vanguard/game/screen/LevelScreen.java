@@ -9,6 +9,8 @@ import vanguard.content.Difficulty;
 import vanguard.content.LevelData;
 import vanguard.content.SimSpecs;
 import vanguard.content.campaign.Campaign;
+import vanguard.content.campaign.Flight;
+import vanguard.content.campaign.SaveSlots;
 import vanguard.game.GameServices;
 import vanguard.game.audio.FlightSounds;
 import vanguard.game.audio.LevelMusic;
@@ -28,7 +30,6 @@ import vanguard.game.settings.Settings;
 import vanguard.sim.FixedStepClock;
 import vanguard.sim.LevelResult;
 import vanguard.sim.LevelScript;
-import vanguard.sim.Loadout;
 import vanguard.sim.Rules;
 import vanguard.sim.SimEvents;
 import vanguard.sim.SimStep;
@@ -40,7 +41,9 @@ import vanguard.sim.Sortie;
  * the level's music cues and draws it interpolated. When the level is won it shows the last radio
  * line, banks the result in the campaign and shows the debrief. When the ship is destroyed the
  * death plays out, then the mission failed screen opens over the level, or the game over screen
- * follows when no retry is left (design/systems/retry). Pause (Esc / P / Start), the window losing
+ * follows when no retry is left (design/systems/retry); the failure's used retry is autosaved at
+ * once. The sortie flies what {@link Flight} maps of the fitted loadout; the HUD lists the fitted
+ * items that fly from M4 on. Pause (Esc / P / Start), the window losing
  * the focus and a gamepad disconnecting open the pause menu over it. The Gameplay tab's text speed
  * and flash reduction and the Controls tab's auto-fire apply from the next frame on.
  */
@@ -67,8 +70,6 @@ public final class LevelScreen implements GameScreen {
     private static final float RADIO_VOLUME = 0.5f;
     private static final float TYPING_VOLUME = 0.15f;
     private static final String WEAPON = "PULSE CANNON";
-    /** The starter loadout flies the Pulse Cannon at level 1. */
-    private static final int WEAPON_LEVEL = 1;
 
     private final GameServices services;
     private final Campaign campaign;
@@ -88,6 +89,7 @@ public final class LevelScreen implements GameScreen {
     private final PromptTexts promptTexts;
     private final LevelMusic music;
     private final String name;
+    private final Flight flight;
     private float slowMotion;
     private float outro = -1;
     /** What the ship's destruction leads to, and how long until its screen opens. */
@@ -109,11 +111,10 @@ public final class LevelScreen implements GameScreen {
         Difficulty difficulty = campaign.difficulty();
         level = services.content.level(levelKey);
         Rules rules = SimSpecs.rules(services.content, levelKey, difficulty);
-        // The fitted loadout is the starter loadout until the hangar sells equipment (part B2 of M3).
-        Loadout loadout = SimSpecs.starterLoadout(services.content, difficulty);
+        flight = Flight.of(services.content, services.catalogue, campaign);
         sortie = new Sortie(
                 SEED,
-                loadout,
+                flight.loadout(),
                 SimSpecs.level(services.content, levelKey, difficulty),
                 services.invulnerable ? rules.withInvulnerableShip() : rules,
                 campaign.armour());
@@ -248,6 +249,8 @@ public final class LevelScreen implements GameScreen {
                     slowMotion = SLOW_MOTION_SECONDS;
                     music.cut();
                     failure = Optional.of(campaign.fail());
+                    // The used retry goes into the autosave at once (design/systems/retry).
+                    services.save(SaveSlots.Slot.AUTOSAVE, campaign);
                     failedIn = FAILED_SCREEN_SECONDS;
                 }
                 case SORTIE_RESTARTED -> {
@@ -300,7 +303,7 @@ public final class LevelScreen implements GameScreen {
                 clock.alpha(),
                 (float) shimmer / SHIMMER_TICKS,
                 services.settings().gameplay().flashReduction());
-        hud.draw(batch, sortie, radio, visiblePrompts(), WEAPON, WEAPON_LEVEL);
+        hud.draw(batch, sortie, radio, visiblePrompts(), WEAPON, flight.pulseLevel(), flight.notFlown());
     }
 
     /** The control prompts show in the first section, once the launch is over. */

@@ -133,7 +133,7 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   fields of each weapon's `data.yaml`)
 - [ ] Projectile patterns for every designed weapon with L1–L5 (+ overdrive) variants
 - [ ] Layer hit rules per trait (anti-ground, anti-sub, beam, area)
-- [ ] Hangar trait markers linked to the level threat profile
+- [x] Hangar trait markers linked to the level threat profile
 
 ## Open questions
 
@@ -159,3 +159,7 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-10-01: Concept round 09: beam impact chosen.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-02: Weapon numbers moved from `balance-data.json` into a `data.yaml` per weapon plus this directory's [data.yaml](data.yaml) for the shared rules (M2 data files); `tools/sync_tables.py` renders each weapon's property and per-level tables, `tools/balance.py --sync` is gone.
+- 2026-10-02: M3 part B2: every designed weapon is sold in the hangar from its unlock level with
+  its price, upgrade costs and draw; ◆ markers count a weapon's traits that the next level
+  recommends, shown from sensor L3 on (the level at which the intel reveals the recommendation).
+  Only the Pulse Cannon flies so far; the others fly from M4.

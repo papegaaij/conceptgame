@@ -57,7 +57,7 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - [ ] Layer hit rules for its traits (see Layers hit)
 - [x] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
 - [ ] Behaviour as described above
-- [ ] Power draw per level counted in the loadout; upgrades priced as listed
+- [x] Power draw per level counted in the loadout; upgrades priced as listed
 
 ## Decisions
 
@@ -65,3 +65,7 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
 - 2026-10-01: M1 implementation: level 1 only (one bolt from the front muzzle, 10 volleys/s, 2 damage, 900 px/s, 4×12 hit box), numbers in `vanguard.sim.PulseCannon` until the M2 data files. The bolt, its 3 muzzle-flash and 4 impact frames are cut from the `pulse` row of `projectiles-r08-a.png` and drawn additively; the shot plays `player-shot-r02-a` at −14 dB with ±5 % pitch.
 - 2026-10-02: Numbers moved into [data.yaml](data.yaml) (M2 data files); the property and per-level tables are rendered from it, and `vanguard.sim.PulseCannon` is built from its level 1.
+- 2026-10-02: M3 part B2: the upgrades are bought in the hangar (L2 300, L3 600, L4 1 200, L5
+  2 400 from the upgrade base 600) and the sim fires the fitted level's pattern (parallel bolts at
+  the pattern's x offsets; `vanguard.sim.PulseCannon.pattern`). The overdrive pattern follows with
+  the overdrive pickup, so the pattern item stays open.

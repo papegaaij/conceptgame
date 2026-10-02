@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import vanguard.content.campaign.SaveSlots;
 import vanguard.game.GameServices;
 import vanguard.game.audio.Sfx;
 import vanguard.game.input.Action;
@@ -118,6 +119,8 @@ public final class PauseScreen implements GameScreen {
         return switch (menu.selectedId()) {
             case RESTART -> {
                 level.retry(level.campaign().retry());
+                // Like a failure's, the used retry goes into the autosave at once.
+                services.save(SaveSlots.Slot.AUTOSAVE, level.campaign());
                 yield Transition.BACK;
             }
             case ABORT -> {

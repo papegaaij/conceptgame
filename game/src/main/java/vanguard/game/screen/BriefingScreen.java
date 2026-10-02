@@ -28,7 +28,7 @@ import vanguard.game.ui.Words;
  * The briefing before a level (design/ui/briefing, chosen briefing-r08-a) over the dimmed hero
  * scene with the briefing theme: the act title card first when the level opens its act
  * (act-title-r08-a, held 3.5 s), then the pages, each with its speaker's portrait and name plate,
- * typed out at the Gameplay tab's text speed with a soft blip; the mission's objectives and the
+ * typed out at twice the Gameplay tab's text speed (the radio's) with a soft blip; the mission's objectives and the
  * hangar teaser stay below. Confirm shows the whole page, then the next; Back skips to the last
  * page. After the last page the campaign goes on with {@code next} (the hangar).
  *
@@ -136,7 +136,7 @@ public final class BriefingScreen implements GameScreen {
         if (pager.done()) {
             return Transition.replace(next.get());
         }
-        int appeared = pager.update(seconds, services.settings().gameplay().textSpeed());
+        int appeared = pager.update(seconds, services.settings().gameplay().briefingTextSpeed());
         for (int i = 0; i < appeared; i++) {
             if (++typed % 2 == 0) {
                 services.sfx.play(Sfx.TYPEWRITER, TYPING_VOLUME, 1, 0);

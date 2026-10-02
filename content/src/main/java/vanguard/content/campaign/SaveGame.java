@@ -16,7 +16,7 @@ import vanguard.content.Difficulty;
  * @param playtime seconds played in the campaign
  * @param nextLevel the level the campaign goes on with, 1–50
  * @param loadout the fitted item per slot
- * @param inventory owned items that are not fitted
+ * @param inventory owned items that are not fitted, by kind
  * @param unlocks shop items unlocked ahead of their normal unlock (data cores, story)
  * @param specials charges per special
  * @param armour the current armour points (repair is not automatic)
@@ -34,7 +34,7 @@ public record SaveGame(
         int credits,
         long score,
         Map<LoadoutSlot, Fitted> loadout,
-        List<Fitted> inventory,
+        Map<ItemKind, List<Fitted>> inventory,
         List<String> unlocks,
         Map<String, Integer> specials,
         double armour,
@@ -48,8 +48,8 @@ public record SaveGame(
         Objects.requireNonNull(difficulty, "difficulty");
         Objects.requireNonNull(stats, "stats");
         Objects.requireNonNull(retriesLeft, "retriesLeft");
-        loadout = Map.copyOf(loadout);
-        inventory = List.copyOf(inventory);
+        loadout = Gear.ordered(LoadoutSlot.class, loadout);
+        inventory = Gear.inventoryCopy(inventory);
         unlocks = List.copyOf(unlocks);
         specials = Map.copyOf(specials);
         grades = Map.copyOf(grades);

@@ -2,17 +2,22 @@ package vanguard.game.render;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import java.util.List;
+import java.util.Locale;
 import vanguard.sim.Defences;
 
 /**
  * The right HUD panel (design/ui/hud, ship): armour and shield bars with their numbers (the shield
- * bar flickers while it is down after a break) and the front weapon with its level pips. Power,
- * special and escort follow with the parts that need them.
+ * bar flickers while it is down after a break) and the front weapon with its level pips. Under it,
+ * TEMPORARY until M4 flies them: the fitted items the sortie leaves out, as "not yet available".
+ * Power, special and escort follow with the parts that need them.
  */
 final class ShipPanel {
     private static final int X = PixelScreen.WIDTH - HudKit.PANEL_WIDTH;
     private static final int BAR_HEIGHT = 12;
     private static final int LEVEL_PIPS = 5;
+    /** The fitted items that do not fly yet: at most a mount each, two bays and the special. */
+    private static final int MAX_NOT_FLOWN = 7;
     /** The shield bar flickers at this many frames per phase while it is down after a break. */
     private static final int FLICKER_FRAMES = 8;
 
@@ -29,7 +34,7 @@ final class ShipPanel {
         this.kit = kit;
     }
 
-    void draw(SpriteBatch batch, Defences defences, String weapon, int weaponLevel) {
+    void draw(SpriteBatch batch, Defences defences, String weapon, int weaponLevel, List<String> notFlown) {
         frame++;
         kit.panel(batch, X);
         int x = X + HudKit.INSET;
@@ -51,6 +56,13 @@ final class ShipPanel {
                     7);
         }
         kit.text(batch, kit.body, weapon, HudKit.READOUT, x + 8, y - 158);
+        if (!notFlown.isEmpty()) {
+            kit.label(batch, "NOT YET AVAILABLE", x, y - 204);
+            for (int i = 0; i < Math.min(notFlown.size(), MAX_NOT_FLOWN); i++) {
+                String name = notFlown.get(i).toUpperCase(Locale.ROOT);
+                kit.text(batch, kit.small, name, HudKit.LABEL, x + 8, y - 222 - i * 13);
+            }
+        }
     }
 
     private void gauge(

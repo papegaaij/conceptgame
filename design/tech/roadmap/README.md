@@ -67,3 +67,7 @@ milestone lists which documents it covers, it does not copy their items.
 - 2026-10-02: M2 Level 01 done: played and accepted by the user (data files, level runner, Level 01 with backdrop, HUD and debrief). Production art can start now (see Rules).
 - 2026-10-02: M3 part B1 built (round 11 wiring, campaign state, saves, briefing, mission failed and
   game over, a placeholder hangar); part B2 builds the hangar.
+- 2026-10-02: M3 part B2 built: the hangar (shop, loadout with the power budget, repair, undo,
+  intel by sensor level, save, launch with warnings), the fitted Pulse Cannon level, shield,
+  plating and engine flying, and the six B1 follow-up decisions. M3 stays open for the user's
+  review; the other weapons, specials, utility effects and the spare-power bonus fly with M4.

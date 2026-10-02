@@ -17,6 +17,7 @@ import vanguard.content.campaign.SaveGame;
 import vanguard.content.campaign.SaveSlots;
 import vanguard.game.GameServices;
 import vanguard.game.audio.Sfx;
+import vanguard.game.hangar.Names;
 import vanguard.game.input.MenuInput;
 import vanguard.game.ui.Dialog;
 import vanguard.game.ui.Glass;
@@ -197,7 +198,7 @@ public final class SlotsScreen implements GameScreen {
                         on ? Glass.AMBER : Glass.WHITE,
                         LIST_X + 40,
                         lineY);
-                String facts = save.difficulty().name() + "   CR " + HangarScreen.grouped(save.credits()) + "   "
+                String facts = save.difficulty().name() + "   CR " + Names.grouped(save.credits()) + "   "
                         + playtime(save.playtime());
                 glass.right(batch, glass.fonts.label, facts, Glass.GREEN, LIST_X + LIST_WIDTH - 12, y);
                 glass.right(
@@ -248,8 +249,8 @@ public final class SlotsScreen implements GameScreen {
         glass.shadowed(batch, glass.fonts.label, "NEXT: " + mission(save.nextLevel()), Glass.WHITE, x, PREVIEW_Y + 40);
         String[][] facts = {
             {"DIFFICULTY", save.difficulty().name()},
-            {"CREDITS", "CR " + HangarScreen.grouped(save.credits())},
-            {"SCORE", HangarScreen.grouped(save.score())},
+            {"CREDITS", "CR " + Names.grouped(save.credits())},
+            {"SCORE", Names.grouped(save.score())},
             {"ARMOUR", (int) Math.ceil(save.armour()) + ""},
             {"PLAYTIME", playtime(save.playtime())},
             {"SAVED", DATE.format(save.created())}

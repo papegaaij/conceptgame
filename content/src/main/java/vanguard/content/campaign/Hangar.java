@@ -1,0 +1,446 @@
+package vanguard.content.campaign;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import vanguard.content.campaign.Catalogue.Item;
+import vanguard.content.campaign.Catalogue.Stat;
+
+/**
+ * A hangar visit's shop and loadout rules (design/ui/hangar, design/player, design/systems/economy)
+ * on the campaign's {@link Gear}: buying (fitted at once when the power budget allows, otherwise
+ * into the inventory), upgrading, fitting and unfitting owned items for free, selling for the
+ * sell-back share of all that was spent on an item, special charges, armour repair and the visit's
+ * undo, which returns every transaction of the visit in reverse order for 100 %.
+ *
+ * <p>The power load is the sum of the fitted items' draws and may not exceed the generator's
+ * output; the front gun and the core parts are always fitted. A plating swap keeps the damage: the
+ * missing armour points stay missing (at least 1 point is left).
+ */
+public final class Hangar {
+    /** Where a shop row's item is. */
+    public enum State {
+        /** In the selected slot. */
+        FITTED,
+        /** In the inventory (a special: charges carried, not selected). */
+        OWNED,
+        BUYABLE,
+        /** Not in the shop yet: its unlock level is shown. */
+        LOCKED
+    }
+
+    public enum Action {
+        BUY,
+        UPGRADE,
+        FIT,
+        UNFIT,
+        SELL,
+        BUY_CHARGE
+    }
+
+    /** Why a choice cannot be made. */
+    public enum Refusal {
+        CREDITS,
+        /** The load would exceed the generator's output. */
+        POWER,
+        MAX_LEVEL,
+        /** The special carries its most charges. */
+        FULL
+    }
+
+    /**
+     * Something a shop row offers.
+     *
+     * @param credits what it costs; negative for a refund
+     * @param load the power load after it, MW
+     * @param output the generator output after it, MW
+     * @param fits whether a bought item is fitted at once; otherwise it goes to the inventory
+     */
+    public record Choice(
+            Action action, int credits, double load, double output, boolean fits, Optional<Refusal> refusal) {
+        public boolean allowed() {
+            return refusal.isEmpty();
+        }
+    }
+
+    /**
+     * A shop row for a slot.
+     *
+     * @param level the owned level (1 for a buyable or locked item)
+     * @param owned the owned item this row stands for; empty for a buyable or locked item
+     * @param isNew in the shop since the visit before
+     */
+    public record Offer(
+            Item item, State state, int level, Optional<Fitted> owned, boolean isNew, List<Choice> choices) {
+        public Offer {
+            choices = List.copyOf(choices);
+        }
+
+        public Optional<Choice> choice(Action action) {
+            return choices.stream().filter(choice -> choice.action() == action).findFirst();
+        }
+    }
+
+    /** The utility module that decides the hangar intel's detail (design/player/systems). */
+    public static final String SENSOR_SUITE = "Sensor suite";
+
+    /** The highest sensor level. */
+    public static final int MAX_SENSOR = 3;
+
+    private static final double EPSILON = 1e-9;
+
+    private final Catalogue catalogue;
+    private final Campaign campaign;
+    private final Deque<Gear> undo = new ArrayDeque<>();
+
+    public Hangar(Catalogue catalogue, Campaign campaign) {
+        this.catalogue = catalogue;
+        this.campaign = campaign;
+    }
+
+    public Campaign campaign() {
+        return campaign;
+    }
+
+    /** The item fitted in a slot. */
+    public Optional<Item> fitted(LoadoutSlot slot) {
+        return Optional.ofNullable(campaign.gear().loadout().get(slot)).map(fitted -> item(slot.kind(), fitted));
+    }
+
+    private Item item(ItemKind kind, Fitted fitted) {
+        return catalogue.item(kind, fitted.item());
+    }
+
+    /** The fitted items' draw, MW. */
+    public double load() {
+        return load(campaign.gear().loadout());
+    }
+
+    private double load(Map<LoadoutSlot, Fitted> loadout) {
+        return loadout.entrySet().stream()
+                .mapToDouble(entry -> item(entry.getKey().kind(), entry.getValue())
+                        .draw(entry.getValue().level()))
+                .sum();
+    }
+
+    /** The fitted generator's output, MW. */
+    public double output() {
+        return output(campaign.gear().loadout());
+    }
+
+    private double output(Map<LoadoutSlot, Fitted> loadout) {
+        return item(ItemKind.GENERATOR, loadout.get(LoadoutSlot.GENERATOR))
+                .stats(1)
+                .get(Stat.OUTPUT);
+    }
+
+    /** The intel detail: the best fitted sensor suite's level plus the difficulty's bonus, at most 3. */
+    public int sensorLevel() {
+        int fitted = campaign.gear().loadout().entrySet().stream()
+                .filter(entry -> entry.getKey().kind() == ItemKind.UTILITY)
+                .map(Map.Entry::getValue)
+                .filter(module -> module.item().equals(SENSOR_SUITE))
+                .mapToInt(Fitted::level)
+                .max()
+                .orElse(0);
+        return Math.min(MAX_SENSOR, fitted + catalogue.sensorBonus(campaign.difficulty()));
+    }
+
+    /** The traits of the fitted weapons. */
+    public Set<String> fittedTraits() {
+        Set<String> traits = new LinkedHashSet<>();
+        campaign.gear().loadout().forEach((slot, fitted) -> {
+            if (slot.kind().weapon()) {
+                traits.addAll(item(slot.kind(), fitted).traits());
+            }
+        });
+        return traits;
+    }
+
+    /** Whether an item is in the shop at this visit: from its unlock level on, or unlocked early. */
+    public boolean available(Item item) {
+        return item.unlock() <= campaign.nextLevel() || campaign.unlocks().contains(item.id());
+    }
+
+    /** The shop rows for a slot: the fitted item, the owned ones, the buyable ones by price, the locked ones by unlock. */
+    public List<Offer> shop(LoadoutSlot slot) {
+        ItemKind kind = slot.kind();
+        Gear gear = campaign.gear();
+        List<Offer> offers = new ArrayList<>();
+        Set<String> listed = new LinkedHashSet<>();
+        Optional.ofNullable(gear.loadout().get(slot)).ifPresent(fitted -> {
+            offers.add(fittedOffer(slot, fitted));
+            listed.add(fitted.item());
+        });
+        if (kind == ItemKind.SPECIAL) {
+            for (Item special : catalogue.items(kind)) {
+                if (gear.charges(special.id()) > 0 && !listed.contains(special.id())) {
+                    offers.add(new Offer(
+                            special,
+                            State.OWNED,
+                            1,
+                            Optional.of(new Fitted(special.id(), 1)),
+                            false,
+                            List.of(fitChoice(slot, special, 1), chargeChoice(special))));
+                    listed.add(special.id());
+                }
+            }
+        }
+        for (Fitted owned : gear.inventory(kind)) {
+            Item item = item(kind, owned);
+            offers.add(new Offer(
+                    item,
+                    State.OWNED,
+                    owned.level(),
+                    Optional.of(owned),
+                    false,
+                    List.of(fitChoice(slot, item, owned.level()), sellChoice(item, owned.level(), 0))));
+            listed.add(owned.item());
+        }
+        catalogue.items(kind).stream()
+                .filter(item -> item.price() > 0 && available(item) && !listed.contains(item.id()))
+                .sorted(Comparator.comparingInt(Item::price).thenComparing(Item::name))
+                .forEach(item -> offers.add(new Offer(
+                        item,
+                        State.BUYABLE,
+                        1,
+                        Optional.empty(),
+                        item.unlock() == campaign.nextLevel() && campaign.nextLevel() > 1,
+                        List.of(kind == ItemKind.SPECIAL ? chargeChoice(item) : buyChoice(slot, item)))));
+        catalogue.items(kind).stream()
+                .filter(item -> !available(item))
+                .sorted(Comparator.comparingInt(Item::unlock).thenComparingInt(Item::price))
+                .forEach(item -> offers.add(new Offer(item, State.LOCKED, 1, Optional.empty(), false, List.of())));
+        return offers;
+    }
+
+    private Offer fittedOffer(LoadoutSlot slot, Fitted fitted) {
+        ItemKind kind = slot.kind();
+        Item item = item(kind, fitted);
+        List<Choice> choices = new ArrayList<>();
+        if (kind == ItemKind.SPECIAL) {
+            choices.add(chargeChoice(item));
+        } else if (item.maxLevel() > 1) {
+            choices.add(upgradeChoice(item, fitted.level()));
+        }
+        if (kind.optional() && kind != ItemKind.SPECIAL) {
+            double draw = item.draw(fitted.level());
+            choices.add(new Choice(Action.UNFIT, 0, load() - draw, output(), false, Optional.empty()));
+            choices.add(sellChoice(item, fitted.level(), draw));
+        }
+        return new Offer(item, State.FITTED, fitted.level(), Optional.of(fitted), false, choices);
+    }
+
+    private Choice upgradeChoice(Item item, int level) {
+        if (level >= item.maxLevel()) {
+            return new Choice(Action.UPGRADE, 0, load(), output(), true, Optional.of(Refusal.MAX_LEVEL));
+        }
+        int cost = item.upgradeCost(level);
+        double load = load() - item.draw(level) + item.draw(level + 1);
+        return new Choice(Action.UPGRADE, cost, load, output(), true, refusal(cost, load, output()));
+    }
+
+    private Choice buyChoice(LoadoutSlot slot, Item item) {
+        Map<LoadoutSlot, Fitted> fitted = withFitted(slot, new Fitted(item.id(), 1));
+        double load = load(fitted);
+        double output = output(fitted);
+        boolean fits = load <= output + EPSILON;
+        Optional<Refusal> refusal = campaign.credits() < item.price() ? Optional.of(Refusal.CREDITS) : Optional.empty();
+        return new Choice(Action.BUY, item.price(), load, output, fits, refusal);
+    }
+
+    private Choice fitChoice(LoadoutSlot slot, Item item, int level) {
+        Map<LoadoutSlot, Fitted> fitted = withFitted(slot, new Fitted(item.id(), level));
+        double load = load(fitted);
+        double output = output(fitted);
+        return new Choice(Action.FIT, 0, load, output, true, refusal(0, load, output));
+    }
+
+    private Choice sellChoice(Item item, int level, double draw) {
+        return new Choice(
+                Action.SELL, -catalogue.sellPrice(item, level), load() - draw, output(), false, Optional.empty());
+    }
+
+    private Choice chargeChoice(Item special) {
+        Optional<Refusal> refusal =
+                campaign.gear().charges(special.id()) >= special.stats(1).get(Stat.CHARGES)
+                        ? Optional.of(Refusal.FULL)
+                        : campaign.credits() < special.price() ? Optional.of(Refusal.CREDITS) : Optional.empty();
+        return new Choice(Action.BUY_CHARGE, special.price(), load(), output(), true, refusal);
+    }
+
+    private Optional<Refusal> refusal(int cost, double load, double output) {
+        if (campaign.credits() < cost) {
+            return Optional.of(Refusal.CREDITS);
+        }
+        return load > output + EPSILON ? Optional.of(Refusal.POWER) : Optional.empty();
+    }
+
+    private Map<LoadoutSlot, Fitted> withFitted(LoadoutSlot slot, Fitted item) {
+        Map<LoadoutSlot, Fitted> loadout = new EnumMap<>(campaign.gear().loadout());
+        loadout.put(slot, item);
+        return loadout;
+    }
+
+    /**
+     * Makes one of a row's choices in the slot the row was listed for; the rules are checked again.
+     *
+     * @return whether it was made
+     */
+    public boolean apply(LoadoutSlot slot, Offer offer, Action action) {
+        Optional<Offer> current =
+                shop(slot).stream().filter(row -> same(row, offer)).findFirst();
+        Optional<Choice> choice = current.flatMap(row -> row.choice(action));
+        if (choice.isEmpty() || !choice.get().allowed()) {
+            return false;
+        }
+        Gear before = campaign.gear();
+        Change change = new Change(before);
+        Item item = offer.item();
+        change.credits -= choice.get().credits();
+        switch (action) {
+            case BUY -> {
+                Fitted bought = new Fitted(item.id(), 1);
+                if (choice.get().fits()) {
+                    change.fit(slot, bought);
+                } else {
+                    change.store(slot.kind(), bought);
+                }
+            }
+            case UPGRADE -> {
+                Fitted fitted = before.loadout().get(slot);
+                change.loadout.put(slot, new Fitted(fitted.item(), fitted.level() + 1));
+            }
+            case FIT -> {
+                Fitted owned = current.get().owned().orElseThrow();
+                if (slot.kind() != ItemKind.SPECIAL) {
+                    change.take(slot.kind(), owned);
+                }
+                change.fit(slot, owned);
+            }
+            case UNFIT -> change.store(slot.kind(), change.loadout.remove(slot));
+            case SELL -> {
+                Fitted sold = current.get().owned().orElseThrow();
+                if (current.get().state() == State.FITTED) {
+                    change.loadout.remove(slot);
+                } else {
+                    change.take(slot.kind(), sold);
+                }
+            }
+            case BUY_CHARGE -> {
+                change.specials.merge(item.id(), 1, Integer::sum);
+                change.loadout.put(slot, new Fitted(item.id(), 1));
+            }
+        }
+        undo.push(before);
+        campaign.gear(change.gear());
+        return true;
+    }
+
+    private static boolean same(Offer row, Offer offer) {
+        return row.item().equals(offer.item())
+                && row.state() == offer.state()
+                && row.owned().equals(offer.owned());
+    }
+
+    /** The whole armour points missing. */
+    public int missingArmour() {
+        return (int) Math.ceil(campaign.maxArmour() - campaign.armour() - EPSILON);
+    }
+
+    /** Credits per armour point on the campaign's difficulty. */
+    public int repairCost() {
+        return catalogue.repairCost(campaign.difficulty());
+    }
+
+    /** The most points the credits repair now: "repair all" while they last. */
+    public int affordableRepair() {
+        int cost = repairCost();
+        return cost == 0 ? missingArmour() : Math.min(missingArmour(), campaign.credits() / cost);
+    }
+
+    /**
+     * Repairs armour points at the difficulty's cost per point.
+     *
+     * @return whether it was done: at least one point, no more than are missing or affordable
+     */
+    public boolean repair(int points) {
+        if (points < 1 || points > affordableRepair()) {
+            return false;
+        }
+        Gear before = campaign.gear();
+        undo.push(before);
+        campaign.gear(before.withCredits(before.credits() - points * repairCost())
+                .withArmour(Math.min(campaign.maxArmour(), before.armour() + points)));
+        return true;
+    }
+
+    public boolean canUndo() {
+        return !undo.isEmpty();
+    }
+
+    /** Returns the visit's last transaction for 100 %; returns whether there was one. */
+    public boolean undo() {
+        if (undo.isEmpty()) {
+            return false;
+        }
+        campaign.gear(undo.pop());
+        return true;
+    }
+
+    /** A transaction's changes to the gear. */
+    private final class Change {
+        int credits;
+        final Map<LoadoutSlot, Fitted> loadout;
+        final Map<ItemKind, List<Fitted>> inventory = new EnumMap<>(ItemKind.class);
+        final Map<String, Integer> specials;
+        double armour;
+
+        Change(Gear gear) {
+            credits = gear.credits();
+            loadout = new EnumMap<>(LoadoutSlot.class);
+            loadout.putAll(gear.loadout());
+            gear.inventory().forEach((kind, items) -> inventory.put(kind, new ArrayList<>(items)));
+            specials = new HashMap<>(gear.specials());
+            armour = gear.armour();
+        }
+
+        /** Fits an item; the one it replaces goes to the inventory (a special's charges stay where they are). */
+        void fit(LoadoutSlot slot, Fitted item) {
+            Fitted old = loadout.put(slot, item);
+            if (slot.kind() == ItemKind.PLATING) {
+                double damage = maxArmour(old) - armour;
+                armour = Math.max(1, maxArmour(item) - damage);
+            }
+            if (old != null && slot.kind() != ItemKind.SPECIAL) {
+                store(slot.kind(), old);
+            }
+        }
+
+        private double maxArmour(Fitted plating) {
+            return item(ItemKind.PLATING, plating).stats(1).get(Stat.ARMOUR);
+        }
+
+        void store(ItemKind kind, Fitted item) {
+            inventory.computeIfAbsent(kind, k -> new ArrayList<>()).add(item);
+        }
+
+        void take(ItemKind kind, Fitted item) {
+            if (!inventory.getOrDefault(kind, new ArrayList<>()).remove(item)) {
+                throw new IllegalStateException(item + " is not in the inventory");
+            }
+        }
+
+        Gear gear() {
+            return new Gear(credits, loadout, inventory, specials, armour);
+        }
+    }
+}

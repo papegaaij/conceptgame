@@ -24,7 +24,7 @@ frames and chunky bitmap fonts.
 |---|---|---|---|---|
 | [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | approved | in-progress | chosen |
 | [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | approved | in-progress | chosen |
-| [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | approved | not-started | chosen |
+| [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | approved | in-progress | chosen |
 | [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | approved | in-progress | chosen |
 | [pause](pause/README.md) | Pause menu during a level | approved | done | chosen |
 | [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | in-progress | chosen |

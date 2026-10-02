@@ -21,7 +21,7 @@ panels stay visible.
 | Resume | Back to the level (after a 1 s "3-2-1" to avoid unfair hits) |
 | Restart mission | Same as a retry: level-start state, counts as a retry on hard. Confirmation |
 | Options | Audio, controls, display (same screens as in the main menu) |
-| Abort to hangar | Same as "Back to hangar" after a failure: level-start state. Confirmation |
+| Abort to hangar | Same as "Back to hangar" after a failure: level-start state; counts as a retry on hard. Confirmation |
 | Quit to main menu | Progress since the last save is lost. Confirmation |
 
 The game also pauses automatically when the window loses focus or a gamepad disconnects.
@@ -59,3 +59,6 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
   this attempt earned is lost.") the hangar opens with the level-start state. Restart and Abort use
   a retry on hard and are disabled with none left; on hard the notes show the retries left. Quit to
   main menu discards everything since the last save.
+- 2026-10-02: User decision: Abort to hangar uses a retry on hard, as built (see
+  [retry](../../systems/retry/README.md)). A restart writes the autosave with the used retry, so
+  quitting afterwards cannot give it back.

@@ -219,3 +219,7 @@ miss (after playing Level 01), over a still frame of Level 01's backdrop placeho
   placeholder arrow is gone. Each warning that starts plays the edge-warning tone
   ([sfx](../../audio/sfx/README.md)). The label is the 10×20 font, close to the concept's 2× 5×7
   raster font.
+- 2026-10-02: M3 part B2, TEMPORARY until M4: the right panel's front weapon shows the Pulse
+  Cannon's flown level, and under the weapons a "NOT YET AVAILABLE" list names the fitted items
+  the sortie leaves out (other weapons, the special, utility modules), so a player who fitted them
+  in the hangar sees why they do not fire. It goes when M4 flies them.

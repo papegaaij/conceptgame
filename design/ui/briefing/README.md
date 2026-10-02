@@ -42,7 +42,8 @@ the real briefing text is written in each level document.
 - A briefing is a script of **pages**. Each page has a speaker (portrait + name), text, and
   optionally a map image. Several speakers can alternate (Okafor, Varga, Rook, intercepted
   transmissions from Vorne or the Choir).
-- Text types out at ~60 characters/s with a soft blip. Confirm shows the full page, then
+- Text types out at twice the radio's speed with a soft blip: 60 characters/s at the default
+  text speed of 30; the Gameplay tab's text speed scales both. Confirm shows the full page, then
   continues. Skip jumps to the objectives.
 - Portraits: 144×144, pre-rendered, three expressions per main character (neutral, grim, fierce).
   Interference/static effect for intercepted transmissions.
@@ -89,3 +90,6 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
   scene until a still of the Gagarin yards exists. Not built: map images (no level has one), the
   concept's threat summary (the hangar intel's job, part B2), expressions and the transmission
   static, so the format and portrait items stay open.
+- 2026-10-02: User decision: briefings type at **twice the radio speed**, 60 characters/s at the
+  default text speed of 30 (`GameplaySettings.briefingTextSpeed()`); the text-speed setting scales
+  both. This settles the B1 note's open question (30 vs ~60).

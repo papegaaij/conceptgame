@@ -2,7 +2,6 @@ package vanguard.content.campaign;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,10 +15,10 @@ import vanguard.sim.LevelResult;
  * state is the level-start snapshot a retry returns to: credits earned in a level are banked only
  * when it is won, and a failed attempt's earnings are lost.
  *
- * <p>Retries: a failure ends the campaign when no retry is left (hard: 3 per level); otherwise the
- * level is retried, at once or after the hangar, with its level-start armour but at least the
- * armour floor (50 %). A retry, a restart and an abort to the hangar each use one of the level's
- * retries on hard.
+ * <p>Retries: a failure ends the campaign when no retry is left (hard: 3 per level); otherwise it
+ * uses one at once and the level is retried, at once or after the hangar, with its level-start
+ * armour but at least the armour floor (50 %). A restart and an abort to the hangar each use one of
+ * the level's retries on hard too.
  */
 public final class Campaign {
     /** What a failed attempt leads to. */
@@ -34,13 +33,9 @@ public final class Campaign {
     private final Difficulty difficulty;
     private double playtime;
     private int nextLevel;
-    private int credits;
     private long score;
-    private final Map<LoadoutSlot, Fitted> loadout;
-    private final List<Fitted> inventory;
+    private Gear gear;
     private final List<String> unlocks;
-    private final Map<String, Integer> specials;
-    private double armour;
     private Optional<Integer> retriesLeft;
     private final Map<Integer, String> grades;
     private final List<String> dataCores;
@@ -53,14 +48,9 @@ public final class Campaign {
         difficulty = save.difficulty();
         playtime = save.playtime();
         nextLevel = save.nextLevel();
-        credits = save.credits();
         score = save.score();
-        loadout = new EnumMap<>(LoadoutSlot.class);
-        loadout.putAll(save.loadout());
-        inventory = new ArrayList<>(save.inventory());
+        gear = new Gear(save.credits(), save.loadout(), save.inventory(), save.specials(), save.armour());
         unlocks = new ArrayList<>(save.unlocks());
-        specials = new TreeMap<>(save.specials());
-        armour = save.armour();
         retriesLeft = save.retriesLeft();
         grades = new TreeMap<>(save.grades());
         dataCores = new ArrayList<>(save.dataCores());
@@ -82,7 +72,7 @@ public final class Campaign {
                         rules.startingCredits(),
                         0,
                         rules.starterLoadout(),
-                        List.of(),
+                        Map.of(),
                         List.of(),
                         Map.of(),
                         rules.starterArmour(),
@@ -106,13 +96,13 @@ public final class Campaign {
                 playtime,
                 difficulty,
                 nextLevel,
-                credits,
+                gear.credits(),
                 score,
-                loadout,
-                inventory,
+                gear.loadout(),
+                gear.inventory(),
                 unlocks,
-                specials,
-                armour,
+                gear.specials(),
+                gear.armour(),
                 retriesLeft,
                 grades,
                 dataCores,
@@ -130,15 +120,24 @@ public final class Campaign {
         return retriesLeft.map(left -> left > 0).orElse(true);
     }
 
-    /** The Stormhawk was destroyed: counts the death and says whether the campaign goes on. */
+    /**
+     * The Stormhawk was destroyed: counts the death and says whether the campaign goes on. When it
+     * does, the attempt's retry is used at once (hard), so it is gone even if the player quits from
+     * the mission failed screen, and the next attempt starts with at least the armour floor.
+     */
     public Failure fail() {
         deaths++;
-        return canRetry() ? Failure.MISSION_FAILED : Failure.GAME_OVER;
+        if (!canRetry()) {
+            return Failure.GAME_OVER;
+        }
+        useRetry();
+        return Failure.MISSION_FAILED;
     }
 
     /**
-     * The level is tried again from its start state, at once (retry, restart) or after the hangar
-     * (back to the hangar, abort): uses a retry on hard and raises the armour to the floor.
+     * An attempt is abandoned to try the level again from its start state, at once (the pause
+     * menu's restart) or after the hangar (abort): uses a retry on hard and raises the armour to
+     * the floor.
      *
      * @return the armour the next attempt starts with
      */
@@ -146,9 +145,13 @@ public final class Campaign {
         if (!canRetry()) {
             throw new IllegalStateException("no retry left");
         }
+        useRetry();
+        return gear.armour();
+    }
+
+    private void useRetry() {
         retriesLeft = retriesLeft.map(left -> left - 1);
-        armour = Math.max(armour, rules.armourFloor() * maxArmour());
-        return armour;
+        gear = gear.withArmour(Math.max(gear.armour(), rules.armourFloor() * maxArmour()));
     }
 
     /**
@@ -160,13 +163,13 @@ public final class Campaign {
      * @return whether the grade is a new best for the level
      */
     public boolean complete(LevelResult result, double armourLeft) {
-        credits += result.credits().total() + result.gradeBonus();
-        score += result.score();
-        kills += result.kills();
         if (!(armourLeft > 0)) {
             throw new IllegalArgumentException("a won level leaves armour, not " + armourLeft);
         }
-        armour = Math.min(armourLeft, maxArmour());
+        gear = gear.withCredits(gear.credits() + result.credits().total() + result.gradeBonus())
+                .withArmour(Math.min(armourLeft, maxArmour()));
+        score += result.score();
+        kills += result.kills();
         String grade = result.grade().letter();
         String best = grades.get(nextLevel);
         boolean newBest =
@@ -189,7 +192,7 @@ public final class Campaign {
     }
 
     public int credits() {
-        return credits;
+        return gear.credits();
     }
 
     public long score() {
@@ -198,12 +201,27 @@ public final class Campaign {
 
     /** The armour the next level starts with. */
     public double armour() {
-        return armour;
+        return gear.armour();
     }
 
-    /** The fitted plating's maximum armour; only the starter plating exists so far. */
+    /** The fitted plating's maximum armour. */
     public double maxArmour() {
-        return rules.starterArmour();
+        return rules.maxArmour(gear.loadout().get(LoadoutSlot.ARMOUR).item());
+    }
+
+    /** What the hangar changes: credits, loadout, inventory, special charges and armour. */
+    public Gear gear() {
+        return gear;
+    }
+
+    /** Replaces the hangar's state: a transaction, or its undo. */
+    void gear(Gear changed) {
+        gear = changed;
+    }
+
+    /** Shop items unlocked ahead of their normal unlock (data cores, story), by id. */
+    public List<String> unlocks() {
+        return List.copyOf(unlocks);
     }
 
     /** Retries left in the current level; empty where they are unlimited. */
@@ -217,7 +235,7 @@ public final class Campaign {
     }
 
     public Map<LoadoutSlot, Fitted> loadout() {
-        return Map.copyOf(loadout);
+        return gear.loadout();
     }
 
     /** The best grade of a completed level. */

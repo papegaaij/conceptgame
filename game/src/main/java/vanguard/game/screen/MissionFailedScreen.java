@@ -8,6 +8,7 @@ import java.util.Optional;
 import vanguard.content.campaign.Campaign;
 import vanguard.game.GameServices;
 import vanguard.game.audio.Sfx;
+import vanguard.game.hangar.Names;
 import vanguard.game.input.MenuInput;
 import vanguard.game.render.PixelScreen;
 import vanguard.game.ui.Dialog;
@@ -19,7 +20,8 @@ import vanguard.game.ui.Speaker;
  * The mission failed screen (design/systems/retry, chosen mission-failed-r08-a) over the frozen
  * level, tinted red: Okafor's portrait and line, Retry (the level at once, from its start state),
  * Back to hangar (the level-start state, to change the loadout first) and Quit to main menu (after
- * a confirmation), with what the attempt earned and, on hard, the retries left. Retry from boss
+ * a confirmation), with what the attempt earned and, on hard, the retries left: the failure has
+ * used its retry already (and the autosave holds it), so Retry and Back to hangar only take it. Retry from boss
  * comes with the first boss checkpoint (Level 01 has no boss).
  */
 public final class MissionFailedScreen implements GameScreen {
@@ -79,13 +81,10 @@ public final class MissionFailedScreen implements GameScreen {
         services.play(Sfx.MENU_CONFIRM);
         return switch (menu.selectedId()) {
             case RETRY -> {
-                level.retry(campaign.retry());
+                level.retry(campaign.armour());
                 yield Transition.BACK;
             }
-            case HANGAR -> {
-                campaign.retry();
-                yield Transition.replace(new HangarScreen(services, campaign, true));
-            }
+            case HANGAR -> Transition.replace(new HangarScreen(services, campaign, true));
             case QUIT -> {
                 quit = Optional.of(new Dialog(
                         "QUIT TO MAIN MENU?", "PROGRESS SINCE THE LAST SAVE IS LOST.", "YES, QUIT", "NO, BACK"));
@@ -129,10 +128,7 @@ public final class MissionFailedScreen implements GameScreen {
         int notes = PANEL_Y + 220;
         glass.shadowed(batch, glass.fonts.label, "THIS ATTEMPT IS DISCARDED:", Glass.CYAN, ITEM_X - 18, notes);
         String lost = String.format(
-                Locale.ROOT,
-                "%s CR   %s PTS",
-                HangarScreen.grouped(level.attemptCredits()),
-                HangarScreen.grouped(level.score()));
+                Locale.ROOT, "%s CR   %s PTS", Names.grouped(level.attemptCredits()), Names.grouped(level.score()));
         glass.shadowed(batch, glass.fonts.label, lost, Glass.AMBER, ITEM_X - 18, notes + 14);
         campaign.retriesLeft()
                 .ifPresent(left -> glass.shadowed(

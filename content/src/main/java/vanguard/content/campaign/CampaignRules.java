@@ -4,6 +4,8 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import vanguard.content.ArmourData;
 import vanguard.content.Content;
 import vanguard.content.Difficulty;
 import vanguard.content.ScoringData;
@@ -15,6 +17,7 @@ import vanguard.content.ScoringData;
  * item of each list is the starter) and the grades from best to worst (design/systems/scoring).
  *
  * @param starterArmour the starter plating's maximum armour
+ * @param plating the maximum armour of each plating, by name
  */
 public record CampaignRules(
         int startingCredits,
@@ -22,10 +25,12 @@ public record CampaignRules(
         double armourFloor,
         Map<LoadoutSlot, Fitted> starterLoadout,
         double starterArmour,
+        Map<String, Double> plating,
         List<String> grades) {
     public CampaignRules {
         retries = Map.copyOf(retries);
         starterLoadout = Map.copyOf(starterLoadout);
+        plating = Map.copyOf(plating);
         grades = List.copyOf(grades);
     }
 
@@ -54,9 +59,20 @@ public record CampaignRules(
                 content.retry().armourFloor(),
                 starter,
                 content.armour().plating().getFirst().max(),
+                content.armour().plating().stream()
+                        .collect(Collectors.toMap(ArmourData.Plating::name, ArmourData.Plating::max)),
                 content.scoring().grades().stream()
                         .map(ScoringData.Grade::grade)
                         .toList());
+    }
+
+    /** The maximum armour of the plating with this name. */
+    public double maxArmour(String plating) {
+        Double max = this.plating.get(plating);
+        if (max == null) {
+            throw new IllegalArgumentException("no plating '" + plating + "'");
+        }
+        return max;
     }
 
     /** The retries per level on {@code difficulty}; empty for unlimited. */

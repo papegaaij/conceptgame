@@ -69,7 +69,6 @@ class CampaignTest {
         Campaign campaign = Campaign.start(RULES, Difficulty.MEDIUM);
 
         assertEquals(Campaign.Failure.MISSION_FAILED, campaign.fail());
-        campaign.retry();
 
         assertEquals(300, campaign.credits(), "nothing is banked from the failed attempt");
         assertEquals(0, campaign.score());
@@ -85,8 +84,7 @@ class CampaignTest {
 
         campaign.fail();
 
-        assertEquals(30, campaign.retry(), "50 % of 60");
-        assertEquals(30, campaign.armour());
+        assertEquals(30, campaign.armour(), "50 % of 60");
     }
 
     @Test
@@ -95,7 +93,7 @@ class CampaignTest {
         campaign.complete(won("B", 40, 1000), 50);
         campaign.fail();
 
-        assertEquals(50, campaign.retry());
+        assertEquals(50, campaign.armour());
     }
 
     @Test
@@ -105,8 +103,7 @@ class CampaignTest {
 
         for (int retry = 1; retry <= 3; retry++) {
             assertEquals(Campaign.Failure.MISSION_FAILED, campaign.fail());
-            campaign.retry();
-            assertEquals(Optional.of(3 - retry), campaign.retriesLeft());
+            assertEquals(Optional.of(3 - retry), campaign.retriesLeft(), "the failure uses the retry at once");
         }
 
         assertFalse(campaign.canRetry());
@@ -118,7 +115,6 @@ class CampaignTest {
     void hardRenewsTheRetriesWithTheNextLevel() {
         Campaign campaign = Campaign.start(RULES, Difficulty.HARD);
         campaign.fail();
-        campaign.retry();
 
         campaign.complete(won("B", 40, 1000), 60);
 
@@ -131,9 +127,29 @@ class CampaignTest {
             Campaign campaign = Campaign.start(RULES, difficulty);
             for (int i = 0; i < 20; i++) {
                 assertEquals(Campaign.Failure.MISSION_FAILED, campaign.fail());
-                campaign.retry();
             }
         }
+    }
+
+    @Test
+    void aFailureUsesItsRetryBeforeThePlayerChooses() {
+        Campaign campaign = Campaign.start(RULES, Difficulty.HARD);
+
+        campaign.fail();
+
+        assertEquals(
+                Optional.of(2),
+                campaign.save(Instant.EPOCH).retriesLeft(),
+                "an autosave written now keeps the used retry, so quitting cannot give it back");
+    }
+
+    @Test
+    void aRestartOrAnAbortUsesARetryOnHard() {
+        Campaign campaign = Campaign.start(RULES, Difficulty.HARD);
+
+        assertEquals(60, campaign.retry());
+
+        assertEquals(Optional.of(2), campaign.retriesLeft());
     }
 
     @Test
@@ -175,7 +191,6 @@ class CampaignTest {
     void theStateSurvivesASaveAndALoad() {
         Campaign campaign = Campaign.start(RULES, Difficulty.HARD);
         campaign.fail();
-        campaign.retry();
         campaign.play(125.5);
         Instant now = Instant.parse("2026-10-02T12:34:56Z");
 

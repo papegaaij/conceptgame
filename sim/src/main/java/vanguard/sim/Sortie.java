@@ -181,9 +181,13 @@ public final class Sortie {
 
     private void fire() {
         double muzzleY = ship.y() + ship.spec().muzzleOffsetY();
-        Shot shot = shots.obtain();
-        if (shot != null) {
-            shot.fire(ship.x(), muzzleY, ship.gun().damage());
+        List<Double> pattern = ship.gun().pattern();
+        // Indexed: an iterator would allocate on every volley.
+        for (int i = 0; i < pattern.size(); i++) {
+            Shot shot = shots.obtain();
+            if (shot != null) {
+                shot.fire(ship.x() + pattern.get(i), muzzleY, ship.gun().damage());
+            }
         }
         events.add(SimEvents.Type.SHOT_FIRED, ship.x(), muzzleY);
     }
