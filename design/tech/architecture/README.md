@@ -162,8 +162,9 @@ first entry of a part's model list is the starter (price 0, `start`).
   a trigger's `hits`, `reveals`); `secrets` (`name`, hidden `crate` credits, `radio` line); placed
   `pickups` (`pickup`, `dropped_by` wave and unit); `radio` cues (trigger `t` or `event`
   `first-kill` (with `enemy`) / `secondary-objective` / `level-end`; `speaker`, `line`,
-  `distorted`, and `easy` / `hard` changes giving another `line`, as when a wave enters elsewhere on
-  that difficulty); `objectives` (`primary`, `secondary` `kill_ratio` and `credits`); `music`
+  `distorted`, the portrait's optional `expression` (`neutral`, `grim`, `fierce`; neutral if not
+  given; a secret's `radio` line takes it too), and `easy` / `hard` changes giving another `line`,
+  as when a wave enters elsewhere on that difficulty); `objectives` (`primary`, `secondary` `kill_ratio` and `credits`); `music`
   (`track`, `start_section`, optional `start_db` (the theme's level through its start section,
   rising to full at the next), `full_section`, `ambience`, `end_jingle`); `difficulty` (level-wide
   `easy` / `hard` enemy changes such as `burst`, and `extra_pickups` placed like `pickups`);
@@ -171,7 +172,9 @@ first entry of a part's model list is the starter (price 0, `start`).
   `hazards`, `boss`, optional `specials` limits, `varga` lines per sensor level `none`/`l1`/`l2`/
   `l3`, and `notes` with the *Threat profile* rows, where `{directions}` is derived and the other
   `{fields}` come from the profile); `briefing`
-  (`pages` of `speaker` and `line`, and the hangar `teaser`, rendered into *Briefing*); `backdrop`
+  (`pages` of `speaker` and `line` with the optional portrait `expression` and `image`, the name of
+  a tactical map or mission image in `assets/ui/briefing/`, and the hangar `teaser`, rendered into
+  *Briefing*); `backdrop`
   (presentation only, see below). The credit budget
   table is derived: kills × bounties, ground targets, crates, the secondary objective, against
   budget(n) of the economy; the attack directions are each entry's share of the enemies.
@@ -211,7 +214,7 @@ first entry of a part's model list is the starter (price 0, `start`).
   `pickup_score`, `chain`, `rating` weights, `bonuses`, `grades`); retry (`armour_floor`, the
   share of the maximum armour a retry starts with at least).
 - **Act** (`campaign/<act>/data.yaml`): `levels` `[first, last]` (global numbers), `title_card`
-  (`act`, `name`, `line`), `briefing` (pages of `speaker` and `line`); the loader checks that every
+  (`act`, `name`, `line`), `briefing` (pages as a level's); the loader checks that every
   level's act exists and includes it.
 
 ### Presentation (`game`)
@@ -445,3 +448,11 @@ Screenshot tests are left out until there is a need.
   which the backdrop checks step through) after the level end; the sim's level result is
   unchanged.
 - 2026-10-02: The spike branch was replaced by the tag `spike-libgdx` (user decision).
+- 2026-10-02: Production art, UI batch part U2. `Sprites.region(name)` and `Sprites.patch(name)`
+  look up the named regions and nine-patches of the sprite pages; `Glass` takes `Sprites` and
+  holds the glass kit's pieces (`ui/…`, tools/art/ui_kit.py) instead of a white pixel and two
+  generated textures, so it is no longer `Disposable`. `vanguard.game.hangar.ItemIcons` maps every
+  catalogue item (by identity) and the escort to its two icons (`icons/…`, tools/art/icons.py) when
+  the hangar opens and fails there if one is missing; `TacticalMap` loads `ui/hangar-map.png`
+  (tools/art/ui_scenes.py), which also renders the title scene and logo that
+  `tools/concept/ui_assets.py` no longer writes. The replay hash is unchanged.

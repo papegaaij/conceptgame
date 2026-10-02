@@ -89,3 +89,24 @@ tactical display: the curved limb of Mars in rust and orange across the lower ha
 cyan grid, orange range rings around a landing zone marked "LZ OLYMPUS MONS" and a dashed cyan
 descent route from orbit`, and the centre with `a holographic blueprint in a glass panel: a
 navy-blue grid with the top-down jet interceptor and cyan callout lines to the slot boxes`.
+
+## hangar-final-r13-a
+
+Production art, UI batch part U2 (round 13). Not a mockup: the tactical map from
+[tools/art/ui_scenes.py](../../../../tools/art/ui_scenes.py) (posterized to 24 colours with ordered
+dither, the grid, rings and route to 12 colours of their own) and the equipment icons from
+[tools/art/icons.py](../../../../tools/art/icons.py) (`python3 tools/art/icons.py`, `--review`
+rebuilds only this sheet): SDF ray-marched at 8× through the sprite path, 1-bit alpha, unsharp mask,
+32 colours, the key light top-left.
+
+Brief: as hangar-r07-b, `a darkened tactical map behind the glass panels: grid, the planet's limb,
+range rings round the landing zone, the approach route`; icons `one consistent late-90s pre-rendered
+emblem per item on a dark bevelled badge, readable at 16 px`.
+
+## hangar-capture-final-r13-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --start title` on a private 960×540 Xvfb display (settings in a temporary directory, so the saves are too: `display.mode=window`, a 960×540 window at 0,0, `audio.master=0`), the keys sent into the game window with XTest and the screen grabbed with ImageMagick `import`: New Game, Medium, the intro briefing skipped page by page, in the hangar Q/E to the right wing and Down to the Bomb Rack. Uncropped; [tools/art/ui_review.py](../../../../tools/art/ui_review.py) builds the part's sheet from it where it has one.
+
+## intel-final-r13-a
+
+Production art, UI batch part U3 (round 13). Not a mockup: the sheet of the intel panel's sensor-L2 pictures in `assets/sprites/intel/`, rendered by [tools/art/intel.py](../../../../tools/art/intel.py) (`python3 tools/art/intel.py`) from the chosen enemy models (`tools/concept/enemies_r04.py`) and boss models (`enemies_r04.py`, `bosses_r06.py`). Brief: `a sensor contact card: the unit seen from above on a dark teal scope with a dot grid, a scan line and corner brackets, slightly cyan-tinted; a boss only as its outline, filled flat with the grid running through it`.

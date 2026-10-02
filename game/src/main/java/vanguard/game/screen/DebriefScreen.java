@@ -13,12 +13,14 @@ import vanguard.game.audio.Sfx;
 import vanguard.game.input.Action;
 import vanguard.game.render.PixelScreen;
 import vanguard.game.ui.Fonts;
+import vanguard.game.ui.Glass;
 import vanguard.sim.LevelResult;
 
 /**
- * The debrief after a won level (design/ui/debrief), a placeholder in the glass style of the
- * chosen debrief concept (debrief-r08-a): the tally, the credits by source with the grade bonus
- * and the total, the score and the grade stamp, with "NEW BEST" when the grade beats the level's
+ * The debrief after a won level (design/ui/debrief), in the glass style of the chosen debrief
+ * concept (debrief-r08-a), drawn with the UI kit over the dimmed title scene (Earth orbit, Level
+ * 01's setting): the tally, the credits by source with the grade bonus and the total, the score and
+ * the grade stamp in its amber-trimmed glass, with "NEW BEST" when the grade beats the level's
  * best. Lines appear 0.3 s apart with a tick while their numbers count up; confirm skips the
  * animation, and once it is done the campaign goes on with the next level's briefing, or the
  * hangar while that level is not built yet.
@@ -33,8 +35,9 @@ public final class DebriefScreen implements GameScreen {
     private static final int RIGHT = 640;
     private static final int TOP = 470;
     private static final int LINE = 21;
-    private static final Color GLASS = new Color(0.03f, 0.04f, 0.12f, 0.92f);
-    private static final Color RULE = Color.valueOf("5A64A0");
+    /** The title scene behind the panel is drawn this bright. */
+    private static final float DIMMED = 0.35f;
+
     private static final Color TITLE = Color.valueOf("FFE84A");
     private static final Color LABEL = Color.valueOf("A8B4D8");
     private static final Color VALUE = Color.WHITE;
@@ -186,10 +189,9 @@ public final class DebriefScreen implements GameScreen {
     public void draw(SpriteBatch batch) {
         Fonts fonts = services.fonts;
         BitmapFont font = fonts.body;
-        fill(batch, Color.BLACK, 0, 0, PixelScreen.WIDTH, PixelScreen.HEIGHT);
-        fill(batch, GLASS, 120, 30, 720, 480);
-        fill(batch, RULE, 120, 509, 720, 1);
-        fill(batch, RULE, 120, 30, 720, 1);
+        Glass glass = services.glass;
+        services.titleScene.draw(batch, DIMMED);
+        glass.panel(batch, 120, 30, 720, 480, 0.9f);
         text(fonts.heading, batch, title, TITLE, 0, 500, PixelScreen.WIDTH, Align.center);
         text(font, batch, subtitle, VALUE, 0, 468, PixelScreen.WIDTH, Align.center);
         for (int i = 0; i < shownLines; i++) {
@@ -198,7 +200,7 @@ public final class DebriefScreen implements GameScreen {
             double progress = Math.clamp((elapsed - i * LINE_SECONDS) / LINE_SECONDS, 0, 1);
             if (row.colour() == HEADING) {
                 text(font, batch, row.label(), HEADING, LEFT, y, 200, Align.left);
-                fill(batch, RULE, LEFT + 80, y - 8, 520, 1);
+                glass.rule(batch, LEFT + 80, LEFT + 600, PixelScreen.HEIGHT - y + 6);
                 continue;
             }
             text(font, batch, row.label(), LABEL, LEFT, y, 220, Align.left);
@@ -214,8 +216,7 @@ public final class DebriefScreen implements GameScreen {
     private void drawStamp(SpriteBatch batch, Fonts fonts) {
         int x = 690;
         int y = 120;
-        fill(batch, TITLE, x, y, 110, 110);
-        fill(batch, GLASS, x + 6, y + 6, 98, 98);
+        services.glass.panel(batch, x, PixelScreen.HEIGHT - y - 110, 110, 110, 0.9f, true);
         BitmapFont heading = fonts.heading;
         heading.getData().setScale(3);
         text(heading, batch, grade, TITLE, x, y + 95, 110, Align.center);
@@ -231,12 +232,6 @@ public final class DebriefScreen implements GameScreen {
         font.setColor(colour);
         font.draw(batch, text, x, y, width, align, false);
         font.setColor(Color.WHITE);
-    }
-
-    private void fill(SpriteBatch batch, Color colour, float x, float y, float width, float height) {
-        batch.setColor(colour);
-        batch.draw(services.sprites.pixel, x, y, width, height);
-        batch.setColor(Color.WHITE);
     }
 
     private static String grouped(long value) {

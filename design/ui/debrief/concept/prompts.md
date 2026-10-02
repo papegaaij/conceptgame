@@ -29,3 +29,14 @@ Game over on hard after 3 retries, campaign summary and high-score entry at rank
 Prompt: `late 1990s game 'GAME OVER' screen, 16:9, big chrome extruded 'GAME OVER' in red steel, red subtitle 'HARD - RETRIES 0/3', a glass panel with campaign stats and a last transmission, a second glass panel with a top-10 high-score table where rank 4 is highlighted amber with a name being typed and a blinking underscore, a letter grid of small chips below, dark desaturated space scene behind`
 
 Negative prompt: the common negative prompt above.
+
+## debrief-final-r13-a
+
+Production art, UI batch part U2 (round 13). Not a mockup: the game's capture(s) at 1× with a 2×
+detail, arranged by [tools/art/ui_review.py](../../../../tools/art/ui_review.py)
+(`python3 tools/art/ui_review.py`); the screen draws the glass kit of
+[tools/art/ui_kit.py](../../../../tools/art/ui_kit.py).
+
+## debrief-capture-final-r13-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --start level --invulnerable --debug-speed 8` on a private 960×540 Xvfb display (settings in a temporary directory, so the saves are too: `display.mode=window`, a 960×540 window at 0,0, `audio.master=0`), the keys sent into the game window with XTest and the screen grabbed with ImageMagick `import`: the level flown without input until the debrief. Uncropped; [tools/art/ui_review.py](../../../../tools/art/ui_review.py) builds the part's sheet from it where it has one.

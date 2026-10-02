@@ -116,3 +116,5 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
   game over screen says Continue returns to the hangar before the mission. The open question is
   closed.
 - 2026-10-02: M3 close-out (user decision): the level-start snapshot is done (the campaign state is it, part B1), so the item is split; the boss checkpoint's snapshot moves to M4 with the first boss. The document is done for M3.
+- 2026-10-02: Production art, UI batch part U3: the mission failed screen shows Okafor's grim
+  portrait (`tools/art/portraits.py`).

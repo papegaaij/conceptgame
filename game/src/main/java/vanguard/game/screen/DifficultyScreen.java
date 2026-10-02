@@ -119,10 +119,7 @@ public final class DifficultyScreen implements GameScreen {
         int y = on ? CARD_Y - RAISE : CARD_Y;
         int height = CARD_HEIGHT + (on ? 2 * RAISE : 0);
         float centre = x + CARD_WIDTH / 2f;
-        glass.panel(batch, x, y, CARD_WIDTH, height, on ? 0.8f : 0.63f);
-        if (on) {
-            glass.outline(batch, Glass.AMBER, x - 2, y - 2, CARD_WIDTH + 4, height + 4);
-        }
+        glass.panel(batch, x, y, CARD_WIDTH, height, on ? 0.8f : 0.63f, on);
         Color accent = on ? Glass.AMBER : Glass.TRIM_LIGHT;
         int chevrons = index + 1;
         for (int k = 0; k < chevrons; k++) {
@@ -141,7 +138,7 @@ public final class DifficultyScreen implements GameScreen {
         int rowsTop = y + height - 16 - rows.size() * 21;
         for (int k = 0; k < rows.size(); k++) {
             int rowY = rowsTop + k * 21;
-            glass.fill(batch, Glass.TRIM, x + 16, rowY + 17, CARD_WIDTH - 32, 1);
+            glass.rule(batch, x + 16, x + CARD_WIDTH - 16, rowY + 16);
             Lever lever = rows.get(k);
             glass.shadowed(batch, glass.fonts.label, lever.name(), Glass.LABEL, x + 18, rowY + 6);
             // A value too long for the body font beside its name takes the label font, as on the concept.

@@ -26,18 +26,18 @@ class OutroTest {
     @Test
     void theDebriefWaitsUntilTheLevelEndLineHasBeenShown() {
         outro.start();
-        radio.add("Okafor", LEVEL_END, false);
+        radio.add("Okafor", "neutral", LEVEL_END, false);
 
         assertEquals(2 + RadioQueue.LAST_PAGE_SECONDS, secondsUntilDebrief(), 2 * FRAME);
     }
 
     @Test
     void aQueuedLineIsShownToo() {
-        radio.add("Okafor", SECONDARY, false);
+        radio.add("Okafor", "neutral", SECONDARY, false);
         radio.update(FRAME);
         run(5);
         outro.start();
-        radio.add("Okafor", LEVEL_END, false);
+        radio.add("Okafor", "neutral", LEVEL_END, false);
 
         // What is left of the secondary-objective line (57 characters typed in 1.9 s, then held),
         // the gap and the level-end line.
@@ -48,8 +48,8 @@ class OutroTest {
     @Test
     void bothEndOfLevelLinesFitInTheCap() {
         outro.start();
-        radio.add("Okafor", LEVEL_END, false);
-        radio.add("Okafor", SECONDARY, false);
+        radio.add("Okafor", "neutral", LEVEL_END, false);
+        radio.add("Okafor", "neutral", SECONDARY, false);
 
         assertTrue(secondsUntilDebrief() < LevelData.OUTRO_SECONDS, "the cap leaves room for both lines");
     }
@@ -57,9 +57,9 @@ class OutroTest {
     @Test
     void theRadioHoldsTheDebriefAtMostTheCap() {
         outro.start();
-        radio.add("Okafor", LEVEL_END, false);
-        radio.add("Okafor", SECONDARY, false);
-        radio.add("Okafor", LEVEL_END, false);
+        radio.add("Okafor", "neutral", LEVEL_END, false);
+        radio.add("Okafor", "neutral", SECONDARY, false);
+        radio.add("Okafor", "neutral", LEVEL_END, false);
 
         assertEquals(LevelData.OUTRO_SECONDS, secondsUntilDebrief(), 2 * FRAME);
     }

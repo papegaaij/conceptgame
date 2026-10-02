@@ -253,3 +253,10 @@ from the files the game loads. Prompts: [concept/prompts.md](concept/prompts.md)
   concepts; chain and progress stay continuous. The key light sits lower than the sprites' (about
   27° instead of 43°) so a 45° bevel reads. Review files proposed for round 13; `art` stays
   `chosen` until the user approves them.
+- 2026-10-02: Production art, UI batch part U3: the radio shows the production portraits
+  (`tools/art/portraits.py`, [characters](../../story/characters/README.md)) in the radio line's
+  `expression` (neutral when not given), the Choir's glyph as its 32-frame loop at 12 fps from the
+  moment its message opens. Level 01's lines set grim or fierce where the text calls for it:
+  Okafor's "Contacts inbound. Weapons free." and "Contacts on your six, Lancer!" and Rook's
+  "Movement on your left!" fierce; Varga's "Those ones are armed." and "That isn't noise…" and
+  Okafor's level-end "…The rest are coming." grim; the rest neutral.

@@ -72,10 +72,23 @@ Concept [round 08](../concept-rounds/round-08/README.md) — the shared UI kit; 
 |---|---|---|
 | [concept/ui-kit-r08-a.png](concept/ui-kit-r08-a.png) | Shared UI kit: glass widgets (panels, menu states, chips, sliders, toggles, tabs, dialogs), metal HUD widgets, and bitmap font specimens 8×12 / 10×20 / 20×30 with the full character set | chosen |
 
+Production art, UI batch part U2 (for concept round 13, opened by part U3): the glass kit rendered by [tools/art/ui_kit.py](../../tools/art/README.md) into `assets/sprites/ui/` and drawn by `vanguard.game.ui.Glass`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/ui-kit-final-r13-a.png](concept/ui-kit-final-r13-a.png) | Review sheet: the widgets as the screens draw them over the darkened title scene (panels with trim and corner tabs, header rules, list rows with the selection and cursor, menu items, chips on / off / locked, NEW tag, slider, toggle, tabs, pips, chevron, the confirm dialog with its holo brackets, callouts, amber card frame, inset, key-hint plate), a 2× detail and every piece with its size | proposed |
+| [concept/ui-kit-capture-final-r13-a.png](concept/ui-kit-capture-final-r13-a.png) | Game capture: the quit confirmation over the main menu | proposed |
+
+Production art, UI batch part U3 (concept round 13): the bitmap fonts rendered by [tools/art/fonts.py](../../tools/art/README.md) into `assets/fonts/`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/fonts-final-r13-a.png](concept/fonts-final-r13-a.png) | Review sheet: the label 8×12, body 10×20 and heading 20×30 fonts, each glyph of the 127-character set at 2× on its cell grid with the baseline marked, and sample lines from the game's texts at 1× | proposed |
+
 ## Implementation
 
 - [x] Screen/state machine for the flow above
-- [ ] Shared UI kit: panels, buttons, lists, bars, portrait frame, bitmap fonts
+- [x] Shared UI kit: panels, buttons, lists, bars, portrait frame, bitmap fonts (glass pieces: `tools/art/ui_kit.py`; fonts: `tools/art/fonts.py`)
 - [ ] Keyboard and gamepad navigation on every screen
 - [ ] Mouse support on every out-of-game screen (hover selects, click confirms, wheel scrolls lists, right-click or a back button goes back), with the hangar's panels and the options sliders and remapping usable by mouse; the in-level game stays keyboard/gamepad only — **later: M6** (see the [roadmap](../tech/roadmap/README.md))
 
@@ -121,3 +134,26 @@ Concept [round 08](../concept-rounds/round-08/README.md) — the shared UI kit; 
   (Retry / Back to hangar / Quit), or the game over screen on hard with no retry left; both are now
   drawn in the flow above (from [retry](../systems/retry/README.md)), as is Pause's Abort to hangar.
 - 2026-10-02: Mouse support for the out-of-game screens is planned for M6 (user decision after playing M3); keyboard and gamepad stay the primary input.
+- 2026-10-02: Production art, UI batch part U2: the glass kit is production art
+  (`tools/art/ui_kit.py`, `assets/sprites/ui/`, on the shared sprite pages) and `Glass` draws it
+  instead of flat fills, with the same layouts and fonts: the glass body (stepped sheen along the
+  top, drawn at the panel's opacity) under a separate trim nine-patch (a 2 px rounded metal rail,
+  lit top-left, with the four corner tabs), an amber trim for the selected difficulty card, the
+  dialog's trim with cyan holographic corner brackets, the recessed inset, the header rule with its
+  end cap, the fading amber selection bar (dithered along its length only, so stretching keeps it
+  clean), faceted cursors per font, chips and tabs as pixel bevels, the slider's knob, a lit bar
+  cell tinted per use, list rows, the key-hint plate, a tag, scroll markers, the trait diamond, the
+  rank chevron and the hangar's holographic callouts. Fills remain only for lines, grids, ticks and
+  the screen's dimming. The portrait frames are the trim nine-patch, so the shared-kit item is
+  ticked. Review files proposed for round 13; `art` stays `chosen`.
+- 2026-10-02: Production art, UI batch part U3: the bitmap fonts move from the placeholder script
+  `tools/concept/ui_assets.py` to `tools/art/fonts.py` (`Source` chunk on every page). Same font,
+  sizes, cells, baselines (label 9, body 15, heading 24) and line heights, so no layout moves: the
+  114 glyphs the fonts had are pixel for pixel the same (FreeType's hinted 1-bit raster was already
+  clean, and no glyph was clipped by its cell). Each glyph is now placed on the cell's baseline
+  explicitly and may overflow the cell (accents over capitals). The set grows to 127 characters:
+  the en dash, the typographic quotes ‘ ’ “ ”, → and ≈ (used by the data and the code but missing)
+  and the upper-case É È Ë Ü Ö Ä (the screens upper-case their texts). `fonts.py --check` scans
+  every data file and the game's and content's string literals (also upper-cased) and fails on a
+  character without a glyph or a capital, digit or lower-case letter off the shared rows. Review
+  sheet proposed for round 13; `art` stays `chosen`.

@@ -1,6 +1,5 @@
 package vanguard.game.screen;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.List;
 import java.util.Locale;
@@ -61,7 +60,7 @@ public final class HangarScreen implements GameScreen {
         this.campaign = campaign;
         nextLevel = CampaignRoute.launch(services.content, campaign);
         state = new HangarState(new Hangar(services.catalogue, campaign), nextLevel.isPresent());
-        view = new HangarView(services.glass, services.sprites);
+        view = new HangarView(services.files, services.glass, services.sprites, services.catalogue);
         if (autosave) {
             this.autosave = services.save(SaveSlots.Slot.AUTOSAVE, campaign) ? "AUTOSAVED" : "AUTOSAVE FAILED";
         } else {
@@ -246,8 +245,7 @@ public final class HangarScreen implements GameScreen {
             glass.chip(batch, glass.fonts.label, command.name(), x, 15, 64, 22, on(command), state.enabled(command));
             x += 70;
         }
-        glass.fill(batch, new Color(0.03f, 0.04f, 0.12f, 0.95f), 662, 12, 144, 28);
-        glass.outline(batch, Glass.TRIM, 662, 12, 144, 28);
+        glass.inset(batch, 662, 12, 144, 28);
         glass.right(batch, glass.fonts.body, Names.credits(campaign.credits()), Glass.AMBER, 798, 16);
         glass.chip(
                 batch,

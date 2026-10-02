@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import vanguard.content.Expression;
 import vanguard.content.campaign.Campaign;
 import vanguard.game.GameServices;
 import vanguard.game.audio.Sfx;
@@ -54,7 +55,7 @@ public final class MissionFailedScreen implements GameScreen {
         this.services = services;
         this.level = level;
         this.campaign = level.campaign();
-        okafor = Speaker.of("Okafor", services.sprites);
+        okafor = Speaker.of("Okafor", Expression.GRIM, services.sprites);
     }
 
     @Override
@@ -105,7 +106,7 @@ public final class MissionFailedScreen implements GameScreen {
         glass.centred(batch, glass.fonts.label, mission, Glass.LABEL, centre, PANEL_Y + 48);
         int portraitX = PANEL_X + 16;
         int portraitY = PANEL_Y + 66;
-        glass.outline(batch, Glass.TRIM_LIGHT, portraitX - 2, portraitY - 2, 148, 148);
+        glass.frame(batch, portraitX - 3, portraitY - 3, 150, 150);
         batch.draw(okafor.portrait(), portraitX, PixelScreen.HEIGHT - portraitY - 144);
         glass.shadowed(batch, glass.fonts.label, okafor.name(), Glass.AMBER, portraitX, portraitY + 152);
         glass.shadowed(batch, glass.fonts.label, "PULL BACK, LANCER.", Glass.WHITE, portraitX, portraitY + 166);

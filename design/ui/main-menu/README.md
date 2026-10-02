@@ -80,6 +80,14 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
 | [concept/load-game-r06-a.png](concept/load-game-r06-a.png) | Load game A — autosave + 8 glass slot rows with a preview panel | chosen |
 | [concept/rejected/load-game-r06-b.png](concept/rejected/load-game-r06-b.png) | Load game B — console save archive with load / delete / back | rejected — A preferred |
 
+Production art, UI batch part U2 (for concept round 13, opened by part U3): the title scene and logo D rendered by [tools/art/ui_scenes.py](../../../tools/art/README.md) into `assets/ui/` (they replace the placeholders of `tools/concept/ui_assets.py`). Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/main-menu-final-r13-a.png](concept/main-menu-final-r13-a.png) | Review sheet: the 960×540 hero scene with logo D as the title draws it, the logo on a checker, 2× crops of the Stormhawk, the Vrell fleet, the sun and the limb | proposed |
+| [concept/main-menu-capture-final-r13-a.png](concept/main-menu-capture-final-r13-a.png) | Game capture: the main menu (New Game selected, Load Game disabled) over the scene | proposed |
+| [concept/difficulty-capture-final-r13-a.png](concept/difficulty-capture-final-r13-a.png) | Game capture: the difficulty select, Medium on its amber-trimmed card | proposed |
+
 ## Implementation
 
 - [x] Title screen with background scene, logo and press start
@@ -123,3 +131,12 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
   setting thumbnail are not built (the saves document has no delete). New game goes difficulty →
   intro briefing → hangar.
 - 2026-10-02: M3 close-out (user decision): every item is ticked; done.
+- 2026-10-02: Production art, UI batch part U2: the title scene and logo D are production art
+  (`tools/art/ui_scenes.py`, `assets/ui/title-scene.png`, `title-logo.png`; `ui_assets.py` no
+  longer writes them). The scene keeps menu A's composition, seeds and colours; space, Earth and
+  the sun are posterized to 32 colours each with ordered dither on their wide gradients, and the
+  Stormhawk (150 px, 4×) and the sixteen Vrell are ray-marched at their size in the scene and
+  turned in the model, so their key light stays top-left (the concept rotated finished images).
+  The logo's glow and edges are stepped to five translucency levels, 46 colours. The menus,
+  difficulty cards and slot list draw the production glass kit. Review files proposed for round 13;
+  `art` stays `chosen`.

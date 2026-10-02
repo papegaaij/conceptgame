@@ -20,4 +20,10 @@ tasks.test {
     inputs.dir(rootProject.layout.projectDirectory.dir("assets/backdrop")).withPropertyName("backdropAssets")
     // MissionLayoutTest measures the HUD's texts with the UI kit's fonts.
     inputs.dir(rootProject.layout.projectDirectory.dir("assets/fonts")).withPropertyName("fonts")
+    // ItemIconsTest checks that every shop item has its icons.
+    inputs.dir(rootProject.layout.projectDirectory.dir("assets/sprites/icons")).withPropertyName("icons")
+    // PortraitsTest checks the portraits and intel pictures, BriefingLayoutTest the briefing images the data names.
+    inputs.dir(rootProject.layout.projectDirectory.dir("assets/sprites/portraits")).withPropertyName("portraits")
+    inputs.dir(rootProject.layout.projectDirectory.dir("assets/sprites/intel")).withPropertyName("intel")
+    inputs.dir(rootProject.layout.projectDirectory.dir("assets/ui/briefing")).withPropertyName("briefingImages")
 }

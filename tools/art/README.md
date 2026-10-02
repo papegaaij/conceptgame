@@ -1,6 +1,6 @@
 # Production art generators
 
-The generators of the **final** sprites, effects, backdrops, HUD parts and recorded sounds (design/art-direction/production). They
+The generators of the **final** sprites, effects, backdrops, HUD parts, glass UI kit, screen scenes, equipment icons, portraits, intel pictures, briefing images, bitmap fonts, themes and recorded sounds (design/art-direction/production). They
 write straight into `assets/`, which the game packs into atlases at build time, and render the
 review material of a batch into the parts' `concept/` directories. Every output is fully
 determined by the code (fixed seeds, no hand edits): change the generator and rerun it.
@@ -26,12 +26,22 @@ Run times on a 20-core machine.
 | `pickups.py` | `sprites/pickup-{salvage-small,shield-cell,armour-patch,crate}_0..7` (28–34 px loops) | `design/player/concept/pickups-final-r12-a` | ~3 s |
 | `explosions.py` | `sprites/explosion-{tiny,small,medium,large}_N` (24/40/64/96 px, 12/12/14/14 frames, additive) | `design/art-direction/concept/explosions-final-r12-a` | ~5 s |
 | `loot_targets.py` | `sprites/cargo-container_0..1` (32×24), `sprites/cargo-container-break_0..7` (48×48), `sprites/beacon_0..3` (12×12), `sprites/glint_0..2` (9×9, additive) | `design/campaign/act-1-first-contact/level-01-break-at-dawn/concept/loot-targets-final-r12-a` | ~30 s |
-| `backdrop_l01.py [id ...]` | `backdrop/level-01/<id>.png` (`<id>_<n>.png` for frames and headings): every tile set and set piece of Level 01's `backdrop` data at its size, 12–32 colours per piece; the `-mirrored` pieces are the mirrored placements rendered with the layout mirrored and the key light fixed | `design/campaign/act-1-first-contact/level-01-break-at-dawn/concept/backdrop-final-r12-a` | ~1.5 min |
+| `backdrop_l01.py [id ...]` | `backdrop/level-01/<id>.png` (`<id>_<n>.png` for frames and headings): every tile set and set piece of Level 01's `backdrop` data at its size, 12–32 colours per piece; the `-mirrored` pieces are the mirrored placements rendered with the layout mirrored and the key light fixed; with ids only those pieces (and the sheets of the reworked ones among them) | `design/campaign/act-1-first-contact/level-01-break-at-dawn/concept/backdrop-final-r12-a`; pieces reworked after round 12 (`REWORKED`: `north-arm`, its solar wings end inside the piece) get their own `<id>-final-r13-a` | ~1.5 min |
 | `hud.py` | `sprites/hud/panel-left`, `panel-right` (240×540 side-panel plates: chamfer, four corner rivets, brushed steel, ordered-dithered face, 26 colours), `plate` (120×22 label plate), `well.9`, `portrait.9` (32×32 and 76×76 LCD and portrait wells, 6 px corners), `fill.9` (8×8 grey phosphor cell, tinted at runtime), `glow.9` (24×24 white readout glow, stepped alpha) | `design/ui/hud/concept/hud-final-r13-a` (sheet only: the pieces are static) | ~30 s |
+| `ui_kit.py` | `sprites/ui/`: the glass kit of the out-of-game screens as nine-patches (`glass.9` body, `frame.9` / `frame-on.9` / `dialog.9` trims, `inset.9`, `rule.9`, `selection.9`, `chip.9` / `chip-on.9` / `chip-off.9`, `tab.9` / `tab-on.9`, `bar.9` grey cell, `row.9`, `hint.9`, `tag.9` grey, `callout.9` / `callout-on.9`) and pieces (`cursor-small`, `cursor`, `cursor-large`, `knob`, `diamond`, `chevron` grey, `scroll-up`, `scroll-down`) | `design/ui/concept/ui-kit-final-r13-a` | ~2 s |
+| `ui_scenes.py` | `ui/title-scene.png` (960×540 hero scene of main menu A), `ui/title-logo.png` (logo D, 460 px, stepped translucency), `ui/hangar-map.png` (960×540 tactical map, Act 1); textures of their own, not packed | `design/ui/main-menu/concept/main-menu-final-r13-a` | ~15 s |
+| `icons.py` | `sprites/icons/<name>.png` (16×16) and `<name>-large.png` (24×24): one per shop item of the catalogue (weapon slug, or `<kind>-<name as a slug>`) and `escort-rook` | `design/ui/hangar/concept/hangar-final-r13-a` (with the map) | ~15 s |
+| `ui_review.py` | none: arranges the game captures `<subject>-capture-final-r13-a.png` of the screens without art of their own | `design/ui/{briefing,debrief,pause}/concept/<subject>-final-r13-a` | ~2 s |
+| `portraits.py` | `sprites/portraits/radio-<speaker>-<expression>` (72×72) and `briefing-<speaker>-<expression>` (144×144, the 72 px portrait at 2× with CRT scanlines): Okafor, Rook, Varga in `neutral`, `grim`, `fierce` (briefing size for Okafor and Varga), `generic-cdf` and `generic-civilian` neutral, `radio-the-choir-neutral_0..31` (the glyph loop, 12 fps); one 36-colour figure palette per character | `design/story/characters/concept/portraits-final-r13-a` | ~30 s |
+| `intel.py` | `sprites/intel/<enemy>` (30×30 sensor portraits: skitter, needler, stinger, spine-turret) and `boss-<boss>` (40×40 silhouettes: gorgon-frigate, brood-carrier) | `design/ui/hangar/concept/intel-final-r13-a` (sheet only) | ~20 s |
+| `briefing_images.py [name ...]` | `ui/briefing/<name>.png` (672×240, one per briefing page of the Act 1 intro and Levels 01–02; textures of their own, not packed); shows the sprites of `stormhawk.py`, `vrell_air.py` and `intel.py` | `design/ui/briefing/concept/briefing-images-final-r13-a` (sheet only) | ~10 s |
+| `fonts.py [--review] [--check]` | `fonts/label-8x12`, `body-10x20`, `heading-20x30` (`.fnt` BMFont text + one `.png` page each; DejaVu Sans Mono Bold at 9/15/26 px, hinted 1-bit, white, cell-width advance, baselines 9/15/24, 127 characters); `--check` fails on any character in the data files or the game's string literals without a glyph | `design/ui/concept/fonts-final-r13-a` (sheet only) | ~2 s |
+| `themes.py [title] [hangar] [briefing] [--check] [--review]` | `music/title-theme.ogg`, `hangar-theme.ogg`, `briefing-theme.ogg`: the chosen themes rendered by their generator (`music_r08.py` `render_loop`, unchanged), OGG Vorbis q6, −14 LUFS, intro + loop + fade tail with `LOOPSTART` / `LOOPLENGTH`, remuxed with a `SOURCE` comment; then a check (loudness ±0.5 LU, true peak, q6, loop tags, seam, identical to the chosen file) | `design/audio/music/concept/themes-final-r13-a` (sheet only) | ~6 min |
 | `sfx_originals.py [--check] [name ...]` | `sfx/<concept-name>.ogg`: the 75 chosen recorded sounds rebuilt from the Freesound originals (`~/.cache/terran-vanguard/freesound/`, filled by `tools/concept/audio/freesound_fetch.py --download`) with their unchanged `import_sfx.py` settings, originals above full scale clipped first; `SOURCE` comment; then a check against the chosen concept files (length, peak, band RMS within 1 dB) | none (round 12's listening table) | ~1 min |
 
-All of them: `for s in stormhawk vrell_air pulse_cannon enemy_bullets pickups explosions loot_targets backdrop_l01 hud sfx_originals; do python3 tools/art/$s.py; done`
-(about 4.5 min). Afterwards `./gradlew check` packs the atlases and checks the budgets.
+All of them: `for s in stormhawk vrell_air pulse_cannon enemy_bullets pickups explosions loot_targets backdrop_l01 hud ui_scenes ui_kit icons ui_review portraits intel briefing_images fonts themes sfx_originals; do python3 tools/art/$s.py; done`
+(about 12 min; `ui_scenes` before `ui_kit` and `icons`, whose sheets show its scene and map;
+`stormhawk`, `vrell_air` and `intel` before `briefing_images`, which shows their sprites). Afterwards `./gradlew check` packs the atlases and checks the budgets.
 
 ## Conventions (`artkit.py`)
 
@@ -73,6 +83,30 @@ All of them: `for s in stormhawk vrell_air pulse_cannon enemy_bullets pickups ex
   960×540) and are whole plates. Solid parts are ray-marched with the key light lower than the
   sprites' (so a 45° bevel reads) and mapped by their shading through palette B's UTC HULL ramp;
   the fill and glow are grey/white and tinted at runtime.
+- **Glass UI kit** (`ui_kit.py`): in `assets/sprites/ui/` as `ui/<name>`. A panel is two
+  nine-patches, the glass body (opaque in the file, drawn at the panel's opacity) and the trim on
+  top, so the opacity never fades the metal. Solid parts are ray-marched at 8× with `hud.py`'s
+  light (loaded by path: `tools/concept` has a `hud.py` of its own) and mapped through a ramp
+  (UTC HULL steel, the kit's amber, holo cyan); 1 px features are pixel bevels. The selection bar's
+  fade sits in its fixed right part, dithered along x only, so the rows a stretch repeats stay
+  identical. Grey pieces (`bar`, `tag`, `chevron`) are tinted at runtime. `artkit.chamfered_box` is
+  the shared chamfered plate.
+- **Screen scenes** (`ui_scenes.py`): composed in layers, each posterized on its own palette (space,
+  Earth, the sun; each sprite) with ordered dither on wide gradients; ships are ray-marched at their
+  size in the scene and turned in the model (heading), never rotated as images.
+- **Equipment icons** (`icons.py`): a bevelled dark steel badge with the item: its model where one
+  exists, otherwise a symbol per kind in the kind's colour, the grade as amber studs; the names
+  match `vanguard.game.hangar.ItemIcons.name` (weapon slug, or kind and name lower case with
+  hyphens).
+- **Portraits** (`portraits.py`): the concept busts and the round-04 style B, imported unchanged;
+  an expression swaps the concept module's `face` (and the head's `turn`, for the pitch) for the
+  time of a render, so the busts' scene code stays the concept's. The style is split at its palette:
+  one median-cut palette over all expressions of a character, then the comm screen (outline,
+  interference seeded per character, glow, 2× scanlines) on each. The game derives the names from
+  the data's speaker (`vanguard.game.render.Portraits`: lower case, spaces to hyphens).
+- **Briefing images** (`briefing_images.py`): composed in layers like the hangar map: the display
+  with its grid and the planets posterized to 24 colours with ordered dither, the lines, markers and
+  labels (the concept pixel font) to 16 of their own, the sprites last with their palettes.
 - **Sounds** (`sfx_originals.py`): every OGG gets a `SOURCE` Vorbis comment; `importPlaceholders`
   keeps an OGG that has one (`vanguard.pipeline.PlaceholderSounds`).
 - **Review**: `review_sheet` and `save_review` build the sheet and GIF from the files in

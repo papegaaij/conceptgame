@@ -84,7 +84,8 @@ class MissionLayoutTest {
         List<LevelData.RadioLine> lines = new ArrayList<>();
         for (LevelData level : CONTENT.levels().values()) {
             level.radio()
-                    .forEach(cue -> lines.add(new LevelData.RadioLine(cue.speaker(), cue.line(), cue.distorted())));
+                    .forEach(cue -> lines.add(
+                            new LevelData.RadioLine(cue.speaker(), cue.line(), cue.distorted(), cue.expression())));
             level.secrets().forEach(secret -> lines.add(secret.radio()));
         }
         for (LevelData.RadioLine line : lines) {

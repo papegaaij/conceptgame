@@ -115,3 +115,20 @@ thumbnail of a red Mars canyon level, act name in amber, statistics and the load
 Prompt: `late 1990s game "SAVE ARCHIVE" screen on a brushed blue metal console, nine recessed
 LCD slot rows with act icons and green pixel text, selected slot lit amber, a detail panel with
 a Mars level thumbnail, statistics and loadout, LOAD / DELETE / BACK buttons, hazard strip`
+
+## main-menu-final-r13-a
+
+Production art, UI batch part U2 (round 13). Not a mockup: the review sheet of the final title scene
+and logo D, built by [tools/art/ui_scenes.py](../../../../tools/art/ui_scenes.py)
+(`python3 tools/art/ui_scenes.py`, `--review` rebuilds only the sheet) from the files it wrote into
+`assets/ui/`. Composition, seeds and colours are main menu A's (`ui_r06.hero_backdrop`,
+`ui_r06.logo_layer`); the production bar: per-layer palettes with ordered dither, the ships
+ray-marched at their size with the heading in the model, stepped logo translucency.
+
+## main-menu-capture-final-r13-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --start title` on a private 960×540 Xvfb display (settings in a temporary directory, so the saves are too: `display.mode=window`, a 960×540 window at 0,0, `audio.master=0`), the keys sent into the game window with XTest and the screen grabbed with ImageMagick `import`: the main menu after Enter on the title. Uncropped; [tools/art/ui_review.py](../../../../tools/art/ui_review.py) builds the part's sheet from it where it has one.
+
+## difficulty-capture-final-r13-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --start title` on a private 960×540 Xvfb display (settings in a temporary directory, so the saves are too: `display.mode=window`, a 960×540 window at 0,0, `audio.master=0`), the keys sent into the game window with XTest and the screen grabbed with ImageMagick `import`: New Game opened, Medium selected. Uncropped; [tools/art/ui_review.py](../../../../tools/art/ui_review.py) builds the part's sheet from it where it has one.

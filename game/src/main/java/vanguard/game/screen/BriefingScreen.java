@@ -6,8 +6,10 @@ import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import vanguard.content.ActData;
@@ -30,13 +32,14 @@ import vanguard.game.ui.Words;
  * scene with the briefing theme: the act title card first when the level opens its act
  * (act-title-r08-a, held 3.5 s), then the pages, each with its speaker's portrait and name plate,
  * typed out at twice the Gameplay tab's text speed (the radio's) with a soft blip; the mission's objectives and the
- * hangar teaser stay below. Confirm shows the whole page, then the next; Back skips to the last
- * page. The portrait opens through a burst of transmission static, again when the speaker
- * changes, and closes through one after the last page; then the campaign goes on with {@code next}
- * (the hangar).
+ * hangar teaser stay below. A page may show a tactical map or mission image (tools/art/briefing_images.py)
+ * above its text; a page whose text does not fit below its image goes on over the next screens with
+ * the same image, each counted as a page. The portrait shows the page's expression. Confirm shows
+ * the whole page, then the next; Back skips to the last page. The portrait opens through a burst of
+ * transmission static, again when the speaker changes, and closes through one after the last page;
+ * then the campaign goes on with {@code next} (the hangar).
  *
- * <p>Not built yet: the tactical map image (no level has one so far), the threat summary of the
- * concept (it is the hangar intel panel's, part B2) and the portraits' expressions (art track).
+ * <p>Not built: the threat summary of the concept (it is the hangar intel panel's, part B2).
  */
 public final class BriefingScreen implements GameScreen {
     static final float TITLE_CARD_SECONDS = 3.5f;
@@ -55,6 +58,14 @@ public final class BriefingScreen implements GameScreen {
     private static final int TEXT_X = 258;
     private static final int TEXT_Y = 74;
     private static final int LINE = 24;
+    /** The page image's top left and size (design/ui/briefing: 672x240 above the text). */
+    private static final int IMAGE_Y = 64;
+
+    static final int IMAGE_WIDTH = 672;
+    static final int IMAGE_HEIGHT = 240;
+    /** The text's top below an image. */
+    private static final int IMAGE_TEXT_Y = IMAGE_Y + IMAGE_HEIGHT + 12;
+
     private static final int BOTTOM_Y = 440;
     private static final int BOTTOM_HEIGHT = 90;
     private static final int TEASER_X = 492;
@@ -67,7 +78,8 @@ public final class BriefingScreen implements GameScreen {
     private final Supplier<GameScreen> next;
     private final Optional<MusicStreamer> music;
     private final Optional<Texture> titleLettering;
-    private final List<List<String>> pageLines = new ArrayList<>();
+    private final List<Screen> screens = new ArrayList<>();
+    private final Map<String, Texture> images = new HashMap<>();
     private final BriefingPager pager;
     private final List<String> teaser;
     private float titleCard;
@@ -86,13 +98,16 @@ public final class BriefingScreen implements GameScreen {
         this.next = next;
         List<Integer> lengths = new ArrayList<>();
         for (BriefingPage page : script.pages()) {
-            List<String> lines = lines(page);
-            pageLines.add(lines);
-            lengths.add(lines.stream().mapToInt(String::length).sum());
+            Speaker speaker = Speaker.of(page.speaker(), page.portrait(), services.sprites);
+            Optional<Texture> image = page.image().map(name -> images.computeIfAbsent(name, this::image));
+            for (List<String> lines : screens(page)) {
+                screens.add(new Screen(page.speaker(), speaker, image, lines));
+                lengths.add(lines.stream().mapToInt(String::length).sum());
+            }
         }
         pager = new BriefingPager(lengths);
         teaser = Words.wrap(
-                displayed(Speaker.of(script.teaser().speaker(), services.sprites)
+                displayed(Speaker.of(script.teaser().speaker(), script.teaser().portrait(), services.sprites)
                                 .name() + ": \"" + script.teaser().line() + "\""),
                 (PixelScreen.WIDTH - LEFT_X - 14 - TEASER_X) / 8);
         titleCard = script.titleCard().isPresent() ? TITLE_CARD_SECONDS : 0;
@@ -105,9 +120,15 @@ public final class BriefingScreen implements GameScreen {
                 services.audio, services.files.internal("music/briefing-theme.ogg"), MUSIC_VOLUME, services.mixer);
     }
 
-    /** Upper case, with the characters the bitmap fonts lack replaced. */
+    /**
+     * A screen of a briefing page: its speaker (the short name and the name plate with the page's
+     * portrait), its image and the lines it shows.
+     */
+    private record Screen(String speakerName, Speaker speaker, Optional<Texture> image, List<String> lines) {}
+
+    /** Upper case, as the bitmap fonts write it. */
     static String displayed(String text) {
-        return text.toUpperCase(Locale.ROOT).replace('–', '-').replace('’', '\'');
+        return text.toUpperCase(Locale.ROOT);
     }
 
     /** A page's text in quotes, word-wrapped to the text panel's width in the body font (10 px a character). */
@@ -115,9 +136,28 @@ public final class BriefingScreen implements GameScreen {
         return Words.wrap(displayed("\"" + page.line() + "\""), (TEXT_PANEL_X + TEXT_PANEL_WIDTH - 18 - TEXT_X) / 10);
     }
 
-    /** How many lines the text panel holds. */
-    static int maxLines() {
-        return (COLUMN_Y + COLUMN_HEIGHT - 20 - TEXT_Y) / LINE;
+    /** A page's lines split into the screens that show them: all of them, or a few below the page's image. */
+    static List<List<String>> screens(BriefingPage page) {
+        List<String> lines = lines(page);
+        int perScreen = maxLines(page.image().isPresent());
+        List<List<String>> screens = new ArrayList<>();
+        for (int i = 0; i < lines.size(); i += perScreen) {
+            screens.add(lines.subList(i, Math.min(lines.size(), i + perScreen)));
+        }
+        return screens;
+    }
+
+    /** How many lines the text panel holds, below an image or without one. */
+    static int maxLines(boolean image) {
+        return (COLUMN_Y + COLUMN_HEIGHT - 20 - textTop(image)) / LINE;
+    }
+
+    private static int textTop(boolean image) {
+        return image ? IMAGE_TEXT_Y : TEXT_Y;
+    }
+
+    private Texture image(String name) {
+        return new Texture(services.files.internal("ui/briefing/" + name + ".png"));
     }
 
     @Override
@@ -164,7 +204,7 @@ public final class BriefingScreen implements GameScreen {
 
     /** The short name of the current page's speaker. */
     private String speaker() {
-        return script.pages().get(pager.page()).speaker();
+        return screens.get(pager.page()).speakerName();
     }
 
     @Override
@@ -186,11 +226,11 @@ public final class BriefingScreen implements GameScreen {
 
     private void drawSpeaker(SpriteBatch batch, Glass glass) {
         glass.panel(batch, LEFT_X, COLUMN_Y, LEFT_WIDTH, COLUMN_HEIGHT, 0.8f);
-        Speaker speaker = Speaker.of(speaker(), services.sprites);
+        Speaker speaker = screens.get(pager.page()).speaker();
         float centre = LEFT_X + LEFT_WIDTH / 2f;
         int portraitX = Math.round(centre - 72);
         int portraitY = COLUMN_Y + 18;
-        glass.outline(batch, Glass.TRIM_LIGHT, portraitX - 2, portraitY - 2, 148, 148);
+        glass.frame(batch, portraitX - 3, portraitY - 3, 150, 150);
         int portraitBottom = PixelScreen.HEIGHT - portraitY - 144;
         batch.draw(speaker.portrait(), portraitX, portraitBottom);
         float noise = TransmissionStatic.strength(sinceOpened, untilClosed);
@@ -203,20 +243,26 @@ public final class BriefingScreen implements GameScreen {
 
     private void drawText(SpriteBatch batch, Glass glass) {
         glass.panel(batch, TEXT_PANEL_X, COLUMN_Y, TEXT_PANEL_WIDTH, COLUMN_HEIGHT, 0.8f);
+        Screen screen = screens.get(pager.page());
+        screen.image().ifPresent(image -> {
+            glass.frame(batch, TEXT_X - 3, IMAGE_Y - 3, IMAGE_WIDTH + 6, IMAGE_HEIGHT + 6);
+            batch.draw(image, TEXT_X, PixelScreen.HEIGHT - IMAGE_Y - IMAGE_HEIGHT);
+        });
+        int top = textTop(screen.image().isPresent());
         BitmapFont font = glass.fonts.body;
         int left = pager.shown();
-        List<String> lines = pageLines.get(pager.page());
+        List<String> lines = screen.lines();
         int cursorX = TEXT_X;
-        int cursorY = TEXT_Y;
+        int cursorY = top;
         for (int i = 0; i < lines.size() && left > 0; i++) {
             String line = lines.get(i).substring(0, Math.min(left, lines.get(i).length()));
             left -= line.length();
-            glass.shadowed(batch, font, line, Glass.WHITE, TEXT_X, TEXT_Y + i * LINE);
+            glass.shadowed(batch, font, line, Glass.WHITE, TEXT_X, top + i * LINE);
             cursorX = TEXT_X + line.length() * 10 + 2;
-            cursorY = TEXT_Y + i * LINE;
+            cursorY = top + i * LINE;
         }
         if (!pager.pageComplete() || elapsed % (2 * CURSOR_BLINK_SECONDS) < CURSOR_BLINK_SECONDS) {
-            glass.fill(batch, Glass.AMBER, cursorX, cursorY - 1, 10, 16);
+            glass.bar(batch, Glass.AMBER, cursorX, cursorY - 1, 10, 16);
         }
     }
 
@@ -226,7 +272,7 @@ public final class BriefingScreen implements GameScreen {
         glass.header(batch, "OBJECTIVES", LEFT_X + 12, TEASER_X - 20, BOTTOM_Y + 10);
         for (int i = 0; i < script.objectives().size(); i++) {
             int y = BOTTOM_Y + 26 + i * 14;
-            glass.fill(batch, i == 0 ? Glass.AMBER : Glass.CYAN, LEFT_X + 14, y + 2, 5, 5);
+            glass.bar(batch, i == 0 ? Glass.AMBER : Glass.CYAN, LEFT_X + 14, y + 2, 5, 5);
             glass.shadowed(
                     batch,
                     glass.fonts.label,
@@ -269,5 +315,6 @@ public final class BriefingScreen implements GameScreen {
     public void dispose() {
         music.ifPresent(MusicStreamer::close);
         titleLettering.ifPresent(Texture::dispose);
+        images.values().forEach(Texture::dispose);
     }
 }

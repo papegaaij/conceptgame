@@ -93,14 +93,6 @@ def far_light(extent):
     return tuple(LIGHT * 400 / extent * 2.3)
 
 
-def chamfered_box(p, centre, half, chamfer):
-    """A box whose top edges (only) are chamfered at 45 degrees by ``chamfer``."""
-    q = np.abs(p - vec(*centre)) - vec(*half)
-    box = sdf.length(np.maximum(q, 0.0)) + np.minimum(np.max(q, axis=-1), 0.0)
-    top = p[:, 2] - (centre[2] + half[2])
-    return np.maximum.reduce([box, (q[:, 0] + top + chamfer) / np.sqrt(2), (q[:, 1] + top + chamfer) / np.sqrt(2)])
-
-
 def recess(p, half_w, half_h, chamfer, depth):
     """The surface z <= 0 with a well cut into it: walls chamfered 45 degrees for ``chamfer``,
     then straight down to the glass at ``-depth``. Material 1 is the steel, 0 the glass."""
@@ -155,7 +147,7 @@ def rivets(w, h, inset):
 def panel_scene(p):
     w, h = PANEL
     chassis = p[:, 2] + CHAMFER
-    plate = chamfered_box(p, (0, 0, -CHAMFER / 2), (w / 2 - 1, h / 2 - 1, CHAMFER / 2), CHAMFER)
+    plate = artkit.chamfered_box(p, (0, 0, -CHAMFER / 2), (w / 2 - 1, h / 2 - 1, CHAMFER / 2), CHAMFER)
     d, m = sdf.union((chassis, 0), (plate, 1))
     for x, y in rivets(w, h, RIVET_INSET):
         d = np.maximum(d, -sdf.sd_cylinder_z(p, (x, y, 0), 5.5, 0.6))         # recessed washer
@@ -205,7 +197,7 @@ def plate():
     w, h = PLATE
     factor = artkit.factor_for(w, h)
     def scene(p):
-        return chamfered_box(p, (0, 0, -1.5), (w / 2, h / 2, 1.5), 2.0), np.ones(len(p), dtype=np.int32)
+        return artkit.chamfered_box(p, (0, 0, -1.5), (w / 2, h / 2, 1.5), 2.0), np.ones(len(p), dtype=np.int32)
     hi = sdf.render(scene, steel_mats(PLATE, factor, 31), (w * factor, h * factor), w, z_top=3.0,
                     key_pos=far_light(w), **SHADING)
     hi[..., 3] = 1.0                       # the chamfer reaches the plate's edge: opaque throughout

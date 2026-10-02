@@ -166,10 +166,10 @@ public final class OptionsScreen implements GameScreen {
         for (int i = 0; i < tabs.size(); i++) {
             String name = tabs.get(i).name();
             float width = Fonts.width(glass.fonts.body, name) + 20;
-            glass.chip(batch, glass.fonts.body, name, tabX, 42, width, 24, i == tab, true);
+            glass.tab(batch, glass.fonts.body, name, tabX, 42, width, 24, i == tab);
             tabX += width + 8;
         }
-        glass.fill(batch, Glass.TRIM, LEFT, 78, PANEL_X + PANEL_WIDTH - 18 - LEFT, 1);
+        glass.rule(batch, LEFT, PANEL_X + PANEL_WIDTH - 18, 77);
         OptionsTab drawn = new OptionsTab(batch, glass);
         List<OptionRow> rows = tabs.get(tab).rows();
         int firstOther =
@@ -263,13 +263,7 @@ public final class OptionsScreen implements GameScreen {
         }
 
         private void bindingRow(Action action, int y, boolean selected) {
-            glass.fill(
-                    batch,
-                    new Color(24 / 255f, 30 / 255f, 72 / 255f, 0.43f),
-                    PANEL_X + 18,
-                    y - 4,
-                    PANEL_WIDTH - 36,
-                    20);
+            glass.row(batch, PANEL_X + 18, y - 4, PANEL_WIDTH - 36, 20);
             glass.item(batch, glass.fonts.body, Remapping.name(action), LEFT, y, PANEL_X + 2, 230, 20, selected, true);
             Binding binding = services.settings().controls().bindings().get(action);
             String[] cells = {

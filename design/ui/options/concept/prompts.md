@@ -13,3 +13,7 @@ Video (scaling with a preview), audio (sliders, sound test), controls (remapping
 Prompt: `late 1990s PC game options screen, 16:9, a large translucent glass panel over a dimmed space scene with Earth, tab chips VIDEO / AUDIO / CONTROLS / GAMEPLAY with one highlighted amber, rows of settings in a chunky pixel font with amber sliders, small toggle chips and a key-binding table where one cell blinks 'PRESS A KEY...', crisp pixels`
 
 Negative prompt: the common negative prompt above.
+
+## options-capture-final-r13-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --start title` on a private 960×540 Xvfb display (settings in a temporary directory, so the saves are too: `display.mode=window`, a 960×540 window at 0,0, `audio.master=0`), the keys sent into the game window with XTest and the screen grabbed with ImageMagick `import`: Options from the main menu, E to the Gameplay tab. Uncropped; [tools/art/ui_review.py](../../../../tools/art/ui_review.py) builds the part's sheet from it where it has one.

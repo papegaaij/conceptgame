@@ -157,6 +157,16 @@ groups with the same effect chains and linked mastering).
 |---|---|---|
 | [concept/coalition-rising-base-r11-a.ogg](concept/coalition-rising-base-r11-a.ogg) | "Coalition Rising" base stem — 142.3 s, loop 340772 + 5773091 samples like the full mix: string ostinato, string pads, timpani, harp, flute, choir pads and risers; no brass, lead strings, taiko, snare, hats, crash or toms. Same gain as [coalition-rising-full-r08-a](concept/coalition-rising-full-r08-a.ogg) (whose re-render in the same pass is identical byte for byte), 6.4 LU quieter | chosen |
 
+Production art, UI batch part U3 (for concept [round 13](../../concept-rounds/round-13/README.md)):
+the title, hangar and briefing themes rendered into `assets/music/` by
+[tools/art/themes.py](../../../tools/art/README.md) (the chosen generator `music_r08.py`
+unchanged, OGG Vorbis q6, −14 LUFS, loop comments, `SOURCE` comment). Prompts:
+[concept/prompts.md](concept/prompts.md#themes-final-r13-a--title-hangar-and-briefing-themes-production-art).
+
+| File | What | Status |
+|---|---|---|
+| [concept/themes-final-r13-a.png](concept/themes-final-r13-a.png) | Review sheet: the three final files' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam and size | proposed |
+
 ## Implementation
 
 - [x] Music player with intro + loop points
@@ -216,3 +226,12 @@ groups with the same effect chains and linked mastering).
   Rising" starts at the launch with the base stem at −6 dB, rising to full in 2 s at the section 2
   transition, and crossfades to the full mix at section 3 (t=60) instead of section 4; a level's
   `music.start_db` sets the level through its start section (`LevelMusic`).
+- 2026-10-02: Production art, UI batch part U3: the title ("Terran Vanguard" full length), hangar
+  ("Dry Dock" full length) and briefing ("Situation Room") themes are rendered into `assets/music/`
+  by `tools/art/themes.py` from the chosen generator (`music_r08.py`'s `render_loop`, unchanged),
+  which already used the final settings (q6, −14 LUFS, intro + loop + 2-bar fade tail with
+  sample-exact `LOOPSTART` / `LOOPLENGTH`); the encoded stream is remuxed with a `SOURCE` comment,
+  so the audio is identical to the chosen files. `importPlaceholders` copies the music through
+  `PlaceholderSounds` now (`copyPlaceholderMusic`, concept name `=` game name), which keeps an OGG
+  with a `SOURCE` comment. `themes.py --check` verifies loudness (±0.5 LU), true peak, q6, the loop
+  comments and the seam. Review sheet proposed for round 13; `art` stays `chosen`.

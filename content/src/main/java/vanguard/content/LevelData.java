@@ -266,13 +266,19 @@ public record LevelData(
         LAST
     }
 
-    /** A spoken line; {@code distorted} for transmissions such as the Choir's. */
-    public record RadioLine(String speaker, String line, Optional<Boolean> distorted) {}
+    /**
+     * A spoken line; {@code distorted} for transmissions such as the Choir's.
+     *
+     * @param expression the speaker's portrait expression, neutral when not given
+     */
+    public record RadioLine(
+            String speaker, String line, Optional<Boolean> distorted, Optional<Expression> expression) {}
 
     /**
      * A radio chatter cue, triggered at {@code t} seconds or by an {@code event}.
      *
      * @param enemy the enemy of a {@code first-kill} event
+     * @param expression the speaker's portrait expression, neutral when not given
      * @param easy changes on easy
      * @param hard changes on hard
      */
@@ -283,6 +289,7 @@ public record LevelData(
             String speaker,
             String line,
             Optional<Boolean> distorted,
+            Optional<Expression> expression,
             Optional<RadioChange> easy,
             Optional<RadioChange> hard) {
         public RadioCue {

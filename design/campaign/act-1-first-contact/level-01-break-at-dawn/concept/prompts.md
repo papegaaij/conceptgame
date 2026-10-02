@@ -51,3 +51,11 @@ A capture of the game, not generated art: `desktop/build/install/terran-vanguard
 (settings: `display.mode=window`, a 960×540 window at 0,0, `audio.master=0`), recorded with
 `ffmpeg -f x11grab -framerate 4`; one frame per section at game time 12, 24.75, 78, 114.75 and
 168.75 s (part P3: chosen where Skitters turn along their paths), cropped to the 480×540 play field.
+
+## north-arm-final-r13-a
+
+Generated, not prompted: `python3 tools/art/backdrop_l01.py north-arm` re-renders only the north arm
+into `assets/backdrop/level-01/north-arm.png` and writes this sheet from it (`--review north-arm`
+rebuilds only the sheet). The placeholder's layout, kit and far scale (0.45) with production solar
+wings: 118 px instead of 140 px, so they end inside the 180 px piece, panel blankets in steel frames
+with end rails and cell ribs, a capped hub with the red tip light; posterized to 24 colours.

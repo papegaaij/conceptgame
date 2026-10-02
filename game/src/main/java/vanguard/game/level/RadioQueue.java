@@ -33,8 +33,12 @@ public final class RadioQueue {
         CLOSED
     }
 
-    /** A message wrapped into lines. */
-    public record Message(String speaker, List<String> lines, boolean distorted) {
+    /**
+     * A message wrapped into lines.
+     *
+     * @param expression the speaker's portrait expression ({@code grim})
+     */
+    public record Message(String speaker, String expression, List<String> lines, boolean distorted) {
         int pages() {
             return (lines.size() + PAGE_LINES - 1) / PAGE_LINES;
         }
@@ -68,8 +72,8 @@ public final class RadioQueue {
     }
 
     /** Queues a line; it plays after the ones before it. */
-    public void add(String speaker, String line, boolean distorted) {
-        queue.add(new Message(speaker, wrap(line), distorted));
+    public void add(String speaker, String expression, String line, boolean distorted) {
+        queue.add(new Message(speaker, expression, wrap(line), distorted));
     }
 
     /** Drops everything, as when the level restarts. */

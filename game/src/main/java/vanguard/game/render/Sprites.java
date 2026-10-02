@@ -14,8 +14,10 @@ import com.badlogic.gdx.utils.Disposable;
  * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from {@code assets/}:
  * the final sprites rendered by tools/art/ (ship, Level 01's enemies, weapon effects, bullets,
  * pickups, explosions, loot targets), the placeholders still cut from the chosen concept art (see
- * {@code PlaceholderSprites}), the HUD's metal parts (tools/art/hud.py) and the levels' backdrop
- * images (tools/art/backdrop_l01.py), plus a white pixel for drawn frames and bars.
+ * {@code PlaceholderSprites}), the HUD's metal parts (tools/art/hud.py), the glass UI kit
+ * (tools/art/ui_kit.py), the hangar's equipment icons (tools/art/icons.py) and intel portraits
+ * (tools/art/intel.py) and the speakers' portraits (tools/art/portraits.py), looked up by name,
+ * and the levels' backdrop images (tools/art/backdrop_l01.py), plus a white pixel for drawn lines.
  */
 public final class Sprites implements Disposable {
     private final TextureAtlas sprites;
@@ -36,17 +38,6 @@ public final class Sprites implements Disposable {
     public final Array<AtlasRegion> crate;
     public final Array<AtlasRegion> shieldCell;
     public final Array<AtlasRegion> armourPatch;
-    /** The 72x72 radio portraits. */
-    public final AtlasRegion rook;
-
-    public final AtlasRegion okafor;
-    public final AtlasRegion varga;
-    public final AtlasRegion choir;
-    /** The 144x144 briefing portraits of the Act 1 briefings' speakers. */
-    public final AtlasRegion briefingOkafor;
-
-    public final AtlasRegion briefingVarga;
-
     public final AtlasRegion pulseBolt;
     public final Array<AtlasRegion> pulseMuzzle;
     public final Array<AtlasRegion> pulseImpact;
@@ -90,12 +81,6 @@ public final class Sprites implements Disposable {
         crate = frames(sprites, "pickup-crate");
         shieldCell = frames(sprites, "pickup-shield-cell");
         armourPatch = frames(sprites, "pickup-armour-patch");
-        rook = region(sprites, "portrait-rook");
-        okafor = region(sprites, "portrait-okafor");
-        varga = region(sprites, "portrait-varga");
-        choir = region(sprites, "portrait-the-choir");
-        briefingOkafor = region(sprites, "briefing-okafor");
-        briefingVarga = region(sprites, "briefing-varga");
         pulseBolt = region(sprites, "pulse-bolt");
         pulseMuzzle = frames(sprites, "pulse-muzzle");
         pulseImpact = frames(sprites, "pulse-impact");
@@ -119,6 +104,21 @@ public final class Sprites implements Disposable {
         pixelTexture = new Texture(white);
         white.dispose();
         pixel = new TextureRegion(pixelTexture);
+    }
+
+    /** A region of the sprite pages by its name, such as {@code ui/knob}; it must exist. */
+    public AtlasRegion region(String name) {
+        return region(sprites, name);
+    }
+
+    /** The frames of a region of the sprite pages by its name, or the single region; it must exist. */
+    public Array<AtlasRegion> frames(String name) {
+        return frames(sprites, name);
+    }
+
+    /** A nine-patch of the sprite pages by its name, such as {@code ui/frame}; it must exist. */
+    public NinePatch patch(String name) {
+        return patch(sprites, name);
     }
 
     /** A backdrop image: its {@code count} frames or headings, or the single image. */

@@ -99,6 +99,14 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the 
 | [concept/rejected/hangar-r07-a.png](concept/rejected/hangar-r07-a.png) | Hangar r07 A — glass panels over a pre-rendered hangar bay; the parked Stormhawk is the schematic, with slot callouts, module tiles, power bar, shop drawer, intel with Varga (before L15) | rejected — B backdrop preferred |
 | [concept/hangar-r07-b.png](concept/hangar-r07-b.png) | Hangar r07 B — same layout over a darkened tactical map of Mars with the descent route; holographic blueprint in the centre | chosen |
 
+Production art, UI batch part U2 (for concept round 13, opened by part U3): the tactical map rendered by [tools/art/ui_scenes.py](../../../tools/art/README.md) and the equipment icons by [tools/art/icons.py](../../../tools/art/README.md); the panels draw the glass kit. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/hangar-final-r13-a.png](concept/hangar-final-r13-a.png) | Review sheet: the 960×540 tactical map (Act 1, Earth from orbit) and all 47 icons, 16×16 at 1× and 3×, 24×24 at 1× and 2× | proposed |
+| [concept/hangar-capture-final-r13-a.png](concept/hangar-capture-final-r13-a.png) | Game capture before Level 01: the right wing's shop rows with icons (locked ones dimmed), the Bomb Rack selected with its large icon, the holographic callouts with the fitted Pulse Cannon's icon, the locked escort with Rook's craft, the power bar in its trough | proposed |
+| [concept/intel-final-r13-a.png](concept/intel-final-r13-a.png) | Review sheet (part U3, `tools/art/intel.py`): the intel's sensor-L2 pictures at 1× and 3×, the 30×30 portraits of the Skitter, Needler, Stinger and Spine Turret and the 40×40 silhouettes of the Gorgon Frigate and the Brood Carrier | proposed |
+
 ## Implementation
 
 - [x] Tabs/panels as above with keyboard and gamepad navigation
@@ -109,7 +117,8 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the 
 - [ ] Test-fire preview box — **later: M4** (after the first build, see the 2026-10-01 decision; the layout keeps its space)
 - [x] Intel panel from the level threat profile, gated by sensor level
 - [ ] Varga's line per intel item — **later: M4** (writing pass, see *Open questions*)
-- [ ] Sensor L2 enemy portraits and boss silhouette in the intel — **later: art track** (from Level 02 on, see *Open questions*)
+- [x] Equipment icons: one per shop item and the escort, in the shop rows, the selected item and the schematic's callouts (`tools/art/icons.py`)
+- [x] Sensor L2 enemy portraits and boss silhouette in the intel
 - [x] Trait-match markers in the shop
 - [x] Launch warnings (missing recommended trait, low armour)
 
@@ -121,9 +130,6 @@ until it is handled where stated.
 - **Varga's lines** (M4 writing pass): "one line per intel item" has no text yet; the data holds
   one line per sensor level (Level 01: the no-sensor line) and the panel shows it with the hangar
   teaser. The per-item lines and the data that holds them are decided in the M4 writing pass.
-- **Sensor L2 portraits and boss silhouette** (art track, from Level 02 on): built as the enemy
-  and boss names; Level 02 is the first level whose intel needs them, and the art track decides
-  the portraits and the silhouette.
 - **Third utility bay** (M4 data): 5 000 in the economy text, from Act 3; it has no data entry and
   is not offered yet. Its data entry comes with M4.
 
@@ -182,3 +188,31 @@ until it is handled where stated.
   lines (M4 writing pass), the Level 02 portraits and boss silhouette (art track) and the third
   utility bay's data (M4) are deferred; the open questions say where.
 - 2026-10-02: M3 close-out (user decision): the navigation and intel items are split; keyboard/gamepad navigation and the sensor-gated intel panel are done. Mouse navigation moves to M6, the test-fire box and Varga's per-item lines to M4, the L2 portraits and boss silhouette to the art track. The document is done for M3.
+- 2026-10-02: Production art, UI batch part U2: the tactical map is production art
+  (`tools/art/ui_scenes.py`, `assets/ui/hangar-map.png`, loaded by `TacticalMap` instead of the
+  code-drawn placeholder): a cyan grid over the dark Earth seen from orbit as a holographic relief,
+  its limb across the lower part, orange range rings with bearing ticks round the operation's area
+  and a dashed approach route with its arrowhead; one map for Act 1, the same for every level until
+  the later acts' settings get theirs (M4/M5). Every shop item of the catalogue (all 46, locked
+  ones included) and Rook's escort craft has an icon (`tools/art/icons.py`, `assets/sprites/icons/`,
+  16×16 and 24×24): one emblem style, a bevelled dark steel badge with the item on it, the models
+  where they exist (the five wing pods with the Stormhawk's production pod materials, the Hornet's
+  missile, the mortar shell, the mine, Rook's craft), otherwise per kind a symbol in the kind's
+  colour (guns: their barrel block and shots in the firing direction; generator, shield, plating,
+  engine, eight utility modules, three specials), the grade (Mk, Composite) as amber studs. The
+  shop rows show the 16 px icon (locked items darker) on a glass row band, the selected item and the
+  callouts the 24 px one; `vanguard.game.hangar.ItemIcons` derives the names (weapon slug, or kind
+  and name) and fails at start if one is missing. The callouts became 46 px tall to hold the icon
+  (front 160, rear 154, wings 132 px wide; the escort box 86 px), names that would not fit are cut,
+  and the tile names shorten MICRO-MISSILE to MICRO-MSL and drop POD. Review files proposed for
+  round 13; `art` stays `chosen`.
+- 2026-10-02: Production art, UI batch part U3: the intel's sensor-L2 pictures
+  (`tools/art/intel.py`, `assets/sprites/intel/`): a 30×30 sensor portrait per enemy type of
+  Levels 01–02 (Skitter, Needler, Stinger, Spine Turret: the chosen round-04 models on the intel's
+  dark teal scope) and a 40×40 silhouette per Act 1 boss (Gorgon Frigate, Brood Carrier: the
+  outline only, filled flat with the scope's grid). From sensor L2 the panel shows the enemy
+  portraits in a row above their names and the boss's silhouette at the right of its row (no
+  level with a boss has data yet); the attack directions share a line where two fit, which keeps
+  the panel's fields above Varga's line at sensor L3. Level 02's intel lists only the enemies of
+  its waves, so its Spine Turret (a ground target) shows when M4 builds that level's intel.
+  Review sheet proposed for round 13; `art` stays `chosen`.

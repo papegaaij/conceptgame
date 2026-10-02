@@ -149,16 +149,16 @@ secrets:
 pickups:  # placed pickups; shield cells drop from Needlers by their stat block's drop rule
   - {pickup: armour patch, dropped_by: {wave: 122, unit: last}}
 
-radio:  # trigger: t (seconds) or event (first-kill of an enemy, secondary-objective, level-end); easy/hard: another line
+radio:  # trigger: t (seconds) or event (first-kill of an enemy, secondary-objective, level-end); easy/hard: another line; expression: the portrait (grim, fierce; neutral if not given)
   - {t: 2, speaker: Rook, line: "Lancer, Rook. Aegis Two's got the north arm, you've got the south. Try not to have all the fun."}
-  - {t: 18, speaker: Okafor, line: "Contacts inbound. Weapons free."}
+  - {t: 18, speaker: Okafor, expression: fierce, line: "Contacts inbound. Weapons free."}
   - {event: first-kill, enemy: skitter, speaker: Rook, line: "They pop like bugs. Big, angry bugs."}
-  - {t: 40, speaker: Varga, line: "Those ones are armed. Keep moving.", notes: {trigger: Needlers enter}}
-  - {t: 73, speaker: Rook, line: "Movement on your left! They're flanking the yard.", notes: {trigger: before side wave}}
-  - {t: 131, speaker: Okafor, line: "Contacts on your six, Lancer!", easy: {line: "More contacts, dead ahead!"}, notes: {trigger: before rear wave}}
+  - {t: 40, speaker: Varga, expression: grim, line: "Those ones are armed. Keep moving.", notes: {trigger: Needlers enter}}
+  - {t: 73, speaker: Rook, expression: fierce, line: "Movement on your left! They're flanking the yard.", notes: {trigger: before side wave}}
+  - {t: 131, speaker: Okafor, expression: fierce, line: "Contacts on your six, Lancer!", easy: {line: "More contacts, dead ahead!"}, notes: {trigger: before rear wave}}
   - {t: 160, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
-  - {t: 161, speaker: Varga, line: "That isn't noise. There's structure in it. Commander, I think that was a signal."}
-  - {event: level-end, speaker: Okafor, line: "Good work, Aegis. That was the scouts. The rest are coming."}
+  - {t: 161, speaker: Varga, expression: grim, line: "That isn't noise. There's structure in it. Commander, I think that was a signal."}
+  - {event: level-end, speaker: Okafor, expression: grim, line: "Good work, Aegis. That was the scouts. The rest are coming."}
   - {event: secondary-objective, speaker: Okafor, line: "Clean sweep. I'll make sure High Command hears about it."}
 
 objectives:
@@ -262,8 +262,8 @@ backdrop:
     - {piece: earth-limb, t: 189.6, x: 240}   # the crest enters at the top at 164 s; its top edge stays above the screen through the 15 s outro
     - {piece: vrell-glow, t: 202.8, x: 240}  # over the open space from about 175 s; the top edges of both stay above the screen through the 15 s outro
 
-briefing:  # the briefing screen (design/ui/briefing); rendered into README.md (Briefing)
+briefing:  # the briefing screen (design/ui/briefing); rendered into README.md (Briefing); a page may name its expression and image
   pages:
-    - {speaker: Okafor, line: "Lancer, this is Aegis Actual. Six weeks ago something came through the Tether Gate. Forty minutes ago it arrived at L1, and now it's falling on the Gagarin yards. We don't know what they are or what they want. What we do know is that half the Coalition's new hulls are sitting in those docks. You're the first bird off the south rail; Rook takes Aegis Two off the north rail and covers the far side of the yard. Keep them off the yards, keep your head, and bring me back something we can study. Aegis Actual out."}
-    - {speaker: Varga, line: "Their ships don't show up as metal on our scopes. Whatever they're made of, it burns. Aim for the glowing parts."}
+    - {speaker: Okafor, image: level-01-gagarin-yards, line: "Lancer, this is Aegis Actual. Six weeks ago something came through the Tether Gate. Forty minutes ago it arrived at L1, and now it's falling on the Gagarin yards. We don't know what they are or what they want. What we do know is that half the Coalition's new hulls are sitting in those docks. You're the first bird off the south rail; Rook takes Aegis Two off the north rail and covers the far side of the yard. Keep them off the yards, keep your head, and bring me back something we can study. Aegis Actual out."}
+    - {speaker: Varga, image: level-01-vrell-scan, line: "Their ships don't show up as metal on our scopes. Whatever they're made of, it burns. Aim for the glowing parts."}
   teaser: {speaker: Varga, line: "Unknown contacts, small and fast. Your cannon will do, Lancer. Spend a little on it if you can."}

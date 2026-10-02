@@ -64,6 +64,15 @@ def perspective(scene, camera):
     return warped
 
 
+def chamfered_box(p, centre, half, chamfer):
+    """SDF of a box whose top edges (only) are chamfered at 45 degrees by ``chamfer``: plates,
+    tabs, badges."""
+    q = np.abs(p - sdf.vec(*centre)) - sdf.vec(*half)
+    box = sdf.length(np.maximum(q, 0.0)) + np.minimum(np.max(q, axis=-1), 0.0)
+    top = p[:, 2] - (centre[2] + half[2])
+    return np.maximum.reduce([box, (q[:, 0] + top + chamfer) / np.sqrt(2), (q[:, 1] + top + chamfer) / np.sqrt(2)])
+
+
 def native(hi, factor, crisp=90):
     """Render -> unquantised native sprite: box downsample, 1-bit alpha, unsharp mask."""
     img = sprite.to_image(sprite.downsample(hi, factor), 0.5)

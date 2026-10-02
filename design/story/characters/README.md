@@ -3,7 +3,7 @@ title: Characters
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Characters
@@ -33,7 +33,10 @@ purpose: six voices, each instantly recognisable by portrait and speech style.
   briefing screens.
 - Head-and-shoulders, three-quarter view facing the play field (left panel faces right, right
   panel faces left; mirror if needed).
-- Each character has a neutral portrait plus 1–2 expressions (e.g. urgent, grim, smug).
+- Each main character has a neutral portrait plus the expressions **grim** and **fierce**
+  ([briefing](../../ui/briefing/README.md)); minor speakers (the generic officer and civilian, the
+  Choir's glyph) have the neutral one. A briefing page or radio line names its expression in the
+  data (`expression`, neutral when not given).
 - Frame colour identifies the side: CDF navy/blue, Ascendancy black/gold, Vrell teal static.
 - Enemy transmissions add scanlines and static distortion.
 
@@ -67,6 +70,14 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — generic speakers
 | [concept/generic-cdf-r08-a.png](concept/generic-cdf-r08-a.png) | Generic CDF officer (beret, boom mic, grey-green jacket) for convoy, relay and control speakers | chosen |
 | [concept/generic-civilian-r08-a.png](concept/generic-civilian-r08-a.png) | Generic civilian (padded jacket, scarf, handheld radio) for shuttle and evacuation speakers | chosen |
 
+Production art, UI batch part U3 (for concept [round 13](../../concept-rounds/round-13/README.md)): every speaker of Acts 1–2, rendered by [tools/art/portraits.py](../../../tools/art/README.md) into `assets/sprites/portraits/`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/portraits-final-r13-a.png](concept/portraits-final-r13-a.png) | Review sheet: Okafor, Rook and Varga in neutral, grim and fierce (144×144 briefing portraits for Okafor and Varga, 72×72 radio portraits at 1× and 2×, one 36-colour palette per character), the generic CDF officer and civilian (neutral, 72×72), 8 of the Choir's 32 loop frames | proposed |
+| [concept/portraits-final-r13-a.gif](concept/portraits-final-r13-a.gif) | The three radio portraits cycling neutral → grim → fierce beside the Choir's loop at 12 fps | proposed |
+| [concept/portraits-capture-final-r13-a.png](concept/portraits-capture-final-r13-a.png) | Game capture: Level 01 at 22 s, Okafor's fierce radio portrait with "Contacts inbound. Weapons free." | proposed |
+
 ## Decisions
 
 - 2026-09-30: Six-character cast; pre-rendered 3D bust portraits with side-coded frames.
@@ -74,3 +85,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — generic speakers
 - 2026-09-30: Concept round 04: style-B portraits with retained colour chosen for the whole cast.
 - 2026-10-01: Concept round 08: portraits accepted.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: Production art, UI batch part U3: `tools/art/portraits.py` renders the speakers of Acts 1–2 in the chosen style B with retained colour: Okafor, Rook and Varga in neutral, grim and fierce (the concept busts with the expression's brows, lids, mouth and head pitch; one 36-colour palette per character, so an expression change keeps the colours), the briefing size for the briefing speakers Okafor and Varga, the generic CDF officer and civilian neutral, the Choir's 32-frame glyph loop (animated on the radio at 12 fps). Vorne, who does not speak in Acts 1–2, comes with Act 6. The portrait rules' "1–2 expressions (urgent, grim, smug)" are now the briefing document's three. Review files proposed for round 13; `art` stays `chosen`.

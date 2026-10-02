@@ -47,6 +47,12 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 |---|---|---|
 | [concept/options-r08-a.png](concept/options-r08-a.png) | Options — the four tabs as a 2×2 sheet: video with scaling preview, audio sliders, controls with remapping and the auto-fire toggle, gameplay | chosen |
 
+Production art, UI batch part U2 (for concept round 13, opened by part U3): no art of its own; the screen draws the production glass kit ([tools/art/ui_kit.py](../../../tools/art/README.md)); its capture is on the pause sheet ([pause-final-r13-a](../pause/concept/pause-final-r13-a.png)). Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/options-capture-final-r13-a.png](concept/options-capture-final-r13-a.png) | Game capture: the Gameplay tab from the main menu (tabs, sliders with their knobs, chips) over the dimmed title scene | proposed |
+
 ## Implementation
 
 - [x] Four tabs with keyboard/gamepad navigation
@@ -109,3 +115,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
   music of the screen below (the title theme, a paused level's theme) is silent while one plays,
   and the test stops when the screen closes. The master, music, effects and radio volumes apply,
   also while a track plays. Tests `SoundTestTest`, `OnceStreamTest`, `OptionTabsTest`.
+- 2026-10-02: Production art, UI batch part U2: the options screen draws the production glass kit:
+  tabs (the active one amber with its underline), the header rule, list-row bands under the key
+  bindings, chips and sliders with the recessed track, lit fill and steel knob; layout and fonts
+  unchanged. Capture proposed for round 13 (on the pause sheet); `art` stays `chosen`.

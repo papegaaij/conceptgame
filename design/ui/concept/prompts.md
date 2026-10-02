@@ -13,3 +13,34 @@ Glass widgets (panel, header, menu items in states, chips, primary button, slide
 Prompt: `late 1990s PC game UI style sheet, two halves: left translucent dark glass widgets with thin metal trim over a dim space scene (menu items normal / selected with an amber bar / disabled, small chips, an amber primary button, slider, toggle, tabs, list rows with diamond markers, a confirm dialog), right bevelled brushed blue-violet metal HUD widgets with recessed LCD wells and segmented red, cyan and magenta bars; below, bitmap font specimen sheets in three sizes with the full character set, crisp pixels`
 
 Negative prompt: the common negative prompt above.
+
+## ui-kit-final-r13-a
+
+Production art, UI batch part U2 (round 13). Not a mockup: the review sheet of the glass kit's final
+pieces, built by [tools/art/ui_kit.py](../../../tools/art/ui_kit.py) (`python3 tools/art/ui_kit.py`,
+`--review` rebuilds only the sheet) from the files it wrote into `assets/sprites/ui/`, composed the
+way `Glass` draws them over the darkened title scene. Solid parts (the trim rail and corner tabs,
+the dialog's brackets, the inset's bezel, the knob, cursors, diamond, chevron, scroll markers) are
+SDF ray-marched at 8× with the HUD's lower top-left key light and mapped through palette B's UTC
+HULL steel, the kit's amber or the holo cyan; 1 px features are pixel bevels.
+
+Brief: as ui-kit-r08-a, `translucent dark navy glass panels with a thin brushed-metal trim and
+small corner tabs, amber gradient selection bar with a triangular cursor, small rectangular chips`,
+every pixel from the generator.
+
+## fonts-final-r13-a
+
+Production art, UI batch part U3 (round 13). Not a mockup: the review sheet of the three bitmap
+fonts, built by [tools/art/fonts.py](../../../tools/art/fonts.py) (`python3 tools/art/fonts.py`,
+`--review` rebuilds only the sheet, `--check` the character coverage) from the BMFont files it wrote
+into `assets/fonts/`, each line laid out the way libGDX lays out a BMFont line. Third-party font:
+DejaVu Sans Mono Bold ([dejavu-fonts.github.io](https://dejavu-fonts.github.io/), Bitstream Vera
+licence, see [CREDITS.md](../../../CREDITS.md)), rasterised 1-bit with FreeType's hinting at 9, 15
+and 26 px into 8×12, 10×20 and 20×30 cells.
+
+Brief: as the font specimens of ui-kit-r08-a, `crisp 1-bit monospaced bitmap fonts, every glyph on
+one baseline, white and tinted at run time`, every pixel from the generator.
+
+## ui-kit-capture-final-r13-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --start title` on a private 960×540 Xvfb display (settings in a temporary directory, so the saves are too: `display.mode=window`, a 960×540 window at 0,0, `audio.master=0`), the keys sent into the game window with XTest and the screen grabbed with ImageMagick `import`: the main menu with Quit confirmed, so the dialog shows. Uncropped; [tools/art/ui_review.py](../../../tools/art/ui_review.py) builds the part's sheet from it where it has one.

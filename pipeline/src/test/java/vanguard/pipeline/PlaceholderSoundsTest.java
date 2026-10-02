@@ -37,4 +37,25 @@ class PlaceholderSoundsTest {
                 Files.readAllBytes(concept.resolve("launch-rail-r11-b.ogg")),
                 Files.readAllBytes(sfx.resolve("launch-rail-r11-b.ogg")));
     }
+
+    @Test
+    void renamedMusicIsCopiedUnderItsGameNameUnlessFinal() throws IOException {
+        Path concept = Files.createDirectories(dir.resolve("concept"));
+        Path music = Files.createDirectories(dir.resolve("music"));
+        FinalArtTest.writeOgg(concept.resolve("title-theme-full-r08-a.ogg"), "Lavf", "LOOPSTART=1");
+        FinalArtTest.writeOgg(concept.resolve("game-over-r08-a.ogg"), "Lavf", "TITLE=concept");
+        FinalArtTest.writeOgg(music.resolve("title-theme.ogg"), "Lavf", "SOURCE=tools/art/themes.py");
+        byte[] finalTheme = Files.readAllBytes(music.resolve("title-theme.ogg"));
+
+        List<String> copied = PlaceholderSounds.copy(
+                concept,
+                music,
+                List.of("title-theme-full-r08-a.ogg=title-theme.ogg", "game-over-r08-a.ogg=game-over.ogg"));
+
+        assertEquals(List.of("game-over.ogg"), copied);
+        assertArrayEquals(finalTheme, Files.readAllBytes(music.resolve("title-theme.ogg")));
+        assertArrayEquals(
+                Files.readAllBytes(concept.resolve("game-over-r08-a.ogg")),
+                Files.readAllBytes(music.resolve("game-over.ogg")));
+    }
 }

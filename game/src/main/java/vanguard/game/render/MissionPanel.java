@@ -12,7 +12,8 @@ import static vanguard.game.render.MissionLayout.WELL;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
+import com.badlogic.gdx.utils.Array;
 import java.util.List;
 import java.util.Locale;
 import vanguard.game.level.PromptTexts;
@@ -47,6 +48,10 @@ final class MissionPanel {
     private final int launchBalance;
     private int frame;
     private int metFrame = -1;
+    /** The radio message whose portrait frames {@link #portrait} holds. */
+    private RadioQueue.Message shownMessage;
+
+    private Array<AtlasRegion> portrait;
 
     /**
      * @param number the level number
@@ -143,7 +148,11 @@ final class MissionPanel {
             return;
         }
         RadioQueue.Message message = radio.current().get();
-        batch.draw(portrait(message.speaker()), X, portraitY);
+        if (message != shownMessage) {
+            shownMessage = message;
+            portrait = Portraits.radio(sprites, message.speaker(), message.expression());
+        }
+        batch.draw(Portraits.frame(portrait, radio.sinceOpened()), X, portraitY);
         float noise = TransmissionStatic.strength(radio.sinceOpened(), radio.untilClosed());
         transmissionStatic.draw(batch, X, portraitY, PORTRAIT, PORTRAIT, noise);
         Color colour = message.distorted() ? CHOIR : HudKit.AMBER;
@@ -167,16 +176,6 @@ final class MissionPanel {
                     subtitleTop - TEXT_DROP - i * LINE,
                     TEXT_WIDTH - jitter);
         }
-    }
-
-    private TextureRegion portrait(String speaker) {
-        return switch (speaker) {
-            case "Rook" -> sprites.rook;
-            case "Okafor" -> sprites.okafor;
-            case "Varga" -> sprites.varga;
-            case "The Choir" -> sprites.choir;
-            default -> throw new IllegalArgumentException("no portrait for " + speaker);
-        };
     }
 
     private void drawPrompts(SpriteBatch batch, List<PromptTexts.Text> prompts) {

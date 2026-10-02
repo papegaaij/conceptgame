@@ -244,6 +244,12 @@ Production art for concept round 12 (the Level 01 batch), review files built fro
 | [concept/backdrop-final-r12-a.gif](concept/backdrop-final-r12-a.gif) | The burning platform and its mirrored render at 8 fps, Aegis Two turning | chosen |
 | [concept/game-capture-final-r12-a.png](concept/game-capture-final-r12-a.png) | Game capture (`--bench`, `--invulnerable --debug-speed 3`, xvfb 960×540): the play field in sections 1–5 with the final sprites and backdrop; Skitters facing their direction of flight | chosen |
 
+Rework after round 12 (user decision), for concept round 13: the north arm re-rendered by `tools/art/backdrop_l01.py north-arm`, every other piece byte-identical. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/north-arm-final-r13-a.png](concept/north-arm-final-r13-a.png) | The north arm (180×640, 24 colours) alone, over the Earth tile at 1× and at 2×: the solar wings end inside the piece in steel frames with end rails and cell ribs | proposed |
+
 ## Implementation
 
 - [x] Scroll timeline, sections, atmosphere intensity and parallax content per layer as in *Layout*.
@@ -379,3 +385,10 @@ Production art for concept round 12 (the Level 01 batch), review files built fro
   stay above the screen until 190 s: the limb's crest now enters at the top at 162 s and is 262 px
   above the bottom at 180 s, the glow shows from 171 s. The replay hash is unchanged.
 - 2026-10-02: The outro cap is 15 s instead of 10 s (user decision), so the level-end and secondary-objective lines both fit when they queue together (about 14 s); Earth's limb and the Vrell glow moved later in the data (t=189.6 and t=202.8) so their top edges stay above the screen; the art is unchanged.
+- 2026-10-02: North arm fix (user decision): the approved `north-arm` piece's side walkways (the
+  placeholder kit's 140 px solar wings) ran past the piece's 180 px width and were cut off as flat
+  blue slabs, visible at t≈12 beside the launch. `tools/art/backdrop_l01.py` now builds the arm with
+  118 px wings that end inside the piece, each panel blanket in a steel frame with an end rail and
+  dark cell ribs, the mast in a capped hub with its red tip light; same layout, scale, size and
+  placement in the data, every other piece byte-identical. Back on the board as a review item for
+  round 13 (`north-arm-final-r13-a.png`); the rest of the Level 01 art stays final.
