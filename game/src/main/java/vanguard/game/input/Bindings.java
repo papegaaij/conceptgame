@@ -79,12 +79,22 @@ public final class Bindings {
         return new Bindings(changed);
     }
 
+    /**
+     * Whether a key is one of the fixed system keys (design/ui/controls): Esc (back and pause), Enter
+     * (confirm) and the full-screen toggle F11. They are never bound to another action.
+     */
+    public static boolean systemKey(int key) {
+        return key == Keys.ESCAPE || key == Keys.ENTER || key == Keys.NUMPAD_ENTER || key == Keys.F11;
+    }
+
     /** The remappable key slot other than {@code target} that has {@code key}. */
     public Optional<Assignment> keyHolder(Assignment target, int key) {
         for (Action action : Action.REMAPPABLE) {
             for (BindingSlot slot : new BindingSlot[] {BindingSlot.PRIMARY, BindingSlot.ALTERNATIVE}) {
                 var assignment = new Assignment(action, slot);
-                if (!assignment.equals(target) && get(action).key(slot) == key) {
+                if (action.remappable(slot)
+                        && !assignment.equals(target)
+                        && get(action).key(slot) == key) {
                     return Optional.of(assignment);
                 }
             }
@@ -94,6 +104,9 @@ public final class Bindings {
 
     /** A copy with {@code key} in the target's key slot; a slot that had it gets the target's old key. */
     public Bindings withKey(Assignment target, int key) {
+        if (!target.action().remappable(target.slot()) || systemKey(key)) {
+            throw new IllegalArgumentException(target + " cannot take key " + key);
+        }
         int old = get(target.action()).key(target.slot());
         Bindings changed = with(target.action(), get(target.action()).withKey(target.slot(), key));
         Optional<Assignment> holder = keyHolder(target, key);

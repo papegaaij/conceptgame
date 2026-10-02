@@ -36,6 +36,7 @@ public final class ContentLoader {
 
     private static final Pattern WEAPON = Pattern.compile("player/weapons/([a-z0-9-]+)/data\\.yaml");
     private static final Pattern ENEMY = Pattern.compile("enemies/[a-z-]+/([a-z0-9-]+)/data\\.yaml");
+    private static final Pattern ACT = Pattern.compile("campaign/(act-\\d+-[a-z0-9-]+)/data\\.yaml");
     private static final Pattern LEVEL =
             Pattern.compile("campaign/(act-\\d+-[a-z0-9-]+/level-\\d{2}-[a-z0-9-]+)/data\\.yaml");
     private static final Map<String, Class<?>> PARTS = Map.ofEntries(
@@ -50,7 +51,8 @@ public final class ContentLoader {
             Map.entry("enemies/data.yaml", EnemyBasisData.class),
             Map.entry("systems/economy/data.yaml", EconomyData.class),
             Map.entry("systems/difficulty/data.yaml", DifficultyData.class),
-            Map.entry("systems/scoring/data.yaml", ScoringData.class));
+            Map.entry("systems/scoring/data.yaml", ScoringData.class),
+            Map.entry("systems/retry/data.yaml", RetryData.class));
 
     private ContentLoader() {}
 
@@ -87,12 +89,14 @@ public final class ContentLoader {
         Map<String, Object> parts = new TreeMap<>();
         Map<String, WeaponData> weapons = new TreeMap<>();
         Map<String, EnemyData> enemies = new TreeMap<>();
+        Map<String, ActData> acts = new TreeMap<>();
         Map<String, LevelData> levels = new TreeMap<>();
         Map<Object, String> paths = new IdentityHashMap<>();
         for (DataFile file : files) {
             Class<?> part = PARTS.get(file.path());
             Matcher weapon = WEAPON.matcher(file.path());
             Matcher enemy = ENEMY.matcher(file.path());
+            Matcher act = ACT.matcher(file.path());
             Matcher level = LEVEL.matcher(file.path());
             if (part != null) {
                 parse(mapper, file, part, problems, paths).ifPresent(data -> parts.put(file.path(), data));
@@ -102,6 +106,8 @@ public final class ContentLoader {
             } else if (enemy.matches()) {
                 parse(mapper, file, EnemyData.class, problems, paths)
                         .ifPresent(data -> enemies.put(enemy.group(1), data));
+            } else if (act.matches()) {
+                parse(mapper, file, ActData.class, problems, paths).ifPresent(data -> acts.put(act.group(1), data));
             } else if (level.matches()) {
                 parse(mapper, file, LevelData.class, problems, paths)
                         .ifPresent(data -> levels.put(level.group(1), data));
@@ -130,10 +136,12 @@ public final class ContentLoader {
                 weapons,
                 part(parts, EnemyBasisData.class),
                 enemies,
+                acts,
                 levels,
                 part(parts, EconomyData.class),
                 part(parts, DifficultyData.class),
-                part(parts, ScoringData.class));
+                part(parts, ScoringData.class),
+                part(parts, RetryData.class));
         problems.addAll(new ContentValidator(content, paths).problems());
         if (!problems.isEmpty()) {
             throw new ContentException(problems);

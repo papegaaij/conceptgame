@@ -200,6 +200,10 @@ public final class PlaceholderSprites {
             portrait("okafor", "story/characters/okafor/concept/portrait-r04-a.png"),
             portrait("varga", "story/characters/varga/concept/portrait-r04-a.png"),
             portrait("the-choir", "story/characters/the-choir/concept/portrait-r08-a.png"),
+            // portraits_r03.briefing_frame: the 144x144 briefing portrait of the speakers of the
+            // Act 1 briefings.
+            briefingPortrait("okafor", "story/characters/okafor/concept/portrait-r04-a.png"),
+            briefingPortrait("varga", "story/characters/varga/concept/portrait-r04-a.png"),
             // vfx_r08.projectiles_sheet, pulse row: the 1x bolt, 3 muzzle frames and 4 impact frames at 3x.
             new Cut(
                     "pulse-bolt",
@@ -320,6 +324,24 @@ public final class PlaceholderSprites {
                 319,
                 72,
                 72,
+                1,
+                1,
+                0,
+                new Plate(0),
+                Treatment.OPAQUE,
+                false,
+                NATIVE_SIZE);
+    }
+
+    /** A cast member's 144x144 briefing portrait. */
+    private static Cut briefingPortrait(String name, String sheet) {
+        return new Cut(
+                "briefing-" + name,
+                sheet,
+                32,
+                66,
+                144,
+                144,
                 1,
                 1,
                 0,

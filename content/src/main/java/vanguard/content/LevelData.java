@@ -18,6 +18,7 @@ import vanguard.sim.PlayField;
  * @param pickups pickups placed by the script (normal drops come from the enemies)
  * @param radio the radio chatter
  * @param backdrop the parallax layers behind and above the play plane
+ * @param briefing the mission briefing before the level (design/ui/briefing)
  */
 public record LevelData(
         double scrollSpeed,
@@ -32,7 +33,8 @@ public record LevelData(
         Objectives objectives,
         Music music,
         Difficulties difficulty,
-        BackdropData backdrop) {
+        BackdropData backdrop,
+        Briefing briefing) {
     public LevelData {
         Check.positive("scroll_speed", scrollSpeed);
         Check.notNegative("launch_seconds", launchSeconds);
@@ -315,6 +317,16 @@ public record LevelData(
     public record Music(int track, int startSection, int fullSection, String ambience, String endJingle) {
         public Music {
             Check.that(startSection <= fullSection, "full_section must not come before start_section");
+        }
+    }
+
+    /**
+     * The mission briefing (design/ui/briefing): its pages, and the hangar teaser shown with the
+     * level's intel on the hangar visit before it.
+     */
+    public record Briefing(List<BriefingPage> pages, BriefingPage teaser) {
+        public Briefing {
+            Check.notEmpty("pages", pages);
         }
     }
 

@@ -13,13 +13,11 @@ import vanguard.sim.EnemyBullet;
 import vanguard.sim.GroundObject;
 import vanguard.sim.Pickup;
 import vanguard.sim.PickupType;
-import vanguard.sim.PlayField;
 import vanguard.sim.Ship;
 import vanguard.sim.ShipSpec;
 import vanguard.sim.Shot;
 import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
-import vanguard.sim.WarningEdge;
 
 /**
  * Draws a level back to front, interpolating every position between the last two simulation
@@ -36,8 +34,6 @@ public final class LevelRenderer {
     private static final int PICKUP_FRAME_TICKS = 6;
 
     private static final int BLINK_TICKS = SimStep.ticks(1.5);
-    /** Edge warnings flash at 4 Hz. */
-    private static final int WARNING_FLASH_TICKS = 8;
     /**
      * Loot targets (design/art-direction, readability rule 7): a white hit flash for two steps, a
      * glint about every 2 s (each target at its own phase), and the secret's beacon blinks at 1 Hz.
@@ -54,7 +50,6 @@ public final class LevelRenderer {
 
     private static final Color SHIELD_BLUE = Color.valueOf("00C0FF");
     private static final float SHIELD_SHIMMER = 0.6f;
-    private static final Color WARNING = Color.valueOf("FF4030");
 
     private final Sprites sprites;
     private final EnemyLooks[] looks;
@@ -86,6 +81,7 @@ public final class LevelRenderer {
             Effects effects,
             Effects debris,
             CreditNumbers credits,
+            EdgeWarnings warnings,
             float alpha,
             float shieldShimmer,
             boolean flashReduction) {
@@ -107,7 +103,7 @@ public final class LevelRenderer {
         effects.draw(batch, 0);
         backdrop.drawFront(batch, scroll, seconds);
         drawBullets(batch, sortie, alpha);
-        drawWarnings(batch, sortie);
+        warnings.draw(batch, sortie.tick(), alpha);
         credits.draw(batch, font);
     }
 
@@ -223,33 +219,6 @@ public final class LevelRenderer {
             EnemyBullet bullet = sortie.bullet(i);
             drawCentred(batch, sprites.orb, bullet.renderX(alpha), bullet.renderY(alpha));
         }
-    }
-
-    /** A flashing arrow at each warned edge (design/ui/hud, in the play field). */
-    private void drawWarnings(SpriteBatch batch, Sortie sortie) {
-        int edges = sortie.edgeWarnings();
-        if (edges == 0 || sortie.tick() / WARNING_FLASH_TICKS % 2 == 1) {
-            return;
-        }
-        float middle = PlayField.HEIGHT / 2f;
-        for (int row = 0; row < 8; row++) {
-            float length = 8 - row;
-            if (WarningEdge.LEFT.in(edges)) {
-                fill(batch, WARNING, X0 + 4 + row, middle - length * 2, 1, length * 4);
-            }
-            if (WarningEdge.RIGHT.in(edges)) {
-                fill(batch, WARNING, X0 + PlayField.WIDTH - 5 - row, middle - length * 2, 1, length * 4);
-            }
-            if (WarningEdge.BOTTOM.in(edges)) {
-                fill(batch, WARNING, X0 + PlayField.WIDTH / 2f - length * 2, 4 + row, length * 4, 1);
-            }
-        }
-    }
-
-    private void fill(SpriteBatch batch, Color colour, float x, float y, float width, float height) {
-        batch.setColor(colour);
-        batch.draw(sprites.pixel, x, y, width, height);
-        batch.setColor(Color.WHITE);
     }
 
     private static void drawCentred(SpriteBatch batch, TextureRegion region, double x, double y) {

@@ -37,11 +37,19 @@ tasks.register<Copy>("importPlaceholders") {
         include(
             "title-theme-full-r08-a.ogg",
             "coalition-rising-full-r08-a.ogg",
+            "coalition-rising-base-r11-a.ogg",
+            "briefing-theme-r08-a.ogg",
+            "hangar-theme-full-r08-a.ogg",
+            "game-over-r08-a.ogg",
             "mission-failed-r08-a.ogg",
             "mission-complete-r08-a.ogg",
         )
         rename("title-theme-full-r08-a.ogg", "title-theme.ogg")
         rename("coalition-rising-full-r08-a.ogg", "coalition-rising.ogg")
+        rename("coalition-rising-base-r11-a.ogg", "coalition-rising-base.ogg")
+        rename("briefing-theme-r08-a.ogg", "briefing-theme.ogg")
+        rename("hangar-theme-full-r08-a.ogg", "hangar-theme.ogg")
+        rename("game-over-r08-a.ogg", "game-over.ogg")
         rename("mission-failed-r08-a.ogg", "mission-failed.ogg")
         rename("mission-complete-r08-a.ogg", "mission-complete.ogg")
     }
@@ -78,6 +86,8 @@ tasks.register<Copy>("importPlaceholders") {
             "ui-menu-confirm-r08-a.ogg",
             "ui-menu-back-r08-a.ogg",
             "ambience-orbit-r08-a.ogg",
+            "launch-rail-r11-b.ogg",
+            "ui-edge-warning-r11-b.ogg",
         )
     }
 }

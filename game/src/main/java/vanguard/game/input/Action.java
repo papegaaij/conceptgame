@@ -41,4 +41,16 @@ public enum Action {
             default -> false;
         };
     }
+
+    /**
+     * Whether a slot of this remappable action can be changed: Pause keeps Esc, a fixed system key
+     * (design/ui/controls), as its primary key; every action keeps a remappable alternative key.
+     */
+    public boolean remappable(BindingSlot slot) {
+        return switch (slot) {
+            case PRIMARY -> this != PAUSE;
+            case ALTERNATIVE -> true;
+            case GAMEPAD -> gamepadRemappable();
+        };
+    }
 }

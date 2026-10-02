@@ -136,7 +136,7 @@ public final class OptionsScreen implements GameScreen {
                 services.play(Sfx.MENU_CONFIRM);
             }
             case OptionRow.Remap remap -> {
-                if (column != BindingSlot.GAMEPAD || remap.action().gamepadRemappable()) {
+                if (remap.action().remappable(column)) {
                     remapping.start(new Bindings.Assignment(remap.action(), column), services.devices);
                     services.play(Sfx.MENU_CONFIRM);
                 }
@@ -250,7 +250,7 @@ public final class OptionsScreen implements GameScreen {
                         .filter(t -> t.action() == action && t.slot() == slot)
                         .isPresent();
                 boolean cursor = selected && slot == column;
-                boolean fixed = slot == BindingSlot.GAMEPAD && !action.gamepadRemappable();
+                boolean fixed = !action.remappable(slot);
                 if (capturing) {
                     glass.chip(batch, "PRESS...", x - 6, y - 3, 150, 16, true);
                 } else if (cursor) {

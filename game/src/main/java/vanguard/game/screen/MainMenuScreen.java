@@ -2,8 +2,12 @@ package vanguard.game.screen;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import vanguard.content.campaign.Campaign;
+import vanguard.content.campaign.SaveGame;
+import vanguard.content.campaign.SaveSlots;
 import vanguard.game.GameServices;
 import vanguard.game.audio.MusicStreamer;
 import vanguard.game.audio.Sfx;
@@ -19,8 +23,9 @@ import vanguard.game.ui.Menu;
  * scene with the title theme, first with "PRESS START" (Enter / A, or Start), then with the menu in a glass panel. The
  * screens opened from the menu (difficulty, options, credits) lie over it, so the theme plays on.
  *
- * <p>Continue is hidden and Load game disabled until there are saves (part B of M3); New game goes
- * through the difficulty select straight into Level 01 until the briefing and the hangar exist.
+ * <p>Continue loads the most recent save into the hangar and is hidden while there is none; Load
+ * game opens the slot list and is disabled while every slot is empty (design/systems/saves). New
+ * game goes through the difficulty select into the intro briefing.
  */
 public final class MainMenuScreen implements GameScreen {
     private static final float MUSIC_VOLUME = 0.6f;
@@ -35,6 +40,7 @@ public final class MainMenuScreen implements GameScreen {
     private static final int PADDING = 18;
 
     private enum Item {
+        CONTINUE,
         NEW_GAME,
         LOAD_GAME,
         OPTIONS,
@@ -44,12 +50,8 @@ public final class MainMenuScreen implements GameScreen {
 
     private final GameServices services;
     private final Optional<MusicStreamer> music;
-    private final Menu<Item> menu = new Menu<>(List.of(
-            Menu.Item.of(Item.NEW_GAME, "NEW GAME"),
-            Menu.Item.disabled(Item.LOAD_GAME, "LOAD GAME"),
-            Menu.Item.of(Item.OPTIONS, "OPTIONS"),
-            Menu.Item.of(Item.CREDITS, "CREDITS"),
-            Menu.Item.of(Item.QUIT, "QUIT")));
+    private final Optional<SaveGame> latest;
+    private final Menu<Item> menu;
     private boolean title;
     private Optional<Dialog> quit = Optional.empty();
     private float elapsed;
@@ -57,6 +59,16 @@ public final class MainMenuScreen implements GameScreen {
     private MainMenuScreen(GameServices services, boolean title) {
         this.services = services;
         this.title = title;
+        latest = services.saves.mostRecent();
+        boolean anySave = services.saves.list().stream().anyMatch(entry -> !(entry instanceof SaveSlots.Entry.Empty));
+        List<Menu.Item<Item>> items = new ArrayList<>();
+        latest.ifPresent(save -> items.add(Menu.Item.of(Item.CONTINUE, "CONTINUE")));
+        items.add(Menu.Item.of(Item.NEW_GAME, "NEW GAME"));
+        items.add(new Menu.Item<>(Item.LOAD_GAME, "LOAD GAME", anySave));
+        items.add(Menu.Item.of(Item.OPTIONS, "OPTIONS"));
+        items.add(Menu.Item.of(Item.CREDITS, "CREDITS"));
+        items.add(Menu.Item.of(Item.QUIT, "QUIT"));
+        menu = new Menu<>(items);
         music = MusicStreamer.play(
                 services.audio, services.files.internal("music/title-theme.ogg"), MUSIC_VOLUME, services.mixer);
     }
@@ -109,8 +121,11 @@ public final class MainMenuScreen implements GameScreen {
         }
         services.play(Sfx.MENU_CONFIRM);
         return switch (menu.selectedId()) {
+            case CONTINUE ->
+                Transition.replace(
+                        new HangarScreen(services, Campaign.load(services.campaignRules, latest.orElseThrow()), false));
             case NEW_GAME -> Transition.open(new DifficultyScreen(services));
-            case LOAD_GAME -> Transition.STAY;
+            case LOAD_GAME -> Transition.open(SlotsScreen.load(services));
             case OPTIONS -> Transition.open(new OptionsScreen(services));
             case CREDITS -> Transition.open(new CreditsScreen(services));
             case QUIT -> {

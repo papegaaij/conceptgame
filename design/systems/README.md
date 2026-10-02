@@ -23,7 +23,7 @@ saved.
 | [scoring](scoring/README.md) | Score (separate from credits), chain multiplier, level-end bonuses, grades | approved | in-progress | n/a |
 | [difficulty](difficulty/README.md) | What easy, medium and hard change | approved | in-progress | n/a |
 | [retry](retry/README.md) | Failure model: ship destroyed → retry the level | approved | in-progress | n/a |
-| [saves](saves/README.md) | Save slots, autosave, save contents | approved | not-started | n/a |
+| [saves](saves/README.md) | Save slots, autosave, save contents | approved | in-progress | n/a |
 
 ## Design
 

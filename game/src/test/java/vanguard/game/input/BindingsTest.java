@@ -1,8 +1,10 @@
 package vanguard.game.input;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.badlogic.gdx.Input.Keys;
 import java.util.Optional;
@@ -94,5 +96,36 @@ class BindingsTest {
     @Test
     void theMoveActionsKeepTheStickAndTheDpad() {
         assertThrows(IllegalArgumentException.class, () -> defaults.withButton(Action.MOVE_UP, GamepadControl.A));
+    }
+
+    @Test
+    void pauseKeepsEscapeButItsAlternativeKeyIsRemappable() {
+        assertFalse(Action.PAUSE.remappable(BindingSlot.PRIMARY));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> defaults.withKey(new Bindings.Assignment(Action.PAUSE, BindingSlot.PRIMARY), Keys.F1));
+
+        Bindings changed = defaults.withKey(new Bindings.Assignment(Action.PAUSE, BindingSlot.ALTERNATIVE), Keys.F1);
+
+        assertEquals(Keys.ESCAPE, changed.get(Action.PAUSE).primaryKey());
+        assertEquals(Keys.F1, changed.get(Action.PAUSE).alternativeKey());
+    }
+
+    @Test
+    void everyActionKeepsARemappableAlternativeKey() {
+        for (Action action : Action.REMAPPABLE) {
+            assertTrue(action.remappable(BindingSlot.ALTERNATIVE), action.name());
+        }
+    }
+
+    @Test
+    void theSystemKeysCannotBeBound() {
+        var target = new Bindings.Assignment(Action.FIRE, BindingSlot.PRIMARY);
+
+        for (int key : new int[] {Keys.ESCAPE, Keys.ENTER, Keys.NUMPAD_ENTER, Keys.F11}) {
+            assertTrue(Bindings.systemKey(key));
+            assertThrows(IllegalArgumentException.class, () -> defaults.withKey(target, key));
+        }
+        assertFalse(Bindings.systemKey(Keys.SPACE));
     }
 }

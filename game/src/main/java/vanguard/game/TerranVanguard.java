@@ -6,6 +6,9 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.Optional;
 import vanguard.content.Difficulty;
+import vanguard.content.campaign.Campaign;
+import vanguard.content.campaign.CampaignRoute;
+import vanguard.content.campaign.SaveSlots;
 import vanguard.game.display.DisplayModes;
 import vanguard.game.render.PixelScreen;
 import vanguard.game.screen.LevelScreen;
@@ -31,6 +34,7 @@ public final class TerranVanguard extends ApplicationAdapter {
     private final boolean invulnerable;
     private final boolean startLevel;
     private final Optional<BenchRun> bench;
+    private final SaveSlots saves;
     private SpriteBatch batch;
     private PixelScreen pixelScreen;
     private GameServices services;
@@ -45,6 +49,7 @@ public final class TerranVanguard extends ApplicationAdapter {
      * @param invulnerable a debug option: nothing hits the ship
      * @param startLevel start in Level 01 rather than at the title screen
      * @param benchSeconds exit after this many seconds and log the frame count; 0 runs until quit
+     * @param saves the save slots
      */
     public TerranVanguard(
             DisplayModes displayModes,
@@ -54,7 +59,8 @@ public final class TerranVanguard extends ApplicationAdapter {
             float timeScale,
             boolean invulnerable,
             boolean startLevel,
-            double benchSeconds) {
+            double benchSeconds,
+            SaveSlots saves) {
         this.displayModes = displayModes;
         this.settings = settings;
         this.store = store;
@@ -63,6 +69,7 @@ public final class TerranVanguard extends ApplicationAdapter {
         this.invulnerable = invulnerable;
         this.startLevel = startLevel;
         this.bench = benchSeconds > 0 ? Optional.of(new BenchRun(benchSeconds)) : Optional.empty();
+        this.saves = saves;
     }
 
     @Override
@@ -70,9 +77,18 @@ public final class TerranVanguard extends ApplicationAdapter {
         Gdx.app.log("gl", Gdx.gl.glGetString(GL20.GL_RENDERER) + " / " + Gdx.gl.glGetString(GL20.GL_VERSION));
         batch = new SpriteBatch();
         pixelScreen = new PixelScreen();
-        services = new GameServices(Gdx.files, Gdx.audio, displayModes, settings, store, difficulty, invulnerable);
-        screens = new ScreenFlow(
-                startLevel ? new LevelScreen(services, difficulty) : MainMenuScreen.title(services), Gdx.app::exit);
+        services =
+                new GameServices(Gdx.files, Gdx.audio, displayModes, settings, store, difficulty, invulnerable, saves);
+        screens = new ScreenFlow(startLevel ? testLevel() : MainMenuScreen.title(services), Gdx.app::exit);
+    }
+
+    /** Level 01 of a new campaign at the launch difficulty, for testing; nothing is saved before its hangar. */
+    private LevelScreen testLevel() {
+        Campaign campaign = Campaign.start(services.campaignRules, difficulty);
+        return new LevelScreen(
+                services,
+                campaign,
+                CampaignRoute.launch(services.content, campaign).orElseThrow());
     }
 
     @Override

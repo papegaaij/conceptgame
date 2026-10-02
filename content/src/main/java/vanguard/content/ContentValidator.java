@@ -28,7 +28,19 @@ final class ContentValidator {
         checkItems();
         content.enemies().values().forEach(this::checkEnemy);
         content.levels().values().forEach(this::checkLevel);
+        content.levels().forEach(this::checkAct);
         return problems;
+    }
+
+    /** A level's act has its data file, and the act's levels include the level. */
+    private void checkAct(String key, LevelData level) {
+        ActData act = content.acts().get(Content.actDirectory(key));
+        int number = Content.levelNumber(key);
+        if (act == null) {
+            problem(level, "level", "its act " + Content.actDirectory(key) + " has no data file");
+        } else if (!act.levels().contains(number)) {
+            problem(act, "levels", "does not include level " + number + " (" + key + ")");
+        }
     }
 
     private void checkItems() {

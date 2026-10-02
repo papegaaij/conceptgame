@@ -18,6 +18,7 @@ Usage:
 """
 import os
 import re
+import textwrap
 import sys
 
 from design_data import (DESIGN, ROOT, base_angle, difficulty_hp, draw, enemy_dir, fill, grouped, load, num,
@@ -427,6 +428,35 @@ def radio(d):
     return table(["Trigger", "Speaker", "Line"], rows)
 
 
+SPEAKERS = {"Okafor": "Commander Okafor", "Varga": "Dr. Varga", "Rook": "Rook"}
+
+
+def quote(pages):
+    """Briefing pages as a block quote, one paragraph per page with its speaker."""
+    paragraphs = []
+    for page in pages:
+        text = f'**{SPEAKERS.get(page["speaker"], page["speaker"])}:** "{page["line"]}"'
+        paragraphs.append("\n".join("> " + line for line in textwrap.wrap(text, 94, break_on_hyphens=False, break_long_words=False)))
+    return "\n>\n".join(paragraphs)
+
+
+def briefing(d):
+    return quote(data(d)["briefing"]["pages"])
+
+
+def teaser(d):
+    return quote([data(d)["briefing"]["teaser"]])
+
+
+def act_title_card(d):
+    card = data(d)["title_card"]
+    return f"> {card['act']}\n> {card['name']}\n> {card['line']}"
+
+
+def act_briefing(d):
+    return quote(data(d)["briefing"])
+
+
 def level_number(d):
     return int(re.match(r"level-(\d+)-", os.path.basename(d)).group(1))
 
@@ -519,7 +549,8 @@ RENDERERS = {
     "pickups": player_pickups, "ship-movement": ship_movement, "stat-block": stat_block,
     "reference-dps": reference_dps, "player-damage": player_damage, "formations": formations,
     "level-sections": level_sections, "backdrop": backdrop_table, "threat-profile": threat_profile, "waves": waves, "ground-targets": ground_targets, "radio": radio,
-    "credit-budget": credit_budget, "score-bonuses": score_bonuses, "grades": grades, "difficulty": difficulty,
+    "credit-budget": credit_budget, "briefing": briefing, "teaser": teaser,
+    "act-title-card": act_title_card, "act-briefing": act_briefing, "score-bonuses": score_bonuses, "grades": grades, "difficulty": difficulty,
 }
 
 

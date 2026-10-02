@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../architecture, ../../campaign]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Implementation roadmap
@@ -65,3 +65,5 @@ milestone lists which documents it covers, it does not copy their items.
 - 2026-10-01: M0 Skeleton done: played and accepted by the user, CI green on three OSes.
 - 2026-10-01: M1 First flight done: played and accepted by the user.
 - 2026-10-02: M2 Level 01 done: played and accepted by the user (data files, level runner, Level 01 with backdrop, HUD and debrief). Production art can start now (see Rules).
+- 2026-10-02: M3 part B1 built (round 11 wiring, campaign state, saves, briefing, mission failed and
+  game over, a placeholder hangar); part B2 builds the hangar.

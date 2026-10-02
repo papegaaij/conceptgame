@@ -1,0 +1,63 @@
+package vanguard.content.campaign;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import vanguard.content.ActData;
+import vanguard.content.BriefingPage;
+import vanguard.content.Content;
+import vanguard.content.LevelData;
+
+/**
+ * Builds the briefing before a level from the design data: a level that opens its act gets the
+ * act's title card and briefing first (design/campaign, Act intro and outro), so the intro
+ * briefing of a new game is the one before Level 01.
+ */
+public final class Briefings {
+    private Briefings() {}
+
+    /** The briefing before level {@code number}, if the level and its act exist in the data yet. */
+    public static Optional<BriefingScript> before(Content content, int number) {
+        Optional<String> key = content.levelKey(number);
+        Optional<Map.Entry<String, ActData>> act = content.actOf(number);
+        if (key.isEmpty() || act.isEmpty()) {
+            return Optional.empty();
+        }
+        ActData actData = act.get().getValue();
+        LevelData level = content.level(key.get());
+        boolean opensAct = actData.levels().first() == number;
+        List<BriefingPage> pages = new ArrayList<>();
+        if (opensAct) {
+            pages.addAll(actData.briefing());
+        }
+        pages.addAll(level.briefing().pages());
+        ActData.TitleCard card = actData.titleCard();
+        return Optional.of(new BriefingScript(
+                opensAct ? Optional.of(card) : Optional.empty(),
+                act.get().getKey(),
+                card.act() + " - " + card.name(),
+                number,
+                Content.levelName(key.get()).toUpperCase(Locale.ROOT),
+                pages,
+                objectives(level.objectives()),
+                level.briefing().teaser()));
+    }
+
+    /** The objective lines of the briefing: the primary objective, then the secondary one as a bonus. */
+    static List<String> objectives(LevelData.Objectives objectives) {
+        List<String> lines = new ArrayList<>();
+        lines.add(
+                switch (objectives.primary()) {
+                    case "reach-end" -> "SURVIVE TO THE END OF THE MISSION";
+                    default ->
+                        throw new IllegalArgumentException("no briefing line for objective " + objectives.primary());
+                });
+        objectives
+                .secondary()
+                .ifPresent(secondary -> lines.add(String.format(
+                        Locale.ROOT, "BONUS: DESTROY %.0f %% OF ALL ENEMIES", 100 * secondary.killRatio())));
+        return lines;
+    }
+}

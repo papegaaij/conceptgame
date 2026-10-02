@@ -9,16 +9,25 @@ class KeyCaptureTest {
     private final FakeDevices devices = new FakeDevices();
 
     @Test
-    void theConfirmThatOpenedTheCaptureIsNotCaptured() {
-        devices.keys.add(Keys.ENTER);
+    void aKeyHeldWhenTheCaptureStartedCountsOnlyOncePressedAgain() {
+        devices.keys.add(Keys.SPACE);
         var capture = new KeyCapture(devices, false);
         assertEquals(new KeyCapture.Result.Waiting(), capture.poll(devices));
 
         devices.keys.clear();
         capture.poll(devices);
-        devices.keys.add(Keys.ENTER);
+        devices.keys.add(Keys.SPACE);
 
-        assertEquals(new KeyCapture.Result.Key(Keys.ENTER), capture.poll(devices), "pressed again it counts");
+        assertEquals(new KeyCapture.Result.Key(Keys.SPACE), capture.poll(devices), "pressed again it counts");
+    }
+
+    @Test
+    void enterIsAFixedSystemKeyAndNeverCaptured() {
+        var capture = new KeyCapture(devices, false);
+        devices.keys.add(Keys.ENTER);
+        devices.keys.add(Keys.NUMPAD_ENTER);
+
+        assertEquals(new KeyCapture.Result.Waiting(), capture.poll(devices));
     }
 
     @Test

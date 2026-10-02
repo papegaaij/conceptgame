@@ -105,7 +105,7 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 
 ## Implementation
 
-- [ ] Credit balance, income multiplier by difficulty
+- [x] Credit balance, income multiplier by difficulty
 - [ ] Bounty values per enemy class; boss bounty per act
 - [ ] Hangar transaction log for undo; 60 % sell-back otherwise
 - [ ] Balancing sheet (spreadsheet or script) that simulates per-level budgets vs prices
@@ -135,3 +135,6 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 - 2026-10-02: The difficulty's income factor is rounded per payout, half to even, so the debrief
   adds up exactly (user decision); summing a level's credits first and rounding once was the
   alternative.
+- 2026-10-02: M3 part B1: the credit balance lives in the campaign state and its saves, starting
+  at the 300 starting credits; a won level banks what it earned plus the grade bonus, a failed or
+  aborted attempt banks nothing.

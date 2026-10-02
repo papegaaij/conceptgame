@@ -82,7 +82,8 @@ README), and the tables in the README are **rendered from the data**:
 | Ship and core parts | `design/player/{ship,shields,armor,generator,systems,specials}/data.yaml` | their tables (the specials table is still hand-written) |
 | Player-wide | `design/player/data.yaml` (shop availability, pickups) | the *In-level pickups* table |
 | Level | `design/campaign/<act>/<level>/data.yaml` (sections, scroll, waves, ground targets, secrets, cues, objectives, music, difficulty changes, backdrop) | the *Threat profile*, *Layout*, *Backdrop*, *Waves*, *Ground targets*, *Radio chatter* and *Credit budget* tables |
-| Economy, scoring, difficulty | `design/systems/<part>/data.yaml` | the scoring bonus and grade tables and the difficulty levers (the economy's tables are still hand-written) |
+| Act | `design/campaign/<act>/data.yaml` (the act's levels, title card and act briefing) | the act's *Act intro and outro* quotes |
+| Economy, scoring, difficulty, retry | `design/systems/<part>/data.yaml` | the scoring bonus and grade tables and the difficulty levers (the economy's tables are still hand-written; retry has no table) |
 
 - **Marked tables.** A generated table sits between `<!-- data: NAME -->` and `<!-- /data -->`;
   NAME picks a renderer in `tools/sync_tables.py`, which reads the `data.yaml` in the README's
@@ -164,7 +165,8 @@ first entry of a part's model list is the starter (price 0, `start`).
   `distorted`); `objectives` (`primary`, `secondary` `kill_ratio` and `credits`); `music`
   (`track`, `start_section`, `full_section`, `ambience`, `end_jingle`); `difficulty` (level-wide
   `easy` / `hard` enemy changes such as `burst`, and `extra_pickups` placed like `pickups`);
-  `notes.threat_profile` (the *Threat profile* rows; `{directions}` is derived); `backdrop`
+  `notes.threat_profile` (the *Threat profile* rows; `{directions}` is derived); `briefing`
+  (`pages` of `speaker` and `line`, and the hangar `teaser`, rendered into *Briefing*); `backdrop`
   (presentation only, see below). The credit budget
   table is derived: kills × bounties, ground targets, crates, the secondary objective, against
   budget(n) of the economy; the attack directions are each entry's share of the enemies.
@@ -201,7 +203,11 @@ first entry of a part's model list is the starter (price 0, `start`).
   `sell_back`); difficulty (one `{easy, medium, hard}` entry per lever: factors such as
   `enemy_hp`, changes such as `formation_size` (−0.2 = −20 %), `aimed_spread_degrees`, `bullet_budget`,
   `repair_cost`, `retries`, `boss_checkpoint`, `sensor_bonus`); scoring (`kill_score`,
-  `pickup_score`, `chain`, `rating` weights, `bonuses`, `grades`).
+  `pickup_score`, `chain`, `rating` weights, `bonuses`, `grades`); retry (`armour_floor`, the
+  share of the maximum armour a retry starts with at least).
+- **Act** (`campaign/<act>/data.yaml`): `levels` `[first, last]` (global numbers), `title_card`
+  (`act`, `name`, `line`), `briefing` (pages of `speaker` and `line`); the loader checks that every
+  level's act exists and includes it.
 
 ### Presentation (`game`)
 
@@ -391,3 +397,16 @@ Screenshot tests are left out until there is a need.
   menus. Assets: `tools/concept/ui_assets.py` renders the bitmap fonts (BMFont text files, PNG
   pages) and the title scene and logo into `assets/`, like the backdrop placeholders; the menu
   sounds join `importPlaceholders`.
+- 2026-10-02: M3 part B1. The campaign state is plain Java in `content`
+  (`vanguard.content.campaign`, since it needs the difficulty and the level keys that `content`
+  owns): `Campaign` (the state and its transitions: a won level banks, a failure loses the attempt,
+  retries and the armour floor), `CampaignRules` (its numbers from the data), `CampaignRoute`
+  (briefing / hangar / launch between levels), `Briefings` (the briefing before a level, with the
+  act intro when the level opens its act), and the saves: `SaveGame` (the record),
+  `SaveFormat` (versioned JSON through Jackson's JSON mapper) and `SaveSlots` (the files, written
+  atomically). The desktop launcher puts the saves next to the settings file (`saves/`), so a
+  `--settings` file in a temporary directory keeps test saves out of the real ones. `sim`: a
+  destroyed ship no longer restarts by itself; `Sortie.retry(armour)` starts the next attempt with
+  the campaign's armour and the constructor takes the first attempt's armour. New data files: the
+  act's `data.yaml` and `systems/retry/data.yaml`; level data gained `briefing`; `sync_tables.py`
+  renders the briefings (`briefing`, `teaser`, `act-title-card`, `act-briefing`).

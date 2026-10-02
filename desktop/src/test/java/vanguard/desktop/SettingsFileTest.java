@@ -139,6 +139,23 @@ class SettingsFileTest {
     }
 
     @Test
+    void theFixedSystemKeysAreNotReadIntoAnotherSlot() throws IOException {
+        Path path = directory.resolve("settings.properties");
+        Files.writeString(path, """
+                controls.pause.primary=P
+                controls.fire.primary=Enter
+                controls.special.alternative=Escape
+                """);
+
+        Bindings bindings = new SettingsFile(path).readSettings().controls().bindings();
+
+        Bindings defaults = Bindings.defaults();
+        assertEquals(Keys.ESCAPE, bindings.get(Action.PAUSE).primaryKey());
+        assertEquals(defaults.get(Action.FIRE), bindings.get(Action.FIRE));
+        assertEquals(defaults.get(Action.SPECIAL), bindings.get(Action.SPECIAL));
+    }
+
+    @Test
     void theDisplayAndTheOptionsKeepEachOthersKeys() throws IOException {
         Path path = directory.resolve("settings.properties");
         Files.writeString(path, "controls.auto-fire=true\nwindow.x=5\n");

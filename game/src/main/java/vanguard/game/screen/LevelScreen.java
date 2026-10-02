@@ -3,9 +3,12 @@ package vanguard.game.screen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import vanguard.content.Content;
 import vanguard.content.Difficulty;
 import vanguard.content.LevelData;
 import vanguard.content.SimSpecs;
+import vanguard.content.campaign.Campaign;
 import vanguard.game.GameServices;
 import vanguard.game.audio.FlightSounds;
 import vanguard.game.audio.LevelMusic;
@@ -16,28 +19,32 @@ import vanguard.game.level.ControlPrompts;
 import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
 import vanguard.game.render.CreditNumbers;
+import vanguard.game.render.EdgeWarnings;
 import vanguard.game.render.Effects;
 import vanguard.game.render.EnemyLooks;
 import vanguard.game.render.Hud;
 import vanguard.game.render.LevelRenderer;
 import vanguard.game.settings.Settings;
 import vanguard.sim.FixedStepClock;
+import vanguard.sim.LevelResult;
 import vanguard.sim.LevelScript;
+import vanguard.sim.Loadout;
 import vanguard.sim.Rules;
 import vanguard.sim.SimEvents;
 import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
 
 /**
- * Flying a level: runs the simulation at its fixed step, turns its events into sound, effects,
- * radio chatter and HUD feedback, plays the level's music cues and draws it interpolated. When the
- * level is won it shows the last radio line, then the debrief. Pause (Esc / P / Start), the window
- * losing the focus and a gamepad disconnecting open the pause menu over it. The Gameplay tab's text
- * speed and flash reduction and the Controls tab's auto-fire apply from the next frame on.
+ * Flying a level of the campaign: runs the simulation at its fixed step from the campaign's
+ * level-start state, turns its events into sound, effects, radio chatter and HUD feedback, plays
+ * the level's music cues and draws it interpolated. When the level is won it shows the last radio
+ * line, banks the result in the campaign and shows the debrief. When the ship is destroyed the
+ * death plays out, then the mission failed screen opens over the level, or the game over screen
+ * follows when no retry is left (design/systems/retry). Pause (Esc / P / Start), the window losing
+ * the focus and a gamepad disconnecting open the pause menu over it. The Gameplay tab's text speed
+ * and flash reduction and the Controls tab's auto-fire apply from the next frame on.
  */
 public final class LevelScreen implements GameScreen {
-    /** The only level so far; the campaign picks the level in M3. */
-    static final String LEVEL = "act-1-first-contact/level-01-break-at-dawn";
     /** Every run of a level gets the same waves; the seed only picks hover times. */
     private static final long SEED = 2185;
 
@@ -46,6 +53,8 @@ public final class LevelScreen implements GameScreen {
     private static final float SLOW_MOTION_SECONDS = 1;
 
     private static final float SLOW_MOTION_RATE = 0.5f;
+    /** From the ship's destruction to the mission failed screen: the explosion, the slow motion and the sting's start. */
+    static final float FAILED_SCREEN_SECONDS = 3;
     /** The ship's blue shimmer fades over this many steps after a shield hit. */
     private static final int SHIMMER_TICKS = 8;
 
@@ -62,6 +71,7 @@ public final class LevelScreen implements GameScreen {
     private static final int WEAPON_LEVEL = 1;
 
     private final GameServices services;
+    private final Campaign campaign;
     private final LevelData level;
     private final Sortie sortie;
     private final FixedStepClock clock = new FixedStepClock(SimStep.SECONDS, MAX_STEPS_PER_FRAME);
@@ -72,53 +82,59 @@ public final class LevelScreen implements GameScreen {
     private final Effects effects = Effects.glowing();
     private final Effects debris = Effects.solid();
     private final CreditNumbers creditNumbers = new CreditNumbers();
+    private final EdgeWarnings warnings;
     private final RadioQueue radio = new RadioQueue();
     private final ControlPrompts prompts;
     private final PromptTexts promptTexts;
     private final LevelMusic music;
     private final String name;
-    private final Difficulty difficulty;
     private float slowMotion;
     private float outro = -1;
+    /** What the ship's destruction leads to, and how long until its screen opens. */
+    private Optional<Campaign.Failure> failure = Optional.empty();
+
+    private float failedIn;
+    private boolean launchPending = true;
     private int shimmer;
     private int typed;
 
-    /** Level 01 at {@code difficulty}; the campaign picks the level from part B of M3 on. */
-    public LevelScreen(GameServices services, Difficulty difficulty) {
+    /**
+     * The campaign's next level, flown from the campaign's level-start state.
+     *
+     * @param levelKey the level, as in {@link Content#level(String)}
+     */
+    public LevelScreen(GameServices services, Campaign campaign, String levelKey) {
         this.services = services;
-        this.difficulty = difficulty;
-        level = services.content.level(LEVEL);
-        Rules rules = SimSpecs.rules(services.content, LEVEL, difficulty);
+        this.campaign = campaign;
+        Difficulty difficulty = campaign.difficulty();
+        level = services.content.level(levelKey);
+        Rules rules = SimSpecs.rules(services.content, levelKey, difficulty);
+        // The fitted loadout is the starter loadout until the hangar sells equipment (part B2 of M3).
+        Loadout loadout = SimSpecs.starterLoadout(services.content, difficulty);
         sortie = new Sortie(
                 SEED,
-                SimSpecs.starterLoadout(services.content, difficulty),
-                SimSpecs.level(services.content, LEVEL, difficulty),
-                services.invulnerable ? rules.withInvulnerableShip() : rules);
+                loadout,
+                SimSpecs.level(services.content, levelKey, difficulty),
+                services.invulnerable ? rules.withInvulnerableShip() : rules,
+                campaign.armour());
         looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites);
         sounds = new FlightSounds(services.sfx, looks);
-        renderer = new LevelRenderer(services.sprites, looks, services.flash, services.fonts.body, level, LEVEL);
-        name = levelName(LEVEL);
-        hud = new Hud(
-                services.sprites,
-                services.fonts,
-                sortie.script().number(),
-                name,
-                services.content.economy().startingCredits());
+        renderer = new LevelRenderer(services.sprites, looks, services.flash, services.fonts.body, level, levelKey);
+        warnings = new EdgeWarnings(services.sprites.pixel, services.fonts.body);
+        name = Content.levelName(levelKey);
+        hud = new Hud(services.sprites, services.fonts, sortie.script().number(), name, campaign.credits());
         prompts = new ControlPrompts(level.controlPrompts());
         promptTexts = new PromptTexts(services.input.bindings());
-        // Track 5, "Coalition Rising" (design/audio/music), over the Earth-orbit ambience.
+        // Track 5, "Coalition Rising" (design/audio/music) as its two stems, over the Earth-orbit ambience.
         music = new LevelMusic(
                 services.audio,
                 services.mixer,
+                services.files.internal("music/coalition-rising-base.ogg"),
                 services.files.internal("music/coalition-rising.ogg"),
                 services.sfx,
                 Sfx.AMBIENCE_ORBIT,
-                level.music().startSection());
-    }
-
-    /** The level's name from its key: {@code level-01-break-at-dawn} is "break at dawn". */
-    private static String levelName(String key) {
-        return key.substring(key.lastIndexOf('/') + "/level-01-".length()).replace('-', ' ');
+                level.music().startSection(),
+                level.music().fullSection());
     }
 
     /** "MISSION 01 - BREAK AT DAWN", for the pause menu. */
@@ -127,8 +143,8 @@ public final class LevelScreen implements GameScreen {
                 .toUpperCase(Locale.ROOT);
     }
 
-    Difficulty difficulty() {
-        return difficulty;
+    Campaign campaign() {
+        return campaign;
     }
 
     /** The time flown in this attempt. */
@@ -140,27 +156,39 @@ public final class LevelScreen implements GameScreen {
         return sortie.score();
     }
 
-    /** Starts the level over (the pause menu's Restart mission): a retry, as after the ship's destruction. */
-    void retry() {
-        sortie.retry();
+    /** What the attempt has earned so far, for the mission failed screen. */
+    int attemptCredits() {
+        return sortie.credits();
+    }
+
+    /** Starts the level over from its start state with {@code armour} (a retry, or the pause menu's restart). */
+    void retry(double armour) {
+        sortie.retry(armour);
         outro = -1;
         slowMotion = 0;
+        failure = Optional.empty();
     }
 
     @Override
     public Transition update(float seconds) {
+        campaign.play(seconds);
         if (services.input.pressed(Action.PAUSE) || services.input.interrupted()) {
             return Transition.open(new PauseScreen(services, this));
         }
         if (outro >= 0) {
             outro -= seconds;
             if (outro <= 0) {
-                return Transition.replace(new DebriefScreen(
-                        services,
-                        sortie.result(),
-                        sortie.script().number(),
-                        name,
-                        services.content.economy().startingCredits()));
+                return Transition.replace(debrief());
+            }
+        }
+        if (failure.isPresent()) {
+            failedIn -= seconds;
+            if (failedIn <= 0) {
+                Campaign.Failure what = failure.get();
+                failure = Optional.empty();
+                return what == Campaign.Failure.GAME_OVER
+                        ? Transition.replace(new GameOverScreen(services, campaign, mission()))
+                        : Transition.open(new MissionFailedScreen(services, this));
             }
         }
         Settings settings = services.settings();
@@ -184,6 +212,11 @@ public final class LevelScreen implements GameScreen {
                 shimmer--;
             }
             react(sortie.events());
+            sounds.edgeWarnings(warnings.step(sortie.edgeWarnings(), sortie.tick()));
+        }
+        if (launchPending && sortie.launching()) {
+            sounds.launch();
+            launchPending = false;
         }
         playRadio(seconds);
         music.update(sortie.section(), seconds, radio.current().isPresent());
@@ -214,13 +247,17 @@ public final class LevelScreen implements GameScreen {
                     effects.start(services.sprites.explosionLarge, LARGE_EXPLOSION_FRAME_TICKS, x, y);
                     slowMotion = SLOW_MOTION_SECONDS;
                     music.cut();
+                    failure = Optional.of(campaign.fail());
+                    failedIn = FAILED_SCREEN_SECONDS;
                 }
                 case SORTIE_RESTARTED -> {
                     effects.clear();
                     debris.clear();
                     creditNumbers.clear();
                     radio.clear();
+                    warnings.clear();
                     music.restart();
+                    launchPending = true;
                 }
                 case LEVEL_COMPLETE -> {
                     music.fadeOut();
@@ -259,6 +296,7 @@ public final class LevelScreen implements GameScreen {
                 effects,
                 debris,
                 creditNumbers,
+                warnings,
                 clock.alpha(),
                 (float) shimmer / SHIMMER_TICKS,
                 services.settings().gameplay().flashReduction());
@@ -270,8 +308,17 @@ public final class LevelScreen implements GameScreen {
         return sortie.launching() || sortie.section() != 1 ? List.of() : promptTexts.of(prompts.pending());
     }
 
+    /** Banks the won level in the campaign and shows its debrief. */
+    private DebriefScreen debrief() {
+        LevelResult result = sortie.result();
+        int launchBalance = campaign.credits();
+        boolean newBest = campaign.complete(result, sortie.ship().defences().armour());
+        return new DebriefScreen(services, campaign, result, sortie.script().number(), name, launchBalance, newBest);
+    }
+
     @Override
     public void dispose() {
         music.dispose();
+        warnings.dispose();
     }
 }

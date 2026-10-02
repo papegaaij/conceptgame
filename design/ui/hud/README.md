@@ -209,3 +209,13 @@ miss (after playing Level 01), over a still frame of Level 01's backdrop placeho
   [sfx](../../audio/sfx/README.md). The M2 placeholder draws a small red (`FF4030`) arrow, not
   the chosen round-09 look; whichever variant is chosen replaces it.
 - 2026-10-02: Concept round 11 (user choice): edge-warning look **A** "big pulse" chosen (the round-09 bar and chevrons at about 3× with a glow, growing in over 0.2 s and pulsing between 45 % and 100 %); B and C moved to `concept/rejected/`. The round-09 sheet stays chosen for the sensor threat arrows and the banners. The game still draws a small red placeholder arrow; it follows A when the HUD art is implemented.
+- 2026-10-02: Characters per line settled in [ui](../README.md) (user decision): radio subtitles and
+  control prompts use the 8×12 font, as built; body text fits about 19 characters in a well.
+- 2026-10-02: M3 part B1: the edge warnings follow the chosen look A "big pulse"
+  (`vanguard.game.render.EdgeWarnings`, drawn in code with the generator's geometry: a 6 px
+  `FFC800` bar 301 px long at the sides and 341 px at the rear with a blurred glow, three 20 px
+  chevrons at 100 / 70 / 42 %, "! LEFT" / "! RIGHT" / "! REAR" in the 10×20 font, growing in from
+  the edge's middle over 0.2 s, then pulsing 45–100 % on the 0.267 s cycle); the small red
+  placeholder arrow is gone. Each warning that starts plays the edge-warning tone
+  ([sfx](../../audio/sfx/README.md)). The label is the 10×20 font, close to the concept's 2× 5×7
+  raster font.

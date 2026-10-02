@@ -33,7 +33,7 @@ public final class Ship {
         this.defences = defences;
         this.accelerationPerStep = spec.speed() / spec.accelerationSeconds() * SimStep.SECONDS;
         this.stopPerStep = spec.speed() / spec.stopSeconds() * SimStep.SECONDS;
-        reset();
+        reset(defences.maxArmour());
     }
 
     /**
@@ -50,14 +50,14 @@ public final class Ship {
     }
 
     /** Back at the start position, at rest, with full defences. */
-    void reset() {
+    void reset(double armour) {
         x = prevX = START_X;
         y = prevY = START_Y;
         vx = vy = 0;
         bank = bankTimer = 0;
         fireCooldown = 0;
         ticksSinceShot = Integer.MAX_VALUE;
-        defences.restore();
+        defences.restore(armour);
     }
 
     void rememberPosition() {

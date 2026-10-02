@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../CREDITS.md]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Credits
@@ -17,8 +17,9 @@ Scrolling credits screen from the main menu (and after the campaign ends). Carri
 
 - Glass style; a slowly scrolling column over the menu scene; skip/back at any time.
 - Sections: team roles, music, sound (with the **CC-BY attributions** — title, author, licence —
-  generated from [CREDITS.md](../../../CREDITS.md), skipping rejected files), thanks to the CC0
-  authors, tools.
+  generated from [CREDITS.md](../../../CREDITS.md), skipping rejected files), the fonts with
+  their licences (permissive font licences are allowed for fonts, see CLAUDE.md), thanks to the
+  CC0 authors, tools.
 - The list is generated at build time from CREDITS.md so it can never drift from the files
   actually shipped.
 
@@ -42,3 +43,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 - 2026-10-01: Screen added for the Acts 1–2 vertical slice (concept round 08).
 - 2026-10-01: Concept round 08: accepted.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: The credits name the fonts with their licences too (user decision on permissive font licences, CLAUDE.md).

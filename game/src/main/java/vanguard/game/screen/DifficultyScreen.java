@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.Optional;
 import vanguard.content.Difficulty;
 import vanguard.content.DifficultyData;
+import vanguard.content.campaign.Campaign;
 import vanguard.game.GameServices;
 import vanguard.game.audio.Sfx;
 import vanguard.game.input.MenuInput;
@@ -20,8 +21,7 @@ import vanguard.game.ui.Words;
  * The difficulty select of a new game (design/ui/main-menu, chosen difficulty A): three rank cards
  * over the dimmed hero scene, each with its chevrons, rank, one-line description and the key
  * levers from design/systems/difficulty. Left and right choose, confirm starts the campaign, back
- * returns to the menu. The campaign starts straight with Level 01 until the intro briefing and the
- * hangar exist (part B of M3).
+ * returns to the menu. A new campaign at the chosen difficulty starts with the intro briefing.
  */
 public final class DifficultyScreen implements GameScreen {
     private static final int CARD_WIDTH = 270;
@@ -86,7 +86,8 @@ public final class DifficultyScreen implements GameScreen {
         }
         if (input.confirm()) {
             services.play(Sfx.MENU_CONFIRM);
-            return Transition.replace(new LevelScreen(services, Difficulty.values()[selected]));
+            Campaign campaign = Campaign.start(services.campaignRules, Difficulty.values()[selected]);
+            return Transition.replace(HangarScreen.beforeNextLevel(services, campaign));
         }
         int before = selected;
         if (input.left()) {

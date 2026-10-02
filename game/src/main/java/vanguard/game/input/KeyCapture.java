@@ -9,7 +9,8 @@ import java.util.Set;
  * The press-a-key capture of the Controls tab: the first key, or for a gamepad slot the first
  * gamepad button, that goes down after the capture started. What was held when it started (the
  * confirm that opened it) counts only once released and pressed again. Esc and the gamepad's Back
- * cancel; F11 stays the display toggle and is never captured.
+ * cancel; the other fixed system keys (Enter, F11, see {@link Bindings#systemKey}) are never
+ * captured.
  */
 public final class KeyCapture {
     /** What a poll found. */
@@ -59,7 +60,7 @@ public final class KeyCapture {
             return WAITING;
         }
         for (int key = 1; key <= Keys.MAX_KEYCODE; key++) {
-            if (key != Keys.F11 && newly(devices, key)) {
+            if (!Bindings.systemKey(key) && newly(devices, key)) {
                 return new Result.Key(key);
             }
         }

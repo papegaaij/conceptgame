@@ -1,0 +1,3 @@
+# Retry: the armour floor of a retried level (README.md, Settled rules). Retries per level are a
+# difficulty lever (../difficulty/data.yaml). Schema: ../../tech/architecture/README.md#data-file-schemas
+armour_floor: 0.5   # a retry starts with the level-start armour, but at least this share of the maximum

@@ -1,10 +1,10 @@
 ---
 title: Saves
 design: approved
-implementation: not-started
+implementation: in-progress
 art: n/a
 depends-on: [../../ui/main-menu, ../../ui/hangar]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Saves
@@ -49,6 +49,14 @@ A versioned document (engine-agnostic; for example JSON):
 
 Settings (audio, controls, display) are stored separately and are not part of a save.
 
+### Files
+
+JSON, one file per slot (`autosave.json`, `slot-1.json` … `slot-8.json`) in a `saves` directory
+next to the settings file (in the platform's config directory, or next to the file `--settings`
+names). A save is written next to its file and moved into place, so a crash never leaves half a
+save. A file of a newer or unknown format version, or with a missing, unknown or invalid field,
+is shown as unreadable and never half loaded; older versions are migrated when they exist.
+
 ### Slot display
 
 Each slot shows: act and level name, difficulty, credits, playtime, date, and a small icon for
@@ -56,12 +64,22 @@ the act.
 
 ## Implementation
 
-- [ ] Save/load of the fields above with a version number
-- [ ] Autosave on entering the hangar; 8 manual slots
-- [ ] Continue = most recent save
-- [ ] Slot list UI in load/save screens
+- [x] Save/load of the fields above with a version number
+- [x] Autosave on entering the hangar; 8 manual slots
+- [x] Continue = most recent save
+- [x] Slot list UI in load/save screens
+- [ ] `escort` field, with Rook (Act 2)
 
 ## Decisions
 
 - 2026-09-30: Save only in the hangar; 8 slots + autosave.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: M3 part B1 (`vanguard.content.campaign`: `Campaign`, `SaveGame`, `SaveFormat`,
+  `SaveSlots`). Format version 1 with every field above except `escort`, which comes with Rook
+  (Act 2, a new format version); `created` is the time the save was written, so Continue takes the
+  newest file of any slot. Autosave whenever the hangar opens: after the intro briefing, every
+  debrief, Back to hangar and Abort, but not right after a save was loaded (it would only rewrite
+  the same state). Manual saves from the hangar's Save game item into slots 1–8 (overwrite after a
+  confirmation); the slot list is the one of the main menu's Load game. Storage per *Files* above;
+  the document did not say where, so the saves sit next to the settings. Tests: round trip, newer,
+  unknown and missing versions, malformed files, a failed write leaving the old save untouched.

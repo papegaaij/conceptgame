@@ -77,3 +77,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 - 2026-10-02: M3 part A: drawn with the UI kit's fonts (20×30 title and grade, 10×20 rows, 8×12
   label); confirm at the end returns to the main menu until the briefing and the hangar follow
   (part B).
+- 2026-10-02: M3 part B1: the debrief banks the level in the campaign (credits with the grade bonus,
+  score, kills, the armour left, the best grade) and shows "NEW BEST" under the stamp when the grade
+  beats the level's recorded best; confirm at the end goes to the next level's briefing, or to the
+  hangar while the next level is not built (after Level 01 for now).

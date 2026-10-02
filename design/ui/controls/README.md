@@ -23,7 +23,7 @@ gamepad are both first-class; everything can be remapped in Options.
 | Special | X | Left Ctrl | B / Circle |
 | Precision mode (hold) | Left Shift | C | Right bumper |
 | Dash (evasive thrusters) | Double-tap a direction | V | Left bumper |
-| Pause | Esc | P | Start |
+| Pause | Esc (fixed) | P | Start |
 | Toggle full screen | Alt+Enter | F11 | — |
 
 - **Hold to fire** is the default: weapons fire while the fire button is held. An **auto-fire
@@ -31,7 +31,11 @@ gamepad are both first-class; everything can be remapped in Options.
   extra).
 - Three action buttons: **fire**, **special** and **hold for precision** (slower, finer movement).
 - Menus: arrows / D-pad to navigate, Enter / A confirm, Esc / B back.
-- Remapping: per action, both a primary and an alternative key. Conflicts are shown and swapped.
+- **Esc and Enter are fixed system keys** (back / pause and confirm), like the full-screen keys:
+  they cannot be remapped or bound to another action. Pause keeps Esc as its primary key; every
+  action keeps a remappable alternative key (Pause: P).
+- Remapping: per action, both a primary and an alternative key (Pause: the alternative only).
+  Conflicts are shown and swapped.
 - Gamepad stick dead zone configurable (default 20 %).
 - **Toggle full screen** works everywhere, is not remappable (both keys are the platform
   conventions) and has no gamepad binding; the display mode rules live in
@@ -47,8 +51,7 @@ gamepad are both first-class; everything can be remapped in Options.
 
 ## Open questions
 
-- Esc cancels a key capture, so it cannot be captured; after Pause's Esc is remapped away, only
-  reset to defaults brings it back. Acceptable, or should a capture time out instead?
+- None open.
 
 ## Decisions
 
@@ -70,3 +73,8 @@ gamepad are both first-class; everything can be remapped in Options.
   (now configurable, 5–50 %) persist in the settings file. In flight, Pause now opens the pause
   menu. Because Esc cancels a capture, Esc can only come back to a slot through reset to defaults
   (open question).
+- 2026-10-02: Esc and Enter are fixed system keys (user decision): back / pause and confirm, not
+  remappable; every action keeps a remappable alternative key. In the Controls tab Pause's primary
+  cell shows ESC dimmed and cannot be selected for a capture; a capture never takes Enter (nor F11),
+  Esc cancels it; the settings file's Pause primary key and any slot naming Esc, Enter or F11 are
+  ignored (default kept). Tests: `BindingsTest`, `KeyCaptureTest`, `SettingsFileTest`.

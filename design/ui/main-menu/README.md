@@ -83,7 +83,7 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
 ## Implementation
 
 - [x] Title screen with background scene, logo and press start
-- [ ] Menu with Continue (conditional), New game, Load game, Options, Credits, Quit
+- [x] Menu with Continue (conditional), New game, Load game, Options, Credits, Quit
 - [x] Difficulty select with descriptions
 - [x] Options: audio volumes, controls, display settings
 
@@ -114,3 +114,11 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
   no longer copies `logo-r01-d.png` (it has no transparency). Menu move / confirm / back sounds
   (round 08) play on every screen. The inline difficulty chips under New game in the menu A mock
   were not built: the chosen difficulty A screen does that job.
+- 2026-10-02: M3 part B1: Continue appears above New game when a save exists and loads the most
+  recent one (by its write time, any slot) into the hangar; Load game is enabled when any slot holds
+  a file and opens the slot list of load-game-r06-a (`vanguard.game.screen.SlotsScreen`): the
+  autosave and 8 slots, each with the act icon, next mission, difficulty, credits, playtime and
+  date, an unreadable file marked as such, and the preview panel (act, next mission, difficulty,
+  credits, score, armour, playtime, saved, front gun). The concept's DEL delete and the preview's
+  setting thumbnail are not built (the saves document has no delete). New game goes difficulty →
+  intro briefing → hangar.

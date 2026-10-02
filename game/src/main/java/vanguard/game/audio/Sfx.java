@@ -35,12 +35,18 @@ public enum Sfx {
     TALLY_TICK("sfx/ui-tally-tick-r08-a.ogg", 2, Bus.EFFECTS),
     TALLY_TOTAL("sfx/ui-tally-total-r08-a.ogg", 1, Bus.EFFECTS),
     GRADE_STAMP("sfx/ui-grade-stamp-r08-a.ogg", 1, Bus.EFFECTS),
+    /** The catapult run of a level's launch (round 11 b): its buffer clunk, the release, is 3.6 s in. */
+    LAUNCH_RAIL("sfx/launch-rail-r11-b.ogg", 1, Bus.EFFECTS),
+    /** The contact ping with an edge warning (round 11 b); one at a time, so overlapping warnings do not stack. */
+    EDGE_WARNING("sfx/ui-edge-warning-r11-b.ogg", 1, Bus.EFFECTS),
     /** The Earth-orbit ambience, looped (design/audio/sfx, Ambience per setting). */
     AMBIENCE_ORBIT("sfx/ambience-orbit-r08-a.ogg", 1, Bus.EFFECTS),
     /** The mission complete jingle (design/audio/music, track 23), played as a one-shot. */
     MISSION_COMPLETE("music/mission-complete.ogg", 1, Bus.MUSIC),
     /** The music's failure sting (design/audio/music, track 25), played over the cut music. */
     MISSION_FAILED("music/mission-failed.ogg", 1, Bus.MUSIC),
+    /** The game over cue (design/audio/music, track 26), played as a one-shot. */
+    GAME_OVER("music/game-over.ogg", 1, Bus.MUSIC),
     MENU_MOVE("sfx/ui-menu-move-r08-a.ogg", 2, Bus.EFFECTS),
     MENU_CONFIRM("sfx/ui-menu-confirm-r08-a.ogg", 1, Bus.EFFECTS),
     MENU_BACK("sfx/ui-menu-back-r08-a.ogg", 1, Bus.EFFECTS);

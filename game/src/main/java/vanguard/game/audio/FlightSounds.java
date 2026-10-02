@@ -5,6 +5,7 @@ import vanguard.sim.PickupType;
 import vanguard.sim.PlayField;
 import vanguard.sim.SimEvents;
 import vanguard.sim.SplitMix64;
+import vanguard.sim.WarningEdge;
 
 /**
  * Turns the simulation's events into sound effects, mixed per design/audio/sfx (Mixing rules):
@@ -34,6 +35,30 @@ public final class FlightSounds {
     public FlightSounds(SfxBank bank, EnemyLooks[] looks) {
         this.bank = bank;
         this.looks = looks;
+    }
+
+    /**
+     * The launch rail at the start of an attempt's launch: its buffer clunk, the release, lands 3.6 s
+     * into the 5 s launch. The file is levelled like the interface sounds, so it plays as it is.
+     */
+    public void launch() {
+        bank.play(Sfx.LAUNCH_RAIL, 1, 1, 0);
+    }
+
+    /**
+     * The warning tone for edge warnings that started (design/audio/sfx: warnings at the player-damage
+     * level), panned towards the warned edge; one tone at a time, so overlapping warnings do not stack.
+     *
+     * @param edges the edges whose warning started, as {@link WarningEdge} bits
+     */
+    public void edgeWarnings(int edges) {
+        if (edges == 0) {
+            return;
+        }
+        float pan = WarningEdge.LEFT.in(edges) == WarningEdge.RIGHT.in(edges)
+                ? 0
+                : WarningEdge.LEFT.in(edges) ? -MAX_PAN : MAX_PAN;
+        bank.play(Sfx.EDGE_WARNING, PLAYER_DAMAGE, 1, pan);
     }
 
     /** Plays the sounds of one step's events. */

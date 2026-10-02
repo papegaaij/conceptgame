@@ -23,10 +23,10 @@ frames and chunky bitmap fonts.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | approved | in-progress | chosen |
-| [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | approved | not-started | chosen |
+| [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | approved | in-progress | chosen |
 | [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | approved | not-started | chosen |
 | [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | approved | in-progress | chosen |
-| [pause](pause/README.md) | Pause menu during a level | approved | in-progress | chosen |
+| [pause](pause/README.md) | Pause menu during a level | approved | done | chosen |
 | [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | in-progress | chosen |
 | [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | approved | in-progress | n/a |
 | [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | in-progress | chosen |
@@ -44,14 +44,16 @@ Title ─► Main menu ─┬─ Continue ────────────�
                     ├─ Credits
                     └─ Quit
 Hangar ─► Launch ─► Level ─► Debrief ─► Briefing ─► Hangar ─► …
-Level ─► Pause ─► Resume / Restart / Options / Quit
+Level ─► Pause ─► Resume / Restart / Options / Abort to hangar / Quit
+Level ─► Mission failed ─► Retry / Back to hangar / Quit      (hard, no retry left: Game over ─► Main menu)
 ```
 
 ### Shared UI rules
 
 - Internal resolution 960×540, integer scaled where the display allows; the
   [art direction](../art-direction/README.md) owns the details. Bitmap fonts: 8×12 for labels,
-  10×20 for body text, 20×30 for headings (a 240 px side panel fits about 22 body characters).
+  radio subtitles and control prompts, 10×20 for body text, 20×30 for headings. A HUD well's
+  196 px of text hold 24 label characters (radio lines are written for 22) or 19 body characters.
 - Every screen is fully usable with keyboard or gamepad; the mouse is optional (hangar
   benefits from it).
 - Confirm = Enter / A, Back = Esc / B everywhere.
@@ -78,14 +80,7 @@ Concept [round 08](../concept-rounds/round-08/README.md) — the shared UI kit; 
 
 ## Open questions
 
-- *Shared UI rules* say a 240 px side panel fits about 22 body characters, but at 10 px per
-  character that is 220 px, more than a HUD well's 196 px of text (19 characters). The HUD uses the
-  8×12 label font for its 22-character radio lines; should the rule say label characters, or the
-  radio lines be 19 characters?
-- The bitmap fonts are rasterised from DejaVu Sans Mono Bold (the chosen kit's proposal), whose
-  Bitstream Vera licence allows redistribution and modification but is neither CC0 nor CC-BY, the
-  only licences CLAUDE.md allows for third-party assets. Accept it for fonts (recorded in
-  CREDITS.md), or draw the glyphs in-house?
+- None open.
 
 ## Decisions
 
@@ -112,3 +107,15 @@ Concept [round 08](../concept-rounds/round-08/README.md) — the shared UI kit; 
   every screen built so far (menus use fixed keys: arrows / D-pad / left stick, Enter / A,
   Esc / B / Back, Q / E and the bumpers for tabs, with key repeat); the item stays open until the
   part B screens have it too. Mouse: not supported yet (optional per the rules above).
+- 2026-10-02: Characters per line (user decision): radio subtitles and control prompts use the
+  8×12 font (22+ characters in the 196 px well); body text at 10×20 fits about 19 characters
+  there. The rule "a 240 px side panel fits about 22 body characters" is corrected.
+- 2026-10-02: Fonts (user decision): permissive font licences (Bitstream Vera, SIL OFL) are allowed
+  as a written exception to the CC0/CC-BY rule, for fonts only, recorded in CREDITS.md and named
+  on the credits screen (CLAUDE.md). The DejaVu Sans Mono Bold bitmap fonts stay.
+- 2026-10-02: M3 part B1: the campaign screens are in the flow: New game → difficulty → intro
+  briefing (act title card, act briefing, L01 briefing) → hangar placeholder → Level 01 → debrief →
+  next level's briefing, or the hangar while the next level is not built; Continue and Load game
+  open the hangar with a save. A destroyed ship opens the mission failed screen over the level
+  (Retry / Back to hangar / Quit), or the game over screen on hard with no retry left; both are now
+  drawn in the flow above (from [retry](../systems/retry/README.md)), as is Pause's Abort to hangar.

@@ -3,9 +3,16 @@ package vanguard.game;
 import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.utils.Disposable;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import vanguard.content.Content;
 import vanguard.content.ContentLoader;
 import vanguard.content.Difficulty;
+import vanguard.content.campaign.Campaign;
+import vanguard.content.campaign.CampaignRules;
+import vanguard.content.campaign.SaveSlots;
 import vanguard.game.audio.Mixer;
 import vanguard.game.audio.Sfx;
 import vanguard.game.audio.SfxBank;
@@ -23,11 +30,13 @@ import vanguard.game.ui.TitleScene;
 
 /**
  * What every screen shares for the whole run: files and audio, the input devices and actions, the
- * settings, the display switcher, the launch difficulty, the game's content (the design data), the
- * sprite atlases, the mixer and the sound effects, the UI kit with its fonts and the title scene,
- * and the flash shader.
+ * settings, the display switcher, the launch difficulty, the game's content (the design data) with
+ * the campaign's rules, the save slots, the sprite atlases, the mixer and the sound effects, the UI
+ * kit with its fonts and the title scene, and the flash shader.
  */
 public final class GameServices implements Disposable {
+    private static final Logger LOG = Logger.getLogger(GameServices.class.getName());
+
     /** The menu sounds' level. */
     private static final float MENU_VOLUME = 0.5f;
 
@@ -43,6 +52,10 @@ public final class GameServices implements Disposable {
     public final boolean invulnerable;
 
     public final Content content;
+    public final CampaignRules campaignRules;
+    /** The save slots in the saves directory next to the settings file. */
+    public final SaveSlots saves;
+
     public final Sprites sprites;
     public final Mixer mixer;
     public final SfxBank sfx;
@@ -62,7 +75,8 @@ public final class GameServices implements Disposable {
             Settings settings,
             SettingsStore store,
             Difficulty difficulty,
-            boolean invulnerable) {
+            boolean invulnerable,
+            SaveSlots saves) {
         this.files = files;
         this.audio = audio;
         this.display = display;
@@ -75,6 +89,8 @@ public final class GameServices implements Disposable {
         input = new ActionInput(settings.controls().bindings());
         menu = new MenuInput(input);
         content = ContentLoader.fromClasspath();
+        campaignRules = CampaignRules.of(content);
+        this.saves = saves;
         sprites = new Sprites(files);
         mixer = new Mixer(settings.audio());
         sfx = new SfxBank(audio, files, mixer);
@@ -99,6 +115,21 @@ public final class GameServices implements Disposable {
     /** Writes the settings to the settings file. */
     public void saveSettings() {
         store.save(settings);
+    }
+
+    /**
+     * Writes the campaign into a save slot; a failure is logged, since it must not stop the game.
+     *
+     * @return whether the save was written
+     */
+    public boolean save(SaveSlots.Slot slot, Campaign campaign) {
+        try {
+            saves.write(slot, campaign.save(Instant.now()));
+            return true;
+        } catch (IOException | RuntimeException e) {
+            LOG.log(Level.WARNING, "could not write save slot " + slot.index() + " in " + saves.directory(), e);
+            return false;
+        }
     }
 
     /** Plays a menu sound. */

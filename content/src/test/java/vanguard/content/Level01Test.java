@@ -9,6 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import vanguard.sim.LevelResult;
 import vanguard.sim.LevelScript;
+import vanguard.sim.Loadout;
 import vanguard.sim.PickupType;
 import vanguard.sim.Sortie;
 import vanguard.sim.WaveSpec;
@@ -22,11 +23,21 @@ class Level01Test {
     private final Content content = ContentLoader.fromClasspath();
 
     static Sortie sortie(Content content, long seed, Difficulty difficulty) {
+        Loadout loadout = SimSpecs.starterLoadout(content, difficulty);
         return new Sortie(
                 seed,
-                SimSpecs.starterLoadout(content, difficulty),
+                loadout,
                 SimSpecs.level(content, LEVEL, difficulty),
-                SimSpecs.rules(content, LEVEL, difficulty));
+                SimSpecs.rules(content, LEVEL, difficulty),
+                loadout.plating().maxArmour());
+    }
+
+    /** Flies a step of the autopilot; a destroyed ship retries at full armour, as the presentation would. */
+    static void step(Sortie sortie) {
+        if (!sortie.flying()) {
+            sortie.retry(sortie.ship().defences().maxArmour());
+        }
+        sortie.step(Autopilot.commands(sortie));
     }
 
     @Test
@@ -73,7 +84,7 @@ class Level01Test {
         Sortie sortie = sortie(content, 2185, difficulty);
         int steps = 0;
         while (!sortie.complete() && steps++ < MAX_STEPS) {
-            sortie.step(Autopilot.commands(sortie));
+            step(sortie);
         }
 
         LevelResult result = sortie.result();
@@ -108,7 +119,7 @@ class Level01Test {
 
     private static void fly(Sortie sortie) {
         while (!sortie.complete()) {
-            sortie.step(Autopilot.commands(sortie));
+            step(sortie);
         }
     }
 }

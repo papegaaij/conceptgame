@@ -16,9 +16,11 @@ import vanguard.game.ui.Menu;
 
 /**
  * The pause menu (design/ui/pause, chosen pause-r08-a) over the frozen, dimmed level: resume after
- * a one-second 3-2-1, restart the mission (a retry, after a confirmation), the options, and quit to
- * the main menu (after a confirmation). Abort to hangar is disabled until the hangar exists (part B
- * of M3). Back or Pause resumes; Pause during the countdown returns to the menu.
+ * a one-second 3-2-1, restart the mission (a retry, after a confirmation), the options, abort to
+ * the hangar with the level-start state (after a confirmation) and quit to the main menu (after a
+ * confirmation). Restart and abort follow the retry rules (design/systems/retry): what the attempt
+ * earned is lost, and on hard each uses one of the level's retries, so with none left both are
+ * disabled. Back or Pause resumes; Pause during the countdown returns to the menu.
  */
 public final class PauseScreen implements GameScreen {
     static final float COUNTDOWN_SECONDS = 1;
@@ -42,12 +44,7 @@ public final class PauseScreen implements GameScreen {
 
     private final GameServices services;
     private final LevelScreen level;
-    private final Menu<Item> menu = new Menu<>(List.of(
-            Menu.Item.of(Item.RESUME, "RESUME"),
-            Menu.Item.of(Item.RESTART, "RESTART MISSION"),
-            Menu.Item.of(Item.OPTIONS, "OPTIONS"),
-            Menu.Item.disabled(Item.ABORT, "ABORT TO HANGAR"),
-            Menu.Item.of(Item.QUIT, "QUIT TO MAIN MENU")));
+    private final Menu<Item> menu;
     private Optional<Dialog> dialog = Optional.empty();
     /** Seconds left of the resume countdown; negative while the menu shows. */
     private float countdown = -1;
@@ -55,6 +52,13 @@ public final class PauseScreen implements GameScreen {
     PauseScreen(GameServices services, LevelScreen level) {
         this.services = services;
         this.level = level;
+        boolean retry = level.campaign().canRetry();
+        menu = new Menu<>(List.of(
+                Menu.Item.of(Item.RESUME, "RESUME"),
+                new Menu.Item<>(Item.RESTART, "RESTART MISSION", retry),
+                Menu.Item.of(Item.OPTIONS, "OPTIONS"),
+                new Menu.Item<>(Item.ABORT, "ABORT TO HANGAR", retry),
+                Menu.Item.of(Item.QUIT, "QUIT TO MAIN MENU")));
     }
 
     @Override
@@ -91,7 +95,9 @@ public final class PauseScreen implements GameScreen {
             case OPTIONS -> {
                 return Transition.open(new OptionsScreen(services));
             }
-            case ABORT -> {}
+            case ABORT ->
+                dialog = Optional.of(
+                        new Dialog("ABORT TO HANGAR?", "WHAT THIS ATTEMPT EARNED IS LOST.", "YES, ABORT", "NO, BACK"));
             case QUIT ->
                 dialog = Optional.of(new Dialog(
                         "QUIT TO MAIN MENU?", "PROGRESS SINCE THE LAST SAVE IS LOST.", "YES, QUIT", "NO, BACK"));
@@ -109,11 +115,17 @@ public final class PauseScreen implements GameScreen {
             return Transition.STAY;
         }
         services.play(Sfx.MENU_CONFIRM);
-        if (menu.selectedId() == Item.RESTART) {
-            level.retry();
-            return Transition.BACK;
-        }
-        return Transition.replace(MainMenuScreen.menu(services));
+        return switch (menu.selectedId()) {
+            case RESTART -> {
+                level.retry(level.campaign().retry());
+                yield Transition.BACK;
+            }
+            case ABORT -> {
+                level.campaign().retry();
+                yield Transition.replace(new HangarScreen(services, level.campaign(), true));
+            }
+            default -> Transition.replace(MainMenuScreen.menu(services));
+        };
     }
 
     private void resume() {
@@ -140,7 +152,7 @@ public final class PauseScreen implements GameScreen {
                 (int) level.seconds() / 60,
                 (int) level.seconds() % 60,
                 String.format(Locale.ROOT, "%,d", level.score()).replace(',', ' '),
-                level.difficulty().name());
+                level.campaign().difficulty().name());
         glass.centred(batch, glass.fonts.label, status, Glass.LABEL, centre, PANEL_Y + 66);
         BitmapFont font = glass.fonts.body;
         List<Menu.Item<Item>> items = menu.items();
@@ -161,7 +173,12 @@ public final class PauseScreen implements GameScreen {
         int notes = PANEL_Y + PANEL_HEIGHT - 44;
         glass.shadowed(batch, glass.fonts.label, "RESTART RETURNS TO THE LEVEL-START", Glass.DIM, ITEM_X, notes);
         glass.shadowed(batch, glass.fonts.label, "STATE (CONFIRMATION).", Glass.DIM, ITEM_X, notes + 12);
-        glass.shadowed(batch, glass.fonts.label, "RESUME COUNTS 3-2-1 BEFORE PLAY.", Glass.DIM, ITEM_X, notes + 24);
+        String last = level.campaign()
+                .retriesLeft()
+                .map(left -> "RETRIES LEFT " + left + " / "
+                        + level.campaign().retriesPerLevel().orElseThrow() + " (RESTART USES ONE)")
+                .orElse("RESUME COUNTS 3-2-1 BEFORE PLAY.");
+        glass.shadowed(batch, glass.fonts.label, last, Glass.DIM, ITEM_X, notes + 24);
         glass.hints(batch, "UP/DOWN SELECT    ENTER CONFIRM    ESC RESUME");
         dialog.ifPresent(d -> glass.dialog(batch, d));
     }

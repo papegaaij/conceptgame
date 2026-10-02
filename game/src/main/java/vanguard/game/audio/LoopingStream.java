@@ -5,7 +5,7 @@ package vanguard.game.audio;
  * once, then the loop section repeats. At the loop end it seeks back to the loop start inside
  * the same {@link #read} call, so the boundary is sample-exact regardless of buffer sizes.
  */
-public final class LoopingStream implements AutoCloseable {
+public final class LoopingStream implements PcmStream {
     private final PcmSource source;
     private final LoopPoints loop;
     private long position;
@@ -15,7 +15,12 @@ public final class LoopingStream implements AutoCloseable {
         this.loop = loop;
     }
 
-    /** Fills {@code out} completely with interleaved samples; never allocates. */
+    /** A track with the loop points of its comments. */
+    static LoopingStream of(VorbisFile file) {
+        return new LoopingStream(file, file.loopPoints());
+    }
+
+    @Override
     public void read(short[] out) {
         int channels = source.channels();
         int wanted = out.length / channels;
@@ -36,10 +41,12 @@ public final class LoopingStream implements AutoCloseable {
         }
     }
 
+    @Override
     public int channels() {
         return source.channels();
     }
 
+    @Override
     public int sampleRate() {
         return source.sampleRate();
     }

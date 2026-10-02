@@ -23,6 +23,7 @@ import vanguard.game.display.DisplaySettings;
 import vanguard.game.display.WindowMode;
 import vanguard.game.input.Action;
 import vanguard.game.input.Binding;
+import vanguard.game.input.BindingSlot;
 import vanguard.game.input.Bindings;
 import vanguard.game.input.ControlSettings;
 import vanguard.game.input.GamepadControl;
@@ -123,12 +124,17 @@ final class SettingsFile implements SettingsStore {
         }
     }
 
-    /** The remappable actions' bindings; a slot that is missing or unreadable keeps its default. */
+    /**
+     * The remappable actions' bindings; a slot that is missing or unreadable keeps its default, and so
+     * do Pause's fixed primary key and a slot naming a fixed system key (design/ui/controls).
+     */
     private static Bindings bindings(Properties properties) {
         Bindings bindings = Bindings.defaults();
         for (Action action : Action.REMAPPABLE) {
             Binding binding = bindings.get(action);
-            int primary = key(properties.getProperty(prefix(action) + "primary"), binding.primaryKey());
+            int primary = action.remappable(BindingSlot.PRIMARY)
+                    ? key(properties.getProperty(prefix(action) + "primary"), binding.primaryKey())
+                    : binding.primaryKey();
             int alternative = key(properties.getProperty(prefix(action) + "alternative"), binding.alternativeKey());
             Set<GamepadControl> gamepad = action.gamepadRemappable()
                     ? gamepad(properties.getProperty(prefix(action) + "gamepad"), binding.gamepad())
@@ -150,7 +156,7 @@ final class SettingsFile implements SettingsStore {
             return Binding.NO_KEY;
         }
         int key = Keys.valueOf(name);
-        return key > 0 ? key : fallback;
+        return key > 0 && !Bindings.systemKey(key) ? key : fallback;
     }
 
     private static String keyName(int key) {

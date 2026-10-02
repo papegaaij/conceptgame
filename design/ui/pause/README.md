@@ -1,7 +1,7 @@
 ---
 title: Pause menu
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../../systems/retry]
 updated: 2026-10-02
@@ -36,7 +36,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 ## Implementation
 
-- [ ] Pause overlay with the items above and confirmations
+- [x] Pause overlay with the items above and confirmations
 - [x] Resume countdown
 - [x] Auto-pause on focus loss and gamepad disconnect
 
@@ -55,3 +55,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
   disabled until the hangar exists (part B), so the overlay item stays open. The level pauses on
   its own when the window loses the focus or a gamepad disconnects (`ActionInput.interrupted()`).
   Music and ambience play on while paused.
+- 2026-10-02: M3 part B1: Abort to hangar is live: after a confirmation ("ABORT TO HANGAR? What
+  this attempt earned is lost.") the hangar opens with the level-start state. Restart and Abort use
+  a retry on hard and are disabled with none left; on hard the notes show the retries left. Quit to
+  main menu discards everything since the last save.

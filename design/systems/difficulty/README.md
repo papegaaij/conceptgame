@@ -57,7 +57,7 @@ the single source of the global levers; enemy stat blocks only add overrides (se
 
 ## Implementation
 
-- [ ] Difficulty stored in the save and applied through a single table
+- [x] Difficulty stored in the save and applied through a single table
 - [ ] Per-bullet difficulty tags in pattern data
 - [ ] Easy-mode intel bonus
 
@@ -91,3 +91,6 @@ the single source of the global levers; enemy stat blocks only add overrides (se
   ([main menu](../../ui/main-menu/README.md)) and the level is built at it; `--difficulty` stays
   for testing (the bench flies it, the select starts on it). It is not in a save yet (part B), so
   the first item stays open.
+- 2026-10-02: M3 part B1: the difficulty is part of the campaign state and its saves; the level is
+  built at the campaign's difficulty. Hard's 3 retries per level are counted by the campaign (see
+  [retry](../retry/README.md)).

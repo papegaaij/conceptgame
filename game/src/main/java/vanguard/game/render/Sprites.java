@@ -40,6 +40,10 @@ public final class Sprites implements Disposable {
     public final AtlasRegion okafor;
     public final AtlasRegion varga;
     public final AtlasRegion choir;
+    /** The 144x144 briefing portraits of the Act 1 briefings' speakers. */
+    public final AtlasRegion briefingOkafor;
+
+    public final AtlasRegion briefingVarga;
 
     public final AtlasRegion pulseBolt;
     public final Array<AtlasRegion> pulseMuzzle;
@@ -73,6 +77,8 @@ public final class Sprites implements Disposable {
         okafor = region(sprites, "portrait-okafor");
         varga = region(sprites, "portrait-varga");
         choir = region(sprites, "portrait-the-choir");
+        briefingOkafor = region(sprites, "briefing-okafor");
+        briefingVarga = region(sprites, "briefing-varga");
         pulseBolt = region(sprites, "pulse-bolt");
         pulseMuzzle = frames(sprites, "pulse-muzzle");
         pulseImpact = frames(sprites, "pulse-impact");

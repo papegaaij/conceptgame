@@ -94,6 +94,9 @@ the parent's Contents table. Run the checker afterwards.
   [CREDITS.md](CREDITS.md) with file path, title, author, source URL, licence and what was
   changed; the part's `concept/prompts.md` links the source too. CC-BY items must later appear
   on the in-game credits screen.
+  **Exception, fonts only:** permissive font licences that allow redistributing and modifying the
+  files (Bitstream Vera, SIL Open Font License) are allowed too (user decision); such a font is
+  recorded in CREDITS.md and named on the in-game credits screen like a CC-BY item.
 
 ## Art and game fundamentals (decided)
 
@@ -134,7 +137,9 @@ versions in `gradle/libs.versions.toml`.
   reporting code work; `./gradlew spotlessApply` fixes the formatting.
 - `./gradlew :desktop:run --args="--bench 3 --settings <file>"` – starts the game; `--bench <s>`
   exits after `<s>` seconds, `--settings` uses another settings file than the one in the
-  platform's config directory. Automated runs always pass `--bench`. `--difficulty
+  platform's config directory; the save slots live in `saves/` next to the settings file, so a
+  temporary `--settings` file keeps test saves away from the real ones. Automated runs always pass
+  `--bench`. `--difficulty
   easy|medium|hard` (default medium) picks the difficulty until the menus exist (M3);
   `--debug-speed <n>` runs the simulation n times faster and the debug option `--invulnerable`
   lets nothing hit the ship (to see a level to its end, e.g. with `--bench` for captures); both

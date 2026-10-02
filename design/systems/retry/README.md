@@ -57,13 +57,20 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 ## Implementation
 
 - [ ] Snapshot of player state at level start (and at boss checkpoint)
-- [ ] Mission failed screen with the three (four) options
-- [ ] Hard-mode retry counter and game over
-- [ ] "Back to hangar" path that keeps the level as the next one
+- [x] Mission failed screen with the three (four) options
+- [x] Hard-mode retry counter and game over
+- [x] "Back to hangar" path that keeps the level as the next one
 
 ## Open questions
 
-- None open.
+- Abort to hangar from the pause menu is "same as Back to hangar after a failure": does it use a
+  hard-mode retry? Built: yes (like Restart), otherwise aborting just before dying would be a free
+  retry; with no retry left, Restart and Abort are disabled.
+- On hard, quitting to the main menu from the mission failed screen and continuing the autosave
+  restores the retries the hangar visit had: progress since the last save is lost as the pause menu
+  says, but so are the used retries. Accept, or store the retries outside the saves?
+- From the ship's destruction to the mission failed screen: built as 3 s (the explosion, the 1 s
+  slow motion and the start of the sting); the document gives no time.
 
 ## Decisions
 
@@ -74,3 +81,18 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 - 2026-10-02: M2: a destroyed ship restarts Level 01 from its launch with the attempt's
   credits, score, kills and radio discarded; armour and shield are still restored in full until the
   level-start snapshot comes with the campaign state (M3).
+- 2026-10-02: M3 part B1. The campaign state (`vanguard.content.campaign.Campaign`) is the
+  level-start snapshot: nothing in it changes during a level, so the credits, score, loadout and
+  armour of a retry are those of the level start, and a won level banks its credits with the grade
+  bonus. The armour floor is a number in [data.yaml](data.yaml) (`armour_floor: 0.5`). The
+  simulation no longer restarts by itself: a destroyed ship waits (`Sortie.retry(armour)` starts
+  the next attempt with the given armour; a wreck cannot complete the level), 3 s later the mission
+  failed screen (mission-failed-r08-a) opens over the frozen level, tinted red: Okafor's portrait
+  and line, Retry, Back to hangar, Quit to main menu (confirmation), what the attempt earned and, on
+  hard, the retries left. Retry, Back to hangar, the pause menu's Restart and Abort each use a
+  retry on hard and raise the armour to the floor; a failure with no retry left goes to the game
+  over screen (the game over cue and the campaign's stats; back to the main menu, where the last
+  save can be loaded). Not built: Retry from boss with the boss checkpoint (no boss yet), so the
+  snapshot item stays open, and the game over screen's last transmission (no text yet) and top-10
+  name entry. The Level 01 replay keeps its state hash (`e602b2264976076f`): the recorded run
+  never loses the ship.

@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Hangar
@@ -116,3 +116,10 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the 
 - 2026-10-01: Concept round 07: hangar layout B in the glass style over the tactical map of Mars (r07-b) chosen; the hangar-bay backdrop (r07-a) rejected.
 - 2026-10-01: Test fire comes after the first build; the layout keeps its space.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: M3 part B1 placeholder (`vanguard.game.screen.HangarScreen`, marked as such on screen;
+  the design here is part B2): one glass panel with the credits, the loadout, the armour, the next
+  mission with its hangar teaser, difficulty, score, playtime and retries, and Launch (disabled
+  while the next level is not built), Save game (the slot list) and Main menu (confirmation). It
+  autosaves when it opens and plays the hangar theme. The real hangar replaces the class behind the
+  same constructor; every way into it (intro briefing, debrief, Back to hangar, Abort, Load,
+  Continue) already passes the campaign.

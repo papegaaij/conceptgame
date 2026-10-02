@@ -3,6 +3,7 @@ package vanguard.sim;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static vanguard.sim.TestSpecs.NEEDLER;
 import static vanguard.sim.TestSpecs.SKITTER;
@@ -172,7 +173,11 @@ class SortieTest {
     @Test
     void nothingHitsTheShipUnderTheInvulnerableDebugRule() {
         var sortie = new Sortie(
-                1, TestSpecs.LOADOUT, level(10, List.of(skitterAt(0))), TestSpecs.RULES.withInvulnerableShip());
+                1,
+                TestSpecs.LOADOUT,
+                level(10, List.of(skitterAt(0))),
+                TestSpecs.RULES.withInvulnerableShip(),
+                TestSpecs.FULL_ARMOUR);
 
         run(sortie, 3 * SimStep.PER_SECOND, Command.NONE);
 
@@ -182,7 +187,7 @@ class SortieTest {
     }
 
     @Test
-    void aDestroyedShipRestartsTheLevelAndLosesTheAttemptsEarnings() {
+    void aDestroyedShipWaitsForARetryThatLosesTheAttemptsEarnings() {
         List<WaveSpec> waves = new ArrayList<>();
         for (int i = 0; i < 40; i++) {
             waves.add(skitterAt(0.3 * i));
@@ -196,9 +201,11 @@ class SortieTest {
             sortie.step(Command.NONE);
             assertTrue(++steps < 20 * SimStep.PER_SECOND, "the Skitters should wear the ship down");
         }
+        run(sortie, 10 * SimStep.PER_SECOND, Command.LEFT.bit());
+        assertFalse(sortie.flying(), "the wreck waits for the presentation");
         assertEquals(1, sortie.attempt());
-        run(sortie, SimStep.ticks(Sortie.RESTART_SECONDS) - 1, Command.LEFT.bit());
-        assertFalse(sortie.flying());
+
+        sortie.retry(30);
         sortie.step(Command.NONE);
 
         assertTrue(sortie.flying());
@@ -207,8 +214,37 @@ class SortieTest {
         assertEquals(0, sortie.credits());
         assertEquals(0, sortie.score());
         assertEquals(0, sortie.kills());
-        assertEquals(60, sortie.ship().defences().armour());
+        assertEquals(30, sortie.ship().defences().armour(), "the retry's armour");
+        assertEquals(20, sortie.ship().defences().shield(), "a full shield");
         assertEquals(1, sortie.enemyCount(), "the waves start again from the beginning");
+    }
+
+    @Test
+    void aWreckedShipDoesNotCompleteTheLevel() {
+        List<WaveSpec> waves = new ArrayList<>();
+        for (int i = 0; i < 40; i++) {
+            waves.add(skitterAt(0.3 * i));
+        }
+        var sortie = sortie(level(40, waves));
+        int steps = 0;
+        while (sortie.flying()) {
+            sortie.step(Command.NONE);
+            assertTrue(++steps < 20 * SimStep.PER_SECOND, "the Skitters should wear the ship down");
+        }
+
+        run(sortie, 40 * SimStep.PER_SECOND, Command.NONE);
+
+        assertFalse(sortie.complete());
+    }
+
+    @Test
+    void theFirstAttemptStartsWithTheGivenArmour() {
+        var sortie = new Sortie(1, TestSpecs.LOADOUT, level(2, List.of()), TestSpecs.RULES, 12.5);
+
+        assertEquals(12.5, sortie.ship().defences().armour());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new Sortie(1, TestSpecs.LOADOUT, level(2, List.of()), TestSpecs.RULES, 61));
     }
 
     @Test
@@ -217,7 +253,7 @@ class SortieTest {
         run(sortie, 2 * SimStep.PER_SECOND, Command.FIRE.bit());
         assertTrue(sortie.complete());
 
-        sortie.retry();
+        sortie.retry(TestSpecs.FULL_ARMOUR);
         sortie.step(Command.NONE);
 
         assertEquals(2, sortie.attempt());
@@ -280,7 +316,11 @@ class SortieTest {
         var rules = new Rules(120, spread, TestSpecs.RULES.pickups(), TestSpecs.SCORING);
         var needler = TestSpecs.needler(new EnemyGun(0.1, 0, 1, 150, 0, false));
         var sortie = new Sortie(
-                1, TestSpecs.LOADOUT, level(20, List.of(wave(0, LINE_ABREAST, needler, 1, FRONT, NONE))), rules);
+                1,
+                TestSpecs.LOADOUT,
+                level(20, List.of(wave(0, LINE_ABREAST, needler, 1, FRONT, NONE))),
+                rules,
+                TestSpecs.FULL_ARMOUR);
         List<Double> deviations = new ArrayList<>();
         for (int i = 0; i < 6 * SimStep.PER_SECOND; i++) {
             sortie.step(Command.NONE);
@@ -315,7 +355,7 @@ class SortieTest {
     void theBulletBudgetCapsEnemyBulletsOnScreen() {
         var rules = new Rules(1, 0, TestSpecs.RULES.pickups(), TestSpecs.SCORING);
         var waves = List.of(wave(0, LINE_ABREAST, NEEDLER, 3, FRONT, NONE));
-        var sortie = new Sortie(1, TestSpecs.LOADOUT, level(20, waves), rules);
+        var sortie = new Sortie(1, TestSpecs.LOADOUT, level(20, waves), rules, TestSpecs.FULL_ARMOUR);
 
         for (int i = 0; i < 4 * SimStep.PER_SECOND; i++) {
             sortie.step(Command.NONE);
@@ -501,7 +541,7 @@ class SortieTest {
     @Test
     void steppingDoesNotAllocate() {
         var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        var sortie = new Sortie(3, TestSpecs.LOADOUT, mixedLevel(), TestSpecs.RULES);
+        var sortie = new Sortie(3, TestSpecs.LOADOUT, mixedLevel(), TestSpecs.RULES, TestSpecs.FULL_ARMOUR);
         for (int i = 0; i < 600; i++) {
             sortie.step(Pilot.commands(i));
         }
@@ -539,7 +579,7 @@ class SortieTest {
 
     /** Runs the scripted pilot over the mixed level; at step {@code changedStep} it presses left as well. */
     private static long run(long seed, int steps, int changedStep) {
-        var sortie = new Sortie(seed, TestSpecs.LOADOUT, mixedLevel(), TestSpecs.RULES);
+        var sortie = new Sortie(seed, TestSpecs.LOADOUT, mixedLevel(), TestSpecs.RULES, TestSpecs.FULL_ARMOUR);
         for (int i = 0; i < steps; i++) {
             int commands = Pilot.commands(i);
             sortie.step(i == changedStep ? commands | Command.LEFT.bit() : commands);
