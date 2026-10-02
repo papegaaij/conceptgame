@@ -182,3 +182,11 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   Prompts are one line each (action and keys), with the arrow keys as `ARROW KEYS` (the four
   key names did not fit). Not chosen: prompts in the play field (the play field stays clean).
 - 2026-10-02: Control prompts keep their own region in the left panel under the radio (user decision); they appear mid-level next to objective trackers too, so they cannot share the tracker's place.
+- 2026-10-02: M3 part A: the HUD draws with the UI kit's bitmap fonts instead of libGDX's
+  built-in font, in the same regions: 8×12 for the plates, the radio subtitles and the control
+  prompts (a 22-character radio line is 176 px, inside the 196 px well; in the 10×20 font it would
+  be 220 px), 10×20 for the mission name, the readouts, the chain, the speaker's name, the tracker
+  and the right panel's numbers and weapon. `MissionLayoutTest` now measures with these fonts. The
+  [ui](../README.md) rule "a 240 px side panel fits about 22 body characters" does not hold for the
+  10×20 body font in a 196 px well (19 characters): open question there. Text speed and flash
+  reduction from the Gameplay tab apply to the radio and the hit flashes.

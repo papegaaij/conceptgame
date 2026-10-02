@@ -18,4 +18,6 @@ tasks.test {
     systemProperty("vanguard.assetsDir", rootProject.layout.projectDirectory.dir("assets").asFile.absolutePath)
     // BackdropAssetsTest checks the backdrop images against the levels' data files.
     inputs.dir(rootProject.layout.projectDirectory.dir("assets/backdrop")).withPropertyName("backdropAssets")
+    // MissionLayoutTest measures the HUD's texts with the UI kit's fonts.
+    inputs.dir(rootProject.layout.projectDirectory.dir("assets/fonts")).withPropertyName("fonts")
 }

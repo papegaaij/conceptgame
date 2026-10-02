@@ -378,3 +378,16 @@ Screenshot tests are left out until there is a need.
   `--debug-speed`, for testing only): `Rules.withInvulnerableShip()` lets enemy bullets and rammers
   pass through the ship; it is off unless the option is given, so play and the replay are
   unchanged.
+- 2026-10-02: M3 part A (screen flow, UI kit, options). `game`: `screen.ScreenFlow` is a stack
+  (`Transition`: stay, open, back, replace, quit); `ui` holds the glass kit (`Glass`, `Fonts`,
+  `TitleScene`, `Menu`, `Dialog`, `Words`); `settings` the Options records (`Settings` with
+  `VideoSettings`, `AudioSettings`, `ControlSettings`, `GameplaySettings`) and the `SettingsStore`
+  seam, which `desktop`'s `SettingsFile` implements next to the display keys; `audio.Mixer` scales
+  every sound by its `Bus`. Input: fixed menu actions beside the remappable flight actions,
+  `MenuInput` (key repeat), `KeyCapture` and `Bindings.withKey` / `withButton` (conflict swap);
+  `ActionInput` reports focus loss and gamepad disconnects. `sim`: `Sortie.retry()` for the pause
+  menu's restart (a restart now also clears `complete`); the replay hash is unchanged. Launch
+  option `--start title|level` (default: title, level in a bench run), so a bench run can test the
+  menus. Assets: `tools/concept/ui_assets.py` renders the bitmap fonts (BMFont text files, PNG
+  pages) and the title scene and logo into `assets/`, like the backdrop placeholders; the menu
+  sounds join `importPlaceholders`.

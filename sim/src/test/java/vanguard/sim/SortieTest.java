@@ -212,6 +212,23 @@ class SortieTest {
     }
 
     @Test
+    void aRetryRestartsTheLevelAtTheNextStepEvenAfterItWasWon() {
+        var sortie = sortie(level(2, List.of(skitterAt(0.5))));
+        run(sortie, 2 * SimStep.PER_SECOND, Command.FIRE.bit());
+        assertTrue(sortie.complete());
+
+        sortie.retry();
+        sortie.step(Command.NONE);
+
+        assertEquals(2, sortie.attempt());
+        assertEquals(1, sortie.events().count(SimEvents.Type.SORTIE_RESTARTED));
+        assertFalse(sortie.complete());
+        assertTrue(sortie.flying());
+        assertEquals(0, sortie.score());
+        assertEquals(SimStep.SECONDS, sortie.levelSeconds(), 1e-9, "the level starts over");
+    }
+
+    @Test
     void theWreckIgnoresCommands() {
         List<WaveSpec> waves = new ArrayList<>();
         for (int i = 0; i < 40; i++) {

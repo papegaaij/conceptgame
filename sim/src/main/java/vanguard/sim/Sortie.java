@@ -125,6 +125,14 @@ public final class Sortie {
         }
     }
 
+    /**
+     * Restarts the level at the next step from its start state, as after the ship's destruction
+     * (design/ui/pause, Restart mission): a new attempt, and what this one earned is lost.
+     */
+    public void retry() {
+        wreckTicks = 1;
+    }
+
     private void startAttempt() {
         ship.reset();
         if (launchTicks > 0) {
@@ -148,6 +156,7 @@ public final class Sortie {
         nextGroundObject = 0;
         secretsFound = 0;
         secondaryMet = false;
+        complete = false;
         attempt++;
         startAttempt();
         events.add(SimEvents.Type.SORTIE_RESTARTED, ship.x(), ship.y());

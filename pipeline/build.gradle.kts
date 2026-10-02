@@ -23,17 +23,15 @@ val cutPlaceholderSprites = tasks.register<JavaExec>("cutPlaceholderSprites") {
 /**
  * Copies the chosen concept art and audio that stand in for production assets into assets/ and
  * cuts the sprite frames. Run it after a concept choice changes; its output is committed (Git
- * LFS), the build only reads assets/.
+ * LFS), the build only reads assets/. The title scene, the logo with transparency and the bitmap
+ * fonts are rendered by tools/concept/ui_assets.py instead, since the concept sheets have the menu
+ * baked in.
  */
 tasks.register<Copy>("importPlaceholders") {
     description = "Copies chosen concept art and audio into assets/ as placeholders."
     group = "assets"
     dependsOn(cutPlaceholderSprites)
     into(assets)
-    from(design.file("ui/main-menu/concept/logo-r01-d.png")) {
-        into("ui")
-        rename { "logo.png" }
-    }
     from(design.dir("audio/music/concept")) {
         into("music")
         include(
@@ -76,6 +74,9 @@ tasks.register<Copy>("importPlaceholders") {
             "ui-tally-tick-r08-a.ogg",
             "ui-tally-total-r08-a.ogg",
             "ui-grade-stamp-r08-a.ogg",
+            "ui-menu-move-r08-a.ogg",
+            "ui-menu-confirm-r08-a.ogg",
+            "ui-menu-back-r08-a.ogg",
             "ambience-orbit-r08-a.ogg",
         )
     }

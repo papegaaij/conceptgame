@@ -6,13 +6,19 @@ import com.badlogic.gdx.Input.Keys;
  * The state of every {@link Action}, sampled once per frame from the devices through the
  * {@link Bindings}: whether it is held and whether it was pressed since the previous frame. One
  * instance serves all screens, so a press that switches screens is not seen again by the next one.
+ * It also notices the interruptions that pause a level (design/ui/pause): the window losing the
+ * focus and a gamepad disconnecting.
  */
 public final class ActionInput {
     private static final Action[] ACTIONS = Action.values();
 
-    private final Bindings bindings;
+    private Bindings bindings;
     private final boolean[] held = new boolean[ACTIONS.length];
     private final boolean[] pressed = new boolean[ACTIONS.length];
+    private boolean sampled;
+    private boolean focused;
+    private int gamepads;
+    private boolean interrupted;
 
     public ActionInput(Bindings bindings) {
         this.bindings = bindings;
@@ -21,6 +27,11 @@ public final class ActionInput {
     /** What triggers each action, for prompts that name the keys. */
     public Bindings bindings() {
         return bindings;
+    }
+
+    /** Uses changed bindings from the next {@link #update} on. */
+    public void rebind(Bindings changed) {
+        bindings = changed;
     }
 
     /** Samples the devices; call once per frame before the screens read the actions. */
@@ -37,6 +48,12 @@ public final class ActionInput {
             pressed[i] = now && !held[i];
             held[i] = now;
         }
+        boolean nowFocused = devices.focused();
+        int nowGamepads = devices.gamepads();
+        interrupted = sampled && (focused && !nowFocused || nowGamepads < gamepads);
+        sampled = true;
+        focused = nowFocused;
+        gamepads = nowGamepads;
     }
 
     private static boolean key(DeviceState devices, int keyCode, boolean alt) {
@@ -50,5 +67,10 @@ public final class ActionInput {
     /** Whether the action went down in the last {@link #update}. */
     public boolean pressed(Action action) {
         return pressed[action.ordinal()];
+    }
+
+    /** Whether the window lost the focus or a gamepad disconnected in the last {@link #update}. */
+    public boolean interrupted() {
+        return interrupted;
     }
 }

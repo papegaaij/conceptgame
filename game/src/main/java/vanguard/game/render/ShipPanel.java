@@ -40,7 +40,7 @@ final class ShipPanel {
 
         kit.label(batch, "WEAPONS", x, y - 112);
         kit.lcd(batch, x, y - 186, HudKit.INNER_WIDTH, 52);
-        kit.text(batch, "FRONT", HudKit.LABEL, x + 8, y - 138);
+        kit.text(batch, kit.small, "FRONT", HudKit.LABEL, x + 8, y - 138);
         for (int i = 0; i < LEVEL_PIPS; i++) {
             kit.fill(
                     batch,
@@ -50,7 +50,7 @@ final class ShipPanel {
                     9,
                     7);
         }
-        kit.text(batch, weapon, HudKit.READOUT, x + 8, y - 158);
+        kit.text(batch, kit.body, weapon, HudKit.READOUT, x + 8, y - 158);
     }
 
     private void gauge(
@@ -64,7 +64,8 @@ final class ShipPanel {
             int y,
             boolean lit) {
         kit.label(batch, name, x, y);
-        kit.textRight(batch, Integer.toString((int) Math.ceil(value)), HudKit.LABEL, x, y, HudKit.INNER_WIDTH);
+        kit.textRight(
+                batch, kit.body, Integer.toString((int) Math.ceil(value)), HudKit.LABEL, x, y, HudKit.INNER_WIDTH);
         kit.bar(batch, full, empty, x, y - 34, HudKit.INNER_WIDTH, BAR_HEIGHT, lit ? value / max : 0);
     }
 }

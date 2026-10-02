@@ -33,10 +33,12 @@ public final class DesktopLauncher {
         var displayModes = new DisplayModes(settings, settingsFile::write);
         var game = new TerranVanguard(
                 displayModes,
-                settingsFile.readControls(),
+                settingsFile.readSettings(),
+                settingsFile,
                 options.difficulty(),
                 options.debugSpeed(),
                 options.invulnerable(),
+                options.startLevel(),
                 options.benchSeconds());
         new Lwjgl3Application(game, configuration(settings));
     }

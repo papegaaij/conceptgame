@@ -10,22 +10,26 @@ import vanguard.content.Difficulty;
  * @param benchSeconds fly Level 01 this long, log the frame count and exit (smoke tests); 0 runs
  *     until quit
  * @param settingsFile use this settings file instead of the one in the platform's config directory
- * @param difficulty the difficulty to fly at, for testing until the new-game menu exists (M3)
+ * @param difficulty for testing: the difficulty the bench flies at and the difficulty select starts on
  * @param debugSpeed a debug option: game time runs this many times faster (1 = normal), to get
  *     through a level quickly when testing
  * @param invulnerable a debug option: nothing hits the ship, to see a level to its end when testing
+ * @param startLevel start in Level 01 rather than at the title screen; by default only a bench run
+ *     does, {@code --start title} lets a bench run test the menus
  */
 record LaunchOptions(
         double benchSeconds,
         Optional<Path> settingsFile,
         Difficulty difficulty,
         float debugSpeed,
-        boolean invulnerable) {
+        boolean invulnerable,
+        boolean startLevel) {
     /**
      * Parses {@code [--bench <seconds>] [--settings <file>] [--difficulty easy|medium|hard] [--debug-speed <factor>]
-     * [--invulnerable]}.
+     * [--invulnerable] [--start title|level]}.
      */
     static LaunchOptions parse(String... args) {
+        Boolean start = null;
         double benchSeconds = 0;
         Path settingsFile = null;
         Difficulty difficulty = Difficulty.MEDIUM;
@@ -38,13 +42,21 @@ record LaunchOptions(
                 case "--difficulty" -> difficulty = Difficulty.of(value(args, ++i));
                 case "--debug-speed" -> debugSpeed = Float.parseFloat(value(args, ++i));
                 case "--invulnerable" -> invulnerable = true;
+                case "--start" ->
+                    start = switch (value(args, ++i)) {
+                        case "title" -> false;
+                        case "level" -> true;
+                        default -> throw new IllegalArgumentException("--start takes title or level");
+                    };
                 default -> throw new IllegalArgumentException("unknown option " + args[i]);
             }
         }
         if (!(debugSpeed > 0)) {
             throw new IllegalArgumentException("--debug-speed must be > 0");
         }
-        return new LaunchOptions(benchSeconds, Optional.ofNullable(settingsFile), difficulty, debugSpeed, invulnerable);
+        boolean startLevel = start != null ? start : benchSeconds > 0;
+        return new LaunchOptions(
+                benchSeconds, Optional.ofNullable(settingsFile), difficulty, debugSpeed, invulnerable, startLevel);
     }
 
     private static String value(String[] args, int index) {

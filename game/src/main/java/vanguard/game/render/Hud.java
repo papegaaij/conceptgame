@@ -1,10 +1,10 @@
 package vanguard.game.render;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.List;
 import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
+import vanguard.game.ui.Fonts;
 import vanguard.sim.Sortie;
 
 /** The level HUD in the two side panels (design/ui/hud): mission on the left, ship on the right. */
@@ -17,8 +17,8 @@ public final class Hud {
      * @param name the level's name
      * @param launchBalance the credits the player launched with
      */
-    public Hud(Sprites sprites, BitmapFont font, int number, String name, int launchBalance) {
-        HudKit kit = new HudKit(sprites.pixel, font);
+    public Hud(Sprites sprites, Fonts fonts, int number, String name, int launchBalance) {
+        HudKit kit = new HudKit(sprites.pixel, fonts);
         mission = new MissionPanel(kit, sprites, number, name, launchBalance);
         ship = new ShipPanel(kit);
     }

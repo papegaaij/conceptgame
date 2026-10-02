@@ -92,12 +92,13 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 | `vfx_r09.py [beam rook bullets explosions pickups specials warnings]` | beam impact, Rook banking, enemy bullets, explosions, pickups, specials, edge warnings (r09 files) | imports `vfx_r08`; adds the CDF bomber model and a fixed fireball (`explosion_frames9`); ~4 min for all |
 | `scenes_r10.py [geneva] [storm] [ocean] [--sheet]` | `design/art-direction/concept/scene-<name>-r10-a.{png,gif}` | round 10: Geneva rebuilt as a city; storm and ocean within the motion budget (25 fps sampling of the 80-step clock) |
 
-## Scripts (game placeholders – level backdrops and ground targets)
+## Scripts (game placeholders – level backdrops, ground targets and the UI kit)
 
 | Script | Outputs | Notes |
 |---|---|---|
 | `backdrop_l01.py [id ...]` | `assets/backdrop/level-01/<id>.png` (frames `<id>_<n>.png`) | Level 01's tile sets and set pieces at the sizes in its `data.yaml` (`backdrop`); built from the chosen Earth orbit scene (`parallax_r02`/`parallax_r03` helpers, `render/station.py` kit, palette B); ~1.5 min |
 | `ground_targets.py` | `assets/sprites/cargo-container_<n>.png`, `cargo-container-break_<n>.png`, `beacon_<n>.png`, `glint_<n>.png` | Level 01's loot targets to the art direction's readability rule 7, at the sizes in its `data.yaml` (`ground_targets`); `render/sdf.py` with palette B; a few seconds |
+| `ui_assets.py [fonts] [scene]` | `assets/fonts/{label-8x12,body-10x20,heading-20x30}.{fnt,png}`, `assets/ui/title-scene.png`, `assets/ui/title-logo.png` | the chosen UI kit's bitmap fonts (`ui_r08.bitmap_glyphs`, DejaVu Sans Mono Bold rasterised 1-bit) as BMFont text files with one PNG page each; main menu A's hero scene and logo D with transparency (`ui_r06.hero_backdrop`, `ui_r06.logo_layer`) without the baked-in menu; ~10 s |
 
 Unlike the concept generators, these write **game placeholders into `assets/`**, not concept
 art into `design/`: a chosen scene is a single composed sheet (and the ground targets have no

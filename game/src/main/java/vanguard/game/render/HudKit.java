@@ -5,11 +5,13 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Align;
+import vanguard.game.ui.Fonts;
 
 /**
  * The placeholder HUD's drawing pieces in the metal style of the chosen HUD A (colours sampled
- * from hud-r08-a): panels, labels, LCD wells, readouts and bars, drawn with a white pixel and
- * libGDX's built-in font until the UI kit and its bitmap fonts exist.
+ * from hud-r08-a): panels, labels, LCD wells, readouts and bars, drawn with a white pixel and the
+ * UI kit's bitmap fonts: 8x12 for the plates' labels, the radio subtitles and the control prompts
+ * (a radio line of 22 characters must fit the 196 px of a well), 10x20 for the readouts.
  */
 final class HudKit {
     static final int PANEL_WIDTH = PixelScreen.PLAY_FIELD_X;
@@ -28,11 +30,15 @@ final class HudKit {
     static final Color ALERT = Color.valueOf("FF5040");
 
     final TextureRegion pixel;
-    final BitmapFont font;
+    /** The 8x12 label font. */
+    final BitmapFont small;
+    /** The 10x20 body font. */
+    final BitmapFont body;
 
-    HudKit(TextureRegion pixel, BitmapFont font) {
+    HudKit(TextureRegion pixel, Fonts fonts) {
         this.pixel = pixel;
-        this.font = font;
+        this.small = fonts.label;
+        this.body = fonts.body;
     }
 
     void panel(SpriteBatch batch, int x) {
@@ -45,7 +51,7 @@ final class HudKit {
     /** A label plate with its text's top at {@code y}. */
     void label(SpriteBatch batch, String text, int x, int y) {
         fill(batch, METAL_DARK, x - 4, y - 18, LABEL_WIDTH, 22);
-        text(batch, text, LABEL, x, y);
+        text(batch, small, text, LABEL, x, y - 4);
     }
 
     /** An LCD well of {@code width} x {@code height} with its bottom at {@code y}. */
@@ -54,24 +60,28 @@ final class HudKit {
         fill(batch, LCD, x, y, width, height);
     }
 
-    void text(SpriteBatch batch, String text, Color colour, float x, float y) {
+    /** Text with its capitals' top at {@code y}. */
+    void text(SpriteBatch batch, BitmapFont font, String text, Color colour, float x, float y) {
         font.setColor(colour);
         font.draw(batch, text, x, y);
+        font.setColor(Color.WHITE);
     }
 
     /** Text left-aligned in {@code width}, cut off at its end if it is longer. */
-    void text(SpriteBatch batch, String text, Color colour, float x, float y, float width) {
-        fitted(batch, text, colour, x, y, width, Align.left);
+    void text(SpriteBatch batch, BitmapFont font, String text, Color colour, float x, float y, float width) {
+        fitted(batch, font, text, colour, x, y, width, Align.left);
     }
 
     /** Text right-aligned in {@code width}, cut off at its end if it is longer. */
-    void textRight(SpriteBatch batch, String text, Color colour, float x, float y, float width) {
-        fitted(batch, text, colour, x, y, width, Align.right);
+    void textRight(SpriteBatch batch, BitmapFont font, String text, Color colour, float x, float y, float width) {
+        fitted(batch, font, text, colour, x, y, width, Align.right);
     }
 
-    private void fitted(SpriteBatch batch, String text, Color colour, float x, float y, float width, int align) {
+    private static void fitted(
+            SpriteBatch batch, BitmapFont font, String text, Color colour, float x, float y, float width, int align) {
         font.setColor(colour);
         font.draw(batch, text, x, y, 0, text.length(), width, align, false, "");
+        font.setColor(Color.WHITE);
     }
 
     /** A bar with its bottom at {@code y}, filled to {@code share} (0..1). */

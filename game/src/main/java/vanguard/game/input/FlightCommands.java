@@ -4,13 +4,10 @@ import vanguard.sim.Command;
 
 /** Turns the held actions into the simulation's command set for one step. */
 public final class FlightCommands {
-    private final ControlSettings settings;
+    private FlightCommands() {}
 
-    public FlightCommands(ControlSettings settings) {
-        this.settings = settings;
-    }
-
-    public int of(ActionInput input) {
+    /** The commands of the held actions; with auto-fire on, the guns fire without holding fire. */
+    public static int of(ActionInput input, ControlSettings settings) {
         int commands = Command.NONE;
         commands |= bit(input, Action.MOVE_UP, Command.UP);
         commands |= bit(input, Action.MOVE_DOWN, Command.DOWN);

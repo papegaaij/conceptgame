@@ -65,7 +65,7 @@ final class MissionPanel {
         kit.panel(batch, 0);
         int top = MissionLayout.MISSION.yTop();
         plate(batch, mission, top);
-        kit.text(batch, name, HudKit.LABEL, X, top - PLATE - 6, WIDTH);
+        kit.text(batch, kit.body, name, HudKit.LABEL, X, top - PLATE - 6, WIDTH);
 
         readout(batch, "SCORE", MissionLayout.SCORE, grouped(sortie.score()), HudKit.READOUT);
         readout(batch, "CREDITS", MissionLayout.CREDITS, grouped(launchBalance + sortie.credits()), HudKit.AMBER);
@@ -103,15 +103,15 @@ final class MissionPanel {
     private void readout(SpriteBatch batch, String label, MissionLayout.Region region, String value, Color colour) {
         plate(batch, label, region.yTop());
         int wellTop = well(batch, region.yTop() - PLATE, WELL);
-        kit.textRight(batch, value, colour, X + PAD, wellTop - TEXT_DROP, TEXT_WIDTH);
+        kit.textRight(batch, kit.body, value, colour, X + PAD, wellTop - TEXT_DROP, TEXT_WIDTH);
     }
 
     private void drawChain(SpriteBatch batch, Sortie sortie) {
         MissionLayout.Region region = MissionLayout.CHAIN;
         int y = region.yTop() - 2;
-        kit.text(batch, "CHAIN " + sortie.chain(), HudKit.LABEL, X, y, WIDTH);
+        kit.text(batch, kit.body, "CHAIN " + sortie.chain(), HudKit.LABEL, X, y, WIDTH);
         String multiplier = String.format(Locale.ROOT, "x%.1f", sortie.chainMultiplier());
-        kit.textRight(batch, multiplier, HudKit.LABEL, X, y, WIDTH);
+        kit.textRight(batch, kit.body, multiplier, HudKit.LABEL, X, y, WIDTH);
         kit.bar(
                 batch,
                 CHAIN,
@@ -139,7 +139,7 @@ final class MissionPanel {
         String[] names = message.speaker().toUpperCase(Locale.ROOT).split(" ", 2);
         int nameX = X + PORTRAIT + MissionLayout.NAME_GAP;
         for (int i = 0; i < names.length; i++) {
-            kit.text(batch, names[i], colour, nameX, portraitTop - 2 - i * LINE, MissionLayout.NAME_WIDTH);
+            kit.text(batch, kit.body, names[i], colour, nameX, portraitTop - 2 - i * LINE, MissionLayout.NAME_WIDTH);
         }
         List<String> lines = radio.visibleLines();
         Color subtitle = message.distorted() ? CHOIR : HudKit.READOUT;
@@ -148,6 +148,7 @@ final class MissionPanel {
             float jitter = message.distorted() && (frame / 3 + i) % 7 == 0 ? 1 : 0;
             kit.text(
                     batch,
+                    kit.small,
                     lines.get(i),
                     subtitle,
                     X + PAD + jitter,
@@ -176,8 +177,8 @@ final class MissionPanel {
         for (int i = 0; i < Math.min(prompts.size(), MissionLayout.PROMPT_LINES); i++) {
             PromptTexts.Text prompt = prompts.get(i);
             int y = wellTop - TEXT_DROP - i * LINE;
-            kit.text(batch, prompt.action(), HudKit.LABEL, X + PAD, y, MissionLayout.PROMPT_ACTION_WIDTH);
-            kit.textRight(batch, prompt.keys(), HudKit.READOUT, keysX, y, keysWidth);
+            kit.text(batch, kit.small, prompt.action(), HudKit.LABEL, X + PAD, y, MissionLayout.PROMPT_ACTION_WIDTH);
+            kit.textRight(batch, kit.small, prompt.keys(), HudKit.READOUT, keysX, y, keysWidth);
         }
     }
 
@@ -194,9 +195,9 @@ final class MissionPanel {
         }
         Color colour = flash ? HudKit.LCD : sortie.secondaryMet() ? SUCCESS : HudKit.LABEL;
         int y = wellTop - TEXT_DROP;
-        kit.text(batch, "KILLS", colour, X + PAD, y, TEXT_WIDTH);
+        kit.text(batch, kit.body, "KILLS", colour, X + PAD, y, TEXT_WIDTH);
         String count = sortie.secondaryMet() ? "DONE" : sortie.kills() + " / " + sortie.requiredKills();
-        kit.textRight(batch, count, colour, X + PAD, y, TEXT_WIDTH);
+        kit.textRight(batch, kit.body, count, colour, X + PAD, y, TEXT_WIDTH);
     }
 
     /** A number with thin-space thousands groups, as on the HUD mock: 1 204 350. */

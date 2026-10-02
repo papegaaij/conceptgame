@@ -9,7 +9,7 @@ import java.util.List;
  * the design document; {@link Region} turns them into the batch's y-up coordinates.
  */
 final class MissionLayout {
-    /** libGDX's built-in 15 px font, the placeholder until the UI kit's fonts exist, sets lines 18 px apart. */
+    /** Lines of text are 18 px apart. */
     static final int LINE = 18;
     /** Between two regions. */
     static final int GAP = 6;

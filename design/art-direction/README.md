@@ -413,7 +413,7 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 
 ## Implementation
 
-- [ ] Renderer draws the screen at 960×540 and scales by integer factors with letterboxing
+- [x] Renderer draws the screen at 960×540 and scales by integer factors with letterboxing
       (sharp-bilinear for 1440p and 720p).
 - [ ] Layer stack (deep, far, ground, sub, low-air, air, high-air) with per-layer scroll
       factors as in the table and a ground scroll speed, configurable per level.
@@ -482,3 +482,7 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
   decision): enemy bullets are saturated and glowing with a bright core (rule 1); loot markings
   are dull matte amber with black hazard stripes, and only their glint shines (rule 7).
 - 2026-10-02: Deep layer coverage rule (a tile set in every section, no visible set-piece edge on `deep` until the debrief), after a gap at the end of Level 01's outro; the content loader and the backdrop asset test check it.
+- 2026-10-02: M3 part A: the renderer scales by integer factors with letterboxing by default and
+  sharp-bilinear from the Video tab of [options](../ui/options/README.md) (`PixelScreen`: a GLES 2
+  shader that samples as an integer pre-scale followed by bilinear filtering, filling the window
+  with bars only where it is not 16:9); optional CRT scanlines.

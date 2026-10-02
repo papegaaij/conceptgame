@@ -2,6 +2,7 @@ package vanguard.game.screen;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.List;
+import java.util.Locale;
 import vanguard.content.Difficulty;
 import vanguard.content.LevelData;
 import vanguard.content.SimSpecs;
@@ -19,6 +20,7 @@ import vanguard.game.render.Effects;
 import vanguard.game.render.EnemyLooks;
 import vanguard.game.render.Hud;
 import vanguard.game.render.LevelRenderer;
+import vanguard.game.settings.Settings;
 import vanguard.sim.FixedStepClock;
 import vanguard.sim.LevelScript;
 import vanguard.sim.Rules;
@@ -29,8 +31,9 @@ import vanguard.sim.Sortie;
 /**
  * Flying a level: runs the simulation at its fixed step, turns its events into sound, effects,
  * radio chatter and HUD feedback, plays the level's music cues and draws it interpolated. When the
- * level is won it shows the last radio line, then the debrief. Pause (Esc / Start) returns to the
- * title until the pause screen arrives in M3.
+ * level is won it shows the last radio line, then the debrief. Pause (Esc / P / Start), the window
+ * losing the focus and a gamepad disconnecting open the pause menu over it. The Gameplay tab's text
+ * speed and flash reduction and the Controls tab's auto-fire apply from the next frame on.
  */
 public final class LevelScreen implements GameScreen {
     /** The only level so far; the campaign picks the level in M3. */
@@ -62,7 +65,6 @@ public final class LevelScreen implements GameScreen {
     private final LevelData level;
     private final Sortie sortie;
     private final FixedStepClock clock = new FixedStepClock(SimStep.SECONDS, MAX_STEPS_PER_FRAME);
-    private final FlightCommands commands;
     private final EnemyLooks[] looks;
     private final FlightSounds sounds;
     private final LevelRenderer renderer;
@@ -75,29 +77,30 @@ public final class LevelScreen implements GameScreen {
     private final PromptTexts promptTexts;
     private final LevelMusic music;
     private final String name;
+    private final Difficulty difficulty;
     private float slowMotion;
     private float outro = -1;
     private int shimmer;
     private int typed;
 
-    public LevelScreen(GameServices services) {
+    /** Level 01 at {@code difficulty}; the campaign picks the level from part B of M3 on. */
+    public LevelScreen(GameServices services, Difficulty difficulty) {
         this.services = services;
+        this.difficulty = difficulty;
         level = services.content.level(LEVEL);
-        Difficulty difficulty = services.difficulty;
         Rules rules = SimSpecs.rules(services.content, LEVEL, difficulty);
         sortie = new Sortie(
                 SEED,
                 SimSpecs.starterLoadout(services.content, difficulty),
                 SimSpecs.level(services.content, LEVEL, difficulty),
                 services.invulnerable ? rules.withInvulnerableShip() : rules);
-        commands = new FlightCommands(services.controls);
         looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites);
         sounds = new FlightSounds(services.sfx, looks);
-        renderer = new LevelRenderer(services.sprites, looks, services.flash, services.font, level, LEVEL);
+        renderer = new LevelRenderer(services.sprites, looks, services.flash, services.fonts.body, level, LEVEL);
         name = levelName(LEVEL);
         hud = new Hud(
                 services.sprites,
-                services.font,
+                services.fonts,
                 sortie.script().number(),
                 name,
                 services.content.economy().startingCredits());
@@ -106,6 +109,7 @@ public final class LevelScreen implements GameScreen {
         // Track 5, "Coalition Rising" (design/audio/music), over the Earth-orbit ambience.
         music = new LevelMusic(
                 services.audio,
+                services.mixer,
                 services.files.internal("music/coalition-rising.ogg"),
                 services.sfx,
                 Sfx.AMBIENCE_ORBIT,
@@ -117,29 +121,57 @@ public final class LevelScreen implements GameScreen {
         return key.substring(key.lastIndexOf('/') + "/level-01-".length()).replace('-', ' ');
     }
 
+    /** "MISSION 01 - BREAK AT DAWN", for the pause menu. */
+    String mission() {
+        return String.format(Locale.ROOT, "MISSION %02d - %s", sortie.script().number(), name)
+                .toUpperCase(Locale.ROOT);
+    }
+
+    Difficulty difficulty() {
+        return difficulty;
+    }
+
+    /** The time flown in this attempt. */
+    double seconds() {
+        return sortie.levelSeconds();
+    }
+
+    long score() {
+        return sortie.score();
+    }
+
+    /** Starts the level over (the pause menu's Restart mission): a retry, as after the ship's destruction. */
+    void retry() {
+        sortie.retry();
+        outro = -1;
+        slowMotion = 0;
+    }
+
     @Override
-    public GameScreen update(float seconds) {
-        if (services.input.pressed(Action.PAUSE)) {
-            return new TitleScreen(services);
+    public Transition update(float seconds) {
+        if (services.input.pressed(Action.PAUSE) || services.input.interrupted()) {
+            return Transition.open(new PauseScreen(services, this));
         }
         if (outro >= 0) {
             outro -= seconds;
             if (outro <= 0) {
-                return new DebriefScreen(
+                return Transition.replace(new DebriefScreen(
                         services,
                         sortie.result(),
                         sortie.script().number(),
                         name,
-                        services.content.economy().startingCredits());
+                        services.content.economy().startingCredits()));
             }
         }
+        Settings settings = services.settings();
+        radio.charsPerSecond(settings.gameplay().textSpeed());
         float simSeconds = seconds;
         if (slowMotion > 0) {
             slowMotion -= seconds;
             simSeconds *= SLOW_MOTION_RATE;
         }
         int steps = clock.advance(simSeconds);
-        int stepCommands = commands.of(services.input);
+        int stepCommands = FlightCommands.of(services.input, settings.controls());
         for (int i = 0; i < steps; i++) {
             sortie.step(stepCommands);
             if (!sortie.launching() && sortie.section() == 1) {
@@ -154,8 +186,8 @@ public final class LevelScreen implements GameScreen {
             react(sortie.events());
         }
         playRadio(seconds);
-        music.update(sortie.section(), seconds);
-        return this;
+        music.update(sortie.section(), seconds, radio.current().isPresent());
+        return Transition.STAY;
     }
 
     private void react(SimEvents events) {
@@ -221,7 +253,15 @@ public final class LevelScreen implements GameScreen {
 
     @Override
     public void draw(SpriteBatch batch) {
-        renderer.draw(batch, sortie, effects, debris, creditNumbers, clock.alpha(), (float) shimmer / SHIMMER_TICKS);
+        renderer.draw(
+                batch,
+                sortie,
+                effects,
+                debris,
+                creditNumbers,
+                clock.alpha(),
+                (float) shimmer / SHIMMER_TICKS,
+                services.settings().gameplay().flashReduction());
         hud.draw(batch, sortie, radio, visiblePrompts(), WEAPON, WEAPON_LEVEL);
     }
 

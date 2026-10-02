@@ -28,7 +28,7 @@ guided by intel about the next level.
 | [allies](allies/README.md) | Friendly units and structures to escort or defend (crawlers, shuttles, convoy, relay) | approved | not-started | none |
 | [player](player/README.md) | The player ship, its loadout slots and all equipment | approved | in-progress | chosen |
 | [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | approved | not-started | n/a |
-| [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | approved | not-started | chosen |
+| [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | approved | in-progress | chosen |
 | [audio](audio/README.md) | Music and sound effects | approved | not-started | chosen |
 | [tech](tech/README.md) | Tech stack: libGDX on Java, Gradle, desktop only, Apache-2.0 | approved | not-started | n/a |
 | [concept-rounds](concept-rounds/README.md) | Batches of concept proposals awaiting the user's choice | review | n/a | chosen |

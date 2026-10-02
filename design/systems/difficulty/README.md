@@ -87,3 +87,7 @@ the single source of the global levers; enemy stat blocks only add overrides (se
 - 2026-10-02: Formation size (user decision): count × (1 ± 20 %), rounded half to even, at least
   1, unless a level authors the count for that difficulty; an authored `burst` is not raised again
   by the bullets-per-burst lever.
+- 2026-10-02: M3 part A: the difficulty is chosen in the new-game difficulty select
+  ([main menu](../../ui/main-menu/README.md)) and the level is built at it; `--difficulty` stays
+  for testing (the bench flies it, the select starts on it). It is not in a save yet (part B), so
+  the first item stays open.

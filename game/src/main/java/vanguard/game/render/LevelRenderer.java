@@ -49,6 +49,9 @@ public final class LevelRenderer {
     private static final int BEACON_BLINK_TICKS = 30;
 
     private static final Color HIT_WHITE = Color.WHITE;
+    /** The white flashes' strength with the Gameplay tab's flash reduction on. */
+    private static final float REDUCED_FLASH = 0.35f;
+
     private static final Color SHIELD_BLUE = Color.valueOf("00C0FF");
     private static final float SHIELD_SHIMMER = 0.6f;
     private static final Color WARNING = Color.valueOf("FF4030");
@@ -58,6 +61,7 @@ public final class LevelRenderer {
     private final Backdrop backdrop;
     private final FlashShader flash;
     private final BitmapFont font;
+    private float whiteFlash = 1;
 
     /** @param levelKey the level's key, {@code <act>/level-NN-<slug>} */
     public LevelRenderer(
@@ -74,6 +78,7 @@ public final class LevelRenderer {
      *     {@link Effects#draw}
      * @param alpha interpolation between the previous and the current step
      * @param shieldShimmer 0..1, how strongly the ship shows its last shield hit
+     * @param flashReduction tone the white hit and invulnerability flashes down (Gameplay tab)
      */
     public void draw(
             SpriteBatch batch,
@@ -82,7 +87,9 @@ public final class LevelRenderer {
             Effects debris,
             CreditNumbers credits,
             float alpha,
-            float shieldShimmer) {
+            float shieldShimmer,
+            boolean flashReduction) {
+        whiteFlash = flashReduction ? REDUCED_FLASH : 1;
         double lag = SimStep.SECONDS * (1 - alpha);
         double scroll = sortie.groundScroll() - sortie.groundSpeed() * lag;
         double seconds = sortie.levelSeconds() - lag;
@@ -123,7 +130,7 @@ public final class LevelRenderer {
                         Math.round(X0 + object.renderX()),
                         Math.round(object.renderY(alpha)),
                         HIT_WHITE,
-                        1);
+                        whiteFlash);
             } else {
                 drawCentred(batch, frame, object.renderX(), object.renderY(alpha));
             }
@@ -185,7 +192,7 @@ public final class LevelRenderer {
         int mercy = ship.defences().mercyTicks();
         // The hull blinks white in steps of three frames while the mercy invulnerability lasts.
         if (mercy > 0 && (mercy + 2) / 3 % 2 == 1) {
-            flash.draw(batch, hull, x, y, HIT_WHITE, 1);
+            flash.draw(batch, hull, x, y, HIT_WHITE, whiteFlash);
         } else if (shieldShimmer > 0) {
             flash.draw(batch, hull, x, y, SHIELD_BLUE, shieldShimmer * SHIELD_SHIMMER);
         } else {

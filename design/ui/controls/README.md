@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../../player/ship, ../../player/specials]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Controls
@@ -41,13 +41,14 @@ gamepad are both first-class; everything can be remapped in Options.
 
 - [x] Input actions abstraction with keyboard and gamepad bindings
 - [x] Auto-fire option
-- [ ] Remapping screen in Options with conflict detection
+- [x] Remapping screen in Options with conflict detection
 - [x] Alt+Enter / F11 toggle full screen on every screen
 - [ ] Double-tap dash detection (only when the evasive thrusters module is fitted)
 
 ## Open questions
 
-- None open.
+- Esc cancels a key capture, so it cannot be captured; after Pause's Esc is remapped away, only
+  reset to defaults brings it back. Acceptable, or should a capture time out instead?
 
 ## Decisions
 
@@ -57,3 +58,15 @@ gamepad are both first-class; everything can be remapped in Options.
 - 2026-10-01: Full-screen toggle added (user requirement): Alt+Enter and F11, not remappable, back in review for these details.
 - 2026-10-01: Full-screen toggle keys accepted by the user.
 - 2026-10-01: M1 implementation (`vanguard.game.input`): `Bindings` maps every action to a primary key, an alternative key and a set of gamepad controls (immutable; a remap makes a changed copy), `ActionInput` samples them once per frame into held/pressed states. Menu confirm (Enter / A) and back (Esc / B / Back) are fixed bindings; Enter while Alt is held does not confirm, so Alt+Enter only toggles full screen. Auto-fire is `controls.auto-fire=true` in `settings.properties` until the Options screen (M3). Dash has V and the left bumper; the double-tap primary input comes with the evasive thrusters. Stick dead zone fixed at 20 % for now. In flight, Pause (Esc / P / Start) returns to the title until the pause screen (M3).
+- 2026-10-02: M3 part A: remapping in the Controls tab of [options](../options/README.md).
+  Confirm on a cell starts a press-a-key capture ("PRESS A KEY..."; for the gamepad column a
+  button: A, B, X, Y, the bumpers, the triggers or Start); what was held when it started does not
+  count, Esc or the gamepad's Back cancel, F11 is never captured. A key or button that another
+  action already has shows the conflict ("CONFLICT: 'Z' IS ALREADY FIRE (ALTERNATIVE) - ENTER SWAPS
+  THE TWO"); confirm swaps (the other slot gets the old key or buttons), Back keeps the old
+  bindings. The gamepad column of the four move actions stays the left stick and the D-pad. The
+  menus keep fixed keys (arrows, D-pad and left stick, Enter / A, Esc / B / Back, Q / E and the
+  bumpers for tabs), so a remap never locks them up. Bindings, auto-fire and the stick dead zone
+  (now configurable, 5–50 %) persist in the settings file. In flight, Pause now opens the pause
+  menu. Because Esc cancels a capture, Esc can only come back to a slot through reset to defaults
+  (open question).

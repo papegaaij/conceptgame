@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../campaign, ../world]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Audio
@@ -63,10 +63,19 @@ Round 01 audio proposals live in [music](music/README.md) and [sfx](sfx/README.m
 
 ## Open questions
 
-- None open.
+- *Mix groups* names four buses (music, sfx, radio, ui), but the Audio tab of
+  [options](../ui/options/README.md) has master, music, effects and radio-blip volumes, no interface
+  volume. Add an interface slider (as on the options mock), or keep the menu sounds on the effects
+  bus as built?
 
 ## Decisions
 
 - 2026-09-30: Tracker-era electronic + synth-orchestral direction; four mix buses.
 - 2026-10-01: Voices: text and radio blips only for now — no voice acting.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
+- 2026-10-02: M3 part A: buses with volumes (`vanguard.game.audio.Mixer`, `Bus`): music, effects
+  and radio, each times the master volume, from the Audio tab of [options](../ui/options/README.md)
+  and applied live; the menu sounds play on the effects bus, since the options document has no
+  interface volume (the *Mix groups* above name a fourth `ui` bus: open question). The radio ducks
+  the level music by 4 dB while a message is shown. The item stays open until the `ui` bus is
+  settled.

@@ -6,4 +6,10 @@ public interface DeviceState {
 
     /** Whether the control is pressed on any connected gamepad. */
     boolean gamepadPressed(GamepadControl control);
+
+    /** How many gamepads are connected. */
+    int gamepads();
+
+    /** Whether the game's window has the input focus. */
+    boolean focused();
 }
