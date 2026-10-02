@@ -1,0 +1,22 @@
+# Scatter Vulcan: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Scatter Vulcan
+slot: front
+traits: [spread]
+price: 1200
+unlock: 2
+draw: [3, 5]
+sfx: vulcan
+vfx: vulcan
+hits: standard
+speed: 700
+size: [6, 6]
+range: 490
+levels:
+  - {pattern: [[0, -12], [0, 0], [0, 12]], rate: 6, damage: 1}
+  - {pattern: [[0, -15], [0, -5], [0, 5], [0, 15]], rate: 6, damage: 1.1}
+  - {pattern: [[0, -18], [0, -9], [0, 0], [0, 9], [0, 18]], rate: 6, damage: 1.25}
+  - {pattern: [[0, -22], [0, -11], [0, -3], [0, 3], [0, 11], [0, 22]], rate: 6, damage: 1.4}
+  - {pattern: [[0, -25], [0, -11], [0, -5], [0, 0], [0, 5], [0, 11], [0, 25]], rate: 6, damage: 1.55}
+overdrive: {pattern: [[0, -30], [0, -20], [0, -11], [0, -5], [0, 0], [0, 5], [0, 11], [0, 20], [0, 30]], rate: 6, damage: 1.6}
+notes:
+  layers_hit: '`air`, `low-air` and `ground` (hardened ground targets glance off); not `high-air`; the `sub` layer only in under-water mode, at 50 % ([layer rules](../../../enemies/README.md#layer-rules))'

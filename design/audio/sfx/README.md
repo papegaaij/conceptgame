@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Sound effects
@@ -114,6 +114,7 @@ reused round 02 files marked (r02).
 | Ship destroyed | Big explosion, then the music sting — [a](concept/player-destroyed-r08-a.ogg) | P1 |
 | Dash | Thruster burst | P3 |
 | Engine hum | Subtle loop (optional) | P3 |
+| Launch rail | The catapult run at a level start (Level 01 section 1): rail hum rising to a release clunk — *pending: next concept round* | P2 |
 
 ### Pickups
 
@@ -346,6 +347,10 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 - [ ] Underwater low-pass on the sfx bus
 - [ ] All P1 sounds
 
+## Open questions
+
+- None open.
+
 ## Decisions
 
 - 2026-09-30: Priorities P1–P3 guide production order; player fire is deliberately quiet.
@@ -361,3 +366,10 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-01: M1: the spike's `SfxBank` is carried over (64 OpenAL sources, played only from the render thread because libGDX's source pool is not thread-safe) and now enforces the per-sound instance limits by stopping the oldest instance. Levels relative to player damage: explosions −2 dB, hits −8 dB (the mixing rules give no level for hits), player fire −14 dB; ±5 % pitch (±4 % explosions), two-variant sounds alternate, pan up to ±40 % by play-field x. Voice stealing by priority is not done yet. Copies of the used files are in `assets/sfx/` (rows in CREDITS.md).
 - 2026-10-01: Enemy-hit level added to the mixing rules (user decision): −6 dB on this scale, 8 dB below player damage, as the M1 SFX player uses.
+- 2026-10-02: M2 imports the Level 01 sounds into `assets/sfx` (`:pipeline:importPlaceholders`,
+  CREDITS.md rows for the third-party ones): small enemy shots, the small explosion family for
+  Needlers and containers, metal hits for ground objects, the salvage, shield cell and armour patch
+  pickups (salvage large for the hidden crate), radio squelch and typing, the debrief tick, total
+  and stamp, and the Earth-orbit ambience loop.
+- 2026-10-02: The launch rail sound goes into the next concept round (user decision); listed as a
+  pending item in the Player ship table, no file yet.

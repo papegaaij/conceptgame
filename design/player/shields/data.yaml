@@ -1,0 +1,9 @@
+# Shields: rendered into README.md. Schema: ../../tech/architecture/README.md#data-file-schemas
+break_seconds: 1.0  # a broken shield stays down this long before the regen delay starts
+models:
+  # capacity points, regen points/s, delay s, draw MW, price cr (0 = starter), available
+  - {name: Mk I, capacity: 20, regen: 2, delay: 2.0, draw: 2, price: 0, available: start}
+  - {name: Mk II, capacity: 30, regen: 3, delay: 1.8, draw: 3, price: 1000, available: act 1}
+  - {name: Mk III, capacity: 45, regen: 4, delay: 1.5, draw: 4, price: 3000, available: act 2}
+  - {name: Mk IV, capacity: 60, regen: 5, delay: 1.2, draw: 5, price: 7000, available: act 4}
+  - {name: Mk V, capacity: 80, regen: 6, delay: 1.0, draw: 6, price: 14000, available: act 5}

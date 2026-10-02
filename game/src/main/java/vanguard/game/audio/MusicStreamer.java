@@ -44,6 +44,11 @@ public final class MusicStreamer implements AutoCloseable {
         device.writeSamples(chunk, 0, chunk.length);
     }
 
+    /** Sets the volume, 0..1, for fades. */
+    public void setVolume(float volume) {
+        device.setVolume(volume);
+    }
+
     @Override
     public void close() {
         running = false;

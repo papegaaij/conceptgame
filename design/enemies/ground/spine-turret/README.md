@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Spine Turret
@@ -31,7 +31,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Armour / shield | none |
 | Speed | scrolls with the ground; barrel turn 90°/s |
 | Movement | `terrain` |
-| Attack | `aimed` yellow thorn every 2.0 s, 160 px/s, `small` = 4; stops firing when the player is behind it (more than 100° from its facing range) |
+| Attack | `aimed` standard orb every 2.0 s, 160 px/s, `small` = 4; stops firing when the player is behind it (more than 100° from its facing range) |
 | Formations | turret nest (3–6) |
 | Weak points | violet barrel root (×1.5) |
 | Effective traits | `anti-ground` (×2), `forward` |
@@ -51,7 +51,7 @@ Chosen concept: [spine-turret-r04-a.png](../concept/spine-turret-r04-a.png) (lis
 ## Implementation
 
 - [ ] Barrel tracking at 90°/s with 32 frames
-- [ ] Aimed thorns
+- [ ] Aimed shots (standard orbs)
 - [ ] Stump decal on death
 - [ ] Stat block values loaded from data; global difficulty multipliers applied
 - [ ] Death effect, bounty and score per this spec
@@ -60,3 +60,4 @@ Chosen concept: [spine-turret-r04-a.png](../concept/spine-turret-r04-a.png) (lis
 
 - 2026-10-01: Promoted from the ground roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
+- 2026-10-02: Fires the standard orb instead of the yellow thorn (user decision): at 160 px/s it is in the standard speed class, and the yellow needle is reserved for the fast class.

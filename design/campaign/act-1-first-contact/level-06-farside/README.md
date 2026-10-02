@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/mantis, ../../../enemies/air/coilwyrm, ../../../world/luna]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Level 06 – Farside
@@ -109,7 +109,7 @@ Enemy specs: [Mantis](../../../enemies/air/mantis/README.md),
 Totals: Mantis 8 · Coilwyrm 4 · Needler 12 · Stinger 6 · Skitter 20.
 
 Rear attacks are dodged, not shot: the first rear weapon (Tail Gun) is in the shop from L08.
-Every rear strike is edge-warned 1.5 s ahead and called by Rook.
+Every rear strike is edge-warned 3 s ahead and called by Rook.
 
 ## Ground targets
 

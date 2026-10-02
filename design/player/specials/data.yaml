@@ -1,0 +1,7 @@
+# Specials: the charge-based specials of Acts 1-2. Schema: ../../tech/architecture/README.md#data-file-schemas
+# The README's specials table is hand-written; keep its Cost and Unlock cells in step.
+specials:
+  # charge price cr, most charges carried, unlock level
+  - {name: Airstrike, charge_price: 300, max_charges: 4, unlock: 4}
+  - {name: Smart Bomb, charge_price: 400, max_charges: 3, unlock: 6}
+  - {name: Decoy Flares, charge_price: 150, max_charges: 6, unlock: 7}

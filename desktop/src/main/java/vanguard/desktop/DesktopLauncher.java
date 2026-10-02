@@ -31,7 +31,13 @@ public final class DesktopLauncher {
         DisplaySettings settings = settingsFile.read();
         System.out.println("settings: " + settingsFile.path());
         var displayModes = new DisplayModes(settings, settingsFile::write);
-        var game = new TerranVanguard(displayModes, settingsFile.readControls(), options.benchSeconds());
+        var game = new TerranVanguard(
+                displayModes,
+                settingsFile.readControls(),
+                options.difficulty(),
+                options.debugSpeed(),
+                options.invulnerable(),
+                options.benchSeconds());
         new Lwjgl3Application(game, configuration(settings));
     }
 

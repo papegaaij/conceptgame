@@ -16,6 +16,7 @@ gdx-controllers-core = { module = "com.badlogicgames.gdx-controllers:gdx-control
 gdx-controllers-desktop = { module = "com.badlogicgames.gdx-controllers:gdx-controllers-desktop", version.ref = "gdx-controllers" }
 jackson-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson" }
 jackson-yaml = { module = "tools.jackson.dataformat:jackson-dataformat-yaml" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params" }

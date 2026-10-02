@@ -1,0 +1,89 @@
+package vanguard.sim;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * The level's waves planned unit by unit ({@link Formations}), in the order they enter, and the
+ * edge warnings for the waves that enter from the sides or the rear (design/enemies, bullet
+ * readability rules: an arrow at that edge at least 1.5 s ahead). Built once per level; an
+ * attempt walks through it with a cursor.
+ */
+final class WaveSchedule {
+    /** The shortest edge warning. */
+    static final double EDGE_WARNING_SECONDS = 3;
+
+    private final List<EnemySpec> kinds;
+    private final Spawn[] spawns;
+    private final int[] warningStarts;
+    private final int[] warningEnds;
+    private final int[] warningEdges;
+    private int next;
+
+    WaveSchedule(List<WaveSpec> waves, SplitMix64 rng) {
+        kinds = waves.stream().map(WaveSpec::enemy).distinct().toList();
+        List<Spawn> planned = new ArrayList<>();
+        List<WaveSpec> warned = new ArrayList<>();
+        for (WaveSpec wave : waves) {
+            Formations.plan(wave, kinds.indexOf(wave.enemy()), rng, planned);
+            if (wave.entry() != WaveSpec.Entry.FRONT) {
+                warned.add(wave);
+            }
+        }
+        planned.sort(Comparator.comparingInt(Spawn::tick));
+        spawns = planned.toArray(Spawn[]::new);
+        warningStarts = new int[warned.size()];
+        warningEnds = new int[warned.size()];
+        warningEdges = new int[warned.size()];
+        for (int i = 0; i < warned.size(); i++) {
+            WaveSpec wave = warned.get(i);
+            double lead = Math.max(EDGE_WARNING_SECONDS, wave.warningSeconds().orElse(0.0));
+            warningStarts[i] = SimStep.ticks(wave.t() - lead);
+            warningEnds[i] = SimStep.ticks(wave.t());
+            warningEdges[i] = edges(wave);
+        }
+    }
+
+    private static int edges(WaveSpec wave) {
+        if (wave.entry() == WaveSpec.Entry.REAR) {
+            return WarningEdge.BOTTOM.bit();
+        }
+        return switch (wave.edge()) {
+            case LEFT -> WarningEdge.LEFT.bit();
+            case RIGHT -> WarningEdge.RIGHT.bit();
+            case NONE, ALTERNATING -> WarningEdge.LEFT.bit() | WarningEdge.RIGHT.bit();
+        };
+    }
+
+    /** Back to the level start. */
+    void reset() {
+        next = 0;
+    }
+
+    /** The next unit if it enters at or before {@code tick}, advancing past it; otherwise {@code null}. */
+    Spawn due(int tick) {
+        return next < spawns.length && spawns[next].tick() <= tick ? spawns[next++] : null;
+    }
+
+    /** The edges with a warning showing at {@code tick}, as {@link WarningEdge} bits. */
+    int warnings(int tick) {
+        int edges = 0;
+        for (int i = 0; i < warningStarts.length; i++) {
+            if (tick >= warningStarts[i] && tick < warningEnds[i]) {
+                edges |= warningEdges[i];
+            }
+        }
+        return edges;
+    }
+
+    /** Every unit the level sends. */
+    int units() {
+        return spawns.length;
+    }
+
+    /** The distinct enemies of the level; a spawn's kind indexes this list. */
+    List<EnemySpec> kinds() {
+        return kinds;
+    }
+}

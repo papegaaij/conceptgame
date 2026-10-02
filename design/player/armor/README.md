@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: none
 depends-on: [../shields, ../../systems/retry, ../../systems/difficulty]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Armour
@@ -17,6 +17,7 @@ auto-repair or armour patches). When it reaches zero the ship is destroyed and t
 
 ## Design
 
+<!-- data: plating -->
 | Plating level | Max armour | Price (first draft) | Available |
 |---|---|---|---|
 | Standard | 60 | starter | start |
@@ -25,6 +26,7 @@ auto-repair or armour patches). When it reaches zero the ship is destroyed and t
 | Composite III | 120 | 3 000 | act 3 |
 | Composite IV | 140 | 6 000 | act 5 |
 | Composite V | 160 | 11 000 | act 6 |
+<!-- /data -->
 
 - Plating draws no power and has no speed penalty. Its price is the only cost.
 - **Repairs** happen between levels in the hangar. Cost per point depends on difficulty (easy:
@@ -45,3 +47,4 @@ auto-repair or armour patches). When it reaches zero the ship is destroyed and t
   cost vs saving credits.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-01: M1 implementation: standard plating (60) in `vanguard.sim.Plating`, damage after the shield and destruction at 0 (`Defences`), which triggers the [retry](../../systems/retry/README.md) restart. Other plating levels, repairs and the low-armour warnings are later milestones.
+- 2026-10-02: The plating levels moved into [data.yaml](data.yaml) (M2 data files); the table is rendered from it and `vanguard.sim.Plating` is built from it.

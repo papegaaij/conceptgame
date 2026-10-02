@@ -13,9 +13,9 @@ class ShipTest {
     private static final int PRECISION = Command.PRECISION.bit();
 
     private final Ship ship = new Ship(
-            ShipSpec.STORMHAWK,
-            PulseCannon.LEVEL_1,
-            new Defences(ShieldModel.MK_I, Plating.STANDARD, ShipSpec.STORMHAWK.mercySeconds()));
+            TestSpecs.SHIP,
+            TestSpecs.LOADOUT.gun(),
+            new Defences(TestSpecs.LOADOUT.shield(), TestSpecs.LOADOUT.plating(), TestSpecs.SHIP.mercySeconds()));
 
     @Test
     void reachesFullSpeedWithinAFewSteps() {

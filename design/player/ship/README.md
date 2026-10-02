@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../art-direction]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # AF-12 Stormhawk
@@ -19,6 +19,7 @@ loadout, see [player](../README.md).
 
 ### Movement
 
+<!-- data: ship-movement -->
 | Property | Value (first draft) |
 |---|---|
 | Base speed | 270 px/s (engine Mk I). See [engines](../systems/README.md) |
@@ -26,15 +27,17 @@ loadout, see [player](../README.md).
 | Precision mode | Hold button: speed × 0.5 for dodging. See [controls](../../ui/controls/README.md) |
 | Bounds | The whole play field (480×540, see [art direction](../../art-direction/README.md)); the 48×48 hull keeps a 12 px gap to every edge (centre at least 36 px from it) |
 | Diagonal | Normalised (no faster diagonals) |
+<!-- /data -->
 
 The play field scrolls on its own. The ship never moves the camera.
 
 ### Hitbox
 
-- Hitbox: **9×9 px** around the cockpit, much smaller than the sprite. This is the norm for the
-  genre and makes dense patterns fair.
+- Hitbox: **the shape of the hull** (user decision 2026-10-02): what visibly touches the ship
+  hits it, as in Raptor and Tyrian. Six boxes in [data.yaml](data.yaml) cover the nose, the body,
+  the swept wings and the wingtips; they follow the hard-banked frame (the narrowest), so a hit is
+  never on empty space and a graze in level flight at the very wingtip is forgiven.
 - Pickups use a separate collection radius of 36 px, which the magnet enlarges.
-- Optional setting: show the hitbox as a small bright dot while precision mode is held.
 - **Mercy invulnerability:** after taking armour damage the ship ignores further damage for
   0.25 s (the hull flashes white), so one burst of overlapping bullets costs one hit, not five.
   Shield hits give no invulnerability: the shield is the buffer for that.
@@ -91,7 +94,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — banking and wing
 ## Implementation
 
 - [x] Movement with acceleration, precision mode and play field bounds
-- [ ] 9×9 hitbox separate from the sprite and pickup radius
+- [x] Hull-shaped hitbox (boxes from the data) separate from the sprite and pickup radius
 - [x] Mercy invulnerability after armour damage
 - [x] Banking frames driven by horizontal velocity
 - [ ] Engine flame and shadow sprites
@@ -114,3 +117,5 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — banking and wing
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-01: M1 implementation (`vanguard.sim.Ship`, numbers in `ShipSpec`): each axis accelerates to its target speed at 270 px/s ÷ 0.08 s and brakes at 270 px/s ÷ 0.06 s (5 and 4 steps at 60 Hz); the 12 px edge margin was first read as the closest the ship's *centre* may come to an edge (corrected below), and pressing against an edge drops that speed component, so banking levels out. Banking aims at round(2 · vx ÷ 270) and moves one frame every 3 steps (hard over after about 6 frames), so precision mode banks one frame. The 9×9 hitbox is an axis-aligned box; the pickup radius follows with the pickups. The hull blinks white (flash shader) during the 0.25 s mercy time and shimmers blue for a few frames on shield hits; the 60×60 hex-ring shield sprite, engine flames, shadow and damage smoke are not in M1. Placeholder sprites: the 5 banking frames of `player-ship-r08-a.png`.
 - 2026-10-01: Edge margin (user decision): the whole hull stays 12 px inside the play field, so the ship is always fully visible with breathing room; the centre stops 36 px from each edge (`ShipSpec.edgeLimit()`).
+- 2026-10-02: The flight numbers moved into [data.yaml](data.yaml) (M2 data files): the *Movement* table is rendered from it, with the base speed taken from the starter engine. `vanguard.sim.ShipSpec` is now built from it; the hitbox, pickup radius, mercy time and mount points are fields there too, while their prose here stays hand-written.
+- 2026-10-02: Hitbox changed from 9×9 around the cockpit to the hull's shape (user decision after playing M2: thorns visibly crossing the wings passed through). Six boxes from the hard-banked silhouette (`hull` in data.yaml, `vanguard.sim.Hull`); the optional hitbox-dot setting is dropped. Enemy bullet density in later levels must be designed for the larger target.

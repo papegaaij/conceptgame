@@ -1,0 +1,22 @@
+# Tail Gun: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Tail Gun
+slot: rear
+traits: [rear]
+price: 600
+unlock: 8
+draw: [1, 3]
+sfx: pulse
+vfx: pulse
+hits: standard
+speed: 800
+size: [4, 10]
+range: screen
+levels:
+  - {pattern: [[0, 180]], rate: 8, damage: 1.25}
+  - {pattern: [[0, 180]], rate: 8, damage: 1.75}
+  - {pattern: [[-5, 180], [5, 180]], rate: 8, damage: 1.25}
+  - {pattern: [[-5, 180], [5, 180]], rate: 8, damage: 1.7}
+  - {pattern: [[-8, 180], [0, 180], [8, 180]], rate: 8, damage: 1.46}
+overdrive: {pattern: [[-12, 180], [-4, 180], [4, 180], [12, 180]], rate: 8, damage: 1.5}
+notes:
+  layers_hit: '`air`, `low-air` and `ground` (hardened ground targets glance off); not `high-air`; the `sub` layer only in under-water mode, at 50 % ([layer rules](../../../enemies/README.md#layer-rules))'

@@ -16,4 +16,6 @@ dependencies {
 tasks.test {
     // The music test decodes the real title theme from the assets.
     systemProperty("vanguard.assetsDir", rootProject.layout.projectDirectory.dir("assets").asFile.absolutePath)
+    // BackdropAssetsTest checks the backdrop images against the levels' data files.
+    inputs.dir(rootProject.layout.projectDirectory.dir("assets/backdrop")).withPropertyName("backdropAssets")
 }

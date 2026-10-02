@@ -1,0 +1,23 @@
+# Side Splitter: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Side Splitter
+slot: rear
+traits: [side]
+price: 1400
+unlock: 5
+draw: [2, 4]
+sfx: pulse
+vfx: pulse
+hits: standard
+speed: 800
+size: [10, 4]
+range: 360
+mirrored: true
+levels:
+  - {pattern: [[0, 90]], rate: 6, damage: 2}
+  - {pattern: [[0, 90]], rate: 6, damage: 2.8}
+  - {pattern: [[0, 82], [0, 98]], rate: 6, damage: 2}
+  - {pattern: [[0, 82], [0, 98]], rate: 6, damage: 2.6}
+  - {pattern: [[0, 80], [0, 90], [0, 100]], rate: 6, damage: 2.22}
+overdrive: {pattern: [[0, 80], [0, 90], [0, 100]], rate: 6, damage: 3}
+notes:
+  layers_hit: '`air`, `low-air` and `ground` (hardened ground targets glance off); not `high-air`; the `sub` layer only in under-water mode, at 50 % ([layer rules](../../../enemies/README.md#layer-rules))'

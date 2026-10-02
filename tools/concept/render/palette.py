@@ -101,6 +101,13 @@ class Palette:
     def f(self, name, i):
         return tuple(c / 255 for c in self._ramps[name][i])
 
+    def variant(self, name, codes):
+        """A copy of this palette with ramp ``name`` replaced by ``codes`` (six hex colours)."""
+        copy = Palette.__new__(Palette)
+        copy.data = self.data
+        copy._ramps = {**self._ramps, name: [hexrgb(c) for c in codes.split()]}
+        return copy
+
     def ship_colors(self):
         """Material overrides for the player ship models (see render.models.UTC)."""
         return {"hull": self.f("UTC HULL", 4), "hull_dark": self.f("UTC HULL", 1),

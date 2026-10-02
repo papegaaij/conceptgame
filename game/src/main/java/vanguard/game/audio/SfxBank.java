@@ -46,6 +46,18 @@ public final class SfxBank implements Disposable {
         next[sfx.ordinal()] = (slot + 1) % playing.length;
     }
 
+    /** Loops {@code sfx} until {@link #stop(Sfx)}; it uses the effect's first instance slot. */
+    public void loop(Sfx sfx, float volume) {
+        stop(sfx);
+        instances[sfx.ordinal()][0] = sounds.get(sfx).loop(volume);
+    }
+
+    /** Stops every playing instance of {@code sfx}. */
+    public void stop(Sfx sfx) {
+        sounds.get(sfx).stop();
+        Arrays.fill(instances[sfx.ordinal()], -1);
+    }
+
     @Override
     public void dispose() {
         sounds.values().forEach(Sound::dispose);

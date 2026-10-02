@@ -3,7 +3,7 @@ title: Earth orbit
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Earth orbit
@@ -48,7 +48,10 @@ In space, "ground" means large structures below the player's plane.
 
 - Hard, white sunlight from top-left; deep black shadows (no atmosphere).
 - Earth adds a blue bounce light from below on large structures.
-- Hulls in Coalition grey-white with navy and orange; warning lights blink red.
+- Hulls in Coalition grey-white with navy and orange; warning lights blink red. On the
+  ground layer, station structures use muted accents (beige ochre instead of orange): warm
+  amber there is reserved for loot targets
+  ([art direction, readability rule 7](../../art-direction/README.md#readability-rules)).
 - Keep backgrounds low in teal/violet so Vrell bullets pop.
 
 ### Hazards & set pieces
@@ -81,3 +84,5 @@ The concept files live in [art-direction](../../art-direction/README.md).
 - 2026-09-30: Earth orbit as Act 1 opening setting; signature set piece: shipyard crane.
 - 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: Station structures on the ground layer use muted accents; warm amber is reserved
+  for loot targets (user decision, art direction readability rule 7).

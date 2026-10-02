@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: none
 depends-on: [../generator, ../armor, ../../systems/retry]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Shields
@@ -16,6 +16,7 @@ It is the player's renewable buffer; [armour](../armor/README.md) is the finite 
 
 ## Design
 
+<!-- data: shields -->
 | Model | Capacity | Regen /s | Regen delay | Draw | Price (first draft) | Available |
 |---|---|---|---|---|---|---|
 | Mk I | 20 | 2 | 2.0 s | 2 MW | starter | start |
@@ -23,6 +24,7 @@ It is the player's renewable buffer; [armour](../armor/README.md) is the finite 
 | Mk III | 45 | 4 | 1.5 s | 4 MW | 3 000 | act 2 |
 | Mk IV | 60 | 5 | 1.2 s | 5 MW | 7 000 | act 4 |
 | Mk V | 80 | 6 | 1.0 s | 6 MW | 14 000 | act 5 |
+<!-- /data -->
 
 Variant shields (roster, alternative to the Mk line):
 
@@ -49,3 +51,4 @@ Rules:
 - 2026-09-30: Shield regenerates, armour does not (user decision).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-01: M1 implementation (`vanguard.sim.Defences`, Mk I numbers in `ShieldModel`): every hit that lands (shield or armour) restarts the 2.0 s delay; a break holds the shield at 0 for 1.0 s + the delay; in a collision the shield's half overflows to armour like a bullet's. Feedback so far: shield-hit and break sounds, a blue shimmer on the hull, the HUD shield bar flickering while down after a break; the hex-ring shimmer sprite is still to come.
+- 2026-10-02: The shield models and the break time moved into [data.yaml](data.yaml) (M2 data files); the model table is rendered from it and `vanguard.sim.ShieldModel` is built from it.

@@ -46,7 +46,7 @@ milestone lists which documents it covers, it does not copy their items.
 
 - [x] M0 Skeleton
 - [x] M1 First flight
-- [ ] M2 Level 01
+- [x] M2 Level 01
 - [ ] M3 The campaign loop
 - [ ] M4 Act 1
 - [ ] M5 Act 2
@@ -64,3 +64,4 @@ milestone lists which documents it covers, it does not copy their items.
 - 2026-10-01: Approved by the user.
 - 2026-10-01: M0 Skeleton done: played and accepted by the user, CI green on three OSes.
 - 2026-10-01: M1 First flight done: played and accepted by the user.
+- 2026-10-02: M2 Level 01 done: played and accepted by the user (data files, level runner, Level 01 with backdrop, HUD and debrief). Production art can start now (see Rules).

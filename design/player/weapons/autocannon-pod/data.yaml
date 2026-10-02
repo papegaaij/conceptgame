@@ -1,0 +1,23 @@
+# Autocannon Pod: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Autocannon Pod
+slot: wing
+traits: [forward]
+price: 500
+unlock: 2
+draw: [1, 2]
+sfx: ballistic
+vfx: ballistic
+hits: standard
+speed: 1000
+size: [4, 8]
+range: screen
+pod: true
+levels:
+  - {pattern: [[0, 0]], rate: 5, damage: 1.6}
+  - {pattern: [[0, 0]], rate: 5, damage: 2.1}
+  - {pattern: [[0, 0]], rate: 6, damage: 2.5}
+  - {pattern: [[0, 0]], rate: 7, damage: 2.9}
+  - {pattern: [[0, 0]], rate: 8, damage: 3.1}
+overdrive: {pattern: [[0, 0]], rate: 9, damage: 3.3}
+notes:
+  layers_hit: '`air`, `low-air` and `ground` (hardened ground targets glance off); not `high-air`; the `sub` layer only in under-water mode, at 50 % ([layer rules](../../../enemies/README.md#layer-rules))'

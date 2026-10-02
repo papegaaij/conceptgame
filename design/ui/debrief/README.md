@@ -1,10 +1,10 @@
 ---
 title: Debrief screen
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../../systems/scoring, ../../systems/economy]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Debrief screen
@@ -59,8 +59,8 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 ## Implementation
 
-- [ ] Tally sequence with count-up animation and skip
-- [ ] Grade calculation display and credit bonus
+- [x] Tally sequence with count-up animation and skip
+- [x] Grade calculation display and credit bonus
 - [ ] Data core list and act summary
 
 ## Decisions
@@ -68,3 +68,9 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 - 2026-09-30: Grade and bonuses as defined in [scoring](../../systems/scoring/README.md).
 - 2026-10-01: Concept round 08: accepted.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: M2 placeholder (`vanguard.game.screen.DebriefScreen`), in the glass style of
+  the chosen debrief-r08-a: the mission complete jingle, the tally (kills with the Destruction
+  bonus, armour damage, secrets with Explorer, max chain, secondary objective), the credits by
+  source with the grade bonus and the total, the score and the grade stamp; lines 0.3 s apart with
+  a tick while their numbers count up, the total chime and the stamp sound. Confirm skips, then
+  returns to the title. No "NEW BEST" tag until there are saves.

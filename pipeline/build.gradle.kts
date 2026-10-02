@@ -36,10 +36,16 @@ tasks.register<Copy>("importPlaceholders") {
     }
     from(design.dir("audio/music/concept")) {
         into("music")
-        include("title-theme-full-r08-a.ogg", "coalition-rising-full-r08-a.ogg", "mission-failed-r08-a.ogg")
+        include(
+            "title-theme-full-r08-a.ogg",
+            "coalition-rising-full-r08-a.ogg",
+            "mission-failed-r08-a.ogg",
+            "mission-complete-r08-a.ogg",
+        )
         rename("title-theme-full-r08-a.ogg", "title-theme.ogg")
         rename("coalition-rising-full-r08-a.ogg", "coalition-rising.ogg")
         rename("mission-failed-r08-a.ogg", "mission-failed.ogg")
+        rename("mission-complete-r08-a.ogg", "mission-complete.ogg")
     }
     // The sound effects keep their concept names, so CREDITS.md rows match at a glance.
     from(design.dir("audio/sfx/concept")) {
@@ -54,6 +60,23 @@ tasks.register<Copy>("importPlaceholders") {
             "player-shield-break-r08-a.ogg",
             "player-armour-hit-r08-a.ogg",
             "player-destroyed-r08-a.ogg",
+            "enemy-shot-small-r08-a.ogg",
+            "enemy-shot-small-r08-b.ogg",
+            "explosion-r02-a.ogg",
+            "explosion-small-r03-a.ogg",
+            "hit-metal-r08-a.ogg",
+            "hit-metal-r08-b.ogg",
+            "pickup-salvage-small-r08-a.ogg",
+            "pickup-salvage-large-r08-a.ogg",
+            "pickup-shield-cell-r08-a.ogg",
+            "pickup-armour-patch-r08-a.ogg",
+            "ui-radio-open-r08-a.ogg",
+            "ui-radio-close-r08-a.ogg",
+            "ui-typewriter-r08-a.ogg",
+            "ui-tally-tick-r08-a.ogg",
+            "ui-tally-total-r08-a.ogg",
+            "ui-grade-stamp-r08-a.ogg",
+            "ambience-orbit-r08-a.ogg",
         )
     }
 }

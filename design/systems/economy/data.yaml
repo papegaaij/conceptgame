@@ -1,0 +1,6 @@
+# Economy numbers (Act 1 values at medium). Schema: ../../tech/architecture/README.md#data-file-schemas
+# The README's tables are hand-written; keep them in step with these numbers.
+starting_credits: 300
+budget: {base: 1000, growth: 1.07}  # budget(n) = base × growth^(n−1): what a perfect run of level n earns
+act_factor: 1.6                     # bounties and prices scale with act_factor^(act−1)
+sell_back: 0.6                      # share of the total spent on an item (purchase plus upgrades)

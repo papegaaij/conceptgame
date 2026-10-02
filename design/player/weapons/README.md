@@ -1,10 +1,10 @@
 ---
 title: Weapons
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../generator, ../../systems/economy]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Weapons
@@ -63,10 +63,13 @@ below.
 
 ### Data and balancing
 
-All per-level numbers of the designed weapons (pattern, rate, damage, speed, draw, prices) live
-in [balance-data.json](../balance-data.json), the single source. Each weapon's per-level table
-is generated from it with `python3 tools/balance.py --sync`; `python3 tools/balance.py` checks a
-typical player's purchases for levels 01–14 against the [credit budget](../../systems/economy/README.md#per-level-budget),
+All numbers of the designed weapons (pattern, rate, damage, speed, draw, prices) live in the
+`data.yaml` next to each weapon's README, the single source; the rules they share (upgrade cost
+factors, draw rounding, the single-target DPS target) are in [data.yaml](data.yaml) here (schema:
+[data file schemas](../../tech/architecture/README.md#data-file-schemas)). Each weapon's property
+and per-level tables are rendered from it with `python3 tools/sync_tables.py`;
+`python3 tools/balance.py` checks a typical player's purchases
+([balance-plan.yaml](../balance-plan.yaml)) for levels 01–14 against the [credit budget](../../systems/economy/README.md#per-level-budget),
 the power cap and the DPS available (and time-to-kill once enemy stat data exists, see the
 script's docstring). DPS is given two ways: **volley DPS** (all shots) and **single-target DPS**
 (shots that hit a 36 px target 100 px away; seeking, lobbed and dropped weapons count every
@@ -126,8 +129,8 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 ## Implementation
 
-- [ ] Weapon data format: slot, traits, per-level damage/pattern/draw, price, unlock (the
-  fields of [balance-data.json](../balance-data.json))
+- [x] Weapon data format: slot, traits, per-level damage/pattern/draw, price, unlock (the
+  fields of each weapon's `data.yaml`)
 - [ ] Projectile patterns for every designed weapon with L1–L5 (+ overdrive) variants
 - [ ] Layer hit rules per trait (anti-ground, anti-sub, beam, area)
 - [ ] Hangar trait markers linked to the level threat profile
@@ -155,3 +158,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-10-01: Concept round 08: projectile families chosen ("very nice"); the beam needs an impact effect where it hits — it currently ends abruptly at the sprite edge (round 09).
 - 2026-10-01: Concept round 09: beam impact chosen.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: Weapon numbers moved from `balance-data.json` into a `data.yaml` per weapon plus this directory's [data.yaml](data.yaml) for the shared rules (M2 data files); `tools/sync_tables.py` renders each weapon's property and per-level tables, `tools/balance.py --sync` is gone.

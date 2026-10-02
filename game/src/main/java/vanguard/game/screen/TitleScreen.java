@@ -13,7 +13,7 @@ import vanguard.game.render.PixelScreen;
 
 /**
  * The title screen (design/ui/main-menu): the logo over black with the title theme. Confirm
- * (Enter / A) starts the M1 test sortie and Back quits; the main menu follows in M3.
+ * (Enter / A) starts Level 01 and Back quits; the main menu follows in M3.
  */
 public final class TitleScreen implements GameScreen {
     private static final float MUSIC_VOLUME = 0.6f;
@@ -33,7 +33,7 @@ public final class TitleScreen implements GameScreen {
     @Override
     public GameScreen update(float seconds) {
         if (services.input.pressed(Action.MENU_CONFIRM)) {
-            return new FlightScreen(services);
+            return new LevelScreen(services);
         }
         if (services.input.pressed(Action.MENU_BACK)) {
             Gdx.app.exit();

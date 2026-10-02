@@ -1,0 +1,36 @@
+# Skitter stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Skitter
+faction: Vrell
+layer: air
+tier: tiny
+size: [24, 24]    # sprite px
+hitbox: [16, 16]
+parts: single
+orientation: fixed
+hp: 1
+armour: none
+speed: 190        # px/s
+movement:
+  snake: {spacing: 0.25}                     # s between two units
+  swoop: {radius: [120, 200], top_speed: 240}  # entry curve radius px
+  straight: {speed: 160}                     # in streams
+attacks: []       # contact only
+formations:
+  - {name: snake, size: [6, 12]}
+  - {name: stream}
+  - {name: line abreast, size: [5, 10]}
+  - {name: swarm}
+weak_points: []
+drops: []
+traits: [spread, forward]
+bounty: 5
+first_level: 1
+notes:
+  orientation: (flies nose-down; banks into curves)
+  speed: (stream {movement.straight.speed}, swoop up to {movement.swoop.top_speed})
+  movement: '`snake` along an authored `path` (unit spacing {movement.snake.spacing} s), `swoop` (entry curve radius {movement.swoop.radius} px), `straight` in streams'
+  attack: '`none` — contact only (contact damage `{tier}` = {contact_damage})'
+  weak_points: (dies in one hit)
+  death: '`tiny` pop: chitin flakes, teal glow flash; no drop'
+  used_in: recurring fodder through Acts 1–2 and the Brood Pod / Brood Carrier / Hive Node spawns
+  difficulty: none beyond the global levers

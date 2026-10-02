@@ -1,10 +1,10 @@
 ---
 title: Player
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../systems, ../ui/hangar]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Player
@@ -21,8 +21,8 @@ generator limits what can be fitted at the same time.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | approved | in-progress | chosen |
-| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | approved | not-started | chosen |
-| [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | approved | not-started | none |
+| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | approved | in-progress | chosen |
+| [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | approved | in-progress | none |
 | [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | approved | in-progress | none |
 | [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | approved | in-progress | none |
 | [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | approved | not-started | chosen |
@@ -64,8 +64,9 @@ generator limits what can be fitted at the same time.
 - **Availability** in the component tables (`start`, `act N`) means: in the shop from the first
   hangar visit of that act; `act 1` items appear from the visit before L02, `act 2` items from
   the visit before L08, and so on. Weapons and specials use exact levels (`Lnn`).
-- All balancing numbers for Acts 1–2 live in [balance-data.json](balance-data.json); check them
-  with `python3 tools/balance.py` (see [weapons](weapons/README.md#data-and-balancing)).
+- All balancing numbers for Acts 1–2 live in the parts' `data.yaml` files (this directory's
+  [data.yaml](data.yaml) holds availability and the pickups); check them with
+  `python3 tools/balance.py` (see [weapons](weapons/README.md#data-and-balancing)).
 
 ### Power budget
 
@@ -98,6 +99,7 @@ reach 11.5 and is refused until the generator goes to Mk III.
 Upgrades are bought, not found. In-level pickups give credits and short-term help, so a good
 loadout stays the main source of strength:
 
+<!-- data: pickups -->
 | Pickup | Source | Effect |
 |---|---|---|
 | Salvage (small / medium / large) | Enemy drops, crates | +10 / +50 / +200 credits (before difficulty multiplier) |
@@ -106,6 +108,7 @@ loadout stays the main source of strength:
 | Armour patch | Rare (0–2 per level) | Restores 10 armour points |
 | Special charge | Rare | +1 charge (charge-based specials only) |
 | Data core | Hidden / secret areas | Lore entry; unlocks one specific shop item one act early (list in [economy](../systems/economy/README.md#data-cores)); counts for the grade |
+<!-- /data -->
 
 A [pickup magnet](systems/README.md) widens the collection radius. Uncollected pickups drift
 down and leave the screen after 6 s.
@@ -153,3 +156,11 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - 2026-10-01: Damage scale: the old first-draft numbers (bullets 5/10/20, collisions 15–40, HP ranges) contradicted the enemies balancing basis (4/6/10, contact 6–25); replaced by a link to it, which owns them.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
 - 2026-10-01: Damage-unit wording corrected (user decision): a Pulse Cannon L1 shot does 2 damage units, as in `balance-data.json` and the reference DPS of 20; all HP values already used this scale.
+- 2026-10-02: Balancing numbers moved from `balance-data.json` into the parts' `data.yaml` files (M2 data files). This directory's [data.yaml](data.yaml) holds the shop availability and the pickups (the *In-level pickups* table is rendered from it); the expected purchases that `tools/balance.py` checks are in [balance-plan.yaml](balance-plan.yaml).
+- 2026-10-02: M2 (Level 01): salvage (small), shield cell, armour patch and the hidden crate
+  drop, drift down at 40 px/s (the chosen pickups concept's rule, now `pickup_drift_speed` in
+  [data.yaml](data.yaml)), blink in their last 1.5 s and are gone after 6 s; they are collected
+  within the ship's 36 px collection radius. Drop tables: the enemy stat blocks' `drops` and the
+  levels' carried pickups. The other pickups follow with their levels, so the item stays open.
+  Placeholders: the spin loops of [pickups-r09-a](concept/pickups-r09-a.png) (salvage L stands in
+  for the hidden crate).

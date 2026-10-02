@@ -1,0 +1,45 @@
+# Player-wide rules: shop availability and the in-level pickups (rendered into README.md).
+# Schema: ../tech/architecture/README.md#data-file-schemas
+availability:  # "available: <key>" means: in the shop from the hangar visit before this level
+  start: 1
+  act 1: 2
+  act 2: 8
+  act 3: 15
+  act 4: 22
+  act 5: 29
+  act 6: 36
+  act 7: 43
+pickup_seconds: 6  # uncollected pickups drift down and leave the screen after this time
+pickup_drift_speed: 40  # px/s, the drift of uncollected pickups (chosen pickups concept, round 09)
+pickups:
+  salvage:
+    credits: {small: 10, medium: 50, large: 200}  # before the difficulty multiplier
+    notes:
+      name: Salvage (small / medium / large)
+      source: Enemy drops, crates
+      effect: +{credits.small} / +{credits.medium} / +{credits.large} credits (before difficulty multiplier)
+  overdrive:
+    levels: 1
+    seconds: 20
+    notes:
+      source: Carriers, crates (~2 per level)
+      effect: All weapons +{levels} level for {seconds} s (L5 becomes a stronger "L6" pattern)
+  shield_cell:
+    shield_percent: 25  # of the shield's capacity
+    notes:
+      source: Frequent drops
+      effect: Restores {shield_percent} % of shield capacity
+  armour_patch:
+    armour: 10
+    notes:
+      source: Rare (0–2 per level)
+      effect: Restores {armour} armour points
+  special_charge:
+    charges: 1
+    notes:
+      source: Rare
+      effect: +{charges} charge (charge-based specials only)
+  data_core:
+    notes:
+      source: Hidden / secret areas
+      effect: Lore entry; unlocks one specific shop item one act early (list in [economy](../systems/economy/README.md#data-cores)); counts for the grade

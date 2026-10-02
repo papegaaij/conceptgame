@@ -19,7 +19,7 @@ Brood Carrier at the Earth–Moon L1 point.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [level-01-break-at-dawn](level-01-break-at-dawn/README.md) | Vrell scouts hit the Gagarin shipyards at dawn; the tutorial level | approved | not-started | chosen |
+| [level-01-break-at-dawn](level-01-break-at-dawn/README.md) | Vrell scouts hit the Gagarin shipyards at dawn; the tutorial level | approved | done | chosen |
 | [level-02-shipyard-burning](level-02-shipyard-burning/README.md) | The yards burn; first ground targets (Spine Turret), the Stinger and Crane Four; save the drydocks for a bonus | approved | not-started | chosen |
 | [level-03-spore-drift](level-03-spore-drift/README.md) | Spore Bombers in the high lanes, a debris field, and the Leviathan set piece with Whirl Seed clusters | approved | not-started | chosen |
 | [level-04-tranquility-run](level-04-tranquility-run/README.md) | First Luna level: escort five civilian crawlers past Brood Pods and Scuttler walkers; first special | approved | not-started | chosen |

@@ -27,7 +27,7 @@ frames and chunky bitmap fonts.
 | [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | approved | not-started | chosen |
 | [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | approved | in-progress | chosen |
 | [pause](pause/README.md) | Pause menu during a level | approved | not-started | chosen |
-| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | not-started | chosen |
+| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | in-progress | chosen |
 | [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | approved | in-progress | n/a |
 | [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | in-progress | chosen |
 | [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | approved | not-started | chosen |

@@ -1,0 +1,23 @@
+# Pulse Cannon: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Pulse Cannon
+slot: front
+traits: [forward]
+price: 0
+upgrade_base: 600
+unlock: 1
+draw: [2, 4]
+sfx: pulse
+vfx: pulse
+hits: standard
+speed: 900
+size: [4, 12]
+range: screen
+levels:
+  - {pattern: [[0, 0]], rate: 10, damage: 2}
+  - {pattern: [[-5, 0], [5, 0]], rate: 10, damage: 1.6}
+  - {pattern: [[-5, 0], [5, 0]], rate: 10, damage: 2.2}
+  - {pattern: [[-8, 0], [0, 0], [8, 0]], rate: 10, damage: 1.9}
+  - {pattern: [[-15, 0], [-5, 0], [5, 0], [15, 0]], rate: 10, damage: 1.75}
+overdrive: {pattern: [[-16, 0], [-8, 0], [0, 0], [8, 0], [16, 0]], rate: 10, damage: 1.8}
+notes:
+  layers_hit: '`air`, `low-air` and `ground` (hardened ground targets glance off); not `high-air`; the `sub` layer only in under-water mode, at 50 % ([layer rules](../../../enemies/README.md#layer-rules))'

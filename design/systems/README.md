@@ -19,9 +19,9 @@ saved.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [economy](economy/README.md) | Credits: sources, sinks, pricing curve, sell-back, per-level budget | approved | not-started | n/a |
-| [scoring](scoring/README.md) | Score (separate from credits), chain multiplier, level-end bonuses, grades | approved | not-started | n/a |
-| [difficulty](difficulty/README.md) | What easy, medium and hard change | approved | not-started | n/a |
+| [economy](economy/README.md) | Credits: sources, sinks, pricing curve, sell-back, per-level budget | approved | in-progress | n/a |
+| [scoring](scoring/README.md) | Score (separate from credits), chain multiplier, level-end bonuses, grades | approved | in-progress | n/a |
+| [difficulty](difficulty/README.md) | What easy, medium and hard change | approved | in-progress | n/a |
 | [retry](retry/README.md) | Failure model: ship destroyed → retry the level | approved | in-progress | n/a |
 | [saves](saves/README.md) | Save slots, autosave, save contents | approved | not-started | n/a |
 

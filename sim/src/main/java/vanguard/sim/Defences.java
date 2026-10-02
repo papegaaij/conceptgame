@@ -15,6 +15,7 @@ public final class Defences {
     private final double regenPerStep;
     private double shield;
     private double armour;
+    private double armourLost;
     private int regenWait;
     private int mercy;
     private boolean broken;
@@ -33,6 +34,7 @@ public final class Defences {
     void restore() {
         shield = model.capacity();
         armour = plating.maxArmour();
+        armourLost = 0;
         regenWait = 0;
         mercy = 0;
         broken = false;
@@ -79,6 +81,7 @@ public final class Defences {
         }
         double toArmour = armourDamage + shieldDamage - absorbed;
         if (toArmour > 0) {
+            armourLost += Math.min(armour, toArmour);
             armour = Math.max(0, armour - toArmour);
             mercy = mercyTicks;
             events.add(SimEvents.Type.ARMOUR_HIT, x, y);
@@ -86,8 +89,23 @@ public final class Defences {
         return armour <= 0;
     }
 
+    /** A shield cell: adds {@code points} up to the capacity. */
+    void restoreShield(double points) {
+        shield = Math.min(model.capacity(), shield + points);
+    }
+
+    /** An armour patch: adds {@code points} up to the plating's maximum. */
+    void repair(double points) {
+        armour = Math.min(plating.maxArmour(), armour + points);
+    }
+
     void addTo(StateHash hash) {
-        hash.add(shield).add(armour).add(regenWait).add(mercy).add(broken ? 1 : 0);
+        hash.add(shield).add(armour).add(armourLost).add(regenWait).add(mercy).add(broken ? 1 : 0);
+    }
+
+    /** Armour points lost since the defences were last restored (repairs do not undo it). */
+    public double armourLost() {
+        return armourLost;
     }
 
     public double shield() {

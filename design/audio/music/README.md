@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../campaign]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Music
@@ -22,13 +22,13 @@ everywhere.
 
 | # | Track | Use | Style / notes | Length | Priority | Current material |
 |---|---|---|---|---|---|---|
-| 1 | Title theme | Title & main menu | Heroic main motif, synth-orchestral + beat | 2:00 loop | P1 | [title-theme-r02-a](concept/title-theme-r02-a.ogg) "Terran Vanguard" (chosen); full length: [title-theme-full-r08-a](concept/title-theme-full-r08-a.ogg) (proposed) |
-| 2 | Hangar | Hangar | Laid-back electronic, mechanical ambience, main motif hint | 2:30 loop | P1 | [hangar-theme-r02-a](concept/hangar-theme-r02-a.ogg) "Dry Dock" (chosen); full length: [hangar-theme-full-r08-a](concept/hangar-theme-full-r08-a.ogg) (proposed) |
-| 3 | Briefing | Briefing screens | Tense pads, sparse percussion | 1:30 loop | P2 | [briefing-theme-r08-a](concept/briefing-theme-r08-a.ogg) "Situation Room" (proposed) |
-| 4 | Act 1 A: Earth orbit & Luna | Levels 01–07 | Uplifting tracker trance/techno | 3:00 loop | P1 | [music-r01-a](concept/music-r01-a.ogg) "Afterburner" (chosen); full length: [afterburner-full-r08-a](concept/afterburner-full-r08-a.ogg) (proposed) |
-| 5 | Act 1 B: Earth orbit & Luna | Levels 01–07 | Synth-orchestral, the main motif | 3:00 loop | P1 | [music-r01-b](concept/music-r01-b.ogg) "Coalition Rising" (chosen); full length: [coalition-rising-full-r08-a](concept/coalition-rising-full-r08-a.ogg) (proposed) |
-| 6 | Act 2 A: Earth surface | Levels 08–14 | Urgent breakbeat, orchestral hits, choir; the main motif as a 16th riff | 3:00 | P2 | [earth-theme-r03-a](concept/earth-theme-r03-a.ogg) "Homefront" (chosen); full length: [homefront-full-r08-a](concept/homefront-full-r08-a.ogg) (proposed) |
-| 7 | Act 2 B: Earth surface | Levels 08–14, incl. the L12 storm (no separate storm variant) | Urgent breakbeat, orchestral hits | 3:00 | P2 | [act2-b-theme-r08-a](concept/act2-b-theme-r08-a.ogg) "Firestorm" (proposed) |
+| 1 | Title theme | Title & main menu | Heroic main motif, synth-orchestral + beat | 2:00 loop | P1 | [title-theme-r02-a](concept/title-theme-r02-a.ogg) "Terran Vanguard" (chosen); full length: [title-theme-full-r08-a](concept/title-theme-full-r08-a.ogg) (chosen) |
+| 2 | Hangar | Hangar | Laid-back electronic, mechanical ambience, main motif hint | 2:30 loop | P1 | [hangar-theme-r02-a](concept/hangar-theme-r02-a.ogg) "Dry Dock" (chosen); full length: [hangar-theme-full-r08-a](concept/hangar-theme-full-r08-a.ogg) (chosen) |
+| 3 | Briefing | Briefing screens | Tense pads, sparse percussion | 1:30 loop | P2 | [briefing-theme-r08-a](concept/briefing-theme-r08-a.ogg) "Situation Room" (chosen) |
+| 4 | Act 1 A: Earth orbit & Luna | Levels 01–07 | Uplifting tracker trance/techno | 3:00 loop | P1 | [music-r01-a](concept/music-r01-a.ogg) "Afterburner" (chosen); full length: [afterburner-full-r08-a](concept/afterburner-full-r08-a.ogg) (chosen) |
+| 5 | Act 1 B: Earth orbit & Luna | Levels 01–07 | Synth-orchestral, the main motif | 3:00 loop | P1 | [music-r01-b](concept/music-r01-b.ogg) "Coalition Rising" (chosen); full length: [coalition-rising-full-r08-a](concept/coalition-rising-full-r08-a.ogg) (chosen) |
+| 6 | Act 2 A: Earth surface | Levels 08–14 | Urgent breakbeat, orchestral hits, choir; the main motif as a 16th riff | 3:00 | P2 | [earth-theme-r03-a](concept/earth-theme-r03-a.ogg) "Homefront" (chosen); full length: [homefront-full-r08-a](concept/homefront-full-r08-a.ogg) (chosen) |
+| 7 | Act 2 B: Earth surface | Levels 08–14, incl. the L12 storm (no separate storm variant) | Urgent breakbeat, orchestral hits | 3:00 | P2 | [act2-b-theme-r08-a](concept/act2-b-theme-r08-a.ogg) "Firestorm" (chosen) |
 | 8 | Act 3 A: Mars | Levels 15–21 | Dusty breakbeat, desert-scale (phrygian dominant) lead | 3:00 | P2 | [mars-theme-r02-a](concept/mars-theme-r02-a.ogg) "Red Dust Run" (chosen) |
 | 9 | Act 3 B: Mars | Levels 15–21 | Dusty mid-tempo techno, Vorne's motif as a faint layer | 3:00 | P2 | — |
 | 10 | Act 4 A: Europa | Levels 22–28 | Muffled ambient trance, sonar pings, deep echoes | 3:00 | P2 | [europa-theme-r02-a](concept/europa-theme-r02-a.ogg) "Thera Deep" (chosen) |
@@ -38,15 +38,15 @@ everywhere.
 | 14 | Act 6 A: Jupiter | Levels 36–42 | Vast and stormy: storm strings, thunder, choir; Vorne's motif against the main motif | 3:00 | P3 | [jovian-theme-r03-a](concept/jovian-theme-r03-a.ogg) "Eye of the Storm" (chosen) |
 | 15 | Act 6 B: Jupiter | Levels 36–42 | Heavy, stormy, choir + distorted bass | 3:00 | P3 | — |
 | 16–17 | Act 7 A/B: Beyond the gate | Levels 43–50 | Alien, Choir motif fused with the main motif | 3:00 | P3 | — |
-| 18 | Boss: Vrell | Vrell act bosses | Choir, pounding drums | 2:00 loop | P1 | [boss-theme-r02-a](concept/boss-theme-r02-a.ogg) "The Choir Descends" (chosen); full length: [choir-descends-full-r08-a](concept/choir-descends-full-r08-a.ogg) (proposed) |
+| 18 | Boss: Vrell | Vrell act bosses | Choir, pounding drums | 2:00 loop | P1 | [boss-theme-r02-a](concept/boss-theme-r02-a.ogg) "The Choir Descends" (chosen); full length: [choir-descends-full-r08-a](concept/choir-descends-full-r08-a.ogg) (chosen) |
 | 19 | Boss: Ascendancy | Ascendancy bosses (Iron Sovereign, Ascendant) | Martial and cold: snare rudiments, timpani, machine riff, Vorne's motif | 2:00 loop | P3 | [ascendancy-boss-r03-a](concept/ascendancy-boss-r03-a.ogg) "Iron Sovereign" (chosen) |
 | 20 | Final boss | Level 50 (Choir Heart) | All motifs, full orchestra + beat; the Choir motif against the main motif | 3:00 loop | P3 | [final-boss-r03-a](concept/final-boss-r03-a.ogg) "Choir Heart" (chosen) |
-| 21 | Mini-boss sting | Mini-boss entrance | 4 s stinger, then back to the level track | 0:04 | P2 | [miniboss-sting-r08-a](concept/miniboss-sting-r08-a.ogg) "Contact Heavy" (proposed) |
-| 22 | Boss warning | Before the boss | Alarm + riser, 5 s, bridges to the boss track | 0:05 | P1 | [boss-warning-r08-a](concept/boss-warning-r08-a.ogg) "Red Alert" (proposed) |
-| 23 | Mission complete | Debrief start | Victory jingle | 0:06 | P1 | [mission-complete-r08-a](concept/mission-complete-r08-a.ogg) (proposed) |
-| 24 | Act complete | After an act boss | Longer fanfare | 0:15 | P2 | [act-complete-r08-a](concept/act-complete-r08-a.ogg) (proposed) |
-| 25 | Mission failed | Failure screen | Short downbeat sting | 0:05 | P1 | [mission-failed-r08-a](concept/mission-failed-r08-a.ogg) (proposed) |
-| 26 | Game over | Hard-mode game over | Somber, main motif in minor | 0:20 | P3 | [game-over-r08-a](concept/game-over-r08-a.ogg) (proposed) |
+| 21 | Mini-boss sting | Mini-boss entrance | 4 s stinger, then back to the level track | 0:04 | P2 | [miniboss-sting-r08-a](concept/miniboss-sting-r08-a.ogg) "Contact Heavy" (chosen) |
+| 22 | Boss warning | Before the boss | Alarm + riser, 5 s, bridges to the boss track | 0:05 | P1 | [boss-warning-r08-a](concept/boss-warning-r08-a.ogg) "Red Alert" (chosen) |
+| 23 | Mission complete | Debrief start | Victory jingle | 0:06 | P1 | [mission-complete-r08-a](concept/mission-complete-r08-a.ogg) (chosen) |
+| 24 | Act complete | After an act boss | Longer fanfare | 0:15 | P2 | [act-complete-r08-a](concept/act-complete-r08-a.ogg) (chosen) |
+| 25 | Mission failed | Failure screen | Short downbeat sting | 0:05 | P1 | [mission-failed-r08-a](concept/mission-failed-r08-a.ogg) (chosen) |
+| 26 | Game over | Hard-mode game over | Somber, main motif in minor | 0:20 | P3 | [game-over-r08-a](concept/game-over-r08-a.ogg) (chosen) |
 | 27 | Ending | Campaign ending | Main motif, orchestral | 3:00 | P3 | — |
 | 28 | Credits | Credits roll | Upbeat remix of the title theme | 3:30 | P3 | — |
 
@@ -93,6 +93,10 @@ Which level uses A or B is set per level in the [campaign](../../campaign/README
 Level themes are delivered as two synced stems: **base** and **intensity** (extra drums and
 lead). The intensity stem fades in (1 s) when on-screen enemy density is high or a scripted
 level section asks for it, and fades out 4 s after calm returns.
+
+The concept tracks are full mixes without separate stems; the stems come with the production
+audio after M2. Until then a level that asks for the base stem only (Level 01 until section 4)
+plays the full mix from its music start.
 
 ## Concept art
 
@@ -175,3 +179,11 @@ Generated by `tools/concept/audio/music_r08.py`.
   seek, intro once then the loop section, its own thread); it plays the title theme. A headless
   test compares the stream with a straight decode across two loop seams.
 - 2026-10-01: M1: the test sortie plays "Coalition Rising" (full length, track 5) with its loop points; on death the music cuts and `mission-failed-r08-a` plays as a one-shot, and the track restarts with the sortie.
+- 2026-10-02: M2: Level 01 plays "Coalition Rising" from the section 2 transition over the
+  Earth-orbit ambience, cuts it when the ship is destroyed, fades it over 1 s at the level end and
+  starts the debrief with the mission complete jingle (`vanguard.game.audio.LevelMusic`).
+- 2026-10-02: Mission complete jingle marked chosen in the track list (it was chosen in round
+  08; the "(proposed)" label was stale, as were those of the other round 08 cues and full-length
+  versions, corrected too). Level 01's "base stem until section 4" waits for the
+  production audio after M2, which delivers the stems; until then the full mix plays from
+  section 2 (user decision).

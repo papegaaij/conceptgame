@@ -1,0 +1,34 @@
+package vanguard.content;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Locale;
+
+/**
+ * The parallax layers a backdrop draws on (design/art-direction, Parallax layer model), back to
+ * front; the play plane ({@code air}) lies between {@link #LOW_AIR} and {@link #HIGH_AIR}.
+ */
+public enum BackdropLayer {
+    @JsonProperty("deep")
+    DEEP,
+    @JsonProperty("far")
+    FAR,
+    @JsonProperty("ground")
+    GROUND,
+    @JsonProperty("low-air")
+    LOW_AIR,
+    @JsonProperty("high-air")
+    HIGH_AIR;
+
+    /**
+     * Whether the layer has to cover the whole screen: the back of the stack, which nothing is
+     * drawn behind (design/art-direction, Parallax layer model).
+     */
+    public boolean opaque() {
+        return this == DEEP;
+    }
+
+    /** The name in the documents and data files. */
+    public String key() {
+        return name().toLowerCase(Locale.ROOT).replace('_', '-');
+    }
+}

@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 class DefencesTest {
-    private final Defences defences = new Defences(ShieldModel.MK_I, Plating.STANDARD, 0.25);
+    private final Defences defences = new Defences(TestSpecs.LOADOUT.shield(), TestSpecs.LOADOUT.plating(), 0.25);
     private final SimEvents events = new SimEvents(16);
 
     @Test
@@ -119,6 +119,20 @@ class DefencesTest {
         assertEquals(20, defences.shield());
         assertEquals(60, defences.armour());
         assertEquals(0, defences.mercyTicks());
+    }
+
+    @Test
+    void aShieldCellAndAnArmourPatchRefillUpToTheMaximum() {
+        defences.takeShot(30, events, 0, 0);
+
+        defences.restoreShield(5);
+        defences.repair(10);
+
+        assertEquals(5, defences.shield());
+        assertEquals(60, defences.armour(), "10 lost, 10 repaired");
+        defences.repair(10);
+        assertEquals(60, defences.armour());
+        assertEquals(10, defences.armourLost(), "repairs do not undo the damage taken");
     }
 
     private void step(int steps) {

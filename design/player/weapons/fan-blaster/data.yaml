@@ -1,0 +1,22 @@
+# Fan Blaster: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Fan Blaster
+slot: rear
+traits: [rear, spread]
+price: 1200
+unlock: 10
+draw: [2, 4]
+sfx: pulse
+vfx: pulse
+hits: standard
+speed: 650
+size: [6, 6]
+range: 390
+levels:
+  - {pattern: [[0, 160], [0, 180], [0, 200]], rate: 4, damage: 0.85}
+  - {pattern: [[0, 158], [0, 180], [0, 202]], rate: 4, damage: 1.25}
+  - {pattern: [[0, 155], [0, 171.67], [0, 188.33], [0, 205]], rate: 4, damage: 1.4}
+  - {pattern: [[0, 152], [0, 170], [0, 180], [0, 190], [0, 208]], rate: 4, damage: 1.5}
+  - {pattern: [[0, 150], [0, 170], [0, 180], [0, 190], [0, 210]], rate: 4, damage: 2}
+overdrive: {pattern: [[0, 145], [0, 160], [0, 172], [0, 180], [0, 188], [0, 200], [0, 215]], rate: 4, damage: 2.4}
+notes:
+  layers_hit: '`air`, `low-air` and `ground` (hardened ground targets glance off); not `high-air`; the `sub` layer only in under-water mode, at 50 % ([layer rules](../../../enemies/README.md#layer-rules))'

@@ -1,0 +1,24 @@
+# Torpedo Pod: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Torpedo Pod
+slot: wing
+traits: [anti-sub]
+price: 1000
+unlock: 11
+draw: [1, 3]
+sfx: torpedo
+vfx: torpedo
+hits: anti-sub
+speed: [300, 420]
+size: [5, 16]
+range: 500
+pod: true
+seek: true
+levels:
+  - {pattern: [[0, 0]], rate: 0.8, damage: 12.5, turn: 60}
+  - {pattern: [[0, 0]], rate: 0.9, damage: 14, turn: 60}
+  - {pattern: [[0, 0]], rate: 1, damage: 17, turn: 60}
+  - {pattern: [[0, 0]], rate: 1, damage: 24, turn: 60}
+  - {pattern: [[0, 0]], rate: 1.2, damage: 26.7, turn: 60}
+overdrive: {pattern: [[0, 0]], rate: 1.4, damage: 28, turn: 60}
+notes:
+  layers_hit: the `sub` layer and naval `ground` (surface) targets only; full damage under water ([layer rules](../../../enemies/README.md#layer-rules))

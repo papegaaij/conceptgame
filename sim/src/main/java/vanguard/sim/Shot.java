@@ -1,7 +1,7 @@
 package vanguard.sim;
 
 /** A bolt of the player's front gun, flying straight up until it hits or leaves the screen. */
-public final class Shot {
+public final class Shot implements Hashed {
     private double x;
     private double y;
     private double prevX;
@@ -20,7 +20,8 @@ public final class Shot {
         y += distance;
     }
 
-    void addTo(StateHash hash) {
+    @Override
+    public void addTo(StateHash hash) {
         hash.add(x).add(y).add(damage);
     }
 

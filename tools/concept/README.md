@@ -92,7 +92,21 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 | `vfx_r09.py [beam rook bullets explosions pickups specials warnings]` | beam impact, Rook banking, enemy bullets, explosions, pickups, specials, edge warnings (r09 files) | imports `vfx_r08`; adds the CDF bomber model and a fixed fireball (`explosion_frames9`); ~4 min for all |
 | `scenes_r10.py [geneva] [storm] [ocean] [--sheet]` | `design/art-direction/concept/scene-<name>-r10-a.{png,gif}` | round 10: Geneva rebuilt as a city; storm and ocean within the motion budget (25 fps sampling of the 80-step clock) |
 
-Audio round 08: `audio/music_r08.py` (cues and full-length tracks) and `audio/sfx_r08.py` (synthesized pickups and UI sounds); recorded sounds via `audio/import_sfx.py`. The balancing script is `tools/balance.py` (see `design/player/balance-data.json`).
+## Scripts (game placeholders – level backdrops and ground targets)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `backdrop_l01.py [id ...]` | `assets/backdrop/level-01/<id>.png` (frames `<id>_<n>.png`) | Level 01's tile sets and set pieces at the sizes in its `data.yaml` (`backdrop`); built from the chosen Earth orbit scene (`parallax_r02`/`parallax_r03` helpers, `render/station.py` kit, palette B); ~1.5 min |
+| `ground_targets.py` | `assets/sprites/cargo-container_<n>.png`, `cargo-container-break_<n>.png`, `beacon_<n>.png`, `glint_<n>.png` | Level 01's loot targets to the art direction's readability rule 7, at the sizes in its `data.yaml` (`ground_targets`); `render/sdf.py` with palette B; a few seconds |
+
+Unlike the concept generators, these write **game placeholders into `assets/`**, not concept
+art into `design/`: a chosen scene is a single composed sheet (and the ground targets have no
+concept art yet), so the pieces a level is built from are rendered here from the same models and rules instead of being copied by
+`:pipeline:importPlaceholders` (see the architecture's *Assets* section). Every PNG carries a
+`Placeholder` text chunk naming its script. Rerun it after changing the level's `backdrop` sizes;
+the game's `BackdropAssetsTest` fails when an image is missing or has another size.
+
+Audio round 08: `audio/music_r08.py` (cues and full-length tracks) and `audio/sfx_r08.py` (synthesized pickups and UI sounds); recorded sounds via `audio/import_sfx.py`. The balancing script is `tools/balance.py` (numbers from the parts' `data.yaml` files, purchases from `design/player/balance-plan.yaml`).
 
 ## Audio (round 01)
 

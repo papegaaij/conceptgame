@@ -1,0 +1,5 @@
+# Rules shared by all weapons (README.md, Common rules and Data and balancing).
+# Schema: ../../tech/architecture/README.md#data-file-schemas
+upgrade_cost_factors: [0.5, 1, 2, 4]  # L2-L5 upgrade costs = factor × upgrade base (default: the price)
+draw_round: 0.5                       # draw rises linearly from L1 to L5, rounded to this step (MW)
+single_target: {distance: 100, width: 36}  # single-target DPS: shots that hit a target this wide (px) this far (px) from the muzzle

@@ -1,0 +1,9 @@
+# Armour plating: rendered into README.md. Schema: ../../tech/architecture/README.md#data-file-schemas
+plating:
+  # max armour points, price cr (0 = starter), available
+  - {name: Standard, max: 60, price: 0, available: start}
+  - {name: Composite I, max: 80, price: 600, available: act 1}
+  - {name: Composite II, max: 100, price: 1400, available: act 2}
+  - {name: Composite III, max: 120, price: 3000, available: act 3}
+  - {name: Composite IV, max: 140, price: 6000, available: act 5}
+  - {name: Composite V, max: 160, price: 11000, available: act 6}
