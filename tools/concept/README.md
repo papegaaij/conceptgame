@@ -92,6 +92,13 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 | `vfx_r09.py [beam rook bullets explosions pickups specials warnings]` | beam impact, Rook banking, enemy bullets, explosions, pickups, specials, edge warnings (r09 files) | imports `vfx_r08`; adds the CDF bomber model and a fixed fireball (`explosion_frames9`); ~4 min for all |
 | `scenes_r10.py [geneva] [storm] [ocean] [--sheet]` | `design/art-direction/concept/scene-<name>-r10-a.{png,gif}` | round 10: Geneva rebuilt as a city; storm and ocean within the motion budget (25 fps sampling of the 80-step clock) |
 
+## Scripts (round 11)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `ui_r11.py [a] [b] [c]` | `design/ui/hud/concept/edge-warnings-r11-{a,b,c}.{png,gif}` | three edge-warning looks over a still Level 01 frame built from `assets/`; a few seconds each |
+| `backdrop_fixes_r11.py` | `design/campaign/act-1-first-contact/level-01-break-at-dawn/concept/backdrop-fixes-r11-a.{png,gif}` | before (git `acd4d42`, via `git lfs smudge`) / after (`assets/backdrop/level-01/`) of the `backdrop_l01.py` fixes |
+
 ## Scripts (game placeholders – level backdrops and ground targets)
 
 | Script | Outputs | Notes |
@@ -106,7 +113,7 @@ concept art yet), so the pieces a level is built from are rendered here from the
 `Placeholder` text chunk naming its script. Rerun it after changing the level's `backdrop` sizes;
 the game's `BackdropAssetsTest` fails when an image is missing or has another size.
 
-Audio round 08: `audio/music_r08.py` (cues and full-length tracks) and `audio/sfx_r08.py` (synthesized pickups and UI sounds); recorded sounds via `audio/import_sfx.py`. The balancing script is `tools/balance.py` (numbers from the parts' `data.yaml` files, purchases from `design/player/balance-plan.yaml`).
+Audio round 08: `audio/music_r08.py` (cues and full-length tracks) and `audio/sfx_r08.py` (synthesized pickups and UI sounds); round 11: `audio/music_r11.py` (Coalition Rising base stem) and `audio/sfx_r11.py` (launch rail, edge-warning tones); recorded sounds via `audio/import_sfx.py`. The balancing script is `tools/balance.py` (numbers from the parts' `data.yaml` files, purchases from `design/player/balance-plan.yaml`).
 
 ## Audio (round 01)
 

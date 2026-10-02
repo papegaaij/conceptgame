@@ -653,3 +653,23 @@ it, and every event is placed on the nearest sample of that exact grid (at most 
 **AI prompt** (per track): use the round-01/02/03 prompt of the original sketch and add
 *"full-length 2–3 minute arrangement with varied sections, bridge and breakdown, seamless
 loop"*.
+
+## Round 11 — stems (`tools/concept/audio/music_r11.py`)
+
+### coalition-rising-base-r11-a
+Base stem of "Coalition Rising" full length (track 5), for Level 01 until section 4. One render
+of `music_r08.coalition_full()`: the timpani hits are tagged on their way into the percussion
+group and collected in a separate group, and the base stem is mixed from the ostinato, string
+pad, timpani, choir, harp, flute and riser groups with the full mix's own effect chains,
+coefficients and interlude lift. Mastering is linked (each loudness pass measures the full mix
+and gives both the same gain and ceiling; the encoder's peak correction is shared), so base and
+full have the same length (142.3 s), the same `LOOPSTART` / `LOOPLENGTH` (340772 + 5773091) and
+the same gain: a linear crossfade from base to full adds exactly the brass, lead strings and
+drums. The full mix of that pass is byte-identical to `coalition-rising-full-r08-a.ogg`, so the
+chosen file is the pair's other half (the script checks this; `--full` writes it as r11 if it
+ever differs). The base stem sits 6.4 LU under the full mix; it is not re-mastered on its own,
+since that would break the crossfade.
+
+**AI prompt:** use the "Coalition Rising" prompt and add *"underscore stem only: string ostinato,
+pads, timpani, harp and choir, no brass melody, no drums, same tempo and length as the full mix"*.
+

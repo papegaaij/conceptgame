@@ -210,6 +210,19 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
 - **Hard**: Needlers fire 2-shot bursts; the rear wave has 10 Skitters; the Needler circle breaks
   toward the player in pairs, and selected circle Needlers lead the target (stat-block hook).
 
+## Concept art
+
+Concept [round 11](../../../concept-rounds/round-11/README.md) — two weak spots of the backdrop
+placeholders fixed in `tools/concept/backdrop_l01.py` (not a choice; the board shows before and
+after, made by `tools/concept/backdrop_fixes_r11.py`; prompts:
+[concept/prompts.md](concept/prompts.md)). Only `earth-dawn.png` and `platform-burning_0…3.png`
+in `assets/backdrop/level-01/` changed; every other piece is byte-identical.
+
+| File | What | Status |
+|---|---|---|
+| [concept/backdrop-fixes-r11-a.png](concept/backdrop-fixes-r11-a.png) | Before / after: the dawn terminator (ordered dither, 16 alpha steps and 32 colours instead of hard bands) and the burning platform's four frames (ragged venting plumes in a dull fire ramp with smoke and embers instead of round orange blobs) | chosen |
+| [concept/backdrop-fixes-r11-a.gif](concept/backdrop-fixes-r11-a.gif) | Before / after: the burning platform's loop at 8 fps | chosen |
+
 ## Implementation
 
 - [x] Scroll timeline, sections, atmosphere intensity and parallax content per layer as in *Layout*.
@@ -308,3 +321,7 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
   beside the limb. The deep-layer rule of the [art direction](../../../art-direction/README.md#parallax-layer-model)
   is now checked by the tests.
 - 2026-10-02: Section 5 (Scout Leader) is `clear` instead of `light` (user decision): past Earth's limb there is no cloud deck, so the low-air banks no longer drift over open space in the outro.
+- 2026-10-02: Backdrop placeholder fixes (concept round 11): the dawn terminator's posterization
+  bands are dithered away and the burning platforms' fires are ragged venting plumes instead of
+  blobs; only `earth-dawn` and `platform-burning` were re-rendered.
+- 2026-10-02: Concept round 11: the backdrop fixes (dithered dawn terminator, venting fire plumes) accepted by the user.

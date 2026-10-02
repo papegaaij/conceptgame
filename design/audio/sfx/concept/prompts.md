@@ -634,3 +634,36 @@ AI prompt: "late-90s game UI sound, hangar upgrade: a quick rising synth sweep t
 ### ui-grade-stamp-r08-a (synthesized)
 Debrief grade stamp — punchy thump with a 300 → 140 Hz square body (audible on small speakers), a band-passed paper slap and a low C5 bell. Generator: `tools/concept/audio/sfx_r08.py`.
 AI prompt: "late-90s game UI sound, a grade being stamped onto a debrief report: a punchy rubber-stamp thump with a paper slap and a short low bell, clean synthesized timbre, short, no reverb wash, no voice"
+
+## Round 11 (synthesized, `tools/concept/audio/sfx_r11.py`)
+
+Levelled on the 200 Hz–5 kHz band RMS like the recorded sounds; transients above the ceiling go
+through the look-ahead limiter instead of turning the whole sound down. Launch rail −27 dB /
+−4 dBFS; warning tones −24 dB / −2 dBFS.
+
+### launch-rail-r11-a (synthesized)
+Launch rail "mag-lev" — 4.9 s: a saw/pulse linear-motor hum (62 → 362 Hz, low-pass opening) and a
+whine at its 6th harmonic rising with the ship's speed, coil ticks at the rail segments (5 → 46
+per second, an even acceleration), the motor letting go at 3.6 s with a low clunk, a metal ring
+and a latch click, then the engine whoosh into open space. Generator: `tools/concept/audio/sfx_r11.py`.
+AI prompt: "late-90s sci-fi game sound, a fighter launched down an electromagnetic rail on an orbital station: rising linear-motor hum and whine, accelerating clicks of rail segments, a heavy release clunk with a metallic ring, then a short engine whoosh, about 5 seconds, clean, no voice, no music"
+
+### launch-rail-r11-b (synthesized)
+Launch rail "catapult" — 4.9 s: a pressure hiss building (band-pass opening 1.2 → 4.2 kHz), the
+shuttle rumbling over the rail joints (3 → 30 per second) with a metal rattle, a faint pressure
+whistle, a heavy two-stage buffer clunk at 3.6 s with a ring, then the steam vent dying away.
+Generator: `tools/concept/audio/sfx_r11.py`.
+AI prompt: "late-90s sci-fi game sound, an aircraft-carrier style steam catapult on a space station: building pressure hiss, rumbling shuttle over rail joints with rattles, a heavy buffer clunk, venting steam, about 5 seconds, no voice, no music"
+
+### ui-edge-warning-r11-a (synthesized)
+Edge warning tone "triple chirp" — three 75 ms square blips (30 % pulse width, low-passed at
+3.5 kHz) on A5, A5, E6, 0.267 s apart (the warning's flash cycle: 8 game frames on, 8 off), each
+with a quiet octave edge. Generator: `tools/concept/audio/sfx_r11.py`.
+AI prompt: "late-90s arcade shooter HUD alert, three short soft square-wave chirps, the last one higher, crisp and attention-grabbing but not harsh, under one second, no voice"
+
+### ui-edge-warning-r11-b (synthesized)
+Edge warning tone "contact ping" — an upward chirp (700 Hz → 1.6 kHz in ~60 ms) into a ringing
+ping that decays over ~0.35 s, a quieter repeat one flash cycle later, a little room.
+Generator: `tools/concept/audio/sfx_r11.py`.
+AI prompt: "late-90s sci-fi game radar contact alert, a short rising chirp into a ringing ping with one quieter echo, clean synthesized, under one second, no voice"
+

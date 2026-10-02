@@ -12,6 +12,8 @@ Requires Python 3, numpy and the `ffmpeg` binary (with libvorbis). No other audi
 | `music.py` | Concept round 01 music sketches (`a` trance/techno, `b` synth-orchestral) | `design/audio/music/concept/*.ogg` |
 | `music_r02.py` | Concept round 02: five loopable themes (`title hangar boss mars europa`). Intro + loop + fade tail per file, loop points in the `LOOPSTART`/`LOOPLENGTH` Vorbis comments, sample-exact loops | `design/audio/music/concept/*-r02-a.ogg` |
 | `music_r03.py` | Concept round 03: five more themes (`earth belt jovian ascendancy final`), same loop format; adds Vorne's motif and new voices (trumpet, storm tremolo strings, organ, anvils, thunder, heartbeat, radio static, siren) | `design/audio/music/concept/*-r03-a.ogg` |
+| `sfx_r11.py` | Concept round 11: synthesized launch-rail sounds and edge-warning tones, band-levelled (200 Hz–5 kHz RMS, limiter at the ceiling) | `design/audio/sfx/concept/{launch-rail,ui-edge-warning}-r11-*.ogg` |
+| `music_r11.py` | Concept round 11: base stem of "Coalition Rising", from the same render as the chosen full mix (tagged timpani, the full mix's chains, linked mastering); checks that the full mix is still byte-identical to the r08 file (`--full` writes it otherwise) | `design/audio/music/concept/coalition-rising-base-r11-a.ogg` |
 | `analyze.py` | Objective checks: duration, peak, RMS, DC, LUFS, true peak, edge levels; optional spectrogram PNGs | stdout (+ PNGs in a directory you give it) |
 
 ```
