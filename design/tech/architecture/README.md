@@ -162,8 +162,10 @@ first entry of a part's model list is the starter (price 0, `start`).
   a trigger's `hits`, `reveals`); `secrets` (`name`, hidden `crate` credits, `radio` line); placed
   `pickups` (`pickup`, `dropped_by` wave and unit); `radio` cues (trigger `t` or `event`
   `first-kill` (with `enemy`) / `secondary-objective` / `level-end`; `speaker`, `line`,
-  `distorted`); `objectives` (`primary`, `secondary` `kill_ratio` and `credits`); `music`
-  (`track`, `start_section`, `full_section`, `ambience`, `end_jingle`); `difficulty` (level-wide
+  `distorted`, and `easy` / `hard` changes giving another `line`, as when a wave enters elsewhere on
+  that difficulty); `objectives` (`primary`, `secondary` `kill_ratio` and `credits`); `music`
+  (`track`, `start_section`, optional `start_db` (the theme's level through its start section,
+  rising to full at the next), `full_section`, `ambience`, `end_jingle`); `difficulty` (level-wide
   `easy` / `hard` enemy changes such as `burst`, and `extra_pickups` placed like `pickups`);
   `threat_profile` (the hangar intel: `setting`, `layers`, `density` 1–5, recommended `traits`,
   `hazards`, `boss`, optional `specials` limits, `varga` lines per sensor level `none`/`l1`/`l2`/
@@ -434,3 +436,11 @@ Screenshot tests are left out until there is a need.
   `TacticalMap`, and `Names`. `sim`: `PulseCannon.pattern` fires a level's parallel bolts (the
   replay hash is unchanged at L1). Level data: `threat_profile` is structured (above); the save's
   inventory is a map by kind.
+- 2026-10-02: Level 01 music and radio fixes. `LevelData.RadioCue` takes `easy` / `hard`
+  `RadioChange`s (another line), applied by `SimSpecs` like the waves' changes, so the sim's cue list
+  and the replay are unchanged; `LevelData.Music.startDb` sets the theme's level in its start
+  section, which `LevelMusic` raises to full over 2 s after it. The outro after a won level is
+  `vanguard.game.level.Outro`: `LevelScreen` hands over to the debrief once `RadioQueue.idle()`
+  (nothing shown or queued), at the latest `LevelData.OUTRO_SECONDS` (now 15 s, the longest outro,
+  which the backdrop checks step through) after the level end; the sim's level result is
+  unchanged.

@@ -2,7 +2,7 @@
 title: Pulse Cannon
 design: approved
 implementation: in-progress
-art: chosen
+art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-02
 ---
@@ -56,8 +56,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 
 | File | What | Status |
 |---|---|---|
-| [concept/pulse-cannon-final-r12-a.png](concept/pulse-cannon-final-r12-a.png) | Final effects: the bolt (14×26), 3 muzzle-flash and 4 impact frames (the fade rebalanced so the last frame still shows), additive, one palette per set | proposed |
-| [concept/pulse-cannon-final-r12-a.gif](concept/pulse-cannon-final-r12-a.gif) | Level-1 fire at 60 Hz steps (a bolt every 6 steps, 15 px per step) with muzzle flash and impact | proposed |
+| [concept/pulse-cannon-final-r12-a.png](concept/pulse-cannon-final-r12-a.png) | Final effects: the bolt (14×26), 3 muzzle-flash and 4 impact frames (the fade rebalanced so the last frame still shows), additive, one palette per set | chosen |
+| [concept/pulse-cannon-final-r12-a.gif](concept/pulse-cannon-final-r12-a.gif) | Level-1 fire at 60 Hz steps (a bolt every 6 steps, 15 px per step) with muzzle flash and impact | chosen |
 
 ## Implementation
 
@@ -79,3 +79,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   the pattern's x offsets; `vanguard.sim.PulseCannon.pattern`). The overdrive pattern follows with
   the overdrive pickup, so the pattern item stays open.
 - 2026-10-02: Production art (Level 01 batch, `tools/art/pulse_cannon.py`): bolt, muzzle flash and impact are the round-08 light fields written premultiplied on black (exactly what the additive blend adds; the placeholders were cut from the sheet with its checkerboard subtracted), same sizes and frame counts. Review files proposed for round 12.
+- 2026-10-02: Concept round 12 closed (user decision): bolt, muzzle flash and impact approved as **final**, `art: final`.

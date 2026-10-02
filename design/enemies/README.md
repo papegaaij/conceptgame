@@ -448,8 +448,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 
 | File | What | Status |
 |---|---|---|
-| [concept/enemy-bullets-final-r12-a.png](concept/enemy-bullets-final-r12-a.png) | Final Vrell `small` bullets: the orb (15×15, 4-frame core pulse) and the needle (23×23, 16 headings clockwise from straight down; a gold deep band and a tight 2/3 halo instead of the faint olive one) | proposed |
-| [concept/enemy-bullets-final-r12-a.gif](concept/enemy-bullets-final-r12-a.gif) | Orbs and needles drifting over a dark blue field | proposed |
+| [concept/enemy-bullets-final-r12-a.png](concept/enemy-bullets-final-r12-a.png) | Final Vrell `small` bullets: the orb (15×15, 4-frame core pulse) and the needle (23×23, 16 headings clockwise from straight down; a gold deep band and a tight 2/3 halo instead of the faint olive one) | chosen |
+| [concept/enemy-bullets-final-r12-a.gif](concept/enemy-bullets-final-r12-a.gif) | Orbs and needles drifting over a dark blue field | chosen |
 
 ## Implementation
 
@@ -524,3 +524,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   the fast class (user decision).
 - 2026-10-02: Edge warnings start at least 3 s ahead (was 1.5 s; user decision after playing Level 01, the warnings were easy to miss).
 - 2026-10-02: Production art (Level 01 batch, `tools/art/enemy_bullets.py`): the Vrell orb as 4 frames (core pulse; the game now animates it at 15 fps, each bullet at its own phase) and the needle as a 16-heading angle set (`needle_<k>`, k × 22.5° clockwise from down; not used by Level 01). The body has 1-bit alpha, the outer glow four translucency steps. Review files proposed for round 12.
+- 2026-10-02: Concept round 12 closed (user decision): the Vrell `small` bullets (orb and needle) approved as **final**; this index's `art` stays `chosen`, since the other enemies' art is still concept art.

@@ -49,17 +49,17 @@ public record LevelData(
     }
 
     /**
-     * After the level end the scroll runs on this long under the last radio line before the debrief
-     * (the outro), so the backdrop has to hold until then.
+     * After the level end the scroll runs on under the radio until its last message has been shown
+     * (the outro), at most this long before the debrief, so the backdrop has to hold until then.
      */
-    public static final double OUTRO_SECONDS = 5;
+    public static final double OUTRO_SECONDS = 15;
 
     /** The level's length in seconds: the end of the last section. */
     public double seconds() {
         return sections.getLast().end();
     }
 
-    /** When the outro ends and the debrief takes over: the last moment the backdrop is on screen. */
+    /** When the longest outro ends and the debrief takes over: the last moment the backdrop is on screen. */
     public double outroEnd() {
         return seconds() + OUTRO_SECONDS;
     }
@@ -273,6 +273,8 @@ public record LevelData(
      * A radio chatter cue, triggered at {@code t} seconds or by an {@code event}.
      *
      * @param enemy the enemy of a {@code first-kill} event
+     * @param easy changes on easy
+     * @param hard changes on hard
      */
     public record RadioCue(
             Optional<Double> t,
@@ -280,7 +282,9 @@ public record LevelData(
             Optional<String> enemy,
             String speaker,
             String line,
-            Optional<Boolean> distorted) {
+            Optional<Boolean> distorted,
+            Optional<RadioChange> easy,
+            Optional<RadioChange> hard) {
         public RadioCue {
             Check.that(t.isPresent() != event.isPresent(), "give the trigger as t or as event");
             Check.that(
@@ -288,6 +292,9 @@ public record LevelData(
                     "a first-kill event names its enemy, other triggers do not");
         }
     }
+
+    /** A difficulty's changes to a radio cue: another line, as when a wave enters elsewhere. */
+    public record RadioChange(String line) {}
 
     public enum CueEvent {
         @JsonProperty("first-kill")
@@ -314,11 +321,15 @@ public record LevelData(
      *
      * @param track the track number of design/audio/music
      * @param startSection the section the music starts in (ambience only before)
+     * @param startDb the theme's level through its start section, dB (full when absent); it rises
+     *     to full at the next section
      * @param fullSection the section from which all stems play (the base stem before)
      */
-    public record Music(int track, int startSection, int fullSection, String ambience, String endJingle) {
+    public record Music(
+            int track, int startSection, Optional<Double> startDb, int fullSection, String ambience, String endJingle) {
         public Music {
             Check.that(startSection <= fullSection, "full_section must not come before start_section");
+            startDb.ifPresent(db -> Check.that(db <= 0, "start_db: must not be above full level"));
         }
     }
 

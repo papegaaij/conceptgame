@@ -2,7 +2,7 @@
 title: Skitter
 design: approved
 implementation: in-progress
-art: chosen
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-02
 ---
@@ -58,8 +58,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 
 | File | What | Status |
 |---|---|---|
-| [concept/skitter-final-r12-a.png](concept/skitter-final-r12-a.png) | Final sprites: 16 headings × the 6-frame wing beat (96 frames, 24×24, 24 colours): the beat at two headings at 6×, every heading with the wings raised and spread at 3× and at 1× | proposed |
-| [concept/skitter-final-r12-a.gif](concept/skitter-final-r12-a.gif) | A snake of five on a figure-eight, each showing the heading nearest its direction of flight, beating at 10 fps | proposed |
+| [concept/skitter-final-r12-a.png](concept/skitter-final-r12-a.png) | Final sprites: 16 headings × the 6-frame wing beat (96 frames, 24×24, 24 colours): the beat at two headings at 6×, every heading with the wings raised and spread at 3× and at 1× | chosen |
+| [concept/skitter-final-r12-a.gif](concept/skitter-final-r12-a.gif) | A snake of five on a figure-eight, each showing the heading nearest its direction of flight, beating at 10 fps | chosen |
 
 ## Implementation
 
@@ -93,3 +93,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   direction of each step's movement by at most 22.5° per step (art direction, Rotation) and is not
   part of the state hash, so replays are unchanged; `EnemyLooks` draws the nearest heading. The
   `orientation` field is typed (`vanguard.content.Orientation`).
+- 2026-10-02: Concept round 12 closed (user decision): the 16-heading × 6-frame production sprites (`tools/art/skitter.py`) approved as **final**, `art: final`.

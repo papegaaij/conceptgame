@@ -103,7 +103,7 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 ## Implementation
 
 - [x] `tools/art/` with the production render path (angle-set renderer, pivot files, `Source` chunk)
-- [ ] Level 01 parts final and approved by the user (list under *Order of work*)
+- [x] Level 01 parts final and approved by the user (list under *Order of work*)
 - [x] `importPlaceholders` skips parts that have final assets
 - [x] Atlas budget check per level in the build (pages and MiB against the table)
 - [x] Level 01 backdrop rendered by `tools/art/backdrop_l01.py` (proposed in round 12)
@@ -153,3 +153,4 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
   pulse impact's last frame no longer fades to black; the needle's rim is gold and its halo tight;
   the crate shows its cross on every face; the loot container's pieces crumble from their edges
   instead of dissolving in a dither checker. Explosions, backdrop and SFX unchanged.
+- 2026-10-02: Concept round 12 closed (user decision): every Level 01 part approved as final; the parts with their own doc are `art: final`, the aggregate docs (enemies, player, art direction, SFX) record the final assets in their Decisions and keep `chosen`.

@@ -1,8 +1,8 @@
 ---
 title: Concept round 12 — Level 01 production batch
-design: review
+design: approved
 implementation: n/a
-art: proposed
+art: chosen
 updated: 2026-10-02
 ---
 
@@ -22,16 +22,16 @@ approved part gets `art: final`.
 
 | # | Part | What is proposed | Review files | Weak spots (Claude) | Outcome |
 |---|---|---|---|---|---|
-| 1 | [Stormhawk](../../player/ship/README.md) | 5 banking frames (48×48, 32 colours), the five wing-pod types per frame with pivots, the 3 × 3 engine flame. **P3:** roll ±15° / ±30° seen through a mild perspective camera (the raised wing grows, the lowered one shrinks); pods in lighter, shaded metal | `player-ship-final-r12-a` | the hull's hit boxes (`hull` in data.yaml, from the old hard-bank frame) now cover about 1 px of empty space at the lowered wingtip in the hard-bank frames; left unchanged since it is gameplay | open |
-| 2 | [Skitter](../../enemies/air/skitter/README.md) | **P3:** `16 angles` (user decision): 16 headings × the 6-frame wing beat (96 frames, 24×24, 24 colours); the wings lift and sweep, so the beat changes the shape; in the game each Skitter shows the heading nearest its direction of flight | `skitter-final-r12-a` | at the raised-wing frames the wings are thin slivers in the diagonal headings | open |
-| 3 | [Needler](../../enemies/air/needler/README.md) | 6-frame claw snap (36×36, 32 colours), `fixed`. **P3:** wider swing, opening over three frames and snapping shut in one | `needler-final-r12-a` | none seen | open |
-| 4 | [Pulse cannon](../../player/weapons/pulse-cannon/README.md) | bolt (14×26), 3-frame muzzle flash, 4-frame impact, additive. **P3:** the impact's fade rebalanced (first 4 of 5 steps) | `pulse-cannon-final-r12-a` | the impact's last sparks are dim blue-grey, but visible | open |
-| 5 | [Vrell bullets](../../enemies/README.md) | orb with a 4-frame core pulse (15×15), needle in 16 headings (23×23). **P3:** the needle's deep band saturated gold, its halo cut to a tight 2/3 band | `enemy-bullets-final-r12-a` | none seen | open |
-| 6 | [Pickups](../../player/README.md) | small salvage, shield cell, armour patch, crate: 8-frame spin loops (28–34 px). **P3:** the crate's cross on every face it turns to the viewer | `pickups-final-r12-a` | none seen | open |
-| 7 | [Explosions](../../art-direction/README.md) | the ladder tiny / small / medium / large (24–96 px, 12–14 frames, additive) | `explosions-final-r12-a` | none seen (the sheet cuts the large row's last frame; the GIF shows it) | open |
-| 8 | [Loot targets](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) | cargo container intact / damaged, its 8-frame break-apart, the beacon (4 states), the glint. **P3:** the pieces crumble from their edges over the last three frames | `loot-targets-final-r12-a` | the last frame leaves only a few embers | open |
-| 9 | [Level 01 backdrop](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) | every tile set and set piece at the production bar (12–32 colours, dithered limb and Vrell glow, 4× Moon, Aegis Two through the sprite path), the four mirrored placements as their own renders | `backdrop-final-r12-a`, `game-capture-final-r12-a` (retaken in P3 with the reworked sprites) | the layouts, the Earth tile and the bright solar panels are the placeholder's; Aegis Two is now 18 px (the far scale of the 48 px ship) instead of 22 | open |
-| 10 | [Recorded SFX](../../audio/sfx/README.md) | the 75 chosen recorded sounds rebuilt from the Freesound originals with their unchanged settings (`tools/art/sfx_originals.py`) | *Listening* below | `enemy-shot-small-r08-b` peaks 1.7 dB lower at the same band level; 13 originals above full scale are clipped first, as the previews were | open |
+| 1 | [Stormhawk](../../player/ship/README.md) | 5 banking frames (48×48, 32 colours), the five wing-pod types per frame with pivots, the 3 × 3 engine flame. **P3:** roll ±15° / ±30° seen through a mild perspective camera (the raised wing grows, the lowered one shrinks); pods in lighter, shaded metal | `player-ship-final-r12-a` | the hull's hit boxes (`hull` in data.yaml, from the old hard-bank frame) now cover about 1 px of empty space at the lowered wingtip in the hard-bank frames; left unchanged since it is gameplay | approved — final; hit boxes unchanged (user decision: the ~1 px is negligible) |
+| 2 | [Skitter](../../enemies/air/skitter/README.md) | **P3:** `16 angles` (user decision): 16 headings × the 6-frame wing beat (96 frames, 24×24, 24 colours); the wings lift and sweep, so the beat changes the shape; in the game each Skitter shows the heading nearest its direction of flight | `skitter-final-r12-a` | at the raised-wing frames the wings are thin slivers in the diagonal headings | approved — final |
+| 3 | [Needler](../../enemies/air/needler/README.md) | 6-frame claw snap (36×36, 32 colours), `fixed`. **P3:** wider swing, opening over three frames and snapping shut in one | `needler-final-r12-a` | none seen | approved — final |
+| 4 | [Pulse cannon](../../player/weapons/pulse-cannon/README.md) | bolt (14×26), 3-frame muzzle flash, 4-frame impact, additive. **P3:** the impact's fade rebalanced (first 4 of 5 steps) | `pulse-cannon-final-r12-a` | the impact's last sparks are dim blue-grey, but visible | approved — final |
+| 5 | [Vrell bullets](../../enemies/README.md) | orb with a 4-frame core pulse (15×15), needle in 16 headings (23×23). **P3:** the needle's deep band saturated gold, its halo cut to a tight 2/3 band | `enemy-bullets-final-r12-a` | none seen | approved — final |
+| 6 | [Pickups](../../player/README.md) | small salvage, shield cell, armour patch, crate: 8-frame spin loops (28–34 px). **P3:** the crate's cross on every face it turns to the viewer | `pickups-final-r12-a` | none seen | approved — final |
+| 7 | [Explosions](../../art-direction/README.md) | the ladder tiny / small / medium / large (24–96 px, 12–14 frames, additive) | `explosions-final-r12-a` | none seen (the sheet cuts the large row's last frame; the GIF shows it) | approved — final |
+| 8 | [Loot targets](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) | cargo container intact / damaged, its 8-frame break-apart, the beacon (4 states), the glint. **P3:** the pieces crumble from their edges over the last three frames | `loot-targets-final-r12-a` | the last frame leaves only a few embers | approved — final |
+| 9 | [Level 01 backdrop](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) | every tile set and set piece at the production bar (12–32 colours, dithered limb and Vrell glow, 4× Moon, Aegis Two through the sprite path), the four mirrored placements as their own renders | `backdrop-final-r12-a`, `game-capture-final-r12-a` (retaken in P3 with the reworked sprites) | the layouts, the Earth tile and the bright solar panels are the placeholder's; Aegis Two is now 18 px (the far scale of the 48 px ship) instead of 22 | approved — final |
+| 10 | [Recorded SFX](../../audio/sfx/README.md) | the 75 chosen recorded sounds rebuilt from the Freesound originals with their unchanged settings (`tools/art/sfx_originals.py`) | *Listening* below | `enemy-shot-small-r08-b` peaks 1.7 dB lower at the same band level; 13 originals above full scale are clipped first, as the previews were | approved — final |
 
 ## Notes
 
@@ -133,3 +133,4 @@ within 1 dB except the noted peak.
 - 2026-10-02: Part P3 before the review: the Skitter's 16 headings (user decision) and the clear
   weak spots of rows 1–6 and 8 reworked (see **P3** in each row); review files and the game capture
   rebuilt. Explosions, backdrop and SFX unchanged.
+- 2026-10-02: Round closed (user decision): all ten parts approved as **final**; the parts with their own doc are `art: final` (Stormhawk, Skitter, Needler, pulse cannon, Level 01), the aggregate docs record the final assets in their Decisions. The Stormhawk's hull hit boxes stay unchanged (the ~1 px over empty space in the hard-bank frames is negligible).

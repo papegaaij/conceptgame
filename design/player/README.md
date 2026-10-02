@@ -20,7 +20,7 @@ generator limits what can be fitted at the same time.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | approved | in-progress | chosen |
+| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | approved | in-progress | final |
 | [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | approved | in-progress | chosen |
 | [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | approved | in-progress | none |
 | [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | approved | in-progress | none |
@@ -133,8 +133,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 
 | File | What | Status |
 |---|---|---|
-| [concept/pickups-final-r12-a.png](concept/pickups-final-r12-a.png) | Final 8-frame loops of salvage S, the shield cell, the armour patch and the hidden crate (salvage L, its cyan cross on every face it turns to the viewer), with the pulsing light outline and halo | proposed |
-| [concept/pickups-final-r12-a.gif](concept/pickups-final-r12-a.gif) | The four loops at 10 fps | proposed |
+| [concept/pickups-final-r12-a.png](concept/pickups-final-r12-a.png) | Final 8-frame loops of salvage S, the shield cell, the armour patch and the hidden crate (salvage L, its cyan cross on every face it turns to the viewer), with the pulsing light outline and halo | chosen |
+| [concept/pickups-final-r12-a.gif](concept/pickups-final-r12-a.gif) | The four loops at 10 fps | chosen |
 
 ## Implementation
 
@@ -181,3 +181,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   from M4 (`Flight`). The spare-power shield regen bonus is not applied in flight yet (M4), so
   the hangar does not show it.
 - 2026-10-02: Production art (Level 01 batch, `tools/art/pickups.py`): the four pickups Level 01 uses, every frame its own 8× render of the round-09 model with one palette per loop; the 1 px light outline is opaque and pulses in brightness, the halo is stepped to four translucency levels. Same sizes as the placeholders. Review files proposed for round 12.
+- 2026-10-02: Concept round 12 closed (user decision): the four pickups' production loops approved as **final**; this doc's `art` stays `chosen`, since its other art is still concept art.

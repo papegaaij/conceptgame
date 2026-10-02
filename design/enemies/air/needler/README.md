@@ -2,7 +2,7 @@
 title: Needler
 design: approved
 implementation: in-progress
-art: chosen
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-02
 ---
@@ -58,8 +58,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 
 | File | What | Status |
 |---|---|---|
-| [concept/needler-final-r12-a.png](concept/needler-final-r12-a.png) | Final sprites: the 6-frame claw snap (36×36, 32 colours; opens over three frames, snaps shut in one), at 5× and 1× | proposed |
-| [concept/needler-final-r12-a.gif](concept/needler-final-r12-a.gif) | The cycle at 10 fps, three units at their own phase as in a formation | proposed |
+| [concept/needler-final-r12-a.png](concept/needler-final-r12-a.png) | Final sprites: the 6-frame claw snap (36×36, 32 colours; opens over three frames, snaps shut in one), at 5× and 1× | chosen |
+| [concept/needler-final-r12-a.gif](concept/needler-final-r12-a.gif) | The cycle at 10 fps, three units at their own phase as in a formation | chosen |
 
 ## Implementation
 
@@ -94,3 +94,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - 2026-10-02: Production art (Level 01 batch, `tools/art/vrell_air.py`): the 6-frame claw snap (36×36, 32 colours), rendered at 8× from the chosen round-04 model with one palette for the cycle (the placeholder had 3 frames, which snapped from the last back to the first). `orientation: fixed` in the stat block, so no heading set; the production plan's "angle sets" for Level 01's enemies are therefore not rendered (open point for the user). Review files proposed for round 12.
 - 2026-10-02: Orientation stays `fixed` (user decision, Level 01 batch part P3); the claw snap got
   a wider swing (opening over three frames, snapping shut in one) so it reads in play.
+- 2026-10-02: Concept round 12 closed (user decision): the 6-frame claw-snap production sprites approved as **final**, `art: final`.

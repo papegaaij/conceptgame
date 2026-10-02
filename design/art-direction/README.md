@@ -410,8 +410,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 
 | File | What | Status |
 |---|---|---|
-| [concept/explosions-final-r12-a.png](concept/explosions-final-r12-a.png) | Final fireball frames of the ladder up to large: tiny 24 px / 12, small 40 / 12, medium 64 / 14, large 96 / 14 frames, additive | proposed |
-| [concept/explosions-final-r12-a.gif](concept/explosions-final-r12-a.gif) | The four rungs side by side | proposed |
+| [concept/explosions-final-r12-a.png](concept/explosions-final-r12-a.png) | Final fireball frames of the ladder up to large: tiny 24 px / 12, small 40 / 12, medium 64 / 14, large 96 / 14 frames, additive | chosen |
+| [concept/explosions-final-r12-a.gif](concept/explosions-final-r12-a.gif) | The four rungs side by side | chosen |
 
 Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the motion-budget rule; generator `tools/concept/scenes_r10.py`.
 
@@ -502,3 +502,4 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
   with bars only where it is not 16:9); optional CRT scanlines.
 - 2026-10-02: Production art plan drafted ([production](production/README.md)), for review.
 - 2026-10-02: Production art (Level 01 batch, `tools/art/explosions.py`): every frame of the chosen round-09 fireball for tiny, small, medium and large (the large placeholder had 11 of its 14 frames and the frame numbers of the sheet masked out), premultiplied on black with one palette per rung. The game's ship death now plays 14 frames (the ship doc's 12 is the old count). Review files proposed for round 12.
+- 2026-10-02: Concept round 12 closed (user decision): the explosion ladder up to large approved as **final**; this doc's `art` stays `chosen`, since the rest of its art (huge rung, other effects, palette sheets) is concept art.

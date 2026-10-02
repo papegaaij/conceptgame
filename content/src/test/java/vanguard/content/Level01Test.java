@@ -11,10 +11,15 @@ import vanguard.sim.LevelResult;
 import vanguard.sim.LevelScript;
 import vanguard.sim.Loadout;
 import vanguard.sim.PickupType;
+import vanguard.sim.SimEvents;
 import vanguard.sim.Sortie;
+import vanguard.sim.WarningEdge;
 import vanguard.sim.WaveSpec;
 
-/** Level 01 as the game runs it: its credit budget, whole headless runs at every difficulty and allocation. */
+/**
+ * Level 01 as the game runs it: its credit budget, the t=134 wave's warning and radio line, whole
+ * headless runs at every difficulty and allocation.
+ */
 class Level01Test {
     static final String LEVEL = "act-1-first-contact/level-01-break-at-dawn";
     /** Long enough for a few retries. */
@@ -76,6 +81,37 @@ class Level01Test {
                 SimSpecs.level(content, LEVEL, Difficulty.MEDIUM).waves().stream()
                         .mapToInt(WaveSpec::count)
                         .sum());
+    }
+
+    @ParameterizedTest
+    @EnumSource(
+            value = Difficulty.class,
+            names = {"EASY", "MEDIUM"})
+    void theT134WaveIsWarnedWhereItEnters(Difficulty difficulty) {
+        boolean rear = difficulty != Difficulty.EASY;
+        Sortie sortie = new Sortie(
+                2185,
+                SimSpecs.starterLoadout(content, difficulty),
+                SimSpecs.level(content, LEVEL, difficulty),
+                SimSpecs.rules(content, LEVEL, difficulty).withInvulnerableShip(),
+                1);
+        int warned = 0;
+        String line = "";
+        while (sortie.levelSeconds() < 134) {
+            sortie.step(0);
+            if (sortie.levelSeconds() > 130) {
+                warned |= sortie.edgeWarnings();
+            }
+            SimEvents events = sortie.events();
+            for (int i = 0; i < events.size(); i++) {
+                if (events.type(i) == SimEvents.Type.RADIO && sortie.levelSeconds() > 130) {
+                    line = sortie.script().radio().get(events.value(i)).line();
+                }
+            }
+        }
+
+        assertEquals(rear ? WarningEdge.BOTTOM.bit() : 0, warned, "the bottom edge warns only for a rear entry");
+        assertEquals(rear ? "Contacts on your six, Lancer!" : "More contacts, dead ahead!", line);
     }
 
     @ParameterizedTest

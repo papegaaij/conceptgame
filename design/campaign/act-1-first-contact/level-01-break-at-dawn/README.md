@@ -2,7 +2,7 @@
 title: Level 01 – Break at Dawn
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../../enemies/air/skitter, ../../../enemies/air/needler]
 updated: 2026-10-02
 ---
@@ -93,8 +93,8 @@ with the layout mirrored and the key light still top-left.
 | 1. Launch | clear: wisps, haze 0 % | `earth`; earth-dawn 0–103 s; moon 3–39 s | north-arm 0–12 s; stormhawk-far flies 1.5–6 s; stormhawk-far flies 2.5–7 s | launch-rail 0–4 s; crossbeam 20–24 s | | |
 | 2. First Wave | light: banks-light, wisps, haze 8 % | `earth` | | `dock-frames`; dock-frame 27–33 s; dock-frame-mirrored 40–46 s; dock-frame 51–57 s; crossbeam 60–64 s | | |
 | 3. Yard Crossing | light: banks-light, wisps, haze 8 % | `earth` | | `gantry-rails`; bridge-crane-mirrored 68–72 s; cruiser-hull 78–86 s; bridge-crane 90–94 s; crossbeam 110–114 s | lattice-beam 64–68 s; crane-jib 72–76 s; lattice-beam 83–87 s; crane-jib-mirrored 95–99 s; lattice-beam 101–105 s | |
-| 4. Pursuit | medium: banks-medium, wisps, haze 16 % | `earth`; earth-limb 143–180 s | | `perimeter`; platform-burning 115–121 s; platform-burning-mirrored 131–137 s; platform-burning 147–153 s; crossbeam 160–164 s | | `spark-streaks` |
-| 5. Scout Leader | clear: wisps, haze 0 % | `earth`; vrell-glow 167–180 s | | platform 165–171 s | | |
+| 4. Pursuit | medium: banks-medium, wisps, haze 16 % | `earth`; earth-limb 149–180 s | | `perimeter`; platform-burning 115–121 s; platform-burning-mirrored 131–137 s; platform-burning 147–153 s; crossbeam 160–164 s | | `spark-streaks` |
+| 5. Scout Leader | clear: wisps, haze 0 % | `earth`; vrell-glow 176–180 s | | platform 165–171 s | | |
 <!-- /data -->
 
 ### Launch and control prompts
@@ -174,7 +174,7 @@ heard on the radio only.
 | First Skitter destroyed | Rook | "They pop like bugs. Big, angry bugs." |
 | t=40 (Needlers enter) | Varga | "Those ones are armed. Keep moving." |
 | t=73 (before side wave) | Rook | "Movement on your left! They're flanking the yard." |
-| t=131 (before rear wave) | Okafor | "Contacts on your six, Lancer!" |
+| t=131 (before rear wave) | Okafor | "Contacts on your six, Lancer!"; easy: "More contacts, dead ahead!" |
 | t=160 | The Choir (distorted) | "[the Choir sings]" |
 | t=161 | Varga | "That isn't noise. There's structure in it. Commander, I think that was a signal." |
 | Level end | Okafor | "Good work, Aegis. That was the scouts. The rest are coming." |
@@ -188,11 +188,14 @@ None. The Needler circle (t=162) acts as the finale.
 ## Music & ambience
 
 Track 5 *Act 1 B: Earth orbit & Luna* ("Coalition Rising", the main motif; see the
-[track list](../../../audio/music/README.md#track-list)), starting at the section 2
-transition, base stem only until section 4, where it crossfades to the full mix (the round 11
-stems). Section 1 has ambience only: the Earth-orbit
-ambience ([sfx](../../../audio/sfx/README.md#ambience-per-setting)), the launch rail and radio
-blips. Mission complete jingle at the end.
+[track list](../../../audio/music/README.md#track-list)) as the round 11 stems: the base stem
+from the launch (t=0), at **−6 dB** through section 1 under the Earth-orbit ambience
+([sfx](../../../audio/sfx/README.md#ambience-per-setting)) and the launch rail, rising to full
+in 2 s at the section 2 transition (t=20); base stem only until the section 3 transition (t=60),
+where it crossfades in 1 s to the full mix. The radio ducks it by 4 dB as everywhere, so the
+radio blips stay audible. At the level end the theme fades out in 1 s, and the outro runs on
+under the radio until its last message has been shown (at most 15 s, see the
+[HUD](../../../ui/hud/README.md)). Mission complete jingle at the end.
 
 ## Credit budget
 
@@ -212,7 +215,8 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
 ## Difficulty notes
 
 - **Easy**: Needlers fire every ≈3.6 s (the global fire-rate lever, ×0.7); no rear wave (it
-  enters from the front instead); two extra armour patches, dropped by the last Needler of the
+  enters from the front instead, without an edge warning, and Okafor's t=131 line is "More
+  contacts, dead ahead!"); two extra armour patches, dropped by the last Needler of the
   t=40 and t=86 V-wings.
 - **Hard**: Needlers fire 2-shot bursts; the rear wave has 10 Skitters; the Needler circle breaks
   toward the player in pairs, and selected circle Needlers lead the target (stat-block hook).
@@ -234,11 +238,11 @@ Production art for concept round 12 (the Level 01 batch), review files built fro
 
 | File | What | Status |
 |---|---|---|
-| [concept/loot-targets-final-r12-a.png](concept/loot-targets-final-r12-a.png) | Final loot targets under readability rule 7: the cargo container intact and damaged (32×24), its 8-frame break-apart (48×48; the pieces crumble from their edges over the last three frames), the beacon dark / lit / damaged (12×12) and the glint | proposed |
-| [concept/loot-targets-final-r12-a.gif](concept/loot-targets-final-r12-a.gif) | A container glinting, taking hits, breaking apart; the beacon blinking and taking damage | proposed |
-| [concept/backdrop-final-r12-a.png](concept/backdrop-final-r12-a.png) | Final backdrop (`tools/art/backdrop_l01.py`): every tile set and set piece of the `backdrop` data, deep pieces over the earth tiles, with colour counts (12–32, ground structures 32 instead of 300–500), the dithered limb and Vrell glow, the 4× Moon, Aegis Two's 16 headings and the four `-mirrored` pieces next to their originals | proposed |
-| [concept/backdrop-final-r12-a.gif](concept/backdrop-final-r12-a.gif) | The burning platform and its mirrored render at 8 fps, Aegis Two turning | proposed |
-| [concept/game-capture-final-r12-a.png](concept/game-capture-final-r12-a.png) | Game capture (`--bench`, `--invulnerable --debug-speed 3`, xvfb 960×540): the play field in sections 1–5 with the final sprites and backdrop; Skitters facing their direction of flight | proposed |
+| [concept/loot-targets-final-r12-a.png](concept/loot-targets-final-r12-a.png) | Final loot targets under readability rule 7: the cargo container intact and damaged (32×24), its 8-frame break-apart (48×48; the pieces crumble from their edges over the last three frames), the beacon dark / lit / damaged (12×12) and the glint | chosen |
+| [concept/loot-targets-final-r12-a.gif](concept/loot-targets-final-r12-a.gif) | A container glinting, taking hits, breaking apart; the beacon blinking and taking damage | chosen |
+| [concept/backdrop-final-r12-a.png](concept/backdrop-final-r12-a.png) | Final backdrop (`tools/art/backdrop_l01.py`): every tile set and set piece of the `backdrop` data, deep pieces over the earth tiles, with colour counts (12–32, ground structures 32 instead of 300–500), the dithered limb and Vrell glow, the 4× Moon, Aegis Two's 16 headings and the four `-mirrored` pieces next to their originals | chosen |
+| [concept/backdrop-final-r12-a.gif](concept/backdrop-final-r12-a.gif) | The burning platform and its mirrored render at 8 fps, Aegis Two turning | chosen |
+| [concept/game-capture-final-r12-a.png](concept/game-capture-final-r12-a.png) | Game capture (`--bench`, `--invulnerable --debug-speed 3`, xvfb 960×540): the play field in sections 1–5 with the final sprites and backdrop; Skitters facing their direction of flight | chosen |
 
 ## Implementation
 
@@ -246,6 +250,7 @@ Production art for concept round 12 (the Level 01 batch), review files built fro
 - [x] Wave script matches the *Waves* table (time, formation, count, entry edge).
 - [x] Destructible cargo containers and the beacon secret.
 - [x] Radio chatter cues fire at their triggers with portraits in the side HUD.
+- [x] Music cues as in *Music & ambience*; the debrief waits for the radio's last message (at most 15 s).
 - [x] Secondary objective tracked and rewarded.
 - [x] Credit total at medium with perfect collection is 1,000 (± 5%).
 - [x] Easy/hard variations as in *Difficulty notes*.
@@ -359,3 +364,18 @@ Production art for concept round 12 (the Level 01 batch), review files built fro
   use their own `-mirrored` pieces in [data.yaml](data.yaml), rendered with the layout mirrored under
   the fixed top-left key light (symmetry rule: nothing lit is mirrored at runtime); the backdrop
   checks pass unchanged.
+- 2026-10-02: Concept round 12 closed (user decision): the loot targets and the production backdrop (`tools/art/backdrop_l01.py`) approved as **final**, `art: final`.
+- 2026-10-02: Music and radio after playing the final-art build (user decisions): the base stem
+  starts at the launch at −6 dB (Claude's choice of level: under the ambience and the launch rail,
+  clearly music but not over the radio blips) and rises to full in 2 s at the section 2 transition,
+  so section 1 is no longer without music (`music.start_section: 1`, `start_db: -6`); the full mix
+  comes in at the section 3 transition (t=60) instead of section 4 for more energy earlier
+  (`full_section: 3`); the t=131 line varies per difficulty (`easy: {line: ...}` on the radio cue):
+  on easy, where the wave enters from the front, Okafor says "More contacts, dead ahead!", so "on
+  your six" plays only where the wave comes from behind (the edge warning already followed the
+  actual entry edge; `Level01Test` checks both on easy and medium); the debrief waits until the
+  radio has shown its last message, at most 10 s after the level end. For that longer outro Earth's
+  limb and the Vrell glow are placed 4 s later (t=187.2 and t=198.25; same art), so their top edges
+  stay above the screen until 190 s: the limb's crest now enters at the top at 162 s and is 262 px
+  above the bottom at 180 s, the glow shows from 171 s. The replay hash is unchanged.
+- 2026-10-02: The outro cap is 15 s instead of 10 s (user decision), so the level-end and secondary-objective lines both fit when they queue together (about 14 s); Earth's limb and the Vrell glow moved later in the data (t=189.6 and t=202.8) so their top edges stay above the screen; the art is unchanged.

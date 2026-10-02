@@ -411,3 +411,4 @@ last radio line; warning tones −24 dB / −2 dBFS, the player-damage level).
   lengths, and peak and 200 Hz–5 kHz band RMS within 1 dB, except the peak of
   `enemy-shot-small-r08-b`, 1.7 dB lower at the same band RMS (it is levelled on its band, so only
   the crest of its attack differs from the preview's; the audible level is the same).
+- 2026-10-02: Concept round 12 closed (user decision): the 75 recorded sounds rebuilt from the Freesound originals approved as **final** (the 1.7 dB lower peak of `enemy-shot-small-r08-b` accepted); this doc's `art` stays `chosen`, since the synthesized sounds were not part of the round.

@@ -95,9 +95,11 @@ lead). The intensity stem fades in (1 s) when on-screen enemy density is high or
 level section asks for it, and fades out 4 s after calm returns.
 
 The concept tracks are full mixes; round 11 delivered the first stem pair. A level that asks for
-the base stem until a section (Level 01 until section 4) plays the base stem from its music start
+the base stem until a section (Level 01 until section 3) plays the base stem from its music start
 and crossfades in 1 s to the full mix at that section: both streams are decoded in lockstep and
-mixed sample by sample, so they stay aligned across the loop points and the fade never clicks.
+mixed sample by sample, so they stay aligned across the loop points and the fade never clicks. A level
+can start the theme quieter (`start_db`): Level 01 plays the base stem from the launch at −6 dB
+under the ambience and the launch rail, rising to full in 2 s at the section 2 transition.
 
 Round 11 proposes the first pair, for "Coalition Rising": a base stem rendered from the same
 pass as the chosen full mix (same length, loop points and gain), so the game can crossfade from
@@ -210,3 +212,7 @@ groups with the same effect chains and linked mastering).
   driven by the level script; driving it by on-screen density is not built (no level asks for it
   yet). The briefing theme, the hangar theme and the game over cue are imported for the briefing,
   the hangar placeholder and the game over screen.
+- 2026-10-02: Level 01 cue changed (user decisions after playing the final-art build): "Coalition
+  Rising" starts at the launch with the base stem at −6 dB, rising to full in 2 s at the section 2
+  transition, and crossfades to the full mix at section 3 (t=60) instead of section 4; a level's
+  `music.start_db` sets the level through its start section (`LevelMusic`).
