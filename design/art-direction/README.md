@@ -16,6 +16,12 @@ Shadows and Tyrian 2000. This document fixes the screen geometry, sprite sizes, 
 palette approach, the **parallax layer model** and the readability rules that every art asset
 and every level must follow.
 
+## Contents
+
+| Part | Summary | Design | Impl | Art |
+|---|---|---|---|---|
+| [production](production/README.md) | Production art plan: what final means, pipeline to `assets/`, order of work, budgets | draft | not-started | n/a |
+
 ## Design
 
 ### The pre-rendered look
@@ -486,3 +492,4 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
   sharp-bilinear from the Video tab of [options](../ui/options/README.md) (`PixelScreen`: a GLES 2
   shader that samples as an integer pre-scale followed by bilinear filtering, filling the window
   with bars only where it is not 16:9); optional CRT scanlines.
+- 2026-10-02: Production art plan drafted ([production](production/README.md)), for review.
