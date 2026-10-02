@@ -52,6 +52,15 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 
 Chosen concept: [needler-r04-a.png](../concept/needler-r04-a.png) (listed in the [air](../README.md#concept-art) Concept art table).
 
+## Concept art
+
+Production art for concept round 12 (the Level 01 batch; part P2 opens the round), review files built from the final frames in `assets/` by `tools/art/vrell_air.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/needler-final-r12-a.png](concept/needler-final-r12-a.png) | Final sprites: the 6-frame claw snap (36×36, 32 colours; opens over three frames, snaps shut in one), at 5× and 1× | proposed |
+| [concept/needler-final-r12-a.gif](concept/needler-final-r12-a.gif) | The cycle at 10 fps, three units at their own phase as in a formation | proposed |
+
 ## Implementation
 
 - [x] Hover-and-fire behaviour with the 0.8 s first-shot delay
@@ -82,3 +91,6 @@ Chosen concept: [needler-r04-a.png](../concept/needler-r04-a.png) (listed in the
   the yellow needle to the fast class (190–260 px/s) and the thorn flies at 150 px/s. Placeholder:
   the first orb frame of [enemy-bullets-r09-a](../../concept/enemy-bullets-r09-a.png), cut by
   `:pipeline:importPlaceholders` (replaces the needle).
+- 2026-10-02: Production art (Level 01 batch, `tools/art/vrell_air.py`): the 6-frame claw snap (36×36, 32 colours), rendered at 8× from the chosen round-04 model with one palette for the cycle (the placeholder had 3 frames, which snapped from the last back to the first). `orientation: fixed` in the stat block, so no heading set; the production plan's "angle sets" for Level 01's enemies are therefore not rendered (open point for the user). Review files proposed for round 12.
+- 2026-10-02: Orientation stays `fixed` (user decision, Level 01 batch part P3); the claw snap got
+  a wider swing (opening over three frames, snapping shut in one) so it reads in play.

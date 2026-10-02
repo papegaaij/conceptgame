@@ -81,6 +81,16 @@ public final class FlightPath {
         return segment;
     }
 
+    /** The x extent of polyline segment {@code segment}: with {@link #dy} its direction of flight. */
+    double dx(int segment) {
+        return xs[segment + 1] - xs[segment];
+    }
+
+    /** The y extent of polyline segment {@code segment}. */
+    double dy(int segment) {
+        return ys[segment + 1] - ys[segment];
+    }
+
     double x(int segment, double distance) {
         return lerp(xs, segment, distance);
     }

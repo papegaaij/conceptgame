@@ -50,6 +50,15 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - Upgrades add parallel bolts; the outermost bolts at L5 still stay within a 36 px target at any range, so the full DPS counts against single targets.
 - Under water: projectile speed × 0.7 and 50 % damage ([Europa rules](../../../world/europa/README.md#under-water-rules)).
 
+## Concept art
+
+Production art for concept round 12 (the Level 01 batch; part P2 opens the round), review files built from the final frames in `assets/` by `tools/art/pulse_cannon.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/pulse-cannon-final-r12-a.png](concept/pulse-cannon-final-r12-a.png) | Final effects: the bolt (14×26), 3 muzzle-flash and 4 impact frames (the fade rebalanced so the last frame still shows), additive, one palette per set | proposed |
+| [concept/pulse-cannon-final-r12-a.gif](concept/pulse-cannon-final-r12-a.gif) | Level-1 fire at 60 Hz steps (a bolt every 6 steps, 15 px per step) with muzzle flash and impact | proposed |
+
 ## Implementation
 
 - [x] Weapon data loaded from the shared item data (numbers as in the table above)
@@ -69,3 +78,4 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
   2 400 from the upgrade base 600) and the sim fires the fitted level's pattern (parallel bolts at
   the pattern's x offsets; `vanguard.sim.PulseCannon.pattern`). The overdrive pattern follows with
   the overdrive pickup, so the pattern item stays open.
+- 2026-10-02: Production art (Level 01 batch, `tools/art/pulse_cannon.py`): bolt, muzzle flash and impact are the round-08 light fields written premultiplied on black (exactly what the additive blend adds; the placeholders were cut from the sheet with its checkerboard subtracted), same sizes and frame counts. Review files proposed for round 12.

@@ -87,3 +87,7 @@ pre-rendered CGI sprite, top-left key light, crisp silhouette, 48 px game scale.
 
 **Negative prompt:** side view, perspective, cartoon, flat shading, text, watermark, pods hidden
 under the wings.
+
+## player-ship-final-r12-a
+
+Round 12, production art (Level 01 batch). Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by `tools/art/stormhawk.py --review`; the frames themselves are rendered by `tools/art/stormhawk.py` (see `tools/art/README.md`). Shows the 5 banking frames (part P3: ±15° and ±30° of roll seen through a perspective camera 4 model units up, so the raised wing grows and the lowered one shrinks; the pods in lighter hull metal with highlights instead of navy), the five wing-pod types on every frame and the engine flame lengths; check that pods sit on the wings in every frame and the flame stays attached at the engine pivots. Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.

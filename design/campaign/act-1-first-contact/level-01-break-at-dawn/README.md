@@ -82,15 +82,18 @@ in [architecture](../../../tech/architecture/README.md#data-file-schemas)). A la
 repeats along the layer and changes at a seam that enters at the top edge when the section starts;
 a set piece is listed with the seconds it is on screen; the atmosphere names the low-air cloud
 banks, the high-air wisps and the haze over `deep` and `far`, and a change ramps across the
-section boundary (`ramp`). The art is a placeholder ([backdrop_l01.py](../../../../tools/concept/backdrop_l01.py)).
+section boundary (`ramp`). The art is the production render of [tools/art/backdrop_l01.py](../../../../tools/art/backdrop_l01.py)
+(proposed in round 12; built on the placeholder generator [backdrop_l01.py](../../../../tools/concept/backdrop_l01.py)).
+Nothing lit is drawn mirrored: the placements that used `mirror` have their own `-mirrored` pieces,
+with the layout mirrored and the key light still top-left.
 
 <!-- data: backdrop -->
 | Section | Atmosphere | `deep` | `far` | `ground` | `low-air` | `high-air` |
 |---|---|---|---|---|---|---|
 | 1. Launch | clear: wisps, haze 0 % | `earth`; earth-dawn 0–103 s; moon 3–39 s | north-arm 0–12 s; stormhawk-far flies 1.5–6 s; stormhawk-far flies 2.5–7 s | launch-rail 0–4 s; crossbeam 20–24 s | | |
-| 2. First Wave | light: banks-light, wisps, haze 8 % | `earth` | | `dock-frames`; dock-frame 27–33 s; dock-frame 40–46 s; dock-frame 51–57 s; crossbeam 60–64 s | | |
-| 3. Yard Crossing | light: banks-light, wisps, haze 8 % | `earth` | | `gantry-rails`; bridge-crane 68–72 s; cruiser-hull 78–86 s; bridge-crane 90–94 s; crossbeam 110–114 s | lattice-beam 64–68 s; crane-jib 72–76 s; lattice-beam 83–87 s; crane-jib 95–99 s; lattice-beam 101–105 s | |
-| 4. Pursuit | medium: banks-medium, wisps, haze 16 % | `earth`; earth-limb 143–180 s | | `perimeter`; platform-burning 115–121 s; platform-burning 131–137 s; platform-burning 147–153 s; crossbeam 160–164 s | | `spark-streaks` |
+| 2. First Wave | light: banks-light, wisps, haze 8 % | `earth` | | `dock-frames`; dock-frame 27–33 s; dock-frame-mirrored 40–46 s; dock-frame 51–57 s; crossbeam 60–64 s | | |
+| 3. Yard Crossing | light: banks-light, wisps, haze 8 % | `earth` | | `gantry-rails`; bridge-crane-mirrored 68–72 s; cruiser-hull 78–86 s; bridge-crane 90–94 s; crossbeam 110–114 s | lattice-beam 64–68 s; crane-jib 72–76 s; lattice-beam 83–87 s; crane-jib-mirrored 95–99 s; lattice-beam 101–105 s | |
+| 4. Pursuit | medium: banks-medium, wisps, haze 16 % | `earth`; earth-limb 143–180 s | | `perimeter`; platform-burning 115–121 s; platform-burning-mirrored 131–137 s; platform-burning 147–153 s; crossbeam 160–164 s | | `spark-streaks` |
 | 5. Scout Leader | clear: wisps, haze 0 % | `earth`; vrell-glow 167–180 s | | platform 165–171 s | | |
 <!-- /data -->
 
@@ -227,6 +230,16 @@ in `assets/backdrop/level-01/` changed; every other piece is byte-identical.
 | [concept/backdrop-fixes-r11-a.png](concept/backdrop-fixes-r11-a.png) | Before / after: the dawn terminator (ordered dither, 16 alpha steps and 32 colours instead of hard bands) and the burning platform's four frames (ragged venting plumes in a dull fire ramp with smoke and embers instead of round orange blobs) | chosen |
 | [concept/backdrop-fixes-r11-a.gif](concept/backdrop-fixes-r11-a.gif) | Before / after: the burning platform's loop at 8 fps | chosen |
 
+Production art for concept round 12 (the Level 01 batch), review files built from the final frames in `assets/` by `tools/art/loot_targets.py` and `tools/art/backdrop_l01.py` (`--review` rebuilds only them), plus a game capture; prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/loot-targets-final-r12-a.png](concept/loot-targets-final-r12-a.png) | Final loot targets under readability rule 7: the cargo container intact and damaged (32×24), its 8-frame break-apart (48×48; the pieces crumble from their edges over the last three frames), the beacon dark / lit / damaged (12×12) and the glint | proposed |
+| [concept/loot-targets-final-r12-a.gif](concept/loot-targets-final-r12-a.gif) | A container glinting, taking hits, breaking apart; the beacon blinking and taking damage | proposed |
+| [concept/backdrop-final-r12-a.png](concept/backdrop-final-r12-a.png) | Final backdrop (`tools/art/backdrop_l01.py`): every tile set and set piece of the `backdrop` data, deep pieces over the earth tiles, with colour counts (12–32, ground structures 32 instead of 300–500), the dithered limb and Vrell glow, the 4× Moon, Aegis Two's 16 headings and the four `-mirrored` pieces next to their originals | proposed |
+| [concept/backdrop-final-r12-a.gif](concept/backdrop-final-r12-a.gif) | The burning platform and its mirrored render at 8 fps, Aegis Two turning | proposed |
+| [concept/game-capture-final-r12-a.png](concept/game-capture-final-r12-a.png) | Game capture (`--bench`, `--invulnerable --debug-speed 3`, xvfb 960×540): the play field in sections 1–5 with the final sprites and backdrop; Skitters facing their direction of flight | proposed |
+
 ## Implementation
 
 - [x] Scroll timeline, sections, atmosphere intensity and parallax content per layer as in *Layout*.
@@ -339,3 +352,10 @@ in `assets/backdrop/level-01/` changed; every other piece is byte-identical.
   [data.yaml](data.yaml): setting, layers, density, traits, hazards, boss, Varga's no-sensor line,
   with the table's rows as notes that use them), read by the hangar intel; the table renders the
   same text.
+- 2026-10-02: Production art (Level 01 batch, `tools/art/loot_targets.py`): the loot targets rendered at 8× from the placeholder kit's models; the damage (scorch, a hole and a crack, the beacon's cracked lens) is carved into the model instead of painted on, and every break-apart frame is its own render of six tumbling pieces with the key light fixed (the placeholder rotated lit image pieces), dissolving with an ordered dither. `tools/concept/ground_targets.py` is superseded (rerunning it would overwrite the final files). Review files proposed for round 12.
+- 2026-10-02: Level 01 batch, part P2: the final backdrop from `tools/art/backdrop_l01.py`
+  (proposed in [round 12](../../../concept-rounds/round-12/README.md)). The four placements that were
+  drawn mirrored (dock frame t=43, bridge crane t=70, crane jib t=97, burning platform t=134) now
+  use their own `-mirrored` pieces in [data.yaml](data.yaml), rendered with the layout mirrored under
+  the fixed top-left key light (symmetry rule: nothing lit is mirrored at runtime); the backdrop
+  checks pass unchanged.

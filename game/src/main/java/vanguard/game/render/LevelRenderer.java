@@ -32,6 +32,8 @@ public final class LevelRenderer {
     private static final int MUZZLE_FRAME_TICKS = 2;
     /** Pickups spin at about 10 fps and blink in their last 1.5 s (chosen pickups concept, round 09). */
     private static final int PICKUP_FRAME_TICKS = 6;
+    /** Enemy bullets pulse their core at 15 fps, each at its own phase. */
+    private static final int BULLET_FRAME_TICKS = 4;
 
     private static final int BLINK_TICKS = SimStep.ticks(1.5);
     /**
@@ -155,8 +157,8 @@ public final class LevelRenderer {
         for (int i = 0; i < sortie.enemyCount(); i++) {
             Enemy enemy = sortie.enemy(i);
             EnemyLooks look = looks[enemy.kind()];
-            int frame = (int) ((sortie.tick() / look.frameTicks() + i) % look.frames().size);
-            drawCentred(batch, look.frames().get(frame), enemy.renderX(alpha), enemy.renderY(alpha));
+            AtlasRegion frame = look.frame(enemy.facing(), sortie.tick() / look.frameTicks() + i);
+            drawCentred(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
         }
     }
 
@@ -217,7 +219,8 @@ public final class LevelRenderer {
     private void drawBullets(SpriteBatch batch, Sortie sortie, float alpha) {
         for (int i = 0; i < sortie.bulletCount(); i++) {
             EnemyBullet bullet = sortie.bullet(i);
-            drawCentred(batch, sprites.orb, bullet.renderX(alpha), bullet.renderY(alpha));
+            int frame = (int) ((sortie.tick() / BULLET_FRAME_TICKS + i) % sprites.orb.size);
+            drawCentred(batch, sprites.orb.get(frame), bullet.renderX(alpha), bullet.renderY(alpha));
         }
     }
 

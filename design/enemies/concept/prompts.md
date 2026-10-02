@@ -60,3 +60,7 @@ type with its own silhouette, crisp, high contrast, readable on any background.
 
 **Negative prompt:** blue, cyan or pale white bullets (player colours), soft rimless glows,
 bullets smaller than 8 px, motion blur, photographic realism, text, watermark.
+
+## enemy-bullets-final-r12-a
+
+Round 12, production art (Level 01 batch). Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by `tools/art/enemy_bullets.py --review`; the frames themselves are rendered by `tools/art/enemy_bullets.py` (see `tools/art/README.md`). Shows the orb pulse and all 16 needle headings (part P3: the needle's deep band saturated gold and its halo cut to its inner part at 2/3, so it no longer reads as a dull olive rim), enlarged and at 1×, and a drifting field of both. Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.

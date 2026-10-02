@@ -119,7 +119,7 @@ public final class LevelScreen implements GameScreen {
                 SimSpecs.level(services.content, levelKey, difficulty),
                 services.invulnerable ? rules.withInvulnerableShip() : rules,
                 campaign.armour());
-        looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites);
+        looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites, services.content);
         sounds = new FlightSounds(services.sfx, looks);
         renderer = new LevelRenderer(services.sprites, looks, services.flash, services.fonts.body, level, levelKey);
         warnings = new EdgeWarnings(services.sprites.pixel, services.fonts.body);

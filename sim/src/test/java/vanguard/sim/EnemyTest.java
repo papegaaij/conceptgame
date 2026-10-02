@@ -89,6 +89,24 @@ class EnemyTest {
     }
 
     @Test
+    void itFacesItsDirectionOfFlightTurningAtMostOneHeadingStepPerStep() {
+        var enemy = new Enemy();
+        var orbit = new Spawn.Orbit(240, 360, 80, -StrictMath.PI / 2, StrictMath.toRadians(60));
+        enemy.spawn(hovering(TestSpecs.SKITTER, Optional.of(orbit), new Spawn.Exit(false, 0, 1)));
+        assertEquals(0, enemy.facing(), 1e-12, "flying down the screen");
+
+        double previous = enemy.facing();
+        for (int i = 0; i < 60 + 600 + 60; i++) {
+            enemy.move(240, 96);
+            double turn = Math.abs(Math.IEEEremainder(enemy.facing() - previous, 2 * StrictMath.PI));
+            assertTrue(turn <= StrictMath.PI / 8 + 1e-12, "step " + i + " turned " + turn);
+            previous = enemy.facing();
+        }
+
+        assertEquals(StrictMath.PI, Math.abs(enemy.facing()), 1e-9, "leaving up the screen");
+    }
+
+    @Test
     void anUnarmedEnemyNeverFires() {
         var enemy = new Enemy();
         enemy.spawn(hovering(TestSpecs.SKITTER, Optional.empty(), Spawn.Exit.DOWN));

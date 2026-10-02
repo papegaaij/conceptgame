@@ -20,7 +20,7 @@ public record EnemyData(
         Size size,
         Size hitbox,
         String parts,
-        String orientation,
+        Orientation orientation,
         double hp,
         String armour,
         double speed,

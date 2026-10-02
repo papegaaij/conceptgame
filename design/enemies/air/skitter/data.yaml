@@ -6,7 +6,7 @@ tier: tiny
 size: [24, 24]    # sprite px
 hitbox: [16, 16]
 parts: single
-orientation: fixed
+orientation: 16 angles
 hp: 1
 armour: none
 speed: 190        # px/s
@@ -26,7 +26,7 @@ traits: [spread, forward]
 bounty: 5
 first_level: 1
 notes:
-  orientation: (flies nose-down; banks into curves)
+  orientation: (turns to face its direction of flight; 6 wing-beat frames per heading)
   speed: (stream {movement.straight.speed}, swoop up to {movement.swoop.top_speed})
   movement: '`snake` along an authored `path` (unit spacing {movement.snake.spacing} s), `swoop` (entry curve radius {movement.swoop.radius} px), `straight` in streams'
   attack: '`none` — contact only (contact damage `{tier}` = {contact_damage})'

@@ -20,7 +20,7 @@ and every level must follow.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [production](production/README.md) | Production art plan: what final means, pipeline to `assets/`, order of work, budgets | draft | not-started | n/a |
+| [production](production/README.md) | Production art plan: what final means, pipeline to `assets/`, order of work, budgets | draft | in-progress | n/a |
 
 ## Design
 
@@ -406,6 +406,13 @@ Concept [round 09](../concept-rounds/round-09/README.md) — Acts 1–2 scenes a
 | [concept/explosions-r09-a.png](concept/explosions-r09-a.png) | Explosions: size ladder 24–144 px, Vrell organic vs Ascendancy metal, water-surface and under-water, hit flash, shield hit and break (sheet) | chosen |
 | [concept/explosions-r09-a.gif](concept/explosions-r09-a.gif) | Explosions: size ladder 24–144 px, Vrell organic vs Ascendancy metal, water-surface and under-water, hit flash, shield hit and break (motion) | chosen |
 
+Production art for concept round 12 (the Level 01 batch; part P2 opens the round), review files built from the final frames in `assets/` by `tools/art/explosions.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/explosions-final-r12-a.png](concept/explosions-final-r12-a.png) | Final fireball frames of the ladder up to large: tiny 24 px / 12, small 40 / 12, medium 64 / 14, large 96 / 14 frames, additive | proposed |
+| [concept/explosions-final-r12-a.gif](concept/explosions-final-r12-a.gif) | The four rungs side by side | proposed |
+
 Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the motion-budget rule; generator `tools/concept/scenes_r10.py`.
 
 | File | What | Status |
@@ -432,8 +439,9 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - [ ] Hit flash and explosion sequences as described under Animation rules.
 - [x] Loot targets follow readability rule 7 (Level 01's cargo containers and beacon, placeholder
       sprites from `tools/concept/ground_targets.py`).
-- [ ] Production sprite pipeline (render → downsample → 1-bit alpha → sharpen → palette) is
-      scripted so every asset is reproducible, like the concept tools.
+- [x] Production sprite pipeline (render → downsample → 1-bit alpha → sharpen → palette) is
+      scripted so every asset is reproducible, like the concept tools
+      ([tools/art/](../../tools/art/README.md)).
 
 ## Open questions
 
@@ -493,3 +501,4 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
   shader that samples as an integer pre-scale followed by bilinear filtering, filling the window
   with bars only where it is not 16:9); optional CRT scanlines.
 - 2026-10-02: Production art plan drafted ([production](production/README.md)), for review.
+- 2026-10-02: Production art (Level 01 batch, `tools/art/explosions.py`): every frame of the chosen round-09 fireball for tiny, small, medium and large (the large placeholder had 11 of its 14 frames and the frame numbers of the sheet masked out), premultiplied on black with one palette per rung. The game's ship death now plays 14 frames (the ship doc's 12 is the old count). Review files proposed for round 12.

@@ -236,9 +236,17 @@ first entry of a part's model list is the starter (price 0, `start`).
   and rules, at the sizes the level's data file gives; each PNG carries a `Placeholder` text chunk
   naming the script. `importPlaceholders` does not touch them. The same holds for ground targets
   without concept art: `tools/concept/ground_targets.py` renders Level 01's cargo containers,
-  beacon, their break-apart and glint frames into `assets/sprites/`.
+  beacon, their break-apart and glint frames into `assets/sprites/` (superseded by
+  `tools/art/loot_targets.py`).
+- **Final art** is rendered by the production generators in `tools/art/` (see its README)
+  straight into `assets/`; every PNG carries a `Source` text chunk naming its generator, which is
+  how `importPlaceholders` knows to leave a part alone (`FinalArt`). Attachment points per frame
+  (mount points, pod offsets) are JSON pivot files in `assets/pivots/`. Once a part is final, its
+  placeholder generator (e.g. `ground_targets.py`) is superseded.
 - The `pipeline` module turns them into build output at build time: angle sets (using the
   symmetry rule), texture atlases, audio in OGG. Generated atlases are never committed.
+  `packAtlases` checks the packed pages against the budgets of the production plan and fails the
+  build when one is exceeded (`AtlasBudget`).
 
 ### Testing
 

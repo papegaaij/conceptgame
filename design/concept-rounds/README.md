@@ -30,6 +30,7 @@ they belong to; a round only collects them.
 | [round-09](round-09/README.md) | Remaining Acts 1–2 scenes and combat effects, beam impact | approved | n/a | chosen |
 | [round-10](round-10/README.md) | Geneva redo, calmer and smoother storm and ocean | approved | n/a | chosen |
 | [round-11](round-11/README.md) | Production track, first batch: launch rail, edge warnings and tones, Coalition Rising stems, Level 01 backdrop fixes | approved | n/a | chosen |
+| [round-12](round-12/README.md) | Level 01 production batch: final sprites, effects, loot targets, backdrop and the recorded SFX rebuilt from the originals | review | n/a | proposed |
 
 ## Design
 
@@ -61,3 +62,4 @@ How a round works:
 | 09 | 2026-10-01 | closed | Remaining Acts 1–2 scenes and effects |
 | 10 | 2026-10-01 | closed | Geneva, storm and ocean revisions |
 | 11 | 2026-10-02 | closed | Launch rail, edge warnings, music stems, Level 01 backdrop fixes |
+| 12 | 2026-10-02 | open | Level 01 production batch: final art review, recorded SFX rebuilt from the originals |

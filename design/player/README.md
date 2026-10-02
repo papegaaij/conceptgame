@@ -129,6 +129,13 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 | [concept/pickups-r09-a.png](concept/pickups-r09-a.png) | The 8 pickups as small 3D models with pulsing outline and halo, rocking so they never read as needles; colour and greyscale bullet-confusion test (sheet) | chosen |
 | [concept/pickups-r09-a.gif](concept/pickups-r09-a.gif) | The 8 pickups as small 3D models with pulsing outline and halo, rocking so they never read as needles; colour and greyscale bullet-confusion test (motion) | chosen |
 
+Production art for concept round 12 (the Level 01 batch; part P2 opens the round), review files built from the final frames in `assets/` by `tools/art/pickups.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/pickups-final-r12-a.png](concept/pickups-final-r12-a.png) | Final 8-frame loops of salvage S, the shield cell, the armour patch and the hidden crate (salvage L, its cyan cross on every face it turns to the viewer), with the pulsing light outline and halo | proposed |
+| [concept/pickups-final-r12-a.gif](concept/pickups-final-r12-a.gif) | The four loops at 10 fps | proposed |
+
 ## Implementation
 
 - [x] Loadout data model: slots, fitted items, inventory, upgrade levels
@@ -173,3 +180,4 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
   the other weapons, the specials and the utility modules are bought, fitted and saved and fly
   from M4 (`Flight`). The spare-power shield regen bonus is not applied in flight yet (M4), so
   the hangar does not show it.
+- 2026-10-02: Production art (Level 01 batch, `tools/art/pickups.py`): the four pickups Level 01 uses, every frame its own 8× render of the round-09 model with one palette per loop; the 1 px light outline is opaque and pulses in brightness, the halo is stepped to four translucency levels. Same sizes as the placeholders. Review files proposed for round 12.
