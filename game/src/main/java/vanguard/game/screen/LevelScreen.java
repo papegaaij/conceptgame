@@ -42,7 +42,7 @@ import vanguard.sim.Sortie;
  * line, banks the result in the campaign and shows the debrief. When the ship is destroyed the
  * death plays out, then the mission failed screen opens over the level, or the game over screen
  * follows when no retry is left (design/systems/retry); the failure's used retry is autosaved at
- * once. The sortie flies what {@link Flight} maps of the fitted loadout; the HUD lists the fitted
+ * once, and so is a game over's return to the hangar before the level. The sortie flies what {@link Flight} maps of the fitted loadout; the HUD lists the fitted
  * items that fly from M4 on. Pause (Esc / P / Start), the window losing
  * the focus and a gamepad disconnecting open the pause menu over it. The Gameplay tab's text speed
  * and flash reduction and the Controls tab's auto-fire apply from the next frame on.
@@ -111,6 +111,7 @@ public final class LevelScreen implements GameScreen {
         Difficulty difficulty = campaign.difficulty();
         level = services.content.level(levelKey);
         Rules rules = SimSpecs.rules(services.content, levelKey, difficulty);
+        campaign.launch();
         flight = Flight.of(services.content, services.catalogue, campaign);
         sortie = new Sortie(
                 SEED,
@@ -249,7 +250,8 @@ public final class LevelScreen implements GameScreen {
                     slowMotion = SLOW_MOTION_SECONDS;
                     music.cut();
                     failure = Optional.of(campaign.fail());
-                    // The used retry goes into the autosave at once (design/systems/retry).
+                    // The used retry, or a game over's return to the launch state, goes into the
+                    // autosave at once (design/systems/retry).
                     services.save(SaveSlots.Slot.AUTOSAVE, campaign);
                     failedIn = FAILED_SCREEN_SECONDS;
                 }

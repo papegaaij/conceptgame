@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import vanguard.content.ContentLoader;
 import vanguard.content.Difficulty;
 import vanguard.sim.LevelResult;
@@ -107,8 +110,43 @@ class CampaignTest {
         }
 
         assertFalse(campaign.canRetry());
-        assertEquals(Campaign.Failure.GAME_OVER, campaign.fail());
         assertThrows(IllegalStateException.class, campaign::retry);
+        assertEquals(Campaign.Failure.GAME_OVER, campaign.fail());
+    }
+
+    @Test
+    void aGameOverAutosavesTheHangarBeforeTheLastLaunchWithTheRetriesRenewed(@TempDir Path directory)
+            throws IOException {
+        Campaign campaign = HangarTest.campaign(Difficulty.HARD, 2, 1000, 12);
+        Hangar hangar = new Hangar(HangarTest.CATALOGUE, campaign);
+        hangar.apply(
+                LoadoutSlot.FRONT,
+                HangarTest.row(hangar, LoadoutSlot.FRONT, "Pulse Cannon", Hangar.State.FITTED),
+                Hangar.Action.UPGRADE);
+        campaign.launch();
+        campaign.fail();
+        assertEquals(30, campaign.armour(), "the retry's armour floor");
+        // Back to the hangar between attempts: a repair, then the level is launched again.
+        Hangar between = new Hangar(HangarTest.CATALOGUE, campaign);
+        between.repair(5);
+        campaign.launch();
+        SaveGame launched = campaign.save(Instant.EPOCH);
+        campaign.fail();
+        campaign.fail();
+        assertEquals(Optional.of(0), campaign.retriesLeft());
+
+        SaveSlots saves = new SaveSlots(directory);
+        assertEquals(Campaign.Failure.GAME_OVER, campaign.fail());
+        saves.write(SaveSlots.Slot.AUTOSAVE, campaign.save(Instant.parse("2026-10-02T12:00:00Z")));
+
+        Campaign continued = Campaign.load(RULES, saves.mostRecent().orElseThrow());
+        assertEquals(2, continued.nextLevel(), "the hangar before the failed level");
+        assertEquals(Optional.of(3), continued.retriesLeft(), "a fresh set of retries");
+        assertEquals(launched.credits(), continued.credits());
+        assertEquals(1000 - 300 - 5 * 10, continued.credits());
+        assertEquals(launched.loadout(), continued.loadout());
+        assertEquals(35, continued.armour(), "as launched: the floor plus the repair");
+        assertEquals(4, continued.deaths(), "the campaign's statistics go on");
     }
 
     @Test

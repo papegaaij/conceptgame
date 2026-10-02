@@ -18,7 +18,9 @@ import vanguard.sim.LevelResult;
  * <p>Retries: a failure ends the campaign when no retry is left (hard: 3 per level); otherwise it
  * uses one at once and the level is retried, at once or after the hangar, with its level-start
  * armour but at least the armour floor (50 %). A restart and an abort to the hangar each use one of
- * the level's retries on hard too.
+ * the level's retries on hard too. A game over returns to the hangar before the level: the gear
+ * of the last launch with the level's retries renewed, which the autosave written at the failure
+ * then holds, so Continue starts the level over instead of resuming it with none left.
  */
 public final class Campaign {
     /** What a failed attempt leads to. */
@@ -35,6 +37,9 @@ public final class Campaign {
     private int nextLevel;
     private long score;
     private Gear gear;
+    /** The gear the level was last launched with: what a game over returns to. */
+    private Gear launched;
+
     private final List<String> unlocks;
     private Optional<Integer> retriesLeft;
     private final Map<Integer, String> grades;
@@ -50,6 +55,7 @@ public final class Campaign {
         nextLevel = save.nextLevel();
         score = save.score();
         gear = new Gear(save.credits(), save.loadout(), save.inventory(), save.specials(), save.armour());
+        launched = gear;
         unlocks = new ArrayList<>(save.unlocks());
         retriesLeft = save.retriesLeft();
         grades = new TreeMap<>(save.grades());
@@ -120,14 +126,23 @@ public final class Campaign {
         return retriesLeft.map(left -> left > 0).orElse(true);
     }
 
+    /** A sortie of the next level leaves the hangar: its gear is what a game over returns to. */
+    public void launch() {
+        launched = gear;
+    }
+
     /**
      * The Stormhawk was destroyed: counts the death and says whether the campaign goes on. When it
      * does, the attempt's retry is used at once (hard), so it is gone even if the player quits from
-     * the mission failed screen, and the next attempt starts with at least the armour floor.
+     * the mission failed screen, and the next attempt starts with at least the armour floor. When
+     * no retry is left (game over), the state returns to the last launch's gear with the level's
+     * retries renewed: the hangar before the level, as the pre-launch save had it.
      */
     public Failure fail() {
         deaths++;
         if (!canRetry()) {
+            gear = launched;
+            retriesLeft = rules.retries(difficulty);
             return Failure.GAME_OVER;
         }
         useRetry();
@@ -179,6 +194,7 @@ public final class Campaign {
         }
         nextLevel++;
         retriesLeft = rules.retries(difficulty);
+        launched = gear;
         return newBest;
     }
 

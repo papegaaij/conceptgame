@@ -21,7 +21,9 @@ slot. "Load game" in the main menu lists them. There is no mid-level saving: a l
 
 - **Autosave**: every time the hangar opens (after a debrief, or after "back to hangar"), when the
   player quits from the hangar to the main menu, and when an attempt fails or is restarted (so a
-  used hard-mode retry is kept, see [retry](../retry/README.md)).
+  used hard-mode retry is kept, see [retry](../retry/README.md)). At a game over (hard, no retry
+  left) the autosave holds the hangar state the level was last launched with and a fresh set of
+  retries, so Continue starts the level over from the hangar.
 - **Manual save**: from the hangar's Save tab, into one of 8 slots (overwrite with
   confirmation).
 - **Continue** in the main menu loads the most recent save of any kind.
@@ -92,3 +94,7 @@ the act.
   hangar (the quit dialog promises the visit is kept), when an attempt fails and when it is
   restarted (user decision: the used retry must not come back by quitting). Test: a fitted loadout
   with inventory, a new plating and its armour survive the round trip.
+- 2026-10-02: Game over (user decision): the failure's autosave holds the pre-launch hangar
+  state with the level's retries renewed instead of the failed level with 0 retries, so Continue
+  opens the hangar before the level; no extra slot or format change (see
+  [retry](../retry/README.md)).

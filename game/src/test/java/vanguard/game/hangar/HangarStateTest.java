@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,18 +32,25 @@ class HangarStateTest {
     private static final CampaignRules RULES = CampaignRules.of(CONTENT);
     private static final Catalogue CATALOGUE = Catalogue.of(CONTENT);
 
+    private static final String LEVEL_01 = "act-1-first-contact/level-01-break-at-dawn";
+
     private static Campaign campaign(int level, int credits, double armour) {
+        return campaign(Difficulty.MEDIUM, level, credits, armour, RULES.starterLoadout());
+    }
+
+    private static Campaign campaign(
+            Difficulty difficulty, int level, int credits, double armour, Map<LoadoutSlot, Fitted> loadout) {
         return Campaign.load(
                 RULES,
                 new SaveGame(
                         SaveFormat.VERSION,
                         Instant.EPOCH,
                         0,
-                        Difficulty.MEDIUM,
+                        difficulty,
                         level,
                         credits,
                         0,
-                        RULES.starterLoadout(),
+                        loadout,
                         Map.of(),
                         List.of(),
                         Map.of(),
@@ -126,7 +134,7 @@ class HangarStateTest {
         assertEquals(500, campaign.credits(), "nothing is sold before the answer");
         assertEquals(Outcome.DONE, state.sell());
 
-        assertEquals(800, campaign.credits());
+        assertEquals(1000, campaign.credits(), "bought during this visit: the full price");
         assertEquals(Optional.empty(), Optional.ofNullable(campaign.loadout().get(LoadoutSlot.LEFT_WING)));
     }
 
@@ -166,11 +174,38 @@ class HangarStateTest {
 
         Campaign damaged = Campaign.start(RULES, Difficulty.MEDIUM);
         HangarState state = state(damaged, true);
-        Intel intel = Intel.of(CONTENT, "act-1-first-contact/level-01-break-at-dawn", 0);
+        Intel intel = Intel.of(CONTENT, LEVEL_01, 0);
         assertEquals(List.of(), state.launchWarnings(Optional.of(intel)), "the Pulse Cannon is a forward weapon");
         state.up();
         assertEquals(Outcome.LAUNCH, state.confirm());
         assertEquals(
                 List.of("ARMOUR BELOW 50 %"), state(campaign(1, 0, 29), true).launchWarnings(Optional.of(intel)));
+    }
+
+    @Test
+    void theMissingTraitWarningNeedsTheSensorLevelThatShowsTheTraits() {
+        // A Scatter Vulcan (spread) in front misses Level 01's recommended forward trait.
+        Map<LoadoutSlot, Fitted> loadout = new EnumMap<>(RULES.starterLoadout());
+        loadout.put(LoadoutSlot.FRONT, new Fitted("scatter-vulcan", 1));
+        loadout.put(LoadoutSlot.UTILITY_1, new Fitted(Hangar.SENSOR_SUITE, 2));
+        HangarState medium = state(campaign(Difficulty.MEDIUM, 1, 0, 60, loadout), true);
+        HangarState easy = state(campaign(Difficulty.EASY, 1, 0, 60, loadout), true);
+
+        for (int sensor = 0; sensor < Intel.Field.TRAITS.sensor(); sensor++) {
+            assertEquals(
+                    List.of(),
+                    medium.launchWarnings(Optional.of(Intel.of(CONTENT, LEVEL_01, sensor))),
+                    "sensor L" + sensor + " does not show the traits, so the warning must not tell them");
+        }
+        assertEquals(
+                List.of(),
+                medium.launchWarnings(
+                        Optional.of(Intel.of(CONTENT, LEVEL_01, medium.hangar().sensorLevel()))),
+                "a sensor suite L2 on medium");
+        assertEquals(
+                List.of("NO FORWARD WEAPON FITTED"),
+                easy.launchWarnings(
+                        Optional.of(Intel.of(CONTENT, LEVEL_01, easy.hangar().sensorLevel()))),
+                "a sensor suite L2 plus the easy bonus shows the traits");
     }
 }

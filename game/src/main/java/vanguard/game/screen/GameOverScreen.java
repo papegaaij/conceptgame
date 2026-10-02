@@ -11,7 +11,8 @@ import vanguard.game.ui.Glass;
 /**
  * The game over screen (design/systems/retry: hard, no retry left), a placeholder after the chosen
  * game-over-r08-a: the game over cue, the campaign's stats, and confirm back to the main menu,
- * where the last save can be loaded. Not built yet: Okafor's last transmission (no text in the
+ * where Continue returns to the hangar before the level with its retries renewed (the autosave the
+ * failure wrote) and Load game offers the other saves. Not built yet: Okafor's last transmission (no text in the
  * design yet) and the top-10 with its name entry.
  */
 public final class GameOverScreen implements GameScreen {
@@ -71,7 +72,7 @@ public final class GameOverScreen implements GameScreen {
         glass.centred(
                 batch,
                 glass.fonts.label,
-                "NO RETRIES LEFT. LOAD YOUR LAST SAVE FROM THE MAIN MENU.",
+                "NO RETRIES LEFT. CONTINUE RETURNS TO THE HANGAR BEFORE THIS MISSION.",
                 Glass.BODY,
                 PixelScreen.WIDTH / 2f,
                 PANEL_Y + PANEL_HEIGHT + 18);

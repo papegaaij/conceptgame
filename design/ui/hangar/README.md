@@ -69,13 +69,19 @@ illustrative and come from [player](../../player/README.md).)
 - **Repair**: armour repair per point or "repair all", with cost. Also Rook's repairs.
 - **Save**: slot list, see [saves](../../systems/saves/README.md).
 - **Launch**: confirmation if the loadout lacks a recommended trait ("No anti-sub weapon
-  fitted. Launch anyway?") or armour is below 50 %.
+  fitted. Launch anyway?") or armour is below 50 %. The trait warning only uses what the intel
+  shows: it needs the sensor level that reveals the recommended traits (L3, counting the easy
+  bonus); below it there is no trait warning, so the launch never tells more than the intel.
 
 ### Transactions
 
 Buying fits the item immediately when the power budget allows, otherwise it goes to the
-inventory. Undo within the visit refunds 100 %, see
-[economy](../../systems/economy/README.md#sell-back-and-undo).
+inventory. Undo within the visit refunds 100 %, and so does selling an item bought during the
+visit (purchase plus this visit's upgrades); items owned before the visit sell at the normal
+sell-back, see [economy](../../systems/economy/README.md#sell-back-and-undo).
+
+Swapping the plating keeps the damage: the missing armour points stay missing (Standard 41/60 →
+Composite I 61/80), with at least 1 point left. Repair is a separate choice.
 
 ## Concept art
 
@@ -106,21 +112,17 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the 
 
 ## Open questions
 
-Raised by the M3 part B2 build; each is built as stated until decided.
+Raised by the M3 part B2 build and deferred (user decision, 2026-10-02); each stays as built
+until it is handled where stated.
 
-- **Plating swap and armour**: no rule. Built: the damage carries over (Standard 41/60 →
-  Composite I 61/80), at least 1 point left. Alternatives: keep the points, or keep the share.
-- **Selling an item bought in the same visit**: built as a normal sale (60 %), while Undo returns
-  100 %; the sell confirmation points to the undo. Alternative: such a sale pays 100 %.
-- **Launch warning for a missing recommended trait**: built as written, whatever the sensor
-  level, so it can tell a player without a sensor suite what only L3 shows. Warn only from L3?
-- **Varga's lines**: "one line per intel item" has no text yet; the data holds one line per
-  sensor level (Level 01: the no-sensor line) and the panel shows it with the hangar teaser.
-  Who writes the per-item lines, and in which data?
-- **Sensor L2 portraits and boss silhouette**: built as the enemy and boss names; the portraits
-  need art (the enemy sprites could stand in).
-- **Third utility bay** (5 000 in the economy text, from Act 3) has no data entry; it is not
-  offered yet.
+- **Varga's lines** (M4 writing pass): "one line per intel item" has no text yet; the data holds
+  one line per sensor level (Level 01: the no-sensor line) and the panel shows it with the hangar
+  teaser. The per-item lines and the data that holds them are decided in the M4 writing pass.
+- **Sensor L2 portraits and boss silhouette** (art track, from Level 02 on): built as the enemy
+  and boss names; Level 02 is the first level whose intel needs them, and the art track decides
+  the portraits and the silhouette.
+- **Third utility bay** (M4 data): 5 000 in the economy text, from Act 3; it has no data entry and
+  is not offered yet. Its data entry comes with M4.
 
 ## Decisions
 
@@ -165,3 +167,14 @@ Raised by the M3 part B2 build; each is built as stated until decided.
   Varga lines, the L2 portraits and the boss silhouette (so the intel item stays open), test fire,
   Rook's repairs (Act 2). Until M4 only the Pulse Cannon, shield, plating and engine fly; the
   shop says "NOT YET IN FLIGHT: FROM M4" on the other items and the HUD lists them.
+- 2026-10-02: User decisions on the B2 open questions: a plating swap keeps the damage, the
+  missing armour points carry over (as built; rule under *Transactions*); selling an item bought
+  during the visit refunds its full price like the undo, items owned before keep the normal
+  sell-back (`Hangar` tracks the visit's purchases wherever they are moved and restores them with
+  the undo; the sell confirmation says the full price comes back; tests `HangarTest`:
+  `anItemBoughtDuringTheVisitSellsForAllSpentOnIt`,
+  `ofTwoEqualItemsOnlyTheOneBoughtDuringTheVisitSellsForAll`); the missing-trait launch warning
+  only names traits the sensor level shows (`Intel.markedTraits()`, L3 with the easy bonus;
+  `HangarStateTest.theMissingTraitWarningNeedsTheSensorLevelThatShowsTheTraits`). Varga's per-item
+  lines (M4 writing pass), the Level 02 portraits and boss silhouette (art track) and the third
+  utility bay's data (M4) are deferred; the open questions say where.

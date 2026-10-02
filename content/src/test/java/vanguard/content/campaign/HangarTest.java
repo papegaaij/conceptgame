@@ -153,6 +153,84 @@ class HangarTest {
     }
 
     @Test
+    void anItemBoughtDuringTheVisitSellsForAllSpentOnIt() {
+        Campaign campaign = campaign(Difficulty.MEDIUM, 2, 2000, 60);
+        Hangar hangar = visit(campaign);
+        hangar.apply(
+                LoadoutSlot.LEFT_WING, row(hangar, LoadoutSlot.LEFT_WING, "Autocannon Pod", State.BUYABLE), Action.BUY);
+        hangar.apply(
+                LoadoutSlot.LEFT_WING,
+                row(hangar, LoadoutSlot.LEFT_WING, "Autocannon Pod", State.FITTED),
+                Action.UPGRADE);
+
+        Offer pod = row(hangar, LoadoutSlot.LEFT_WING, "Autocannon Pod", State.FITTED);
+        assertTrue(pod.bought());
+        assertEquals(-750, pod.choice(Action.SELL).orElseThrow().credits(), "500 + 250, like the undo");
+        assertTrue(hangar.apply(LoadoutSlot.LEFT_WING, pod, Action.SELL));
+        assertEquals(2000, campaign.credits());
+
+        hangar.apply(
+                LoadoutSlot.RIGHT_WING,
+                row(hangar, LoadoutSlot.RIGHT_WING, "Autocannon Pod", State.BUYABLE),
+                Action.BUY);
+        hangar.apply(
+                LoadoutSlot.RIGHT_WING,
+                row(hangar, LoadoutSlot.RIGHT_WING, "Autocannon Pod", State.FITTED),
+                Action.UNFIT);
+        Offer stored = row(hangar, LoadoutSlot.LEFT_WING, "Autocannon Pod", State.OWNED);
+        assertEquals(-500, stored.choice(Action.SELL).orElseThrow().credits(), "unfitted, still bought here");
+    }
+
+    @Test
+    void ofTwoEqualItemsOnlyTheOneBoughtDuringTheVisitSellsForAll() {
+        Campaign campaign = campaign(Difficulty.MEDIUM, 2, 1000, 60);
+        Hangar earlier = visit(campaign);
+        earlier.apply(
+                LoadoutSlot.RIGHT_WING,
+                row(earlier, LoadoutSlot.RIGHT_WING, "Autocannon Pod", State.BUYABLE),
+                Action.BUY);
+        Hangar hangar = visit(campaign);
+        hangar.apply(
+                LoadoutSlot.LEFT_WING, row(hangar, LoadoutSlot.LEFT_WING, "Autocannon Pod", State.BUYABLE), Action.BUY);
+        assertEquals(
+                -300,
+                row(hangar, LoadoutSlot.RIGHT_WING, "Autocannon Pod", State.FITTED)
+                        .choice(Action.SELL)
+                        .orElseThrow()
+                        .credits(),
+                "owned from the visit before: 60 %");
+        for (LoadoutSlot wing : List.of(LoadoutSlot.LEFT_WING, LoadoutSlot.RIGHT_WING)) {
+            hangar.apply(wing, row(hangar, wing, "Autocannon Pod", State.FITTED), Action.UNFIT);
+        }
+
+        List<Integer> refunds = hangar.shop(LoadoutSlot.LEFT_WING).stream()
+                .filter(offer -> offer.state() == State.OWNED)
+                .map(offer -> -offer.choice(Action.SELL).orElseThrow().credits())
+                .toList();
+        assertEquals(List.of(500, 300), refunds, "the same pod twice in the inventory");
+        Offer bought = hangar.shop(LoadoutSlot.LEFT_WING).stream()
+                .filter(Offer::bought)
+                .findFirst()
+                .orElseThrow();
+        assertTrue(hangar.apply(LoadoutSlot.LEFT_WING, bought, Action.SELL));
+        assertEquals(500, campaign.credits());
+        assertEquals(
+                -300,
+                row(hangar, LoadoutSlot.LEFT_WING, "Autocannon Pod", State.OWNED)
+                        .choice(Action.SELL)
+                        .orElseThrow()
+                        .credits());
+
+        hangar.undo();
+        assertEquals(
+                1,
+                hangar.shop(LoadoutSlot.LEFT_WING).stream()
+                        .filter(Offer::bought)
+                        .count(),
+                "the undo brings the bought pod back as bought");
+    }
+
+    @Test
     void aFitOverThePowerBudgetIsRefusedAndABuyGoesToTheInventory() {
         Campaign campaign = campaign(Difficulty.MEDIUM, 2, 20_000, 60);
         Hangar hangar = visit(campaign);

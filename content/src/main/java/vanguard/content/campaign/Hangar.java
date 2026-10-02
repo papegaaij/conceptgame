@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,8 +19,9 @@ import vanguard.content.campaign.Catalogue.Stat;
  * A hangar visit's shop and loadout rules (design/ui/hangar, design/player, design/systems/economy)
  * on the campaign's {@link Gear}: buying (fitted at once when the power budget allows, otherwise
  * into the inventory), upgrading, fitting and unfitting owned items for free, selling for the
- * sell-back share of all that was spent on an item, special charges, armour repair and the visit's
- * undo, which returns every transaction of the visit in reverse order for 100 %.
+ * sell-back share of all that was spent on an item (for all of it when the item was bought during
+ * this visit), special charges, armour repair and the visit's undo, which returns every transaction
+ * of the visit in reverse order for 100 %.
  *
  * <p>The power load is the sum of the fitted items' draws and may not exceed the generator's
  * output; the front gun and the core parts are always fitted. A plating swap keeps the damage: the
@@ -76,10 +78,17 @@ public final class Hangar {
      *
      * @param level the owned level (1 for a buyable or locked item)
      * @param owned the owned item this row stands for; empty for a buyable or locked item
+     * @param bought the owned item was bought during this visit, so it sells for all spent on it
      * @param isNew in the shop since the visit before
      */
     public record Offer(
-            Item item, State state, int level, Optional<Fitted> owned, boolean isNew, List<Choice> choices) {
+            Item item,
+            State state,
+            int level,
+            Optional<Fitted> owned,
+            boolean bought,
+            boolean isNew,
+            List<Choice> choices) {
         public Offer {
             choices = List.copyOf(choices);
         }
@@ -99,7 +108,8 @@ public final class Hangar {
 
     private final Catalogue catalogue;
     private final Campaign campaign;
-    private final Deque<Gear> undo = new ArrayDeque<>();
+    private Bought bought = Bought.NONE;
+    private final Deque<Step> undo = new ArrayDeque<>();
 
     public Hangar(Catalogue catalogue, Campaign campaign) {
         this.catalogue = catalogue;
@@ -189,20 +199,25 @@ public final class Hangar {
                             1,
                             Optional.of(new Fitted(special.id(), 1)),
                             false,
+                            false,
                             List.of(fitChoice(slot, special, 1), chargeChoice(special))));
                     listed.add(special.id());
                 }
             }
         }
+        // Of equal owned items the first rows stand for the ones bought during the visit.
+        List<Fitted> boughtHere = new ArrayList<>(bought.stored(kind));
         for (Fitted owned : gear.inventory(kind)) {
             Item item = item(kind, owned);
+            boolean isBought = boughtHere.remove(owned);
             offers.add(new Offer(
                     item,
                     State.OWNED,
                     owned.level(),
                     Optional.of(owned),
+                    isBought,
                     false,
-                    List.of(fitChoice(slot, item, owned.level()), sellChoice(item, owned.level(), 0))));
+                    List.of(fitChoice(slot, item, owned.level()), sellChoice(item, owned.level(), 0, isBought))));
             listed.add(owned.item());
         }
         catalogue.items(kind).stream()
@@ -213,18 +228,21 @@ public final class Hangar {
                         State.BUYABLE,
                         1,
                         Optional.empty(),
+                        false,
                         item.unlock() == campaign.nextLevel() && campaign.nextLevel() > 1,
                         List.of(kind == ItemKind.SPECIAL ? chargeChoice(item) : buyChoice(slot, item)))));
         catalogue.items(kind).stream()
                 .filter(item -> !available(item))
                 .sorted(Comparator.comparingInt(Item::unlock).thenComparingInt(Item::price))
-                .forEach(item -> offers.add(new Offer(item, State.LOCKED, 1, Optional.empty(), false, List.of())));
+                .forEach(item ->
+                        offers.add(new Offer(item, State.LOCKED, 1, Optional.empty(), false, false, List.of())));
         return offers;
     }
 
     private Offer fittedOffer(LoadoutSlot slot, Fitted fitted) {
         ItemKind kind = slot.kind();
         Item item = item(kind, fitted);
+        boolean isBought = bought.fitted().contains(slot);
         List<Choice> choices = new ArrayList<>();
         if (kind == ItemKind.SPECIAL) {
             choices.add(chargeChoice(item));
@@ -234,9 +252,9 @@ public final class Hangar {
         if (kind.optional() && kind != ItemKind.SPECIAL) {
             double draw = item.draw(fitted.level());
             choices.add(new Choice(Action.UNFIT, 0, load() - draw, output(), false, Optional.empty()));
-            choices.add(sellChoice(item, fitted.level(), draw));
+            choices.add(sellChoice(item, fitted.level(), draw, isBought));
         }
-        return new Offer(item, State.FITTED, fitted.level(), Optional.of(fitted), false, choices);
+        return new Offer(item, State.FITTED, fitted.level(), Optional.of(fitted), isBought, false, choices);
     }
 
     private Choice upgradeChoice(Item item, int level) {
@@ -264,9 +282,10 @@ public final class Hangar {
         return new Choice(Action.FIT, 0, load, output, true, refusal(0, load, output));
     }
 
-    private Choice sellChoice(Item item, int level, double draw) {
-        return new Choice(
-                Action.SELL, -catalogue.sellPrice(item, level), load() - draw, output(), false, Optional.empty());
+    /** A sale refunds all spent on an item bought during this visit, the sell-back share otherwise. */
+    private Choice sellChoice(Item item, int level, double draw, boolean isBought) {
+        int refund = isBought ? item.spent(level) : catalogue.sellPrice(item, level);
+        return new Choice(Action.SELL, -refund, load() - draw, output(), false, Optional.empty());
     }
 
     private Choice chargeChoice(Item special) {
@@ -302,37 +321,38 @@ public final class Hangar {
         if (choice.isEmpty() || !choice.get().allowed()) {
             return false;
         }
-        Gear before = campaign.gear();
+        Step before = step();
         Change change = new Change(before);
         Item item = offer.item();
+        Offer row = current.get();
         change.credits -= choice.get().credits();
         switch (action) {
             case BUY -> {
                 Fitted bought = new Fitted(item.id(), 1);
                 if (choice.get().fits()) {
-                    change.fit(slot, bought);
+                    change.fit(slot, bought, true);
                 } else {
-                    change.store(slot.kind(), bought);
+                    change.store(slot.kind(), bought, true);
                 }
             }
             case UPGRADE -> {
-                Fitted fitted = before.loadout().get(slot);
+                Fitted fitted = before.gear().loadout().get(slot);
                 change.loadout.put(slot, new Fitted(fitted.item(), fitted.level() + 1));
             }
             case FIT -> {
-                Fitted owned = current.get().owned().orElseThrow();
+                Fitted owned = row.owned().orElseThrow();
                 if (slot.kind() != ItemKind.SPECIAL) {
-                    change.take(slot.kind(), owned);
+                    change.take(slot.kind(), owned, row.bought());
                 }
-                change.fit(slot, owned);
+                change.fit(slot, owned, row.bought());
             }
-            case UNFIT -> change.store(slot.kind(), change.loadout.remove(slot));
+            case UNFIT -> change.store(slot.kind(), change.loadout.remove(slot), change.fitted.remove(slot));
             case SELL -> {
-                Fitted sold = current.get().owned().orElseThrow();
-                if (current.get().state() == State.FITTED) {
+                if (row.state() == State.FITTED) {
                     change.loadout.remove(slot);
+                    change.fitted.remove(slot);
                 } else {
-                    change.take(slot.kind(), sold);
+                    change.take(slot.kind(), row.owned().orElseThrow(), row.bought());
                 }
             }
             case BUY_CHARGE -> {
@@ -341,14 +361,24 @@ public final class Hangar {
             }
         }
         undo.push(before);
-        campaign.gear(change.gear());
+        restore(change.step());
         return true;
     }
 
     private static boolean same(Offer row, Offer offer) {
         return row.item().equals(offer.item())
                 && row.state() == offer.state()
-                && row.owned().equals(offer.owned());
+                && row.owned().equals(offer.owned())
+                && row.bought() == offer.bought();
+    }
+
+    private Step step() {
+        return new Step(campaign.gear(), bought);
+    }
+
+    private void restore(Step step) {
+        campaign.gear(step.gear());
+        bought = step.bought();
     }
 
     /** The whole armour points missing. */
@@ -377,7 +407,7 @@ public final class Hangar {
             return false;
         }
         Gear before = campaign.gear();
-        undo.push(before);
+        undo.push(step());
         campaign.gear(before.withCredits(before.credits() - points * repairCost())
                 .withArmour(Math.min(campaign.maxArmour(), before.armour() + points)));
         return true;
@@ -392,36 +422,72 @@ public final class Hangar {
         if (undo.isEmpty()) {
             return false;
         }
-        campaign.gear(undo.pop());
+        restore(undo.pop());
         return true;
     }
 
-    /** A transaction's changes to the gear. */
+    /** The state a transaction changes: the gear and which of its items were bought during the visit. */
+    private record Step(Gear gear, Bought bought) {}
+
+    /**
+     * The items bought during the visit, wherever they are now.
+     *
+     * @param fitted the slots they are fitted in
+     * @param stored the ones in the inventory, by kind
+     */
+    private record Bought(Set<LoadoutSlot> fitted, Map<ItemKind, List<Fitted>> stored) {
+        static final Bought NONE = new Bought(Set.of(), Map.of());
+
+        Bought {
+            fitted = Set.copyOf(fitted);
+            stored = Gear.inventoryCopy(stored);
+        }
+
+        List<Fitted> stored(ItemKind kind) {
+            return stored.getOrDefault(kind, List.of());
+        }
+    }
+
+    /** A transaction's changes to the gear and to what the visit bought. */
     private final class Change {
         int credits;
         final Map<LoadoutSlot, Fitted> loadout;
         final Map<ItemKind, List<Fitted>> inventory = new EnumMap<>(ItemKind.class);
         final Map<String, Integer> specials;
         double armour;
+        final Set<LoadoutSlot> fitted = EnumSet.noneOf(LoadoutSlot.class);
+        final Map<ItemKind, List<Fitted>> stored = new EnumMap<>(ItemKind.class);
 
-        Change(Gear gear) {
+        Change(Step step) {
+            Gear gear = step.gear();
             credits = gear.credits();
             loadout = new EnumMap<>(LoadoutSlot.class);
             loadout.putAll(gear.loadout());
             gear.inventory().forEach((kind, items) -> inventory.put(kind, new ArrayList<>(items)));
             specials = new HashMap<>(gear.specials());
             armour = gear.armour();
+            fitted.addAll(step.bought().fitted());
+            step.bought().stored().forEach((kind, items) -> stored.put(kind, new ArrayList<>(items)));
         }
 
-        /** Fits an item; the one it replaces goes to the inventory (a special's charges stay where they are). */
-        void fit(LoadoutSlot slot, Fitted item) {
+        /**
+         * Fits an item; the one it replaces goes to the inventory (a special's charges stay where
+         * they are).
+         *
+         * @param isBought the item was bought during the visit
+         */
+        void fit(LoadoutSlot slot, Fitted item, boolean isBought) {
             Fitted old = loadout.put(slot, item);
+            boolean oldBought = fitted.remove(slot);
+            if (isBought) {
+                fitted.add(slot);
+            }
             if (slot.kind() == ItemKind.PLATING) {
                 double damage = maxArmour(old) - armour;
                 armour = Math.max(1, maxArmour(item) - damage);
             }
             if (old != null && slot.kind() != ItemKind.SPECIAL) {
-                store(slot.kind(), old);
+                store(slot.kind(), old, oldBought);
             }
         }
 
@@ -429,18 +495,22 @@ public final class Hangar {
             return item(ItemKind.PLATING, plating).stats(1).get(Stat.ARMOUR);
         }
 
-        void store(ItemKind kind, Fitted item) {
+        void store(ItemKind kind, Fitted item, boolean isBought) {
             inventory.computeIfAbsent(kind, k -> new ArrayList<>()).add(item);
+            if (isBought) {
+                stored.computeIfAbsent(kind, k -> new ArrayList<>()).add(item);
+            }
         }
 
-        void take(ItemKind kind, Fitted item) {
-            if (!inventory.getOrDefault(kind, new ArrayList<>()).remove(item)) {
+        void take(ItemKind kind, Fitted item, boolean isBought) {
+            if (!inventory.getOrDefault(kind, new ArrayList<>()).remove(item)
+                    || isBought && !stored.getOrDefault(kind, new ArrayList<>()).remove(item)) {
                 throw new IllegalStateException(item + " is not in the inventory");
             }
         }
 
-        Gear gear() {
-            return new Gear(credits, loadout, inventory, specials, armour);
+        Step step() {
+            return new Step(new Gear(credits, loadout, inventory, specials, armour), new Bought(fitted, stored));
         }
     }
 }

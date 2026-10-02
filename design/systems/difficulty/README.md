@@ -96,3 +96,6 @@ the single source of the global levers; enemy stat blocks only add overrides (se
   [retry](../retry/README.md)).
 - 2026-10-02: M3 part B2: the hangar charges the repair cost per armour point and adds the sensor
   bonus (easy +1) to the intel's sensor level.
+- 2026-10-02: "Reload last save" after hard's game over means the save made in the hangar right
+  before the level was launched, with a fresh set of retries (user decision): Continue opens the
+  hangar before the level; see [retry](../retry/README.md).

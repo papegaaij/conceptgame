@@ -31,7 +31,11 @@ charges are all restored. Whatever was earned in the failed attempt is lost. The
 3. On hard, the screen shows the retries left (3 per level). The failure **uses its retry at
    once** and the autosave is written then, so quitting from this screen and continuing cannot
    give it back. With none left the campaign ends: game over screen, high-score entry, back to the
-   main menu, where the last save can be loaded.
+   main menu. A game over goes back to the save made in the hangar right before the level was
+   last launched, with a fresh set of retries: the autosave written at that failure holds the
+   hangar state of the last launch (loadout, inventory, credits, charges and armour as launched)
+   and the level's full retries, so **Continue** opens the hangar before the level and never
+   resumes it with no retry left. Load game still offers the manual saves.
 4. From the pause menu, **Restart mission** and **Abort to hangar** each use a retry on hard too
    (otherwise aborting just before dying would be a free retry); with no retry left both are
    disabled. A restart writes the autosave like a failure; an abort opens the hangar, which
@@ -57,7 +61,8 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 ### Settled rules
 
 - **Game over** exists only on **hard**: after 3 failed retries of a level the campaign ends and
-  the player reloads a save. Easy and medium retry without limit.
+  the player goes back to the pre-launch hangar save (above). Easy and medium retry without
+  limit.
 - **Armour on retry** is restored to its **level-start value, but at least 50 %** of maximum, so a
   save started on near-zero armour can never trap the player.
 
@@ -67,13 +72,6 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 - [x] Mission failed screen with the three (four) options
 - [x] Hard-mode retry counter and game over
 - [x] "Back to hangar" path that keeps the level as the next one
-
-## Open questions
-
-- On hard, the game over comes from an attempt with no retry left; the autosave written at the
-  failure before it holds 0 retries, so Continue after a game over gives that level's last
-  attempt again (before B2 it gave all three back). Delete or mark the autosave at game over, or
-  accept "reload the last save" as it is?
 
 ## Decisions
 
@@ -103,3 +101,16 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
   are written to the autosave the moment an attempt fails (`Campaign.fail()` uses the retry,
   `LevelScreen` autosaves; the pause menu's restart autosaves too); 3 s from the destruction to
   the mission failed screen. The three open questions are closed.
+- 2026-10-02: Game over on hard rolls back to the pre-launch hangar save (user decision). Built
+  without a new save file: the campaign keeps the gear of the last launch (`Campaign.launch()`,
+  called as a level's sortie starts; nothing else changes until the level ends), and
+  `Campaign.fail()` with no retry left returns to it with the level's retries renewed;
+  `LevelScreen` writes the autosave at every failure as before, so at a game over the autosave
+  becomes the hangar before the level and Continue (the newest save) opens it. The statistics
+  (deaths, playtime) go on. Rejected: a separate pre-launch save file next to the failure
+  autosave (a second autosave to keep in step, and Continue would need to tell them apart) and
+  deleting the autosave at game over (Continue would fall back to an older manual save). Test:
+  `CampaignTest.aGameOverAutosavesTheHangarBeforeTheLastLaunchWithTheRetriesRenewed` (game over →
+  autosave → Continue: the level before, 3 retries, credits, loadout and armour as launched). The
+  game over screen says Continue returns to the hangar before the mission. The open question is
+  closed.

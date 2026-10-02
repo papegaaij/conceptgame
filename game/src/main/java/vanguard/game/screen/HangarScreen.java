@@ -141,7 +141,9 @@ public final class HangarScreen implements GameScreen {
                         Pending.SELL,
                         new Dialog(
                                 "SELL " + Names.of(offer.item().name()) + " FOR " + Names.credits(refund) + "?",
-                                "UNDO RETURNS THIS VISIT'S TRANSACTIONS FOR 100 %.",
+                                offer.bought()
+                                        ? "BOUGHT DURING THIS VISIT: THE FULL PRICE COMES BACK."
+                                        : "UNDO RETURNS THIS VISIT'S TRANSACTIONS FOR 100 %.",
                                 "YES, SELL",
                                 "NO, KEEP"));
             }

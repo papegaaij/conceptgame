@@ -95,7 +95,9 @@ A typical player can afford about 60–65 % of it, so choices matter.
 - **Undo**: anything bought during the current hangar visit can be returned for 100 %
   until the player launches. This encourages experimenting.
 - **Sell**: items owned from earlier visits sell for 60 % of the total spent on them
-  (purchase plus upgrades).
+  (purchase plus upgrades). An item bought during the current visit sells for 100 % of what was
+  spent on it, like its undo; an item owned before the visit keeps the 60 %, even after an
+  upgrade in this visit.
 - Unfitted items stay in the inventory for free, so selling is only needed for cash.
 
 ### Pricing curve
@@ -107,7 +109,8 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 
 - [x] Credit balance, income multiplier by difficulty
 - [ ] Bounty values per enemy class; boss bounty per act
-- [x] Hangar transaction log for undo; 60 % sell-back otherwise
+- [x] Hangar transaction log for undo; 60 % sell-back otherwise (100 % for an item bought in the
+  same visit)
 - [ ] Balancing sheet (spreadsheet or script) that simulates per-level budgets vs prices
 
 ## Open questions
@@ -148,3 +151,7 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   campaign balance. Content test (`EconomyTest`): the 300 starting credits buy the Pulse Cannon's
   L2 upgrade and not the 800 sensor suite (as Level 01's threat profile says), and Level 01 flown
   by the test autopilot with it pays for the Autocannon Pod that is NEW at the L02 visit.
+- 2026-10-02: Selling an item bought during the current hangar visit refunds all spent on it
+  (100 %, like the undo); items owned before the visit keep the 60 % sell-back (user decision;
+  `vanguard.content.campaign.Hangar`, tests in `HangarTest`). The B2 rule (60 % for any sale) is
+  replaced.

@@ -381,10 +381,13 @@ public final class HangarState {
         return Names.megawatts(choice.load() - choice.output());
     }
 
-    /** What the launch confirmation warns about (design/ui/hangar, Launch): missing recommended traits, armour below 50 %. */
+    /**
+     * What the launch confirmation warns about (design/ui/hangar, Launch): the missing recommended
+     * traits the sensor level shows (none below the level that reveals them), armour below 50 %.
+     */
     public List<String> launchWarnings(Optional<Intel> intel) {
         List<String> warnings = new ArrayList<>();
-        intel.ifPresent(level -> level.profile().traits().stream()
+        intel.ifPresent(level -> level.markedTraits().stream()
                 .filter(trait -> !hangar.fittedTraits().contains(trait))
                 .forEach(trait -> warnings.add("NO " + trait.toUpperCase(Locale.ROOT) + " WEAPON FITTED")));
         if (hangar.campaign().armour() < hangar.campaign().maxArmour() / 2) {

@@ -53,3 +53,7 @@ auto-repair or armour patches). When it reaches zero the ship is destroyed and t
   panel, which opens on everything the credits pay for ("repair all") and changes by 1 or 10
   points. A plating swap keeps the damage: the missing points stay missing (at least 1 point is
   left); the document gave no rule, see the hangar's open questions.
+- 2026-10-02: Plating swap (user decision): the missing armour points carry over to the new
+  plating (Standard 41/60 → Composite I 61/80), at least 1 point left, as built in M3 part B2;
+  keeping the points or the share were the alternatives. The rule is in the
+  [hangar](../../ui/hangar/README.md#transactions).
