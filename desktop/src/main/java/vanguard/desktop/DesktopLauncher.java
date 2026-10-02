@@ -3,6 +3,7 @@ package vanguard.desktop;
 import com.badlogic.gdx.Graphics.Monitor;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import vanguard.content.campaign.SaveSlots;
 import vanguard.game.TerranVanguard;
 import vanguard.game.display.Bounds;
 import vanguard.game.display.DisplayModes;
@@ -30,14 +31,19 @@ public final class DesktopLauncher {
                 options.settingsFile().orElseGet(() -> ConfigDirectory.current().resolve(SettingsFile.FILE_NAME)));
         DisplaySettings settings = settingsFile.read();
         System.out.println("settings: " + settingsFile.path());
+        // The saves live next to the settings file (design/systems/saves), so --settings moves them too.
+        var saves = new SaveSlots(settingsFile.path().toAbsolutePath().resolveSibling("saves"));
         var displayModes = new DisplayModes(settings, settingsFile::write);
         var game = new TerranVanguard(
                 displayModes,
-                settingsFile.readControls(),
+                settingsFile.readSettings(),
+                settingsFile,
                 options.difficulty(),
                 options.debugSpeed(),
                 options.invulnerable(),
-                options.benchSeconds());
+                options.startLevel(),
+                options.benchSeconds(),
+                saves);
         new Lwjgl3Application(game, configuration(settings));
     }
 

@@ -40,6 +40,19 @@ class RadioQueueTest {
     }
 
     @Test
+    void theRadioKnowsWhenItsMessageOpenedAndWhenItWillClose() {
+        radio.add("Okafor", "Weapons free.", false);
+        radio.update(0.01f);
+        run(0.2);
+
+        assertEquals(0.2f, radio.sinceOpened(), 0.011f);
+        assertEquals(Float.POSITIVE_INFINITY, radio.untilClosed(), "still typing");
+        run(2);
+        float typedOut = 14 / 30f; // the line and its break at 30 characters a second
+        assertEquals(RadioQueue.LAST_PAGE_SECONDS - (2.2f - typedOut), radio.untilClosed(), 0.02f);
+    }
+
+    @Test
     void queuedMessagesPlayOneAfterTheOther() {
         radio.add("Okafor", "Weapons free.", false);
         radio.add("Varga", "Keep moving.", false);

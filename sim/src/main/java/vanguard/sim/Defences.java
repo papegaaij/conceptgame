@@ -27,13 +27,16 @@ public final class Defences {
         this.delayTicks = SimStep.ticks(model.regenDelaySeconds());
         this.breakTicks = SimStep.ticks(model.breakSeconds());
         this.regenPerStep = model.regenPerSecond() * SimStep.SECONDS;
-        restore();
+        restore(plating.maxArmour());
     }
 
-    /** Full shield and armour, as at the start of a sortie. */
-    void restore() {
+    /** A full shield over {@code armour} points, as at the start of an attempt. */
+    void restore(double armour) {
+        if (!(armour > 0 && armour <= plating.maxArmour())) {
+            throw new IllegalArgumentException("armour " + armour + " outside (0, " + plating.maxArmour() + "]");
+        }
         shield = model.capacity();
-        armour = plating.maxArmour();
+        this.armour = armour;
         armourLost = 0;
         regenWait = 0;
         mercy = 0;

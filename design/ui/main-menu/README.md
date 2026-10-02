@@ -1,10 +1,10 @@
 ---
 title: Main menu
 design: approved
-implementation: not-started
+implementation: done
 art: chosen
 depends-on: [../../systems/saves, ../../systems/difficulty]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Main menu
@@ -82,10 +82,10 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
 
 ## Implementation
 
-- [ ] Title screen with background scene, logo and press start
-- [ ] Menu with Continue (conditional), New game, Load game, Options, Credits, Quit
-- [ ] Difficulty select with descriptions
-- [ ] Options: audio volumes, controls, display settings
+- [x] Title screen with background scene, logo and press start
+- [x] Menu with Continue (conditional), New game, Load game, Options, Credits, Quit
+- [x] Difficulty select with descriptions
+- [x] Options: audio volumes, controls, display settings
 
 ## Open questions
 
@@ -98,3 +98,28 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
 - 2026-09-30: Concept round 01: logo **D** chosen — working title **Terran Vanguard** (blue chrome, 3D extrusion); A, B, C rejected.
 - 2026-10-01: Concept round 06: variant A (glass menu over the hero scene) chosen for the main menu, difficulty select and load game; the metal console variant B rejected.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: M3 part A (`vanguard.game.screen.MainMenuScreen`, `DifficultyScreen`,
+  `CreditsScreen`). Title and menu are one screen in two states, so the title theme plays on into
+  the menu and under the screens opened from it: the hero scene of menu A with logo D, "PRESS
+  START" (Enter / A) blinking; Back on the title asks to quit, Back in the menu returns to the
+  title. The menu is menu A's glass panel with New game, Load game (disabled until saves exist),
+  Options, Credits and Quit (with a confirmation); Continue stays hidden while there is no save, as
+  the table says, so the menu item stays open for part B. New game opens difficulty select A (rank
+  cards with chevrons, rank, the draft descriptions and six levers read from
+  `design/systems/difficulty/data.yaml`), which starts Level 01 straight away until the intro
+  briefing and the hangar exist. Credits is a placeholder panel until the credits roll (M6). The
+  placeholder scene and the logo with transparency are rendered by `tools/concept/ui_assets.py`
+  from the chosen menu A's generator (`ui_r06.hero_backdrop`, `ui_r06.logo_layer`) into
+  `assets/ui/`, because the concept sheet has the menu and the logo baked in; `importPlaceholders`
+  no longer copies `logo-r01-d.png` (it has no transparency). Menu move / confirm / back sounds
+  (round 08) play on every screen. The inline difficulty chips under New game in the menu A mock
+  were not built: the chosen difficulty A screen does that job.
+- 2026-10-02: M3 part B1: Continue appears above New game when a save exists and loads the most
+  recent one (by its write time, any slot) into the hangar; Load game is enabled when any slot holds
+  a file and opens the slot list of load-game-r06-a (`vanguard.game.screen.SlotsScreen`): the
+  autosave and 8 slots, each with the act icon, next mission, difficulty, credits, playtime and
+  date, an unreadable file marked as such, and the preview panel (act, next mission, difficulty,
+  credits, score, armour, playtime, saved, front gun). The concept's DEL delete and the preview's
+  setting thumbnail are not built (the saves document has no delete). New game goes difficulty →
+  intro briefing → hangar.
+- 2026-10-02: M3 close-out (user decision): every item is ticked; done.

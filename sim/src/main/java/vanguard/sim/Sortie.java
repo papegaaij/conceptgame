@@ -10,15 +10,13 @@ import java.util.List;
  * the waves are planned when the sortie is created, so stepping does not allocate, and the same
  * seed and commands give the same {@link #stateHash()} on every platform.
  *
- * <p>When armour reaches zero the ship explodes and, after a pause, the level restarts with the
+ * <p>When armour reaches zero the ship explodes and the level runs on without it until the
+ * presentation, after the mission failed screen, restarts it with {@link #retry(double)} from the
  * level-start state (design/systems/retry): what the attempt earned is lost. The level is over
  * when the scroll reaches the end of the last section; the ship then flies on, out of harm's way,
  * until the presentation moves to the debrief.
  */
 public final class Sortie {
-    /** From destruction to the restart: the explosion, a second of slow motion and the failure sting. */
-    static final double RESTART_SECONDS = 4;
-
     private static final int SHOT_CAPACITY = 64;
     private static final int ENEMY_CAPACITY = 128;
     private static final int BULLET_CAPACITY = 256;
@@ -45,12 +43,14 @@ public final class Sortie {
     private final int requiredKills;
     private final int launchTicks;
     private final int endTicks;
-    private final int restartTicks = SimStep.ticks(RESTART_SECONDS);
     private final int pickupTicks;
     private long tick;
     private int levelTick;
     private int attempt = 1;
-    private int wreckTicks;
+    private boolean wrecked;
+    /** The armour of the next attempt, once {@link #retry(double)} asked for one; 0 while none is asked for. */
+    private double retryArmour;
+
     private double groundScroll;
     private int nextGroundObject;
     private int secretsFound;
@@ -58,7 +58,8 @@ public final class Sortie {
     private boolean secondaryMet;
     private boolean complete;
 
-    public Sortie(long seed, Loadout loadout, LevelScript script, Rules rules) {
+    /** @param armour the ship's armour at the level start (design/systems/retry: not full, unless it was full) */
+    public Sortie(long seed, Loadout loadout, LevelScript script, Rules rules, double armour) {
         if (rules.bulletBudget() > BULLET_CAPACITY) {
             throw new IllegalArgumentException("the bullet budget exceeds the pool of " + BULLET_CAPACITY);
         }
@@ -77,14 +78,14 @@ public final class Sortie {
         launchTicks = SimStep.ticks(script.launchSeconds());
         endTicks = SimStep.ticks(script.seconds());
         pickupTicks = SimStep.ticks(rules.pickups().seconds());
-        startAttempt();
+        startAttempt(armour);
     }
 
     /** Advances the sortie by one step with the given {@link Command} set. */
     public void step(int commands) {
         tick++;
         events.clear();
-        if (wreckTicks > 0 && --wreckTicks == 0) {
+        if (retryArmour > 0) {
             restart();
         }
         double scrollStep = scrollSpeed() * SimStep.SECONDS;
@@ -120,13 +121,25 @@ public final class Sortie {
         if (flying()) {
             collectPickups();
         }
-        if (!complete && levelTick >= endTicks) {
+        if (!complete && !wrecked && levelTick >= endTicks) {
             completeLevel();
         }
     }
 
-    private void startAttempt() {
-        ship.reset();
+    /**
+     * Restarts the level at the next step from its start state, after the ship's destruction or from
+     * the pause menu (design/systems/retry): a new attempt with {@code armour} points of armour, and
+     * what this one earned is lost.
+     */
+    public void retry(double armour) {
+        if (!(armour > 0)) {
+            throw new IllegalArgumentException("a retry needs armour");
+        }
+        retryArmour = armour;
+    }
+
+    private void startAttempt(double armour) {
+        ship.reset(armour);
         if (launchTicks > 0) {
             ship.launch(0);
             ship.rememberPosition();
@@ -148,8 +161,11 @@ public final class Sortie {
         nextGroundObject = 0;
         secretsFound = 0;
         secondaryMet = false;
+        complete = false;
+        wrecked = false;
         attempt++;
-        startAttempt();
+        startAttempt(retryArmour);
+        retryArmour = 0;
         events.add(SimEvents.Type.SORTIE_RESTARTED, ship.x(), ship.y());
     }
 
@@ -165,9 +181,13 @@ public final class Sortie {
 
     private void fire() {
         double muzzleY = ship.y() + ship.spec().muzzleOffsetY();
-        Shot shot = shots.obtain();
-        if (shot != null) {
-            shot.fire(ship.x(), muzzleY, ship.gun().damage());
+        List<Double> pattern = ship.gun().pattern();
+        // Indexed: an iterator would allocate on every volley.
+        for (int i = 0; i < pattern.size(); i++) {
+            Shot shot = shots.obtain();
+            if (shot != null) {
+                shot.fire(ship.x() + pattern.get(i), muzzleY, ship.gun().damage());
+            }
         }
         events.add(SimEvents.Type.SHOT_FIRED, ship.x(), muzzleY);
     }
@@ -445,15 +465,15 @@ public final class Sortie {
      * After a hit: armour damage (more armour lost than {@code lostBefore}) ends the chain, and a
      * hit that took the last armour wrecks the ship. Returns whether it did.
      */
-    private boolean damaged(double lostBefore, boolean wrecked) {
+    private boolean damaged(double lostBefore, boolean destroyed) {
         if (ship.defences().armourLost() > lostBefore) {
             tally.breakChain();
         }
-        if (wrecked) {
-            wreckTicks = restartTicks;
+        if (destroyed) {
+            wrecked = true;
             events.add(SimEvents.Type.SHIP_DESTROYED, ship.x(), ship.y());
         }
-        return wrecked;
+        return destroyed;
     }
 
     private void collectPickups() {
@@ -502,7 +522,7 @@ public final class Sortie {
                 .add(tick)
                 .add(levelTick)
                 .add(attempt)
-                .add(wreckTicks)
+                .add(wrecked ? 1 : 0)
                 .add(groundScroll)
                 .add(nextGroundObject)
                 .add(secretsFound)
@@ -643,9 +663,9 @@ public final class Sortie {
         return levelTick <= launchTicks;
     }
 
-    /** Whether the ship is flying, rather than wrecked and waiting for the restart. */
+    /** Whether the ship is flying, rather than wrecked and waiting for a retry. */
     public boolean flying() {
-        return wreckTicks == 0;
+        return !wrecked;
     }
 
     /** Whether the scroll has reached the end: the level is won. */

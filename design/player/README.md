@@ -131,8 +131,8 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 
 ## Implementation
 
-- [ ] Loadout data model: slots, fitted items, inventory, upgrade levels
-- [ ] Power load calculation and over-budget refusal
+- [x] Loadout data model: slots, fitted items, inventory, upgrade levels
+- [x] Power load calculation and over-budget refusal
 - [ ] Spare-power shield regen bonus
 - [ ] Single fire button fires all weapons; special on a separate button
 - [ ] Pickup types, drop tables and 6 s despawn
@@ -164,3 +164,12 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
   levels' carried pickups. The other pickups follow with their levels, so the item stays open.
   Placeholders: the spin loops of [pickups-r09-a](concept/pickups-r09-a.png) (salvage L stands in
   for the hidden crate).
+- 2026-10-02: M3 part B2 (`vanguard.content.campaign`: `ItemKind`, `Gear`, `Catalogue`,
+  `Hangar`): the loadout per slot with upgrade levels, the inventory by kind, the special charges,
+  the power load (the fitted items' draws; a weapon's draw per level linear from L1 to L5, rounded
+  half up to 0.5 MW) against the generator's output, refused fits with the missing MW, buys that
+  go to the inventory when they do not fit, free refits, and the always-fitted front gun and core
+  parts. The sim flies the Pulse Cannon at its level, the shield, the plating and the engine;
+  the other weapons, the specials and the utility modules are bought, fitted and saved and fly
+  from M4 (`Flight`). The spare-power shield regen bonus is not applied in flight yet (M4), so
+  the hangar does not show it.

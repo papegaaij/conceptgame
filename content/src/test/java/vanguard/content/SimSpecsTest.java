@@ -42,7 +42,7 @@ class SimSpecsTest {
         assertEquals(
                 new Loadout(
                         new ShipSpec(270, 0.08, 0.06, 0.5, 48, 12, STORMHAWK_HULL, 0.25, 21, 3),
-                        new PulseCannon(10, 2.0, 900, new Hitbox(4, 12)),
+                        new PulseCannon(10, 2.0, 900, new Hitbox(4, 12), List.of(0.0)),
                         new ShieldModel(20, 2, 2.0, 1.0),
                         new Plating(60)),
                 SimSpecs.starterLoadout(content, Difficulty.MEDIUM));

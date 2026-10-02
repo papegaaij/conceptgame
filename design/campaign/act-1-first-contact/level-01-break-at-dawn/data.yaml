@@ -4,15 +4,23 @@
 scroll_speed: 130     # px/s at the 960×540 baseline; a section may set its own speed
 launch_seconds: 5     # non-playable launch off the south rail; control starts after it
 control_prompts: [move, fire, precision]
-notes:
-  threat_profile:  # the README's Threat profile table; {directions} is derived from the waves
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Earth orbit
+  layers: [air]                    # the dominant gameplay layers
+  density: 1                       # 1-5
+  traits: [forward]                # recommended weapon traits
+  hazards: []
+  boss: none
+  varga:                           # Dr. Varga's intel line per sensor level (none, l1, l2, l3)
+    none: Our scans are patchy, Lancer. Small, fast, lots of them.
+  notes:  # the table's rows; {directions} is derived from the waves, {fields} come from above
     Dominant layers: '`air` (all enemies), `deep` (Earth, the yards'' far structures)'
     Attack directions: '{directions} (one warned wave)'
-    Density: '1'
-    Recommended traits: '`forward`'
+    Density: '{density}'
+    Recommended traits: '{traits}'
     Hazards: none
-    Boss / mid-boss: 'none (final wave: Needler circle)'
-    Sensor-suite detail: 'The sensor suite (800) is in the shop from the start but out of reach of the 300 starting credits, so the panel shows the no-sensor view: setting, dominant layer `air`, main direction front. Varga: "Our scans are patchy, Lancer. Small, fast, lots of them."'
+    Boss / mid-boss: '{boss} (final wave: Needler circle)'
+    Sensor-suite detail: 'The sensor suite (800) is in the shop from the start but out of reach of the 300 starting credits, so the panel shows the no-sensor view: setting, dominant layer `air`, main direction front. Varga: "{varga.none}"'
 
 sections:  # back to back from t = 0; each ends at `end`; tiles: the backdrop's tile sets
   - name: Launch
@@ -246,3 +254,9 @@ backdrop:
     - {piece: platform, t: 168, x: 150}      # gone by 171 s: open space for the outro
     - {piece: earth-limb, t: 183.2, x: 240}   # the crest enters at the top at 158 s, 200 px above the bottom at the end
     - {piece: vrell-glow, t: 194.25, x: 240}  # over the open space from 167 s; the top edges of both stay above the screen through the outro
+
+briefing:  # the briefing screen (design/ui/briefing); rendered into README.md (Briefing)
+  pages:
+    - {speaker: Okafor, line: "Lancer, this is Aegis Actual. Six weeks ago something came through the Tether Gate. Forty minutes ago it arrived at L1, and now it's falling on the Gagarin yards. We don't know what they are or what they want. What we do know is that half the Coalition's new hulls are sitting in those docks. You're the first bird off the south rail; Rook takes Aegis Two off the north rail and covers the far side of the yard. Keep them off the yards, keep your head, and bring me back something we can study. Aegis Actual out."}
+    - {speaker: Varga, line: "Their ships don't show up as metal on our scopes. Whatever they're made of, it burns. Aim for the glowing parts."}
+  teaser: {speaker: Varga, line: "Unknown contacts, small and fast. Your cannon will do, Lancer. Spend a little on it if you can."}

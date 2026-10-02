@@ -9,8 +9,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * Switches between borderless full screen and a resizable window on Alt+Enter or F11, and
- * remembers the mode, the monitor and the window bounds for the settings file.
+ * Switches between borderless full screen and a resizable window on Alt+Enter or F11 or from the
+ * Video tab, and remembers the mode, the monitor and the window bounds for the settings file.
  *
  * <p>Full screen uses the monitor's current video mode, so GLFW attaches the window to the
  * monitor without a mode switch (no flicker, the desktop layout stays intact). The GL context
@@ -40,7 +40,13 @@ public final class DisplayModes {
         }
     }
 
-    private void toggle() {
+    /** Whether the game is in full screen now. */
+    public boolean fullScreen() {
+        return Gdx.graphics.isFullscreen();
+    }
+
+    /** Switches to the other mode and stores the settings. */
+    public void toggle() {
         Monitor monitor = Gdx.graphics.getMonitor();
         WindowMode mode;
         if (Gdx.graphics.isFullscreen()) {

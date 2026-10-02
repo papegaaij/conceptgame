@@ -7,18 +7,21 @@ import com.badlogic.gdx.utils.Align;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import vanguard.content.campaign.Campaign;
 import vanguard.game.GameServices;
 import vanguard.game.audio.Sfx;
 import vanguard.game.input.Action;
 import vanguard.game.render.PixelScreen;
+import vanguard.game.ui.Fonts;
 import vanguard.sim.LevelResult;
 
 /**
  * The debrief after a won level (design/ui/debrief), a placeholder in the glass style of the
  * chosen debrief concept (debrief-r08-a): the tally, the credits by source with the grade bonus
- * and the total, the score and the grade stamp. Lines appear 0.3 s apart with a tick while their
- * numbers count up; confirm skips the animation, and once it is done returns to the title (the
- * campaign loop follows in M3).
+ * and the total, the score and the grade stamp, with "NEW BEST" when the grade beats the level's
+ * best. Lines appear 0.3 s apart with a tick while their numbers count up; confirm skips the
+ * animation, and once it is done the campaign goes on with the next level's briefing, or the
+ * hangar while that level is not built yet.
  */
 public final class DebriefScreen implements GameScreen {
     private static final float LINE_SECONDS = 0.3f;
@@ -55,6 +58,8 @@ public final class DebriefScreen implements GameScreen {
     }
 
     private final GameServices services;
+    private final Campaign campaign;
+    private final boolean newBest;
     private final String title;
     private final String subtitle;
     private final List<Row> rows = new ArrayList<>();
@@ -67,9 +72,19 @@ public final class DebriefScreen implements GameScreen {
      * @param number the level number
      * @param name the level's name
      * @param launchBalance the credits the player launched with
+     * @param newBest whether the grade is a new best for the level
      */
-    public DebriefScreen(GameServices services, LevelResult result, int number, String name, int launchBalance) {
+    public DebriefScreen(
+            GameServices services,
+            Campaign campaign,
+            LevelResult result,
+            int number,
+            String name,
+            int launchBalance,
+            boolean newBest) {
         this.services = services;
+        this.campaign = campaign;
+        this.newBest = newBest;
         title = String.format(Locale.ROOT, "MISSION %02d COMPLETE", number);
         subtitle = name.toUpperCase(Locale.ROOT);
         grade = result.grade().letter();
@@ -143,11 +158,12 @@ public final class DebriefScreen implements GameScreen {
     }
 
     @Override
-    public GameScreen update(float seconds) {
+    public Transition update(float seconds) {
+        campaign.play(seconds);
         boolean done = stamped;
         if (services.input.pressed(Action.MENU_CONFIRM)) {
             if (done) {
-                return new TitleScreen(services);
+                return Transition.replace(HangarScreen.beforeNextLevel(services, campaign));
             }
             elapsed = rows.size() * LINE_SECONDS + STAMP_DELAY_SECONDS;
         } else {
@@ -163,21 +179,22 @@ public final class DebriefScreen implements GameScreen {
             stamped = true;
             services.sfx.play(Sfx.GRADE_STAMP, 1, 1, 0);
         }
-        return this;
+        return Transition.STAY;
     }
 
     @Override
     public void draw(SpriteBatch batch) {
-        BitmapFont font = services.font;
+        Fonts fonts = services.fonts;
+        BitmapFont font = fonts.body;
         fill(batch, Color.BLACK, 0, 0, PixelScreen.WIDTH, PixelScreen.HEIGHT);
         fill(batch, GLASS, 120, 30, 720, 480);
         fill(batch, RULE, 120, 509, 720, 1);
         fill(batch, RULE, 120, 30, 720, 1);
-        text(font, batch, title, TITLE, 0, 500, PixelScreen.WIDTH, Align.center);
-        text(font, batch, subtitle, VALUE, 0, 482, PixelScreen.WIDTH, Align.center);
+        text(fonts.heading, batch, title, TITLE, 0, 500, PixelScreen.WIDTH, Align.center);
+        text(font, batch, subtitle, VALUE, 0, 468, PixelScreen.WIDTH, Align.center);
         for (int i = 0; i < shownLines; i++) {
             Row row = rows.get(i);
-            float y = TOP - 10 - i * LINE;
+            float y = TOP - 20 - i * LINE;
             double progress = Math.clamp((elapsed - i * LINE_SECONDS) / LINE_SECONDS, 0, 1);
             if (row.colour() == HEADING) {
                 text(font, batch, row.label(), HEADING, LEFT, y, 200, Align.left);
@@ -189,20 +206,24 @@ public final class DebriefScreen implements GameScreen {
             text(font, batch, row.right(progress), row.colour(), RIGHT - 200, y, 200, Align.right);
         }
         if (stamped) {
-            drawStamp(batch, font);
+            drawStamp(batch, fonts);
             text(font, batch, "[ENTER] CONTINUE", TITLE, 560, 60, 260, Align.right);
         }
     }
 
-    private void drawStamp(SpriteBatch batch, BitmapFont font) {
+    private void drawStamp(SpriteBatch batch, Fonts fonts) {
         int x = 690;
         int y = 120;
         fill(batch, TITLE, x, y, 110, 110);
         fill(batch, GLASS, x + 6, y + 6, 98, 98);
-        font.getData().setScale(4);
-        text(font, batch, grade, TITLE, x, y + 86, 110, Align.center);
-        font.getData().setScale(1);
-        text(font, batch, "GRADE", LABEL, x, y - 8, 110, Align.center);
+        BitmapFont heading = fonts.heading;
+        heading.getData().setScale(3);
+        text(heading, batch, grade, TITLE, x, y + 95, 110, Align.center);
+        heading.getData().setScale(1);
+        text(fonts.label, batch, "GRADE", LABEL, x, y - 8, 110, Align.center);
+        if (newBest) {
+            text(fonts.body, batch, "NEW BEST", GAIN, x, y + 134, 110, Align.center);
+        }
     }
 
     private static void text(

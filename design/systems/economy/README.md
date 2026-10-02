@@ -1,7 +1,7 @@
 ---
 title: Economy
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../player, ../difficulty]
 updated: 2026-10-02
@@ -95,7 +95,9 @@ A typical player can afford about 60–65 % of it, so choices matter.
 - **Undo**: anything bought during the current hangar visit can be returned for 100 %
   until the player launches. This encourages experimenting.
 - **Sell**: items owned from earlier visits sell for 60 % of the total spent on them
-  (purchase plus upgrades).
+  (purchase plus upgrades). An item bought during the current visit sells for 100 % of what was
+  spent on it, like its undo; an item owned before the visit keeps the 60 %, even after an
+  upgrade in this visit.
 - Unfitted items stay in the inventory for free, so selling is only needed for cash.
 
 ### Pricing curve
@@ -105,10 +107,11 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 
 ## Implementation
 
-- [ ] Credit balance, income multiplier by difficulty
-- [ ] Bounty values per enemy class; boss bounty per act
-- [ ] Hangar transaction log for undo; 60 % sell-back otherwise
-- [ ] Balancing sheet (spreadsheet or script) that simulates per-level budgets vs prices
+- [x] Credit balance, income multiplier by difficulty
+- [ ] Bounty values per enemy class; boss bounty per act — **later: M4** (the Act 1 enemy classes and bosses)
+- [x] Hangar transaction log for undo; 60 % sell-back otherwise (100 % for an item bought in the
+  same visit)
+- [ ] Balancing sheet (spreadsheet or script) that simulates per-level budgets vs prices — **later: M4** (needs the Act 1 levels; the roadmap's balance tests)
 
 ## Open questions
 
@@ -135,3 +138,21 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 - 2026-10-02: The difficulty's income factor is rounded per payout, half to even, so the debrief
   adds up exactly (user decision); summing a level's credits first and rounding once was the
   alternative.
+- 2026-10-02: M3 part B1: the credit balance lives in the campaign state and its saves, starting
+  at the 300 starting credits; a won level banks what it earned plus the grade bonus, a failed or
+  aborted attempt banks nothing.
+- 2026-10-02: M3 part B2 (`vanguard.content.campaign.Catalogue`, `Hangar`): the shop's prices,
+  upgrade costs (factor × upgrade base, rounded half to even), sell-back (60 % of all spent on the
+  item, purchase plus upgrades, rounded half to even) and repair costs (difficulty data, per whole
+  armour point) come from the data. Undo returns the visit's transactions one by one, last first,
+  for 100 % (a sale too); a sale of an item bought in the same visit pays 60 % like any sale, and
+  the sell confirmation points to the undo. Items at price 0 are the starters and are not sold in
+  the shop. The hangar, the debrief (launch balance plus earnings) and the saves read the same
+  campaign balance. Content test (`EconomyTest`): the 300 starting credits buy the Pulse Cannon's
+  L2 upgrade and not the 800 sensor suite (as Level 01's threat profile says), and Level 01 flown
+  by the test autopilot with it pays for the Autocannon Pod that is NEW at the L02 visit.
+- 2026-10-02: Selling an item bought during the current hangar visit refunds all spent on it
+  (100 %, like the undo); items owned before the visit keep the 60 % sell-back (user decision;
+  `vanguard.content.campaign.Hangar`, tests in `HangarTest`). The B2 rule (60 % for any sale) is
+  replaced.
+- 2026-10-02: M3 close-out (user decision): the bounty table per enemy class with the boss bounty per act and the balancing sheet move to M4, where the Act 1 enemies, bosses and levels exist; with them marked, the document is done for M3.

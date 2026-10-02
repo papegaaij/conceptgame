@@ -18,19 +18,23 @@ and credits, and ends in a large circling Needler formation. There is no boss. A
 
 ## Briefing
 
+<!-- data: briefing -->
 > **Commander Okafor:** "Lancer, this is Aegis Actual. Six weeks ago something came through the
 > Tether Gate. Forty minutes ago it arrived at L1, and now it's falling on the Gagarin yards. We
 > don't know what they are or what they want. What we do know is that half the Coalition's new
 > hulls are sitting in those docks. You're the first bird off the south rail; Rook takes Aegis
-> Two off the north rail and covers the far side of the yard. Keep them off the yards, keep
-> your head, and bring me back something we can study. Aegis Actual out."
+> Two off the north rail and covers the far side of the yard. Keep them off the yards, keep your
+> head, and bring me back something we can study. Aegis Actual out."
 >
 > **Dr. Varga:** "Their ships don't show up as metal on our scopes. Whatever they're made of, it
 > burns. Aim for the glowing parts."
+<!-- /data -->
 
 *Hangar teaser* (on the shop screen of the first hangar visit, after the act intro):
+<!-- data: teaser -->
 > **Dr. Varga:** "Unknown contacts, small and fast. Your cannon will do, Lancer. Spend a little
 > on it if you can."
+<!-- /data -->
 
 ## Threat profile
 
@@ -182,8 +186,8 @@ None. The Needler circle (t=162) acts as the finale.
 
 Track 5 *Act 1 B: Earth orbit & Luna* ("Coalition Rising", the main motif; see the
 [track list](../../../audio/music/README.md#track-list)), starting at the section 2
-transition, base stem only until section 4 (until the stems exist with the production audio
-after M2, the full mix plays from section 2). Section 1 has ambience only: the Earth-orbit
+transition, base stem only until section 4, where it crossfades to the full mix (the round 11
+stems). Section 1 has ambience only: the Earth-orbit
 ambience ([sfx](../../../audio/sfx/README.md#ambience-per-setting)), the launch rail and radio
 blips. Mission complete jingle at the end.
 
@@ -325,3 +329,13 @@ in `assets/backdrop/level-01/` changed; every other piece is byte-identical.
   bands are dithered away and the burning platforms' fires are ragged venting plumes instead of
   blobs; only `earth-dawn` and `platform-burning` were re-rendered.
 - 2026-10-02: Concept round 11: the backdrop fixes (dithered dawn terminator, venting fire plumes) accepted by the user.
+- 2026-10-02: M3 part B1: the briefing pages and the hangar teaser moved into
+  [data.yaml](data.yaml) (`briefing`), rendered into *Briefing*; the game shows them on the briefing
+  screen and the hangar. The launch rail sound plays with the launch, the edge-warning tone and look
+  A with every warning, and the music plays the base stem from section 2 and the full mix from
+  section 4 (round 11 choices). The level is flown from the campaign: its armour at the start is the
+  campaign's, a destroyed ship leads to the mission failed screen, and a won level is banked.
+- 2026-10-02: M3 part B2: the threat profile is structured data now (`threat_profile` in
+  [data.yaml](data.yaml): setting, layers, density, traits, hazards, boss, Varga's no-sensor line,
+  with the table's rows as notes that use them), read by the hangar intel; the table renders the
+  same text.

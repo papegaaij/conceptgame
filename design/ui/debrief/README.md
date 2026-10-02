@@ -1,7 +1,7 @@
 ---
 title: Debrief screen
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../../systems/scoring, ../../systems/economy]
 updated: 2026-10-02
@@ -61,7 +61,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 - [x] Tally sequence with count-up animation and skip
 - [x] Grade calculation display and credit bonus
-- [ ] Data core list and act summary
+- [ ] Data core list and act summary — **later: M4** (data cores and the first act end come with the Act 1 levels)
 
 ## Decisions
 
@@ -74,3 +74,11 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
   source with the grade bonus and the total, the score and the grade stamp; lines 0.3 s apart with
   a tick while their numbers count up, the total chime and the stamp sound. Confirm skips, then
   returns to the title. No "NEW BEST" tag until there are saves.
+- 2026-10-02: M3 part A: drawn with the UI kit's fonts (20×30 title and grade, 10×20 rows, 8×12
+  label); confirm at the end returns to the main menu until the briefing and the hangar follow
+  (part B).
+- 2026-10-02: M3 part B1: the debrief banks the level in the campaign (credits with the grade bonus,
+  score, kills, the armour left, the best grade) and shows "NEW BEST" under the stamp when the grade
+  beats the level's recorded best; confirm at the end goes to the next level's briefing, or to the
+  hangar while the next level is not built (after Level 01 for now).
+- 2026-10-02: M3 close-out (user decision): the data core list and the act summary move to M4; the document is done for M3.

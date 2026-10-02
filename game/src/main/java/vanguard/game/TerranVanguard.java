@@ -6,33 +6,35 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.Optional;
 import vanguard.content.Difficulty;
+import vanguard.content.campaign.Campaign;
+import vanguard.content.campaign.CampaignRoute;
+import vanguard.content.campaign.SaveSlots;
 import vanguard.game.display.DisplayModes;
-import vanguard.game.input.ActionInput;
-import vanguard.game.input.Bindings;
-import vanguard.game.input.ControlSettings;
-import vanguard.game.input.DeviceState;
-import vanguard.game.input.GdxDevices;
 import vanguard.game.render.PixelScreen;
 import vanguard.game.screen.LevelScreen;
+import vanguard.game.screen.MainMenuScreen;
 import vanguard.game.screen.ScreenFlow;
-import vanguard.game.screen.TitleScreen;
+import vanguard.game.settings.Settings;
+import vanguard.game.settings.SettingsStore;
 
 /**
  * The game: runs the screen flow in the 960x540 pixel screen, samples the input actions once per
- * frame and toggles the display mode on every screen. In bench mode it flies Level 01 straight
- * away and exits after the set time.
+ * frame and toggles the display mode on every screen. It starts at the title screen or, for
+ * testing, straight in Level 01; in bench mode it exits after the set time.
  */
 public final class TerranVanguard extends ApplicationAdapter {
     /** Frames longer than this (a stall, a dragged window) count as this long. */
     private static final float MAX_FRAME_SECONDS = 0.25f;
 
     private final DisplayModes displayModes;
-    private final ControlSettings controls;
+    private final Settings settings;
+    private final SettingsStore store;
     private final Difficulty difficulty;
     private final float timeScale;
     private final boolean invulnerable;
+    private final boolean startLevel;
     private final Optional<BenchRun> bench;
-    private final DeviceState devices = new GdxDevices();
+    private final SaveSlots saves;
     private SpriteBatch batch;
     private PixelScreen pixelScreen;
     private GameServices services;
@@ -40,26 +42,34 @@ public final class TerranVanguard extends ApplicationAdapter {
 
     /**
      * @param displayModes the display mode switcher, set up from the settings file
-     * @param controls the control settings from the settings file
-     * @param difficulty the difficulty levels are flown at
+     * @param settings the settings from the settings file
+     * @param store writes changed settings back
+     * @param difficulty the difficulty the bench flies at, and the difficulty select starts on
      * @param timeScale a debug option: game time runs this many times faster than real time (1 = normal)
      * @param invulnerable a debug option: nothing hits the ship
-     * @param benchSeconds fly Level 01, exit after this many seconds and log the frame count;
-     *     0 starts at the title screen and runs until quit
+     * @param startLevel start in Level 01 rather than at the title screen
+     * @param benchSeconds exit after this many seconds and log the frame count; 0 runs until quit
+     * @param saves the save slots
      */
     public TerranVanguard(
             DisplayModes displayModes,
-            ControlSettings controls,
+            Settings settings,
+            SettingsStore store,
             Difficulty difficulty,
             float timeScale,
             boolean invulnerable,
-            double benchSeconds) {
+            boolean startLevel,
+            double benchSeconds,
+            SaveSlots saves) {
         this.displayModes = displayModes;
-        this.controls = controls;
+        this.settings = settings;
+        this.store = store;
         this.difficulty = difficulty;
         this.timeScale = timeScale;
         this.invulnerable = invulnerable;
+        this.startLevel = startLevel;
         this.bench = benchSeconds > 0 ? Optional.of(new BenchRun(benchSeconds)) : Optional.empty();
+        this.saves = saves;
     }
 
     @Override
@@ -67,20 +77,31 @@ public final class TerranVanguard extends ApplicationAdapter {
         Gdx.app.log("gl", Gdx.gl.glGetString(GL20.GL_RENDERER) + " / " + Gdx.gl.glGetString(GL20.GL_VERSION));
         batch = new SpriteBatch();
         pixelScreen = new PixelScreen();
-        services = new GameServices(
-                Gdx.files, Gdx.audio, new ActionInput(Bindings.defaults()), controls, difficulty, invulnerable);
-        screens = new ScreenFlow(bench.isPresent() ? new LevelScreen(services) : new TitleScreen(services));
+        services =
+                new GameServices(Gdx.files, Gdx.audio, displayModes, settings, store, difficulty, invulnerable, saves);
+        screens = new ScreenFlow(startLevel ? testLevel() : MainMenuScreen.title(services), Gdx.app::exit);
+    }
+
+    /** Level 01 of a new campaign at the launch difficulty, for testing; nothing is saved before its hangar. */
+    private LevelScreen testLevel() {
+        Campaign campaign = Campaign.start(services.campaignRules, difficulty);
+        return new LevelScreen(
+                services,
+                campaign,
+                CampaignRoute.launch(services.content, campaign).orElseThrow());
     }
 
     @Override
     public void render() {
         float frameSeconds = Gdx.graphics.getDeltaTime();
         displayModes.poll();
-        services.input.update(devices);
-        screens.update(Math.min(frameSeconds, MAX_FRAME_SECONDS) * timeScale);
+        services.input.update(services.devices);
+        float seconds = Math.min(frameSeconds, MAX_FRAME_SECONDS);
+        services.menu.update(seconds);
+        screens.update(seconds * timeScale);
         pixelScreen.begin(batch);
         screens.draw(batch);
-        pixelScreen.end(batch);
+        pixelScreen.end(batch, services.settings().video());
         if (bench.isPresent() && bench.get().frame(frameSeconds)) {
             Gdx.app.log("bench", bench.get().report());
             Gdx.app.exit();

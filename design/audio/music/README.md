@@ -94,9 +94,10 @@ Level themes are delivered as two synced stems: **base** and **intensity** (extr
 lead). The intensity stem fades in (1 s) when on-screen enemy density is high or a scripted
 level section asks for it, and fades out 4 s after calm returns.
 
-The concept tracks are full mixes without separate stems; the stems come with the production
-audio after M2. Until then a level that asks for the base stem only (Level 01 until section 4)
-plays the full mix from its music start.
+The concept tracks are full mixes; round 11 delivered the first stem pair. A level that asks for
+the base stem until a section (Level 01 until section 4) plays the base stem from its music start
+and crossfades in 1 s to the full mix at that section: both streams are decoded in lockstep and
+mixed sample by sample, so they stay aligned across the loop points and the fade never clicks.
 
 Round 11 proposes the first pair, for "Coalition Rising": a base stem rendered from the same
 pass as the chosen full mix (same length, loop points and gain), so the game can crossfade from
@@ -158,7 +159,7 @@ groups with the same effect chains and linked mastering).
 
 - [x] Music player with intro + loop points
 - [ ] Crossfades and stinger transitions (boss warning, jingles)
-- [ ] Two-stem intensity layer driven by density or level script
+- [x] Two-stem intensity layer driven by density or level script
 - [ ] Per-level track assignment from level data
 
 ## Open questions
@@ -202,3 +203,10 @@ groups with the same effect chains and linked mastering).
 - 2026-10-02: Concept round 11 proposed: the base stem of "Coalition Rising" for Level 01's
   sections 1–3, sample-aligned with the chosen full mix (`tools/concept/audio/music_r11.py`).
 - 2026-10-02: Concept round 11 (user choice): the "Coalition Rising" base stem accepted; Level 01 plays it until section 4 and crossfades to the sample-aligned full mix.
+- 2026-10-02: M3 part B1: Level 01 plays the "Coalition Rising" base stem from section 2 and
+  crossfades to the sample-aligned full mix at section 4 (`vanguard.game.audio.StemMix`: two
+  `LoopingStream`s read in lockstep on the music thread, a linear crossfade moving by one step per
+  frame over 1 s; a test checks the stems' length and loop points match). The intensity layer is
+  driven by the level script; driving it by on-screen density is not built (no level asks for it
+  yet). The briefing theme, the hangar theme and the game over cue are imported for the briefing,
+  the hangar placeholder and the game over screen.

@@ -1,10 +1,10 @@
 ---
 title: Audio
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../campaign, ../world]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Audio
@@ -41,9 +41,11 @@ vocal bark.
 
 ### Mix groups
 
-Four buses with independent volume in Options: **music**, **sfx**, **radio** (voice barks,
-squelch), **ui**. Default mix: music −6 dB relative to sfx; the radio ducks music by 4 dB while
-a message is shown.
+Three buses with independent volume in Options, each times the master volume: **music**,
+**sfx** (the effects volume) and **radio** (voice barks, squelch, typing blips). The menu and
+other interface sounds play on the sfx bus at the effects volume; there is no separate interface
+slider (user decision). Default mix: music −6 dB relative to sfx; the radio ducks music by 4 dB
+while a message is shown.
 
 ### Formats
 
@@ -57,7 +59,7 @@ Round 01 audio proposals live in [music](music/README.md) and [sfx](sfx/README.m
 
 ## Implementation
 
-- [ ] Audio buses with volume settings and ducking
+- [x] Audio buses with volume settings and ducking
 - [ ] Music playback with loop points and crossfades (see [music](music/README.md))
 - [ ] SFX playback with voice limits and priorities (see [sfx](sfx/README.md))
 
@@ -70,3 +72,11 @@ Round 01 audio proposals live in [music](music/README.md) and [sfx](sfx/README.m
 - 2026-09-30: Tracker-era electronic + synth-orchestral direction; four mix buses.
 - 2026-10-01: Voices: text and radio blips only for now — no voice acting.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
+- 2026-10-02: M3 part A: buses with volumes (`vanguard.game.audio.Mixer`, `Bus`): music, effects
+  and radio, each times the master volume, from the Audio tab of [options](../ui/options/README.md)
+  and applied live; the menu sounds play on the effects bus, since the options document has no
+  interface volume (the *Mix groups* above name a fourth `ui` bus: open question). The radio ducks
+  the level music by 4 dB while a message is shown. The item stays open until the `ui` bus is
+  settled.
+- 2026-10-02: Menu sounds play at the effects volume (user decision): no separate `ui` bus or
+  interface slider; *Mix groups* now names the three buses as built, so the buses item is done.

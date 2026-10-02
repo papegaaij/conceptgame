@@ -12,27 +12,27 @@ class FlightCommandsTest {
 
     @Test
     void holdToFireFiresOnlyWhileFireIsHeld() {
-        var commands = new FlightCommands(ControlSettings.defaults());
+        var settings = ControlSettings.defaults();
         devices.keys.add(Keys.LEFT);
         devices.keys.add(Keys.SHIFT_LEFT);
         input.update(devices);
-        assertEquals(Command.of(Command.LEFT, Command.PRECISION), commands.of(input));
+        assertEquals(Command.of(Command.LEFT, Command.PRECISION), FlightCommands.of(input, settings));
 
         devices.keys.add(Keys.SPACE);
         input.update(devices);
 
-        assertEquals(Command.of(Command.LEFT, Command.PRECISION, Command.FIRE), commands.of(input));
+        assertEquals(Command.of(Command.LEFT, Command.PRECISION, Command.FIRE), FlightCommands.of(input, settings));
     }
 
     @Test
     void autoFireFiresWithoutHolding() {
-        var commands = new FlightCommands(new ControlSettings(true));
+        var settings = ControlSettings.defaults().withAutoFire(true);
         input.update(devices);
-        assertEquals(Command.FIRE.bit(), commands.of(input));
+        assertEquals(Command.FIRE.bit(), FlightCommands.of(input, settings));
 
         devices.keys.add(Keys.SPACE);
         input.update(devices);
 
-        assertEquals(Command.FIRE.bit(), commands.of(input), "holding does nothing extra");
+        assertEquals(Command.FIRE.bit(), FlightCommands.of(input, settings), "holding does nothing extra");
     }
 }

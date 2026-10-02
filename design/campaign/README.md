@@ -3,7 +3,7 @@ title: Campaign
 design: approved
 implementation: not-started
 art: none
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Campaign
@@ -171,10 +171,10 @@ criteria), Open questions, Decisions. The worked example is
 ## Implementation
 
 - [ ] Campaign sequence 01→50 plays in order; the hangar opens between levels.
-- [ ] Act transitions show an act title card and the act's opening briefing.
+- [x] Act transitions show an act title card and the act's opening briefing.
 - [ ] Each level's threat profile is available as data for the hangar intel panel.
 - [ ] Shop unlocks follow the *Loadout pressure* table (data-driven, per level).
-- [ ] Campaign progress (current level, unlocks) is stored in the save game
+- [x] Campaign progress (current level, unlocks) is stored in the save game
       ([systems](../systems/README.md)).
 
 ## Open questions
@@ -195,3 +195,7 @@ criteria), Open questions, Decisions. The worked example is
 - 2026-10-01: Contents art cells for Acts 1 and 2 synced to `chosen` (check_docs --fix).
 - 2026-10-01: Lost-mission prompt: when a primary objective becomes impossible, offer an immediate retry instead of waiting for the end of the scroll (user decision, raised in L09).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
+- 2026-10-02: M3 part B1: the campaign state and its saves hold the next level and the unlocks
+  ([saves](../systems/saves/README.md)); the briefing before a level that opens its act starts with
+  the act's title card and act briefing, from the act's data file. Only Level 01 is built, so after
+  it the campaign waits in the hangar.

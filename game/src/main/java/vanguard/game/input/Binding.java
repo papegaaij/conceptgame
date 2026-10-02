@@ -17,4 +17,26 @@ public record Binding(int primaryKey, int alternativeKey, Set<GamepadControl> ga
     public static Binding of(int primaryKey, int alternativeKey, GamepadControl... gamepad) {
         return new Binding(primaryKey, alternativeKey, Set.of(gamepad));
     }
+
+    /** The key in a key slot. */
+    public int key(BindingSlot slot) {
+        return switch (slot) {
+            case PRIMARY -> primaryKey;
+            case ALTERNATIVE -> alternativeKey;
+            case GAMEPAD -> throw new IllegalArgumentException("the gamepad slot holds no key");
+        };
+    }
+
+    /** A copy with {@code key} in a key slot. */
+    public Binding withKey(BindingSlot slot, int key) {
+        return switch (slot) {
+            case PRIMARY -> new Binding(key, alternativeKey, gamepad);
+            case ALTERNATIVE -> new Binding(primaryKey, key, gamepad);
+            case GAMEPAD -> throw new IllegalArgumentException("the gamepad slot holds no key");
+        };
+    }
+
+    public Binding withGamepad(Set<GamepadControl> controls) {
+        return new Binding(primaryKey, alternativeKey, controls);
+    }
 }

@@ -4,6 +4,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import vanguard.game.settings.GameplaySettings;
+import vanguard.game.ui.Words;
 
 /**
  * The radio chatter in the side HUD (design/ui/hud, left panel): messages queue up and play one
@@ -13,7 +15,6 @@ import java.util.Optional;
 public final class RadioQueue {
     public static final int LINE_CHARS = 22;
     public static final int PAGE_LINES = 3;
-    static final float CHARS_PER_SECOND = 30;
     /**
      * How long a typed page stays up before the next page, and the last one before the radio closes;
      * long enough to read while flying (design/ui/hud, doubled after play-testing).
@@ -57,7 +58,14 @@ public final class RadioQueue {
     private int page;
     private float typed;
     private float held;
+    private float opened;
     private float gap;
+    private float charsPerSecond = GameplaySettings.DEFAULT_TEXT_SPEED;
+
+    /** The typing speed: the Gameplay tab's text speed. */
+    public void charsPerSecond(float speed) {
+        charsPerSecond = speed;
+    }
 
     /** Queues a line; it plays after the ones before it. */
     public void add(String speaker, String line, boolean distorted) {
@@ -81,13 +89,15 @@ public final class RadioQueue {
             page = 0;
             typed = 0;
             held = 0;
+            opened = 0;
             return Change.OPENED;
         }
+        opened += seconds;
         Message message = current.get();
         int length = message.length(page);
         if (typed < length) {
             int before = (int) typed;
-            typed = Math.min(length, typed + seconds * CHARS_PER_SECOND);
+            typed = Math.min(length, typed + seconds * charsPerSecond);
             return (int) typed > before ? Change.TYPED : Change.NONE;
         }
         held += seconds;
@@ -111,6 +121,21 @@ public final class RadioQueue {
         return current;
     }
 
+    /** Seconds since the message on the radio opened, for the portrait's static. */
+    public float sinceOpened() {
+        return opened;
+    }
+
+    /** Seconds until the message on the radio closes; infinite until its last page is typed out. */
+    public float untilClosed() {
+        if (current.isEmpty()) {
+            return 0;
+        }
+        Message message = current.get();
+        boolean typedOut = page == message.pages() - 1 && typed >= message.length(page);
+        return typedOut ? LAST_PAGE_SECONDS - held : Float.POSITIVE_INFINITY;
+    }
+
     /** The lines of the current page as typed so far. */
     public List<String> visibleLines() {
         if (current.isEmpty()) {
@@ -130,29 +155,6 @@ public final class RadioQueue {
 
     /** Word-wraps a line into lines of at most {@link #LINE_CHARS}; longer words are cut. */
     public static List<String> wrap(String text) {
-        List<String> lines = new ArrayList<>();
-        StringBuilder line = new StringBuilder();
-        for (String word : text.split(" ")) {
-            while (word.length() > LINE_CHARS) {
-                if (!line.isEmpty()) {
-                    lines.add(line.toString());
-                    line.setLength(0);
-                }
-                lines.add(word.substring(0, LINE_CHARS));
-                word = word.substring(LINE_CHARS);
-            }
-            if (!line.isEmpty() && line.length() + 1 + word.length() > LINE_CHARS) {
-                lines.add(line.toString());
-                line.setLength(0);
-            }
-            if (!line.isEmpty()) {
-                line.append(' ');
-            }
-            line.append(word);
-        }
-        if (!line.isEmpty()) {
-            lines.add(line.toString());
-        }
-        return lines;
+        return Words.wrap(text, LINE_CHARS);
     }
 }

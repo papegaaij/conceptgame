@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -18,15 +18,17 @@ import vanguard.game.input.Bindings;
 import vanguard.game.level.ControlPrompts;
 import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
+import vanguard.game.ui.Fonts;
 
 /**
  * The left panel's regions do not overlap, and what they show fits them, measured with the
- * metrics of the font the HUD draws with (libGDX's built-in font, read without a GL context).
+ * metrics of the UI kit's fonts the HUD draws with (read without a GL context): the 10x20 body font
+ * for the one-line readouts and the speakers' names, the 8x12 label font for the radio pages and
+ * the control prompts.
  */
 class MissionLayoutTest {
-    /** The font file {@code new BitmapFont()} loads. */
-    private static final BitmapFont.BitmapFontData FONT = new BitmapFont.BitmapFontData(
-            new FileHandle("com/badlogic/gdx/utils/lsans-15.fnt", FileType.Classpath) {}, false);
+    private static final BitmapFont.BitmapFontData SMALL = font(Fonts.LABEL_FILE);
+    private static final BitmapFont.BitmapFontData BODY = font(Fonts.BODY_FILE);
 
     private static final Content CONTENT = ContentLoader.fromClasspath();
 
@@ -43,13 +45,21 @@ class MissionLayoutTest {
         assertTrue(regions.getLast().bottom() <= PixelScreen.HEIGHT - MissionLayout.MARGIN);
     }
 
+    private static BitmapFont.BitmapFontData font(String file) {
+        return new BitmapFont.BitmapFontData(
+                new FileHandle(new File(System.getProperty("vanguard.assetsDir"), file)), false);
+    }
+
+    /** From the top of the capitals down to the lowest descender, below the top of a well. */
+    private static float drop(BitmapFont.BitmapFontData font) {
+        return MissionLayout.TEXT_DROP + font.capHeight - font.descent;
+    }
+
     @Test
-    void linesOfTheFontFitTheWells() {
-        assertEquals(MissionLayout.LINE, FONT.lineHeight);
-        // From the top of the capitals down to the lowest descender.
-        float drop = MissionLayout.TEXT_DROP + FONT.capHeight - FONT.descent;
-        assertTrue(drop <= MissionLayout.WELL, "a line fits its well: " + drop);
-        float page = (RadioQueue.PAGE_LINES - 1) * MissionLayout.LINE + drop;
+    void linesOfTheFontsFitTheWells() {
+        assertTrue(drop(BODY) <= MissionLayout.WELL, "a body line fits its well: " + drop(BODY));
+        assertTrue(SMALL.lineHeight <= MissionLayout.LINE, "label lines fit their spacing");
+        float page = (RadioQueue.PAGE_LINES - 1) * MissionLayout.LINE + drop(SMALL);
         assertTrue(page <= MissionLayout.PAGE_WELL, "a full radio page fits its well: " + page);
         assertTrue(MissionLayout.PROMPT_LINES <= RadioQueue.PAGE_LINES, "the prompts share the page well's size");
     }
@@ -63,8 +73,8 @@ class MissionLayoutTest {
                     .toList();
             assertTrue(prompts.size() <= MissionLayout.PROMPT_LINES, "at most one line per prompt");
             for (PromptTexts.Text text : texts.of(prompts)) {
-                assertFits(text.action(), MissionLayout.PROMPT_ACTION_WIDTH - MissionLayout.PAD);
-                assertFits(text.keys(), MissionLayout.TEXT_WIDTH - MissionLayout.PROMPT_ACTION_WIDTH);
+                assertFits(SMALL, text.action(), MissionLayout.PROMPT_ACTION_WIDTH - MissionLayout.PAD);
+                assertFits(SMALL, text.keys(), MissionLayout.TEXT_WIDTH - MissionLayout.PROMPT_ACTION_WIDTH);
             }
         }
     }
@@ -79,24 +89,24 @@ class MissionLayoutTest {
         }
         for (LevelData.RadioLine line : lines) {
             for (String typed : RadioQueue.wrap(line.line())) {
-                assertFits(typed, MissionLayout.TEXT_WIDTH);
+                assertFits(SMALL, typed, MissionLayout.TEXT_WIDTH);
             }
             for (String word : line.speaker().toUpperCase(Locale.ROOT).split(" ", 2)) {
-                assertFits(word, MissionLayout.NAME_WIDTH);
+                assertFits(BODY, word, MissionLayout.NAME_WIDTH);
             }
         }
     }
 
-    private static void assertFits(String text, int width) {
-        int measured = width(text);
+    private static void assertFits(BitmapFont.BitmapFontData font, String text, int width) {
+        int measured = width(font, text);
         assertTrue(measured <= width, "'" + text + "' is " + measured + " px, more than " + width);
     }
 
     /** The advance of the text's glyphs with their kerning, as libGDX lays out one line. */
-    private static int width(String text) {
+    private static int width(BitmapFont.BitmapFontData font, String text) {
         int width = 0;
         for (int i = 0; i < text.length(); i++) {
-            BitmapFont.Glyph glyph = FONT.getGlyph(text.charAt(i));
+            BitmapFont.Glyph glyph = font.getGlyph(text.charAt(i));
             assertNotNull(glyph, "the font has '" + text.charAt(i) + "'");
             width += glyph.xadvance;
             if (i + 1 < text.length()) {

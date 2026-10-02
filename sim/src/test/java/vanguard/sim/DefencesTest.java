@@ -2,6 +2,7 @@ package vanguard.sim;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -111,14 +112,17 @@ class DefencesTest {
     }
 
     @Test
-    void restoreRefillsEverything() {
+    void restoreRefillsTheShieldAndSetsTheArmour() {
         defences.takeShot(50, events, 0, 0);
 
-        defences.restore();
+        defences.restore(45);
 
         assertEquals(20, defences.shield());
-        assertEquals(60, defences.armour());
+        assertEquals(45, defences.armour());
+        assertEquals(0, defences.armourLost());
         assertEquals(0, defences.mercyTicks());
+        assertThrows(IllegalArgumentException.class, () -> defences.restore(0));
+        assertThrows(IllegalArgumentException.class, () -> defences.restore(61));
     }
 
     @Test

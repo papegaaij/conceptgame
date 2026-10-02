@@ -3,7 +3,7 @@ title: Act 1 – First Contact
 design: approved
 implementation: not-started
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Act 1 – First Contact
@@ -60,32 +60,41 @@ announces it).
 ### Act intro and outro
 
 Format: [briefing screen](../../ui/briefing/README.md) (act briefings may be longer than level
-briefings). Order at a new game: title card → act briefing → first hangar visit (300 starting
-credits) → L01 mission briefing → L01.
+briefings). Order at a new game: title card → act briefing → L01 mission briefing → first hangar
+visit (300 starting credits) → L01, as the [ui](../../ui/README.md) screen flow puts every mission
+briefing before its hangar visit.
 
 **Title card** (over a still of the Gagarin shipyards at dawn, Earth's terminator behind):
 
+<!-- data: act-title-card -->
 > ACT I
 > FIRST CONTACT
 > Earth orbit · Luna · April 2185
+<!-- /data -->
 
 **Act briefing** (Commander Okafor, full screen, still image: the Tether Gate lit up beyond
 Neptune, then Earth orbit):
 
-> "On the fourteenth of March, the Tether Gate lit up. For forty-four years it was a dead ring
-> beyond Neptune, something for scientists to argue about. Then it opened."
+<!-- data: act-briefing -->
+> **Commander Okafor:** "On the fourteenth of March, the Tether Gate lit up. For forty-four
+> years it was a dead ring beyond Neptune, something for scientists to argue about. Then it
+> opened."
 >
-> "Eleven days later our outer stations stopped answering. We still don't know what happened to
-> the people on them. We call what came through the Vrell. They don't answer our hails. They
-> don't negotiate. Every ship they have met, they have destroyed."
+> **Commander Okafor:** "Eleven days later our outer stations stopped answering. We still don't
+> know what happened to the people on them. We call what came through the Vrell. They don't
+> answer our hails. They don't negotiate. Every ship they have met, they have destroyed."
 >
-> "This morning a Vrell strike group came out of nowhere at the Earth–Moon L1 point. It is
-> heading for the Gagarin shipyards, where half the Coalition's new fleet is still in dock."
+> **Commander Okafor:** "This morning a Vrell strike group came out of nowhere at the Earth–Moon
+> L1 point. It is heading for the Gagarin shipyards, where half the Coalition's new fleet is
+> still in dock."
 >
-> "The Defence Force was built to chase pirates. Aegis Wing is the only squadron in Earth orbit
-> with ships fast enough and pilots ready enough to fly today. That makes us the line."
+> **Commander Okafor:** "The Defence Force was built to chase pirates. Aegis Wing is the only
+> squadron in Earth orbit with ships fast enough and pilots ready enough to fly today. That
+> makes us the line."
 >
-> "Lancer, you've had the Stormhawk for nine days. Nobody has flown it longer. Suit up."
+> **Commander Okafor:** "Lancer, you've had the Stormhawk for nine days. Nobody has flown it
+> longer. Suit up."
+<!-- /data -->
 
 **Act-end outro** (after the L07 death sequence and its radio lines; track 24 *act complete*
 under the first page; still image: the carrier's carcass drifting at L1 with Earth beyond):
@@ -187,3 +196,13 @@ and *Act complete*.
 - 2026-10-01: Choir in Acts 1–2 confirmed by the user: it only sings ("[the Choir sings]") and Varga interprets it; the Choir, story and act documents agree.
 - 2026-10-01: Art status set to `chosen`: every level of the act uses chosen concept art.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: M3 part B1: the title card and the act briefing moved into the act's
+  [data.yaml](data.yaml) (with the act's levels, `[1, 7]`), rendered into *Act intro and outro*;
+  the game shows them before the L01 briefing at a new game (title card held 3.5 s, its chrome
+  lettering from `tools/concept/ui_assets.py`, over the title scene until a still of the yards
+  exists). The outro follows with L07 (M4), so the title card item stays open.
+- 2026-10-02: User decisions: the L01 briefing comes **before** the first hangar visit (the UI
+  screen flow wins; *Act intro and outro* corrected); the act briefing's "eleven days later" and
+  the L01 briefing's "six weeks ago" agree with the story timeline (the gate opens on 14 March,
+  the outer stations fall silent 11 days later, the Vrell reach Earth orbit about six weeks after
+  the gate), so the texts stay as they are.

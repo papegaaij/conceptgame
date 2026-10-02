@@ -390,3 +390,9 @@ last radio line; warning tones −24 dB / −2 dBFS, the player-damage level).
   tones (`tools/concept/audio/sfx_r11.py`). The edge warning tone is a new P1 row: the user
   found the side and rear warnings easy to miss after playing Level 01.
 - 2026-10-02: Concept round 11 (user choices): launch rail **b** "catapult" and edge-warning tone **b** "contact ping" chosen; a "mag-lev" and a "triple chirp" moved to `concept/rejected/`. The launch-rail item is no longer pending.
+- 2026-10-02: M3 part B1: the launch rail (b) plays at the start of every attempt's 5 s launch in
+  Level 01, so its buffer clunk lands at 3.6 s; the edge-warning tone (b) plays when an edge warning
+  starts, at the player-damage level, panned towards the warned edge, with an instance limit of 1
+  so overlapping warnings never stack. Both are synthesized (no CREDITS.md rows) and imported by
+  `:pipeline:importPlaceholders`. The launch rail plays at full level (the file is levelled like the
+  interface sounds); no level is given for it beyond that.

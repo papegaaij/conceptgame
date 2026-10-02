@@ -23,27 +23,33 @@ val cutPlaceholderSprites = tasks.register<JavaExec>("cutPlaceholderSprites") {
 /**
  * Copies the chosen concept art and audio that stand in for production assets into assets/ and
  * cuts the sprite frames. Run it after a concept choice changes; its output is committed (Git
- * LFS), the build only reads assets/.
+ * LFS), the build only reads assets/. The title scene, the logo with transparency and the bitmap
+ * fonts are rendered by tools/concept/ui_assets.py instead, since the concept sheets have the menu
+ * baked in.
  */
 tasks.register<Copy>("importPlaceholders") {
     description = "Copies chosen concept art and audio into assets/ as placeholders."
     group = "assets"
     dependsOn(cutPlaceholderSprites)
     into(assets)
-    from(design.file("ui/main-menu/concept/logo-r01-d.png")) {
-        into("ui")
-        rename { "logo.png" }
-    }
     from(design.dir("audio/music/concept")) {
         into("music")
         include(
             "title-theme-full-r08-a.ogg",
             "coalition-rising-full-r08-a.ogg",
+            "coalition-rising-base-r11-a.ogg",
+            "briefing-theme-r08-a.ogg",
+            "hangar-theme-full-r08-a.ogg",
+            "game-over-r08-a.ogg",
             "mission-failed-r08-a.ogg",
             "mission-complete-r08-a.ogg",
         )
         rename("title-theme-full-r08-a.ogg", "title-theme.ogg")
         rename("coalition-rising-full-r08-a.ogg", "coalition-rising.ogg")
+        rename("coalition-rising-base-r11-a.ogg", "coalition-rising-base.ogg")
+        rename("briefing-theme-r08-a.ogg", "briefing-theme.ogg")
+        rename("hangar-theme-full-r08-a.ogg", "hangar-theme.ogg")
+        rename("game-over-r08-a.ogg", "game-over.ogg")
         rename("mission-failed-r08-a.ogg", "mission-failed.ogg")
         rename("mission-complete-r08-a.ogg", "mission-complete.ogg")
     }
@@ -76,7 +82,12 @@ tasks.register<Copy>("importPlaceholders") {
             "ui-tally-tick-r08-a.ogg",
             "ui-tally-total-r08-a.ogg",
             "ui-grade-stamp-r08-a.ogg",
+            "ui-menu-move-r08-a.ogg",
+            "ui-menu-confirm-r08-a.ogg",
+            "ui-menu-back-r08-a.ogg",
             "ambience-orbit-r08-a.ogg",
+            "launch-rail-r11-b.ogg",
+            "ui-edge-warning-r11-b.ogg",
         )
     }
 }

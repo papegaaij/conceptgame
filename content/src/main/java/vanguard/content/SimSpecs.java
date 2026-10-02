@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import vanguard.sim.EnemyGun;
@@ -40,11 +41,33 @@ public final class SimSpecs {
      * shield (with the difficulty's regen lever) and plating.
      */
     public static Loadout starterLoadout(Content content, Difficulty difficulty) {
+        return loadout(
+                content,
+                content.systems().engines().getFirst().name(),
+                1,
+                content.shields().models().getFirst().name(),
+                content.armour().plating().getFirst().name(),
+                difficulty);
+    }
+
+    /**
+     * A fit of the parts the simulation flies: the hull with an engine, the Pulse Cannon at a level,
+     * a shield (with the difficulty's regen lever) and a plating, each by its name in its data file.
+     */
+    public static Loadout loadout(
+            Content content, String engine, int pulseLevel, String shield, String plating, Difficulty difficulty) {
         return new Loadout(
-                ship(content, content.systems().engines().getFirst()),
-                pulseCannon(content),
-                shield(content, content.shields().models().getFirst(), difficulty),
-                plating(content.armour().plating().getFirst()));
+                ship(content, named(content.systems().engines(), SystemsData.Engine::name, engine)),
+                pulseCannon(content, pulseLevel),
+                shield(content, named(content.shields().models(), ShieldData.Model::name, shield), difficulty),
+                plating(named(content.armour().plating(), ArmourData.Plating::name, plating)));
+    }
+
+    private static <T> T named(List<T> parts, Function<T, String> name, String wanted) {
+        return parts.stream()
+                .filter(part -> name.apply(part).equals(wanted))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("no part '" + wanted + "'"));
     }
 
     static ShipSpec ship(Content content, SystemsData.Engine engine) {
@@ -62,12 +85,19 @@ public final class SimSpecs {
                 ship.bankChangeSteps() / ShipSpec.HARD_BANK);
     }
 
-    /** The Pulse Cannon at level 1, a single bolt: the simulation fires no wider patterns yet. */
-    static PulseCannon pulseCannon(Content content) {
+    /** The Pulse Cannon at an upgrade level: a volley of parallel bolts (its patterns fire straight ahead). */
+    static PulseCannon pulseCannon(Content content, int upgradeLevel) {
         WeaponData cannon = content.weapon("pulse-cannon");
-        WeaponData.Level level = cannon.levels().getFirst();
+        WeaponData.Level level = cannon.levels().get(upgradeLevel - 1);
+        if (level.pattern().stream().anyMatch(shot -> shot.angle() != 0)) {
+            throw new IllegalArgumentException("the simulation fires straight Pulse Cannon patterns only");
+        }
         return new PulseCannon(
-                level.rate(), level.damage(), cannon.speed().orElseThrow().start(), hitbox(cannon.size()));
+                level.rate(),
+                level.damage(),
+                cannon.speed().orElseThrow().start(),
+                hitbox(cannon.size()),
+                level.pattern().stream().map(WeaponData.Shot::x).toList());
     }
 
     static ShieldModel shield(Content content, ShieldData.Model model, Difficulty difficulty) {

@@ -1,9 +1,13 @@
 package vanguard.game.input;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.badlogic.gdx.Input.Keys;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -35,5 +39,93 @@ class BindingsTest {
         assertEquals(Keys.Q, changed.get(Action.SPECIAL).primaryKey());
         assertEquals(Keys.X, defaults.get(Action.SPECIAL).primaryKey());
         assertEquals(defaults.get(Action.FIRE), changed.get(Action.FIRE));
+    }
+
+    @Test
+    void aFreeKeyIsSimplyBound() {
+        var target = new Bindings.Assignment(Action.SPECIAL, BindingSlot.PRIMARY);
+
+        Bindings changed = defaults.withKey(target, Keys.Q);
+
+        assertEquals(Keys.Q, changed.get(Action.SPECIAL).primaryKey());
+        assertEquals(Optional.empty(), defaults.keyHolder(target, Keys.Q));
+    }
+
+    @Test
+    void aKeyOfAnotherActionIsSwapped() {
+        var target = new Bindings.Assignment(Action.SPECIAL, BindingSlot.PRIMARY);
+        assertEquals(
+                Optional.of(new Bindings.Assignment(Action.FIRE, BindingSlot.ALTERNATIVE)),
+                defaults.keyHolder(target, Keys.Z));
+
+        Bindings changed = defaults.withKey(target, Keys.Z);
+
+        assertEquals(Keys.Z, changed.get(Action.SPECIAL).primaryKey());
+        assertEquals(Keys.X, changed.get(Action.FIRE).alternativeKey(), "Fire gets Special's old key");
+        assertEquals(Keys.SPACE, changed.get(Action.FIRE).primaryKey());
+    }
+
+    @Test
+    void theTwoKeysOfOneActionSwapToo() {
+        Bindings changed = defaults.withKey(new Bindings.Assignment(Action.FIRE, BindingSlot.PRIMARY), Keys.Z);
+
+        assertEquals(Keys.Z, changed.get(Action.FIRE).primaryKey());
+        assertEquals(Keys.SPACE, changed.get(Action.FIRE).alternativeKey());
+    }
+
+    @Test
+    void theMenuKeysAreNoConflict() {
+        var target = new Bindings.Assignment(Action.FIRE, BindingSlot.PRIMARY);
+
+        assertEquals(Optional.empty(), defaults.keyHolder(target, Keys.ENTER));
+    }
+
+    @Test
+    void aGamepadButtonOfAnotherActionIsSwapped() {
+        assertEquals(Optional.of(Action.SPECIAL), defaults.buttonHolder(Action.FIRE, GamepadControl.B));
+
+        Bindings changed = defaults.withButton(Action.FIRE, GamepadControl.B);
+
+        assertEquals(Set.of(GamepadControl.B), changed.get(Action.FIRE).gamepad());
+        assertEquals(
+                Set.of(GamepadControl.A, GamepadControl.RIGHT_TRIGGER),
+                changed.get(Action.SPECIAL).gamepad(),
+                "Special gets Fire's old buttons");
+    }
+
+    @Test
+    void theMoveActionsKeepTheStickAndTheDpad() {
+        assertThrows(IllegalArgumentException.class, () -> defaults.withButton(Action.MOVE_UP, GamepadControl.A));
+    }
+
+    @Test
+    void pauseKeepsEscapeButItsAlternativeKeyIsRemappable() {
+        assertFalse(Action.PAUSE.remappable(BindingSlot.PRIMARY));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> defaults.withKey(new Bindings.Assignment(Action.PAUSE, BindingSlot.PRIMARY), Keys.F1));
+
+        Bindings changed = defaults.withKey(new Bindings.Assignment(Action.PAUSE, BindingSlot.ALTERNATIVE), Keys.F1);
+
+        assertEquals(Keys.ESCAPE, changed.get(Action.PAUSE).primaryKey());
+        assertEquals(Keys.F1, changed.get(Action.PAUSE).alternativeKey());
+    }
+
+    @Test
+    void everyActionKeepsARemappableAlternativeKey() {
+        for (Action action : Action.REMAPPABLE) {
+            assertTrue(action.remappable(BindingSlot.ALTERNATIVE), action.name());
+        }
+    }
+
+    @Test
+    void theSystemKeysCannotBeBound() {
+        var target = new Bindings.Assignment(Action.FIRE, BindingSlot.PRIMARY);
+
+        for (int key : new int[] {Keys.ESCAPE, Keys.ENTER, Keys.NUMPAD_ENTER, Keys.F11}) {
+            assertTrue(Bindings.systemKey(key));
+            assertThrows(IllegalArgumentException.class, () -> defaults.withKey(target, key));
+        }
+        assertFalse(Bindings.systemKey(Keys.SPACE));
     }
 }

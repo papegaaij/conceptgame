@@ -1,10 +1,10 @@
 ---
 title: Hangar
 design: approved
-implementation: not-started
+implementation: done
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Hangar
@@ -69,13 +69,19 @@ illustrative and come from [player](../../player/README.md).)
 - **Repair**: armour repair per point or "repair all", with cost. Also Rook's repairs.
 - **Save**: slot list, see [saves](../../systems/saves/README.md).
 - **Launch**: confirmation if the loadout lacks a recommended trait ("No anti-sub weapon
-  fitted. Launch anyway?") or armour is below 50 %.
+  fitted. Launch anyway?") or armour is below 50 %. The trait warning only uses what the intel
+  shows: it needs the sensor level that reveals the recommended traits (L3, counting the easy
+  bonus); below it there is no trait warning, so the launch never tells more than the intel.
 
 ### Transactions
 
 Buying fits the item immediately when the power budget allows, otherwise it goes to the
-inventory. Undo within the visit refunds 100 %, see
-[economy](../../systems/economy/README.md#sell-back-and-undo).
+inventory. Undo within the visit refunds 100 %, and so does selling an item bought during the
+visit (purchase plus this visit's upgrades); items owned before the visit sell at the normal
+sell-back, see [economy](../../systems/economy/README.md#sell-back-and-undo).
+
+Swapping the plating keeps the damage: the missing armour points stay missing (Standard 41/60 →
+Composite I 61/80), with at least 1 point left. Repair is a separate choice.
 
 ## Concept art
 
@@ -95,18 +101,31 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the 
 
 ## Implementation
 
-- [ ] Tabs/panels as above with keyboard, gamepad and mouse navigation
-- [ ] Slot selection filters the shop; owned/buyable/locked sorting
-- [ ] Power bar with projected load and refusal
-- [ ] Comparison deltas vs the fitted item
-- [ ] Test-fire preview box — **after the first build** (keep the layout space)
-- [ ] Intel panel from the level threat profile, gated by sensor level, with Varga's lines
-- [ ] Trait-match markers in the shop
-- [ ] Launch warnings (missing recommended trait, low armour)
+- [x] Tabs/panels as above with keyboard and gamepad navigation
+- [ ] Mouse navigation — **later: M6** (mouse support in the out-of-game screens, see [ui](../README.md))
+- [x] Slot selection filters the shop; owned/buyable/locked sorting
+- [x] Power bar with projected load and refusal
+- [x] Comparison deltas vs the fitted item
+- [ ] Test-fire preview box — **later: M4** (after the first build, see the 2026-10-01 decision; the layout keeps its space)
+- [x] Intel panel from the level threat profile, gated by sensor level
+- [ ] Varga's line per intel item — **later: M4** (writing pass, see *Open questions*)
+- [ ] Sensor L2 enemy portraits and boss silhouette in the intel — **later: art track** (from Level 02 on, see *Open questions*)
+- [x] Trait-match markers in the shop
+- [x] Launch warnings (missing recommended trait, low armour)
 
 ## Open questions
 
-- None open.
+Raised by the M3 part B2 build and deferred (user decision, 2026-10-02); each stays as built
+until it is handled where stated.
+
+- **Varga's lines** (M4 writing pass): "one line per intel item" has no text yet; the data holds
+  one line per sensor level (Level 01: the no-sensor line) and the panel shows it with the hangar
+  teaser. The per-item lines and the data that holds them are decided in the M4 writing pass.
+- **Sensor L2 portraits and boss silhouette** (art track, from Level 02 on): built as the enemy
+  and boss names; Level 02 is the first level whose intel needs them, and the art track decides
+  the portraits and the silhouette.
+- **Third utility bay** (M4 data): 5 000 in the economy text, from Act 3; it has no data entry and
+  is not offered yet. Its data entry comes with M4.
 
 ## Decisions
 
@@ -116,3 +135,50 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the 
 - 2026-10-01: Concept round 07: hangar layout B in the glass style over the tactical map of Mars (r07-b) chosen; the hangar-bay backdrop (r07-a) rejected.
 - 2026-10-01: Test fire comes after the first build; the layout keeps its space.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: M3 part B1 placeholder (`vanguard.game.screen.HangarScreen`, marked as such on screen;
+  the design here is part B2): one glass panel with the credits, the loadout, the armour, the next
+  mission with its hangar teaser, difficulty, score, playtime and retries, and Launch (disabled
+  while the next level is not built), Save game (the slot list) and Main menu (confirmation). It
+  autosaves when it opens and plays the hangar theme. The real hangar replaces the class behind the
+  same constructor; every way into it (intro briefing, debrief, Back to hangar, Abort, Load,
+  Continue) already passes the campaign.
+- 2026-10-02: M3 part B2 (`vanguard.game.screen.HangarScreen` with `vanguard.game.hangar`, the
+  rules in `vanguard.content.campaign.Hangar`, `Catalogue`, `Intel`, `Flight`): layout B after
+  hangar-r07-b at 960×540. Top bar: HANGAR, the next mission, act and difficulty, the UNDO, REPAIR
+  and SAVE commands, the credits and LAUNCH. Left: the shop for the selected slot (fitted, owned,
+  buyable by price with the NEW tag and ◆ markers, locked by unlock level with "LOCKED Lnn"; eight
+  rows, scrolling), the selected item with its traits, numbers (DPS, output, capacity, regen,
+  delay, armour, speed, charges; draw) and the green/red deltas against the fitted item, its
+  choices (buy, upgrade, fit, unfit, sell, buy a charge; refused ones dim with the reason), the
+  last transaction's message and the empty test-fire box. Centre: the holographic schematic with
+  the parked Stormhawk sprite (3×), callouts for the front, wing and rear mounts with level pips,
+  the locked escort slot (Act 2), the GEN/SHD/ARM/ENG/SPC/UTL/UTL tiles and the power bar. Right:
+  the intel (below). Keys: Q/E (bumpers) cycle the eleven slots, up/down the rows (up from the
+  first row reaches the command bar), left/right the choice or the command, Enter (A) confirms,
+  Esc (B) asks to quit (and autosaves). Sell, a launch with a warning and quitting ask first. The
+  repair panel opens on what the credits repair and changes by 1 (left/right) or 10 (up/down)
+  points. Save opens the slot list; Launch is disabled while the next level is not built (after
+  Level 01, until M4). The hangar theme plays; the autosave is written as the hangar opens. Intel
+  from the level's `threat_profile` data (Level 01's now structured: setting, layers, density,
+  traits, hazards, boss, special limits, Varga's line per sensor level) with the directions,
+  enemies, wave times and secret count derived from the script; the sensor level gates the fields
+  as in [ship systems](../../player/systems/README.md#sensor-levels-and-hangar-intel), and a
+  hidden field shows the sensor level that reveals it. The speaker of the hangar teaser (Varga)
+  is shown with her briefing portrait and the teaser. Placeholders: the tactical-map backdrop is
+  drawn in code (grid, a planet limb, range rings, an approach route), the same for every level;
+  test fire keeps its box. Not built: mouse input (so the first item stays open), the per-item
+  Varga lines, the L2 portraits and the boss silhouette (so the intel item stays open), test fire,
+  Rook's repairs (Act 2). Until M4 only the Pulse Cannon, shield, plating and engine fly; the
+  shop says "NOT YET IN FLIGHT: FROM M4" on the other items and the HUD lists them.
+- 2026-10-02: User decisions on the B2 open questions: a plating swap keeps the damage, the
+  missing armour points carry over (as built; rule under *Transactions*); selling an item bought
+  during the visit refunds its full price like the undo, items owned before keep the normal
+  sell-back (`Hangar` tracks the visit's purchases wherever they are moved and restores them with
+  the undo; the sell confirmation says the full price comes back; tests `HangarTest`:
+  `anItemBoughtDuringTheVisitSellsForAllSpentOnIt`,
+  `ofTwoEqualItemsOnlyTheOneBoughtDuringTheVisitSellsForAll`); the missing-trait launch warning
+  only names traits the sensor level shows (`Intel.markedTraits()`, L3 with the easy bonus;
+  `HangarStateTest.theMissingTraitWarningNeedsTheSensorLevelThatShowsTheTraits`). Varga's per-item
+  lines (M4 writing pass), the Level 02 portraits and boss silhouette (art track) and the third
+  utility bay's data (M4) are deferred; the open questions say where.
+- 2026-10-02: M3 close-out (user decision): the navigation and intel items are split; keyboard/gamepad navigation and the sensor-gated intel panel are done. Mouse navigation moves to M6, the test-fire box and Varga's per-item lines to M4, the L2 portraits and boss silhouette to the art track. The document is done for M3.

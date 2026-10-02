@@ -80,4 +80,49 @@ class ActionInputTest {
 
         assertTrue(remapped.held(Action.FIRE));
     }
+
+    @Test
+    void rebindingTakesEffectAtTheNextUpdate() {
+        devices.keys.add(Keys.K);
+        input.rebind(Bindings.defaults().with(Action.FIRE, Binding.of(Keys.J, Keys.K)));
+
+        input.update(devices);
+
+        assertTrue(input.held(Action.FIRE));
+    }
+
+    @Test
+    void losingTheFocusOrAGamepadInterruptsOnce() {
+        input.update(devices);
+        assertFalse(input.interrupted(), "the first frame has nothing to compare with");
+
+        devices.focused = false;
+        input.update(devices);
+        assertTrue(input.interrupted());
+        input.update(devices);
+        assertFalse(input.interrupted(), "only the moment it is lost");
+
+        devices.focused = true;
+        input.update(devices);
+        assertFalse(input.interrupted(), "regaining the focus does not");
+
+        devices.gamepads = 0;
+        input.update(devices);
+        assertTrue(input.interrupted());
+
+        devices.gamepads = 1;
+        input.update(devices);
+        assertFalse(input.interrupted(), "connecting one does not");
+    }
+
+    @Test
+    void theMenusKeepTheirKeysWhenTheFlightKeysAreRemapped() {
+        var remapped = new ActionInput(Bindings.defaults().with(Action.MOVE_UP, Binding.of(Keys.I, Keys.W)));
+        devices.keys.add(Keys.UP);
+
+        remapped.update(devices);
+
+        assertTrue(remapped.held(Action.MENU_UP));
+        assertFalse(remapped.held(Action.MOVE_UP));
+    }
 }

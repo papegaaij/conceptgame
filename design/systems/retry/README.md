@@ -1,7 +1,7 @@
 ---
 title: Retry
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../player/armor, ../../player/shields, ../difficulty, ../saves]
 updated: 2026-10-02
@@ -19,16 +19,27 @@ charges are all restored. Whatever was earned in the failed attempt is lost. The
 
 ### On destruction
 
-1. Death explosion, slow-motion for 1 s, music cuts to the failure sting.
+1. Death explosion, slow-motion for 1 s, music cuts to the failure sting. The mission failed
+   screen follows **3 s** after the destruction (the explosion, the slow motion and the start of
+   the sting).
 2. **Mission failed** screen with Okafor's portrait and a short line
    ("Pull back, Lancer. Regroup and try again."). Options:
    - **Retry**: restart the level immediately with the level-start state.
    - **Back to hangar**: return to the hangar with the level-start state, to change the
      loadout. Purchases there are normal purchases. Then launch again.
    - **Quit to main menu**: progress since the last save is lost (confirmation).
-3. On hard, the screen shows the retries left (3 per level). With none left the
-   campaign ends: game over screen, high-score entry, back to the main menu, where the last save
-   can be loaded.
+3. On hard, the screen shows the retries left (3 per level). The failure **uses its retry at
+   once** and the autosave is written then, so quitting from this screen and continuing cannot
+   give it back. With none left the campaign ends: game over screen, high-score entry, back to the
+   main menu. A game over goes back to the save made in the hangar right before the level was
+   last launched, with a fresh set of retries: the autosave written at that failure holds the
+   hangar state of the last launch (loadout, inventory, credits, charges and armour as launched)
+   and the level's full retries, so **Continue** opens the hangar before the level and never
+   resumes it with no retry left. Load game still offers the manual saves.
+4. From the pause menu, **Restart mission** and **Abort to hangar** each use a retry on hard too
+   (otherwise aborting just before dying would be a free retry); with no retry left both are
+   disabled. A restart writes the autosave like a failure; an abort opens the hangar, which
+   autosaves.
 
 ### Boss checkpoint (easy and medium)
 
@@ -50,20 +61,18 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 ### Settled rules
 
 - **Game over** exists only on **hard**: after 3 failed retries of a level the campaign ends and
-  the player reloads a save. Easy and medium retry without limit.
+  the player goes back to the pre-launch hangar save (above). Easy and medium retry without
+  limit.
 - **Armour on retry** is restored to its **level-start value, but at least 50 %** of maximum, so a
   save started on near-zero armour can never trap the player.
 
 ## Implementation
 
-- [ ] Snapshot of player state at level start (and at boss checkpoint)
-- [ ] Mission failed screen with the three (four) options
-- [ ] Hard-mode retry counter and game over
-- [ ] "Back to hangar" path that keeps the level as the next one
-
-## Open questions
-
-- None open.
+- [x] Snapshot of player state at level start (the campaign state, see the M3 part B1 decision)
+- [ ] Snapshot at the boss checkpoint — **later: M4** (the first boss)
+- [x] Mission failed screen with the three (four) options
+- [x] Hard-mode retry counter and game over
+- [x] "Back to hangar" path that keeps the level as the next one
 
 ## Decisions
 
@@ -74,3 +83,36 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 - 2026-10-02: M2: a destroyed ship restarts Level 01 from its launch with the attempt's
   credits, score, kills and radio discarded; armour and shield are still restored in full until the
   level-start snapshot comes with the campaign state (M3).
+- 2026-10-02: M3 part B1. The campaign state (`vanguard.content.campaign.Campaign`) is the
+  level-start snapshot: nothing in it changes during a level, so the credits, score, loadout and
+  armour of a retry are those of the level start, and a won level banks its credits with the grade
+  bonus. The armour floor is a number in [data.yaml](data.yaml) (`armour_floor: 0.5`). The
+  simulation no longer restarts by itself: a destroyed ship waits (`Sortie.retry(armour)` starts
+  the next attempt with the given armour; a wreck cannot complete the level), 3 s later the mission
+  failed screen (mission-failed-r08-a) opens over the frozen level, tinted red: Okafor's portrait
+  and line, Retry, Back to hangar, Quit to main menu (confirmation), what the attempt earned and, on
+  hard, the retries left. Retry, Back to hangar, the pause menu's Restart and Abort each use a
+  retry on hard and raise the armour to the floor; a failure with no retry left goes to the game
+  over screen (the game over cue and the campaign's stats; back to the main menu, where the last
+  save can be loaded). Not built: Retry from boss with the boss checkpoint (no boss yet), so the
+  snapshot item stays open, and the game over screen's last transmission (no text yet) and top-10
+  name entry. The Level 01 replay keeps its state hash (`e602b2264976076f`): the recorded run
+  never loses the ship.
+- 2026-10-02: User decisions: Abort to hangar uses a hard-mode retry (as built); the used retries
+  are written to the autosave the moment an attempt fails (`Campaign.fail()` uses the retry,
+  `LevelScreen` autosaves; the pause menu's restart autosaves too); 3 s from the destruction to
+  the mission failed screen. The three open questions are closed.
+- 2026-10-02: Game over on hard rolls back to the pre-launch hangar save (user decision). Built
+  without a new save file: the campaign keeps the gear of the last launch (`Campaign.launch()`,
+  called as a level's sortie starts; nothing else changes until the level ends), and
+  `Campaign.fail()` with no retry left returns to it with the level's retries renewed;
+  `LevelScreen` writes the autosave at every failure as before, so at a game over the autosave
+  becomes the hangar before the level and Continue (the newest save) opens it. The statistics
+  (deaths, playtime) go on. Rejected: a separate pre-launch save file next to the failure
+  autosave (a second autosave to keep in step, and Continue would need to tell them apart) and
+  deleting the autosave at game over (Continue would fall back to an older manual save). Test:
+  `CampaignTest.aGameOverAutosavesTheHangarBeforeTheLastLaunchWithTheRetriesRenewed` (game over →
+  autosave → Continue: the level before, 3 retries, credits, loadout and armour as launched). The
+  game over screen says Continue returns to the hangar before the mission. The open question is
+  closed.
+- 2026-10-02: M3 close-out (user decision): the level-start snapshot is done (the campaign state is it, part B1), so the item is split; the boss checkpoint's snapshot moves to M4 with the first boss. The document is done for M3.

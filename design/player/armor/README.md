@@ -37,8 +37,8 @@ auto-repair or armour patches). When it reaches zero the ship is destroyed and t
 
 ## Implementation
 
-- [ ] Armour value, max per plating level, damage and death at 0
-- [ ] Hangar repair with difficulty-dependent cost, "repair all" button
+- [x] Armour value, max per plating level, damage and death at 0
+- [x] Hangar repair with difficulty-dependent cost, "repair all" button
 - [ ] Low-armour warnings (visual, audio, radio)
 
 ## Decisions
@@ -48,3 +48,12 @@ auto-repair or armour patches). When it reaches zero the ship is destroyed and t
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-01: M1 implementation: standard plating (60) in `vanguard.sim.Plating`, damage after the shield and destruction at 0 (`Defences`), which triggers the [retry](../../systems/retry/README.md) restart. Other plating levels, repairs and the low-armour warnings are later milestones.
 - 2026-10-02: The plating levels moved into [data.yaml](data.yaml) (M2 data files); the table is rendered from it and `vanguard.sim.Plating` is built from it.
+- 2026-10-02: M3 part B2: plating is bought in the hangar and flies (`SimSpecs.loadout`); repair
+  per whole point at the difficulty's cost (easy free, medium 5, hard 10) in the hangar's repair
+  panel, which opens on everything the credits pay for ("repair all") and changes by 1 or 10
+  points. A plating swap keeps the damage: the missing points stay missing (at least 1 point is
+  left); the document gave no rule, see the hangar's open questions.
+- 2026-10-02: Plating swap (user decision): the missing armour points carry over to the new
+  plating (Standard 41/60 → Composite I 61/80), at least 1 point left, as built in M3 part B2;
+  keeping the points or the share were the alternatives. The rule is in the
+  [hangar](../../ui/hangar/README.md#transactions).

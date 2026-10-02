@@ -1,10 +1,10 @@
 ---
 title: Options
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../controls, ../../art-direction]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Options
@@ -49,12 +49,13 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 
 ## Implementation
 
-- [ ] Four tabs with keyboard/gamepad navigation
-- [ ] Remapping with conflict swap; reset to defaults
-- [ ] Settings persisted separately from save slots
-- [ ] Reachable from main menu and pause
+- [x] Four tabs with keyboard/gamepad navigation
+- [x] Remapping with conflict swap; reset to defaults
+- [x] Settings persisted separately from save slots
+- [x] Reachable from main menu and pause
 - [x] Display mode: borderless full screen and resizable window, toggled at runtime (Alt+Enter, F11) without losing state; mode, window size/position and monitor persisted
-- [ ] Display mode switch in the Video tab
+- [x] Display mode switch in the Video tab
+- [x] Sound test in the Audio tab
 
 ## Decisions
 
@@ -72,3 +73,39 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
   3× = 2880×1620 (4× does not fit beside the bar); the example above was corrected accordingly. A remembered
   window whose centre is on no monitor any more opens at the default size instead. The Video-tab
   switch is a separate item, since the options screen comes with M3.
+- 2026-10-02: M3 part A (`vanguard.game.screen.OptionsScreen`, `OptionTabs`, `Remapping`). The
+  layout of options-r08-a over the dimmed title scene, the same screen from the main menu and the
+  pause menu; up/down select, left/right change, Q / E or the bumpers switch tabs, Back closes and
+  writes the settings file (every change applies at once). Video: display mode (full screen /
+  window, the same switch as Alt+Enter and F11), scaling (integer + letterbox, or sharp-bilinear:
+  a shader that samples as an integer pre-scale with bilinear filtering does and fills the window
+  at any scale), CRT scanlines (off / on: the lower half of every pixel row darkened by 35 %, from a
+  2× scale up). Audio: master, music, effects and radio-blip volumes in 5 % steps, applied live
+  through the mixer to the playing music, the looped ambience and every new sound; a change plays a
+  menu blip (the radio slider a typing blip) at the new level. Controls: the remapping table
+  (primary, alternative, gamepad for move up/down/left/right, fire, special, precision, dash and
+  pause; the move actions keep the stick and the D-pad), auto-fire, stick dead zone (5–50 %,
+  default 20 %) and reset to defaults; see [controls](../controls/README.md). Gameplay: text speed
+  (10–90 characters/s, default 30: the radio's typing; briefings type at twice it), screen shake (0–100 %, stored only: the game
+  has no screen shake yet) and flash reduction (the white hit flash of loot targets and the ship's
+  invulnerability blink at 35 %). Settings file keys: `video.scaling` (`integer` /
+  `sharp-bilinear`), `video.scanlines`, `audio.master|music|effects|radio` (0..1),
+  `controls.auto-fire`, `controls.dead-zone`, `controls.<action>.primary|alternative` (libGDX key
+  names, `none`), `controls.<action>.gamepad` (button names), `gameplay.text-speed`,
+  `gameplay.screen-shake`, `gameplay.flash-reduction`; an unreadable value falls back to its own
+  default. Defaults: every volume 100 % (the game's own mix sets the levels between the buses).
+  The sound test is not built yet (new open item). The mock's extra rows (resolution, VSync,
+  brightness, interface volume, music style, floating credit numbers, radio subtitle box, HUD
+  brightness, pause on focus loss, language) are not in this document and were not built.
+- 2026-10-02: The text speed is the radio's; briefings type at twice it (user decision, see
+  [briefing](../briefing/README.md)).
+- 2026-10-02: M3 close-out: the sound test (`vanguard.game.audio.SoundTest`) is two rows at the
+  bottom of the Audio tab. SOUND TEST: MUSIC lists the seven tracks the game has (Terran Vanguard,
+  Situation Room, Dry Dock, Coalition Rising, Mission Complete, Mission Failed, Game Over) with
+  where each plays; SOUND TEST: EFFECTS lists every other sound effect with the volume it follows
+  (effects or radio blips). Left/right pick (wrapping round), confirm plays: a theme loops until
+  confirm stops it or another track starts, a jingle plays once; an effect plays once (an effect
+  already looping, the ambience under a paused level, is heard as it is). Tracks play solo: the
+  music of the screen below (the title theme, a paused level's theme) is silent while one plays,
+  and the test stops when the screen closes. The master, music, effects and radio volumes apply,
+  also while a track plays. Tests `SoundTestTest`, `OnceStreamTest`, `OptionTabsTest`.
