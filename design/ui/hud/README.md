@@ -143,9 +143,18 @@ miss (after playing Level 01), over a still frame of Level 01's backdrop placeho
 | [concept/rejected/edge-warnings-r11-c.png](concept/rejected/edge-warnings-r11-c.png) | C "edge glow band": the whole edge lit as a 40 px stepped amber band (25–55 %) with hazard ticks on the edge line, breathing on the flash cycle, chevrons and label in the middle (sheet) | rejected — A chosen (round 11) |
 | [concept/rejected/edge-warnings-r11-c.gif](concept/rejected/edge-warnings-r11-c.gif) | C "edge glow band" (motion) | rejected — A chosen (round 11) |
 
+Production art, UI batch part U1 (for concept round 13, not yet opened): the HUD's metal parts
+rendered by [tools/art/hud.py](../../../tools/art/README.md) into `assets/sprites/hud/`, reviewed
+from the files the game loads. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/hud-final-r13-a.png](concept/hud-final-r13-a.png) | Review sheet: the two 240×540 side-panel plates (bevel, four domed corner rivets, brushed steel) with 4× corners, the label plate, the LCD well, phosphor fill and glow nine-patches with their splits, the portrait well, and the pieces as the game draws them | proposed |
+| [concept/hud-capture-final-r13-a.png](concept/hud-capture-final-r13-a.png) | Game capture of Level 01 at 960×540 (radio, control prompts, kill tracker, gauges, weapon box) | proposed |
+
 ## Implementation
 
-- [ ] Side panel frames from the UI kit
+- [x] Side panel frames: bevelled metal plates with corner rivets, label plates, LCD wells, bar troughs and phosphor fills from the production art (`tools/art/hud.py`)
 - [x] Left panel: mission, score, credits, chain, radio, progress
 - [x] Left panel layout: fixed regions without overlap; texts cut off at their well; a test checks the regions and that every prompt and radio line of the content fits, measured with the font's metrics
 - [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter done)
@@ -230,3 +239,17 @@ miss (after playing Level 01), over a still frame of Level 01's backdrop placeho
   does too.
 - 2026-10-02: The outro waits for the radio (user decision after playing the final-art build): the debrief follows once the radio has shown its last message, at most 10 s after the level end (was a fixed 5 s, which cut Okafor's level-end line short), so the player can read it.
 - 2026-10-02: The outro cap is 15 s instead of 10 s (user decision), so the level-end and secondary-objective lines both fit when they queue together (about 14 s); Earth's limb and the Vrell glow moved later in the data (t=189.6 and t=202.8) so their top edges stay above the screen; the art is unchanged.
+- 2026-10-02: Production art, UI batch part U1 (user: "It should be metallic bevelled panels, but
+  at the moment it's flat and no texture at all. Also the rivets in the corners are missing."):
+  the HUD's metal parts are rendered by `tools/art/hud.py` in the chosen HUD A look and drawn by
+  `vanguard.game.render.HudKit` instead of flat fills, in the same regions and with the same
+  fonts. The side panels are whole 240×540 plates (the screen is a fixed 960×540, and a
+  stretched centre would smear the brushed texture): a 3 px chamfer on a dark chassis, four domed
+  rivets in recessed washers, brushed streaks and mottling on palette B's UTC HULL ramp,
+  ordered-dithered on the face. The label plate is a fixed 120×22 piece; the LCD well (also every
+  bar trough and the weapon box), the portrait well with an idle CRT screen, the phosphor fill
+  cell (tinted per bar, segment, pip and the tracker flash) and the readout glow (tinted green or
+  amber, 28/255) are nine-patches. Armour and shield are segmented gauges (13 px pitch) as on the
+  concepts; chain and progress stay continuous. The key light sits lower than the sprites' (about
+  27° instead of 43°) so a 45° bevel reads. Review files proposed for round 13; `art` stays
+  `chosen` until the user approves them.

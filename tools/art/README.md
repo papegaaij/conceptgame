@@ -1,6 +1,6 @@
 # Production art generators
 
-The generators of the **final** sprites, effects, backdrops and recorded sounds (design/art-direction/production). They
+The generators of the **final** sprites, effects, backdrops, HUD parts and recorded sounds (design/art-direction/production). They
 write straight into `assets/`, which the game packs into atlases at build time, and render the
 review material of a batch into the parts' `concept/` directories. Every output is fully
 determined by the code (fixed seeds, no hand edits): change the generator and rerun it.
@@ -27,10 +27,11 @@ Run times on a 20-core machine.
 | `explosions.py` | `sprites/explosion-{tiny,small,medium,large}_N` (24/40/64/96 px, 12/12/14/14 frames, additive) | `design/art-direction/concept/explosions-final-r12-a` | ~5 s |
 | `loot_targets.py` | `sprites/cargo-container_0..1` (32×24), `sprites/cargo-container-break_0..7` (48×48), `sprites/beacon_0..3` (12×12), `sprites/glint_0..2` (9×9, additive) | `design/campaign/act-1-first-contact/level-01-break-at-dawn/concept/loot-targets-final-r12-a` | ~30 s |
 | `backdrop_l01.py [id ...]` | `backdrop/level-01/<id>.png` (`<id>_<n>.png` for frames and headings): every tile set and set piece of Level 01's `backdrop` data at its size, 12–32 colours per piece; the `-mirrored` pieces are the mirrored placements rendered with the layout mirrored and the key light fixed | `design/campaign/act-1-first-contact/level-01-break-at-dawn/concept/backdrop-final-r12-a` | ~1.5 min |
+| `hud.py` | `sprites/hud/panel-left`, `panel-right` (240×540 side-panel plates: chamfer, four corner rivets, brushed steel, ordered-dithered face, 26 colours), `plate` (120×22 label plate), `well.9`, `portrait.9` (32×32 and 76×76 LCD and portrait wells, 6 px corners), `fill.9` (8×8 grey phosphor cell, tinted at runtime), `glow.9` (24×24 white readout glow, stepped alpha) | `design/ui/hud/concept/hud-final-r13-a` (sheet only: the pieces are static) | ~30 s |
 | `sfx_originals.py [--check] [name ...]` | `sfx/<concept-name>.ogg`: the 75 chosen recorded sounds rebuilt from the Freesound originals (`~/.cache/terran-vanguard/freesound/`, filled by `tools/concept/audio/freesound_fetch.py --download`) with their unchanged `import_sfx.py` settings, originals above full scale clipped first; `SOURCE` comment; then a check against the chosen concept files (length, peak, band RMS within 1 dB) | none (round 12's listening table) | ~1 min |
 
-All of them: `for s in stormhawk vrell_air pulse_cannon enemy_bullets pickups explosions loot_targets backdrop_l01 sfx_originals; do python3 tools/art/$s.py; done`
-(about 4 min). Afterwards `./gradlew check` packs the atlases and checks the budgets.
+All of them: `for s in stormhawk vrell_air pulse_cannon enemy_bullets pickups explosions loot_targets backdrop_l01 hud sfx_originals; do python3 tools/art/$s.py; done`
+(about 4.5 min). Afterwards `./gradlew check` packs the atlases and checks the budgets.
 
 ## Conventions (`artkit.py`)
 
@@ -64,6 +65,14 @@ All of them: `for s in stormhawk vrell_air pulse_cannon enemy_bullets pickups ex
   posterized on its opaque pixels to 12–32 colours with one palette per frame set; wide gradients
   ordered-dithered; translucent smoke and sparks stepped. Nothing lit is mirrored at runtime: a
   mirrored placement gets its own `-mirrored` piece.
+- **HUD parts** (`hud.py`): in `assets/sprites/hud/`, packed onto the shared sprite pages as
+  `hud/<name>`. A part that stretches is a libGDX nine-patch, `<name>.9.png`: the image inside a
+  1 px border whose black marks on the top and left edges are the stretched columns and rows
+  (`AtlasPacker` turns them into the region's `split`); nothing that stretches is dithered or
+  textured, so a stretched edge stays clean. The side panels never stretch (the screen is a fixed
+  960×540) and are whole plates. Solid parts are ray-marched with the key light lower than the
+  sprites' (so a 45° bevel reads) and mapped by their shading through palette B's UTC HULL ramp;
+  the fill and glow are grey/white and tinted at runtime.
 - **Sounds** (`sfx_originals.py`): every OGG gets a `SOURCE` Vorbis comment; `importPlaceholders`
   keeps an OGG that has one (`vanguard.pipeline.PlaceholderSounds`).
 - **Review**: `review_sheet` and `save_review` build the sheet and GIF from the files in

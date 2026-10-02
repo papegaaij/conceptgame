@@ -70,7 +70,7 @@ final class MissionPanel {
 
     void draw(SpriteBatch batch, Sortie sortie, RadioQueue radio, List<PromptTexts.Text> prompts) {
         frame++;
-        kit.panel(batch, 0);
+        kit.leftPanel(batch);
         int top = MissionLayout.MISSION.yTop();
         plate(batch, mission, top);
         kit.text(batch, kit.body, name, HudKit.LABEL, X, top - PLATE - 6, WIDTH);
@@ -111,6 +111,7 @@ final class MissionPanel {
     private void readout(SpriteBatch batch, String label, MissionLayout.Region region, String value, Color colour) {
         plate(batch, label, region.yTop());
         int wellTop = well(batch, region.yTop() - PLATE, WELL);
+        kit.glow(batch, colour, X, wellTop - WELL, WIDTH, WELL);
         kit.textRight(batch, kit.body, value, colour, X + PAD, wellTop - TEXT_DROP, TEXT_WIDTH);
     }
 
@@ -136,7 +137,7 @@ final class MissionPanel {
         plate(batch, "RADIO", top);
         int portraitTop = top - PLATE - FRAME;
         int portraitY = portraitTop - PORTRAIT;
-        kit.lcd(batch, X, portraitY, PORTRAIT, PORTRAIT);
+        kit.portraitWell(batch, X, portraitY, PORTRAIT);
         int subtitleTop = well(batch, portraitY - FRAME - 4, PAGE_WELL);
         if (radio.current().isEmpty()) {
             return;
@@ -153,6 +154,7 @@ final class MissionPanel {
         }
         List<String> lines = radio.visibleLines();
         Color subtitle = message.distorted() ? CHOIR : HudKit.READOUT;
+        kit.glow(batch, subtitle, X, subtitleTop - PAGE_WELL, WIDTH, PAGE_WELL);
         for (int i = 0; i < lines.size(); i++) {
             // A distorted transmission jitters a pixel now and then.
             float jitter = message.distorted() && (frame / 3 + i) % 7 == 0 ? 1 : 0;

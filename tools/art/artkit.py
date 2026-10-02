@@ -33,8 +33,8 @@ SOURCE_KEY = "Source"
 TAU = 2 * np.pi
 
 
-def source_note(script):
-    return f"tools/art/{script} (production art, Level 01 batch)"
+def source_note(script, batch="Level 01 batch"):
+    return f"tools/art/{script} (production art, {batch})"
 
 
 # --------------------------------------------------------------------------- render path

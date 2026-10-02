@@ -3,6 +3,7 @@ package vanguard.game.render;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -13,8 +14,8 @@ import com.badlogic.gdx.utils.Disposable;
  * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from {@code assets/}:
  * the final sprites rendered by tools/art/ (ship, Level 01's enemies, weapon effects, bullets,
  * pickups, explosions, loot targets), the placeholders still cut from the chosen concept art (see
- * {@code PlaceholderSprites}) and the levels' backdrop images (tools/concept/backdrop_l01.py),
- * plus a white pixel for the HUD's bars and frames.
+ * {@code PlaceholderSprites}), the HUD's metal parts (tools/art/hud.py) and the levels' backdrop
+ * images (tools/art/backdrop_l01.py), plus a white pixel for drawn frames and bars.
  */
 public final class Sprites implements Disposable {
     private final TextureAtlas sprites;
@@ -61,6 +62,21 @@ public final class Sprites implements Disposable {
     /** The loot targets' sparkle, drawn additively. */
     public final Array<AtlasRegion> glint;
 
+    /** The 240x540 side-panel plates of the HUD. */
+    public final AtlasRegion hudPanelLeft;
+
+    public final AtlasRegion hudPanelRight;
+    /** The HUD's 120x22 label plate. */
+    public final AtlasRegion hudPlate;
+    /** The HUD's recessed LCD well, also its bars' trough. */
+    public final NinePatch hudWell;
+    /** The radio portrait's well with its idle screen. */
+    public final NinePatch hudPortrait;
+    /** A grey phosphor bar cell, tinted for every bar, segment and pip. */
+    public final NinePatch hudFill;
+    /** The white glow behind a readout, tinted with its colour. */
+    public final NinePatch hudGlow;
+
     public final TextureRegion pixel;
 
     public Sprites(Files files) {
@@ -90,6 +106,13 @@ public final class Sprites implements Disposable {
         cargoContainerBreak = frames(sprites, "cargo-container-break");
         beacon = frames(sprites, "beacon");
         glint = frames(sprites, "glint");
+        hudPanelLeft = region(sprites, "hud/panel-left");
+        hudPanelRight = region(sprites, "hud/panel-right");
+        hudPlate = region(sprites, "hud/plate");
+        hudWell = patch(sprites, "hud/well");
+        hudPortrait = patch(sprites, "hud/portrait");
+        hudFill = patch(sprites, "hud/fill");
+        hudGlow = patch(sprites, "hud/glow");
         Pixmap white = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         white.setColor(1, 1, 1, 1);
         white.fill();
@@ -122,6 +145,15 @@ public final class Sprites implements Disposable {
             throw new IllegalStateException("no region '" + name + "' in the atlas");
         }
         return region;
+    }
+
+    /** A nine-patch: a region packed from a {@code .9.png} with its splits. */
+    private static NinePatch patch(TextureAtlas atlas, String name) {
+        NinePatch patch = atlas.createPatch(name);
+        if (patch == null) {
+            throw new IllegalStateException("no nine-patch '" + name + "' in the atlas");
+        }
+        return patch;
     }
 
     @Override

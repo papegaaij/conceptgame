@@ -133,3 +133,25 @@ and "! LEFT" at mid-height, pulsing; peripheral-vision alert, crisp pixel art.
 
 **Negative prompt:** as edge-warnings-r11-a.
 
+## hud-final-r13-a
+
+Production art, UI batch part U1 (round 13). Not a mockup: the review sheet of the HUD's final
+metal parts, built by [tools/art/hud.py](../../../../tools/art/hud.py) (`python3 tools/art/hud.py`,
+`--review` rebuilds only the sheet) from the files it wrote into `assets/sprites/hud/`: the
+240×540 side-panel plates (SDF ray-marched at 4×, a 3 px chamfer on a dark chassis, four domed
+corner rivets in recessed washers, brushed streaks and mottling, mapped through palette B's UTC
+HULL ramp and ordered-dithered on the face), the 120×22 label plate, the 32×32 LCD well and the
+76×76 portrait well (nine-patches, 2 px chamfer, the lip's shadow on the glass), the phosphor fill
+cell and the readout glow (2D light fields), and those pieces as the game draws them.
+
+Brief: as hud-r02-a and hud-r08-a, `brushed violet-blue chrome (#4E5AA0 to #8A96D0) side panels
+with bevelled edges and corner rivets, recessed near-black LCD wells, segmented phosphor bars`,
+lit from the top-left, every pixel from the generator.
+
+## hud-capture-final-r13-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard
+--bench 8 --settings <file> --invulnerable --debug-speed 3` under `xvfb-run -s "-screen 0 960x540x24"`
+(settings in a temporary directory, so the saves are too: `display.mode=window`, a 960×540 window
+at 0,0, `audio.master=0`), recorded with `ffmpeg -f x11grab -draw_mouse 0 -framerate 2`; the frame
+at game time 12 s (Rook on the radio, the control prompts, the kill tracker), uncropped.
