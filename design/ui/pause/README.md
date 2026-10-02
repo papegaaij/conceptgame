@@ -2,7 +2,7 @@
 title: Pause menu
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../systems/retry]
 updated: 2026-10-02
 ---
@@ -38,8 +38,8 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 
 | File | What | Status |
 |---|---|---|
-| [concept/pause-final-r13-a.png](concept/pause-final-r13-a.png) | Review sheet: the pause and options captures at 1× with 2× details | proposed |
-| [concept/pause-capture-final-r13-a.png](concept/pause-capture-final-r13-a.png) | Game capture: the pause menu over the frozen Level 01 play field and HUD | proposed |
+| [concept/pause-final-r13-a.png](concept/pause-final-r13-a.png) | Review sheet: the pause and options captures at 1× with 2× details | chosen |
+| [concept/pause-capture-final-r13-a.png](concept/pause-capture-final-r13-a.png) | Game capture: the pause menu over the frozen Level 01 play field and HUD | chosen |
 
 ## Implementation
 
@@ -72,3 +72,4 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 - 2026-10-02: Production art, UI batch part U2: the pause menu draws the production glass kit
   over the dimmed play field; layout and fonts unchanged. Review files proposed for round 13 (its
   sheet also shows the options screen); `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the pause menu in the production glass kit approved as **final**; it has no art of its own, so `art: final`.

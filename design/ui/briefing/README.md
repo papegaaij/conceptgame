@@ -65,14 +65,14 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 
 | File | What | Status |
 |---|---|---|
-| [concept/briefing-final-r13-a.png](concept/briefing-final-r13-a.png) | Review sheet: the game capture at 1× with a 2× detail of the header, portrait frame and text panel | proposed |
-| [concept/briefing-capture-final-r13-a.png](concept/briefing-capture-final-r13-a.png) | Game capture (retaken in part U3): page 1 of the Act 1 intro with its image, the Tether Gate, above the text; Okafor in the trim frame, the objectives and hangar teaser panels, the key-hint plate | proposed |
+| [concept/briefing-final-r13-a.png](concept/briefing-final-r13-a.png) | Review sheet: the game capture at 1× with a 2× detail of the header, portrait frame and text panel | chosen |
+| [concept/briefing-capture-final-r13-a.png](concept/briefing-capture-final-r13-a.png) | Game capture (retaken in part U3): page 1 of the Act 1 intro with its image, the Tether Gate, above the text; Okafor in the trim frame, the objectives and hangar teaser panels, the key-hint plate | chosen |
 
 Production art, UI batch part U3: the briefing images, rendered by [tools/art/briefing_images.py](../../../tools/art/README.md) into `assets/ui/briefing/`; the portraits' expressions are the [characters](../../story/characters/README.md)' review files. Prompts: [concept/prompts.md](concept/prompts.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/briefing-images-final-r13-a.png](concept/briefing-images-final-r13-a.png) | Review sheet: the nine 672×240 images, one per page of the Act 1 intro (Tether Gate, outer stations, the L1 strike group, Earth orbit's squadrons, the Stormhawk schematic), Level 01 (the Gagarin yards' rails, the scan of the Skitter and Needler) and Level 02 (the burning south arm's docks, the "yield" pattern and the turret's blind arc) | proposed |
+| [concept/briefing-images-final-r13-a.png](concept/briefing-images-final-r13-a.png) | Review sheet: the nine 672×240 images, one per page of the Act 1 intro (Tether Gate, outer stations, the L1 strike group, Earth orbit's squadrons, the Stormhawk schematic), Level 01 (the Gagarin yards' rails, the scan of the Skitter and Needler) and Level 02 (the burning south arm's docks, the "yield" pattern and the turret's blind arc) | chosen |
 
 ## Implementation
 
@@ -138,3 +138,4 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
   where the text calls for them: the Act 1 intro's page 2 ("Eleven days later our outer stations
   stopped answering…") grim, page 4 ("That makes us the line.") fierce; the rest neutral. The
   hangar teaser keeps neutral. Review files proposed for round 13; `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the screen in the production glass kit and the nine briefing images of the Act 1 intro and Levels 01–02 (`tools/art/briefing_images.py`) approved as **final**; `art` stays `chosen`, since the images of the later levels and a still per act for the act title cards do not exist yet.

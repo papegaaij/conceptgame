@@ -2,7 +2,7 @@
 title: Options
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../controls, ../../art-direction]
 updated: 2026-10-02
 ---
@@ -51,7 +51,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 
 | File | What | Status |
 |---|---|---|
-| [concept/options-capture-final-r13-a.png](concept/options-capture-final-r13-a.png) | Game capture: the Gameplay tab from the main menu (tabs, sliders with their knobs, chips) over the dimmed title scene | proposed |
+| [concept/options-capture-final-r13-a.png](concept/options-capture-final-r13-a.png) | Game capture: the Gameplay tab from the main menu (tabs, sliders with their knobs, chips) over the dimmed title scene | chosen |
 
 ## Implementation
 
@@ -119,3 +119,4 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
   tabs (the active one amber with its underline), the header rule, list-row bands under the key
   bindings, chips and sliders with the recessed track, lit fill and steel knob; layout and fonts
   unchanged. Capture proposed for round 13 (on the pause sheet); `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the options screen in the production glass kit approved as **final**; it has no art of its own, so `art: final`.

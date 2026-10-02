@@ -248,7 +248,7 @@ Rework after round 12 (user decision), for concept round 13: the north arm re-re
 
 | File | What | Status |
 |---|---|---|
-| [concept/north-arm-final-r13-a.png](concept/north-arm-final-r13-a.png) | The north arm (180×640, 24 colours) alone, over the Earth tile at 1× and at 2×: the solar wings end inside the piece in steel frames with end rails and cell ribs | proposed |
+| [concept/north-arm-final-r13-a.png](concept/north-arm-final-r13-a.png) | The north arm (180×640, 24 colours) alone, over the Earth tile at 1× and at 2×: the solar wings end inside the piece in steel frames with end rails and cell ribs | chosen |
 
 ## Implementation
 
@@ -392,3 +392,4 @@ Rework after round 12 (user decision), for concept round 13: the north arm re-re
   dark cell ribs, the mast in a capped hub with its red tip light; same layout, scale, size and
   placement in the data, every other piece byte-identical. Back on the board as a review item for
   round 13 (`north-arm-final-r13-a.png`); the rest of the Level 01 art stays final.
+- 2026-10-02: Concept round 13 closed (user decision): the re-rendered north-arm piece (solar wings ending inside the piece) approved as **final**; the Level 01 art is entirely final again.

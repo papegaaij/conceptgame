@@ -2,7 +2,7 @@
 title: Debrief screen
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../systems/scoring, ../../systems/economy]
 updated: 2026-10-02
 ---
@@ -61,8 +61,8 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 
 | File | What | Status |
 |---|---|---|
-| [concept/debrief-final-r13-a.png](concept/debrief-final-r13-a.png) | Review sheet: the game capture at 1× with a 2× detail of the title, tally and header rules | proposed |
-| [concept/debrief-capture-final-r13-a.png](concept/debrief-capture-final-r13-a.png) | Game capture: Level 01 complete (an invulnerable run at debug speed 8), the tally and credits on glass over the dimmed title scene, the grade on its amber-trimmed glass | proposed |
+| [concept/debrief-final-r13-a.png](concept/debrief-final-r13-a.png) | Review sheet: the game capture at 1× with a 2× detail of the title, tally and header rules | chosen |
+| [concept/debrief-capture-final-r13-a.png](concept/debrief-capture-final-r13-a.png) | Game capture: Level 01 complete (an invulnerable run at debug speed 8), the tally and credits on glass over the dimmed title scene, the grade on its amber-trimmed glass | chosen |
 
 ## Implementation
 
@@ -93,3 +93,4 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
   glass panel with its trim, header rules, the grade on an amber-trimmed glass card) over the title
   scene dimmed to 35 % (Earth orbit, Level 01's setting) instead of flat fills over black; layout
   and fonts unchanged. Review files proposed for round 13; `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the debrief in the production glass kit over the dimmed title scene approved as **final**; it has no art of its own, so `art: final`.

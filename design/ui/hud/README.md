@@ -2,7 +2,7 @@
 title: HUD
 design: approved
 implementation: in-progress
-art: chosen
+art: final
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
 updated: 2026-10-02
 ---
@@ -149,8 +149,8 @@ from the files the game loads. Prompts: [concept/prompts.md](concept/prompts.md)
 
 | File | What | Status |
 |---|---|---|
-| [concept/hud-final-r13-a.png](concept/hud-final-r13-a.png) | Review sheet: the two 240×540 side-panel plates (bevel, four domed corner rivets, brushed steel) with 4× corners, the label plate, the LCD well, phosphor fill and glow nine-patches with their splits, the portrait well, and the pieces as the game draws them | proposed |
-| [concept/hud-capture-final-r13-a.png](concept/hud-capture-final-r13-a.png) | Game capture of Level 01 at 960×540 (radio, control prompts, kill tracker, gauges, weapon box) | proposed |
+| [concept/hud-final-r13-a.png](concept/hud-final-r13-a.png) | Review sheet: the two 240×540 side-panel plates (bevel, four domed corner rivets, brushed steel) with 4× corners, the label plate, the LCD well, phosphor fill and glow nine-patches with their splits, the portrait well, and the pieces as the game draws them | chosen |
+| [concept/hud-capture-final-r13-a.png](concept/hud-capture-final-r13-a.png) | Game capture of Level 01 at 960×540 (radio, control prompts, kill tracker, gauges, weapon box) | chosen |
 
 ## Implementation
 
@@ -260,3 +260,4 @@ from the files the game loads. Prompts: [concept/prompts.md](concept/prompts.md)
   Okafor's "Contacts inbound. Weapons free." and "Contacts on your six, Lancer!" and Rook's
   "Movement on your left!" fierce; Varga's "Those ones are armed." and "That isn't noise…" and
   Okafor's level-end "…The rest are coming." grim; the rest neutral.
+- 2026-10-02: Concept round 13 closed (user decision): the HUD's production metal parts (side-panel plates, label plate, LCD and portrait wells, phosphor fill, readout glow; `tools/art/hud.py`) approved as **final**, `art: final`.

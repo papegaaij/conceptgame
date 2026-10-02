@@ -165,7 +165,7 @@ unchanged, OGG Vorbis q6, −14 LUFS, loop comments, `SOURCE` comment). Prompts:
 
 | File | What | Status |
 |---|---|---|
-| [concept/themes-final-r13-a.png](concept/themes-final-r13-a.png) | Review sheet: the three final files' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam and size | proposed |
+| [concept/themes-final-r13-a.png](concept/themes-final-r13-a.png) | Review sheet: the three final files' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam and size | chosen |
 
 ## Implementation
 
@@ -235,3 +235,4 @@ unchanged, OGG Vorbis q6, −14 LUFS, loop comments, `SOURCE` comment). Prompts:
   `PlaceholderSounds` now (`copyPlaceholderMusic`, concept name `=` game name), which keeps an OGG
   with a `SOURCE` comment. `themes.py --check` verifies loudness (±0.5 LU), true peak, q6, the loop
   comments and the seam. Review sheet proposed for round 13; `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the title, hangar and briefing themes (`tools/art/themes.py`, identical to the chosen mixes) approved as **final**; `art` stays `chosen`, since the other tracks of the 28 are not final yet.

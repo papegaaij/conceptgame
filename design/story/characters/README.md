@@ -74,9 +74,9 @@ Production art, UI batch part U3 (for concept [round 13](../../concept-rounds/ro
 
 | File | What | Status |
 |---|---|---|
-| [concept/portraits-final-r13-a.png](concept/portraits-final-r13-a.png) | Review sheet: Okafor, Rook and Varga in neutral, grim and fierce (144×144 briefing portraits for Okafor and Varga, 72×72 radio portraits at 1× and 2×, one 36-colour palette per character), the generic CDF officer and civilian (neutral, 72×72), 8 of the Choir's 32 loop frames | proposed |
-| [concept/portraits-final-r13-a.gif](concept/portraits-final-r13-a.gif) | The three radio portraits cycling neutral → grim → fierce beside the Choir's loop at 12 fps | proposed |
-| [concept/portraits-capture-final-r13-a.png](concept/portraits-capture-final-r13-a.png) | Game capture: Level 01 at 22 s, Okafor's fierce radio portrait with "Contacts inbound. Weapons free." | proposed |
+| [concept/portraits-final-r13-a.png](concept/portraits-final-r13-a.png) | Review sheet: Okafor, Rook and Varga in neutral, grim and fierce (144×144 briefing portraits for Okafor and Varga, 72×72 radio portraits at 1× and 2×, one 36-colour palette per character), the generic CDF officer and civilian (neutral, 72×72), 8 of the Choir's 32 loop frames | chosen |
+| [concept/portraits-final-r13-a.gif](concept/portraits-final-r13-a.gif) | The three radio portraits cycling neutral → grim → fierce beside the Choir's loop at 12 fps | chosen |
+| [concept/portraits-capture-final-r13-a.png](concept/portraits-capture-final-r13-a.png) | Game capture: Level 01 at 22 s, Okafor's fierce radio portrait with "Contacts inbound. Weapons free." | chosen |
 
 ## Decisions
 
@@ -86,3 +86,4 @@ Production art, UI batch part U3 (for concept [round 13](../../concept-rounds/ro
 - 2026-10-01: Concept round 08: portraits accepted.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-02: Production art, UI batch part U3: `tools/art/portraits.py` renders the speakers of Acts 1–2 in the chosen style B with retained colour: Okafor, Rook and Varga in neutral, grim and fierce (the concept busts with the expression's brows, lids, mouth and head pitch; one 36-colour palette per character, so an expression change keeps the colours), the briefing size for the briefing speakers Okafor and Varga, the generic CDF officer and civilian neutral, the Choir's 32-frame glyph loop (animated on the radio at 12 fps). Vorne, who does not speak in Acts 1–2, comes with Act 6. The portrait rules' "1–2 expressions (urgent, grim, smug)" are now the briefing document's three. Review files proposed for round 13; `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the production portraits of Acts 1–2 (Okafor, Rook, Varga in neutral, grim and fierce, the generic officer and civilian, the Choir's 32-frame loop; `tools/art/portraits.py`) approved as **final**; `art` stays `chosen`, since Vorne's portraits come with Act 6.

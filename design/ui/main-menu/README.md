@@ -2,7 +2,7 @@
 title: Main menu
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../systems/saves, ../../systems/difficulty]
 updated: 2026-10-02
 ---
@@ -84,9 +84,9 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 
 | File | What | Status |
 |---|---|---|
-| [concept/main-menu-final-r13-a.png](concept/main-menu-final-r13-a.png) | Review sheet: the 960×540 hero scene with logo D as the title draws it, the logo on a checker, 2× crops of the Stormhawk, the Vrell fleet, the sun and the limb | proposed |
-| [concept/main-menu-capture-final-r13-a.png](concept/main-menu-capture-final-r13-a.png) | Game capture: the main menu (New Game selected, Load Game disabled) over the scene | proposed |
-| [concept/difficulty-capture-final-r13-a.png](concept/difficulty-capture-final-r13-a.png) | Game capture: the difficulty select, Medium on its amber-trimmed card | proposed |
+| [concept/main-menu-final-r13-a.png](concept/main-menu-final-r13-a.png) | Review sheet: the 960×540 hero scene with logo D as the title draws it, the logo on a checker, 2× crops of the Stormhawk, the Vrell fleet, the sun and the limb | chosen |
+| [concept/main-menu-capture-final-r13-a.png](concept/main-menu-capture-final-r13-a.png) | Game capture: the main menu (New Game selected, Load Game disabled) over the scene | chosen |
+| [concept/difficulty-capture-final-r13-a.png](concept/difficulty-capture-final-r13-a.png) | Game capture: the difficulty select, Medium on its amber-trimmed card | chosen |
 
 ## Implementation
 
@@ -140,3 +140,4 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
   The logo's glow and edges are stepped to five translucency levels, 46 colours. The menus,
   difficulty cards and slot list draw the production glass kit. Review files proposed for round 13;
   `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the title scene and logo D (`tools/art/ui_scenes.py`) and the menu, difficulty and load screens in the production glass kit approved as **final**, `art: final`.

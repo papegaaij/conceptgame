@@ -103,9 +103,9 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 
 | File | What | Status |
 |---|---|---|
-| [concept/hangar-final-r13-a.png](concept/hangar-final-r13-a.png) | Review sheet: the 960×540 tactical map (Act 1, Earth from orbit) and all 47 icons, 16×16 at 1× and 3×, 24×24 at 1× and 2× | proposed |
-| [concept/hangar-capture-final-r13-a.png](concept/hangar-capture-final-r13-a.png) | Game capture before Level 01: the right wing's shop rows with icons (locked ones dimmed), the Bomb Rack selected with its large icon, the holographic callouts with the fitted Pulse Cannon's icon, the locked escort with Rook's craft, the power bar in its trough | proposed |
-| [concept/intel-final-r13-a.png](concept/intel-final-r13-a.png) | Review sheet (part U3, `tools/art/intel.py`): the intel's sensor-L2 pictures at 1× and 3×, the 30×30 portraits of the Skitter, Needler, Stinger and Spine Turret and the 40×40 silhouettes of the Gorgon Frigate and the Brood Carrier | proposed |
+| [concept/hangar-final-r13-a.png](concept/hangar-final-r13-a.png) | Review sheet: the 960×540 tactical map (Act 1, Earth from orbit) and all 47 icons, 16×16 at 1× and 3×, 24×24 at 1× and 2× | chosen |
+| [concept/hangar-capture-final-r13-a.png](concept/hangar-capture-final-r13-a.png) | Game capture before Level 01: the right wing's shop rows with icons (locked ones dimmed), the Bomb Rack selected with its large icon, the holographic callouts with the fitted Pulse Cannon's icon, the locked escort with Rook's craft, the power bar in its trough | chosen |
+| [concept/intel-final-r13-a.png](concept/intel-final-r13-a.png) | Review sheet (part U3, `tools/art/intel.py`): the intel's sensor-L2 pictures at 1× and 3×, the 30×30 portraits of the Skitter, Needler, Stinger and Spine Turret and the 40×40 silhouettes of the Gorgon Frigate and the Brood Carrier | chosen |
 
 ## Implementation
 
@@ -216,3 +216,4 @@ until it is handled where stated.
   the panel's fields above Varga's line at sensor L3. Level 02's intel lists only the enemies of
   its waves, so its Spine Turret (a ground target) shows when M4 builds that level's intel.
   Review sheet proposed for round 13; `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the Act 1 tactical map (`tools/art/ui_scenes.py`), the equipment icons in both sizes (`tools/art/icons.py`) and the intel's sensor-L2 portraits and Act 1 boss silhouettes (`tools/art/intel.py`) approved as **final**; `art` stays `chosen`, since the later acts' tactical maps and the intel pictures of the later enemies do not exist yet.

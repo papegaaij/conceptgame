@@ -22,14 +22,14 @@ frames and chunky bitmap fonts.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | approved | done | chosen |
+| [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | approved | done | final |
 | [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | approved | done | chosen |
 | [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | approved | done | chosen |
-| [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | approved | in-progress | chosen |
-| [pause](pause/README.md) | Pause menu during a level | approved | done | chosen |
-| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | done | chosen |
+| [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | approved | in-progress | final |
+| [pause](pause/README.md) | Pause menu during a level | approved | done | final |
+| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | done | final |
 | [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | approved | in-progress | n/a |
-| [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | done | chosen |
+| [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | done | final |
 | [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | approved | not-started | chosen |
 
 ## Design
@@ -76,14 +76,14 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 
 | File | What | Status |
 |---|---|---|
-| [concept/ui-kit-final-r13-a.png](concept/ui-kit-final-r13-a.png) | Review sheet: the widgets as the screens draw them over the darkened title scene (panels with trim and corner tabs, header rules, list rows with the selection and cursor, menu items, chips on / off / locked, NEW tag, slider, toggle, tabs, pips, chevron, the confirm dialog with its holo brackets, callouts, amber card frame, inset, key-hint plate), a 2× detail and every piece with its size | proposed |
-| [concept/ui-kit-capture-final-r13-a.png](concept/ui-kit-capture-final-r13-a.png) | Game capture: the quit confirmation over the main menu | proposed |
+| [concept/ui-kit-final-r13-a.png](concept/ui-kit-final-r13-a.png) | Review sheet: the widgets as the screens draw them over the darkened title scene (panels with trim and corner tabs, header rules, list rows with the selection and cursor, menu items, chips on / off / locked, NEW tag, slider, toggle, tabs, pips, chevron, the confirm dialog with its holo brackets, callouts, amber card frame, inset, key-hint plate), a 2× detail and every piece with its size | chosen |
+| [concept/ui-kit-capture-final-r13-a.png](concept/ui-kit-capture-final-r13-a.png) | Game capture: the quit confirmation over the main menu | chosen |
 
 Production art, UI batch part U3 (concept round 13): the bitmap fonts rendered by [tools/art/fonts.py](../../tools/art/README.md) into `assets/fonts/`. Prompts: [concept/prompts.md](concept/prompts.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/fonts-final-r13-a.png](concept/fonts-final-r13-a.png) | Review sheet: the label 8×12, body 10×20 and heading 20×30 fonts, each glyph of the 127-character set at 2× on its cell grid with the baseline marked, and sample lines from the game's texts at 1× | proposed |
+| [concept/fonts-final-r13-a.png](concept/fonts-final-r13-a.png) | Review sheet: the label 8×12, body 10×20 and heading 20×30 fonts, each glyph of the 127-character set at 2× on its cell grid with the baseline marked, and sample lines from the game's texts at 1× | chosen |
 
 ## Implementation
 
@@ -157,3 +157,4 @@ Production art, UI batch part U3 (concept round 13): the bitmap fonts rendered b
   every data file and the game's and content's string literals (also upper-cased) and fails on a
   character without a glyph or a capital, digit or lower-case letter off the shared rows. Review
   sheet proposed for round 13; `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the glass UI kit (`tools/art/ui_kit.py`) and the three bitmap fonts (`tools/art/fonts.py`) approved as **final**; this doc's `art` stays `chosen`, since not every screen under it is final (hangar, briefing, credits).

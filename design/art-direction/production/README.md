@@ -119,7 +119,8 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] UI batch part U1: the in-game HUD's metal parts rendered by `tools/art/hud.py` and drawn by the game (review files proposed for round 13)
 - [x] UI batch part U2: the glass UI kit (`tools/art/ui_kit.py`), the title scene, logo D and the hangar's tactical map (`tools/art/ui_scenes.py`) and the equipment icons (`tools/art/icons.py`) drawn by the game; the Level 01 north arm reworked (review files proposed for round 13)
 - [x] UI batch part U3: portraits with the three expressions (`tools/art/portraits.py`), the briefing images (`tools/art/briefing_images.py`), the hangar intel's sensor-L2 pictures (`tools/art/intel.py`), the title, hangar and briefing themes (`tools/art/themes.py`) and the bitmap fonts (`tools/art/fonts.py`), drawn and played by the game; concept round 13 (the UI batch review) opened
-- [ ] M3, M4 and M5 parts final, each with its milestone
+- [x] M3 parts final and approved by the user (the UI batch, concept round 13)
+- [ ] M4 and M5 parts final, each with its milestone
 
 ## Open questions
 
@@ -213,3 +214,4 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
   `PlaceholderSounds` (`copyPlaceholderMusic`), which keeps final OGGs.
   [Round 13](../../concept-rounds/round-13/README.md) opened for the whole UI batch (U1–U3); no part
   is `final` until the user approves it there.
+- 2026-10-02: Concept round 13 closed (user decision): every part of the UI batch (U1–U3) and the Level 01 north arm approved as final; the docs whose art is now entirely final are `art: final` (HUD, main menu, debrief, pause, options), the docs that also cover later art (UI, hangar, briefing, characters, music) record the final assets in their Decisions and keep `chosen`.
