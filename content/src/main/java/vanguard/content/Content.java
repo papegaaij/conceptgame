@@ -4,8 +4,8 @@ import java.util.Map;
 
 /**
  * Everything in the design tree's data files, loaded and validated by {@link ContentLoader}.
- * Weapons and enemies are keyed by their slug, levels by their directory name
- * ({@code level-01-break-at-dawn}).
+ * Weapons and enemies are keyed by their slug, levels by their path under design/campaign
+ * ({@code act-1-first-contact/level-01-break-at-dawn}).
  */
 public record Content(
         PlayerData player,
@@ -32,6 +32,11 @@ public record Content(
     /** The weapon with this slug; the slug must exist. */
     public WeaponData weapon(String slug) {
         return lookup(weapons, slug, "weapon");
+    }
+
+    /** The level with this key ({@code act-1-first-contact/level-01-break-at-dawn}); it must exist. */
+    public LevelData level(String key) {
+        return lookup(levels, key, "level");
     }
 
     /** The enemy with this slug; the slug must exist. */

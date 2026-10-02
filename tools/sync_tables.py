@@ -20,8 +20,8 @@ import os
 import re
 import sys
 
-from design_data import (DESIGN, ROOT, base_angle, draw, enemy_dir, fill, grouped, load, num, round_half_up,
-                         stats, upgrade_costs, weapon_rules)
+from design_data import (DESIGN, ROOT, base_angle, difficulty_hp, draw, enemy_dir, fill, grouped, load, num,
+                         round_half_up, stats, upgrade_costs, weapon_rules)
 
 BLOCK = re.compile(r"(<!-- data: ([a-z-]+) -->\n)(.*?)(<!-- /data -->)", re.S)
 
@@ -212,7 +212,7 @@ def stat_block(d):
     bullet = {b["bullet"]: b["damage"] for b in basis["bullet_damage"]}
 
     def hp(level):
-        return max(1, round_half_up(e["hp"] * levers[level]))
+        return difficulty_hp(e["hp"], levers[level])
 
     def suffix(key):
         return f" {fill(notes[key], values)}" if key in notes else ""
@@ -237,7 +237,7 @@ def stat_block(d):
         ["Weak points", weak + suffix("weak_points")],
         ["Effective traits", ticks(e["traits"])],
         ["Credits", f"{e['bounty']} (score {e['bounty'] * scoring()['kill_score']} × chain)"],
-        ["Death", notes["death"]],
+        ["Death", fill(notes["death"], values)],
         ["First level / used in", f"L{e['first_level']:02d}; {notes['used_in']}"],
         ["Difficulty hooks", notes["difficulty"]],
     ]
@@ -264,7 +264,7 @@ def formations(d):
 
 # --- levels -----------------------------------------------------------------------------------
 
-EDGES = {"left": "left", "right": "right", "both": "both", "alternating": "alternating edges"}
+EDGES = {"left": "left", "right": "right", "alternating": "alternating edges"}
 EVENTS = {"level-end": "Level end", "secondary-objective": "Secondary objective met"}
 
 
@@ -303,6 +303,30 @@ def enemy_totals(level):
     return totals
 
 
+def entry(wave):
+    """Where a wave enters: `sides` alone means both side edges, one side reads "left side"."""
+    edge = wave.get("edge")
+    if wave["from"] == "sides" and edge in ("left", "right"):
+        return f"{edge} side"
+    return wave["from"] + (f" ({EDGES[edge]})" if edge else "")
+
+
+def directions(level):
+    """The share of the level's enemies (medium) per entry direction, front · sides · rear."""
+    counts = {"front": 0, "sides": 0, "rear": 0}
+    for wave in level["waves"]:
+        counts[wave["from"]] += sum(g["count"] for g in groups(wave))
+    total = sum(counts.values())
+    return " · ".join(f"{name} {round(100 * n / total)}%" for name, n in counts.items() if n)
+
+
+def threat_profile(d):
+    level = data(d)
+    values = {"directions": directions(level)}
+    rows = [[field, fill(text, values)] for field, text in level["notes"]["threat_profile"].items()]
+    return table(["Field", "Value"], rows)
+
+
 def level_sections(d):
     level = data(d)
     rows = []
@@ -319,7 +343,7 @@ def waves(d):
     rows = []
     for w in level["waves"]:
         gs = groups(w)
-        enter = w["from"] + (f" ({EDGES[w['edge']]})" if "edge" in w else "")
+        enter = entry(w)
         rows.append([num(w["t"]), str(section_of(level, w["t"])), " + ".join(g["formation"] for g in gs),
                      " + ".join(enemy_link(d, g["enemy"]) for g in gs), " + ".join(str(g["count"]) for g in gs),
                      enter, fill(w["notes"], w) if "notes" in w else ""])
@@ -444,7 +468,7 @@ RENDERERS = {
     "plating": plating, "generators": generators, "engines": engines, "utility": utility,
     "pickups": player_pickups, "ship-movement": ship_movement, "stat-block": stat_block,
     "reference-dps": reference_dps, "player-damage": player_damage, "formations": formations,
-    "level-sections": level_sections, "waves": waves, "ground-targets": ground_targets, "radio": radio,
+    "level-sections": level_sections, "threat-profile": threat_profile, "waves": waves, "ground-targets": ground_targets, "radio": radio,
     "credit-budget": credit_budget, "score-bonuses": score_bonuses, "grades": grades, "difficulty": difficulty,
 }
 

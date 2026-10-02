@@ -134,7 +134,9 @@ versions in `gradle/libs.versions.toml`.
   reporting code work; `./gradlew spotlessApply` fixes the formatting.
 - `./gradlew :desktop:run --args="--bench 3 --settings <file>"` – starts the game; `--bench <s>`
   exits after `<s>` seconds, `--settings` uses another settings file than the one in the
-  platform's config directory. Automated runs always pass `--bench`.
+  platform's config directory. Automated runs always pass `--bench`. `--difficulty
+  easy|medium|hard` (default medium) picks the difficulty until the menus exist (M3);
+  `--debug-speed <n>` runs the simulation n times faster for testing.
 - `./gradlew :desktop:installDist` – the start script in `desktop/build/install/terran-vanguard/`.
 - `./gradlew :desktop:packageLinuxX64` (also `packageWinX64`, `packageMacX64`, `packageMacM1`) –
   Construo bundles with a trimmed JRE in `desktop/build/construo/dist/`.

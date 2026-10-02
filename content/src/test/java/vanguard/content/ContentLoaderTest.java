@@ -24,7 +24,8 @@ class ContentLoaderTest {
         assertEquals(
                 List.of("needler", "skitter"),
                 content.enemies().keySet().stream().sorted().toList());
-        assertEquals(190, content.levels().get("level-01-break-at-dawn").seconds());
+        assertEquals(
+                190, content.level("act-1-first-contact/level-01-break-at-dawn").seconds());
     }
 
     @Test

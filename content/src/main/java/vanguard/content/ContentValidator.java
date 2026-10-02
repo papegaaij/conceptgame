@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import vanguard.sim.PlayField;
 
 /**
  * The checks across files, after every file has parsed: names resolve (a wave's enemy and
@@ -132,11 +133,18 @@ final class ContentValidator {
             if (target.section() < 1 || target.section() > level.sections().size()) {
                 problem(level, field + ".section", "no section " + target.section());
             } else {
-                target.t().ifPresent(t -> {
-                    if (level.sectionAt(t) != target.section()) {
-                        problem(level, field + ".t", "t=" + t + " is not in section " + target.section());
+                for (int p = 0; p < target.at().size(); p++) {
+                    LevelData.Placement placement = target.at().get(p);
+                    if (level.sectionAt(placement.t()) != target.section()) {
+                        problem(
+                                level,
+                                field + ".at[" + p + "]",
+                                "t=" + placement.t() + " is not in section " + target.section());
                     }
-                });
+                    if (placement.x() < 0 || placement.x() > PlayField.WIDTH) {
+                        problem(level, field + ".at[" + p + "]", "x=" + placement.x() + " is outside the play field");
+                    }
+                }
             }
             target.reveals().ifPresent(name -> {
                 if (!secrets.contains(name)) {
@@ -144,16 +152,15 @@ final class ContentValidator {
                 }
             });
         }
-        for (int i = 0; i < level.pickups().size(); i++) {
-            LevelData.PlacedPickup pickup = level.pickups().get(i);
-            checkTime(level, "pickups[" + i + "].t", pickup.t());
-            if (!waveTimes.contains(pickup.droppedBy().wave())) {
-                problem(
-                        level,
-                        "pickups[" + i + "].dropped_by.wave",
-                        "no wave at t=" + pickup.droppedBy().wave());
-            }
-        }
+        checkCarriers(level, "pickups", level.pickups(), waveTimes);
+        level.difficulty()
+                .easy()
+                .flatMap(LevelData.Variant::extraPickups)
+                .ifPresent(pickups -> checkCarriers(level, "difficulty.easy.extra_pickups", pickups, waveTimes));
+        level.difficulty()
+                .hard()
+                .flatMap(LevelData.Variant::extraPickups)
+                .ifPresent(pickups -> checkCarriers(level, "difficulty.hard.extra_pickups", pickups, waveTimes));
         for (int i = 0; i < level.radio().size(); i++) {
             LevelData.RadioCue cue = level.radio().get(i);
             String field = "radio[" + i + "]";
@@ -171,6 +178,16 @@ final class ContentValidator {
         for (var variant : List.of(level.difficulty().easy(), level.difficulty().hard())) {
             variant.flatMap(LevelData.Variant::enemies)
                     .ifPresent(changes -> changes.keySet().forEach(slug -> checkEnemyName(level, "difficulty", slug)));
+        }
+    }
+
+    private void checkCarriers(
+            LevelData level, String field, List<LevelData.PlacedPickup> pickups, Set<Double> waveTimes) {
+        for (int i = 0; i < pickups.size(); i++) {
+            double wave = pickups.get(i).droppedBy().wave();
+            if (!waveTimes.contains(wave)) {
+                problem(level, field + "[" + i + "].dropped_by.wave", "no wave at t=" + wave);
+            }
         }
     }
 

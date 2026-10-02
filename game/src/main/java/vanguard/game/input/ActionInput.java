@@ -18,6 +18,11 @@ public final class ActionInput {
         this.bindings = bindings;
     }
 
+    /** What triggers each action, for prompts that name the keys. */
+    public Bindings bindings() {
+        return bindings;
+    }
+
     /** Samples the devices; call once per frame before the screens read the actions. */
     public void update(DeviceState devices) {
         // Alt+Enter toggles the display mode (design/ui/options), so it must not also confirm.

@@ -28,6 +28,7 @@ public record EnemyData(
         List<Attack> attacks,
         List<FormationUse> formations,
         List<WeakPoint> weakPoints,
+        List<Drop> drops,
         List<String> traits,
         int bounty,
         int firstLevel,
@@ -103,6 +104,13 @@ public record EnemyData(
     public record WeakPoint(String name, double multiplier) {
         public WeakPoint {
             Check.positive("multiplier", multiplier);
+        }
+    }
+
+    /** Every {@code every}-th kill of this enemy in a level drops {@code pickup}. */
+    public record Drop(Pickup pickup, int every) {
+        public Drop {
+            Check.positive("every", every);
         }
     }
 

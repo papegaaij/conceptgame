@@ -10,7 +10,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 /**
- * Cuts the M1 placeholder sprites out of the <em>chosen</em> concept sheets in the design tree and
+ * Cuts the placeholder sprites out of the <em>chosen</em> concept sheets in the design tree and
  * writes them as single frames into {@code assets/sprites} and {@code assets/backdrop}, ready for
  * {@link AtlasPacker}. Every crop rectangle below was read off the generator that drew the sheet
  * (named per cut), so a re-rendered sheet with the same layout imports unchanged.
@@ -42,6 +42,9 @@ public final class PlaceholderSprites {
 
     private static final String SHIP_SHEET = "player/ship/concept/player-ship-r08-a.png";
     private static final String SKITTER_SHEET = "enemies/air/concept/skitter-r04-a.png";
+    private static final String NEEDLER_SHEET = "enemies/air/concept/needler-r04-a.png";
+    private static final String BULLET_SHEET = "enemies/concept/enemy-bullets-r09-a.png";
+    private static final String PICKUP_SHEET = "player/concept/pickups-r09-a.png";
     private static final String PROJECTILE_SHEET = "player/weapons/concept/projectiles-r08-a.png";
     private static final String EXPLOSION_SHEET = "art-direction/concept/explosions-r09-a.png";
     private static final String SCENE_SHEET = "art-direction/concept/parallax-r03-a.png";
@@ -154,6 +157,49 @@ public final class PlaceholderSprites {
                     Treatment.KEYED,
                     false,
                     24),
+            // enemies_r03.enemy_sheet (r04 colours): the Needler's 3 claw-snap frames at 3x, 36x36 like its stat block.
+            new Cut(
+                    "sprites",
+                    "needler",
+                    NEEDLER_SHEET,
+                    16,
+                    366,
+                    108,
+                    108,
+                    3,
+                    3,
+                    118,
+                    spriteChecker(16, 366, 118, 8),
+                    Treatment.KEYED,
+                    false,
+                    NATIVE_SIZE),
+            // vfx_r09.bullets_sheet, needle row: the Vrell yellow needle flying down, at 2x with a 1 px pad.
+            new Cut(
+                    "sprites",
+                    "thorn",
+                    BULLET_SHEET,
+                    465,
+                    191,
+                    46,
+                    46,
+                    2,
+                    1,
+                    0,
+                    spriteChecker(464, 190, 0, 4),
+                    Treatment.KEYED,
+                    false,
+                    NATIVE_SIZE),
+            // vfx_r09.pickups_sheet: the 8-frame spin loops at 2x of salvage S, salvage L (the crate),
+            // the shield cell and the armour patch (rows 0, 2, 3 and 4).
+            pickup("salvage-small", 0, 28),
+            pickup("crate", 2, 34),
+            pickup("shield-cell", 3, 32),
+            pickup("armour-patch", 4, 32),
+            // portraits_r03.character_sheet: the 72x72 HUD radio portrait in its HUD A frame.
+            portrait("rook", "story/characters/rook/concept/portrait-r04-a.png"),
+            portrait("okafor", "story/characters/okafor/concept/portrait-r04-a.png"),
+            portrait("varga", "story/characters/varga/concept/portrait-r04-a.png"),
+            portrait("the-choir", "story/characters/the-choir/concept/portrait-r08-a.png"),
             // vfx_r08.projectiles_sheet, pulse row: the 1x bolt, 3 muzzle frames and 4 impact frames at 3x.
             new Cut(
                     "sprites",
@@ -200,8 +246,9 @@ public final class PlaceholderSprites {
                     Treatment.ADDITIVE,
                     false,
                     NATIVE_SIZE),
-            // vfx_r09.explosions_sheet: the tiny rung (24 px, all 12 frames) and the large rung (96 px,
-            // 11 of its 14 frames as sampled on the sheet: 1, 2, 4, 5, 6, 7, 9, 10, 11, 13, 14).
+            // vfx_r09.explosions_sheet: the tiny rung (24 px, all 12 frames), the small rung (40 px, all
+            // 12) and the large rung (96 px, 11 of its 14 frames as sampled on the sheet: 1, 2, 4, 5, 6, 7,
+            // 9, 10, 11, 13, 14).
             new Cut(
                     "sprites",
                     "explosion-tiny",
@@ -213,6 +260,21 @@ public final class PlaceholderSprites {
                     1,
                     12,
                     28,
+                    new Plate(EXPLOSION_PLATE),
+                    Treatment.ADDITIVE,
+                    true,
+                    NATIVE_SIZE),
+            new Cut(
+                    "sprites",
+                    "explosion-small",
+                    EXPLOSION_SHEET,
+                    130,
+                    106,
+                    40,
+                    40,
+                    1,
+                    12,
+                    44,
                     new Plate(EXPLOSION_PLATE),
                     Treatment.ADDITIVE,
                     true,
@@ -310,6 +372,46 @@ public final class PlaceholderSprites {
                     NATIVE_SIZE));
 
     private PlaceholderSprites() {}
+
+    /** A pickup's spin loop: row {@code row} of the pickups sheet, {@code width} px with its outline. */
+    private static Cut pickup(String name, int row, int width) {
+        int y = 54 + row * 112 + 10;
+        int step = width * 2 + 6;
+        return new Cut(
+                "sprites",
+                "pickup-" + name,
+                PICKUP_SHEET,
+                420,
+                y,
+                width * 2,
+                width * 2,
+                2,
+                8,
+                step,
+                spriteChecker(420, y, step, 4),
+                Treatment.KEYED,
+                false,
+                NATIVE_SIZE);
+    }
+
+    /** A cast member's 72x72 HUD radio portrait. */
+    private static Cut portrait(String name, String sheet) {
+        return new Cut(
+                "sprites",
+                "portrait-" + name,
+                sheet,
+                31,
+                319,
+                72,
+                72,
+                1,
+                1,
+                0,
+                new Plate(0),
+                Treatment.OPAQUE,
+                false,
+                NATIVE_SIZE);
+    }
 
     private static Checker spriteChecker(int x, int y, int stepX, int cell) {
         return new Checker(x, y, stepX, cell, SPRITE_CHECKER_EVEN, SPRITE_CHECKER_ODD);

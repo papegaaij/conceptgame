@@ -373,7 +373,8 @@ budget (Skitter 5, Needler 12) is unchanged; a typical Act 1 level of 90–120 k
 
 The global multipliers (enemy HP, fire rate, bullet speed, bullets per pattern, aiming,
 formation size, bullet budget, credits) are defined once in
-[difficulty](../systems/difficulty/README.md); every enemy gets them. What an enemy's stat block
+[difficulty](../systems/difficulty/README.md); every enemy gets them (scaled HP is rounded half to
+even, at least 1). What an enemy's stat block
 adds are **overrides**:
 
 - `medium+` / `hard-only` tags on individual bullets, attack phases or formation members
@@ -452,6 +453,18 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - [ ] Angle-set sprites (16/32 angles, nearest frame) and radial spinners.
 - [ ] Every act passes the variety checklist.
 
+## Open questions
+
+- (M2) Missing numbers, implemented with first values to tune: the gap between the shots of a
+  `burst` (0.15 s), the hit box of a `small` enemy bullet (6×6), the layouts of the formations in
+  `vanguard.sim.Formations` (V rank spacing 50 px, pincer 60 px from its edge, circle centre
+  180 px below the top, 0.5 s between circle break groups, a Needler breaking off at its 120 px/s).
+- (M2) The Needler's thorn is drawn as the Vrell yellow needle, which the bullet set (round 09)
+  marks as the *fast* class (190–260 px/s), while the Needler fires it at 150 px/s (standard).
+  Keep the needle look, or use the standard orb?
+- (M2) Level 01 flies line-abreast Skitters in lines of 8 (and 10 on hard), while the Skitter's
+  stat block lists line abreast as 5–7. Widen the stat block, or shorten the lines?
+
 ## Decisions
 
 - 2026-09-30: Enemies are organised by layer category (air, ground, naval, space) plus bosses.
@@ -489,3 +502,9 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - 2026-10-01: M1: the layer rules for weapons without special traits are encoded in `vanguard.sim.Layer` (hit by standard shots: air, low-air, ground; contact: air only); `sub`, hardened ground targets and the trait exceptions follow with the units that need them.
 - 2026-10-01: Rules from M1 (user decisions): HP wording — a Pulse Cannon L1 shot does 2 damage units; `tiny` and `small` rammers are destroyed on impact; the snake readability rule is about the head (on screen ≥ 1.5 s before it can reach the player), so snakes of any length stay allowed.
 - 2026-10-02: The balancing basis (reference DPS, damage to the player) and the formation vocabulary moved into [data.yaml](data.yaml) (M2 data files); their tables are rendered from it, and `tools/balance.py` reads the reference DPS from there. Each promoted enemy's stat block lives in a `data.yaml` next to its README.
+- 2026-10-02: M2 (Level 01): the formation spawner places snake, V-wing, line abreast
+  (front and rear), stream, pincer and circle by entry edge (`vanguard.sim.Formations`), with
+  edge warnings ahead of side and rear waves (at least 1.5 s, or the wave's `warning`); enemy
+  bullets are drawn above every layer, need 72 px to the ship and respect the bullet budget;
+  standard shots hit `air` and `ground` targets, `air` units ram. The other formations, attack
+  patterns, layers and telegraphs follow with the levels that use them, so those items stay open.

@@ -4,6 +4,15 @@
 scroll_speed: 130     # px/s at the 960×540 baseline; a section may set its own speed
 launch_seconds: 5     # non-playable launch off the south rail; control starts after it
 control_prompts: [move, fire, precision]
+notes:
+  threat_profile:  # the README's Threat profile table; {directions} is derived from the waves
+    Dominant layers: '`air` (all enemies), `deep` (Earth, the yards'' far structures)'
+    Attack directions: '{directions} (one warned wave)'
+    Density: '1'
+    Recommended traits: '`forward`'
+    Hazards: none
+    Boss / mid-boss: 'none (final wave: Needler circle)'
+    Sensor-suite detail: 'The sensor suite (800) is in the shop from the start but out of reach of the 300 starting credits, so the panel shows the no-sensor view: setting, dominant layer `air`, main direction front. Varga: "Our scans are patchy, Lancer. Small, fast, lots of them."'
 
 sections:  # back to back from t = 0; each ends at `end`
   - name: Launch
@@ -51,16 +60,18 @@ sections:  # back to back from t = 0; each ends at `end`
       purpose: 'Final set piece: Needler circle plus Skitter streams. Then the level ends.'
 
 waves:
-  # t, formation, enemy, count, enter from (front / sides / rear) and edge (left / right / both /
-  # alternating); a mixed wave lists its groups. easy / hard: changes on that difficulty.
+  # t, formation, enemy, count, enter from (front / sides / rear) and edge (left / right /
+  # alternating; sides without an edge = both side edges); a mixed wave lists its groups.
+  # speed: px/s instead of the enemy's own; interval: s between two units of a stream.
+  # easy / hard: changes on that difficulty.
   - {t: 22, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: "Curls toward the centre, no fire"}
   - {t: 30, formation: snake, enemy: skitter, count: 6, from: front, edge: right, notes: "Mirror of the previous wave"}
   - {t: 40, formation: V-wing, enemy: needler, count: 5, from: front, notes: "Aimed shot every 2.5 s each; radio cue \"they shoot back\""}
   - {t: 50, formation: line abreast, enemy: skitter, count: 8, from: front, notes: "Sweeps down the screen"}
   - {t: 64, formation: line abreast, enemy: needler, count: 3, from: front, notes: "Hover, fire, leave"}
-  - {t: 75, formation: snake, enemy: skitter, count: 6, from: sides, edge: left, notes: "First side entry, slow; radio warning"}
+  - {t: 75, formation: snake, enemy: skitter, count: 6, from: sides, edge: left, speed: 120, notes: "First side entry, slow ({speed} px/s); radio warning"}
   - {t: 86, formation: V-wing, enemy: needler, count: 5, from: front}
-  - {t: 96, formation: stream, enemy: skitter, count: 10, from: front, edge: alternating, notes: "Teaches sweeping fire"}
+  - {t: 96, formation: stream, enemy: skitter, count: 10, from: front, edge: alternating, interval: 0.5, notes: "Teaches sweeping fire"}
   - t: 112
     groups:
       - {formation: snake, enemy: skitter, count: 6}
@@ -74,9 +85,10 @@ waves:
     count: 6
     from: rear
     warning: 3  # s; the radio cue at t=131
+    speed: 120
     easy: {from: front}
     hard: {count: 10}
-    notes: Warned {warning} s ahead ("Contacts on your six!"); slow
+    notes: Warned {warning} s ahead ("Contacts on your six, Lancer!"); slow ({speed} px/s)
   - {t: 146, formation: V-wing, enemy: needler, count: 7, from: front, notes: "Large V"}
   - t: 162
     formation: circle
@@ -87,28 +99,33 @@ waves:
     break_group: 1  # Needlers that break toward the player together
     hard: {break_group: 2}
     notes: Orbit a point above the centre for {hold} s, then break toward the player one by one
-  - {t: 166, formation: stream, enemy: skitter, count: 12, from: sides, edge: both, notes: "Enters while the circle is orbiting"}
+  - {t: 166, formation: stream, enemy: skitter, count: 12, from: sides, interval: 0.5, notes: "Enters while the circle is orbiting"}
 
 ground_targets:
   - target: cargo container
     section: 3
     count: 10
     layer: ground
+    size: [32, 24]
     hp: 3
     bounty: 5
     drop: small salvage
+    # [t, x]: when it enters at the top edge, and its x in the play field; in pairs on
+    # alternating sides of section 3 (a first layout, to be tuned after playing)
+    at: [[62, 60], [62, 104], [71, 376], [71, 420], [80, 60], [80, 104], [89, 376], [89, 420], [98, 60], [98, 104]]
     notes:
       target: Cargo containers ×{count} (ground layer, destructible, {hp} HP)
       effect: Each pays {bounty} and drops a {drop} pickup ({drop_credits})
       budget: cargo containers {count} × ({bounty} + {drop} {drop_credits})
   - target: beacon
     section: 3
-    t: 90
     layer: ground
+    size: [12, 12]
+    at: [[90, 300]]
     hits: 3               # hits that release the secret
     reveals: beacon cache
     notes:
-      target: Beacon on the crane at t≈{t} (blinks red)
+      target: Beacon on the crane at t≈{at.0.0} (blinks red)
       effect: Secret, see below
 
 secrets:
@@ -116,8 +133,8 @@ secrets:
     crate: 80  # hidden crate, credits
     radio: {speaker: Rook, line: "Nice shooting. Finders keepers."}
 
-pickups:  # placed pickups; shield cells drop from Needlers at the normal rate
-  - {pickup: armour patch, t: 140, dropped_by: {wave: 122, unit: last}}
+pickups:  # placed pickups; shield cells drop from Needlers by their stat block's drop rule
+  - {pickup: armour patch, dropped_by: {wave: 122, unit: last}}
 
 radio:  # trigger: t (seconds) or event (first-kill of an enemy, secondary-objective, level-end)
   - {t: 2, speaker: Rook, line: "Lancer, Rook. Aegis Two's got the north arm, you've got the south. Try not to have all the fun."}
@@ -143,8 +160,9 @@ music:
   end_jingle: mission-complete
 
 difficulty:  # level-wide changes; per-wave changes are in the waves
-  easy:
-    enemies: {needler: {attack_interval: 3.5}}
-    extra_pickups: [{pickup: armour patch, count: 2}]
+  easy:  # Needlers fire at the global fire-rate lever (design/systems/difficulty)
+    extra_pickups:
+      - {pickup: armour patch, dropped_by: {wave: 40, unit: last}}
+      - {pickup: armour patch, dropped_by: {wave: 86, unit: last}}
   hard:
     enemies: {needler: {burst: 2}}

@@ -1,7 +1,7 @@
 ---
 title: Player
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../systems, ../ui/hangar]
 updated: 2026-10-02
@@ -157,3 +157,10 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
 - 2026-10-01: Damage-unit wording corrected (user decision): a Pulse Cannon L1 shot does 2 damage units, as in `balance-data.json` and the reference DPS of 20; all HP values already used this scale.
 - 2026-10-02: Balancing numbers moved from `balance-data.json` into the parts' `data.yaml` files (M2 data files). This directory's [data.yaml](data.yaml) holds the shop availability and the pickups (the *In-level pickups* table is rendered from it); the expected purchases that `tools/balance.py` checks are in [balance-plan.yaml](balance-plan.yaml).
+- 2026-10-02: M2 (Level 01): salvage (small), shield cell, armour patch and the hidden crate
+  drop, drift down at 40 px/s (the chosen pickups concept's rule, now `pickup_drift_speed` in
+  [data.yaml](data.yaml)), blink in their last 1.5 s and are gone after 6 s; they are collected
+  within the ship's 36 px collection radius. Drop tables: the enemy stat blocks' `drops` and the
+  levels' carried pickups. The other pickups follow with their levels, so the item stays open.
+  Placeholders: the spin loops of [pickups-r09-a](concept/pickups-r09-a.png) (salvage L stands in
+  for the hidden crate).

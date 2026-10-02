@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # HUD
@@ -110,7 +110,7 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 ## Implementation
 
 - [ ] Side panel frames from the UI kit
-- [ ] Left panel: mission, score, credits, chain, radio, progress
+- [x] Left panel: mission, score, credits, chain, radio, progress
 - [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective
 - [ ] Right panel: armour, shield, power, weapons, overdrive, special, escort
 - [ ] Radio message queue with portraits, priority interrupts
@@ -120,6 +120,13 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 - Should the side panels show a subtle live element, such as a mini-radar or the pilot's
   heartbeat? Nice 90s flavour, but it competes for attention.
+- (M2) Level 01 is not in the objective tracker's list, but has a secondary objective (80 %
+  of the enemies). The placeholder HUD shows it as a `KILLS n / 76` counter that turns `DONE`
+  and flashes green when met. Keep it for secondary objectives, or show the tracker only in the
+  listed objective levels?
+- (M2) Several radio lines are longer than the 3 × 22 character subtitle (Rook's opening line is
+  96 characters). The placeholder pages them: three lines at a time, typed out, each page held
+  1.5 s. Shorten the lines, or keep paging?
 
 ## Decisions
 
@@ -134,3 +141,10 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-10-01: Objective tracker added to the left panel (user decision) for the objective levels L02, L04, L05, L09, L10 and L13. No concept art for it yet; it follows the HUD A style.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-01: M1 placeholder HUD (`vanguard.game.render.HudPanels`): metal panels drawn in code with colours sampled from `hud-r08-a.png` and libGDX's built-in font until the UI kit and its bitmap fonts exist; right panel armour and shield bars with numbers (the shield bar flickers while down after a break) and the front weapon with level pips; left panel the test sortie's name and attempt number.
+- 2026-10-02: M2 placeholder left panel (`vanguard.game.render.MissionPanel`): mission
+  number and name, score, credits (launch balance plus earnings), chain with its window bar,
+  radio with the speaker's 72×72 portrait (cut from the chosen portrait sheets: Rook, Okafor,
+  Varga r04, the Choir r08, static) and the typed subtitle with squelch and typing blips, the
+  first section's control prompts, a secondary-objective tracker and the progress bar; in the play
+  field the edge-warning arrows and floating credit numbers. Not yet: queue interrupts for urgent
+  warnings, warning banners, power, special and escort.

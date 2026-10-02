@@ -1,5 +1,6 @@
 package vanguard.content;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
@@ -76,10 +77,12 @@ public record LevelData(
      * {@code groups}; {@link #groups()} gives both as a list.
      *
      * @param from the edge it enters from
-     * @param edge which side of that edge
+     * @param edge which side of that edge; {@code sides} without an edge means both side edges
      * @param hold seconds the formation holds (pincer at the edge, circle orbiting)
      * @param warning seconds of radio warning before a rear wave
      * @param breakGroup how many units of a circle break toward the player together
+     * @param speed px/s instead of the enemy's own speed
+     * @param interval seconds between two units of a stream
      * @param easy changes on easy
      * @param hard changes on hard
      */
@@ -94,10 +97,14 @@ public record LevelData(
             Optional<Double> hold,
             Optional<Double> warning,
             Optional<Integer> breakGroup,
+            Optional<Double> speed,
+            Optional<Double> interval,
             Optional<Change> easy,
             Optional<Change> hard) {
         public Wave {
             Check.notNegative("t", t);
+            speed.ifPresent(s -> Check.positive("speed", s));
+            interval.ifPresent(i -> Check.positive("interval", i));
             boolean single = formation.isPresent() || enemy.isPresent() || count.isPresent();
             Check.that(
                     single != groups.isPresent(),
@@ -132,7 +139,6 @@ public record LevelData(
     public enum Edge {
         LEFT,
         RIGHT,
-        BOTH,
         ALTERNATING
     }
 
@@ -144,14 +150,16 @@ public record LevelData(
      * A ground target: a destructible ({@code hp}, {@code bounty}, {@code drop}) or a trigger hit
      * {@code hits} times that {@code reveals} a secret.
      *
-     * @param t when it passes, if it is placed at a time rather than spread over the section
+     * @param size its hit box in px
+     * @param at where each of them is placed
      */
     public record GroundTarget(
             String target,
             int section,
             Optional<Integer> count,
             String layer,
-            Optional<Double> t,
+            Size size,
+            List<Placement> at,
             Optional<Double> hp,
             Optional<Integer> bounty,
             Optional<Pickup> drop,
@@ -161,6 +169,15 @@ public record LevelData(
             Layers.of(layer);
             Check.that(hp.isPresent() != hits.isPresent(), "give hp (destructible) or hits (trigger)");
             Check.that(reveals.isPresent() == hits.isPresent(), "a trigger (hits) reveals a secret");
+            Check.that(at.size() == count.orElse(1), "at: one placement per target (count, or 1 for a trigger)");
+        }
+    }
+
+    /** A ground object entering at the top edge at {@code t} seconds, {@code x} px from the left. */
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    public record Placement(double t, double x) {
+        public Placement {
+            Check.notNegative("t", t);
         }
     }
 
@@ -171,8 +188,8 @@ public record LevelData(
         }
     }
 
-    /** A pickup released at about {@code t}, carried by a unit of the wave starting at {@code droppedBy.wave}. */
-    public record PlacedPickup(Pickup pickup, double t, Carrier droppedBy) {}
+    /** A pickup carried by a unit of the wave starting at {@code droppedBy.wave}, dropped when it is destroyed. */
+    public record PlacedPickup(Pickup pickup, Carrier droppedBy) {}
 
     /** The {@code unit} ({@code first} or {@code last}) of the wave starting at {@code wave} seconds. */
     public record Carrier(double wave, CarrierUnit unit) {}
@@ -242,14 +259,12 @@ public record LevelData(
     public record Difficulties(Optional<Variant> easy, Optional<Variant> hard) {}
 
     /** Changes to enemies (by slug) and extra placed pickups. */
-    public record Variant(Optional<Map<String, EnemyChange>> enemies, Optional<List<ExtraPickup>> extraPickups) {}
+    public record Variant(Optional<Map<String, EnemyChange>> enemies, Optional<List<PlacedPickup>> extraPickups) {}
 
-    /** A changed attack interval in seconds, or bursts of {@code burst} shots. */
-    public record EnemyChange(Optional<Double> attackInterval, Optional<Integer> burst) {}
-
-    public record ExtraPickup(Pickup pickup, int count) {
-        public ExtraPickup {
-            Check.positive("count", count);
+    /** Aimed shots fired in bursts of {@code burst}. */
+    public record EnemyChange(Optional<Integer> burst) {
+        public EnemyChange {
+            burst.ifPresent(b -> Check.positive("burst", b));
         }
     }
 }

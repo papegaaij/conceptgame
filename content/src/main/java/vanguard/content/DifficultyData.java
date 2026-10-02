@@ -29,6 +29,16 @@ public record DifficultyData(
         PerDifficulty<Boolean> bossCheckpoint,
         PerDifficulty<Integer> sensorBonus) {
 
+    /** An enemy's HP on {@code difficulty}: the medium HP times the lever, rounded half to even, at least 1. */
+    public double enemyHp(double mediumHp, Difficulty difficulty) {
+        return Math.max(1, Math.rint(mediumHp * enemyHp.of(difficulty)));
+    }
+
+    /** A wave's unit count on {@code difficulty}, by the formation size lever: rounded half to even, at least 1. */
+    public int formationSize(int mediumCount, Difficulty difficulty) {
+        return (int) Math.max(1, Math.rint(mediumCount * (1 + formationSize.of(difficulty))));
+    }
+
     /** Retries per level on each difficulty; absent = unlimited. */
     public record Retries(Optional<Integer> easy, Optional<Integer> medium, Optional<Integer> hard) {}
 }

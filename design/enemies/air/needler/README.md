@@ -1,7 +1,7 @@
 ---
 title: Needler
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-02
@@ -37,7 +37,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Weak points | glowing violet eye cluster (×1.5) |
 | Effective traits | `forward`, `spread` |
 | Credits | 12 (score 120 × chain) |
-| Death | `small` burst: ivory shards, violet flash |
+| Death | `small` burst: ivory shards, violet flash; every 4th Needler kill in a level drops a shield cell |
 | First level / used in | L01; recurring gunner through Acts 1–2 and spawned by the Brood Carrier |
 | Difficulty hooks | hard: selected Needlers in `circle` formations lead the target |
 <!-- /data -->
@@ -53,10 +53,10 @@ Chosen concept: [needler-r04-a.png](../concept/needler-r04-a.png) (listed in the
 
 ## Implementation
 
-- [ ] Hover-and-fire behaviour with the 0.8 s first-shot delay
-- [ ] Circle formation orbiting and breaking off
-- [ ] Thorn bullet: yellow needle, 150 px/s
-- [ ] Stat block values loaded from data; global difficulty multipliers applied
+- [x] Hover-and-fire behaviour with the 0.8 s first-shot delay
+- [x] Circle formation orbiting and breaking off
+- [x] Thorn bullet: yellow needle, 150 px/s
+- [x] Stat block values loaded from data; global difficulty multipliers applied
 - [ ] Death effect, bounty and score per this spec
 
 ## Decisions
@@ -64,3 +64,16 @@ Chosen concept: [needler-r04-a.png](../concept/needler-r04-a.png) (listed in the
 - 2026-10-01: Promoted from the air roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
 - 2026-10-02: The stat block moved into [data.yaml](data.yaml) and is rendered from it (M2 data files), with the hover, orbit and attack numbers as fields for the Level 01 work.
+- 2026-10-02: Drop rule (user decision): every 4th Needler kill in a level drops a shield cell (a
+  deterministic counter, `drops` in [data.yaml](data.yaml)); the Death row is rendered from it.
+- 2026-10-02: M2 implementation (`vanguard.sim.Enemy`, `EnemySpec` and `EnemyGun` built by
+  `vanguard.content.SimSpecs`): swoop in along an entry path, hover 2–4 s (random per unit, from
+  the level seed) 80–220 px below the top, first thorn 0.8 s after it stops, then every 2.5 s
+  (easy ≈3.6 s, hard ≈1.9 s by the fire-rate lever), 150 px/s (easy 120, hard 172.5), then leave
+  down and out to its side. In a circle it orbits (90 px, 60°/s) and breaks toward the ship; on
+  hard every second Needler of a circle leads the target. Bullets need a 72 px gap to the ship and
+  fit the bullet budget. A rammed Needler is destroyed (small unit). Not done yet: the weak point
+  (×1.5) has no hit box position in the design, so hits do normal damage; the death effect is the
+  generic 40 px fire explosion (not ivory shards with a violet flash), so that item stays open.
+  Placeholders: the 3 claw-snap frames of [needler-r04-a](../concept/needler-r04-a.png) and the
+  Vrell yellow needle of [enemy-bullets-r09-a](../../concept/enemy-bullets-r09-a.png).

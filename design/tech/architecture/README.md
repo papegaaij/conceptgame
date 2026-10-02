@@ -81,7 +81,7 @@ README), and the tables in the README are **rendered from the data**:
 | Weapon | `design/player/weapons/<slug>/data.yaml`; shared rules in `design/player/weapons/data.yaml` | its property and *Per level* tables |
 | Ship and core parts | `design/player/{ship,shields,armor,generator,systems,specials}/data.yaml` | their tables (the specials table is still hand-written) |
 | Player-wide | `design/player/data.yaml` (shop availability, pickups) | the *In-level pickups* table |
-| Level | `design/campaign/<act>/<level>/data.yaml` (sections, scroll, waves, ground targets, secrets, cues, objectives, music, difficulty changes) | the *Layout*, *Waves*, *Ground targets*, *Radio chatter* and *Credit budget* tables |
+| Level | `design/campaign/<act>/<level>/data.yaml` (sections, scroll, waves, ground targets, secrets, cues, objectives, music, difficulty changes) | the *Threat profile*, *Layout*, *Waves*, *Ground targets*, *Radio chatter* and *Credit budget* tables |
 | Economy, scoring, difficulty | `design/systems/<part>/data.yaml` | the scoring bonus and grade tables and the difficulty levers (the economy's tables are still hand-written) |
 
 - **Marked tables.** A generated table sits between `<!-- data: NAME -->` and `<!-- /data -->`;
@@ -107,8 +107,9 @@ README), and the tables in the README are **rendered from the data**:
   the game calls `ContentLoader.fromClasspath()` once at start. The data files are therefore
   part of the jar and the bundles; editing one needs a rebuild, no asset step.
 - **Simulation specs.** `sim` defines the records it runs on (`ShipSpec`, `PulseCannon`,
-  `ShieldModel`, `Plating`, `SkitterSpec`, `Loadout`) and knows nothing about data files;
-  `content`'s `SimSpecs` builds them from the loaded records. The dependency stays
+  `ShieldModel`, `Plating`, `Loadout`, `EnemySpec`, `LevelScript`, `Rules`) and knows nothing
+  about data files; `content`'s `SimSpecs` builds them from the loaded records at a difficulty,
+  with the difficulty levers applied. The dependency stays
   `content → sim`, so the simulation keeps no YAML, Jackson or file access.
 - Balance checks (budget per level, DPS against the reference, time to kill, bounty) become
   JUnit tests over the loaded content, replacing `tools/balance.py`'s checks.
@@ -141,7 +142,9 @@ first entry of a part's model list is the starter (price 0, `start`).
   `hover` `seconds`, `y`; `orbit` `radius`, `turn_rate`), `attacks` (`pattern`, `bullet` class,
   `interval`, `speed`, `first_shot_delay`), `formations` (`name`, `size` `[n]` or `[min, max]`),
   `weak_points` (`name`, `multiplier`), `traits`, `bounty`, `first_level`, `difficulty` hooks.
-  Easy/hard HP in the table are derived from the difficulty levers (rounded, at least 1), the
+  `drops` (`pickup`, `every`: every n-th kill of the enemy in a level drops it).
+  Easy/hard HP in the table are derived from the difficulty levers (rounded half to even, at
+  least 1), the
   contact and bullet damage from the basis, the score from the bounty.
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
@@ -149,16 +152,20 @@ first entry of a part's model list is the starter (price 0, `start`).
   `control_prompts`; `sections` back to back from t = 0 (`name`, `end`, `atmosphere`, optional
   `speed`; scroll distances are derived); `waves` in time order, one row each (`t`,
   `formation`, `enemy` slug, `count`, `from` `front`/`sides`/`rear`, `edge`
-  `left`/`right`/`both`/`alternating`, optional `hold`, `warning`, `break_group`, and `easy` /
-  `hard` changes), a mixed wave lists `groups` instead; `ground_targets` (`target`, `section`,
-  `layer`, a destructible's `count`, `hp`, `bounty`, `drop`, or a trigger's `t`, `hits`,
-  `reveals`); `secrets` (`name`, hidden `crate` credits, `radio` line); placed `pickups`
-  (`pickup`, `t`, `dropped_by` wave and unit); `radio` cues (trigger `t` or `event`
+  `left`/`right`/`alternating` (`sides` without an edge enters from both side edges), optional
+  `hold`, `warning`, `break_group`, `speed` (px/s instead of the enemy's own), `interval` (s
+  between the units of a stream), and `easy` / `hard` changes), a mixed wave lists `groups`
+  instead; `ground_targets` (`target`, `section`, `layer`, `size`, `at` (one `[t, x]` per object:
+  when it enters at the top edge and its x), a destructible's `count`, `hp`, `bounty`, `drop`, or
+  a trigger's `hits`, `reveals`); `secrets` (`name`, hidden `crate` credits, `radio` line); placed
+  `pickups` (`pickup`, `dropped_by` wave and unit); `radio` cues (trigger `t` or `event`
   `first-kill` (with `enemy`) / `secondary-objective` / `level-end`; `speaker`, `line`,
   `distorted`); `objectives` (`primary`, `secondary` `kill_ratio` and `credits`); `music`
   (`track`, `start_section`, `full_section`, `ambience`, `end_jingle`); `difficulty` (level-wide
-  `easy` / `hard` enemy changes and extra pickups). The credit budget table is derived: kills ×
-  bounties, ground targets, crates, the secondary objective, against budget(n) of the economy.
+  `easy` / `hard` enemy changes such as `burst`, and `extra_pickups` placed like `pickups`);
+  `notes.threat_profile` (the *Threat profile* rows; `{directions}` is derived). The credit budget
+  table is derived: kills × bounties, ground targets, crates, the secondary objective, against
+  budget(n) of the economy; the attack directions are each entry's share of the enemies.
 - **Ship and core parts**: ship (`acceleration_seconds`, `stop_seconds`, `precision_factor`,
   `size`, `edge_gap`, `hitbox`, `collection_radius`, `mercy_seconds`, `bank_change_steps`,
   `mounts`; its speed is the fitted engine's); shields (`break_seconds`, `models` with
@@ -166,7 +173,7 @@ first entry of a part's model list is the starter (price 0, `start`).
   (`spare_power`, `models` with `output`); systems (`engines` with `speed`, `draw`; `utility`
   with `draw`, one price per level, `design` status); specials (`charge_price`, `max_charges`,
   `unlock`). Each model also has `name`, `price` and `available`.
-- **Player** (`player/data.yaml`): `availability`, `pickup_seconds`, `pickups` (salvage
+- **Player** (`player/data.yaml`): `availability`, `pickup_seconds`, `pickup_drift_speed`, `pickups` (salvage
   credits, overdrive `levels` and `seconds`, shield cell `shield_percent`, armour patch
   `armour`, special charge `charges`, data core). Levels name pickups as `small salvage`,
   `armour patch`, ….
@@ -290,3 +297,22 @@ Screenshot tests are left out until there is a need.
   with the M1 numbers (`TestSpecs`); the replay test moved to `content` and flies the specs built
   from the data, with the same state hash (`6d6181b0b974e1bb`), because every migrated number is
   the same double as the M1 constant.
+- 2026-10-02: M2 part B (Level 01). `sim`: `Sortie` runs a `LevelScript` with `Rules` (built by
+  `content`'s `SimSpecs` at a `Difficulty`, levers already applied): `WaveSchedule` plans every
+  unit once per level (`Formations`, `Spawn`), and an attempt walks it with a cursor; `Enemy`
+  (enter, hold or orbit while firing, leave), `EnemyBullet`, `GroundObject`, `Pickup` and `Tally`
+  (score, chain, credits by source) live in pools or fixed arrays; radio cues, edge warnings and
+  pickups reach the presentation as `SimEvents` with an int value or as read-only state;
+  `LevelResult` is built on demand for the debrief, outside the step. `M1`'s `TestSortie`,
+  `Skitter`, `SkitterSpec` and `SnakeWave` are gone (`SnakePath` became the general `FlightPath`).
+  Content: levels are keyed by their path under `design/campaign` (`act-1-…/level-01-…`), so the
+  act and number come from the key. Data schema additions (documented above): enemy `drops`,
+  wave `speed` and `interval`, ground target `size` and `at`, `pickup_drift_speed`,
+  `notes.threat_profile`; removed: wave edge `both`, a placed pickup's `t`, easy
+  `attack_interval`. Tests: an allocation test over a whole level (after a warm-up run, since the
+  first run initialises `Trig`'s table and the enum switch maps), and the replay of the whole of
+  Level 01 at medium (`level-01-medium-2185.rec`, hash `f3ae19deb416eead`, 90 kills, 916
+  credits), re-recorded with `-Dvanguard.recordDir`. `game`: `LevelScreen`, `DebriefScreen`, the
+  HUD split into `HudKit`, `MissionPanel` and `ShipPanel`, `RadioQueue`, `ControlPrompts`,
+  `LevelMusic`. `desktop`: `--difficulty easy|medium|hard` and the debug option `--debug-speed <n>`
+  (game time n times faster, to get through a level quickly when testing).

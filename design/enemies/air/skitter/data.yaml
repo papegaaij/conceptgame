@@ -21,6 +21,7 @@ formations:
   - {name: line abreast, size: [5, 7]}
   - {name: swarm}
 weak_points: []
+drops: []
 traits: [spread, forward]
 bounty: 5
 first_level: 1

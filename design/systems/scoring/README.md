@@ -1,7 +1,7 @@
 ---
 title: Scoring
 design: approved
-implementation: not-started
+implementation: in-progress
 art: n/a
 depends-on: [../economy]
 updated: 2026-10-02
@@ -70,14 +70,20 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
 
 ## Implementation
 
-- [ ] Score counter with chain multiplier and HUD display
-- [ ] Level-end bonus calculation and grade rating
+- [x] Score counter with chain multiplier and HUD display
+- [x] Level-end bonus calculation and grade rating
 - [ ] Grade credit bonus fed into the economy
 - [ ] High-score table per difficulty
 
 ## Open questions
 
-- None open.
+- (M2) How does each part of the grade rating map to 0–100? Implemented as a first guess: the
+  kill ratio; 1 − armour lost ÷ the plating's maximum; secrets found ÷ secrets (full marks in a
+  level without secrets); the longest chain ÷ 80 (the chain that reaches ×5). A flawless Level 01
+  with a chain of 30 rates about 91 (S).
+- (M2) Ground targets (cargo containers) are not kills: they score like pickups (10 × their
+  credit value, no chain) and do not count for the kill ratio. A unit rammed to death counts as a
+  kill and pays its bounty. Is that the intent?
 
 ## Decisions
 
@@ -85,3 +91,9 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
 - 2026-10-01: Score and credits stay **separate** (user decision). The alternative — one number, points = credits, as in the original brief — was considered and rejected: spending would lower the score and chain play would inflate the economy.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-02: The scoring numbers moved into [data.yaml](data.yaml) (M2 data files); the bonus and grade tables are rendered from it.
+- 2026-10-02: M2 implementation (`vanguard.sim.Tally`, `LevelResult`): score and credits kept
+  apart, the chain (2 s window, +0.5 per 10 kills, ×5 at most, broken by armour damage), pickups
+  and bonuses at 10 × their credit value, the difficulty's score factor on every score; the
+  level-end bonuses (Destruction, Untouched, Explorer; Boss rush waits for bosses) and the grade
+  with its credit bonus, shown in the debrief. The bonus goes into the campaign balance with the
+  campaign state (M3), so that item stays open.

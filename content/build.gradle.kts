@@ -51,4 +51,8 @@ abstract class DesignData : DefaultTask() {
 tasks.test {
     // The loader test reads the data files straight from the design tree as well.
     systemProperty("vanguard.designDir", rootProject.layout.projectDirectory.dir("design").asFile.absolutePath)
+    // Re-recording the replay (see ReplayTest): -Dvanguard.recordDir=<dir>, relative to the root.
+    providers.systemProperty("vanguard.recordDir").orNull?.let {
+        systemProperty("vanguard.recordDir", rootProject.layout.projectDirectory.dir(it).asFile.absolutePath)
+    }
 }

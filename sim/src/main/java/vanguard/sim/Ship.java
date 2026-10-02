@@ -36,6 +36,19 @@ public final class Ship {
         reset();
     }
 
+    /**
+     * The launch off the rail (design/campaign, Level 01: the non-playable launch): from below the
+     * play field up to the start position, slowing down as it arrives. {@code progress} runs from 0
+     * to 1; commands are ignored meanwhile.
+     */
+    void launch(double progress) {
+        double remaining = 1 - progress;
+        double railY = -spec.size();
+        x = START_X;
+        y = START_Y + (railY - START_Y) * remaining * remaining;
+        vx = vy = 0;
+    }
+
     /** Back at the start position, at rest, with full defences. */
     void reset() {
         x = prevX = START_X;

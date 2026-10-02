@@ -10,7 +10,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
- * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from the M1
+ * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from the
  * placeholders, which are cut from the chosen concept art (see {@code PlaceholderSprites}), plus a
  * white pixel for the HUD's bars and frames.
  */
@@ -23,11 +23,28 @@ public final class Sprites implements Disposable {
     public final Array<AtlasRegion> ship;
     /** The wing beat. */
     public final Array<AtlasRegion> skitter;
+    /** The claw snap. */
+    public final Array<AtlasRegion> needler;
+    /** The Vrell needle bullet, flying down. */
+    public final AtlasRegion thorn;
+    /** The pickups' 8-frame spin loops. */
+    public final Array<AtlasRegion> salvageSmall;
+
+    public final Array<AtlasRegion> crate;
+    public final Array<AtlasRegion> shieldCell;
+    public final Array<AtlasRegion> armourPatch;
+    /** The 72x72 radio portraits. */
+    public final AtlasRegion rook;
+
+    public final AtlasRegion okafor;
+    public final AtlasRegion varga;
+    public final AtlasRegion choir;
 
     public final AtlasRegion pulseBolt;
     public final Array<AtlasRegion> pulseMuzzle;
     public final Array<AtlasRegion> pulseImpact;
     public final Array<AtlasRegion> explosionTiny;
+    public final Array<AtlasRegion> explosionSmall;
     public final Array<AtlasRegion> explosionLarge;
     public final AtlasRegion deep;
     public final AtlasRegion far;
@@ -41,10 +58,21 @@ public final class Sprites implements Disposable {
         backdrop = new TextureAtlas(files.internal("atlas/backdrop.atlas"));
         ship = frames(sprites, "ship");
         skitter = frames(sprites, "skitter");
+        needler = frames(sprites, "needler");
+        thorn = region(sprites, "thorn");
+        salvageSmall = frames(sprites, "pickup-salvage-small");
+        crate = frames(sprites, "pickup-crate");
+        shieldCell = frames(sprites, "pickup-shield-cell");
+        armourPatch = frames(sprites, "pickup-armour-patch");
+        rook = region(sprites, "portrait-rook");
+        okafor = region(sprites, "portrait-okafor");
+        varga = region(sprites, "portrait-varga");
+        choir = region(sprites, "portrait-the-choir");
         pulseBolt = region(sprites, "pulse-bolt");
         pulseMuzzle = frames(sprites, "pulse-muzzle");
         pulseImpact = frames(sprites, "pulse-impact");
         explosionTiny = frames(sprites, "explosion-tiny");
+        explosionSmall = frames(sprites, "explosion-small");
         explosionLarge = frames(sprites, "explosion-large");
         deep = region(backdrop, "deep");
         far = region(backdrop, "far");

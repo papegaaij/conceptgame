@@ -56,8 +56,8 @@ Chosen concept: [skitter-r04-a.png](../concept/skitter-r04-a.png) (listed in the
 
 - [ ] Snake, stream and swarm entry paths authored as data
 - [x] Contact damage 6, split shield/armour per the collision rule
-- [ ] Pays 5 credits; counts toward chains
-- [ ] Stat block values loaded from data; global difficulty multipliers applied
+- [x] Pays 5 credits; counts toward chains
+- [x] Stat block values loaded from data; global difficulty multipliers applied
 - [ ] Death effect, bounty and score per this spec
 
 ## Decisions
@@ -67,3 +67,8 @@ Chosen concept: [skitter-r04-a.png](../concept/skitter-r04-a.png) (listed in the
 - 2026-10-01: M1 implementation (`vanguard.sim.Skitter`, stat block in `SkitterSpec`): HP 1, 16×16 hit box, 190 px/s along hand-made snake paths of 6 with 0.25 s spacing (the whole snake enters within 1.5 s) in the temporary M1 test sortie. A Skitter that rams the ship is destroyed by the impact, so its contact damage lands once. Placeholder: the 3 wing-beat frames of `skitter-r04-a.png`, scaled to the stat block's 24×24 by `:pipeline:importPlaceholders` (the concept draws them at 30×30); death plays the 24 px tiny explosion of `explosions-r09-a.png` and `explosion-tiny-r03-a/b`, hits `hit-organic-r08-a/b`.
 - 2026-10-01: User decisions from M1: the Skitter is 24×24 as in the stat block (the 30×30 concept is scaled for the placeholder; production art renders at 24); a ramming Skitter is destroyed by the impact; snakes of 6–12 stay allowed under the head-based readability rule.
 - 2026-10-02: The stat block moved into [data.yaml](data.yaml) and is rendered from it (M2 data files); easy/hard HP come from the difficulty levers, the contact damage from the balancing basis, the score from the bounty. `vanguard.sim.SkitterSpec` is now built from it (`vanguard.content.SimSpecs`); the difficulty multipliers are not applied yet, so the checklist item stays open.
+- 2026-10-02: M2: the Level 01 snakes, line abreast sweeps (front and rear) and streams fly
+  as planned by `vanguard.sim.Formations`; a wave's `speed` (the slow 120 px/s waves) replaces the
+  stat block speed, streams fly at 160 px/s. HP comes through the HP lever (1 on every difficulty).
+  The entry paths are still authored in code (`Formations`), not as data, and swarms are not
+  built, so that item stays open; a rammed Skitter pays its bounty like a kill.

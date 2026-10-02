@@ -37,7 +37,7 @@ public final class ContentLoader {
     private static final Pattern WEAPON = Pattern.compile("player/weapons/([a-z0-9-]+)/data\\.yaml");
     private static final Pattern ENEMY = Pattern.compile("enemies/[a-z-]+/([a-z0-9-]+)/data\\.yaml");
     private static final Pattern LEVEL =
-            Pattern.compile("campaign/act-\\d+-[a-z0-9-]+/(level-\\d{2}-[a-z0-9-]+)/data\\.yaml");
+            Pattern.compile("campaign/(act-\\d+-[a-z0-9-]+/level-\\d{2}-[a-z0-9-]+)/data\\.yaml");
     private static final Map<String, Class<?>> PARTS = Map.ofEntries(
             Map.entry("player/data.yaml", PlayerData.class),
             Map.entry("player/ship/data.yaml", ShipData.class),

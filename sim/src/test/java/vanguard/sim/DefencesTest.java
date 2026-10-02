@@ -121,6 +121,20 @@ class DefencesTest {
         assertEquals(0, defences.mercyTicks());
     }
 
+    @Test
+    void aShieldCellAndAnArmourPatchRefillUpToTheMaximum() {
+        defences.takeShot(30, events, 0, 0);
+
+        defences.restoreShield(5);
+        defences.repair(10);
+
+        assertEquals(5, defences.shield());
+        assertEquals(60, defences.armour(), "10 lost, 10 repaired");
+        defences.repair(10);
+        assertEquals(60, defences.armour());
+        assertEquals(10, defences.armourLost(), "repairs do not undo the damage taken");
+    }
+
     private void step(int steps) {
         for (int i = 0; i < steps; i++) {
             defences.step();

@@ -54,13 +54,19 @@ def round_half_up(x):
     return math.floor(x + 0.5)
 
 
+def difficulty_hp(hp, factor):
+    """An enemy's HP on another difficulty: rounded half to even (Python's round), at least 1."""
+    return max(1, round(hp * factor))
+
+
 class _Template(string.Formatter):
-    """str.format with dotted field names ({movement.swoop.radius}) and [lo, hi] ranges as lo–hi."""
+    """str.format with dotted field names ({movement.swoop.radius}; a number indexes a list:
+    {at.0.0}) and [lo, hi] ranges as lo–hi."""
 
     def get_field(self, field_name, args, kwargs):
         value = kwargs
         for part in field_name.split("."):
-            value = value[part]
+            value = value[int(part)] if isinstance(value, list) else value[part]
         return value, field_name
 
     def format_field(self, value, format_spec):

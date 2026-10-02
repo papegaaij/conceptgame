@@ -8,13 +8,16 @@ import java.util.regex.Pattern;
  *
  * @param availability the first level of each availability key ({@code start}, {@code act 1}, …)
  * @param pickupSeconds how long an uncollected pickup stays before it leaves the screen
+ * @param pickupDriftSpeed how fast uncollected pickups drift down the screen, px/s
  */
-public record PlayerData(Map<String, Integer> availability, double pickupSeconds, Pickups pickups) {
+public record PlayerData(
+        Map<String, Integer> availability, double pickupSeconds, double pickupDriftSpeed, Pickups pickups) {
     private static final Pattern LEVEL = Pattern.compile("L(\\d{2})");
 
     public PlayerData {
         availability = Map.copyOf(availability);
         Check.positive("pickup_seconds", pickupSeconds);
+        Check.positive("pickup_drift_speed", pickupDriftSpeed);
     }
 
     /** Whether {@code available} is an availability key or an exact level ({@code L22}). */

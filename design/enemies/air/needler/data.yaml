@@ -29,6 +29,8 @@ formations:
   - {name: circle, size: [8]}
 weak_points:
   - {name: glowing violet eye cluster, multiplier: 1.5}
+drops:  # every `every`-th kill of this enemy in a level drops the pickup (a deterministic counter)
+  - {pickup: shield cell, every: 4}
 traits: [forward, spread]
 bounty: 12
 first_level: 1
@@ -37,6 +39,6 @@ difficulty:
 notes:
   speed: entering, 0 while hovering
   movement: '`swoop` in, `hover` {movement.hover.seconds} s at y = {movement.hover.y} px, then exit down or to the side; in `circle` formations `orbit` a point (radius {movement.orbit.radius} px, {movement.orbit.turn_rate}°/s)'
-  death: '`small` burst: ivory shards, violet flash'
+  death: '`small` burst: ivory shards, violet flash; every {drops.0.every}th Needler kill in a level drops a {drops.0.pickup}'
   used_in: recurring gunner through Acts 1–2 and spawned by the Brood Carrier
   difficulty: 'hard: selected Needlers in `circle` formations lead the target'

@@ -1,7 +1,7 @@
 ---
 title: Level 01 – Break at Dawn
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../../../enemies/air/skitter, ../../../enemies/air/needler]
 updated: 2026-10-02
@@ -34,15 +34,17 @@ and credits, and ends in a large circling Needler formation. There is no boss. A
 
 ## Threat profile
 
+<!-- data: threat-profile -->
 | Field | Value |
 |---|---|
 | Dominant layers | `air` (all enemies), `deep` (Earth, the yards' far structures) |
-| Attack directions | front 85% · sides 10% · rear 5% (one warned wave) |
+| Attack directions | front 71% · sides 23% · rear 6% (one warned wave) |
 | Density | 1 |
 | Recommended traits | `forward` |
 | Hazards | none |
 | Boss / mid-boss | none (final wave: Needler circle) |
 | Sensor-suite detail | The sensor suite (800) is in the shop from the start but out of reach of the 300 starting credits, so the panel shows the no-sensor view: setting, dominant layer `air`, main direction front. Varga: "Our scans are patchy, Lancer. Small, fast, lots of them." |
+<!-- /data -->
 
 ## Objective
 
@@ -91,15 +93,15 @@ Enemy definitions: [Skitter](../../../enemies/air/skitter/README.md) and
 | 40 | 2 | V-wing | [Needler](../../../enemies/air/needler/README.md) | 5 | front | Aimed shot every 2.5 s each; radio cue "they shoot back" |
 | 50 | 2 | line abreast | [Skitter](../../../enemies/air/skitter/README.md) | 8 | front | Sweeps down the screen |
 | 64 | 3 | line abreast | [Needler](../../../enemies/air/needler/README.md) | 3 | front | Hover, fire, leave |
-| 75 | 3 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | sides (left) | First side entry, slow; radio warning |
+| 75 | 3 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | left side | First side entry, slow (120 px/s); radio warning |
 | 86 | 3 | V-wing | [Needler](../../../enemies/air/needler/README.md) | 5 | front | |
 | 96 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 10 | front (alternating edges) | Teaches sweeping fire |
 | 112 | 4 | snake + V-wing | [Skitter](../../../enemies/air/skitter/README.md) + [Needler](../../../enemies/air/needler/README.md) | 6 + 3 | front | First mixed wave |
 | 122 | 4 | pincer | [Needler](../../../enemies/air/needler/README.md) | 4 | sides | 2 from each side, hold for 4 s at the screen edge |
-| 134 | 4 | line abreast | [Skitter](../../../enemies/air/skitter/README.md) | 6 | rear | Warned 3 s ahead ("Contacts on your six!"); slow |
+| 134 | 4 | line abreast | [Skitter](../../../enemies/air/skitter/README.md) | 6 | rear | Warned 3 s ahead ("Contacts on your six, Lancer!"); slow (120 px/s) |
 | 146 | 4 | V-wing | [Needler](../../../enemies/air/needler/README.md) | 7 | front | Large V |
 | 162 | 5 | circle | [Needler](../../../enemies/air/needler/README.md) | 8 | front | Orbit a point above the centre for 6 s, then break toward the player one by one |
-| 166 | 5 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 12 | sides (both) | Enters while the circle is orbiting |
+| 166 | 5 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 12 | sides | Enters while the circle is orbiting |
 
 Totals: Skitter 60 · Needler 35.
 <!-- /data -->
@@ -126,9 +128,9 @@ Pickup types are defined in [player](../../../player/README.md#in-level-pickups)
 - **Beacon cache** (t≈90): hitting the blinking crane beacon 3 times releases a hidden crate
   worth 80 credits. Rook, on the radio from the far side of the yard: "*Nice shooting. Finders
   keepers.*"
-- **Armour patch** at t≈140: dropped by the last Needler of the t=122 pincer.
-- Shield cells drop from Needlers at the normal rate. No overdrive in L01; weapon upgrades are
-  bought in the hangar.
+- **Armour patch** (around t≈140): dropped by the last Needler of the t=122 pincer.
+- Shield cells: every 4th Needler kill drops one (the [Needler](../../../enemies/air/needler/README.md)'s
+  drop rule). No overdrive in L01; weapon upgrades are bought in the hangar.
 
 ## Radio chatter
 
@@ -179,21 +181,22 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
 
 ## Difficulty notes
 
-- **Easy**: Needlers fire every 3.5 s; no rear wave (it enters from the front instead);
-  two extra armour patches.
+- **Easy**: Needlers fire every ≈3.6 s (the global fire-rate lever, ×0.7); no rear wave (it
+  enters from the front instead); two extra armour patches, dropped by the last Needler of the
+  t=40 and t=86 V-wings.
 - **Hard**: Needlers fire 2-shot bursts; the rear wave has 10 Skitters; the Needler circle breaks
   toward the player in pairs, and selected circle Needlers lead the target (stat-block hook).
 
 ## Implementation
 
 - [ ] Scroll timeline, sections, atmosphere intensity and parallax content per layer as in *Layout*.
-- [ ] Wave script matches the *Waves* table (time, formation, count, entry edge).
-- [ ] Destructible cargo containers and the beacon secret.
-- [ ] Radio chatter cues fire at their triggers with portraits in the side HUD.
-- [ ] Secondary objective tracked and rewarded.
-- [ ] Credit total at medium with perfect collection is 1,000 (± 5%).
-- [ ] Easy/hard variations as in *Difficulty notes*.
-- [ ] Control prompts shown in section 1 (skippable).
+- [x] Wave script matches the *Waves* table (time, formation, count, entry edge).
+- [x] Destructible cargo containers and the beacon secret.
+- [x] Radio chatter cues fire at their triggers with portraits in the side HUD.
+- [x] Secondary objective tracked and rewarded.
+- [x] Credit total at medium with perfect collection is 1,000 (± 5%).
+- [x] Easy/hard variations as in *Difficulty notes*.
+- [x] Control prompts shown in section 1 (skippable).
 - [ ] Aegis Two (Rook's flight) appears only as distant `far`-layer scenery in the launch; no
       wingman or escort sprite on the play plane.
 
@@ -217,3 +220,23 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
   chosen).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
 - 2026-10-02: The level script moved into [data.yaml](data.yaml) (M2 data files): the *Layout*, *Waves* (with the totals), *Ground targets*, *Radio chatter* and *Credit budget* tables are rendered from it by `tools/sync_tables.py`; the credit budget is now computed from the waves, the stat-block bounties and the economy's budget(1). Objectives, music cues, the beacon line, the placed armour patch and the easy/hard changes are in the data too; their prose here stays hand-written.
+- 2026-10-02: User decisions (M2): the threat profile's attack directions are derived from the
+  waves (each entry's share of the enemies at medium, rendered into the table, so they cannot
+  drift: front 71 % · sides 23 % · rear 6 % instead of the hand-written 85/10/5); the rear wave's
+  note quotes the radio line exactly; the armour patch is dropped by the last Needler of the t=122
+  pincer ("t≈140" is approximate wording, so the data file has no time for it); easy Needlers fire
+  at the global fire-rate lever (×0.7, ≈3.6 s) instead of a 3.5 s override; `sides` alone means
+  both side edges, a single side reads "left side"; shield cells drop on every 4th Needler kill
+  (the Needler's drop rule). Recorded in [data.yaml](data.yaml) for tuning after playing: the 10
+  cargo containers in pairs on alternating sides of section 3 (t = 62, 71, 80, 89, 98), the beacon
+  at x = 300, the two extra easy armour patches on the last Needler of the t=40 and t=86 V-wings,
+  the slow Skitter waves (t=75, t=134) at 120 px/s and a 0.5 s gap between stream units.
+- 2026-10-02: M2 implementation (`vanguard.sim.Sortie` with `WaveSchedule` and `Formations`,
+  built from the data by `vanguard.content.SimSpecs`; `vanguard.game.screen.LevelScreen` and
+  `DebriefScreen`). Level 01 plays from launch to debrief at the difficulty of the `--difficulty`
+  launch option (medium by default). A replay test flies the whole level at medium. Still open:
+  the per-section atmosphere and layer content (the backdrop is the chosen Earth orbit scene
+  throughout) and Aegis Two in the launch. Placeholders: the cargo containers and the beacon are
+  drawn in code (no concept art yet); the formation layouts (where a V hovers, the circle's centre
+  at 180 px below the top, the 0.5 s between circle break groups, the snake and stream paths) are
+  first values in `Formations`, to be tuned after playing.

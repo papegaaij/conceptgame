@@ -10,6 +10,7 @@ availability:  # "available: <key>" means: in the shop from the hangar visit bef
   act 6: 36
   act 7: 43
 pickup_seconds: 6  # uncollected pickups drift down and leave the screen after this time
+pickup_drift_speed: 40  # px/s, the drift of uncollected pickups (chosen pickups concept, round 09)
 pickups:
   salvage:
     credits: {small: 10, medium: 50, large: 200}  # before the difficulty multiplier

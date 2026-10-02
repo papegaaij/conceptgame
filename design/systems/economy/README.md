@@ -1,7 +1,7 @@
 ---
 title: Economy
 design: approved
-implementation: not-started
+implementation: in-progress
 art: n/a
 depends-on: [../../player, ../difficulty]
 updated: 2026-10-02
@@ -112,6 +112,9 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 
 - Do credits earned in a failed attempt really vanish? Yes: the user decided this. The
   consequence is that grinding by dying is impossible, which is intended.
+- (M2) Rounding of the difficulty's income factor: implemented per payout, half to even like the
+  HP lever (easy: a Skitter pays 6, a small salvage 12, the secondary objective 62). Confirm, or
+  should a level's credits be summed first and rounded once?
 
 ## Decisions
 
@@ -126,3 +129,7 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 - 2026-10-01: Conventions stated: act-factor bounties round per kill; spawned adds (hive-node Skitters, boss-launched units) are budgeted at their expected count.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-02: The economy numbers (starting credits, budget curve, act factor, sell-back) moved into [data.yaml](data.yaml) (M2 data files); the tables here stay hand-written for now, the Level 01 credit budget is computed from the curve.
+- 2026-10-02: M2: credits earned in a level are tallied per source (kills, ground targets,
+  salvage, secrets, objectives) at the Act 1 value × the difficulty's income × the act factor,
+  and lost with a failed attempt. The level's starting balance is the 300 starting credits until
+  the campaign state exists (M3).
