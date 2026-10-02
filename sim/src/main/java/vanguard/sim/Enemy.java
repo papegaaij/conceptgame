@@ -8,6 +8,9 @@ import java.util.Optional;
  * leaves the play field. Pooled: {@link #spawn} reuses the instance.
  */
 public final class Enemy implements Hashed {
+    /** The most its facing turns in one step: one step of a 16-angle set (art direction, Rotation). */
+    private static final double MAX_TURN = StrictMath.PI / 8;
+
     private enum Phase {
         ENTER,
         HOLD,
@@ -31,6 +34,12 @@ public final class Enemy implements Hashed {
     private double y;
     private double prevX;
     private double prevY;
+    /**
+     * Where it faces, for the presentation only: radians clockwise from straight down the screen.
+     * Nothing in the simulation reads it, so it is not part of the state hash.
+     */
+    private double facing;
+
     private double hp;
     private int volleyTicks;
     private int burstLeft;
@@ -56,6 +65,7 @@ public final class Enemy implements Hashed {
         place();
         prevX = x;
         prevY = y;
+        facing = heading(path.dx(segment), path.dy(segment));
     }
 
     /**
@@ -91,10 +101,32 @@ public final class Enemy implements Hashed {
             case LEAVE -> {
                 x += vx * SimStep.SECONDS;
                 y += vy * SimStep.SECONDS;
+                turn();
                 return PlayField.overlaps(x, y, spec.hitbox());
             }
         }
+        turn();
         return true;
+    }
+
+    /**
+     * Turns its facing toward the direction it flew this step, by at most {@link #MAX_TURN}, so a
+     * sharp turn (breaking out of an orbit) plays through the in-between headings; standing still
+     * keeps the facing.
+     */
+    private void turn() {
+        double dx = x - prevX;
+        double dy = y - prevY;
+        if (dx == 0 && dy == 0) {
+            return;
+        }
+        double delta = Math.IEEEremainder(heading(dx, dy) - facing, 2 * StrictMath.PI);
+        facing = Math.IEEEremainder(facing + Math.clamp(delta, -MAX_TURN, MAX_TURN), 2 * StrictMath.PI);
+    }
+
+    /** The direction of a movement (y up) in radians clockwise from straight down the screen. */
+    private static double heading(double dx, double dy) {
+        return StrictMath.atan2(-dx, -dy);
     }
 
     private void place() {
@@ -201,6 +233,14 @@ public final class Enemy implements Hashed {
     /** Its enemy's index in {@link Sortie#enemyKinds()}. */
     public int kind() {
         return kind;
+    }
+
+    /**
+     * Where it faces, in radians clockwise from straight down the screen: toward its direction of
+     * flight, turning at most one 16-angle step per simulation step (art direction, Rotation).
+     */
+    public double facing() {
+        return facing;
     }
 
     /** Position between the previous and the current step; {@code alpha} in [0, 1]. */

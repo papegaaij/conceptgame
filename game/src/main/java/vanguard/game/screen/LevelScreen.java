@@ -18,6 +18,7 @@ import vanguard.game.audio.Sfx;
 import vanguard.game.input.Action;
 import vanguard.game.input.FlightCommands;
 import vanguard.game.level.ControlPrompts;
+import vanguard.game.level.Outro;
 import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
 import vanguard.game.render.CreditNumbers;
@@ -38,8 +39,8 @@ import vanguard.sim.Sortie;
 /**
  * Flying a level of the campaign: runs the simulation at its fixed step from the campaign's
  * level-start state, turns its events into sound, effects, radio chatter and HUD feedback, plays
- * the level's music cues and draws it interpolated. When the level is won it shows the last radio
- * line, banks the result in the campaign and shows the debrief. When the ship is destroyed the
+ * the level's music cues and draws it interpolated. When the level is won it shows the radio's
+ * last messages ({@link Outro}), banks the result in the campaign and shows the debrief. When the ship is destroyed the
  * death plays out, then the mission failed screen opens over the level, or the game over screen
  * follows when no retry is left (design/systems/retry); the failure's used retry is autosaved at
  * once, and so is a game over's return to the hangar before the level. The sortie flies what {@link Flight} maps of the fitted loadout; the HUD lists the fitted
@@ -91,7 +92,7 @@ public final class LevelScreen implements GameScreen {
     private final String name;
     private final Flight flight;
     private float slowMotion;
-    private float outro = -1;
+    private final Outro outro = new Outro();
     /** What the ship's destruction leads to, and how long until its screen opens. */
     private Optional<Campaign.Failure> failure = Optional.empty();
 
@@ -119,7 +120,7 @@ public final class LevelScreen implements GameScreen {
                 SimSpecs.level(services.content, levelKey, difficulty),
                 services.invulnerable ? rules.withInvulnerableShip() : rules,
                 campaign.armour());
-        looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites);
+        looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites, services.content);
         sounds = new FlightSounds(services.sfx, looks);
         renderer = new LevelRenderer(services.sprites, looks, services.flash, services.fonts.body, level, levelKey);
         warnings = new EdgeWarnings(services.sprites.pixel, services.fonts.body);
@@ -142,6 +143,7 @@ public final class LevelScreen implements GameScreen {
                 services.sfx,
                 Sfx.AMBIENCE_ORBIT,
                 level.music().startSection(),
+                level.music().startDb().orElse(0.0),
                 level.music().fullSection());
     }
 
@@ -172,7 +174,7 @@ public final class LevelScreen implements GameScreen {
     /** Starts the level over from its start state with {@code armour} (a retry, or the pause menu's restart). */
     void retry(double armour) {
         sortie.retry(armour);
-        outro = -1;
+        outro.stop();
         slowMotion = 0;
         failure = Optional.empty();
     }
@@ -183,11 +185,8 @@ public final class LevelScreen implements GameScreen {
         if (services.input.pressed(Action.PAUSE) || services.input.interrupted()) {
             return Transition.open(new PauseScreen(services, this));
         }
-        if (outro >= 0) {
-            outro -= seconds;
-            if (outro <= 0) {
-                return Transition.replace(debrief());
-            }
+        if (outro.update(seconds, radio)) {
+            return Transition.replace(debrief());
         }
         if (failure.isPresent()) {
             failedIn -= seconds;
@@ -272,7 +271,7 @@ public final class LevelScreen implements GameScreen {
                 }
                 case LEVEL_COMPLETE -> {
                     music.fadeOut();
-                    outro = (float) LevelData.OUTRO_SECONDS;
+                    outro.start();
                 }
                 case SHOT_FIRED,
                         ENEMY_FIRED,

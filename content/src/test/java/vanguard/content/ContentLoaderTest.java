@@ -69,6 +69,25 @@ class ContentLoaderTest {
     }
 
     @Test
+    void theOrientationGivesTheHeadingsOfTheAngleSet() {
+        Content content = ContentLoader.load(DesignTree.dataFiles());
+
+        assertEquals(Orientation.ANGLES_16, content.enemy("skitter").orientation());
+        assertEquals(16, content.enemy("skitter").orientation().headings());
+        assertEquals(Orientation.FIXED, content.enemy("needler").orientation());
+        assertEquals(1, content.enemy("needler").orientation().headings());
+    }
+
+    @Test
+    void anUnknownOrientationIsRejected() {
+        assertProblem(
+                SKITTER,
+                text -> text.replace("orientation: 16 angles", "orientation: 12 angles"),
+                "design/enemies/air/skitter/data.yaml:",
+                "orientation must be fixed, 16 angles, 32 angles or radial, was '12 angles'");
+    }
+
+    @Test
     void anUnknownTierIsRejected() {
         assertProblem(
                 SKITTER,

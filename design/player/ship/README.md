@@ -2,7 +2,7 @@
 title: AF-12 Stormhawk
 design: approved
 implementation: in-progress
-art: chosen
+art: final
 depends-on: [../../art-direction]
 updated: 2026-10-02
 ---
@@ -37,6 +37,8 @@ The play field scrolls on its own. The ship never moves the camera.
   hits it, as in Raptor and Tyrian. Six boxes in [data.yaml](data.yaml) cover the nose, the body,
   the swept wings and the wingtips; they follow the hard-banked frame (the narrowest), so a hit is
   never on empty space and a graze in level flight at the very wingtip is forgiven.
+  The final banking frames (round 12) keep these boxes (user decision): in the hard-bank frames
+  they reach about 1 px past the lowered wingtip, which is negligible.
 - Pickups use a separate collection radius of 36 px, which the magnet enlarges.
 - **Mercy invulnerability:** after taking armour damage the ship ignores further damage for
   0.25 s (the hull flashes white), so one burst of overlapping bullets costs one hit, not five.
@@ -91,6 +93,13 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — banking and wing
 |---|---|---|
 | [concept/player-ship-r08-a.png](concept/player-ship-r08-a.png) | Stormhawk: 5 banking frames and the five wing-pod types fitted at the mount points, pods across the banking frames, in-game view with Rook | chosen |
 
+Production art for concept round 12 (the Level 01 batch; part P2 opens the round), review files built from the final frames in `assets/` by `tools/art/stormhawk.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/player-ship-final-r12-a.png](concept/player-ship-final-r12-a.png) | Final sprites: the 5 banking frames (±15° and ±30° of roll through a mild perspective camera, one 32-colour palette), each wing-pod type (lighter, shaded pod metal) on every banking frame drawn from its pod sprites at the offsets of `assets/pivots/pods.json`, the engine flame (cruise, at speed, moving back; 3 frames each, additive) | chosen |
+| [concept/player-ship-final-r12-a.gif](concept/player-ship-final-r12-a.gif) | Banking sweep with the engine flames, then the five pod types in turn | chosen |
+
 ## Implementation
 
 - [x] Movement with acceleration, precision mode and play field bounds
@@ -119,3 +128,5 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — banking and wing
 - 2026-10-01: Edge margin (user decision): the whole hull stays 12 px inside the play field, so the ship is always fully visible with breathing room; the centre stops 36 px from each edge (`ShipSpec.edgeLimit()`).
 - 2026-10-02: The flight numbers moved into [data.yaml](data.yaml) (M2 data files): the *Movement* table is rendered from it, with the base speed taken from the starter engine. `vanguard.sim.ShipSpec` is now built from it; the hitbox, pickup radius, mercy time and mount points are fields there too, while their prose here stays hand-written.
 - 2026-10-02: Hitbox changed from 9×9 around the cockpit to the hull's shape (user decision after playing M2: thorns visibly crossing the wings passed through). Six boxes from the hard-banked silhouette (`hull` in data.yaml, `vanguard.sim.Hull`); the optional hitbox-dot setting is dropped. Enemy bullet density in later levels must be designed for the larger target.
+- 2026-10-02: Production art (Level 01 batch, `tools/art/stormhawk.py`): the 5 banking frames rendered at 8× with one shared 32-colour palette; the wing pods as separate sprites per type, side and banking frame (`pod-<type>-<left|right>_<bank>`), cut from a render of the hull with the pods so their shadow on the wing is included, with their offsets in `assets/pivots/pods.json`; the engine flame (12×18, 3 lengths × 3 frames); the mount points rolled with every banking frame in `assets/pivots/ship.json`. No shadow asset: the art direction draws shadows at runtime from the hull's alpha (render pipeline step 6), so the *Shadow* row is met by the renderer. The game does not draw pods and flames yet (*Mount points* and *Engine flame* items stay open). Review files proposed for round 12.
+- 2026-10-02: Concept round 12 closed (user decision): the production sprites (5 banking frames, the wing-pod sprites, the engine flame; `tools/art/stormhawk.py`) approved as **final**, `art: final`. The hull's hit boxes stay unchanged: in the hard-bank frames they cover about 1 px of empty space at the lowered wingtip, which is negligible.

@@ -425,7 +425,10 @@ def radio(d):
         else:
             trigger = EVENTS[cue["event"]]
         speaker = cue["speaker"] + (" (distorted)" if cue.get("distorted") else "")
-        rows.append([trigger, speaker, f'"{cue["line"]}"'])
+        line = f'"{cue["line"]}"' + "".join(
+            f'; {level}: "{cue[level]["line"]}"' for level in ("easy", "hard") if level in cue
+        )
+        rows.append([trigger, speaker, line])
     return table(["Trigger", "Speaker", "Line"], rows)
 
 

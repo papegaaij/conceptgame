@@ -359,6 +359,10 @@ last radio line; warning tones −24 dB / −2 dBFS, the player-damage level).
 - [x] Stereo panning by play-field X
 - [ ] Underwater low-pass on the sfx bus
 - [ ] All P1 sounds
+- [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75)
+  in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
+  [`tools/art/sfx_originals.py`](../../../tools/art/README.md); `importPlaceholders` keeps them
+  (only the synthesized sounds are still copied). `art: final` waits for the user's round-12 review.
 
 ## Open questions
 
@@ -396,3 +400,15 @@ last radio line; warning tones −24 dB / −2 dBFS, the player-damage level).
   so overlapping warnings never stack. Both are synthesized (no CREDITS.md rows) and imported by
   `:pipeline:importPlaceholders`. The launch rail plays at full level (the file is levelled like the
   interface sounds); no level is given for it beyond that.
+- 2026-10-02: Production audio (Level 01 batch, part P2): the 75 chosen recorded sounds are rebuilt
+  from the Freesound originals (cached by `tools/concept/audio/freesound_fetch.py`) with their
+  unchanged `import_sfx.py` settings by `tools/art/sfx_originals.py` and written to `assets/sfx/`
+  with a `SOURCE` comment; the concept files stay as the record of the choice. One step is added
+  before the treatment: 13 originals decode above full scale (lossy originals and float WAVs, up
+  to +18.7 dBFS for "Machine Gun 001") and are clipped at full scale first, as 16-bit playback
+  clips them; levelled on the unclipped peak, the Autocannon Pod shot came out 11 dB quieter
+  than the chosen sound and "explosion_big_02" 1.7 dB. Checked against the chosen files: same
+  lengths, and peak and 200 Hz–5 kHz band RMS within 1 dB, except the peak of
+  `enemy-shot-small-r08-b`, 1.7 dB lower at the same band RMS (it is levelled on its band, so only
+  the crest of its attack differs from the preview's; the audible level is the same).
+- 2026-10-02: Concept round 12 closed (user decision): the 75 recorded sounds rebuilt from the Freesound originals approved as **final** (the 1.7 dB lower peak of `enemy-shot-small-r08-b` accepted); this doc's `art` stays `chosen`, since the synthesized sounds were not part of the round.

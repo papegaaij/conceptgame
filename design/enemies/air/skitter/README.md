@@ -2,7 +2,7 @@
 title: Skitter
 design: approved
 implementation: in-progress
-art: chosen
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-02
 ---
@@ -27,7 +27,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Size tier | `tiny` |
 | Size | 24×24 px, hitbox 16×16 |
 | Parts | single |
-| Orientation | `fixed` (flies nose-down; banks into curves) |
+| Orientation | `16 angles` (turns to face its direction of flight; 6 wing-beat frames per heading) |
 | HP | 1 (easy 1 / hard 1, from the global multipliers) |
 | Armour / shield | none |
 | Speed | 190 px/s (stream 160, swoop up to 240) |
@@ -52,6 +52,15 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 
 Chosen concept: [skitter-r04-a.png](../concept/skitter-r04-a.png) (listed in the [air](../README.md#concept-art) Concept art table).
 
+## Concept art
+
+Production art for concept round 12 (the Level 01 batch; part P2 opens the round), review files built from the final frames in `assets/` by `tools/art/vrell_air.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/skitter-final-r12-a.png](concept/skitter-final-r12-a.png) | Final sprites: 16 headings × the 6-frame wing beat (96 frames, 24×24, 24 colours): the beat at two headings at 6×, every heading with the wings raised and spread at 3× and at 1× | chosen |
+| [concept/skitter-final-r12-a.gif](concept/skitter-final-r12-a.gif) | A snake of five on a figure-eight, each showing the heading nearest its direction of flight, beating at 10 fps | chosen |
+
 ## Implementation
 
 - [ ] Snake, stream and swarm entry paths authored as data
@@ -59,6 +68,7 @@ Chosen concept: [skitter-r04-a.png](../concept/skitter-r04-a.png) (listed in the
 - [x] Pays 5 credits; counts toward chains
 - [x] Stat block values loaded from data; global difficulty multipliers applied
 - [ ] Death effect, bounty and score per this spec
+- [x] Turns to face its direction of flight: the nearest of 16 headings, turning at most one heading per game frame
 
 ## Decisions
 
@@ -74,3 +84,13 @@ Chosen concept: [skitter-r04-a.png](../concept/skitter-r04-a.png) (listed in the
   built, so that item stays open; a rammed Skitter pays its bounty like a kill.
 - 2026-10-02: Line abreast widened to 5–10 Skitters (user decision), so Level 01's lines of 8
   (10 on hard) fit the stat block.
+- 2026-10-02: Production art (Level 01 batch, `tools/art/vrell_air.py`): the 6-frame wing beat (24×24, 24 colours), rendered at 8× from the chosen round-04 model with one palette for the cycle (the placeholder had 3 frames, which snapped from the last back to the first). `orientation: fixed` in the stat block, so no heading set; the production plan's "angle sets" for Level 01's enemies are therefore not rendered (open point for the user). Review files proposed for round 12.
+- 2026-10-02: Orientation `16 angles` (user decision, Level 01 batch part P3): the Skitter turns to
+  face where it flies instead of flying nose-down. The final sprite is an angle set of 16 headings ×
+  the 6 wing-beat frames (96 frames at 24×24, `tools/art/vrell_air.py`, each heading its own render
+  with the key light fixed); the wing beat now lifts and sweeps the wings so it reads as a shape
+  change. In the game `vanguard.sim.Enemy` keeps a presentation-only facing that turns toward the
+  direction of each step's movement by at most 22.5° per step (art direction, Rotation) and is not
+  part of the state hash, so replays are unchanged; `EnemyLooks` draws the nearest heading. The
+  `orientation` field is typed (`vanguard.content.Orientation`).
+- 2026-10-02: Concept round 12 closed (user decision): the 16-heading × 6-frame production sprites (`tools/art/skitter.py`) approved as **final**, `art: final`.

@@ -203,7 +203,7 @@ public final class SimSpecs {
                 waves,
                 groundObjects(level),
                 level.secrets().size(),
-                radio(level),
+                radio(level, difficulty),
                 new LevelScript.Secondary(secondary.killRatio(), secondary.credits()));
     }
 
@@ -381,9 +381,15 @@ public final class SimSpecs {
         return objects;
     }
 
-    private static List<LevelScript.RadioCue> radio(LevelData level) {
+    private static List<LevelScript.RadioCue> radio(LevelData level, Difficulty difficulty) {
         List<LevelScript.RadioCue> cues = new ArrayList<>();
         for (LevelData.RadioCue cue : level.radio()) {
+            Optional<LevelData.RadioChange> change =
+                    switch (difficulty) {
+                        case EASY -> cue.easy();
+                        case MEDIUM -> Optional.empty();
+                        case HARD -> cue.hard();
+                    };
             LevelScript.CueTrigger trigger = cue.event()
                     .map(event -> switch (event) {
                         case FIRST_KILL -> LevelScript.CueTrigger.FIRST_KILL;
@@ -396,7 +402,7 @@ public final class SimSpecs {
                     cue.t().orElse(0.0),
                     cue.enemy().orElse(""),
                     cue.speaker(),
-                    cue.line(),
+                    change.map(LevelData.RadioChange::line).orElse(cue.line()),
                     cue.distorted().orElse(false)));
         }
         for (LevelData.Secret secret : level.secrets()) {

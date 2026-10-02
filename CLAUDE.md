@@ -123,6 +123,11 @@ design tree; this list is only a reminder.
   per-level numbers). It exits 1 today because of the accepted L01–L03 DPS gap.
 - `tools/concept/` – reproducible generators for concept mockups (Python 3 + PIL + numpy,
   ffmpeg for audio/GIF encoding). Each script documents its outputs at the top.
+- `tools/art/` – production generators for final assets (see
+  [design/art-direction/production](design/art-direction/production/README.md)): they import the
+  frozen `tools/concept/render/` package and write the frames the game loads into `assets/`, each
+  PNG tagged with a `Source` chunk; `--review` rebuilds a part's review sheet and GIF. A part whose
+  files carry a `Source` chunk counts as final-ready, and `importPlaceholders` skips it.
 
 ### Game build (Gradle, JDK 21)
 

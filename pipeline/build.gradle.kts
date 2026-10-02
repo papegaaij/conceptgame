@@ -21,6 +21,53 @@ val cutPlaceholderSprites = tasks.register<JavaExec>("cutPlaceholderSprites") {
 }
 
 /**
+ * Copies the chosen concept sound effects the game plays into assets/sfx; they keep their concept
+ * names, so CREDITS.md rows match at a glance. Final sounds (tools/art/sfx_originals.py, with a
+ * SOURCE comment) are left alone.
+ */
+val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
+    description = "Copies chosen concept sound effects into assets/sfx, except final ones."
+    group = "assets"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "vanguard.pipeline.PlaceholderSounds"
+    args(
+        design.dir("audio/sfx/concept").asFile.absolutePath,
+        assets.dir("sfx").asFile.absolutePath,
+        "player-shot-r02-a.ogg",
+        "hit-organic-r08-a.ogg",
+        "hit-organic-r08-b.ogg",
+        "explosion-tiny-r03-a.ogg",
+        "explosion-tiny-r03-b.ogg",
+        "player-shield-hit-r08-a.ogg",
+        "player-shield-break-r08-a.ogg",
+        "player-armour-hit-r08-a.ogg",
+        "player-destroyed-r08-a.ogg",
+        "enemy-shot-small-r08-a.ogg",
+        "enemy-shot-small-r08-b.ogg",
+        "explosion-r02-a.ogg",
+        "explosion-small-r03-a.ogg",
+        "hit-metal-r08-a.ogg",
+        "hit-metal-r08-b.ogg",
+        "pickup-salvage-small-r08-a.ogg",
+        "pickup-salvage-large-r08-a.ogg",
+        "pickup-shield-cell-r08-a.ogg",
+        "pickup-armour-patch-r08-a.ogg",
+        "ui-radio-open-r08-a.ogg",
+        "ui-radio-close-r08-a.ogg",
+        "ui-typewriter-r08-a.ogg",
+        "ui-tally-tick-r08-a.ogg",
+        "ui-tally-total-r08-a.ogg",
+        "ui-grade-stamp-r08-a.ogg",
+        "ui-menu-move-r08-a.ogg",
+        "ui-menu-confirm-r08-a.ogg",
+        "ui-menu-back-r08-a.ogg",
+        "ambience-orbit-r08-a.ogg",
+        "launch-rail-r11-b.ogg",
+        "ui-edge-warning-r11-b.ogg",
+    )
+}
+
+/**
  * Copies the chosen concept art and audio that stand in for production assets into assets/ and
  * cuts the sprite frames. Run it after a concept choice changes; its output is committed (Git
  * LFS), the build only reads assets/. The title scene, the logo with transparency and the bitmap
@@ -30,7 +77,7 @@ val cutPlaceholderSprites = tasks.register<JavaExec>("cutPlaceholderSprites") {
 tasks.register<Copy>("importPlaceholders") {
     description = "Copies chosen concept art and audio into assets/ as placeholders."
     group = "assets"
-    dependsOn(cutPlaceholderSprites)
+    dependsOn(cutPlaceholderSprites, copyPlaceholderSounds)
     into(assets)
     from(design.dir("audio/music/concept")) {
         into("music")
@@ -52,43 +99,6 @@ tasks.register<Copy>("importPlaceholders") {
         rename("game-over-r08-a.ogg", "game-over.ogg")
         rename("mission-failed-r08-a.ogg", "mission-failed.ogg")
         rename("mission-complete-r08-a.ogg", "mission-complete.ogg")
-    }
-    // The sound effects keep their concept names, so CREDITS.md rows match at a glance.
-    from(design.dir("audio/sfx/concept")) {
-        into("sfx")
-        include(
-            "player-shot-r02-a.ogg",
-            "hit-organic-r08-a.ogg",
-            "hit-organic-r08-b.ogg",
-            "explosion-tiny-r03-a.ogg",
-            "explosion-tiny-r03-b.ogg",
-            "player-shield-hit-r08-a.ogg",
-            "player-shield-break-r08-a.ogg",
-            "player-armour-hit-r08-a.ogg",
-            "player-destroyed-r08-a.ogg",
-            "enemy-shot-small-r08-a.ogg",
-            "enemy-shot-small-r08-b.ogg",
-            "explosion-r02-a.ogg",
-            "explosion-small-r03-a.ogg",
-            "hit-metal-r08-a.ogg",
-            "hit-metal-r08-b.ogg",
-            "pickup-salvage-small-r08-a.ogg",
-            "pickup-salvage-large-r08-a.ogg",
-            "pickup-shield-cell-r08-a.ogg",
-            "pickup-armour-patch-r08-a.ogg",
-            "ui-radio-open-r08-a.ogg",
-            "ui-radio-close-r08-a.ogg",
-            "ui-typewriter-r08-a.ogg",
-            "ui-tally-tick-r08-a.ogg",
-            "ui-tally-total-r08-a.ogg",
-            "ui-grade-stamp-r08-a.ogg",
-            "ui-menu-move-r08-a.ogg",
-            "ui-menu-confirm-r08-a.ogg",
-            "ui-menu-back-r08-a.ogg",
-            "ambience-orbit-r08-a.ogg",
-            "launch-rail-r11-b.ogg",
-            "ui-edge-warning-r11-b.ogg",
-        )
     }
 }
 

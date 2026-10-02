@@ -7,7 +7,8 @@ import java.util.Optional;
 
 /**
  * A level's music cues (design/audio/music): the setting's ambience from the start, the level
- * theme from its start section, a cut when the ship is destroyed and a one-second fade when the
+ * theme from its start section (at the level's start level through that section, rising to full in
+ * two seconds at the next one), a cut when the ship is destroyed and a one-second fade when the
  * level is won. The theme plays as two sample-aligned stems: the base stem alone until the level's
  * full section, where it crossfades in a second to the full mix (Intensity layers). While a radio
  * message is shown the music ducks by 4 dB (design/audio, Mix groups).
@@ -18,6 +19,8 @@ public final class LevelMusic implements Disposable {
     private static final float FADE_SECONDS = 1;
     /** The intensity layer fades in over a second (design/audio/music, Intensity layers). */
     private static final double CROSSFADE_SECONDS = 1;
+    /** The start level rises to full over this long. */
+    private static final float RISE_SECONDS = 2;
     /** −4 dB. */
     private static final float DUCKED = (float) Math.pow(10, -4 / 20.0);
     /** The duck moves this much of the way per second, so it does not click. */
@@ -30,17 +33,20 @@ public final class LevelMusic implements Disposable {
     private final SfxBank sfx;
     private final Sfx ambience;
     private final int startSection;
+    private final float startLevel;
     private final int fullSection;
     private Optional<MusicStreamer> music = Optional.empty();
     private Optional<StemMix> stems = Optional.empty();
     private boolean cut;
     private float fade = -1;
     private float duck = 1;
+    private float rise;
 
     /**
      * @param base the theme's base stem
      * @param full the theme's full mix, sample-aligned with the base stem
      * @param startSection the section the theme starts in
+     * @param startDb the theme's level through its start section, dB (0 for full)
      * @param fullSection the section from which the full mix plays
      */
     public LevelMusic(
@@ -51,6 +57,7 @@ public final class LevelMusic implements Disposable {
             SfxBank sfx,
             Sfx ambience,
             int startSection,
+            double startDb,
             int fullSection) {
         this.audio = audio;
         this.mixer = mixer;
@@ -59,13 +66,15 @@ public final class LevelMusic implements Disposable {
         this.sfx = sfx;
         this.ambience = ambience;
         this.startSection = startSection;
+        startLevel = (float) Math.pow(10, startDb / 20);
+        rise = startLevel;
         this.fullSection = fullSection;
         sfx.loop(ambience, AMBIENCE_VOLUME);
     }
 
     /**
-     * Starts the theme once the scroll reaches its section, crossfades to the full mix at its
-     * section, and runs the fade and the duck.
+     * Starts the theme once the scroll reaches its section, raises it to full after that section,
+     * crossfades to the full mix at its section, and runs the fade and the duck.
      *
      * @param radio whether a radio message is shown
      */
@@ -77,14 +86,17 @@ public final class LevelMusic implements Disposable {
                     CROSSFADE_SECONDS,
                     section >= fullSection ? 1 : 0);
             stems = Optional.of(mix);
-            music = Optional.of(MusicStreamer.play(audio, mix, MUSIC_VOLUME, mixer));
+            music = Optional.of(MusicStreamer.play(audio, mix, MUSIC_VOLUME * rise, mixer));
         }
         if (section >= fullSection) {
             stems.ifPresent(mix -> mix.fadeTo(1));
         }
+        if (section > startSection) {
+            rise = Math.min(1, rise + seconds * (1 - startLevel) / RISE_SECONDS);
+        }
         float target = radio ? DUCKED : 1;
         duck += (target - duck) * Math.min(1, DUCK_RATE * seconds);
-        float level = fade >= 0 ? fade / FADE_SECONDS : 1;
+        float level = rise * (fade >= 0 ? fade / FADE_SECONDS : 1);
         music.ifPresent(streamer -> streamer.setVolume(MUSIC_VOLUME * duck * level));
         if (fade >= 0) {
             fade = Math.max(0, fade - seconds);
@@ -100,9 +112,10 @@ public final class LevelMusic implements Disposable {
         stopTheme();
     }
 
-    /** The level restarts: the theme waits for its section again. */
+    /** The level restarts: the theme waits for its section again, at its start level. */
     public void restart() {
         cut = false;
+        rise = startLevel;
         stopTheme();
     }
 

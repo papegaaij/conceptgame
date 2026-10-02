@@ -10,10 +10,11 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
- * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from the
- * placeholders: sprites cut from the chosen concept art (see {@code PlaceholderSprites}), the
- * loot targets (tools/concept/ground_targets.py) and the levels' backdrop images
- * (tools/concept/backdrop_l01.py), plus a white pixel for the HUD's bars and frames.
+ * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from {@code assets/}:
+ * the final sprites rendered by tools/art/ (ship, Level 01's enemies, weapon effects, bullets,
+ * pickups, explosions, loot targets), the placeholders still cut from the chosen concept art (see
+ * {@code PlaceholderSprites}) and the levels' backdrop images (tools/concept/backdrop_l01.py),
+ * plus a white pixel for the HUD's bars and frames.
  */
 public final class Sprites implements Disposable {
     private final TextureAtlas sprites;
@@ -26,8 +27,8 @@ public final class Sprites implements Disposable {
     public final Array<AtlasRegion> skitter;
     /** The claw snap. */
     public final Array<AtlasRegion> needler;
-    /** The Vrell standard orb bullet (the Needler's thorn). */
-    public final AtlasRegion orb;
+    /** The Vrell standard orb bullet (the Needler's thorn): its core pulse. */
+    public final Array<AtlasRegion> orb;
     /** The pickups' 8-frame spin loops. */
     public final Array<AtlasRegion> salvageSmall;
 
@@ -68,7 +69,7 @@ public final class Sprites implements Disposable {
         ship = frames(sprites, "ship");
         skitter = frames(sprites, "skitter");
         needler = frames(sprites, "needler");
-        orb = region(sprites, "orb");
+        orb = frames(sprites, "orb");
         salvageSmall = frames(sprites, "pickup-salvage-small");
         crate = frames(sprites, "pickup-crate");
         shieldCell = frames(sprites, "pickup-shield-cell");

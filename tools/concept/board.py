@@ -6,7 +6,8 @@ Scans design/**/concept/ (including concept/rejected/) for files named
 section per subject, variants side by side, images shown pixel-sharp, audio with players. Each
 card shows the variant's status as recorded in the owning README's Concept art table. Extra text-only choices (e.g.
 story variants) come from the round README: every markdown link to a .md file in its
-"## Text choices" section is shown as a link card.
+"## Text choices" section is shown as a link card. A "## Listening" section's markdown table is
+shown as a table whose links to audio files become players (e.g. before / after comparisons).
 
 Usage: python3 tools/concept/board.py 01
 """
@@ -50,6 +51,9 @@ h2 a { color:inherit; text-decoration:none; } h2 a:hover { text-decoration:under
 .status.proposed { color:var(--accent); }
 .card.rejected { opacity:.55; }
 .card a { color:var(--accent); }
+table.listen { border-collapse:collapse; width:100%; font-size:13px; }
+table.listen th, table.listen td { border-bottom:1px solid var(--edge); padding:4px 6px; text-align:left; }
+table.listen audio { width:220px; height:28px; }
 nav { max-width:1400px; margin:8px auto 0; padding:0 16px; font-size:13px; color:var(--dim); }
 nav div { margin:2px 0; } nav b { color:var(--text); } nav a { color:var(--accent); margin-right:10px; }
 footer { max-width:1400px; margin:30px auto; padding:0 16px 30px; color:var(--dim); font-size:13px; }
@@ -89,16 +93,41 @@ def status_of(readme, f):
 
 
 def text_choices(readme):
+    return [(label, target) for line in section_lines(readme, "text choices")
+            for label, target in LINK.findall(line) if target.split("#")[0].endswith(".md")]
+
+
+def section_lines(readme, title):
+    """The lines of a README's ``## <title>`` section."""
     if not readme.exists():
         return []
     out, inside = [], False
     for line in readme.read_text(encoding="utf-8").splitlines():
         if line.startswith("## "):
-            inside = line.strip().lower() == "## text choices"
+            inside = line.strip().lower() == f"## {title}"
         elif inside:
-            out += [(label, target) for label, target in LINK.findall(line)
-                    if target.split("#")[0].endswith(".md")]
+            out.append(line)
     return out
+
+
+def listening_table(readme):
+    """The "## Listening" section's markdown table as HTML, audio links as players."""
+    rows = [line.strip().strip("|").split("|") for line in section_lines(readme, "listening")
+            if line.startswith("|") and not re.fullmatch(r"[|\s:-]+", line)]
+    if not rows:
+        return ""
+
+    def player(m):
+        label, target = m[1], m[2]
+        if Path(target).suffix.lower() in AUDIO:
+            return f'<audio controls preload="none" src="{target}" title="{label}"></audio>'
+        return f'<a href="{target}">{label}</a>'
+
+    def cell(text):
+        return LINK.sub(player, html.escape(text.strip(), quote=False))
+    head = "".join(f"<th>{html.escape(c.strip())}</th>" for c in rows[0])
+    body = "".join("<tr>" + "".join(f"<td>{cell(c)}</td>" for c in r) + "</tr>" for r in rows[1:])
+    return f'<table class="listen"><tr>{head}</tr>{body}</table>'
 
 
 def main():
@@ -144,6 +173,10 @@ def main():
                         f'<a href="{html.escape(target)}">{html.escape(target)}</a></div>'
                         for label, target in extra)
         parts.append(f'<section><h2>Text choices</h2><div class="grid">{cards}</div></section>')
+
+    listening = listening_table(out_dir / "README.md")
+    if listening:
+        parts.append(f'<section id="listening"><h2>Listening</h2><div class="card">{listening}</div></section>')
 
     nav = "".join(f'<div><b>{html.escape(owner)}</b>: '
                   + "".join(f'<a href="#{html.escape(a)}">{html.escape(s.replace("-", " "))}</a>'

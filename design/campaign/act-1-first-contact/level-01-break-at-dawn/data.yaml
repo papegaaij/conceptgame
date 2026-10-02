@@ -149,13 +149,13 @@ secrets:
 pickups:  # placed pickups; shield cells drop from Needlers by their stat block's drop rule
   - {pickup: armour patch, dropped_by: {wave: 122, unit: last}}
 
-radio:  # trigger: t (seconds) or event (first-kill of an enemy, secondary-objective, level-end)
+radio:  # trigger: t (seconds) or event (first-kill of an enemy, secondary-objective, level-end); easy/hard: another line
   - {t: 2, speaker: Rook, line: "Lancer, Rook. Aegis Two's got the north arm, you've got the south. Try not to have all the fun."}
   - {t: 18, speaker: Okafor, line: "Contacts inbound. Weapons free."}
   - {event: first-kill, enemy: skitter, speaker: Rook, line: "They pop like bugs. Big, angry bugs."}
   - {t: 40, speaker: Varga, line: "Those ones are armed. Keep moving.", notes: {trigger: Needlers enter}}
   - {t: 73, speaker: Rook, line: "Movement on your left! They're flanking the yard.", notes: {trigger: before side wave}}
-  - {t: 131, speaker: Okafor, line: "Contacts on your six, Lancer!", notes: {trigger: before rear wave}}
+  - {t: 131, speaker: Okafor, line: "Contacts on your six, Lancer!", easy: {line: "More contacts, dead ahead!"}, notes: {trigger: before rear wave}}
   - {t: 160, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
   - {t: 161, speaker: Varga, line: "That isn't noise. There's structure in it. Commander, I think that was a signal."}
   - {event: level-end, speaker: Okafor, line: "Good work, Aegis. That was the scouts. The rest are coming."}
@@ -167,8 +167,9 @@ objectives:
 
 music:
   track: 5            # Act 1 B "Coalition Rising" (audio/music track list)
-  start_section: 2    # section 1 has ambience only
-  full_section: 4     # base stem only until this section
+  start_section: 1    # the base stem from the launch on
+  start_db: -6        # under the ambience and the launch rail; full from the section 2 transition
+  full_section: 3     # base stem only until this section
   ambience: earth-orbit
   end_jingle: mission-complete
 
@@ -186,9 +187,11 @@ backdrop:
   # starts (seam), so structures change like a 90s tile map, not by dissolving. Set pieces:
   # `t` is when the centre passes the middle of the screen, `x` px from the play field's left
   # edge; `path` waypoints are [t, dx, dy] (dy up the screen); on a layer, later pieces are
-  # drawn over earlier ones. Atmosphere: the section's
+  # drawn over earlier ones. Nothing lit is drawn mirrored (symmetry rule): a mirrored placement
+  # uses its own `-mirrored` piece, rendered with the layout mirrored under the same key light.
+  # Atmosphere: the section's
   # intensity picks the low-air banks, high-air wisps and the haze over deep and far; a change
-  # ramps over `ramp` s centred on the section boundary. Art: tools/concept/backdrop_l01.py.
+  # ramps over `ramp` s centred on the section boundary. Art: tools/art/backdrop_l01.py.
   scroll_factors: {deep: 0.12, far: 0.45, ground: 1.0, low-air: 1.4, high-air: 2.4}
   ramp: 4
   haze_colour: 0030a0  # palette B, Earth orbit ramp step 3
@@ -215,12 +218,16 @@ backdrop:
     launch-rail: {layer: ground, size: [200, 720], mid_size: true}
     crossbeam: {layer: ground, size: [480, 40]}   # covers a ground seam
     dock-frame: {layer: ground, size: [200, 260], mid_size: true}
+    dock-frame-mirrored: {layer: ground, size: [200, 260], mid_size: true}
     bridge-crane: {layer: ground, size: [400, 64], mid_size: true}  # its trolley is 60 px right of the centre
+    bridge-crane-mirrored: {layer: ground, size: [400, 64], mid_size: true}  # trolley 60 px left
     cruiser-hull: {layer: ground, size: [220, 470], mid_size: true}
     platform-burning: {layer: ground, size: [140, 140], frames: 4, fps: 8, mid_size: true}
+    platform-burning-mirrored: {layer: ground, size: [140, 140], frames: 4, fps: 8, mid_size: true}
     platform: {layer: ground, size: [140, 140], mid_size: true}
     lattice-beam: {layer: low-air, size: [480, 36]}
     crane-jib: {layer: low-air, size: [300, 44]}
+    crane-jib-mirrored: {layer: low-air, size: [300, 44]}
   placed:
     # 1. Launch: off the south rail; Aegis Two launches from the north arm and banks away
     - {piece: earth-dawn, t: 34, x: 240}     # on screen from the start: its bottom edge is the screen's
@@ -232,28 +239,28 @@ backdrop:
     - {piece: crossbeam, t: 22.08, x: 240}   # the seams enter at the top at 20, 60, 110 and 160 s
     # 2. First Wave: open dock frames
     - {piece: dock-frame, t: 30, x: 130}
-    - {piece: dock-frame, t: 43, x: 350, mirror: true}
+    - {piece: dock-frame-mirrored, t: 43, x: 350}
     - {piece: dock-frame, t: 54, x: 120}
     # 3. Yard Crossing: gantries, cranes, the cruiser hull; beams and jibs on low-air
     - {piece: crossbeam, t: 62.08, x: 240}
     - {piece: lattice-beam, t: 66, x: 240}
-    - {piece: bridge-crane, t: 70, x: 240, mirror: true}
+    - {piece: bridge-crane-mirrored, t: 70, x: 240}
     - {piece: crane-jib, t: 74, x: 170}
     - {piece: cruiser-hull, t: 82, x: 240}
     - {piece: lattice-beam, t: 85, x: 240}
     - {piece: bridge-crane, t: 92.12, x: 240}  # carries the beacon (x = 300, enters at t = 90)
-    - {piece: crane-jib, t: 97, x: 320, mirror: true}
+    - {piece: crane-jib-mirrored, t: 97, x: 320}
     - {piece: lattice-beam, t: 103, x: 240}
     # 4. Pursuit: the perimeter, burning defence platforms
     - {piece: crossbeam, t: 112.08, x: 240}
     - {piece: platform-burning, t: 118, x: 330}
-    - {piece: platform-burning, t: 134, x: 130, mirror: true}
+    - {piece: platform-burning-mirrored, t: 134, x: 130}
     - {piece: platform-burning, t: 150, x: 340}
     # 5. Scout Leader: past the yard into open space
     - {piece: crossbeam, t: 162.08, x: 240}
     - {piece: platform, t: 168, x: 150}      # gone by 171 s: open space for the outro
-    - {piece: earth-limb, t: 183.2, x: 240}   # the crest enters at the top at 158 s, 200 px above the bottom at the end
-    - {piece: vrell-glow, t: 194.25, x: 240}  # over the open space from 167 s; the top edges of both stay above the screen through the outro
+    - {piece: earth-limb, t: 189.6, x: 240}   # the crest enters at the top at 164 s; its top edge stays above the screen through the 15 s outro
+    - {piece: vrell-glow, t: 202.8, x: 240}  # over the open space from about 175 s; the top edges of both stay above the screen through the 15 s outro
 
 briefing:  # the briefing screen (design/ui/briefing); rendered into README.md (Briefing)
   pages:

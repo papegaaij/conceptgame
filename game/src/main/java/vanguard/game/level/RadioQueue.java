@@ -116,6 +116,11 @@ public final class RadioQueue {
         return Change.CLOSED;
     }
 
+    /** Whether nothing is on the radio or waiting for it. */
+    public boolean idle() {
+        return current.isEmpty() && queue.isEmpty();
+    }
+
     /** The message on the radio now. */
     public Optional<Message> current() {
         return current;

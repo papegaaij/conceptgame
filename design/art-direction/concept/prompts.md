@@ -456,3 +456,7 @@ olive jellyfish organisms at and just below the surface, floating kelp rafts wit
 a vast dark many-armed shape gliding deep under the waves, a few thin grey sea-mist banks and
 very faint high wisps, late-1990s pre-rendered CGI game background, 3D rendered and downsampled,
 limited palette, crisp pixels, 2D shoot'em up play field.
+
+## explosions-final-r12-a
+
+Round 12, production art (Level 01 batch). Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by `tools/art/explosions.py --review`; the frames themselves are rendered by `tools/art/explosions.py` (see `tools/art/README.md`). Shows every frame of the four rungs and the four playing side by side. Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.

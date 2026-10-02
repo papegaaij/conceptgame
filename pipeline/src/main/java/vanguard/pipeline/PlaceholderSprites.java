@@ -23,6 +23,10 @@ import javax.imageio.ImageIO;
  * leaves what the glow added on top of it, ready for additive blending. Zoomed frames are sampled
  * at the centre of every zoom block, which gives back the native pixels.
  *
+ * <p>A part whose final art exists is left alone: final sprites (rendered by tools/art/) carry a
+ * {@code Source} PNG text chunk naming their generator, so a cut is skipped when its first frame in
+ * {@code assets/sprites} has one ({@link FinalArt}).
+ *
  * <p>Usage: {@code PlaceholderSprites <designDir> <assetsDir>}
  */
 public final class PlaceholderSprites {
@@ -362,6 +366,10 @@ public final class PlaceholderSprites {
         Path design = Path.of(args[0]);
         Path folder = Files.createDirectories(Path.of(args[1]).resolve("sprites"));
         for (Cut cut : CUTS) {
+            if (FinalArt.exists(folder, cut.name())) {
+                System.out.println("final art, no placeholder cut: " + cut.name());
+                continue;
+            }
             BufferedImage sheet = ImageIO.read(design.resolve(cut.sheet()).toFile());
             for (int frame = 0; frame < cut.frames(); frame++) {
                 String file = cut.frames() == 1 ? cut.name() : cut.name() + "_" + frame;
