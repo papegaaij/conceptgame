@@ -21,3 +21,18 @@ Act title card shown before the act-opening briefing; holds 3–4 s with the act
 Prompt: `late 1990s CGI game act title card, 16:9 letterboxed, dark blue night megacity seen from high above, large chrome extruded title 'HOMEFRONT' in blue steel with a soft glow, smaller chrome 'ACT II' with thin metal rules either side, cyan pixel subtitle 'EARTH - NOVA LAGOS, ATLANTIC, ARCTIC, GENEVA', a short tagline, cinematic, pre-rendered`
 
 Negative prompt: the common negative prompt above.
+
+## briefing-final-r13-a
+
+Production art, UI batch part U2 (round 13). Not a mockup: the game's capture(s) at 1× with a 2×
+detail, arranged by [tools/art/ui_review.py](../../../../tools/art/ui_review.py)
+(`python3 tools/art/ui_review.py`); the screen draws the glass kit of
+[tools/art/ui_kit.py](../../../../tools/art/ui_kit.py).
+
+## briefing-capture-final-r13-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --start title` on a private 1920×1080 Xvfb display (settings and saves in a temporary directory; the game scales its 960×540 screen 2×, so the grab is reduced 2:1 nearest-neighbour back to the native pixels), the keys sent with XTest and the screen grabbed with ImageMagick `import`: New Game, Medium, through the act title card to the first page of the Act 1 intro with its image (retaken in part U3).
+
+## briefing-images-final-r13-a
+
+Production art, UI batch part U3 (round 13). Not a mockup: the sheet of the nine briefing images in `assets/ui/briefing/`, rendered by [tools/art/briefing_images.py](../../../../tools/art/briefing_images.py) (`python3 tools/art/briefing_images.py`). Brief, as briefing-r08-a: `the tactical display of a late-90s space-combat briefing, 672x240: a dark navy screen with a fine cyan grid and scan rows, holographic planets, dashed cyan routes, red and violet hostile markers, amber objectives, small pixel labels; one map or mission image per briefing page`.

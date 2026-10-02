@@ -3,6 +3,7 @@ package vanguard.game.render;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -13,8 +14,10 @@ import com.badlogic.gdx.utils.Disposable;
  * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from {@code assets/}:
  * the final sprites rendered by tools/art/ (ship, Level 01's enemies, weapon effects, bullets,
  * pickups, explosions, loot targets), the placeholders still cut from the chosen concept art (see
- * {@code PlaceholderSprites}) and the levels' backdrop images (tools/concept/backdrop_l01.py),
- * plus a white pixel for the HUD's bars and frames.
+ * {@code PlaceholderSprites}), the HUD's metal parts (tools/art/hud.py), the glass UI kit
+ * (tools/art/ui_kit.py), the hangar's equipment icons (tools/art/icons.py) and intel portraits
+ * (tools/art/intel.py) and the speakers' portraits (tools/art/portraits.py), looked up by name,
+ * and the levels' backdrop images (tools/art/backdrop_l01.py), plus a white pixel for drawn lines.
  */
 public final class Sprites implements Disposable {
     private final TextureAtlas sprites;
@@ -35,17 +38,6 @@ public final class Sprites implements Disposable {
     public final Array<AtlasRegion> crate;
     public final Array<AtlasRegion> shieldCell;
     public final Array<AtlasRegion> armourPatch;
-    /** The 72x72 radio portraits. */
-    public final AtlasRegion rook;
-
-    public final AtlasRegion okafor;
-    public final AtlasRegion varga;
-    public final AtlasRegion choir;
-    /** The 144x144 briefing portraits of the Act 1 briefings' speakers. */
-    public final AtlasRegion briefingOkafor;
-
-    public final AtlasRegion briefingVarga;
-
     public final AtlasRegion pulseBolt;
     public final Array<AtlasRegion> pulseMuzzle;
     public final Array<AtlasRegion> pulseImpact;
@@ -61,6 +53,21 @@ public final class Sprites implements Disposable {
     /** The loot targets' sparkle, drawn additively. */
     public final Array<AtlasRegion> glint;
 
+    /** The 240x540 side-panel plates of the HUD. */
+    public final AtlasRegion hudPanelLeft;
+
+    public final AtlasRegion hudPanelRight;
+    /** The HUD's 120x22 label plate. */
+    public final AtlasRegion hudPlate;
+    /** The HUD's recessed LCD well, also its bars' trough. */
+    public final NinePatch hudWell;
+    /** The radio portrait's well with its idle screen. */
+    public final NinePatch hudPortrait;
+    /** A grey phosphor bar cell, tinted for every bar, segment and pip. */
+    public final NinePatch hudFill;
+    /** The white glow behind a readout, tinted with its colour. */
+    public final NinePatch hudGlow;
+
     public final TextureRegion pixel;
 
     public Sprites(Files files) {
@@ -74,12 +81,6 @@ public final class Sprites implements Disposable {
         crate = frames(sprites, "pickup-crate");
         shieldCell = frames(sprites, "pickup-shield-cell");
         armourPatch = frames(sprites, "pickup-armour-patch");
-        rook = region(sprites, "portrait-rook");
-        okafor = region(sprites, "portrait-okafor");
-        varga = region(sprites, "portrait-varga");
-        choir = region(sprites, "portrait-the-choir");
-        briefingOkafor = region(sprites, "briefing-okafor");
-        briefingVarga = region(sprites, "briefing-varga");
         pulseBolt = region(sprites, "pulse-bolt");
         pulseMuzzle = frames(sprites, "pulse-muzzle");
         pulseImpact = frames(sprites, "pulse-impact");
@@ -90,12 +91,34 @@ public final class Sprites implements Disposable {
         cargoContainerBreak = frames(sprites, "cargo-container-break");
         beacon = frames(sprites, "beacon");
         glint = frames(sprites, "glint");
+        hudPanelLeft = region(sprites, "hud/panel-left");
+        hudPanelRight = region(sprites, "hud/panel-right");
+        hudPlate = region(sprites, "hud/plate");
+        hudWell = patch(sprites, "hud/well");
+        hudPortrait = patch(sprites, "hud/portrait");
+        hudFill = patch(sprites, "hud/fill");
+        hudGlow = patch(sprites, "hud/glow");
         Pixmap white = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         white.setColor(1, 1, 1, 1);
         white.fill();
         pixelTexture = new Texture(white);
         white.dispose();
         pixel = new TextureRegion(pixelTexture);
+    }
+
+    /** A region of the sprite pages by its name, such as {@code ui/knob}; it must exist. */
+    public AtlasRegion region(String name) {
+        return region(sprites, name);
+    }
+
+    /** The frames of a region of the sprite pages by its name, or the single region; it must exist. */
+    public Array<AtlasRegion> frames(String name) {
+        return frames(sprites, name);
+    }
+
+    /** A nine-patch of the sprite pages by its name, such as {@code ui/frame}; it must exist. */
+    public NinePatch patch(String name) {
+        return patch(sprites, name);
     }
 
     /** A backdrop image: its {@code count} frames or headings, or the single image. */
@@ -122,6 +145,15 @@ public final class Sprites implements Disposable {
             throw new IllegalStateException("no region '" + name + "' in the atlas");
         }
         return region;
+    }
+
+    /** A nine-patch: a region packed from a {@code .9.png} with its splits. */
+    private static NinePatch patch(TextureAtlas atlas, String name) {
+        NinePatch patch = atlas.createPatch(name);
+        if (patch == null) {
+            throw new IllegalStateException("no nine-patch '" + name + "' in the atlas");
+        }
+        return patch;
     }
 
     @Override

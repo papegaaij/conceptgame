@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/ground/spine-turret, ../../../enemies/air/stinger, ../../../world/earth-orbit]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Level 02 – Shipyard Burning
@@ -28,6 +28,11 @@ piece. About 3 minutes, no boss.
 > **Dr. Varga:** "About yesterday's transmission. I ran it through every language model we have.
 > One pattern repeats, and the best fit is a single word: *yield*. And Lancer, the growths are
 > turrets. Once you're behind them, they can't track you."
+
+*Images* (production art, [briefing images](../../../ui/briefing/README.md)): Okafor's page
+`level-02-burning-yards` (the burning south arm, its four crewed docks and their growths), Varga's
+`level-02-yield-signal` (the transmission's repeating pattern, the turret's blind arc); the level's
+data names them as each page's `image`.
 
 *Hangar teaser* (shop screen after L01):
 > **Dr. Varga:** "The yards are crawling with growths that shoot back. A wider gun would help."

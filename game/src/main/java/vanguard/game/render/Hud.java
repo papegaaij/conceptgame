@@ -24,7 +24,7 @@ public final class Hud {
             int number,
             String name,
             int launchBalance) {
-        HudKit kit = new HudKit(sprites.pixel, fonts);
+        HudKit kit = new HudKit(sprites, fonts);
         mission = new MissionPanel(kit, sprites, transmissionStatic, number, name, launchBalance);
         ship = new ShipPanel(kit);
     }

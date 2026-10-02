@@ -2,7 +2,7 @@
 title: Debrief screen
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../systems/scoring, ../../systems/economy]
 updated: 2026-10-02
 ---
@@ -57,6 +57,13 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 | [concept/mission-failed-r08-a.png](concept/mission-failed-r08-a.png) | Mission failed — frozen frame tinted red, retry / retry from boss / hangar / quit, discarded earnings | chosen |
 | [concept/game-over-r08-a.png](concept/game-over-r08-a.png) | Game over (hard, 0/3 retries) — campaign stats, Okafor's last transmission, top-10 with letter-grid name entry | chosen |
 
+Production art, UI batch part U2 (for concept round 13, opened by part U3): no art of its own; the screen draws the production glass kit ([tools/art/ui_kit.py](../../../tools/art/README.md)), its sheet made from the capture by `tools/art/ui_review.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/debrief-final-r13-a.png](concept/debrief-final-r13-a.png) | Review sheet: the game capture at 1× with a 2× detail of the title, tally and header rules | chosen |
+| [concept/debrief-capture-final-r13-a.png](concept/debrief-capture-final-r13-a.png) | Game capture: Level 01 complete (an invulnerable run at debug speed 8), the tally and credits on glass over the dimmed title scene, the grade on its amber-trimmed glass | chosen |
+
 ## Implementation
 
 - [x] Tally sequence with count-up animation and skip
@@ -82,3 +89,8 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
   beats the level's recorded best; confirm at the end goes to the next level's briefing, or to the
   hangar while the next level is not built (after Level 01 for now).
 - 2026-10-02: M3 close-out (user decision): the data core list and the act summary move to M4; the document is done for M3.
+- 2026-10-02: Production art, UI batch part U2: the debrief draws the production glass kit (a
+  glass panel with its trim, header rules, the grade on an amber-trimmed glass card) over the title
+  scene dimmed to 35 % (Earth orbit, Level 01's setting) instead of flat fills over black; layout
+  and fonts unchanged. Review files proposed for round 13; `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the debrief in the production glass kit over the dimmed title scene approved as **final**; it has no art of its own, so `art: final`.

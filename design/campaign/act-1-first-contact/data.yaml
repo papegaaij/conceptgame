@@ -7,9 +7,9 @@ title_card:  # over a still of the Gagarin shipyards at dawn, Earth's terminator
   name: FIRST CONTACT
   line: Earth orbit · Luna · April 2185
 
-briefing:  # Commander Okafor, full screen; one page per paragraph
-  - {speaker: Okafor, line: "On the fourteenth of March, the Tether Gate lit up. For forty-four years it was a dead ring beyond Neptune, something for scientists to argue about. Then it opened."}
-  - {speaker: Okafor, line: "Eleven days later our outer stations stopped answering. We still don't know what happened to the people on them. We call what came through the Vrell. They don't answer our hails. They don't negotiate. Every ship they have met, they have destroyed."}
-  - {speaker: Okafor, line: "This morning a Vrell strike group came out of nowhere at the Earth–Moon L1 point. It is heading for the Gagarin shipyards, where half the Coalition's new fleet is still in dock."}
-  - {speaker: Okafor, line: "The Defence Force was built to chase pirates. Aegis Wing is the only squadron in Earth orbit with ships fast enough and pilots ready enough to fly today. That makes us the line."}
-  - {speaker: Okafor, line: "Lancer, you've had the Stormhawk for nine days. Nobody has flown it longer. Suit up."}
+briefing:  # Commander Okafor, full screen; one page per paragraph, each with its image (tools/art/briefing_images.py)
+  - {speaker: Okafor, image: act-1-tether-gate, line: "On the fourteenth of March, the Tether Gate lit up. For forty-four years it was a dead ring beyond Neptune, something for scientists to argue about. Then it opened."}
+  - {speaker: Okafor, expression: grim, image: act-1-outer-stations, line: "Eleven days later our outer stations stopped answering. We still don't know what happened to the people on them. We call what came through the Vrell. They don't answer our hails. They don't negotiate. Every ship they have met, they have destroyed."}
+  - {speaker: Okafor, image: act-1-l1-strike, line: "This morning a Vrell strike group came out of nowhere at the Earth–Moon L1 point. It is heading for the Gagarin shipyards, where half the Coalition's new fleet is still in dock."}
+  - {speaker: Okafor, expression: fierce, image: act-1-aegis-wing, line: "The Defence Force was built to chase pirates. Aegis Wing is the only squadron in Earth orbit with ships fast enough and pilots ready enough to fly today. That makes us the line."}
+  - {speaker: Okafor, image: act-1-stormhawk, line: "Lancer, you've had the Stormhawk for nine days. Nobody has flown it longer. Suit up."}

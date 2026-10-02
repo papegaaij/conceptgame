@@ -64,7 +64,14 @@ attach to. **Budget check**: `packAtlases` checks the packed pages against the t
 shared pages (Level 01's enemies and loot targets are in it until levels get their own sprite
 atlas), a level's pages are the backdrop pages holding its regions, and one sprite's frames must
 fit a page. After the Level 01 batch: shared 1 page of 2048×256 (2 MiB of 32), Level 01
-2 pages, 2048² and 1024×2048 (24 MiB of 96).
+2 pages, 2048² and 1024×2048 (24 MiB of 96). With the HUD's metal parts (`assets/sprites/hud/`,
+on the same pages since `packAtlases` combines the sprites' subfolders): shared 1 page of 1024²
+(4 MiB of 32). With the glass UI kit (`assets/sprites/ui/`) and the 94 equipment icons
+(`assets/sprites/icons/`) still 1 page of 1024² (4 MiB of 32); the title scene, logo and hangar map
+are textures of their own in `assets/ui/` (about 3 MiB loaded, the scene always, the map in the
+hangar), outside the atlas budget. With the portraits (`assets/sprites/portraits/`) and the intel
+pictures (`assets/sprites/intel/`): 1 page of 2048×1024 (8 MiB of 32); the briefing images are
+textures of their own in `assets/ui/briefing/` (0.6 MiB each, loaded by the briefing that shows them).
 
 **Sounds**: a final OGG carries a `SOURCE` Vorbis comment; `importPlaceholders`
 (`PlaceholderSounds`) keeps every sound in `assets/sfx/` that has one.
@@ -74,7 +81,7 @@ fit a page. After the Level 01 batch: shared 1 page of 2048×256 (2 MiB of 32), 
 | When | Parts |
 |---|---|
 | Now (alongside M3) | **Level 01 complete**: Stormhawk banking frames and wing pods, the Skitter's 16-heading angle set and the Needler's claw snap, pulse cannon shot/muzzle/impact, orb and needle bullets, pickups, the explosion ladder up to large, loot targets, Level 01 backdrop, Coalition Rising stems, launch rail, edge warnings and tone |
-| M3 | UI kit and bitmap fonts; main menu, briefing, hangar (equipment icons), debrief, pause and options; portraits, with the three briefing expressions (neutral, grim, fierce) per main character; briefing images (tactical map or mission image per page) for the levels that use one; the hangar intel's sensor L2 enemy portraits and boss silhouette (from Level 02); title, hangar and briefing themes |
+| M3 | **UI batch**, first the **in-game HUD** (the side panels as bevelled metal plates with corner rivets, the recessed wells and readout frames, label plates, bar troughs and fills, the portrait frame and the phosphor readout glow), then the UI kit and bitmap fonts; main menu, briefing, hangar (equipment icons), debrief, pause and options; portraits, with the three briefing expressions (neutral, grim, fierce) per main character; briefing images (tactical map or mission image per page) for the levels that use one; the hangar intel's sensor L2 enemy portraits and boss silhouette (from Level 02); title, hangar and briefing themes |
 | M4 | Act 1 (L02–L07): its enemies and bosses, the weapons' shots and specials, Rook's craft, allies; Luna and Luna far side backdrops; Afterburner stems, boss music |
 | M5 | Act 2 (L08–L14): its enemies, naval and ground units, the Kraken; city, ocean, storm, arctic and Geneva backdrops; Act 2 stems |
 | M6 | Credits screen art, polish pass, any part still on a placeholder |
@@ -109,7 +116,11 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] Level 01 backdrop rendered by `tools/art/backdrop_l01.py` (proposed in round 12)
 - [x] Recorded SFX rebuilt from the Freesound originals (`tools/art/sfx_originals.py`); `importPlaceholders` keeps final OGGs
 - [x] Concept round 12 (the Level 01 batch review) opened, with a game capture
-- [ ] M3, M4 and M5 parts final, each with its milestone
+- [x] UI batch part U1: the in-game HUD's metal parts rendered by `tools/art/hud.py` and drawn by the game (review files proposed for round 13)
+- [x] UI batch part U2: the glass UI kit (`tools/art/ui_kit.py`), the title scene, logo D and the hangar's tactical map (`tools/art/ui_scenes.py`) and the equipment icons (`tools/art/icons.py`) drawn by the game; the Level 01 north arm reworked (review files proposed for round 13)
+- [x] UI batch part U3: portraits with the three expressions (`tools/art/portraits.py`), the briefing images (`tools/art/briefing_images.py`), the hangar intel's sensor-L2 pictures (`tools/art/intel.py`), the title, hangar and briefing themes (`tools/art/themes.py`) and the bitmap fonts (`tools/art/fonts.py`), drawn and played by the game; concept round 13 (the UI batch review) opened
+- [x] M3 parts final and approved by the user (the UI batch, concept round 13)
+- [ ] M4 and M5 parts final, each with its milestone
 
 ## Open questions
 
@@ -154,3 +165,53 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
   the crate shows its cross on every face; the loot container's pieces crumble from their edges
   instead of dissolving in a dither checker. Explosions, backdrop and SFX unchanged.
 - 2026-10-02: Concept round 12 closed (user decision): every Level 01 part approved as final; the parts with their own doc are `art: final`, the aggregate docs (enemies, player, art direction, SFX) record the final assets in their Decisions and keep `chosen`.
+- 2026-10-02: The in-game HUD is the first item of the UI batch (user decision: "It should be metallic bevelled panels, but at the moment it's flat and no texture at all. Also the rivets in the corners are missing."). It was named in neither the Level 01 row nor the M3 row, so the Level 01 batch shipped the M1 placeholder panels drawn in code.
+- 2026-10-02: UI batch, part U1 (the in-game HUD): `tools/art/hud.py` renders the side panels as
+  whole 240×540 plates (fixed layout; a nine-patch centre would smear the brushed steel) and the
+  stretching parts (LCD well, portrait well, phosphor fill, readout glow) as libGDX nine-patches
+  (`.9.png`), the label plate as a fixed piece; the game draws them in the existing HUD regions
+  ([HUD](../../ui/hud/README.md) Decisions). They are packed onto the shared sprite pages
+  (`packAtlases` now combines the sprites' subfolders; the backdrop keeps a page set per level):
+  1 page of 1024², 4 MiB. Review sheet and capture proposed for round 13, which later parts of the
+  UI batch open.
+- 2026-10-02: UI batch, part U2 (the out-of-game screens): `tools/art/ui_kit.py` renders the
+  glass kit of ui-kit-r08-a as nine-patches and pieces in `assets/sprites/ui/` (glass body and a
+  separate trim with corner tabs, so a panel's opacity never fades its metal; amber and dialog
+  trims, inset, rule, selection bar, cursors, chips, tabs, knob, bar cell, row, key-hint plate, tag,
+  scroll markers, callouts, diamond, chevron), drawn by `Glass` instead of fills;
+  `tools/art/ui_scenes.py` renders main menu A's hero scene and logo D and the hangar's tactical
+  map (Act 1) into `assets/ui/` at the production bar (per-layer palettes with ordered dither, the
+  ships ray-marched at their size with the heading in the model); `tools/art/icons.py` renders one
+  icon per catalogue item and Rook's escort in two sizes (16 and 24 px), from the models where they
+  exist and otherwise one emblem per kind; the debrief now draws the kit over the dimmed title
+  scene. The Level 01 north arm's solar wings were cut off at the piece's edge (user decision): only
+  that piece is re-rendered and is a round-13 review item. Review sheets and game captures proposed
+  for round 13 (opened by part U3). The bitmap fonts stay the kit's BMFont files from
+  `tools/concept/ui_assets.py`.
+- 2026-10-02: UI batch, part U3 (portraits, briefing images, intel pictures): `tools/art/portraits.py`
+  renders every speaker of Acts 1–2 in the chosen style B: Okafor, Rook and Varga in neutral, grim
+  and fierce (the concept busts with the expression's brows, lids, mouth and head pitch, one palette
+  per character over its expressions), the briefing size for Okafor and Varga, the generic CDF
+  officer and civilian neutral, the Choir's 32-frame glyph loop; the placeholder portrait cuts are
+  gone from `importPlaceholders`. Briefing pages and radio lines take an optional `expression`
+  (neutral by default), set in the Act 1 and Level 01 data where the text calls for it (see the
+  [briefing](../../ui/briefing/README.md) and [HUD](../../ui/hud/README.md) Decisions); the mission
+  failed screen shows Okafor grim. `tools/art/briefing_images.py` draws one 672×240 tactical map or
+  mission image per briefing page of the Act 1 intro and Levels 01–02 (`image` on a page; a page
+  too long for the space below its image goes on over the next screens). `tools/art/intel.py`
+  renders the hangar intel's sensor-L2 portraits of the enemy types of Levels 01–02 and the
+  silhouettes of the Act 1 bosses. Vorne gets his portraits with Act 6, where he first speaks.
+- 2026-10-02: UI batch, part U3 (fonts): `tools/art/fonts.py` takes the bitmap fonts over from
+  `tools/concept/ui_assets.py`, with the same font, cells, baselines and line heights. The 114
+  existing glyphs are unchanged pixel for pixel, and the set grows to 127 (en dash, typographic
+  quotes, →, ≈, upper-case accented letters), so the game no longer replaces the en dash and the
+  apostrophe. `--check` keeps the set complete against the data and the code. `Source` chunk on
+  every page.
+- 2026-10-02: UI batch, part U3 (themes): `tools/art/themes.py` renders the title, hangar and
+  briefing themes with their chosen generator, which already used the final settings (q6, −14 LUFS,
+  sample-exact loop comments). It writes them to `assets/music/` with a `SOURCE` comment, so the
+  audio is identical to the chosen files. `importPlaceholders` copies the music through
+  `PlaceholderSounds` (`copyPlaceholderMusic`), which keeps final OGGs.
+  [Round 13](../../concept-rounds/round-13/README.md) opened for the whole UI batch (U1–U3); no part
+  is `final` until the user approves it there.
+- 2026-10-02: Concept round 13 closed (user decision): every part of the UI batch (U1–U3) and the Level 01 north arm approved as final; the docs whose art is now entirely final are `art: final` (HUD, main menu, debrief, pause, options), the docs that also cover later art (UI, hangar, briefing, characters, music) record the final assets in their Decisions and keep `chosen`.

@@ -2,7 +2,7 @@
 title: Pause menu
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../systems/retry]
 updated: 2026-10-02
 ---
@@ -34,6 +34,13 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 |---|---|---|
 | [concept/pause-r08-a.png](concept/pause-r08-a.png) | Pause — glass panel over the dimmed HUD frame: resume, restart, options, abort to hangar, quit | chosen |
 
+Production art, UI batch part U2 (for concept round 13, opened by part U3): no art of its own; the screen draws the production glass kit ([tools/art/ui_kit.py](../../../tools/art/README.md)), its sheet made from the capture by `tools/art/ui_review.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/pause-final-r13-a.png](concept/pause-final-r13-a.png) | Review sheet: the pause and options captures at 1× with 2× details | chosen |
+| [concept/pause-capture-final-r13-a.png](concept/pause-capture-final-r13-a.png) | Game capture: the pause menu over the frozen Level 01 play field and HUD | chosen |
+
 ## Implementation
 
 - [x] Pause overlay with the items above and confirmations
@@ -62,3 +69,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 - 2026-10-02: User decision: Abort to hangar uses a retry on hard, as built (see
   [retry](../../systems/retry/README.md)). A restart writes the autosave with the used retry, so
   quitting afterwards cannot give it back.
+- 2026-10-02: Production art, UI batch part U2: the pause menu draws the production glass kit
+  over the dimmed play field; layout and fonts unchanged. Review files proposed for round 13 (its
+  sheet also shows the options screen); `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the pause menu in the production glass kit approved as **final**; it has no art of its own, so `art: final`.

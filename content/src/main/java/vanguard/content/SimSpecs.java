@@ -403,7 +403,8 @@ public final class SimSpecs {
                     cue.enemy().orElse(""),
                     cue.speaker(),
                     change.map(LevelData.RadioChange::line).orElse(cue.line()),
-                    cue.distorted().orElse(false)));
+                    cue.distorted().orElse(false),
+                    cue.expression().orElse(Expression.NEUTRAL).slug()));
         }
         for (LevelData.Secret secret : level.secrets()) {
             LevelData.RadioLine line = secret.radio();
@@ -413,7 +414,8 @@ public final class SimSpecs {
                     secret.name(),
                     line.speaker(),
                     line.line(),
-                    line.distorted().orElse(false)));
+                    line.distorted().orElse(false),
+                    line.expression().orElse(Expression.NEUTRAL).slug()));
         }
         return cues;
     }

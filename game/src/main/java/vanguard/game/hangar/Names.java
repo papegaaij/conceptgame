@@ -9,10 +9,13 @@ public final class Names {
 
     /** An item's name in upper case: {@code Mk II "Arc"} is {@code MK II "ARC"}. */
     public static String of(String name) {
-        return name.toUpperCase(Locale.ROOT).replace('–', '-');
+        return name.toUpperCase(Locale.ROOT);
     }
 
-    /** A part's short name for the module tiles: the model without its nickname, {@code COMP I} for Composite I. */
+    /**
+     * A part's short name for the module tiles and the schematic's callouts: the model without its
+     * nickname, {@code COMP I} for Composite I, {@code MICRO-MSL} for the Micro-missile Pod.
+     */
     public static String tile(String name) {
         String model =
                 name.contains("\"") ? name.substring(0, name.indexOf('"')).strip() : name;
@@ -20,7 +23,9 @@ public final class Names {
                 .replace("COMPOSITE", "COMP")
                 .replace("STANDARD", "STD")
                 .replace("SENSOR SUITE", "SENSOR")
-                .replace("PICKUP MAGNET", "MAGNET");
+                .replace("PICKUP MAGNET", "MAGNET")
+                .replace("MICRO-MISSILE", "MICRO-MSL")
+                .replace(" POD", "");
     }
 
     /** Power in MW with at most one decimal: {@code 4.5 MW}, {@code 8 MW}. */

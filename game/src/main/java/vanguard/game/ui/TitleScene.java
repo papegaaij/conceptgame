@@ -9,8 +9,8 @@ import vanguard.game.render.PixelScreen;
 
 /**
  * The pre-rendered hero scene behind the out-of-game screens (design/ui/main-menu, menu A: the
- * Stormhawk climbing over Earth's limb towards the Vrell fleet) and the logo. Placeholders from
- * {@code tools/concept/ui_assets.py}.
+ * Stormhawk climbing over Earth's limb towards the Vrell fleet) and logo D, rendered by
+ * tools/art/ui_scenes.py.
  */
 public final class TitleScene implements Disposable {
     private final Texture scene;

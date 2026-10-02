@@ -27,7 +27,7 @@ class RadioQueueTest {
 
     @Test
     void aMessageOpensTypesPagesAndCloses() {
-        radio.add("Rook", "Lancer, Rook. Aegis Two's got the north arm, you've got the south.", false);
+        radio.add("Rook", "neutral", "Lancer, Rook. Aegis Two's got the north arm, you've got the south.", false);
 
         assertEquals(RadioQueue.Change.OPENED, radio.update(0.01f));
         assertEquals(RadioQueue.Change.TYPED, radio.update(0.2f));
@@ -41,7 +41,7 @@ class RadioQueueTest {
 
     @Test
     void theRadioKnowsWhenItsMessageOpenedAndWhenItWillClose() {
-        radio.add("Okafor", "Weapons free.", false);
+        radio.add("Okafor", "neutral", "Weapons free.", false);
         radio.update(0.01f);
         run(0.2);
 
@@ -54,8 +54,8 @@ class RadioQueueTest {
 
     @Test
     void queuedMessagesPlayOneAfterTheOther() {
-        radio.add("Okafor", "Weapons free.", false);
-        radio.add("Varga", "Keep moving.", false);
+        radio.add("Okafor", "neutral", "Weapons free.", false);
+        radio.add("Varga", "neutral", "Keep moving.", false);
         radio.update(0.01f);
 
         assertEquals(RadioQueue.Change.CLOSED, run(5.6));

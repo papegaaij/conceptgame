@@ -51,7 +51,8 @@ class SortieTest {
 
     @Test
     void theLevelEndsWhenTheScrollReachesTheEndOfTheLastSection() {
-        var cue = new LevelScript.RadioCue(LevelScript.CueTrigger.LEVEL_END, 0, "", "Okafor", "Good work.", false);
+        var cue = new LevelScript.RadioCue(
+                LevelScript.CueTrigger.LEVEL_END, 0, "", "Okafor", "Good work.", false, "neutral");
         var sortie = sortie(level(2, List.of(), List.of(), List.of(cue)));
 
         run(sortie, 2 * SimStep.PER_SECOND - 1, Command.NONE);
@@ -478,7 +479,7 @@ class SortieTest {
         var beacon = new LevelScript.GroundObjectSpec(
                 0, Ship.START_X, new Hitbox(12, 12), 0, 0, Optional.empty(), 3, 80, "beacon cache");
         var line = new LevelScript.RadioCue(
-                LevelScript.CueTrigger.SECRET, 0, "beacon cache", "Rook", "Nice shooting.", false);
+                LevelScript.CueTrigger.SECRET, 0, "beacon cache", "Rook", "Nice shooting.", false, "neutral");
         var sortie = sortie(level(20, List.of(), List.of(beacon), List.of(line)));
 
         int hits = 0;
@@ -505,9 +506,10 @@ class SortieTest {
             waves.add(skitterAt(i));
         }
         var cues = List.of(
-                new LevelScript.RadioCue(LevelScript.CueTrigger.FIRST_KILL, 0, "skitter", "Rook", "Bugs.", false),
                 new LevelScript.RadioCue(
-                        LevelScript.CueTrigger.SECONDARY_OBJECTIVE, 0, "", "Okafor", "Clean sweep.", false));
+                        LevelScript.CueTrigger.FIRST_KILL, 0, "skitter", "Rook", "Bugs.", false, "neutral"),
+                new LevelScript.RadioCue(
+                        LevelScript.CueTrigger.SECONDARY_OBJECTIVE, 0, "", "Okafor", "Clean sweep.", false, "neutral"));
         var sortie = sortie(level(20, waves, List.of(), cues));
         assertEquals(4, sortie.requiredKills());
 

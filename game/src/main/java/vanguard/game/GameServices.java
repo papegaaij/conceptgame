@@ -101,7 +101,7 @@ public final class GameServices implements Disposable {
         mixer = new Mixer(settings.audio());
         sfx = new SfxBank(audio, files, mixer);
         fonts = new Fonts(files);
-        glass = new Glass(fonts, sprites.pixel);
+        glass = new Glass(fonts, sprites);
         titleScene = new TitleScene(files);
         flash = new FlashShader();
         transmissionStatic = new TransmissionStatic();
@@ -149,7 +149,6 @@ public final class GameServices implements Disposable {
         transmissionStatic.dispose();
         flash.dispose();
         titleScene.dispose();
-        glass.dispose();
         fonts.dispose();
         sfx.dispose();
         sprites.dispose();

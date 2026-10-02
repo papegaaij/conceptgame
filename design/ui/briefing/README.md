@@ -40,12 +40,14 @@ The mock shows level 10 *Evacuation Corridor* from [act 2](../../campaign/act-2-
 the real briefing text is written in each level document.
 
 - A briefing is a script of **pages**. Each page has a speaker (portrait + name), text, and
-  optionally a map image. Several speakers can alternate (Okafor, Varga, Rook, intercepted
+  optionally a map image (672×240 above the text, 4 lines of text below it; a longer page goes on
+  over the next screens with the same image, each counted as a page). Several speakers can alternate (Okafor, Varga, Rook, intercepted
   transmissions from Vorne or the Choir).
 - Text types out at twice the radio's speed with a soft blip: 60 characters/s at the default
   text speed of 30; the Gameplay tab's text speed scales both. Confirm shows the full page, then
   continues. Skip jumps to the objectives.
-- Portraits: 144×144, pre-rendered, three expressions per main character (neutral, grim, fierce).
+- Portraits: 144×144, pre-rendered, three expressions per main character (neutral, grim, fierce);
+  a page names its expression in the data, neutral otherwise.
   Interference/static effect for intercepted transmissions.
 - Act start/end briefings may be longer; normal levels are 2–4 pages.
 - Briefing text lives with each level in the [campaign](../../campaign/README.md).
@@ -59,13 +61,26 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 | [concept/briefing-r08-a.png](concept/briefing-r08-a.png) | Briefing — L10 *Evacuation Corridor*: Okafor portrait, typewriter text, tactical map with the shuttle route, threat summary with direction dial, objectives and hangar teaser | chosen |
 | [concept/act-title-r08-a.png](concept/act-title-r08-a.png) | Act title card — "ACT II / HOMEFRONT" in the logo-D chrome over Nova Lagos | chosen |
 
+Production art, UI batch part U2 (for concept round 13, opened by part U3): no art of its own; the screen draws the production glass kit ([tools/art/ui_kit.py](../../../tools/art/README.md)), its sheet made from the capture by `tools/art/ui_review.py`. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/briefing-final-r13-a.png](concept/briefing-final-r13-a.png) | Review sheet: the game capture at 1× with a 2× detail of the header, portrait frame and text panel | chosen |
+| [concept/briefing-capture-final-r13-a.png](concept/briefing-capture-final-r13-a.png) | Game capture (retaken in part U3): page 1 of the Act 1 intro with its image, the Tether Gate, above the text; Okafor in the trim frame, the objectives and hangar teaser panels, the key-hint plate | chosen |
+
+Production art, UI batch part U3: the briefing images, rendered by [tools/art/briefing_images.py](../../../tools/art/README.md) into `assets/ui/briefing/`; the portraits' expressions are the [characters](../../story/characters/README.md)' review files. Prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/briefing-images-final-r13-a.png](concept/briefing-images-final-r13-a.png) | Review sheet: the nine 672×240 images, one per page of the Act 1 intro (Tether Gate, outer stations, the L1 strike group, Earth orbit's squadrons, the Stormhawk schematic), Level 01 (the Gagarin yards' rails, the scan of the Skitter and Needler) and Level 02 (the burning south arm's docks, the "yield" pattern and the turret's blind arc) | chosen |
+
 ## Implementation
 
 - [x] Briefing script format: pages, speaker, text, objectives
-- [ ] A page's image (tactical map or mission image) — **later: art track** (no briefing image exists yet; the format gets the field with the first one)
+- [x] A page's image (tactical map or mission image): `image` in the data, drawn above the text
 - [x] Typewriter text with skip and page advance
 - [x] Portrait frame with the transmission-static effect
-- [ ] Portrait expressions (neutral, grim, fierce) — **later: art track** (the portrait sheets have one expression per speaker)
+- [x] Portrait expressions (neutral, grim, fierce): `expression` in the data, neutral by default
 
 ## Decisions
 
@@ -108,3 +123,19 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
   [production plan](../../art-direction/production/README.md#order-of-work)). The steady
   interference for intercepted transmissions has no page in Acts 1–2 (the radio's Choir line is
   not a briefing); it comes with the first intercepted briefing.
+- 2026-10-02: Production art, UI batch part U2: the briefing draws the production glass kit
+  (panels, the trim nine-patch as the portrait frame, header rules, lit bar cells for the bullets
+  and the typing cursor, the key-hint plate) over the title scene; layouts and fonts unchanged.
+  Review files proposed for round 13; `art` stays `chosen`.
+- 2026-10-02: Production art, UI batch part U3 (the two items deferred to the art track). A briefing
+  page takes an optional `expression` (`neutral`, `grim`, `fierce`; neutral if not given) and an
+  optional `image`, the name of a 672×240 picture in `assets/ui/briefing/`
+  (`tools/art/briefing_images.py`); the screen draws the image in the trim frame at the top of the
+  text panel and the text below it, 4 lines to a screen: a page longer than that goes on over the
+  next screens with the same speaker and image, each counted in the page number (the Level 01
+  briefing's first page takes two). Images for every page of the Act 1 intro and of Levels 01
+  and 02 (Level 02's wait for its data in M4; its README names them). Expressions set in the data
+  where the text calls for them: the Act 1 intro's page 2 ("Eleven days later our outer stations
+  stopped answering…") grim, page 4 ("That makes us the line.") fierce; the rest neutral. The
+  hangar teaser keeps neutral. Review files proposed for round 13; `art` stays `chosen`.
+- 2026-10-02: Concept round 13 closed (user decision): the screen in the production glass kit and the nine briefing images of the Act 1 intro and Levels 01–02 (`tools/art/briefing_images.py`) approved as **final**; `art` stays `chosen`, since the images of the later levels and a still per act for the act title cards do not exist yet.

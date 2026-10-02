@@ -36,7 +36,7 @@ final class ShipPanel {
 
     void draw(SpriteBatch batch, Defences defences, String weapon, int weaponLevel, List<String> notFlown) {
         frame++;
-        kit.panel(batch, X);
+        kit.rightPanel(batch);
         int x = X + HudKit.INSET;
         int y = HudKit.TOP - HudKit.INSET;
         gauge(batch, "ARMOUR", defences.armour(), defences.maxArmour(), ARMOUR, ARMOUR_EMPTY, x, y, true);
@@ -45,6 +45,7 @@ final class ShipPanel {
 
         kit.label(batch, "WEAPONS", x, y - 112);
         kit.lcd(batch, x, y - 186, HudKit.INNER_WIDTH, 52);
+        kit.glow(batch, HudKit.READOUT, x, y - 186, HudKit.INNER_WIDTH, 52);
         kit.text(batch, kit.small, "FRONT", HudKit.LABEL, x + 8, y - 138);
         for (int i = 0; i < LEVEL_PIPS; i++) {
             kit.fill(
@@ -78,6 +79,6 @@ final class ShipPanel {
         kit.label(batch, name, x, y);
         kit.textRight(
                 batch, kit.body, Integer.toString((int) Math.ceil(value)), HudKit.LABEL, x, y, HudKit.INNER_WIDTH);
-        kit.bar(batch, full, empty, x, y - 34, HudKit.INNER_WIDTH, BAR_HEIGHT, lit ? value / max : 0);
+        kit.segments(batch, full, empty, x, y - 34, HudKit.INNER_WIDTH, BAR_HEIGHT, lit ? value / max : 0);
     }
 }

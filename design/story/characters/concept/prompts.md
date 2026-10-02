@@ -70,3 +70,11 @@ side-swept fringe, rust-red padded jacket with a high collar and an ochre scarf,
 handheld radio clipped to the collar, three-quarter view, worried expression, head and shoulders.
 
 **Negative prompt:** smooth gradients, photorealism, 3D render, anti-aliased vector art, HD detail, fully monochrome image, heavy noisy dithering, anime, chibi, uniform, helmet, headset, glamour make-up, text, watermark, logo, hands, full body
+
+## portraits-final-r13-a
+
+Production art, UI batch part U3 (round 13). Not a mockup: the sheet (and the GIF cycling the expressions next to the Choir's loop) of the portraits in `assets/sprites/portraits/`, rendered by [tools/art/portraits.py](../../../../tools/art/portraits.py) (`python3 tools/art/portraits.py`) from the concept busts of `tools/concept/portraits_r03.py` and `portraits_r08.py` in the style B of `portraits_r04.py`. Brief per expression, on top of each character's prompt above: `grim: head slightly lowered, brows drawn down and together, narrowed eyes, mouth corners pulled down`; `fierce: brows slanted hard, eyes wide, mouth open in a shout, upper teeth showing`.
+
+## portraits-capture-final-r13-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --start level --invulnerable` on a private 1920×1080 Xvfb display (settings and saves in a temporary directory; the game scales its 960×540 screen 2×, so the grab is reduced 2:1 nearest-neighbour back to the native pixels), the keys sent with XTest and the screen grabbed with ImageMagick `import`: Level 01 at 22 s, Okafor's fierce "Contacts inbound. Weapons free." on the radio.

@@ -673,3 +673,17 @@ since that would break the crossfade.
 **AI prompt:** use the "Coalition Rising" prompt and add *"underscore stem only: string ostinato,
 pads, timpani, harp and choir, no brass melody, no drums, same tempo and length as the full mix"*.
 
+## themes-final-r13-a — title, hangar and briefing themes (production art)
+
+Not a proposal of new music: the production files of the three chosen themes, for the UI batch
+review (round 13). `python3 tools/art/themes.py` renders `title-theme-full-r08-a`,
+`hangar-theme-full-r08-a` and `briefing-theme-r08-a` again with their generator
+(`tools/concept/audio/music_r08.py`, `render_loop`: same composition, seeds, mix EQ and master at
+−14 LUFS, OGG Vorbis q6, `LOOPSTART` / `LOOPLENGTH` in samples), remuxes the stream with a
+`SOURCE` comment into `assets/music/{title,hangar,briefing}-theme.ogg` and checks them
+(`--check`: loudness within 0.5 LU, true peak below −1 dBTP, nominal 192 kbit/s, seam jump no
+larger than the nearby sample-to-sample change, and whether the decoded audio equals the chosen
+file). The sheet `themes-final-r13-a.png` (`--review`) draws each file's waveform from
+`assets/music/` with the intro (grey), loop (blue) and fade tail (dark) and the loop points
+(amber), with the measured numbers.
+

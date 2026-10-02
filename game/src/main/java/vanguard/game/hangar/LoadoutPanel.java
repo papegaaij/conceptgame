@@ -17,10 +17,10 @@ import vanguard.game.ui.Glass;
 
 /**
  * The hangar's centre (design/ui/hangar, layout B): the Stormhawk's holographic schematic with a
- * callout box per weapon mount (level pips and the fitted item) and the escort slot (locked until
- * Act 2), the module tiles of the core parts, the special and the two utility bays, and the power
- * bar with the load, the load the selected choice would make in a lighter colour (red when it
- * would not fit) and the generator's output.
+ * holographic callout per weapon mount (level pips, the fitted item's icon and name) and the escort
+ * slot (locked until Act 2, with Rook's craft), the module tiles of the core parts, the special and
+ * the two utility bays, and the power bar in its trough with the load, the load the selected choice
+ * would make in a lighter colour (red when it would not fit) and the generator's output.
  */
 final class LoadoutPanel {
     private static final int X = 306;
@@ -34,7 +34,9 @@ final class LoadoutPanel {
     private static final Color GRID = new Color(0.10f, 0.20f, 0.45f, 0.6f);
     private static final Color LINE = new Color(0.25f, 0.75f, 0.95f, 1);
     private static final Color PROJECTED = new Color(1, 1, 0.55f, 1);
-    private static final Color EMPTY = new Color(0.10f, 0.12f, 0.22f, 1);
+    /** The locked escort's craft is drawn this much darker. */
+    private static final Color LOCKED_ICON = new Color(0.45f, 0.45f, 0.55f, 1);
+
     private static final Color TICK = new Color(0, 0, 0.12f, 1);
     private static final int CENTRE_X = X + WIDTH / 2;
     private static final int SHIP_Y = Y + 200;
@@ -52,21 +54,34 @@ final class LoadoutPanel {
     private static final int TILE_GAP = 2;
 
     private static final int WING_WIDTH = 132;
+    private static final int FRONT_WIDTH = 160;
+    /** Narrower than the front's, to clear the escort slot beside it. */
+    private static final int REAR_WIDTH = 154;
+
+    private static final int ESCORT_WIDTH = 86;
+    private static final int CALLOUT_HEIGHT = 46;
+    private static final int FRONT_Y = Y + 24;
+    private static final int REAR_Y = Y + 276;
+    private static final int WING_Y = Y + 116;
+    /** The fitted item's name starts right of its icon. */
+    private static final int NAME_INDENT = 32;
 
     private record Callout(LoadoutSlot slot, int x, int y, int width) {}
 
     private static final List<Callout> CALLOUTS = List.of(
-            new Callout(LoadoutSlot.FRONT, CENTRE_X - 70, Y + 26, 140),
-            new Callout(LoadoutSlot.LEFT_WING, X + 8, Y + 120, WING_WIDTH),
-            new Callout(LoadoutSlot.RIGHT_WING, X + WIDTH - 8 - WING_WIDTH, Y + 120, WING_WIDTH),
-            new Callout(LoadoutSlot.REAR, CENTRE_X - 70, Y + 274, 140));
+            new Callout(LoadoutSlot.FRONT, CENTRE_X - FRONT_WIDTH / 2, FRONT_Y, FRONT_WIDTH),
+            new Callout(LoadoutSlot.LEFT_WING, X + 8, WING_Y, WING_WIDTH),
+            new Callout(LoadoutSlot.RIGHT_WING, X + WIDTH - 8 - WING_WIDTH, WING_Y, WING_WIDTH),
+            new Callout(LoadoutSlot.REAR, CENTRE_X - REAR_WIDTH / 2, REAR_Y, REAR_WIDTH));
 
     private final Glass glass;
     private final TextureRegion ship;
+    private final ItemIcons icons;
 
-    LoadoutPanel(Glass glass, TextureRegion ship) {
+    LoadoutPanel(Glass glass, TextureRegion ship, ItemIcons icons) {
         this.glass = glass;
         this.ship = ship;
+        this.icons = icons;
     }
 
     void draw(SpriteBatch batch, HangarState state) {
@@ -82,53 +97,57 @@ final class LoadoutPanel {
         glass.header(batch, "AF-12 STORMHAWK - SCHEMATIC", X + 10, X + WIDTH - 10, Y + 8);
         int shipWidth = ship.getRegionWidth() * SHIP_SCALE;
         int shipHeight = ship.getRegionHeight() * SHIP_SCALE;
-        glass.fill(batch, LINE, CENTRE_X, Y + 66, 1, SHIP_Y - shipHeight / 2 - Y - 66);
-        glass.fill(batch, LINE, CENTRE_X, SHIP_Y + shipHeight / 2, 1, Y + 274 - SHIP_Y - shipHeight / 2);
+        int frontBottom = FRONT_Y + CALLOUT_HEIGHT;
+        glass.fill(batch, LINE, CENTRE_X, frontBottom, 1, SHIP_Y - shipHeight / 2 - frontBottom);
+        glass.fill(batch, LINE, CENTRE_X, SHIP_Y + shipHeight / 2, 1, REAR_Y - SHIP_Y - shipHeight / 2);
         int wingLine = X + 8 + WING_WIDTH;
-        glass.fill(batch, LINE, wingLine, Y + 140, CENTRE_X - 12 - wingLine, 1);
-        glass.fill(batch, LINE, CENTRE_X + 12, Y + 140, X + WIDTH - 8 - WING_WIDTH - CENTRE_X - 12, 1);
+        int wingLineY = WING_Y + CALLOUT_HEIGHT / 2;
+        glass.fill(batch, LINE, wingLine, wingLineY, CENTRE_X - 12 - wingLine, 1);
+        glass.fill(batch, LINE, CENTRE_X + 12, wingLineY, X + WIDTH - 8 - WING_WIDTH - CENTRE_X - 12, 1);
         batch.draw(
                 ship, CENTRE_X - shipWidth / 2f, PixelScreen.HEIGHT - SHIP_Y - shipHeight / 2f, shipWidth, shipHeight);
         for (Callout callout : CALLOUTS) {
             drawCallout(batch, hangar, callout, state.slot() == callout.slot());
         }
         int escortY = Y + 270;
-        glass.fill(batch, BLUEPRINT, X + 12, escortY, 96, 48);
-        glass.outline(batch, Glass.DIM, X + 12, escortY, 96, 48);
+        glass.lockedCallout(batch, X + 12, escortY, ESCORT_WIDTH, 48);
         glass.shadowed(batch, glass.fonts.label, "ESCORT", Glass.DIM, X + 18, escortY + 8);
         glass.shadowed(batch, glass.fonts.label, "ACT 2", Glass.DIM, X + 18, escortY + 26);
+        TextureRegion rook = icons.escort().large();
+        batch.setColor(LOCKED_ICON);
+        batch.draw(
+                rook,
+                X + 12 + ESCORT_WIDTH - 6 - rook.getRegionWidth(),
+                PixelScreen.HEIGHT - escortY - 12 - rook.getRegionHeight());
+        batch.setColor(Color.WHITE);
         drawTiles(batch, hangar, state.slot());
         drawPower(batch, hangar, state.choice());
     }
 
     private void drawCallout(SpriteBatch batch, Hangar hangar, Callout callout, boolean selected) {
         Color edge = selected ? Glass.AMBER : LINE;
-        glass.fill(
-                batch,
-                selected ? new Color(0.25f, 0.22f, 0, 0.95f) : BLUEPRINT,
-                callout.x(),
-                callout.y(),
-                callout.width(),
-                40);
-        glass.outline(batch, edge, callout.x(), callout.y(), callout.width(), 40);
+        glass.callout(batch, callout.x(), callout.y(), callout.width(), CALLOUT_HEIGHT, selected);
         glass.shadowed(batch, glass.fonts.label, Names.slot(callout.slot()), edge, callout.x() + 6, callout.y() + 6);
         Optional<Fitted> fitted =
                 Optional.ofNullable(hangar.campaign().loadout().get(callout.slot()));
-        String name = fitted.flatMap(f -> hangar.fitted(callout.slot()))
-                .map(item -> Names.tile(item.name()))
-                .orElse("EMPTY");
+        Optional<Item> item = fitted.flatMap(f -> hangar.fitted(callout.slot()));
+        if (item.isPresent()) {
+            TextureRegion icon = icons.of(item.get()).large();
+            batch.draw(icon, callout.x() + 5, PixelScreen.HEIGHT - callout.y() - 18 - icon.getRegionHeight());
+        }
         glass.shadowed(
                 batch,
                 glass.fonts.label,
-                name,
-                fitted.isPresent() ? Glass.WHITE : Glass.DIM,
-                callout.x() + 6,
-                callout.y() + 22);
+                item.map(i -> Names.tile(i.name())).orElse("EMPTY"),
+                item.isPresent() ? Glass.WHITE : Glass.DIM,
+                callout.x() + (item.isPresent() ? NAME_INDENT : 6),
+                callout.y() + 26,
+                callout.width() - NAME_INDENT - 2);
         int level = fitted.map(Fitted::level).orElse(0);
         for (int i = 0; i < PIPS; i++) {
-            glass.fill(
+            glass.bar(
                     batch,
-                    i < level ? Glass.AMBER : EMPTY,
+                    i < level ? Glass.AMBER : Glass.UNLIT,
                     callout.x() + callout.width() - 6 - (PIPS - i) * 9,
                     callout.y() + 6,
                     7,
@@ -141,14 +160,7 @@ final class LoadoutPanel {
         int x = X + (WIDTH - TILES.size() * TILE_WIDTH - (TILES.size() - 1) * TILE_GAP) / 2;
         for (LoadoutSlot slot : TILES) {
             boolean on = slot == selected;
-            glass.fill(
-                    batch,
-                    on ? new Color(0.25f, 0.22f, 0, 0.95f) : new Color(0.03f, 0.05f, 0.16f, 0.9f),
-                    x,
-                    TILES_Y,
-                    TILE_WIDTH,
-                    48);
-            glass.outline(batch, on ? Glass.AMBER : Glass.TRIM, x, TILES_Y, TILE_WIDTH, 48);
+            glass.button(batch, x, TILES_Y, TILE_WIDTH, 48, on, true);
             glass.centred(
                     batch,
                     glass.fonts.body,
@@ -204,11 +216,11 @@ final class LoadoutPanel {
         int barY = POWER_Y + 26;
         double scale = Math.max(output, projected.map(Choice::output).orElse(output));
         double top = Math.max(scale, projected.map(Choice::load).orElse(load));
-        glass.fill(batch, EMPTY, barX, barY, barWidth, 16);
-        glass.fill(batch, Glass.AMBER, barX, barY, (float) (barWidth * Math.min(load, top) / top), 16);
+        glass.inset(batch, barX - 2, barY - 2, barWidth + 4, 20);
+        glass.bar(batch, Glass.AMBER, barX, barY, (float) (barWidth * Math.min(load, top) / top), 16);
         projected
                 .filter(c -> c.load() > load)
-                .ifPresent(c -> glass.fill(
+                .ifPresent(c -> glass.bar(
                         batch,
                         over ? Glass.ALERT : PROJECTED,
                         (float) (barX + barWidth * load / top),
@@ -219,6 +231,5 @@ final class LoadoutPanel {
             glass.fill(batch, TICK, (float) (barX + barWidth * mw / top), barY, 1, 16);
         }
         glass.fill(batch, Glass.WHITE, (float) (barX + barWidth * output / top) - 1, barY - 3, 2, 22);
-        glass.outline(batch, Glass.TRIM, barX, barY, barWidth, 16);
     }
 }

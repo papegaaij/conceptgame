@@ -2,6 +2,7 @@ package vanguard.game.hangar;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -16,15 +17,17 @@ import vanguard.content.campaign.Hangar.Refusal;
 import vanguard.content.campaign.Hangar.State;
 import vanguard.content.campaign.ItemKind;
 import vanguard.content.campaign.LoadoutSlot;
+import vanguard.game.render.PixelScreen;
 import vanguard.game.ui.Fonts;
 import vanguard.game.ui.Glass;
 import vanguard.game.ui.Words;
 
 /**
  * The hangar's shop drawer (left, design/ui/hangar): the rows for the selected slot (fitted, owned,
- * buyable with price and ◆ trait matches and the NEW tag, locked with their unlock level), the
- * selected item with its traits, numbers and the deltas against the fitted item, its choices, the
- * last transaction's message and the test-fire box, kept empty until test fire is built.
+ * buyable with price and ◆ trait matches and the NEW tag, locked with their unlock level), each
+ * with its icon on a glass row band, the scroll markers, the selected item with its large icon,
+ * traits, numbers and the deltas against the fitted item, its choices, the last transaction's
+ * message and the test-fire box, kept empty until test fire is built.
  */
 final class ShopPanel {
     private static final int X = 16;
@@ -36,13 +39,19 @@ final class ShopPanel {
     private static final int RIGHT = X + WIDTH - 10;
     private static final int ROWS_Y = Y + 26;
     private static final int ROW = 22;
+    /** A row's name starts right of its icon. */
+    private static final int NAME_X = INNER + 20;
+
     private static final Color NEW_TAG = new Color(1, 0, 0.67f, 1);
-    private static final Color NEW_FILL = new Color(0.35f, 0, 0.25f, 1);
+    /** A locked item's icon is drawn this much darker. */
+    private static final Color LOCKED_ICON = new Color(0.45f, 0.45f, 0.55f, 1);
 
     private final Glass glass;
+    private final ItemIcons icons;
 
-    ShopPanel(Glass glass) {
+    ShopPanel(Glass glass, ItemIcons icons) {
         this.glass = glass;
+        this.icons = icons;
     }
 
     void draw(SpriteBatch batch, HangarState state, List<String> markedTraits) {
@@ -56,7 +65,11 @@ final class ShopPanel {
         if (rows.size() > HangarState.VISIBLE_ROWS) {
             String more = (state.top() + 1) + "-" + Math.min(rows.size(), state.top() + HangarState.VISIBLE_ROWS)
                     + " OF " + rows.size();
-            glass.right(batch, glass.fonts.label, more, Glass.DIM, RIGHT, ROWS_Y + HangarState.VISIBLE_ROWS * ROW);
+            int moreY = ROWS_Y + HangarState.VISIBLE_ROWS * ROW;
+            glass.right(batch, glass.fonts.label, more, Glass.DIM, RIGHT, moreY);
+            boolean below = state.top() + HangarState.VISIBLE_ROWS < rows.size();
+            glass.scrollMarkers(
+                    batch, RIGHT - Fonts.width(glass.fonts.label, more) - 6, moreY - 2, state.top() > 0, below);
         }
         int detail = ROWS_Y + HangarState.VISIBLE_ROWS * ROW + 16;
         glass.header(batch, "SELECTED", INNER, RIGHT, detail);
@@ -71,34 +84,53 @@ final class ShopPanel {
             glass.shadowed(batch, glass.fonts.label, lines.get(i), colour, INNER, Y + HEIGHT - 100 + i * 12);
         }
         int box = Y + HEIGHT - 74;
-        glass.fill(batch, new Color(0.04f, 0.05f, 0.14f, 0.9f), INNER, box, WIDTH - 20, 64);
-        glass.outline(batch, Glass.TRIM, INNER, box, WIDTH - 20, 64);
+        glass.inset(batch, INNER, box, WIDTH - 20, 64);
         glass.shadowed(batch, glass.fonts.label, "TEST FIRE LOOP", Glass.AMBER, INNER + 6, box + 6);
         glass.shadowed(batch, glass.fonts.label, "FOLLOWS IN A LATER BUILD", Glass.DIM, INNER + 6, box + 30);
     }
 
     private void drawRow(SpriteBatch batch, Offer offer, int y, boolean selected, List<String> markedTraits) {
         boolean locked = offer.state() == State.LOCKED;
+        glass.row(batch, X + 4, y - 5, WIDTH - 8, ROW - 2);
         if (selected) {
             glass.selection(batch, X + 2, y - 5, WIDTH - 4, ROW - 2);
-            glass.cursor(batch, X + 3, y + 4, 4);
+            glass.cursor(batch, glass.fonts.label, X + 4, y + 4);
         }
-        Color colour = selected ? Glass.AMBER : locked ? Glass.DIM : Glass.WHITE;
-        glass.shadowed(batch, glass.fonts.label, Names.of(offer.item().name()), colour, INNER + 4, y);
+        drawIcon(batch, icons.of(offer.item()).small(), INNER - 2, y - 3, locked);
         String status = status(offer);
         glass.right(batch, glass.fonts.label, status, locked ? Glass.DIM : Glass.CYAN, RIGHT, y);
         float x = RIGHT - Fonts.width(glass.fonts.label, status) - 6;
         if (offer.isNew()) {
             x -= 30;
-            glass.fill(batch, NEW_FILL, x, y - 2, 28, 14);
-            glass.outline(batch, NEW_TAG, x, y - 2, 28, 14);
-            glass.shadowed(batch, glass.fonts.label, "NEW", NEW_TAG, x + 3, y);
+            glass.tag(batch, "NEW", NEW_TAG, x, y - 2, 28, 14);
         }
-        long matches =
-                offer.item().traits().stream().filter(markedTraits::contains).count();
+        long matches = 0;
+        for (String trait : offer.item().traits()) {
+            if (markedTraits.contains(trait)) {
+                matches++;
+            }
+        }
         for (int i = 1; i <= matches; i++) {
-            diamond(batch, x - i * 10, y + 1);
+            glass.diamond(batch, x - i * 10, y + 1);
         }
+        Color colour = selected ? Glass.AMBER : locked ? Glass.DIM : Glass.WHITE;
+        glass.shadowed(
+                batch,
+                glass.fonts.label,
+                Names.of(offer.item().name()),
+                colour,
+                NAME_X,
+                y,
+                x - matches * 10 - NAME_X - 4);
+    }
+
+    /** An item's icon with its top-left corner at (x, y), darkened while it is locked. */
+    private static void drawIcon(SpriteBatch batch, TextureRegion icon, float x, float y, boolean locked) {
+        if (locked) {
+            batch.setColor(LOCKED_ICON);
+        }
+        batch.draw(icon, x, PixelScreen.HEIGHT - y - icon.getRegionHeight());
+        batch.setColor(Color.WHITE);
     }
 
     private static String status(Offer offer) {
@@ -112,18 +144,13 @@ final class ShopPanel {
         };
     }
 
-    /** The ◆ trait-match marker, 7 px. */
-    void diamond(SpriteBatch batch, float x, float y) {
-        for (int i = 0; i < 4; i++) {
-            glass.fill(batch, Glass.AMBER, x + 3 - i, y + i, 1 + 2 * i, 1);
-            glass.fill(batch, Glass.AMBER, x + 3 - i, y + 6 - i, 1 + 2 * i, 1);
-        }
-    }
-
     private void drawDetail(SpriteBatch batch, HangarState state, Offer offer, int y) {
         Item item = offer.item();
         String level = item.maxLevel() > 1 ? "  L" + offer.level() : "";
-        glass.shadowed(batch, glass.fonts.body, Names.of(item.name()) + level, Glass.AMBER, INNER, y);
+        TextureRegion icon = icons.of(item).large();
+        drawIcon(batch, icon, RIGHT - icon.getRegionWidth(), y - 6, offer.state() == State.LOCKED);
+        glass.shadowed(
+                batch, glass.fonts.body, Names.of(item.name()) + level, Glass.AMBER, INNER, y, RIGHT - 28 - INNER);
         int traitX = INNER;
         for (String trait : item.traits()) {
             String text = "<" + trait.toUpperCase(Locale.ROOT) + ">";

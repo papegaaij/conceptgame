@@ -17,6 +17,10 @@ Outputs (assets/backdrop/level-01/, one PNG per tile set and set piece of the le
   wisps, spark-streaks                               high-air (additive, at most 40 % opacity)
   design/campaign/.../level-01-break-at-dawn/concept/backdrop-final-r12-a.png/.gif
                                                      review sheet and the animated pieces' loops
+  design/campaign/.../level-01-break-at-dawn/concept/<id>-final-r13-a.png
+                                                     the review sheet of a piece reworked after
+                                                     round 12 (REWORKED: north-arm, whose solar
+                                                     wings now end inside the piece)
 
 The look is the placeholder's (tools/concept/backdrop_l01.py, frozen and imported unchanged:
 the chosen Earth orbit scene of parallax r03 A, its station kit with the muted ground accent of
@@ -33,7 +37,8 @@ readability rule 7, palette B, seeds and layouts), brought to the production bar
     key light.
 
 Run: python3 tools/art/backdrop_l01.py [--review] [id ...]   (~2 min on 20 cores; --review only
-rebuilds the review files from assets/)
+rebuilds the review files from assets/; with ids only those pieces and the sheets of the reworked
+ones among them)
 """
 import functools
 import importlib.util
@@ -51,8 +56,8 @@ from artkit import DESIGN, ROOT, raster, sprite
 from parallax_r02 import haze  # noqa: E402  (concept script, imported unchanged)
 from render import models  # noqa: E402
 from render.palette import B  # noqa: E402
-from render.sdf import mirror_x, rotate_z, sd_box, sd_cylinder_z, sd_sphere, union  # noqa: E402
-from render.station import ACCENT, DARK, HULL, RED  # noqa: E402
+from render.sdf import mirror_x, rotate_z, sd_box, sd_cylinder_x, sd_cylinder_z, sd_sphere, union  # noqa: E402
+from render.station import ACCENT, DARK, HULL, RED, SOLAR  # noqa: E402
 from render.enemy_rigs import write_gif  # noqa: E402
 
 # The concept generator has this script's name, so it is loaded by path.
@@ -152,6 +157,64 @@ def stormhawk_far(w, h, n):
         hi, factor = artkit.render_hi(lambda p: scene(rotate_z(p, angle)), mats, (w, h), FAR_EXTENT)
         return haze(artkit.native(hi, factor), SEA[2], 0.3)
     return artkit.quantize_set([frame(i) for i in range(n)], 16)
+
+
+# Pieces re-rendered after round 12, each reviewed on its own sheet: id -> review round.
+REWORKED = {"north-arm": "r13"}
+SOLAR_WING = 118                 # the north arm's solar wings, mast root to tip (full scale, px)
+RIB_PITCH = 16                   # their cells
+
+
+def solar_wing(length, depth, left):
+    """A solar wing that ends inside the north arm: the kit's mast and two panel blankets (the
+    concept's ``station.solar_part``), each blanket in a steel frame with an end rail and split
+    into cells by dark ribs, the mast ending in a capped hub with the red tip light, so the wing
+    reads as a built structure."""
+    sign = -1 if left else 1
+    half = length / 2 - 10                 # a blanket's half length; it ends 4 px short of the tip
+
+    def scene(p):
+        q = p.copy()
+        q[:, 0] = q[:, 0] * sign
+        mid = length / 2 + 2
+        items = [(sd_cylinder_x(q, (length / 2 - 4, 0, 1), 2.4, length / 2 - 2), DARK),
+                 (sd_cylinder_x(q, (length - 4, 0, 1), 3.4, 2.2), HULL)]
+        for y in (-depth / 4 - 2, depth / 4 + 2):
+            blanket = depth / 4 - 2
+            items += [(sd_box(q, (mid, y, 0), (half, blanket, 0.8), 0.2), SOLAR),
+                      (sd_box(q, (mid, y, 0.6), (half, blanket, 0.4), 0.0), SOLAR)]
+            for side in (-1, 1):
+                items.append((sd_box(q, (mid, y + side * blanket, 1.0), (half + 1.2, 1.2, 1.0), 0.4), HULL))
+            items.append((sd_box(q, (mid + half, y, 1.0), (1.4, blanket + 1.2, 1.2), 0.4), HULL))
+            for x in np.arange(mid - half + RIB_PITCH, mid + half - 4, RIB_PITCH):
+                items.append((sd_box(q, (x, y, 0.9), (0.6, blanket, 0.5), 0.2), DARK))
+        items.append((sd_sphere(q, (length - 1, 0, 2.2), 2.0), RED))
+        return union(*items)
+    return l01.part(scene, (length * 2, depth))
+
+
+def north_arm(w, h):
+    """The placeholder's north arm (its kit, layout and scale) with solar wings that end inside
+    the piece: the placeholder's 140 px wings ran past its 180 px width and were cut off as flat
+    slabs (user decision after round 12)."""
+    k = l01.kit()
+    fw, fh = int(round(w / l01.FAR_SCALE)), int(round(h / l01.FAR_SCALE))
+    low, high = l01.blank(fw, fh), l01.blank(fw, fh)
+    cx = fw // 2
+    for x in (cx - 72, cx + 72):
+        l01.column(low, k["truss_v"], x, 0, fh)
+    l01.column(low, k["rail"], cx, 90, fh)
+    for y in (180, 560, 940, 1300):
+        l01.put(low, l01.truss_h(170), cx, y)
+    l01.put(low, solar_wing(SOLAR_WING, 56, True), cx - 72, 420)
+    l01.put(low, solar_wing(SOLAR_WING, 56, False), cx + 72, 760)
+    l01.put(low, k["radiator"], cx + 130, 1120)
+    l01.put(high, k["drum"], cx - 72, 1080)
+    l01.put(high, k["dish"], cx + 72, 260)
+    l01.put(high, k["dock"], cx, 70)
+    img = l01.with_shadow(low, high).resize((w, h), Image.BOX)
+    img.putalpha(img.getchannel("A").point(lambda v: 255 if v >= 128 else 0))
+    return artkit.quantize_set([haze(img, SEA[2], 0.5)], 24)[0]
 
 
 # --------------------------------------------------------------------------- ground and low-air
@@ -271,7 +334,7 @@ TILE_SETS = {
 }
 PIECES = {
     "earth-dawn": l01.earth_dawn, "moon": moon, "earth-limb": earth_limb, "vrell-glow": vrell_glow,
-    "north-arm": posterized(l01.north_arm, 24), "stormhawk-far": stormhawk_far,
+    "north-arm": north_arm, "stormhawk-far": stormhawk_far,
     "launch-rail": posterized(l01.launch_rail), "crossbeam": posterized(l01.crossbeam),
     "dock-frame": posterized(dock_frame),
     "dock-frame-mirrored": posterized(functools.partial(dock_frame, flip=True)),
@@ -440,7 +503,29 @@ def strip(frames, per_row, gap=4):
     return out
 
 
+def piece_review(name, round_):
+    """The review sheet of a piece re-rendered after round 12: alone, over the Earth tile at 1x
+    and at 2x, as ``<id>-final-<round>-a.png`` in Level 01's concept directory."""
+    img, earth = load(name), load("earth")
+    on_earth = over(img, tiled(earth, img.height).crop((0, 0, img.width, img.height)))
+    items = [(f"{name.upper()} {img.width}X{img.height}, {artkit.colour_count([img])} COLOURS", over(img)),
+             ("OVER THE EARTH TILE, 1X", on_earth), ("2X", sprite.enlarge(on_earth, 2))]
+    width = 16 + sum(i[1].width + 14 for i in items) + 2
+    sheet = raster.sheet(width, 44 + items[-1][1].height + 30, f"{name.upper()} - FINAL ({round_.upper()})",
+                         f"PRODUCTION ART, UI BATCH - {round_.upper()}")
+    x = 16
+    for label, image in items:
+        raster.draw_text(sheet, x, 44, label, raster.LABEL)
+        sheet.alpha_composite(image, (x, 56))
+        x += image.width + 14
+    path = LEVEL_DIR / "concept" / f"{name}-final-{round_}-a.png"
+    sheet.convert("RGB").save(path, optimize=True)
+    print(f"review: {path.relative_to(ROOT)}")
+
+
 def main(argv):
+    """All pieces and both reviews by default; with ids only those pieces and the review sheets of
+    the reworked ones among them."""
     backdrop = backdrop_data()
     review_only = "--review" in argv
     wanted = {a for a in argv if a != "--review"}
@@ -454,7 +539,10 @@ def main(argv):
         with ProcessPoolExecutor() as pool:
             for job, images in zip(todo, pool.map(render, todo)):
                 write(job, images)
-    review(backdrop)
+    if not wanted:
+        review(backdrop)
+    for name in sorted((wanted or REWORKED.keys()) & REWORKED.keys()):
+        piece_review(name, REWORKED[name])
 
 
 if __name__ == "__main__":

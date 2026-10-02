@@ -81,9 +81,17 @@ public record LevelScript(
      *
      * @param t seconds from the level start, for {@link CueTrigger#TIME}
      * @param subject the enemy slug of a first kill or the secret's name; empty otherwise
+     * @param expression the speaker's portrait expression ({@code neutral}, {@code grim}, {@code fierce});
+     *     presentation only, nothing in the simulation reads it
      */
     public record RadioCue(
-            CueTrigger trigger, double t, String subject, String speaker, String line, boolean distorted) {}
+            CueTrigger trigger,
+            double t,
+            String subject,
+            String speaker,
+            String line,
+            boolean distorted,
+            String expression) {}
 
     public enum CueTrigger {
         TIME,

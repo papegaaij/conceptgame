@@ -248,7 +248,7 @@ public final class LevelScreen implements GameScreen {
                 case SHIELD_HIT -> shimmer = SHIMMER_TICKS;
                 case RADIO -> {
                     LevelScript.RadioCue cue = sortie.script().radio().get(events.value(i));
-                    radio.add(cue.speaker(), cue.line(), cue.distorted());
+                    radio.add(cue.speaker(), cue.expression(), cue.line(), cue.distorted());
                 }
                 case SHIP_DESTROYED -> {
                     effects.start(services.sprites.explosionLarge, LARGE_EXPLOSION_FRAME_TICKS, x, y);
