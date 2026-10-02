@@ -56,7 +56,7 @@ final class TestSpecs {
                     new ScoringRules.Grade("B", 55, 0.1),
                     new ScoringRules.Grade("C", 35, 0),
                     new ScoringRules.Grade("D", 0, 0)));
-    static final Rules RULES = new Rules(120, new PickupRules(10, 0.25, 10, 6, 40, 36), SCORING);
+    static final Rules RULES = new Rules(120, 0, new PickupRules(10, 0.25, 10, 6, 40, 36), SCORING);
 
     private TestSpecs() {}
 

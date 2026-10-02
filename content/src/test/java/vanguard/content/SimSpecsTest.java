@@ -152,6 +152,8 @@ class SimSpecsTest {
         Rules easy = SimSpecs.rules(content, LEVEL, Difficulty.EASY);
 
         assertEquals(120, medium.bulletBudget());
+        assertEquals(0, medium.aimedSpread());
+        assertEquals(Math.toRadians(4), easy.aimedSpread());
         assertEquals(10, medium.pickups().smallSalvageCredits());
         assertEquals(0.25, medium.pickups().shieldCellShare());
         assertEquals(6, medium.pickups().seconds());

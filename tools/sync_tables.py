@@ -449,7 +449,9 @@ def difficulty(d):
         ["Enemy bullet speed"] + per("enemy_bullet_speed", factor),
         ["Enemy fire rate"] + per("enemy_fire_rate", factor),
         ["Bullets per `fan` / `ring` / `burst`"] + per("pattern_bullets", lambda v: change(v, 1)),
-        ["Aimed shots"] + per("aimed_shots", str),
+        ["Aimed shots"] + [lv["aimed_shots"][level] + (f", ±{num(lv['aimed_spread_degrees'][level])}° spread"
+                                                       if lv["aimed_spread_degrees"][level] else "")
+                           for level in order],
         ["Formation size"] + per("formation_size", change),
         ["Bullet budget (max enemy bullets on screen)"] + per("bullet_budget", num),
         ["Player shield regen"] + per("shield_regen", factor),

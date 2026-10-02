@@ -57,9 +57,9 @@ left panel is about the mission (score, radio), the right panel about the ship.
 | Score | 8 digits, counts up quickly |
 | Credits | Earned so far, including level-start balance |
 | Chain | Chain count, multiplier and draining window bar (see [scoring](../../systems/scoring/README.md)) |
-| Radio | 72×72 portrait with static on open/close, name, subtitle below the portrait up to 3 lines × 22 chars; queued messages; urgent warnings interrupt |
+| Radio | 72×72 portrait with static on open/close, name, subtitle below the portrait up to 3 lines × 22 chars per page; a longer line is paged: each page typed out, then held 1.5 s; a radio line is at most **two pages** of word-wrapped lines (writing rule); queued messages; urgent warnings interrupt |
 | Progress | Level progress bar with a boss marker at the end |
-| Objective tracker | Only in levels with an objective. Compact box above the progress bar: objective icon and short label (e.g. "DOCKS", "CRAWLERS", "BATTERIES", "HIVE NODES", "SHUTTLES", "RELAY"), then progress as pips or counters (docks, crawler pips, batteries A–D, hive nodes, shuttles, relay integrity bar). A pip flashes green on success and red on a loss or failure; the whole box flashes when the objective is won or lost. Used by [L02](../../campaign/act-1-first-contact/level-02-shipyard-burning/README.md), [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md) and [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md) |
+| Objective tracker | Shown for every primary or secondary objective; hidden in levels without one. Compact box above the progress bar: objective icon and short label (e.g. "DOCKS", "CRAWLERS", "BATTERIES", "HIVE NODES", "SHUTTLES", "RELAY"), then progress as pips or counters (docks, crawler pips, batteries A–D, hive nodes, shuttles, relay integrity bar). A pip flashes green on success and red on a loss or failure; the whole box flashes when the objective is won or lost. Used by [L02](../../campaign/act-1-first-contact/level-02-shipyard-burning/README.md), [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md) and [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md); the secondary objective of [L01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) shows a `KILLS n / 76` counter that turns `DONE` and flashes green when met |
 
 ### Right panel (ship)
 
@@ -111,7 +111,7 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 - [ ] Side panel frames from the UI kit
 - [x] Left panel: mission, score, credits, chain, radio, progress
-- [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective
+- [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter done)
 - [ ] Right panel: armour, shield, power, weapons, overdrive, special, escort
 - [ ] Radio message queue with portraits, priority interrupts
 - [ ] Boss bar, warning banners, edge arrows, pickup numbers
@@ -120,13 +120,6 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 - Should the side panels show a subtle live element, such as a mini-radar or the pilot's
   heartbeat? Nice 90s flavour, but it competes for attention.
-- (M2) Level 01 is not in the objective tracker's list, but has a secondary objective (80 %
-  of the enemies). The placeholder HUD shows it as a `KILLS n / 76` counter that turns `DONE`
-  and flashes green when met. Keep it for secondary objectives, or show the tracker only in the
-  listed objective levels?
-- (M2) Several radio lines are longer than the 3 × 22 character subtitle (Rook's opening line is
-  96 characters). The placeholder pages them: three lines at a time, typed out, each page held
-  1.5 s. Shorten the lines, or keep paging?
 
 ## Decisions
 
@@ -148,3 +141,10 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   first section's control prompts, a secondary-objective tracker and the progress bar; in the play
   field the edge-warning arrows and floating credit numbers. Not yet: queue interrupts for urgent
   warnings, warning banners, power, special and escort.
+- 2026-10-02: The objective tracker is shown for every secondary objective too, so Level 01's
+  `KILLS n / 76` counter stays (user decision); showing it only in the listed objective levels
+  was the alternative.
+- 2026-10-02: Radio lines keep paging (3 × 22 characters per page, typed, each page held 1.5 s),
+  with the writing rule that a line is at most two pages (user decision); shortening every line to
+  one page was the alternative.
+- 2026-10-02: The two-page rule counts word-wrapped lines, not characters (user decision); Level 07's t=95 line (3 pages) is shortened when Level 07 is built in M4.

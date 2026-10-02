@@ -99,6 +99,7 @@ public final class SimSpecs {
                 * Math.pow(content.economy().actFactor(), act - 1);
         return new Rules(
                 levers.bulletBudget().of(difficulty),
+                Math.toRadians(levers.aimedSpreadDegrees().of(difficulty)),
                 pickupRules,
                 scoring(content.scoring(), levers.score().of(difficulty), creditFactor));
     }

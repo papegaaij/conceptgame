@@ -25,8 +25,8 @@ public final class Sprites implements Disposable {
     public final Array<AtlasRegion> skitter;
     /** The claw snap. */
     public final Array<AtlasRegion> needler;
-    /** The Vrell needle bullet, flying down. */
-    public final AtlasRegion thorn;
+    /** The Vrell standard orb bullet (the Needler's thorn). */
+    public final AtlasRegion orb;
     /** The pickups' 8-frame spin loops. */
     public final Array<AtlasRegion> salvageSmall;
 
@@ -59,7 +59,7 @@ public final class Sprites implements Disposable {
         ship = frames(sprites, "ship");
         skitter = frames(sprites, "skitter");
         needler = frames(sprites, "needler");
-        thorn = region(sprites, "thorn");
+        orb = region(sprites, "orb");
         salvageSmall = frames(sprites, "pickup-salvage-small");
         crate = frames(sprites, "pickup-crate");
         shieldCell = frames(sprites, "pickup-shield-cell");

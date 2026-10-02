@@ -160,7 +160,8 @@ None. The Needler circle (t=162) acts as the finale.
 
 Track 5 *Act 1 B: Earth orbit & Luna* ("Coalition Rising", the main motif; see the
 [track list](../../../audio/music/README.md#track-list)), starting at the section 2
-transition, base stem only until section 4. Section 1 has ambience only: the Earth-orbit
+transition, base stem only until section 4 (until the stems exist with the production audio
+after M2, the full mix plays from section 2). Section 1 has ambience only: the Earth-orbit
 ambience ([sfx](../../../audio/sfx/README.md#ambience-per-setting)), the launch rail and radio
 blips. Mission complete jingle at the end.
 

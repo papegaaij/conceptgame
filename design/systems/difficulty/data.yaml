@@ -5,9 +5,10 @@ enemy_bullet_speed: {easy: 0.8, medium: 1.0, hard: 1.15}
 enemy_fire_rate: {easy: 0.7, medium: 1.0, hard: 1.3}
 pattern_bullets: {easy: -0.25, medium: 0, hard: 0.25}  # bullets per fan / ring / burst, at least ±1
 aimed_shots:
-  easy: at the player's current position, slight spread
+  easy: at the player's current position
   medium: at the player's current position
-  hard: selected enemies lead the target, tighter spread
+  hard: selected enemies lead the target
+aimed_spread_degrees: {easy: 4, medium: 0, hard: 0}  # uniform random offset within ± this
 formation_size: {easy: -0.2, medium: 0, hard: 0.2}
 bullet_budget: {easy: 60, medium: 120, hard: 200}  # max enemy bullets on screen
 shield_regen: {easy: 1.25, medium: 1.0, hard: 1.0}

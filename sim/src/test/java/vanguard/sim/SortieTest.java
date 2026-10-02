@@ -234,6 +234,36 @@ class SortieTest {
     }
 
     @Test
+    void easyAimedShotsSpreadWithinFourDegreesAndMediumOnesAreExact() {
+        List<Double> easy = aimDeviations(Math.toRadians(4));
+        List<Double> medium = aimDeviations(0);
+
+        assertTrue(easy.size() > 10 && medium.size() == easy.size(), "it fires a stream of thorns");
+        assertTrue(easy.stream().allMatch(d -> Math.abs(d) <= Math.toRadians(4) + 1e-9));
+        double low = easy.stream().mapToDouble(d -> d).min().orElseThrow();
+        double high = easy.stream().mapToDouble(d -> d).max().orElseThrow();
+        assertTrue(low < -Math.toRadians(1) && high > Math.toRadians(1), "easy shots vary to both sides");
+        assertTrue(medium.stream().allMatch(d -> Math.abs(d) < 1e-9), "medium shots are exact");
+    }
+
+    /** How far each thorn of a fast-firing Needler above the ship leaves from straight down, in radians. */
+    private static List<Double> aimDeviations(double spread) {
+        var rules = new Rules(120, spread, TestSpecs.RULES.pickups(), TestSpecs.SCORING);
+        var needler = TestSpecs.needler(new EnemyGun(0.1, 0, 1, 150, 0, false));
+        var sortie = new Sortie(
+                1, TestSpecs.LOADOUT, level(20, List.of(wave(0, LINE_ABREAST, needler, 1, FRONT, NONE))), rules);
+        List<Double> deviations = new ArrayList<>();
+        for (int i = 0; i < 6 * SimStep.PER_SECOND; i++) {
+            sortie.step(Command.NONE);
+            if (sortie.events().count(SimEvents.Type.ENEMY_FIRED) > 0) {
+                double heading = sortie.bullet(sortie.bulletCount() - 1).heading();
+                deviations.add(Math.signum(heading) * (StrictMath.PI - Math.abs(heading)));
+            }
+        }
+        return deviations;
+    }
+
+    @Test
     void thornsHitTheShield() {
         var sortie = sortie(level(20, List.of(needlerAt(0))));
 
@@ -254,7 +284,7 @@ class SortieTest {
 
     @Test
     void theBulletBudgetCapsEnemyBulletsOnScreen() {
-        var rules = new Rules(1, TestSpecs.RULES.pickups(), TestSpecs.SCORING);
+        var rules = new Rules(1, 0, TestSpecs.RULES.pickups(), TestSpecs.SCORING);
         var waves = List.of(wave(0, LINE_ABREAST, NEEDLER, 3, FRONT, NONE));
         var sortie = new Sortie(1, TestSpecs.LOADOUT, level(20, waves), rules);
 

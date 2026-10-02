@@ -24,7 +24,7 @@ retries. The levels themselves (layouts, enemy types) are the same on every diff
 | Enemy bullet speed | × 0.8 | × 1.0 | × 1.15 |
 | Enemy fire rate | × 0.7 | × 1.0 | × 1.3 |
 | Bullets per `fan` / `ring` / `burst` | −25 % (at least −1) | base | +25 % (at least +1) |
-| Aimed shots | at the player's current position, slight spread | at the player's current position | selected enemies lead the target, tighter spread |
+| Aimed shots | at the player's current position, ±4° spread | at the player's current position | selected enemies lead the target |
 | Formation size | −20 % | base | +20 % |
 | Bullet budget (max enemy bullets on screen) | 60 | 120 | 200 |
 | Player shield regen | × 1.25 | × 1.0 | × 1.0 |
@@ -40,6 +40,16 @@ retries. The levels themselves (layouts, enemy types) are the same on every diff
 (2.5 → 2, 3.5 → 4, 5.2 → 5) and at least 1; the easy/hard HP in the enemy stat blocks follow the
 same rule.
 
+**Aimed-shot spread.** Each aimed shot leaves at a uniformly random angle within ± the spread of
+its aim (easy ±4°; medium and hard 0°, exact). The random angle comes from the level's seeded
+random generator, so a replay fires the same shots. On hard, selected enemies (stat-block hooks)
+also lead the target: they aim where the player will be when the shot arrives.
+
+**Formation size.** A wave's count is count × (1 ± 20 %), rounded half to even and at least 1,
+unless the level authors the count for that difficulty (Level 01's hard rear wave of 10 replaces
+the lever). Likewise an authored `burst` for a difficulty is final and is not raised again by the
+bullets-per-burst lever.
+
 Density scaling uses **authored variants** where it matters: a pattern designer can mark
 bullets as `medium+` or `hard-only`, rather than relying on a multiplier alone. This table is
 the single source of the global levers; enemy stat blocks only add overrides (see
@@ -53,13 +63,7 @@ the single source of the global levers; enemy stat blocks only add overrides (se
 
 ## Open questions
 
-- (M2) Aimed-shot spread: easy has "slight spread" and hard "tighter spread", but medium has
-  none and no angles are given, so aimed shots have no spread yet on any difficulty. What spread
-  (degrees) is meant?
-- (M2) Formation size and authored counts: implemented as count × (1 ± 20 %), rounded half to
-  even, at least 1, unless a level sets the count for that difficulty (Level 01's hard rear wave
-  of 10 replaces the lever). Likewise Level 01's hard `burst: 2` is taken as authored, not raised
-  again by the bullets-per-burst lever. Confirm.
+- None open.
 
 ## Decisions
 
@@ -77,3 +81,9 @@ the single source of the global levers; enemy stat blocks only add overrides (se
   regen, credit income and score; the stat blocks' hard hooks (circle Needlers lead the target).
   The difficulty comes from the `--difficulty` launch option until the new-game menu (M3); not
   stored in a save yet, so the first item stays open.
+- 2026-10-02: Aimed-shot spread (user decision): easy ±4°, medium 0°, hard 0° plus target
+  leading by selected enemies; a uniform random offset from the level's seeded generator
+  (`aimed_spread_degrees` in [data.yaml](data.yaml), applied by `vanguard.sim.Sortie`).
+- 2026-10-02: Formation size (user decision): count × (1 ± 20 %), rounded half to even, at least
+  1, unless a level authors the count for that difficulty; an authored `burst` is not raised again
+  by the bullets-per-burst lever.

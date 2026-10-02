@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/bosses/brood-carrier, ../../../world/earth-orbit]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Level 07 – Brood Carrier
@@ -212,6 +212,11 @@ in the total. Spore mines (1 each) are excluded as in L03.
 - [ ] Act-end outro plays after the carrier's death sequence.
 - [ ] Credit total at medium with perfect collection is 1,501 (± 5%).
 - [ ] Easy/hard variations as in *Difficulty notes*.
+
+## Open questions
+
+- (M4) Varga's t=95 line runs to three pages of word-wrapped subtitle, over the two-page writing
+  rule ([HUD](../../../ui/hud/README.md)); shorten it when the level is built.
 
 ## Decisions
 

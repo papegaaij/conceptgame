@@ -37,6 +37,9 @@ public final class PlaceholderSprites {
     /** {@code raster.LABEL_DIM}: the frame numbers printed into the explosion frames' top-left corner. */
     private static final int FRAME_LABEL = 0x6E7891;
 
+    /** How far (per channel) a faded glow pixel may be from the background and still be keyed. */
+    private static final int GLOW_TOLERANCE = 12;
+
     private static final int LABEL_WIDTH = 14;
     private static final int LABEL_HEIGHT = 10;
 
@@ -55,6 +58,11 @@ public final class PlaceholderSprites {
         OPAQUE,
         /** Background pixels become transparent. */
         KEYED,
+        /**
+         * Pixels within {@link #GLOW_TOLERANCE} of the background become transparent: for an opaque
+         * sprite whose faint outer glow fades into the background.
+         */
+        KEYED_GLOW,
         /** The background colour is subtracted, for additive blending. */
         ADDITIVE
     }
@@ -173,20 +181,21 @@ public final class PlaceholderSprites {
                     Treatment.KEYED,
                     false,
                     NATIVE_SIZE),
-            // vfx_r09.bullets_sheet, needle row: the Vrell yellow needle flying down, at 2x with a 1 px pad.
+            // vfx_r09.bullets_sheet, orb row: the first frame of the Vrell standard orb at 3x with a 1 px
+            // pad; its outer glow fades into the checkerboard, which is keyed up to the glow tolerance.
             new Cut(
                     "sprites",
-                    "thorn",
+                    "orb",
                     BULLET_SHEET,
                     465,
-                    191,
-                    46,
-                    46,
-                    2,
+                    63,
+                    45,
+                    45,
+                    3,
                     1,
                     0,
-                    spriteChecker(464, 190, 0, 4),
-                    Treatment.KEYED,
+                    spriteChecker(464, 62, 0, 6),
+                    Treatment.KEYED_GLOW,
                     false,
                     NATIVE_SIZE),
             // vfx_r09.pickups_sheet: the 8-frame spin loops at 2x of salvage S, salvage L (the crate),
@@ -480,12 +489,22 @@ public final class PlaceholderSprites {
         return switch (treatment) {
             case OPAQUE -> 0xFF000000 | rgb;
             case KEYED -> rgb == background ? 0 : 0xFF000000 | rgb;
+            case KEYED_GLOW -> near(rgb, background) ? 0 : 0xFF000000 | rgb;
             case ADDITIVE ->
                 0xFF000000
                         | subtract(rgb, background, 16)
                         | subtract(rgb, background, 8)
                         | subtract(rgb, background, 0);
         };
+    }
+
+    private static boolean near(int rgb, int background) {
+        for (int shift = 0; shift <= 16; shift += 8) {
+            if (Math.abs(((rgb >> shift) & 0xFF) - ((background >> shift) & 0xFF)) > GLOW_TOLERANCE) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static int subtract(int rgb, int background, int shift) {

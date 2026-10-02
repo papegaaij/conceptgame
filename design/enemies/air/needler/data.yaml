@@ -21,7 +21,7 @@ attacks:
     speed: 150             # px/s
     first_shot_delay: 0.8  # s after it stops
     notes:
-      text: '`{pattern}` yellow thorn every {interval} s, {speed} px/s, damage `{bullet}` = {damage}; first shot {first_shot_delay} s after it stops'
+      text: '`{pattern}` thorn (standard orb) every {interval} s, {speed} px/s, damage `{bullet}` = {damage}; first shot {first_shot_delay} s after it stops'
 formations:
   - {name: V-wing, size: [5]}
   - {name: line abreast}

@@ -114,6 +114,7 @@ reused round 02 files marked (r02).
 | Ship destroyed | Big explosion, then the music sting — [a](concept/player-destroyed-r08-a.ogg) | P1 |
 | Dash | Thruster burst | P3 |
 | Engine hum | Subtle loop (optional) | P3 |
+| Launch rail | The catapult run at a level start (Level 01 section 1): rail hum rising to a release clunk — *pending: next concept round* | P2 |
 
 ### Pickups
 
@@ -348,7 +349,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 
 ## Open questions
 
-- (M2) Level 01's launch rail sound has no file yet (no chosen or proposed effect).
+- None open.
 
 ## Decisions
 
@@ -370,3 +371,5 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
   Needlers and containers, metal hits for ground objects, the salvage, shield cell and armour patch
   pickups (salvage large for the hidden crate), radio squelch and typing, the debrief tick, total
   and stamp, and the Earth-orbit ambience loop.
+- 2026-10-02: The launch rail sound goes into the next concept round (user decision); listed as a
+  pending item in the Player ship table, no file yet.

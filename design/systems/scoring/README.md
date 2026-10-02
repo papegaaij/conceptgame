@@ -24,6 +24,10 @@ a separate number, shown next to credits on the HUD:
 
 - score per kill = bounty × 10 × chain multiplier
 - pickups and bonuses add score equal to 10 × their credit value (no multiplier)
+- ground targets (e.g. cargo containers) are **not kills**: they score like pickups (10 × their
+  credit value, no chain) and do not count for the kill ratio
+- an enemy rammed to death **is** a kill: it pays its bounty and counts for the chain and the kill
+  ratio
 - like credits, the score earned in a failed attempt is discarded on retry
 
 ### Chain multiplier
@@ -48,7 +52,15 @@ a separate number, shown next to credits on the HUD:
 ### Grades
 
 Grade per level, from a weighted rating: kill ratio 40 %, armour damage taken 30 %, secrets 15 %,
-max chain 15 %.
+max chain 15 %. Each part maps to 0–100 as follows (first values, to tune once more levels
+exist):
+
+- kill ratio: kills ÷ enemies in the level
+- armour damage taken: 1 − armour lost ÷ the plating's maximum
+- secrets: secrets found ÷ secrets; full marks in a level without secrets
+- max chain: the longest chain ÷ 80 (the chain that reaches ×5), at most 1
+
+A flawless Level 01 with a chain of 30 rates about 91 (S).
 
 <!-- data: grades -->
 | Grade | Rating | Credit bonus |
@@ -77,13 +89,7 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
 
 ## Open questions
 
-- (M2) How does each part of the grade rating map to 0–100? Implemented as a first guess: the
-  kill ratio; 1 − armour lost ÷ the plating's maximum; secrets found ÷ secrets (full marks in a
-  level without secrets); the longest chain ÷ 80 (the chain that reaches ×5). A flawless Level 01
-  with a chain of 30 rates about 91 (S).
-- (M2) Ground targets (cargo containers) are not kills: they score like pickups (10 × their
-  credit value, no chain) and do not count for the kill ratio. A unit rammed to death counts as a
-  kill and pays its bounty. Is that the intent?
+- None open.
 
 ## Decisions
 
@@ -97,3 +103,8 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
   level-end bonuses (Destruction, Untouched, Explorer; Boss rush waits for bosses) and the grade
   with its credit bonus, shown in the debrief. The bonus goes into the campaign balance with the
   campaign state (M3), so that item stays open.
+- 2026-10-02: Grade rating mapping kept as implemented (kill ratio; 1 − armour lost ÷ plating
+  maximum; secrets found ÷ secrets, full marks without secrets; longest chain ÷ 80); tune after
+  more levels exist (user decision).
+- 2026-10-02: Ground targets are not kills (score like pickups, no chain, not in the kill ratio);
+  a rammed enemy counts as a kill and pays its bounty (user decision).

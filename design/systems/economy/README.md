@@ -35,7 +35,9 @@ growth as prices (1.07⁷ ≈ 1.6 per act), so a level's income stays in line wi
 e.g. the Pulse Cannon's L2 upgrade.
 
 Difficulty multiplies all credit income: easy ×1.25, medium ×1.0, hard ×0.9. See
-[difficulty](../difficulty/README.md).
+[difficulty](../difficulty/README.md). The factor is applied and **rounded per payout**, half to
+even like the HP lever (easy: a Skitter pays 6, a small salvage 12, the secondary objective 62),
+so the debrief's per-source lines add up exactly to the level's credits.
 
 Two budgeting conventions, used by level documents and `tools/balance.py`:
 
@@ -112,9 +114,6 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 
 - Do credits earned in a failed attempt really vanish? Yes: the user decided this. The
   consequence is that grinding by dying is impossible, which is intended.
-- (M2) Rounding of the difficulty's income factor: implemented per payout, half to even like the
-  HP lever (easy: a Skitter pays 6, a small salvage 12, the secondary objective 62). Confirm, or
-  should a level's credits be summed first and rounded once?
 
 ## Decisions
 
@@ -133,3 +132,6 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   salvage, secrets, objectives) at the Act 1 value × the difficulty's income × the act factor,
   and lost with a failed attempt. The level's starting balance is the 300 starting credits until
   the campaign state exists (M3).
+- 2026-10-02: The difficulty's income factor is rounded per payout, half to even, so the debrief
+  adds up exactly (user decision); summing a level's credits first and rounding once was the
+  alternative.

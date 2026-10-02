@@ -199,7 +199,7 @@ that move in any direction must read from any angle:
 |---|---|
 | `none` | Harmless except on contact (rammers). |
 | `aimed` | A single shot at the player's current position. |
-| `burst` | n aimed shots in quick succession. |
+| `burst` | n aimed shots in quick succession (0.15 s apart). |
 | `fan` | An n-way spread, centred on the player or straight down. |
 | `ring` | A circular burst of n bullets. |
 | `spiral` | A rotating stream of bullets. |
@@ -239,6 +239,10 @@ that move in any direction must read from any angle:
 | `swarm` | A loose, randomised cloud with flocking behaviour. |
 | `whirl cluster` | A burst of 5–8 tiny spinners released from one point, spiralling outward and ricocheting. |
 <!-- /data -->
+
+**Formation layouts** (first values, to tune): a V-wing's ranks are 50 px apart sideways; a
+pincer's groups enter 60 px from their edge; a circle's centre is 180 px below the top of the
+play field and its units break off in groups 0.5 s apart, a Needler at its 120 px/s entry speed.
 
 ### Variety checklist per act
 
@@ -296,6 +300,9 @@ Enemy bullets always travel on the player's plane, whatever layer fired them.
   [vrell-space](../world/vrell-space/README.md) and [europa](../world/europa/README.md)).
 - Shape encodes threat: small round = standard, elongated = fast, large pulsing = slow and
   heavy, diamond = homing (shootable).
+  The look follows the speed class, not the enemy's name for its bullet: a "thorn" at standard
+  speed (the Needler's) is a standard orb; the yellow needle is only for the fast class.
+- The hit box of a `small` enemy bullet is 6×6 px (the 9 px orb's core).
 - Every laser and area attack is telegraphed: `laser-line` ≥ 0.8 s, `laser-sweep` ≥ 0.6 s,
   `mortar` impact point marked ≥ 1 s ahead.
 - No enemy bullet spawns within 72 px of the player's ship.
@@ -455,15 +462,7 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 
 ## Open questions
 
-- (M2) Missing numbers, implemented with first values to tune: the gap between the shots of a
-  `burst` (0.15 s), the hit box of a `small` enemy bullet (6×6), the layouts of the formations in
-  `vanguard.sim.Formations` (V rank spacing 50 px, pincer 60 px from its edge, circle centre
-  180 px below the top, 0.5 s between circle break groups, a Needler breaking off at its 120 px/s).
-- (M2) The Needler's thorn is drawn as the Vrell yellow needle, which the bullet set (round 09)
-  marks as the *fast* class (190–260 px/s), while the Needler fires it at 150 px/s (standard).
-  Keep the needle look, or use the standard orb?
-- (M2) Level 01 flies line-abreast Skitters in lines of 8 (and 10 on hard), while the Skitter's
-  stat block lists line abreast as 5–7. Widen the stat block, or shorten the lines?
+- None open.
 
 ## Decisions
 
@@ -508,3 +507,11 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
   bullets are drawn above every layer, need 72 px to the ship and respect the bullet budget;
   standard shots hit `air` and `ground` targets, `air` units ram. The other formations, attack
   patterns, layers and telegraphs follow with the levels that use them, so those items stay open.
+- 2026-10-02: First tuning values accepted as documented first values (user decision): burst gap
+  0.15 s, `small` enemy bullet hit box 6×6, V rank spacing 50 px, pincer 60 px from its edge,
+  circle centre 180 px below the top, 0.5 s between circle break groups, a Needler breaking off
+  at 120 px/s. They are still constants in code (`vanguard.sim.EnemyGun` for the burst gap and
+  the bullet hit box, `vanguard.sim.Formations` for the layouts); moving them into data needs the
+  gun, bullet and formation planner to carry them, which waits for the next tuning pass.
+- 2026-10-02: The Needler's thorn uses the standard orb look; the yellow needle stays reserved for
+  the fast class (user decision).

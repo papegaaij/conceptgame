@@ -33,7 +33,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Speed | 190 px/s (stream 160, swoop up to 240) |
 | Movement | `snake` along an authored `path` (unit spacing 0.25 s), `swoop` (entry curve radius 120–200 px), `straight` in streams |
 | Attack | `none` — contact only (contact damage `tiny` = 6) |
-| Formations | snake (6–12), stream, line abreast (5–7), swarm |
+| Formations | snake (6–12), stream, line abreast (5–10), swarm |
 | Weak points | none (dies in one hit) |
 | Effective traits | `spread`, `forward` |
 | Credits | 5 (score 50 × chain) |
@@ -72,3 +72,5 @@ Chosen concept: [skitter-r04-a.png](../concept/skitter-r04-a.png) (listed in the
   stat block speed, streams fly at 160 px/s. HP comes through the HP lever (1 on every difficulty).
   The entry paths are still authored in code (`Formations`), not as data, and swarms are not
   built, so that item stays open; a rammed Skitter pays its bounty like a kill.
+- 2026-10-02: Line abreast widened to 5–10 Skitters (user decision), so Level 01's lines of 8
+  (10 on hard) fit the stat block.

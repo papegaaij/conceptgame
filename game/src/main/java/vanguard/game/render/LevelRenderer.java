@@ -173,16 +173,9 @@ public final class LevelRenderer {
     }
 
     private void drawBullets(SpriteBatch batch, Sortie sortie, float alpha) {
-        TextureRegion thorn = sprites.thorn;
-        float width = thorn.getRegionWidth();
-        float height = thorn.getRegionHeight();
         for (int i = 0; i < sortie.bulletCount(); i++) {
             EnemyBullet bullet = sortie.bullet(i);
-            // The sprite flies down (heading 180°); turn it to the bullet's heading.
-            float rotation = (float) (180 - Math.toDegrees(bullet.heading()));
-            float x = Math.round(X0 + bullet.renderX(alpha) - width / 2);
-            float y = Math.round(bullet.renderY(alpha) - height / 2);
-            batch.draw(thorn, x, y, width / 2, height / 2, width, height, 1, 1, rotation);
+            drawCentred(batch, sprites.orb, bullet.renderX(alpha), bullet.renderY(alpha));
         }
     }
 

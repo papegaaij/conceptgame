@@ -242,7 +242,10 @@ public final class Sortie {
         }
     }
 
-    /** An aimed shot at the ship, or where it is going for a unit that leads the target. */
+    /**
+     * An aimed shot at the ship, or where it is going for a unit that leads the target, turned by a
+     * random angle within the difficulty's spread.
+     */
     private void fireAt(Enemy enemy) {
         EnemyGun gun = enemy.spec().gun().orElseThrow();
         double dx = ship.x() - enemy.x();
@@ -256,6 +259,14 @@ public final class Sortie {
             dx += ship.vx() * flight;
             dy += ship.vy() * flight;
             distance = Math.sqrt(dx * dx + dy * dy);
+        }
+        if (rules.aimedSpread() > 0) {
+            double angle = rng.range(-rules.aimedSpread(), rules.aimedSpread());
+            double cos = Trig.cos(angle);
+            double sin = Trig.sin(angle);
+            double turned = dx * cos - dy * sin;
+            dy = dx * sin + dy * cos;
+            dx = turned;
         }
         EnemyBullet bullet = bullets.obtain();
         bullet.fire(

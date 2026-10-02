@@ -179,7 +179,7 @@ first entry of a part's model list is the starter (price 0, `start`).
   `armour patch`, ….
 - **Systems**: economy (`starting_credits`, `budget` `base` and `growth`, `act_factor`,
   `sell_back`); difficulty (one `{easy, medium, hard}` entry per lever: factors such as
-  `enemy_hp`, changes such as `formation_size` (−0.2 = −20 %), `bullet_budget`,
+  `enemy_hp`, changes such as `formation_size` (−0.2 = −20 %), `aimed_spread_degrees`, `bullet_budget`,
   `repair_cost`, `retries`, `boss_checkpoint`, `sensor_bonus`); scoring (`kill_score`,
   `pickup_score`, `chain`, `rating` weights, `bonuses`, `grades`).
 

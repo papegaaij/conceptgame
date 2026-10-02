@@ -3,7 +3,7 @@ title: Story
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Story
@@ -102,6 +102,8 @@ Don't:
 - **Radio chatter** (in-level): a portrait and one line of text in the side HUD panel, shown for
   about 3 seconds, triggered by level events (wave start, boss appears, low armour, wingman
   down). Never pauses the game. At most one message on screen; low-priority lines are dropped.
+  A line is at most **two subtitle pages** (3 lines × 22 characters each, see the
+  [HUD](../ui/hud/README.md) radio), about 130 characters.
 - **Hangar intel**: Varga's comments on the next level, next to the intel panel.
 - **Enemy transmissions**: Vorne and the Choir break into the radio with their own portrait
   frames (static-distorted), usually at boss fights. In Acts 1–2 the Choir only sings
@@ -155,3 +157,5 @@ this sample only sets the voice.
 - 2026-10-01: Twist variant A confirmed (concept round 01). Voices: text with radio blips only, no voice acting for now.
 - 2026-10-01: Choir in Acts 1–2 confirmed by the user: it only sings ("[the Choir sings]") and Varga interprets it; the Choir, story and act documents agree.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
+- 2026-10-02: Writing rule for radio chatter: a line is at most two subtitle pages (user decision
+  in the [HUD](../ui/hud/README.md), which pages longer lines).

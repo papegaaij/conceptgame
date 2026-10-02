@@ -18,7 +18,7 @@ attacks: []       # contact only
 formations:
   - {name: snake, size: [6, 12]}
   - {name: stream}
-  - {name: line abreast, size: [5, 7]}
+  - {name: line abreast, size: [5, 10]}
   - {name: swarm}
 weak_points: []
 drops: []

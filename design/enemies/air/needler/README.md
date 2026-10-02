@@ -32,7 +32,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Armour / shield | none |
 | Speed | 120 px/s entering, 0 while hovering |
 | Movement | `swoop` in, `hover` 2–4 s at y = 80–220 px, then exit down or to the side; in `circle` formations `orbit` a point (radius 90 px, 60°/s) |
-| Attack | `aimed` yellow thorn every 2.5 s, 150 px/s, damage `small` = 4; first shot 0.8 s after it stops |
+| Attack | `aimed` thorn (standard orb) every 2.5 s, 150 px/s, damage `small` = 4; first shot 0.8 s after it stops |
 | Formations | V-wing (5), line abreast, pincer, circle (8) |
 | Weak points | glowing violet eye cluster (×1.5) |
 | Effective traits | `forward`, `spread` |
@@ -45,7 +45,8 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 ### Behaviour
 
 - The first shot is delayed after the Needler stops so a new player can kill it before it fires.
-- Thorns are drawn yellow (needle colour) per the bullet readability rules.
+- Thorns fly at standard speed, so they are drawn as the Vrell **standard orb** (magenta) of the
+  bullet set; the yellow needle is reserved for the fast class (bullet readability rules).
 
 ### Concept art
 
@@ -55,7 +56,7 @@ Chosen concept: [needler-r04-a.png](../concept/needler-r04-a.png) (listed in the
 
 - [x] Hover-and-fire behaviour with the 0.8 s first-shot delay
 - [x] Circle formation orbiting and breaking off
-- [x] Thorn bullet: yellow needle, 150 px/s
+- [x] Thorn bullet: standard orb, 150 px/s
 - [x] Stat block values loaded from data; global difficulty multipliers applied
 - [ ] Death effect, bounty and score per this spec
 
@@ -77,3 +78,7 @@ Chosen concept: [needler-r04-a.png](../concept/needler-r04-a.png) (listed in the
   generic 40 px fire explosion (not ivory shards with a violet flash), so that item stays open.
   Placeholders: the 3 claw-snap frames of [needler-r04-a](../concept/needler-r04-a.png) and the
   Vrell yellow needle of [enemy-bullets-r09-a](../../concept/enemy-bullets-r09-a.png).
+- 2026-10-02: The thorn uses the Vrell standard orb look (user decision), as the bullet set gives
+  the yellow needle to the fast class (190–260 px/s) and the thorn flies at 150 px/s. Placeholder:
+  the first orb frame of [enemy-bullets-r09-a](../../concept/enemy-bullets-r09-a.png), cut by
+  `:pipeline:importPlaceholders` (replaces the needle).

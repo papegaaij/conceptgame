@@ -8,6 +8,7 @@ import java.util.Optional;
  *
  * @param patternBullets the change in bullets per fan, ring and burst (at least one bullet)
  * @param aimedShots how aimed shots aim, in words
+ * @param aimedSpreadDegrees aimed shots leave within ± this many degrees of the aim, uniformly at random
  * @param bulletBudget the most enemy bullets on screen
  * @param repairCost credits per armour point repaired in the hangar
  * @param retries retries per level; unlimited where absent
@@ -19,6 +20,7 @@ public record DifficultyData(
         PerDifficulty<Double> enemyFireRate,
         PerDifficulty<Double> patternBullets,
         PerDifficulty<String> aimedShots,
+        PerDifficulty<Double> aimedSpreadDegrees,
         PerDifficulty<Double> formationSize,
         PerDifficulty<Integer> bulletBudget,
         PerDifficulty<Double> shieldRegen,
