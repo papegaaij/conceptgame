@@ -6,9 +6,10 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.utils.Array;
 
 /**
- * Short additive animations at fixed play-field positions (explosions, impact sparks), started by
- * simulation events and advanced with the simulation steps, so they slow down with it. Pure
- * presentation: they are not part of the game state. All instances exist up front.
+ * Short animations at fixed play-field positions, started by simulation events and advanced with
+ * the simulation steps, so they slow down with it: glowing ones drawn additively (explosions,
+ * impact sparks) or solid ones (debris of a destroyed ground target). Pure presentation: they are
+ * not part of the game state. All instances exist up front.
  */
 public final class Effects {
     private static final int CAPACITY = 128;
@@ -18,16 +19,28 @@ public final class Effects {
         int ticksPerFrame;
         int age;
         float x;
-        float y;
+        double y;
     }
 
     private final Effect[] effects = new Effect[CAPACITY];
+    private final boolean additive;
     private int size;
 
-    public Effects() {
+    private Effects(boolean additive) {
+        this.additive = additive;
         for (int i = 0; i < CAPACITY; i++) {
             effects[i] = new Effect();
         }
+    }
+
+    /** Animations that add light: explosions, impact sparks. */
+    public static Effects glowing() {
+        return new Effects(true);
+    }
+
+    /** Animations drawn over what is below them: debris. */
+    public static Effects solid() {
+        return new Effects(false);
     }
 
     /** Starts an animation centred on the play-field position; dropped when all are in use. */
@@ -38,7 +51,7 @@ public final class Effects {
             effect.ticksPerFrame = ticksPerFrame;
             effect.age = 0;
             effect.x = (float) x;
-            effect.y = (float) y;
+            effect.y = y;
         }
     }
 
@@ -57,16 +70,24 @@ public final class Effects {
         size = 0;
     }
 
-    public void draw(SpriteBatch batch) {
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+    /**
+     * @param offsetY added to every animation's y: 0 for play-field positions, minus the ground's
+     *     scroll for animations started at ground positions (y plus the scroll at their start)
+     */
+    public void draw(SpriteBatch batch, double offsetY) {
+        if (additive) {
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        }
         for (int i = 0; i < size; i++) {
             Effect effect = effects[i];
             AtlasRegion frame = effect.frames.get(effect.age / effect.ticksPerFrame);
             batch.draw(
                     frame,
                     Math.round(PixelScreen.PLAY_FIELD_X + effect.x - frame.getRegionWidth() / 2f),
-                    Math.round(effect.y - frame.getRegionHeight() / 2f));
+                    Math.round(effect.y + offsetY - frame.getRegionHeight() / 2.0));
         }
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        if (additive) {
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        }
     }
 }

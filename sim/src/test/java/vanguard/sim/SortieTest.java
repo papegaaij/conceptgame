@@ -365,6 +365,29 @@ class SortieTest {
     }
 
     @Test
+    void aGroundObjectCountsTheStepsSinceItsLastHit() {
+        var container = new LevelScript.GroundObjectSpec(
+                0, Ship.START_X, new Hitbox(32, 24), 100, 5, Optional.empty(), 0, 0, "");
+        var sortie = sortie(level(20, List.of(), List.of(container), List.of()));
+        sortie.step(Command.NONE);
+        assertFalse(sortie.groundObject(0).damaged());
+
+        while (sortie.events().count(SimEvents.Type.GROUND_HIT) == 0) {
+            sortie.step(Command.FIRE.bit());
+        }
+        assertEquals(0, sortie.groundObject(0).ticksSinceHit());
+        int sinceHit = 0;
+        for (int i = 0; i < SimStep.PER_SECOND; i++) {
+            sortie.step(Command.NONE);
+            sinceHit = sortie.events().count(SimEvents.Type.GROUND_HIT) > 0 ? 0 : sinceHit + 1;
+        }
+
+        assertTrue(sortie.groundObject(0).damaged());
+        assertTrue(sinceHit > 0, "the bolts in flight have landed");
+        assertEquals(sinceHit, sortie.groundObject(0).ticksSinceHit());
+    }
+
+    @Test
     void uncollectedPickupsAreGoneAfterTheirTime() {
         var container = new LevelScript.GroundObjectSpec(
                 0, Ship.START_X, new Hitbox(32, 24), 2, 5, Optional.of(PickupType.SMALL_SALVAGE), 0, 0, "");

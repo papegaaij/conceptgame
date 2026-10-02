@@ -155,13 +155,27 @@ def earth_dawn(w, h):
     return finish(arr)
 
 
-def earth_limb(w, h):
-    """Section 5 over the earth tiles: Earth's curve near the bottom falling behind, open space
-    above it to the top edge (which stays above the screen until the level ends)."""
+def earth_limb(w, h, radius=520, crest=400, haze_depth=110):
+    """Section 5 over the earth tiles: Earth's curve falling behind (a circle whose crest is
+    ``crest`` px below the top edge). Towards the limb the day side hazes into the atmosphere
+    colour and darkens over ``haze_depth`` px (the view grazes more air); the atmosphere is a
+    thin bright rim, lit a little more towards the key light at the left; beyond it a faint
+    airglow fades into open space, whose stars thin out near the rim. Transparent at the bottom
+    edge; the top edge stays above the screen until the level ends."""
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float64)
-    curve = h - 170 + 0.0012 * (xx - 300) ** 2
-    depth = yy - curve
-    return finish(limb_layer(w, h, depth > 0, depth, 13))
+    depth = radius - np.hypot(xx - w * 0.58, yy - crest - radius)   # px inside the limb
+    inside = np.clip(depth + 0.5, 0, 1)                              # 1 px anti-aliased edge
+    arr = np.zeros((h, w, 4))
+    graze = np.clip(1 - depth / haze_depth, 0, 1) ** 2
+    over(arr, np.array(SEA[2], float) * (1 - 0.4 * graze)[..., None], 0.85 * graze * inside)
+    st = stars(w, h, 13)
+    space = st[..., :3] * np.clip(-depth / 60, 0, 1)[..., None]
+    over(arr, space, 1 - inside)
+    over(arr, np.array(SEA[3], float) * 0.7, 0.3 * np.exp(np.minimum(depth, 0) / 16) * (1 - inside))
+    light = 0.8 + 0.2 * (1 - xx / w)
+    over(arr, np.array(SEA[4], float), 0.9 * light * np.exp(-((depth + 1) / 2.2) ** 2))
+    over(arr, np.array(SEA[5], float), 0.6 * light * np.exp(-((depth + 1) / 1.0) ** 2))
+    return finish(arr, colors=32, alpha_levels=24)
 
 
 def moon(w, h):

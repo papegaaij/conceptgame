@@ -58,7 +58,7 @@ Scene: the chosen [Earth orbit](../../../world/earth-orbit/README.md) scene
 ([sheet](../../../art-direction/concept/parallax-r03-a.png)), used here at the light end of the
 atmosphere range. Scroll speed 130 px/s at the 960×540 baseline (a calm level per the
 [art direction](../../../art-direction/README.md#parallax-layer-model); play field 480×540).
-Total ≈ 190 s ≈ 24,700 px. Motion budget: the only strongly animated background elements are the
+Total ≈ 180 s ≈ 23,400 px; the last waves (t=162, 166) are gone about 4 s before the end. Motion budget: the only strongly animated background elements are the
 drifting low-air cloud decks and, in section 4, the burning platforms.
 
 <!-- data: level-sections -->
@@ -68,7 +68,7 @@ drifting low-air cloud decks and, in section 4, the burning platforms.
 | 2. First Wave | 20–60 | 2,600–7,800 | 130 | light | `deep`: Earth, the Moon small in the distance. `ground`: open dock frames. `low-air`: thin cloud-deck wisps. | Shooting basics; Skitters (harmless rammers) first, then the first Needlers that shoot back. |
 | 3. Yard Crossing | 60–110 | 7,800–14,300 | 130 | light | `ground`: gantries, cranes, a half-built cruiser hull, cargo containers (destructible). `low-air`: lattice beams and crane jibs passing under the player. | Ground layer as scenery and loot; the first side entry; the secret beacon. |
 | 4. Pursuit | 110–160 | 14,300–20,800 | 130 | medium | `ground`: yard perimeter, defence platforms burning. `low-air`: cloud decks drifting between the yard and the play plane. `high-air`: thin spark streaks. | Mixed waves, one warned rear wave, rising density. |
-| 5. Scout Leader | 160–190 | 20,800–24,700 | 130 | light | `deep`: open space past the yard; the Vrell strike group's glow on the horizon. `ground`: the last perimeter platform. | Final set piece: Needler circle plus Skitter streams. Then the level ends. |
+| 5. Scout Leader | 160–180 | 20,800–23,400 | 130 | light | `deep`: open space past the yard; the Vrell strike group's glow on the horizon. `ground`: the last perimeter platform. | Final set piece: Needler circle plus Skitter streams. Then the level ends. |
 <!-- /data -->
 
 ### Backdrop
@@ -86,8 +86,8 @@ section boundary (`ramp`). The art is a placeholder ([backdrop_l01.py](../../../
 | 1. Launch | clear: wisps, haze 0 % | `earth`; earth-dawn 0–103 s; moon 3–39 s | north-arm 0–12 s; stormhawk-far flies 1.5–6 s; stormhawk-far flies 2.5–7 s | launch-rail 0–4 s; crossbeam 20–24 s | | |
 | 2. First Wave | light: banks-light, wisps, haze 8 % | `earth` | | `dock-frames`; dock-frame 27–33 s; dock-frame 40–46 s; dock-frame 51–57 s; crossbeam 60–64 s | | |
 | 3. Yard Crossing | light: banks-light, wisps, haze 8 % | `earth` | | `gantry-rails`; bridge-crane 68–72 s; cruiser-hull 78–86 s; bridge-crane 90–94 s; crossbeam 110–114 s | lattice-beam 64–68 s; crane-jib 72–76 s; lattice-beam 83–87 s; crane-jib 95–99 s; lattice-beam 101–105 s | |
-| 4. Pursuit | medium: banks-medium, wisps, haze 16 % | `earth`; earth-limb 149–190 s | | `perimeter`; platform-burning 115–121 s; platform-burning 131–137 s; platform-burning 147–153 s; crossbeam 160–164 s | | `spark-streaks` |
-| 5. Scout Leader | light: banks-light, wisps, haze 8 % | `earth`; vrell-glow 174–190 s | | platform 169–175 s | | |
+| 4. Pursuit | medium: banks-medium, wisps, haze 16 % | `earth`; earth-limb 143–180 s | | `perimeter`; platform-burning 115–121 s; platform-burning 131–137 s; platform-burning 147–153 s; crossbeam 160–164 s | | `spark-streaks` |
+| 5. Scout Leader | light: banks-light, wisps, haze 8 % | `earth`; vrell-glow 166–180 s | | platform 165–171 s | | |
 <!-- /data -->
 
 ### Launch and control prompts
@@ -134,7 +134,10 @@ Totals: Skitter 60 · Needler 35.
 | 3 | Beacon on the crane at t≈90 (blinks red) | Secret, see below |
 <!-- /data -->
 
-No hostile ground targets in L01. Hostile ground targets arrive in L02.
+No hostile ground targets in L01. Hostile ground targets arrive in L02. The containers and the
+beacon follow the [loot-target readability rule](../../../art-direction/README.md#readability-rules)
+(warm hazard markings, light rim, glint, hit flash, damage state, break-apart; the beacon also
+blinks); placeholders from [ground_targets.py](../../../../tools/concept/ground_targets.py).
 
 ## Hazards
 
@@ -280,3 +283,17 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
   most 2 animated elements, nothing faster than 2 px per frame on its own) frame by frame.
   Placeholders: all images come from `tools/concept/backdrop_l01.py`, built from the chosen Earth
   orbit scene's kit and palette; cloud-bank shadows on the ground are left out.
+- 2026-10-02: User decisions after playing (user decision): the level is **180 s** instead of
+  190 s (≈ 23,400 px; it took too long to complete after the last enemy): section 5 ends at 180,
+  the waves are unchanged, so the level completes about 4 s after the t=162 circle and the t=166
+  stream are gone; the credit budget is unchanged (nothing paid in the cut tail). The finale's
+  backdrop moved with it: the last platform at t=168 (gone by 171 s, leaving open space for the
+  outro), the Vrell glow from 166 s (its top edge stays above the screen) and Earth's limb
+  re-rendered ("the planet stops abruptly": it was a flat, thick bright band under an opaque black
+  slab): the day side hazes and darkens towards a curved horizon (radius 520 px), a thin bright
+  rim and a faint airglow fade into open space; its crest enters at the top at 158 s and is
+  200 px above the bottom edge at the end. The cargo containers and the beacon "did not stand out
+  as targets" (code-drawn in colours close to the yard's): they follow the new loot-target
+  readability rule of the art direction, as pre-rendered placeholder sprites (rust body,
+  amber/black hazard bands, 1 px light rim, a glint every 2 s, white hit flash, damaged frame
+  after the first hit, an 8-frame break-apart; the beacon's red lens blinks at 1 Hz).

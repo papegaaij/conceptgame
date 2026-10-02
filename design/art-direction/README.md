@@ -283,6 +283,12 @@ every scene gets a clearly visible **atmosphere layer** and, where the setting a
 6. **Pickups** pulse and have a light outline. The player's hit box follows the hull's
    silhouette, so what visibly touches the ship hits it (a gameplay rule in the
    [ship](../player/ship/README.md) doc); bullets must therefore read clearly against the hull.
+7. **Loot targets read as targets.** Destructible targets that pay loot (cargo containers,
+   crates) and secrets (e.g. Level 01's crane beacon) never blend into the structures they sit
+   on: **warm cargo colours** (amber/orange hazard markings) against the cool blue-grey
+   structures, a **1 px light rim**, a short **glint about every 2 s**, a white **hit flash** and
+   a visible **damage state** from the first hit, and a clear **break-apart** when destroyed.
+   Secrets additionally **blink** and are at least as large as a container's marking.
 
 ## Concept art
 
@@ -401,10 +407,17 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
   enemies drawn opaque, perspective-scaled, with shadows.
 - [ ] Bullet sprites follow the readability rules (core, ring, dark rim, reserved hues).
 - [ ] Hit flash and explosion sequences as described under Animation rules.
+- [x] Loot targets follow readability rule 7 (Level 01's cargo containers and beacon, placeholder
+      sprites from `tools/concept/ground_targets.py`).
 - [ ] Production sprite pipeline (render → downsample → 1-bit alpha → sharpen → palette) is
       scripted so every asset is reproducible, like the concept tools.
 
 ## Open questions
+
+- **Warm accents on structures** (readability rule 7): the station kit's UTC accents are orange
+  (the faction's "blue and orange accents"), so in Level 01 the gantry rails' walkway strips and
+  the bridge cranes' end trucks are as warm as the loot markings and larger than a container.
+  Keep them, or cool them down where loot sits?
 
 - **Perspective towers**: keep the true-perspective roof projection of parallax B, or use purely
   orthographic pre-rendered tiles for all ground structures?
@@ -445,3 +458,7 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
   atmosphere intensity per section), and the content loader checks the density and motion-budget
   rules above. Placeholders for Level 01 are rendered from this scene's kit and palette
   (`tools/concept/backdrop_l01.py`); see [Level 01](../campaign/act-1-first-contact/level-01-break-at-dawn/README.md#backdrop).
+- 2026-10-02: Readability rule 7, loot targets read as targets (user decision, after playing
+  Level 01: the code-drawn containers and beacon did not stand out from the yard): warm hazard
+  markings against cool structures, 1 px light rim, glint every ~2 s, hit flash, damage state,
+  break-apart; secrets also blink and are at least as large as a container's marking.

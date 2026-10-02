@@ -120,7 +120,7 @@ class SimSpecsTest {
 
         assertEquals(1, level.number());
         assertEquals(1, level.act());
-        assertEquals(190, level.seconds());
+        assertEquals(180, level.seconds());
         assertEquals(15, level.waves().size(), "14 waves, one of them mixed");
         assertEquals(95, level.waves().stream().mapToInt(WaveSpec::count).sum());
         WaveSpec pincer = wave(level, 122);

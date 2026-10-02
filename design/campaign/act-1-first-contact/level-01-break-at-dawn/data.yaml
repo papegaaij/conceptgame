@@ -55,7 +55,7 @@ sections:  # back to back from t = 0; each ends at `end`; tiles: the backdrop's 
         high-air: thin spark streaks.
       purpose: Mixed waves, one warned rear wave, rising density.
   - name: Scout Leader
-    end: 190
+    end: 180
     atmosphere: light
     tiles: [earth]
     notes:
@@ -200,7 +200,7 @@ backdrop:
   pieces:
     earth-dawn: {layer: deep, size: [480, 1600]}  # space, Earth's limb, night side and the sunrise terminator over the earth tiles
     moon: {layer: deep, size: [28, 28]}
-    earth-limb: {layer: deep, size: [480, 1100]}  # Earth's curve falling behind, open space above it
+    earth-limb: {layer: deep, size: [480, 640]}   # Earth's curve falling behind, open space above it
     vrell-glow: {layer: deep, size: [480, 240]}   # the strike group's glow on the horizon
     north-arm: {layer: far, size: [180, 640], mid_size: true}
     stormhawk-far: {layer: far, size: [24, 24], headings: 16}  # Aegis Two
@@ -243,6 +243,6 @@ backdrop:
     - {piece: platform-burning, t: 150, x: 340}
     # 5. Scout Leader: past the yard into open space
     - {piece: crossbeam, t: 162.08, x: 240}
-    - {piece: platform, t: 172, x: 150}
-    - {piece: earth-limb, t: 201.67, x: 240}  # the curve enters at the top at 160 s
-    - {piece: vrell-glow, t: 198.5, x: 240}   # over the open space, at the top from about 174 s
+    - {piece: platform, t: 168, x: 150}      # gone by 171 s: open space for the outro
+    - {piece: earth-limb, t: 180.64, x: 240}  # the crest enters at the top at 158 s, 200 px above the bottom at the end
+    - {piece: vrell-glow, t: 190.9, x: 240}   # over the open space from 166 s; its top edge stays above the screen

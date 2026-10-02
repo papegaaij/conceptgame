@@ -23,10 +23,10 @@ import vanguard.sim.WarningEdge;
 
 /**
  * Draws a level back to front, interpolating every position between the last two simulation
- * steps: the backdrop down to the ground layer, the ground objects, the low-air layer, the
- * enemies, the pickups, the ship, the glowing bolts and effects, the high-air layer, then the
- * enemy bullets above every layer (design/enemies, bullet readability rules), the edge warnings
- * and the credit numbers.
+ * steps: the backdrop down to the ground layer, the ground objects with their debris and glints,
+ * the low-air layer, the enemies, the pickups, the ship, the glowing bolts and effects, the
+ * high-air layer, then the enemy bullets above every layer (design/enemies, bullet readability
+ * rules), the edge warnings and the credit numbers.
  */
 public final class LevelRenderer {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
@@ -38,17 +38,19 @@ public final class LevelRenderer {
     private static final int BLINK_TICKS = SimStep.ticks(1.5);
     /** Edge warnings flash at 4 Hz. */
     private static final int WARNING_FLASH_TICKS = 8;
+    /**
+     * Loot targets (design/art-direction, readability rule 7): a white hit flash for two steps, a
+     * glint about every 2 s (each target at its own phase), and the secret's beacon blinks at 1 Hz.
+     */
+    private static final int HIT_FLASH_TICKS = 2;
+
+    private static final int GLINT_PERIOD_TICKS = SimStep.ticks(2);
+    private static final int GLINT_FRAME_TICKS = 3;
+    private static final int BEACON_BLINK_TICKS = 30;
 
     private static final Color HIT_WHITE = Color.WHITE;
     private static final Color SHIELD_BLUE = Color.valueOf("00C0FF");
     private static final float SHIELD_SHIMMER = 0.6f;
-    /** Placeholder ground objects, drawn in code until they have concept art. */
-    private static final Color CONTAINER = Color.valueOf("3A4660");
-
-    private static final Color CONTAINER_STRIPE = Color.valueOf("C86A1E");
-    private static final Color CONTAINER_EDGE = Color.valueOf("1A2030");
-    private static final Color BEACON_LIGHT = Color.valueOf("FF2020");
-    private static final Color BEACON_DARK = Color.valueOf("401010");
     private static final Color WARNING = Color.valueOf("FF4030");
 
     private final Sprites sprites;
@@ -68,6 +70,8 @@ public final class LevelRenderer {
     }
 
     /**
+     * @param debris animations started at ground positions (y plus the ground's scroll), see
+     *     {@link Effects#draw}
      * @param alpha interpolation between the previous and the current step
      * @param shieldShimmer 0..1, how strongly the ship shows its last shield hit
      */
@@ -75,6 +79,7 @@ public final class LevelRenderer {
             SpriteBatch batch,
             Sortie sortie,
             Effects effects,
+            Effects debris,
             CreditNumbers credits,
             float alpha,
             float shieldShimmer) {
@@ -83,6 +88,8 @@ public final class LevelRenderer {
         double seconds = sortie.levelSeconds() - lag;
         backdrop.drawBehind(batch, scroll, seconds);
         drawGround(batch, sortie, alpha);
+        debris.draw(batch, -scroll);
+        drawGlints(batch, sortie, alpha);
         backdrop.drawLowAir(batch, scroll, seconds);
         drawEnemies(batch, sortie, alpha);
         drawPickups(batch, sortie, alpha);
@@ -90,30 +97,55 @@ public final class LevelRenderer {
             drawShip(batch, sortie.ship(), alpha, shieldShimmer);
         }
         drawBolts(batch, sortie, alpha);
-        effects.draw(batch);
+        effects.draw(batch, 0);
         backdrop.drawFront(batch, scroll, seconds);
         drawBullets(batch, sortie, alpha);
         drawWarnings(batch, sortie);
         credits.draw(batch, font);
     }
 
+    /** The loot targets, intact or damaged, a hit flashing white; the beacon blinks until spent. */
     private void drawGround(SpriteBatch batch, Sortie sortie, float alpha) {
         for (int i = 0; i < sortie.groundObjectCount(); i++) {
             GroundObject object = sortie.groundObject(i);
-            float width = (float) object.spec().size().width();
-            float height = (float) object.spec().size().height();
-            float x = Math.round(X0 + object.renderX() - width / 2);
-            float y = Math.round(object.renderY(alpha) - height / 2);
+            int damaged = object.damaged() ? 1 : 0;
+            TextureRegion frame;
             if (object.spec().trigger()) {
-                boolean lit = !object.spent() && sortie.tick() / 30 % 2 == 0;
-                fill(batch, CONTAINER_EDGE, x - 2, y - 2, width + 4, height + 4);
-                fill(batch, lit ? BEACON_LIGHT : BEACON_DARK, x, y, width, height);
+                int lit = !object.spent() && sortie.tick() / BEACON_BLINK_TICKS % 2 == 0 ? 1 : 0;
+                frame = sprites.beacon.get(2 * damaged + lit);
             } else {
-                fill(batch, CONTAINER_EDGE, x - 1, y - 1, width + 2, height + 2);
-                fill(batch, CONTAINER, x, y, width, height);
-                fill(batch, CONTAINER_STRIPE, x, y + height / 2 - 2, width, 4);
+                frame = sprites.cargoContainer.get(damaged);
+            }
+            if (object.ticksSinceHit() < HIT_FLASH_TICKS) {
+                flash.draw(
+                        batch,
+                        frame,
+                        Math.round(X0 + object.renderX()),
+                        Math.round(object.renderY(alpha)),
+                        HIT_WHITE,
+                        1);
+            } else {
+                drawCentred(batch, frame, object.renderX(), object.renderY(alpha));
             }
         }
+    }
+
+    /** Each loot target sparkles at its top-left quarter (the key light's side) every ~2 s. */
+    private void drawGlints(SpriteBatch batch, Sortie sortie, float alpha) {
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        for (int i = 0; i < sortie.groundObjectCount(); i++) {
+            GroundObject object = sortie.groundObject(i);
+            int phase = (int) object.renderX() * 7;
+            int frame = (int) ((sortie.tick() + phase) % GLINT_PERIOD_TICKS / GLINT_FRAME_TICKS);
+            if (!object.spent() && frame < sprites.glint.size) {
+                drawCentred(
+                        batch,
+                        sprites.glint.get(frame),
+                        object.renderX() - object.spec().size().width() / 4,
+                        object.renderY(alpha) + object.spec().size().height() / 4);
+            }
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
 
     private void drawEnemies(SpriteBatch batch, Sortie sortie, float alpha) {

@@ -50,6 +50,9 @@ public final class LevelScreen implements GameScreen {
     private static final int TINY_EXPLOSION_FRAME_TICKS = 2;
     private static final int LARGE_EXPLOSION_FRAME_TICKS = 4;
     private static final int IMPACT_FRAME_TICKS = 2;
+    /** A destroyed ground target's 8 debris frames last 0.4 s. */
+    private static final int DEBRIS_FRAME_TICKS = 3;
+
     private static final float RADIO_VOLUME = 0.5f;
     private static final float TYPING_VOLUME = 0.15f;
     private static final String WEAPON = "PULSE CANNON";
@@ -65,7 +68,8 @@ public final class LevelScreen implements GameScreen {
     private final FlightSounds sounds;
     private final LevelRenderer renderer;
     private final Hud hud;
-    private final Effects effects = new Effects();
+    private final Effects effects = Effects.glowing();
+    private final Effects debris = Effects.solid();
     private final CreditNumbers creditNumbers = new CreditNumbers();
     private final RadioQueue radio = new RadioQueue();
     private final ControlPrompts prompts;
@@ -142,6 +146,7 @@ public final class LevelScreen implements GameScreen {
                 prompts.update(stepCommands);
             }
             effects.step();
+            debris.step();
             creditNumbers.step();
             if (shimmer > 0) {
                 shimmer--;
@@ -162,8 +167,11 @@ public final class LevelScreen implements GameScreen {
                 case ENEMY_HIT, GROUND_HIT -> effects.start(services.sprites.pulseImpact, IMPACT_FRAME_TICKS, x, y);
                 case ENEMY_DESTROYED ->
                     effects.start(looks[events.value(i)].explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
-                case GROUND_DESTROYED ->
+                case GROUND_DESTROYED -> {
+                    debris.start(
+                            services.sprites.cargoContainerBreak, DEBRIS_FRAME_TICKS, x, y + sortie.groundScroll());
                     effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
+                }
                 case CREDITS_PICKED_UP -> creditNumbers.show(events.value(i), x, y);
                 case SHIELD_HIT -> shimmer = SHIMMER_TICKS;
                 case RADIO -> {
@@ -177,6 +185,7 @@ public final class LevelScreen implements GameScreen {
                 }
                 case SORTIE_RESTARTED -> {
                     effects.clear();
+                    debris.clear();
                     creditNumbers.clear();
                     radio.clear();
                     music.restart();
@@ -212,7 +221,7 @@ public final class LevelScreen implements GameScreen {
 
     @Override
     public void draw(SpriteBatch batch) {
-        renderer.draw(batch, sortie, effects, creditNumbers, clock.alpha(), (float) shimmer / SHIMMER_TICKS);
+        renderer.draw(batch, sortie, effects, debris, creditNumbers, clock.alpha(), (float) shimmer / SHIMMER_TICKS);
         hud.draw(batch, sortie, radio, visiblePrompts(), WEAPON, WEAPON_LEVEL);
     }
 

@@ -25,7 +25,7 @@ class ContentLoaderTest {
                 List.of("needler", "skitter"),
                 content.enemies().keySet().stream().sorted().toList());
         assertEquals(
-                190, content.level("act-1-first-contact/level-01-break-at-dawn").seconds());
+                180, content.level("act-1-first-contact/level-01-break-at-dawn").seconds());
     }
 
     @Test
@@ -101,7 +101,7 @@ class ContentLoaderTest {
         assertProblem(
                 LEVEL_01,
                 text -> text.replace("{t: 166,", "{t: 196,"),
-                "design/" + LEVEL_01 + ": waves[13].t: t=196.0 is after the level end at 190.0 s");
+                "design/" + LEVEL_01 + ": waves[13].t: t=196.0 is after the level end at 180.0 s");
     }
 
     @Test

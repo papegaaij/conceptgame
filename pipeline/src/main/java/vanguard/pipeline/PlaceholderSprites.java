@@ -12,7 +12,9 @@ import javax.imageio.ImageIO;
 /**
  * Cuts the placeholder sprites out of the <em>chosen</em> concept sheets in the design tree and
  * writes them as single frames into {@code assets/sprites}, ready for {@link AtlasPacker}. (The
- * level backdrops are rendered into {@code assets/backdrop} by tools/concept/backdrop_l01.py.) Every crop rectangle below was read off the generator that drew the sheet
+ * level backdrops are rendered into {@code assets/backdrop} by tools/concept/backdrop_l01.py, the loot targets
+ * without concept art into {@code assets/sprites} by tools/concept/ground_targets.py.) Every crop rectangle below
+ * was read off the generator that drew the sheet
  * (named per cut), so a re-rendered sheet with the same layout imports unchanged.
  *
  * <p>The sheets show sprites on a checkerboard or a flat plate. Opaque sprites have hard 1-bit

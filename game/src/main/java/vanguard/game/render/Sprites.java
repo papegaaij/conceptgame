@@ -11,9 +11,9 @@ import com.badlogic.gdx.utils.Disposable;
 
 /**
  * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from the
- * placeholders: sprites cut from the chosen concept art (see {@code PlaceholderSprites}) and the
- * levels' backdrop images (tools/concept/backdrop_l01.py), plus a white pixel for the HUD's bars
- * and frames.
+ * placeholders: sprites cut from the chosen concept art (see {@code PlaceholderSprites}), the
+ * loot targets (tools/concept/ground_targets.py) and the levels' backdrop images
+ * (tools/concept/backdrop_l01.py), plus a white pixel for the HUD's bars and frames.
  */
 public final class Sprites implements Disposable {
     private final TextureAtlas sprites;
@@ -47,6 +47,15 @@ public final class Sprites implements Disposable {
     public final Array<AtlasRegion> explosionTiny;
     public final Array<AtlasRegion> explosionSmall;
     public final Array<AtlasRegion> explosionLarge;
+    /** Intact, damaged. */
+    public final Array<AtlasRegion> cargoContainer;
+    /** The damaged container breaking apart, drawn solid. */
+    public final Array<AtlasRegion> cargoContainerBreak;
+    /** Dark, lit; the same two after the first hit. */
+    public final Array<AtlasRegion> beacon;
+    /** The loot targets' sparkle, drawn additively. */
+    public final Array<AtlasRegion> glint;
+
     public final TextureRegion pixel;
 
     public Sprites(Files files) {
@@ -70,6 +79,10 @@ public final class Sprites implements Disposable {
         explosionTiny = frames(sprites, "explosion-tiny");
         explosionSmall = frames(sprites, "explosion-small");
         explosionLarge = frames(sprites, "explosion-large");
+        cargoContainer = frames(sprites, "cargo-container");
+        cargoContainerBreak = frames(sprites, "cargo-container-break");
+        beacon = frames(sprites, "beacon");
+        glint = frames(sprites, "glint");
         Pixmap white = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         white.setColor(1, 1, 1, 1);
         white.fill();

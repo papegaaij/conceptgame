@@ -225,7 +225,9 @@ first entry of a part's model list is the starter (price 0, `start`).
   layer. The backdrop placeholders are therefore rendered by `tools/concept/backdrop_l01.py`
   straight into `assets/backdrop/level-01/` from the chosen Earth orbit scene's models, palette
   and rules, at the sizes the level's data file gives; each PNG carries a `Placeholder` text chunk
-  naming the script. `importPlaceholders` does not touch them.
+  naming the script. `importPlaceholders` does not touch them. The same holds for ground targets
+  without concept art: `tools/concept/ground_targets.py` renders Level 01's cargo containers,
+  beacon, their break-apart and glint frames into `assets/sprites/`.
 - The `pipeline` module turns them into build output at build time: angle sets (using the
   symmetry rule), texture atlases, audio in OGG. Generated atlases are never committed.
 
@@ -352,3 +354,14 @@ Screenshot tests are left out until there is a need.
   single-crop cuts of `parallax-r03-a.png` and their `PlaceholderSprites` entries are gone. The
   game compiles against the data records, so `content` exports Jackson's annotations (`api`).
   The simulation is untouched (same replay hash).
+- 2026-10-02: Level 01 after playing (user decisions): the level is 180 s; the replay was
+  re-recorded (`level-01-medium-2185.rec` now 10,800 steps, hash `e602b2264976076f`, still 90
+  kills and 916 credits; before: 11,400 steps, `f3ae19deb416eead`). The old recording ran 600
+  steps past the new end and still matched, since nothing changed after the last enemy; re-record
+  whenever a level's length changes. Loot targets (art direction, readability rule 7):
+  `GroundObject` counts the steps since its last hit (hashed, like the ship's `ticksSinceShot`),
+  which `LevelRenderer` turns into the white hit flash (`FlashShader`) and the damaged frame; the
+  glint phase comes from the tick and the target's x, the beacon blinks with the tick. `Effects`
+  comes as `glowing()` (additive) and `solid()`; a destroyed container's break-apart is a solid
+  effect placed in ground coordinates (drawn at minus the ground scroll, so it rides the ground)
+  above the ground objects and below the low-air layer.
