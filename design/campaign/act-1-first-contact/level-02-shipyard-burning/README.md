@@ -99,8 +99,8 @@ backdrop. The art is rendered by [tools/art/backdrop_l02.py](../../../../tools/a
 | 1. Burning Ring | light: smoke-light, wisps, haze 10 % | `earth` | north-arm-burning 0–13 s | `perimeter`; platform-burning 6–10 s; platform 12–16 s; platform-burning-mirrored 19–23 s | | |
 | 2. Outer Docks | light: smoke-light, wisps, haze 10 % | `earth` | | `dock-frames`; crossbeam 25–29 s; dock-growth 30–36 s; dock-growth-mirrored 58–64 s | lattice-beam 39–41 s; crane-jib 46–48 s | `spark-streaks` |
 | 3. Crane Row | clear: wisps, haze 4 % | `earth` | | `gantry-rails`; crossbeam 70–74 s; dock-growth 96–102 s | crane-jib-mirrored 107–109 s | |
-| 4. Main Drydock | medium: smoke-medium, wisps, haze 18 %; heavy peak 140–148 s: coolant, wisps, haze 30 % | `earth`; moon 158–185 s; earth-limb 158–185 s | | `dock-frames`; crossbeam 115–119 s; resolute 128–136 s; platform-burning 152–156 s | lattice-beam 145–147 s | `frost-streaks` |
-| 5. Breakout | light: smoke-light, wisps, haze 10 % | `space` | | crossbeam 160–164 s; platform 164–168 s | | |
+| 4. Main Drydock | medium: smoke-medium, wisps, haze 18 %; heavy peak 140–148 s: coolant, wisps, haze 30 % | `earth`; earth-limb 158–185 s | | `dock-frames`; crossbeam 115–119 s; resolute 128–136 s; platform-burning 152–156 s | lattice-beam 145–147 s | `frost-streaks` |
+| 5. Breakout | light: smoke-light, wisps, haze 10 % | `earth`; moon 175–185 s | | crossbeam 160–164 s; platform 164–168 s | | |
 <!-- /data -->
 
 ## Waves
@@ -245,7 +245,7 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
 
 | File | What | Status |
 |---|---|---|
-| [concept/backdrop-final-r15-a.png](concept/backdrop-final-r15-a.png) | Final backdrop pieces: every tile set and set piece of the level's `backdrop` data (the burning north arm, the docks with their frigates and teal Vrell growth, the *Resolute* venting coolant, smoke and coolant banks, frost streaks, open space; Level 01's station kit for the rest), shrunk to fit | proposed |
+| [concept/backdrop-final-r15-a.png](concept/backdrop-final-r15-a.png) | Final backdrop pieces: every tile set and set piece of the level's `backdrop` data (the burning north arm, the docks with their frigates and teal Vrell growth, the *Resolute* venting coolant, smoke and coolant banks, frost streaks; Level 01's station kit for the rest), shrunk to fit | proposed |
 | [concept/crane-four-final-r15-a.png](concept/crane-four-final-r15-a.png) | Crane Four: its arm at 7 of its 61 drawn angles (3° apart), the warning and clamp lights, the canister | proposed |
 | [concept/crane-four-final-r15-a.gif](concept/crane-four-final-r15-a.gif) | The arm swinging with its lights blinking, the canister on the hook | proposed |
 | [concept/level-02-capture-final-r15-a.png](concept/level-02-capture-final-r15-a.png) | Game captures of the level with `--level 2`: the first turret, Dock One, the Outer Docks, Crane Row, the Main Drydock and the Breakout | proposed |

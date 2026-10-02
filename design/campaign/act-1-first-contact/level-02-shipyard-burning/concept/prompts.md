@@ -7,7 +7,7 @@ Round 15, production art (M4 part B). Review sheet made from the final files in
 `tools/art/backdrop_l02.py`, which reuses Level 01's production pieces (`tools/art/backdrop_l01.py`)
 for the shared station kit and adds the burning north arm, the docks with their half-built
 frigates and teal Vrell growth (the Skitter's role colours), the *Resolute* venting coolant, grey
-smoke and white coolant banks, frost streaks and open space.
+smoke and white coolant banks and frost streaks; Earth's limb (Level 01's piece) falls behind at the end.
 
 ## crane-four-final-r15-a
 

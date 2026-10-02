@@ -4,7 +4,7 @@
 
 Outputs (assets/backdrop/level-02/, one PNG per tile set and set piece of the level's data.yaml
 `backdrop` block, named by its id and checked against its size; frames as <id>_<n>.png):
-  earth, space, moon, earth-limb                deep: the day side, open space past the yard
+  earth, moon, earth-limb                       deep: the day side, Earth's limb falling behind at the end
   north-arm-burning                             far: the north arm, burning, with Aegis Two's tracers
   perimeter, dock-frames, gantry-rails,         ground: Level 01's station kit, the docks with their
   crossbeam, platform, platform-burning_0..3,   half-built frigates and teal Vrell growth, the
@@ -71,18 +71,6 @@ def coolant(w, h):
 def frost_streaks(w, h):
     """Frost crystals streaming past, the spark streaks in icy white (additive)."""
     return artkit.stepped_alpha(tinted(l01.spark_streaks(w, h), (200, 235, 255), 0.85), 9)
-
-
-def space(w, h):
-    """Open space past the yard: deep blue-black with a fixed starfield, tiling in y."""
-    rng = np.random.default_rng(1802)
-    arr = np.zeros((h, w, 3))
-    arr[:] = (4, 6, 18)
-    for _ in range(260):
-        x, y = rng.integers(0, w), rng.integers(0, h)
-        b = rng.uniform(90, 230)
-        arr[y, x] = (b * 0.9, b * 0.95, b)
-    return artkit.quantize_set([Image.fromarray(arr.astype(np.uint8), "RGB").convert("RGBA")], 16)[0]
 
 
 def north_arm_burning(w, h):
@@ -152,7 +140,7 @@ def resolute(w, h):
 
 
 TILE_SETS = {
-    "earth": b1.TILE_SETS["earth"], "space": space,
+    "earth": b1.TILE_SETS["earth"],
     "perimeter": b1.TILE_SETS["perimeter"], "dock-frames": b1.TILE_SETS["dock-frames"],
     "gantry-rails": b1.TILE_SETS["gantry-rails"],
     "smoke-light": smoke_banks(0.12), "smoke-medium": smoke_banks(0.22), "coolant": coolant,

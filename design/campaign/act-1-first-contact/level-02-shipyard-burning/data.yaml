@@ -70,7 +70,7 @@ sections:  # back to back from t = 0; tiles: the backdrop's tile sets; peak: a h
   - name: Breakout
     end: 185
     atmosphere: light
-    tiles: [space]
+    tiles: [earth]  # Earth's limb falls behind over it: no seam into open space (as in Level 01)
     notes:
       layers:
         ground: the yard perimeter falling away.
@@ -269,7 +269,6 @@ backdrop:
     heavy: {banks: coolant, wisps: wisps, haze: 0.3}
   tile_sets:
     earth: {layer: deep, height: 1024}           # the day side, smoke plumes over the outer ring
-    space: {layer: deep, height: 1024}           # open space past the yard
     perimeter: {layer: ground, height: 608}
     dock-frames: {layer: ground, height: 608}
     gantry-rails: {layer: ground, height: 456}
@@ -317,8 +316,8 @@ backdrop:
     - {piece: crossbeam, t: 162.08, x: 240}
     # 5. Breakout
     - {piece: platform, t: 166, x: 240}
-    - {piece: moon, t: 175, x: 400}
-    - {piece: earth-limb, t: 196, x: 240}  # its top edge stays above the screen through the 15 s outro
+    - {piece: earth-limb, t: 196, x: 240}  # the crest enters at the top at about 172 s; the top edge stays above the screen through the 15 s outro
+    - {piece: moon, t: 192, x: 400}        # in the open space above the limb's crest, drawn over the limb
 
 briefing:
   pages:
