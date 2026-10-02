@@ -5,66 +5,87 @@ import java.util.List;
 import java.util.Map;
 import vanguard.content.Content;
 import vanguard.content.SimSpecs;
+import vanguard.sim.Armament;
 import vanguard.sim.Loadout;
 
 /**
- * What a sortie flies of the campaign's loadout. The simulation flies the Pulse Cannon at its
- * level, the shield, the plating and the engine (the generator only limits what the hangar fits);
- * the other weapons, the specials and the utility modules are bought, fitted and saved, but fly from
- * M4 on. Until then the front gun is the Pulse Cannon: the fitted one, else the owned one, else
- * the starter at L1; the items that do not fly are listed for the HUD.
+ * What a sortie flies of the campaign's loadout: the fitted weapons the simulation flies (the Act 1
+ * arsenal, see {@link SimSpecs#flies}), the shield with the spare-power bonus, the plating and
+ * the engine (the generator's output gives the spare power). The specials and the utility modules
+ * are bought, fitted and saved but fly later in M4; they and any weapon that does not fly yet are
+ * listed for the HUD.
  *
- * @param pulseLevel the level of the Pulse Cannon the sortie flies
+ * @param weapons the flown weapons, in the order of the loadout's {@link Armament} mounts
+ * @param sparePower the generator's output minus the fitted items' draw, MW (negative when a debug
+ *     fit exceeds it)
  * @param notFlown the names of the fitted items the sortie leaves out, in slot order
  */
-public record Flight(Loadout loadout, int pulseLevel, List<String> notFlown) {
+public record Flight(Loadout loadout, List<Weapon> weapons, double sparePower, List<String> notFlown) {
     /** The Pulse Cannon's slug. */
-    public static final String PULSE_CANNON = "pulse-cannon";
+    public static final String PULSE_CANNON = SimSpecs.PULSE_CANNON;
 
     public Flight {
+        weapons = List.copyOf(weapons);
         notFlown = List.copyOf(notFlown);
     }
 
+    /** A flown weapon for the HUD: its slot, name and upgrade level. */
+    public record Weapon(Armament.Slot slot, String name, int level) {}
+
     public static Flight of(Content content, Catalogue catalogue, Campaign campaign) {
-        Gear gear = campaign.gear();
-        Map<LoadoutSlot, Fitted> loadout = gear.loadout();
-        int pulse = pulseLevel(gear);
+        Map<LoadoutSlot, Fitted> loadout = campaign.gear().loadout();
+        List<SimSpecs.FittedWeapon> fitted = new ArrayList<>();
+        List<Weapon> weapons = new ArrayList<>();
         List<String> notFlown = new ArrayList<>();
-        loadout.forEach((slot, fitted) -> {
-            if (!flies(slot, fitted)) {
-                notFlown.add(catalogue.item(slot.kind(), fitted.item()).name());
+        double load = 0;
+        for (var entry : loadout.entrySet()) {
+            LoadoutSlot slot = entry.getKey();
+            Fitted item = entry.getValue();
+            Catalogue.Item info = catalogue.item(slot.kind(), item.item());
+            load += info.draw(item.level());
+            if (!flies(content, slot, item)) {
+                notFlown.add(info.name());
+            } else if (weaponSlot(slot) != null) {
+                fitted.add(new SimSpecs.FittedWeapon(weaponSlot(slot), item.item(), item.level()));
+                weapons.add(new Weapon(weaponSlot(slot), info.name(), item.level()));
             }
-        });
+        }
+        double output = catalogue
+                .item(ItemKind.GENERATOR, loadout.get(LoadoutSlot.GENERATOR).item())
+                .stats(1)
+                .get(Catalogue.Stat.OUTPUT);
+        double spare = output - load;
         return new Flight(
                 SimSpecs.loadout(
                         content,
                         loadout.get(LoadoutSlot.ENGINE).item(),
-                        pulse,
+                        fitted,
                         loadout.get(LoadoutSlot.SHIELD).item(),
                         loadout.get(LoadoutSlot.ARMOUR).item(),
+                        spare,
                         campaign.difficulty()),
-                pulse,
+                weapons,
+                spare,
                 notFlown);
     }
 
     /** Whether the simulation flies the item in this slot. */
-    public static boolean flies(LoadoutSlot slot, Fitted fitted) {
+    public static boolean flies(Content content, LoadoutSlot slot, Fitted fitted) {
         return switch (slot.kind()) {
-            case FRONT -> fitted.item().equals(PULSE_CANNON);
+            case FRONT, REAR, WING -> SimSpecs.flies(content, fitted.item());
             case GENERATOR, SHIELD, PLATING, ENGINE -> true;
-            case REAR, WING, UTILITY, SPECIAL -> false;
+            case UTILITY, SPECIAL -> false;
         };
     }
 
-    private static int pulseLevel(Gear gear) {
-        Fitted front = gear.loadout().get(LoadoutSlot.FRONT);
-        if (front.item().equals(PULSE_CANNON)) {
-            return front.level();
-        }
-        return gear.inventory(ItemKind.FRONT).stream()
-                .filter(owned -> owned.item().equals(PULSE_CANNON))
-                .mapToInt(Fitted::level)
-                .max()
-                .orElse(1);
+    /** The simulation's weapon slot of a loadout slot; {@code null} for the other slots. */
+    private static Armament.Slot weaponSlot(LoadoutSlot slot) {
+        return switch (slot) {
+            case FRONT -> Armament.Slot.FRONT;
+            case REAR -> Armament.Slot.REAR;
+            case LEFT_WING -> Armament.Slot.LEFT_WING;
+            case RIGHT_WING -> Armament.Slot.RIGHT_WING;
+            default -> null;
+        };
     }
 }

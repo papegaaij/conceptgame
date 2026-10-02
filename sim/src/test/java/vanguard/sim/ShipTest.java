@@ -9,12 +9,10 @@ class ShipTest {
     private static final int LEFT = Command.LEFT.bit();
     private static final int RIGHT = Command.RIGHT.bit();
     private static final int UP = Command.UP.bit();
-    private static final int FIRE = Command.FIRE.bit();
     private static final int PRECISION = Command.PRECISION.bit();
 
     private final Ship ship = new Ship(
             TestSpecs.SHIP,
-            TestSpecs.LOADOUT.gun(),
             new Defences(TestSpecs.LOADOUT.shield(), TestSpecs.LOADOUT.plating(), TestSpecs.SHIP.mercySeconds()));
 
     @Test
@@ -85,25 +83,6 @@ class ShipTest {
         fly(RIGHT | PRECISION, 30);
 
         assertEquals(1, ship.bank());
-    }
-
-    @Test
-    void firesTenVolleysPerSecondWhileFireIsHeld() {
-        int volleys = 0;
-        for (int i = 0; i < SimStep.PER_SECOND; i++) {
-            if (ship.fireGun(FIRE)) {
-                volleys++;
-            }
-        }
-
-        assertEquals(10, volleys);
-    }
-
-    @Test
-    void doesNotFireWithoutTheFireCommand() {
-        for (int i = 0; i < SimStep.PER_SECOND; i++) {
-            assertEquals(false, ship.fireGun(LEFT));
-        }
     }
 
     private void fly(int commands, int steps) {

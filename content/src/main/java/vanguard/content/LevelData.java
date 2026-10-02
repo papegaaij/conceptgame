@@ -219,6 +219,7 @@ public record LevelData(
      *
      * @param size its hit box in px
      * @param at where each of them is placed
+     * @param hardened only {@code anti-ground} weapons damage it (design/enemies, layer rules)
      */
     public record GroundTarget(
             String target,
@@ -231,7 +232,8 @@ public record LevelData(
             Optional<Integer> bounty,
             Optional<Pickup> drop,
             Optional<Integer> hits,
-            Optional<String> reveals) {
+            Optional<String> reveals,
+            Optional<Boolean> hardened) {
         public GroundTarget {
             Layers.of(layer);
             Check.that(hp.isPresent() != hits.isPresent(), "give hp (destructible) or hits (trigger)");

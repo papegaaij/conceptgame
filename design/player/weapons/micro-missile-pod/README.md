@@ -1,7 +1,7 @@
 ---
 title: Micro-missile Pod
 design: approved
-implementation: not-started
+implementation: done
 art: chosen
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-02
@@ -54,12 +54,13 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 
 ## Implementation
 
-- [ ] Weapon data loaded from the shared item data (numbers as in the table above)
-- [ ] Projectile pattern per level 1–5 and the overdrive pattern
-- [ ] Layer hit rules for its traits (see Layers hit)
-- [ ] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
-- [ ] Behaviour as described above
-- [ ] Power draw per level counted in the loadout; upgrades priced as listed
+- [x] Weapon data loaded from the shared item data (numbers as in the table above)
+- [x] Projectile pattern per level 1–5 and the overdrive pattern
+- [x] Layer hit rules for its traits (see Layers hit)
+- [x] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
+- [x] Behaviour as described above, except:
+- [ ] +20 % turn rate with the targeting computer — **later: M4** (the utility modules' effects)
+- [x] Power draw per level counted in the loadout; upgrades priced as listed
 
 ## Decisions
 
@@ -67,3 +68,4 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
 - 2026-10-02: Numbers moved into [data.yaml](data.yaml) (M2 data files); the property and per-level tables are rendered from it by `tools/sync_tables.py`.
 - 2026-10-02: M4 part A (user decision): `range` 350 is the seek radius and the missile lives 1.2 s (about 600 px), not a 350 px flight; missiles seek enemies only, not loot containers or secret beacons. `lifetime` and `cone` added to the data.
+- 2026-10-02: M4 part A: flies in the simulation (`vanguard.sim.WeaponSpec` built by `SimSpecs.weapon`), with its effects from `tools/art/weapon_fx.py` and its family's sound; the effects are proposed as final in [concept round 14](../../../concept-rounds/round-14/README.md).

@@ -415,7 +415,7 @@ class SortieTest {
     @Test
     void aDestroyedContainerPaysItsBountyAndItsSalvageIsCollected() {
         var container = new LevelScript.GroundObjectSpec(
-                0, Ship.START_X, new Hitbox(32, 24), 3, 5, Optional.of(PickupType.SMALL_SALVAGE), 0, 0, "");
+                0, Ship.START_X, new Hitbox(32, 24), 3, 5, Optional.of(PickupType.SMALL_SALVAGE), 0, 0, "", false);
         var sortie = sortie(level(20, List.of(), List.of(container), List.of()));
 
         int picked = 0;
@@ -437,7 +437,7 @@ class SortieTest {
     @Test
     void aGroundObjectCountsTheStepsSinceItsLastHit() {
         var container = new LevelScript.GroundObjectSpec(
-                0, Ship.START_X, new Hitbox(32, 24), 100, 5, Optional.empty(), 0, 0, "");
+                0, Ship.START_X, new Hitbox(32, 24), 100, 5, Optional.empty(), 0, 0, "", false);
         var sortie = sortie(level(20, List.of(), List.of(container), List.of()));
         sortie.step(Command.NONE);
         assertFalse(sortie.groundObject(0).damaged());
@@ -460,7 +460,7 @@ class SortieTest {
     @Test
     void uncollectedPickupsAreGoneAfterTheirTime() {
         var container = new LevelScript.GroundObjectSpec(
-                0, Ship.START_X, new Hitbox(32, 24), 2, 5, Optional.of(PickupType.SMALL_SALVAGE), 0, 0, "");
+                0, Ship.START_X, new Hitbox(32, 24), 2, 5, Optional.of(PickupType.SMALL_SALVAGE), 0, 0, "", false);
         var sortie = sortie(level(20, List.of(), List.of(container), List.of()));
         while (sortie.pickupCount() == 0) {
             sortie.step(Command.FIRE.bit());
@@ -477,7 +477,7 @@ class SortieTest {
     @Test
     void threeHitsOnTheBeaconReleaseTheHiddenCrate() {
         var beacon = new LevelScript.GroundObjectSpec(
-                0, Ship.START_X, new Hitbox(12, 12), 0, 0, Optional.empty(), 3, 80, "beacon cache");
+                0, Ship.START_X, new Hitbox(12, 12), 0, 0, Optional.empty(), 3, 80, "beacon cache", false);
         var line = new LevelScript.RadioCue(
                 LevelScript.CueTrigger.SECRET, 0, "beacon cache", "Rook", "Nice shooting.", false, "neutral");
         var sortie = sortie(level(20, List.of(), List.of(beacon), List.of(line)));

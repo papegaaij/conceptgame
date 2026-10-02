@@ -59,6 +59,7 @@ public record LevelScript(
      * @param size its hit box
      * @param crateCredits the hidden crate's credits (triggers only)
      * @param secret the secret's name (triggers only), for its radio cue
+     * @param hardened only {@code anti-ground} weapons damage it; other shots glance off
      */
     public record GroundObjectSpec(
             double t,
@@ -69,7 +70,8 @@ public record LevelScript(
             Optional<PickupType> drop,
             int hits,
             int crateCredits,
-            String secret) {
+            String secret,
+            boolean hardened) {
         /** Whether it is a trigger rather than a destructible. */
         public boolean trigger() {
             return hits > 0;

@@ -1,6 +1,7 @@
 package vanguard.game.audio;
 
 import vanguard.game.render.EnemyLooks;
+import vanguard.sim.Armament;
 import vanguard.sim.PickupType;
 import vanguard.sim.PlayField;
 import vanguard.sim.SimEvents;
@@ -26,15 +27,42 @@ public final class FlightSounds {
     private static final float MAX_PAN = 0.4f;
     private static final PickupType[] PICKUP_TYPES = PickupType.values();
 
+    /** Rear guns play their family's sound about 10 % lower (design/audio/sfx, Weapon sound families). */
+    private static final float REAR_PITCH = 0.9f;
+
     private final SfxBank bank;
     private final EnemyLooks[] looks;
+    private final Sfx[] shots;
+    private final float[] shotPitch;
     private final SplitMix64 random = new SplitMix64(0x5F3);
     private boolean variantB;
 
-    /** @param looks the explosions of the level's enemy kinds */
-    public FlightSounds(SfxBank bank, EnemyLooks[] looks) {
+    /**
+     * @param looks the explosions of the level's enemy kinds
+     * @param armament the fitted weapons, whose sound families the shots play
+     */
+    public FlightSounds(SfxBank bank, EnemyLooks[] looks, Armament armament) {
         this.bank = bank;
         this.looks = looks;
+        shots = new Sfx[armament.size()];
+        shotPitch = new float[armament.size()];
+        for (int m = 0; m < armament.size(); m++) {
+            shots[m] = shot(armament.mount(m).weapon().sfx());
+            shotPitch[m] = armament.mount(m).slot() == Armament.Slot.REAR ? REAR_PITCH : 1;
+        }
+    }
+
+    /** The sound of a weapon sound family; the families of later weapons play the pulse until they have theirs. */
+    private static Sfx shot(String family) {
+        return switch (family) {
+            case "vulcan" -> Sfx.VULCAN_SHOT;
+            case "ballistic" -> Sfx.BALLISTIC_SHOT;
+            case "laser" -> Sfx.LASER_SHOT;
+            case "micromissile" -> Sfx.MICROMISSILE_SHOT;
+            case "mortar" -> Sfx.MORTAR_SHOT;
+            case "bomb" -> Sfx.BOMB_SHOT;
+            default -> Sfx.PULSE_SHOT;
+        };
     }
 
     /**
@@ -66,7 +94,15 @@ public final class FlightSounds {
         for (int i = 0; i < events.size(); i++) {
             float pan = pan(events.x(i));
             switch (events.type(i)) {
-                case SHOT_FIRED -> bank.play(Sfx.PULSE_SHOT, PLAYER_FIRE, pitch(0.05), pan);
+                case SHOT_FIRED -> {
+                    int mount = events.value(i);
+                    bank.play(shots[mount], PLAYER_FIRE, shotPitch[mount] * pitch(0.05), pan);
+                }
+                case SHOT_GLANCED ->
+                    bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, 1.3f * pitch(0.05), pan);
+                case BLAST ->
+                    bank.play(alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B), EXPLOSIONS, pitch(0.06), pan);
+                case OVERDRIVE_ENDED -> bank.play(Sfx.OVERDRIVE_END, PICKUPS, 1, 0);
                 case ENEMY_HIT -> bank.play(alternate(Sfx.HIT_ORGANIC_A, Sfx.HIT_ORGANIC_B), HITS, pitch(0.05), pan);
                 case ENEMY_DESTROYED -> {
                     EnemyLooks kind = looks[events.value(i)];

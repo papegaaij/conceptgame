@@ -10,6 +10,8 @@ import vanguard.content.Difficulty;
 import vanguard.content.SimSpecs;
 import vanguard.content.campaign.Hangar.Action;
 import vanguard.content.campaign.Hangar.State;
+import vanguard.sim.Armament;
+import vanguard.sim.WeaponSpec;
 
 class FlightTest {
     private static final Content CONTENT = ContentLoader.fromClasspath();
@@ -19,6 +21,8 @@ class FlightTest {
         Flight flight = Flight.of(CONTENT, HangarTest.CATALOGUE, Campaign.start(CampaignTest.RULES, Difficulty.HARD));
 
         assertEquals(SimSpecs.starterLoadout(CONTENT, Difficulty.HARD), flight.loadout());
+        assertEquals(List.of(new Flight.Weapon(Armament.Slot.FRONT, "Pulse Cannon", 1)), flight.weapons());
+        assertEquals(4, flight.sparePower());
         assertEquals(List.of(), flight.notFlown());
     }
 
@@ -44,16 +48,23 @@ class FlightTest {
 
         Flight flight = Flight.of(CONTENT, HangarTest.CATALOGUE, campaign);
 
-        assertEquals(2, flight.pulseLevel());
-        assertEquals(List.of(-5.0, 5.0), flight.loadout().gun().pattern());
-        assertEquals(1.6, flight.loadout().gun().damage());
+        assertEquals(List.of(new Flight.Weapon(Armament.Slot.FRONT, "Pulse Cannon", 2)), flight.weapons());
+        WeaponSpec pulse = flight.loadout().armament().mount(0).weapon();
+        assertEquals(
+                List.of(-5.0, 5.0),
+                pulse.muzzles().stream().map(WeaponSpec.Muzzle::dx).toList());
+        assertEquals(1.6, pulse.damage());
+        assertEquals(2.2, flight.loadout().armament().mount(0).overdrive().damage(), "the L3 pattern");
         assertEquals(30, flight.loadout().shield().capacity());
+        // Mk II "Arc" 11 MW less the Pulse Cannon L2 2.5, the Mk II shield 3 and the Mk II engine 1.
+        assertEquals(4.5, flight.sparePower());
+        assertEquals(3 * 1.45, flight.loadout().shield().regenPerSecond(), 1e-12);
         assertEquals(80, flight.loadout().plating().maxArmour());
         assertEquals(290, flight.loadout().ship().speed());
     }
 
     @Test
-    void untilM4AnotherFrontGunFliesAsTheOwnedPulseCannonAndTheRestIsListed() {
+    void theFittedWeaponsFlyInTheirSlots() {
         Campaign campaign = HangarTest.campaign(Difficulty.MEDIUM, 2, 20_000, 60);
         Hangar hangar = new Hangar(HangarTest.CATALOGUE, campaign);
         hangar.apply(
@@ -71,7 +82,15 @@ class FlightTest {
 
         Flight flight = Flight.of(CONTENT, HangarTest.CATALOGUE, campaign);
 
-        assertEquals(2, flight.pulseLevel());
-        assertEquals(List.of("Scatter Vulcan", "Autocannon Pod"), flight.notFlown());
+        assertEquals(
+                List.of(
+                        new Flight.Weapon(Armament.Slot.FRONT, "Scatter Vulcan", 1),
+                        new Flight.Weapon(Armament.Slot.RIGHT_WING, "Autocannon Pod", 1)),
+                flight.weapons());
+        assertEquals(
+                "scatter-vulcan", flight.loadout().armament().mount(0).weapon().slug());
+        assertEquals(
+                Armament.Slot.RIGHT_WING, flight.loadout().armament().mount(1).slot());
+        assertEquals(List.of(), flight.notFlown());
     }
 }

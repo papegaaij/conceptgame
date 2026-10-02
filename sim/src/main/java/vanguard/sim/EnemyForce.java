@@ -18,6 +18,7 @@ final class EnemyForce {
     private final WaveSchedule waves;
     private final Pool<Enemy> enemies = new Pool<>(ENEMY_CAPACITY, Enemy::new, Enemy[]::new);
     private final Pool<EnemyBullet> bullets = new Pool<>(BULLET_CAPACITY, EnemyBullet::new, EnemyBullet[]::new);
+    private int spawned;
 
     /** Plans the waves with {@code rng}, which also spreads the aimed shots later. */
     EnemyForce(List<WaveSpec> waveSpecs, SplitMix64 rng, Rules rules, SimEvents events) {
@@ -32,6 +33,7 @@ final class EnemyForce {
         Pools.clear(enemies);
         Pools.clear(bullets);
         waves.reset();
+        spawned = 0;
     }
 
     /** Lets in every unit due at {@code levelTick}. */
@@ -39,8 +41,9 @@ final class EnemyForce {
         for (Spawn spawn = waves.due(levelTick); spawn != null; spawn = waves.due(levelTick)) {
             Enemy enemy = enemies.obtain();
             if (enemy != null) {
-                enemy.spawn(spawn);
+                enemy.spawn(spawn, spawned);
             }
+            spawned++;
         }
     }
 

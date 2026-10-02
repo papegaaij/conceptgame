@@ -60,7 +60,7 @@ public final class HangarScreen implements GameScreen {
         this.campaign = campaign;
         nextLevel = CampaignRoute.launch(services.content, campaign);
         state = new HangarState(new Hangar(services.catalogue, campaign), nextLevel.isPresent());
-        view = new HangarView(services.files, services.glass, services.sprites, services.catalogue);
+        view = new HangarView(services.files, services.glass, services.sprites, services.catalogue, services.content);
         if (autosave) {
             this.autosave = services.save(SaveSlots.Slot.AUTOSAVE, campaign) ? "AUTOSAVED" : "AUTOSAVE FAILED";
         } else {

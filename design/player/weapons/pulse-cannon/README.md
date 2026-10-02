@@ -1,7 +1,7 @@
 ---
 title: Pulse Cannon
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-02
@@ -62,10 +62,11 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 ## Implementation
 
 - [x] Weapon data loaded from the shared item data (numbers as in the table above)
-- [ ] Projectile pattern per level 1–5 and the overdrive pattern
-- [ ] Layer hit rules for its traits (see Layers hit)
+- [x] Projectile pattern per level 1–5 and the overdrive pattern
+- [x] Layer hit rules for its traits on `air`, `low-air` and `ground` (hardened ground targets glance off)
+- [ ] The `sub` layer in under-water mode — **later: Act 4** (the first level under water)
 - [x] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
-- [ ] Behaviour as described above
+- [x] Behaviour as described above, above water
 - [x] Power draw per level counted in the loadout; upgrades priced as listed
 
 ## Decisions
@@ -80,3 +81,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   the overdrive pickup, so the pattern item stays open.
 - 2026-10-02: Production art (Level 01 batch, `tools/art/pulse_cannon.py`): bolt, muzzle flash and impact are the round-08 light fields written premultiplied on black (exactly what the additive blend adds; the placeholders were cut from the sheet with its checkerboard subtracted), same sizes and frame counts. Review files proposed for round 12.
 - 2026-10-02: Concept round 12 closed (user decision): bolt, muzzle flash and impact approved as **final**, `art: final`.
+- 2026-10-02: M4 part A: the simulation flies it as one `vanguard.sim.WeaponSpec` like every weapon, with its overdrive (the L2 pattern above L1, the overdrive pattern at L5); under-water mode waits for Act 4.

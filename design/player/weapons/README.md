@@ -1,7 +1,7 @@
 ---
 title: Weapons
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../generator, ../../systems/economy]
 updated: 2026-10-02
@@ -23,18 +23,18 @@ below.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [pulse-cannon](pulse-cannon/README.md) | Pulse Cannon — Front, forward; DPS 20 → 70; starter; start | approved | in-progress | final |
-| [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | approved | not-started | chosen |
-| [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | approved | not-started | chosen |
-| [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | approved | not-started | chosen |
+| [pulse-cannon](pulse-cannon/README.md) | Pulse Cannon — Front, forward; DPS 20 → 70; starter; start | approved | done | final |
+| [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | approved | done | chosen |
+| [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | approved | done | chosen |
+| [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | approved | done | chosen |
 | [hornet-launcher](hornet-launcher/README.md) | Hornet Launcher — Front, homing; DPS 15 → 60; 2 000; L10 | approved | not-started | chosen |
-| [side-splitter](side-splitter/README.md) | Side Splitter — Rear, side; DPS 12 → 40; 1 400; L05 | approved | not-started | chosen |
+| [side-splitter](side-splitter/README.md) | Side Splitter — Rear, side; DPS 12 → 40; 1 400; L05 | approved | done | chosen |
 | [tail-gun](tail-gun/README.md) | Tail Gun — Rear, rear; DPS 10 → 35; 600; L08 | approved | not-started | chosen |
 | [fan-blaster](fan-blaster/README.md) | Fan Blaster — Rear, rear, spread; DPS 10.2 → 40; 1 200; L10 | approved | not-started | chosen |
 | [proximity-mines](proximity-mines/README.md) | Proximity Mines — Rear, rear, area; DPS 20 → 70; 1 500; L12 | approved | not-started | chosen |
-| [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | approved | not-started | chosen |
-| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | approved | not-started | chosen |
-| [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | approved | not-started | chosen |
+| [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | approved | done | chosen |
+| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | approved | done | chosen |
+| [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | approved | done | chosen |
 | [swivel-gun](swivel-gun/README.md) | Swivel Gun — Wing (per pod), side, homing; DPS 8 → 26; 1 500; L09 | approved | not-started | chosen |
 | [torpedo-pod](torpedo-pod/README.md) | Torpedo Pod — Wing (per pod), anti-sub; DPS 10 → 32; 1 000; L11 | approved | not-started | chosen |
 
@@ -127,12 +127,22 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 | [concept/beam-impact-r09-a.png](concept/beam-impact-r09-a.png) | Beam impact: the beam bores into the silhouette and ends in a contact flare with back-sparks, scorch and heat shimmer; off-screen when nothing is hit (sheet) | chosen |
 | [concept/beam-impact-r09-a.gif](concept/beam-impact-r09-a.gif) | Beam impact: the beam bores into the silhouette and ends in a contact flare with back-sparks, scorch and heat shimmer; off-screen when nothing is hit (motion) | chosen |
 
+Concept [round 14](../../concept-rounds/round-14/README.md) — the Act 1 arsenal's effects as final art; generator `tools/art/weapon_fx.py`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/weapons-final-r14-a.png](concept/weapons-final-r14-a.png) | Final effects: the Scatter Vulcan, Autocannon and Side Splitter shots at every angle their patterns use, the lance per level, the micro-missile at 32 headings, the bomb and the shell, the mortar's landing reticle, the ballistic and launcher muzzle flashes, the ballistic and explosive impacts (sheet) | proposed |
+| [concept/weapons-final-r14-a.gif](concept/weapons-final-r14-a.gif) | The Stormhawk firing the fan, the pods and the side guns, a missile turning through its headings (motion) | proposed |
+| [concept/weapons-capture-final-r14-a.png](concept/weapons-capture-final-r14-a.png) | Game captures of Level 01 with `--loadout`: Vulcan, Side Splitter and bombs; the Lance and two missile pods; the Mortar with its reticles, bombs and the Autocannon | proposed |
+
 ## Implementation
 
 - [x] Weapon data format: slot, traits, per-level damage/pattern/draw, price, unlock (the
   fields of each weapon's `data.yaml`)
-- [ ] Projectile patterns for every designed weapon with L1–L5 (+ overdrive) variants
-- [ ] Layer hit rules per trait (anti-ground, anti-sub, beam, area)
+- [x] Projectile patterns with L1–L5 (+ overdrive) variants for the Act 1 arsenal and the Pulse Cannon
+- [ ] The Act 2 weapons (Tail Gun, Fan Blaster, Proximity Mines, Hornet Launcher, Swivel Gun, Torpedo Pod) — **later: M5** (their levels)
+- [x] Layer hit rules per trait for the Act 1 arsenal: `anti-ground` (hardened targets, ×2 on the ground for bolts), homing reaching `high-air`, ground-only blasts (`area` of the mortar)
+- [ ] `anti-sub` and the mines' `area` — **later: M5**; `beam` — **later: Act 3** (the Ion Beam, L15)
 - [x] Hangar trait markers linked to the level threat profile
 
 ## Open questions
@@ -163,3 +173,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   its price, upgrade costs and draw; ◆ markers count a weapon's traits that the next level
   recommends, shown from sensor L3 on (the level at which the intel reveals the recommendation).
   Only the Pulse Cannon flies so far; the others fly from M4.
+- 2026-10-02: M4 part A built (user decisions at the part's start: a `--loadout` debug option to fly them on Level 01; the micro-missile's `range` is its seek radius and it lives 1.2 s; missiles seek enemies only and the mortar snaps to destructible ground targets, never a secret's beacon; the effects come from a production generator, reviewed in round 14). The simulation flies every weapon whose delivery it knows (bolts, homing, dropped, lobbed): the Act 1 arsenal, and the Act 2 Tail Gun, Fan Blaster, Hornet Launcher and Swivel Gun with borrowed effects until their levels; the mines and the Torpedo Pod do not fly yet.

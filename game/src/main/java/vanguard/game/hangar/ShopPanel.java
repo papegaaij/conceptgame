@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import vanguard.content.Content;
 import vanguard.content.campaign.Catalogue.Item;
 import vanguard.content.campaign.Catalogue.Stat;
 import vanguard.content.campaign.Fitted;
@@ -48,8 +49,10 @@ final class ShopPanel {
 
     private final Glass glass;
     private final ItemIcons icons;
+    private final Content content;
 
-    ShopPanel(Glass glass, ItemIcons icons) {
+    ShopPanel(Glass glass, ItemIcons icons, Content content) {
+        this.content = content;
         this.glass = glass;
         this.icons = icons;
     }
@@ -172,7 +175,7 @@ final class ShopPanel {
             drawDeltas(batch, item, offer.level(), fitted.get(), fittedLevel(state), line + 14);
         }
         if (!flies(state.slot(), item)) {
-            glass.shadowed(batch, glass.fonts.label, "NOT YET IN FLIGHT: FROM M4", Glass.DIM, INNER, line + 28);
+            glass.shadowed(batch, glass.fonts.label, "NOT YET IN FLIGHT", Glass.DIM, INNER, line + 28);
         }
         if (offer.state() == State.LOCKED) {
             String unlock = String.format(Locale.ROOT, "IN THE SHOP BEFORE MISSION %02d", item.unlock());
@@ -187,8 +190,8 @@ final class ShopPanel {
         return fitted == null ? 1 : fitted.level();
     }
 
-    private static boolean flies(LoadoutSlot slot, Item item) {
-        return Flight.flies(slot, new Fitted(item.id(), 1));
+    private boolean flies(LoadoutSlot slot, Item item) {
+        return Flight.flies(content, slot, new Fitted(item.id(), 1));
     }
 
     private void drawDeltas(SpriteBatch batch, Item item, int level, Item fitted, int fittedLevel, int y) {

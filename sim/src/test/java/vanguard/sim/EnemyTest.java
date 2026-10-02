@@ -30,7 +30,7 @@ class EnemyTest {
     @Test
     void theFirstShotComesTheDelayAfterItStopsThenEveryInterval() {
         var enemy = new Enemy();
-        enemy.spawn(hovering(TestSpecs.NEEDLER, Optional.empty(), Spawn.Exit.DOWN));
+        enemy.spawn(hovering(TestSpecs.NEEDLER, Optional.empty(), Spawn.Exit.DOWN), 0);
 
         List<Integer> shots = shotSteps(enemy, 60 + 360);
 
@@ -41,8 +41,10 @@ class EnemyTest {
     @Test
     void aBurstFiresItsShotsInQuickSuccession() {
         var enemy = new Enemy();
-        enemy.spawn(hovering(
-                TestSpecs.needler(new EnemyGun(2.5, 0.8, 2, 150, 4, false)), Optional.empty(), Spawn.Exit.DOWN));
+        enemy.spawn(
+                hovering(
+                        TestSpecs.needler(new EnemyGun(2.5, 0.8, 2, 150, 4, false)), Optional.empty(), Spawn.Exit.DOWN),
+                0);
 
         List<Integer> shots = shotSteps(enemy, 60 + 60);
 
@@ -52,7 +54,7 @@ class EnemyTest {
     @Test
     void itStopsFiringAndLeavesAfterTheHold() {
         var enemy = new Enemy();
-        enemy.spawn(hovering(TestSpecs.NEEDLER, Optional.empty(), Spawn.Exit.DOWN));
+        enemy.spawn(hovering(TestSpecs.NEEDLER, Optional.empty(), Spawn.Exit.DOWN), 0);
         shotSteps(enemy, 60 + 600);
 
         double y = enemy.y();
@@ -70,7 +72,7 @@ class EnemyTest {
     void aCircleUnitOrbitsItsCentreThenBreaksTowardTheShip() {
         var enemy = new Enemy();
         var orbit = new Spawn.Orbit(240, 360, 80, -StrictMath.PI / 2, StrictMath.toRadians(60));
-        enemy.spawn(hovering(TestSpecs.NEEDLER, Optional.of(orbit), Spawn.Exit.TOWARD_SHIP));
+        enemy.spawn(hovering(TestSpecs.NEEDLER, Optional.of(orbit), Spawn.Exit.TOWARD_SHIP), 0);
 
         for (int i = 0; i < 60 + 300; i++) {
             enemy.move(240, 96);
@@ -92,7 +94,7 @@ class EnemyTest {
     void itFacesItsDirectionOfFlightTurningAtMostOneHeadingStepPerStep() {
         var enemy = new Enemy();
         var orbit = new Spawn.Orbit(240, 360, 80, -StrictMath.PI / 2, StrictMath.toRadians(60));
-        enemy.spawn(hovering(TestSpecs.SKITTER, Optional.of(orbit), new Spawn.Exit(false, 0, 1)));
+        enemy.spawn(hovering(TestSpecs.SKITTER, Optional.of(orbit), new Spawn.Exit(false, 0, 1)), 0);
         assertEquals(0, enemy.facing(), 1e-12, "flying down the screen");
 
         double previous = enemy.facing();
@@ -109,7 +111,7 @@ class EnemyTest {
     @Test
     void anUnarmedEnemyNeverFires() {
         var enemy = new Enemy();
-        enemy.spawn(hovering(TestSpecs.SKITTER, Optional.empty(), Spawn.Exit.DOWN));
+        enemy.spawn(hovering(TestSpecs.SKITTER, Optional.empty(), Spawn.Exit.DOWN), 0);
 
         assertEquals(List.of(), shotSteps(enemy, 600));
     }

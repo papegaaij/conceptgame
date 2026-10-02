@@ -47,6 +47,8 @@ milestone lists which documents it covers, it does not copy their items.
   The named milestone's row lists the item among its tickets unless its documents imply it. A
   document whose unticked items all carry a `later:` tag counts as done for its milestone and has
   `implementation: done`; it goes back to `in-progress` when the later milestone starts on it.
+  Work for the acts after the Acts 1–2 release names the act instead (`— **later: Act 4**
+  (under water)`), since no milestone covers it yet.
 
 ### M4 parts
 
@@ -91,3 +93,4 @@ production art is a concept round right after its part, so M4 ships no placehold
 - 2026-10-02: M3 close-out (user decision): later-milestone items are marked `later: Mn` in their documents (rule under *Rules*) and added to the M4 and M5 rows; the sound test and the transmission static are built; the portrait expressions, briefing images and the intel's L2 portraits go to the art track. Every M3 document is now `done` under that rule; M3 stays open until the user has played the build.
 - 2026-10-02: M3 The campaign loop done: played and accepted by the user (menus, options, briefings, hangar, saves, retry and game over); deferred items carry their `later:` milestone.
 - 2026-10-02: M4 plan (user decisions): parts A–H as under *M4 parts*; a production-art round per part; the wingman's escort slot moves to M5, since Rook joins at L08.
+- 2026-10-02: M4 part A built: the Act 1 arsenal on Level 01 (`--loadout` to fly it before its shop levels), overdrive and the spare-power bonus in flight, the HUD's weapon rows, the effects proposed as final in concept round 14. Deferred items of acts beyond M6 are tagged with their act (rule under *Rules*).

@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import vanguard.sim.Armament;
 import vanguard.sim.EnemyGun;
 import vanguard.sim.EnemySpec;
 import vanguard.sim.Hitbox;
@@ -17,13 +18,13 @@ import vanguard.sim.Loadout;
 import vanguard.sim.PickupRules;
 import vanguard.sim.PickupType;
 import vanguard.sim.Plating;
-import vanguard.sim.PulseCannon;
 import vanguard.sim.Range;
 import vanguard.sim.Rules;
 import vanguard.sim.ScoringRules;
 import vanguard.sim.ShieldModel;
 import vanguard.sim.ShipSpec;
 import vanguard.sim.WaveSpec;
+import vanguard.sim.WeaponSpec;
 
 /**
  * Builds the simulation's specs from the loaded content at one difficulty. The dependency points
@@ -32,35 +33,69 @@ import vanguard.sim.WaveSpec;
  * levers (design/systems/difficulty) and the level's easy/hard changes on the way.
  */
 public final class SimSpecs {
+    /** The starter front gun's slug. */
+    public static final String PULSE_CANNON = "pulse-cannon";
+
     private static final Pattern LEVEL_KEY = Pattern.compile("act-(\\d+)-[a-z0-9-]+/level-(\\d{2})-[a-z0-9-]+");
 
     private SimSpecs() {}
 
+    /** A weapon fitted in one of the Stormhawk's weapon slots at an upgrade level (1–5). */
+    public record FittedWeapon(Armament.Slot slot, String weapon, int level) {}
+
     /**
      * The starting fit: the hull with the starter engine, the Pulse Cannon at L1, the starter
-     * shield (with the difficulty's regen lever) and plating.
+     * shield (with the difficulty's regen lever and the spare-power bonus of the starter generator)
+     * and plating.
      */
     public static Loadout starterLoadout(Content content, Difficulty difficulty) {
+        SystemsData.Engine engine = content.systems().engines().getFirst();
+        ShieldData.Model shield = content.shields().models().getFirst();
+        WeaponData pulse = content.weapon(PULSE_CANNON);
+        double spare =
+                content.generators().models().getFirst().output() - pulse.draw().min() - shield.draw() - engine.draw();
         return loadout(
                 content,
-                content.systems().engines().getFirst().name(),
-                1,
-                content.shields().models().getFirst().name(),
+                engine.name(),
+                List.of(new FittedWeapon(Armament.Slot.FRONT, PULSE_CANNON, 1)),
+                shield.name(),
                 content.armour().plating().getFirst().name(),
+                spare,
                 difficulty);
     }
 
     /**
-     * A fit of the parts the simulation flies: the hull with an engine, the Pulse Cannon at a level,
-     * a shield (with the difficulty's regen lever) and a plating, each by its name in its data file.
+     * A fit of the parts the simulation flies: the hull with an engine, the weapons at their
+     * levels, a shield (with the difficulty's regen lever and the bonus of {@code sparePower} MW,
+     * design/player/generator) and a plating, each by its name in its data file.
      */
     public static Loadout loadout(
-            Content content, String engine, int pulseLevel, String shield, String plating, Difficulty difficulty) {
+            Content content,
+            String engine,
+            List<FittedWeapon> weapons,
+            String shield,
+            String plating,
+            double sparePower,
+            Difficulty difficulty) {
+        ShieldModel model =
+                shield(content, named(content.shields().models(), ShieldData.Model::name, shield), difficulty);
+        double regen = model.regenPerSecond() * (1 + regenBonus(content, sparePower));
         return new Loadout(
                 ship(content, named(content.systems().engines(), SystemsData.Engine::name, engine)),
-                pulseCannon(content, pulseLevel),
-                shield(content, named(content.shields().models(), ShieldData.Model::name, shield), difficulty),
+                new Armament(weapons.stream()
+                        .map(fitted -> new Armament.Mount(
+                                fitted.slot(),
+                                weapon(content, fitted.slot(), fitted.weapon(), fitted.level()),
+                                weapon(content, fitted.slot(), fitted.weapon(), fitted.level() + 1)))
+                        .toList()),
+                new ShieldModel(model.capacity(), regen, model.regenDelaySeconds(), model.breakSeconds()),
                 plating(named(content.armour().plating(), ArmourData.Plating::name, plating)));
+    }
+
+    /** The shield regen bonus of {@code sparePower} spare MW (design/player/generator): +10 % per MW, at most +50 %. */
+    public static double regenBonus(Content content, double sparePower) {
+        GeneratorData.SparePower rule = content.generators().sparePower();
+        return Math.clamp(sparePower * rule.regenBonusPerMw(), 0, rule.maxRegenBonus());
     }
 
     private static <T> T named(List<T> parts, Function<T, String> name, String wanted) {
@@ -85,19 +120,98 @@ public final class SimSpecs {
                 ship.bankChangeSteps() / ShipSpec.HARD_BANK);
     }
 
-    /** The Pulse Cannon at an upgrade level: a volley of parallel bolts (its patterns fire straight ahead). */
-    static PulseCannon pulseCannon(Content content, int upgradeLevel) {
-        WeaponData cannon = content.weapon("pulse-cannon");
-        WeaponData.Level level = cannon.levels().get(upgradeLevel - 1);
-        if (level.pattern().stream().anyMatch(shot -> shot.angle() != 0)) {
-            throw new IllegalArgumentException("the simulation fires straight Pulse Cannon patterns only");
+    /**
+     * Whether the simulation flies the weapon: the deliveries of the Act 1 arsenal (standard bolts,
+     * homing missiles, dropped and lobbed ground-only shots); mines and torpedoes follow with Act 2.
+     */
+    public static boolean flies(Content content, String weapon) {
+        return delivery(content.weapon(weapon)).isPresent();
+    }
+
+    private static Optional<WeaponSpec.Delivery> delivery(WeaponData weapon) {
+        return switch (weapon.hits()) {
+            case "standard" -> Optional.of(WeaponSpec.Delivery.BOLT);
+            case "homing" -> Optional.of(WeaponSpec.Delivery.HOMING);
+            case "ground-only" ->
+                Optional.of(
+                        weapon.range().orElseThrow().kind() == WeaponData.Range.Kind.DROP
+                                ? WeaponSpec.Delivery.DROPPED
+                                : WeaponSpec.Delivery.LOBBED);
+            default -> Optional.empty();
+        };
+    }
+
+    /**
+     * A weapon in a slot at an upgrade level, 6 being its overdrive pattern. The muzzles follow from
+     * the ship's mount points: the front muzzle, the rear muzzle or, for a weapon that fires to both
+     * sides, the wing roots (the pattern to the right, mirrored to the left); a pod fires from its
+     * wing mount, the left one mirrored, and turns in by the weapon's convergence.
+     */
+    static WeaponSpec weapon(Content content, Armament.Slot slot, String slug, int upgradeLevel) {
+        WeaponData weapon = content.weapon(slug);
+        WeaponSpec.Delivery delivery = delivery(weapon)
+                .orElseThrow(
+                        () -> new IllegalArgumentException(slug + ": its hits '" + weapon.hits() + "' do not fly yet"));
+        WeaponData.Level level = upgradeLevel > weapon.levels().size()
+                ? weapon.overdrive()
+                : weapon.levels().get(upgradeLevel - 1);
+        ShipData.Mounts mounts = content.ship().mounts();
+        double centre = content.ship().size() / 2;
+        List<WeaponSpec.Muzzle> muzzles = new ArrayList<>();
+        for (WeaponData.Shot shot : level.pattern()) {
+            switch (slot) {
+                case FRONT -> muzzles.add(muzzle(mounts.front(), centre, shot.x(), shot.angle()));
+                case REAR -> {
+                    if (weapon.mirrored().orElse(false)) {
+                        muzzles.add(muzzle(mounts.roots().get(1), centre, shot.x(), shot.angle()));
+                        muzzles.add(muzzle(mounts.roots().get(0), centre, -shot.x(), -shot.angle()));
+                    } else {
+                        muzzles.add(muzzle(mounts.rear(), centre, shot.x(), shot.angle()));
+                    }
+                }
+                case LEFT_WING ->
+                    muzzles.add(muzzle(
+                            mounts.wings().get(0),
+                            centre,
+                            -shot.x(),
+                            -shot.angle() + weapon.converge().orElse(0.0)));
+                case RIGHT_WING ->
+                    muzzles.add(muzzle(
+                            mounts.wings().get(1),
+                            centre,
+                            shot.x(),
+                            shot.angle() - weapon.converge().orElse(0.0)));
+            }
         }
-        return new PulseCannon(
+        WeaponData.Range range = weapon.range().orElseThrow();
+        return new WeaponSpec(
+                slug,
+                weapon.vfx(),
+                weapon.sfx(),
+                delivery,
+                weapon.traits().contains("anti-ground"),
                 level.rate(),
                 level.damage(),
-                cannon.speed().orElseThrow().start(),
-                hitbox(cannon.size()),
-                level.pattern().stream().map(WeaponData.Shot::x).toList());
+                weapon.speed().map(WeaponData.Speed::start).orElse(0.0),
+                hitbox(weapon.size()),
+                switch (range.kind()) {
+                    case SCREEN -> Double.POSITIVE_INFINITY;
+                    case DROP -> 0;
+                    case DISTANCE -> range.px();
+                },
+                weapon.lifetime().orElse(Double.POSITIVE_INFINITY),
+                level.pierce().orElse(1),
+                level.blast().orElse(0.0),
+                Math.toRadians(level.turn().orElse(0.0)),
+                Math.toRadians(weapon.cone().orElse(360.0) / 2),
+                weapon.fall().or(weapon::flight).orElse(0.0),
+                weapon.snap().orElse(0.0),
+                muzzles);
+    }
+
+    /** A projectile leaving a mount point (sprite pixels from the top left) with an offset and an angle in degrees. */
+    private static WeaponSpec.Muzzle muzzle(Point mount, double centre, double offset, double degrees) {
+        return new WeaponSpec.Muzzle(mount.x() - centre + offset, centre - mount.y(), Math.toRadians(degrees));
     }
 
     static ShieldModel shield(Content content, ShieldData.Model model, Difficulty difficulty) {
@@ -374,7 +488,8 @@ public final class SimSpecs {
                         target.drop().map(SimSpecs::pickup),
                         target.hits().orElse(0),
                         secret.map(LevelData.Secret::crate).orElse(0),
-                        secret.map(LevelData.Secret::name).orElse("")));
+                        secret.map(LevelData.Secret::name).orElse(""),
+                        target.hardened().orElse(false)));
             }
         }
         objects.sort(Comparator.comparingDouble(LevelScript.GroundObjectSpec::t));

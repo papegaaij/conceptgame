@@ -1,7 +1,7 @@
 ---
 title: Hammer Mortar
 design: approved
-implementation: not-started
+implementation: done
 art: chosen
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-02
@@ -55,12 +55,12 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 
 ## Implementation
 
-- [ ] Weapon data loaded from the shared item data (numbers as in the table above)
-- [ ] Projectile pattern per level 1–5 and the overdrive pattern
-- [ ] Layer hit rules for its traits (see Layers hit)
-- [ ] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
-- [ ] Behaviour as described above
-- [ ] Power draw per level counted in the loadout; upgrades priced as listed
+- [x] Weapon data loaded from the shared item data (numbers as in the table above)
+- [x] Projectile pattern per level 1–5 and the overdrive pattern
+- [x] Layer hit rules for its traits (see Layers hit)
+- [x] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
+- [x] Behaviour as described above
+- [x] Power draw per level counted in the loadout; upgrades priced as listed
 
 ## Decisions
 
@@ -68,3 +68,4 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
 - 2026-10-02: Numbers moved into [data.yaml](data.yaml) (M2 data files); the property and per-level tables are rendered from it by `tools/sync_tables.py`.
 - 2026-10-02: M4 part A (user decision): the auto-aim snaps to destructible ground targets, loot containers included, never to a secret's beacon (the blast still hits a beacon in range); the landing point is fixed on the ground at release. `flight` and `snap` added to the data.
+- 2026-10-02: M4 part A: flies in the simulation (`vanguard.sim.WeaponSpec` built by `SimSpecs.weapon`), with its effects from `tools/art/weapon_fx.py` and its family's sound; the effects are proposed as final in [concept round 14](../../../concept-rounds/round-14/README.md).

@@ -7,13 +7,16 @@ package vanguard.sim;
  */
 public final class GroundObject implements Hashed {
     private LevelScript.GroundObjectSpec spec;
+    private int serial;
     private double y;
     private double prevY;
     private double hp;
     private int hitsLeft;
     private int ticksSinceHit;
 
-    void place(LevelScript.GroundObjectSpec objectSpec) {
+    /** @param index its place in the level's list of ground objects, unique in an attempt */
+    void place(LevelScript.GroundObjectSpec objectSpec, int index) {
+        serial = index;
         spec = objectSpec;
         y = prevY = PlayField.HEIGHT + objectSpec.size().height() / 2;
         hp = objectSpec.hp();
@@ -56,6 +59,10 @@ public final class GroundObject implements Hashed {
 
     double x() {
         return spec.x();
+    }
+
+    int serial() {
+        return serial;
     }
 
     double y() {

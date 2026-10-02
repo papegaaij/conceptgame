@@ -8,6 +8,7 @@ import java.util.Optional;
 import vanguard.content.Difficulty;
 import vanguard.content.campaign.Campaign;
 import vanguard.content.campaign.CampaignRoute;
+import vanguard.content.campaign.DebugFit;
 import vanguard.content.campaign.SaveSlots;
 import vanguard.game.display.DisplayModes;
 import vanguard.game.render.PixelScreen;
@@ -33,6 +34,7 @@ public final class TerranVanguard extends ApplicationAdapter {
     private final float timeScale;
     private final boolean invulnerable;
     private final boolean startLevel;
+    private final Optional<DebugFit> debugFit;
     private final Optional<BenchRun> bench;
     private final SaveSlots saves;
     private SpriteBatch batch;
@@ -48,6 +50,7 @@ public final class TerranVanguard extends ApplicationAdapter {
      * @param timeScale a debug option: game time runs this many times faster than real time (1 = normal)
      * @param invulnerable a debug option: nothing hits the ship
      * @param startLevel start in Level 01 rather than at the title screen
+     * @param debugFit a debug option: the weapons the level start flies
      * @param benchSeconds exit after this many seconds and log the frame count; 0 runs until quit
      * @param saves the save slots
      */
@@ -59,6 +62,7 @@ public final class TerranVanguard extends ApplicationAdapter {
             float timeScale,
             boolean invulnerable,
             boolean startLevel,
+            Optional<DebugFit> debugFit,
             double benchSeconds,
             SaveSlots saves) {
         this.displayModes = displayModes;
@@ -68,6 +72,7 @@ public final class TerranVanguard extends ApplicationAdapter {
         this.timeScale = timeScale;
         this.invulnerable = invulnerable;
         this.startLevel = startLevel;
+        this.debugFit = debugFit;
         this.bench = benchSeconds > 0 ? Optional.of(new BenchRun(benchSeconds)) : Optional.empty();
         this.saves = saves;
     }
@@ -85,6 +90,7 @@ public final class TerranVanguard extends ApplicationAdapter {
     /** Level 01 of a new campaign at the launch difficulty, for testing; nothing is saved before its hangar. */
     private LevelScreen testLevel() {
         Campaign campaign = Campaign.start(services.campaignRules, difficulty);
+        debugFit.ifPresent(fit -> fit.applyTo(campaign, services.catalogue));
         return new LevelScreen(
                 services,
                 campaign,

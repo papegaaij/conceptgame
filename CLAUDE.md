@@ -147,8 +147,10 @@ versions in `gradle/libs.versions.toml`.
   `--bench`. `--difficulty
   easy|medium|hard` (default medium) picks the difficulty until the menus exist (M3);
   `--debug-speed <n>` runs the simulation n times faster and the debug option `--invulnerable`
-  lets nothing hit the ship (to see a level to its end, e.g. with `--bench` for captures); both
-  are for testing only.
+  lets nothing hit the ship (to see a level to its end, e.g. with `--bench` for captures);
+  `--loadout front=scatter-vulcan:3,left=bomb-rack,right=micro-missile-pod:2,rear=side-splitter`
+  fits weapons (slot `front`/`rear`/`left`/`right`, level 1 if left out, the power cap unchecked)
+  and starts in the level; all three are for testing only.
 - `./gradlew :desktop:installDist` – the start script in `desktop/build/install/terran-vanguard/`.
 - `./gradlew :desktop:packageLinuxX64` (also `packageWinX64`, `packageMacX64`, `packageMacM1`) –
   Construo bundles with a trimmed JRE in `desktop/build/construo/dist/`.

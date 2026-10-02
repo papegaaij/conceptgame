@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import vanguard.sim.Armament;
 import vanguard.sim.EnemyGun;
 import vanguard.sim.EnemySpec;
 import vanguard.sim.Hitbox;
@@ -16,12 +17,12 @@ import vanguard.sim.LevelScript;
 import vanguard.sim.Loadout;
 import vanguard.sim.PickupType;
 import vanguard.sim.Plating;
-import vanguard.sim.PulseCannon;
 import vanguard.sim.Range;
 import vanguard.sim.Rules;
 import vanguard.sim.ShieldModel;
 import vanguard.sim.ShipSpec;
 import vanguard.sim.WaveSpec;
+import vanguard.sim.WeaponSpec;
 
 /** The specs built from the design data carry the numbers of the documents, with the difficulty levers applied. */
 class SimSpecsTest {
@@ -39,19 +40,146 @@ class SimSpecsTest {
 
     @Test
     void theStarterLoadoutComesFromTheShipAndItsStarterParts() {
+        Loadout loadout = SimSpecs.starterLoadout(content, Difficulty.MEDIUM);
+
+        assertEquals(new ShipSpec(270, 0.08, 0.06, 0.5, 48, 12, STORMHAWK_HULL, 0.25, 21, 3), loadout.ship());
+        assertEquals(new Plating(60), loadout.plating());
+        // The Mk I generator's 8 MW less the Pulse Cannon's 2 and the shield's 2: 4 MW spare, +40 % regen.
+        assertEquals(new ShieldModel(20, 2 * 1.4, 2.0, 1.0), loadout.shield());
+        Armament.Mount front = loadout.armament().mount(0);
+        assertEquals(1, loadout.armament().size());
+        assertEquals(Armament.Slot.FRONT, front.slot());
         assertEquals(
-                new Loadout(
-                        new ShipSpec(270, 0.08, 0.06, 0.5, 48, 12, STORMHAWK_HULL, 0.25, 21, 3),
-                        new PulseCannon(10, 2.0, 900, new Hitbox(4, 12), List.of(0.0)),
-                        new ShieldModel(20, 2, 2.0, 1.0),
-                        new Plating(60)),
-                SimSpecs.starterLoadout(content, Difficulty.MEDIUM));
+                new WeaponSpec(
+                        "pulse-cannon",
+                        "pulse",
+                        "pulse",
+                        WeaponSpec.Delivery.BOLT,
+                        false,
+                        10,
+                        2,
+                        900,
+                        new Hitbox(4, 12),
+                        Double.POSITIVE_INFINITY,
+                        Double.POSITIVE_INFINITY,
+                        1,
+                        0,
+                        0,
+                        Math.PI,
+                        0,
+                        0,
+                        List.of(new WeaponSpec.Muzzle(0, 21, 0))),
+                front.weapon());
+        assertEquals(
+                List.of(new WeaponSpec.Muzzle(-5, 21, 0), new WeaponSpec.Muzzle(5, 21, 0)),
+                front.overdrive().muzzles(),
+                "the overdrive fires the L2 pattern");
     }
 
     @Test
     void theShieldRegeneratesFasterOnEasy() {
         assertEquals(
-                2.5, SimSpecs.starterLoadout(content, Difficulty.EASY).shield().regenPerSecond());
+                2.5 * 1.4,
+                SimSpecs.starterLoadout(content, Difficulty.EASY).shield().regenPerSecond(),
+                1e-12);
+    }
+
+    @Test
+    void sparePowerAddsTenPercentShieldRegenPerMegawattUpToFiftyPercent() {
+        assertEquals(0, SimSpecs.regenBonus(content, -2));
+        assertEquals(0.15, SimSpecs.regenBonus(content, 1.5), 1e-12);
+        assertEquals(0.5, SimSpecs.regenBonus(content, 7));
+    }
+
+    private WeaponSpec weapon(Armament.Slot slot, String slug, int level) {
+        return SimSpecs.weapon(content, slot, slug, level);
+    }
+
+    private static List<Long> degrees(WeaponSpec weapon) {
+        return weapon.muzzles().stream()
+                .map(m -> Math.round(Math.toDegrees(m.angle())))
+                .toList();
+    }
+
+    @Test
+    void theScatterVulcanFansOutFromTheFrontMuzzleAndFadesAfterItsRange() {
+        WeaponSpec vulcan = weapon(Armament.Slot.FRONT, "scatter-vulcan", 1);
+
+        assertEquals(WeaponSpec.Delivery.BOLT, vulcan.delivery());
+        assertEquals(List.of(-12L, 0L, 12L), degrees(vulcan));
+        assertEquals(490, vulcan.range());
+        assertEquals(
+                9, weapon(Armament.Slot.FRONT, "scatter-vulcan", 6).muzzles().size(), "the overdrive");
+    }
+
+    @Test
+    void podsFireFromTheirWingMountsTheLeftOneMirroredAndTurnInByTheConvergence() {
+        WeaponSpec left = weapon(Armament.Slot.LEFT_WING, "autocannon-pod", 1);
+        WeaponSpec right = weapon(Armament.Slot.RIGHT_WING, "autocannon-pod", 1);
+
+        assertEquals(-16, left.muzzles().getFirst().dx());
+        assertEquals(-3, left.muzzles().getFirst().dy());
+        assertEquals(List.of(2L), degrees(left));
+        assertEquals(16, right.muzzles().getFirst().dx());
+        assertEquals(List.of(-2L), degrees(right));
+    }
+
+    @Test
+    void theSideSplitterFiresFromBothWingRoots() {
+        WeaponSpec l3 = weapon(Armament.Slot.REAR, "side-splitter", 3);
+
+        assertEquals(List.of(82L, -82L, 98L, -98L), degrees(l3));
+        assertEquals(6, l3.muzzles().get(0).dx());
+        assertEquals(-6, l3.muzzles().get(1).dx());
+        assertEquals(-3, l3.muzzles().get(0).dy());
+        assertEquals(360, l3.range());
+    }
+
+    @Test
+    void microMissilesLaunchOutwardAndSeekWithinTheirRangeAndCone() {
+        WeaponSpec left = weapon(Armament.Slot.LEFT_WING, "micro-missile-pod", 1);
+        WeaponSpec right = weapon(Armament.Slot.RIGHT_WING, "micro-missile-pod", 5);
+
+        assertEquals(WeaponSpec.Delivery.HOMING, left.delivery());
+        assertEquals(List.of(-30L), degrees(left));
+        assertEquals(List.of(30L), degrees(right));
+        assertEquals(350, left.range());
+        assertEquals(1.2, left.lifetimeSeconds());
+        assertEquals(Math.toRadians(70), left.coneHalfAngle(), 1e-12);
+        assertEquals(Math.toRadians(270), left.turnRate(), 1e-12);
+        assertEquals(Math.toRadians(300), right.turnRate(), 1e-12);
+    }
+
+    @Test
+    void bombsDropAndShellsAreLobbedOntoTheGround() {
+        WeaponSpec bomb = weapon(Armament.Slot.RIGHT_WING, "bomb-rack", 1);
+        WeaponSpec mortar = weapon(Armament.Slot.FRONT, "hammer-mortar", 5);
+
+        assertEquals(WeaponSpec.Delivery.DROPPED, bomb.delivery());
+        assertTrue(bomb.antiGround());
+        assertEquals(0.5, bomb.airSeconds());
+        assertEquals(20, bomb.blast());
+        assertEquals(WeaponSpec.Delivery.LOBBED, mortar.delivery());
+        assertEquals(200, mortar.range());
+        assertEquals(0.6, mortar.airSeconds());
+        assertEquals(48, mortar.snap());
+        assertEquals(36, mortar.blast());
+        assertEquals(
+                List.of(-20.0, 0.0, 20.0),
+                mortar.muzzles().stream().map(WeaponSpec.Muzzle::dx).toList());
+    }
+
+    @Test
+    void theLancePiercesItsLevelsTargetCount() {
+        assertEquals(2, weapon(Armament.Slot.FRONT, "lance-laser", 1).pierce());
+        assertEquals(6, weapon(Armament.Slot.FRONT, "lance-laser", 6).pierce());
+    }
+
+    @Test
+    void minesAndTorpedoesDoNotFlyYet() {
+        assertTrue(SimSpecs.flies(content, "micro-missile-pod"));
+        assertFalse(SimSpecs.flies(content, "proximity-mines"));
+        assertFalse(SimSpecs.flies(content, "torpedo-pod"));
     }
 
     @Test

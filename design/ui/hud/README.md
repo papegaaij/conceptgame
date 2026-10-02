@@ -152,13 +152,20 @@ from the files the game loads. Prompts: [concept/prompts.md](concept/prompts.md)
 | [concept/hud-final-r13-a.png](concept/hud-final-r13-a.png) | Review sheet: the two 240×540 side-panel plates (bevel, four domed corner rivets, brushed steel) with 4× corners, the label plate, the LCD well, phosphor fill and glow nine-patches with their splits, the portrait well, and the pieces as the game draws them | chosen |
 | [concept/hud-capture-final-r13-a.png](concept/hud-capture-final-r13-a.png) | Game capture of Level 01 at 960×540 (radio, control prompts, kill tracker, gauges, weapon box) | chosen |
 
+Concept [round 14](../../concept-rounds/round-14/README.md) — the right panel with the arsenal (no new art: the round-13 kit).
+
+| File | What | Status |
+|---|---|---|
+| [concept/hud-capture-final-r14-a.png](concept/hud-capture-final-r14-a.png) | Game capture of Level 01 with `--loadout` (Hammer Mortar, Bomb Rack, Autocannon Pod, Side Splitter): the power row and the four weapon rows with pips and the overdrive timer | proposed |
+
 ## Implementation
 
 - [x] Side panel frames: bevelled metal plates with corner rivets, label plates, LCD wells, bar troughs and phosphor fills from the production art (`tools/art/hud.py`)
 - [x] Left panel: mission, score, credits, chain, radio, progress
 - [x] Left panel layout: fixed regions without overlap; texts cut off at their well; a test checks the regions and that every prompt and radio line of the content fits, measured with the font's metrics
 - [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter done)
-- [ ] Right panel: armour, shield, power, weapons, overdrive, special, escort
+- [x] Right panel: armour, shield, power (spare-power bar and the regen bonus, glowing in an overdrive), weapons (front, rear, left, right with level pips), overdrive timer
+- [ ] Right panel: special — **later: M4** (the specials, part D); escort — **later: M5** (Rook's escort slot)
 - [ ] Radio message queue with portraits, priority interrupts
 - [ ] Boss bar, warning banners, edge arrows, pickup numbers
 
@@ -261,3 +268,4 @@ from the files the game loads. Prompts: [concept/prompts.md](concept/prompts.md)
   "Movement on your left!" fierce; Varga's "Those ones are armed." and "That isn't noise…" and
   Okafor's level-end "…The rest are coming." grim; the rest neutral.
 - 2026-10-02: Concept round 13 closed (user decision): the HUD's production metal parts (side-panel plates, label plate, LCD and portrait wells, phosphor fill, readout glow; `tools/art/hud.py`) approved as **final**, `art: final`.
+- 2026-10-02: M4 part A: the right panel shows the power row (spare power as a bar, the regen bonus as a number, glowing amber during an overdrive), a weapons box with one row per slot (F, R, L, R as in the mock: the weapon's name, a pod named by what it fires, and five level pips) and the overdrive timer row (ten pips and the seconds left). "Not yet available" now lists only the special and the utility modules.

@@ -6,6 +6,7 @@ import com.badlogic.gdx.utils.Disposable;
 import java.util.List;
 import java.util.Optional;
 import vanguard.content.BriefingPage;
+import vanguard.content.Content;
 import vanguard.content.campaign.Catalogue;
 import vanguard.content.campaign.Intel;
 import vanguard.game.render.Sprites;
@@ -18,10 +19,10 @@ public final class HangarView implements Disposable {
     private final LoadoutPanel loadout;
     private final IntelPanel intel;
 
-    public HangarView(Files files, Glass glass, Sprites sprites, Catalogue catalogue) {
+    public HangarView(Files files, Glass glass, Sprites sprites, Catalogue catalogue, Content content) {
         map = new TacticalMap(files);
         ItemIcons icons = new ItemIcons(sprites, catalogue);
-        shop = new ShopPanel(glass, icons);
+        shop = new ShopPanel(glass, icons, content);
         loadout = new LoadoutPanel(glass, sprites.ship.get(sprites.ship.size / 2), icons);
         intel = new IntelPanel(glass, sprites);
     }

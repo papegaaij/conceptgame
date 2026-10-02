@@ -10,6 +10,8 @@ import java.util.Optional;
  * up per test.
  */
 final class TestSpecs {
+    static final double INFINITE = Double.POSITIVE_INFINITY;
+
     /** The Stormhawk's hull boxes from design/player/ship/data.yaml, as offsets around the centre. */
     static final Hull HULL = new Hull(List.of(
             new Hull.Part(0, 15, new Hitbox(4, 10)),
@@ -20,11 +22,15 @@ final class TestSpecs {
             new Hull.Part(15, 0.5, new Hitbox(6, 5))));
 
     static final ShipSpec SHIP = new ShipSpec(270, 0.08, 0.06, 0.5, 48, 12, HULL, 0.25, 21, 3);
-    static final Loadout LOADOUT = new Loadout(
-            SHIP,
-            new PulseCannon(10, 2.0, 900, new Hitbox(4, 12), List.of(0.0)),
-            new ShieldModel(20, 2, 2.0, 1.0),
-            new Plating(60));
+    /** The Pulse Cannon at L1 from the front muzzle, 21 px above the ship's centre, and at L2 (its overdrive). */
+    static final WeaponSpec PULSE =
+            bolt("pulse-cannon", 10, 2.0, 900, new Hitbox(4, 12), INFINITE, 1, muzzle(0, 21, 0));
+
+    static final WeaponSpec PULSE_L2 =
+            bolt("pulse-cannon", 10, 1.6, 900, new Hitbox(4, 12), INFINITE, 1, muzzle(-5, 21, 0), muzzle(5, 21, 0));
+    static final ShieldModel SHIELD = new ShieldModel(20, 2, 2.0, 1.0);
+    static final Plating PLATING = new Plating(60);
+    static final Loadout LOADOUT = loadout(new Armament.Mount(Armament.Slot.FRONT, PULSE, PULSE_L2));
     static final double FULL_ARMOUR = 60;
     static final EnemySpec SKITTER = new EnemySpec(
             "skitter",
@@ -63,6 +69,46 @@ final class TestSpecs {
     static final Rules RULES = new Rules(120, 0, new PickupRules(10, 0.25, 10, 6, 40, 36), SCORING);
 
     private TestSpecs() {}
+
+    /** The starter hull, shield and plating with these weapons. */
+    static Loadout loadout(Armament.Mount... mounts) {
+        return new Loadout(SHIP, new Armament(List.of(mounts)), SHIELD, PLATING);
+    }
+
+    static WeaponSpec.Muzzle muzzle(double dx, double dy, double degrees) {
+        return new WeaponSpec.Muzzle(dx, dy, Math.toRadians(degrees));
+    }
+
+    /** A weapon whose bolts fly straight. */
+    static WeaponSpec bolt(
+            String slug,
+            double rate,
+            double damage,
+            double speed,
+            Hitbox size,
+            double range,
+            int pierce,
+            WeaponSpec.Muzzle... muzzles) {
+        return new WeaponSpec(
+                slug,
+                "pulse",
+                "pulse",
+                WeaponSpec.Delivery.BOLT,
+                false,
+                rate,
+                damage,
+                speed,
+                size,
+                range,
+                INFINITE,
+                pierce,
+                0,
+                0,
+                Math.PI,
+                0,
+                0,
+                List.of(muzzles));
+    }
 
     static EnemySpec needler(EnemyGun gun) {
         return new EnemySpec(

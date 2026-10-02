@@ -7,8 +7,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class LevelResultTest {
-    private static final LevelScript.GroundObjectSpec BEACON =
-            new LevelScript.GroundObjectSpec(0, 240, new Hitbox(12, 12), 0, 0, Optional.empty(), 3, 80, "beacon cache");
+    private static final LevelScript.GroundObjectSpec BEACON = new LevelScript.GroundObjectSpec(
+            0, 240, new Hitbox(12, 12), 0, 0, Optional.empty(), 3, 80, "beacon cache", false);
     private static final LevelScript LEVEL = TestSpecs.level(60, List.of(), List.of(BEACON), List.of());
 
     private static Tally kills(int count) {

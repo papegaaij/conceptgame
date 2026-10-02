@@ -221,11 +221,11 @@ def on_background(frame, zoom, glow=False):
     return img
 
 
-def review_sheet(title, rows, width=1300):
+def review_sheet(title, rows, width=1300, batch="Level 01 batch"):
     """Sheet of labelled frame rows: rows = [(label, frames, zoom, glow), ...]."""
     gap = 8
     heights = [24 + max(f.height for f in frames) * zoom + gap for _, frames, zoom, _ in rows]
-    img = raster.sheet(width, 40 + sum(heights) + 10, title, f"PRODUCTION ART, LEVEL 01 BATCH - {REVIEW_ROUND.upper()}")
+    img = raster.sheet(width, 40 + sum(heights) + 10, title, f"PRODUCTION ART, {batch.upper()} - {REVIEW_ROUND.upper()}")
     y = 38
     for (text, frames, zoom, glow), h in zip(rows, heights):
         raster.draw_text(img, 16, y, f"{text}  ({len(frames)} FR, {frames[0].width}X{frames[0].height}, "

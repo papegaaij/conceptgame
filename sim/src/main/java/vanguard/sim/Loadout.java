@@ -1,9 +1,10 @@
 package vanguard.sim;
 
 /**
- * What the ship flies with: its hull, front gun, shield and plating.
+ * What the ship flies with: its hull, weapons, shield and plating.
  *
  * @param ship the hull's flight numbers, including the fitted engine's speed
- * @param gun the front gun at its upgrade level
+ * @param armament the fitted weapons at their upgrade levels
+ * @param shield the shield, its regeneration including the spare-power bonus (design/player/generator)
  */
-public record Loadout(ShipSpec ship, PulseCannon gun, ShieldModel shield, Plating plating) {}
+public record Loadout(ShipSpec ship, Armament armament, ShieldModel shield, Plating plating) {}

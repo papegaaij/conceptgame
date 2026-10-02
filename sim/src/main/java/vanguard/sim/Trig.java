@@ -25,6 +25,10 @@ public final class Trig {
     public static double sin(double radians) {
         double turns = radians / TURN;
         double position = (turns - Math.floor(turns)) * SIZE;
+        if (position >= SIZE) {
+            // A tiny negative angle rounds up to a full turn: that is the table's start again.
+            position = 0;
+        }
         int index = (int) position;
         double fraction = position - index;
         return SINES[index] + (SINES[index + 1] - SINES[index]) * fraction;

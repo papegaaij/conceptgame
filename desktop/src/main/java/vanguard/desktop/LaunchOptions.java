@@ -3,6 +3,7 @@ package vanguard.desktop;
 import java.nio.file.Path;
 import java.util.Optional;
 import vanguard.content.Difficulty;
+import vanguard.content.campaign.DebugFit;
 
 /**
  * The command-line options.
@@ -15,7 +16,8 @@ import vanguard.content.Difficulty;
  *     through a level quickly when testing
  * @param invulnerable a debug option: nothing hits the ship, to see a level to its end when testing
  * @param startLevel start in Level 01 rather than at the title screen; by default only a bench run
- *     does, {@code --start title} lets a bench run test the menus
+ *     and a debug fit do, {@code --start title} lets a bench run test the menus
+ * @param debugFit a debug option ({@code --loadout}): weapons fitted for the level start, see {@link DebugFit}
  */
 record LaunchOptions(
         double benchSeconds,
@@ -23,10 +25,11 @@ record LaunchOptions(
         Difficulty difficulty,
         float debugSpeed,
         boolean invulnerable,
-        boolean startLevel) {
+        boolean startLevel,
+        Optional<DebugFit> debugFit) {
     /**
      * Parses {@code [--bench <seconds>] [--settings <file>] [--difficulty easy|medium|hard] [--debug-speed <factor>]
-     * [--invulnerable] [--start title|level]}.
+     * [--invulnerable] [--start title|level] [--loadout <slot>=<weapon>[:<level>],...]}.
      */
     static LaunchOptions parse(String... args) {
         Boolean start = null;
@@ -35,6 +38,7 @@ record LaunchOptions(
         Difficulty difficulty = Difficulty.MEDIUM;
         float debugSpeed = 1;
         boolean invulnerable = false;
+        DebugFit debugFit = null;
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
                 case "--bench" -> benchSeconds = Double.parseDouble(value(args, ++i));
@@ -42,6 +46,7 @@ record LaunchOptions(
                 case "--difficulty" -> difficulty = Difficulty.of(value(args, ++i));
                 case "--debug-speed" -> debugSpeed = Float.parseFloat(value(args, ++i));
                 case "--invulnerable" -> invulnerable = true;
+                case "--loadout" -> debugFit = DebugFit.parse(value(args, ++i));
                 case "--start" ->
                     start = switch (value(args, ++i)) {
                         case "title" -> false;
@@ -54,9 +59,18 @@ record LaunchOptions(
         if (!(debugSpeed > 0)) {
             throw new IllegalArgumentException("--debug-speed must be > 0");
         }
-        boolean startLevel = start != null ? start : benchSeconds > 0;
+        boolean startLevel = start != null ? start : benchSeconds > 0 || debugFit != null;
+        if (debugFit != null && !startLevel) {
+            throw new IllegalArgumentException("--loadout fits the level start, it needs --start level");
+        }
         return new LaunchOptions(
-                benchSeconds, Optional.ofNullable(settingsFile), difficulty, debugSpeed, invulnerable, startLevel);
+                benchSeconds,
+                Optional.ofNullable(settingsFile),
+                difficulty,
+                debugSpeed,
+                invulnerable,
+                startLevel,
+                Optional.ofNullable(debugFit));
     }
 
     private static String value(String[] args, int index) {

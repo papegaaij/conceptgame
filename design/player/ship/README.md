@@ -108,7 +108,7 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - [x] Banking frames driven by horizontal velocity
 - [ ] Engine flame and shadow sprites
 - [ ] Shield-hit and armour-hit feedback, damage smoke
-- [ ] Mount points for weapons and pods
+- [x] Mount points for weapons and pods
 
 ## Open questions
 
@@ -130,3 +130,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - 2026-10-02: Hitbox changed from 9×9 around the cockpit to the hull's shape (user decision after playing M2: thorns visibly crossing the wings passed through). Six boxes from the hard-banked silhouette (`hull` in data.yaml, `vanguard.sim.Hull`); the optional hitbox-dot setting is dropped. Enemy bullet density in later levels must be designed for the larger target.
 - 2026-10-02: Production art (Level 01 batch, `tools/art/stormhawk.py`): the 5 banking frames rendered at 8× with one shared 32-colour palette; the wing pods as separate sprites per type, side and banking frame (`pod-<type>-<left|right>_<bank>`), cut from a render of the hull with the pods so their shadow on the wing is included, with their offsets in `assets/pivots/pods.json`; the engine flame (12×18, 3 lengths × 3 frames); the mount points rolled with every banking frame in `assets/pivots/ship.json`. No shadow asset: the art direction draws shadows at runtime from the hull's alpha (render pipeline step 6), so the *Shadow* row is met by the renderer. The game does not draw pods and flames yet (*Mount points* and *Engine flame* items stay open). Review files proposed for round 12.
 - 2026-10-02: Concept round 12 closed (user decision): the production sprites (5 banking frames, the wing-pod sprites, the engine flame; `tools/art/stormhawk.py`) approved as **final**, `art: final`. The hull's hit boxes stay unchanged: in the hard-bank frames they cover about 1 px of empty space at the lowered wingtip, which is negligible.
+- 2026-10-02: M4 part A: the weapons fire from the mount points of the data (front muzzle, wing mounts, the new wing roots for the side guns, rear muzzle), and the fitted wing pods are drawn over the hull at their `pods.json` offsets per banking frame.

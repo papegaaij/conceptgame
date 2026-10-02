@@ -217,3 +217,4 @@ until it is handled where stated.
   its waves, so its Spine Turret (a ground target) shows when M4 builds that level's intel.
   Review sheet proposed for round 13; `art` stays `chosen`.
 - 2026-10-02: Concept round 13 closed (user decision): the Act 1 tactical map (`tools/art/ui_scenes.py`), the equipment icons in both sizes (`tools/art/icons.py`) and the intel's sensor-L2 portraits and Act 1 boss silhouettes (`tools/art/intel.py`) approved as **final**; `art` stays `chosen`, since the later acts' tactical maps and the intel pictures of the later enemies do not exist yet.
+- 2026-10-02: M4 part A: the shop's "not yet in flight" note now marks only what the simulation does not fly yet (the specials, the utility modules, the mines and the Torpedo Pod).

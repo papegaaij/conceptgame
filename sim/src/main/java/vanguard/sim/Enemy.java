@@ -19,6 +19,7 @@ public final class Enemy implements Hashed {
 
     private EnemySpec spec;
     private int kind;
+    private int serial;
     private FlightPath path;
     private int segment;
     private double distance;
@@ -47,7 +48,9 @@ public final class Enemy implements Hashed {
     private boolean leadsTarget;
     private Optional<PickupType> carried;
 
-    void spawn(Spawn plan) {
+    /** @param unitSerial unique among the units of an attempt, for the shots that lock onto it */
+    void spawn(Spawn plan, int unitSerial) {
+        serial = unitSerial;
         spec = plan.enemy();
         kind = plan.kind();
         path = plan.path();
@@ -195,6 +198,7 @@ public final class Enemy implements Hashed {
     @Override
     public void addTo(StateHash hash) {
         hash.add(kind)
+                .add(serial)
                 .add(distance)
                 .add(segment)
                 .add(phase.ordinal())
@@ -216,6 +220,11 @@ public final class Enemy implements Hashed {
 
     double y() {
         return y;
+    }
+
+    /** Unique among the units of an attempt. */
+    int serial() {
+        return serial;
     }
 
     boolean leadsTarget() {

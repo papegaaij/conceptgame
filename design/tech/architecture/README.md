@@ -459,3 +459,26 @@ Screenshot tests are left out until there is a need.
   the hangar opens and fails there if one is missing; `TacticalMap` loads `ui/hangar-map.png`
   (tools/art/ui_scenes.py), which also renders the title scene and logo that
   `tools/concept/ui_assets.py` no longer writes. The replay hash is unchanged.
+- 2026-10-02: M4 part A (the arsenal). `sim`: `Sortie` hands its work to `PlayerFire` (the ship's weapons:
+  every `Armament.Mount` fires on its own clock, overdrive patterns, projectiles that fly, seek,
+  fall and burst; what they reach by `WeaponSpec.Delivery` and the layer rules, hardened ground
+  targets), `EnemyForce` (waves, enemies, bullets), `Objectives` and `Radio`; the split itself kept
+  the replay's hash. `WeaponSpec` replaces `PulseCannon`: rate, damage, speed, hit box, range or
+  lifetime, pierce, blast, turn rate, seek cone, fall or flight time, snap radius and one `Muzzle`
+  (offset and angle from the ship's centre) per projectile; `Shot` carries its weapon, velocity,
+  heading, range flown, pierce count and the serials it struck, a homing shot its locked target
+  (`Enemy.serial`, unique per attempt), a bomb or shell its landing point scrolling with the ground.
+  New events: `SHOT_GLANCED`, `BLAST`, `OVERDRIVE_ENDED`; shot and hit events carry the mount.
+  `Trig.sin` no longer reads past its table for a tiny negative angle (a missile's heading found it).
+  `content`: `SimSpecs.weapon` builds the muzzles from the ship's mount points (pods mirrored on the
+  left and turned in by `converge`, side guns from the wing `roots`, mirrored to the left),
+  `SimSpecs.loadout` takes the fitted weapons and the spare power (the shield's regen bonus),
+  `Flight` maps the campaign loadout and computes the spare power like the hangar; a ground target
+  may be `hardened`. Data: weapon `converge`, `fall`, `flight`, `snap`, `cone` (and a homing weapon's
+  `range` as its seek radius beside `lifetime`), ship mount `roots`. `game`: `WeaponLooks` (shot
+  sprites per angle, heading or level, muzzle flashes, impacts, pods from `pivots/pods.json` via
+  `PodPivots`), `FlightSounds` per weapon family, the HUD's power, weapons and overdrive rows.
+  Debug launch option `--loadout <slot>=<weapon>[:<level>],...` (`DebugFit`, implies `--start level`;
+  testing only). The Level 01 replay keeps its kills (90) and credits (916); its hash is now
+  `c58ff0e1fb68eae9` (the new state is hashed, and the starter fit's 4 MW spare power raises its
+  shield regen by 40 %).

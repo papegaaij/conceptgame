@@ -48,3 +48,25 @@ heat shimmer; additive glow, crisp pixel edges, Raptor / Tyrian 2000 era render 
 **Negative prompt:** orange or red heat glow (reserved for enemy bullets), beam cut off flat at
 the sprite edge, smoke clouds hiding the target, lens dirt, photographic realism, side view,
 text, watermark.
+
+## weapons-final-r14-a
+
+Production art (concept round 14), not a mockup: `python3 tools/art/weapon_fx.py` writes the
+effects into `assets/sprites/` and this review sheet and GIF (`--review` rebuilds only these). The
+looks are the chosen round-08 families (`tools/concept/vfx_r08.py`): `tracer` for the Scatter
+Vulcan and the Autocannon, `energy_bolt` for the Side Splitter, `laser_lance` per level,
+`missile_model` with its plume per heading (32, the key light fixed), `bomb_model` and
+`shell_model`, `muzzle_frames` and `impact_frames`; the straight shots are drawn at every angle the
+weapons' `data.yaml` patterns use (the pods' convergence and the side guns' mirroring included).
+
+## weapons-capture-final-r14-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard
+--bench 50 --debug-speed 2 --settings <file> --invulnerable --loadout "<fit>"` under
+`xvfb-run -s "-screen 0 960x540x24"` (settings: a 960×540 window at 0,0, `audio.master=0`,
+`controls.auto-fire=true`), recorded with `ffmpeg -f x11grab -framerate 4`, cropped to the play
+field. Fits: `front=scatter-vulcan:5,left=bomb-rack:3,right=micro-missile-pod:3,rear=side-splitter:3`;
+`front=lance-laser:5,left=micro-missile-pod:5,right=micro-missile-pod:5`;
+`front=hammer-mortar:5,left=bomb-rack:4,right=autocannon-pod:5,rear=side-splitter:5`. The × in the
+middle is the X server's mouse pointer.
+

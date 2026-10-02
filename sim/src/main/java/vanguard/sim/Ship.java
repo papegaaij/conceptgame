@@ -2,7 +2,7 @@ package vanguard.sim;
 
 /**
  * The player's AF-12 Stormhawk: flies by commands with quick acceleration, stays inside the play
- * field, banks with its horizontal speed and fires its front gun while fire is held.
+ * field and banks with its horizontal speed. Its weapons are the sortie's {@link PlayerFire}.
  */
 public final class Ship {
     /** Where every sortie starts: centred in the lower third. */
@@ -12,7 +12,6 @@ public final class Ship {
     private static final double DIAGONAL = StrictMath.sqrt(0.5);
 
     private final ShipSpec spec;
-    private final PulseCannon gun;
     private final Defences defences;
     private final double accelerationPerStep;
     private final double stopPerStep;
@@ -24,12 +23,9 @@ public final class Ship {
     private double vy;
     private int bank;
     private int bankTimer;
-    private int fireCooldown;
-    private int ticksSinceShot;
 
-    Ship(ShipSpec spec, PulseCannon gun, Defences defences) {
+    Ship(ShipSpec spec, Defences defences) {
         this.spec = spec;
-        this.gun = gun;
         this.defences = defences;
         this.accelerationPerStep = spec.speed() / spec.accelerationSeconds() * SimStep.SECONDS;
         this.stopPerStep = spec.speed() / spec.stopSeconds() * SimStep.SECONDS;
@@ -55,8 +51,6 @@ public final class Ship {
         y = prevY = START_Y;
         vx = vy = 0;
         bank = bankTimer = 0;
-        fireCooldown = 0;
-        ticksSinceShot = Integer.MAX_VALUE;
         defences.restore(armour);
     }
 
@@ -111,31 +105,8 @@ public final class Ship {
         }
     }
 
-    /** Fires a volley when fire is held and the gun is ready; returns whether it fired. */
-    boolean fireGun(int commands) {
-        if (ticksSinceShot < Integer.MAX_VALUE) {
-            ticksSinceShot++;
-        }
-        if (fireCooldown > 0) {
-            fireCooldown--;
-        }
-        if (fireCooldown > 0 || !Command.FIRE.in(commands)) {
-            return false;
-        }
-        fireCooldown = gun.intervalTicks();
-        ticksSinceShot = 0;
-        return true;
-    }
-
     void addTo(StateHash hash) {
-        hash.add(x)
-                .add(y)
-                .add(vx)
-                .add(vy)
-                .add(bank)
-                .add(bankTimer)
-                .add(fireCooldown)
-                .add(ticksSinceShot);
+        hash.add(x).add(y).add(vx).add(vy).add(bank).add(bankTimer);
         defences.addTo(hash);
     }
 
@@ -170,20 +141,11 @@ public final class Ship {
         return bank;
     }
 
-    /** Steps since the gun last fired, for the muzzle flash; {@link Integer#MAX_VALUE} before the first shot. */
-    public int ticksSinceShot() {
-        return ticksSinceShot;
-    }
-
     public Defences defences() {
         return defences;
     }
 
     public ShipSpec spec() {
         return spec;
-    }
-
-    public PulseCannon gun() {
-        return gun;
     }
 }

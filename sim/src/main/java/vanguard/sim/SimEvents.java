@@ -9,16 +9,22 @@ package vanguard.sim;
 public final class SimEvents {
     /** Event kinds; the position is where it happened, in play-field pixels, and the value is named per kind. */
     public enum Type {
-        /** The front gun fired a volley (at the muzzle). */
+        /** A weapon fired a volley (at its muzzles); value: the mount's index in the sortie's {@link Armament}. */
         SHOT_FIRED,
-        /** A shot hit an enemy (at the shot). */
+        /** A shot hit an enemy (at the shot); value: the mount that fired it. */
         ENEMY_HIT,
         /** An enemy was destroyed (at the enemy); value: its kind, an index into {@link Sortie#enemyKinds()}. */
         ENEMY_DESTROYED,
         /** An enemy fired a shot (at the enemy). */
         ENEMY_FIRED,
-        /** A shot hit a ground object (at the shot); value 1 for a trigger, 0 for a destructible. */
+        /** A shot hit a ground object (at the shot); value: the mount that fired it. */
         GROUND_HIT,
+        /** A shot glanced off a hardened ground target without damage (at the shot); value: the mount. */
+        SHOT_GLANCED,
+        /** A bomb or shell burst on the ground (at its landing point); value: the mount that fired it. */
+        BLAST,
+        /** The overdrive ran out (at the ship). */
+        OVERDRIVE_ENDED,
         /** A destructible ground object was destroyed (at the object). */
         GROUND_DESTROYED,
         /** A trigger released its secret's hidden crate (at the trigger). */

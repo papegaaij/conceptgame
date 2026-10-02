@@ -8,6 +8,16 @@ package vanguard.game.audio;
  */
 public enum Sfx {
     PULSE_SHOT("sfx/player-shot-r02-a.ogg", 2, Bus.EFFECTS),
+    /** The weapon sound families of the Act 1 arsenal (design/audio/sfx, Weapon sound families). */
+    VULCAN_SHOT("sfx/shot-vulcan-r03-b.ogg", 2, Bus.EFFECTS),
+
+    BALLISTIC_SHOT("sfx/player-shot-r02-d.ogg", 3, Bus.EFFECTS),
+    LASER_SHOT("sfx/shot-laser-r03-b.ogg", 2, Bus.EFFECTS),
+    MICROMISSILE_SHOT("sfx/shot-micromissile-r03-a.ogg", 3, Bus.EFFECTS),
+    MORTAR_SHOT("sfx/shot-mortar-r03-a.ogg", 2, Bus.EFFECTS),
+    BOMB_SHOT("sfx/shot-bomb-r03-a.ogg", 2, Bus.EFFECTS),
+    OVERDRIVE_START("sfx/overdrive-start-r08-a.ogg", 1, Bus.EFFECTS),
+    OVERDRIVE_END("sfx/overdrive-end-r08-a.ogg", 1, Bus.EFFECTS),
     HIT_ORGANIC_A("sfx/hit-organic-r08-a.ogg", 4, Bus.EFFECTS),
     HIT_ORGANIC_B("sfx/hit-organic-r08-b.ogg", 4, Bus.EFFECTS),
     EXPLOSION_TINY_A("sfx/explosion-tiny-r03-a.ogg", 6, Bus.EFFECTS),

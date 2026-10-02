@@ -18,13 +18,15 @@ import vanguard.sim.ShipSpec;
 import vanguard.sim.Shot;
 import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
+import vanguard.sim.WeaponSpec;
 
 /**
  * Draws a level back to front, interpolating every position between the last two simulation
  * steps: the backdrop down to the ground layer, the ground objects with their debris and glints,
- * the low-air layer, the enemies, the pickups, the ship, the glowing bolts and effects, the
- * high-air layer, then the enemy bullets above every layer (design/enemies, bullet readability
- * rules), the edge warnings and the credit numbers.
+ * the low-air layer, the enemies, the pickups, the solid rounds (missiles, bombs, shells), the ship
+ * with its wing pods, the glowing shots, muzzle flashes and effects, the high-air layer, then the
+ * enemy bullets above every layer (design/enemies, bullet readability rules), the edge warnings
+ * and the credit numbers.
  */
 public final class LevelRenderer {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
@@ -52,9 +54,17 @@ public final class LevelRenderer {
 
     private static final Color SHIELD_BLUE = Color.valueOf("00C0FF");
     private static final float SHIELD_SHIMMER = 0.6f;
+    /** A bomb is drawn shrinking to this scale as it falls (design/player/weapons/bomb-rack). */
+    private static final float BOMB_LANDING_SCALE = 0.6f;
+    /** A shell grows by this much at the top of its arc (design/player/weapons/hammer-mortar: 1.0 -> 1.4 -> 1.0). */
+    private static final float SHELL_ARC_SCALE = 0.4f;
+    /** Bolts with a range fade out over its last part (design/player/weapons/scatter-vulcan). */
+    private static final double FADE_SHARE = 0.25;
 
     private final Sprites sprites;
     private final EnemyLooks[] looks;
+    private final WeaponLooks weapons;
+    private final AtlasRegion reticle;
     private final Backdrop backdrop;
     private final FlashShader flash;
     private final BitmapFont font;
@@ -62,9 +72,17 @@ public final class LevelRenderer {
 
     /** @param levelKey the level's key, {@code <act>/level-NN-<slug>} */
     public LevelRenderer(
-            Sprites sprites, EnemyLooks[] looks, FlashShader flash, BitmapFont font, LevelData level, String levelKey) {
+            Sprites sprites,
+            EnemyLooks[] looks,
+            WeaponLooks weapons,
+            FlashShader flash,
+            BitmapFont font,
+            LevelData level,
+            String levelKey) {
         this.sprites = sprites;
         this.looks = looks;
+        this.weapons = weapons;
+        this.reticle = sprites.region("mortar-reticle");
         this.backdrop = new Backdrop(sprites, level, levelKey);
         this.flash = flash;
         this.font = font;
@@ -98,10 +116,19 @@ public final class LevelRenderer {
         backdrop.drawLowAir(batch, scroll, seconds);
         drawEnemies(batch, sortie, alpha);
         drawPickups(batch, sortie, alpha);
+        drawShots(batch, sortie, alpha, false);
         if (sortie.flying()) {
             drawShip(batch, sortie.ship(), alpha, shieldShimmer);
         }
-        drawBolts(batch, sortie, alpha);
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        drawShots(batch, sortie, alpha, true);
+        if (sortie.flying()) {
+            drawMuzzles(batch, sortie, alpha, true);
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        if (sortie.flying()) {
+            drawMuzzles(batch, sortie, alpha, false);
+        }
         effects.draw(batch, 0);
         backdrop.drawFront(batch, scroll, seconds);
         drawBullets(batch, sortie, alpha);
@@ -196,24 +223,88 @@ public final class LevelRenderer {
         } else {
             batch.draw(hull, x - hull.getRegionWidth() / 2f, y - hull.getRegionHeight() / 2f);
         }
+        drawPods(
+                batch,
+                ship.bank() + ShipSpec.HARD_BANK,
+                x - hull.getRegionWidth() / 2f,
+                y + hull.getRegionHeight() / 2f);
     }
 
-    private void drawBolts(SpriteBatch batch, Sortie sortie, float alpha) {
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+    /** The fitted wing pods over the hull, whose top-left is at (left, top). */
+    private void drawPods(SpriteBatch batch, int bank, float left, float top) {
+        for (int m = 0; m < weapons.size(); m++) {
+            WeaponLooks.Look look = weapons.look(m);
+            if (look.pod != null) {
+                AtlasRegion pod = look.pod.get(bank);
+                int[] offset = look.podOffsets[bank];
+                batch.draw(pod, left + offset[0], top - offset[1] - pod.getRegionHeight());
+            }
+        }
+    }
+
+    /** The glowing shots (tracers, bolts, lances) or the solid rounds (missiles, bombs, shells). */
+    private void drawShots(SpriteBatch batch, Sortie sortie, float alpha, boolean glowing) {
         for (int i = 0; i < sortie.shotCount(); i++) {
             Shot shot = sortie.shot(i);
-            drawCentred(batch, sprites.pulseBolt, shot.renderX(alpha), shot.renderY(alpha));
+            if (weapons.look(shot.mount()).glowingShot != glowing) {
+                continue;
+            }
+            AtlasRegion sprite = weapons.sprite(shot);
+            double x = shot.renderX(alpha);
+            double y = shot.renderY(alpha);
+            switch (shot.weapon().delivery()) {
+                case DROPPED ->
+                    drawScaled(batch, sprite, x, y, 1 - (1 - BOMB_LANDING_SCALE) * (float) shot.airProgress(alpha));
+                case LOBBED ->
+                    drawScaled(
+                            batch,
+                            sprite,
+                            x,
+                            y,
+                            1 + SHELL_ARC_SCALE * (float) Math.sin(Math.PI * shot.airProgress(alpha)));
+                case BOLT, HOMING -> {
+                    double left = shot.rangeLeft();
+                    if (left < FADE_SHARE) {
+                        batch.setColor(1, 1, 1, (float) (left / FADE_SHARE));
+                        drawCentred(batch, sprite, x, y);
+                        batch.setColor(Color.WHITE);
+                    } else {
+                        drawCentred(batch, sprite, x, y);
+                    }
+                }
+            }
         }
+    }
+
+    /**
+     * The muzzle flashes of the mounts that just fired, at each muzzle of the pattern they fire, and
+     * the mortar's faint landing reticle where its next shells land (design/player/weapons).
+     */
+    private void drawMuzzles(SpriteBatch batch, Sortie sortie, float alpha, boolean glowing) {
         Ship ship = sortie.ship();
-        int frame = ship.ticksSinceShot() / MUZZLE_FRAME_TICKS;
-        if (sortie.flying() && frame < sprites.pulseMuzzle.size) {
-            drawCentred(
-                    batch,
-                    sprites.pulseMuzzle.get(frame),
-                    ship.renderX(alpha),
-                    ship.renderY(alpha) + ship.spec().muzzleOffsetY());
+        double shipX = ship.renderX(alpha);
+        double shipY = ship.renderY(alpha);
+        boolean overdrive = sortie.overdriveSeconds() > 0;
+        for (int m = 0; m < weapons.size(); m++) {
+            WeaponLooks.Look look = weapons.look(m);
+            WeaponSpec weapon = overdrive
+                    ? sortie.armament().mount(m).overdrive()
+                    : sortie.armament().mount(m).weapon();
+            if (glowing && weapon.delivery() == WeaponSpec.Delivery.LOBBED) {
+                for (int i = 0; i < weapon.muzzles().size(); i++) {
+                    WeaponSpec.Muzzle muzzle = weapon.muzzles().get(i);
+                    drawCentred(batch, reticle, shipX + muzzle.dx(), shipY + muzzle.dy() + weapon.range());
+                }
+            }
+            int frame = sortie.ticksSinceShot(m) / MUZZLE_FRAME_TICKS;
+            if (look.glowingMuzzle != glowing || frame >= look.muzzle.size) {
+                continue;
+            }
+            for (int i = 0; i < weapon.muzzles().size(); i++) {
+                WeaponSpec.Muzzle muzzle = weapon.muzzles().get(i);
+                drawCentred(batch, look.muzzle.get(frame), shipX + muzzle.dx(), shipY + muzzle.dy());
+            }
         }
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
 
     private void drawBullets(SpriteBatch batch, Sortie sortie, float alpha) {
@@ -222,6 +313,22 @@ public final class LevelRenderer {
             int frame = (int) ((sortie.tick() / BULLET_FRAME_TICKS + i) % sprites.orb.size);
             drawCentred(batch, sprites.orb.get(frame), bullet.renderX(alpha), bullet.renderY(alpha));
         }
+    }
+
+    private static void drawScaled(SpriteBatch batch, TextureRegion region, double x, double y, float scale) {
+        float width = region.getRegionWidth();
+        float height = region.getRegionHeight();
+        batch.draw(
+                region,
+                Math.round(X0 + x - width / 2),
+                Math.round(y - height / 2),
+                width / 2,
+                height / 2,
+                width,
+                height,
+                scale,
+                scale,
+                0);
     }
 
     private static void drawCentred(SpriteBatch batch, TextureRegion region, double x, double y) {

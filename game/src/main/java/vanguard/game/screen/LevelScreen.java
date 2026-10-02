@@ -1,6 +1,8 @@
 package vanguard.game.screen;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
+import com.badlogic.gdx.utils.Array;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -27,6 +29,8 @@ import vanguard.game.render.Effects;
 import vanguard.game.render.EnemyLooks;
 import vanguard.game.render.Hud;
 import vanguard.game.render.LevelRenderer;
+import vanguard.game.render.PodPivots;
+import vanguard.game.render.WeaponLooks;
 import vanguard.game.settings.Settings;
 import vanguard.sim.FixedStepClock;
 import vanguard.sim.LevelResult;
@@ -70,7 +74,6 @@ public final class LevelScreen implements GameScreen {
 
     private static final float RADIO_VOLUME = 0.5f;
     private static final float TYPING_VOLUME = 0.15f;
-    private static final String WEAPON = "PULSE CANNON";
 
     private final GameServices services;
     private final Campaign campaign;
@@ -78,6 +81,10 @@ public final class LevelScreen implements GameScreen {
     private final Sortie sortie;
     private final FixedStepClock clock = new FixedStepClock(SimStep.SECONDS, MAX_STEPS_PER_FRAME);
     private final EnemyLooks[] looks;
+    private final WeaponLooks weaponLooks;
+    /** The spark of a shot glancing off a hardened target. */
+    private final Array<AtlasRegion> glance;
+
     private final FlightSounds sounds;
     private final LevelRenderer renderer;
     private final Hud hud;
@@ -121,8 +128,15 @@ public final class LevelScreen implements GameScreen {
                 services.invulnerable ? rules.withInvulnerableShip() : rules,
                 campaign.armour());
         looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites, services.content);
-        sounds = new FlightSounds(services.sfx, looks);
-        renderer = new LevelRenderer(services.sprites, looks, services.flash, services.fonts.body, level, levelKey);
+        weaponLooks = new WeaponLooks(
+                sortie.armament(),
+                flight.weapons().stream().mapToInt(Flight.Weapon::level).toArray(),
+                services.sprites,
+                new PodPivots(services.files));
+        glance = services.sprites.frames("ballistic-impact");
+        sounds = new FlightSounds(services.sfx, looks, sortie.armament());
+        renderer = new LevelRenderer(
+                services.sprites, looks, weaponLooks, services.flash, services.fonts.body, level, levelKey);
         warnings = new EdgeWarnings(services.sprites.pixel, services.fonts.body);
         name = Content.levelName(levelKey);
         hud = new Hud(
@@ -131,7 +145,10 @@ public final class LevelScreen implements GameScreen {
                 services.transmissionStatic,
                 sortie.script().number(),
                 name,
-                campaign.credits());
+                campaign.credits(),
+                flight,
+                SimSpecs.regenBonus(services.content, flight.sparePower()),
+                services.content.player().pickups().overdrive().seconds());
         prompts = new ControlPrompts(level.controlPrompts());
         promptTexts = new PromptTexts(services.input.bindings());
         // Track 5, "Coalition Rising" (design/audio/music) as its two stems, over the Earth-orbit ambience.
@@ -236,7 +253,10 @@ public final class LevelScreen implements GameScreen {
             double x = events.x(i);
             double y = events.y(i);
             switch (events.type(i)) {
-                case ENEMY_HIT, GROUND_HIT -> effects.start(services.sprites.pulseImpact, IMPACT_FRAME_TICKS, x, y);
+                case ENEMY_HIT, GROUND_HIT ->
+                    effects.start(weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y);
+                case SHOT_GLANCED -> effects.start(glance, IMPACT_FRAME_TICKS, x, y);
+                case BLAST -> effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
                 case ENEMY_DESTROYED ->
                     effects.start(looks[events.value(i)].explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
                 case GROUND_DESTROYED -> {
@@ -279,6 +299,7 @@ public final class LevelScreen implements GameScreen {
                         PICKUP_COLLECTED,
                         SHIELD_BROKEN,
                         ARMOUR_HIT,
+                        OVERDRIVE_ENDED,
                         OBJECTIVE_MET -> {}
             }
         }
@@ -310,7 +331,7 @@ public final class LevelScreen implements GameScreen {
                 clock.alpha(),
                 (float) shimmer / SHIMMER_TICKS,
                 services.settings().gameplay().flashReduction());
-        hud.draw(batch, sortie, radio, visiblePrompts(), WEAPON, flight.pulseLevel(), flight.notFlown());
+        hud.draw(batch, sortie, radio, visiblePrompts());
     }
 
     /** The control prompts show in the first section, once the launch is over. */

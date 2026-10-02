@@ -56,11 +56,10 @@ public final class Sortie {
         rng = new SplitMix64(seed);
         ship = new Ship(
                 loadout.ship(),
-                loadout.gun(),
                 new Defences(loadout.shield(), loadout.plating(), loadout.ship().mercySeconds()));
         this.script = script;
         this.rules = rules;
-        fire = new PlayerFire(ship, events, new PlayerFire.Hits() {
+        fire = new PlayerFire(ship, loadout.armament(), events, new PlayerFire.Hits() {
             @Override
             public void enemyDestroyed(int index) {
                 destroy(index);
@@ -101,7 +100,7 @@ public final class Sortie {
             ship.launch((double) levelTick / launchTicks);
         } else if (flying()) {
             ship.fly(commands);
-            fire.fire(commands);
+            fire.fire(commands, force.enemies(), ground);
         }
         tally.step();
         if (!complete) {
@@ -110,13 +109,13 @@ public final class Sortie {
             radio.byTime(levelTick);
         }
         edgeWarnings = complete ? 0 : force.warnings(levelTick);
-        fire.move();
+        fire.move(scrollStep, force.enemies());
         force.move(ship, flying() && !complete);
         force.moveBullets();
         scrollGround(scrollStep);
         driftPickups();
         fire.hitEnemies(force.enemies());
-        fire.hitGround(ground);
+        fire.hitGround(ground, force.enemies());
         if (flying() && !complete && !rules.invulnerableShip()) {
             hitShip();
             ramShip();
@@ -178,7 +177,7 @@ public final class Sortie {
                 && SimStep.ticks(objects.get(nextGroundObject).t()) <= levelTick) {
             GroundObject object = ground.obtain();
             if (object != null) {
-                object.place(objects.get(nextGroundObject));
+                object.place(objects.get(nextGroundObject), nextGroundObject);
             }
             nextGroundObject++;
         }
@@ -363,6 +362,7 @@ public final class Sortie {
                 .add(complete ? 1 : 0)
                 .add(rng.state());
         ship.addTo(hash);
+        fire.addTo(hash);
         tally.addTo(hash);
         objectives.addKillsTo(hash);
         Pools.addAll(hash, fire.shots());
@@ -398,6 +398,26 @@ public final class Sortie {
 
     public Ship ship() {
         return ship;
+    }
+
+    /** The fitted weapons; shot events and {@link Shot#mount()} index its mounts. */
+    public Armament armament() {
+        return fire.armament();
+    }
+
+    /** Steps since mount {@code m} last fired, for its muzzle flash; {@link Integer#MAX_VALUE} before its first shot. */
+    public int ticksSinceShot(int m) {
+        return fire.ticksSinceShot(m);
+    }
+
+    /** Seconds of overdrive left; 0 without one. */
+    public double overdriveSeconds() {
+        return fire.overdriveTicks() * SimStep.SECONDS;
+    }
+
+    /** Starts an overdrive of {@code seconds}, as its pickup does; a running one starts over. */
+    void overdrive(double seconds) {
+        fire.overdrive(SimStep.ticks(seconds));
     }
 
     public int shotCount() {

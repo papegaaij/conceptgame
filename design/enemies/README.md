@@ -458,7 +458,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - [ ] Movement patterns from the vocabulary implemented as reusable behaviours.
 - [ ] Attack patterns from the vocabulary implemented as reusable emitters.
 - [ ] Formation spawner that places enemies by formation name and entry edge.
-- [ ] Layer rules for hit detection and collision.
+- [x] Layer rules for hit detection and collision on `ground`, `low-air`, `air` and `high-air`: what each weapon delivery reaches, hardened ground targets, contact on the player's layer.
+- [ ] The `space`, `sub` and `deep` layers — **later: M4** (`space`, the first space level) and **later: M5** (`sub`, the naval levels).
 - [ ] Bullet rendering order, telegraphs, edge warnings and the bullet budget.
 - [ ] Global difficulty multipliers with per-enemy overrides.
 - [ ] Target-the-objective hook: per-level unit/wave configuration with the four modes.
@@ -525,3 +526,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - 2026-10-02: Edge warnings start at least 3 s ahead (was 1.5 s; user decision after playing Level 01, the warnings were easy to miss).
 - 2026-10-02: Production art (Level 01 batch, `tools/art/enemy_bullets.py`): the Vrell orb as 4 frames (core pulse; the game now animates it at 15 fps, each bullet at its own phase) and the needle as a 16-heading angle set (`needle_<k>`, k × 22.5° clockwise from down; not used by Level 01). The body has 1-bit alpha, the outer glow four translucency steps. Review files proposed for round 12.
 - 2026-10-02: Concept round 12 closed (user decision): the Vrell `small` bullets (orb and needle) approved as **final**; this index's `art` stays `chosen`, since the other enemies' art is still concept art.
+- 2026-10-02: M4 part A: the layer rules of the weapons are in the simulation (`WeaponSpec.Delivery.reaches`, hardened ground targets glance off weapons without `anti-ground`); a level's ground target can be `hardened` in its data.

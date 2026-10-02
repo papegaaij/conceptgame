@@ -21,7 +21,7 @@ generator limits what can be fitted at the same time.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | approved | in-progress | final |
-| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | approved | in-progress | chosen |
+| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | approved | done | chosen |
 | [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | approved | in-progress | none |
 | [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | approved | in-progress | none |
 | [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | approved | in-progress | none |
@@ -140,10 +140,11 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 
 - [x] Loadout data model: slots, fitted items, inventory, upgrade levels
 - [x] Power load calculation and over-budget refusal
-- [ ] Spare-power shield regen bonus
-- [ ] Single fire button fires all weapons; special on a separate button
+- [x] Spare-power shield regen bonus
+- [x] Single fire button fires all weapons
+- [ ] Special on a separate button — **later: M4** (the specials, part D)
 - [ ] Pickup types, drop tables and 6 s despawn
-- [ ] Overdrive: temporary +1 weapon level with HUD timer
+- [x] Overdrive: temporary +1 weapon level with HUD timer (the overdrive pickup itself: *Pickup types* above)
 
 ## Open questions
 
@@ -182,3 +183,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   the hangar does not show it.
 - 2026-10-02: Production art (Level 01 batch, `tools/art/pickups.py`): the four pickups Level 01 uses, every frame its own 8× render of the round-09 model with one palette per loop; the 1 px light outline is opaque and pulses in brightness, the halo is stepped to four translucency levels. Same sizes as the placeholders. Review files proposed for round 12.
 - 2026-10-02: Concept round 12 closed (user decision): the four pickups' production loops approved as **final**; this doc's `art` stays `chosen`, since its other art is still concept art.
+- 2026-10-02: M4 part A: every fitted weapon flies, each mount on its own clock while fire is held; the spare power (the generator's output less every fitted item's draw) raises the shield regen in flight, +10 % per MW up to +50 % (the starter fit has 4 MW spare: +40 %), and the HUD's power row shows it; an overdrive switches every weapon to its next level's pattern (L5: the overdrive pattern) for its time, timed on the HUD. The overdrive pickup lands with Level 02 (part B).
