@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 class DefencesTest {
-    private final Defences defences = new Defences(ShieldModel.MK_I, Plating.STANDARD, 0.25);
+    private final Defences defences = new Defences(TestSpecs.LOADOUT.shield(), TestSpecs.LOADOUT.plating(), 0.25);
     private final SimEvents events = new SimEvents(16);
 
     @Test

@@ -1,10 +1,10 @@
 ---
 title: Generator
 design: approved
-implementation: not-started
+implementation: in-progress
 art: none
 depends-on: [../weapons, ../shields]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Generator
@@ -17,6 +17,7 @@ in [player](../README.md#power-budget).
 
 ## Design
 
+<!-- data: generators -->
 | Model | Output | Price (first draft) | Available |
 |---|---|---|---|
 | Mk I "Spark" | 8 MW | starter | start |
@@ -25,6 +26,7 @@ in [player](../README.md#power-budget).
 | Mk IV "Tokamak" | 18 MW | 9 000 | act 4 |
 | Mk V "Helix" | 22 MW | 18 000 | act 5 (Helix Dynamics tech, captured) |
 | Mk VI "Choir Core" | 27 MW | 32 000 | act 7 (Vrell tech) |
+<!-- /data -->
 
 - Buying a generator replaces the current one. The old one goes to the inventory and can be
   sold (see [economy](../../systems/economy/README.md)).
@@ -56,7 +58,7 @@ shield regeneration or lowers fire rate. It is a reward, not a risk.
 
 ## Implementation
 
-- [ ] Generator models and output values in the item data
+- [x] Generator models and output values in the item data
 - [ ] Load vs output check in the hangar with a projected-load bar
 - [ ] Spare-power shield regen bonus
 
@@ -71,3 +73,4 @@ shield regeneration or lowers fire rate. It is a reward, not a risk.
   stops first, then fire rate scales down.
 - 2026-10-01: Overdrive ignores the power cap (user accepted the recommendation).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: The generator models and the spare-power bonus moved into [data.yaml](data.yaml) (M2 data files); the model table is rendered from it.

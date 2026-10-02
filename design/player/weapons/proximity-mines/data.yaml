@@ -1,0 +1,23 @@
+# Proximity Mines: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Proximity Mines
+slot: rear
+traits: [rear, area]
+price: 1500
+unlock: 12
+draw: [2, 4]
+sfx: mine
+vfx: mine
+hits: area
+speed: 60
+size: [10, 10]
+lifetime: 4
+seek: true
+levels:
+  - {pattern: [[0, 180]], rate: 1, damage: 20, blast: 48, max_live: 3}
+  - {pattern: [[0, 180]], rate: 1.2, damage: 25, blast: 48, max_live: 4}
+  - {pattern: [[0, 180]], rate: 1.4, damage: 30, blast: 48, max_live: 4}
+  - {pattern: [[0, 180]], rate: 1.6, damage: 35, blast: 52, max_live: 5}
+  - {pattern: [[0, 180]], rate: 2, damage: 35, blast: 56, max_live: 6}
+overdrive: {pattern: [[0, 180]], rate: 2, damage: 45, blast: 60, max_live: 6}
+notes:
+  layers_hit: '`air`, `low-air`, `ground` (hardened targets glance off) and the `sub` layer from above water (area rule) ([layer rules](../../../enemies/README.md#layer-rules))'

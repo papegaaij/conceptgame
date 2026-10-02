@@ -19,11 +19,8 @@ public final class Sortie {
     private static final int EVENT_CAPACITY = 256;
 
     private final SplitMix64 rng;
-    private final Ship ship = new Ship(
-            ShipSpec.STORMHAWK,
-            PulseCannon.LEVEL_1,
-            new Defences(ShieldModel.MK_I, Plating.STANDARD, ShipSpec.STORMHAWK.mercySeconds()));
-    private final SkitterSpec skitterSpec = SkitterSpec.SKITTER;
+    private final Ship ship;
+    private final SkitterSpec skitterSpec;
     private final Pool<Shot> shots = new Pool<>(SHOT_CAPACITY, Shot::new, Shot[]::new);
     private final Pool<Skitter> skitters = new Pool<>(SKITTER_CAPACITY, Skitter::new, Skitter[]::new);
     private final SimEvents events = new SimEvents(EVENT_CAPACITY);
@@ -35,8 +32,13 @@ public final class Sortie {
     private int wreckTicks;
     private double groundScroll;
 
-    public Sortie(long seed) {
+    public Sortie(long seed, Loadout loadout, SkitterSpec skitterSpec) {
         rng = new SplitMix64(seed);
+        ship = new Ship(
+                loadout.ship(),
+                loadout.gun(),
+                new Defences(loadout.shield(), loadout.plating(), loadout.ship().mercySeconds()));
+        this.skitterSpec = skitterSpec;
     }
 
     /** Advances the sortie by one step with the given {@link Command} set. */

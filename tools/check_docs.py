@@ -8,14 +8,18 @@ Checks (see CLAUDE.md for the rules):
      columns matching the child's frontmatter
   4. every file in a concept/ directory is referenced by the owning README
   5. relative links in markdown files, depends-on entries and review-board HTML resolve
+  6. tables marked <!-- data: NAME --> match what tools/sync_tables.py renders from data.yaml
 
 Usage: python3 tools/check_docs.py        exit code 1 when problems are found
-       python3 tools/check_docs.py --fix  first sync Contents status cells from the children
+       python3 tools/check_docs.py --fix  first sync Contents status cells from the children and
+                                          re-render the marked tables
 """
 import re
 import sys
 from datetime import date
 from pathlib import Path
+
+import sync_tables
 
 ROOT = Path(__file__).resolve().parent.parent
 DESIGN = ROOT / "design"
@@ -140,6 +144,22 @@ def check_links(path, pattern):
             report(path, f"broken link '{target}'")
 
 
+def check_data_tables():
+    for readme in sync_tables.marked_readmes():
+        try:
+            new = sync_tables.synced(readme)
+        except (KeyError, ValueError, OSError) as e:
+            report(readme, f"cannot render its data tables: {e!r}")
+            continue
+        if new == readme.read_text(encoding="utf-8"):
+            continue
+        if FIX:
+            readme.write_text(new, encoding="utf-8")
+            print(f"fixed: {rel(readme)} data tables")
+        else:
+            report(readme, "a marked table differs from its data.yaml (run tools/sync_tables.py)")
+
+
 def main():
     if not DESIGN.is_dir():
         print("design/ not found")
@@ -169,6 +189,7 @@ def main():
             check_links(md, MD_LINK)
     for html in sorted(DESIGN.rglob("*.html")):
         check_links(html, HTML_LINK)
+    check_data_tables()
 
     for p in problems:
         print(p)

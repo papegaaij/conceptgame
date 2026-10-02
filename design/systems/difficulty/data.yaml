@@ -1,0 +1,21 @@
+# The global difficulty levers: rendered into README.md. Schema: ../../tech/architecture/README.md#data-file-schemas
+# Factors multiply the medium value; changes are shares of the base value (−0.25 = −25 %).
+enemy_hp: {easy: 0.75, medium: 1.0, hard: 1.3}
+enemy_bullet_speed: {easy: 0.8, medium: 1.0, hard: 1.15}
+enemy_fire_rate: {easy: 0.7, medium: 1.0, hard: 1.3}
+pattern_bullets: {easy: -0.25, medium: 0, hard: 0.25}  # bullets per fan / ring / burst, at least ±1
+aimed_shots:
+  easy: at the player's current position, slight spread
+  medium: at the player's current position
+  hard: selected enemies lead the target, tighter spread
+formation_size: {easy: -0.2, medium: 0, hard: 0.2}
+bullet_budget: {easy: 60, medium: 120, hard: 200}  # max enemy bullets on screen
+shield_regen: {easy: 1.25, medium: 1.0, hard: 1.0}
+credit_income: {easy: 1.25, medium: 1.0, hard: 0.9}
+score: {easy: 0.75, medium: 1.0, hard: 1.5}
+repair_cost: {easy: 0, medium: 5, hard: 10}        # credits per armour point in the hangar
+retries: {hard: 3}                                 # per level; missing = unlimited
+boss_checkpoint: {easy: true, medium: true, hard: false}
+sensor_bonus: {easy: 1, medium: 0, hard: 0}        # extra sensor levels for the hangar intel
+notes:
+  retries: then game over (reload last save)

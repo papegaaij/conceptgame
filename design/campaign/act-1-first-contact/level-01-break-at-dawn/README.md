@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/skitter, ../../../enemies/air/needler]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Level 01 – Break at Dawn
@@ -59,6 +59,7 @@ atmosphere range. Scroll speed 130 px/s at the 960×540 baseline (a calm level p
 Total ≈ 190 s ≈ 24,700 px. Motion budget: the only strongly animated background elements are the
 drifting low-air cloud decks and, in section 4, the burning platforms.
 
+<!-- data: level-sections -->
 | Section | t (s) | Scroll (px) | Speed (px/s) | Atmosphere | Layers and content | Purpose |
 |---|---|---|---|---|---|---|
 | 1. Launch | 0–20 | 0–2,600 | 130 | clear | `deep`: Earth's curve with the sunrise terminator, starfield. `far`: the yard's north arm, where two distant Stormhawks (Aegis Two, Rook's flight) launch and bank away out of view. `ground`: the Gagarin shipyards' south launch rail sliding out of view. | Get used to movement; no enemies. Control prompts in the side HUD. |
@@ -66,6 +67,7 @@ drifting low-air cloud decks and, in section 4, the burning platforms.
 | 3. Yard Crossing | 60–110 | 7,800–14,300 | 130 | light | `ground`: gantries, cranes, a half-built cruiser hull, cargo containers (destructible). `low-air`: lattice beams and crane jibs passing under the player. | Ground layer as scenery and loot; the first side entry; the secret beacon. |
 | 4. Pursuit | 110–160 | 14,300–20,800 | 130 | medium | `ground`: yard perimeter, defence platforms burning. `low-air`: cloud decks drifting between the yard and the play plane. `high-air`: thin spark streaks. | Mixed waves, one warned rear wave, rising density. |
 | 5. Scout Leader | 160–190 | 20,800–24,700 | 130 | light | `deep`: open space past the yard; the Vrell strike group's glow on the horizon. `ground`: the last perimeter platform. | Final set piece: Needler circle plus Skitter streams. Then the level ends. |
+<!-- /data -->
 
 ### Launch and control prompts
 
@@ -81,6 +83,7 @@ Enemy definitions: [Skitter](../../../enemies/air/skitter/README.md) and
 [Needler](../../../enemies/air/needler/README.md). Formation names come from the
 [formation vocabulary](../../../enemies/README.md#formation-vocabulary).
 
+<!-- data: waves -->
 | t (s) | Section | Formation | Enemies (link) | Count | Enter from | Notes |
 |---|---|---|---|---|---|---|
 | 22 | 2 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (left) | Curls toward the centre, no fire |
@@ -99,13 +102,16 @@ Enemy definitions: [Skitter](../../../enemies/air/skitter/README.md) and
 | 166 | 5 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 12 | sides (both) | Enters while the circle is orbiting |
 
 Totals: Skitter 60 · Needler 35.
+<!-- /data -->
 
 ## Ground targets
 
+<!-- data: ground-targets -->
 | Section | Target | Effect |
 |---|---|---|
 | 3 | Cargo containers ×10 (ground layer, destructible, 3 HP) | Each pays 5 and drops a small salvage pickup (10) |
 | 3 | Beacon on the crane at t≈90 (blinks red) | Secret, see below |
+<!-- /data -->
 
 No hostile ground targets in L01. Hostile ground targets arrive in L02.
 
@@ -129,6 +135,7 @@ Pickup types are defined in [player](../../../player/README.md#in-level-pickups)
 Text and radio blips only (no voice acting). Rook flies Aegis Two elsewhere in the yard and is
 heard on the radio only.
 
+<!-- data: radio -->
 | Trigger | Speaker | Line |
 |---|---|---|
 | t=2 | Rook | "Lancer, Rook. Aegis Two's got the north arm, you've got the south. Try not to have all the fun." |
@@ -141,6 +148,7 @@ heard on the radio only.
 | t=161 | Varga | "That isn't noise. There's structure in it. Commander, I think that was a signal." |
 | Level end | Okafor | "Good work, Aegis. That was the scouts. The rest are coming." |
 | Secondary objective met | Okafor | "Clean sweep. I'll make sure High Command hears about it." |
+<!-- /data -->
 
 ## Boss / mid-boss
 
@@ -159,6 +167,7 @@ blips. Mission complete jingle at the end.
 The total matches budget(1) from the [economy](../../../systems/economy/README.md#per-level-budget)
 curve. Bounties from the stat blocks: Skitter 5, Needler 12.
 
+<!-- data: credit-budget -->
 | Source | Credits (medium) |
 |---|---|
 | Kills: Skitter 60 × 5 + Needler 35 × 12 | 720 |
@@ -166,6 +175,7 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
 | Secret: beacon cache (hidden crate, 8% of budget) | 80 |
 | Secondary objective | 50 |
 | **Total** | **1,000** |
+<!-- /data -->
 
 ## Difficulty notes
 
@@ -206,3 +216,4 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
   "Coalition Rising"; enemy links point at the unit specs; `art: chosen` (scene and enemies are
   chosen).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
+- 2026-10-02: The level script moved into [data.yaml](data.yaml) (M2 data files): the *Layout*, *Waves* (with the totals), *Ground targets*, *Radio chatter* and *Credit budget* tables are rendered from it by `tools/sync_tables.py`; the credit budget is now computed from the waves, the stat-block bounties and the economy's budget(1). Objectives, music cues, the beacon line, the placed armour patch and the easy/hard changes are in the data too; their prose here stays hand-written.

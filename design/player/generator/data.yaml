@@ -1,0 +1,10 @@
+# Generators: rendered into README.md. Schema: ../../tech/architecture/README.md#data-file-schemas
+spare_power: {regen_bonus_per_mw: 0.1, max_regen_bonus: 0.5}  # shield regen bonus per spare MW
+models:
+  # output MW, price cr (0 = starter), available
+  - {name: 'Mk I "Spark"', output: 8, price: 0, available: start}
+  - {name: 'Mk II "Arc"', output: 11, price: 1500, available: act 1}
+  - {name: 'Mk III "Fusion"', output: 14, price: 4000, available: act 2}
+  - {name: 'Mk IV "Tokamak"', output: 18, price: 9000, available: act 4}
+  - {name: 'Mk V "Helix"', output: 22, price: 18000, available: act 5, notes: {available: '(Helix Dynamics tech, captured)'}}
+  - {name: 'Mk VI "Choir Core"', output: 27, price: 32000, available: act 7, notes: {available: (Vrell tech)}}

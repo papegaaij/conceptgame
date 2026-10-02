@@ -2,6 +2,7 @@ package vanguard.game.screen;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.Optional;
+import vanguard.content.SimSpecs;
 import vanguard.game.GameServices;
 import vanguard.game.audio.FlightSounds;
 import vanguard.game.audio.MusicStreamer;
@@ -41,7 +42,7 @@ public final class FlightScreen implements GameScreen {
     private static final int WEAPON_LEVEL = 1;
 
     private final GameServices services;
-    private final Sortie sortie = new Sortie(SEED);
+    private final Sortie sortie;
     private final FixedStepClock clock = new FixedStepClock(SimStep.SECONDS, MAX_STEPS_PER_FRAME);
     private final FlightCommands commands;
     private final FlightSounds sounds;
@@ -54,6 +55,7 @@ public final class FlightScreen implements GameScreen {
 
     public FlightScreen(GameServices services) {
         this.services = services;
+        sortie = new Sortie(SEED, SimSpecs.starterLoadout(services.content), SimSpecs.skitter(services.content));
         commands = new FlightCommands(services.controls);
         sounds = new FlightSounds(services.sfx);
         renderer = new FlightRenderer(services.sprites, services.flash);

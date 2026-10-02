@@ -1,0 +1,23 @@
+# Hornet Launcher: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Hornet Launcher
+slot: front
+traits: [homing]
+price: 2000
+unlock: 10
+draw: [3, 6]
+sfx: missile
+vfx: missile
+hits: homing
+speed: [450, 650]
+size: [6, 14]
+range: 420
+seek: true
+levels:
+  - {pattern: [[0, -25], [0, 25]], rate: 1.25, damage: 6, turn: 180}
+  - {pattern: [[0, -25], [0, 25]], rate: 1.25, damage: 9, turn: 180}
+  - {pattern: [[0, -30], [0, 0], [0, 30]], rate: 1.25, damage: 9, turn: 220}
+  - {pattern: [[0, -35], [0, -12], [0, 12], [0, 35]], rate: 1.25, damage: 9.5, turn: 220}
+  - {pattern: [[0, -35], [0, -12], [0, 12], [0, 35]], rate: 1.25, damage: 12, turn: 260}
+overdrive: {pattern: [[0, -40], [0, -24], [0, -8], [0, 8], [0, 24], [0, 40]], rate: 1.25, damage: 12, turn: 260}
+notes:
+  layers_hit: '`air`, `low-air`, `ground` (hardened targets glance off) and **`high-air`** ([layer rules](../../../enemies/README.md#layer-rules))'

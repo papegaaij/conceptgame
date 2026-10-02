@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Needler
@@ -19,6 +19,7 @@ The basic Vrell gunner: an ivory crab-like flyer (design language B) that hovers
 
 Values are first-draft balancing numbers at **medium** (see the [balancing basis](../../README.md#balancing-basis)). HP is in damage units (a Pulse Cannon L1 shot does 2); bullet damage classes and speeds are defined in the balancing basis.
 
+<!-- data: stat-block -->
 | Field | Value |
 |---|---|
 | Faction | Vrell |
@@ -39,6 +40,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Death | `small` burst: ivory shards, violet flash |
 | First level / used in | L01; recurring gunner through Acts 1–2 and spawned by the Brood Carrier |
 | Difficulty hooks | hard: selected Needlers in `circle` formations lead the target |
+<!-- /data -->
 
 ### Behaviour
 
@@ -61,3 +63,4 @@ Chosen concept: [needler-r04-a.png](../concept/needler-r04-a.png) (listed in the
 
 - 2026-10-01: Promoted from the air roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
+- 2026-10-02: The stat block moved into [data.yaml](data.yaml) and is rendered from it (M2 data files), with the hover, orbit and attack numbers as fields for the Level 01 work.

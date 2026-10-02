@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: n/a
 depends-on: [../economy]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Scoring
@@ -36,18 +36,21 @@ a separate number, shown next to credits on the HUD:
 
 ### Level-end bonuses
 
+<!-- data: score-bonuses -->
 | Bonus | Condition | Score |
 |---|---|---|
 | Destruction | Kill ratio | kill % × 100 × level number |
 | Untouched | No armour damage | 5 000 × act |
 | Explorer | All secrets / data cores found | 3 000 × act |
 | Boss rush | Boss killed under par time | 2 000 × act |
+<!-- /data -->
 
 ### Grades
 
 Grade per level, from a weighted rating: kill ratio 40 %, armour damage taken 30 %, secrets 15 %,
 max chain 15 %.
 
+<!-- data: grades -->
 | Grade | Rating | Credit bonus |
 |---|---|---|
 | S | ≥ 90 | +30 % |
@@ -55,6 +58,7 @@ max chain 15 %.
 | B | ≥ 55 | +10 % |
 | C | ≥ 35 | — |
 | D | < 35 | — |
+<!-- /data -->
 
 Best grade per level is stored in the save and shown in the level-select of a replay mode
 (if added later).
@@ -80,3 +84,4 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
 - 2026-09-30: Draft separates score from credits.
 - 2026-10-01: Score and credits stay **separate** (user decision). The alternative — one number, points = credits, as in the original brief — was considered and rejected: spending would lower the score and chain play would inflate the economy.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: The scoring numbers moved into [data.yaml](data.yaml) (M2 data files); the bonus and grade tables are rendered from it.

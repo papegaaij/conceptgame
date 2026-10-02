@@ -1,0 +1,150 @@
+# Level 01 – Break at Dawn: the level script, rendered into README.md (Layout, Waves, Ground
+# targets, Radio chatter, Credit budget). Times are seconds from the level start.
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+scroll_speed: 130     # px/s at the 960×540 baseline; a section may set its own speed
+launch_seconds: 5     # non-playable launch off the south rail; control starts after it
+control_prompts: [move, fire, precision]
+
+sections:  # back to back from t = 0; each ends at `end`
+  - name: Launch
+    end: 20
+    atmosphere: clear
+    notes:
+      layers:
+        deep: Earth's curve with the sunrise terminator, starfield.
+        far: the yard's north arm, where two distant Stormhawks (Aegis Two, Rook's flight) launch and bank away out of view.
+        ground: the Gagarin shipyards' south launch rail sliding out of view.
+      purpose: Get used to movement; no enemies. Control prompts in the side HUD.
+  - name: First Wave
+    end: 60
+    atmosphere: light
+    notes:
+      layers:
+        deep: Earth, the Moon small in the distance.
+        ground: open dock frames.
+        low-air: thin cloud-deck wisps.
+      purpose: Shooting basics; Skitters (harmless rammers) first, then the first Needlers that shoot back.
+  - name: Yard Crossing
+    end: 110
+    atmosphere: light
+    notes:
+      layers:
+        ground: gantries, cranes, a half-built cruiser hull, cargo containers (destructible).
+        low-air: lattice beams and crane jibs passing under the player.
+      purpose: Ground layer as scenery and loot; the first side entry; the secret beacon.
+  - name: Pursuit
+    end: 160
+    atmosphere: medium
+    notes:
+      layers:
+        ground: yard perimeter, defence platforms burning.
+        low-air: cloud decks drifting between the yard and the play plane.
+        high-air: thin spark streaks.
+      purpose: Mixed waves, one warned rear wave, rising density.
+  - name: Scout Leader
+    end: 190
+    atmosphere: light
+    notes:
+      layers:
+        deep: open space past the yard; the Vrell strike group's glow on the horizon.
+        ground: the last perimeter platform.
+      purpose: 'Final set piece: Needler circle plus Skitter streams. Then the level ends.'
+
+waves:
+  # t, formation, enemy, count, enter from (front / sides / rear) and edge (left / right / both /
+  # alternating); a mixed wave lists its groups. easy / hard: changes on that difficulty.
+  - {t: 22, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: "Curls toward the centre, no fire"}
+  - {t: 30, formation: snake, enemy: skitter, count: 6, from: front, edge: right, notes: "Mirror of the previous wave"}
+  - {t: 40, formation: V-wing, enemy: needler, count: 5, from: front, notes: "Aimed shot every 2.5 s each; radio cue \"they shoot back\""}
+  - {t: 50, formation: line abreast, enemy: skitter, count: 8, from: front, notes: "Sweeps down the screen"}
+  - {t: 64, formation: line abreast, enemy: needler, count: 3, from: front, notes: "Hover, fire, leave"}
+  - {t: 75, formation: snake, enemy: skitter, count: 6, from: sides, edge: left, notes: "First side entry, slow; radio warning"}
+  - {t: 86, formation: V-wing, enemy: needler, count: 5, from: front}
+  - {t: 96, formation: stream, enemy: skitter, count: 10, from: front, edge: alternating, notes: "Teaches sweeping fire"}
+  - t: 112
+    groups:
+      - {formation: snake, enemy: skitter, count: 6}
+      - {formation: V-wing, enemy: needler, count: 3}
+    from: front
+    notes: First mixed wave
+  - {t: 122, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, notes: "2 from each side, hold for {hold} s at the screen edge"}
+  - t: 134
+    formation: line abreast
+    enemy: skitter
+    count: 6
+    from: rear
+    warning: 3  # s; the radio cue at t=131
+    easy: {from: front}
+    hard: {count: 10}
+    notes: Warned {warning} s ahead ("Contacts on your six!"); slow
+  - {t: 146, formation: V-wing, enemy: needler, count: 7, from: front, notes: "Large V"}
+  - t: 162
+    formation: circle
+    enemy: needler
+    count: 8
+    from: front
+    hold: 6         # s orbiting before the break
+    break_group: 1  # Needlers that break toward the player together
+    hard: {break_group: 2}
+    notes: Orbit a point above the centre for {hold} s, then break toward the player one by one
+  - {t: 166, formation: stream, enemy: skitter, count: 12, from: sides, edge: both, notes: "Enters while the circle is orbiting"}
+
+ground_targets:
+  - target: cargo container
+    section: 3
+    count: 10
+    layer: ground
+    hp: 3
+    bounty: 5
+    drop: small salvage
+    notes:
+      target: Cargo containers ×{count} (ground layer, destructible, {hp} HP)
+      effect: Each pays {bounty} and drops a {drop} pickup ({drop_credits})
+      budget: cargo containers {count} × ({bounty} + {drop} {drop_credits})
+  - target: beacon
+    section: 3
+    t: 90
+    layer: ground
+    hits: 3               # hits that release the secret
+    reveals: beacon cache
+    notes:
+      target: Beacon on the crane at t≈{t} (blinks red)
+      effect: Secret, see below
+
+secrets:
+  - name: beacon cache
+    crate: 80  # hidden crate, credits
+    radio: {speaker: Rook, line: "Nice shooting. Finders keepers."}
+
+pickups:  # placed pickups; shield cells drop from Needlers at the normal rate
+  - {pickup: armour patch, t: 140, dropped_by: {wave: 122, unit: last}}
+
+radio:  # trigger: t (seconds) or event (first-kill of an enemy, secondary-objective, level-end)
+  - {t: 2, speaker: Rook, line: "Lancer, Rook. Aegis Two's got the north arm, you've got the south. Try not to have all the fun."}
+  - {t: 18, speaker: Okafor, line: "Contacts inbound. Weapons free."}
+  - {event: first-kill, enemy: skitter, speaker: Rook, line: "They pop like bugs. Big, angry bugs."}
+  - {t: 40, speaker: Varga, line: "Those ones are armed. Keep moving.", notes: {trigger: Needlers enter}}
+  - {t: 73, speaker: Rook, line: "Movement on your left! They're flanking the yard.", notes: {trigger: before side wave}}
+  - {t: 131, speaker: Okafor, line: "Contacts on your six, Lancer!", notes: {trigger: before rear wave}}
+  - {t: 160, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
+  - {t: 161, speaker: Varga, line: "That isn't noise. There's structure in it. Commander, I think that was a signal."}
+  - {event: level-end, speaker: Okafor, line: "Good work, Aegis. That was the scouts. The rest are coming."}
+  - {event: secondary-objective, speaker: Okafor, line: "Clean sweep. I'll make sure High Command hears about it."}
+
+objectives:
+  primary: reach-end
+  secondary: {kill_ratio: 0.8, credits: 50}  # destroy at least this share of all enemies
+
+music:
+  track: 5            # Act 1 B "Coalition Rising" (audio/music track list)
+  start_section: 2    # section 1 has ambience only
+  full_section: 4     # base stem only until this section
+  ambience: earth-orbit
+  end_jingle: mission-complete
+
+difficulty:  # level-wide changes; per-wave changes are in the waves
+  easy:
+    enemies: {needler: {attack_interval: 3.5}}
+    extra_pickups: [{pickup: armour patch, count: 2}]
+  hard:
+    enemies: {needler: {burst: 2}}

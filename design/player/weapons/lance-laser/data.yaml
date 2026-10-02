@@ -1,0 +1,22 @@
+# Lance Laser: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Lance Laser
+slot: front
+traits: [piercing, forward]
+price: 2500
+unlock: 5
+draw: [4, 7]
+sfx: laser
+vfx: laser
+hits: standard
+speed: 1200
+size: [4, 28]
+range: screen
+levels:
+  - {pattern: [[0, 0]], rate: 5, damage: 5, pierce: 2}
+  - {pattern: [[0, 0]], rate: 5, damage: 7, pierce: 3}
+  - {pattern: [[-6, 0], [6, 0]], rate: 5, damage: 5, pierce: 3}
+  - {pattern: [[-6, 0], [6, 0]], rate: 5, damage: 7, pierce: 4}
+  - {pattern: [[-6, 0], [6, 0]], rate: 5, damage: 9.5, pierce: 5}
+overdrive: {pattern: [[-10, 0], [0, 0], [10, 0]], rate: 5, damage: 9, pierce: 6}
+notes:
+  layers_hit: '`air`, `low-air` and `ground` (hardened ground targets glance off); not `high-air`; the `sub` layer only in under-water mode, at 50 % ([layer rules](../../../enemies/README.md#layer-rules))'

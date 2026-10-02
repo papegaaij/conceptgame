@@ -1,0 +1,24 @@
+# Swivel Gun: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Swivel Gun
+slot: wing
+traits: [side, homing]
+price: 1500
+unlock: 9
+draw: [2, 3]
+sfx: ballistic
+vfx: ballistic
+hits: homing
+speed: 700
+size: [5, 5]
+range: 300
+pod: true
+seek: true
+levels:
+  - {pattern: [[0, 0]], rate: 4, damage: 2}
+  - {pattern: [[0, 0]], rate: 4.5, damage: 2.4}
+  - {pattern: [[0, 0]], rate: 5, damage: 3}
+  - {pattern: [[0, 0]], rate: 5.5, damage: 3.6}
+  - {pattern: [[0, 0]], rate: 6, damage: 4.33}
+overdrive: {pattern: [[0, 0]], rate: 7, damage: 4.5}
+notes:
+  layers_hit: '`air`, `low-air`, `ground` (hardened targets glance off) and **`high-air`** ([layer rules](../../../enemies/README.md#layer-rules))'

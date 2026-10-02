@@ -1,9 +1,8 @@
 package vanguard.sim;
 
 /**
- * The AF-12 Stormhawk's flight numbers, from design/player/ship/README.md (Movement, Hitbox,
- * mount points) and the banking rule of design/art-direction/README.md (Animation rules). They
- * move into the ship's data file in M2.
+ * The AF-12 Stormhawk's flight numbers: design/player/ship/data.yaml with the fitted engine's
+ * speed, built by {@code vanguard.content.SimSpecs}.
  *
  * @param speed full speed in px/s (engine Mk I)
  * @param accelerationSeconds time from standing still to full speed
@@ -34,6 +33,4 @@ public record ShipSpec(
     public double edgeLimit() {
         return size / 2 + edgeMargin;
     }
-
-    public static final ShipSpec STORMHAWK = new ShipSpec(270, 0.08, 0.06, 0.5, 48, 12, new Hitbox(9, 9), 0.25, 21, 3);
 }

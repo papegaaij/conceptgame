@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: none
 depends-on: [../generator, ../../ui/hangar]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Ship systems
@@ -19,15 +19,18 @@ are the "nice extra options": they make the ship better at a job without adding 
 
 ### Engine (core)
 
+<!-- data: engines -->
 | Model | Speed | Draw | Price (first draft) | Available |
 |---|---|---|---|---|
 | Mk I | 270 px/s | 0 MW | starter | start |
 | Mk II | 290 px/s | 1 MW | 1 200 | act 1 |
 | Mk III | 315 px/s | 1 MW | 3 500 | act 3 |
 | Mk IV | 345 px/s | 2 MW | 8 000 | act 5 |
+<!-- /data -->
 
 ### Utility modules
 
+<!-- data: utility -->
 | Module | Effect | Levels | Draw | Price | Unlock | Design |
 |---|---|---|---|---|---|---|
 | Sensor suite | Improves hangar intel detail (see below) and shows off-screen threat arrows at L2+ | L1–L3 | 1 | 800 / 2 000 / 4 500 | start | idea |
@@ -38,6 +41,7 @@ are the "nice extra options": they make the ship better at a job without adding 
 | Auto-repair nanites | Repairs 1 armour per 4 s, up to 50 % of max armour | L1–L2 (2 s at L2) | 3 | 6 000 / 12 000 | act 4 | idea |
 | Pressure hull | Removes the underwater top-speed and shield-regen penalties (see [europa](../../world/europa/README.md#under-water-rules)) | L1 | 1 | 2 000 | L22 | idea |
 | Ascendancy IFF spoofer | Ascendancy turrets hesitate 0.5 s before firing | L1 | 2 | 5 000 | act 6 (story) | idea |
+<!-- /data -->
 
 ### Hydro-kit (automatic)
 
@@ -86,3 +90,4 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
 - 2026-10-01: Utility bays confirmed: two, a third buyable.
 - 2026-10-01: Targeting computer: unlocked from L07 by the L06 data core (one act early), per the data-core rule in economy.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: The engines and utility modules moved into [data.yaml](data.yaml) (M2 data files); both tables are rendered from it.

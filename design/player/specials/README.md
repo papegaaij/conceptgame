@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../campaign, ../../world]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Special abilities
@@ -126,3 +126,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-10-01: Concept round 09: specials chosen.
 - 2026-10-01: Free first Airstrike charge (user decision): 1 charge is granted when the Airstrike unlocks before L04. The balance plan in `balance-data.json` now buys 1 charge at L04 instead of 2 (same 2 charges carried).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: The charge price, charge limit and unlock of the three Acts 1–2 specials moved into [data.yaml](data.yaml) (M2 data files), where `tools/balance.py` reads them; the specials table stays hand-written for now (mostly prose).

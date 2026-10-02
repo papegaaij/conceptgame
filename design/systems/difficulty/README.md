@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: n/a
 depends-on: [../economy, ../retry]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Difficulty
@@ -17,6 +17,7 @@ retries. The levels themselves (layouts, enemy types) are the same on every diff
 
 ## Design
 
+<!-- data: difficulty -->
 | Lever | Easy | Medium | Hard |
 |---|---|---|---|
 | Enemy HP | × 0.75 | × 1.0 | × 1.3 |
@@ -33,6 +34,7 @@ retries. The levels themselves (layouts, enemy types) are the same on every diff
 | Retries per level | unlimited | unlimited | 3, then game over (reload last save) |
 | Boss checkpoint | yes | yes | no |
 | Intel | sensor level +1 | normal | normal |
+<!-- /data -->
 
 Density scaling uses **authored variants** where it matters: a pattern designer can mark
 bullets as `medium+` or `hard-only`, rather than relying on a multiplier alone. This table is
@@ -57,3 +59,4 @@ the single source of the global levers; enemy stat blocks only add overrides (se
   from enemies; aimed shots do not lead the player on medium (enemies' proposal).
 - 2026-10-01: Game over only on hard, after 3 failed retries of a level (then reload a save); easy and medium have unlimited retries.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-02: The levers moved into [data.yaml](data.yaml) (M2 data files); the table is rendered from it, and the enemy stat blocks derive their easy/hard HP from it.

@@ -17,6 +17,10 @@ the work it describes, and tick a ticket's checklist in the same change as its c
   every subdirectory. Only `concept/` directories are exempt (see below).
 - **No duplication.** A level references the enemies, music, settings and weapons it uses by
   relative link; the definition lives in exactly one place.
+- **Numbers the game reads live in a `data.yaml`** next to the part's README; the README's
+  tables for them are generated between `<!-- data: NAME -->` and `<!-- /data -->` markers by
+  `tools/sync_tables.py`. Edit the data, never a marked table; prose stays hand-written. The
+  schemas are in [design/tech/architecture](design/tech/architecture/README.md#data-file-schemas).
 - **A part gets its own directory once it leaves `idea` status.** Until then it is a row in the
   parent README's roster table. When promoting a row, create the directory + README and replace
   the roster row by a Contents row.
@@ -107,7 +111,13 @@ design tree; this list is only a reminder.
   Contents tables in sync with children, concept files listed, relative links resolve).
   **Run it after every documentation change** and fix what it reports.
   `--fix` first syncs the Contents status cells from the children's frontmatter (bottom-up
-  order matters: run it twice when a change ripples up more than one level).
+  order matters: run it twice when a change ripples up more than one level) and re-renders the
+  marked data tables. It also fails when a marked table differs from its `data.yaml`.
+- `python3 tools/sync_tables.py` – renders every marked table from the `data.yaml` in the
+  README's directory (`--check` only lists the tables that differ). Needs PyYAML.
+- `python3 tools/balance.py` – balancing report for levels 01–14 from the data files and the
+  expected purchases in `design/player/balance-plan.yaml` (`--weapons` prints every weapon's
+  per-level numbers). It exits 1 today because of the accepted L01–L03 DPS gap.
 - `tools/concept/` – reproducible generators for concept mockups (Python 3 + PIL + numpy,
   ffmpeg for audio/GIF encoding). Each script documents its outputs at the top.
 

@@ -1,0 +1,24 @@
+# AF-12 Stormhawk: flight numbers, rendered into README.md (Movement).
+# Schema: ../../tech/architecture/README.md#data-file-schemas
+# Base speed is the fitted engine's (../systems/data.yaml); the starter engine is shown here.
+acceleration_seconds: 0.08  # standing still to full speed
+stop_seconds: 0.06          # full speed to standing still
+precision_factor: 0.5       # speed factor while precision mode is held
+size: 48                    # edge of the square hull sprite, px
+edge_gap: 12                # gap the hull keeps to every play field edge, px
+hitbox: [9, 9]              # around the cockpit
+collection_radius: 36       # pickups, px; the magnet enlarges it
+mercy_seconds: 0.25         # invulnerability after armour damage
+bank_change_steps: 6        # game frames from level to hard bank (art direction, Animation rules)
+mounts:                     # px from the sprite's top left
+  front: [24, 3]
+  wings: [[8, 27], [40, 27]]
+  rear: [24, 45]
+  engines: [[18, 44], [30, 44]]
+notes:
+  movement:  # the rows of the Movement table
+    Base speed: '{engine.speed} px/s (engine {engine.name}). See [engines](../systems/README.md)'
+    Acceleration: Full speed in {acceleration_seconds} s; stops in {stop_seconds} s (tight, arcade-like)
+    Precision mode: 'Hold button: speed × {precision_factor} for dodging. See [controls](../../ui/controls/README.md)'
+    Bounds: The whole play field (480×540, see [art direction](../../art-direction/README.md)); the {size}×{size} hull keeps a {edge_gap} px gap to every edge (centre at least {centre_margin} px from it)
+    Diagonal: Normalised (no faster diagonals)

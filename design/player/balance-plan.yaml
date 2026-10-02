@@ -1,0 +1,28 @@
+# The expected purchases of a typical medium player at each hangar visit, for Acts 1-2.
+# Used only by tools/balance.py to check affordability, power load and DPS; not a rule, and not
+# read by the game. Every other number comes from the parts' data.yaml files.
+#
+# Key = the level that follows the visit. Actions:
+#   start: the starting loadout (front weapon and level; core = index into the part's model list)
+#   buy: [slot, weapon]   upgrade: [slot, level]   sell: [slot]   core: [kind, index into its list]
+#   utility: [module, level]   charges: [special, count]
+difficulty: medium        # repair costs come from ../systems/difficulty/data.yaml
+typical_collection: 0.7   # share of a level's budget a typical player earns
+repair_points_per_level: 15
+plan:
+  "01":
+    start: {front: [pulse-cannon, 1], generator: 0, shield: 0, armor: 0, engine: 0}
+    upgrade: [[front, 2]]
+  "02": {buy: [[wing_l, autocannon-pod]]}
+  "03": {buy: [[wing_r, autocannon-pod]]}
+  "04": {charges: [[Airstrike, 1]]}
+  "05": {core: [[shield, 1]]}
+  "06": {upgrade: [[front, 3]]}
+  "07": {core: [[armor, 1]]}
+  "08": {core: [[generator, 1]]}
+  "09": {buy: [[rear, tail-gun]]}
+  "10": {upgrade: [[rear, 2], [wing_l, 2], [wing_r, 2]], charges: [[Airstrike, 1]]}
+  "11": {upgrade: [[front, 4]]}
+  "12": {sell: [wing_l, wing_r], buy: [[wing_l, micro-missile-pod], [wing_r, micro-missile-pod]]}
+  "13": {core: [[armor, 2]], upgrade: [[wing_l, 2], [wing_r, 2]]}
+  "14": {charges: [[Airstrike, 2]]}

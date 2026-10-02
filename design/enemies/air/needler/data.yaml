@@ -1,0 +1,42 @@
+# Needler stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Needler
+faction: Vrell
+layer: air
+tier: small
+size: [36, 36]    # sprite px
+hitbox: [26, 24]
+parts: single
+orientation: fixed
+hp: 4
+armour: none
+speed: 120        # px/s while entering
+movement:
+  swoop: {}
+  hover: {seconds: [2, 4], y: [80, 220]}  # y px from the top of the play field
+  orbit: {radius: 90, turn_rate: 60}      # in circle formations; px, °/s
+attacks:
+  - pattern: aimed
+    bullet: small
+    interval: 2.5          # s
+    speed: 150             # px/s
+    first_shot_delay: 0.8  # s after it stops
+    notes:
+      text: '`{pattern}` yellow thorn every {interval} s, {speed} px/s, damage `{bullet}` = {damage}; first shot {first_shot_delay} s after it stops'
+formations:
+  - {name: V-wing, size: [5]}
+  - {name: line abreast}
+  - {name: pincer}
+  - {name: circle, size: [8]}
+weak_points:
+  - {name: glowing violet eye cluster, multiplier: 1.5}
+traits: [forward, spread]
+bounty: 12
+first_level: 1
+difficulty:
+  hard: {leads_target_in: [circle]}  # selected Needlers in these formations lead the target
+notes:
+  speed: entering, 0 while hovering
+  movement: '`swoop` in, `hover` {movement.hover.seconds} s at y = {movement.hover.y} px, then exit down or to the side; in `circle` formations `orbit` a point (radius {movement.orbit.radius} px, {movement.orbit.turn_rate}°/s)'
+  death: '`small` burst: ivory shards, violet flash'
+  used_in: recurring gunner through Acts 1–2 and spawned by the Brood Carrier
+  difficulty: 'hard: selected Needlers in `circle` formations lead the target'

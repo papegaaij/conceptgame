@@ -1,0 +1,23 @@
+# Bomb Rack: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Bomb Rack
+slot: wing
+traits: [anti-ground]
+price: 900
+unlock: 3
+draw: [1, 2]
+sfx: bomb
+vfx: bomb
+hits: ground-only
+size: [8, 12]
+range: drop
+pod: true
+seek: true
+levels:
+  - {pattern: [[0, 0]], rate: 1.2, damage: 10, blast: 20}
+  - {pattern: [[0, 0]], rate: 1.4, damage: 11.5, blast: 20}
+  - {pattern: [[0, 0]], rate: 1.6, damage: 14, blast: 22}
+  - {pattern: [[0, 0]], rate: 1.8, damage: 17, blast: 24}
+  - {pattern: [[0, 0]], rate: 2, damage: 20, blast: 26}
+overdrive: {pattern: [[0, 0]], rate: 2.4, damage: 22, blast: 28}
+notes:
+  layers_hit: '`ground` only — including **hardened** targets and surfaced naval units — never anything flying (`air`, `low-air`, `high-air`) ([layer rules](../../../enemies/README.md#layer-rules))'

@@ -3,7 +3,7 @@ title: Enemies
 design: approved
 implementation: in-progress
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Enemies
@@ -218,6 +218,7 @@ that move in any direction must read from any angle:
 
 ### Formation vocabulary
 
+<!-- data: formations -->
 | Name | Description |
 |---|---|
 | `V-wing` | A V of 3–9 units led by the tip. |
@@ -237,6 +238,7 @@ that move in any direction must read from any angle:
 | `submerged ambush` | `sub` units that surface together around the player. |
 | `swarm` | A loose, randomised cloud with flocking behaviour. |
 | `whirl cluster` | A burst of 5–8 tiny spinners released from one point, spiralling outward and ricocheting. |
+<!-- /data -->
 
 ### Variety checklist per act
 
@@ -312,9 +314,11 @@ balancing sheet should use the same numbers.
 damage units per second, Pulse Cannon L1 = 20, interpolated from the
 [weapon roster](../player/weapons/README.md) and the [level budget](../systems/economy/README.md#per-level-budget)):
 
+<!-- data: reference-dps -->
 | Level | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 | 13 | 14 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DPS | 20 | 26 | 32 | 38 | 45 | 52 | 60 | 60 | 63 | 66 | 70 | 73 | 76 | 80 |
+<!-- /data -->
 
 Levels 08–14 were lowered on 2026-10-01 (user decision) to what a typical loadout reaches according to
 `tools/balance.py` (≈ 60–80), instead of growing the economy. The Act 2 stat blocks have been rescaled
@@ -339,6 +343,7 @@ the same; no elite variants. The reference DPS curve is extended act by act as l
 **Damage to the player** (shield first, overflow to armour; collisions split half/half — see
 [shields](../player/shields/README.md)):
 
+<!-- data: player-damage -->
 | Class | Damage | Used for |
 |---|---|---|
 | `small` bullet | 4 | thorns, standard orbs, fan and ring bullets |
@@ -346,6 +351,7 @@ the same; no elite variants. The reference DPS curve is extended act by act as l
 | `heavy` hit | 10 | mortar direct hits, slam arms, rail shots |
 | `laser` | 8 per touch | `laser-sweep` / `laser-line` (once per sweep or line) |
 | Contact | tiny 6 · small 10 · medium 15 · large 20 · huge 25 | rammers and bodies on the player's layer |
+<!-- /data -->
 
 **Ramming:** a `tiny` or `small` unit that touches the ship is destroyed by the impact, so its
 contact damage lands once.
@@ -433,7 +439,7 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 ## Implementation
 
 - [x] Rescale the Act 2 unit and boss HP to the lowered reference DPS for L08–L14 (balancing basis)
-- [ ] Data-driven enemy definitions using the stat block fields.
+- [x] Data-driven enemy definitions using the stat block fields.
 - [ ] Movement patterns from the vocabulary implemented as reusable behaviours.
 - [ ] Attack patterns from the vocabulary implemented as reusable emitters.
 - [ ] Formation spawner that places enemies by formation name and entry edge.
@@ -482,3 +488,4 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
 - 2026-10-01: M1: the layer rules for weapons without special traits are encoded in `vanguard.sim.Layer` (hit by standard shots: air, low-air, ground; contact: air only); `sub`, hardened ground targets and the trait exceptions follow with the units that need them.
 - 2026-10-01: Rules from M1 (user decisions): HP wording — a Pulse Cannon L1 shot does 2 damage units; `tiny` and `small` rammers are destroyed on impact; the snake readability rule is about the head (on screen ≥ 1.5 s before it can reach the player), so snakes of any length stay allowed.
+- 2026-10-02: The balancing basis (reference DPS, damage to the player) and the formation vocabulary moved into [data.yaml](data.yaml) (M2 data files); their tables are rendered from it, and `tools/balance.py` reads the reference DPS from there. Each promoted enemy's stat block lives in a `data.yaml` next to its README.

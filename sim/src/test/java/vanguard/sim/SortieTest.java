@@ -14,7 +14,7 @@ class SortieTest {
 
     @Test
     void oneBoltDestroysASkitter() {
-        var sortie = new Sortie(1);
+        var sortie = TestSpecs.sortie(1);
         sortie.spawn(new SnakeWave(0, DOWN_THE_MIDDLE, 1, false), 0);
 
         int destroyed = 0;
@@ -33,7 +33,7 @@ class SortieTest {
 
     @Test
     void aRammingSkitterIsDestroyedAndDealsContactDamage() {
-        var sortie = new Sortie(1);
+        var sortie = TestSpecs.sortie(1);
         sortie.spawn(new SnakeWave(0, DOWN_THE_MIDDLE, 1, false), 0);
 
         int destroyed = 0;
@@ -49,7 +49,7 @@ class SortieTest {
 
     @Test
     void skittersMissAShipThatGetsOutOfTheWay() {
-        var sortie = new Sortie(1);
+        var sortie = TestSpecs.sortie(1);
         sortie.spawn(new SnakeWave(0, DOWN_THE_MIDDLE, 1, false), 0);
 
         for (int i = 0; i < 60; i++) {
@@ -61,7 +61,7 @@ class SortieTest {
 
     @Test
     void theSortieRestartsWithFullDefencesAfterTheShipIsDestroyed() {
-        var sortie = new Sortie(1);
+        var sortie = TestSpecs.sortie(1);
         sortie.spawn(new SnakeWave(0, DOWN_THE_MIDDLE, 40, false), 0);
 
         int steps = 0;
@@ -90,7 +90,7 @@ class SortieTest {
 
     @Test
     void theWreckIgnoresCommands() {
-        var sortie = new Sortie(1);
+        var sortie = TestSpecs.sortie(1);
         sortie.spawn(new SnakeWave(0, DOWN_THE_MIDDLE, 40, false), 0);
         while (sortie.flying()) {
             sortie.step(Command.NONE);
@@ -105,7 +105,7 @@ class SortieTest {
 
     @Test
     void theTestSortieSendsItsFirstSnakeAfterOneSecond() {
-        var sortie = new Sortie(1);
+        var sortie = TestSpecs.sortie(1);
         for (int i = 0; i < SimStep.PER_SECOND - 1; i++) {
             sortie.step(Command.NONE);
         }
@@ -118,7 +118,7 @@ class SortieTest {
 
     @Test
     void groundScrollsAtTheLevel01Speed() {
-        var sortie = new Sortie(1);
+        var sortie = TestSpecs.sortie(1);
         for (int i = 0; i < SimStep.PER_SECOND; i++) {
             sortie.step(Command.NONE);
         }
@@ -140,7 +140,7 @@ class SortieTest {
     @Test
     void steppingDoesNotAllocate() {
         var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        var sortie = new Sortie(3);
+        var sortie = TestSpecs.sortie(3);
         for (int i = 0; i < 600; i++) {
             sortie.step(Pilot.commands(i));
         }
@@ -155,7 +155,7 @@ class SortieTest {
 
     /** Runs the scripted pilot; at step {@code changedStep} it presses left as well. */
     private static long run(long seed, int steps, int changedStep) {
-        var sortie = new Sortie(seed);
+        var sortie = TestSpecs.sortie(seed);
         for (int i = 0; i < steps; i++) {
             int commands = Pilot.commands(i);
             sortie.step(i == changedStep ? commands | Command.LEFT.bit() : commands);

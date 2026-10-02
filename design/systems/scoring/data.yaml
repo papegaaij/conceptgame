@@ -1,0 +1,27 @@
+# Scoring: rendered into README.md. Schema: ../../tech/architecture/README.md#data-file-schemas
+# The rules in the README's prose are hand-written; keep them in step with these numbers.
+kill_score: 10    # score per kill = bounty × kill_score × chain multiplier
+pickup_score: 10  # pickups and bonuses: score = pickup_score × their credit value
+chain:
+  window: 2       # s between kills to keep the chain going
+  step: 10        # every this many kills ...
+  increment: 0.5  # ... add this to the multiplier
+  max: 5
+rating:           # weights of the grade rating
+  kill_ratio: 0.4
+  armour_damage: 0.3
+  secrets: 0.15
+  max_chain: 0.15
+bonuses:
+  # points × (kill % when per_kill_percent) × (the level number or the act, by scale)
+  - {name: Destruction, points: 100, per_kill_percent: true, scale: level, notes: {condition: Kill ratio}}
+  - {name: Untouched, points: 5000, scale: act, notes: {condition: No armour damage}}
+  - {name: Explorer, points: 3000, scale: act, notes: {condition: All secrets / data cores found}}
+  - {name: Boss rush, points: 2000, scale: act, notes: {condition: Boss killed under par time}}
+grades:
+  # lowest rating for the grade (none for the last), credit bonus as a share of the level's credits
+  - {grade: S, rating: 90, credit_bonus: 0.3}
+  - {grade: A, rating: 75, credit_bonus: 0.2}
+  - {grade: B, rating: 55, credit_bonus: 0.1}
+  - {grade: C, rating: 35, credit_bonus: 0}
+  - {grade: D, credit_bonus: 0}

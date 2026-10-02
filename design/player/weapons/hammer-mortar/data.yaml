@@ -1,0 +1,22 @@
+# Hammer Mortar: rendered into README.md (schema: ../../../tech/architecture/README.md#weapon).
+name: Hammer Mortar
+slot: front
+traits: [anti-ground, area]
+price: 1500
+unlock: 7
+draw: [3, 5]
+sfx: mortar
+vfx: mortar
+hits: ground-only
+size: [10, 10]
+range: 200
+seek: true
+levels:
+  - {pattern: [[0, 0]], rate: 1.25, damage: 20, blast: 28}
+  - {pattern: [[0, 0]], rate: 1.25, damage: 30, blast: 30}
+  - {pattern: [[-16, 0], [16, 0]], rate: 1.25, damage: 21, blast: 32}
+  - {pattern: [[-16, 0], [16, 0]], rate: 1.25, damage: 28, blast: 34}
+  - {pattern: [[-20, 0], [0, 0], [20, 0]], rate: 1.25, damage: 24, blast: 36}
+overdrive: {pattern: [[-24, 0], [-8, 0], [8, 0], [24, 0]], rate: 1.25, damage: 24, blast: 38}
+notes:
+  layers_hit: '`ground` only — including **hardened** targets and surfaced naval units — never anything flying (`air`, `low-air`, `high-air`) ([layer rules](../../../enemies/README.md#layer-rules))'

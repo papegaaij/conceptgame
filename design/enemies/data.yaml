@@ -1,0 +1,43 @@
+# The shared balancing basis and vocabularies: rendered into README.md.
+# Schema: ../tech/architecture/README.md#data-file-schemas
+reference_dps:  # assumed single-target player DPS per level (medium)
+  1: 20
+  2: 26
+  3: 32
+  4: 38
+  5: 45
+  6: 52
+  7: 60
+  8: 60
+  9: 63
+  10: 66
+  11: 70
+  12: 73
+  13: 76
+  14: 80
+bullet_damage:  # damage to the player per hit (shield first, overflow to armour)
+  - {bullet: small, damage: 4, notes: {label: '`small` bullet', used_for: 'thorns, standard orbs, fan and ring bullets'}}
+  - {bullet: medium, damage: 6, notes: {label: '`medium` bullet', used_for: 'large orbs, bursts from heavies, acid spit'}}
+  - {bullet: heavy, damage: 10, notes: {label: '`heavy` hit', used_for: 'mortar direct hits, slam arms, rail shots'}}
+  - {bullet: laser, damage: 8, notes: {label: '`laser`', damage: per touch, used_for: '`laser-sweep` / `laser-line` (once per sweep or line)'}}
+contact_damage: {tiny: 6, small: 10, medium: 15, large: 20, huge: 25}  # by size tier; collisions split half/half
+formations:  # the formation vocabulary: name and description
+  V-wing: A V of 3–9 units led by the tip.
+  line abreast: A horizontal line moving down together.
+  column: A vertical line, one behind the other, on the same path.
+  snake: 'A column following a curving `path`, each unit delayed by a fixed interval. Readability: the head is on screen at least 1.5 s before it can reach the player, however long the snake.'
+  stream: A continuous trickle of single units from alternating edges.
+  pincer: Two groups entering from the left and right edges at the same time.
+  rear ambush: A group entering from the bottom edge (always warned; see readability).
+  circle: Units orbiting a point, then breaking off.
+  grid: A block of units that holds and shifts sideways (a nod to classic arcades).
+  wall: A full-width line with one or two gaps to fly through.
+  cross: Groups from all four edges converging.
+  carrier + escorts: A large unit (often `spawn`) with escorts in `orbit`.
+  turret nest: 3–6 ground turrets in a cluster with overlapping fire.
+  convoy: Ground or naval units in a column along a road, river or lane.
+  submerged ambush: '`sub` units that surface together around the player.'
+  swarm: A loose, randomised cloud with flocking behaviour.
+  whirl cluster: A burst of 5–8 tiny spinners released from one point, spiralling outward and ricocheting.
+notes:
+  contact: rammers and bodies on the player's layer

@@ -1,0 +1,59 @@
+# Engines and utility modules: rendered into README.md. Schema: ../../tech/architecture/README.md#data-file-schemas
+engines:
+  # speed px/s, draw MW, price cr (0 = starter), available
+  - {name: Mk I, speed: 270, draw: 0, price: 0, available: start}
+  - {name: Mk II, speed: 290, draw: 1, price: 1200, available: act 1}
+  - {name: Mk III, speed: 315, draw: 1, price: 3500, available: act 3}
+  - {name: Mk IV, speed: 345, draw: 2, price: 8000, available: act 5}
+utility:
+  # draw MW, one price per level (cr), available; notes.effect is the README's Effect cell
+  - name: Sensor suite
+    draw: 1
+    prices: [800, 2000, 4500]
+    available: start
+    design: idea
+    notes: {effect: Improves hangar intel detail (see below) and shows off-screen threat arrows at L2+}
+  - name: Pickup magnet
+    draw: 1
+    prices: [600, 1500, 3000]
+    available: act 1
+    design: idea
+    notes: {effect: Pickup radius 36 → 72 / 108 / 144 px}
+  - name: Salvage scanner
+    draw: 1
+    prices: [2500, 6000]
+    available: act 2
+    design: idea
+    notes: {effect: +10 / +20 % credits from drops; reveals hidden crates}
+  - name: Targeting computer
+    draw: 1
+    prices: [3000]
+    available: act 2
+    design: idea
+    notes:
+      effect: Homing turn rate +20 %, enemy HP bars, boss weak-point markers
+      available: (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores))
+  - name: Evasive thrusters
+    draw: 2
+    prices: [4000]
+    available: act 3
+    design: idea
+    notes: {effect: 'Double-tap direction: 72 px dash, 0.25 s invulnerable, 3 s cooldown'}
+  - name: Auto-repair nanites
+    draw: 3
+    prices: [6000, 12000]
+    available: act 4
+    design: idea
+    notes: {effect: 'Repairs 1 armour per 4 s, up to 50 % of max armour', levels: (2 s at L2)}
+  - name: Pressure hull
+    draw: 1
+    prices: [2000]
+    available: L22
+    design: idea
+    notes: {effect: 'Removes the underwater top-speed and shield-regen penalties (see [europa](../../world/europa/README.md#under-water-rules))'}
+  - name: Ascendancy IFF spoofer
+    draw: 2
+    prices: [5000]
+    available: act 6
+    design: idea
+    notes: {effect: Ascendancy turrets hesitate 0.5 s before firing, available: (story)}
