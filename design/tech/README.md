@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: n/a
 depends-on: [../art-direction, ../audio, ../ui/controls]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Tech stack
@@ -124,7 +124,8 @@ RTX 2070) and built and tested by CI on all three OSes:
 
 ### Spike results (2026-10-01)
 
-Branch `spike/libgdx`, `spike/RESULTS.md` there has the full numbers. CI run:
+The spike's code and `spike/RESULTS.md` with the full numbers are kept under the tag
+`spike-libgdx` (`git checkout spike-libgdx`); its branch was deleted after M3. CI run:
 [36916102595](https://github.com/papegaaij/conceptgame/actions/runs/36916102595).
 
 | # | Result |
@@ -169,3 +170,4 @@ non-thread-safe source pool; `Sound.play` allocates.
 - 2026-10-01: Spike approved by the user: **libGDX 1.14.2 on Java 21 with Gradle** is the tech
   stack (Java 25 once libGDX 1.14.3 is released). Second CI run green on all three OSes.
 - 2026-10-01: Licence **Apache-2.0** (user decision), matching the repository's `LICENSE`.
+- 2026-10-02: The `spike/libgdx` branch was deleted (user decision); the spike is kept as the signed tag `spike-libgdx` on its last commit.

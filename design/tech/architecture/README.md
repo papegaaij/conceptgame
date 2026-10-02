@@ -52,7 +52,7 @@ build only. Gradle enforces it: `sim` and `content` cannot see libGDX. Root pack
 | Benchmark scenes, `World`, `Autopilot`, procedural art | not carried over; the benchmark mode returns as a `--bench` option |
 | CI workflow, Construo setup | as is, extended with release builds |
 
-The spike branch stays as a reference and is never merged.
+The spike is never merged; it is kept for reference as the tag `spike-libgdx`.
 
 ### Simulation (`sim`)
 
@@ -444,3 +444,4 @@ Screenshot tests are left out until there is a need.
   (nothing shown or queued), at the latest `LevelData.OUTRO_SECONDS` (now 15 s, the longest outro,
   which the backdrop checks step through) after the level end; the sim's level result is
   unchanged.
+- 2026-10-02: The spike branch was replaced by the tag `spike-libgdx` (user decision).
