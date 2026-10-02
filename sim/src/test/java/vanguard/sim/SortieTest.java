@@ -113,30 +113,30 @@ class SortieTest {
     @Test
     void sideAndRearWavesShowAnEdgeWarningAhead() {
         var rear = new WaveSpec(
-                8,
+                10,
                 LINE_ABREAST,
                 SKITTER,
                 6,
                 REAR,
                 NONE,
                 Optional.empty(),
-                Optional.of(3.0),
+                Optional.of(4.0),
                 1,
                 Optional.empty(),
                 Optional.empty(),
                 List.of());
-        var sortie = sortie(level(20, List.of(wave(3, SNAKE, SKITTER, 6, SIDES, LEFT), rear)));
+        var sortie = sortie(level(20, List.of(wave(4, SNAKE, SKITTER, 6, SIDES, LEFT), rear)));
 
-        run(sortie, SimStep.ticks(1.5) - 1, Command.NONE);
+        run(sortie, SimStep.ticks(1) - 1, Command.NONE);
         assertEquals(0, sortie.edgeWarnings());
         sortie.step(Command.NONE);
-        assertTrue(WarningEdge.LEFT.in(sortie.edgeWarnings()));
+        assertTrue(WarningEdge.LEFT.in(sortie.edgeWarnings()), "at least 3 s ahead");
         assertFalse(WarningEdge.RIGHT.in(sortie.edgeWarnings()));
-        run(sortie, SimStep.ticks(1.5), Command.NONE);
+        run(sortie, SimStep.ticks(3), Command.NONE);
         assertEquals(0, sortie.edgeWarnings(), "gone when the wave enters");
 
         run(sortie, SimStep.ticks(2), Command.NONE);
-        assertTrue(WarningEdge.BOTTOM.in(sortie.edgeWarnings()), "3 s ahead of the rear wave");
+        assertTrue(WarningEdge.BOTTOM.in(sortie.edgeWarnings()), "an authored 4 s ahead of the rear wave");
     }
 
     @Test

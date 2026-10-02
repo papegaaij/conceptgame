@@ -32,10 +32,10 @@ class RadioQueueTest {
         assertEquals(RadioQueue.Change.OPENED, radio.update(0.01f));
         assertEquals(RadioQueue.Change.TYPED, radio.update(0.2f));
         assertEquals(List.of("Lancer"), radio.visibleLines());
-        run(3.6);
+        run(5.2);
         assertEquals("Rook", radio.current().orElseThrow().speaker());
         assertEquals(List.of("south."), radio.visibleLines(), "the second page");
-        assertEquals(RadioQueue.Change.CLOSED, run(4));
+        assertEquals(RadioQueue.Change.CLOSED, run(6));
         assertTrue(radio.current().isEmpty());
     }
 
@@ -45,7 +45,7 @@ class RadioQueueTest {
         radio.add("Varga", "Keep moving.", false);
         radio.update(0.01f);
 
-        assertEquals(RadioQueue.Change.CLOSED, run(3.1));
+        assertEquals(RadioQueue.Change.CLOSED, run(5.6));
         assertEquals(RadioQueue.Change.OPENED, run(1));
 
         assertEquals("Varga", radio.current().orElseThrow().speaker());

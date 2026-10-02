@@ -12,7 +12,7 @@ import java.util.List;
  */
 final class WaveSchedule {
     /** The shortest edge warning. */
-    static final double EDGE_WARNING_SECONDS = 1.5;
+    static final double EDGE_WARNING_SECONDS = 3;
 
     private final List<EnemySpec> kinds;
     private final Spawn[] spawns;

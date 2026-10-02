@@ -14,10 +14,13 @@ public final class RadioQueue {
     public static final int LINE_CHARS = 22;
     public static final int PAGE_LINES = 3;
     static final float CHARS_PER_SECOND = 30;
-    /** How long a typed page stays up before the next page, and the last one before the radio closes. */
-    static final float PAGE_SECONDS = 1.5f;
+    /**
+     * How long a typed page stays up before the next page, and the last one before the radio closes;
+     * long enough to read while flying (design/ui/hud, doubled after play-testing).
+     */
+    static final float PAGE_SECONDS = 3f;
 
-    static final float LAST_PAGE_SECONDS = 2.5f;
+    static final float LAST_PAGE_SECONDS = 5f;
     /** Silence between two messages. */
     static final float GAP_SECONDS = 0.4f;
 

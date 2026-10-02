@@ -307,7 +307,7 @@ Enemy bullets always travel on the player's plane, whatever layer fired them.
   `mortar` impact point marked ≥ 1 s ahead.
 - No enemy bullet spawns within 72 px of the player's ship.
 - Waves entering from the sides or rear get an **edge warning**: an arrow at the edge of the
-  play field ≥ 1.5 s ahead, often with a radio call.
+  play field ≥ 3 s ahead, often with a radio call.
 - A **bullet budget** caps the number of enemy bullets on screen (values per difficulty in
   [difficulty](../systems/difficulty/README.md)). Patterns degrade gracefully (fewer bullets per
   burst) when the budget is hit.
@@ -515,3 +515,4 @@ Concept [round 09](../concept-rounds/round-09/README.md) — generator `tools/co
   gun, bullet and formation planner to carry them, which waits for the next tuning pass.
 - 2026-10-02: The Needler's thorn uses the standard orb look; the yellow needle stays reserved for
   the fast class (user decision).
+- 2026-10-02: Edge warnings start at least 3 s ahead (was 1.5 s; user decision after playing Level 01, the warnings were easy to miss).
