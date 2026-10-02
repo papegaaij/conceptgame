@@ -12,7 +12,6 @@ Outputs (assets/sprites/; glows additive, premultiplied on black; physical round
                                  clockwise from up, each rendered with the key light fixed
   bomb-rack-shot.png             the bomb, nose up; drawn shrinking as it falls
   hammer-mortar-shot.png         the shell, nose up; drawn growing and shrinking on its arc
-  mortar-reticle.png             the faint landing reticle (additive)
   ballistic-muzzle_0..2.png      muzzle flashes of the ballistic and launcher kinds (the energy kind
   launcher-muzzle_0..2.png       is pulse-muzzle)
   ballistic-impact_0..3.png      impacts of the ballistic and explosive kinds (energy: pulse-impact),
@@ -88,15 +87,6 @@ def missile(heading):
     return out
 
 
-def reticle():
-    cv = v8.Canvas(17, 17)
-    d = cv.dist(8, 8)
-    ring = v8.gauss(np.abs(d - 6), 0.6)
-    ticks = (np.minimum(np.abs(cv.x - 8), np.abs(cv.y - 8)) < 0.6) & (d > 2.5) & (d < 4.5)
-    cv.add(v8.PS[2], ring * 0.55 + ticks * 0.5)  # player cyan: orange and yellow are the enemy bullets
-    return cv.image()
-
-
 def build():
     for slug, draw in STRAIGHT.items():
         degs = angles(slug)
@@ -109,7 +99,6 @@ def build():
     artkit.write_frames("micro-missile-pod-shot", missiles, SOURCE)
     artkit.write_frames("bomb-rack-shot", [v8._obj(v8.bomb_model, 12, 2.0)], SOURCE, single=True)
     artkit.write_frames("hammer-mortar-shot", [v8._obj(v8.shell_model, 10, 1.7)], SOURCE, single=True)
-    artkit.write_frames("mortar-reticle", [artkit.additive(reticle())], SOURCE, single=True)
     for kind in ("ballistic", "launcher"):
         frames = [artkit.additive(f) if kind == "ballistic" else f for f in v8.muzzle_frames(kind)]
         artkit.write_frames(f"{kind}-muzzle", artkit.quantize_set(frames, COLOURS), SOURCE)
@@ -141,7 +130,6 @@ def review():
         ("LANCE LASER L1-L5 + OVERDRIVE", indexed("lance-laser-shot"), 4, True),
         ("MICRO-MISSILE, 32 HEADINGS", artkit.load_frames("micro-missile-pod-shot"), 3, False),
         ("BOMB, SHELL", artkit.load_frames("bomb-rack-shot") + artkit.load_frames("hammer-mortar-shot"), 6, False),
-        ("MORTAR LANDING RETICLE", artkit.load_frames("mortar-reticle"), 6, True),
         ("BALLISTIC MUZZLE, IMPACT", artkit.load_frames("ballistic-muzzle") + artkit.load_frames("ballistic-impact"),
          6, True),
         ("LAUNCHER MUZZLE", artkit.load_frames("launcher-muzzle"), 6, False),

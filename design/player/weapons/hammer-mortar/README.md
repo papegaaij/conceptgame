@@ -51,7 +51,6 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
   container, never a secret's beacon) whose centre is within 48 px of its landing point, chosen at
   release. The landing point is fixed on the ground at release and scrolls down with it.
 - The burst damages every ground unit within the blast radius once (hardened included; the ×2 anti-ground bonus is already in the damage). It never hits anything flying.
-- A faint landing reticle shows where the next shell lands.
 
 ## Implementation
 
@@ -69,3 +68,4 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - 2026-10-02: Numbers moved into [data.yaml](data.yaml) (M2 data files); the property and per-level tables are rendered from it by `tools/sync_tables.py`.
 - 2026-10-02: M4 part A (user decision): the auto-aim snaps to destructible ground targets, loot containers included, never to a secret's beacon (the blast still hits a beacon in range); the landing point is fixed on the ground at release. `flight` and `snap` added to the data.
 - 2026-10-02: M4 part A: flies in the simulation (`vanguard.sim.WeaponSpec` built by `SimSpecs.weapon`), with its effects from `tools/art/weapon_fx.py` and its family's sound; the effects are proposed as final in [concept round 14](../../../concept-rounds/round-14/README.md).
+- 2026-10-02: No landing reticle (user decision, round 14): a shell lands on the ground spot that was 200 px ahead when it was fired, which has scrolled down by the time it lands, so crosshairs drawn ahead of the ship read as "the shells fall short"; the auto-aim snap does the aiming instead.

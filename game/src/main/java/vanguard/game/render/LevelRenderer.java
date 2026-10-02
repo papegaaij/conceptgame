@@ -64,7 +64,6 @@ public final class LevelRenderer {
     private final Sprites sprites;
     private final EnemyLooks[] looks;
     private final WeaponLooks weapons;
-    private final AtlasRegion reticle;
     private final Backdrop backdrop;
     private final FlashShader flash;
     private final BitmapFont font;
@@ -82,7 +81,6 @@ public final class LevelRenderer {
         this.sprites = sprites;
         this.looks = looks;
         this.weapons = weapons;
-        this.reticle = sprites.region("mortar-reticle");
         this.backdrop = new Backdrop(sprites, level, levelKey);
         this.flash = flash;
         this.font = font;
@@ -276,10 +274,7 @@ public final class LevelRenderer {
         }
     }
 
-    /**
-     * The muzzle flashes of the mounts that just fired, at each muzzle of the pattern they fire, and
-     * the mortar's faint landing reticle where its next shells land (design/player/weapons).
-     */
+    /** The muzzle flashes of the mounts that just fired, at each muzzle of the pattern they fire. */
     private void drawMuzzles(SpriteBatch batch, Sortie sortie, float alpha, boolean glowing) {
         Ship ship = sortie.ship();
         double shipX = ship.renderX(alpha);
@@ -290,12 +285,6 @@ public final class LevelRenderer {
             WeaponSpec weapon = overdrive
                     ? sortie.armament().mount(m).overdrive()
                     : sortie.armament().mount(m).weapon();
-            if (glowing && weapon.delivery() == WeaponSpec.Delivery.LOBBED) {
-                for (int i = 0; i < weapon.muzzles().size(); i++) {
-                    WeaponSpec.Muzzle muzzle = weapon.muzzles().get(i);
-                    drawCentred(batch, reticle, shipX + muzzle.dx(), shipY + muzzle.dy() + weapon.range());
-                }
-            }
             int frame = sortie.ticksSinceShot(m) / MUZZLE_FRAME_TICKS;
             if (look.glowingMuzzle != glowing || frame >= look.muzzle.size) {
                 continue;

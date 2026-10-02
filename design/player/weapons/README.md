@@ -131,9 +131,9 @@ Concept [round 14](../../concept-rounds/round-14/README.md) — the Act 1 arsena
 
 | File | What | Status |
 |---|---|---|
-| [concept/weapons-final-r14-a.png](concept/weapons-final-r14-a.png) | Final effects: the Scatter Vulcan, Autocannon and Side Splitter shots at every angle their patterns use, the lance per level, the micro-missile at 32 headings, the bomb and the shell, the mortar's landing reticle, the ballistic and launcher muzzle flashes, the ballistic and explosive impacts (sheet) | proposed |
+| [concept/weapons-final-r14-a.png](concept/weapons-final-r14-a.png) | Final effects: the Scatter Vulcan, Autocannon and Side Splitter shots at every angle their patterns use, the lance per level, the micro-missile at 32 headings, the bomb and the shell, the ballistic and launcher muzzle flashes, the ballistic and explosive impacts (sheet) | proposed |
 | [concept/weapons-final-r14-a.gif](concept/weapons-final-r14-a.gif) | The Stormhawk firing the fan, the pods and the side guns, a missile turning through its headings (motion) | proposed |
-| [concept/weapons-capture-final-r14-a.png](concept/weapons-capture-final-r14-a.png) | Game captures of Level 01 with `--loadout`: Vulcan, Side Splitter and bombs; the Lance and two missile pods; the Mortar with its reticles, bombs and the Autocannon | proposed |
+| [concept/weapons-capture-final-r14-a.png](concept/weapons-capture-final-r14-a.png) | Game captures of Level 01 with `--loadout`: Vulcan, Side Splitter and bombs; the Lance and two missile pods; the Mortar, bombs and the Autocannon | proposed |
 
 ## Implementation
 
