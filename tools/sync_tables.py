@@ -136,6 +136,8 @@ def weapon_properties(d):
         range_text = "drops straight down"
     elif rng is None:
         range_text = f"{num(w['lifetime'])} s lifetime"
+    elif "lifetime" in w:
+        range_text = f"{num(w['lifetime'])} s lifetime, seeking within {num(rng)} px"
     else:
         range_text = f"{num(rng)} px"
     costs = " / ".join(grouped(c) for c in upgrade_costs(w))

@@ -12,6 +12,7 @@ size: [8, 12]
 range: drop
 pod: true
 seek: true
+fall: 0.5  # s from release to impact on the ground under the pod
 levels:
   - {pattern: [[0, 0]], rate: 1.2, damage: 10, blast: 20}
   - {pattern: [[0, 0]], rate: 1.4, damage: 11.5, blast: 20}

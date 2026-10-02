@@ -16,8 +16,14 @@ import java.util.Optional;
  * @param hits which targets it can hit: {@code standard}, {@code homing}, {@code ground-only}, …
  * @param speed the projectile speed in px/s; none for lobbed and dropped projectiles
  * @param size the projectile's hit box
- * @param range how far the projectiles fly; none for mines, which have a lifetime instead
+ * @param range how far the projectiles fly; none for mines, which have a lifetime instead; a
+ *     homing weapon's seek radius
  * @param lifetime how long a projectile lives, in seconds
+ * @param converge degrees a pod's shots turn in towards the ship's centre line
+ * @param fall seconds a dropped bomb falls to the ground
+ * @param flight seconds a lobbed shell flies to its landing point
+ * @param snap how far from its landing point a lobbed shell finds a ground target, px
+ * @param cone the angle ahead in which a homing shot picks its target, degrees
  * @param mirrored fires the pattern to the left too (numbers per side)
  * @param pod a wing pod (numbers per pod)
  * @param seek homing, lobbed or dropped: every projectile counts as a single-target hit
@@ -37,6 +43,11 @@ public record WeaponData(
         Size size,
         Optional<Range> range,
         Optional<Double> lifetime,
+        Optional<Double> converge,
+        Optional<Double> fall,
+        Optional<Double> flight,
+        Optional<Double> snap,
+        Optional<Double> cone,
         Optional<Boolean> mirrored,
         Optional<Boolean> pod,
         Optional<Boolean> seek,

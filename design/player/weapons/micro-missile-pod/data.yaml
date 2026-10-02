@@ -10,7 +10,9 @@ vfx: micromissile
 hits: homing
 speed: 500
 size: [4, 10]
-range: 350
+range: 350     # homing: the seek radius
+lifetime: 1.2  # s of flight
+cone: 140      # degrees ahead in which a missile picks its target
 pod: true
 seek: true
 levels:

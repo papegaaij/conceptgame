@@ -11,6 +11,8 @@ hits: ground-only
 size: [10, 10]
 range: 200
 seek: true
+flight: 0.6  # s on the arc to the landing point, range px ahead of the muzzle
+snap: 48     # px: a shell lands on the nearest destructible ground target this close to its landing point
 levels:
   - {pattern: [[0, 0]], rate: 1.25, damage: 20, blast: 28}
   - {pattern: [[0, 0]], rate: 1.25, damage: 30, blast: 30}

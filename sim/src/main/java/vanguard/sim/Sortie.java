@@ -1,14 +1,14 @@
 package vanguard.sim;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * A level in play, advanced in fixed 60 Hz steps by {@link #step(int)}: the launch, the scroll
- * through the sections, the waves of the {@link LevelScript}, the ground objects, the pickups,
- * the radio cues, the objectives and the tally. All entities live in pools allocated up front and
- * the waves are planned when the sortie is created, so stepping does not allocate, and the same
- * seed and commands give the same {@link #stateHash()} on every platform.
+ * through the sections, the ship and its {@link PlayerFire}, the {@link EnemyForce} of the
+ * {@link LevelScript}, the ground objects, the pickups, the {@link Radio} cues, the
+ * {@link Objectives} and the tally. All entities live in pools allocated up front and the waves
+ * are planned when the sortie is created, so stepping does not allocate, and the same seed and
+ * commands give the same {@link #stateHash()} on every platform.
  *
  * <p>When armour reaches zero the ship explodes and the level runs on without it until the
  * presentation, after the mission failed screen, restarts it with {@link #retry(double)} from the
@@ -17,30 +17,22 @@ import java.util.List;
  * until the presentation moves to the debrief.
  */
 public final class Sortie {
-    private static final int SHOT_CAPACITY = 64;
-    private static final int ENEMY_CAPACITY = 128;
-    private static final int BULLET_CAPACITY = 256;
     private static final int GROUND_CAPACITY = 32;
     private static final int PICKUP_CAPACITY = 64;
     private static final int EVENT_CAPACITY = 256;
-    /** No enemy bullet spawns this close to the ship (design/enemies, bullet readability rules). */
-    private static final double NO_FIRE_DISTANCE = 72;
 
     private final SplitMix64 rng;
     private final Ship ship;
     private final LevelScript script;
     private final Rules rules;
-    private final WaveSchedule waves;
-    private final Pool<Shot> shots = new Pool<>(SHOT_CAPACITY, Shot::new, Shot[]::new);
-    private final Pool<Enemy> enemies = new Pool<>(ENEMY_CAPACITY, Enemy::new, Enemy[]::new);
-    private final Pool<EnemyBullet> bullets = new Pool<>(BULLET_CAPACITY, EnemyBullet::new, EnemyBullet[]::new);
+    private final PlayerFire fire;
+    private final EnemyForce force;
     private final Pool<GroundObject> ground = new Pool<>(GROUND_CAPACITY, GroundObject::new, GroundObject[]::new);
     private final Pool<Pickup> pickups = new Pool<>(PICKUP_CAPACITY, Pickup::new, Pickup[]::new);
     private final SimEvents events = new SimEvents(EVENT_CAPACITY);
     private final Tally tally;
-    private final int[] killsByKind;
-    private final boolean[] cuesFired;
-    private final int requiredKills;
+    private final Objectives objectives;
+    private final Radio radio;
     private final int launchTicks;
     private final int endTicks;
     private final int pickupTicks;
@@ -53,15 +45,13 @@ public final class Sortie {
 
     private double groundScroll;
     private int nextGroundObject;
-    private int secretsFound;
     private int edgeWarnings;
-    private boolean secondaryMet;
     private boolean complete;
 
     /** @param armour the ship's armour at the level start (design/systems/retry: not full, unless it was full) */
     public Sortie(long seed, Loadout loadout, LevelScript script, Rules rules, double armour) {
-        if (rules.bulletBudget() > BULLET_CAPACITY) {
-            throw new IllegalArgumentException("the bullet budget exceeds the pool of " + BULLET_CAPACITY);
+        if (rules.bulletBudget() > EnemyForce.BULLET_CAPACITY) {
+            throw new IllegalArgumentException("the bullet budget exceeds the pool of " + EnemyForce.BULLET_CAPACITY);
         }
         rng = new SplitMix64(seed);
         ship = new Ship(
@@ -70,11 +60,26 @@ public final class Sortie {
                 new Defences(loadout.shield(), loadout.plating(), loadout.ship().mercySeconds()));
         this.script = script;
         this.rules = rules;
-        waves = new WaveSchedule(script.waves(), rng);
+        fire = new PlayerFire(ship, events, new PlayerFire.Hits() {
+            @Override
+            public void enemyDestroyed(int index) {
+                destroy(index);
+            }
+
+            @Override
+            public void groundDestroyed(int index) {
+                demolish(index);
+            }
+
+            @Override
+            public void triggerReleased(int index) {
+                revealSecret(ground.get(index));
+            }
+        });
+        force = new EnemyForce(script.waves(), rng, rules, events);
         tally = new Tally(rules.scoring());
-        killsByKind = new int[waves.kinds().size()];
-        cuesFired = new boolean[script.radio().size()];
-        requiredKills = (int) Math.ceil(script.secondary().killRatio() * waves.units() - 1e-9);
+        objectives = new Objectives(script.secondary(), force.kinds().size(), force.units());
+        radio = new Radio(script.radio(), events, ship);
         launchTicks = SimStep.ticks(script.launchSeconds());
         endTicks = SimStep.ticks(script.seconds());
         pickupTicks = SimStep.ticks(rules.pickups().seconds());
@@ -96,24 +101,22 @@ public final class Sortie {
             ship.launch((double) levelTick / launchTicks);
         } else if (flying()) {
             ship.fly(commands);
-            if (ship.fireGun(commands)) {
-                fire();
-            }
+            fire.fire(commands);
         }
         tally.step();
         if (!complete) {
-            spawnWaves();
+            force.spawn(levelTick);
             placeGroundObjects();
-            cueByTime();
+            radio.byTime(levelTick);
         }
-        edgeWarnings = complete ? 0 : waves.warnings(levelTick);
-        moveShots();
-        moveEnemies();
-        moveBullets();
+        edgeWarnings = complete ? 0 : force.warnings(levelTick);
+        fire.move();
+        force.move(ship, flying() && !complete);
+        force.moveBullets();
         scrollGround(scrollStep);
         driftPickups();
-        hitEnemies();
-        hitGround();
+        fire.hitEnemies(force.enemies());
+        fire.hitGround(ground);
         if (flying() && !complete && !rules.invulnerableShip()) {
             hitShip();
             ramShip();
@@ -147,20 +150,16 @@ public final class Sortie {
     }
 
     private void restart() {
-        clear(shots);
-        clear(enemies);
-        clear(bullets);
-        clear(ground);
-        clear(pickups);
+        fire.reset();
+        force.reset();
+        Pools.clear(ground);
+        Pools.clear(pickups);
         tally.reset();
-        Arrays.fill(killsByKind, 0);
-        Arrays.fill(cuesFired, false);
-        waves.reset();
+        objectives.reset();
+        radio.reset();
         levelTick = 0;
         groundScroll = 0;
         nextGroundObject = 0;
-        secretsFound = 0;
-        secondaryMet = false;
         complete = false;
         wrecked = false;
         attempt++;
@@ -169,36 +168,8 @@ public final class Sortie {
         events.add(SimEvents.Type.SORTIE_RESTARTED, ship.x(), ship.y());
     }
 
-    private static void clear(Pool<?> pool) {
-        while (pool.size() > 0) {
-            pool.free(pool.size() - 1);
-        }
-    }
-
     private double scrollSpeed() {
         return script.sections().get(section() - 1).speed();
-    }
-
-    private void fire() {
-        double muzzleY = ship.y() + ship.spec().muzzleOffsetY();
-        List<Double> pattern = ship.gun().pattern();
-        // Indexed: an iterator would allocate on every volley.
-        for (int i = 0; i < pattern.size(); i++) {
-            Shot shot = shots.obtain();
-            if (shot != null) {
-                shot.fire(ship.x() + pattern.get(i), muzzleY, ship.gun().damage());
-            }
-        }
-        events.add(SimEvents.Type.SHOT_FIRED, ship.x(), muzzleY);
-    }
-
-    private void spawnWaves() {
-        for (Spawn spawn = waves.due(levelTick); spawn != null; spawn = waves.due(levelTick)) {
-            Enemy enemy = enemies.obtain();
-            if (enemy != null) {
-                enemy.spawn(spawn);
-            }
-        }
     }
 
     private void placeGroundObjects() {
@@ -210,101 +181,6 @@ public final class Sortie {
                 object.place(objects.get(nextGroundObject));
             }
             nextGroundObject++;
-        }
-    }
-
-    private void cueByTime() {
-        List<LevelScript.RadioCue> cues = script.radio();
-        for (int i = 0; i < cues.size(); i++) {
-            LevelScript.RadioCue cue = cues.get(i);
-            if (!cuesFired[i] && cue.trigger() == LevelScript.CueTrigger.TIME && SimStep.ticks(cue.t()) <= levelTick) {
-                fireCue(i);
-            }
-        }
-    }
-
-    /** Starts the cues of an event; {@code subject} is the enemy slug or secret name it is about. */
-    private void cue(LevelScript.CueTrigger trigger, String subject) {
-        List<LevelScript.RadioCue> cues = script.radio();
-        for (int i = 0; i < cues.size(); i++) {
-            LevelScript.RadioCue cue = cues.get(i);
-            if (!cuesFired[i] && cue.trigger() == trigger && cue.subject().equals(subject)) {
-                fireCue(i);
-            }
-        }
-    }
-
-    private void fireCue(int index) {
-        cuesFired[index] = true;
-        events.add(SimEvents.Type.RADIO, ship.x(), ship.y(), index);
-    }
-
-    private void moveShots() {
-        double step = ship.gun().boltSpeed() * SimStep.SECONDS;
-        Hitbox bolt = ship.gun().bolt();
-        for (int i = shots.size() - 1; i >= 0; i--) {
-            Shot shot = shots.get(i);
-            shot.move(step);
-            if (!PlayField.overlaps(shot.x(), shot.y(), bolt)) {
-                shots.free(i);
-            }
-        }
-    }
-
-    private void moveEnemies() {
-        for (int i = enemies.size() - 1; i >= 0; i--) {
-            Enemy enemy = enemies.get(i);
-            if (!enemy.move(ship.x(), ship.y())) {
-                enemies.free(i);
-            } else if (enemy.trigger() && flying() && !complete) {
-                fireAt(enemy);
-            }
-        }
-    }
-
-    /**
-     * An aimed shot at the ship, or where it is going for a unit that leads the target, turned by a
-     * random angle within the difficulty's spread.
-     */
-    private void fireAt(Enemy enemy) {
-        EnemyGun gun = enemy.spec().gun().orElseThrow();
-        double dx = ship.x() - enemy.x();
-        double dy = ship.y() - enemy.y();
-        double distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < NO_FIRE_DISTANCE || bullets.size() >= rules.bulletBudget()) {
-            return;
-        }
-        if (enemy.leadsTarget()) {
-            double flight = distance / gun.bulletSpeed();
-            dx += ship.vx() * flight;
-            dy += ship.vy() * flight;
-            distance = Math.sqrt(dx * dx + dy * dy);
-        }
-        if (rules.aimedSpread() > 0) {
-            double angle = rng.range(-rules.aimedSpread(), rules.aimedSpread());
-            double cos = Trig.cos(angle);
-            double sin = Trig.sin(angle);
-            double turned = dx * cos - dy * sin;
-            dy = dx * sin + dy * cos;
-            dx = turned;
-        }
-        EnemyBullet bullet = bullets.obtain();
-        bullet.fire(
-                enemy.x(),
-                enemy.y(),
-                dx / distance * gun.bulletSpeed(),
-                dy / distance * gun.bulletSpeed(),
-                gun.damage());
-        events.add(SimEvents.Type.ENEMY_FIRED, enemy.x(), enemy.y());
-    }
-
-    private void moveBullets() {
-        for (int i = bullets.size() - 1; i >= 0; i--) {
-            EnemyBullet bullet = bullets.get(i);
-            bullet.move();
-            if (!PlayField.overlaps(bullet.x(), bullet.y(), EnemyGun.BULLET)) {
-                bullets.free(i);
-            }
         }
     }
 
@@ -325,51 +201,6 @@ public final class Sortie {
         }
     }
 
-    private void hitEnemies() {
-        Hitbox bolt = ship.gun().bolt();
-        for (int i = shots.size() - 1; i >= 0; i--) {
-            Shot shot = shots.get(i);
-            for (int j = enemies.size() - 1; j >= 0; j--) {
-                Enemy enemy = enemies.get(j);
-                EnemySpec spec = enemy.spec();
-                if (spec.layer().hitByStandardShots()
-                        && PlayField.overlaps(enemy.x(), enemy.y(), spec.hitbox())
-                        && bolt.overlaps(shot.x(), shot.y(), spec.hitbox(), enemy.x(), enemy.y())) {
-                    events.add(SimEvents.Type.ENEMY_HIT, shot.x(), shot.y());
-                    if (enemy.damage(shot.damage())) {
-                        destroy(j);
-                    }
-                    shots.free(i);
-                    break;
-                }
-            }
-        }
-    }
-
-    /** Shots that missed the air hit the ground layer below (design/enemies, layer rules). */
-    private void hitGround() {
-        Hitbox bolt = ship.gun().bolt();
-        for (int i = shots.size() - 1; i >= 0; i--) {
-            Shot shot = shots.get(i);
-            for (int j = ground.size() - 1; j >= 0; j--) {
-                GroundObject object = ground.get(j);
-                LevelScript.GroundObjectSpec spec = object.spec();
-                if (object.hittable() && bolt.overlaps(shot.x(), shot.y(), spec.size(), object.x(), object.y())) {
-                    events.add(SimEvents.Type.GROUND_HIT, shot.x(), shot.y(), spec.trigger() ? 1 : 0);
-                    shots.free(i);
-                    if (spec.trigger()) {
-                        if (object.countHit()) {
-                            revealSecret(object);
-                        }
-                    } else if (object.damage(shot.damage())) {
-                        demolish(j);
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
     private void demolish(int index) {
         GroundObject object = ground.get(index);
         LevelScript.GroundObjectSpec spec = object.spec();
@@ -383,22 +214,23 @@ public final class Sortie {
     }
 
     private void revealSecret(GroundObject trigger) {
-        secretsFound++;
+        objectives.secretFound();
         LevelScript.GroundObjectSpec spec = trigger.spec();
         events.add(SimEvents.Type.SECRET_FOUND, trigger.x(), trigger.y());
         Pickup crate = pickups.obtain();
         if (crate != null) {
             crate.drop(PickupType.HIDDEN_CRATE, spec.crateCredits(), trigger.x(), trigger.y(), pickupTicks);
         }
-        cue(LevelScript.CueTrigger.SECRET, spec.secret());
+        radio.cue(LevelScript.CueTrigger.SECRET, spec.secret());
     }
 
     private void destroy(int index) {
+        Pool<Enemy> enemies = force.enemies();
         Enemy enemy = enemies.get(index);
         EnemySpec spec = enemy.spec();
         events.add(SimEvents.Type.ENEMY_DESTROYED, enemy.x(), enemy.y(), enemy.kind());
         tally.kill(spec.bounty());
-        int kills = ++killsByKind[enemy.kind()];
+        int kills = objectives.kill(enemy.kind());
         if (enemy.carried().isPresent()) {
             drop(enemy.carried().get(), enemy.x(), enemy.y());
         }
@@ -407,15 +239,14 @@ public final class Sortie {
         }
         enemies.free(index);
         if (kills == 1) {
-            cue(LevelScript.CueTrigger.FIRST_KILL, spec.slug());
+            radio.cue(LevelScript.CueTrigger.FIRST_KILL, spec.slug());
         }
-        if (!secondaryMet && tally.kills() >= requiredKills) {
-            secondaryMet = true;
+        if (objectives.meetsSecondary(tally.kills())) {
             int credits = script.secondary().credits();
             tally.earn(CreditSource.OBJECTIVES, credits);
             tally.scoreValue(credits);
             events.add(SimEvents.Type.OBJECTIVE_MET, ship.x(), ship.y());
-            cue(LevelScript.CueTrigger.SECONDARY_OBJECTIVE, "");
+            radio.cue(LevelScript.CueTrigger.SECONDARY_OBJECTIVE, "");
         }
     }
 
@@ -428,6 +259,7 @@ public final class Sortie {
     }
 
     private void hitShip() {
+        Pool<EnemyBullet> bullets = force.bullets();
         Hull hull = ship.spec().hull();
         for (int i = bullets.size() - 1; i >= 0; i--) {
             EnemyBullet bullet = bullets.get(i);
@@ -443,6 +275,7 @@ public final class Sortie {
 
     /** A rammer on the player's layer deals its contact damage; a small one is destroyed by the impact. */
     private void ramShip() {
+        Pool<Enemy> enemies = force.enemies();
         Hull hull = ship.spec().hull();
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
@@ -513,7 +346,7 @@ public final class Sortie {
     private void completeLevel() {
         complete = true;
         events.add(SimEvents.Type.LEVEL_COMPLETE, ship.x(), ship.y());
-        cue(LevelScript.CueTrigger.LEVEL_END, "");
+        radio.cue(LevelScript.CueTrigger.LEVEL_END, "");
     }
 
     /** A hash over the complete state; equal hashes mean equal replays. */
@@ -525,28 +358,19 @@ public final class Sortie {
                 .add(wrecked ? 1 : 0)
                 .add(groundScroll)
                 .add(nextGroundObject)
-                .add(secretsFound)
-                .add(secondaryMet ? 1 : 0)
+                .add(objectives.secretsFound())
+                .add(objectives.secondaryMet() ? 1 : 0)
                 .add(complete ? 1 : 0)
                 .add(rng.state());
         ship.addTo(hash);
         tally.addTo(hash);
-        for (int kills : killsByKind) {
-            hash.add(kills);
-        }
-        addAll(hash, shots);
-        addAll(hash, enemies);
-        addAll(hash, bullets);
-        addAll(hash, ground);
-        addAll(hash, pickups);
+        objectives.addKillsTo(hash);
+        Pools.addAll(hash, fire.shots());
+        Pools.addAll(hash, force.enemies());
+        Pools.addAll(hash, force.bullets());
+        Pools.addAll(hash, ground);
+        Pools.addAll(hash, pickups);
         return hash.value();
-    }
-
-    private static void addAll(StateHash hash, Pool<? extends Hashed> pool) {
-        hash.add(pool.size());
-        for (int i = 0; i < pool.size(); i++) {
-            pool.get(i).addTo(hash);
-        }
     }
 
     /** The totals for the debrief; meaningful once the level is {@link #complete()}. */
@@ -556,11 +380,11 @@ public final class Sortie {
                 rules.scoring(),
                 script,
                 tally,
-                waves.units(),
+                force.units(),
                 defences.armourLost(),
                 defences.maxArmour(),
-                secretsFound,
-                secondaryMet);
+                objectives.secretsFound(),
+                objectives.secondaryMet());
     }
 
     public LevelScript script() {
@@ -569,7 +393,7 @@ public final class Sortie {
 
     /** The distinct enemies of the level; {@link Enemy#kind()} and enemy events index this list. */
     public List<EnemySpec> enemyKinds() {
-        return waves.kinds();
+        return force.kinds();
     }
 
     public Ship ship() {
@@ -577,27 +401,27 @@ public final class Sortie {
     }
 
     public int shotCount() {
-        return shots.size();
+        return fire.shots().size();
     }
 
     public Shot shot(int index) {
-        return shots.get(index);
+        return fire.shots().get(index);
     }
 
     public int enemyCount() {
-        return enemies.size();
+        return force.enemies().size();
     }
 
     public Enemy enemy(int index) {
-        return enemies.get(index);
+        return force.enemies().get(index);
     }
 
     public int bulletCount() {
-        return bullets.size();
+        return force.bullets().size();
     }
 
     public EnemyBullet bullet(int index) {
-        return bullets.get(index);
+        return force.bullets().get(index);
     }
 
     public int groundObjectCount() {
@@ -706,15 +530,15 @@ public final class Sortie {
 
     /** Every enemy the level sends. */
     public int enemyTotal() {
-        return waves.units();
+        return force.units();
     }
 
     /** Kills needed for the secondary objective. */
     public int requiredKills() {
-        return requiredKills;
+        return objectives.requiredKills();
     }
 
     public boolean secondaryMet() {
-        return secondaryMet;
+        return objectives.secondaryMet();
     }
 }

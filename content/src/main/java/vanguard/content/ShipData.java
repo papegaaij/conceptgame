@@ -40,9 +40,11 @@ public record ShipData(
         }
     }
 
-    public record Mounts(Point front, List<Point> wings, Point rear, List<Point> engines) {
+    /** Mount points in px from the sprite's top left; {@code roots} are the wing roots, the side guns' muzzles. */
+    public record Mounts(Point front, List<Point> wings, List<Point> roots, Point rear, List<Point> engines) {
         public Mounts {
             Check.that(wings.size() == 2, "wings: two mount points, left and right");
+            Check.that(roots.size() == 2, "roots: two wing roots, left and right");
         }
     }
 }

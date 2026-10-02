@@ -60,7 +60,7 @@ top-down camera, light from the top left.
 | Explosion (death) | 96×96 | 12 frames |
 
 Mount points on the 48×48 sprite (from the top left): front muzzle (24, 3), wing mounts
-(8, 27) and (40, 27), rear muzzle (24, 45), engines (18, 44) and (30, 44).
+(8, 27) and (40, 27), wing roots (18, 27) and (30, 27) for the side guns, rear muzzle (24, 45), engines (18, 44) and (30, 44).
 
 ### Feel
 

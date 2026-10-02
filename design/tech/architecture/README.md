@@ -126,7 +126,10 @@ first entry of a part's model list is the starter (price 0, `start`).
 - **Weapon** (`player/weapons/<slug>/data.yaml`): `name`, `slot` (`front`/`rear`/`wing`),
   `traits`, `price` (0 = starter), `upgrade_base` (default: the price), `unlock` (level),
   `draw` (`[L1, L5]`), `sfx`, `vfx`, `hits`, `speed` (px/s or `[start, end]`; none when lobbed
-  or dropped), `size`, `range` (px, `screen` or `drop`) or `lifetime`, flags `mirrored` (fires
+  or dropped), `size`, `range` (px, `screen` or `drop`) or `lifetime` (a homing weapon has both:
+  its `range` is the seek radius), the behaviour numbers `converge` (° a pod turns in towards the
+  centre line), `fall` (s a dropped bomb falls), `flight` (s a lobbed shell flies), `snap` (px a
+  shell's auto-aim reaches), `cone` (° ahead a homing shot picks its target in), flags `mirrored` (fires
   the same pattern to the left too; numbers per side), `pod` (numbers per pod) and `seek`
   (homing, lobbed or dropped: every projectile counts as a hit on a single target), then
   `levels` (five) and `overdrive`, each with `pattern`, `rate` (volleys/s), `damage` per
@@ -198,7 +201,7 @@ first entry of a part's model list is the starter (price 0, `start`).
   about 2 px per frame, on its own).
 - **Ship and core parts**: ship (`acceleration_seconds`, `stop_seconds`, `precision_factor`,
   `size`, `edge_gap`, `hull` (hit boxes `[x, y, width, height]` from the sprite's top left), `collection_radius`, `mercy_seconds`, `bank_change_steps`,
-  `mounts`; its speed is the fitted engine's); shields (`break_seconds`, `models` with
+  `mounts`: `front`, `wings`, `roots` (the side guns' muzzles), `rear`, `engines`; its speed is the fitted engine's); shields (`break_seconds`, `models` with
   `capacity`, `regen`, `delay`, `draw`); armour (`plating` with `max`); generator
   (`spare_power`, `models` with `output`); systems (`engines` with `speed`, `draw`; `utility`
   with `draw`, one price per level, `design` status); specials (`charge_price`, `max_charges`,
