@@ -116,6 +116,66 @@ class ContentLoaderTest {
     }
 
     @Test
+    void anUnknownSetPieceIsRejected() {
+        assertProblem(
+                LEVEL_01,
+                text -> text.replace("{piece: moon,", "{piece: mooon,"),
+                "design/" + LEVEL_01 + ": backdrop.placed[5].piece: unknown set piece 'mooon' (known: ");
+    }
+
+    @Test
+    void twoTileSetsOnOneLayerAreRejected() {
+        assertProblem(
+                LEVEL_01,
+                text -> text.replace("tiles: [earth, gantry-rails]", "tiles: [earth, gantry-rails, dock-frames]"),
+                "design/" + LEVEL_01 + ": sections[2].tiles[2]: a second tile set on ground");
+    }
+
+    @Test
+    void anAtmosphereWithoutALookIsRejected() {
+        assertProblem(
+                LEVEL_01,
+                text -> text.replace("    clear: {wisps: wisps, haze: 0}\n", ""),
+                "design/" + LEVEL_01 + ": sections[0].atmosphere: no backdrop.atmosphere.clear");
+    }
+
+    @Test
+    void moreThanThreeMidSizeSetPiecesOnScreenAreRejected() {
+        String hull = "    - {piece: cruiser-hull, t: 82, x: 240}\n";
+        assertProblem(
+                LEVEL_01,
+                text -> text.replace(hull, hull.repeat(4)),
+                "design/" + LEVEL_01 + ": backdrop.placed: t=",
+                ": 4 mid-size set pieces on screen (at most 3): cruiser-hull, cruiser-hull");
+    }
+
+    @Test
+    void moreThanTwoStronglyAnimatedElementsOnScreenAreRejected() {
+        assertProblem(
+                LEVEL_01,
+                text -> text.replace(
+                        "perimeter: {layer: ground, height: 608}", "perimeter: {layer: ground, height: 608, drift: 4}"),
+                "design/" + LEVEL_01 + ": backdrop: t=",
+                ": 3 strongly animated elements on screen (at most 2): atmosphere banks, perimeter, platform-burning");
+    }
+
+    @Test
+    void aSetPieceMovingMoreThanTwoPixelsPerFrameIsRejected() {
+        assertProblem(
+                LEVEL_01,
+                text -> text.replace("[6, 150, 400]", "[6, 400, 400]"),
+                "design/" + LEVEL_01 + ": backdrop.placed[3].path[3]: moves 256 px/s, more than 120");
+    }
+
+    @Test
+    void aSetPieceThatIsNeverOnScreenIsRejected() {
+        assertProblem(
+                LEVEL_01,
+                text -> text.replace("{piece: moon, t: 21.2, x: 50}", "{piece: moon, t: 21.2, x: 900}"),
+                "design/" + LEVEL_01 + ": backdrop.placed[5]: 'moon' is never on screen");
+    }
+
+    @Test
     void brokenYamlIsRejected() {
         assertProblem(
                 SKITTER,

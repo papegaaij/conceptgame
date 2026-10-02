@@ -11,13 +11,13 @@ import javax.imageio.ImageIO;
 
 /**
  * Cuts the placeholder sprites out of the <em>chosen</em> concept sheets in the design tree and
- * writes them as single frames into {@code assets/sprites} and {@code assets/backdrop}, ready for
- * {@link AtlasPacker}. Every crop rectangle below was read off the generator that drew the sheet
+ * writes them as single frames into {@code assets/sprites}, ready for {@link AtlasPacker}. (The
+ * level backdrops are rendered into {@code assets/backdrop} by tools/concept/backdrop_l01.py.) Every crop rectangle below was read off the generator that drew the sheet
  * (named per cut), so a re-rendered sheet with the same layout imports unchanged.
  *
  * <p>The sheets show sprites on a checkerboard or a flat plate. Opaque sprites have hard 1-bit
  * edges, so their background colours are keyed to transparency. Glowing sprites (bolts, flashes,
- * explosions, high-air wisps) are soft-edged: for them the background colour is subtracted, which
+ * explosions) are soft-edged: for them the background colour is subtracted, which
  * leaves what the glow added on top of it, ready for additive blending. Zoomed frames are sampled
  * at the centre of every zoom block, which gives back the native pixels.
  *
@@ -28,10 +28,6 @@ public final class PlaceholderSprites {
     private static final int SPRITE_CHECKER_EVEN = 0x1E222E;
 
     private static final int SPRITE_CHECKER_ODD = 0x262A38;
-    /** The checkerboard colours of {@code parallax_r02.checker}. */
-    private static final int SCENE_CHECKER_EVEN = 0x222632;
-
-    private static final int SCENE_CHECKER_ODD = 0x2C303E;
     /** The dark plate behind the explosion frames ({@code vfx_r09.explosions_sheet}). */
     private static final int EXPLOSION_PLATE = 0x0A0C1A;
     /** {@code raster.LABEL_DIM}: the frame numbers printed into the explosion frames' top-left corner. */
@@ -50,7 +46,6 @@ public final class PlaceholderSprites {
     private static final String PICKUP_SHEET = "player/concept/pickups-r09-a.png";
     private static final String PROJECTILE_SHEET = "player/weapons/concept/projectiles-r08-a.png";
     private static final String EXPLOSION_SHEET = "art-direction/concept/explosions-r09-a.png";
-    private static final String SCENE_SHEET = "art-direction/concept/parallax-r03-a.png";
 
     /** How the background behind a sprite is removed. */
     enum Treatment {
@@ -96,7 +91,6 @@ public final class PlaceholderSprites {
     /**
      * One sprite or animation cut from a sheet.
      *
-     * @param folder the assets folder, one atlas each
      * @param name file name; frames get {@code _<index>}, which the atlas turns into an indexed region
      * @param sheet the concept sheet, relative to the design directory
      * @param x left edge of the first frame in the sheet
@@ -113,7 +107,6 @@ public final class PlaceholderSprites {
      *     or {@link #NATIVE_SIZE} to keep the sheet's native pixels
      */
     record Cut(
-            String folder,
             String name,
             String sheet,
             int x,
@@ -134,7 +127,6 @@ public final class PlaceholderSprites {
     static final List<Cut> CUTS = List.of(
             // vfx_r08.ship_sheet: the 1x strip of the 5 banking frames (hard left .. hard right).
             new Cut(
-                    "sprites",
                     "ship",
                     SHIP_SHEET,
                     423,
@@ -151,7 +143,6 @@ public final class PlaceholderSprites {
             // enemies_r03.enemy_sheet (r04 colours): the 3 wing-beat frames at 3x, drawn 30x30 there but
             // 24x24 in the Skitter's stat block, so scaled down.
             new Cut(
-                    "sprites",
                     "skitter",
                     SKITTER_SHEET,
                     16,
@@ -167,7 +158,6 @@ public final class PlaceholderSprites {
                     24),
             // enemies_r03.enemy_sheet (r04 colours): the Needler's 3 claw-snap frames at 3x, 36x36 like its stat block.
             new Cut(
-                    "sprites",
                     "needler",
                     NEEDLER_SHEET,
                     16,
@@ -184,7 +174,6 @@ public final class PlaceholderSprites {
             // vfx_r09.bullets_sheet, orb row: the first frame of the Vrell standard orb at 3x with a 1 px
             // pad; its outer glow fades into the checkerboard, which is keyed up to the glow tolerance.
             new Cut(
-                    "sprites",
                     "orb",
                     BULLET_SHEET,
                     465,
@@ -211,7 +200,6 @@ public final class PlaceholderSprites {
             portrait("the-choir", "story/characters/the-choir/concept/portrait-r08-a.png"),
             // vfx_r08.projectiles_sheet, pulse row: the 1x bolt, 3 muzzle frames and 4 impact frames at 3x.
             new Cut(
-                    "sprites",
                     "pulse-bolt",
                     PROJECTILE_SHEET,
                     252,
@@ -226,7 +214,6 @@ public final class PlaceholderSprites {
                     false,
                     NATIVE_SIZE),
             new Cut(
-                    "sprites",
                     "pulse-muzzle",
                     PROJECTILE_SHEET,
                     430,
@@ -241,7 +228,6 @@ public final class PlaceholderSprites {
                     false,
                     NATIVE_SIZE),
             new Cut(
-                    "sprites",
                     "pulse-impact",
                     PROJECTILE_SHEET,
                     640,
@@ -259,7 +245,6 @@ public final class PlaceholderSprites {
             // 12) and the large rung (96 px, 11 of its 14 frames as sampled on the sheet: 1, 2, 4, 5, 6, 7,
             // 9, 10, 11, 13, 14).
             new Cut(
-                    "sprites",
                     "explosion-tiny",
                     EXPLOSION_SHEET,
                     130,
@@ -274,7 +259,6 @@ public final class PlaceholderSprites {
                     true,
                     NATIVE_SIZE),
             new Cut(
-                    "sprites",
                     "explosion-small",
                     EXPLOSION_SHEET,
                     130,
@@ -289,7 +273,6 @@ public final class PlaceholderSprites {
                     true,
                     NATIVE_SIZE),
             new Cut(
-                    "sprites",
                     "explosion-large",
                     EXPLOSION_SHEET,
                     130,
@@ -302,82 +285,6 @@ public final class PlaceholderSprites {
                     new Plate(EXPLOSION_PLATE),
                     Treatment.ADDITIVE,
                     true,
-                    NATIVE_SIZE),
-            // parallax_r03.make_sheet: the layer breakdown of the Earth orbit scene at 0.4x.
-            new Cut(
-                    "backdrop",
-                    "deep",
-                    SCENE_SHEET,
-                    516,
-                    62,
-                    192,
-                    216,
-                    1,
-                    1,
-                    0,
-                    sceneChecker(516, 62),
-                    Treatment.OPAQUE,
-                    false,
-                    NATIVE_SIZE),
-            new Cut(
-                    "backdrop",
-                    "far",
-                    SCENE_SHEET,
-                    720,
-                    62,
-                    192,
-                    216,
-                    1,
-                    1,
-                    0,
-                    sceneChecker(720, 62),
-                    Treatment.KEYED,
-                    false,
-                    NATIVE_SIZE),
-            new Cut(
-                    "backdrop",
-                    "ground",
-                    SCENE_SHEET,
-                    924,
-                    62,
-                    192,
-                    216,
-                    1,
-                    1,
-                    0,
-                    sceneChecker(924, 62),
-                    Treatment.KEYED,
-                    false,
-                    NATIVE_SIZE),
-            new Cut(
-                    "backdrop",
-                    "low-air",
-                    SCENE_SHEET,
-                    516,
-                    322,
-                    192,
-                    216,
-                    1,
-                    1,
-                    0,
-                    sceneChecker(516, 322),
-                    Treatment.KEYED,
-                    false,
-                    NATIVE_SIZE),
-            new Cut(
-                    "backdrop",
-                    "high-air",
-                    SCENE_SHEET,
-                    924,
-                    322,
-                    192,
-                    216,
-                    1,
-                    1,
-                    0,
-                    sceneChecker(924, 322),
-                    Treatment.ADDITIVE,
-                    false,
                     NATIVE_SIZE));
 
     private PlaceholderSprites() {}
@@ -387,7 +294,6 @@ public final class PlaceholderSprites {
         int y = 54 + row * 112 + 10;
         int step = width * 2 + 6;
         return new Cut(
-                "sprites",
                 "pickup-" + name,
                 PICKUP_SHEET,
                 420,
@@ -406,7 +312,6 @@ public final class PlaceholderSprites {
     /** A cast member's 72x72 HUD radio portrait. */
     private static Cut portrait(String name, String sheet) {
         return new Cut(
-                "sprites",
                 "portrait-" + name,
                 sheet,
                 31,
@@ -426,19 +331,14 @@ public final class PlaceholderSprites {
         return new Checker(x, y, stepX, cell, SPRITE_CHECKER_EVEN, SPRITE_CHECKER_ODD);
     }
 
-    private static Checker sceneChecker(int x, int y) {
-        return new Checker(x, y, 0, 8, SCENE_CHECKER_EVEN, SCENE_CHECKER_ODD);
-    }
-
     public static void main(String[] args) throws IOException {
         if (args.length != 2) {
             throw new IllegalArgumentException("usage: PlaceholderSprites <designDir> <assetsDir>");
         }
         Path design = Path.of(args[0]);
-        Path assets = Path.of(args[1]);
+        Path folder = Files.createDirectories(Path.of(args[1]).resolve("sprites"));
         for (Cut cut : CUTS) {
             BufferedImage sheet = ImageIO.read(design.resolve(cut.sheet()).toFile());
-            Path folder = Files.createDirectories(assets.resolve(cut.folder()));
             for (int frame = 0; frame < cut.frames(); frame++) {
                 String file = cut.frames() == 1 ? cut.name() : cut.name() + "_" + frame;
                 ImageIO.write(

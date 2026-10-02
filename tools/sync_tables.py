@@ -338,6 +338,54 @@ def level_sections(d):
                  rows)
 
 
+BACKDROP_LAYERS = ["deep", "far", "ground", "low-air", "high-air"]
+
+
+def scroll_at(level, t):
+    """The ground's scroll distance at t s (the first and last section's speed carry on outside)."""
+    for start, end, px0, _, speed in sections(level):
+        if t < end or end == level["sections"][-1]["end"]:
+            return px0 + (t - start) * speed
+
+
+def time_at(level, px):
+    """The time the ground has scrolled px."""
+    for start, end, px0, px1, speed in sections(level):
+        if px < px1 or end == level["sections"][-1]["end"]:
+            return start + (px - px0) / speed
+
+
+def on_screen(level, backdrop, placed):
+    """When a set piece is on screen, (from, to) s within the level; a flying piece's flight."""
+    if "path" in placed:
+        return placed["path"][0][0], placed["path"][-1][0]
+    piece = backdrop["pieces"][placed["piece"]]
+    reach = (270 + piece["size"][1] / 2) / backdrop["scroll_factors"][piece["layer"]]
+    centre = scroll_at(level, placed["t"])
+    return max(0, time_at(level, centre - reach)), min(level["sections"][-1]["end"], time_at(level, centre + reach))
+
+
+def backdrop_table(d):
+    level = data(d)
+    b = level["backdrop"]
+    cells = [{layer: [] for layer in BACKDROP_LAYERS} for _ in level["sections"]]
+    for i, s in enumerate(level["sections"]):
+        for tile in s["tiles"]:
+            cells[i][b["tile_sets"][tile]["layer"]].append(f"`{tile}`")
+    for placed in b["placed"]:
+        start, end = on_screen(level, b, placed)
+        layer = b["pieces"][placed["piece"]]["layer"]
+        when = f"flies {num(start)}–{num(end)}" if "path" in placed else f"{num(round(start))}–{num(round(end))}"
+        cells[section_of(level, start) - 1][layer].append(f"{placed['piece']} {when} s")
+    rows = []
+    for i, s in enumerate(level["sections"]):
+        look = b["atmosphere"][s["atmosphere"]]
+        parts = [look[k] for k in ("banks", "wisps") if k in look]
+        atmosphere = f"{s['atmosphere']}: " + ", ".join(parts + [f"haze {num(round(look['haze'] * 100))} %"])
+        rows.append([f"{i + 1}. {s['name']}", atmosphere] + ["; ".join(cells[i][layer]) for layer in BACKDROP_LAYERS])
+    return table(["Section", "Atmosphere"] + [f"`{layer}`" for layer in BACKDROP_LAYERS], rows)
+
+
 def waves(d):
     level = data(d)
     rows = []
@@ -470,7 +518,7 @@ RENDERERS = {
     "plating": plating, "generators": generators, "engines": engines, "utility": utility,
     "pickups": player_pickups, "ship-movement": ship_movement, "stat-block": stat_block,
     "reference-dps": reference_dps, "player-damage": player_damage, "formations": formations,
-    "level-sections": level_sections, "threat-profile": threat_profile, "waves": waves, "ground-targets": ground_targets, "radio": radio,
+    "level-sections": level_sections, "backdrop": backdrop_table, "threat-profile": threat_profile, "waves": waves, "ground-targets": ground_targets, "radio": radio,
     "credit-budget": credit_budget, "score-bonuses": score_bonuses, "grades": grades, "difficulty": difficulty,
 }
 

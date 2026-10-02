@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import vanguard.sim.PlayField;
 
 /**
  * design/campaign/&lt;act&gt;/&lt;level&gt;/data.yaml: a level's script. Times are seconds from
@@ -16,6 +17,7 @@ import java.util.Optional;
  * @param sections back to back from t = 0
  * @param pickups pickups placed by the script (normal drops come from the enemies)
  * @param radio the radio chatter
+ * @param backdrop the parallax layers behind and above the play plane
  */
 public record LevelData(
         double scrollSpeed,
@@ -29,7 +31,8 @@ public record LevelData(
         List<RadioCue> radio,
         Objectives objectives,
         Music music,
-        Difficulties difficulty) {
+        Difficulties difficulty,
+        BackdropData backdrop) {
     public LevelData {
         Check.positive("scroll_speed", scrollSpeed);
         Check.notNegative("launch_seconds", launchSeconds);
@@ -46,6 +49,51 @@ public record LevelData(
         return sections.getLast().end();
     }
 
+    /** The time section {@code index} (0-based) starts. */
+    public double sectionStart(int index) {
+        return index == 0 ? 0 : sections.get(index - 1).end();
+    }
+
+    /**
+     * The ground layer's scroll distance at {@code t} seconds, px; before the start and after the
+     * end the first and the last section's speed carry on.
+     */
+    public double scrollAt(double t) {
+        double scroll = 0;
+        for (int i = 0; i < sections.size(); i++) {
+            Section section = sections.get(i);
+            if (t < section.end() || i == sections.size() - 1) {
+                return scroll + (t - sectionStart(i)) * speedOf(section);
+            }
+            scroll += (section.end() - sectionStart(i)) * speedOf(section);
+        }
+        throw new IllegalStateException("a level has sections");
+    }
+
+    private double speedOf(Section section) {
+        return section.speed().isPresent() ? section.speed().get() : scrollSpeed;
+    }
+
+    /**
+     * Where the centre of a placed set piece lies on its layer: px from the screen's bottom edge
+     * at the level start, so that it passes the middle of the screen at its time.
+     */
+    public double pieceCentre(BackdropData.PlacedPiece placed) {
+        BackdropLayer layer = backdrop.pieces().get(placed.piece()).layer();
+        return scrollAt(placed.t()) * backdrop.factor(layer) + PlayField.HEIGHT / 2.0;
+    }
+
+    /**
+     * Where section {@code index}'s tile set begins on {@code layer} (px from the screen's bottom
+     * edge at the level start): it enters at the top edge when the section starts; the first
+     * section's reaches back without end.
+     */
+    public double seam(BackdropLayer layer, int index) {
+        return index == 0
+                ? Double.NEGATIVE_INFINITY
+                : scrollAt(sectionStart(index)) * backdrop.factor(layer) + PlayField.HEIGHT;
+    }
+
     /** The 1-based number of the section that is running at {@code t}, or 0 after the level end. */
     public int sectionAt(double t) {
         for (int i = 0; i < sections.size(); i++) {
@@ -56,8 +104,12 @@ public record LevelData(
         return 0;
     }
 
-    /** A stretch of the scroll; it starts where the one before it ends. */
-    public record Section(String name, double end, Optional<Double> speed, Atmosphere atmosphere) {
+    /**
+     * A stretch of the scroll; it starts where the one before it ends.
+     *
+     * @param tiles the backdrop's tile sets in this section, at most one per layer
+     */
+    public record Section(String name, double end, Optional<Double> speed, Atmosphere atmosphere, List<String> tiles) {
         public Section {
             Check.positive("end", end);
             speed.ifPresent(s -> Check.positive("speed", s));

@@ -81,7 +81,7 @@ README), and the tables in the README are **rendered from the data**:
 | Weapon | `design/player/weapons/<slug>/data.yaml`; shared rules in `design/player/weapons/data.yaml` | its property and *Per level* tables |
 | Ship and core parts | `design/player/{ship,shields,armor,generator,systems,specials}/data.yaml` | their tables (the specials table is still hand-written) |
 | Player-wide | `design/player/data.yaml` (shop availability, pickups) | the *In-level pickups* table |
-| Level | `design/campaign/<act>/<level>/data.yaml` (sections, scroll, waves, ground targets, secrets, cues, objectives, music, difficulty changes) | the *Threat profile*, *Layout*, *Waves*, *Ground targets*, *Radio chatter* and *Credit budget* tables |
+| Level | `design/campaign/<act>/<level>/data.yaml` (sections, scroll, waves, ground targets, secrets, cues, objectives, music, difficulty changes, backdrop) | the *Threat profile*, *Layout*, *Backdrop*, *Waves*, *Ground targets*, *Radio chatter* and *Credit budget* tables |
 | Economy, scoring, difficulty | `design/systems/<part>/data.yaml` | the scoring bonus and grade tables and the difficulty levers (the economy's tables are still hand-written) |
 
 - **Marked tables.** A generated table sits between `<!-- data: NAME -->` and `<!-- /data -->`;
@@ -150,7 +150,8 @@ first entry of a part's model list is the starter (price 0, `start`).
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`,
   `control_prompts`; `sections` back to back from t = 0 (`name`, `end`, `atmosphere`, optional
-  `speed`; scroll distances are derived); `waves` in time order, one row each (`t`,
+  `speed`, the backdrop's `tiles` (tile set ids, at most one per layer); scroll distances are
+  derived); `waves` in time order, one row each (`t`,
   `formation`, `enemy` slug, `count`, `from` `front`/`sides`/`rear`, `edge`
   `left`/`right`/`alternating` (`sides` without an edge enters from both side edges), optional
   `hold`, `warning`, `break_group`, `speed` (px/s instead of the enemy's own), `interval` (s
@@ -163,9 +164,28 @@ first entry of a part's model list is the starter (price 0, `start`).
   `distorted`); `objectives` (`primary`, `secondary` `kill_ratio` and `credits`); `music`
   (`track`, `start_section`, `full_section`, `ambience`, `end_jingle`); `difficulty` (level-wide
   `easy` / `hard` enemy changes such as `burst`, and `extra_pickups` placed like `pickups`);
-  `notes.threat_profile` (the *Threat profile* rows; `{directions}` is derived). The credit budget
+  `notes.threat_profile` (the *Threat profile* rows; `{directions}` is derived); `backdrop`
+  (presentation only, see below). The credit budget
   table is derived: kills × bounties, ground targets, crates, the secondary objective, against
   budget(n) of the economy; the attack directions are each entry's share of the enemies.
+- **Level backdrop** (`backdrop` in a level's data file; the *Backdrop* table is rendered from it):
+  `scroll_factors` per layer (`deep`, `far`, `ground` = 1.0, `low-air`, `high-air`); `ramp` (s an
+  atmosphere change takes, centred on the section boundary); `haze_colour` (`rrggbb`);
+  `atmosphere` per intensity the level uses (`clear`/`light`/`medium`/`heavy`: optional `banks`
+  tile set on low-air, optional `wisps` tile set on high-air, `haze` 0..1 over deep and far);
+  `tile_sets` by id (`layer`, `height`; 480 px wide, repeating along the layer; optional `drift`
+  px/s sideways, wrapping); `pieces` by id (`layer`, `size`, an animation's `frames` and `fps` or
+  an angle set's `headings`, `mid_size` if it counts towards the density rule); `placed` set
+  pieces (`piece`, `t` when its centre passes the middle of the screen, `x` in the play field,
+  optional `mirror`, a `path` of `[t, dx, dy]` waypoints for a piece with headings; later pieces
+  on a layer are drawn over earlier ones). A layer position is the layer's scroll (the ground's
+  scroll × its factor) plus the screen height; a section's tile set begins at the seam that enters
+  at the top edge when the section starts. The images are `assets/backdrop/level-NN/<id>.png`
+  (frames and headings `<id>_<n>.png`). `content` checks that the ids and layers resolve and,
+  sampled every simulation step, the art direction's density (at most 3 mid-size set pieces on
+  screen) and motion budget (at most 2 strongly animated elements: animated or moving pieces,
+  drifting tile sets, the atmosphere's banks counting as one; nothing moving faster than 120 px/s,
+  about 2 px per frame, on its own).
 - **Ship and core parts**: ship (`acceleration_seconds`, `stop_seconds`, `precision_factor`,
   `size`, `edge_gap`, `hull` (hit boxes `[x, y, width, height]` from the sprite's top left), `collection_radius`, `mercy_seconds`, `bank_change_steps`,
   `mounts`; its speed is the fitted engine's); shields (`break_seconds`, `models` with
@@ -200,6 +220,12 @@ first entry of a part's model list is the starter (price 0, `start`).
 - Production sprites and audio are source files in `assets/` (LFS). Until a part's art is
   `final`, its **chosen concept art** is copied in as a placeholder by a script, so the game is
   playable early.
+- **Exception: level backdrops.** A chosen setting scene is one composed concept sheet, not the
+  tile sets and set pieces a level is built from, so cutting it up gave one repeating crop per
+  layer. The backdrop placeholders are therefore rendered by `tools/concept/backdrop_l01.py`
+  straight into `assets/backdrop/level-01/` from the chosen Earth orbit scene's models, palette
+  and rules, at the sizes the level's data file gives; each PNG carries a `Placeholder` text chunk
+  naming the script. `importPlaceholders` does not touch them.
 - The `pipeline` module turns them into build output at build time: angle sets (using the
   symmetry rule), texture atlases, audio in OGG. Generated atlases are never committed.
 
@@ -316,3 +342,13 @@ Screenshot tests are left out until there is a need.
   HUD split into `HudKit`, `MissionPanel` and `ShipPanel`, `RadioQueue`, `ControlPrompts`,
   `LevelMusic`. `desktop`: `--difficulty easy|medium|hard` and the debug option `--debug-speed <n>`
   (game time n times faster, to get through a level quickly when testing).
+- 2026-10-02: M2 part C (level backdrop). The backdrop is data (*Level backdrop* above) and
+  `vanguard.game.render.Backdrop` draws it: per layer the sections' tile sets (whole pixels, the
+  layer's factor of the sim's ground scroll; drawn as texture strips so a seam can fall anywhere),
+  the set pieces, the haze, the cloud banks and wisps blended across a ramp, without allocating per
+  frame. Tile sets change spatially at a seam (structures would ghost in a dissolve), the
+  atmosphere in time (the art direction's ramp). The low-air layer now draws above the ground
+  objects. The backdrop atlas uses nearest filtering (everything at native size); the old
+  single-crop cuts of `parallax-r03-a.png` and their `PlaceholderSprites` entries are gone. The
+  game compiles against the data records, so `content` exports Jackson's annotations (`api`).
+  The simulation is untouched (same replay hash).

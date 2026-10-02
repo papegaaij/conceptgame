@@ -11,8 +11,9 @@ import com.badlogic.gdx.utils.Disposable;
 
 /**
  * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from the
- * placeholders, which are cut from the chosen concept art (see {@code PlaceholderSprites}), plus a
- * white pixel for the HUD's bars and frames.
+ * placeholders: sprites cut from the chosen concept art (see {@code PlaceholderSprites}) and the
+ * levels' backdrop images (tools/concept/backdrop_l01.py), plus a white pixel for the HUD's bars
+ * and frames.
  */
 public final class Sprites implements Disposable {
     private final TextureAtlas sprites;
@@ -46,11 +47,6 @@ public final class Sprites implements Disposable {
     public final Array<AtlasRegion> explosionTiny;
     public final Array<AtlasRegion> explosionSmall;
     public final Array<AtlasRegion> explosionLarge;
-    public final AtlasRegion deep;
-    public final AtlasRegion far;
-    public final AtlasRegion ground;
-    public final AtlasRegion lowAir;
-    public final AtlasRegion highAir;
     public final TextureRegion pixel;
 
     public Sprites(Files files) {
@@ -74,17 +70,22 @@ public final class Sprites implements Disposable {
         explosionTiny = frames(sprites, "explosion-tiny");
         explosionSmall = frames(sprites, "explosion-small");
         explosionLarge = frames(sprites, "explosion-large");
-        deep = region(backdrop, "deep");
-        far = region(backdrop, "far");
-        ground = region(backdrop, "ground");
-        lowAir = region(backdrop, "low-air");
-        highAir = region(backdrop, "high-air");
         Pixmap white = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         white.setColor(1, 1, 1, 1);
         white.fill();
         pixelTexture = new Texture(white);
         white.dispose();
         pixel = new TextureRegion(pixelTexture);
+    }
+
+    /** A backdrop image: its {@code count} frames or headings, or the single image. */
+    public Array<AtlasRegion> backdrop(String name, int count) {
+        Array<AtlasRegion> images = frames(backdrop, name);
+        if (images.size != count) {
+            throw new IllegalStateException(
+                    "'" + name + "' has " + images.size + " images in the backdrop atlas, the level expects " + count);
+        }
+        return images;
     }
 
     private static Array<AtlasRegion> frames(TextureAtlas atlas, String name) {

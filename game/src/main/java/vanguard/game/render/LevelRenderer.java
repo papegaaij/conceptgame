@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
+import vanguard.content.LevelData;
 import vanguard.sim.Enemy;
 import vanguard.sim.EnemyBullet;
 import vanguard.sim.GroundObject;
@@ -22,9 +23,10 @@ import vanguard.sim.WarningEdge;
 
 /**
  * Draws a level back to front, interpolating every position between the last two simulation
- * steps: the backdrop below the play plane, the ground objects, the enemies, the pickups, the
- * ship, the glowing bolts and effects, the high-air layer, then the enemy bullets above every
- * layer (design/enemies, bullet readability rules), the edge warnings and the credit numbers.
+ * steps: the backdrop down to the ground layer, the ground objects, the low-air layer, the
+ * enemies, the pickups, the ship, the glowing bolts and effects, the high-air layer, then the
+ * enemy bullets above every layer (design/enemies, bullet readability rules), the edge warnings
+ * and the credit numbers.
  */
 public final class LevelRenderer {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
@@ -55,10 +57,12 @@ public final class LevelRenderer {
     private final FlashShader flash;
     private final BitmapFont font;
 
-    public LevelRenderer(Sprites sprites, EnemyLooks[] looks, FlashShader flash, BitmapFont font) {
+    /** @param levelKey the level's key, {@code <act>/level-NN-<slug>} */
+    public LevelRenderer(
+            Sprites sprites, EnemyLooks[] looks, FlashShader flash, BitmapFont font, LevelData level, String levelKey) {
         this.sprites = sprites;
         this.looks = looks;
-        this.backdrop = new Backdrop(sprites);
+        this.backdrop = new Backdrop(sprites, level, levelKey);
         this.flash = flash;
         this.font = font;
     }
@@ -74,9 +78,12 @@ public final class LevelRenderer {
             CreditNumbers credits,
             float alpha,
             float shieldShimmer) {
-        double scroll = sortie.groundScroll() - sortie.groundSpeed() * SimStep.SECONDS * (1 - alpha);
-        backdrop.drawBehind(batch, scroll);
+        double lag = SimStep.SECONDS * (1 - alpha);
+        double scroll = sortie.groundScroll() - sortie.groundSpeed() * lag;
+        double seconds = sortie.levelSeconds() - lag;
+        backdrop.drawBehind(batch, scroll, seconds);
         drawGround(batch, sortie, alpha);
+        backdrop.drawLowAir(batch, scroll, seconds);
         drawEnemies(batch, sortie, alpha);
         drawPickups(batch, sortie, alpha);
         if (sortie.flying()) {
@@ -84,7 +91,7 @@ public final class LevelRenderer {
         }
         drawBolts(batch, sortie, alpha);
         effects.draw(batch);
-        backdrop.drawFront(batch, scroll);
+        backdrop.drawFront(batch, scroll, seconds);
         drawBullets(batch, sortie, alpha);
         drawWarnings(batch, sortie);
         credits.draw(batch, font);

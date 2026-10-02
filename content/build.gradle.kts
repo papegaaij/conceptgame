@@ -6,7 +6,9 @@ plugins {
 
 dependencies {
     api(project(":sim"))
-    implementation(platform(libs.jackson.bom))
+    api(platform(libs.jackson.bom))
+    // The data records carry Jackson's annotations, so their users compile against them too.
+    api(libs.jackson.annotations)
     implementation(libs.jackson.yaml)
 }
 

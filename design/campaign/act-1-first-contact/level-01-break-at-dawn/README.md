@@ -1,7 +1,7 @@
 ---
 title: Level 01 – Break at Dawn
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../../../enemies/air/skitter, ../../../enemies/air/needler]
 updated: 2026-10-02
@@ -69,6 +69,25 @@ drifting low-air cloud decks and, in section 4, the burning platforms.
 | 3. Yard Crossing | 60–110 | 7,800–14,300 | 130 | light | `ground`: gantries, cranes, a half-built cruiser hull, cargo containers (destructible). `low-air`: lattice beams and crane jibs passing under the player. | Ground layer as scenery and loot; the first side entry; the secret beacon. |
 | 4. Pursuit | 110–160 | 14,300–20,800 | 130 | medium | `ground`: yard perimeter, defence platforms burning. `low-air`: cloud decks drifting between the yard and the play plane. `high-air`: thin spark streaks. | Mixed waves, one warned rear wave, rising density. |
 | 5. Scout Leader | 160–190 | 20,800–24,700 | 130 | light | `deep`: open space past the yard; the Vrell strike group's glow on the horizon. `ground`: the last perimeter platform. | Final set piece: Needler circle plus Skitter streams. Then the level ends. |
+<!-- /data -->
+
+### Backdrop
+
+How the layers above are composed, rendered from the `backdrop` in [data.yaml](data.yaml) (schema
+in [architecture](../../../tech/architecture/README.md#data-file-schemas)). A layer's tile set
+repeats along the layer and changes at a seam that enters at the top edge when the section starts;
+a set piece is listed with the seconds it is on screen; the atmosphere names the low-air cloud
+banks, the high-air wisps and the haze over `deep` and `far`, and a change ramps across the
+section boundary (`ramp`). The art is a placeholder ([backdrop_l01.py](../../../../tools/concept/backdrop_l01.py)).
+
+<!-- data: backdrop -->
+| Section | Atmosphere | `deep` | `far` | `ground` | `low-air` | `high-air` |
+|---|---|---|---|---|---|---|
+| 1. Launch | clear: wisps, haze 0 % | `earth`; earth-dawn 0–103 s; moon 3–39 s | north-arm 0–12 s; stormhawk-far flies 1.5–6 s; stormhawk-far flies 2.5–7 s | launch-rail 0–4 s; crossbeam 20–24 s | | |
+| 2. First Wave | light: banks-light, wisps, haze 8 % | `earth` | | `dock-frames`; dock-frame 27–33 s; dock-frame 40–46 s; dock-frame 51–57 s; crossbeam 60–64 s | | |
+| 3. Yard Crossing | light: banks-light, wisps, haze 8 % | `earth` | | `gantry-rails`; bridge-crane 68–72 s; cruiser-hull 78–86 s; bridge-crane 90–94 s; crossbeam 110–114 s | lattice-beam 64–68 s; crane-jib 72–76 s; lattice-beam 83–87 s; crane-jib 95–99 s; lattice-beam 101–105 s | |
+| 4. Pursuit | medium: banks-medium, wisps, haze 16 % | `earth`; earth-limb 149–190 s | | `perimeter`; platform-burning 115–121 s; platform-burning 131–137 s; platform-burning 147–153 s; crossbeam 160–164 s | | `spark-streaks` |
+| 5. Scout Leader | light: banks-light, wisps, haze 8 % | `earth`; vrell-glow 174–190 s | | platform 169–175 s | | |
 <!-- /data -->
 
 ### Launch and control prompts
@@ -190,7 +209,7 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
 
 ## Implementation
 
-- [ ] Scroll timeline, sections, atmosphere intensity and parallax content per layer as in *Layout*.
+- [x] Scroll timeline, sections, atmosphere intensity and parallax content per layer as in *Layout*.
 - [x] Wave script matches the *Waves* table (time, formation, count, entry edge).
 - [x] Destructible cargo containers and the beacon secret.
 - [x] Radio chatter cues fire at their triggers with portraits in the side HUD.
@@ -198,12 +217,17 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
 - [x] Credit total at medium with perfect collection is 1,000 (± 5%).
 - [x] Easy/hard variations as in *Difficulty notes*.
 - [x] Control prompts shown in section 1 (skippable).
-- [ ] Aegis Two (Rook's flight) appears only as distant `far`-layer scenery in the launch; no
+- [x] Aegis Two (Rook's flight) appears only as distant `far`-layer scenery in the launch; no
       wingman or escort sprite on the play plane.
 
 ## Open questions
 
-- None open.
+- The haze strength per atmosphere intensity, the cloud banks' drift speed and the length of an
+  atmosphere ramp are first values in [data.yaml](data.yaml) (`backdrop.atmosphere`, `drift`,
+  `ramp`): the art direction gives bank coverage per intensity, but no haze strength, drift speed
+  or ramp length beyond "several seconds".
+- Motion budget: the two launching Stormhawks (section 1) are counted as one animated element,
+  like the cloud decks and the burning platforms; *Layout* names only the last two.
 
 ## Decisions
 
@@ -241,3 +265,18 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
   drawn in code (no concept art yet); the formation layouts (where a V hovers, the circle's centre
   at 180 px below the top, the 0.5 s between circle break groups, the snake and stream paths) are
   first values in `Formations`, to be tuned after playing.
+- 2026-10-02: M2 part C, the backdrop (user feedback: "the same elements keep scrolling through the
+  screen the whole time"): the layers of *Layout* are laid out in the `backdrop` of
+  [data.yaml](data.yaml) and drawn by `vanguard.game.render.Backdrop`; the *Backdrop* table is
+  rendered from it. Per section a tile set per layer, changing at a seam that enters at the top
+  edge when the section starts (structures change like a tile map instead of dissolving into each
+  other; crossbeams cover the ground seams); set pieces placed by the time their centre passes the
+  middle of the screen; the atmosphere picks cloud banks (~12 % light, ~22 % medium cover, both
+  drifting), wisps and haze, ramping across a boundary. Aegis Two: two distant Stormhawks launch
+  from the north arm on `far` and bank away (an angle set along a path). The deep layer runs from
+  space with the Moon and Earth's dawn limb (night side, city lights, the sunrise terminator) over
+  the day side to Earth's curve falling behind in section 5, with the Vrell glow above it.
+  `content` checks the density (at most 3 mid-size set pieces on screen) and the motion budget (at
+  most 2 animated elements, nothing faster than 2 px per frame on its own) frame by frame.
+  Placeholders: all images come from `tools/concept/backdrop_l01.py`, built from the chosen Earth
+  orbit scene's kit and palette; cloud-bank shadows on the ground are left out.

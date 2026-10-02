@@ -89,7 +89,7 @@ public final class LevelScreen implements GameScreen {
         commands = new FlightCommands(services.controls);
         looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites);
         sounds = new FlightSounds(services.sfx, looks);
-        renderer = new LevelRenderer(services.sprites, looks, services.flash, services.font);
+        renderer = new LevelRenderer(services.sprites, looks, services.flash, services.font, level, LEVEL);
         name = levelName(LEVEL);
         hud = new Hud(
                 services.sprites,

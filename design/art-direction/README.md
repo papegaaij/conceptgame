@@ -440,3 +440,8 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
 - 2026-10-01: M1 rendering: the play plane draws over the Earth orbit layers (deep 0.12, far 0.45, ground 1.0, low-air 1.4, high-air 2.4 at ≤ 40 % opacity, additive) with the ground at Level 01's 130 px/s. Placeholders are the 0.4× layer breakdown of `parallax-r03-a.png`, enlarged with linear filtering and mirrored every second tile so they scroll without a seam; bolts and explosions are drawn additively; the hit flash is a GLES 2 shader that blends a sprite towards a colour. Positions are interpolated between simulation steps and rounded to whole pixels.
 - 2026-10-02: Readability rule 6 follows the ship's hull-shaped hit box (user decision); the old "about 6×6 px" note was out of date (the ship doc said 9×9).
+- 2026-10-02: M2 backdrop: the game no longer repeats one crop of `parallax-r03-a.png` per layer.
+  Levels lay out their backdrop as data (tile sets per section and layer, placed set pieces,
+  atmosphere intensity per section), and the content loader checks the density and motion-budget
+  rules above. Placeholders for Level 01 are rendered from this scene's kit and palette
+  (`tools/concept/backdrop_l01.py`); see [Level 01](../campaign/act-1-first-contact/level-01-break-at-dawn/README.md#backdrop).

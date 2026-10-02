@@ -11,7 +11,8 @@ import vanguard.sim.PlayField;
 /**
  * The checks across files, after every file has parsed: names resolve (a wave's enemy and
  * formation, an attack's bullet class, an item's availability), starters come first in their
- * lists, and each level's script fits its sections.
+ * lists, and each level's script fits its sections and its backdrop follows the art direction
+ * ({@link BackdropCheck}).
  */
 final class ContentValidator {
     private final Content content;
@@ -179,6 +180,7 @@ final class ContentValidator {
             variant.flatMap(LevelData.Variant::enemies)
                     .ifPresent(changes -> changes.keySet().forEach(slug -> checkEnemyName(level, "difficulty", slug)));
         }
+        new BackdropCheck(level, (field, message) -> problem(level, field, message)).run();
     }
 
     private void checkCarriers(
