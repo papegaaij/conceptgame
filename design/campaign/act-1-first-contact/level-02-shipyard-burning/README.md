@@ -2,7 +2,7 @@
 title: Level 02 – Shipyard Burning
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../../enemies/ground/spine-turret, ../../../enemies/air/stinger, ../../../world/earth-orbit]
 updated: 2026-10-02
 ---
@@ -245,10 +245,10 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
 
 | File | What | Status |
 |---|---|---|
-| [concept/backdrop-final-r15-a.png](concept/backdrop-final-r15-a.png) | Final backdrop pieces: every tile set and set piece of the level's `backdrop` data (the burning north arm, the docks with their frigates and teal Vrell growth, the *Resolute* venting coolant, smoke and coolant banks, frost streaks; Level 01's station kit for the rest), shrunk to fit | proposed |
-| [concept/crane-four-final-r15-a.png](concept/crane-four-final-r15-a.png) | Crane Four: its arm at 7 of its 61 drawn angles (3° apart), the warning and clamp lights, the canister | proposed |
-| [concept/crane-four-final-r15-a.gif](concept/crane-four-final-r15-a.gif) | The arm swinging with its lights blinking, the canister on the hook | proposed |
-| [concept/level-02-capture-final-r15-a.png](concept/level-02-capture-final-r15-a.png) | Game captures of the level with `--level 2`: the first turret, Dock One, the Outer Docks, Crane Row, the Main Drydock and the Breakout | proposed |
+| [concept/backdrop-final-r15-a.png](concept/backdrop-final-r15-a.png) | Final backdrop pieces: every tile set and set piece of the level's `backdrop` data (the burning north arm, the docks with their frigates and teal Vrell growth, the *Resolute* venting coolant, smoke and coolant banks, frost streaks; Level 01's station kit for the rest), shrunk to fit | chosen |
+| [concept/crane-four-final-r15-a.png](concept/crane-four-final-r15-a.png) | Crane Four: its arm at 7 of its 61 drawn angles (3° apart), the warning and clamp lights, the canister | chosen |
+| [concept/crane-four-final-r15-a.gif](concept/crane-four-final-r15-a.gif) | The arm swinging with its lights blinking, the canister on the hook | chosen |
+| [concept/level-02-capture-final-r15-a.png](concept/level-02-capture-final-r15-a.png) | Game captures of the level with `--level 2`: the first turret, Dock One, the Outer Docks, Crane Row, the Main Drydock and the Breakout | chosen |
 
 ## Implementation
 
@@ -279,3 +279,4 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
 - 2026-10-02: M4 part B (user decisions): Crane Four's tower stays above the top edge at the middle while it works, the arm swinging 45° either side of straight down, the clamp at its hook; the ground-target prompt is the one-line `GROUND` · `FLY OVER, FIRE` (the prompt format: an action and its keys), Varga's radio line says the rest; a dock is lost when its last surviving turret scrolls off the bottom edge; this level drops the campaign's first overdrive.
 - 2026-10-02: M4 part B: the tables are rendered from [data.yaml](data.yaml) by `tools/sync_tables.py` (Briefing, Hangar teaser, Threat profile, Layout, Backdrop, Waves, Ground targets, Radio chatter, Credit budget).
 - 2026-10-02: M4 part B built: the level's data file (waves, the 24 Spine Turrets with the dock nests per difficulty, Crane Four, the radio, the prompt, the coolant peak, the backdrop, the briefing), the docks as groups of the secondary objective, Crane Four and its clamp, the overdrive and salvage M pickups; the Level 01 autopilot flies it to the end on every difficulty. The ground prompt leaves once a ground unit is destroyed (as the control prompts leave once done). Dock Four's nest moved to t=136–140 so its last turret enters at the coolant peak (the Hazards text). Two lines that the document did not give were written for the data: the crane cache's secret line (Rook) and Varga's no-sensor intel line. The production art is proposed in [concept round 15](../../../concept-rounds/round-15/README.md).
+- 2026-10-02: Concept round 15 closed (user decision): the backdrop and Crane Four approved as **final**; with the briefing images of round 13 all of the level's art is final, `art: final`.

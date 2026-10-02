@@ -164,7 +164,7 @@ sidechain duck and linked mastering).
 
 | File | What | Status |
 |---|---|---|
-| [concept/afterburner-base-r15-a.ogg](concept/afterburner-base-r15-a.ogg) | "Afterburner" base stem — 154.7 s, loop 623700 + 6048000 samples like the full mix: bass, arpeggio, pads, the breakdown pluck, risers and the four-on-the-floor kick; no lead, claps or hats. Same gain as [afterburner-full-r08-a](concept/afterburner-full-r08-a.ogg) (−1.4 LU quieter); the default run checks that its full mix is that file sample for sample | proposed |
+| [concept/afterburner-base-r15-a.ogg](concept/afterburner-base-r15-a.ogg) | "Afterburner" base stem — 154.7 s, loop 623700 + 6048000 samples like the full mix: bass, arpeggio, pads, the breakdown pluck, risers and the four-on-the-floor kick; no lead, claps or hats. Same gain as [afterburner-full-r08-a](concept/afterburner-full-r08-a.ogg) (−1.4 LU quieter); the default run checks that its full mix is that file sample for sample | chosen |
 
 Production art, UI batch part U3 (for concept [round 13](../../concept-rounds/round-13/README.md)):
 the title, hangar and briefing themes rendered into `assets/music/` by
@@ -245,3 +245,4 @@ unchanged, OGG Vorbis q6, −14 LUFS, loop comments, `SOURCE` comment). Prompts:
   with a `SOURCE` comment. `themes.py --check` verifies loudness (±0.5 LU), true peak, q6, the loop
   comments and the seam. Review sheet proposed for round 13; `art` stays `chosen`.
 - 2026-10-02: Concept round 13 closed (user decision): the title, hangar and briefing themes (`tools/art/themes.py`, identical to the chosen mixes) approved as **final**; `art` stays `chosen`, since the other tracks of the 28 are not final yet.
+- 2026-10-02: Concept round 15 closed (user decision): the "Afterburner" base stem approved as **final**.

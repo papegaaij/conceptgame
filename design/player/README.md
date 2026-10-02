@@ -140,8 +140,8 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), by `tools/a
 
 | File | What | Status |
 |---|---|---|
-| [concept/pickups-final-r15-a.png](concept/pickups-final-r15-a.png) | Final 8-frame loops of salvage M (three credit chips) and the overdrive, rocking, with the pulsing light outline and halo of the Level 01 pickups | proposed |
-| [concept/pickups-final-r15-a.gif](concept/pickups-final-r15-a.gif) | The two loops at 10 fps | proposed |
+| [concept/pickups-final-r15-a.png](concept/pickups-final-r15-a.png) | Final 8-frame loops of salvage M (three credit chips) and the overdrive, rocking, with the pulsing light outline and halo of the Level 01 pickups | chosen |
+| [concept/pickups-final-r15-a.gif](concept/pickups-final-r15-a.gif) | The two loops at 10 fps | chosen |
 
 ## Implementation
 
@@ -193,3 +193,4 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), by `tools/a
 - 2026-10-02: Concept round 12 closed (user decision): the four pickups' production loops approved as **final**; this doc's `art` stays `chosen`, since its other art is still concept art.
 - 2026-10-02: M4 part A: every fitted weapon flies, each mount on its own clock while fire is held; the spare power (the generator's output less every fitted item's draw) raises the shield regen in flight, +10 % per MW up to +50 % (the starter fit has 4 MW spare: +40 %), and the HUD's power row shows it; an overdrive switches every weapon to its next level's pattern (L5: the overdrive pattern) for its time, timed on the HUD. The overdrive pickup lands with Level 02 (part B).
 - 2026-10-02: M4 part B: the overdrive and salvage M pickups (Level 02), their production loops proposed in concept round 15.
+- 2026-10-02: Concept round 15 closed (user decision): salvage M and the overdrive approved as **final**; this doc's `art` stays `chosen`.

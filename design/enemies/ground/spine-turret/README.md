@@ -2,7 +2,7 @@
 title: Spine Turret
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-02
 ---
@@ -60,8 +60,8 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
 
 | File | What | Status |
 |---|---|---|
-| [concept/spine-turret-final-r15-a.png](concept/spine-turret-final-r15-a.png) | Final sprites: the whole turret at 32 barrel headings (40×40, 32 colours; heading 0 aims down, 8 left, 24 right), each its own render under the fixed key light, and the scorched stump | proposed |
-| [concept/spine-turret-final-r15-a.gif](concept/spine-turret-final-r15-a.gif) | The barrel tracking a ship sweeping past below it | proposed |
+| [concept/spine-turret-final-r15-a.png](concept/spine-turret-final-r15-a.png) | Final sprites: the whole turret at 32 barrel headings (40×40, 32 colours; heading 0 aims down, 8 left, 24 right), each its own render under the fixed key light, and the scorched stump | chosen |
+| [concept/spine-turret-final-r15-a.gif](concept/spine-turret-final-r15-a.gif) | The barrel tracking a ship sweeping past below it | chosen |
 
 ## Implementation
 
@@ -78,3 +78,4 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
 - 2026-10-02: Fires the standard orb instead of the yellow thorn (user decision): at 160 px/s it is in the standard speed class, and the yellow needle is reserved for the fast class.
 - 2026-10-02: M4 part B (user decisions): its facing is straight down the screen; the barrel tracks at 90°/s and the shots leave along it; beyond 100° off its facing it is silent; the weak point is drawn only (single-part rule of [enemies](../../README.md)).
 - 2026-10-02: M4 part B: built (a ground unit of the level's ground targets, scrolling with the ground; the barrel turns 90°/s inside its 100° arc and fires along itself; its bounty pays as a ground target; the stump stays on the ground until it scrolls off), its production sprites proposed in [concept round 15](../../../concept-rounds/round-15/README.md).
+- 2026-10-02: Concept round 15 closed (user decision): the production sprites approved as **final**, `art: final`.

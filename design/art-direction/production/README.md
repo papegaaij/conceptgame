@@ -121,7 +121,7 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] UI batch part U3: portraits with the three expressions (`tools/art/portraits.py`), the briefing images (`tools/art/briefing_images.py`), the hangar intel's sensor-L2 pictures (`tools/art/intel.py`), the title, hangar and briefing themes (`tools/art/themes.py`) and the bitmap fonts (`tools/art/fonts.py`), drawn and played by the game; concept round 13 (the UI batch review) opened
 - [x] M3 parts final and approved by the user (the UI batch, concept round 13)
 - [x] M4 part A: the Act 1 arsenal's effects rendered by `tools/art/weapon_fx.py` and drawn by the game; approved as final in round 14
-- [x] M4 part B: Level 02's Stinger, Spine Turret, salvage M and overdrive, backdrop, Crane Four and the "Afterburner" stems (review files proposed for round 15)
+- [x] M4 part B: Level 02's Stinger, Spine Turret, salvage M and overdrive, backdrop, Crane Four and the "Afterburner" stems approved as final in round 15
 - [ ] M4 and M5 parts final, each with its milestone (a round per M4 part, user decision)
 
 ## Open questions
@@ -219,3 +219,4 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - 2026-10-02: Concept round 13 closed (user decision): every part of the UI batch (U1–U3) and the Level 01 north arm approved as final; the docs whose art is now entirely final are `art: final` (HUD, main menu, debrief, pause, options), the docs that also cover later art (UI, hangar, briefing, characters, music) record the final assets in their Decisions and keep `chosen`.
 - 2026-10-02: M4 plan (user decision): each M4 part gets its production-art round right after it; part A's is round 14, the arsenal's effects (`tools/art/weapon_fx.py`), made by the production generator at once instead of placeholders.
 - 2026-10-02: Concept round 14 closed (user decision): M4 part A's effects and the HUD's weapon rows approved as final.
+- 2026-10-02: Concept round 15 closed (user decision): M4 part B's art (Level 02) approved as final.
