@@ -13,9 +13,10 @@ import vanguard.sim.SimStep;
 
 /**
  * The checks of a level's backdrop (design/art-direction): the ids resolve, at most one tile set
- * per layer and section, every section's atmosphere has a look, and, frame by frame over the
- * whole level, no more mid-size set pieces and strongly animated elements on screen than the art
- * direction allows and nothing moving faster than about 2 px per frame on its own.
+ * per layer and section and one in every section on an opaque layer, every section's atmosphere
+ * has a look, and, frame by frame over the whole level and its outro, no more mid-size set pieces
+ * and strongly animated elements on screen than the art direction allows and nothing moving faster
+ * than about 2 px per frame on its own.
  */
 final class BackdropCheck {
     /** Two or three mid-size set pieces per screen (Density). */
@@ -50,17 +51,28 @@ final class BackdropCheck {
         for (int i = 0; i < level.sections().size(); i++) {
             List<String> tiles = level.sections().get(i).tiles();
             Set<BackdropLayer> layers = new TreeSet<>();
+            boolean resolved = true;
             for (int j = 0; j < tiles.size(); j++) {
                 String field = "sections[" + i + "].tiles[" + j + "]";
                 BackdropData.TileSet tileSet = backdrop.tileSets().get(tiles.get(j));
                 if (tileSet == null) {
-                    ok = unknown(field, "tile set", tiles.get(j), backdrop.tileSets());
+                    resolved = unknown(field, "tile set", tiles.get(j), backdrop.tileSets());
                 } else if (!layers.add(tileSet.layer())) {
                     problem.accept(
                             field, "a second tile set on " + tileSet.layer().key());
-                    ok = false;
+                    resolved = false;
                 }
             }
+            if (resolved) {
+                for (BackdropLayer layer : BackdropLayer.values()) {
+                    if (layer.opaque() && !layers.contains(layer)) {
+                        problem.accept(
+                                "sections[" + i + "].tiles",
+                                "no tile set on " + layer.key() + ", which has to cover the whole screen");
+                    }
+                }
+            }
+            ok &= resolved;
         }
         return ok;
     }
@@ -146,13 +158,13 @@ final class BackdropCheck {
         return true;
     }
 
-    /** Samples every simulation step of the level for the density and the motion budget. */
+    /** Samples every simulation step of the level and its outro for the density and the motion budget. */
     private void checkScreens() {
         List<BackdropData.PlacedPiece> placed = backdrop.placed();
         boolean[] seen = new boolean[placed.size()];
         boolean densityReported = false;
         boolean motionReported = false;
-        int steps = SimStep.ticks(level.seconds());
+        int steps = SimStep.ticks(level.outroEnd());
         for (int step = 0; step <= steps; step++) {
             double t = step * SimStep.SECONDS;
             List<String> midSize = new ArrayList<>();

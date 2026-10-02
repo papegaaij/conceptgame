@@ -49,7 +49,7 @@ def materials(lit):
     lens = (Material((0.25, 0.04, 0.04), emission=(2.2, 0.3, 0.22)) if lit
             else Material((0.3, 0.06, 0.06), shininess=80, spec=0.8))
     return [Material((0.55, 0.24, 0.1), metal=0.2, shininess=30, spec=0.3),
-            Material((0.98, 0.66, 0.14), metal=0.1, shininess=40, spec=0.4, pattern=hazard_stripes),
+            Material((0.98, 0.66, 0.14), metal=0.0, shininess=8, spec=0.05, pattern=hazard_stripes),
             Material(B.f("UTC HULL", 1), metal=0.6, shininess=40, spec=0.5),
             lens]
 

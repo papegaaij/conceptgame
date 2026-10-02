@@ -59,7 +59,29 @@ left panel is about the mission (score, radio), the right panel about the ship.
 | Chain | Chain count, multiplier and draining window bar (see [scoring](../../systems/scoring/README.md)) |
 | Radio | 72×72 portrait with static on open/close, name, subtitle below the portrait up to 3 lines × 22 chars per page; a longer line is paged: each page typed out, then held 3 s (the last page 5 s); a radio line is at most **two pages** of word-wrapped lines (writing rule); queued messages; urgent warnings interrupt |
 | Progress | Level progress bar with a boss marker at the end |
+| Control prompts | The contextual prompts of the first levels (see [Level 01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md#launch-and-control-prompts)): one line each, the action on the left and its keys on the right (the four arrow keys read `ARROW KEYS`), at most three at once; the box is shown only while a prompt is pending |
 | Objective tracker | Shown for every primary or secondary objective; hidden in levels without one. Compact box above the progress bar: objective icon and short label (e.g. "DOCKS", "CRAWLERS", "BATTERIES", "HIVE NODES", "SHUTTLES", "RELAY"), then progress as pips or counters (docks, crawler pips, batteries A–D, hive nodes, shuttles, relay integrity bar). A pip flashes green on success and red on a loss or failure; the whole box flashes when the objective is won or lost. Used by [L02](../../campaign/act-1-first-contact/level-02-shipyard-burning/README.md), [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md) and [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md); the secondary objective of [L01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) shows a `KILLS n / 76` counter that turns `DONE` and flashes green when met |
+
+### Left panel layout
+
+The left panel (240×540) is a fixed vertical stack: each region is as tall as the most it can
+show and keeps its place whether it is filled or empty, so nothing moves or overlaps. Regions
+are 6 px apart, 16 px from the panel's top and bottom edges, and 208 px wide (16 px side
+margins). Label plates are 22 px tall; an LCD well has a 2 px dark frame and is 24 px tall for
+one line or 60 px for three (lines 18 px apart, text 6 px from the well's sides, so 196 px wide).
+Text never runs over its well: a line that is too long is cut off at the well's edge, and the
+content rules (radio pages of 3 × 22 characters, one-line prompts) keep that from happening.
+
+| Region | y (px from the top) | Contents |
+|---|---|---|
+| Mission | 16–60 | plate `MISSION nn`, the level's name below it |
+| Score | 66–116 | plate, one-line well, digits right-aligned |
+| Credits | 122–172 | plate, one-line well, digits right-aligned |
+| Chain | 178–206 | `CHAIN n` and the multiplier on one line, the window bar (6 px) below |
+| Radio | 212–378 | plate; the 72×72 portrait with the speaker's name beside it (one word per line, 126 px wide); 4 px below, the three-line subtitle well |
+| Control prompts | 384–448 | three-line well: action left (88 px column), keys right |
+| Objective tracker | 454–482 | one-line well: label left, count right |
+| Progress | 488–524 | plate, progress bar (10 px) |
 
 ### Right panel (ship)
 
@@ -111,6 +133,7 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 - [ ] Side panel frames from the UI kit
 - [x] Left panel: mission, score, credits, chain, radio, progress
+- [x] Left panel layout: fixed regions without overlap; texts cut off at their well; a test checks the regions and that every prompt and radio line of the content fits, measured with the font's metrics
 - [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter done)
 - [ ] Right panel: armour, shield, power, weapons, overdrive, special, escort
 - [ ] Radio message queue with portraits, priority interrupts
@@ -149,3 +172,13 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   one page was the alternative.
 - 2026-10-02: The two-page rule counts word-wrapped lines, not characters (user decision); Level 07's t=95 line (3 pages) is shortened when Level 07 is built in M4.
 - 2026-10-02: Radio pages hold twice as long (3 s, the last page 5 s; was 1.5 s and 2.5 s) and edge warnings start at least 3 s ahead (was 1.5 s), user decision after playing Level 01: with the eyes on the action there was too little time to read the radio, and the side and rear warnings were easy to miss.
+- 2026-10-02: Left panel layout (after playing Level 01: "crowded, the instructions overflow
+  their box, the boxes are crammed together"): a fixed stack of regions with one gap (see *Left
+  panel layout*), the level's name as text under the mission plate as on `hud-r08-a.png`, and
+  every text cut off at its well instead of running over it. The control prompts get their own
+  three-line region between the radio and the objective tracker: the doc only says "side HUD";
+  prompts also appear mid-level next to an objective tracker (L02, L04's escort, L12), so they
+  cannot take the tracker's place, and the right panel fills up with power, special and escort.
+  Prompts are one line each (action and keys), with the arrow keys as `ARROW KEYS` (the four
+  key names did not fit). Not chosen: prompts in the play field (the play field stays clean).
+- 2026-10-02: Control prompts keep their own region in the left panel under the radio (user decision); they appear mid-level next to objective trackers too, so they cannot share the tracker's place.

@@ -1,24 +1,34 @@
 package vanguard.game.render;
 
+import static vanguard.game.render.MissionLayout.FRAME;
+import static vanguard.game.render.MissionLayout.LINE;
+import static vanguard.game.render.MissionLayout.PAD;
+import static vanguard.game.render.MissionLayout.PAGE_WELL;
+import static vanguard.game.render.MissionLayout.PLATE;
+import static vanguard.game.render.MissionLayout.PORTRAIT;
+import static vanguard.game.render.MissionLayout.TEXT_DROP;
+import static vanguard.game.render.MissionLayout.TEXT_WIDTH;
+import static vanguard.game.render.MissionLayout.WELL;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import java.util.List;
 import java.util.Locale;
+import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
 import vanguard.sim.Sortie;
 
 /**
  * The left HUD panel (design/ui/hud, mission): mission number and name, score, credits (the
  * launch balance plus what the level has earned), the chain with its draining window, the radio
- * with the speaker's portrait and the typed subtitle, the control prompts of the first section,
- * the objective tracker for the secondary objective and the level progress.
+ * with the speaker's portrait and the typed subtitle, the control prompts, the objective tracker
+ * for the secondary objective and the level progress, each in its region of the
+ * {@link MissionLayout}; text is cut off at the end of its well rather than run over it.
  */
 final class MissionPanel {
     private static final int X = HudKit.INSET;
-    private static final int PORTRAIT = 72;
-    private static final int LINE = 18;
-    private static final int PROMPT_LINE = 15;
+    private static final int WIDTH = HudKit.INNER_WIDTH;
     /** The tracker flashes this many frames after the objective is met. */
     private static final int FLASH_FRAMES = 90;
 
@@ -50,64 +60,99 @@ final class MissionPanel {
         this.launchBalance = launchBalance;
     }
 
-    void draw(SpriteBatch batch, Sortie sortie, RadioQueue radio, List<String> prompts) {
+    void draw(SpriteBatch batch, Sortie sortie, RadioQueue radio, List<PromptTexts.Text> prompts) {
         frame++;
         kit.panel(batch, 0);
-        int width = HudKit.INNER_WIDTH;
-        kit.label(batch, mission, X, 524);
-        kit.lcd(batch, X, 472, width, 30);
-        kit.text(batch, name, HudKit.READOUT, X + 8, 494);
+        int top = MissionLayout.MISSION.yTop();
+        plate(batch, mission, top);
+        kit.text(batch, name, HudKit.LABEL, X, top - PLATE - 6, WIDTH);
 
-        kit.label(batch, "SCORE", X, 462);
-        kit.lcd(batch, X, 410, width, 30);
-        kit.textRight(batch, grouped(sortie.score()), HudKit.READOUT, X, 432, width - 8);
-        kit.label(batch, "CREDITS", X, 400);
-        kit.lcd(batch, X, 348, width, 30);
-        kit.textRight(batch, grouped(launchBalance + sortie.credits()), HudKit.AMBER, X, 370, width - 8);
+        readout(batch, "SCORE", MissionLayout.SCORE, grouped(sortie.score()), HudKit.READOUT);
+        readout(batch, "CREDITS", MissionLayout.CREDITS, grouped(launchBalance + sortie.credits()), HudKit.AMBER);
 
-        kit.text(batch, "CHAIN " + sortie.chain(), HudKit.LABEL, X, 338);
-        String multiplier = String.format(Locale.ROOT, "x%.1f", sortie.chainMultiplier());
-        kit.textRight(batch, multiplier, HudKit.LABEL, X, 338, width);
-        kit.bar(batch, CHAIN, CHAIN_EMPTY, X, 312, width, 6, sortie.chainWindow());
-
+        drawChain(batch, sortie);
         drawRadio(batch, radio);
         drawPrompts(batch, prompts);
         drawTracker(batch, sortie);
 
-        kit.label(batch, "PROGRESS", X, 56);
+        MissionLayout.Region progress = MissionLayout.PROGRESS;
+        plate(batch, "PROGRESS", progress.yTop());
         kit.bar(
                 batch,
                 PROGRESS,
                 PROGRESS_EMPTY,
                 X,
-                18,
-                width,
-                10,
+                progress.yBottom() + FRAME,
+                WIDTH,
+                MissionLayout.PROGRESS_BAR,
                 sortie.levelSeconds() / sortie.script().seconds());
     }
 
+    /** A label plate whose top is at {@code top}. */
+    private void plate(SpriteBatch batch, String label, int top) {
+        kit.label(batch, label, X, top - 4);
+    }
+
+    /** An LCD well of {@code height} inside a frame whose top is at {@code top}; returns the well's top. */
+    private int well(SpriteBatch batch, int top, int height) {
+        int wellTop = top - FRAME;
+        kit.lcd(batch, X, wellTop - height, WIDTH, height);
+        return wellTop;
+    }
+
+    private void readout(SpriteBatch batch, String label, MissionLayout.Region region, String value, Color colour) {
+        plate(batch, label, region.yTop());
+        int wellTop = well(batch, region.yTop() - PLATE, WELL);
+        kit.textRight(batch, value, colour, X + PAD, wellTop - TEXT_DROP, TEXT_WIDTH);
+    }
+
+    private void drawChain(SpriteBatch batch, Sortie sortie) {
+        MissionLayout.Region region = MissionLayout.CHAIN;
+        int y = region.yTop() - 2;
+        kit.text(batch, "CHAIN " + sortie.chain(), HudKit.LABEL, X, y, WIDTH);
+        String multiplier = String.format(Locale.ROOT, "x%.1f", sortie.chainMultiplier());
+        kit.textRight(batch, multiplier, HudKit.LABEL, X, y, WIDTH);
+        kit.bar(
+                batch,
+                CHAIN,
+                CHAIN_EMPTY,
+                X,
+                region.yBottom() + FRAME,
+                WIDTH,
+                MissionLayout.CHAIN_BAR,
+                sortie.chainWindow());
+    }
+
     private void drawRadio(SpriteBatch batch, RadioQueue radio) {
-        int width = HudKit.INNER_WIDTH;
-        kit.label(batch, "RADIO", X, 300);
-        kit.lcd(batch, X, 202, PORTRAIT, PORTRAIT);
-        kit.lcd(batch, X, 146, width, 3 * LINE + 2);
+        int top = MissionLayout.RADIO.yTop();
+        plate(batch, "RADIO", top);
+        int portraitTop = top - PLATE - FRAME;
+        int portraitY = portraitTop - PORTRAIT;
+        kit.lcd(batch, X, portraitY, PORTRAIT, PORTRAIT);
+        int subtitleTop = well(batch, portraitY - FRAME - 4, PAGE_WELL);
         if (radio.current().isEmpty()) {
             return;
         }
         RadioQueue.Message message = radio.current().get();
-        TextureRegion portrait = portrait(message.speaker());
-        batch.draw(portrait, X, 202);
+        batch.draw(portrait(message.speaker()), X, portraitY);
         Color colour = message.distorted() ? CHOIR : HudKit.AMBER;
         String[] names = message.speaker().toUpperCase(Locale.ROOT).split(" ", 2);
+        int nameX = X + PORTRAIT + MissionLayout.NAME_GAP;
         for (int i = 0; i < names.length; i++) {
-            kit.text(batch, names[i], colour, X + PORTRAIT + 10, 270 - i * LINE);
+            kit.text(batch, names[i], colour, nameX, portraitTop - 2 - i * LINE, MissionLayout.NAME_WIDTH);
         }
         List<String> lines = radio.visibleLines();
         Color subtitle = message.distorted() ? CHOIR : HudKit.READOUT;
         for (int i = 0; i < lines.size(); i++) {
             // A distorted transmission jitters a pixel now and then.
             float jitter = message.distorted() && (frame / 3 + i) % 7 == 0 ? 1 : 0;
-            kit.text(batch, lines.get(i), subtitle, X + 6 + jitter, 198 - i * LINE);
+            kit.text(
+                    batch,
+                    lines.get(i),
+                    subtitle,
+                    X + PAD + jitter,
+                    subtitleTop - TEXT_DROP - i * LINE,
+                    TEXT_WIDTH - jitter);
         }
     }
 
@@ -121,13 +166,18 @@ final class MissionPanel {
         };
     }
 
-    private void drawPrompts(SpriteBatch batch, List<String> prompts) {
+    private void drawPrompts(SpriteBatch batch, List<PromptTexts.Text> prompts) {
         if (prompts.isEmpty()) {
             return;
         }
-        kit.lcd(batch, X, 142 - prompts.size() * PROMPT_LINE, HudKit.INNER_WIDTH, prompts.size() * PROMPT_LINE);
-        for (int i = 0; i < prompts.size(); i++) {
-            kit.text(batch, prompts.get(i), HudKit.LABEL, X + 6, 140 - i * PROMPT_LINE);
+        int wellTop = well(batch, MissionLayout.PROMPTS.yTop(), PAGE_WELL);
+        int keysX = X + PAD + MissionLayout.PROMPT_ACTION_WIDTH;
+        int keysWidth = TEXT_WIDTH - MissionLayout.PROMPT_ACTION_WIDTH;
+        for (int i = 0; i < Math.min(prompts.size(), MissionLayout.PROMPT_LINES); i++) {
+            PromptTexts.Text prompt = prompts.get(i);
+            int y = wellTop - TEXT_DROP - i * LINE;
+            kit.text(batch, prompt.action(), HudKit.LABEL, X + PAD, y, MissionLayout.PROMPT_ACTION_WIDTH);
+            kit.textRight(batch, prompt.keys(), HudKit.READOUT, keysX, y, keysWidth);
         }
     }
 
@@ -138,14 +188,15 @@ final class MissionPanel {
             metFrame = -1;
         }
         boolean flash = metFrame >= 0 && frame - metFrame < FLASH_FRAMES && (frame - metFrame) / 8 % 2 == 0;
-        kit.lcd(batch, X, 70, HudKit.INNER_WIDTH, 22);
+        int wellTop = well(batch, MissionLayout.OBJECTIVE.yTop(), WELL);
         if (flash) {
-            kit.fill(batch, SUCCESS, X, 70, HudKit.INNER_WIDTH, 22);
+            kit.fill(batch, SUCCESS, X, wellTop - WELL, WIDTH, WELL);
         }
         Color colour = flash ? HudKit.LCD : sortie.secondaryMet() ? SUCCESS : HudKit.LABEL;
-        kit.text(batch, "KILLS", colour, X + 6, 88);
+        int y = wellTop - TEXT_DROP;
+        kit.text(batch, "KILLS", colour, X + PAD, y, TEXT_WIDTH);
         String count = sortie.secondaryMet() ? "DONE" : sortie.kills() + " / " + sortie.requiredKills();
-        kit.textRight(batch, count, colour, X, 88, HudKit.INNER_WIDTH - 6);
+        kit.textRight(batch, count, colour, X + PAD, y, TEXT_WIDTH);
     }
 
     /** A number with thin-space thousands groups, as on the HUD mock: 1 204 350. */

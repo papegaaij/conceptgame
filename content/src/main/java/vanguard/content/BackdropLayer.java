@@ -19,6 +19,14 @@ public enum BackdropLayer {
     @JsonProperty("high-air")
     HIGH_AIR;
 
+    /**
+     * Whether the layer has to cover the whole screen: the back of the stack, which nothing is
+     * drawn behind (design/art-direction, Parallax layer model).
+     */
+    public boolean opaque() {
+        return this == DEEP;
+    }
+
     /** The name in the documents and data files. */
     public String key() {
         return name().toLowerCase(Locale.ROOT).replace('_', '-');

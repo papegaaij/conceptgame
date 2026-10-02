@@ -21,6 +21,7 @@ import vanguard.game.render.Hud;
 import vanguard.game.render.LevelRenderer;
 import vanguard.sim.FixedStepClock;
 import vanguard.sim.LevelScript;
+import vanguard.sim.Rules;
 import vanguard.sim.SimEvents;
 import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
@@ -42,8 +43,6 @@ public final class LevelScreen implements GameScreen {
     private static final float SLOW_MOTION_SECONDS = 1;
 
     private static final float SLOW_MOTION_RATE = 0.5f;
-    /** After the level end: time for Okafor's line before the debrief. */
-    private static final float OUTRO_SECONDS = 5;
     /** The ship's blue shimmer fades over this many steps after a shield hit. */
     private static final int SHIMMER_TICKS = 8;
 
@@ -85,11 +84,12 @@ public final class LevelScreen implements GameScreen {
         this.services = services;
         level = services.content.level(LEVEL);
         Difficulty difficulty = services.difficulty;
+        Rules rules = SimSpecs.rules(services.content, LEVEL, difficulty);
         sortie = new Sortie(
                 SEED,
                 SimSpecs.starterLoadout(services.content, difficulty),
                 SimSpecs.level(services.content, LEVEL, difficulty),
-                SimSpecs.rules(services.content, LEVEL, difficulty));
+                services.invulnerable ? rules.withInvulnerableShip() : rules);
         commands = new FlightCommands(services.controls);
         looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites);
         sounds = new FlightSounds(services.sfx, looks);
@@ -192,7 +192,7 @@ public final class LevelScreen implements GameScreen {
                 }
                 case LEVEL_COMPLETE -> {
                     music.fadeOut();
-                    outro = OUTRO_SECONDS;
+                    outro = (float) LevelData.OUTRO_SECONDS;
                 }
                 case SHOT_FIRED,
                         ENEMY_FIRED,
@@ -226,7 +226,7 @@ public final class LevelScreen implements GameScreen {
     }
 
     /** The control prompts show in the first section, once the launch is over. */
-    private List<String> visiblePrompts() {
+    private List<PromptTexts.Text> visiblePrompts() {
         return sortie.launching() || sortie.section() != 1 ? List.of() : promptTexts.of(prompts.pending());
     }
 

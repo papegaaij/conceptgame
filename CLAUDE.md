@@ -136,7 +136,9 @@ versions in `gradle/libs.versions.toml`.
   exits after `<s>` seconds, `--settings` uses another settings file than the one in the
   platform's config directory. Automated runs always pass `--bench`. `--difficulty
   easy|medium|hard` (default medium) picks the difficulty until the menus exist (M3);
-  `--debug-speed <n>` runs the simulation n times faster for testing.
+  `--debug-speed <n>` runs the simulation n times faster and the debug option `--invulnerable`
+  lets nothing hit the ship (to see a level to its end, e.g. with `--bench` for captures); both
+  are for testing only.
 - `./gradlew :desktop:installDist` – the start script in `desktop/build/install/terran-vanguard/`.
 - `./gradlew :desktop:packageLinuxX64` (also `packageWinX64`, `packageMacX64`, `packageMacM1`) –
   Construo bundles with a trimmed JRE in `desktop/build/construo/dist/`.

@@ -68,7 +68,7 @@ drifting low-air cloud decks and, in section 4, the burning platforms.
 | 2. First Wave | 20–60 | 2,600–7,800 | 130 | light | `deep`: Earth, the Moon small in the distance. `ground`: open dock frames. `low-air`: thin cloud-deck wisps. | Shooting basics; Skitters (harmless rammers) first, then the first Needlers that shoot back. |
 | 3. Yard Crossing | 60–110 | 7,800–14,300 | 130 | light | `ground`: gantries, cranes, a half-built cruiser hull, cargo containers (destructible). `low-air`: lattice beams and crane jibs passing under the player. | Ground layer as scenery and loot; the first side entry; the secret beacon. |
 | 4. Pursuit | 110–160 | 14,300–20,800 | 130 | medium | `ground`: yard perimeter, defence platforms burning. `low-air`: cloud decks drifting between the yard and the play plane. `high-air`: thin spark streaks. | Mixed waves, one warned rear wave, rising density. |
-| 5. Scout Leader | 160–180 | 20,800–23,400 | 130 | light | `deep`: open space past the yard; the Vrell strike group's glow on the horizon. `ground`: the last perimeter platform. | Final set piece: Needler circle plus Skitter streams. Then the level ends. |
+| 5. Scout Leader | 160–180 | 20,800–23,400 | 130 | clear | `deep`: open space past the yard; the Vrell strike group's glow on the horizon. `ground`: the last perimeter platform. | Final set piece: Needler circle plus Skitter streams. Then the level ends. |
 <!-- /data -->
 
 ### Backdrop
@@ -87,7 +87,7 @@ section boundary (`ramp`). The art is a placeholder ([backdrop_l01.py](../../../
 | 2. First Wave | light: banks-light, wisps, haze 8 % | `earth` | | `dock-frames`; dock-frame 27–33 s; dock-frame 40–46 s; dock-frame 51–57 s; crossbeam 60–64 s | | |
 | 3. Yard Crossing | light: banks-light, wisps, haze 8 % | `earth` | | `gantry-rails`; bridge-crane 68–72 s; cruiser-hull 78–86 s; bridge-crane 90–94 s; crossbeam 110–114 s | lattice-beam 64–68 s; crane-jib 72–76 s; lattice-beam 83–87 s; crane-jib 95–99 s; lattice-beam 101–105 s | |
 | 4. Pursuit | medium: banks-medium, wisps, haze 16 % | `earth`; earth-limb 143–180 s | | `perimeter`; platform-burning 115–121 s; platform-burning 131–137 s; platform-burning 147–153 s; crossbeam 160–164 s | | `spark-streaks` |
-| 5. Scout Leader | light: banks-light, wisps, haze 8 % | `earth`; vrell-glow 166–180 s | | platform 165–171 s | | |
+| 5. Scout Leader | clear: wisps, haze 0 % | `earth`; vrell-glow 167–180 s | | platform 165–171 s | | |
 <!-- /data -->
 
 ### Launch and control prompts
@@ -297,3 +297,14 @@ curve. Bounties from the stat blocks: Skitter 5, Needler 12.
   readability rule of the art direction, as pre-rendered placeholder sprites (rust body,
   amber/black hazard bands, 1 px light rim, a glint every 2 s, white hit flash, damaged frame
   after the first hit, an 8-frame break-apart; the beacon's red lens blinks at 1 Hz).
+- 2026-10-02: The gap at the top of the screen in the last seconds (user, after playing) came from
+  the 5 s outro after the level end, in which the scroll runs on: the Vrell glow's top edge (from
+  181 s) and then the opaque top edge of Earth's limb (from 184 s), above which the `earth` tiles
+  showed, came onto the screen. Earth's limb is now 720 px tall (the crest still enters at the
+  top at 158 s and is 200 px above the bottom at 180 s) and the Vrell glow 300 px, placed so both
+  top edges stay above the screen until 186 s. The same rule caught a 19 px notch of space at the
+  dawn limb's top-left corner (68–103 s): Earth's curve now covers its whole top edge and the
+  overlay fades out over its top 24 rows; the Moon moved 6 px left (x = 44) to stay in the space
+  beside the limb. The deep-layer rule of the [art direction](../../../art-direction/README.md#parallax-layer-model)
+  is now checked by the tests.
+- 2026-10-02: Section 5 (Scout Leader) is `clear` instead of `light` (user decision): past Earth's limb there is no cloud deck, so the low-air banks no longer drift over open space in the outro.

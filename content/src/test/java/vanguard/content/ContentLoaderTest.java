@@ -132,11 +132,20 @@ class ContentLoaderTest {
     }
 
     @Test
+    void aSectionWithoutADeepTileSetIsRejected() {
+        assertProblem(
+                LEVEL_01,
+                text -> text.replace("tiles: [earth, dock-frames]", "tiles: [dock-frames]"),
+                "design/" + LEVEL_01 + ": sections[1].tiles: no tile set on deep, which has to cover the whole screen");
+    }
+
+    @Test
     void anAtmosphereWithoutALookIsRejected() {
         assertProblem(
                 LEVEL_01,
-                text -> text.replace("    clear: {wisps: wisps, haze: 0}\n", ""),
-                "design/" + LEVEL_01 + ": sections[0].atmosphere: no backdrop.atmosphere.clear");
+                // Level 01 defines no look for heavy weather; one section asking for it is an error.
+                text -> text.replaceFirst("atmosphere: clear", "atmosphere: heavy"),
+                "design/" + LEVEL_01 + ": sections[0].atmosphere: no backdrop.atmosphere.heavy");
     }
 
     @Test
@@ -171,7 +180,7 @@ class ContentLoaderTest {
     void aSetPieceThatIsNeverOnScreenIsRejected() {
         assertProblem(
                 LEVEL_01,
-                text -> text.replace("{piece: moon, t: 21.2, x: 50}", "{piece: moon, t: 21.2, x: 900}"),
+                text -> text.replace("{piece: moon, t: 21.2, x: 44}", "{piece: moon, t: 21.2, x: 900}"),
                 "design/" + LEVEL_01 + ": backdrop.placed[5]: 'moon' is never on screen");
     }
 

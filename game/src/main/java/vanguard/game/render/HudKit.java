@@ -59,9 +59,19 @@ final class HudKit {
         font.draw(batch, text, x, y);
     }
 
+    /** Text left-aligned in {@code width}, cut off at its end if it is longer. */
+    void text(SpriteBatch batch, String text, Color colour, float x, float y, float width) {
+        fitted(batch, text, colour, x, y, width, Align.left);
+    }
+
+    /** Text right-aligned in {@code width}, cut off at its end if it is longer. */
     void textRight(SpriteBatch batch, String text, Color colour, float x, float y, float width) {
+        fitted(batch, text, colour, x, y, width, Align.right);
+    }
+
+    private void fitted(SpriteBatch batch, String text, Color colour, float x, float y, float width, int align) {
         font.setColor(colour);
-        font.draw(batch, text, x, y, width, Align.right, false);
+        font.draw(batch, text, x, y, 0, text.length(), width, align, false, "");
     }
 
     /** A bar with its bottom at {@code y}, filled to {@code share} (0..1). */

@@ -26,6 +26,8 @@ public final class GameServices implements Disposable {
     public final ControlSettings controls;
     /** The difficulty levels are flown at; chosen at launch until the new-game menu exists (M3). */
     public final Difficulty difficulty;
+    /** A debug option for testing ({@code --invulnerable}): nothing hits the ship. */
+    public final boolean invulnerable;
 
     public final Content content;
     public final Sprites sprites;
@@ -35,12 +37,19 @@ public final class GameServices implements Disposable {
 
     public final FlashShader flash;
 
-    GameServices(Files files, Audio audio, ActionInput input, ControlSettings controls, Difficulty difficulty) {
+    GameServices(
+            Files files,
+            Audio audio,
+            ActionInput input,
+            ControlSettings controls,
+            Difficulty difficulty,
+            boolean invulnerable) {
         this.files = files;
         this.audio = audio;
         this.input = input;
         this.controls = controls;
         this.difficulty = difficulty;
+        this.invulnerable = invulnerable;
         content = ContentLoader.fromClasspath();
         sprites = new Sprites(files);
         sfx = new SfxBank(audio, files);

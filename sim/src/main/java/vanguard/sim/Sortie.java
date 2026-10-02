@@ -113,7 +113,7 @@ public final class Sortie {
         driftPickups();
         hitEnemies();
         hitGround();
-        if (flying() && !complete) {
+        if (flying() && !complete && !rules.invulnerableShip()) {
             hitShip();
             ramShip();
         }

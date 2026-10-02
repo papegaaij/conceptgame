@@ -3,6 +3,7 @@ package vanguard.game.render;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.List;
+import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
 import vanguard.sim.Sortie;
 
@@ -28,7 +29,12 @@ public final class Hud {
      * @param weaponLevel its upgrade level, 1..5
      */
     public void draw(
-            SpriteBatch batch, Sortie sortie, RadioQueue radio, List<String> prompts, String weapon, int weaponLevel) {
+            SpriteBatch batch,
+            Sortie sortie,
+            RadioQueue radio,
+            List<PromptTexts.Text> prompts,
+            String weapon,
+            int weaponLevel) {
         mission.draw(batch, sortie, radio, prompts);
         ship.draw(batch, sortie.ship().defences(), weapon, weaponLevel);
         batch.setColor(1, 1, 1, 1);

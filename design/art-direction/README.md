@@ -160,7 +160,8 @@ All sizes are 1.5× the round 01 values (640×360). The enemy rows match the **s
   90s tile art; it also keeps them calm) and are hazed towards the setting colour with depth.
 - **Faction visual language**
   - **UTC / CDF** (humanity): clean grey/white hard-surface hulls, blue and orange accents,
-    panel lines, blue-white engines.
+    panel lines, blue-white engines. Structures on the ground layer mute the orange (readability
+    rule 7).
   - **Vrell** (aliens): grown chitin in violets and teals, no straight lines, wet specular,
     bioluminescent glows (teal and pink) that mark weak points.
   - **Jovian Ascendancy** (traitors): angular faceted hulls in black and gold, red sensor lights.
@@ -187,6 +188,12 @@ faster.
 | `low-air` | low flyers, traffic, drifting wreckage, dust plumes, low clouds and smoke | 1.3–1.5 (default 1.35) | low flyers | slightly larger than ground scale; shadow offset (9, 13) |
 | `air` | the **play plane**: player, wingman, most enemies, all bullets, pickups | screen space | most enemies | shadow offset (21, 30) onto the ground layer |
 | `high-air` | clouds, smoke, debris and ice streaks in front of the player; rare huge overhead passes (Leviathan, Brood Carrier) | 2.0–2.5 (default 2.2) | rare huge set-piece enemies only | weather and decoration: larger, blurred or drawn as motion streaks, **at most ~40 % opacity** over the play plane, never hides bullets; enemies: fully opaque, scaled per the perspective rule, cast shadows |
+
+**Deep layer coverage**: `deep` is the back of the stack and covers the whole screen from the
+level start until the debrief (the outro after the level end included): every section has a tile
+set on it, and wherever a set piece's edge crosses the screen the piece is transparent along
+that edge (it fades out, or the edge stays off the screen); otherwise the tile set shows through
+beyond the edge as a gap.
 
 **Ground scroll speed** (960×540): calm levels 120–140 px/s (about a quarter screen per second),
 normal 150–170 px/s, fast or chase levels 190–240 px/s. The fastest visible layer then moves
@@ -269,7 +276,9 @@ every scene gets a clearly visible **atmosphere layer** and, where the setting a
 
 1. **Enemy bullets pop on every background**: bright white core, saturated ring, 1 px dark rim.
    Their hues (magenta/pink, orange) are reserved: no background uses them at that saturation.
-   Minimum 8 px. Each bullet type has its own shape (orb, needle, ring, beam). In palette B
+   What sets them apart is the **look, not only the hue**: a bullet is saturated, glows and has a
+   bright core, while the warm markings of loot targets (rule 7) are dull matte amber with black
+   hazard stripes and never glow. Minimum 8 px. Each bullet type has its own shape (orb, needle, ring, beam). In palette B
    the orbs are magenta `FF40FF` and the needles yellow `FFFF40`, both on a `300030` rim.
 2. **Player shots** are blue / white / cyan and may be semi-transparent; they never share a hue
    with enemy bullets.
@@ -289,6 +298,14 @@ every scene gets a clearly visible **atmosphere layer** and, where the setting a
    structures, a **1 px light rim**, a short **glint about every 2 s**, a white **hit flash** and
    a visible **damage state** from the first hit, and a clear **break-apart** when destroyed.
    Secrets additionally **blink** and are at least as large as a container's marking.
+   - **Warm amber on the ground layer is reserved for loot targets.** Structures and scenery on
+     it use muted accents instead: rust, beige or desaturated ochre, well below the loot amber in
+     saturation and brightness. The UTC kit's orange accent (palette B `ff7a2a`) becomes beige
+     ochre `a48366` there (palette B's JOVIAN `ffb840` mixed 40/60 with ASTEROID BELT `686080`);
+     small lit lamps and red warning lights stay.
+   - **Loot markings are matte, bullets glow** (see rule 1): the markings are dull amber
+     (`faa824` in the placeholders) under black hazard stripes, lit like the rest of the target;
+     only the glint shines. They never get a bright core or a glow.
 
 ## Concept art
 
@@ -414,11 +431,6 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 
 ## Open questions
 
-- **Warm accents on structures** (readability rule 7): the station kit's UTC accents are orange
-  (the faction's "blue and orange accents"), so in Level 01 the gantry rails' walkway strips and
-  the bridge cranes' end trucks are as warm as the loot markings and larger than a container.
-  Keep them, or cool them down where loot sits?
-
 - **Perspective towers**: keep the true-perspective roof projection of parallax B, or use purely
   orthographic pre-rendered tiles for all ground structures?
 
@@ -462,3 +474,11 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
   Level 01: the code-drawn containers and beacon did not stand out from the yard): warm hazard
   markings against cool structures, 1 px light rim, glint every ~2 s, hit flash, damage state,
   break-apart; secrets also blink and are at least as large as a container's marking.
+- 2026-10-02: Warm accents on structures resolved (user decision): warm amber on the ground layer
+  is reserved for loot targets; structures and scenery use muted accents (the UTC kit's orange
+  `ff7a2a` becomes beige ochre `a48366`). Level 01's backdrop placeholders were re-rendered with
+  it (`tools/concept/backdrop_l01.py`); the chosen concept scenes keep their orange.
+- 2026-10-02: Bullets and loot told apart by look, both reserved-colour rules kept (user
+  decision): enemy bullets are saturated and glowing with a bright core (rule 1); loot markings
+  are dull matte amber with black hazard stripes, and only their glint shines (rule 7).
+- 2026-10-02: Deep layer coverage rule (a tile set in every section, no visible set-piece edge on `deep` until the debrief), after a gap at the end of Level 01's outro; the content loader and the backdrop asset test check it.

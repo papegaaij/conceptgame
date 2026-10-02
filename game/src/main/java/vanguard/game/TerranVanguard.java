@@ -30,6 +30,7 @@ public final class TerranVanguard extends ApplicationAdapter {
     private final ControlSettings controls;
     private final Difficulty difficulty;
     private final float timeScale;
+    private final boolean invulnerable;
     private final Optional<BenchRun> bench;
     private final DeviceState devices = new GdxDevices();
     private SpriteBatch batch;
@@ -42,6 +43,7 @@ public final class TerranVanguard extends ApplicationAdapter {
      * @param controls the control settings from the settings file
      * @param difficulty the difficulty levels are flown at
      * @param timeScale a debug option: game time runs this many times faster than real time (1 = normal)
+     * @param invulnerable a debug option: nothing hits the ship
      * @param benchSeconds fly Level 01, exit after this many seconds and log the frame count;
      *     0 starts at the title screen and runs until quit
      */
@@ -50,11 +52,13 @@ public final class TerranVanguard extends ApplicationAdapter {
             ControlSettings controls,
             Difficulty difficulty,
             float timeScale,
+            boolean invulnerable,
             double benchSeconds) {
         this.displayModes = displayModes;
         this.controls = controls;
         this.difficulty = difficulty;
         this.timeScale = timeScale;
+        this.invulnerable = invulnerable;
         this.bench = benchSeconds > 0 ? Optional.of(new BenchRun(benchSeconds)) : Optional.empty();
     }
 
@@ -63,7 +67,8 @@ public final class TerranVanguard extends ApplicationAdapter {
         Gdx.app.log("gl", Gdx.gl.glGetString(GL20.GL_RENDERER) + " / " + Gdx.gl.glGetString(GL20.GL_VERSION));
         batch = new SpriteBatch();
         pixelScreen = new PixelScreen();
-        services = new GameServices(Gdx.files, Gdx.audio, new ActionInput(Bindings.defaults()), controls, difficulty);
+        services = new GameServices(
+                Gdx.files, Gdx.audio, new ActionInput(Bindings.defaults()), controls, difficulty, invulnerable);
         screens = new ScreenFlow(bench.isPresent() ? new LevelScreen(services) : new TitleScreen(services));
     }
 

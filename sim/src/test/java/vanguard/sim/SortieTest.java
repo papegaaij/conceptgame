@@ -170,6 +170,18 @@ class SortieTest {
     }
 
     @Test
+    void nothingHitsTheShipUnderTheInvulnerableDebugRule() {
+        var sortie = new Sortie(
+                1, TestSpecs.LOADOUT, level(10, List.of(skitterAt(0))), TestSpecs.RULES.withInvulnerableShip());
+
+        run(sortie, 3 * SimStep.PER_SECOND, Command.NONE);
+
+        assertEquals(0, sortie.kills(), "the Skitter flies through the ship");
+        assertEquals(20, sortie.ship().defences().shield());
+        assertEquals(60, sortie.ship().defences().armour());
+    }
+
+    @Test
     void aDestroyedShipRestartsTheLevelAndLosesTheAttemptsEarnings() {
         List<WaveSpec> waves = new ArrayList<>();
         for (int i = 0; i < 40; i++) {

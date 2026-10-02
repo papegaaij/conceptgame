@@ -36,6 +36,7 @@ public final class DesktopLauncher {
                 settingsFile.readControls(),
                 options.difficulty(),
                 options.debugSpeed(),
+                options.invulnerable(),
                 options.benchSeconds());
         new Lwjgl3Application(game, configuration(settings));
     }

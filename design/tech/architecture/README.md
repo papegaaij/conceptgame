@@ -365,3 +365,16 @@ Screenshot tests are left out until there is a need.
   comes as `glowing()` (additive) and `solid()`; a destroyed container's break-apart is a solid
   effect placed in ground coordinates (drawn at minus the ground scroll, so it rides the ground)
   above the ground objects and below the low-air layer.
+- 2026-10-02: Backdrop and HUD fixes after playing Level 01. `LevelData.OUTRO_SECONDS` (5 s: the
+  scroll runs on after the level end until the debrief) is shared by `LevelScreen` and the backdrop
+  checks; `BackdropLayer.opaque()` marks `deep`, on which `BackdropCheck` wants a tile set in every
+  section, and its density and motion checks now run through the outro; `BackdropAssetsTest`
+  steps the level and its outro and fails when a set piece on an opaque layer shows a
+  non-transparent edge on screen (the deep-layer coverage rule of the art direction). The left
+  HUD panel's regions are `vanguard.game.render.MissionLayout` (y ranges as in the HUD's *Left
+  panel layout*), `HudKit` cuts text off at a width, and `MissionLayoutTest` measures the
+  content's prompts and radio lines with the built-in font's metrics, read without a GL context
+  (`BitmapFontData` from the classpath). Debug launch option `--invulnerable` (with
+  `--debug-speed`, for testing only): `Rules.withInvulnerableShip()` lets enemy bullets and rammers
+  pass through the ship; it is off unless the option is given, so play and the replay are
+  unchanged.

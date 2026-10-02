@@ -129,7 +129,7 @@ public final class RadioQueue {
     }
 
     /** Word-wraps a line into lines of at most {@link #LINE_CHARS}; longer words are cut. */
-    static List<String> wrap(String text) {
+    public static List<String> wrap(String text) {
         List<String> lines = new ArrayList<>();
         StringBuilder line = new StringBuilder();
         for (String word : text.split(" ")) {

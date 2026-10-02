@@ -11,21 +11,21 @@ import vanguard.content.Difficulty;
 class LaunchOptionsTest {
     @Test
     void runsUntilQuitWithTheDefaultSettingsFileWithoutOptions() {
-        assertEquals(new LaunchOptions(0, Optional.empty(), Difficulty.MEDIUM, 1), LaunchOptions.parse());
+        assertEquals(new LaunchOptions(0, Optional.empty(), Difficulty.MEDIUM, 1, false), LaunchOptions.parse());
     }
 
     @Test
     void parsesBenchAndSettings() {
         assertEquals(
-                new LaunchOptions(3, Optional.of(Path.of("smoke.properties")), Difficulty.MEDIUM, 1),
+                new LaunchOptions(3, Optional.of(Path.of("smoke.properties")), Difficulty.MEDIUM, 1, false),
                 LaunchOptions.parse("--bench", "3", "--settings", "smoke.properties"));
     }
 
     @Test
     void parsesTheTestingOptions() {
         assertEquals(
-                new LaunchOptions(0, Optional.empty(), Difficulty.HARD, 4),
-                LaunchOptions.parse("--difficulty", "hard", "--debug-speed", "4"));
+                new LaunchOptions(0, Optional.empty(), Difficulty.HARD, 4, true),
+                LaunchOptions.parse("--difficulty", "hard", "--debug-speed", "4", "--invulnerable"));
         assertThrows(IllegalArgumentException.class, () -> LaunchOptions.parse("--difficulty", "nightmare"));
         assertThrows(IllegalArgumentException.class, () -> LaunchOptions.parse("--debug-speed", "0"));
     }

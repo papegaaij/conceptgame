@@ -56,7 +56,7 @@ sections:  # back to back from t = 0; each ends at `end`; tiles: the backdrop's 
       purpose: Mixed waves, one warned rear wave, rising density.
   - name: Scout Leader
     end: 180
-    atmosphere: light
+    atmosphere: clear  # beyond Earth's limb there is no cloud deck (user decision 2026-10-02)
     tiles: [earth]
     notes:
       layers:
@@ -200,8 +200,8 @@ backdrop:
   pieces:
     earth-dawn: {layer: deep, size: [480, 1600]}  # space, Earth's limb, night side and the sunrise terminator over the earth tiles
     moon: {layer: deep, size: [28, 28]}
-    earth-limb: {layer: deep, size: [480, 640]}   # Earth's curve falling behind, open space above it
-    vrell-glow: {layer: deep, size: [480, 240]}   # the strike group's glow on the horizon
+    earth-limb: {layer: deep, size: [480, 720]}   # Earth's curve falling behind, open space above it
+    vrell-glow: {layer: deep, size: [480, 300]}   # the strike group's glow on the horizon
     north-arm: {layer: far, size: [180, 640], mid_size: true}
     stormhawk-far: {layer: far, size: [24, 24], headings: 16}  # Aegis Two
     launch-rail: {layer: ground, size: [200, 720], mid_size: true}
@@ -220,7 +220,7 @@ backdrop:
     - {piece: north-arm, t: 2, x: 390}
     - {piece: stormhawk-far, t: 2, x: 390, path: [[1.5, 0, 60], [3, 0, 150], [4.5, 30, 300], [6, 150, 400]]}
     - {piece: stormhawk-far, t: 2, x: 390, path: [[2.5, 0, 0], [4, 0, 90], [5.5, 30, 240], [7, 150, 340]]}
-    - {piece: moon, t: 21.2, x: 50}          # in the space beside Earth's limb
+    - {piece: moon, t: 21.2, x: 44}          # in the space beside Earth's limb
     - {piece: crossbeam, t: 22.08, x: 240}   # the seams enter at the top at 20, 60, 110 and 160 s
     # 2. First Wave: open dock frames
     - {piece: dock-frame, t: 30, x: 130}
@@ -244,5 +244,5 @@ backdrop:
     # 5. Scout Leader: past the yard into open space
     - {piece: crossbeam, t: 162.08, x: 240}
     - {piece: platform, t: 168, x: 150}      # gone by 171 s: open space for the outro
-    - {piece: earth-limb, t: 180.64, x: 240}  # the crest enters at the top at 158 s, 200 px above the bottom at the end
-    - {piece: vrell-glow, t: 190.9, x: 240}   # over the open space from 166 s; its top edge stays above the screen
+    - {piece: earth-limb, t: 183.2, x: 240}   # the crest enters at the top at 158 s, 200 px above the bottom at the end
+    - {piece: vrell-glow, t: 194.25, x: 240}  # over the open space from 167 s; the top edges of both stay above the screen through the outro

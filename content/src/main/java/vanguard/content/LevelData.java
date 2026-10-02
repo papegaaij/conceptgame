@@ -44,9 +44,20 @@ public record LevelData(
         }
     }
 
+    /**
+     * After the level end the scroll runs on this long under the last radio line before the debrief
+     * (the outro), so the backdrop has to hold until then.
+     */
+    public static final double OUTRO_SECONDS = 5;
+
     /** The level's length in seconds: the end of the last section. */
     public double seconds() {
         return sections.getLast().end();
+    }
+
+    /** When the outro ends and the debrief takes over: the last moment the backdrop is on screen. */
+    public double outroEnd() {
+        return seconds() + OUTRO_SECONDS;
     }
 
     /** The time section {@code index} (0-based) starts. */
