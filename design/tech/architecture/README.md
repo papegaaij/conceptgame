@@ -167,7 +167,7 @@ first entry of a part's model list is the starter (price 0, `start`).
   table is derived: kills × bounties, ground targets, crates, the secondary objective, against
   budget(n) of the economy; the attack directions are each entry's share of the enemies.
 - **Ship and core parts**: ship (`acceleration_seconds`, `stop_seconds`, `precision_factor`,
-  `size`, `edge_gap`, `hitbox`, `collection_radius`, `mercy_seconds`, `bank_change_steps`,
+  `size`, `edge_gap`, `hull` (hit boxes `[x, y, width, height]` from the sprite's top left), `collection_radius`, `mercy_seconds`, `bank_change_steps`,
   `mounts`; its speed is the fitted engine's); shields (`break_seconds`, `models` with
   `capacity`, `regen`, `delay`, `draw`); armour (`plating` with `max`); generator
   (`spare_power`, `models` with `output`); systems (`engines` with `speed`, `draw`; `utility`

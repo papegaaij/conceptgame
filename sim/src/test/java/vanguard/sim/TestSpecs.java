@@ -10,7 +10,16 @@ import java.util.Optional;
  * up per test.
  */
 final class TestSpecs {
-    static final ShipSpec SHIP = new ShipSpec(270, 0.08, 0.06, 0.5, 48, 12, new Hitbox(9, 9), 0.25, 21, 3);
+    /** The Stormhawk's hull boxes from design/player/ship/data.yaml, as offsets around the centre. */
+    static final Hull HULL = new Hull(List.of(
+            new Hull.Part(0, 15, new Hitbox(4, 10)),
+            new Hull.Part(0, -5.5, new Hitbox(12, 31)),
+            new Hull.Part(0, -3, new Hitbox(36, 2)),
+            new Hull.Part(0, -6, new Hitbox(28, 4)),
+            new Hull.Part(-15, 0.5, new Hitbox(6, 5)),
+            new Hull.Part(15, 0.5, new Hitbox(6, 5))));
+
+    static final ShipSpec SHIP = new ShipSpec(270, 0.08, 0.06, 0.5, 48, 12, HULL, 0.25, 21, 3);
     static final Loadout LOADOUT = new Loadout(
             SHIP, new PulseCannon(10, 2.0, 900, new Hitbox(4, 12)), new ShieldModel(20, 2, 2.0, 1.0), new Plating(60));
     static final EnemySpec SKITTER = new EnemySpec(

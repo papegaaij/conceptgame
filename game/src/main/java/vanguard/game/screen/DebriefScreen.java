@@ -222,6 +222,9 @@ public final class DebriefScreen implements GameScreen {
         return String.format(Locale.ROOT, "%,d", value).replace(',', ' ');
     }
 
+    /** Skipping the debrief must not leave the jingle playing over the next screen's music. */
     @Override
-    public void dispose() {}
+    public void dispose() {
+        services.sfx.stop(Sfx.MISSION_COMPLETE);
+    }
 }

@@ -6,7 +6,14 @@ stop_seconds: 0.06          # full speed to standing still
 precision_factor: 0.5       # speed factor while precision mode is held
 size: 48                    # edge of the square hull sprite, px
 edge_gap: 12                # gap the hull keeps to every play field edge, px
-hitbox: [9, 9]              # around the cockpit
+hull:                       # hit boxes [x, y, width, height], px from the sprite's top left: the
+                            # hard-banked silhouette (the narrowest frame), so a hit is never empty space
+  - [22, 4, 4, 10]          # nose
+  - [18, 14, 12, 31]        # body
+  - [6, 26, 36, 2]          # wing leading band, tip to tip
+  - [10, 28, 28, 4]         # wing trailing edge
+  - [6, 21, 6, 5]           # left wingtip
+  - [36, 21, 6, 5]          # right wingtip
 collection_radius: 36       # pickups, px; the magnet enlarges it
 mercy_seconds: 0.25         # invulnerability after armour damage
 bank_change_steps: 6        # game frames from level to hard bank (art direction, Animation rules)

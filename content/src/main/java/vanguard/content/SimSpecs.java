@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import vanguard.sim.EnemyGun;
 import vanguard.sim.EnemySpec;
 import vanguard.sim.Hitbox;
+import vanguard.sim.Hull;
 import vanguard.sim.LevelScript;
 import vanguard.sim.Loadout;
 import vanguard.sim.PickupRules;
@@ -55,7 +56,7 @@ public final class SimSpecs {
                 ship.precisionFactor(),
                 ship.size(),
                 ship.edgeGap(),
-                hitbox(ship.hitbox()),
+                hull(ship),
                 ship.mercySeconds(),
                 ship.size() / 2 - ship.mounts().front().y(),
                 ship.bankChangeSteps() / ShipSpec.HARD_BANK);
@@ -382,6 +383,17 @@ public final class SimSpecs {
 
     private static Range range(Span span) {
         return new Range(span.min(), span.max());
+    }
+
+    /** The hull boxes, from sprite pixels (y down from the top left) to offsets around the centre (y up). */
+    private static Hull hull(ShipData ship) {
+        double centre = ship.size() / 2;
+        return new Hull(ship.hull().stream()
+                .map(box -> new Hull.Part(
+                        box.x() + box.width() / 2 - centre,
+                        centre - (box.y() + box.height() / 2),
+                        new Hitbox(box.width(), box.height())))
+                .toList());
     }
 
     private static Hitbox hitbox(Size size) {

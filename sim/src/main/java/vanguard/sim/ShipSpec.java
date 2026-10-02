@@ -10,7 +10,7 @@ package vanguard.sim;
  * @param precisionFactor speed factor while precision mode is held
  * @param size the edge length of the square hull sprite in px
  * @param edgeMargin the gap the hull keeps to the play field edges
- * @param hitbox the hit box around the cockpit, much smaller than the 48x48 sprite
+ * @param hull the hit shape: boxes covering the visible hull
  * @param mercySeconds invulnerability after armour damage
  * @param muzzleOffsetY the front muzzle above the ship's centre: (24, 3) on the 48x48 sprite
  * @param bankStepTicks steps per banking frame change; level to hard over takes two changes
@@ -22,7 +22,7 @@ public record ShipSpec(
         double precisionFactor,
         double size,
         double edgeMargin,
-        Hitbox hitbox,
+        Hull hull,
         double mercySeconds,
         double muzzleOffsetY,
         int bankStepTicks) {

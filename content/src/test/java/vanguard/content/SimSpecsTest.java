@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import vanguard.sim.EnemyGun;
 import vanguard.sim.EnemySpec;
 import vanguard.sim.Hitbox;
+import vanguard.sim.Hull;
 import vanguard.sim.Layer;
 import vanguard.sim.LevelScript;
 import vanguard.sim.Loadout;
@@ -27,11 +28,20 @@ class SimSpecsTest {
     private static final String LEVEL = Level01Test.LEVEL;
     private final Content content = ContentLoader.fromClasspath();
 
+    /** design/player/ship/data.yaml's hull boxes, turned into offsets around the centre (y up). */
+    private static final Hull STORMHAWK_HULL = new Hull(List.of(
+            new Hull.Part(0, 15, new Hitbox(4, 10)),
+            new Hull.Part(0, -5.5, new Hitbox(12, 31)),
+            new Hull.Part(0, -3, new Hitbox(36, 2)),
+            new Hull.Part(0, -6, new Hitbox(28, 4)),
+            new Hull.Part(-15, 0.5, new Hitbox(6, 5)),
+            new Hull.Part(15, 0.5, new Hitbox(6, 5))));
+
     @Test
     void theStarterLoadoutComesFromTheShipAndItsStarterParts() {
         assertEquals(
                 new Loadout(
-                        new ShipSpec(270, 0.08, 0.06, 0.5, 48, 12, new Hitbox(9, 9), 0.25, 21, 3),
+                        new ShipSpec(270, 0.08, 0.06, 0.5, 48, 12, STORMHAWK_HULL, 0.25, 21, 3),
                         new PulseCannon(10, 2.0, 900, new Hitbox(4, 12)),
                         new ShieldModel(20, 2, 2.0, 1.0),
                         new Plating(60)),

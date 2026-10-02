@@ -9,6 +9,7 @@ import java.util.List;
  * @param size the edge of the square hull sprite in px
  * @param edgeGap the gap the hull keeps to every play field edge in px
  * @param bankChangeSteps game frames from level flight to the hard bank frame
+ * @param hull the hit shape: boxes covering the visible hull, px from the sprite's top left
  * @param mounts mount points in px from the sprite's top left
  */
 public record ShipData(
@@ -17,7 +18,7 @@ public record ShipData(
         double precisionFactor,
         double size,
         double edgeGap,
-        Size hitbox,
+        List<Box> hull,
         double collectionRadius,
         double mercySeconds,
         int bankChangeSteps,
@@ -31,6 +32,12 @@ public record ShipData(
         Check.positive("collection_radius", collectionRadius);
         Check.notNegative("mercy_seconds", mercySeconds);
         Check.positive("bank_change_steps", bankChangeSteps);
+        Check.that(!hull.isEmpty(), "hull: at least one box");
+        for (Box box : hull) {
+            Check.that(
+                    box.x() + box.width() <= size && box.y() + box.height() <= size,
+                    "hull: every box lies inside the " + size + " px sprite");
+        }
     }
 
     public record Mounts(Point front, List<Point> wings, Point rear, List<Point> engines) {

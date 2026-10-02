@@ -3,7 +3,7 @@ title: Art direction
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Art direction
@@ -280,8 +280,9 @@ every scene gets a clearly visible **atmosphere layer** and, where the setting a
 5. **High-air weather and decoration** stay below ~40 % opacity where they overlap the play
    plane. Enemies on `high-air` (the Leviathan's overhead pass, the Brood Carrier's pass) are
    the exception: fully opaque, scaled per the perspective rule, and they cast shadows.
-6. **Pickups** pulse and have a light outline. The player's hit box is much smaller than the
-   sprite (about 6×6 px around the cockpit), which is a gameplay rule in the player docs.
+6. **Pickups** pulse and have a light outline. The player's hit box follows the hull's
+   silhouette, so what visibly touches the ship hits it (a gameplay rule in the
+   [ship](../player/ship/README.md) doc); bullets must therefore read clearly against the hull.
 
 ## Concept art
 
@@ -438,3 +439,4 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - 2026-10-01: High-air drawing rule (user decision): the ~40 % opacity cap applies only to weather and decoration. Enemies on `high-air` (Leviathan overhead pass, Brood Carrier pass) are drawn fully opaque, scaled per the perspective rule, and cast shadows.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
 - 2026-10-01: M1 rendering: the play plane draws over the Earth orbit layers (deep 0.12, far 0.45, ground 1.0, low-air 1.4, high-air 2.4 at ≤ 40 % opacity, additive) with the ground at Level 01's 130 px/s. Placeholders are the 0.4× layer breakdown of `parallax-r03-a.png`, enlarged with linear filtering and mirrored every second tile so they scroll without a seam; bolts and explosions are drawn additively; the hit flash is a GLES 2 shader that blends a sprite towards a colour. Positions are interpolated between simulation steps and rounded to whole pixels.
+- 2026-10-02: Readability rule 6 follows the ship's hull-shaped hit box (user decision); the old "about 6×6 px" note was out of date (the ship doc said 9×9).

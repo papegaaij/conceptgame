@@ -397,7 +397,7 @@ public final class Sortie {
     }
 
     private void hitShip() {
-        Hitbox hull = ship.spec().hitbox();
+        Hull hull = ship.spec().hull();
         for (int i = bullets.size() - 1; i >= 0; i--) {
             EnemyBullet bullet = bullets.get(i);
             if (hull.overlaps(ship.x(), ship.y(), EnemyGun.BULLET, bullet.x(), bullet.y())) {
@@ -412,7 +412,7 @@ public final class Sortie {
 
     /** A rammer on the player's layer deals its contact damage; a small one is destroyed by the impact. */
     private void ramShip() {
-        Hitbox hull = ship.spec().hitbox();
+        Hull hull = ship.spec().hull();
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
             EnemySpec spec = enemy.spec();
