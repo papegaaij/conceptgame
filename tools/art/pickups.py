@@ -8,6 +8,8 @@ halo on every side):
   pickup-shield-cell_0..7.png    32x32 shield cell, turning
   pickup-armour-patch_0..7.png   32x32 armour patch, rocking
   pickup-crate_0..7.png          34x34 hidden crate (salvage L), turning
+  pickup-salvage-medium_0..7.png 31x31 three credit chips (salvage M), rocking (M4 part B batch)
+  pickup-overdrive_0..7.png      32x32 overdrive, rocking (M4 part B batch)
   design/player/concept/pickups-final-r12-a.png/.gif
 
 Models, spin and the pulsing presentation are the chosen round-09 ones (tools/concept/vfx_r09.py:
@@ -16,7 +18,7 @@ light outline whose brightness pulses and a soft white halo stepped to four tran
 The crate carries its cyan cross on all four faces it shows while it turns (the concept had it on
 the top only, so the side-on frames were a plain dark box).
 
-Run: python3 tools/art/pickups.py [--review]   (~10 s)
+Run: python3 tools/art/pickups.py [name ...] [--review]   (~10 s; with names only those pickups)
 """
 import sys
 from concurrent.futures import ProcessPoolExecutor
@@ -41,7 +43,10 @@ OUTLINE_DIM, OUTLINE_LIT = np.array([150, 176, 205]), np.array([235, 250, 255])
 HALO = (225, 245, 255)
 COLOURS = 24
 # asset name -> round-09 pickup key
-PICKUPS = {"salvage-small": "salvage-s", "shield-cell": "shield", "armour-patch": "armour", "crate": "salvage-l"}
+PICKUPS = {"salvage-small": "salvage-s", "shield-cell": "shield", "armour-patch": "armour", "crate": "salvage-l",
+           "salvage-medium": "salvage-m", "overdrive": "overdrive"}
+# the batch each was made in (the Source note)
+BATCHES = {"salvage-medium": "M4 part B batch", "overdrive": "M4 part B batch"}
 CRATE_GLOW = 2                    # the concept crate's glowing stripe material
 
 
@@ -94,17 +99,21 @@ def presentation(body, i):
     return artkit.stepped_alpha(Image.fromarray(out.astype(np.uint8), "RGBA"))
 
 
-def build():
-    jobs = [(key, i) for key in PICKUPS.values() for i in range(FRAMES)]
+def build(names):
+    jobs = [(PICKUPS[name], i) for name in names for i in range(FRAMES)]
     with ProcessPoolExecutor() as pool:
         bodies = list(pool.map(render, *zip(*jobs)))
-    for j, name in enumerate(PICKUPS):
+    for j, name in enumerate(names):
         loop = artkit.quantize_set(bodies[j * FRAMES:(j + 1) * FRAMES], COLOURS)
-        artkit.write_frames(f"pickup-{name}", [presentation(b, i) for i, b in enumerate(loop)], SOURCE)
+        source = artkit.source_note(SCRIPT, BATCHES.get(name, "Level 01 batch"))
+        artkit.write_frames(f"pickup-{name}", [presentation(b, i) for i, b in enumerate(loop)], source)
 
 
 def review():
     sets = {name: artkit.load_frames(f"pickup-{name}") for name in PICKUPS}
+    if any(name in BATCHES for name in sys.argv[1:]):
+        review_batch({name: frames for name, frames in sets.items() if name in BATCHES})
+        return
     rows = [(name.upper().replace("-", " "), frames, 4, False) for name, frames in sets.items()]
     sheet = artkit.review_sheet("PICKUPS - FINAL SPRITES", rows)
     gif = []
@@ -116,7 +125,22 @@ def review():
     artkit.save_review(sheet, gif, DESIGN / "player" / "concept", "pickups", fps=10)
 
 
+def review_batch(sets):
+    """The review files of a later batch's pickups alone."""
+    artkit.REVIEW_ROUND = "r15"
+    rows = [(name.upper().replace("-", " "), frames, 4, False) for name, frames in sets.items()]
+    sheet = artkit.review_sheet("PICKUPS - FINAL SPRITES", rows, batch="M4 part B batch")
+    gif = []
+    for i in range(FRAMES * 3):
+        img = Image.new("RGBA", (len(sets) * 40, 48), (20, 28, 60, 255))
+        for j, frames in enumerate(sets.values()):
+            sprite.paste_center(img, frames[i % FRAMES], 20 + j * 40, 24)
+        gif.append(sprite.enlarge(img, 4))
+    artkit.save_review(sheet, gif, DESIGN / "player" / "concept", "pickups", fps=10)
+
+
 if __name__ == "__main__":
+    names = [a for a in sys.argv[1:] if not a.startswith("--")]
     if "--review" not in sys.argv[1:]:
-        build()
+        build(names or list(PICKUPS))
     review()

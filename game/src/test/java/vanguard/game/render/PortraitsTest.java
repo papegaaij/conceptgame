@@ -34,7 +34,8 @@ class PortraitsTest {
     void everyRadioLineHasItsSpeakersPortraitInItsExpression() {
         for (LevelData level : content.levels().values()) {
             for (LevelData.RadioCue cue : level.radio()) {
-                assertRadio(cue.speaker(), cue.expression().orElse(Expression.NEUTRAL));
+                assertRadio(
+                        cue.portrait().orElse(cue.speaker()), cue.expression().orElse(Expression.NEUTRAL));
             }
             for (LevelData.Secret secret : level.secrets()) {
                 assertRadio(

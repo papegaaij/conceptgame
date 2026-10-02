@@ -56,8 +56,21 @@ public final class Briefings {
                 });
         objectives
                 .secondary()
-                .ifPresent(secondary -> lines.add(String.format(
-                        Locale.ROOT, "BONUS: DESTROY %.0f %% OF ALL ENEMIES", 100 * secondary.killRatio())));
+                .ifPresent(secondary -> lines.add(secondary
+                        .killRatio()
+                        .map(ratio -> String.format(Locale.ROOT, "BONUS: DESTROY %.0f %% OF ALL ENEMIES", 100 * ratio))
+                        .orElseGet(() -> String.format(
+                                Locale.ROOT,
+                                "BONUS: CLEAR ALL %d %s",
+                                secondary.groups().orElseThrow().size(),
+                                groupsName(secondary)))));
         return lines;
+    }
+
+    /** What the groups of a group objective are: their names' common last word in plural ("Dock One" ... "DOCKS"). */
+    private static String groupsName(LevelData.Secondary secondary) {
+        String first = secondary.groups().orElseThrow().getFirst();
+        String word = first.contains(" ") ? first.substring(0, first.indexOf(' ')) : first;
+        return word.toUpperCase(Locale.ROOT) + "S";
     }
 }

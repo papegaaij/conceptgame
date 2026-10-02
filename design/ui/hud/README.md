@@ -163,7 +163,7 @@ Concept [round 14](../../concept-rounds/round-14/README.md) — the right panel 
 - [x] Side panel frames: bevelled metal plates with corner rivets, label plates, LCD wells, bar troughs and phosphor fills from the production art (`tools/art/hud.py`)
 - [x] Left panel: mission, score, credits, chain, radio, progress
 - [x] Left panel layout: fixed regions without overlap; texts cut off at their well; a test checks the regions and that every prompt and radio line of the content fits, measured with the font's metrics
-- [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter done)
+- [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter and Level 02's dock pips done; the other levels' trackers come with them in M4 and M5)
 - [x] Right panel: armour, shield, power (spare-power bar and the regen bonus, glowing in an overdrive), weapons (front, rear, left, right with level pips), overdrive timer
 - [ ] Right panel: special — **later: M4** (the specials, part D); escort — **later: M5** (Rook's escort slot)
 - [ ] Radio message queue with portraits, priority interrupts
@@ -270,3 +270,4 @@ Concept [round 14](../../concept-rounds/round-14/README.md) — the right panel 
 - 2026-10-02: Concept round 13 closed (user decision): the HUD's production metal parts (side-panel plates, label plate, LCD and portrait wells, phosphor fill, readout glow; `tools/art/hud.py`) approved as **final**, `art: final`.
 - 2026-10-02: M4 part A: the right panel shows the power row (spare power as a bar, the regen bonus as a number, glowing amber during an overdrive), a weapons box with one row per slot (F, R, L, R as in the mock: the weapon's name, a pod named by what it fires, and five level pips) and the overdrive timer row (ten pips and the seconds left). "Not yet available" now lists only the special and the utility modules.
 - 2026-10-02: Concept round 14 closed (user decision): the right panel with the power row, the weapon rows and the overdrive timer approved as final.
+- 2026-10-02: M4 part B: the tracker shows a group objective (Level 02's docks) as its label ("DOCKS") and a pip per dock, dim while open, green when saved, red when lost, flashing as it changes; a level's timed prompts (Level 02's `GROUND` · `FLY OVER, FIRE`) share the control prompts' well.

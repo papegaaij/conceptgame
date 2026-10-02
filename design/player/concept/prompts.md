@@ -25,3 +25,7 @@ text, watermark.
 ## pickups-final-r12-a
 
 Round 12, production art (Level 01 batch). Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by `tools/art/pickups.py --review`; the frames themselves are rendered by `tools/art/pickups.py` (see `tools/art/README.md`). Shows the four loops enlarged and in motion (part P3: the crate carries its cyan cross on the top, bottom and both ends, so no frame of its turn is a plain dark box); check that they never read as bullets. Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.
+
+## pickups-final-r15-a
+
+Round 15, production art (M4 part B). Review sheet and loop made by `tools/art/pickups.py salvage-medium overdrive` from the chosen round-09 models (`vfx_r09.PICKUPS`: salvage-m, overdrive), with the presentation of the Level 01 pickups (light outline, halo, rocking ±55°).

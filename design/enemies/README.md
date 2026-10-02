@@ -99,7 +99,7 @@ block, followed by behaviour notes and the standard sections.
 | Movement | Pattern name from the movement vocabulary + parameters |
 | Attack | Pattern name(s) from the attack vocabulary + interval, bullet count and bullet speed |
 | Formations | Formation names it appears in |
-| Weak points | Hitboxes with a damage multiplier |
+| Weak points | Drawn glowing; a damage multiplier only on a part of a multi-part unit (see [multi-part enemies](#multi-part-enemies)) — a single-part unit's weak point is drawn only |
 | Effective traits | Weapon traits that do extra damage or are needed |
 | Credits | Bounty at medium in Act 1 terms (see [economy](../systems/economy/README.md)); score is derived from it (see [scoring](../systems/scoring/README.md)) |
 | Death | Explosion size, debris, drops, death behaviour (e.g. death burst) |
@@ -221,6 +221,7 @@ that move in any direction must read from any angle:
 <!-- data: formations -->
 | Name | Description |
 |---|---|
+| `single` | One unit on its own, as when a new enemy is introduced. |
 | `V-wing` | A V of 3–9 units led by the tip. |
 | `line abreast` | A horizontal line moving down together. |
 | `column` | A vertical line, one behind the other, on the same path. |
@@ -527,3 +528,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - 2026-10-02: Production art (Level 01 batch, `tools/art/enemy_bullets.py`): the Vrell orb as 4 frames (core pulse; the game now animates it at 15 fps, each bullet at its own phase) and the needle as a 16-heading angle set (`needle_<k>`, k × 22.5° clockwise from down; not used by Level 01). The body has 1-bit alpha, the outer glow four translucency steps. Review files proposed for round 12.
 - 2026-10-02: Concept round 12 closed (user decision): the Vrell `small` bullets (orb and needle) approved as **final**; this index's `art` stays `chosen`, since the other enemies' art is still concept art.
 - 2026-10-02: M4 part A: the layer rules of the weapons are in the simulation (`WeaponSpec.Delivery.reaches`, hardened ground targets glance off weapons without `anti-ground`); a level's ground target can be `hardened` in its data.
+- 2026-10-02: M4 part B (user decision): a single-part unit's weak point is drawn only (the glowing spot, no multiplier); damage multipliers belong to the parts of multi-part units (the bosses, the Leviathan), which have their own hit boxes.

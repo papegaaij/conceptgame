@@ -220,10 +220,11 @@ def stat_block(d):
     def suffix(key):
         return f" {fill(notes[key], values)}" if key in notes else ""
 
-    attacks = "; ".join(fill(a["notes"]["text"], a | {"damage": bullet[a["bullet"]]}) for a in e["attacks"])
+    attacks = "; ".join(fill(a["notes"]["text"], values | a | {"damage": bullet[a["bullet"]]}) for a in e["attacks"])
     formations = ", ".join(f["name"] + (f" ({'–'.join(str(n) for n in f['size'])})" if "size" in f else "")
                            for f in e["formations"])
-    weak = ", ".join(f"{w['name']} (×{num(w['multiplier'])})" for w in e["weak_points"]) or "none"
+    weak = ", ".join(w["name"] + (f" (×{num(w['multiplier'])})" if "multiplier" in w else "")
+                     for w in e["weak_points"]) or "none"
     rows = [
         ["Faction", e["faction"]],
         ["Layer", f"`{e['layer']}`"],
@@ -236,7 +237,7 @@ def stat_block(d):
         ["Speed", f"{num(e['speed'])} px/s" + suffix("speed")],
         ["Movement", fill(notes["movement"], values)],
         ["Attack", attacks or fill(notes["attack"], values)],
-        ["Formations", formations],
+        ["Formations", formations + suffix("formations")],
         ["Weak points", weak + suffix("weak_points")],
         ["Effective traits", ticks(e["traits"])],
         ["Credits", f"{e['bounty']} (score {e['bounty'] * scoring()['kill_score']} × chain)"],
@@ -269,6 +270,7 @@ def formations(d):
 
 EDGES = {"left": "left", "right": "right", "alternating": "alternating edges"}
 EVENTS = {"level-end": "Level end", "secondary-objective": "Secondary objective met"}
+PORTRAITS = {"generic-cdf": "Generic CDF"}  # the generic portraits of unnamed speakers
 
 
 def sections(level):
@@ -280,6 +282,13 @@ def sections(level):
         out.append((t, s["end"], px, end_px, speed))
         t, px = s["end"], end_px
     return out
+
+
+def atmosphere_text(section):
+    """A section's atmosphere, with its heavier peak if it has one ("medium, heavy peak 140–148")."""
+    peak = section.get("peak")
+    return section["atmosphere"] + (f", {peak['atmosphere']} peak {num(peak['from'])}–{num(peak['to'])}"
+                                    if peak else "")
 
 
 def section_of(level, t):
@@ -337,7 +346,7 @@ def level_sections(d):
     for i, (s, (start, end, px0, px1, speed)) in enumerate(zip(level["sections"], sections(level)), start=1):
         layers = " ".join(f"`{layer}`: {text}" for layer, text in s["notes"]["layers"].items())
         rows.append([f"{i}. {s['name']}", f"{start}–{end}", f"{grouped(px0, ',')}–{grouped(px1, ',')}", num(speed),
-                     s["atmosphere"], layers, s["notes"]["purpose"]])
+                     atmosphere_text(s), layers, s["notes"]["purpose"]])
     return table(["Section", "t (s)", "Scroll (px)", "Speed (px/s)", "Atmosphere", "Layers and content", "Purpose"],
                  rows)
 
@@ -383,9 +392,15 @@ def backdrop_table(d):
         cells[section_of(level, start) - 1][layer].append(f"{placed['piece']} {when} s")
     rows = []
     for i, s in enumerate(level["sections"]):
-        look = b["atmosphere"][s["atmosphere"]]
-        parts = [look[k] for k in ("banks", "wisps") if k in look]
-        atmosphere = f"{s['atmosphere']}: " + ", ".join(parts + [f"haze {num(round(look['haze'] * 100))} %"])
+        def mix(name):
+            look = b["atmosphere"][name]
+            parts = [look[k] for k in ("banks", "wisps") if k in look]
+            return ", ".join(parts + [f"haze {num(round(look['haze'] * 100))} %"])
+
+        atmosphere = f"{s['atmosphere']}: {mix(s['atmosphere'])}"
+        if "peak" in s:
+            peak = s["peak"]
+            atmosphere += f"; {peak['atmosphere']} peak {num(peak['from'])}–{num(peak['to'])} s: {mix(peak['atmosphere'])}"
         rows.append([f"{i + 1}. {s['name']}", atmosphere] + ["; ".join(cells[i][layer]) for layer in BACKDROP_LAYERS])
     return table(["Section", "Atmosphere"] + [f"`{layer}`" for layer in BACKDROP_LAYERS], rows)
 
@@ -405,28 +420,59 @@ def waves(d):
 
 
 def ground_values(target):
-    return target | ({"drop_credits": pickup_credits(target["drop"])} if "drop" in target else {})
+    """A ground target's fields for its notes: its `count` (one per placement if not given), the
+    credits of its drop, and for an enemy its stat block's `name` and `bounty`."""
+    values = {"count": len(target["at"])} | target
+    if "drop" in target:
+        values["drop_credits"] = pickup_credits(target["drop"])
+    if "enemy" in target:
+        e = load(f"{enemy_dir(target['enemy'])}/data.yaml")
+        values |= {"name": e["name"], "bounty": e["bounty"]}
+    return values
+
+
+def placements(target):
+    """The easy / hard placements of a ground target, if they differ ("; easy ×2, hard ×4")."""
+    changes = [f"{level} ×{len(target[level]['at'])}" for level in ("easy", "hard") if "at" in target.get(level, {})]
+    return "; " + ", ".join(changes) if changes else ""
 
 
 def ground_targets(d):
     rows = []
     for g in data(d)["ground_targets"]:
         values = ground_values(g)
-        rows.append([str(g["section"]), fill(g["notes"]["target"], values), fill(g["notes"]["effect"], values)])
+        rows.append([str(g["section"]), fill(g["notes"]["target"], values) + placements(g),
+                     fill(g["notes"]["effect"], values)])
     return table(["Section", "Target", "Effect"], rows)
 
 
+def group_noun(level):
+    """What the secondary objective's groups are: the first word their names share ("Dock One",
+    "Dock Two": "dock"), else "group"."""
+    words = {name.split()[0] for name in level["objectives"]["secondary"].get("groups", [])}
+    return words.pop().lower() if len(words) == 1 else "group"
+
+
 def radio(d):
+    level = data(d)
     rows = []
-    for cue in data(d)["radio"]:
+    for cue in level["radio"]:
         if "t" in cue:
             note = cue.get("notes", {}).get("trigger")
             trigger = f"t={num(cue['t'])}" + (f" ({note})" if note else "")
         elif cue["event"] == "first-kill":
             trigger = f"First {enemy_name(cue['enemy'])} destroyed"
+        elif cue["event"] == "group-cleared":
+            trigger = f"{cue['group']} cleared"
+        elif cue["event"] == "group-lost":
+            trigger = f"{cue['group']} lost"
+        elif cue["event"] == "first-group-lost":
+            trigger = f"First {group_noun(level)} lost"
         else:
             trigger = EVENTS[cue["event"]]
         speaker = cue["speaker"] + (" (distorted)" if cue.get("distorted") else "")
+        if "portrait" in cue:
+            speaker = f"{PORTRAITS[cue['portrait']]} ({speaker})"
         line = f'"{cue["line"]}"' + "".join(
             f'; {level}: "{cue[level]["line"]}"' for level in ("easy", "hard") if level in cue
         )
@@ -467,21 +513,38 @@ def level_number(d):
     return int(re.match(r"level-(\d+)-", os.path.basename(d)).group(1))
 
 
+def stat_bounty(slug):
+    return load(f"{enemy_dir(slug)}/data.yaml")["bounty"]
+
+
 def credit_budget(d):
     level = data(d)
     economy = load("systems/economy/data.yaml")["budget"]
     budget = economy["base"] * economy["growth"] ** (level_number(d) - 1)
     rows = []
-    kills = [(slug, n, load(f"{enemy_dir(slug)}/data.yaml")["bounty"]) for slug, n in enemy_totals(level).items()]
+    kills = [(slug, n, stat_bounty(slug)) for slug, n in enemy_totals(level).items()]
     rows.append(["Kills: " + " + ".join(f"{enemy_name(s)} {n} × {b}" for s, n, b in kills),
                  sum(n * b for _, n, b in kills)])
-    paying = [ground_values(g) for g in level["ground_targets"] if "bounty" in g]
-    if paying:
-        rows.append(["Ground targets: " + " + ".join(fill(g["notes"]["budget"], g) for g in paying),
-                     sum(g["count"] * (g["bounty"] + g.get("drop_credits", 0)) for g in paying)])
+    # ground enemies by their stat block's bounty, then the destructibles that pay or drop credits
+    enemies = {}
+    for g in level["ground_targets"]:
+        if "enemy" in g:
+            enemies[g["enemy"]] = enemies.get(g["enemy"], 0) + ground_values(g)["count"]
+    paying = [ground_values(g) for g in level["ground_targets"]
+              if "enemy" not in g and ("bounty" in g or "drop" in g)]
+    parts = [(f"{enemy_name(slug)} {n} × {stat_bounty(slug)}", n * stat_bounty(slug)) for slug, n in enemies.items()]
+    parts += [(fill(g["notes"]["budget"], g), g["count"] * (g.get("bounty", 0) + g.get("drop_credits", 0)))
+              for g in paying]
+    if parts:
+        rows.append(["Ground targets: " + " + ".join(text for text, _ in parts), sum(c for _, c in parts)])
     for s in level["secrets"]:
         rows.append([f"Secret: {s['name']} (hidden crate, {round(100 * s['crate'] / budget)}% of budget)", s["crate"]])
-    rows.append(["Secondary objective", level["objectives"]["secondary"]["credits"]])
+    secondary = level["objectives"]["secondary"]
+    if "groups" in secondary:
+        n = len(secondary["groups"])
+        rows.append([f"Secondary: {n} {group_noun(level)}s × {secondary['credits']}", n * secondary["credits"]])
+    else:
+        rows.append(["Secondary objective", secondary["credits"]])
     total = sum(credits for _, credits in rows)
     cells = [[source, grouped(credits, ",")] for source, credits in rows]
     return table(["Source", "Credits (medium)"], cells + [["**Total**", f"**{grouped(total, ',')}**"]])

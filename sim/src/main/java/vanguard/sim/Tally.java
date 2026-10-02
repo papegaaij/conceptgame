@@ -42,12 +42,17 @@ final class Tally {
 
     /** A kill: extends the chain, scores with the multiplier and pays the bounty; returns the credits. */
     int kill(int bounty) {
+        return kill(bounty, CreditSource.KILLS);
+    }
+
+    /** A kill paid from {@code source} (a ground unit's bounty counts as a ground target's). */
+    int kill(int bounty, CreditSource source) {
         kills++;
         chain++;
         maxChain = Math.max(maxChain, chain);
         chainTicks = windowTicks;
         score += Math.round(bounty * rules.killScore() * multiplier() * rules.scoreFactor());
-        return earn(CreditSource.KILLS, bounty);
+        return earn(source, bounty);
     }
 
     /** Armour damage ends the chain (shield hits do not). */

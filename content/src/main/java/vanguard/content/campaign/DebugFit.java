@@ -1,9 +1,11 @@
 package vanguard.content.campaign;
 
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import vanguard.content.Difficulty;
 
 /**
  * The {@code --loadout} debug option, for testing only: weapons fitted into a new campaign before
@@ -43,6 +45,34 @@ public record DebugFit(Map<LoadoutSlot, Fitted> weapons) {
             weapons.put(slot, new Fitted(itemAndLevel[0].trim(), level));
         }
         return new DebugFit(new HashMap<>(weapons));
+    }
+
+    /**
+     * A new campaign at {@code difficulty} whose next level is {@code level} (the {@code --level}
+     * debug option, for testing only): the starting credits and gear, as if it began there.
+     */
+    public static Campaign startAt(CampaignRules rules, Difficulty difficulty, int level) {
+        SaveGame start = Campaign.start(rules, difficulty).save(Instant.EPOCH);
+        return Campaign.load(
+                rules,
+                new SaveGame(
+                        start.version(),
+                        start.created(),
+                        start.playtime(),
+                        start.difficulty(),
+                        level,
+                        start.credits(),
+                        start.score(),
+                        start.loadout(),
+                        start.inventory(),
+                        start.unlocks(),
+                        start.specials(),
+                        start.armour(),
+                        start.retriesLeft(),
+                        start.grades(),
+                        start.dataCores(),
+                        start.storyFlags(),
+                        start.stats()));
     }
 
     /** Fits the weapons into the campaign's loadout, each checked against the catalogue for its slot. */

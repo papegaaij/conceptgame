@@ -106,8 +106,11 @@ final class ContentValidator {
                 problem(enemy, "attacks[" + i + "].bullet", "unknown bullet class '" + bullet + "'");
             }
         }
-        enemy.difficulty().flatMap(EnemyData.Hooks::hard).ifPresent(hook -> hook.leadsTargetIn()
-                .forEach(name -> checkFormation(enemy, "difficulty.hard.leads_target_in", name)));
+        enemy.difficulty()
+                .flatMap(EnemyData.Hooks::hard)
+                .flatMap(EnemyData.Hook::leadsTargetIn)
+                .ifPresent(
+                        names -> names.forEach(name -> checkFormation(enemy, "difficulty.hard.leads_target_in", name)));
     }
 
     private void checkFormation(Object file, String field, String name) {
@@ -164,6 +167,28 @@ final class ContentValidator {
                     problem(level, field + ".reveals", "no secret '" + name + "'");
                 }
             });
+            target.enemy().ifPresent(slug -> {
+                checkEnemyName(level, field + ".enemy", slug);
+                levelEnemies.add(slug);
+                if (content.enemies().containsKey(slug)
+                        && content.enemy(slug).movement().terrain().isEmpty()) {
+                    problem(
+                            level,
+                            field + ".enemy",
+                            "'" + slug + "' does not stand on the ground (no terrain movement)");
+                }
+            });
+            target.group().ifPresent(group -> checkGroup(level, field + ".group", group));
+        }
+        for (int i = 0; i < level.cranes().orElse(List.of()).size(); i++) {
+            LevelData.CraneData crane = level.cranes().get().get(i);
+            String field = "cranes[" + i + "]";
+            crane.swings().forEach(t -> checkTime(level, field + ".swings", t));
+            crane.clamp().ifPresent(clamp -> {
+                if (!secrets.contains(clamp.reveals())) {
+                    problem(level, field + ".clamp.reveals", "no secret '" + clamp.reveals() + "'");
+                }
+            });
         }
         checkCarriers(level, "pickups", level.pickups(), waveTimes);
         level.difficulty()
@@ -183,6 +208,7 @@ final class ContentValidator {
                     problem(level, field + ".enemy", "no wave of '" + enemy + "' in this level");
                 }
             });
+            cue.group().ifPresent(group -> checkGroup(level, field + ".group", group));
         }
         LevelData.Music music = level.music();
         if (music.fullSection() > level.sections().size()) {
@@ -193,6 +219,17 @@ final class ContentValidator {
                     .ifPresent(changes -> changes.keySet().forEach(slug -> checkEnemyName(level, "difficulty", slug)));
         }
         new BackdropCheck(level, (field, message) -> problem(level, field, message)).run();
+    }
+
+    /** A group name must be one of the secondary objective's groups. */
+    private void checkGroup(LevelData level, String field, String group) {
+        List<String> groups = level.objectives()
+                .secondary()
+                .flatMap(LevelData.Secondary::groups)
+                .orElse(List.of());
+        if (!groups.contains(group)) {
+            problem(level, field, "no group '" + group + "' in objectives.secondary.groups " + groups);
+        }
     }
 
     private void checkCarriers(

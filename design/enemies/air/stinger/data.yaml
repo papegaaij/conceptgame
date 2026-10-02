@@ -1,0 +1,42 @@
+# Stinger stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Stinger
+faction: Vrell
+layer: air
+tier: small
+size: [40, 40]    # sprite px
+hitbox: [24, 30]
+parts: single
+orientation: ±30° tilt
+hp: 6
+armour: none
+speed: 100        # px/s while entering
+movement:
+  dive: {y: [90, 160], pause: 0.5, speed: 420, fire_after: 0.6}  # y px from the top; s; px/s; s into the dive
+attacks:
+  - pattern: fan
+    bullet: small
+    count: 3
+    spread: 30     # degrees from the first to the last bullet
+    speed: 170     # px/s
+    notes:
+      text: '{count}-way `{pattern}` (spread {spread}°, centred on the player, {speed} px/s, damage `{bullet}` = {damage}) when it passes the player''s height or {movement.dive.fire_after} s into the dive'
+formations:
+  - {name: V-wing, size: [3, 5]}
+  - {name: column}
+weak_points:
+  - {name: glowing crimson abdomen}
+drops: []
+traits: [forward, spread]
+bounty: 15
+first_level: 2
+difficulty:
+  hard: {fan_count: 5, dive_pause: 0.4}
+notes:
+  orientation: (tilts towards its dive vector, up to ±30°)
+  speed: entering; dive {movement.dive.speed} px/s
+  movement: '`dive`: enter to y = {movement.dive.y} px, pause {movement.dive.pause} s (crimson glow flares as telegraph), dive at the player''s position, continue off the bottom edge'
+  formations: (V-wing units dive one after another 0.4 s apart)
+  weak_points: (drawn only)
+  death: '`small` burst: rust shards, crimson flash'
+  used_in: recurring diver through Acts 1–2
+  difficulty: 'hard: fan 5-way; dive pause 0.4 s'

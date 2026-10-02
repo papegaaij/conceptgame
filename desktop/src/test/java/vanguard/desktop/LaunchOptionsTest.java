@@ -15,7 +15,7 @@ class LaunchOptionsTest {
     @Test
     void runsUntilQuitWithTheDefaultSettingsFileWithoutOptions() {
         assertEquals(
-                new LaunchOptions(0, Optional.empty(), Difficulty.MEDIUM, 1, false, false, Optional.empty()),
+                new LaunchOptions(0, Optional.empty(), Difficulty.MEDIUM, 1, false, false, Optional.empty(), 1),
                 LaunchOptions.parse());
     }
 
@@ -29,14 +29,15 @@ class LaunchOptionsTest {
                         1,
                         false,
                         true,
-                        Optional.empty()),
+                        Optional.empty(),
+                        1),
                 LaunchOptions.parse("--bench", "3", "--settings", "smoke.properties"));
     }
 
     @Test
     void parsesTheTestingOptions() {
         assertEquals(
-                new LaunchOptions(0, Optional.empty(), Difficulty.HARD, 4, true, false, Optional.empty()),
+                new LaunchOptions(0, Optional.empty(), Difficulty.HARD, 4, true, false, Optional.empty(), 1),
                 LaunchOptions.parse("--difficulty", "hard", "--debug-speed", "4", "--invulnerable"));
         assertThrows(IllegalArgumentException.class, () -> LaunchOptions.parse("--difficulty", "nightmare"));
         assertThrows(IllegalArgumentException.class, () -> LaunchOptions.parse("--debug-speed", "0"));
@@ -68,6 +69,13 @@ class LaunchOptionsTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> LaunchOptions.parse("--loadout", "front=pulse-cannon", "--start", "title"));
+    }
+
+    @Test
+    void aDebugLevelStartsThere() {
+        assertEquals(2, LaunchOptions.parse("--level", "2").level());
+        assertEquals(true, LaunchOptions.parse("--level", "2").startLevel());
+        assertThrows(IllegalArgumentException.class, () -> LaunchOptions.parse("--level", "0"));
     }
 
     @Test

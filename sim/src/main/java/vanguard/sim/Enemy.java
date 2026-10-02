@@ -5,7 +5,10 @@ import java.util.Optional;
 /**
  * An enemy in flight, as its {@link Spawn} planned it: it flies its path; at the path's end it is
  * gone, or it holds there (hovering, or orbiting in a circle) while its gun fires, and then
- * leaves the play field. Pooled: {@link #spawn} reuses the instance.
+ * leaves the play field; a diver's hold is its pause, its leaving the dive, in which it fires
+ * once. A ground unit ({@link #root}) is fixed to the ground and scrolls with it; a turret turns
+ * its barrel towards the ship and fires along it while the ship is inside its arc. Pooled:
+ * {@link #spawn} and {@link #root} reuse the instance.
  */
 public final class Enemy implements Hashed {
     /** The most its facing turns in one step: one step of a 16-angle set (art direction, Rotation). */
@@ -14,12 +17,17 @@ public final class Enemy implements Hashed {
     private enum Phase {
         ENTER,
         HOLD,
-        LEAVE
+        LEAVE,
+        /** Fixed to the ground layer. */
+        GROUND
     }
 
     private EnemySpec spec;
     private int kind;
     private int serial;
+    /** The ground group it belongs to (a dock of Level 02); -1 for none. */
+    private int group;
+
     private FlightPath path;
     private int segment;
     private double distance;
@@ -47,10 +55,24 @@ public final class Enemy implements Hashed {
     private int burstTicks;
     private boolean leadsTarget;
     private Optional<PickupType> carried;
+    /** A turret's barrel: radians clockwise from straight down the screen. */
+    private double aim;
+    /** Whether the ship is inside a turret's arc this step. */
+    private boolean inArc;
+
+    private int diveTicks;
+    private boolean diveFired;
+    private boolean diveShot;
 
     /** @param unitSerial unique among the units of an attempt, for the shots that lock onto it */
     void spawn(Spawn plan, int unitSerial) {
         serial = unitSerial;
+        group = -1;
+        aim = 0;
+        inArc = false;
+        diveTicks = 0;
+        diveFired = false;
+        diveShot = false;
         spec = plan.enemy();
         kind = plan.kind();
         path = plan.path();
@@ -72,14 +94,43 @@ public final class Enemy implements Hashed {
     }
 
     /**
-     * Flies one step; {@code shipX}, {@code shipY} is where a unit that breaks off heads for.
-     * Returns false once it is gone: at the end of its path without a hold, or off the play field
-     * after leaving.
+     * A ground unit entering at the top edge at {@code atX}, in {@code inGroup} (-1 for none). Its
+     * gun waits its first-shot delay from here.
      */
-    boolean move(double shipX, double shipY) {
+    void root(EnemySpec enemySpec, int enemyKind, double atX, int unitSerial, int inGroup) {
+        spec = enemySpec;
+        kind = enemyKind;
+        serial = unitSerial;
+        group = inGroup;
+        phase = Phase.GROUND;
+        x = prevX = atX;
+        y = prevY = PlayField.HEIGHT + spec.hitbox().height() / 2;
+        hp = spec.hp();
+        aim = 0;
+        facing = 0;
+        inArc = false;
+        burstLeft = 0;
+        leadsTarget = false;
+        carried = Optional.empty();
+        volleyTicks = spec.gun().isPresent() ? SimStep.ticks(spec.gun().get().firstShotDelay()) + 1 : 0;
+        diveFired = diveShot = false;
+        diveTicks = 0;
+    }
+
+    /**
+     * Flies one step; {@code shipX}, {@code shipY} is where a unit that breaks off heads for, and
+     * the ground scrolls by {@code groundScroll}. Returns false once it is gone: at the end of its
+     * path without a hold, off the play field after leaving, or off the bottom edge for a ground unit.
+     */
+    boolean move(double shipX, double shipY, double groundScroll) {
         prevX = x;
         prevY = y;
         switch (phase) {
+            case GROUND -> {
+                y -= groundScroll;
+                track(shipX, shipY);
+                return y + spec.hitbox().height() / 2 > 0;
+            }
             case ENTER -> {
                 distance += speed * SimStep.SECONDS;
                 if (distance >= path.length()) {
@@ -105,6 +156,14 @@ public final class Enemy implements Hashed {
                 x += vx * SimStep.SECONDS;
                 y += vy * SimStep.SECONDS;
                 turn();
+                if (spec.dive().isPresent() && !diveFired) {
+                    EnemySpec.Dive dive = spec.dive().get();
+                    boolean passed = prevY > shipY && y <= shipY;
+                    if (passed || ++diveTicks >= SimStep.ticks(dive.fireAfterSeconds())) {
+                        diveFired = true;
+                        diveShot = true;
+                    }
+                }
                 return PlayField.overlaps(x, y, spec.hitbox());
             }
         }
@@ -125,6 +184,27 @@ public final class Enemy implements Hashed {
         }
         double delta = Math.IEEEremainder(heading(dx, dy) - facing, 2 * StrictMath.PI);
         facing = Math.IEEEremainder(facing + Math.clamp(delta, -MAX_TURN, MAX_TURN), 2 * StrictMath.PI);
+    }
+
+    /**
+     * A turret on the screen turns its barrel towards the ship by at most its turn rate while the
+     * ship is inside its arc; outside it, the barrel holds.
+     */
+    private void track(double shipX, double shipY) {
+        inArc = false;
+        if (spec.gun().isEmpty() || !PlayField.overlaps(x, y, spec.hitbox())) {
+            return;
+        }
+        EnemyGun gun = spec.gun().get();
+        double wanted = heading(shipX - x, shipY - y);
+        if (Math.abs(wanted) > gun.arcRadians()) {
+            return;
+        }
+        inArc = true;
+        double delta = Math.IEEEremainder(wanted - aim, 2 * StrictMath.PI);
+        double most = gun.turnRate() * SimStep.SECONDS;
+        aim = Math.IEEEremainder(aim + Math.clamp(delta, -most, most), 2 * StrictMath.PI);
+        facing = aim;
     }
 
     /** The direction of a movement (y up) in radians clockwise from straight down the screen. */
@@ -155,6 +235,9 @@ public final class Enemy implements Hashed {
     private void leave(double shipX, double shipY) {
         phase = Phase.LEAVE;
         burstLeft = 0;
+        if (spec.dive().isPresent()) {
+            speed = spec.dive().get().speed();
+        }
         double dx = exit.dx();
         double dy = exit.dy();
         if (exit.towardShip()) {
@@ -166,9 +249,18 @@ public final class Enemy implements Hashed {
         vy = dy * speed;
     }
 
-    /** Counts down its gun while it holds; returns whether it fires a shot this step. */
+    /**
+     * Counts down its gun while it holds (a turret: while the ship is in its arc); returns whether
+     * it fires a shot this step. A diver fires once, in its dive.
+     */
     boolean trigger() {
-        if (phase != Phase.HOLD || spec.gun().isEmpty()) {
+        if (spec.dive().isPresent()) {
+            boolean shot = diveShot;
+            diveShot = false;
+            return shot;
+        }
+        boolean ready = phase == Phase.HOLD || (phase == Phase.GROUND && inArc);
+        if (!ready || spec.gun().isEmpty()) {
             return false;
         }
         EnemyGun gun = spec.gun().get();
@@ -199,6 +291,10 @@ public final class Enemy implements Hashed {
     public void addTo(StateHash hash) {
         hash.add(kind)
                 .add(serial)
+                .add(group)
+                .add(aim)
+                .add(diveTicks)
+                .add(diveFired ? 1 : 0)
                 .add(distance)
                 .add(segment)
                 .add(phase.ordinal())
@@ -225,6 +321,26 @@ public final class Enemy implements Hashed {
     /** Unique among the units of an attempt. */
     int serial() {
         return serial;
+    }
+
+    /** Its ground group (a dock), or -1. */
+    int group() {
+        return group;
+    }
+
+    /** A turret's barrel, radians clockwise from straight down. */
+    double aim() {
+        return aim;
+    }
+
+    /** Whether it is a ground unit. */
+    public boolean grounded() {
+        return phase == Phase.GROUND;
+    }
+
+    /** Whether it is a diver in its pause before the dive (its telegraph). */
+    public boolean paused() {
+        return phase == Phase.HOLD && spec.dive().isPresent();
     }
 
     boolean leadsTarget() {

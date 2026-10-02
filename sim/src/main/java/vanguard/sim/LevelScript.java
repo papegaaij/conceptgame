@@ -15,9 +15,11 @@ import java.util.Optional;
  * @param sections back to back from t = 0
  * @param waves in time order
  * @param groundObjects every placed ground object, in time order
+ * @param groundUnits every enemy fixed to the ground, in time order
  * @param secrets the number of secrets in the level
  * @param radio the radio chatter cues
  * @param secondary the secondary objective
+ * @param cranes the crane hazards
  */
 public record LevelScript(
         int number,
@@ -26,14 +28,18 @@ public record LevelScript(
         List<Section> sections,
         List<WaveSpec> waves,
         List<GroundObjectSpec> groundObjects,
+        List<GroundUnit> groundUnits,
         int secrets,
         List<RadioCue> radio,
-        Secondary secondary) {
+        Secondary secondary,
+        List<CraneSpec> cranes) {
     public LevelScript {
         sections = List.copyOf(sections);
         waves = List.copyOf(waves);
         groundObjects = List.copyOf(groundObjects);
+        groundUnits = List.copyOf(groundUnits);
         radio = List.copyOf(radio);
+        cranes = List.copyOf(cranes);
         if (sections.isEmpty()) {
             throw new IllegalArgumentException("a level needs at least one section");
         }
@@ -47,8 +53,81 @@ public record LevelScript(
     /** A stretch of the scroll ending at {@code end} seconds, scrolling at {@code speed} px/s. */
     public record Section(double end, double speed) {}
 
-    /** Destroy at least {@code killRatio} of all enemies for {@code credits} (before the credit factor). */
-    public record Secondary(double killRatio, int credits) {}
+    /**
+     * The secondary objective: destroy at least {@code killRatio} of all enemies for
+     * {@code credits} (before the credit factor), or, with {@code groups}, clear every ground
+     * unit of a group (Level 02's docks) before the last of them leaves the screen, for
+     * {@code credits} per group; the objective is met when every group is cleared.
+     *
+     * @param groups the groups' names (the ground units' {@link GroundUnit#group()} indexes them); empty for a kill ratio
+     */
+    public record Secondary(double killRatio, int credits, List<String> groups) {
+        public Secondary {
+            groups = List.copyOf(groups);
+        }
+
+        public Secondary(double killRatio, int credits) {
+            this(killRatio, credits, List.of());
+        }
+
+        /** Whether the objective is about groups rather than the kill ratio. */
+        public boolean byGroups() {
+            return !groups.isEmpty();
+        }
+    }
+
+    /**
+     * An enemy fixed to the ground layer (a turret), entering at the top edge at {@code t} at
+     * {@code x}, in the secondary objective's group {@code group} (-1 for none).
+     */
+    public record GroundUnit(double t, double x, EnemySpec enemy, int group) {}
+
+    /**
+     * A crane hazard (design/campaign, Level 02: Crane Four): an arm hanging from a pivot above the
+     * play field that swings between two angles, blinking its lights for the telegraph before each
+     * swing. It is lowered from along the gantry during the telegraph before its first swing and
+     * raised back after its last one. The arm deals contact damage, at most once per
+     * {@link #HIT_INTERVAL_SECONDS}, and blocks every shot; a clamp at its tip counts the player's
+     * hits while the arm swings and releases a secret's hidden crate after enough of them.
+     *
+     * @param pivotX the pivot in play-field px
+     * @param pivotY the pivot, above the top edge
+     * @param length the arm, px
+     * @param width the arm's thickness, px
+     * @param fromRadians the angle the first swing starts at, from straight down, positive to the right
+     * @param toRadians the angle the first swing ends at; swings alternate between the two
+     * @param swings the times the swings start, s from the level start
+     * @param swingSeconds how long a swing takes
+     * @param telegraphSeconds how long the lights blink before a swing
+     * @param damage contact damage (shield first)
+     * @param clampHits the player's hits on the clamp that release the crate; 0 for no clamp
+     * @param crateCredits the crate's credits
+     * @param secret the secret's name, for its radio cue
+     */
+    public record CraneSpec(
+            double pivotX,
+            double pivotY,
+            double length,
+            double width,
+            double fromRadians,
+            double toRadians,
+            List<Double> swings,
+            double swingSeconds,
+            double telegraphSeconds,
+            double damage,
+            int clampHits,
+            int crateCredits,
+            String secret) {
+        /** The arm hits the ship at most once in this time. */
+        public static final double HIT_INTERVAL_SECONDS = 1;
+
+        public CraneSpec {
+            swings = List.copyOf(swings);
+            if (swings.isEmpty()) {
+                throw new IllegalArgumentException("a crane swings at least once");
+            }
+        }
+    }
 
     /**
      * An object on the ground layer, entering at the top edge at {@code t} and scrolling with the
@@ -82,9 +161,11 @@ public record LevelScript(
      * A radio chatter line and what triggers it.
      *
      * @param t seconds from the level start, for {@link CueTrigger#TIME}
-     * @param subject the enemy slug of a first kill or the secret's name; empty otherwise
+     * @param subject the enemy slug of a first kill, the secret's name or the group's name; empty otherwise
      * @param expression the speaker's portrait expression ({@code neutral}, {@code grim}, {@code fierce});
      *     presentation only, nothing in the simulation reads it
+     * @param portrait the portrait's speaker when it is not the speaker's own (a generic one);
+     *     presentation only
      */
     public record RadioCue(
             CueTrigger trigger,
@@ -93,13 +174,31 @@ public record LevelScript(
             String speaker,
             String line,
             boolean distorted,
-            String expression) {}
+            String expression,
+            String portrait) {
+        public RadioCue(
+                CueTrigger trigger,
+                double t,
+                String subject,
+                String speaker,
+                String line,
+                boolean distorted,
+                String expression) {
+            this(trigger, t, subject, speaker, line, distorted, expression, speaker);
+        }
+    }
 
     public enum CueTrigger {
         TIME,
         FIRST_KILL,
         SECRET,
         SECONDARY_OBJECTIVE,
-        LEVEL_END
+        LEVEL_END,
+        /** A group of the secondary objective was cleared; the subject is its name. */
+        GROUP_CLEARED,
+        /** A group was lost; the subject is its name. */
+        GROUP_LOST,
+        /** The first group of the attempt was lost. */
+        FIRST_GROUP_LOST
     }
 }

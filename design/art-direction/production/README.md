@@ -121,6 +121,7 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] UI batch part U3: portraits with the three expressions (`tools/art/portraits.py`), the briefing images (`tools/art/briefing_images.py`), the hangar intel's sensor-L2 pictures (`tools/art/intel.py`), the title, hangar and briefing themes (`tools/art/themes.py`) and the bitmap fonts (`tools/art/fonts.py`), drawn and played by the game; concept round 13 (the UI batch review) opened
 - [x] M3 parts final and approved by the user (the UI batch, concept round 13)
 - [x] M4 part A: the Act 1 arsenal's effects rendered by `tools/art/weapon_fx.py` and drawn by the game; approved as final in round 14
+- [x] M4 part B: Level 02's Stinger, Spine Turret, salvage M and overdrive, backdrop, Crane Four and the "Afterburner" stems (review files proposed for round 15)
 - [ ] M4 and M5 parts final, each with its milestone (a round per M4 part, user decision)
 
 ## Open questions

@@ -22,6 +22,7 @@ bullet_damage:  # damage to the player per hit (shield first, overflow to armour
   - {bullet: laser, damage: 8, notes: {label: '`laser`', damage: per touch, used_for: '`laser-sweep` / `laser-line` (once per sweep or line)'}}
 contact_damage: {tiny: 6, small: 10, medium: 15, large: 20, huge: 25}  # by size tier; collisions split half/half
 formations:  # the formation vocabulary: name and description
+  single: One unit on its own, as when a new enemy is introduced.
   V-wing: A V of 3–9 units led by the tip.
   line abreast: A horizontal line moving down together.
   column: A vertical line, one behind the other, on the same path.

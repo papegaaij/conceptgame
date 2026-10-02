@@ -25,6 +25,12 @@ public final class SimEvents {
         BLAST,
         /** The overdrive ran out (at the ship). */
         OVERDRIVE_ENDED,
+        /** A shot hit a crane's clamp (at the shot); value: the mount that fired it. */
+        CLAMP_HIT,
+        /** A group of the secondary objective was cleared; value: the group. */
+        GROUP_CLEARED,
+        /** A group was lost; value: the group. */
+        GROUP_LOST,
         /** A destructible ground object was destroyed (at the object). */
         GROUND_DESTROYED,
         /** A trigger released its secret's hidden crate (at the trigger). */

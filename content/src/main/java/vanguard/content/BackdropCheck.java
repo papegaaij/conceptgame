@@ -80,19 +80,31 @@ final class BackdropCheck {
     private boolean checkAtmosphere() {
         boolean ok = true;
         for (int i = 0; i < level.sections().size(); i++) {
-            LevelData.Atmosphere atmosphere = level.sections().get(i).atmosphere();
-            Optional<BackdropData.Look> look = backdrop.atmosphere().of(atmosphere);
-            String key = atmosphere.name().toLowerCase(Locale.ROOT);
-            if (look.isEmpty()) {
-                problem.accept("sections[" + i + "].atmosphere", "no backdrop.atmosphere." + key);
-                ok = false;
-            } else {
-                String field = "backdrop.atmosphere." + key;
-                ok &= checkLookTiles(field + ".banks", look.get().banks(), BackdropLayer.LOW_AIR);
-                ok &= checkLookTiles(field + ".wisps", look.get().wisps(), BackdropLayer.HIGH_AIR);
+            LevelData.Section section = level.sections().get(i);
+            ok &= checkLook("sections[" + i + "].atmosphere", section.atmosphere());
+            if (section.peak().isPresent()) {
+                LevelData.Peak peak = section.peak().get();
+                ok &= checkLook("sections[" + i + "].peak.atmosphere", peak.atmosphere());
+                if (peak.from() < level.sectionStart(i) || peak.to() > section.end()) {
+                    problem.accept("sections[" + i + "].peak", "the peak lies outside its section");
+                    ok = false;
+                }
             }
         }
         return ok;
+    }
+
+    /** An intensity a section or its peak asks for needs its look, with tile sets on the right layers. */
+    private boolean checkLook(String sectionField, LevelData.Atmosphere atmosphere) {
+        Optional<BackdropData.Look> look = backdrop.atmosphere().of(atmosphere);
+        String key = atmosphere.name().toLowerCase(Locale.ROOT);
+        if (look.isEmpty()) {
+            problem.accept(sectionField, "no backdrop.atmosphere." + key);
+            return false;
+        }
+        String field = "backdrop.atmosphere." + key;
+        boolean banks = checkLookTiles(field + ".banks", look.get().banks(), BackdropLayer.LOW_AIR);
+        return checkLookTiles(field + ".wisps", look.get().wisps(), BackdropLayer.HIGH_AIR) && banks;
     }
 
     private boolean checkLookTiles(String field, Optional<String> id, BackdropLayer layer) {
@@ -247,16 +259,22 @@ final class BackdropCheck {
         return level.seam(layer, index) < bottom + PlayField.HEIGHT && end > bottom;
     }
 
-    /** The section's intensity, or both while an atmosphere change ramps across a boundary. */
+    /** The stretch's intensity, or both while an atmosphere change ramps across a stretch boundary. */
     private List<LevelData.Atmosphere> atmospheresAt(double t) {
         List<LevelData.Atmosphere> out = new ArrayList<>();
-        int number = level.sectionAt(t);
-        int section = number == 0 ? level.sections().size() - 1 : number - 1;
-        out.add(level.sections().get(section).atmosphere());
-        for (int i = 1; i < level.sections().size(); i++) {
-            if (Math.abs(t - level.sectionStart(i)) < backdrop.ramp() / 2) {
-                out.add(level.sections().get(i - 1).atmosphere());
-                out.add(level.sections().get(i).atmosphere());
+        List<LevelData.Stretch> stretches = level.atmosphereStretches();
+        LevelData.Stretch current = stretches.getLast();
+        for (LevelData.Stretch stretch : stretches) {
+            if (t < stretch.end()) {
+                current = stretch;
+                break;
+            }
+        }
+        out.add(current.atmosphere());
+        for (int i = 1; i < stretches.size(); i++) {
+            if (Math.abs(t - stretches.get(i).start()) < backdrop.ramp() / 2) {
+                out.add(stretches.get(i - 1).atmosphere());
+                out.add(stretches.get(i).atmosphere());
             }
         }
         return out;

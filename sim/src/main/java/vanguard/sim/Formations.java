@@ -46,6 +46,10 @@ final class Formations {
     private static final double CIRCLE_Y = 360;
     /** The gap between two break groups of a circle ("one by one"). */
     static final double BREAK_INTERVAL_SECONDS = 0.5;
+    /** Divers of a V go one after another this far apart (design/enemies/air/stinger), and the units of a column enter so. */
+    static final double DIVE_STAGGER_SECONDS = 0.4;
+    /** The gap between the stops of a column entering from a side edge, inwards from the edge. */
+    private static final double COLUMN_STOP_SPACING = 70;
 
     private Formations() {}
 
@@ -53,6 +57,8 @@ final class Formations {
     static void plan(WaveSpec wave, int kind, SplitMix64 rng, List<Spawn> out) {
         Planner planner = new Planner(wave, kind, rng, out);
         switch (wave.formation()) {
+            case SINGLE -> planner.single();
+            case COLUMN -> planner.column();
             case SNAKE -> planner.snake();
             case V_WING -> planner.vWing();
             case LINE_ABREAST -> planner.lineAbreast();
@@ -107,25 +113,126 @@ final class Formations {
             }
         }
 
+        void single() {
+            requireFront();
+            double x = frontColumn();
+            stopAt(
+                    0,
+                    wave.t(),
+                    FlightPath.through(
+                            x, HEIGHT + OUTSIDE, x, HEIGHT - stopDepth().at(0.5)),
+                    x);
+        }
+
+        /**
+         * One behind the other on the same path, {@link #DIVE_STAGGER_SECONDS} apart: from the front
+         * down to where the units stop (or through the screen for units that do not), or from a side
+         * edge along the row they stop at, each stopping further in than the one after it.
+         */
+        void column() {
+            double gap = DIVE_STAGGER_SECONDS;
+            if (wave.entry() == Entry.SIDES) {
+                boolean left =
+                        switch (wave.edge()) {
+                            case LEFT -> true;
+                            case RIGHT -> false;
+                            default -> throw unsupported("a column enters from one side");
+                        };
+                double y = HEIGHT - stopDepth().at(0.5);
+                for (int i = 0; i < wave.count(); i++) {
+                    double in = COLUMN_STOP_SPACING * (wave.count() - i);
+                    double x = left ? in : WIDTH - in;
+                    double edge = left ? -OUTSIDE : WIDTH + OUTSIDE;
+                    stopAt(i, wave.t() + i * gap, FlightPath.through(edge, y, x, y), x);
+                }
+                return;
+            }
+            requireFront();
+            double x = frontColumn();
+            for (int i = 0; i < wave.count(); i++) {
+                if (stops()) {
+                    stopAt(
+                            i,
+                            wave.t() + i * gap,
+                            FlightPath.through(
+                                    x, HEIGHT + OUTSIDE, x, HEIGHT - stopDepth().at(0.5)),
+                            x);
+                } else {
+                    add(
+                            i,
+                            wave.t() + i * gap,
+                            FlightPath.through(x, HEIGHT + OUTSIDE, x, -OUTSIDE),
+                            speed(enemy().speed()),
+                            0,
+                            Optional.empty(),
+                            Spawn.Exit.DOWN);
+                }
+            }
+        }
+
+        private double frontColumn() {
+            return switch (wave.edge()) {
+                case LEFT -> WIDTH * 0.3;
+                case RIGHT -> WIDTH * 0.7;
+                default -> WIDTH / 2;
+            };
+        }
+
         void vWing() {
             requireFront();
-            EnemySpec.Hover hover = required(enemy().hover(), "hover");
-            double centre =
-                    switch (wave.edge()) {
-                        case LEFT -> WIDTH * 0.3;
-                        case RIGHT -> WIDTH * 0.7;
-                        default -> WIDTH / 2;
-                    };
+            Range depth = stopDepth();
+            double centre = frontColumn();
             int ranks = wave.count() / 2;
-            double rankStep =
-                    Math.min(V_RANK_STEP, (hover.depth().max() - hover.depth().min()) / Math.max(1, ranks));
+            double rankStep = Math.min(V_RANK_STEP, (depth.max() - depth.min()) / Math.max(1, ranks));
             for (int i = 0; i < wave.count(); i++) {
                 int rank = (i + 1) / 2;
                 int side = i == 0 ? 0 : (i % 2 == 1 ? -1 : 1);
                 double x = centre + side * rank * V_SPACING;
-                double y = HEIGHT - (hover.depth().max() - rank * rankStep);
+                double y = HEIGHT - (depth.max() - rank * rankStep);
                 FlightPath path = FlightPath.through(x + side * 40, HEIGHT + OUTSIDE, x + side * 20, y + 90, x, y);
-                hoverAt(i, path, hover, Spawn.Exit.awayFromCentre(x));
+                stopAt(i, wave.t(), path, x);
+            }
+        }
+
+        /** Whether its units stop on the screen: they hover, or pause before a dive. */
+        private boolean stops() {
+            return enemy().hover().isPresent() || enemy().dive().isPresent();
+        }
+
+        /** How far below the top edge its units stop: where they hover, or pause before a dive. */
+        private Range stopDepth() {
+            if (enemy().dive().isPresent()) {
+                return enemy().dive().get().depth();
+            }
+            return required(enemy().hover(), "hover or dive").depth();
+        }
+
+        /**
+         * A unit that flies {@code path} and stops at its end: a hover for its hover time, then away
+         * from the centre; or a diver's pause (the units of a V one after another), then the dive.
+         */
+        private void stopAt(int unit, double t, FlightPath path, double x) {
+            if (enemy().dive().isPresent()) {
+                EnemySpec.Dive dive = enemy().dive().get();
+                double stagger = wave.formation() == WaveSpec.Formation.V_WING ? unit * DIVE_STAGGER_SECONDS : 0;
+                add(
+                        unit,
+                        t,
+                        path,
+                        speed(enemy().speed()),
+                        dive.pauseSeconds() + stagger,
+                        Optional.empty(),
+                        Spawn.Exit.TOWARD_SHIP);
+            } else {
+                EnemySpec.Hover hover = required(enemy().hover(), "hover or dive");
+                add(
+                        unit,
+                        t,
+                        path,
+                        speed(enemy().speed()),
+                        hover.seconds().pick(rng),
+                        Optional.empty(),
+                        Spawn.Exit.awayFromCentre(x));
             }
         }
 
@@ -136,7 +243,7 @@ final class Formations {
                 double y = HEIGHT - hover.depth().at(0.5);
                 for (int i = 0; i < count; i++) {
                     double x = (i + 1) * WIDTH / (count + 1);
-                    hoverAt(i, FlightPath.through(x, HEIGHT + OUTSIDE, x, y), hover, Spawn.Exit.awayFromCentre(x));
+                    stopAt(i, wave.t(), FlightPath.through(x, HEIGHT + OUTSIDE, x, y), x);
                 }
                 return;
             }
@@ -221,10 +328,6 @@ final class Formations {
                         place,
                         Spawn.Exit.TOWARD_SHIP);
             }
-        }
-
-        private void hoverAt(int unit, FlightPath path, EnemySpec.Hover hover, Spawn.Exit exit) {
-            add(unit, wave.t(), path, speed(enemy().speed()), hover.seconds().pick(rng), Optional.empty(), exit);
         }
 
         private void add(

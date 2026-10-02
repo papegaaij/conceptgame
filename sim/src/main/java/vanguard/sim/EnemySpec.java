@@ -19,8 +19,10 @@ import java.util.Optional;
  * @param streamSpeed its speed in streams
  * @param hover how long and how far below the top edge it hovers
  * @param orbit its orbit in circle formations
- * @param gun its aimed attack; none for rammers
+ * @param gun its attack; none for rammers
  * @param drop the pickup every n-th kill drops
+ * @param dive how it dives, for a diver
+ * @param terrain whether it is fixed to the ground layer and moves only with the scroll
  */
 public record EnemySpec(
         String slug,
@@ -36,7 +38,9 @@ public record EnemySpec(
         Optional<Hover> hover,
         Optional<Orbit> orbit,
         Optional<EnemyGun> gun,
-        Optional<Drop> drop) {
+        Optional<Drop> drop,
+        Optional<Dive> dive,
+        boolean terrain) {
 
     /** A snake's units follow one another {@code spacingSeconds} apart. */
     public record Snake(double spacingSeconds) {}
@@ -49,4 +53,11 @@ public record EnemySpec(
 
     /** Every {@code every}-th kill of this enemy in an attempt drops {@code pickup}. */
     public record Drop(PickupType pickup, int every) {}
+
+    /**
+     * Pauses {@code depth} px below the top edge for {@code pauseSeconds}, then dives at
+     * {@code speed} px/s at where the ship was, firing once when it passes the ship's height or
+     * {@code fireAfterSeconds} into the dive.
+     */
+    public record Dive(Range depth, double pauseSeconds, double speed, double fireAfterSeconds) {}
 }

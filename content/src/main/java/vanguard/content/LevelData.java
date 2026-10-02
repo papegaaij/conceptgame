@@ -2,6 +2,7 @@ package vanguard.content;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,7 +15,9 @@ import vanguard.sim.PlayField;
  * @param scrollSpeed px/s unless a section sets its own
  * @param launchSeconds the non-playable launch before control starts
  * @param controlPrompts the control prompts shown in the first section
+ * @param prompts contextual prompts shown at a time (design/ui/hud: one line, an action and its keys)
  * @param sections back to back from t = 0
+ * @param cranes the crane hazards (Level 02: Crane Four)
  * @param pickups pickups placed by the script (normal drops come from the enemies)
  * @param radio the radio chatter
  * @param backdrop the parallax layers behind and above the play plane
@@ -25,12 +28,14 @@ public record LevelData(
         double scrollSpeed,
         double launchSeconds,
         List<String> controlPrompts,
+        Optional<List<Prompt>> prompts,
         List<Section> sections,
         List<Wave> waves,
         List<GroundTarget> groundTargets,
         List<Secret> secrets,
         List<PlacedPickup> pickups,
         List<RadioCue> radio,
+        Optional<List<CraneData>> cranes,
         Objectives objectives,
         Music music,
         Difficulties difficulty,
@@ -109,6 +114,27 @@ public record LevelData(
                 : scrollAt(sectionStart(index)) * backdrop.factor(layer) + PlayField.HEIGHT;
     }
 
+    /** A stretch of the level with one atmosphere: a section, or the parts of it around its peak. */
+    public record Stretch(double start, double end, Atmosphere atmosphere) {}
+
+    /** The atmosphere along the level: every section's, split around its peak, in time order. */
+    public List<Stretch> atmosphereStretches() {
+        List<Stretch> out = new ArrayList<>();
+        for (int i = 0; i < sections.size(); i++) {
+            Section section = sections.get(i);
+            double start = sectionStart(i);
+            if (section.peak().isPresent()) {
+                Peak peak = section.peak().get();
+                out.add(new Stretch(start, peak.from(), section.atmosphere()));
+                out.add(new Stretch(peak.from(), peak.to(), peak.atmosphere()));
+                out.add(new Stretch(peak.to(), section.end(), section.atmosphere()));
+            } else {
+                out.add(new Stretch(start, section.end(), section.atmosphere()));
+            }
+        }
+        return out;
+    }
+
     /** The 1-based number of the section that is running at {@code t}, or 0 after the level end. */
     public int sectionAt(double t) {
         for (int i = 0; i < sections.size(); i++) {
@@ -124,10 +150,80 @@ public record LevelData(
      *
      * @param tiles the backdrop's tile sets in this section, at most one per layer
      */
-    public record Section(String name, double end, Optional<Double> speed, Atmosphere atmosphere, List<String> tiles) {
+    public record Section(
+            String name,
+            double end,
+            Optional<Double> speed,
+            Atmosphere atmosphere,
+            Optional<Peak> peak,
+            List<String> tiles) {
         public Section {
             Check.positive("end", end);
             speed.ifPresent(s -> Check.positive("speed", s));
+        }
+    }
+
+    /** A stretch inside a section whose atmosphere peaks at {@code atmosphere} (Level 02's coolant cloud). */
+    public record Peak(Atmosphere atmosphere, double from, double to) {
+        public Peak {
+            Check.that(to > from, "a peak ends after it starts");
+        }
+    }
+
+    /**
+     * A contextual prompt (design/ui/hud, control prompts): shown from {@code t} for {@code seconds}
+     * in the prompts' well, the {@code action} on the left and its {@code keys} on the right.
+     */
+    public record Prompt(double t, String action, String keys, double seconds) {
+        public Prompt {
+            Check.notNegative("t", t);
+            Check.positive("seconds", seconds);
+        }
+    }
+
+    /**
+     * A crane hazard ({@code sim.LevelScript.CraneSpec}): an arm of {@code length} x {@code width}
+     * px hanging from ({@code x}, {@code y}) above the top edge, swinging between {@code from} and
+     * {@code to} (degrees from straight down, positive to the right) at the {@code swings} times,
+     * each swing {@code swing_seconds} long after a {@code telegraph} of blinking lights; contact
+     * {@code damage}; a clamp at its tip that {@code reveals} a secret after {@code hits} hits.
+     */
+    public record CraneData(
+            String name,
+            double x,
+            double y,
+            double length,
+            double width,
+            double from,
+            double to,
+            List<Double> swings,
+            double swingSeconds,
+            double telegraph,
+            double damage,
+            Optional<Clamp> clamp,
+            Optional<Swings> easy,
+            Optional<Swings> hard) {
+        public CraneData {
+            Check.positive("length", length);
+            Check.positive("width", width);
+            Check.notEmpty("swings", swings);
+            Check.positive("swing_seconds", swingSeconds);
+            Check.positive("telegraph", telegraph);
+            Check.positive("damage", damage);
+        }
+    }
+
+    /** A crane's clamp: {@code hits} hits while the arm swings release the secret it {@code reveals}. */
+    public record Clamp(int hits, String reveals) {
+        public Clamp {
+            Check.positive("hits", hits);
+        }
+    }
+
+    /** A difficulty's swing times. */
+    public record Swings(List<Double> swings) {
+        public Swings {
+            Check.notEmpty("swings", swings);
         }
     }
 
@@ -214,33 +310,55 @@ public record LevelData(
             Optional<Entry> from, Optional<Edge> edge, Optional<Integer> count, Optional<Integer> breakGroup) {}
 
     /**
-     * A ground target: a destructible ({@code hp}, {@code bounty}, {@code drop}) or a trigger hit
-     * {@code hits} times that {@code reveals} a secret.
+     * A ground target: a destructible ({@code hp}, {@code bounty}, {@code drop}), a trigger hit
+     * {@code hits} times that {@code reveals} a secret, or ground enemies of a stat block
+     * ({@code enemy}, such as a Spine Turret nest), which may belong to a {@code group} of the
+     * secondary objective.
      *
-     * @param size its hit box in px
+     * @param layer and {@code size}: a destructible's or trigger's layer and hit box in px; an
+     *     enemy's come from its stat block
      * @param at where each of them is placed
      * @param hardened only {@code anti-ground} weapons damage it (design/enemies, layer rules)
+     * @param easy another placement list on easy (an enemy nest's size)
+     * @param hard another placement list on hard
      */
     public record GroundTarget(
             String target,
             int section,
             Optional<Integer> count,
-            String layer,
-            Size size,
+            Optional<String> layer,
+            Optional<Size> size,
             List<Placement> at,
             Optional<Double> hp,
             Optional<Integer> bounty,
             Optional<Pickup> drop,
             Optional<Integer> hits,
             Optional<String> reveals,
-            Optional<Boolean> hardened) {
+            Optional<Boolean> hardened,
+            Optional<String> enemy,
+            Optional<String> group,
+            Optional<Placements> easy,
+            Optional<Placements> hard) {
         public GroundTarget {
-            Layers.of(layer);
-            Check.that(hp.isPresent() != hits.isPresent(), "give hp (destructible) or hits (trigger)");
-            Check.that(reveals.isPresent() == hits.isPresent(), "a trigger (hits) reveals a secret");
+            layer.ifPresent(Layers::of);
             Check.that(at.size() == count.orElse(1), "at: one placement per target (count, or 1 for a trigger)");
+            if (enemy.isPresent()) {
+                Check.that(
+                        hp.isEmpty() && hits.isEmpty() && bounty.isEmpty() && layer.isEmpty() && size.isEmpty(),
+                        "an enemy's hp, bounty, layer and size come from its stat block");
+            } else {
+                Check.that(layer.isPresent() && size.isPresent(), "a destructible or trigger needs layer and size");
+                Check.that(hp.isPresent() != hits.isPresent(), "give hp (destructible) or hits (trigger)");
+                Check.that(reveals.isPresent() == hits.isPresent(), "a trigger (hits) reveals a secret");
+                Check.that(
+                        group.isEmpty() && easy.isEmpty() && hard.isEmpty(),
+                        "only enemies have a group or easy/hard placements");
+            }
         }
     }
+
+    /** A difficulty's placements of a ground target. */
+    public record Placements(List<Placement> at) {}
 
     /** A ground object entering at the top edge at {@code t} seconds, {@code x} px from the left. */
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
@@ -288,7 +406,9 @@ public record LevelData(
             Optional<Double> t,
             Optional<CueEvent> event,
             Optional<String> enemy,
+            Optional<String> group,
             String speaker,
+            Optional<String> portrait,
             String line,
             Optional<Boolean> distorted,
             Optional<Expression> expression,
@@ -299,6 +419,10 @@ public record LevelData(
             Check.that(
                     enemy.isPresent() == (event.orElse(null) == CueEvent.FIRST_KILL),
                     "a first-kill event names its enemy, other triggers do not");
+            boolean byGroup = event.orElse(null) == CueEvent.GROUP_CLEARED || event.orElse(null) == CueEvent.GROUP_LOST;
+            Check.that(
+                    group.isPresent() == byGroup,
+                    "a group-cleared or group-lost event names its group, other triggers do not");
         }
     }
 
@@ -311,16 +435,28 @@ public record LevelData(
         @JsonProperty("secondary-objective")
         SECONDARY_OBJECTIVE,
         @JsonProperty("level-end")
-        LEVEL_END
+        LEVEL_END,
+        @JsonProperty("group-cleared")
+        GROUP_CLEARED,
+        @JsonProperty("group-lost")
+        GROUP_LOST,
+        @JsonProperty("first-group-lost")
+        FIRST_GROUP_LOST
     }
 
     /** The primary objective's kind and the optional secondary objective. */
     public record Objectives(String primary, Optional<Secondary> secondary) {}
 
-    /** Destroy at least {@code killRatio} of all enemies for {@code credits}. */
-    public record Secondary(double killRatio, int credits) {
+    /**
+     * Destroy at least {@code killRatio} of all enemies for {@code credits}, or clear the ground
+     * enemies of every one of the {@code groups} (named by its ground targets' {@code group}) for
+     * {@code credits} each.
+     */
+    public record Secondary(Optional<Double> killRatio, Optional<List<String>> groups, int credits) {
         public Secondary {
-            Check.share("kill_ratio", killRatio);
+            Check.that(killRatio.isPresent() != groups.isPresent(), "give kill_ratio or groups");
+            killRatio.ifPresent(r -> Check.share("kill_ratio", r));
+            groups.ifPresent(g -> Check.notEmpty("groups", g));
             Check.notNegative("credits", credits);
         }
     }

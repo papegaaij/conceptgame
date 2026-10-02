@@ -43,6 +43,7 @@ public final class DesktopLauncher {
                 options.invulnerable(),
                 options.startLevel(),
                 options.debugFit(),
+                options.level(),
                 options.benchSeconds(),
                 saves);
         new Lwjgl3Application(game, configuration(settings));

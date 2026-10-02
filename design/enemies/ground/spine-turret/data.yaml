@@ -1,0 +1,42 @@
+# Spine Turret stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Spine Turret
+faction: Vrell
+layer: ground
+tier: small
+size: [40, 40]    # sprite px
+hitbox: [30, 30]
+parts: single (barrel rotates)
+orientation: 32 angles
+hp: 8
+armour: none
+speed: 0          # scrolls with the ground
+movement:
+  terrain: {}
+attacks:
+  - pattern: aimed
+    bullet: small
+    interval: 2.0      # s
+    speed: 160         # px/s
+    first_shot_delay: 1.0  # s after it enters the screen
+    turn_rate: 90      # °/s, the barrel; shots leave along it
+    arc: 100           # fires while the player is within this many degrees of straight down
+    notes:
+      text: '`{pattern}` standard orb every {interval} s along its barrel (turning {turn_rate}°/s), {speed} px/s, damage `{bullet}` = {damage}; silent once the player is more than {arc}° off its facing (behind it)'
+formations:
+  - {name: turret nest, size: [3, 6]}
+weak_points:
+  - {name: violet barrel root}
+drops: []
+traits: [anti-ground, forward]
+bounty: 12
+first_level: 2
+difficulty:
+  hard: {burst: 2}
+notes:
+  orientation: (the barrel; the body is fixed and faces down the screen)
+  speed: (scrolls with the ground)
+  movement: '`terrain`'
+  weak_points: (drawn only)
+  death: '`small` organic crumble; leaves a scorched stump on the ground layer'
+  used_in: recurring ground fodder in Acts 1–2 (incl. Luna and Vrell creep)
+  difficulty: 'hard: 2-shot bursts'

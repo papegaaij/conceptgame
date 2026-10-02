@@ -482,3 +482,21 @@ Screenshot tests are left out until there is a need.
   testing only). The Level 01 replay keeps its kills (90) and credits (916); its hash is now
   `c58ff0e1fb68eae9` (the new state is hashed, and the starter fit's 4 MW spare power raises its
   shield regen by 40 %).
+- 2026-10-02: M4 part B (Level 02). `sim`: ground units (`LevelScript.GroundUnit`: an enemy of the level's
+  ground targets, entering at the top edge and scrolling with the ground; a turret's barrel turns
+  at its turn rate inside its arc and fires along itself), dives (`EnemySpec.Dive`: the hold is the
+  pause, the leave the dive at its own speed, one shot when it passes the ship's height or after
+  its fire time), fans (`EnemyGun.fan`, `spreadRadians`), the `single` and `column` formations,
+  group objectives (`Objectives`: a group's outcome when its last unit is gone; pay per cleared
+  group, `GROUP_CLEARED` / `GROUP_LOST` events and cue triggers), `Crane` (the arm's angle a
+  function of the level time; contact at most once a second; it stops every shot; a clamp counted
+  while it swings), the overdrive and salvage M pickups. `content`: the level data's `prompts`,
+  `cranes`, a section's `peak` (`LevelData.atmosphereStretches()` drives the backdrop's ramps and
+  checks), ground targets with `enemy`, `group` and `easy` / `hard` placements, a secondary
+  objective of `groups`, radio cues with `group` and `portrait`; the enemy data's `dive`,
+  `terrain`, a fan's `count` and `spread`, a turret's `turn_rate` and `arc`, the `±30° tilt`
+  orientation, optional weak-point multipliers and the `fan_count`, `dive_pause`, `burst` hooks.
+  `game`: `EnemyLooks` finds a unit's frames by its slug (a tilt set, a pause flare, remains),
+  `CraneLooks` (`pivots/crane-four.json`), the tracker's group pips, the level's theme by its
+  track number. Debug option `--level <n>` (`DebugFit.startAt`, testing only). The Level 01 replay
+  is unchanged (`c58ff0e1fb68eae9`).

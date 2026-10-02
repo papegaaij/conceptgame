@@ -38,6 +38,10 @@ public record WaveSpec(
 
     /** The formations of design/enemies that the simulation flies so far. */
     public enum Formation {
+        /** One unit on its own. */
+        SINGLE,
+        /** One behind the other on the same path. */
+        COLUMN,
         SNAKE,
         V_WING,
         LINE_ABREAST,

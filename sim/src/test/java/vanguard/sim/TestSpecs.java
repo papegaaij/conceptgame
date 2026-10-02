@@ -46,8 +46,10 @@ final class TestSpecs {
             Optional.empty(),
             Optional.empty(),
             Optional.empty(),
-            Optional.empty());
-    static final EnemyGun NEEDLER_GUN = new EnemyGun(2.5, 0.8, 1, 150, 4, false);
+            Optional.empty(),
+            Optional.empty(),
+            false);
+    static final EnemyGun NEEDLER_GUN = EnemyGun.aimed(2.5, 0.8, 1, 150, 4, false);
     static final EnemySpec NEEDLER = needler(NEEDLER_GUN);
     static final ScoringRules SCORING = new ScoringRules(
             10,
@@ -66,7 +68,7 @@ final class TestSpecs {
                     new ScoringRules.Grade("B", 55, 0.1),
                     new ScoringRules.Grade("C", 35, 0),
                     new ScoringRules.Grade("D", 0, 0)));
-    static final Rules RULES = new Rules(120, 0, new PickupRules(10, 0.25, 10, 6, 40, 36), SCORING);
+    static final Rules RULES = new Rules(120, 0, new PickupRules(10, 50, 20, 0.25, 10, 6, 40, 36), SCORING);
 
     private TestSpecs() {}
 
@@ -125,7 +127,9 @@ final class TestSpecs {
                 Optional.of(new EnemySpec.Hover(new Range(2, 4), new Range(80, 220))),
                 Optional.of(new EnemySpec.Orbit(90, 60)),
                 Optional.of(gun),
-                Optional.of(new EnemySpec.Drop(PickupType.SHIELD_CELL, 4)));
+                Optional.of(new EnemySpec.Drop(PickupType.SHIELD_CELL, 4)),
+                Optional.empty(),
+                false);
     }
 
     /** A wave without hold, warning, speed or interval, breaking off one by one, carrying nothing. */
@@ -168,11 +172,13 @@ final class TestSpecs {
                 List.of(new LevelScript.Section(seconds, 130)),
                 waves,
                 ground,
+                List.of(),
                 (int) ground.stream()
                         .filter(LevelScript.GroundObjectSpec::trigger)
                         .count(),
                 radio,
-                new LevelScript.Secondary(0.8, 50));
+                new LevelScript.Secondary(0.8, 50),
+                List.of());
     }
 
     static Sortie sortie(LevelScript level) {

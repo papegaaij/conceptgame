@@ -116,6 +116,11 @@ public final class Sprites implements Disposable {
         return frames(sprites, name);
     }
 
+    /** Whether the sprite pages hold a region of that name. */
+    public boolean has(String name) {
+        return sprites.findRegion(name) != null;
+    }
+
     /** A nine-patch of the sprite pages by its name, such as {@code ui/frame}; it must exist. */
     public NinePatch patch(String name) {
         return patch(sprites, name);

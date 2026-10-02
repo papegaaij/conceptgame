@@ -1,5 +1,6 @@
 package vanguard.sim;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,6 +34,10 @@ public final class Sortie {
     private final Tally tally;
     private final Objectives objectives;
     private final Radio radio;
+    private final Crane[] cranes;
+    /** Whether a group's outcome was paid and called in this attempt. */
+    private final boolean[] groupCalled;
+
     private final int launchTicks;
     private final int endTicks;
     private final int pickupTicks;
@@ -75,9 +80,11 @@ public final class Sortie {
                 revealSecret(ground.get(index));
             }
         });
-        force = new EnemyForce(script.waves(), rng, rules, events);
+        force = new EnemyForce(script.waves(), script.groundUnits(), rng, rules, events, this::groupUnitEscaped);
         tally = new Tally(rules.scoring());
-        objectives = new Objectives(script.secondary(), force.kinds().size(), force.units());
+        objectives = new Objectives(script.secondary(), force.kinds().size(), force.units(), script.groundUnits());
+        cranes = script.cranes().stream().map(Crane::new).toArray(Crane[]::new);
+        groupCalled = new boolean[script.secondary().groups().size()];
         radio = new Radio(script.radio(), events, ship);
         launchTicks = SimStep.ticks(script.launchSeconds());
         endTicks = SimStep.ticks(script.seconds());
@@ -108,10 +115,14 @@ public final class Sortie {
             placeGroundObjects();
             radio.byTime(levelTick);
         }
+        for (Crane crane : cranes) {
+            crane.update(levelTick);
+        }
         edgeWarnings = complete ? 0 : force.warnings(levelTick);
         fire.move(scrollStep, force.enemies());
-        force.move(ship, flying() && !complete);
+        force.move(ship, flying() && !complete, scrollStep);
         force.moveBullets();
+        blockShots();
         scrollGround(scrollStep);
         driftPickups();
         fire.hitEnemies(force.enemies());
@@ -119,6 +130,7 @@ public final class Sortie {
         if (flying() && !complete && !rules.invulnerableShip()) {
             hitShip();
             ramShip();
+            hitByCranes();
         }
         if (flying()) {
             collectPickups();
@@ -156,6 +168,10 @@ public final class Sortie {
         tally.reset();
         objectives.reset();
         radio.reset();
+        for (Crane crane : cranes) {
+            crane.reset();
+        }
+        Arrays.fill(groupCalled, false);
         levelTick = 0;
         groundScroll = 0;
         nextGroundObject = 0;
@@ -228,8 +244,9 @@ public final class Sortie {
         Enemy enemy = enemies.get(index);
         EnemySpec spec = enemy.spec();
         events.add(SimEvents.Type.ENEMY_DESTROYED, enemy.x(), enemy.y(), enemy.kind());
-        tally.kill(spec.bounty());
+        tally.kill(spec.bounty(), enemy.grounded() ? CreditSource.GROUND_TARGETS : CreditSource.KILLS);
         int kills = objectives.kill(enemy.kind());
+        int group = enemy.group();
         if (enemy.carried().isPresent()) {
             drop(enemy.carried().get(), enemy.x(), enemy.y());
         }
@@ -240,6 +257,9 @@ public final class Sortie {
         if (kills == 1) {
             radio.cue(LevelScript.CueTrigger.FIRST_KILL, spec.slug());
         }
+        if (group >= 0) {
+            decided(group, objectives.groupUnitDestroyed(group));
+        }
         if (objectives.meetsSecondary(tally.kills())) {
             int credits = script.secondary().credits();
             tally.earn(CreditSource.OBJECTIVES, credits);
@@ -249,11 +269,120 @@ public final class Sortie {
         }
     }
 
+    /** A unit of a ground group left the screen alive. */
+    private void groupUnitEscaped(int group) {
+        decided(group, objectives.groupUnitEscaped(group));
+    }
+
+    /**
+     * A group's outcome once it is decided: a cleared group pays its credits and calls its line,
+     * the objective is met when every group is cleared; a lost group calls its line, and the first
+     * lost one also the first-loss line.
+     */
+    private void decided(int group, int state) {
+        String name = script.secondary().groups().get(group);
+        if (state == Objectives.CLEARED && !groupCalled[group]) {
+            groupCalled[group] = true;
+            int credits = script.secondary().credits();
+            tally.earn(CreditSource.OBJECTIVES, credits);
+            tally.scoreValue(credits);
+            events.add(SimEvents.Type.GROUP_CLEARED, ship.x(), ship.y(), group);
+            radio.cue(LevelScript.CueTrigger.GROUP_CLEARED, name);
+            if (objectives.secondaryMet()) {
+                events.add(SimEvents.Type.OBJECTIVE_MET, ship.x(), ship.y());
+                radio.cue(LevelScript.CueTrigger.SECONDARY_OBJECTIVE, "");
+            }
+        } else if (state == Objectives.LOST && !groupCalled[group]) {
+            groupCalled[group] = true;
+            events.add(SimEvents.Type.GROUP_LOST, ship.x(), ship.y(), group);
+            radio.cue(LevelScript.CueTrigger.GROUP_LOST, name);
+            if (objectives.groupsLost() == 1) {
+                radio.cue(LevelScript.CueTrigger.FIRST_GROUP_LOST, "");
+            }
+        }
+    }
+
     private void drop(PickupType type, double x, double y) {
         Pickup pickup = pickups.obtain();
         if (pickup != null) {
-            int credits = type == PickupType.SMALL_SALVAGE ? rules.pickups().smallSalvageCredits() : 0;
+            int credits =
+                    switch (type) {
+                        case SMALL_SALVAGE -> rules.pickups().smallSalvageCredits();
+                        case MEDIUM_SALVAGE -> rules.pickups().mediumSalvageCredits();
+                        default -> 0;
+                    };
             pickup.drop(type, credits, x, y, pickupTicks);
+        }
+    }
+
+    /** The cranes' arms stop every shot that touches them; the player's hits on a swinging arm's clamp count. */
+    private void blockShots() {
+        Pool<Shot> shots = fire.shots();
+        Pool<EnemyBullet> bullets = force.bullets();
+        for (Crane crane : cranes) {
+            if (!crane.present()) {
+                continue;
+            }
+            for (int i = shots.size() - 1; i >= 0; i--) {
+                Shot shot = shots.get(i);
+                Hitbox size = shot.weapon().size();
+                if (shot.weapon().delivery().landing()) {
+                    continue;
+                }
+                if (crane.clampHit(shot.x(), shot.y(), size)) {
+                    events.add(SimEvents.Type.CLAMP_HIT, shot.x(), shot.y(), shot.mount());
+                    shots.free(i);
+                    if (crane.countClampHit()) {
+                        releaseCrate(crane);
+                    }
+                } else if (crane.touches(shot.x(), shot.y(), size.width() / 2, size.height() / 2)) {
+                    events.add(SimEvents.Type.SHOT_GLANCED, shot.x(), shot.y(), shot.mount());
+                    shots.free(i);
+                }
+            }
+            for (int i = bullets.size() - 1; i >= 0; i--) {
+                EnemyBullet bullet = bullets.get(i);
+                if (crane.touches(bullet.x(), bullet.y(), EnemyGun.BULLET.width() / 2, EnemyGun.BULLET.height() / 2)) {
+                    bullets.free(i);
+                }
+            }
+        }
+    }
+
+    /** A crane's clamp let go: its secret's crate drops from the hook. */
+    private void releaseCrate(Crane crane) {
+        objectives.secretFound();
+        LevelScript.CraneSpec spec = crane.spec();
+        events.add(SimEvents.Type.SECRET_FOUND, crane.tipX(), crane.tipY());
+        Pickup crate = pickups.obtain();
+        if (crate != null) {
+            crate.drop(PickupType.HIDDEN_CRATE, spec.crateCredits(), crane.tipX(), crane.tipY(), pickupTicks);
+        }
+        radio.cue(LevelScript.CueTrigger.SECRET, spec.secret());
+    }
+
+    /** A crane's arm touching the hull deals its damage, shield first, at most once per its interval. */
+    private void hitByCranes() {
+        Hull hull = ship.spec().hull();
+        for (Crane crane : cranes) {
+            if (!crane.present()) {
+                continue;
+            }
+            for (int p = 0; p < hull.parts().size(); p++) {
+                Hull.Part part = hull.parts().get(p);
+                if (crane.touches(
+                                ship.x() + part.dx(),
+                                ship.y() + part.dy(),
+                                part.box().width() / 2,
+                                part.box().height() / 2)
+                        && crane.strike()) {
+                    double lost = ship.defences().armourLost();
+                    if (damaged(lost, ship.defences().takeShot(crane.spec().damage(), events, ship.x(), ship.y()))) {
+                        return;
+                    }
+                    break;
+                }
+            }
         }
     }
 
@@ -324,7 +453,8 @@ public final class Sortie {
     private void apply(Pickup pickup) {
         Defences defences = ship.defences();
         switch (pickup.type()) {
-            case SMALL_SALVAGE -> payPickup(CreditSource.SALVAGE, pickup);
+            case SMALL_SALVAGE, MEDIUM_SALVAGE -> payPickup(CreditSource.SALVAGE, pickup);
+            case OVERDRIVE -> fire.overdrive(SimStep.ticks(rules.pickups().overdriveSeconds()));
             case HIDDEN_CRATE -> payPickup(CreditSource.SECRETS, pickup);
             case SHIELD_CELL -> defences.restoreShield(rules.pickups().shieldCellShare() * defences.maxShield());
             case ARMOUR_PATCH -> defences.repair(rules.pickups().armourPatch());
@@ -365,6 +495,9 @@ public final class Sortie {
         fire.addTo(hash);
         tally.addTo(hash);
         objectives.addKillsTo(hash);
+        for (Crane crane : cranes) {
+            crane.addTo(hash);
+        }
         Pools.addAll(hash, fire.shots());
         Pools.addAll(hash, force.enemies());
         Pools.addAll(hash, force.bullets());
@@ -458,6 +591,24 @@ public final class Sortie {
 
     public Pickup pickup(int index) {
         return pickups.get(index);
+    }
+
+    public int craneCount() {
+        return cranes.length;
+    }
+
+    public Crane crane(int index) {
+        return cranes[index];
+    }
+
+    /** The groups of a group objective (Level 02's docks); 0 otherwise. */
+    public int groupCount() {
+        return objectives.groupCount();
+    }
+
+    /** Whether group {@code g} is still open (0), cleared (1) or lost (2). */
+    public int groupState(int g) {
+        return objectives.groupState(g);
     }
 
     /** Events of the last step. */

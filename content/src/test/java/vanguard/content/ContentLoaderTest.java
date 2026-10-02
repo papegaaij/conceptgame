@@ -22,7 +22,7 @@ class ContentLoaderTest {
 
         assertEquals(14, content.weapons().size());
         assertEquals(
-                List.of("needler", "skitter"),
+                List.of("needler", "skitter", "spine-turret", "stinger"),
                 content.enemies().keySet().stream().sorted().toList());
         assertEquals(
                 180, content.level("act-1-first-contact/level-01-break-at-dawn").seconds());
@@ -84,7 +84,7 @@ class ContentLoaderTest {
                 SKITTER,
                 text -> text.replace("orientation: 16 angles", "orientation: 12 angles"),
                 "design/enemies/air/skitter/data.yaml:",
-                "orientation must be fixed, 16 angles, 32 angles or radial, was '12 angles'");
+                "orientation must be fixed, ±30° tilt, 16 angles, 32 angles or radial, was '12 angles'");
     }
 
     @Test
@@ -102,7 +102,8 @@ class ContentLoaderTest {
         assertProblem(
                 LEVEL_01,
                 text -> text.replaceFirst("enemy: needler", "enemy: neddler"),
-                "design/" + LEVEL_01 + ": waves[2].enemy: unknown enemy 'neddler' (known: needler, skitter)");
+                "design/" + LEVEL_01
+                        + ": waves[2].enemy: unknown enemy 'neddler' (known: needler, skitter, spine-turret, stinger)");
     }
 
     @Test

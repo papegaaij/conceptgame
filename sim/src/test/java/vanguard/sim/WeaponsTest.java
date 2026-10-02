@@ -404,7 +404,9 @@ class WeaponsTest {
                 spec.hover(),
                 spec.orbit(),
                 Optional.empty(),
-                spec.drop());
+                spec.drop(),
+                Optional.empty(),
+                false);
     }
 
     private static void run(Sortie sortie, int steps, int commands) {

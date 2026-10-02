@@ -33,6 +33,7 @@ they belong to; a round only collects them.
 | [round-12](round-12/README.md) | Level 01 production batch: final sprites, effects, loot targets, backdrop and the recorded SFX rebuilt from the originals | approved | n/a | chosen |
 | [round-13](round-13/README.md) | UI production batch: HUD, glass kit and screens, portraits with expressions, briefing images, intel pictures, themes, fonts, the north-arm fix | approved | n/a | chosen |
 | [round-14](round-14/README.md) | M4 part A: the Act 1 arsenal's effects and the HUD's weapon rows | approved | n/a | chosen |
+| [round-15](round-15/README.md) | M4 part B: Level 02's Stinger, Spine Turret, pickups, backdrop, Crane Four and Afterburner stems | review | n/a | proposed |
 
 ## Design
 
@@ -67,3 +68,4 @@ How a round works:
 | 12 | 2026-10-02 | closed | Level 01 production batch: final art review, recorded SFX rebuilt from the originals |
 | 13 | 2026-10-02 | closed | UI production batch: final art review of U1–U3 |
 | 14 | 2026-10-02 | closed | M4 part A: the Act 1 arsenal's effects (final art review) |
+| 15 | 2026-10-02 | open | M4 part B: Level 02 (final art review) |

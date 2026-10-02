@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../enemies/air/spore-bomber, ../../../enemies/air/whirl-seed, ../../../enemies/space/leviathan]
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Level 03 – Spore Drift
@@ -124,8 +124,8 @@ Pickup types are defined in [player](../../../player/README.md#in-level-pickups)
   lights blink around an escape-pod rack. Shooting all four releases a salvage canister.
 - **Large salvage** (200): the Leviathan's death drop, per its spec. Only paid if it dies before
   leaving at the end of its second pass.
-- **Overdrive**: dropped by the second Spore Bomber of the t=102 convoy (the first overdrive of
-  the campaign).
+- **Overdrive**: dropped by the second Spore Bomber of the t=102 convoy (the campaign's second;
+  Level 02 drops the first).
 - **Armour patch**: dropped by the last Needler of the t=50 V-wing.
 - Shield cells at the normal rate. Spores pay 1 credit each (see *Credit budget*).
 
@@ -225,3 +225,4 @@ tolerance.
   threat to Earth (a hook for the Act 2 landings). Hammer flight is announced here, so the
   Airstrike is in the shop before L04.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
+- 2026-10-02: M4 part B (user decision): Level 02 drops the campaign's first overdrive; this level's is the second.

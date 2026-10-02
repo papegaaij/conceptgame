@@ -34,7 +34,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Movement | `swoop` in, `hover` 2–4 s at y = 80–220 px, then exit down or to the side; in `circle` formations `orbit` a point (radius 90 px, 60°/s) |
 | Attack | `aimed` thorn (standard orb) every 2.5 s, 150 px/s, damage `small` = 4; first shot 0.8 s after it stops |
 | Formations | V-wing (5), line abreast, pincer, circle (8) |
-| Weak points | glowing violet eye cluster (×1.5) |
+| Weak points | glowing violet eye cluster (drawn only) |
 | Effective traits | `forward`, `spread` |
 | Credits | 12 (score 120 × chain) |
 | Death | `small` burst: ivory shards, violet flash; every 4th Needler kill in a level drops a shield cell |

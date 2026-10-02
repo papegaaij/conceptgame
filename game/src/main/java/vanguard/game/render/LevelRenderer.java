@@ -7,10 +7,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.JsonValue;
 import vanguard.content.LevelData;
+import vanguard.sim.Crane;
 import vanguard.sim.Enemy;
 import vanguard.sim.EnemyBullet;
 import vanguard.sim.GroundObject;
+import vanguard.sim.LevelScript;
 import vanguard.sim.Pickup;
 import vanguard.sim.PickupType;
 import vanguard.sim.Ship;
@@ -34,6 +37,10 @@ public final class LevelRenderer {
     private static final int MUZZLE_FRAME_TICKS = 2;
     /** Pickups spin at about 10 fps and blink in their last 1.5 s (chosen pickups concept, round 09). */
     private static final int PICKUP_FRAME_TICKS = 6;
+    /** A diver's pause flare pulses at 10 fps; a crane's lights blink at 3 Hz. */
+    private static final int FLARE_FRAME_TICKS = 6;
+
+    private static final int BLINK_FRAME_TICKS = 10;
     /** Enemy bullets pulse their core at 15 fps, each at its own phase. */
     private static final int BULLET_FRAME_TICKS = 4;
 
@@ -64,6 +71,7 @@ public final class LevelRenderer {
     private final Sprites sprites;
     private final EnemyLooks[] looks;
     private final WeaponLooks weapons;
+    private final CraneLooks craneLooks;
     private final Backdrop backdrop;
     private final FlashShader flash;
     private final BitmapFont font;
@@ -74,6 +82,7 @@ public final class LevelRenderer {
             Sprites sprites,
             EnemyLooks[] looks,
             WeaponLooks weapons,
+            JsonValue cranePivots,
             FlashShader flash,
             BitmapFont font,
             LevelData level,
@@ -81,6 +90,7 @@ public final class LevelRenderer {
         this.sprites = sprites;
         this.looks = looks;
         this.weapons = weapons;
+        this.craneLooks = new CraneLooks(sprites, cranePivots);
         this.backdrop = new Backdrop(sprites, level, levelKey);
         this.flash = flash;
         this.font = font;
@@ -110,9 +120,11 @@ public final class LevelRenderer {
         backdrop.drawBehind(batch, scroll, seconds);
         drawGround(batch, sortie, alpha);
         debris.draw(batch, -scroll);
+        drawEnemies(batch, sortie, alpha, true);
         drawGlints(batch, sortie, alpha);
         backdrop.drawLowAir(batch, scroll, seconds);
-        drawEnemies(batch, sortie, alpha);
+        drawEnemies(batch, sortie, alpha, false);
+        drawCranes(batch, sortie, alpha);
         drawPickups(batch, sortie, alpha);
         drawShots(batch, sortie, alpha, false);
         if (sortie.flying()) {
@@ -178,12 +190,63 @@ public final class LevelRenderer {
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    private void drawEnemies(SpriteBatch batch, Sortie sortie, float alpha) {
+    /** The ground units (with the ground objects) or the flyers; a diver flares in its pause. */
+    private void drawEnemies(SpriteBatch batch, Sortie sortie, float alpha, boolean ground) {
         for (int i = 0; i < sortie.enemyCount(); i++) {
             Enemy enemy = sortie.enemy(i);
+            if (enemy.grounded() != ground) {
+                continue;
+            }
             EnemyLooks look = looks[enemy.kind()];
             AtlasRegion frame = look.frame(enemy.facing(), sortie.tick() / look.frameTicks() + i);
             drawCentred(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
+            if (enemy.paused() && !look.flare().isEmpty()) {
+                batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+                AtlasRegion flare = look.flare().get((int) (sortie.tick() / FLARE_FRAME_TICKS % look.flare().size));
+                drawCentred(batch, flare, enemy.renderX(alpha), enemy.renderY(alpha));
+                batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            }
+        }
+    }
+
+    /**
+     * The cranes' arms at the nearest drawn angle, hanging from their pivots, with the canister on
+     * the hook while it holds; the jib's lights blink in the telegraph and the clamp lights while the
+     * arm swings.
+     */
+    private void drawCranes(SpriteBatch batch, Sortie sortie, float alpha) {
+        for (int c = 0; c < sortie.craneCount(); c++) {
+            Crane crane = sortie.crane(c);
+            if (!crane.present()) {
+                continue;
+            }
+            LevelScript.CraneSpec spec = crane.spec();
+            double angle = crane.renderAngle(alpha);
+            int k = craneLooks.index(angle);
+            AtlasRegion arm = craneLooks.arm(k);
+            int[] pivot = craneLooks.pivot(k);
+            batch.draw(
+                    arm,
+                    Math.round(X0 + spec.pivotX() - pivot[0]),
+                    Math.round(spec.pivotY() + pivot[1] - arm.getRegionHeight()));
+            double drawn = craneLooks.angle(k);
+            double dx = Math.sin(drawn);
+            double dy = -Math.cos(drawn);
+            double tipX = spec.pivotX() + dx * spec.length();
+            double tipY = spec.pivotY() + dy * spec.length();
+            if (crane.holding()) {
+                drawCentred(batch, craneLooks.canister, tipX, tipY - craneLooks.canister.getRegionHeight() / 2.0);
+            }
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+            if (crane.telegraph() && sortie.tick() / BLINK_FRAME_TICKS % 2 == 0) {
+                for (int light : craneLooks.lights()) {
+                    drawCentred(batch, craneLooks.light, spec.pivotX() + dx * light, spec.pivotY() + dy * light);
+                }
+            }
+            if (crane.swinging() && crane.holding()) {
+                drawCentred(batch, craneLooks.clampLight, tipX, tipY - 4);
+            }
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         }
     }
 
@@ -202,6 +265,8 @@ public final class LevelRenderer {
     private Array<AtlasRegion> pickupFrames(PickupType type) {
         return switch (type) {
             case SMALL_SALVAGE -> sprites.salvageSmall;
+            case MEDIUM_SALVAGE -> sprites.frames("pickup-salvage-medium");
+            case OVERDRIVE -> sprites.frames("pickup-overdrive");
             case HIDDEN_CRATE -> sprites.crate;
             case SHIELD_CELL -> sprites.shieldCell;
             case ARMOUR_PATCH -> sprites.armourPatch;

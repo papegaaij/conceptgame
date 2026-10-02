@@ -73,9 +73,11 @@ class SortieTest {
                 List.of(new LevelScript.Section(1, 130), new LevelScript.Section(2, 60)),
                 List.of(),
                 List.of(),
+                List.of(),
                 0,
                 List.of(),
-                new LevelScript.Secondary(0.8, 50));
+                new LevelScript.Secondary(0.8, 50),
+                List.of());
         var sortie = sortie(script);
 
         run(sortie, 2 * SimStep.PER_SECOND, Command.NONE);
@@ -92,9 +94,11 @@ class SortieTest {
                 List.of(new LevelScript.Section(10, 130)),
                 List.of(),
                 List.of(),
+                List.of(),
                 0,
                 List.of(),
-                new LevelScript.Secondary(0.8, 50));
+                new LevelScript.Secondary(0.8, 50),
+                List.of());
         var sortie = sortie(script);
         assertTrue(sortie.ship().y() < 0, "on the rail below the play field");
 
@@ -315,7 +319,7 @@ class SortieTest {
     /** How far each thorn of a fast-firing Needler above the ship leaves from straight down, in radians. */
     private static List<Double> aimDeviations(double spread) {
         var rules = new Rules(120, spread, TestSpecs.RULES.pickups(), TestSpecs.SCORING);
-        var needler = TestSpecs.needler(new EnemyGun(0.1, 0, 1, 150, 0, false));
+        var needler = TestSpecs.needler(EnemyGun.aimed(0.1, 0, 1, 150, 0, false));
         var sortie = new Sortie(
                 1,
                 TestSpecs.LOADOUT,

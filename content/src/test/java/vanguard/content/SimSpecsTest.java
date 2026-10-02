@@ -199,7 +199,9 @@ class SimSpecsTest {
                         Optional.empty(),
                         Optional.empty(),
                         Optional.empty(),
-                        Optional.empty()),
+                        Optional.empty(),
+                        Optional.empty(),
+                        false),
                 SimSpecs.enemy(content, "skitter", Difficulty.MEDIUM, Optional.empty()));
     }
 
@@ -212,7 +214,7 @@ class SimSpecsTest {
                 new EnemySpec.Hover(new Range(2, 4), new Range(80, 220)),
                 needler.hover().orElseThrow());
         assertEquals(new EnemySpec.Orbit(90, 60), needler.orbit().orElseThrow());
-        assertEquals(new EnemyGun(2.5, 0.8, 1, 150, 4, false), needler.gun().orElseThrow());
+        assertEquals(EnemyGun.aimed(2.5, 0.8, 1, 150, 4, false), needler.gun().orElseThrow());
         assertEquals(
                 new EnemySpec.Drop(PickupType.SHIELD_CELL, 4), needler.drop().orElseThrow());
         assertEquals(10, needler.contactDamage());
@@ -230,7 +232,8 @@ class SimSpecsTest {
         assertEquals(120, easy.gun().orElseThrow().bulletSpeed(), 1e-9);
         assertEquals(5, hard.hp(), "4 × 1.3 = 5.2, rounded");
         assertEquals(
-                new EnemyGun(2.5 / 1.3, 0.8, 2, 150 * 1.15, 4, true), hard.gun().orElseThrow());
+                EnemyGun.aimed(2.5 / 1.3, 0.8, 2, 150 * 1.15, 4, true),
+                hard.gun().orElseThrow());
     }
 
     @Test

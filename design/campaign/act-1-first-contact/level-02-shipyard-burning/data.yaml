@@ -1,0 +1,327 @@
+# Level 02 – Shipyard Burning: the level script, rendered into README.md (Briefing, Threat
+# profile, Layout, Waves, Ground targets, Hazards, Radio chatter, Credit budget). Times are
+# seconds from the level start. Schema: ../../../tech/architecture/README.md#data-file-schemas
+scroll_speed: 140     # px/s (calm)
+launch_seconds: 5     # the launch off the south rail, as in Level 01
+control_prompts: []
+prompts:  # contextual prompts in the HUD's prompt well: from t for seconds, the action and its keys
+  - {t: 18, action: GROUND, keys: "FLY OVER, FIRE", seconds: 6}
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Earth orbit
+  layers: [air, ground]
+  density: 2
+  traits: [forward, spread]
+  hazards: [crane]
+  boss: none
+  varga:
+    none: The growths on the hulls shoot back, Lancer. Once you're past them, they can't track you.
+  notes:
+    Dominant layers: '`air`, `ground` (turrets rooted on station hulls)'
+    Attack directions: '{directions} (10 of 14 waves from the top edge)'
+    Density: '{density}'
+    Recommended traits: '{traits}'
+    Hazards: Crane Four's sweeping arm (section 3); a coolant cloud in section 4 (visual only)
+    Boss / mid-boss: '{boss}'
+    Sensor-suite detail: 'none: setting, `air` + `ground`, front · L1: + directions, density {density}, hazard "crane" · L2: + Skitter, Needler, Stinger, Spine Turret portraits; no boss · L3: + `spread` highlighted, wave strip, 1 secret'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets; peak: a heavier atmosphere inside the section
+  - name: Burning Ring
+    end: 25
+    atmosphere: light
+    tiles: [earth, perimeter]
+    notes:
+      layers:
+        deep: Earth in morning light, smoke-grey plumes from the outer ring.
+        far: the north arm with Aegis Two's tracer fire.
+        ground: defence ring platforms, two burning.
+        low-air: thin cloud decks.
+      purpose: Re-entry into the yard; one quiet single turret teaches ground targets.
+  - name: Outer Docks
+    end: 70
+    atmosphere: light
+    tiles: [earth, dock-frames, spark-streaks]
+    notes:
+      layers:
+        ground: Docks One and Two, open lattice frames with half-built frigates; teal Vrell growth on the hulls.
+        low-air: crane jibs and lattice beams.
+        high-air: spark streaks.
+      purpose: First dock saves; the Stinger dive is learned.
+  - name: Crane Row
+    end: 115
+    atmosphere: clear
+    tiles: [earth, gantry-rails]
+    notes:
+      layers:
+        ground: crane rails, Dock Three, cargo pods.
+        air: Crane Four's arm (hazard).
+        low-air: decks pulled aside for the sweep.
+      purpose: Signature set piece; side entries.
+  - name: Main Drydock
+    end: 160
+    atmosphere: medium
+    peak: {atmosphere: heavy, from: 140, to: 148}  # the coolant cloud
+    tiles: [earth, dock-frames, frost-streaks]
+    notes:
+      layers:
+        ground: Dock Four, the cruiser *Resolute* in frame, its coolant lines ruptured.
+        low-air: white coolant cloud banks (the heavy peak).
+        high-air: frost streaks.
+      purpose: The densest fighting; the last dock.
+  - name: Breakout
+    end: 185
+    atmosphere: light
+    tiles: [space]
+    notes:
+      layers:
+        ground: the yard perimeter falling away.
+        deep: open space, the Moon.
+      purpose: Final mixed waves, then the end.
+
+waves:
+  - {t: 28, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: "Over Dock One, while its turrets fire"}
+  - {t: 40, formation: V-wing, enemy: needler, count: 5, from: front}
+  - {t: 50, formation: single, enemy: stinger, count: 1, from: front, notes: "**Introduction**: alone, no other air enemies; radio tip"}
+  - {t: 56, formation: column, enemy: stinger, count: 2, from: front, notes: "Dives 0.4 s apart"}
+  - {t: 60, formation: stream, enemy: skitter, count: 8, from: sides, interval: 0.5, easy: {count: 6}, notes: "Over Dock Two"}
+  - {t: 78, formation: V-wing, enemy: stinger, count: 3, from: front, notes: "Before the crane sweep"}
+  - {t: 88, formation: line abreast, enemy: needler, count: 3, from: front, notes: "After the second sweep"}
+  - {t: 100, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: "Over Dock Three"}
+  - {t: 108, formation: column, enemy: stinger, count: 3, from: sides, edge: right, easy: {count: 1}, notes: "Edge warning; radio"}
+  - {t: 118, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, easy: {count: 2}, notes: "Hold {hold} s at the edges over Dock Four"}
+  - {t: 130, formation: line abreast, enemy: skitter, count: 6, from: front}
+  - {t: 145, formation: V-wing, enemy: stinger, count: 5, from: front, notes: "Inside the coolant peak; the crimson dive glow reads through the cloud"}
+  - {t: 165, formation: line abreast, enemy: needler, count: 4, from: front}
+  - {t: 170, formation: stream, enemy: skitter, count: 8, from: sides, interval: 0.5, easy: {count: 6}, notes: "Finale"}
+
+ground_targets:
+  # Spine Turrets stand on the hulls; [t, x]: when each enters at the top edge and its x. A dock's
+  # nest belongs to its group of the secondary objective; easy and hard place 2 and 4 turrets.
+  - target: Spine Turret on an open platform
+    section: 1
+    enemy: spine-turret
+    at: [[18, 240]]
+    notes:
+      target: Spine Turret ×1 on an open platform (t={at.0.0})
+      effect: '**Introduction**: no air enemies on screen; HUD prompt `GROUND` · `FLY OVER, FIRE`'
+  - target: Dock One nest
+    section: 2
+    enemy: spine-turret
+    group: Dock One
+    count: 3
+    at: [[30, 110], [31.5, 190], [33, 90]]
+    easy: {at: [[30, 110], [31.5, 190]]}
+    hard: {at: [[30, 110], [31.5, 190], [33, 90], [34, 170]]}
+    notes:
+      target: 'Dock One: turret nest ×{count} (t {at.0.0}–{at.2.0})'
+      effect: 'Secondary: Dock One saved'
+  - target: hull turrets
+    section: 2
+    enemy: spine-turret
+    count: 2
+    at: [[45, 330], [45, 400]]
+    notes:
+      target: Spine Turret ×{count} on a hull (t={at.0.0})
+      effect: Bounty only
+  - target: Dock Two nest
+    section: 2
+    enemy: spine-turret
+    group: Dock Two
+    count: 3
+    at: [[58, 370], [59.5, 290], [61, 400]]
+    easy: {at: [[58, 370], [59.5, 290]]}
+    hard: {at: [[58, 370], [59.5, 290], [61, 400], [62, 310]]}
+    notes:
+      target: 'Dock Two: turret nest ×{count} (t {at.0.0}–{at.2.0})'
+      effect: 'Secondary: Dock Two saved'
+  - target: Dock Three nest
+    section: 3
+    enemy: spine-turret
+    group: Dock Three
+    count: 3
+    at: [[96, 120], [97.5, 200], [99, 100]]
+    easy: {at: [[96, 120], [97.5, 200]]}
+    hard: {at: [[96, 120], [97.5, 200], [99, 100], [100, 180]]}
+    notes:
+      target: 'Dock Three: turret nest ×{count} (t {at.0.0}–{at.2.0})'
+      effect: 'Secondary: Dock Three saved'
+  - target: crane rail turrets
+    section: 3
+    enemy: spine-turret
+    count: 3
+    at: [[104, 320], [104, 380], [104, 440]]
+    notes:
+      target: Spine Turret ×{count} on the crane rail (t={at.0.0})
+      effect: Bounty only
+  - target: Dock Four nest
+    section: 4
+    enemy: spine-turret
+    group: Dock Four
+    count: 3
+    # the last one enters at the coolant peak (140-148): hit it before the peak or through it
+    at: [[136, 200], [138, 280], [140, 240]]
+    easy: {at: [[136, 200], [138, 280]]}
+    hard: {at: [[136, 200], [138, 280], [140, 240], [141, 170]]}
+    notes:
+      target: 'Dock Four: turret nest ×{count} (t {at.0.0}–{at.2.0})'
+      effect: 'Secondary: Dock Four saved'
+  - target: Resolute nest
+    section: 4
+    enemy: spine-turret
+    count: 4
+    at: [[150, 160], [150, 230], [151.5, 190], [151.5, 260]]
+    notes:
+      target: Turret nest ×{count} on the *Resolute*'s hull (t={at.0.0})
+      effect: Bounty only
+  - target: perimeter turrets
+    section: 5
+    enemy: spine-turret
+    count: 2
+    at: [[165, 100], [165, 380]]
+    notes:
+      target: Spine Turret ×{count} on the perimeter (t={at.0.0})
+      effect: Bounty only
+  - target: cargo pod
+    section: 3
+    count: 3
+    layer: ground
+    size: [32, 24]
+    hp: 3
+    drop: small salvage
+    at: [[84, 280], [84, 320], [84, 360]]
+    notes:
+      target: Cargo pods ×{count} (ground layer, {hp} HP; t={at.0.0})
+      effect: Each drops a {drop} ({drop_credits})
+      budget: cargo pods {count} × {drop} {drop_credits}
+
+cranes:
+  # Crane Four: its tower on the gantry above the top edge at the middle; the arm hangs from it
+  # and swings between `from` and `to` (degrees from straight down, positive to the right).
+  - name: Crane Four
+    x: 240
+    y: 550
+    length: 260
+    width: 16
+    from: -45
+    to: 45
+    swings: [82, 91]
+    swing_seconds: 2.5
+    telegraph: 1.5        # the jib's warning lights blink this long before each swing
+    damage: 15            # shield first, then armour
+    clamp: {hits: 3, reveals: crane cache}
+    easy: {swings: [82]}
+    hard: {swings: [82, 91, 100]}
+
+secrets:
+  - name: crane cache
+    crate: 80
+    radio: {speaker: Rook, line: "Supply drop off the hook. I'll pretend I didn't see that."}
+
+pickups:
+  - {pickup: overdrive, dropped_by: {wave: 118, unit: last}}
+  - {pickup: armour patch, dropped_by: {wave: 145, unit: last}}
+
+radio:  # trigger: t or event (first-kill, group-cleared / group-lost with its group, first-group-lost, secondary-objective, level-end); portrait: a generic one for an unnamed speaker
+  - {t: 1, speaker: Okafor, line: "Aegis, the yards are burning. Four docks still have crews aboard. Clear those hulls."}
+  - {t: 12, speaker: Rook, line: "Aegis Two on the north arm. It's a mess over here too, Lancer. Don't wait for me."}
+  - {t: 18, speaker: Varga, expression: grim, line: "That growth on the platform is alive. It's a turret. It *grew* a turret, Commander.", notes: {trigger: first turret}}
+  - {t: 30, speaker: Dock One, portrait: generic-cdf, line: "Dock One to anyone! They're growing on the hull — burn it off us!", notes: {trigger: Dock One}}
+  - {event: group-cleared, group: Dock One, speaker: Dock One, portrait: generic-cdf, line: "We're clear! Crew's moving to the shuttles. Thank you, Aegis!"}
+  - {event: group-cleared, group: Dock Two, speaker: Dock Two, portrait: generic-cdf, line: "We're clear! Crew's moving to the shuttles. Thank you, Aegis!"}
+  - {event: group-cleared, group: Dock Three, speaker: Dock Three, portrait: generic-cdf, line: "We're clear! Crew's moving to the shuttles. Thank you, Aegis!"}
+  - {event: group-cleared, group: Dock Four, speaker: Dock Four, portrait: generic-cdf, line: "We're clear! Crew's moving to the shuttles. Thank you, Aegis!"}
+  - {event: group-lost, group: Dock One, speaker: Yard Control, portrait: generic-cdf, line: "Dock One is gone. We lost contact with the crew."}
+  - {event: group-lost, group: Dock Two, speaker: Yard Control, portrait: generic-cdf, line: "Dock Two is gone. We lost contact with the crew."}
+  - {event: group-lost, group: Dock Three, speaker: Yard Control, portrait: generic-cdf, line: "Dock Three is gone. We lost contact with the crew."}
+  - {event: group-lost, group: Dock Four, speaker: Yard Control, portrait: generic-cdf, line: "Dock Four is gone. We lost contact with the crew."}
+  - {event: first-group-lost, speaker: Okafor, expression: grim, line: "Keep moving, Lancer. The others still need you."}
+  - {t: 49, speaker: Varga, line: "Fast one inbound. It stops before it dives. When it glows red, move sideways.", notes: {trigger: Stinger}}
+  - {t: 78, speaker: Yard Control, portrait: generic-cdf, line: "Crane Four is still on automatic. Watch the arm, Aegis!"}
+  - {t: 106, speaker: Rook, expression: fierce, line: "Bandits coming in on your right flank, Lancer!", notes: {trigger: side wave}}
+  - {t: 116, speaker: Rook, expression: fierce, line: "Both edges! Pick a side and make it count.", notes: {trigger: pincer}}
+  - {t: 138, speaker: Dock Four, portrait: generic-cdf, line: "Coolant breach on the *Resolute*! You'll be flying through it!"}
+  - {t: 160, speaker: Rook, line: "You know, they told me you were the quiet type. Good. More airtime for me."}
+  - {event: level-end, speaker: Okafor, expression: grim, line: "That's the yards. Not all of them. Enough. Come home, Aegis."}
+  - {event: secondary-objective, speaker: Okafor, line: "Four docks, four crews. Well flown, Lancer."}
+
+objectives:
+  primary: reach-end
+  secondary: {groups: [Dock One, Dock Two, Dock Three, Dock Four], credits: 25}  # per dock saved
+
+music:
+  track: 4            # Act 1 A "Afterburner" (audio/music track list)
+  start_section: 1
+  full_section: 4     # the intensity stem is scripted on for the main drydock
+  ambience: earth-orbit
+  end_jingle: mission-complete
+
+difficulty: {}  # the per-wave, per-nest and crane changes are in their entries; the stat blocks' hard hooks apply
+
+backdrop:
+  # Presentation only. As Level 01's (see its data file), the burning yard the morning after.
+  # Art: tools/art/backdrop_l02.py.
+  scroll_factors: {deep: 0.12, far: 0.45, ground: 1.0, low-air: 1.4, high-air: 2.4}
+  ramp: 4
+  haze_colour: 404858  # smoke grey
+  atmosphere:
+    clear: {wisps: wisps, haze: 0.04}
+    light: {banks: smoke-light, wisps: wisps, haze: 0.1}
+    medium: {banks: smoke-medium, wisps: wisps, haze: 0.18}
+    heavy: {banks: coolant, wisps: wisps, haze: 0.3}
+  tile_sets:
+    earth: {layer: deep, height: 1024}           # the day side, smoke plumes over the outer ring
+    space: {layer: deep, height: 1024}           # open space past the yard
+    perimeter: {layer: ground, height: 608}
+    dock-frames: {layer: ground, height: 608}
+    gantry-rails: {layer: ground, height: 456}
+    smoke-light: {layer: low-air, height: 1120, drift: 6}
+    smoke-medium: {layer: low-air, height: 1120, drift: 6}
+    coolant: {layer: low-air, height: 1120, drift: 10}   # the white coolant banks of the heavy peak
+    wisps: {layer: high-air, height: 960}
+    spark-streaks: {layer: high-air, height: 960}
+    frost-streaks: {layer: high-air, height: 960}
+  pieces:
+    north-arm-burning: {layer: far, size: [180, 640], mid_size: true}  # with the tracer fire of Aegis Two, still (the motion budget)
+    moon: {layer: deep, size: [28, 28]}
+    earth-limb: {layer: deep, size: [480, 720]}
+    crossbeam: {layer: ground, size: [480, 40]}
+    platform-burning: {layer: ground, size: [140, 140], frames: 4, fps: 8, mid_size: true}
+    platform-burning-mirrored: {layer: ground, size: [140, 140], frames: 4, fps: 8, mid_size: true}
+    platform: {layer: ground, size: [140, 140], mid_size: true}
+    dock-growth: {layer: ground, size: [240, 300], mid_size: true}           # an open dock frame, a half-built frigate, teal Vrell growth
+    dock-growth-mirrored: {layer: ground, size: [240, 300], mid_size: true}
+    resolute: {layer: ground, size: [240, 520], mid_size: true}              # the cruiser in Dock Four, coolant lines ruptured
+    lattice-beam: {layer: low-air, size: [480, 36]}
+    crane-jib: {layer: low-air, size: [300, 44]}
+    crane-jib-mirrored: {layer: low-air, size: [300, 44]}
+  placed:
+    # 1. Burning Ring
+    - {piece: north-arm-burning, t: 4, x: 390}
+    - {piece: platform-burning, t: 8, x: 110}
+    - {piece: platform, t: 14, x: 360}
+    - {piece: platform-burning-mirrored, t: 21, x: 380}
+    - {piece: crossbeam, t: 27.08, x: 240}
+    # 2. Outer Docks: Docks One and Two
+    - {piece: dock-growth, t: 33.5, x: 140}
+    - {piece: lattice-beam, t: 40, x: 240}
+    - {piece: crane-jib, t: 47, x: 170}
+    - {piece: dock-growth-mirrored, t: 61.5, x: 340}
+    - {piece: crossbeam, t: 72.08, x: 240}
+    # 3. Crane Row: Dock Three (Crane Four hangs from the gantry above the top edge)
+    - {piece: dock-growth, t: 99.5, x: 150}
+    - {piece: crane-jib-mirrored, t: 108, x: 320}
+    - {piece: crossbeam, t: 117.08, x: 240}
+    # 4. Main Drydock: Dock Four and the Resolute
+    - {piece: resolute, t: 132, x: 230}
+    - {piece: lattice-beam, t: 146, x: 240}
+    - {piece: platform-burning, t: 154, x: 380}
+    - {piece: crossbeam, t: 162.08, x: 240}
+    # 5. Breakout
+    - {piece: platform, t: 166, x: 240}
+    - {piece: moon, t: 175, x: 400}
+    - {piece: earth-limb, t: 196, x: 240}  # its top edge stays above the screen through the 15 s outro
+
+briefing:
+  pages:
+    - {speaker: Okafor, image: level-02-burning-yards, line: "Lancer, the scouts were the knock on the door. The main Vrell force hit the Gagarin yards overnight. Half the outer ring is burning, and four drydocks still have work crews inside. The Vrell are growing something on the hulls. Burn it off before each dock leaves your sector: every dock you clear is a crew that walks home. Aegis Two has the north arm. You have the south. Aegis Actual out."}
+    - {speaker: Varga, image: level-02-yield-signal, line: "About yesterday's transmission. I ran it through every language model we have. One pattern repeats, and the best fit is a single word: *yield*. And Lancer, the growths are turrets. Once you're behind them, they can't track you."}
+  teaser: {speaker: Varga, line: "The yards are crawling with growths that shoot back. A wider gun would help."}

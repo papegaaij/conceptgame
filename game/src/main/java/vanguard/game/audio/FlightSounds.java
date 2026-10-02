@@ -103,6 +103,7 @@ public final class FlightSounds {
                 case BLAST ->
                     bank.play(alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B), EXPLOSIONS, pitch(0.06), pan);
                 case OVERDRIVE_ENDED -> bank.play(Sfx.OVERDRIVE_END, PICKUPS, 1, 0);
+                case CLAMP_HIT -> bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, 0.8f * pitch(0.05), pan);
                 case ENEMY_HIT -> bank.play(alternate(Sfx.HIT_ORGANIC_A, Sfx.HIT_ORGANIC_B), HITS, pitch(0.05), pan);
                 case ENEMY_DESTROYED -> {
                     EnemyLooks kind = looks[events.value(i)];
@@ -120,14 +121,22 @@ public final class FlightSounds {
                     bank.play(Sfx.SHIP_DESTROYED, PLAYER_DAMAGE, 1, pan);
                     bank.play(Sfx.MISSION_FAILED, PLAYER_DAMAGE, 1, 0);
                 }
-                case SECRET_FOUND, CREDITS_PICKED_UP, RADIO, OBJECTIVE_MET, LEVEL_COMPLETE, SORTIE_RESTARTED -> {}
+                case SECRET_FOUND,
+                        CREDITS_PICKED_UP,
+                        RADIO,
+                        OBJECTIVE_MET,
+                        LEVEL_COMPLETE,
+                        SORTIE_RESTARTED,
+                        GROUP_CLEARED,
+                        GROUP_LOST -> {}
             }
         }
     }
 
     private static Sfx pickupSound(PickupType type) {
         return switch (type) {
-            case SMALL_SALVAGE -> Sfx.SALVAGE_SMALL;
+            case SMALL_SALVAGE, MEDIUM_SALVAGE -> Sfx.SALVAGE_SMALL;
+            case OVERDRIVE -> Sfx.OVERDRIVE_START;
             case HIDDEN_CRATE -> Sfx.SALVAGE_LARGE;
             case SHIELD_CELL -> Sfx.SHIELD_CELL;
             case ARMOUR_PATCH -> Sfx.ARMOUR_PATCH;

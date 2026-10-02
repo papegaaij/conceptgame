@@ -4,6 +4,10 @@ package vanguard.sim;
 public enum PickupType {
     /** +credits (design/player/data.yaml, salvage small). */
     SMALL_SALVAGE,
+    /** +credits (salvage medium). */
+    MEDIUM_SALVAGE,
+    /** All weapons +1 level for a while. */
+    OVERDRIVE,
     /** Restores a share of the shield's capacity. */
     SHIELD_CELL,
     /** Restores armour points. */

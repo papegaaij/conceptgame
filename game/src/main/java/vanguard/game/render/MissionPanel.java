@@ -30,6 +30,16 @@ import vanguard.sim.Sortie;
 final class MissionPanel {
     private static final int X = HudKit.INSET;
     private static final int WIDTH = HudKit.INNER_WIDTH;
+    private static final int GROUP_PIP_STEP = 16;
+    private static final Color LOST = Color.valueOf("FF4400");
+    private static final Color GROUP_OPEN = Color.valueOf("3A4060");
+    /** The group objective's label: its groups' common first word in plural ("DOCKS"). */
+    private String groupsLabel;
+    /** The groups' states as last drawn, and the frame each last changed in. */
+    private int[] groupStates = new int[0];
+
+    private int[] groupChanged = new int[0];
+
     /** The tracker flashes this many frames after the objective is met. */
     private static final int FLASH_FRAMES = 90;
 
@@ -75,6 +85,9 @@ final class MissionPanel {
 
     void draw(SpriteBatch batch, Sortie sortie, RadioQueue radio, List<PromptTexts.Text> prompts) {
         frame++;
+        if (groupsLabel == null) {
+            groupsLabel = groupsLabel(sortie.script().secondary().groups());
+        }
         kit.leftPanel(batch);
         int top = MissionLayout.MISSION.yTop();
         plate(batch, mission, top);
@@ -150,7 +163,7 @@ final class MissionPanel {
         RadioQueue.Message message = radio.current().get();
         if (message != shownMessage) {
             shownMessage = message;
-            portrait = Portraits.radio(sprites, message.speaker(), message.expression());
+            portrait = Portraits.radio(sprites, message.portrait(), message.expression());
         }
         batch.draw(Portraits.frame(portrait, radio.sinceOpened()), X, portraitY);
         float noise = TransmissionStatic.strength(radio.sinceOpened(), radio.untilClosed());
@@ -206,9 +219,54 @@ final class MissionPanel {
         }
         Color colour = flash ? HudKit.LCD : sortie.secondaryMet() ? SUCCESS : HudKit.LABEL;
         int y = wellTop - TEXT_DROP;
+        if (sortie.groupCount() > 0) {
+            drawGroups(batch, sortie, colour, y);
+            return;
+        }
         kit.text(batch, kit.body, "KILLS", colour, X + PAD, y, TEXT_WIDTH);
         String count = sortie.secondaryMet() ? "DONE" : sortie.kills() + " / " + sortie.requiredKills();
         kit.textRight(batch, kit.body, count, colour, X + PAD, y, TEXT_WIDTH);
+    }
+
+    /**
+     * A group objective (Level 02's docks): its name and a pip per group, dim while open, green
+     * when cleared, red when lost.
+     */
+    private void drawGroups(SpriteBatch batch, Sortie sortie, Color colour, int y) {
+        kit.text(batch, kit.body, groupsLabel, colour, X + PAD, y, TEXT_WIDTH);
+        int count = sortie.groupCount();
+        if (groupStates.length != count) {
+            groupStates = new int[count];
+            groupChanged = new int[count];
+        }
+        int pipX = X + PAD + TEXT_WIDTH - count * GROUP_PIP_STEP;
+        for (int g = 0; g < count; g++) {
+            int state = sortie.groupState(g);
+            if (state != groupStates[g]) {
+                groupStates[g] = state;
+                groupChanged[g] = frame;
+            }
+            // A pip flashes as its group is cleared or lost (design/ui/hud, objective tracker).
+            int since = frame - groupChanged[g];
+            boolean blink = state != 0 && since < FLASH_FRAMES && since / 8 % 2 == 1;
+            Color pip =
+                    switch (state) {
+                        case 1 -> SUCCESS;
+                        case 2 -> LOST;
+                        default -> GROUP_OPEN;
+                    };
+            kit.fill(batch, blink ? HudKit.LCD : pip, pipX + g * GROUP_PIP_STEP, y - 14, GROUP_PIP_STEP - 4, 10);
+        }
+    }
+
+    /** "Dock One", "Dock Two" ... reads "DOCKS". */
+    static String groupsLabel(List<String> groups) {
+        if (groups.isEmpty()) {
+            return "";
+        }
+        String first = groups.getFirst();
+        int space = first.indexOf(' ');
+        return (space > 0 ? first.substring(0, space) : first).toUpperCase(Locale.ROOT) + "S";
     }
 
     /** A number with thin-space thousands groups, as on the HUD mock: 1 204 350. */

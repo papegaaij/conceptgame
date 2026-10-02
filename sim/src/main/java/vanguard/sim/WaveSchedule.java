@@ -21,8 +21,9 @@ final class WaveSchedule {
     private final int[] warningEdges;
     private int next;
 
-    WaveSchedule(List<WaveSpec> waves, SplitMix64 rng) {
-        kinds = waves.stream().map(WaveSpec::enemy).distinct().toList();
+    /** @param kinds the level's distinct enemies, every wave's among them; a spawn's kind indexes it */
+    WaveSchedule(List<WaveSpec> waves, List<EnemySpec> kinds, SplitMix64 rng) {
+        this.kinds = kinds;
         List<Spawn> planned = new ArrayList<>();
         List<WaveSpec> warned = new ArrayList<>();
         for (WaveSpec wave : waves) {

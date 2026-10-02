@@ -183,7 +183,7 @@ class FormationsTest {
 
     @Test
     void selectedCircleUnitsLeadTheTargetWhenTheGunSaysSo() {
-        EnemySpec leading = TestSpecs.needler(new EnemyGun(2.5, 0.8, 1, 150, 4, true));
+        EnemySpec leading = TestSpecs.needler(EnemyGun.aimed(2.5, 0.8, 1, 150, 4, true));
 
         List<Spawn> circle = plan(held(WaveSpec.Formation.CIRCLE, leading, 4, FRONT, 6, 1));
 

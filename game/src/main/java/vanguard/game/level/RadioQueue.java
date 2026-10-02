@@ -36,9 +36,10 @@ public final class RadioQueue {
     /**
      * A message wrapped into lines.
      *
+     * @param portrait whose portrait shows: the speaker's own, or a generic one ({@code generic-cdf})
      * @param expression the speaker's portrait expression ({@code grim})
      */
-    public record Message(String speaker, String expression, List<String> lines, boolean distorted) {
+    public record Message(String speaker, String portrait, String expression, List<String> lines, boolean distorted) {
         int pages() {
             return (lines.size() + PAGE_LINES - 1) / PAGE_LINES;
         }
@@ -71,9 +72,14 @@ public final class RadioQueue {
         charsPerSecond = speed;
     }
 
-    /** Queues a line; it plays after the ones before it. */
+    /** Queues a line in the speaker's own portrait; it plays after the ones before it. */
     public void add(String speaker, String expression, String line, boolean distorted) {
-        queue.add(new Message(speaker, expression, wrap(line), distorted));
+        add(speaker, speaker, expression, line, distorted);
+    }
+
+    /** Queues a line shown with {@code portrait}'s portrait; it plays after the ones before it. */
+    public void add(String speaker, String portrait, String expression, String line, boolean distorted) {
+        queue.add(new Message(speaker, portrait, expression, wrap(line), distorted));
     }
 
     /** Drops everything, as when the level restarts. */

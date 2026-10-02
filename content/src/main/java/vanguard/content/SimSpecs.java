@@ -233,6 +233,8 @@ public final class SimSpecs {
         PlayerData.Pickups pickups = player.pickups();
         PickupRules pickupRules = new PickupRules(
                 pickups.salvage().credits().small(),
+                pickups.salvage().credits().medium(),
+                pickups.overdrive().seconds(),
                 pickups.shieldCell().shieldPercent() / 100,
                 pickups.armourPatch().armour(),
                 player.pickupSeconds(),
@@ -316,9 +318,70 @@ public final class SimSpecs {
                         .toList(),
                 waves,
                 groundObjects(level),
+                groundUnits(content, level, difficulty, secondary),
                 level.secrets().size(),
                 radio(level, difficulty),
-                new LevelScript.Secondary(secondary.killRatio(), secondary.credits()));
+                new LevelScript.Secondary(
+                        secondary.killRatio().orElse(0.0),
+                        secondary.credits(),
+                        secondary.groups().orElse(List.of())),
+                cranes(level, difficulty));
+    }
+
+    /** The ground enemies of the level's ground targets at {@code difficulty}, each in its group of the secondary objective. */
+    private static List<LevelScript.GroundUnit> groundUnits(
+            Content content, LevelData level, Difficulty difficulty, LevelData.Secondary secondary) {
+        List<String> groups = secondary.groups().orElse(List.of());
+        List<LevelScript.GroundUnit> units = new ArrayList<>();
+        for (LevelData.GroundTarget target : level.groundTargets()) {
+            if (target.enemy().isEmpty()) {
+                continue;
+            }
+            EnemySpec enemy = enemy(content, target.enemy().get(), difficulty, Optional.empty());
+            int group = target.group().map(groups::indexOf).orElse(-1);
+            List<LevelData.Placement> at =
+                    switch (difficulty) {
+                        case EASY -> target.easy().map(LevelData.Placements::at).orElse(target.at());
+                        case MEDIUM -> target.at();
+                        case HARD -> target.hard().map(LevelData.Placements::at).orElse(target.at());
+                    };
+            for (LevelData.Placement placement : at) {
+                units.add(new LevelScript.GroundUnit(placement.t(), placement.x(), enemy, group));
+            }
+        }
+        units.sort(Comparator.comparingDouble(LevelScript.GroundUnit::t));
+        return units;
+    }
+
+    /** The level's cranes at {@code difficulty}. */
+    private static List<LevelScript.CraneSpec> cranes(LevelData level, Difficulty difficulty) {
+        List<LevelScript.CraneSpec> cranes = new ArrayList<>();
+        for (LevelData.CraneData crane : level.cranes().orElse(List.of())) {
+            List<Double> swings =
+                    switch (difficulty) {
+                        case EASY -> crane.easy().map(LevelData.Swings::swings).orElse(crane.swings());
+                        case MEDIUM -> crane.swings();
+                        case HARD -> crane.hard().map(LevelData.Swings::swings).orElse(crane.swings());
+                    };
+            Optional<LevelData.Secret> secret = crane.clamp().flatMap(clamp -> level.secrets().stream()
+                    .filter(s -> s.name().equals(clamp.reveals()))
+                    .findFirst());
+            cranes.add(new LevelScript.CraneSpec(
+                    crane.x(),
+                    crane.y(),
+                    crane.length(),
+                    crane.width(),
+                    Math.toRadians(crane.from()),
+                    Math.toRadians(crane.to()),
+                    swings,
+                    crane.swingSeconds(),
+                    crane.telegraph(),
+                    crane.damage(),
+                    crane.clamp().map(LevelData.Clamp::hits).orElse(0),
+                    secret.map(LevelData.Secret::crate).orElse(0),
+                    secret.map(LevelData.Secret::name).orElse("")));
+        }
+        return cranes;
     }
 
     /** A number of the level key: group 1 is the act, group 2 the level. */
@@ -398,6 +461,8 @@ public final class SimSpecs {
             case "stream" -> WaveSpec.Formation.STREAM;
             case "pincer" -> WaveSpec.Formation.PINCER;
             case "circle" -> WaveSpec.Formation.CIRCLE;
+            case "single" -> WaveSpec.Formation.SINGLE;
+            case "column" -> WaveSpec.Formation.COLUMN;
             default -> throw new IllegalArgumentException("the formation '" + name + "' is not implemented yet");
         };
     }
@@ -405,6 +470,8 @@ public final class SimSpecs {
     private static PickupType pickup(Pickup pickup) {
         return switch (pickup) {
             case SMALL_SALVAGE -> PickupType.SMALL_SALVAGE;
+            case MEDIUM_SALVAGE -> PickupType.MEDIUM_SALVAGE;
+            case OVERDRIVE -> PickupType.OVERDRIVE;
             case SHIELD_CELL -> PickupType.SHIELD_CELL;
             case ARMOUR_PATCH -> PickupType.ARMOUR_PATCH;
             default -> throw new IllegalArgumentException("the pickup " + pickup + " is not implemented yet");
@@ -433,7 +500,24 @@ public final class SimSpecs {
                 movement.hover().map(hover -> new EnemySpec.Hover(range(hover.seconds()), range(hover.y()))),
                 movement.orbit().map(orbit -> new EnemySpec.Orbit(orbit.radius(), orbit.turnRate())),
                 gun(content, enemy, difficulty, change),
-                drop(enemy));
+                drop(enemy),
+                movement.dive()
+                        .map(dive -> new EnemySpec.Dive(
+                                range(dive.y()),
+                                hook(enemy, difficulty)
+                                        .flatMap(EnemyData.Hook::divePause)
+                                        .orElse(dive.pause()),
+                                dive.speed(),
+                                dive.fireAfter())),
+                movement.terrain().isPresent());
+    }
+
+    private static Optional<EnemyData.Hook> hook(EnemyData enemy, Difficulty difficulty) {
+        return enemy.difficulty().flatMap(hooks -> switch (difficulty) {
+            case EASY -> hooks.easy();
+            case MEDIUM -> Optional.empty();
+            case HARD -> hooks.hard();
+        });
     }
 
     private static Optional<EnemySpec.Drop> drop(EnemyData enemy) {
@@ -443,38 +527,56 @@ public final class SimSpecs {
         return enemy.drops().stream().findFirst().map(drop -> new EnemySpec.Drop(pickup(drop.pickup()), drop.every()));
     }
 
+    /**
+     * An enemy's attack at {@code difficulty}: its interval by the fire-rate lever, its bullets by
+     * the bullet-speed lever, a level's burst change or the stat block's hooks (burst, fan size,
+     * leading the target in circles).
+     */
     private static Optional<EnemyGun> gun(
             Content content, EnemyData enemy, Difficulty difficulty, Optional<LevelData.EnemyChange> change) {
         if (enemy.attacks().isEmpty()) {
             return Optional.empty();
         }
-        EnemyData.Attack attack = enemy.attacks().getFirst();
-        if (enemy.attacks().size() > 1 || !attack.pattern().equals("aimed")) {
-            throw new IllegalArgumentException(enemy.name() + ": only a single aimed attack is implemented");
+        if (enemy.attacks().size() > 1) {
+            throw new IllegalArgumentException(enemy.name() + ": only a single attack is implemented");
         }
+        EnemyData.Attack attack = enemy.attacks().getFirst();
         DifficultyData levers = content.difficulty();
         double damage = content.enemyBasis().bulletDamage().stream()
                 .filter(b -> b.bullet().equals(attack.bullet()))
                 .findFirst()
                 .orElseThrow()
                 .damage();
-        Optional<EnemyData.Hook> hook = enemy.difficulty().flatMap(hooks -> switch (difficulty) {
-            case EASY -> hooks.easy();
-            case MEDIUM -> Optional.empty();
-            case HARD -> hooks.hard();
-        });
+        Optional<EnemyData.Hook> hook = hook(enemy, difficulty);
+        int burst = change.flatMap(LevelData.EnemyChange::burst)
+                .or(() -> hook.flatMap(EnemyData.Hook::burst))
+                .orElse(1);
+        int fan = attack.count()
+                .map(count -> hook.flatMap(EnemyData.Hook::fanCount).orElse(count))
+                .orElse(1);
         return Optional.of(new EnemyGun(
-                attack.interval() / levers.enemyFireRate().of(difficulty),
-                attack.firstShotDelay(),
-                change.flatMap(LevelData.EnemyChange::burst).orElse(1),
+                attack.interval()
+                        .map(i -> i / levers.enemyFireRate().of(difficulty))
+                        .orElse(Double.POSITIVE_INFINITY),
+                attack.firstShotDelay().orElse(0.0),
+                burst,
                 attack.speed() * levers.enemyBulletSpeed().of(difficulty),
                 damage,
-                hook.map(h -> h.leadsTargetIn().contains("circle")).orElse(false)));
+                hook.flatMap(EnemyData.Hook::leadsTargetIn)
+                        .map(in -> in.contains("circle"))
+                        .orElse(false),
+                fan,
+                Math.toRadians(attack.spread().orElse(0.0)),
+                attack.turnRate().map(Math::toRadians).orElse(Double.POSITIVE_INFINITY),
+                attack.arc().map(Math::toRadians).orElse(Double.POSITIVE_INFINITY)));
     }
 
     private static List<LevelScript.GroundObjectSpec> groundObjects(LevelData level) {
         List<LevelScript.GroundObjectSpec> objects = new ArrayList<>();
         for (LevelData.GroundTarget target : level.groundTargets()) {
+            if (target.enemy().isPresent()) {
+                continue;
+            }
             Optional<LevelData.Secret> secret = target.reveals().flatMap(name -> level.secrets().stream()
                     .filter(s -> s.name().equals(name))
                     .findFirst());
@@ -482,7 +584,7 @@ public final class SimSpecs {
                 objects.add(new LevelScript.GroundObjectSpec(
                         placement.t(),
                         placement.x(),
-                        hitbox(target.size()),
+                        hitbox(target.size().orElseThrow()),
                         target.hp().orElse(0.0),
                         target.bounty().orElse(0),
                         target.drop().map(SimSpecs::pickup),
@@ -510,16 +612,20 @@ public final class SimSpecs {
                         case FIRST_KILL -> LevelScript.CueTrigger.FIRST_KILL;
                         case SECONDARY_OBJECTIVE -> LevelScript.CueTrigger.SECONDARY_OBJECTIVE;
                         case LEVEL_END -> LevelScript.CueTrigger.LEVEL_END;
+                        case GROUP_CLEARED -> LevelScript.CueTrigger.GROUP_CLEARED;
+                        case GROUP_LOST -> LevelScript.CueTrigger.GROUP_LOST;
+                        case FIRST_GROUP_LOST -> LevelScript.CueTrigger.FIRST_GROUP_LOST;
                     })
                     .orElse(LevelScript.CueTrigger.TIME);
             cues.add(new LevelScript.RadioCue(
                     trigger,
                     cue.t().orElse(0.0),
-                    cue.enemy().orElse(""),
+                    cue.enemy().or(cue::group).orElse(""),
                     cue.speaker(),
                     change.map(LevelData.RadioChange::line).orElse(cue.line()),
                     cue.distorted().orElse(false),
-                    cue.expression().orElse(Expression.NEUTRAL).slug()));
+                    cue.expression().orElse(Expression.NEUTRAL).slug(),
+                    cue.portrait().orElse(cue.speaker())));
         }
         for (LevelData.Secret secret : level.secrets()) {
             LevelData.RadioLine line = secret.radio();

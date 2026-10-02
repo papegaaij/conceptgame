@@ -47,7 +47,28 @@ public record EnemyData(
             Optional<Swoop> swoop,
             Optional<Straight> straight,
             Optional<Hover> hover,
-            Optional<Orbit> orbit) {}
+            Optional<Orbit> orbit,
+            Optional<Dive> dive,
+            Optional<Terrain> terrain) {}
+
+    /**
+     * Enters to a height of {@code y} px below the top of the play field, pauses for {@code pause}
+     * seconds (its telegraph), then dives at {@code speed} px/s towards where the player was when
+     * the pause ended, and flies on off the screen.
+     *
+     * @param fireAfter seconds into the dive at which it fires, unless it passes the player's
+     *     height first
+     */
+    public record Dive(Span y, double pause, double speed, double fireAfter) {
+        public Dive {
+            Check.notNegative("pause", pause);
+            Check.positive("speed", speed);
+            Check.positive("fire_after", fireAfter);
+        }
+    }
+
+    /** Fixed to the ground layer, moving only with the scroll. */
+    public record Terrain() {}
 
     /** Along an authored path, {@code spacing} seconds between two units. */
     public record Snake(double spacing) {
@@ -84,12 +105,30 @@ public record EnemyData(
      * @param interval seconds between shots
      * @param speed bullet speed in px/s
      * @param firstShotDelay seconds from stopping to the first shot
+     * @param count a {@code fan}'s bullets
+     * @param spread a {@code fan}'s angle from its first to its last bullet, degrees
+     * @param turnRate a turret's barrel turn rate, °/s; the shots leave along the barrel
+     * @param arc a turret fires while the player is within this many degrees of its facing (down the screen)
      */
-    public record Attack(String pattern, String bullet, double interval, double speed, double firstShotDelay) {
+    public record Attack(
+            String pattern,
+            String bullet,
+            Optional<Double> interval,
+            double speed,
+            Optional<Double> firstShotDelay,
+            Optional<Integer> count,
+            Optional<Double> spread,
+            Optional<Double> turnRate,
+            Optional<Double> arc) {
         public Attack {
-            Check.positive("interval", interval);
+            Check.that(
+                    pattern.equals("aimed") || pattern.equals("fan"),
+                    "pattern must be aimed or fan, was '" + pattern + "'");
+            interval.ifPresent(i -> Check.positive("interval", i));
             Check.positive("speed", speed);
-            Check.notNegative("first_shot_delay", firstShotDelay);
+            firstShotDelay.ifPresent(d -> Check.notNegative("first_shot_delay", d));
+            Check.that(pattern.equals("fan") == count.isPresent(), "a fan has a count, an aimed attack none");
+            Check.that(count.isPresent() == spread.isPresent(), "a fan has a count and a spread");
         }
     }
 
@@ -100,10 +139,13 @@ public record EnemyData(
         }
     }
 
-    /** A hit box part that takes {@code multiplier} times the damage. */
-    public record WeakPoint(String name, double multiplier) {
+    /**
+     * The glowing weak point; only a part of a multi-part unit has a damage {@code multiplier}
+     * (design/enemies, stat block template), a single-part unit's is drawn only.
+     */
+    public record WeakPoint(String name, Optional<Double> multiplier) {
         public WeakPoint {
-            Check.positive("multiplier", multiplier);
+            multiplier.ifPresent(m -> Check.positive("multiplier", m));
         }
     }
 
@@ -117,6 +159,17 @@ public record EnemyData(
     /** Overrides of the global difficulty levers. */
     public record Hooks(Optional<Hook> easy, Optional<Hook> hard) {}
 
-    /** Selected units in the formations {@code leadsTargetIn} lead the target. */
-    public record Hook(List<String> leadsTargetIn) {}
+    /**
+     * A difficulty's changes to the stat block.
+     *
+     * @param leadsTargetIn selected units in these formations lead the target
+     * @param fanCount a fan's bullets instead
+     * @param divePause a dive's pause instead, s
+     * @param burst shots per volley instead of one
+     */
+    public record Hook(
+            Optional<List<String>> leadsTargetIn,
+            Optional<Integer> fanCount,
+            Optional<Double> divePause,
+            Optional<Integer> burst) {}
 }

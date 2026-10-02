@@ -19,7 +19,7 @@ class EnemyTest {
     private static List<Integer> shotSteps(Enemy enemy, int steps) {
         List<Integer> shots = new ArrayList<>();
         for (int i = 1; i <= steps; i++) {
-            enemy.move(240, 96);
+            enemy.move(240, 96, 0);
             if (enemy.trigger()) {
                 shots.add(i);
             }
@@ -43,7 +43,9 @@ class EnemyTest {
         var enemy = new Enemy();
         enemy.spawn(
                 hovering(
-                        TestSpecs.needler(new EnemyGun(2.5, 0.8, 2, 150, 4, false)), Optional.empty(), Spawn.Exit.DOWN),
+                        TestSpecs.needler(EnemyGun.aimed(2.5, 0.8, 2, 150, 4, false)),
+                        Optional.empty(),
+                        Spawn.Exit.DOWN),
                 0);
 
         List<Integer> shots = shotSteps(enemy, 60 + 60);
@@ -59,10 +61,10 @@ class EnemyTest {
 
         double y = enemy.y();
         assertFalse(enemy.trigger());
-        enemy.move(240, 96);
+        enemy.move(240, 96, 0);
         assertEquals(y - 2, enemy.y(), 1e-9, "down at 120 px/s");
         int steps = 0;
-        while (enemy.move(240, 96)) {
+        while (enemy.move(240, 96, 0)) {
             steps++;
         }
         assertTrue(steps < 3 * SimStep.PER_SECOND, "gone off the bottom edge");
@@ -75,17 +77,17 @@ class EnemyTest {
         enemy.spawn(hovering(TestSpecs.NEEDLER, Optional.of(orbit), Spawn.Exit.TOWARD_SHIP), 0);
 
         for (int i = 0; i < 60 + 300; i++) {
-            enemy.move(240, 96);
+            enemy.move(240, 96, 0);
             if (i > 60) {
                 assertEquals(80, Math.hypot(enemy.x() - 240, enemy.y() - 360), 1e-5);
             }
         }
         for (int i = 0; i < 400; i++) {
-            enemy.move(100, 96);
+            enemy.move(100, 96, 0);
         }
         double x = enemy.x();
         double y = enemy.y();
-        enemy.move(100, 96);
+        enemy.move(100, 96, 0);
 
         assertTrue(enemy.x() <= x && enemy.y() < y, "breaks off toward where the ship was");
     }
@@ -99,7 +101,7 @@ class EnemyTest {
 
         double previous = enemy.facing();
         for (int i = 0; i < 60 + 600 + 60; i++) {
-            enemy.move(240, 96);
+            enemy.move(240, 96, 0);
             double turn = Math.abs(Math.IEEEremainder(enemy.facing() - previous, 2 * StrictMath.PI));
             assertTrue(turn <= StrictMath.PI / 8 + 1e-12, "step " + i + " turned " + turn);
             previous = enemy.facing();

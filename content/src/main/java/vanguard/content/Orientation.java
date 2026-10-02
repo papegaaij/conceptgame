@@ -4,11 +4,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
  * How an enemy's sprite follows its flight (design/enemies/README.md, Orientation and rotation),
- * written {@code fixed}, {@code 16 angles}, {@code 32 angles} or {@code radial}.
+ * written {@code fixed}, {@code ±30° tilt}, {@code 16 angles}, {@code 32 angles} or {@code radial}.
  */
 public enum Orientation {
     /** Always faces down the screen. */
     FIXED("fixed", 1),
+    /** Faces down the screen and tilts towards its dive, up to ±30°: 7 headings, 10° apart. */
+    TILT_30("±30° tilt", 7),
     /** Turns to face its movement: pre-rendered at 16 headings. */
     ANGLES_16("16 angles", 16),
     /** Turns to face its movement, large and slow units and turrets: 32 headings. */
@@ -37,6 +39,6 @@ public enum Orientation {
             }
         }
         throw new IllegalArgumentException(
-                "orientation must be fixed, 16 angles, 32 angles or radial, was '" + text + "'");
+                "orientation must be fixed, ±30° tilt, 16 angles, 32 angles or radial, was '" + text + "'");
     }
 }

@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Production art: Level 01's Vrell flyers, the Skitter and the Needler (design/enemies/air).
+"""Production art: the Vrell flyers of Levels 01-02, the Skitter, the Needler and the Stinger
+(design/enemies/air).
 
 Outputs (assets/sprites/, sizes from the parts' data.yaml):
   skitter_0..95.png  24x24, `orientation: 16 angles`: an angle set of 16 headings x 6 wing-beat
                      frames, indexed heading * 6 + frame; heading k flies k x 22.5 degrees
                      clockwise from straight down (10 fps in the game: 0.6 s per beat)
   needler_0..5.png   36x36, `orientation: fixed` (flies nose-down): one claw-snap cycle
+  stinger_0..27.png  40x40, `orientation: ±30° tilt`: 7 headings (-30 to +30 degrees in 10 degree
+                     steps, clockwise from straight down, so heading 3 flies straight down) x 4
+                     wing-beat frames, indexed heading * 4 + frame (M4 part B batch)
+  stinger-flare_0..2.png  40x40, additive: the crimson abdomen flare drawn over it in its pause
   design/enemies/air/<slug>/concept/<slug>-final-r12-a.png/.gif   review sheet and loop
 
 Models and role colours are the chosen round-04 ones (tools/concept/enemies_r04.py, models in
@@ -15,7 +20,9 @@ stroke: from above, a lift alone is a small foreshortening and reads as a flicke
 is its own render with the key light fixed. The Needler's claw cycle is the concept model with a
 wider swing, opening over three frames and snapping shut in one.
 
-Run: python3 tools/art/vrell_air.py [skitter] [needler] [--review]   (~30 s)
+The Stinger is the round-04 model (stinger_a) tilted per heading and beating its wings.
+
+Run: python3 tools/art/vrell_air.py [skitter] [needler] [stinger] [--review]   (~40 s)
 """
 import sys
 from concurrent.futures import ProcessPoolExecutor
@@ -28,6 +35,7 @@ import artkit
 from artkit import DESIGN, TAU, sprite
 
 import enemies_r04 as e4  # noqa: E402  (concept script, imported unchanged)
+import vfx_r08 as v8  # noqa: E402
 from render import enemy_models as em  # noqa: E402
 from render.sdf import mirror_x, rotate_z, sd_capsule, sd_ellipsoid, sd_plate, sd_sphere, union  # noqa: E402
 
@@ -44,6 +52,10 @@ WING_ROOT = (0.1, 0.0, 0.0)
 # Needler claw cycle as the concept model's anim value (claw angle 0.18 x anim rad): opens over
 # three frames, snaps shut in one, settles over two.
 NEEDLER_CLAW = [0.0, -2.0, -3.5, 2.8, 2.0, 1.0]
+STINGER_TILTS = [-30, -20, -10, 0, 10, 20, 30]   # degrees clockwise from straight down
+STINGER_BEAT = [1.0, 0.0, -1.0, 0.0]            # the concept model's wing anim per frame
+STINGER_COLOURS = 32
+SOURCE_B = artkit.source_note(SCRIPT, "M4 part B batch")
 
 
 def size_of(slug):
@@ -92,8 +104,33 @@ def render_needler(k):
     return artkit.native(*artkit.render_hi(scene, mats, size_of("needler"), EXTENT))
 
 
+def render_stinger(tilt_deg, k):
+    scene, mats = e4.R04["stinger-a"][4](anim=STINGER_BEAT[k], glow=1.0)
+    heading = np.radians(tilt_deg)
+    return artkit.native(*artkit.render_hi(lambda p: scene(rotate_z(p, -heading)), mats, size_of("stinger"), EXTENT))
+
+
+def stinger_flare():
+    """The crimson abdomen flare of the pause, three pulses, additive (vfx_r08's light fields)."""
+    w, h = size_of("stinger")
+    out = []
+    for k in (0.6, 1.0, 0.75):
+        cv = v8.Canvas(w, h)
+        d = cv.dist(w / 2, h / 2 + 1)
+        cv.add((255, 40, 60), v8.gauss(d, 4.0 + 3.0 * k) * 1.1 * k)
+        cv.add((255, 200, 200), v8.gauss(d, 1.6 * k) * 0.9)
+        out.append(artkit.additive(cv.image()))
+    return artkit.quantize_set(out, 16)
+
+
 def build(slug):
     with ProcessPoolExecutor() as pool:
+        if slug == "stinger":
+            jobs = [(t, k) for t in STINGER_TILTS for k in range(len(STINGER_BEAT))]
+            frames = artkit.quantize_set(list(pool.map(render_stinger, *zip(*jobs))), STINGER_COLOURS)
+            artkit.write_frames("stinger", frames, SOURCE_B)
+            artkit.write_frames("stinger-flare", stinger_flare(), SOURCE_B)
+            return
         if slug == "skitter":
             jobs = [(TAU * h / SKITTER_HEADINGS, k) for h in range(SKITTER_HEADINGS) for k in range(FRAMES)]
             frames = artkit.quantize_set(list(pool.map(render_skitter, *zip(*jobs))), SKITTER_COLOURS)
@@ -141,7 +178,38 @@ def review_needler():
     artkit.save_review(sheet, gif, DESIGN / "enemies" / "air" / "needler" / "concept", "needler", fps=10)
 
 
-REVIEWS = {"skitter": review_skitter, "needler": review_needler}
+def review_stinger():
+    frames = artkit.load_frames("stinger")
+    beats = len(STINGER_BEAT)
+    tilt = [frames[h * beats:(h + 1) * beats] for h in range(len(STINGER_TILTS))]
+    flare = artkit.load_frames("stinger-flare")
+    artkit.REVIEW_ROUND = "r15"
+    sheet = artkit.review_sheet("STINGER - FINAL SPRITES", [
+        ("WING BEAT (STRAIGHT DOWN)", tilt[3], 6, False),
+        ("7 TILTS, -30 TO +30 DEGREES (CLOCKWISE FROM DOWN)", [t[0] for t in tilt], 4, False),
+        ("PAUSE FLARE (ADDITIVE)", flare, 6, True),
+        ("1X", [t[0] for t in tilt], 1, False)], batch="M4 part B batch")
+    w, h = frames[0].size
+    gif = []
+    for i in range(48):                          # enter, pause with the flare, dive tilted
+        cell = Image.new("RGBA", (w * 3, h * 3), artkit.PLATE)
+        phase = i % 24
+        beat = (i // 2) % beats
+        if phase < 8:
+            x, y, t = w * 1.5, 10 + phase * 4, 3
+        elif phase < 14:
+            x, y, t = w * 1.5, 42, 3
+        else:
+            q = phase - 14
+            x, y, t = w * 1.5 + q * 6, 42 + q * 9, 1
+        sprite.paste_center(cell, tilt[t][beat], x, y)
+        if 8 <= phase < 14:
+            cell = artkit.add_light(cell, flare[(phase - 8) % 3], (int(x - w / 2), int(y - h / 2)))
+        gif.append(sprite.enlarge(cell, 4))
+    artkit.save_review(sheet, gif, DESIGN / "enemies" / "air" / "stinger" / "concept", "stinger", fps=12)
+
+
+REVIEWS = {"skitter": review_skitter, "needler": review_needler, "stinger": review_stinger}
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]

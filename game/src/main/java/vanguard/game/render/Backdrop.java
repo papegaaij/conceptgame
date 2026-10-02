@@ -30,6 +30,9 @@ public final class Backdrop {
 
     private final LevelData level;
     private final double ramp;
+    /** The atmosphere along the level, each with its look in {@link #looks}. */
+    private final List<LevelData.Stretch> stretches;
+
     private final TextureRegion pixel;
     private final Color haze;
     private final double[] factors = new double[BackdropLayer.values().length];
@@ -93,10 +96,11 @@ public final class Backdrop {
                 tiles[tileSet.layer().ordinal()][s] = tiles(sprites, folder, id, tileSet);
             }
         }
-        looks = new Look[sectionCount];
-        for (int s = 0; s < sectionCount; s++) {
+        stretches = level.atmosphereStretches();
+        looks = new Look[stretches.size()];
+        for (int s = 0; s < looks.length; s++) {
             BackdropData.Look look =
-                    data.atmosphere().of(level.sections().get(s).atmosphere()).orElseThrow();
+                    data.atmosphere().of(stretches.get(s).atmosphere()).orElseThrow();
             looks[s] = new Look(
                     look.banks()
                             .map(id ->
@@ -162,14 +166,22 @@ public final class Backdrop {
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    /** Sets the looks to draw: the section's, or the two across a boundary while the change ramps. */
+    /**
+     * Sets the looks to draw: the atmosphere stretch's (a section, or its peak), or the two across a
+     * stretch boundary while the change ramps.
+     */
     private void blend(double seconds) {
-        int number = level.sectionAt(seconds);
-        int section = number == 0 ? looks.length - 1 : number - 1;
-        from = to = looks[section];
+        int current = looks.length - 1;
+        for (int s = 0; s < looks.length; s++) {
+            if (seconds < stretches.get(s).end()) {
+                current = s;
+                break;
+            }
+        }
+        from = to = looks[current];
         weight = 1;
         for (int s = 1; s < looks.length; s++) {
-            double progress = (seconds - level.sectionStart(s)) / ramp + 0.5;
+            double progress = (seconds - stretches.get(s).start()) / ramp + 0.5;
             if (progress > 0 && progress < 1) {
                 from = looks[s - 1];
                 to = looks[s];

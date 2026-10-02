@@ -136,6 +136,13 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 | [concept/pickups-final-r12-a.png](concept/pickups-final-r12-a.png) | Final 8-frame loops of salvage S, the shield cell, the armour patch and the hidden crate (salvage L, its cyan cross on every face it turns to the viewer), with the pulsing light outline and halo | chosen |
 | [concept/pickups-final-r12-a.gif](concept/pickups-final-r12-a.gif) | The four loops at 10 fps | chosen |
 
+Production art for concept round 15 (M4 part B, the Level 02 batch), by `tools/art/pickups.py salvage-medium overdrive`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/pickups-final-r15-a.png](concept/pickups-final-r15-a.png) | Final 8-frame loops of salvage M (three credit chips) and the overdrive, rocking, with the pulsing light outline and halo of the Level 01 pickups | proposed |
+| [concept/pickups-final-r15-a.gif](concept/pickups-final-r15-a.gif) | The two loops at 10 fps | proposed |
+
 ## Implementation
 
 - [x] Loadout data model: slots, fitted items, inventory, upgrade levels
@@ -143,7 +150,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - [x] Spare-power shield regen bonus
 - [x] Single fire button fires all weapons
 - [ ] Special on a separate button — **later: M4** (the specials, part D)
-- [ ] Pickup types, drop tables and 6 s despawn
+- [x] Pickup types, drop tables and 6 s despawn: salvage S and M, overdrive, shield cell, armour patch, the hidden crate
+- [ ] Salvage L, special charge and data core — **later: M4** (Levels 03, 04 and 06)
 - [x] Overdrive: temporary +1 weapon level with HUD timer (the overdrive pickup itself: *Pickup types* above)
 
 ## Open questions
@@ -184,3 +192,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - 2026-10-02: Production art (Level 01 batch, `tools/art/pickups.py`): the four pickups Level 01 uses, every frame its own 8× render of the round-09 model with one palette per loop; the 1 px light outline is opaque and pulses in brightness, the halo is stepped to four translucency levels. Same sizes as the placeholders. Review files proposed for round 12.
 - 2026-10-02: Concept round 12 closed (user decision): the four pickups' production loops approved as **final**; this doc's `art` stays `chosen`, since its other art is still concept art.
 - 2026-10-02: M4 part A: every fitted weapon flies, each mount on its own clock while fire is held; the spare power (the generator's output less every fitted item's draw) raises the shield regen in flight, +10 % per MW up to +50 % (the starter fit has 4 MW spare: +40 %), and the HUD's power row shows it; an overdrive switches every weapon to its next level's pattern (L5: the overdrive pattern) for its time, timed on the HUD. The overdrive pickup lands with Level 02 (part B).
+- 2026-10-02: M4 part B: the overdrive and salvage M pickups (Level 02), their production loops proposed in concept round 15.

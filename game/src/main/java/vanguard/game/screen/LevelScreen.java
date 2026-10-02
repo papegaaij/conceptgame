@@ -3,6 +3,8 @@ package vanguard.game.screen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.JsonReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -71,6 +73,8 @@ public final class LevelScreen implements GameScreen {
     private static final int IMPACT_FRAME_TICKS = 2;
     /** A destroyed ground target's 8 debris frames last 0.4 s. */
     private static final int DEBRIS_FRAME_TICKS = 3;
+    /** A ground unit's remains stay on the ground until they scroll off (at most 10 s). */
+    private static final int REMAINS_TICKS = SimStep.ticks(10);
 
     private static final float RADIO_VOLUME = 0.5f;
     private static final float TYPING_VOLUME = 0.15f;
@@ -82,6 +86,10 @@ public final class LevelScreen implements GameScreen {
     private final FixedStepClock clock = new FixedStepClock(SimStep.SECONDS, MAX_STEPS_PER_FRAME);
     private final EnemyLooks[] looks;
     private final WeaponLooks weaponLooks;
+    /** The ground prompt's action (design/campaign, Level 02). */
+    private static final String GROUND_PROMPT = "GROUND";
+    /** Whether a ground unit was destroyed in this attempt, which skips the ground prompt. */
+    private boolean groundTargetHit;
     /** The spark of a shot glancing off a hardened target. */
     private final Array<AtlasRegion> glance;
 
@@ -136,7 +144,16 @@ public final class LevelScreen implements GameScreen {
         glance = services.sprites.frames("ballistic-impact");
         sounds = new FlightSounds(services.sfx, looks, sortie.armament());
         renderer = new LevelRenderer(
-                services.sprites, looks, weaponLooks, services.flash, services.fonts.body, level, levelKey);
+                services.sprites,
+                looks,
+                weaponLooks,
+                level.cranes().isPresent()
+                        ? new JsonReader().parse(services.files.internal("pivots/crane-four.json"))
+                        : null,
+                services.flash,
+                services.fonts.body,
+                level,
+                levelKey);
         warnings = new EdgeWarnings(services.sprites.pixel, services.fonts.body);
         name = Content.levelName(levelKey);
         hud = new Hud(
@@ -151,17 +168,35 @@ public final class LevelScreen implements GameScreen {
                 services.content.player().pickups().overdrive().seconds());
         prompts = new ControlPrompts(level.controlPrompts());
         promptTexts = new PromptTexts(services.input.bindings());
-        // Track 5, "Coalition Rising" (design/audio/music) as its two stems, over the Earth-orbit ambience.
+        // The level's theme (design/audio/music, track list) as its two stems, over its setting's ambience.
+        String theme = theme(level.music().track());
         music = new LevelMusic(
                 services.audio,
                 services.mixer,
-                services.files.internal("music/coalition-rising-base.ogg"),
-                services.files.internal("music/coalition-rising.ogg"),
+                services.files.internal("music/" + theme + "-base.ogg"),
+                services.files.internal("music/" + theme + ".ogg"),
                 services.sfx,
-                Sfx.AMBIENCE_ORBIT,
+                ambience(level.music().ambience()),
                 level.music().startSection(),
                 level.music().startDb().orElse(0.0),
                 level.music().fullSection());
+    }
+
+    /** The file name of a level theme's stems by its track number (design/audio/music, track list). */
+    private static String theme(int track) {
+        return switch (track) {
+            case 4 -> "afterburner";
+            case 5 -> "coalition-rising";
+            default -> throw new IllegalArgumentException("no stems for track " + track + " yet");
+        };
+    }
+
+    /** A setting's ambience loop (design/audio/sfx, ambience per setting). */
+    private static Sfx ambience(String setting) {
+        return switch (setting) {
+            case "earth-orbit" -> Sfx.AMBIENCE_ORBIT;
+            default -> throw new IllegalArgumentException("no ambience for " + setting + " yet");
+        };
     }
 
     /** "MISSION 01 - BREAK AT DAWN", for the pause menu. */
@@ -257,8 +292,15 @@ public final class LevelScreen implements GameScreen {
                     effects.start(weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y);
                 case SHOT_GLANCED -> effects.start(glance, IMPACT_FRAME_TICKS, x, y);
                 case BLAST -> effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
-                case ENEMY_DESTROYED ->
-                    effects.start(looks[events.value(i)].explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
+                case ENEMY_DESTROYED -> {
+                    EnemyLooks look = looks[events.value(i)];
+                    groundTargetHit |= sortie.enemyKinds().get(events.value(i)).terrain();
+                    effects.start(look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
+                    if (!look.remains().isEmpty()) {
+                        debris.start(look.remains(), REMAINS_TICKS, x, y + sortie.groundScroll());
+                    }
+                }
+                case CLAMP_HIT -> effects.start(glance, IMPACT_FRAME_TICKS, x, y);
                 case GROUND_DESTROYED -> {
                     debris.start(
                             services.sprites.cargoContainerBreak, DEBRIS_FRAME_TICKS, x, y + sortie.groundScroll());
@@ -268,7 +310,7 @@ public final class LevelScreen implements GameScreen {
                 case SHIELD_HIT -> shimmer = SHIMMER_TICKS;
                 case RADIO -> {
                     LevelScript.RadioCue cue = sortie.script().radio().get(events.value(i));
-                    radio.add(cue.speaker(), cue.expression(), cue.line(), cue.distorted());
+                    radio.add(cue.speaker(), cue.portrait(), cue.expression(), cue.line(), cue.distorted());
                 }
                 case SHIP_DESTROYED -> {
                     effects.start(services.sprites.explosionLarge, LARGE_EXPLOSION_FRAME_TICKS, x, y);
@@ -281,6 +323,7 @@ public final class LevelScreen implements GameScreen {
                     failedIn = FAILED_SCREEN_SECONDS;
                 }
                 case SORTIE_RESTARTED -> {
+                    groundTargetHit = false;
                     effects.clear();
                     debris.clear();
                     creditNumbers.clear();
@@ -300,6 +343,8 @@ public final class LevelScreen implements GameScreen {
                         SHIELD_BROKEN,
                         ARMOUR_HIT,
                         OVERDRIVE_ENDED,
+                        GROUP_CLEARED,
+                        GROUP_LOST,
                         OBJECTIVE_MET -> {}
             }
         }
@@ -334,9 +379,24 @@ public final class LevelScreen implements GameScreen {
         hud.draw(batch, sortie, radio, visiblePrompts());
     }
 
-    /** The control prompts show in the first section, once the launch is over. */
+    /**
+     * The control prompts show in the first section, once the launch is over; a level's
+     * contextual prompts from their time for their seconds (design/ui/hud, control prompts).
+     */
     private List<PromptTexts.Text> visiblePrompts() {
-        return sortie.launching() || sortie.section() != 1 ? List.of() : promptTexts.of(prompts.pending());
+        List<PromptTexts.Text> shown = new ArrayList<>();
+        if (!sortie.launching() && sortie.section() == 1) {
+            shown.addAll(promptTexts.of(prompts.pending()));
+        }
+        double t = sortie.levelSeconds();
+        for (LevelData.Prompt prompt : level.prompts().orElse(List.of())) {
+            // Done what it says, as the control prompts: a ground unit destroyed skips the ground prompt.
+            boolean done = groundTargetHit && prompt.action().equals(GROUND_PROMPT);
+            if (!done && t >= prompt.t() && t < prompt.t() + prompt.seconds()) {
+                shown.add(new PromptTexts.Text(prompt.action(), prompt.keys()));
+            }
+        }
+        return shown;
     }
 
     /** Banks the won level in the campaign and shows its debrief. */

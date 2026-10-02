@@ -20,7 +20,7 @@ Brood Carrier at the Earth–Moon L1 point.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [level-01-break-at-dawn](level-01-break-at-dawn/README.md) | Vrell scouts hit the Gagarin shipyards at dawn; the tutorial level | approved | done | final |
-| [level-02-shipyard-burning](level-02-shipyard-burning/README.md) | The yards burn; first ground targets (Spine Turret), the Stinger and Crane Four; save the drydocks for a bonus | approved | not-started | chosen |
+| [level-02-shipyard-burning](level-02-shipyard-burning/README.md) | The yards burn; first ground targets (Spine Turret), the Stinger and Crane Four; save the drydocks for a bonus | approved | done | chosen |
 | [level-03-spore-drift](level-03-spore-drift/README.md) | Spore Bombers in the high lanes, a debris field, and the Leviathan set piece with Whirl Seed clusters | approved | not-started | chosen |
 | [level-04-tranquility-run](level-04-tranquility-run/README.md) | First Luna level: escort five civilian crawlers past Brood Pods and Scuttler walkers; first special | approved | not-started | chosen |
 | [level-05-crater-nest](level-05-crater-nest/README.md) | Destroy four nest batteries in a crater by the mass driver; Polyp Mortar; mid-boss Gorgon Frigate | approved | not-started | chosen |
@@ -124,8 +124,8 @@ The outro is followed by the Act 2 title card (see [Act 2](../act-2-homefront/RE
 ### New mechanics
 
 - Basic movement and shooting, pickups, credits (L01).
-- `ground` layer targets and the shipyard crane hazard (L02); `low-air` and `high-air`
-  enemies, the debris field and the first overdrive pickup (L03).
+- `ground` layer targets, the shipyard crane hazard and the first overdrive pickup (L02);
+  `low-air` and `high-air` enemies and the debris field (L03).
 - A `huge` set-piece enemy and tiny spinners (L03), a walker (L04), a segment-chain serpent
   that attacks from the rear (L06).
 - `escort` objective, hardened targets and the first special, the Airstrike (L04);
@@ -206,3 +206,4 @@ and *Act complete*.
   the L01 briefing's "six weeks ago" agree with the story timeline (the gate opens on 14 March,
   the outer stations fall silent 11 days later, the Vrell reach Earth orbit about six weeks after
   the gate), so the texts stay as they are.
+- 2026-10-02: M4 part B (user decision): the first overdrive pickup is Level 02's (the t=118 pincer), not Level 03's.

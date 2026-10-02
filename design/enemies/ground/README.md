@@ -20,7 +20,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [spine-turret](spine-turret/README.md) | Basic grown turret with aimed thorns (L02) | approved | not-started | chosen |
+| [spine-turret](spine-turret/README.md) | Basic grown turret with aimed thorns (L02) | approved | done | chosen |
 | [polyp-mortar](polyp-mortar/README.md) | Acid mortar with a marked impact and ring burst (L05) | approved | not-started | chosen |
 | [scuttler](scuttler/README.md) | Crab walker with frontal claw armour and facing fans (L04) | approved | not-started | chosen |
 | [creeper](creeper/README.md) | Salamander walker crawling in convoys, 5-way fans (L08) | approved | not-started | chosen |
