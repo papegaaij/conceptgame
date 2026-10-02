@@ -17,3 +17,6 @@
 gradlew text eol=lf
 *.bat   text eol=crlf
 *.jar   binary
+
+# The data files too: the content tests edit their text line by line
+*.yaml  text eol=lf
