@@ -1,7 +1,7 @@
 ---
 title: Briefing screen
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../../story, ../../campaign]
 updated: 2026-10-02
@@ -61,9 +61,11 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 ## Implementation
 
-- [ ] Briefing script format: pages, speaker, text, image, objectives
+- [x] Briefing script format: pages, speaker, text, objectives
+- [ ] A page's image (tactical map or mission image) — **later: art track** (no briefing image exists yet; the format gets the field with the first one)
 - [x] Typewriter text with skip and page advance
-- [ ] Portrait frame with expressions and transmission-static effect
+- [x] Portrait frame with the transmission-static effect
+- [ ] Portrait expressions (neutral, grim, fierce) — **later: art track** (the portrait sheets have one expression per speaker)
 
 ## Decisions
 
@@ -93,3 +95,16 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 - 2026-10-02: User decision: briefings type at **twice the radio speed**, 60 characters/s at the
   default text speed of 30 (`GameplaySettings.briefingTextSpeed()`); the text-speed setting scales
   both. This settles the B1 note's open question (30 vs ~60).
+- 2026-10-02: M3 close-out (user decision). The script format is data: a level's `briefing` pages
+  (speaker and line) and teaser in its data.yaml, the act's title card and act briefing in the act's
+  data.yaml, the objective lines generated from the level's objectives
+  (`vanguard.content.campaign.BriefingScript`); so that part of the item is done and the page image
+  waits for the first briefing image from the art track. The portrait opens through a burst of
+  transmission static (0.35 s, fading out) on the first page and whenever the speaker changes, and
+  closes through one (fading in) after the last page before the hangar opens
+  (`vanguard.game.render.TransmissionStatic`: one noise texture generated at start-up, drawn from a
+  random offset each frame with three brighter rolling bands, no allocation per frame). The
+  expressions need new portrait art and move to the art track (see the
+  [production plan](../../art-direction/production/README.md#order-of-work)). The steady
+  interference for intercepted transmissions has no page in Acts 1–2 (the radio's Choir line is
+  not a briefing); it comes with the first intercepted briefing.

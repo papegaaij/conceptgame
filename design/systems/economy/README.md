@@ -1,7 +1,7 @@
 ---
 title: Economy
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../player, ../difficulty]
 updated: 2026-10-02
@@ -108,10 +108,10 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 ## Implementation
 
 - [x] Credit balance, income multiplier by difficulty
-- [ ] Bounty values per enemy class; boss bounty per act
+- [ ] Bounty values per enemy class; boss bounty per act — **later: M4** (the Act 1 enemy classes and bosses)
 - [x] Hangar transaction log for undo; 60 % sell-back otherwise (100 % for an item bought in the
   same visit)
-- [ ] Balancing sheet (spreadsheet or script) that simulates per-level budgets vs prices
+- [ ] Balancing sheet (spreadsheet or script) that simulates per-level budgets vs prices — **later: M4** (needs the Act 1 levels; the roadmap's balance tests)
 
 ## Open questions
 
@@ -155,3 +155,4 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   (100 %, like the undo); items owned before the visit keep the 60 % sell-back (user decision;
   `vanguard.content.campaign.Hangar`, tests in `HangarTest`). The B2 rule (60 % for any sale) is
   replaced.
+- 2026-10-02: M3 close-out (user decision): the bounty table per enemy class with the boss bounty per act and the balancing sheet move to M4, where the Act 1 enemies, bosses and levels exist; with them marked, the document is done for M3.

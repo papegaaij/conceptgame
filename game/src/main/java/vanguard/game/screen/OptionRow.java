@@ -8,6 +8,7 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import vanguard.game.audio.Sfx;
+import vanguard.game.audio.SoundTest;
 import vanguard.game.input.Action;
 import vanguard.game.settings.Settings;
 
@@ -74,6 +75,14 @@ sealed interface OptionRow {
         /** The value's place between min and max, 0..1. */
         double share(Settings settings) {
             return (get.applyAsDouble(settings) - min) / (max - min);
+        }
+    }
+
+    /** A list of the sound test: left and right pick an entry, confirm plays it. */
+    record Sound(String label, SoundTest.Kind kind) implements OptionRow {
+        @Override
+        public boolean change(OptionsTarget target, int direction) {
+            return target.soundTest().pick(kind, direction);
         }
     }
 

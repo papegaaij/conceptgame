@@ -1,8 +1,12 @@
 package vanguard.game.screen;
 
+import vanguard.game.audio.SoundTest;
 import vanguard.game.settings.Settings;
 
-/** What the Options rows change: the settings, and the display mode, which the display switcher keeps. */
+/**
+ * What the Options rows change: the settings, the display mode, which the display switcher keeps,
+ * and the sound test.
+ */
 interface OptionsTarget {
     Settings settings();
 
@@ -12,4 +16,6 @@ interface OptionsTarget {
     boolean fullScreen();
 
     void toggleFullScreen();
+
+    SoundTest soundTest();
 }

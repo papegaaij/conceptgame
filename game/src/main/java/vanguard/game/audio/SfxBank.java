@@ -61,6 +61,11 @@ public final class SfxBank implements Disposable, Mixer.Listener {
         loopVolumes[sfx.ordinal()] = volume;
     }
 
+    /** Whether {@code sfx} is looping. */
+    public boolean looping(Sfx sfx) {
+        return loopVolumes[sfx.ordinal()] >= 0;
+    }
+
     /** Stops every playing instance of {@code sfx}. */
     public void stop(Sfx sfx) {
         sounds.get(sfx).stop();

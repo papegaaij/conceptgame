@@ -41,6 +41,7 @@ final class MissionPanel {
 
     private final HudKit kit;
     private final Sprites sprites;
+    private final TransmissionStatic transmissionStatic;
     private final String mission;
     private final String name;
     private final int launchBalance;
@@ -52,9 +53,16 @@ final class MissionPanel {
      * @param name the level's name
      * @param launchBalance credits at launch
      */
-    MissionPanel(HudKit kit, Sprites sprites, int number, String name, int launchBalance) {
+    MissionPanel(
+            HudKit kit,
+            Sprites sprites,
+            TransmissionStatic transmissionStatic,
+            int number,
+            String name,
+            int launchBalance) {
         this.kit = kit;
         this.sprites = sprites;
+        this.transmissionStatic = transmissionStatic;
         this.mission = String.format(Locale.ROOT, "MISSION %02d", number);
         this.name = name.toUpperCase(Locale.ROOT);
         this.launchBalance = launchBalance;
@@ -135,6 +143,8 @@ final class MissionPanel {
         }
         RadioQueue.Message message = radio.current().get();
         batch.draw(portrait(message.speaker()), X, portraitY);
+        float noise = TransmissionStatic.strength(radio.sinceOpened(), radio.untilClosed());
+        transmissionStatic.draw(batch, X, portraitY, PORTRAIT, PORTRAIT, noise);
         Color colour = message.distorted() ? CHOIR : HudKit.AMBER;
         String[] names = message.speaker().toUpperCase(Locale.ROOT).split(" ", 2);
         int nameX = X + PORTRAIT + MissionLayout.NAME_GAP;

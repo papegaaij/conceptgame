@@ -20,6 +20,7 @@ import vanguard.game.audio.Sfx;
 import vanguard.game.briefing.BriefingPager;
 import vanguard.game.input.MenuInput;
 import vanguard.game.render.PixelScreen;
+import vanguard.game.render.TransmissionStatic;
 import vanguard.game.ui.Glass;
 import vanguard.game.ui.Speaker;
 import vanguard.game.ui.Words;
@@ -30,10 +31,12 @@ import vanguard.game.ui.Words;
  * (act-title-r08-a, held 3.5 s), then the pages, each with its speaker's portrait and name plate,
  * typed out at twice the Gameplay tab's text speed (the radio's) with a soft blip; the mission's objectives and the
  * hangar teaser stay below. Confirm shows the whole page, then the next; Back skips to the last
- * page. After the last page the campaign goes on with {@code next} (the hangar).
+ * page. The portrait opens through a burst of transmission static, again when the speaker
+ * changes, and closes through one after the last page; then the campaign goes on with {@code next}
+ * (the hangar).
  *
  * <p>Not built yet: the tactical map image (no level has one so far), the threat summary of the
- * concept (it is the hangar intel panel's, part B2) and the portraits' expressions and static.
+ * concept (it is the hangar intel panel's, part B2) and the portraits' expressions (art track).
  */
 public final class BriefingScreen implements GameScreen {
     static final float TITLE_CARD_SECONDS = 3.5f;
@@ -70,6 +73,10 @@ public final class BriefingScreen implements GameScreen {
     private float titleCard;
     private float elapsed;
     private int typed;
+    /** Seconds since the speaker's portrait opened. */
+    private float sinceOpened;
+    /** Seconds until the portrait has closed after the last page; infinite before that. */
+    private float untilClosed = Float.POSITIVE_INFINITY;
 
     /** @param next the screen after the last page */
     public BriefingScreen(GameServices services, Campaign campaign, BriefingScript script, Supplier<GameScreen> next) {
@@ -126,6 +133,12 @@ public final class BriefingScreen implements GameScreen {
             }
             return Transition.STAY;
         }
+        sinceOpened += seconds;
+        if (Float.isFinite(untilClosed)) {
+            untilClosed -= seconds;
+            return untilClosed > 0 ? Transition.STAY : Transition.replace(next.get());
+        }
+        String speaker = speaker();
         if (input.back()) {
             services.play(Sfx.MENU_BACK);
             pager.skip();
@@ -134,7 +147,11 @@ public final class BriefingScreen implements GameScreen {
             pager.confirm();
         }
         if (pager.done()) {
-            return Transition.replace(next.get());
+            untilClosed = TransmissionStatic.SECONDS;
+            return Transition.STAY;
+        }
+        if (!speaker().equals(speaker)) {
+            sinceOpened = 0;
         }
         int appeared = pager.update(seconds, services.settings().gameplay().briefingTextSpeed());
         for (int i = 0; i < appeared; i++) {
@@ -143,6 +160,11 @@ public final class BriefingScreen implements GameScreen {
             }
         }
         return Transition.STAY;
+    }
+
+    /** The short name of the current page's speaker. */
+    private String speaker() {
+        return script.pages().get(pager.page()).speaker();
     }
 
     @Override
@@ -164,12 +186,15 @@ public final class BriefingScreen implements GameScreen {
 
     private void drawSpeaker(SpriteBatch batch, Glass glass) {
         glass.panel(batch, LEFT_X, COLUMN_Y, LEFT_WIDTH, COLUMN_HEIGHT, 0.8f);
-        Speaker speaker = Speaker.of(script.pages().get(pager.page()).speaker(), services.sprites);
+        Speaker speaker = Speaker.of(speaker(), services.sprites);
         float centre = LEFT_X + LEFT_WIDTH / 2f;
         int portraitX = Math.round(centre - 72);
         int portraitY = COLUMN_Y + 18;
         glass.outline(batch, Glass.TRIM_LIGHT, portraitX - 2, portraitY - 2, 148, 148);
-        batch.draw(speaker.portrait(), portraitX, PixelScreen.HEIGHT - portraitY - 144);
+        int portraitBottom = PixelScreen.HEIGHT - portraitY - 144;
+        batch.draw(speaker.portrait(), portraitX, portraitBottom);
+        float noise = TransmissionStatic.strength(sinceOpened, untilClosed);
+        services.transmissionStatic.draw(batch, portraitX, portraitBottom, 144, 144, noise);
         glass.centred(batch, glass.fonts.body, speaker.name(), Glass.AMBER, centre, portraitY + 158);
         glass.centred(batch, glass.fonts.label, speaker.role(), Glass.CYAN, centre, portraitY + 180);
         String page = "PAGE " + (pager.page() + 1) + " / " + pager.pages();

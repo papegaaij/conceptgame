@@ -11,7 +11,7 @@ import java.util.Optional;
  * OpenAL streaming source). libGDX {@code Music} has no loop points and is refilled from the
  * render loop; this thread blocks inside {@link AudioDevice#writeSamples} instead, so a long frame
  * cannot starve the music. Its volume is scaled by the {@link Mixer}'s music gain and follows a
- * change of it.
+ * change of it. A solo stream (the sound test's) silences every other one until it closes.
  */
 public final class MusicStreamer implements AutoCloseable, Mixer.Listener {
     private static final int FRAMES_PER_CHUNK = 2048;
@@ -21,15 +21,20 @@ public final class MusicStreamer implements AutoCloseable, Mixer.Listener {
     private final short[] chunk;
     private final Thread thread;
     private final Mixer mixer;
+    private final boolean solo;
     private float volume;
     private volatile boolean running = true;
 
-    private MusicStreamer(Audio audio, PcmStream stream, float volume, Mixer mixer) {
+    private MusicStreamer(Audio audio, PcmStream stream, float volume, Mixer mixer, boolean solo) {
         this.stream = stream;
         this.mixer = mixer;
+        this.solo = solo;
         this.device = audio.newAudioDevice(stream.sampleRate(), stream.channels() == 1);
         setVolume(volume);
         mixer.listen(this);
+        if (solo) {
+            mixer.solo(true);
+        }
         this.chunk = new short[FRAMES_PER_CHUNK * stream.channels()];
         // The first write claims an OpenAL source from libGDX's pool, which is not thread-safe:
         // do it here on the render thread before the streaming thread starts.
@@ -52,7 +57,7 @@ public final class MusicStreamer implements AutoCloseable, Mixer.Listener {
     /** Sets the volume, 0..1 before the mixer's music gain, for fades. */
     public void setVolume(float volume) {
         this.volume = volume;
-        device.setVolume(volume * mixer.gain(Bus.MUSIC));
+        device.setVolume(volume * mixer.musicGain(solo));
     }
 
     @Override
@@ -63,6 +68,9 @@ public final class MusicStreamer implements AutoCloseable, Mixer.Listener {
     @Override
     public void close() {
         mixer.forget(this);
+        if (solo) {
+            mixer.solo(false);
+        }
         running = false;
         try {
             thread.join(1000);
@@ -88,6 +96,11 @@ public final class MusicStreamer implements AutoCloseable, Mixer.Listener {
 
     /** Starts a stream; check {@link #available} first. */
     public static MusicStreamer play(Audio audio, PcmStream stream, float volume, Mixer mixer) {
-        return new MusicStreamer(audio, stream, volume, mixer);
+        return new MusicStreamer(audio, stream, volume, mixer, false);
+    }
+
+    /** Starts a stream that plays alone: the other music streams are silent until it closes; check {@link #available} first. */
+    static MusicStreamer solo(Audio audio, PcmStream stream, float volume, Mixer mixer) {
+        return new MusicStreamer(audio, stream, volume, mixer, true);
     }
 }

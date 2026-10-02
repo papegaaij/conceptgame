@@ -1,7 +1,7 @@
 ---
 title: Saves
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../ui/main-menu, ../../ui/hangar]
 updated: 2026-10-02
@@ -72,7 +72,7 @@ the act.
 - [x] Autosave on entering the hangar; 8 manual slots
 - [x] Continue = most recent save
 - [x] Slot list UI in load/save screens
-- [ ] `escort` field, with Rook (Act 2)
+- [ ] `escort` field, with Rook — **later: M5** (the escort slot opens in Act 2)
 
 ## Decisions
 
@@ -98,3 +98,4 @@ the act.
   state with the level's retries renewed instead of the failed level with 0 retries, so Continue
   opens the hangar before the level; no extra slot or format change (see
   [retry](../retry/README.md)).
+- 2026-10-02: M3 close-out (user decision): the `escort` field moves to M5 with Rook's escort slot; the document is done for M3.

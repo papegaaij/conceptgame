@@ -124,7 +124,13 @@ public final class LevelScreen implements GameScreen {
         renderer = new LevelRenderer(services.sprites, looks, services.flash, services.fonts.body, level, levelKey);
         warnings = new EdgeWarnings(services.sprites.pixel, services.fonts.body);
         name = Content.levelName(levelKey);
-        hud = new Hud(services.sprites, services.fonts, sortie.script().number(), name, campaign.credits());
+        hud = new Hud(
+                services.sprites,
+                services.fonts,
+                services.transmissionStatic,
+                sortie.script().number(),
+                name,
+                campaign.credits());
         prompts = new ControlPrompts(level.controlPrompts());
         promptTexts = new PromptTexts(services.input.bindings());
         // Track 5, "Coalition Rising" (design/audio/music) as its two stems, over the Earth-orbit ambience.

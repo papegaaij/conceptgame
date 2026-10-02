@@ -4,18 +4,31 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Files;
+import com.badlogic.gdx.backends.lwjgl3.audio.mock.MockAudio;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import vanguard.game.audio.Mixer;
+import vanguard.game.audio.SfxBank;
+import vanguard.game.audio.SoundTest;
 import vanguard.game.input.Action;
 import vanguard.game.input.ControlSettings;
 import vanguard.game.settings.Scaling;
 import vanguard.game.settings.Settings;
 
 class OptionTabsTest {
-    /** Settings and a display mode in memory. */
+    /** Settings, a display mode and a sound test without an audio device. */
     private static final class Target implements OptionsTarget {
         Settings settings = Settings.defaults();
         boolean fullScreen = true;
+        final SoundTest soundTest;
+
+        Target() {
+            var audio = new MockAudio();
+            var files = new Lwjgl3Files();
+            var mixer = new Mixer(settings.audio());
+            soundTest = new SoundTest(audio, files, mixer, new SfxBank(audio, files, mixer));
+        }
 
         @Override
         public Settings settings() {
@@ -35,6 +48,11 @@ class OptionTabsTest {
         @Override
         public void toggleFullScreen() {
             fullScreen = !fullScreen;
+        }
+
+        @Override
+        public SoundTest soundTest() {
+            return soundTest;
         }
     }
 
@@ -88,6 +106,20 @@ class OptionTabsTest {
 
         assertEquals(0.85, target.settings.audio().music());
         assertEquals(1, target.settings.audio().master(), "the other volumes stay");
+    }
+
+    @Test
+    void theSoundTestRowsPickFromTheirLists() {
+        OptionRow music = row("AUDIO", "SOUND TEST: MUSIC");
+        OptionRow effects = row("AUDIO", "SOUND TEST: EFFECTS");
+
+        assertTrue(music.change(target, -1), "it wraps round to the last track");
+        assertTrue(effects.change(target, 1));
+        assertFalse(effects.change(target, 0));
+
+        SoundTest test = target.soundTest;
+        assertEquals(test.names(SoundTest.Kind.MUSIC).size() - 1, test.picked(SoundTest.Kind.MUSIC));
+        assertEquals(1, test.picked(SoundTest.Kind.EFFECTS));
     }
 
     @Test

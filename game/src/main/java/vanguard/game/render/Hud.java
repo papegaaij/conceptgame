@@ -17,9 +17,15 @@ public final class Hud {
      * @param name the level's name
      * @param launchBalance the credits the player launched with
      */
-    public Hud(Sprites sprites, Fonts fonts, int number, String name, int launchBalance) {
+    public Hud(
+            Sprites sprites,
+            Fonts fonts,
+            TransmissionStatic transmissionStatic,
+            int number,
+            String name,
+            int launchBalance) {
         HudKit kit = new HudKit(sprites.pixel, fonts);
-        mission = new MissionPanel(kit, sprites, number, name, launchBalance);
+        mission = new MissionPanel(kit, sprites, transmissionStatic, number, name, launchBalance);
         ship = new ShipPanel(kit);
     }
 

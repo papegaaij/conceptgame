@@ -60,7 +60,7 @@ generator built like `backdrop_l01.py` from a shared kit. Production generators 
 | When | Parts |
 |---|---|
 | Now (alongside M3) | **Level 01 complete**: Stormhawk banking frames and wing pods, Skitter and Needler angle sets, pulse cannon shot/muzzle/impact, orb and needle bullets, pickups, the explosion ladder up to large, loot targets, Level 01 backdrop, Coalition Rising stems, launch rail, edge warnings and tone |
-| M3 | UI kit and bitmap fonts; main menu, briefing, hangar (equipment icons), debrief, pause and options; portraits; title, hangar and briefing themes |
+| M3 | UI kit and bitmap fonts; main menu, briefing, hangar (equipment icons), debrief, pause and options; portraits, with the three briefing expressions (neutral, grim, fierce) per main character; briefing images (tactical map or mission image per page) for the levels that use one; the hangar intel's sensor L2 enemy portraits and boss silhouette (from Level 02); title, hangar and briefing themes |
 | M4 | Act 1 (L02–L07): its enemies and bosses, the weapons' shots and specials, Rook's craft, allies; Luna and Luna far side backdrops; Afterburner stems, boss music |
 | M5 | Act 2 (L08–L14): its enemies, naval and ground units, the Kraken; city, ocean, storm, arctic and Geneva backdrops; Act 2 stems |
 | M6 | Credits screen art, polish pass, any part still on a placeholder |
@@ -109,3 +109,4 @@ platform placement; its final art gets a separate render instead.)
 ## Decisions
 
 - 2026-10-02: Drafted as the start of the production-art track (after M2).
+- 2026-10-02: M3 close-out (user decision): the briefing portrait expressions, the briefing images and the hangar intel's L2 portraits and boss silhouette are pending art of this track (the [briefing](../../ui/briefing/README.md) and [hangar](../../ui/hangar/README.md) checklists mark them `later: art track`); the game shows one expression and no image until they exist.

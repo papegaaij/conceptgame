@@ -1,7 +1,7 @@
 ---
 title: Difficulty
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../economy, ../retry]
 updated: 2026-10-02
@@ -58,7 +58,7 @@ the single source of the global levers; enemy stat blocks only add overrides (se
 ## Implementation
 
 - [x] Difficulty stored in the save and applied through a single table
-- [ ] Per-bullet difficulty tags in pattern data
+- [ ] Per-bullet difficulty tags in pattern data — **later: M4** (the Act 1 enemies' and bosses' patterns)
 - [x] Easy-mode intel bonus
 
 ## Open questions
@@ -99,3 +99,4 @@ the single source of the global levers; enemy stat blocks only add overrides (se
 - 2026-10-02: "Reload last save" after hard's game over means the save made in the hangar right
   before the level was launched, with a fresh set of retries (user decision): Continue opens the
   hangar before the level; see [retry](../retry/README.md).
+- 2026-10-02: M3 close-out (user decision): the per-bullet difficulty tags move to M4 with the Act 1 patterns; the document is done for M3.

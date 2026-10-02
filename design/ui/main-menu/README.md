@@ -1,7 +1,7 @@
 ---
 title: Main menu
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../../systems/saves, ../../systems/difficulty]
 updated: 2026-10-02
@@ -122,3 +122,4 @@ Concept [round 06](../../concept-rounds/round-06/README.md) — full 960×540 sc
   credits, score, armour, playtime, saved, front gun). The concept's DEL delete and the preview's
   setting thumbnail are not built (the saves document has no delete). New game goes difficulty →
   intro briefing → hangar.
+- 2026-10-02: M3 close-out (user decision): every item is ticked; done.

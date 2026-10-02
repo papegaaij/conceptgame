@@ -23,6 +23,7 @@ import vanguard.game.input.GdxDevices;
 import vanguard.game.input.MenuInput;
 import vanguard.game.render.FlashShader;
 import vanguard.game.render.Sprites;
+import vanguard.game.render.TransmissionStatic;
 import vanguard.game.settings.Settings;
 import vanguard.game.settings.SettingsStore;
 import vanguard.game.ui.Fonts;
@@ -33,7 +34,7 @@ import vanguard.game.ui.TitleScene;
  * What every screen shares for the whole run: files and audio, the input devices and actions, the
  * settings, the display switcher, the launch difficulty, the game's content (the design data) with
  * the campaign's rules, the save slots, the sprite atlases, the mixer and the sound effects, the UI
- * kit with its fonts and the title scene, and the flash shader.
+ * kit with its fonts and the title scene, the flash shader and the portraits' transmission static.
  */
 public final class GameServices implements Disposable {
     private static final Logger LOG = Logger.getLogger(GameServices.class.getName());
@@ -67,6 +68,7 @@ public final class GameServices implements Disposable {
     public final TitleScene titleScene;
 
     public final FlashShader flash;
+    public final TransmissionStatic transmissionStatic;
 
     private final SettingsStore store;
     private Settings settings;
@@ -102,6 +104,7 @@ public final class GameServices implements Disposable {
         glass = new Glass(fonts, sprites.pixel);
         titleScene = new TitleScene(files);
         flash = new FlashShader();
+        transmissionStatic = new TransmissionStatic();
     }
 
     public Settings settings() {
@@ -143,6 +146,7 @@ public final class GameServices implements Disposable {
 
     @Override
     public void dispose() {
+        transmissionStatic.dispose();
         flash.dispose();
         titleScene.dispose();
         glass.dispose();

@@ -1,7 +1,7 @@
 ---
 title: Hangar
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
 updated: 2026-10-02
@@ -101,12 +101,15 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — layout B in the 
 
 ## Implementation
 
-- [ ] Tabs/panels as above with keyboard, gamepad and mouse navigation
+- [x] Tabs/panels as above with keyboard and gamepad navigation
+- [ ] Mouse navigation — **later: M6** (mouse support in the out-of-game screens, see [ui](../README.md))
 - [x] Slot selection filters the shop; owned/buyable/locked sorting
 - [x] Power bar with projected load and refusal
 - [x] Comparison deltas vs the fitted item
-- [ ] Test-fire preview box — **after the first build** (keep the layout space)
-- [ ] Intel panel from the level threat profile, gated by sensor level, with Varga's lines
+- [ ] Test-fire preview box — **later: M4** (after the first build, see the 2026-10-01 decision; the layout keeps its space)
+- [x] Intel panel from the level threat profile, gated by sensor level
+- [ ] Varga's line per intel item — **later: M4** (writing pass, see *Open questions*)
+- [ ] Sensor L2 enemy portraits and boss silhouette in the intel — **later: art track** (from Level 02 on, see *Open questions*)
 - [x] Trait-match markers in the shop
 - [x] Launch warnings (missing recommended trait, low armour)
 
@@ -178,3 +181,4 @@ until it is handled where stated.
   `HangarStateTest.theMissingTraitWarningNeedsTheSensorLevelThatShowsTheTraits`). Varga's per-item
   lines (M4 writing pass), the Level 02 portraits and boss silhouette (art track) and the third
   utility bay's data (M4) are deferred; the open questions say where.
+- 2026-10-02: M3 close-out (user decision): the navigation and intel items are split; keyboard/gamepad navigation and the sensor-gated intel panel are done. Mouse navigation moves to M6, the test-fire box and Varga's per-item lines to M4, the L2 portraits and boss silhouette to the art track. The document is done for M3.

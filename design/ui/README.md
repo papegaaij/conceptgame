@@ -22,14 +22,14 @@ frames and chunky bitmap fonts.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | approved | in-progress | chosen |
-| [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | approved | in-progress | chosen |
-| [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | approved | in-progress | chosen |
+| [main-menu](main-menu/README.md) | Title screen, continue/new/load, options, credits, quit | approved | done | chosen |
+| [briefing](briefing/README.md) | Story briefing before each level: portraits, typed text, objectives | approved | done | chosen |
+| [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | approved | done | chosen |
 | [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | approved | in-progress | chosen |
 | [pause](pause/README.md) | Pause menu during a level | approved | done | chosen |
-| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | in-progress | chosen |
+| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | done | chosen |
 | [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | approved | in-progress | n/a |
-| [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | in-progress | chosen |
+| [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | done | chosen |
 | [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | approved | not-started | chosen |
 
 ## Design
@@ -77,6 +77,7 @@ Concept [round 08](../concept-rounds/round-08/README.md) — the shared UI kit; 
 - [x] Screen/state machine for the flow above
 - [ ] Shared UI kit: panels, buttons, lists, bars, portrait frame, bitmap fonts
 - [ ] Keyboard and gamepad navigation on every screen
+- [ ] Mouse support on every out-of-game screen (hover selects, click confirms, wheel scrolls lists, right-click or a back button goes back), with the hangar's panels and the options sliders and remapping usable by mouse; the in-level game stays keyboard/gamepad only — **later: M6** (see the [roadmap](../tech/roadmap/README.md))
 
 ## Open questions
 
@@ -119,3 +120,4 @@ Concept [round 08](../concept-rounds/round-08/README.md) — the shared UI kit; 
   open the hangar with a save. A destroyed ship opens the mission failed screen over the level
   (Retry / Back to hangar / Quit), or the game over screen on hard with no retry left; both are now
   drawn in the flow above (from [retry](../systems/retry/README.md)), as is Pause's Abort to hangar.
+- 2026-10-02: Mouse support for the out-of-game screens is planned for M6 (user decision after playing M3); keyboard and gamepad stay the primary input.

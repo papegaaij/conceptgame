@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import vanguard.game.GameServices;
 import vanguard.game.audio.Sfx;
+import vanguard.game.audio.SoundTest;
 import vanguard.game.input.Action;
 import vanguard.game.input.Binding;
 import vanguard.game.input.BindingSlot;
@@ -21,7 +22,7 @@ import vanguard.game.ui.Words;
  * the pause menu: a glass panel over the dimmed title scene with the Video, Audio, Controls and
  * Gameplay tabs. Up and down select a row, left and right change it, Q / E or the bumpers switch
  * tabs, back closes the screen. Every change applies at once; the settings file is written when
- * the screen closes.
+ * the screen closes. The Audio tab's sound test stops when the screen closes.
  */
 public final class OptionsScreen implements GameScreen {
     private static final int PANEL_X = 71;
@@ -45,6 +46,7 @@ public final class OptionsScreen implements GameScreen {
     private final List<OptionTabs.Tab> tabs = OptionTabs.all();
     private final Remapping remapping = new Remapping();
     private final OptionsTarget target;
+    private final SoundTest soundTest;
     private int tab;
     private int row;
     /** The column of the bindings table the cursor is in. */
@@ -52,6 +54,7 @@ public final class OptionsScreen implements GameScreen {
 
     public OptionsScreen(GameServices services) {
         this.services = services;
+        soundTest = new SoundTest(services.audio, services.files, services.mixer, services.sfx);
         target = new OptionsTarget() {
             @Override
             public Settings settings() {
@@ -72,11 +75,17 @@ public final class OptionsScreen implements GameScreen {
             public void toggleFullScreen() {
                 services.display.toggle();
             }
+
+            @Override
+            public SoundTest soundTest() {
+                return soundTest;
+            }
         };
     }
 
     @Override
     public Transition update(float seconds) {
+        soundTest.update();
         MenuInput input = services.menu;
         if (remapping.active()) {
             Optional<Bindings> changed = remapping.update(
@@ -141,6 +150,7 @@ public final class OptionsScreen implements GameScreen {
                     services.play(Sfx.MENU_CONFIRM);
                 }
             }
+            case OptionRow.Sound sound -> soundTest.play(sound.kind());
             case OptionRow.Choice choice -> {}
             case OptionRow.Slider slider -> {}
         }
@@ -209,9 +219,33 @@ public final class OptionsScreen implements GameScreen {
                             SLIDER_WIDTH,
                             slider.share(settings),
                             slider.format().apply(slider.get().applyAsDouble(settings)));
+                case OptionRow.Sound sound -> sound(sound.kind(), y);
                 case OptionRow.Button button -> {}
                 case OptionRow.Remap remap -> {}
             }
+        }
+
+        /** A sound test list: the picked entry between arrows, its place in the list and what it is. */
+        private void sound(SoundTest.Kind kind, int y) {
+            List<String> names = soundTest.names(kind);
+            int picked = soundTest.picked(kind);
+            boolean playing = kind == SoundTest.Kind.MUSIC && soundTest.playing();
+            glass.chip(
+                    batch,
+                    glass.fonts.label,
+                    "< " + names.get(picked) + " >",
+                    VALUE_X,
+                    y - 2,
+                    SLIDER_WIDTH,
+                    CHIP_HEIGHT,
+                    playing,
+                    true);
+            String place = (picked + 1) + " / " + names.size();
+            glass.shadowed(batch, glass.fonts.label, place, Glass.LABEL, VALUE_X + SLIDER_WIDTH + 12, y + 2);
+            if (playing) {
+                glass.shadowed(batch, glass.fonts.label, "PLAYING", Glass.GREEN, VALUE_X + SLIDER_WIDTH + 72, y + 2);
+            }
+            glass.shadowed(batch, glass.fonts.label, soundTest.note(kind), Glass.LABEL, VALUE_X, y + 20);
         }
 
         /** The bindings table of the Controls tab; returns the y below it. */
@@ -264,5 +298,7 @@ public final class OptionsScreen implements GameScreen {
     }
 
     @Override
-    public void dispose() {}
+    public void dispose() {
+        soundTest.close();
+    }
 }

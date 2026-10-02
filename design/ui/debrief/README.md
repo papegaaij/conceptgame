@@ -1,7 +1,7 @@
 ---
 title: Debrief screen
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../../systems/scoring, ../../systems/economy]
 updated: 2026-10-02
@@ -61,7 +61,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
 
 - [x] Tally sequence with count-up animation and skip
 - [x] Grade calculation display and credit bonus
-- [ ] Data core list and act summary
+- [ ] Data core list and act summary — **later: M4** (data cores and the first act end come with the Act 1 levels)
 
 ## Decisions
 
@@ -81,3 +81,4 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style (out
   score, kills, the armour left, the best grade) and shows "NEW BEST" under the stamp when the grade
   beats the level's recorded best; confirm at the end goes to the next level's briefing, or to the
   hangar while the next level is not built (after Level 01 for now).
+- 2026-10-02: M3 close-out (user decision): the data core list and the act summary move to M4; the document is done for M3.

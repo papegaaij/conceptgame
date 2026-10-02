@@ -1,7 +1,7 @@
 ---
 title: Options
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../controls, ../../art-direction]
 updated: 2026-10-02
@@ -55,7 +55,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
 - [x] Reachable from main menu and pause
 - [x] Display mode: borderless full screen and resizable window, toggled at runtime (Alt+Enter, F11) without losing state; mode, window size/position and monitor persisted
 - [x] Display mode switch in the Video tab
-- [ ] Sound test in the Audio tab
+- [x] Sound test in the Audio tab
 
 ## Decisions
 
@@ -99,3 +99,13 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
   brightness, pause on focus loss, language) are not in this document and were not built.
 - 2026-10-02: The text speed is the radio's; briefings type at twice it (user decision, see
   [briefing](../briefing/README.md)).
+- 2026-10-02: M3 close-out: the sound test (`vanguard.game.audio.SoundTest`) is two rows at the
+  bottom of the Audio tab. SOUND TEST: MUSIC lists the seven tracks the game has (Terran Vanguard,
+  Situation Room, Dry Dock, Coalition Rising, Mission Complete, Mission Failed, Game Over) with
+  where each plays; SOUND TEST: EFFECTS lists every other sound effect with the volume it follows
+  (effects or radio blips). Left/right pick (wrapping round), confirm plays: a theme loops until
+  confirm stops it or another track starts, a jingle plays once; an effect plays once (an effect
+  already looping, the ambience under a paused level, is heard as it is). Tracks play solo: the
+  music of the screen below (the title theme, a paused level's theme) is silent while one plays,
+  and the test stops when the screen closes. The master, music, effects and radio volumes apply,
+  also while a track plays. Tests `SoundTestTest`, `OnceStreamTest`, `OptionTabsTest`.

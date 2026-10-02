@@ -58,6 +58,7 @@ public final class RadioQueue {
     private int page;
     private float typed;
     private float held;
+    private float opened;
     private float gap;
     private float charsPerSecond = GameplaySettings.DEFAULT_TEXT_SPEED;
 
@@ -88,8 +89,10 @@ public final class RadioQueue {
             page = 0;
             typed = 0;
             held = 0;
+            opened = 0;
             return Change.OPENED;
         }
+        opened += seconds;
         Message message = current.get();
         int length = message.length(page);
         if (typed < length) {
@@ -116,6 +119,21 @@ public final class RadioQueue {
     /** The message on the radio now. */
     public Optional<Message> current() {
         return current;
+    }
+
+    /** Seconds since the message on the radio opened, for the portrait's static. */
+    public float sinceOpened() {
+        return opened;
+    }
+
+    /** Seconds until the message on the radio closes; infinite until its last page is typed out. */
+    public float untilClosed() {
+        if (current.isEmpty()) {
+            return 0;
+        }
+        Message message = current.get();
+        boolean typedOut = page == message.pages() - 1 && typed >= message.length(page);
+        return typedOut ? LAST_PAGE_SECONDS - held : Float.POSITIVE_INFINITY;
     }
 
     /** The lines of the current page as typed so far. */

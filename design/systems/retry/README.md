@@ -1,7 +1,7 @@
 ---
 title: Retry
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../player/armor, ../../player/shields, ../difficulty, ../saves]
 updated: 2026-10-02
@@ -68,7 +68,8 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 
 ## Implementation
 
-- [ ] Snapshot of player state at level start (and at boss checkpoint)
+- [x] Snapshot of player state at level start (the campaign state, see the M3 part B1 decision)
+- [ ] Snapshot at the boss checkpoint — **later: M4** (the first boss)
 - [x] Mission failed screen with the three (four) options
 - [x] Hard-mode retry counter and game over
 - [x] "Back to hangar" path that keeps the level as the next one
@@ -114,3 +115,4 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
   autosave → Continue: the level before, 3 retries, credits, loadout and armour as launched). The
   game over screen says Continue returns to the hangar before the mission. The open question is
   closed.
+- 2026-10-02: M3 close-out (user decision): the level-start snapshot is done (the campaign state is it, part B1), so the item is split; the boss checkpoint's snapshot moves to M4 with the first boss. The document is done for M3.

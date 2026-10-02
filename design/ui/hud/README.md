@@ -223,3 +223,8 @@ miss (after playing Level 01), over a still frame of Level 01's backdrop placeho
   Cannon's flown level, and under the weapons a "NOT YET AVAILABLE" list names the fitted items
   the sortie leaves out (other weapons, the special, utility modules), so a player who fitted them
   in the hangar sees why they do not fire. It goes when M4 flies them.
+- 2026-10-02: M3 close-out: the radio portrait opens and closes through the transmission static of
+  the [briefing](../briefing/README.md) (`vanguard.game.render.TransmissionStatic`): it fades out in
+  the first 0.35 s of a message and in over the last 0.35 s of its last page
+  (`RadioQueue.sinceOpened()` / `untilClosed()`). Priority interrupts stay open, so the radio item
+  does too.

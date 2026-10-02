@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.function.BiFunction;
 import java.util.function.ToDoubleFunction;
 import vanguard.game.audio.Sfx;
+import vanguard.game.audio.SoundTest;
 import vanguard.game.input.Action;
 import vanguard.game.input.ControlSettings;
 import vanguard.game.settings.AudioSettings;
@@ -67,8 +68,11 @@ final class OptionTabs {
                         volume("MASTER", AudioSettings::master, AudioSettings::withMaster, Sfx.MENU_MOVE),
                         volume("MUSIC", AudioSettings::music, AudioSettings::withMusic, Sfx.MENU_MOVE),
                         volume("EFFECTS", AudioSettings::effects, AudioSettings::withEffects, Sfx.MENU_MOVE),
-                        volume("RADIO BLIPS", AudioSettings::radio, AudioSettings::withRadio, Sfx.TYPEWRITER)),
-                "RADIO MESSAGES ARE TEXT WITH A BLIP PER LINE: THERE IS NO VOICE ACTING.");
+                        volume("RADIO BLIPS", AudioSettings::radio, AudioSettings::withRadio, Sfx.TYPEWRITER),
+                        new OptionRow.Sound("SOUND TEST: MUSIC", SoundTest.Kind.MUSIC),
+                        new OptionRow.Sound("SOUND TEST: EFFECTS", SoundTest.Kind.EFFECTS)),
+                "SOUND TEST: LEFT/RIGHT PICKS, ENTER PLAYS; ENTER AGAIN STOPS A TRACK. RADIO MESSAGES ARE TEXT WITH A"
+                        + " BLIP PER LINE: THERE IS NO VOICE ACTING.");
     }
 
     private static OptionRow volume(
