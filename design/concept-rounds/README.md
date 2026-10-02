@@ -3,7 +3,7 @@ title: Concept rounds
 design: review
 implementation: n/a
 art: chosen
-updated: 2026-09-30
+updated: 2026-10-02
 ---
 
 # Concept rounds
@@ -29,6 +29,7 @@ they belong to; a round only collects them.
 | [round-08](round-08/README.md) | Acts 1–2 completion: Earth scenes, combat effects, remaining UI screens, portraits, re-renders, music cues, SFX | approved | n/a | chosen |
 | [round-09](round-09/README.md) | Remaining Acts 1–2 scenes and combat effects, beam impact | approved | n/a | chosen |
 | [round-10](round-10/README.md) | Geneva redo, calmer and smoother storm and ocean | approved | n/a | chosen |
+| [round-11](round-11/README.md) | Production track, first batch: launch rail, edge warnings and tones, Coalition Rising stems, Level 01 backdrop fixes | approved | n/a | chosen |
 
 ## Design
 
@@ -59,3 +60,4 @@ How a round works:
 | 08 | 2026-10-01 | closed | Acts 1–2 completion |
 | 09 | 2026-10-01 | closed | Remaining Acts 1–2 scenes and effects |
 | 10 | 2026-10-01 | closed | Geneva, storm and ocean revisions |
+| 11 | 2026-10-02 | closed | Launch rail, edge warnings, music stems, Level 01 backdrop fixes |

@@ -104,6 +104,22 @@ def finish(arr, colors=24, alpha_levels=10):
     return r03.step_alpha(posterize(img, colors), alpha_levels)
 
 
+BAYER4 = np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]) / 16 + 1 / 32
+
+
+def finish_dithered(arr, colors=32, alpha_levels=16, rgb_amp=10.0):
+    """finish() for large, slow gradients (the art direction allows ordered dithering on
+    backgrounds): a 4x4 Bayer threshold steps the alpha and offsets the colour before the
+    median cut, so wide ramps break into fine dither instead of hard bands (round 11 fix of the
+    dawn terminator)."""
+    h, w = arr.shape[:2]
+    b = np.tile(BAYER4, (h // 4 + 1, w // 4 + 1))[:h, :w]
+    a = np.floor(np.clip(arr[..., 3], 0, 1) * alpha_levels + b) / alpha_levels
+    rgb = arr[..., :3] + ((b - 0.5) * rgb_amp)[..., None]
+    img = posterize(rgba(rgb, np.clip(a, 0, 1) * 255), colors)
+    return r03.step_alpha(img, alpha_levels)
+
+
 def stars(w, h, seed, density=0.0012):
     img = raster.starfield(w, h, seed, density=density)
     a = np.array(img).astype(np.float64)
@@ -158,10 +174,12 @@ def earth_dawn(w, h):
     towns = raster.fbm(w, h, 32, 23, octaves=3, period=False)
     lights = (towns > 0.62) & (rng.random((h, w)) < 0.05) & (night > 0.5)
     over(arr, np.array([210, 180, 120], float), lights * 0.9)
-    band = np.exp(-(line / 38.0) ** 2) * inside            # dawn light along the terminator
-    over(arr, np.array([200, 150, 100], float), band * 0.28)
+    band = np.exp(-(line / 55.0) ** 2) * inside            # dawn light along the terminator
+    over(arr, np.array([200, 150, 100], float), band * 0.24)
+    core = np.exp(-((line - 6) / 16.0) ** 2) * inside      # its brightest strip, day side
+    over(arr, np.array([214, 170, 122], float), core * 0.1)
     arr[..., 3] *= np.clip(yy / 24, 0, 1)
-    return finish(arr)
+    return finish_dithered(arr)
 
 
 def earth_limb(w, h, radius=520, below=240, haze_depth=110):
@@ -471,25 +489,72 @@ def platform(w, h):
     return part(platform_model(False), (w, h), factor=4, colors=40)
 
 
+FIRE = np.array([[70, 26, 22], [128, 46, 28], [172, 78, 38], [204, 120, 64], [228, 176, 118],
+                 [244, 218, 170]], float)   # dull fire ramp: below the bullets' orange in saturation
+
+
+def sample_wrapped(field, u, v):
+    """Bilinear sample of a periodic 2D field at (u, v) (columns, rows), wrapping at its edges."""
+    fh, fw = field.shape
+    u0, v0 = np.floor(u).astype(int), np.floor(v).astype(int)
+    du, dv = u - u0, v - v0
+    f = lambda a, b: field[b % fh, a % fw]  # noqa: E731
+    return ((f(u0, v0) * (1 - du) + f(u0 + 1, v0) * du) * (1 - dv)
+            + (f(u0, v0 + 1) * (1 - du) + f(u0 + 1, v0 + 1) * du) * dv)
+
+
 def platform_burning(w, h, n):
-    """The damaged platform with flames and smoke at its breaches; n frames of a calm flicker."""
+    """The damaged platform with fires venting from its breaches; n frames of a calm flicker.
+    Round 11 fix ("fires look blobby"): each fire is a ragged plume streaming out of its breach,
+    shaped by turbulence and cut into hard-edged tongues of a dull fire ramp, with a few embers
+    and a smoke trail that stays inside the sprite. The turbulence cycles through the n frames
+    (two noise fields mixed by cos/sin of the frame phase), so the loop is seamless and the
+    tongues change shape without jumping."""
     base = part(platform_model(True), (w, h), factor=4, colors=40)
     a = np.array(base).astype(np.float64)
     a[..., :3] *= 0.72                                       # scorched
     base = Image.fromarray(a.astype(np.uint8), "RGBA")
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float64)
-    breaches = ((w / 2 - 22, h / 2 + 18), (w / 2 + 20, h / 2 - 20), (w / 2 + 50, h / 2 + 8))
+    cx, cy = w / 2, h / 2
+    breaches = ((cx - 22, cy + 18), (cx + 20, cy - 20), (cx + 50, cy + 8))
+    turb = [raster.fbm(64, 64, 16, 140 + k, octaves=3) - 0.5 for k in range(2)]
+    drift = np.array([0.45, 0.89])                           # vented gas drifts down-right a little
+    edge = np.clip(np.minimum.reduce([xx, yy, w - 1 - xx, h - 1 - yy]) / 12, 0, 1)
+    rng = np.random.default_rng(57)
     frames = []
     for f in range(n):
+        ph = 2 * np.pi * f / n
         arr = np.array(base).astype(np.float64) / np.array([1, 1, 1, 255])
-        flicker = raster.value_noise(w, h, 6, 100 + f, period=False)
         for i, (bx, by) in enumerate(breaches):
-            r = np.hypot(xx - bx, (yy - by) * 1.2) / (14 + 2 * np.sin(f * np.pi / 2 + i))
-            smoke = np.exp(-np.hypot(xx - bx - 10 - f, yy - by - 12 - f) ** 2 / 300) * 0.4
-            over(arr, np.array([60, 60, 72], float), smoke)
-            heat = np.clip(1 - r, 0, 1) * (0.7 + 0.6 * flicker)
-            over(arr, np.array([180, 84, 40], float), np.clip(heat * 1.8, 0, 1))
-            over(arr, np.array([230, 190, 130], float), np.clip(heat * 2 - 1, 0, 1))
+            out = np.array([bx - cx, by - cy])
+            d = out / np.hypot(*out) * 0.6 + drift * 0.4
+            d /= np.hypot(*d)
+            nx, ny = -d[1], d[0]
+            u = (xx - bx) * d[0] + (yy - by) * d[1]           # along the plume
+            v = (xx - bx) * nx + (yy - by) * ny               # across it
+            length, width = 25 + 4 * i, 6.5 + i
+            t = sample_wrapped(turb[0], u * 3 + 9 * i, v * 3) * np.cos(ph + i) + \
+                sample_wrapped(turb[1], u * 3 + 9 * i, v * 3) * np.sin(ph + i)
+            # smoke: a longer, wider trail, darker grey, fading towards the sprite edge
+            su = u - 8
+            smoke = np.clip(1 - np.abs(su - 14) / 24, 0, 1) * np.exp(-(v / (10 + su.clip(0) * 0.3)) ** 2)
+            smoke *= np.clip(0.6 + 1.4 * t, 0, 1) * (su > -4) * edge
+            over(arr, np.array([56, 56, 66], float), np.clip(smoke * 0.65, 0, 0.5))
+            # flame: heat falls off along and across the plume, the turbulence tears its edge
+            # into tongues (additive, so the outline is ragged, not a scaled blob)
+            wid = width * (0.6 + 0.4 * np.clip(u / length, 0, 1) ** 0.5)
+            heat = np.clip(1 - u / length, 0, 1) ** 0.8 * np.exp(-(v / wid) ** 2) * (u > -3)
+            heat = heat + 0.55 * t * np.clip(heat * 3, 0, 1) + 0.45 * np.exp(-((u + 1) ** 2 + v ** 2) / 10)
+            heat *= np.clip(edge * 12 / 5, 0, 1)                # no flame cut off at the sprite edge
+            step = np.clip(np.floor(heat * 6.2) - 1, -1, 5).astype(int)
+            lit = step >= 0
+            over(arr, FIRE[np.clip(step, 0, 5)], lit * 1.0)
+        for _ in range(6):                                    # embers, a few pixels per frame
+            bx, by = breaches[rng.integers(len(breaches))]
+            x, y = int(bx + rng.normal(6, 7)), int(by + rng.normal(8, 7))
+            if 3 <= x < w - 3 and 3 <= y < h - 3:
+                arr[y, x, :3] = FIRE[4]
+                arr[y, x, 3] = 1.0
         frames.append(posterize(rgba(arr[..., :3], arr[..., 3] * 255), 40))
     return frames
 

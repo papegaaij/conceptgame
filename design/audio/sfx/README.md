@@ -114,7 +114,7 @@ reused round 02 files marked (r02).
 | Ship destroyed | Big explosion, then the music sting — [a](concept/player-destroyed-r08-a.ogg) | P1 |
 | Dash | Thruster burst | P3 |
 | Engine hum | Subtle loop (optional) | P3 |
-| Launch rail | The catapult run at a level start (Level 01 section 1): rail hum rising to a release clunk — *pending: next concept round* | P2 |
+| Launch rail | The catapult run at a level start (Level 01 section 1): pressure hiss and shuttle rumble to a buffer clunk at 3.6 s — chosen [b](concept/launch-rail-r11-b.ogg) (catapult; a mag-lev was rejected), [round 11](../../concept-rounds/round-11/README.md) | P2 |
 
 ### Pickups
 
@@ -163,6 +163,7 @@ reused round 02 files marked (r02).
 | Typewriter blip (briefing text) — [a](concept/ui-typewriter-r08-a.ogg) | P1 |
 | Radio squelch open / close — [a](concept/ui-radio-open-r08-a.ogg) / [a](concept/ui-radio-close-r08-a.ogg) | P1 |
 | Warning klaxon (boss, rear attack) — [a](concept/ui-klaxon-r08-a.ogg) (seamless loop; a single blast can be cut from it) | P1 |
+| Edge warning tone (side or rear wave, with the edge arrows) — chosen [b](concept/ui-edge-warning-r11-b.ogg) (contact ping; a triple chirp was rejected), [round 11](../../concept-rounds/round-11/README.md) | P1 |
 | Debrief tally tick / grade stamp — tick [a](concept/ui-tally-tick-r08-a.ogg), total [a](concept/ui-tally-total-r08-a.ogg), grade stamp [a](concept/ui-grade-stamp-r08-a.ogg) | P2 |
 
 ### Ambience (per setting)
@@ -340,6 +341,18 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
 | [concept/ui-upgrade-r08-a.ogg](concept/ui-upgrade-r08-a.ogg) | Synthesized — Hangar upgrade — short PWM rise landing on a G6 bell | chosen |
 | [concept/ui-grade-stamp-r08-a.ogg](concept/ui-grade-stamp-r08-a.ogg) | Synthesized — Debrief grade stamp — punchy thump with a paper slap and a low bell | chosen |
 
+Concept [round 11](../../concept-rounds/round-11/README.md) — synthesized by
+`tools/concept/audio/sfx_r11.py`, levelled on the 200 Hz–5 kHz band like the recorded sounds
+(launch rail −27 dB with a −4 dBFS ceiling, the UI/klaxon level, so it sits under the briefing's
+last radio line; warning tones −24 dB / −2 dBFS, the player-damage level).
+
+| File | What | Status |
+|---|---|---|
+| [concept/rejected/launch-rail-r11-a.ogg](concept/rejected/launch-rail-r11-a.ogg) | Synthesized — Launch rail "mag-lev": linear-motor hum and whine rising with the speed, coil ticks passing faster, release clunk and latch at 3.6 s, engine whoosh into open space (4.9 s) | rejected — b chosen (round 11) |
+| [concept/launch-rail-r11-b.ogg](concept/launch-rail-r11-b.ogg) | Synthesized — Launch rail "catapult": pressure hiss building, shuttle rumble over the rail joints with a rattle, heavy two-stage buffer clunk at 3.6 s, steam vent dying away (4.9 s) | chosen |
+| [concept/rejected/ui-edge-warning-r11-a.ogg](concept/rejected/ui-edge-warning-r11-a.ogg) | Synthesized — Edge warning tone "triple chirp": three soft square blips (A5, A5, E6) on the warning's flash cycle (0.267 s) | rejected — b chosen (round 11) |
+| [concept/ui-edge-warning-r11-b.ogg](concept/ui-edge-warning-r11-b.ogg) | Synthesized — Edge warning tone "contact ping": an upward chirp into a ringing 1.6 kHz ping, quieter repeat one flash cycle later | chosen |
+
 ## Implementation
 
 - [ ] SFX playback with instance limits, stealing by priority, pitch variation
@@ -373,3 +386,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — the remaining Ac
   and stamp, and the Earth-orbit ambience loop.
 - 2026-10-02: The launch rail sound goes into the next concept round (user decision); listed as a
   pending item in the Player ship table, no file yet.
+- 2026-10-02: Concept round 11 proposed: two synthesized launch-rail sounds and two edge-warning
+  tones (`tools/concept/audio/sfx_r11.py`). The edge warning tone is a new P1 row: the user
+  found the side and rear warnings easy to miss after playing Level 01.
+- 2026-10-02: Concept round 11 (user choices): launch rail **b** "catapult" and edge-warning tone **b** "contact ping" chosen; a "mag-lev" and a "triple chirp" moved to `concept/rejected/`. The launch-rail item is no longer pending.

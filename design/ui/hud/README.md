@@ -127,7 +127,21 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 
 | File | What | Status |
 |---|---|---|
-| [concept/edge-warnings-r09-a.png](concept/edge-warnings-r09-a.png) | Edge warnings (side and rear) with flash cycle, sensor threat arrows, wave and boss banners, close-ups and 1× play-field panels | chosen |
+| [concept/edge-warnings-r09-a.png](concept/edge-warnings-r09-a.png) | Edge warnings (side and rear) with flash cycle, sensor threat arrows, wave and boss banners, close-ups and 1× play-field panels | chosen (the edge-warning look itself is superseded by edge-warnings-r11-a) |
+
+Concept [round 11](../../concept-rounds/round-11/README.md) — edge warnings that are harder to
+miss (after playing Level 01), over a still frame of Level 01's backdrop placeholders; generator
+`tools/concept/ui_r11.py`. Each PNG shows the side and rear warning at 1× and one flash cycle at
+2×; each GIF 1.6 s of a left warning at 30 fps. The tones are in [sfx](../../audio/sfx/README.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/edge-warnings-r11-a.png](concept/edge-warnings-r11-a.png) | A "big pulse": the round-09 bar and chevrons at about 3× (300 px bar, 20 px chevrons, 2× text) with a soft glow; grows in over 0.2 s, then pulses smoothly between 45 % and 100 % (sheet) | chosen |
+| [concept/edge-warnings-r11-a.gif](concept/edge-warnings-r11-a.gif) | A "big pulse" (motion) | chosen |
+| [concept/rejected/edge-warnings-r11-b.png](concept/rejected/edge-warnings-r11-b.png) | B "sweeping chevrons": a steady edge bar and three rows of chevrons running in from the edge at 2 px per game frame, fading as they go (sheet) | rejected — A chosen (round 11) |
+| [concept/rejected/edge-warnings-r11-b.gif](concept/rejected/edge-warnings-r11-b.gif) | B "sweeping chevrons" (motion) | rejected — A chosen (round 11) |
+| [concept/rejected/edge-warnings-r11-c.png](concept/rejected/edge-warnings-r11-c.png) | C "edge glow band": the whole edge lit as a 40 px stepped amber band (25–55 %) with hazard ticks on the edge line, breathing on the flash cycle, chevrons and label in the middle (sheet) | rejected — A chosen (round 11) |
+| [concept/rejected/edge-warnings-r11-c.gif](concept/rejected/edge-warnings-r11-c.gif) | C "edge glow band" (motion) | rejected — A chosen (round 11) |
 
 ## Implementation
 
@@ -182,3 +196,8 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   Prompts are one line each (action and keys), with the arrow keys as `ARROW KEYS` (the four
   key names did not fit). Not chosen: prompts in the play field (the play field stays clean).
 - 2026-10-02: Control prompts keep their own region in the left panel under the radio (user decision); they appear mid-level next to objective trackers too, so they cannot share the tracker's place.
+- 2026-10-02: Concept round 11 proposed: three edge-warning looks (A big pulse, B sweeping chevrons,
+  C edge glow band) in the round-09 warning amber `FFC800`, plus two warning tones in
+  [sfx](../../audio/sfx/README.md). The M2 placeholder draws a small red (`FF4030`) arrow, not
+  the chosen round-09 look; whichever variant is chosen replaces it.
+- 2026-10-02: Concept round 11 (user choice): edge-warning look **A** "big pulse" chosen (the round-09 bar and chevrons at about 3× with a glow, growing in over 0.2 s and pulsing between 45 % and 100 %); B and C moved to `concept/rejected/`. The round-09 sheet stays chosen for the sensor threat arrows and the banners. The game still draws a small red placeholder arrow; it follows A when the HUD art is implemented.

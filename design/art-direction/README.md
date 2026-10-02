@@ -16,6 +16,12 @@ Shadows and Tyrian 2000. This document fixes the screen geometry, sprite sizes, 
 palette approach, the **parallax layer model** and the readability rules that every art asset
 and every level must follow.
 
+## Contents
+
+| Part | Summary | Design | Impl | Art |
+|---|---|---|---|---|
+| [production](production/README.md) | Production art plan: what final means, pipeline to `assets/`, order of work, budgets | draft | not-started | n/a |
+
 ## Design
 
 ### The pre-rendered look
@@ -482,3 +488,4 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
   decision): enemy bullets are saturated and glowing with a bright core (rule 1); loot markings
   are dull matte amber with black hazard stripes, and only their glint shines (rule 7).
 - 2026-10-02: Deep layer coverage rule (a tile set in every section, no visible set-piece edge on `deep` until the debrief), after a gap at the end of Level 01's outro; the content loader and the backdrop asset test check it.
+- 2026-10-02: Production art plan drafted ([production](production/README.md)), for review.
