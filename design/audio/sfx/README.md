@@ -152,6 +152,7 @@ reused round 02 files marked (r02).
 | Portal / warp-in; Vrell spawn (Brood Pod bursting, Hive Node and Brood Carrier spawns) — [a](concept/enemy-spawn-r08-a.ogg) (wet creature swell), [b](concept/enemy-spawn-r08-b.ogg) (fleshy burst) | P2 |
 | Carrier launching drones | P3 |
 | Boss roars and phase-change cues (per boss) | P3 |
+| Leviathan whale-song cry (its death, under the large burst) — [a](concept/enemy-leviathan-cry-r16-a.ogg) (synthesized, round 16) | P2 |
 
 ### UI and radio
 
@@ -353,6 +354,15 @@ last radio line; warning tones −24 dB / −2 dBFS, the player-damage level).
 | [concept/rejected/ui-edge-warning-r11-a.ogg](concept/rejected/ui-edge-warning-r11-a.ogg) | Synthesized — Edge warning tone "triple chirp": three soft square blips (A5, A5, E6) on the warning's flash cycle (0.267 s) | rejected — b chosen (round 11) |
 | [concept/ui-edge-warning-r11-b.ogg](concept/ui-edge-warning-r11-b.ogg) | Synthesized — Edge warning tone "contact ping": an upward chirp into a ringing 1.6 kHz ping, quieter repeat one flash cycle later | chosen |
 
+Concept round 16 (M4 part C, the Level 03 batch) — synthesized by
+`tools/concept/audio/sfx_r16.py`, levelled on the 200 Hz–5 kHz band like the recorded enemy
+sounds (−30 dB, the Vrell screech and spawn level; ceiling −6 dBFS), so it sits under the large
+burst it plays with. Brief: [concept/prompts.md](concept/prompts.md#enemy-leviathan-cry-r16-a-synthesized).
+
+| File | What | Status |
+|---|---|---|
+| [concept/enemy-leviathan-cry-r16-a.ogg](concept/enemy-leviathan-cry-r16-a.ogg) | Synthesized — the Leviathan's whale-song cry: a deep, mournful alien call (a throat-like pulse voice through moving "oo–aah–oo" formants, its fundamental rising 92 → 128 Hz and falling to 52 Hz with a yodel break, a second voice a tritone above beating against it, a breathy blowhole rasp at the start, a long dark reverb), 3.0 s with the tail; −22.5 LUFS, peak −11.3 dBFS | proposed |
+
 ## Implementation
 
 - [ ] SFX playback with instance limits, stealing by priority, pitch variation
@@ -412,3 +422,9 @@ last radio line; warning tones −24 dB / −2 dBFS, the player-damage level).
   `enemy-shot-small-r08-b`, 1.7 dB lower at the same band RMS (it is levelled on its band, so only
   the crest of its attack differs from the preview's; the audible level is the same).
 - 2026-10-02: Concept round 12 closed (user decision): the 75 recorded sounds rebuilt from the Freesound originals approved as **final** (the 1.7 dB lower peak of `enemy-shot-small-r08-b` accepted); this doc's `art` stays `chosen`, since the synthesized sounds were not part of the round.
+- 2026-10-02: Concept round 16: the Leviathan's whale-song cry proposed as a synthesized sound
+  (`tools/concept/audio/sfx_r16.py`, written to `concept/` like the other synthesized sounds,
+  which `importPlaceholders` copies). The 2026-10-01 decision has enemy sounds recorded; this one
+  is synthesized for the M4 part C batch, so a deep alien call with its own glide and formants
+  exists without a source search. The user decides in round 16 whether it stays or a recorded
+  CC0/CC-BY call replaces it.

@@ -99,6 +99,12 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 | `ui_r11.py [a] [b] [c]` | `design/ui/hud/concept/edge-warnings-r11-{a,b,c}.{png,gif}` | three edge-warning looks over a still Level 01 frame built from `assets/`; a few seconds each |
 | `backdrop_fixes_r11.py` | `design/campaign/act-1-first-contact/level-01-break-at-dawn/concept/backdrop-fixes-r11-a.{png,gif}` | before (git `acd4d42`, via `git lfs smudge`) / after (`assets/backdrop/level-01/`) of the `backdrop_l01.py` fixes |
 
+## Scripts (round 16)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `allies_r16.py [a] [b] [c]` | `design/allies/concept/civilian-crawler-r16-{a,b,c}.png` | three civilian crawler looks for Level 04's escort (station kit, `KIT_PAL`, the round-06 Luna regolith): a tracked crawler-transporter and a rover train at 72×40, a bus with a cargo sled at 40×72; a column of five on a road, a 3× close-up, damaged and wrecked; ~20 s |
+
 ## Scripts (game placeholders – level backdrops, ground targets and the UI kit)
 
 | Script | Outputs | Notes |

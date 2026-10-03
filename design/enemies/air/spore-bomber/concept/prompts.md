@@ -1,0 +1,14 @@
+# Spore Bomber – generator notes and prompts
+
+## spore-bomber-final-r16-a
+
+Round 16, production art (M4 part C batch). Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by `tools/art/vrell_l03.py --review`; the frames themselves are rendered by `tools/art/vrell_l03.py` (see `tools/art/README.md`). Shows the Spore Bomber's 4-frame idle loop (72×72, 32 colours, `orientation: fixed`, head down; the chosen round-04 model with its gas bag breathing ±6 % and its spore bulbs and veins pulsing, 10 fps) and the spore mine (`spore-mine_0..3`, 14×14, additive, premultiplied on black: a pale lime core in a lime membrane glow with six short spines, pulsing), enlarged and at 1×; the sheet also shows the mine as the game draws it while it rises (smaller, half bright). The loop has a bomber flying down the screen and dropping spores that drift away. Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.
+
+## spore-bomber-death-final-r16-a
+
+Round 16, production art (M4 part C batch): the death effect beyond the `medium` burst. Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by `tools/art/vrell_fx.py --review bomber`; the frames are rendered by `tools/art/vrell_fx.py` (see `tools/art/README.md`). Two sets, both 96×96 and 16 frames at 4 game steps each (15 fps, 1.07 s), centred on the bomber and started with its medium burst:
+
+- `spore-bomber-death_0..15` (additive, premultiplied on black, 32 colours): the harmless lime spore cloud, a 2D light field like the spore mine. Motes burst from the gas bag's outline (14×25 px half axes, so the cloud is taller than wide like the bag), drift out on a billowing dark-lime haze, twinkle and thin out; nothing reaches the frame edge.
+- `spore-bomber-tatters_0..15` (solid, 1-bit alpha, 32 colours): twelve olive membrane tatters of the gas bag's hide (its material, with a lime vein on every other one) and four dark chitin bits of the head and fins, flung out from the bag's outline, each curled, tumbling and shrivelling in the last frames. Ray-marched per frame from the round-04 model's materials, posed in the model under the fixed key light (nothing lit is rotated as an image). Drawn under the glows, so the burst lights them.
+
+The sheet shows every third frame at 3×, the two together with the medium burst (every second game step) and all frames at 1×; the loop has a bomber flying down the screen and dying. Not an image-generator prompt: the brief for reviewing the production frames. AI prompt for the look, should it ever be redone by hand: "late-90s pre-rendered CGI sprite effect, top-down, an olive alien gas-bag creature bursting: torn olive membrane scraps with glowing lime veins tumbling outwards, a harmless cloud of glowing lime spores drifting and twinkling out, on black, additive glow, no text".

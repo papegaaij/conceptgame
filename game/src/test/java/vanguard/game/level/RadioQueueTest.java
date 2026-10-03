@@ -64,6 +64,38 @@ class RadioQueueTest {
         assertEquals("Varga", radio.current().orElseThrow().speaker());
     }
 
+    @Test
+    void aTimedLinePlaysBeforeAnEventLineQueuedEarlier() {
+        radio.add("Rook", "Rook", "neutral", "They pop like bugs.", false, RadioQueue.Priority.EVENT);
+        radio.add("Okafor", "Okafor", "neutral", "Weapons free.", false, RadioQueue.Priority.TIMED);
+
+        assertEquals(RadioQueue.Change.OPENED, radio.update(0.01f));
+        assertEquals("Okafor", radio.current().orElseThrow().speaker());
+        run(5.6);
+        assertEquals(RadioQueue.Change.OPENED, run(1));
+        assertEquals("Rook", radio.current().orElseThrow().speaker(), "the event line in the gap after it");
+    }
+
+    @Test
+    void anEventLineWaitsForAGapThatEndsBeforeTheNextTimedLine() {
+        radio.add("Rook", "Rook", "neutral", "They pop like bugs.", false, RadioQueue.Priority.EVENT);
+
+        assertEquals(RadioQueue.Change.NONE, radio.update(0.01f, 4), "it takes about 5.7 s");
+        assertEquals(RadioQueue.Change.OPENED, radio.update(0.01f, 7));
+    }
+
+    @Test
+    void anEventLineThatWaitedTooLongIsDroppedButAClosingLineIsNot() {
+        radio.add("Rook", "Rook", "neutral", "They pop like bugs.", false, RadioQueue.Priority.EVENT);
+        radio.add("Okafor", "Okafor", "neutral", "Come home, Aegis.", false, RadioQueue.Priority.CLOSING);
+        for (int i = 0; i < (RadioQueue.STALE_SECONDS + 1) * 100; i++) {
+            radio.update(0.01f, 1);
+        }
+
+        assertEquals(RadioQueue.Change.OPENED, radio.update(0.01f));
+        assertEquals("Okafor", radio.current().orElseThrow().speaker(), "the stale event line is gone");
+    }
+
     /** Updates in 10 ms frames for {@code seconds}; returns the last change that was not NONE. */
     private RadioQueue.Change run(double seconds) {
         RadioQueue.Change last = RadioQueue.Change.NONE;

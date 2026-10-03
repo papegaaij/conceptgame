@@ -18,6 +18,10 @@ final class Objectives {
     static final int LOST = 2;
 
     private final boolean byGroups;
+    private final String escapes;
+    private final int escapesTotal;
+    private int escapesDestroyed;
+    private boolean escapesFailed;
     private final int[] killsByKind;
     private final int requiredKills;
     private final int[] groupUnits;
@@ -33,10 +37,18 @@ final class Objectives {
      * @param kinds the number of distinct enemies in the level
      * @param units every enemy the level sends
      */
-    Objectives(LevelScript.Secondary secondary, int kinds, int units, List<LevelScript.GroundUnit> groundUnits) {
+    /** @param escapesTotal the units of the enemy of an escapes objective the level sends */
+    Objectives(
+            LevelScript.Secondary secondary,
+            int kinds,
+            int units,
+            List<LevelScript.GroundUnit> groundUnits,
+            int escapesTotal) {
         byGroups = secondary.byGroups();
+        escapes = secondary.escapes();
+        this.escapesTotal = escapesTotal;
         killsByKind = new int[kinds];
-        requiredKills = byGroups ? 0 : (int) Math.ceil(secondary.killRatio() * units - 1e-9);
+        requiredKills = byGroups || secondary.byEscapes() ? 0 : (int) Math.ceil(secondary.killRatio() * units - 1e-9);
         int groups = secondary.groups().size();
         groupUnits = new int[groups];
         groupDestroyed = new int[groups];
@@ -58,7 +70,43 @@ final class Objectives {
         secretsFound = 0;
         groupsCleared = 0;
         groupsLost = 0;
+        escapesDestroyed = 0;
+        escapesFailed = false;
         secondaryMet = false;
+    }
+
+    /** A unit of {@code slug} was destroyed; returns whether that met an escapes objective. */
+    boolean escapeDestroyed(String slug) {
+        if (escapes.isEmpty() || !escapes.equals(slug) || escapesFailed) {
+            return false;
+        }
+        escapesDestroyed++;
+        if (escapesDestroyed == escapesTotal) {
+            secondaryMet = true;
+            return true;
+        }
+        return false;
+    }
+
+    /** A unit of {@code slug} got away; returns whether that failed an escapes objective. */
+    boolean escapeLost(String slug) {
+        if (escapes.isEmpty() || !escapes.equals(slug) || escapesFailed || secondaryMet) {
+            return false;
+        }
+        escapesFailed = true;
+        return true;
+    }
+
+    int escapesDestroyed() {
+        return escapesDestroyed;
+    }
+
+    int escapesTotal() {
+        return escapesTotal;
+    }
+
+    boolean escapesFailed() {
+        return escapesFailed;
     }
 
     /** A unit of group {@code g} was destroyed; returns the group's state after it. */
@@ -107,7 +155,7 @@ final class Objectives {
 
     /** Whether {@code kills} in all meet the secondary objective, the first time they do. */
     boolean meetsSecondary(int kills) {
-        if (byGroups || secondaryMet || kills < requiredKills) {
+        if (byGroups || !escapes.isEmpty() || secondaryMet || kills < requiredKills) {
             return false;
         }
         secondaryMet = true;
@@ -137,5 +185,6 @@ final class Objectives {
         for (int g = 0; g < groupState.length; g++) {
             hash.add(groupDestroyed[g]).add(groupEscaped[g]).add(groupState[g]);
         }
+        hash.add(escapesDestroyed).add(escapesFailed ? 1 : 0);
     }
 }

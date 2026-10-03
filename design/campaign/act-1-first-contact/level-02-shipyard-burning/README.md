@@ -183,10 +183,10 @@ Text and radio blips only. Rook leads Aegis Two on the north arm (radio only).
 <!-- data: radio -->
 | Trigger | Speaker | Line |
 |---|---|---|
-| t=1 | Okafor | "Aegis, the yards are burning. Four docks still have crews aboard. Clear those hulls." |
-| t=12 | Rook | "Aegis Two on the north arm. It's a mess over here too, Lancer. Don't wait for me." |
-| t=18 (first turret) | Varga | "That growth on the platform is alive. It's a turret. It *grew* a turret, Commander." |
-| t=30 (Dock One) | Generic CDF (Dock One) | "Dock One to anyone! They're growing on the hull — burn it off us!" |
+| t=0 | Okafor | "Aegis, the yards are burning. Four docks still have crews aboard. Clear those hulls." |
+| t=11.3 | Rook | "Aegis Two on the north arm. It's a mess over here too, Lancer. Don't wait for me." |
+| t=22.5 (first turret) | Varga | "That growth on the platform is alive. It's a turret. It *grew* a turret, Commander." |
+| t=34 (Dock One) | Generic CDF (Dock One) | "Dock One to anyone! They're growing on the hull — burn it off us!" |
 | Dock One cleared | Generic CDF (Dock One) | "We're clear! Crew's moving to the shuttles. Thank you, Aegis!" |
 | Dock Two cleared | Generic CDF (Dock Two) | "We're clear! Crew's moving to the shuttles. Thank you, Aegis!" |
 | Dock Three cleared | Generic CDF (Dock Three) | "We're clear! Crew's moving to the shuttles. Thank you, Aegis!" |
@@ -280,3 +280,10 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
 - 2026-10-02: M4 part B: the tables are rendered from [data.yaml](data.yaml) by `tools/sync_tables.py` (Briefing, Hangar teaser, Threat profile, Layout, Backdrop, Waves, Ground targets, Radio chatter, Credit budget).
 - 2026-10-02: M4 part B built: the level's data file (waves, the 24 Spine Turrets with the dock nests per difficulty, Crane Four, the radio, the prompt, the coolant peak, the backdrop, the briefing), the docks as groups of the secondary objective, Crane Four and its clamp, the overdrive and salvage M pickups; the Level 01 autopilot flies it to the end on every difficulty. The ground prompt leaves once a ground unit is destroyed (as the control prompts leave once done). Dock Four's nest moved to t=136–140 so its last turret enters at the coolant peak (the Hazards text). Two lines that the document did not give were written for the data: the crane cache's secret line (Rook) and Varga's no-sensor intel line. The production art is proposed in [concept round 15](../../../concept-rounds/round-15/README.md).
 - 2026-10-02: Concept round 15 closed (user decision): the backdrop and Crane Four approved as **final**; with the briefing images of round 13 all of the level's art is final, `art: final`.
+- 2026-10-02 (user decision): radio retimed to the queue (times only, order and text kept), as
+  for Level 03: the first four lines took 44 s of radio in 30 s, so Varga's turret line started
+  5.4 s late and Dock One's call 4.6 s late. Okafor 1 → 0, Rook 12 → 11.3, Varga's "It's a turret"
+  18 → 22.5 (the earliest after the two lines before it, so it comes as the t=18 turret passes the
+  ship rather than as it enters), Dock One 30 → 34 (its nest enters at 30–33). Every timed line now
+  starts on time at the default text speed, also with the dock events in between
+  (`RadioTimelineTest`, with the radio priorities of the [HUD](../../../ui/hud/README.md#decisions)).

@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 # Scuttler
@@ -47,6 +47,15 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 ### Concept art
 
 Chosen concept: [scuttler-r05-a.png](../concept/scuttler-r05-a.png), [scuttler-r05-a.gif](../concept/scuttler-r05-a.gif) (listed in the [ground](../README.md#concept-art) Concept art table).
+
+## Concept art
+
+Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pending part D's doc gaps), from the chosen round-08 re-render (`scuttler-r08-a`); review files built from the files in `assets/` by `tools/art/vrell_l04.py` (`--review scuttler` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/scuttler-final-r16-a.png](concept/scuttler-final-r16-a.png) | Final sprites: 16 headings × 6 walk frames (`scuttler_0..95`, 64×64, 32 colours, 24 px per cycle), the walk cycle at three headings, the legless husks (`scuttler-husk_0..15`) and the additive lime-back glow masks (`scuttler-glow_0..95`) | proposed |
+| [concept/scuttler-final-r16-a.gif](concept/scuttler-final-r16-a.gif) | A Scuttler walking a circle under a dust bank, its back glow added on top | proposed |
 
 ## Implementation
 

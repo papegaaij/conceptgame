@@ -49,6 +49,11 @@ public enum Sfx {
     LAUNCH_RAIL("sfx/launch-rail-r11-b.ogg", 1, Bus.EFFECTS),
     /** The contact ping with an edge warning (round 11 b); one at a time, so overlapping warnings do not stack. */
     EDGE_WARNING("sfx/ui-edge-warning-r11-b.ogg", 1, Bus.EFFECTS),
+    /**
+     * The Leviathan's whale-song cry under its death's explosion (round 16 a, synthesized): a
+     * placeholder until the recorded enemy sounds replace it.
+     */
+    LEVIATHAN_CRY("sfx/enemy-leviathan-cry-r16-a.ogg", 1, Bus.EFFECTS),
     /** The Earth-orbit ambience, looped (design/audio/sfx, Ambience per setting). */
     AMBIENCE_ORBIT("sfx/ambience-orbit-r08-a.ogg", 1, Bus.EFFECTS),
     /** The mission complete jingle (design/audio/music, track 23), played as a one-shot. */

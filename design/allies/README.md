@@ -2,9 +2,9 @@
 title: Allies
 design: approved
 implementation: not-started
-art: none
+art: proposed
 depends-on: [../enemies, ../art-direction, ../ui/hud]
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 # Allies
@@ -34,7 +34,8 @@ equipment, see [wingmen](../player/wingmen/README.md).
 - **HUD**: objective allies show in the [objective tracker](../ui/hud/README.md#left-panel-mission)
   as pips or an integrity bar.
 - **No contact damage** to the player: the player can fly over or through every ally.
-- **Art**: no ally sprites exist yet; they get concept art in a later round. The chosen ocean
+- **Art**: the civilian crawler has proposals in concept round 16 (see *Concept art*); the other
+  allies get concept art in a later round. The chosen ocean
   scene ([scene-ocean-r10-a](../art-direction/concept/scene-ocean-r10-a.png)) already has the
   container-ship and frigate models the convoy will reuse.
 
@@ -109,6 +110,17 @@ The Arctic grid relay, a friendly `defend` structure.
 | CDF lifeboat | Drifting friendly lifeboat towing a cargo pod; shots pass through it, only its tow cable is hittable (hidden crate). L07 | idea |
 | Crewed drydock | `ground` structure carrying enemy turrets; saved when its turrets die before it leaves the screen. It is scenery and cannot be damaged itself. L02 | idea |
 
+## Concept art
+
+Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
+[tools/concept/allies_r16.py](../../tools/concept/allies_r16.py).
+
+| File | What | Status |
+|---|---|---|
+| [concept/civilian-crawler-r16-a.png](concept/civilian-crawler-r16-a.png) | Civilian crawler A: tracked crawler-transporter, 72×40 (deck on four twin-track trucks, passenger drum, cargo pods, amber corner beacons); on regolith, column of five, damaged and wrecked | proposed |
+| [concept/civilian-crawler-r16-b.png](concept/civilian-crawler-r16-b.png) | Civilian crawler B: six-wheeled rover train, 72×40 (three pressurised cylinders abreast, cab car in the middle, amber beacons); on regolith, column of five, damaged and wrecked | proposed |
+| [concept/civilian-crawler-r16-c.png](concept/civilian-crawler-r16-c.png) | Civilian crawler C: pressurised bus with a cargo sled, 40×72 (the long size reading); on regolith, column of five (84 px apart, 60 would overlap), damaged and wrecked | proposed |
+
 ## Implementation
 
 - [ ] Ally entity type: layer, HP or integrity, damage sources per spec, immune to player fire
@@ -118,8 +130,9 @@ The Arctic grid relay, a friendly `defend` structure.
 
 ## Open questions
 
-- Sprites for the crawler, shuttle, cargo ship, frigate and relay: a later concept round. The
-  cargo ship and frigate can reuse the ocean scene's models.
+- Civilian crawler: pick a variant in round 16 (and the size reading)
+- Sprites for the shuttle, cargo ship, frigate and relay: a later concept round. The cargo ship
+  and frigate can reuse the ocean scene's models.
 
 ## Decisions
 

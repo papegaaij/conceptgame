@@ -4,8 +4,8 @@
 scroll_speed: 140     # px/s (calm)
 launch_seconds: 5     # the launch off the south rail, as in Level 01
 control_prompts: []
-prompts:  # contextual prompts in the HUD's prompt well: from t for seconds, the action and its keys
-  - {t: 18, action: GROUND, keys: "FLY OVER, FIRE", seconds: 6}
+prompts:  # contextual prompts in the HUD's prompt well: from t for seconds, the action and its keys; skip: leaves once an enemy on that layer is destroyed
+  - {t: 18, action: GROUND, keys: "FLY OVER, FIRE", seconds: 6, skip: ground}
 threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
   setting: Earth orbit
   layers: [air, ground]
@@ -221,10 +221,10 @@ pickups:
   - {pickup: armour patch, dropped_by: {wave: 145, unit: last}}
 
 radio:  # trigger: t or event (first-kill, group-cleared / group-lost with its group, first-group-lost, secondary-objective, level-end); portrait: a generic one for an unnamed speaker
-  - {t: 1, speaker: Okafor, line: "Aegis, the yards are burning. Four docks still have crews aboard. Clear those hulls."}
-  - {t: 12, speaker: Rook, line: "Aegis Two on the north arm. It's a mess over here too, Lancer. Don't wait for me."}
-  - {t: 18, speaker: Varga, expression: grim, line: "That growth on the platform is alive. It's a turret. It *grew* a turret, Commander.", notes: {trigger: first turret}}
-  - {t: 30, speaker: Dock One, portrait: generic-cdf, line: "Dock One to anyone! They're growing on the hull — burn it off us!", notes: {trigger: Dock One}}
+  - {t: 0, speaker: Okafor, line: "Aegis, the yards are burning. Four docks still have crews aboard. Clear those hulls."}
+  - {t: 11.3, speaker: Rook, line: "Aegis Two on the north arm. It's a mess over here too, Lancer. Don't wait for me."}
+  - {t: 22.5, speaker: Varga, expression: grim, line: "That growth on the platform is alive. It's a turret. It *grew* a turret, Commander.", notes: {trigger: first turret}}
+  - {t: 34, speaker: Dock One, portrait: generic-cdf, line: "Dock One to anyone! They're growing on the hull — burn it off us!", notes: {trigger: Dock One}}
   - {event: group-cleared, group: Dock One, speaker: Dock One, portrait: generic-cdf, line: "We're clear! Crew's moving to the shuttles. Thank you, Aegis!"}
   - {event: group-cleared, group: Dock Two, speaker: Dock Two, portrait: generic-cdf, line: "We're clear! Crew's moving to the shuttles. Thank you, Aegis!"}
   - {event: group-cleared, group: Dock Three, speaker: Dock Three, portrait: generic-cdf, line: "We're clear! Crew's moving to the shuttles. Thank you, Aegis!"}

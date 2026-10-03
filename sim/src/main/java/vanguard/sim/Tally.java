@@ -55,6 +55,23 @@ final class Tally {
         return earn(source, bounty);
     }
 
+    /**
+     * A destroyed part of a set piece: it extends the chain, scores and pays its bounty like a kill,
+     * but the kill is the whole unit's ({@link #countKill()}); returns the credits.
+     */
+    int partKill(int bounty) {
+        chain++;
+        maxChain = Math.max(maxChain, chain);
+        chainTicks = windowTicks;
+        score += Math.round(bounty * rules.killScore() * multiplier() * rules.scoreFactor());
+        return earn(CreditSource.KILLS, bounty);
+    }
+
+    /** A set piece destroyed: one kill, its parts paid already. */
+    void countKill() {
+        kills++;
+    }
+
     /** Armour damage ends the chain (shield hits do not). */
     void breakChain() {
         chain = 0;

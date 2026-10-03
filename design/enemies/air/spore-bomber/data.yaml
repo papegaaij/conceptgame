@@ -1,0 +1,43 @@
+# Spore Bomber stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Spore Bomber
+faction: Vrell
+layer: low-air
+tier: medium
+size: [72, 72]    # sprite px
+hitbox: [52, 56]
+parts: single
+orientation: fixed
+hp: 24
+armour: none
+speed: 45         # px/s
+movement:
+  straight: {speed: 45}
+  strafe: {y: [100, 300]}   # px from the top: a convoy turns across the screen at this height
+attacks:
+  - pattern: mine
+    bullet: medium        # a spore bursting on contact
+    interval: 1.6         # s between two spores
+    speed: 90             # px/s, the ring's bullets
+    mine: {arm: 1.0, life: 8, drift: 20, hp: 1, ring: 6, ring_bullet: small, credits: 1}
+    notes:
+      text: '`{pattern}`: drops a spore every {interval} s; spores drift {mine.drift} px/s in a random direction, rise to the player plane after {mine.arm} s (lime glow brightens), burst on contact (damage `{bullet}` = {damage}) or after {mine.life} s into a {mine.ring}-bullet `ring` ({speed} px/s, damage `{mine.ring_bullet}` = 4). Spores are shootable, {mine.hp} HP'
+formations:
+  - {name: line abreast, size: [3]}
+  - {name: convoy}
+weak_points:
+  - {name: lime spore bulbs}
+drops: []
+traits: [spread, area]
+bounty: 25
+first_level: 3
+difficulty:
+  hard: {ring: 8}
+  easy: {mine_bursts: false}
+notes:
+  layer: ' (bomber); its spore mines rise to `air`'
+  movement: '`straight` down the screen or `strafe` across at y = {movement.strafe.y} px'
+  weak_points: (drawn only)
+  bounty: '; spores {attacks.0.mine.credits} each'
+  death: '`medium` burst: olive membrane tatters, lime spore cloud (harmless)'
+  used_in: Act 1 and Act 2 area denial
+  difficulty: 'hard: spores burst into 8-bullet rings; easy: spores never burst on their own'

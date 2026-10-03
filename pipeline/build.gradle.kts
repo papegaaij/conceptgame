@@ -64,6 +64,7 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
         "ambience-orbit-r08-a.ogg",
         "launch-rail-r11-b.ogg",
         "ui-edge-warning-r11-b.ogg",
+        "enemy-leviathan-cry-r16-a.ogg",
     )
 }
 

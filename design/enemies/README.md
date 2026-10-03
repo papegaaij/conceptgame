@@ -238,6 +238,7 @@ that move in any direction must read from any angle:
 | `convoy` | Ground or naval units in a column along a road, river or lane. |
 | `submerged ambush` | `sub` units that surface together around the player. |
 | `swarm` | A loose, randomised cloud with flocking behaviour. |
+| `solo set piece` | One huge unit on its own, announced by radio (at most one per level). |
 | `whirl cluster` | A burst of 5–8 tiny spinners released from one point, spiralling outward and ricocheting. |
 <!-- /data -->
 

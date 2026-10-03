@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,11 +14,13 @@ import vanguard.sim.EnemyGun;
 import vanguard.sim.EnemySpec;
 import vanguard.sim.Hitbox;
 import vanguard.sim.Hull;
+import vanguard.sim.Layer;
 import vanguard.sim.LevelScript;
 import vanguard.sim.Loadout;
 import vanguard.sim.PickupRules;
 import vanguard.sim.PickupType;
 import vanguard.sim.Plating;
+import vanguard.sim.PlayField;
 import vanguard.sim.Range;
 import vanguard.sim.Rules;
 import vanguard.sim.ScoringRules;
@@ -239,7 +242,8 @@ public final class SimSpecs {
                 pickups.armourPatch().armour(),
                 player.pickupSeconds(),
                 player.pickupDriftSpeed(),
-                content.ship().collectionRadius());
+                content.ship().collectionRadius(),
+                pickups.salvage().credits().large());
         int act = levelKey(levelKey, 1);
         double creditFactor = levers.creditIncome().of(difficulty)
                 * Math.pow(content.economy().actFactor(), act - 1);
@@ -324,8 +328,110 @@ public final class SimSpecs {
                 new LevelScript.Secondary(
                         secondary.killRatio().orElse(0.0),
                         secondary.credits(),
-                        secondary.groups().orElse(List.of())),
-                cranes(level, difficulty));
+                        secondary.groups().orElse(List.of()),
+                        secondary.escapes().orElse("")),
+                cranes(level, difficulty),
+                debris(level, difficulty),
+                level.setPieces().orElse(List.of()).stream()
+                        .map(piece -> setPiece(content, piece, difficulty))
+                        .toList());
+    }
+
+    /** The level's debris chunks at {@code difficulty}: every second large one left out on easy, faster on hard. */
+    private static List<LevelScript.DebrisSpec> debris(LevelData level, Difficulty difficulty) {
+        if (level.debris().isEmpty()) {
+            return List.of();
+        }
+        LevelData.DebrisField field = level.debris().get();
+        double factor = field.driftFactor(difficulty);
+        return field.placedOn(difficulty).stream()
+                .map(placed -> {
+                    LevelData.Chunk chunk = field.chunks().get(placed.chunk());
+                    if (chunk == null) {
+                        throw new IllegalArgumentException("no debris chunk '" + placed.chunk() + "'");
+                    }
+                    return new LevelScript.DebrisSpec(
+                            placed.t(),
+                            placed.x(),
+                            placed.chunk(),
+                            hitbox(chunk.size()),
+                            placed.drift().x() * factor,
+                            placed.drift().y() * factor,
+                            chunk.hp().orElse(Double.POSITIVE_INFINITY),
+                            chunk.damage().orElse(0.0),
+                            field.clearance());
+                })
+                .toList();
+    }
+
+    /**
+     * A set piece at {@code difficulty} (design/enemies/space/leviathan): its parts with the HP
+     * lever, their guns by their attack's name, and its passes. The parts of one attack fire
+     * staggered: the n-th (from 0) first fires its attack's first-shot delay times n + 1 after the
+     * unit reaches the player's layer, or one interval after it without a delay.
+     */
+    public static LevelScript.SetPieceSpec setPiece(
+            Content content, LevelData.SetPieceData piece, Difficulty difficulty) {
+        EnemyData enemy = content.enemy(piece.enemy());
+        List<EnemyData.PartData> partList = enemy.partList()
+                .orElseThrow(() -> new IllegalArgumentException(piece.enemy() + ": a set piece has a part_list"));
+        List<LevelScript.PartSpec> parts = new ArrayList<>();
+        Map<String, Integer> rank = new TreeMap<>();
+        for (EnemyData.PartData part : partList) {
+            Optional<EnemyGun> gun = Optional.empty();
+            double first = 0;
+            if (part.attack().isPresent()) {
+                String name = part.attack().get();
+                EnemyData.Attack attack = enemy.attack(name)
+                        .orElseThrow(() -> new IllegalArgumentException(piece.enemy() + ": no attack '" + name + "'"));
+                EnemyGun built = gun(content, enemy, attack, difficulty, Optional.empty());
+                int n = rank.merge(name, 1, Integer::sum) - 1;
+                first = attack.firstShotDelay().isPresent()
+                        ? attack.firstShotDelay().get() * (n + 1)
+                        : built.intervalSeconds();
+                gun = Optional.of(built);
+            }
+            parts.add(new LevelScript.PartSpec(
+                    part.name(),
+                    part.offset().x(),
+                    part.offset().y(),
+                    hitbox(part.hitbox()),
+                    content.difficulty().enemyHp(part.hp(), difficulty),
+                    part.kind().equals("vital"),
+                    part.bounty(),
+                    gun,
+                    first));
+        }
+        List<LevelScript.Pass> passes = new ArrayList<>();
+        for (LevelData.PassData pass : piece.passes()) {
+            List<LevelScript.Waypoint> path = pass.path().stream()
+                    .map(point -> new LevelScript.Waypoint(point.t(), point.x(), PlayField.HEIGHT - point.y()))
+                    .toList();
+            double heading = -Math.toRadians(pass.heading());
+            Layer layer = Layers.of(pass.layer());
+            if (pass.descend().isEmpty()) {
+                passes.add(LevelScript.Pass.flight(pass.name(), layer, heading, path));
+            } else {
+                LevelData.Descent descent = pass.descend().get();
+                passes.add(new LevelScript.Pass(
+                        pass.name(),
+                        layer,
+                        heading,
+                        path,
+                        descent.at(),
+                        descent.seconds(),
+                        descent.at() + pass.holdOn(difficulty).orElseThrow(),
+                        pass.leaveSpeed().orElseThrow()));
+            }
+        }
+        return new LevelScript.SetPieceSpec(
+                piece.enemy(),
+                hitbox(enemy.size()),
+                hitbox(enemy.hitbox()),
+                content.enemyBasis().contactDamage().get(enemy.tier()),
+                parts,
+                passes,
+                drop(enemy).map(EnemySpec.Drop::pickup));
     }
 
     /** The ground enemies of the level's ground targets at {@code difficulty}, each in its group of the secondary objective. */
@@ -423,7 +529,12 @@ public final class SimSpecs {
                     .filter(p -> p.droppedBy().wave() == wave.t())
                     .filter(p -> p.droppedBy().unit() == LevelData.CarrierUnit.LAST ? last : first)
                     .map(p -> new WaveSpec.Carried(
-                            pickup(p.pickup()), p.droppedBy().unit() == LevelData.CarrierUnit.LAST))
+                            pickup(p.pickup()),
+                            switch (p.droppedBy().unit()) {
+                                case FIRST -> 0;
+                                case SECOND -> 1;
+                                case LAST -> WaveSpec.Carried.LAST;
+                            }))
                     .toList();
             out.add(new WaveSpec(
                     wave.t(),
@@ -441,7 +552,8 @@ public final class SimSpecs {
                     breakGroup,
                     wave.speed(),
                     wave.interval(),
-                    pickups));
+                    pickups,
+                    wave.at().map(at -> new WaveSpec.At(at.x(), at.y()))));
         }
     }
 
@@ -463,6 +575,8 @@ public final class SimSpecs {
             case "circle" -> WaveSpec.Formation.CIRCLE;
             case "single" -> WaveSpec.Formation.SINGLE;
             case "column" -> WaveSpec.Formation.COLUMN;
+            case "convoy" -> WaveSpec.Formation.CONVOY;
+            case "whirl cluster" -> WaveSpec.Formation.WHIRL_CLUSTER;
             default -> throw new IllegalArgumentException("the formation '" + name + "' is not implemented yet");
         };
     }
@@ -471,6 +585,7 @@ public final class SimSpecs {
         return switch (pickup) {
             case SMALL_SALVAGE -> PickupType.SMALL_SALVAGE;
             case MEDIUM_SALVAGE -> PickupType.MEDIUM_SALVAGE;
+            case LARGE_SALVAGE -> PickupType.LARGE_SALVAGE;
             case OVERDRIVE -> PickupType.OVERDRIVE;
             case SHIELD_CELL -> PickupType.SHIELD_CELL;
             case ARMOUR_PATCH -> PickupType.ARMOUR_PATCH;
@@ -479,8 +594,9 @@ public final class SimSpecs {
     }
 
     /**
-     * An enemy at {@code difficulty}: HP by the HP lever, its aimed attack by the fire-rate and
-     * bullet-speed levers, a level's burst change and the stat block's hard-mode hook.
+     * An enemy at {@code difficulty}: HP by the HP lever, its aimed attack (or mine) by the
+     * fire-rate and bullet-speed levers, a level's burst change and the stat block's hooks; a
+     * spiral-out, a convoy's strafe height and a death burst where the stat block has them.
      */
     public static EnemySpec enemy(
             Content content, String slug, Difficulty difficulty, Optional<LevelData.EnemyChange> change) {
@@ -509,7 +625,28 @@ public final class SimSpecs {
                                         .orElse(dive.pause()),
                                 dive.speed(),
                                 dive.fireAfter())),
-                movement.terrain().isPresent());
+                movement.terrain().isPresent(),
+                movement.spiralOut()
+                        .map(spiral -> new EnemySpec.Spiral(
+                                spiral.seconds(), spiral.turns(), spiral.growth(), spiral.drift(), spiral.ricochets())),
+                movement.strafe().map(strafe -> range(strafe.y())),
+                hook(enemy, difficulty)
+                        .flatMap(EnemyData.Hook::deathBurst)
+                        .map(puff -> new EnemySpec.DeathBurst(
+                                puff.count(),
+                                puff.speed()
+                                        * content.difficulty()
+                                                .enemyBulletSpeed()
+                                                .of(difficulty),
+                                bulletDamage(content, puff.bullet()))));
+    }
+
+    private static double bulletDamage(Content content, String bullet) {
+        return content.enemyBasis().bulletDamage().stream()
+                .filter(b -> b.bullet().equals(bullet))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("unknown bullet class '" + bullet + "'"))
+                .damage();
     }
 
     private static Optional<EnemyData.Hook> hook(EnemyData enemy, Difficulty difficulty) {
@@ -530,7 +667,7 @@ public final class SimSpecs {
     /**
      * An enemy's attack at {@code difficulty}: its interval by the fire-rate lever, its bullets by
      * the bullet-speed lever, a level's burst change or the stat block's hooks (burst, fan size,
-     * leading the target in circles).
+     * leading the target in circles, a mine's ring and whether it bursts).
      */
     private static Optional<EnemyGun> gun(
             Content content, EnemyData enemy, Difficulty difficulty, Optional<LevelData.EnemyChange> change) {
@@ -540,21 +677,38 @@ public final class SimSpecs {
         if (enemy.attacks().size() > 1) {
             throw new IllegalArgumentException(enemy.name() + ": only a single attack is implemented");
         }
-        EnemyData.Attack attack = enemy.attacks().getFirst();
+        return Optional.of(gun(content, enemy, enemy.attacks().getFirst(), difficulty, change));
+    }
+
+    private static EnemyGun gun(
+            Content content,
+            EnemyData enemy,
+            EnemyData.Attack attack,
+            Difficulty difficulty,
+            Optional<LevelData.EnemyChange> change) {
         DifficultyData levers = content.difficulty();
-        double damage = content.enemyBasis().bulletDamage().stream()
-                .filter(b -> b.bullet().equals(attack.bullet()))
-                .findFirst()
-                .orElseThrow()
-                .damage();
+        double damage = bulletDamage(content, attack.bullet());
         Optional<EnemyData.Hook> hook = hook(enemy, difficulty);
-        int burst = change.flatMap(LevelData.EnemyChange::burst)
-                .or(() -> hook.flatMap(EnemyData.Hook::burst))
-                .orElse(1);
+        // A burst is of aimed shots: a fan or a mine keeps one volley.
+        int burst = attack.pattern().equals("aimed")
+                ? change.flatMap(LevelData.EnemyChange::burst)
+                        .or(() -> hook.flatMap(EnemyData.Hook::burst))
+                        .orElse(1)
+                : 1;
         int fan = attack.count()
                 .map(count -> hook.flatMap(EnemyData.Hook::fanCount).orElse(count))
                 .orElse(1);
-        return Optional.of(new EnemyGun(
+        Optional<EnemyGun.MineSpec> mine = attack.mine()
+                .map(spore -> new EnemyGun.MineSpec(
+                        spore.arm(),
+                        spore.life(),
+                        spore.drift(),
+                        spore.hp(),
+                        hook.flatMap(EnemyData.Hook::ring).orElse(spore.ring()),
+                        bulletDamage(content, spore.ringBullet()),
+                        hook.flatMap(EnemyData.Hook::mineBursts).orElse(true),
+                        spore.credits()));
+        return new EnemyGun(
                 attack.interval()
                         .map(i -> i / levers.enemyFireRate().of(difficulty))
                         .orElse(Double.POSITIVE_INFINITY),
@@ -568,10 +722,22 @@ public final class SimSpecs {
                 fan,
                 Math.toRadians(attack.spread().orElse(0.0)),
                 attack.turnRate().map(Math::toRadians).orElse(Double.POSITIVE_INFINITY),
-                attack.arc().map(Math::toRadians).orElse(Double.POSITIVE_INFINITY)));
+                attack.arc().map(Math::toRadians).orElse(Double.POSITIVE_INFINITY),
+                mine);
     }
 
+    /**
+     * The level's destructibles and triggers, in time order; triggers that reveal the same secret
+     * reveal it together (Level 03's lifeboat lights: the crate drops when the last is shot).
+     */
     private static List<LevelScript.GroundObjectSpec> groundObjects(LevelData level) {
+        List<String> secretNames =
+                level.secrets().stream().map(LevelData.Secret::name).toList();
+        Map<String, Integer> triggersPerSecret = new TreeMap<>();
+        for (LevelData.GroundTarget target : level.groundTargets()) {
+            target.reveals()
+                    .ifPresent(name -> triggersPerSecret.merge(name, target.at().size(), Integer::sum));
+        }
         List<LevelScript.GroundObjectSpec> objects = new ArrayList<>();
         for (LevelData.GroundTarget target : level.groundTargets()) {
             if (target.enemy().isPresent()) {
@@ -591,7 +757,9 @@ public final class SimSpecs {
                         target.hits().orElse(0),
                         secret.map(LevelData.Secret::crate).orElse(0),
                         secret.map(LevelData.Secret::name).orElse(""),
-                        target.hardened().orElse(false)));
+                        target.hardened().orElse(false),
+                        secret.map(sec -> secretNames.indexOf(sec.name())).orElse(-1),
+                        target.reveals().map(triggersPerSecret::get).orElse(1)));
             }
         }
         objects.sort(Comparator.comparingDouble(LevelScript.GroundObjectSpec::t));
@@ -615,6 +783,7 @@ public final class SimSpecs {
                         case GROUP_CLEARED -> LevelScript.CueTrigger.GROUP_CLEARED;
                         case GROUP_LOST -> LevelScript.CueTrigger.GROUP_LOST;
                         case FIRST_GROUP_LOST -> LevelScript.CueTrigger.FIRST_GROUP_LOST;
+                        case ENEMY_ESCAPED -> LevelScript.CueTrigger.ENEMY_ESCAPED;
                     })
                     .orElse(LevelScript.CueTrigger.TIME);
             cues.add(new LevelScript.RadioCue(

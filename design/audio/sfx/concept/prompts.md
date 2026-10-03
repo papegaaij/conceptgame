@@ -667,3 +667,24 @@ ping that decays over ~0.35 s, a quieter repeat one flash cycle later, a little 
 Generator: `tools/concept/audio/sfx_r11.py`.
 AI prompt: "late-90s sci-fi game radar contact alert, a short rising chirp into a ringing ping with one quieter echo, clean synthesized, under one second, no voice"
 
+## Round 16 (synthesized, `tools/concept/audio/sfx_r16.py`)
+
+Levelled on the 200 Hz–5 kHz band RMS like the recorded enemy sounds (−30 dB, the Vrell screech
+and spawn level), transients limited at −6 dBFS, so it sits under the large explosion it plays
+with (those are at −21 to −24 dB band RMS, −1.6 dBFS peak, −11 to −14.5 LUFS).
+
+### enemy-leviathan-cry-r16-a (synthesized)
+The Leviathan's whale-song cry, played when it dies (design/enemies/space/leviathan) — 2.4 s of
+call and a reverb tail, 3.0 s in all: a throat-like pulse train (a smooth glottal pulse mixed
+with a band-limited saw, slight jitter) whose fundamental rises 92 → 128 Hz in the first half
+second, then falls in a long moan to 52 Hz with one upward yodel break at 1.05 s and a slow
+vibrato that widens; three moving formants sweep "oo" → "aah" → "oo" (about 320/780/1900 Hz at
+the open vowel) so it reads as a throat; a second, quieter voice a tritone and a few cents above
+enters at 0.3 s and glides more slowly, beating against the first; a faint inharmonic whistle
+(7.3×) falls with it; a breathy band-passed rasp (the blowhole) opens the call; a long, dark
+2.6 s reverb gives it its size. High-passed at 70 Hz so the weight is in the chest, not in
+sub-bass a small speaker drops (about 80 % of its energy is in 200 Hz–2 kHz, in the explosion's
+gaps rather than its low boom, and 20 % in the 60–200 Hz chest). −22.5 LUFS, peak −11.3 dBFS (the Vrell screeches: −22 LUFS).
+Generator: `tools/concept/audio/sfx_r16.py`.
+AI prompt: "late-90s sci-fi game sound, a huge alien space whale dying: one deep, mournful whale-song call, a moaning glide that rises and then falls slowly with a yodel break, two voices beating against each other, breathy, with a long dark reverb, about 3 seconds, no explosion, no music"
+

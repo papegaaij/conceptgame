@@ -1,5 +1,6 @@
 package vanguard.game.audio;
 
+import java.util.List;
 import vanguard.game.render.EnemyLooks;
 import vanguard.sim.Armament;
 import vanguard.sim.PickupType;
@@ -11,7 +12,11 @@ import vanguard.sim.WarningEdge;
 /**
  * Turns the simulation's events into sound effects, mixed per design/audio/sfx (Mixing rules):
  * relative levels, a few percent of random pitch, two variants alternating so no file repeats
- * twice in a row, and a subtle pan by the position in the play field.
+ * twice in a row, and a subtle pan by the position in the play field. Level 03's events reuse the
+ * sounds there are until they get their own: a spore drops with a soft low organic plop, bursts or
+ * is shot with the tiny explosion, debris rings like metal and breaks with a low tiny explosion, a
+ * set piece's part blows with a lower small explosion and the whole unit with both small
+ * explosions pitched down.
  */
 public final class FlightSounds {
     /** The levels relative to player damage, the loudest group (+2 dB in the mixing rules). */
@@ -34,22 +39,35 @@ public final class FlightSounds {
     private final EnemyLooks[] looks;
     private final Sfx[] shots;
     private final float[] shotPitch;
+    /** Each set piece's death cry, by index in the script; null for none. */
+    private final Sfx[] cries;
+
     private final SplitMix64 random = new SplitMix64(0x5F3);
     private boolean variantB;
 
     /**
      * @param looks the explosions of the level's enemy kinds
      * @param armament the fitted weapons, whose sound families the shots play
+     * @param setPieces the slugs of the level's set pieces, whose death cries they play
      */
-    public FlightSounds(SfxBank bank, EnemyLooks[] looks, Armament armament) {
+    public FlightSounds(SfxBank bank, EnemyLooks[] looks, Armament armament, List<String> setPieces) {
         this.bank = bank;
         this.looks = looks;
+        cries = setPieces.stream().map(FlightSounds::cry).toArray(Sfx[]::new);
         shots = new Sfx[armament.size()];
         shotPitch = new float[armament.size()];
         for (int m = 0; m < armament.size(); m++) {
             shots[m] = shot(armament.mount(m).weapon().sfx());
             shotPitch[m] = armament.mount(m).slot() == Armament.Slot.REAR ? REAR_PITCH : 1;
         }
+    }
+
+    /** A set piece's cry at its death, or null for none: the Leviathan's whale song. */
+    private static Sfx cry(String slug) {
+        return switch (slug) {
+            case "leviathan" -> Sfx.LEVIATHAN_CRY;
+            default -> null;
+        };
     }
 
     /** The sound of a weapon sound family; the families of later weapons play the pulse until they have theirs. */
@@ -113,6 +131,29 @@ public final class FlightSounds {
                     bank.play(alternate(Sfx.ENEMY_SHOT_A, Sfx.ENEMY_SHOT_B), ENEMY_FIRE, pitch(0.05), pan);
                 case GROUND_HIT -> bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, pitch(0.05), pan);
                 case GROUND_DESTROYED -> bank.play(Sfx.EXPLOSION_SMALL_A, EXPLOSIONS, pitch(0.04), pan);
+                case MINE_DROPPED ->
+                    bank.play(alternate(Sfx.HIT_ORGANIC_A, Sfx.HIT_ORGANIC_B), ENEMY_FIRE, 0.6f * pitch(0.05), pan);
+                case MINE_BURST, MINE_DESTROYED ->
+                    bank.play(alternate(Sfx.EXPLOSION_TINY_A, Sfx.EXPLOSION_TINY_B), EXPLOSIONS, pitch(0.06), pan);
+                case DEBRIS_HIT -> bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, pitch(0.05), pan);
+                case DEBRIS_DESTROYED ->
+                    bank.play(
+                            alternate(Sfx.EXPLOSION_TINY_A, Sfx.EXPLOSION_TINY_B), EXPLOSIONS, 0.8f * pitch(0.04), pan);
+                case PART_DESTROYED ->
+                    bank.play(
+                            alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B),
+                            EXPLOSIONS,
+                            0.85f * pitch(0.04),
+                            pan);
+                case SET_PIECE_DESTROYED -> {
+                    bank.play(Sfx.EXPLOSION_SMALL_A, PLAYER_DAMAGE, 0.6f, pan);
+                    bank.play(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.7f, pan);
+                    // Levelled like the enemy sounds, so it sits under the burst (design/audio/sfx).
+                    Sfx cry = cries[events.value(i)];
+                    if (cry != null) {
+                        bank.play(cry, EXPLOSIONS, 1, pan);
+                    }
+                }
                 case PICKUP_COLLECTED -> bank.play(pickupSound(PICKUP_TYPES[events.value(i)]), PICKUPS, 1, pan);
                 case SHIELD_HIT -> bank.play(Sfx.SHIELD_HIT, PLAYER_DAMAGE, pitch(0.05), pan);
                 case SHIELD_BROKEN -> bank.play(Sfx.SHIELD_BREAK, PLAYER_DAMAGE, 1, pan);
@@ -128,7 +169,10 @@ public final class FlightSounds {
                         LEVEL_COMPLETE,
                         SORTIE_RESTARTED,
                         GROUP_CLEARED,
-                        GROUP_LOST -> {}
+                        GROUP_LOST,
+                        OBJECTIVE_FAILED,
+                        SET_PIECE_DESCENDED,
+                        SET_PIECE_ESCAPED -> {}
             }
         }
     }
@@ -137,7 +181,7 @@ public final class FlightSounds {
         return switch (type) {
             case SMALL_SALVAGE, MEDIUM_SALVAGE -> Sfx.SALVAGE_SMALL;
             case OVERDRIVE -> Sfx.OVERDRIVE_START;
-            case HIDDEN_CRATE -> Sfx.SALVAGE_LARGE;
+            case HIDDEN_CRATE, LARGE_SALVAGE -> Sfx.SALVAGE_LARGE;
             case SHIELD_CELL -> Sfx.SHIELD_CELL;
             case ARMOUR_PATCH -> Sfx.ARMOUR_PATCH;
         };

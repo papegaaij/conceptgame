@@ -19,7 +19,9 @@ public final class Enemy implements Hashed {
         HOLD,
         LEAVE,
         /** Fixed to the ground layer. */
-        GROUND
+        GROUND,
+        /** Spiralling out of a whirl cluster's release point. */
+        SPIRAL
     }
 
     private EnemySpec spec;
@@ -63,6 +65,11 @@ public final class Enemy implements Hashed {
     private int diveTicks;
     private boolean diveFired;
     private boolean diveShot;
+    private double releaseX;
+    private double releaseY;
+    private double spiralAngle;
+    private int spiralTicks;
+    private int ricochetsLeft;
 
     /** @param unitSerial unique among the units of an attempt, for the shots that lock onto it */
     void spawn(Spawn plan, int unitSerial) {
@@ -88,6 +95,18 @@ public final class Enemy implements Hashed {
         leadsTarget = plan.leadsTarget();
         carried = plan.carried();
         place();
+        spiralTicks = 0;
+        ricochetsLeft = spec.spiral().isPresent() ? spec.spiral().get().ricochets() : 0;
+        if (plan.release().isPresent() && spec.spiral().isPresent()) {
+            Spawn.Release release = plan.release().get();
+            phase = Phase.SPIRAL;
+            releaseX = x = release.x();
+            releaseY = y = release.y();
+            spiralAngle = release.angle();
+        }
+        if (spec.gun().isPresent() && spec.gun().get().mine().isPresent()) {
+            volleyTicks = SimStep.ticks(spec.gun().get().intervalSeconds());
+        }
         prevX = x;
         prevY = y;
         facing = heading(path.dx(segment), path.dy(segment));
@@ -126,6 +145,10 @@ public final class Enemy implements Hashed {
         prevX = x;
         prevY = y;
         switch (phase) {
+            case SPIRAL -> {
+                spiral();
+                return true;
+            }
             case GROUND -> {
                 y -= groundScroll;
                 track(shipX, shipY);
@@ -155,6 +178,7 @@ public final class Enemy implements Hashed {
             case LEAVE -> {
                 x += vx * SimStep.SECONDS;
                 y += vy * SimStep.SECONDS;
+                ricochet();
                 turn();
                 if (spec.dive().isPresent() && !diveFired) {
                     EnemySpec.Dive dive = spec.dive().get();
@@ -184,6 +208,42 @@ public final class Enemy implements Hashed {
         }
         double delta = Math.IEEEremainder(heading(dx, dy) - facing, 2 * StrictMath.PI);
         facing = Math.IEEEremainder(facing + Math.clamp(delta, -MAX_TURN, MAX_TURN), 2 * StrictMath.PI);
+    }
+
+    /**
+     * One step of a whirl cluster's spiral (design/enemies/air/whirl-seed): around the release
+     * point, which drifts down, at its turn rate and with a growing radius; at its end it flies on
+     * along its outward angle, turned downward, and at least as steeply down as the release point
+     * drifted (so a seed that ends the spiral pointing sideways still leaves through the bottom).
+     */
+    private void spiral() {
+        EnemySpec.Spiral spiral = spec.spiral().orElseThrow();
+        double t = ++spiralTicks * SimStep.SECONDS;
+        double angle = spiralAngle + 2 * StrictMath.PI * spiral.turnsPerSecond() * t;
+        double radius = spiral.growth() * t;
+        double cos = Trig.cos(angle);
+        double sin = Trig.sin(angle);
+        x = releaseX + radius * cos;
+        y = releaseY - spiral.drift() * t + radius * sin;
+        if (t >= spiral.seconds()) {
+            phase = Phase.LEAVE;
+            double down = Math.max(Math.abs(sin), spiral.drift() / speed);
+            double length = Math.sqrt(cos * cos + down * down);
+            vx = cos / length * speed;
+            vy = -down / length * speed;
+        }
+    }
+
+    /** A spiralled-out unit bounces off the side edges, up to its ricochets. */
+    private void ricochet() {
+        if (ricochetsLeft == 0) {
+            return;
+        }
+        double half = spec.hitbox().width() / 2;
+        if ((x < half && vx < 0) || (x > PlayField.WIDTH - half && vx > 0)) {
+            vx = -vx;
+            ricochetsLeft--;
+        }
     }
 
     /**
@@ -254,6 +314,14 @@ public final class Enemy implements Hashed {
      * it fires a shot this step. A diver fires once, in its dive.
      */
     boolean trigger() {
+        if (spec.gun().isPresent() && spec.gun().get().mine().isPresent()) {
+            // A mine layer drops a spore at its interval wherever it flies on the screen.
+            if (phase == Phase.GROUND || !PlayField.overlaps(x, y, spec.hitbox()) || --volleyTicks > 0) {
+                return false;
+            }
+            volleyTicks = SimStep.ticks(spec.gun().get().intervalSeconds());
+            return true;
+        }
         if (spec.dive().isPresent()) {
             boolean shot = diveShot;
             diveShot = false;
@@ -295,6 +363,8 @@ public final class Enemy implements Hashed {
                 .add(aim)
                 .add(diveTicks)
                 .add(diveFired ? 1 : 0)
+                .add(spiralTicks)
+                .add(ricochetsLeft)
                 .add(distance)
                 .add(segment)
                 .add(phase.ordinal())

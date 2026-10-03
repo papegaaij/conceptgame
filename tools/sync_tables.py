@@ -221,18 +221,21 @@ def stat_block(d):
         return f" {fill(notes[key], values)}" if key in notes else ""
 
     attacks = "; ".join(fill(a["notes"]["text"], values | a | {"damage": bullet[a["bullet"]]}) for a in e["attacks"])
+    attacks = fill(notes.get("attack_prefix", ""), values) + attacks
+    parts = notes["parts"] if e["parts"] == "multi" else e["parts"]
+    hp_text = (fill(notes["hp"], values) + " " if "hp" in notes else "") + num(e["hp"])
     formations = ", ".join(f["name"] + (f" ({'–'.join(str(n) for n in f['size'])})" if "size" in f else "")
                            for f in e["formations"])
     weak = ", ".join(w["name"] + (f" (×{num(w['multiplier'])})" if "multiplier" in w else "")
                      for w in e["weak_points"]) or "none"
     rows = [
         ["Faction", e["faction"]],
-        ["Layer", f"`{e['layer']}`"],
+        ["Layer", f"`{e['layer']}`" + fill(notes.get("layer", ""), values)],
         ["Size tier", f"`{e['tier']}`"],
         ["Size", f"{e['size'][0]}×{e['size'][1]} px, hitbox {e['hitbox'][0]}×{e['hitbox'][1]}"],
-        ["Parts", e["parts"]],
+        ["Parts", parts],
         ["Orientation", f"`{e['orientation']}`" + suffix("orientation")],
-        ["HP", f"{num(e['hp'])} (easy {hp('easy')} / hard {hp('hard')}, from the global multipliers)"],
+        ["HP", f"{hp_text} (easy {hp('easy')} / hard {hp('hard')}, from the global multipliers)"],
         ["Armour / shield", e["armour"]],
         ["Speed", f"{num(e['speed'])} px/s" + suffix("speed")],
         ["Movement", fill(notes["movement"], values)],
@@ -240,7 +243,7 @@ def stat_block(d):
         ["Formations", formations + suffix("formations")],
         ["Weak points", weak + suffix("weak_points")],
         ["Effective traits", ticks(e["traits"])],
-        ["Credits", f"{e['bounty']} (score {e['bounty'] * scoring()['kill_score']} × chain)"],
+        ["Credits", f"{e['bounty']} (score {e['bounty'] * scoring()['kill_score']} × chain)" + fill(notes.get("bounty", ""), values)],
         ["Death", fill(notes["death"], values)],
         ["First level / used in", f"L{e['first_level']:02d}; {notes['used_in']}"],
         ["Difficulty hooks", notes["difficulty"]],
@@ -312,6 +315,14 @@ def enemy_totals(level):
     for wave in level["waves"]:
         for g in groups(wave):
             totals[g["enemy"]] = totals.get(g["enemy"], 0) + g["count"]
+    return totals
+
+
+def set_piece_totals(level):
+    """The set pieces' enemies, one unit each (Level 03's Leviathan)."""
+    totals = {}
+    for piece in level.get("set_pieces", []):
+        totals[piece["enemy"]] = totals.get(piece["enemy"], 0) + 1
     return totals
 
 
@@ -411,10 +422,20 @@ def waves(d):
     for w in level["waves"]:
         gs = groups(w)
         enter = entry(w)
-        rows.append([num(w["t"]), str(section_of(level, w["t"])), " + ".join(g["formation"] for g in gs),
-                     " + ".join(enemy_link(d, g["enemy"]) for g in gs), " + ".join(str(g["count"]) for g in gs),
-                     enter, fill(w["notes"], w) if "notes" in w else ""])
-    totals = " · ".join(f"{enemy_name(slug)} {n}" for slug, n in enemy_totals(level).items())
+        rows.append((w["t"], [num(w["t"]), str(section_of(level, w["t"])), " + ".join(g["formation"] for g in gs),
+                              " + ".join(enemy_link(d, g["enemy"]) for g in gs), " + ".join(str(g["count"]) for g in gs),
+                              enter, fill(w["notes"], w) if "notes" in w else ""]))
+    # a set piece's passes, each a row at its window on screen (notes.t, "62–74")
+    for piece in level.get("set_pieces", []):
+        for p in piece["passes"]:
+            notes = p["notes"]
+            start = float(re.match(r"[\d.]+", str(notes["t"])).group(0))
+            rows.append((start, [str(notes["t"]), str(p["section"]), "solo set piece",
+                                 f"{enemy_link(d, piece['enemy'])} ({notes['name']})", "1", notes["from"],
+                                 fill(notes.get("notes", ""), p)]))
+    rows = [cells for _, cells in sorted(rows, key=lambda r: r[0])]
+    totals = " · ".join(f"{enemy_name(slug)} {n}"
+                        for slug, n in (enemy_totals(level) | set_piece_totals(level)).items())
     head = ["t (s)", "Section", "Formation", "Enemies (link)", "Count", "Enter from", "Notes"]
     return table(head, rows) + f"\n\nTotals: {totals}."
 
@@ -460,8 +481,12 @@ def radio(d):
         if "t" in cue:
             note = cue.get("notes", {}).get("trigger")
             trigger = f"t={num(cue['t'])}" + (f" ({note})" if note else "")
+        elif "trigger" in cue.get("notes", {}):
+            trigger = cue["notes"]["trigger"]
         elif cue["event"] == "first-kill":
             trigger = f"First {enemy_name(cue['enemy'])} destroyed"
+        elif cue["event"] == "enemy-escaped":
+            trigger = f"First {enemy_name(cue['enemy'])} leaves the screen"
         elif cue["event"] == "group-cleared":
             trigger = f"{cue['group']} cleared"
         elif cue["event"] == "group-lost":
@@ -537,12 +562,21 @@ def credit_budget(d):
               for g in paying]
     if parts:
         rows.append(["Ground targets: " + " + ".join(text for text, _ in parts), sum(c for _, c in parts)])
+    # set pieces: their parts' bounties, and their death drop
+    for piece in level.get("set_pieces", []):
+        e = load(f"{enemy_dir(piece['enemy'])}/data.yaml")
+        rows.append([f"Set piece: {e['name']} parts", sum(part["bounty"] for part in e["part_list"])])
+        for drop in e.get("drops", []):
+            if drop["pickup"].endswith("salvage"):
+                rows.append([f"Pickup: {e['name']} {drop['pickup']}", pickup_credits(drop["pickup"])])
     for s in level["secrets"]:
         rows.append([f"Secret: {s['name']} (hidden crate, {round(100 * s['crate'] / budget)}% of budget)", s["crate"]])
     secondary = level["objectives"]["secondary"]
     if "groups" in secondary:
         n = len(secondary["groups"])
         rows.append([f"Secondary: {n} {group_noun(level)}s × {secondary['credits']}", n * secondary["credits"]])
+    elif "escapes" in secondary:
+        rows.append([f"Secondary: no {enemy_name(secondary['escapes'])} gets through", secondary["credits"]])
     else:
         rows.append(["Secondary objective", secondary["credits"]])
     total = sum(credits for _, credits in rows)

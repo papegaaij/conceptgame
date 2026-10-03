@@ -31,6 +31,24 @@ public final class SimEvents {
         GROUP_CLEARED,
         /** A group was lost; value: the group. */
         GROUP_LOST,
+        /** A mine layer dropped a spore (at the layer). */
+        MINE_DROPPED,
+        /** A spore burst into its ring, or on contact with the ship (at the spore). */
+        MINE_BURST,
+        /** A spore was shot (at the spore). */
+        MINE_DESTROYED,
+        /** A shot hit a small debris chunk (at the shot); a large one makes it glance ({@link #SHOT_GLANCED}). */
+        DEBRIS_HIT,
+        /** A small debris chunk broke (at the chunk). */
+        DEBRIS_DESTROYED,
+        /** A set piece reached the player's layer (at the set piece); value: its index. */
+        SET_PIECE_DESCENDED,
+        /** A part of a set piece was destroyed (at the part); value: the part's index. */
+        PART_DESTROYED,
+        /** A set piece was destroyed (at its centre, its chained death); value: its index. */
+        SET_PIECE_DESTROYED,
+        /** A set piece ended its last pass alive (at its centre); value: its index. */
+        SET_PIECE_ESCAPED,
         /** A destructible ground object was destroyed (at the object). */
         GROUND_DESTROYED,
         /** A trigger released its secret's hidden crate (at the trigger). */
@@ -51,6 +69,8 @@ public final class SimEvents {
         RADIO,
         /** The secondary objective was met. */
         OBJECTIVE_MET,
+        /** The secondary objective failed (a unit of an escapes objective got away). */
+        OBJECTIVE_FAILED,
         /** The scroll reached the end: the primary objective is met and the level is over. */
         LEVEL_COMPLETE,
         /** The level started again after the ship was destroyed (at the ship's start position). */

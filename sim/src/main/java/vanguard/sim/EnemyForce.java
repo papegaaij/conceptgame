@@ -14,10 +14,12 @@ final class EnemyForce {
     /** No enemy bullet spawns this close to the ship (design/enemies, bullet readability rules). */
     private static final double NO_FIRE_DISTANCE = 72;
 
-    /** What the sortie does when a unit of a ground group leaves the screen alive. */
+    /** What the sortie does when a unit leaves the screen alive (just before it is gone). */
     interface Escapes {
-        void escaped(int group);
+        void escaped(Enemy enemy);
     }
+
+    private static final int MINE_CAPACITY = 96;
 
     private final SplitMix64 rng;
     private final Rules rules;
@@ -30,6 +32,7 @@ final class EnemyForce {
     private final int[] groundTicks;
     private final Pool<Enemy> enemies = new Pool<>(ENEMY_CAPACITY, Enemy::new, Enemy[]::new);
     private final Pool<EnemyBullet> bullets = new Pool<>(BULLET_CAPACITY, EnemyBullet::new, EnemyBullet[]::new);
+    private final Pool<Mine> mines = new Pool<>(MINE_CAPACITY, Mine::new, Mine[]::new);
     private int spawned;
     private int nextGround;
 
@@ -67,6 +70,7 @@ final class EnemyForce {
     void reset() {
         Pools.clear(enemies);
         Pools.clear(bullets);
+        Pools.clear(mines);
         waves.reset();
         spawned = 0;
         nextGround = 0;
@@ -101,13 +105,15 @@ final class EnemyForce {
         for (int i = enemies.size() - 1; i >= 0; i--) {
             Enemy enemy = enemies.get(i);
             if (!enemy.move(ship.x(), ship.y(), groundScroll)) {
-                int group = enemy.group();
+                escapes.escaped(enemy);
                 enemies.free(i);
-                if (group >= 0) {
-                    escapes.escaped(group);
-                }
             } else if (enemy.trigger() && firing) {
-                fireAt(enemy, ship);
+                EnemyGun gun = enemy.spec().gun().orElseThrow();
+                if (gun.mine().isPresent()) {
+                    dropMine(enemy, gun);
+                } else {
+                    fireAt(enemy, ship);
+                }
             }
         }
     }
@@ -118,19 +124,27 @@ final class EnemyForce {
      * spread.
      */
     private void fireAt(Enemy enemy, Ship ship) {
-        EnemyGun gun = enemy.spec().gun().orElseThrow();
-        double dx = ship.x() - enemy.x();
-        double dy = ship.y() - enemy.y();
+        fire(enemy.x(), enemy.y(), enemy.spec().gun().orElseThrow(), enemy.leadsTarget(), enemy.aim(), ship);
+    }
+
+    /** A set piece's part fires its gun from (x, y) at the ship, as a unit that aims at once. */
+    void fireFrom(double x, double y, EnemyGun gun, Ship ship) {
+        fire(x, y, gun, false, 0, ship);
+    }
+
+    private void fire(double x, double y, EnemyGun gun, boolean leads, double aim, Ship ship) {
+        double dx = ship.x() - x;
+        double dy = ship.y() - y;
         double distance = Math.sqrt(dx * dx + dy * dy);
         if (distance < NO_FIRE_DISTANCE || bullets.size() >= rules.bulletBudget()) {
             return;
         }
         if (Double.isFinite(gun.turnRate())) {
             // Along the barrel: radians clockwise from straight down.
-            dx = -Trig.sin(enemy.aim());
-            dy = -Trig.cos(enemy.aim());
+            dx = -Trig.sin(aim);
+            dy = -Trig.cos(aim);
             distance = 1;
-        } else if (enemy.leadsTarget()) {
+        } else if (leads) {
             double flight = distance / gun.bulletSpeed();
             dx += ship.vx() * flight;
             dy += ship.vy() * flight;
@@ -149,13 +163,71 @@ final class EnemyForce {
             double sin = Trig.sin(angle);
             EnemyBullet bullet = bullets.obtain();
             bullet.fire(
-                    enemy.x(),
-                    enemy.y(),
+                    x,
+                    y,
                     (dx * cos - dy * sin) * gun.bulletSpeed(),
                     (dx * sin + dy * cos) * gun.bulletSpeed(),
                     gun.damage());
         }
-        events.add(SimEvents.Type.ENEMY_FIRED, enemy.x(), enemy.y());
+        events.add(SimEvents.Type.ENEMY_FIRED, x, y);
+    }
+
+    /** A mine layer drops a spore under it, drifting in a random direction. */
+    private void dropMine(Enemy enemy, EnemyGun gun) {
+        dropMine(gun, enemy.x(), enemy.y(), rng.range(0, 2 * StrictMath.PI));
+    }
+
+    /** A spore of {@code gun}'s mine at (x, y), drifting at {@code angle} radians (0 = right, y up). */
+    void dropMine(EnemyGun gun, double x, double y, double angle) {
+        Mine mine = mines.obtain();
+        if (mine != null) {
+            mine.drop(gun, x, y, angle);
+            events.add(SimEvents.Type.MINE_DROPPED, x, y);
+        }
+    }
+
+    /**
+     * Drifts the spores; one whose life ran out bursts into its ring (unless it never bursts),
+     * away from the ship (no bullet spawns close to it).
+     */
+    void moveMines(Ship ship) {
+        for (int i = mines.size() - 1; i >= 0; i--) {
+            Mine mine = mines.get(i);
+            if (!mine.move()) {
+                EnemyGun.MineSpec spec = mine.spec();
+                if (mine.expired() && spec.bursts()) {
+                    burst(mine.x(), mine.y(), spec.ring(), mine.gun().bulletSpeed(), spec.ringDamage(), ship);
+                    events.add(SimEvents.Type.MINE_BURST, mine.x(), mine.y());
+                }
+                mines.free(i);
+            }
+        }
+    }
+
+    /** A destroyed unit with a death burst pops into its puff of bullets. */
+    void deathBurst(Enemy enemy, Ship ship) {
+        EnemySpec.DeathBurst puff = enemy.spec().deathBurst().orElseThrow();
+        burst(enemy.x(), enemy.y(), puff.count(), puff.speed(), puff.damage(), ship);
+    }
+
+    /**
+     * A ring of {@code count} bullets from (x, y), within the bullet budget; none when the ship is
+     * closer than the bullets may spawn (design/enemies, bullet readability rules).
+     */
+    void burst(double x, double y, int count, double speed, double damage, Ship ship) {
+        double dx = ship.x() - x;
+        double dy = ship.y() - y;
+        if (dx * dx + dy * dy < NO_FIRE_DISTANCE * NO_FIRE_DISTANCE) {
+            return;
+        }
+        for (int k = 0; k < count && bullets.size() < rules.bulletBudget(); k++) {
+            double angle = 2 * StrictMath.PI * k / count;
+            bullets.obtain().fire(x, y, Trig.cos(angle) * speed, Trig.sin(angle) * speed, damage);
+        }
+    }
+
+    Pool<Mine> mines() {
+        return mines;
     }
 
     void moveBullets() {
@@ -184,6 +256,15 @@ final class EnemyForce {
     /** The distinct enemies of the level; {@link Enemy#kind()} indexes this list. */
     List<EnemySpec> kinds() {
         return kinds;
+    }
+
+    /** The units of the enemy {@code slug} the level sends, flying and on the ground. */
+    int unitsOf(String slug) {
+        int count = waves.unitsOf(slug);
+        for (LevelScript.GroundUnit unit : groundUnits) {
+            count += unit.enemy().slug().equals(slug) ? 1 : 0;
+        }
+        return count;
     }
 
     /** Every unit the level sends, flying and on the ground. */

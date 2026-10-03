@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: chosen
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 # Brood Pod
@@ -48,6 +48,15 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 ### Concept art
 
 Chosen concept: [brood-pod-r04-a.png](../concept/brood-pod-r04-a.png) (listed in the [air](../README.md#concept-art) Concept art table).
+
+## Concept art
+
+Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pending part D's doc gaps), review files built from the files in `assets/` by `tools/art/vrell_l04.py` (`--review pod` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/brood-pod-final-r16-a.png](concept/brood-pod-final-r16-a.png) | Final sprites: the 8-frame pulse loop (`brood-pod_0..7`, 64×64, 32 colours, veins brightening with the swell), the wet burst (`brood-pod-burst_0..11`, 96×96, additive) and the membrane tatters with rib shards (`brood-pod-tatters_0..11`, 96×96, solid), shown alone and with the medium burst | proposed |
+| [concept/brood-pod-final-r16-a.gif](concept/brood-pod-final-r16-a.gif) | The pulse, the faster telegraph pulse, then the burst with six Skitters fanning out | proposed |
 
 ## Implementation
 

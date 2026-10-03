@@ -59,6 +59,10 @@ public final class Briefings {
                 .ifPresent(secondary -> lines.add(secondary
                         .killRatio()
                         .map(ratio -> String.format(Locale.ROOT, "BONUS: DESTROY %.0f %% OF ALL ENEMIES", 100 * ratio))
+                        .or(() -> secondary
+                                .escapes()
+                                .map(slug -> "BONUS: NO "
+                                        + slug.replace('-', ' ').toUpperCase(Locale.ROOT) + " GETS THROUGH"))
                         .orElseGet(() -> String.format(
                                 Locale.ROOT,
                                 "BONUS: CLEAR ALL %d %s",

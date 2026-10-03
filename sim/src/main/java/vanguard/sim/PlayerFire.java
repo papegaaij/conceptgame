@@ -8,8 +8,10 @@ import java.util.List;
  * fall and hit by the layer rules of design/enemies (Layer rules): bolts and homing missiles hit
  * what they pass on the layers their {@link WeaponSpec.Delivery} reaches and the ground objects
  * below; bombs and shells burst on the ground only. Hardened ground targets take damage from
- * {@code anti-ground} weapons only; other shots glance off. What a hit destroys is handed to
- * {@link Hits}, which the {@link Sortie} implements.
+ * {@code anti-ground} weapons only; other shots glance off. Armed spore mines on the player's
+ * layer are shot like enemies; a set piece's parts take the hits on their layer and its armoured
+ * body makes the rest glance; homing missiles lock onto parts too. What a hit destroys is handed
+ * to {@link Hits}, which the {@link Sortie} implements.
  */
 final class PlayerFire {
     private static final int SHOT_CAPACITY = 256;
@@ -24,22 +26,38 @@ final class PlayerFire {
 
         /** The trigger at {@code index} took its last hit and releases its secret. */
         void triggerReleased(int index);
+
+        /** The spore mine at {@code index} was shot. */
+        void mineDestroyed(int index);
+
+        /** Part {@code part} of set piece {@code piece} was destroyed. */
+        void partDestroyed(int piece, int part);
     }
+
+    /** Homing locks on a set piece's part use serials from here: unit serials stay far below it. */
+    private static final int PART_SERIAL = 1 << 24;
 
     private final Ship ship;
     private final Armament armament;
     private final SimEvents events;
     private final Hits hits;
+    private final SetPiece[] setPieces;
     private final Pool<Shot> shots = new Pool<>(SHOT_CAPACITY, Shot::new, Shot[]::new);
     private final int[] cooldowns;
     private final int[] sinceShot;
     private int overdriveTicks;
 
-    PlayerFire(Ship ship, Armament armament, SimEvents events, Hits hits) {
+    /** The homing target found by {@link #locked} or {@link #nearestInCone}. */
+    private double targetX;
+
+    private double targetY;
+
+    PlayerFire(Ship ship, Armament armament, SimEvents events, Hits hits, SetPiece[] setPieces) {
         this.ship = ship;
         this.armament = armament;
         this.events = events;
         this.hits = hits;
+        this.setPieces = setPieces;
         cooldowns = new int[armament.size()];
         sinceShot = new int[armament.size()];
         reset();
@@ -173,50 +191,104 @@ final class PlayerFire {
         }
     }
 
-    /** Steers at the locked target, or locks onto the nearest enemy in range and in the cone when it has none. */
+    /**
+     * Steers at the locked target, or locks onto the nearest enemy (or set-piece part) in range and
+     * in the cone when it has none.
+     */
     private void home(Shot shot, Pool<Enemy> enemies) {
-        Enemy target = locked(shot, enemies);
-        if (target == null) {
-            target = nearestInCone(shot, enemies);
-            shot.lock(target == null ? -1 : target.serial());
+        boolean found = locked(shot, enemies);
+        if (!found) {
+            int target = nearestInCone(shot, enemies);
+            shot.lock(target);
+            found = target >= 0;
         }
-        if (target != null) {
-            shot.steer(target.x(), target.y());
+        if (found) {
+            shot.steer(targetX, targetY);
         }
     }
 
-    private static Enemy locked(Shot shot, Pool<Enemy> enemies) {
-        if (shot.target() < 0) {
-            return null;
+    /** Whether the shot's locked target is still on the field; it is then at the target position. */
+    private boolean locked(Shot shot, Pool<Enemy> enemies) {
+        int target = shot.target();
+        if (target < 0) {
+            return false;
+        }
+        if (target >= PART_SERIAL) {
+            int piece = (target - PART_SERIAL) / LevelScript.SetPieceSpec.MAX_PARTS;
+            int part = (target - PART_SERIAL) % LevelScript.SetPieceSpec.MAX_PARTS;
+            return piece < setPieces.length && partTarget(setPieces[piece], part);
         }
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
-            if (enemy.serial() == shot.target()) {
-                return onField(enemy) ? enemy : null;
+            if (enemy.serial() == target) {
+                if (!onField(enemy)) {
+                    return false;
+                }
+                targetX = enemy.x();
+                targetY = enemy.y();
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
-    private static Enemy nearestInCone(Shot shot, Pool<Enemy> enemies) {
+    /** Whether a set piece's part can be a homing target: present, alive and on the field; it is then the target position. */
+    private boolean partTarget(SetPiece piece, int part) {
+        if (!piece.present() || piece.partWrecked(part)) {
+            return false;
+        }
+        double x = piece.partX(part);
+        double y = piece.partY(part);
+        if (!PlayField.overlaps(x, y, piece.spec().parts().get(part).box())) {
+            return false;
+        }
+        targetX = x;
+        targetY = y;
+        return true;
+    }
+
+    /** The serial of the nearest target in range and in the cone, -1 for none; the target position is set. */
+    private int nearestInCone(Shot shot, Pool<Enemy> enemies) {
         WeaponSpec weapon = shot.weapon();
         double best = weapon.range() * weapon.range();
-        Enemy nearest = null;
+        int nearest = -1;
+        double nearestX = 0;
+        double nearestY = 0;
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
-            double dx = enemy.x() - shot.x();
-            double dy = enemy.y() - shot.y();
-            double d = dx * dx + dy * dy;
-            if (d > best || !onField(enemy)) {
-                continue;
-            }
-            double off = Math.IEEEremainder(StrictMath.atan2(dx, dy) - shot.heading(), 2 * StrictMath.PI);
-            if (Math.abs(off) <= weapon.coneHalfAngle()) {
-                best = d;
-                nearest = enemy;
+            if (onField(enemy) && inCone(shot, enemy.x(), enemy.y(), best)) {
+                best = distanceSquared(shot.x(), shot.y(), enemy.x(), enemy.y());
+                nearest = enemy.serial();
+                nearestX = enemy.x();
+                nearestY = enemy.y();
             }
         }
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
+            for (int p = 0; p < piece.partCount(); p++) {
+                if (partTarget(piece, p) && inCone(shot, targetX, targetY, best)) {
+                    best = distanceSquared(shot.x(), shot.y(), targetX, targetY);
+                    nearest = PART_SERIAL + k * LevelScript.SetPieceSpec.MAX_PARTS + p;
+                    nearestX = targetX;
+                    nearestY = targetY;
+                }
+            }
+        }
+        targetX = nearestX;
+        targetY = nearestY;
         return nearest;
+    }
+
+    /** Whether (x, y) is within {@code best} (squared) of the shot and inside its cone. */
+    private static boolean inCone(Shot shot, double x, double y, double best) {
+        double dx = x - shot.x();
+        double dy = y - shot.y();
+        double d = dx * dx + dy * dy;
+        if (d > best) {
+            return false;
+        }
+        double off = Math.IEEEremainder(StrictMath.atan2(dx, dy) - shot.heading(), 2 * StrictMath.PI);
+        return Math.abs(off) <= shot.weapon().coneHalfAngle();
     }
 
     /** Bolts and missiles hit the enemies they pass on the layers they reach. */
@@ -247,6 +319,111 @@ final class PlayerFire {
                 }
             }
         }
+    }
+
+    /** Bolts and missiles hit the armed spore mines on the player's layer. */
+    void hitMines(Pool<Mine> mines) {
+        for (int i = shots.size() - 1; i >= 0; i--) {
+            Shot shot = shots.get(i);
+            WeaponSpec weapon = shot.weapon();
+            if (weapon.delivery().landing() || !weapon.delivery().reaches(Layer.AIR)) {
+                continue;
+            }
+            for (int j = mines.size() - 1; j >= 0; j--) {
+                Mine mine = mines.get(j);
+                if (!mine.armed()
+                        || !weapon.size().overlaps(shot.x(), shot.y(), EnemyGun.MineSpec.BOX, mine.x(), mine.y())) {
+                    continue;
+                }
+                events.add(SimEvents.Type.ENEMY_HIT, shot.x(), shot.y(), shot.mount());
+                boolean spent = shot.pierced();
+                if (mine.damage(shot.damage())) {
+                    hits.mineDestroyed(j);
+                }
+                if (spent) {
+                    shots.free(i);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Bolts and missiles that reach a set piece's layer hit its living parts; what touches its
+     * armoured body instead glances off.
+     */
+    void hitSetPieces() {
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
+            if (!piece.present()) {
+                continue;
+            }
+            List<LevelScript.PartSpec> parts = piece.spec().parts();
+            for (int i = shots.size() - 1; i >= 0; i--) {
+                Shot shot = shots.get(i);
+                WeaponSpec weapon = shot.weapon();
+                if (weapon.delivery().landing() || !weapon.delivery().reaches(piece.layer())) {
+                    continue;
+                }
+                boolean gone = false;
+                for (int p = 0; p < parts.size() && piece.present(); p++) {
+                    double px = piece.partX(p);
+                    double py = piece.partY(p);
+                    if (piece.partWrecked(p)
+                            || !weapon.size()
+                                    .overlaps(shot.x(), shot.y(), parts.get(p).box(), px, py)
+                            || !PlayField.overlaps(px, py, parts.get(p).box())
+                            || (weapon.pierce() > 1 && shot.struck(-1 - k * LevelScript.SetPieceSpec.MAX_PARTS - p))) {
+                        continue;
+                    }
+                    events.add(SimEvents.Type.ENEMY_HIT, shot.x(), shot.y(), shot.mount());
+                    boolean spent = shot.pierced();
+                    if (piece.damagePart(p, shot.damage())) {
+                        hits.partDestroyed(k, p);
+                    }
+                    if (spent) {
+                        shots.free(i);
+                        gone = true;
+                        break;
+                    }
+                }
+                if (!gone
+                        && piece.present()
+                        && weapon.size()
+                                .overlaps(shot.x(), shot.y(), piece.spec().body(), piece.x(), piece.y())
+                        && !partAhead(piece, shot)) {
+                    events.add(SimEvents.Type.SHOT_GLANCED, shot.x(), shot.y(), shot.mount());
+                    shots.free(i);
+                }
+            }
+        }
+    }
+
+    /**
+     * Whether a living part on the field lies ahead of the shot in its line of flight: a shot over
+     * the armoured body flies on over the unit's back towards it (the vents and the blowhole sit on
+     * the body); a shot with nothing ahead of it glances off the armour.
+     */
+    private static boolean partAhead(SetPiece piece, Shot shot) {
+        double dirX = Trig.sin(shot.heading());
+        double dirY = Trig.cos(shot.heading());
+        List<LevelScript.PartSpec> parts = piece.spec().parts();
+        for (int p = 0; p < parts.size(); p++) {
+            Hitbox box = parts.get(p).box();
+            double px = piece.partX(p);
+            double py = piece.partY(p);
+            if (piece.partWrecked(p) || !PlayField.overlaps(px, py, box)) {
+                continue;
+            }
+            double relX = px - shot.x();
+            double relY = py - shot.y();
+            double reach =
+                    (Math.max(box.width(), box.height()) + shot.weapon().size().width()) / 2;
+            if (relX * dirX + relY * dirY > 0 && Math.abs(relX * dirY - relY * dirX) < reach) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

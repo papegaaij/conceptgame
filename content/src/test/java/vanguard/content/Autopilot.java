@@ -1,17 +1,21 @@
 package vanguard.content;
 
 import vanguard.sim.Command;
+import vanguard.sim.Debris;
 import vanguard.sim.Enemy;
 import vanguard.sim.EnemyBullet;
 import vanguard.sim.GroundObject;
+import vanguard.sim.Mine;
 import vanguard.sim.Pickup;
 import vanguard.sim.PlayField;
+import vanguard.sim.SetPiece;
 import vanguard.sim.Sortie;
 
 /**
  * A simple pilot for headless runs of a whole level: fires all the time, lines up under the lowest
- * enemy on screen (or a ground object when the air is clear), sidesteps bullets and rammers that
- * come close and picks up what drops when nothing threatens. It reads the sortie's state only, so
+ * enemy on screen (or a ground object when the air is clear), sidesteps bullets, rammers, armed
+ * spores and large debris that come close, stays under a set piece on the player's layer and
+ * aims at its vital part, and picks up what drops when nothing threatens. It reads the sortie's state only, so
  * it is deterministic; the recorded replay stores its commands.
  */
 final class Autopilot {
@@ -31,6 +35,10 @@ final class Autopilot {
         }
         double targetX = shipX;
         double targetY = CRUISE_Y;
+        SetPiece piece = descended(sortie);
+        if (piece != null) {
+            return commands | steer(shipX, shipY, vitalX(piece), Math.min(CRUISE_Y, bodyBottom(piece) - 70));
+        }
         Enemy lowest = null;
         for (int i = 0; i < sortie.enemyCount(); i++) {
             Enemy enemy = sortie.enemy(i);
@@ -58,6 +66,11 @@ final class Autopilot {
                 targetY = Math.max(40, pickup.renderY(1) - 10);
             }
         }
+        return commands | steer(shipX, shipY, targetX, targetY);
+    }
+
+    private static int steer(double shipX, double shipY, double targetX, double targetY) {
+        int commands = 0;
         if (targetX < shipX - DEAD_ZONE) {
             commands |= Command.LEFT.bit();
         } else if (targetX > shipX + DEAD_ZONE) {
@@ -71,8 +84,51 @@ final class Autopilot {
         return commands;
     }
 
+    /** A set piece on the player's layer, or null. */
+    private static SetPiece descended(Sortie sortie) {
+        for (int i = 0; i < sortie.setPieceCount(); i++) {
+            SetPiece piece = sortie.setPiece(i);
+            if (piece.present() && piece.onPlane()) {
+                return piece;
+            }
+        }
+        return null;
+    }
+
+    /** Where to line up under a set piece: its vital part, while it lives, else its centre. */
+    private static double vitalX(SetPiece piece) {
+        for (int p = 0; p < piece.partCount(); p++) {
+            if (piece.spec().parts().get(p).vital() && !piece.partWrecked(p)) {
+                return piece.partX(p);
+            }
+        }
+        return piece.renderX(1);
+    }
+
+    private static double bodyBottom(SetPiece piece) {
+        return piece.renderY(1) - piece.spec().body().height() / 2;
+    }
+
     /** The side to dodge to: negative = left, positive = right, 0 = nothing close. */
     private static double threat(Sortie sortie, double shipX, double shipY) {
+        for (int i = 0; i < sortie.mineCount(); i++) {
+            Mine mine = sortie.mine(i);
+            double dx = mine.renderX(1) - shipX;
+            double dy = mine.renderY(1) - shipY;
+            if (mine.rising() > 0.5 && Math.abs(dx) < 26 && dy > -16 && dy < DANGER) {
+                return away(dx, shipX);
+            }
+        }
+        for (int i = 0; i < sortie.debrisCount(); i++) {
+            Debris chunk = sortie.debris(i);
+            double dx = chunk.renderX(1) - shipX;
+            double dy = chunk.renderY(1) - shipY;
+            double halfW = chunk.spec().size().width() / 2;
+            double halfH = chunk.spec().size().height() / 2;
+            if (chunk.large() && Math.abs(dx) < halfW + 30 && dy > -halfH - 20 && dy < halfH + DANGER) {
+                return away(dx, shipX);
+            }
+        }
         for (int i = 0; i < sortie.bulletCount(); i++) {
             EnemyBullet bullet = sortie.bullet(i);
             double dx = bullet.renderX(1) - shipX;

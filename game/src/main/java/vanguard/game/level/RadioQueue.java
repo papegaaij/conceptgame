@@ -1,7 +1,7 @@
 package vanguard.game.level;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import vanguard.game.settings.GameplaySettings;
@@ -11,6 +11,13 @@ import vanguard.game.ui.Words;
  * The radio chatter in the side HUD (design/ui/hud, left panel): messages queue up and play one
  * at a time, typed out in pages of three lines of up to 22 characters below the speaker's
  * portrait. A page holds for a moment once typed; a message closes after its last page.
+ *
+ * <p>Timed lines go first (design/ui/hud, Radio): a queued timed line plays before any waiting event
+ * line. An event line waits for a gap, a free radio long enough to play it before the next timed
+ * line is due; one that has waited longer than {@link #STALE_SECONDS} is dropped as stale. The lines
+ * that close a level (its end, a met secondary objective) wait for a gap too but never go stale:
+ * the outro waits for them. The queue has no clock or randomness of its own, so the same updates
+ * always play the same lines.
  */
 public final class RadioQueue {
     public static final int LINE_CHARS = 22;
@@ -24,6 +31,18 @@ public final class RadioQueue {
     static final float LAST_PAGE_SECONDS = 5f;
     /** Silence between two messages. */
     static final float GAP_SECONDS = 0.4f;
+    /** An event line that has waited this long for a gap is dropped as stale. */
+    public static final float STALE_SECONDS = 6f;
+
+    /** How a line queues. */
+    public enum Priority {
+        /** A line at its time in the level script: plays first, in order, and is never dropped. */
+        TIMED,
+        /** A reaction to an event (an escaped enemy, a secret): waits for a gap, stale after {@link #STALE_SECONDS}. */
+        EVENT,
+        /** A line that closes the level (its end, a met secondary objective): waits for a gap, never stale. */
+        CLOSING
+    }
 
     /** What changed in an update, for the squelch and typing sounds. */
     public enum Change {
@@ -56,9 +75,30 @@ public final class RadioQueue {
         List<String> page(int page) {
             return lines.subList(page * PAGE_LINES, Math.min(lines.size(), (page + 1) * PAGE_LINES));
         }
+
+        /** How long it is on the radio at {@code charsPerSecond}: every page typed and held. */
+        float seconds(float charsPerSecond) {
+            float seconds = LAST_PAGE_SECONDS + PAGE_SECONDS * (pages() - 1);
+            for (int page = 0; page < pages(); page++) {
+                seconds += length(page) / charsPerSecond;
+            }
+            return seconds;
+        }
     }
 
-    private final ArrayDeque<Message> queue = new ArrayDeque<>();
+    /** A queued message, how it queues and how long it has waited. */
+    private static final class Waiting {
+        final Message message;
+        final Priority priority;
+        float waited;
+
+        Waiting(Message message, Priority priority) {
+            this.message = message;
+            this.priority = priority;
+        }
+    }
+
+    private final List<Waiting> queue = new ArrayList<>();
     private Optional<Message> current = Optional.empty();
     private int page;
     private float typed;
@@ -72,14 +112,15 @@ public final class RadioQueue {
         charsPerSecond = speed;
     }
 
-    /** Queues a line in the speaker's own portrait; it plays after the ones before it. */
+    /** Queues a timed line in the speaker's own portrait; it plays after the ones before it. */
     public void add(String speaker, String expression, String line, boolean distorted) {
-        add(speaker, speaker, expression, line, distorted);
+        add(speaker, speaker, expression, line, distorted, Priority.TIMED);
     }
 
-    /** Queues a line shown with {@code portrait}'s portrait; it plays after the ones before it. */
-    public void add(String speaker, String portrait, String expression, String line, boolean distorted) {
-        queue.add(new Message(speaker, portrait, expression, wrap(line), distorted));
+    /** Queues a line shown with {@code portrait}'s portrait, by its priority. */
+    public void add(
+            String speaker, String portrait, String expression, String line, boolean distorted, Priority priority) {
+        queue.add(new Waiting(new Message(speaker, portrait, expression, wrap(line), distorted), priority));
     }
 
     /** Drops everything, as when the level restarts. */
@@ -89,13 +130,31 @@ public final class RadioQueue {
         gap = 0;
     }
 
+    /** An update with no timed line ahead. */
     public Change update(float seconds) {
+        return update(seconds, Float.POSITIVE_INFINITY);
+    }
+
+    /** @param untilTimed seconds until the level script's next timed line is due (infinite for none) */
+    public Change update(float seconds, float untilTimed) {
+        for (Iterator<Waiting> waiting = queue.iterator(); waiting.hasNext(); ) {
+            Waiting next = waiting.next();
+            next.waited += seconds;
+            if (next.priority == Priority.EVENT && next.waited > STALE_SECONDS) {
+                waiting.remove();
+            }
+        }
         if (current.isEmpty()) {
             gap = Math.max(0, gap - seconds);
-            if (gap > 0 || queue.isEmpty()) {
+            if (gap > 0) {
                 return Change.NONE;
             }
-            current = Optional.of(queue.poll());
+            Optional<Waiting> next = next(untilTimed);
+            if (next.isEmpty()) {
+                return Change.NONE;
+            }
+            queue.remove(next.get());
+            current = Optional.of(next.get().message);
             page = 0;
             typed = 0;
             held = 0;
@@ -124,6 +183,23 @@ public final class RadioQueue {
         current = Optional.empty();
         gap = GAP_SECONDS;
         return Change.CLOSED;
+    }
+
+    /**
+     * The message to open now: the oldest timed line, else the oldest other line if it ends, with
+     * the gap after it, before the next timed line is due.
+     */
+    private Optional<Waiting> next(float untilTimed) {
+        Optional<Waiting> timed = queue.stream()
+                .filter(waiting -> waiting.priority == Priority.TIMED)
+                .findFirst();
+        if (timed.isPresent() || queue.isEmpty()) {
+            return timed;
+        }
+        Waiting oldest = queue.getFirst();
+        return oldest.message.seconds(charsPerSecond) + GAP_SECONDS <= untilTimed
+                ? Optional.of(oldest)
+                : Optional.empty();
     }
 
     /** Whether nothing is on the radio or waiting for it. */

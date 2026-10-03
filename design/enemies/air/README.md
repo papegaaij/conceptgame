@@ -24,8 +24,8 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 | [skitter](skitter/README.md) | Tiny swarm fodder that rams; teaches shooting (L01) | approved | in-progress | final |
 | [needler](needler/README.md) | Basic gunner, hovers and fires aimed thorns (L01) | approved | in-progress | final |
 | [stinger](stinger/README.md) | Diver that fires a fan at the bottom of its dive (L02) | approved | done | final |
-| [spore-bomber](spore-bomber/README.md) | Low-air bomber dropping rising spore mines (L03) | approved | not-started | chosen |
-| [whirl-seed](whirl-seed/README.md) | Tiny radial spinner released in clusters (L03) | approved | not-started | chosen |
+| [spore-bomber](spore-bomber/README.md) | Low-air bomber dropping rising spore mines (L03) | approved | done | chosen |
+| [whirl-seed](whirl-seed/README.md) | Tiny radial spinner released in clusters (L03) | approved | done | chosen |
 | [brood-pod](brood-pod/README.md) | Egg sac that bursts into Skitters when killed or after 8 s (L04) | approved | not-started | chosen |
 | [mantis](mantis/README.md) | Side-entering laser sweeper (L06) | approved | not-started | chosen |
 | [coilwyrm](coilwyrm/README.md) | Segment-chain serpent that loops to the rear and regrows a head once (L06) | approved | not-started | chosen |

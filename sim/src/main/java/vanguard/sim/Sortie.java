@@ -6,8 +6,8 @@ import java.util.List;
 /**
  * A level in play, advanced in fixed 60 Hz steps by {@link #step(int)}: the launch, the scroll
  * through the sections, the ship and its {@link PlayerFire}, the {@link EnemyForce} of the
- * {@link LevelScript}, the ground objects, the pickups, the {@link Radio} cues, the
- * {@link Objectives} and the tally. All entities live in pools allocated up front and the waves
+ * {@link LevelScript}, its {@link SetPiece}s, the ground objects, the {@link Debris} chunks, the
+ * pickups, the {@link Radio} cues, the {@link Objectives} and the tally. All entities live in pools allocated up front and the waves
  * are planned when the sortie is created, so stepping does not allocate, and the same seed and
  * commands give the same {@link #stateHash()} on every platform.
  *
@@ -21,6 +21,7 @@ public final class Sortie {
     private static final int GROUND_CAPACITY = 32;
     private static final int PICKUP_CAPACITY = 64;
     private static final int EVENT_CAPACITY = 256;
+    private static final int DEBRIS_CAPACITY = 24;
 
     private final SplitMix64 rng;
     private final Ship ship;
@@ -30,6 +31,11 @@ public final class Sortie {
     private final EnemyForce force;
     private final Pool<GroundObject> ground = new Pool<>(GROUND_CAPACITY, GroundObject::new, GroundObject[]::new);
     private final Pool<Pickup> pickups = new Pool<>(PICKUP_CAPACITY, Pickup::new, Pickup[]::new);
+    private final Pool<Debris> debris = new Pool<>(DEBRIS_CAPACITY, Debris::new, Debris[]::new);
+    private final SetPiece[] setPieces;
+    /** Per secret, the triggers spent that reveal it together (Level 03's lifeboat lights). */
+    private final int[] secretTriggersSpent;
+
     private final SimEvents events = new SimEvents(EVENT_CAPACITY);
     private final Tally tally;
     private final Objectives objectives;
@@ -50,6 +56,7 @@ public final class Sortie {
 
     private double groundScroll;
     private int nextGroundObject;
+    private int nextDebris;
     private int edgeWarnings;
     private boolean complete;
 
@@ -64,25 +71,47 @@ public final class Sortie {
                 new Defences(loadout.shield(), loadout.plating(), loadout.ship().mercySeconds()));
         this.script = script;
         this.rules = rules;
-        fire = new PlayerFire(ship, loadout.armament(), events, new PlayerFire.Hits() {
-            @Override
-            public void enemyDestroyed(int index) {
-                destroy(index);
-            }
+        setPieces = script.setPieces().stream().map(SetPiece::new).toArray(SetPiece[]::new);
+        secretTriggersSpent = new int[script.secrets()];
+        fire = new PlayerFire(
+                ship,
+                loadout.armament(),
+                events,
+                new PlayerFire.Hits() {
+                    @Override
+                    public void enemyDestroyed(int index) {
+                        destroy(index);
+                    }
 
-            @Override
-            public void groundDestroyed(int index) {
-                demolish(index);
-            }
+                    @Override
+                    public void groundDestroyed(int index) {
+                        demolish(index);
+                    }
 
-            @Override
-            public void triggerReleased(int index) {
-                revealSecret(ground.get(index));
-            }
-        });
-        force = new EnemyForce(script.waves(), script.groundUnits(), rng, rules, events, this::groupUnitEscaped);
+                    @Override
+                    public void triggerReleased(int index) {
+                        released(ground.get(index));
+                    }
+
+                    @Override
+                    public void mineDestroyed(int index) {
+                        shootMine(index);
+                    }
+
+                    @Override
+                    public void partDestroyed(int piece, int part) {
+                        wreck(piece, part);
+                    }
+                },
+                setPieces);
+        force = new EnemyForce(script.waves(), script.groundUnits(), rng, rules, events, this::escaped);
         tally = new Tally(rules.scoring());
-        objectives = new Objectives(script.secondary(), force.kinds().size(), force.units(), script.groundUnits());
+        int escapers = force.unitsOf(script.secondary().escapes());
+        for (SetPiece piece : setPieces) {
+            escapers += piece.slug().equals(script.secondary().escapes()) ? 1 : 0;
+        }
+        objectives =
+                new Objectives(script.secondary(), force.kinds().size(), enemyTotal(), script.groundUnits(), escapers);
         cranes = script.cranes().stream().map(Crane::new).toArray(Crane[]::new);
         groupCalled = new boolean[script.secondary().groups().size()];
         radio = new Radio(script.radio(), events, ship);
@@ -113,24 +142,34 @@ public final class Sortie {
         if (!complete) {
             force.spawn(levelTick);
             placeGroundObjects();
+            placeDebris();
             radio.byTime(levelTick);
         }
         for (Crane crane : cranes) {
             crane.update(levelTick);
         }
+        flySetPieces();
         edgeWarnings = complete ? 0 : force.warnings(levelTick);
         fire.move(scrollStep, force.enemies());
-        force.move(ship, flying() && !complete, scrollStep);
+        boolean firing = flying() && !complete;
+        force.move(ship, firing, scrollStep);
+        fireSetPieces(firing);
         force.moveBullets();
+        force.moveMines(ship);
+        moveDebris();
         blockShots();
         scrollGround(scrollStep);
         driftPickups();
         fire.hitEnemies(force.enemies());
+        fire.hitSetPieces();
+        fire.hitMines(force.mines());
         fire.hitGround(ground, force.enemies());
         if (flying() && !complete && !rules.invulnerableShip()) {
             hitShip();
             ramShip();
             hitByCranes();
+            hitByDebris();
+            hitBySetPieces();
         }
         if (flying()) {
             collectPickups();
@@ -165,6 +204,11 @@ public final class Sortie {
         force.reset();
         Pools.clear(ground);
         Pools.clear(pickups);
+        Pools.clear(debris);
+        for (SetPiece piece : setPieces) {
+            piece.reset();
+        }
+        Arrays.fill(secretTriggersSpent, 0);
         tally.reset();
         objectives.reset();
         radio.reset();
@@ -175,6 +219,7 @@ public final class Sortie {
         levelTick = 0;
         groundScroll = 0;
         nextGroundObject = 0;
+        nextDebris = 0;
         complete = false;
         wrecked = false;
         attempt++;
@@ -196,6 +241,80 @@ public final class Sortie {
                 object.place(objects.get(nextGroundObject), nextGroundObject);
             }
             nextGroundObject++;
+        }
+    }
+
+    /**
+     * Lets in the debris chunks due now, each at its x unless that is closer to the ship than its
+     * clearance: then it enters as far to the side, away from the ship.
+     */
+    private void placeDebris() {
+        List<LevelScript.DebrisSpec> specs = script.debris();
+        while (nextDebris < specs.size() && SimStep.ticks(specs.get(nextDebris).t()) <= levelTick) {
+            Debris chunk = debris.obtain();
+            if (chunk != null) {
+                LevelScript.DebrisSpec spec = specs.get(nextDebris);
+                chunk.place(spec, nextDebris, clearOfShip(spec));
+            }
+            nextDebris++;
+        }
+    }
+
+    /** Where a chunk enters: its x, or moved sideways away from the ship to its clearance. */
+    private double clearOfShip(LevelScript.DebrisSpec spec) {
+        double dy = PlayField.HEIGHT + spec.size().height() / 2 - ship.y();
+        double dx = spec.x() - ship.x();
+        double clearance = spec.clearance();
+        if (dx * dx + dy * dy >= clearance * clearance) {
+            return spec.x();
+        }
+        double shift = Math.sqrt(clearance * clearance - dy * dy);
+        double half = spec.size().width() / 2;
+        double away = Math.clamp(ship.x() + (dx >= 0 ? shift : -shift), half, PlayField.WIDTH - half);
+        if (Math.abs(away - ship.x()) >= shift) {
+            return away;
+        }
+        return Math.clamp(ship.x() + (dx >= 0 ? -shift : shift), half, PlayField.WIDTH - half);
+    }
+
+    private void moveDebris() {
+        for (int i = debris.size() - 1; i >= 0; i--) {
+            if (!debris.get(i).move()) {
+                debris.free(i);
+            }
+        }
+    }
+
+    /**
+     * The set pieces fly their passes: one reaching the player's layer is announced, one ending its
+     * last pass alive has escaped (its line, and an escapes objective about it fails).
+     */
+    private void flySetPieces() {
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
+            boolean onPlane = piece.onPlane();
+            if (piece.update(levelTick)) {
+                events.add(SimEvents.Type.SET_PIECE_ESCAPED, piece.x(), piece.y(), k);
+                if (objectives.escapeLost(piece.slug())) {
+                    events.add(SimEvents.Type.OBJECTIVE_FAILED, piece.x(), piece.y());
+                }
+                radio.cue(LevelScript.CueTrigger.ENEMY_ESCAPED, piece.slug());
+            } else if (!onPlane && piece.onPlane()) {
+                events.add(SimEvents.Type.SET_PIECE_DESCENDED, piece.x(), piece.y(), k);
+            }
+        }
+    }
+
+    /** The set pieces' living parts fire their guns while on the player's layer. */
+    private void fireSetPieces(boolean firing) {
+        for (SetPiece piece : setPieces) {
+            List<LevelScript.PartSpec> parts = piece.spec().parts();
+            for (int p = 0; p < parts.size(); p++) {
+                if (piece.trigger(p) && firing) {
+                    force.fireFrom(
+                            piece.partX(p), piece.partY(p), parts.get(p).gun().orElseThrow(), ship);
+                }
+            }
         }
     }
 
@@ -228,6 +347,18 @@ public final class Sortie {
         ground.free(index);
     }
 
+    /**
+     * A trigger took its last hit: it reveals its secret, or, when several triggers reveal it
+     * together, counts towards it and the last one reveals it.
+     */
+    private void released(GroundObject trigger) {
+        LevelScript.GroundObjectSpec spec = trigger.spec();
+        if (spec.secretTriggers() > 1 && ++secretTriggersSpent[spec.secretIndex()] < spec.secretTriggers()) {
+            return;
+        }
+        revealSecret(trigger);
+    }
+
     private void revealSecret(GroundObject trigger) {
         objectives.secretFound();
         LevelScript.GroundObjectSpec spec = trigger.spec();
@@ -253,6 +384,9 @@ public final class Sortie {
         if (spec.drop().isPresent() && kills % spec.drop().get().every() == 0) {
             drop(spec.drop().get().pickup(), enemy.x(), enemy.y());
         }
+        if (spec.deathBurst().isPresent()) {
+            force.deathBurst(enemy, ship);
+        }
         enemies.free(index);
         if (kills == 1) {
             radio.cue(LevelScript.CueTrigger.FIRST_KILL, spec.slug());
@@ -260,18 +394,87 @@ public final class Sortie {
         if (group >= 0) {
             decided(group, objectives.groupUnitDestroyed(group));
         }
+        if (objectives.escapeDestroyed(spec.slug())) {
+            paySecondary();
+        }
         if (objectives.meetsSecondary(tally.kills())) {
-            int credits = script.secondary().credits();
-            tally.earn(CreditSource.OBJECTIVES, credits);
-            tally.scoreValue(credits);
-            events.add(SimEvents.Type.OBJECTIVE_MET, ship.x(), ship.y());
-            radio.cue(LevelScript.CueTrigger.SECONDARY_OBJECTIVE, "");
+            paySecondary();
         }
     }
 
-    /** A unit of a ground group left the screen alive. */
-    private void groupUnitEscaped(int group) {
-        decided(group, objectives.groupUnitEscaped(group));
+    /** A spore mine was shot: it pays its credits (no kill, no chain). */
+    private void shootMine(int index) {
+        Pool<Mine> mines = force.mines();
+        Mine mine = mines.get(index);
+        events.add(SimEvents.Type.MINE_DESTROYED, mine.x(), mine.y());
+        int credits = mine.spec().credits();
+        tally.earn(CreditSource.KILLS, credits);
+        tally.scoreValue(credits);
+        mines.free(index);
+    }
+
+    /**
+     * Part {@code part} of set piece {@code k} was destroyed: it pays its bounty; the vital part
+     * takes the rest with it, paying theirs, and the unit is destroyed.
+     */
+    private void wreck(int k, int part) {
+        SetPiece piece = setPieces[k];
+        payPart(piece, part);
+        if (!piece.spec().parts().get(part).vital()) {
+            return;
+        }
+        for (int p = 0; p < piece.partCount(); p++) {
+            if (piece.wreckPart(p)) {
+                payPart(piece, p);
+            }
+        }
+        LevelScript.SetPieceSpec spec = piece.spec();
+        events.add(SimEvents.Type.SET_PIECE_DESTROYED, piece.x(), piece.y(), k);
+        tally.countKill();
+        if (spec.drop().isPresent()) {
+            double half = EnemyGun.BULLET.width();
+            drop(
+                    spec.drop().get(),
+                    Math.clamp(piece.x(), half, PlayField.WIDTH - half),
+                    Math.clamp(piece.y(), half, PlayField.HEIGHT - half));
+        }
+        piece.destroy();
+        radio.cue(LevelScript.CueTrigger.FIRST_KILL, spec.slug());
+        if (objectives.escapeDestroyed(spec.slug())) {
+            paySecondary();
+        }
+        if (objectives.meetsSecondary(tally.kills())) {
+            paySecondary();
+        }
+    }
+
+    private void payPart(SetPiece piece, int part) {
+        tally.partKill(piece.spec().parts().get(part).bounty());
+        events.add(SimEvents.Type.PART_DESTROYED, piece.partX(part), piece.partY(part), part);
+    }
+
+    /** The secondary objective is met: its credits, its event and its line. */
+    private void paySecondary() {
+        int credits = script.secondary().credits();
+        tally.earn(CreditSource.OBJECTIVES, credits);
+        tally.scoreValue(credits);
+        events.add(SimEvents.Type.OBJECTIVE_MET, ship.x(), ship.y());
+        radio.cue(LevelScript.CueTrigger.SECONDARY_OBJECTIVE, "");
+    }
+
+    /**
+     * A unit left the screen alive: a ground group's unit can lose its group, one of an escapes
+     * objective's enemy fails it, and the first of an enemy calls its line.
+     */
+    private void escaped(Enemy enemy) {
+        String slug = enemy.spec().slug();
+        if (enemy.group() >= 0) {
+            decided(enemy.group(), objectives.groupUnitEscaped(enemy.group()));
+        }
+        if (objectives.escapeLost(slug)) {
+            events.add(SimEvents.Type.OBJECTIVE_FAILED, enemy.x(), enemy.y());
+        }
+        radio.cue(LevelScript.CueTrigger.ENEMY_ESCAPED, slug);
     }
 
     /**
@@ -309,6 +512,7 @@ public final class Sortie {
                     switch (type) {
                         case SMALL_SALVAGE -> rules.pickups().smallSalvageCredits();
                         case MEDIUM_SALVAGE -> rules.pickups().mediumSalvageCredits();
+                        case LARGE_SALVAGE -> rules.pickups().largeSalvageCredits();
                         default -> 0;
                     };
             pickup.drop(type, credits, x, y, pickupTicks);
@@ -344,6 +548,80 @@ public final class Sortie {
                 EnemyBullet bullet = bullets.get(i);
                 if (crane.touches(bullet.x(), bullet.y(), EnemyGun.BULLET.width() / 2, EnemyGun.BULLET.height() / 2)) {
                     bullets.free(i);
+                }
+            }
+        }
+        blockByDebris(shots, bullets);
+    }
+
+    /**
+     * The debris chunks stop every shot and enemy bullet that touches them: shots glance off a
+     * large chunk and damage a small one, which breaks after its HP.
+     */
+    private void blockByDebris(Pool<Shot> shots, Pool<EnemyBullet> bullets) {
+        for (int d = debris.size() - 1; d >= 0; d--) {
+            Debris chunk = debris.get(d);
+            boolean broken = false;
+            for (int i = shots.size() - 1; i >= 0; i--) {
+                Shot shot = shots.get(i);
+                if (shot.weapon().delivery().landing()
+                        || !chunk.touches(shot.x(), shot.y(), shot.weapon().size())) {
+                    continue;
+                }
+                events.add(
+                        chunk.large() ? SimEvents.Type.SHOT_GLANCED : SimEvents.Type.DEBRIS_HIT,
+                        shot.x(),
+                        shot.y(),
+                        shot.mount());
+                broken = chunk.damage(shot.damage());
+                shots.free(i);
+                if (broken) {
+                    events.add(SimEvents.Type.DEBRIS_DESTROYED, chunk.x(), chunk.y());
+                    debris.free(d);
+                    break;
+                }
+            }
+            if (broken) {
+                continue;
+            }
+            for (int i = bullets.size() - 1; i >= 0; i--) {
+                EnemyBullet bullet = bullets.get(i);
+                if (chunk.touches(bullet.x(), bullet.y(), EnemyGun.BULLET)) {
+                    bullets.free(i);
+                }
+            }
+        }
+    }
+
+    /** A large debris chunk touching the hull deals its contact damage, at most once per its interval. */
+    private void hitByDebris() {
+        Hull hull = ship.spec().hull();
+        for (int d = 0; d < debris.size(); d++) {
+            Debris chunk = debris.get(d);
+            LevelScript.DebrisSpec spec = chunk.spec();
+            if (spec.damage() > 0
+                    && hull.overlaps(ship.x(), ship.y(), spec.size(), chunk.x(), chunk.y())
+                    && chunk.strike()) {
+                double lost = ship.defences().armourLost();
+                if (damaged(lost, ship.defences().takeCollision(spec.damage(), events, ship.x(), ship.y()))) {
+                    return;
+                }
+            }
+        }
+    }
+
+    /** A set piece's body on the player's layer touching the hull deals its contact damage, at most once per its interval. */
+    private void hitBySetPieces() {
+        Hull hull = ship.spec().hull();
+        for (SetPiece piece : setPieces) {
+            LevelScript.SetPieceSpec spec = piece.spec();
+            if (piece.present()
+                    && piece.onPlane()
+                    && hull.overlaps(ship.x(), ship.y(), spec.body(), piece.x(), piece.y())
+                    && piece.strike()) {
+                double lost = ship.defences().armourLost();
+                if (damaged(lost, ship.defences().takeCollision(spec.contactDamage(), events, ship.x(), ship.y()))) {
+                    return;
                 }
             }
         }
@@ -395,6 +673,20 @@ public final class Sortie {
                 bullets.free(i);
                 double lost = ship.defences().armourLost();
                 if (damaged(lost, ship.defences().takeShot(bullet.damage(), events, ship.x(), ship.y()))) {
+                    return;
+                }
+            }
+        }
+        // An armed spore bursts on contact with the hull, dealing its layer's attack damage.
+        Pool<Mine> mines = force.mines();
+        for (int i = mines.size() - 1; i >= 0; i--) {
+            Mine mine = mines.get(i);
+            if (mine.armed() && hull.overlaps(ship.x(), ship.y(), EnemyGun.MineSpec.BOX, mine.x(), mine.y())) {
+                double damage = mine.gun().damage();
+                events.add(SimEvents.Type.MINE_BURST, mine.x(), mine.y());
+                mines.free(i);
+                double lost = ship.defences().armourLost();
+                if (damaged(lost, ship.defences().takeShot(damage, events, ship.x(), ship.y()))) {
                     return;
                 }
             }
@@ -453,7 +745,7 @@ public final class Sortie {
     private void apply(Pickup pickup) {
         Defences defences = ship.defences();
         switch (pickup.type()) {
-            case SMALL_SALVAGE, MEDIUM_SALVAGE -> payPickup(CreditSource.SALVAGE, pickup);
+            case SMALL_SALVAGE, MEDIUM_SALVAGE, LARGE_SALVAGE -> payPickup(CreditSource.SALVAGE, pickup);
             case OVERDRIVE -> fire.overdrive(SimStep.ticks(rules.pickups().overdriveSeconds()));
             case HIDDEN_CRATE -> payPickup(CreditSource.SECRETS, pickup);
             case SHIELD_CELL -> defences.restoreShield(rules.pickups().shieldCellShare() * defences.maxShield());
@@ -487,6 +779,7 @@ public final class Sortie {
                 .add(wrecked ? 1 : 0)
                 .add(groundScroll)
                 .add(nextGroundObject)
+                .add(nextDebris)
                 .add(objectives.secretsFound())
                 .add(objectives.secondaryMet() ? 1 : 0)
                 .add(complete ? 1 : 0)
@@ -498,11 +791,19 @@ public final class Sortie {
         for (Crane crane : cranes) {
             crane.addTo(hash);
         }
+        for (SetPiece piece : setPieces) {
+            piece.addTo(hash);
+        }
+        for (int spent : secretTriggersSpent) {
+            hash.add(spent);
+        }
         Pools.addAll(hash, fire.shots());
         Pools.addAll(hash, force.enemies());
         Pools.addAll(hash, force.bullets());
         Pools.addAll(hash, ground);
         Pools.addAll(hash, pickups);
+        Pools.addAll(hash, force.mines());
+        Pools.addAll(hash, debris);
         return hash.value();
     }
 
@@ -513,7 +814,7 @@ public final class Sortie {
                 rules.scoring(),
                 script,
                 tally,
-                force.units(),
+                enemyTotal(),
                 defences.armourLost(),
                 defences.maxArmour(),
                 objectives.secretsFound(),
@@ -546,6 +847,11 @@ public final class Sortie {
     /** Seconds of overdrive left; 0 without one. */
     public double overdriveSeconds() {
         return fire.overdriveTicks() * SimStep.SECONDS;
+    }
+
+    /** Drops a spore of {@code gun}'s mine at (x, y) drifting at {@code angle}, as a mine layer does (for tests). */
+    void dropMine(EnemyGun gun, double x, double y, double angle) {
+        force.dropMine(gun, x, y, angle);
     }
 
     /** Starts an overdrive of {@code seconds}, as its pickup does; a running one starts over. */
@@ -591,6 +897,33 @@ public final class Sortie {
 
     public Pickup pickup(int index) {
         return pickups.get(index);
+    }
+
+    /** The spore mines drifting on the screen (below the player's layer until {@link Mine#armed()}). */
+    public int mineCount() {
+        return force.mines().size();
+    }
+
+    public Mine mine(int index) {
+        return force.mines().get(index);
+    }
+
+    /** The debris chunks on the screen. */
+    public int debrisCount() {
+        return debris.size();
+    }
+
+    public Debris debris(int index) {
+        return debris.get(index);
+    }
+
+    /** The level's set pieces, present or not; {@link SetPiece#present()} tells whether one is on screen. */
+    public int setPieceCount() {
+        return setPieces.length;
+    }
+
+    public SetPiece setPiece(int index) {
+        return setPieces[index];
     }
 
     public int craneCount() {
@@ -699,9 +1032,9 @@ public final class Sortie {
         return tally.kills();
     }
 
-    /** Every enemy the level sends. */
+    /** Every enemy the level sends, its set pieces among them. */
     public int enemyTotal() {
-        return force.units();
+        return force.units() + setPieces.length;
     }
 
     /** Kills needed for the secondary objective. */
@@ -711,5 +1044,25 @@ public final class Sortie {
 
     public boolean secondaryMet() {
         return objectives.secondaryMet();
+    }
+
+    /** Whether the secondary objective is that none of an enemy gets through (Level 03's Spore Bombers). */
+    public boolean secondaryByEscapes() {
+        return script.secondary().byEscapes();
+    }
+
+    /** The units of an escapes objective's enemy destroyed so far in this attempt. */
+    public int escapesDestroyed() {
+        return objectives.escapesDestroyed();
+    }
+
+    /** The units of an escapes objective's enemy the level sends. */
+    public int escapesTotal() {
+        return objectives.escapesTotal();
+    }
+
+    /** Whether a unit of an escapes objective's enemy got away: the objective failed for this attempt. */
+    public boolean secondaryFailed() {
+        return objectives.escapesFailed();
     }
 }

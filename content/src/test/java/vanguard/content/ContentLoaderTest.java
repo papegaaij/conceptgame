@@ -22,10 +22,12 @@ class ContentLoaderTest {
 
         assertEquals(14, content.weapons().size());
         assertEquals(
-                List.of("needler", "skitter", "spine-turret", "stinger"),
+                List.of("leviathan", "needler", "skitter", "spine-turret", "spore-bomber", "stinger", "whirl-seed"),
                 content.enemies().keySet().stream().sorted().toList());
         assertEquals(
                 180, content.level("act-1-first-contact/level-01-break-at-dawn").seconds());
+        assertEquals(
+                185, content.level("act-1-first-contact/level-03-spore-drift").seconds());
     }
 
     @Test
@@ -103,7 +105,7 @@ class ContentLoaderTest {
                 LEVEL_01,
                 text -> text.replaceFirst("enemy: needler", "enemy: neddler"),
                 "design/" + LEVEL_01
-                        + ": waves[2].enemy: unknown enemy 'neddler' (known: needler, skitter, spine-turret, stinger)");
+                        + ": waves[2].enemy: unknown enemy 'neddler' (known: leviathan, needler, skitter, spine-turret, spore-bomber, stinger, whirl-seed)");
     }
 
     @Test

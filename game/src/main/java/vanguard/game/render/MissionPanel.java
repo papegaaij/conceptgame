@@ -11,6 +11,7 @@ import static vanguard.game.render.MissionLayout.TEXT_WIDTH;
 import static vanguard.game.render.MissionLayout.WELL;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.utils.Array;
@@ -51,6 +52,7 @@ final class MissionPanel {
     private static final Color CHOIR = Color.valueOf("C890FF");
 
     private final HudKit kit;
+    private final GlyphLayout measure = new GlyphLayout();
     private final Sprites sprites;
     private final TransmissionStatic transmissionStatic;
     private final String mission;
@@ -58,6 +60,9 @@ final class MissionPanel {
     private final int launchBalance;
     private int frame;
     private int metFrame = -1;
+    private int failedFrame = -1;
+    /** An escapes objective's label: its enemy's last word in plural ("BOMBERS"). */
+    private String escapesLabel;
     /** The radio message whose portrait frames {@link #portrait} holds. */
     private RadioQueue.Message shownMessage;
 
@@ -87,6 +92,7 @@ final class MissionPanel {
         frame++;
         if (groupsLabel == null) {
             groupsLabel = groupsLabel(sortie.script().secondary().groups());
+            escapesLabel = escapesLabel(sortie.script().secondary().escapes());
         }
         kit.leftPanel(batch);
         int top = MissionLayout.MISSION.yTop();
@@ -196,11 +202,14 @@ final class MissionPanel {
             return;
         }
         int wellTop = well(batch, MissionLayout.PROMPTS.yTop(), PAGE_WELL);
-        int keysX = X + PAD + MissionLayout.PROMPT_ACTION_WIDTH;
-        int keysWidth = TEXT_WIDTH - MissionLayout.PROMPT_ACTION_WIDTH;
         for (int i = 0; i < Math.min(prompts.size(), MissionLayout.PROMPT_LINES); i++) {
             PromptTexts.Text prompt = prompts.get(i);
             int y = wellTop - TEXT_DROP - i * LINE;
+            // The keys take the rest of the line after the action ("LOW-AIR" leaves room for "BELOW YOU: FIRE").
+            measure.setText(kit.small, prompt.action());
+            int action = (int) Math.ceil(Math.min(measure.width, MissionLayout.PROMPT_ACTION_WIDTH));
+            int keysX = X + PAD + action + MissionLayout.PROMPT_GAP;
+            int keysWidth = TEXT_WIDTH - action - MissionLayout.PROMPT_GAP;
             kit.text(batch, kit.small, prompt.action(), HudKit.LABEL, X + PAD, y, MissionLayout.PROMPT_ACTION_WIDTH);
             kit.textRight(batch, kit.small, prompt.keys(), HudKit.READOUT, keysX, y, keysWidth);
         }
@@ -212,15 +221,34 @@ final class MissionPanel {
         } else if (!sortie.secondaryMet()) {
             metFrame = -1;
         }
-        boolean flash = metFrame >= 0 && frame - metFrame < FLASH_FRAMES && (frame - metFrame) / 8 % 2 == 0;
-        int wellTop = well(batch, MissionLayout.OBJECTIVE.yTop(), WELL);
-        if (flash) {
-            kit.fill(batch, SUCCESS, X, wellTop - WELL, WIDTH, WELL);
+        if (sortie.secondaryFailed() && failedFrame < 0) {
+            failedFrame = frame;
+        } else if (!sortie.secondaryFailed()) {
+            failedFrame = -1;
         }
-        Color colour = flash ? HudKit.LCD : sortie.secondaryMet() ? SUCCESS : HudKit.LABEL;
+        // The whole box flashes when the objective is won (green) or lost (red).
+        boolean flash = metFrame >= 0 && frame - metFrame < FLASH_FRAMES && (frame - metFrame) / 8 % 2 == 0;
+        boolean failFlash =
+                failedFrame >= 0 && frame - failedFrame < FLASH_FRAMES && (frame - failedFrame) / 8 % 2 == 0;
+        int wellTop = well(batch, MissionLayout.OBJECTIVE.yTop(), WELL);
+        if (flash || failFlash) {
+            kit.fill(batch, flash ? SUCCESS : LOST, X, wellTop - WELL, WIDTH, WELL);
+        }
+        Color colour = flash || failFlash
+                ? HudKit.LCD
+                : sortie.secondaryMet() ? SUCCESS : sortie.secondaryFailed() ? LOST : HudKit.LABEL;
         int y = wellTop - TEXT_DROP;
         if (sortie.groupCount() > 0) {
             drawGroups(batch, sortie, colour, y);
+            return;
+        }
+        if (sortie.secondaryByEscapes()) {
+            // "Nothing gets through" (Level 03): the escapers destroyed of all the level sends.
+            kit.text(batch, kit.body, escapesLabel, colour, X + PAD, y, TEXT_WIDTH);
+            String count = sortie.secondaryMet()
+                    ? "DONE"
+                    : sortie.secondaryFailed() ? "FAILED" : sortie.escapesDestroyed() + " / " + sortie.escapesTotal();
+            kit.textRight(batch, kit.body, count, colour, X + PAD, y, TEXT_WIDTH);
             return;
         }
         kit.text(batch, kit.body, "KILLS", colour, X + PAD, y, TEXT_WIDTH);
@@ -267,6 +295,14 @@ final class MissionPanel {
         String first = groups.getFirst();
         int space = first.indexOf(' ');
         return (space > 0 ? first.substring(0, space) : first).toUpperCase(Locale.ROOT) + "S";
+    }
+
+    /** {@code spore-bomber} reads "BOMBERS"; empty for none. */
+    static String escapesLabel(String slug) {
+        if (slug.isEmpty()) {
+            return "";
+        }
+        return slug.substring(slug.lastIndexOf('-') + 1).toUpperCase(Locale.ROOT) + "S";
     }
 
     /** A number with thin-space thousands groups, as on the HUD mock: 1 204 350. */

@@ -53,12 +53,32 @@ class PortraitsTest {
         });
     }
 
+    /** The hangar intel shows the teaser's speaker with the radio portrait in the teaser's expression. */
+    @Test
+    void everyHangarTeaserHasItsSpeakersRadioPortrait() {
+        content.levels().values().forEach(level -> {
+            BriefingPage teaser = level.briefing().teaser();
+            assertRadio(teaser.speaker(), teaser.portrait());
+        });
+    }
+
     /** tools/art/intel.py renders the sensor portrait of every enemy type a level's intel lists. */
     @Test
     void everyEnemyTypeOfALevelHasItsIntelPortrait() {
         for (String level : content.levels().keySet()) {
             for (String enemy : Intel.of(content, level, 2).enemies()) {
                 String name = Portraits.slug(enemy);
+                assertTrue(Files.isRegularFile(INTEL.resolve(name + ".png")), name);
+            }
+        }
+    }
+
+    /** tools/art/intel.py renders the sensor silhouette of every set piece a level's intel shows as an unknown contact. */
+    @Test
+    void everyContactOfALevelHasItsIntelSilhouette() {
+        for (String level : content.levels().keySet()) {
+            for (Intel.Contact contact : Intel.of(content, level, 2).contacts()) {
+                String name = "boss-" + contact.enemy();
                 assertTrue(Files.isRegularFile(INTEL.resolve(name + ".png")), name);
             }
         }

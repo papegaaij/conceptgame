@@ -1,0 +1,11 @@
+# Brood Pod – generator notes and prompts
+
+## brood-pod-final-r16-a
+
+Round 16, production art **proposal** (M4 part D batch), pending part D's doc gaps: the sizes, frame counts and timings are the ones asked for while the part's design notes are open, and sit in the parameter block at the top of the generator. Review sheet (`.png`) and loop (`.gif`) made from the files in `assets/` by `tools/art/vrell_l04.py --review pod`; the frames are rendered by `tools/art/vrell_l04.py` (see `tools/art/README.md`). Three sets:
+
+- `brood-pod_0..7` (64×64, the stat block's size rather than the concept's 48, 32 colours, `orientation: fixed`): the chosen round-04 model (`brood-pod-a`, render/enemy_models.brood_pod_a) as an 8-frame pulse loop at 10 fps, the sac swelling (+7 %) over five frames and contracting over three, its teal veins and eye brightening with the swell. The game plays it faster over the last 3 s before it bursts on its own; the loop shows it at twice the rate.
+- `brood-pod-burst_0..11` (96×96, additive, premultiplied on black, 22 colours, 4 game steps per frame): the wet burst, a 2D light field like the Spore Bomber's spore cloud: a teal-white flash, a ring of fluid at the sac's outline, teal ichor globules with short trails sagging a little, and a dark teal mist that billows and thins; nothing reaches the frame edge.
+- `brood-pod-tatters_0..11` (96×96, solid, 1-bit alpha, 32 colours, 4 steps per frame): ten torn sac membrane pieces (the sac's hide with its glowing veins, which dim as they die) and six rib shards, flung out from the sac, tumbling, curled, shrivelling in the last frames; ray-marched per frame from the pod's own materials the way `tools/art/vrell_fx.py` makes the Spore Bomber's tatters (its torn-outline helper reused), under the fixed key light.
+
+The sheet shows the loop at 3×, every second burst and tatter frame at 3×, the three together with the `medium` burst and all frames at 1×. The loop (camera following the pod) has 2 s of pulse, 2 s of the faster telegraph pulse, then the burst with six Skitters fanning out over 120° toward the bottom of the screen. Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.

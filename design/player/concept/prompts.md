@@ -29,3 +29,7 @@ Round 12, production art (Level 01 batch). Review sheet (`.png`) and loop (`.gif
 ## pickups-final-r15-a
 
 Round 15, production art (M4 part B). Review sheet and loop made by `tools/art/pickups.py salvage-medium overdrive` from the chosen round-09 models (`vfx_r09.PICKUPS`: salvage-m, overdrive), with the presentation of the Level 01 pickups (light outline, halo, rocking ±55°).
+
+## pickups-final-r16-a
+
+Round 16, production art (M4 part C). Review sheet and loop made by `tools/art/pickups.py salvage-large`: salvage L, the 200-credit drop of a set piece (the Leviathan), as `pickup-salvage-large_0..7` (35×35). The round-09 concept's salvage L is the crate, which stays the hidden crate, so the large drop has no concept model of its own: it is the salvage chips (`vfx_r09._chip`) grown into a cluster, a raised centre chip in a ring of six (`salvage_large_model`), with the presentation of the other pickups (light outline, halo, rocking ±55°). Check that it reads as more than salvage M's three chips and never as the crate or a bullet.

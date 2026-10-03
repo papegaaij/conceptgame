@@ -101,7 +101,9 @@ Don't:
   objective, and a threat summary taken from the level's threat profile. Skippable.
 - **Radio chatter** (in-level): a portrait and one line of text in the side HUD panel, shown for
   about 3 seconds, triggered by level events (wave start, boss appears, low armour, wingman
-  down). Never pauses the game. At most one message on screen; low-priority lines are dropped.
+  down). Never pauses the game. At most one message on screen; low-priority lines are dropped: the level script's timed lines go
+  first, and a reaction to an event that has waited more than 6 s for a gap is dropped (see the
+  [HUD](../ui/hud/README.md) radio).
   A line is at most **two subtitle pages** (3 lines × 22 characters each, see the
   [HUD](../ui/hud/README.md) radio), about 130 characters.
 - **Hangar intel**: Varga's comments on the next level, next to the intel panel.
@@ -159,3 +161,5 @@ this sample only sets the voice.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
 - 2026-10-02: Writing rule for radio chatter: a line is at most two subtitle pages (user decision
   in the [HUD](../ui/hud/README.md), which pages longer lines).
+- 2026-10-02 (user decision): radio priorities: timed lines first, event reactions wait for a gap
+  and are dropped after 6 s of waiting (rule in the [HUD](../ui/hud/README.md#decisions) radio).

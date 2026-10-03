@@ -1,0 +1,304 @@
+# Level 03 – Spore Drift: the level script, rendered into README.md (threat profile, layout, waves,
+# radio, credit budget, briefing). Schema: ../../../tech/architecture/README.md#data-file-schemas
+# The `backdrop` block is merged in from backdrop-proposal.yaml (the sections' tiles are its).
+scroll_speed: 140     # px/s; the second pass slows it to 90 (section 5)
+launch_seconds: 5     # the launch, as in Levels 01 and 02
+control_prompts: []
+prompts:  # contextual prompts in the HUD's prompt well: from t for seconds, the action and its keys; skip: leaves once an enemy on that layer is destroyed
+  - {t: 12, action: LOW-AIR, keys: "BELOW YOU: FIRE", seconds: 12, skip: low-air}
+  - {t: 62, action: HIGH-AIR, keys: HOMING ONLY, seconds: 6}
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Earth orbit
+  layers: [air, low-air, high-air]
+  density: 2
+  traits: [spread, forward]
+  hazards: [debris, mines]
+  boss: none
+  varga:
+    none: Slow carriers in the high lanes and a lot of wreckage, Lancer. And something big on long range.
+  notes:
+    Dominant layers: '`air`, `low-air` (Spore Bombers), `high-air` (the Leviathan''s first pass)'
+    Attack directions: '{directions}'
+    Density: '{density}'
+    Recommended traits: '`spread` (also `forward`)'
+    Hazards: Debris field (blocks shots, contact damage); drifting spore mines
+    Boss / mid-boss: 'none; set piece: the Leviathan (`huge`)'
+    Sensor-suite detail: 'none: setting, `air` + `low-air`, front · L1: + front 100%, density {density}, hazards "debris, mines" · L2: + Skitter, Needler, Stinger, Spore Bomber portraits; "unknown huge contact" silhouette · L3: + `spread` highlighted, wave strip, 1 secret'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets; peak: a heavier atmosphere inside the section
+  - name: High Lane
+    end: 30
+    atmosphere: light
+    tiles: [earth]
+    notes:
+      layers:
+        deep: Earth's full disc below, cloud fronts.
+        far: navigation beacons along the lane.
+        ground: a few lane-marker buoys.
+        low-air: thin cloud-deck wisps.
+      purpose: First Spore Bomber alone; HUD prompt for layers.
+  - name: Debris Field
+    end: 60
+    atmosphere: medium
+    tiles: [earth, ice-streaks]
+    notes:
+      layers:
+        ground: the broken frigate *Kestrel* and halves of CDF platforms.
+        air: drifting debris chunks (hazard).
+        low-air: olive-grey spore haze.
+        high-air: ice streaks.
+      purpose: Shots blocked by debris; Stingers; the lifeboat secret.
+  - name: Whale Song
+    end: 80
+    atmosphere: clear
+    tiles: [earth]
+    notes:
+      layers:
+        deep: Earth.
+        high-air: the Leviathan's first pass, drawn large above the player.
+        ground: sparse wreckage.
+      purpose: Survive the seed clusters; learn that `high-air` cannot be hit yet.
+  - name: Spore Bloom
+    end: 125
+    atmosphere: medium
+    peak: {atmosphere: heavy, from: 100, to: 108}  # the dense spore banks
+    tiles: [earth, spore-streaks]
+    notes:
+      layers:
+        ground: thinning wreckage, a burnt-out tug.
+        air: debris returns.
+        low-air: dense spore banks (the heavy peak).
+        high-air: spore streaks.
+      purpose: Bomber lines; spread fire pays off.
+  - name: Second Pass
+    end: 158
+    speed: 90           # the scroll slows while the Leviathan fights on the play plane
+    atmosphere: light
+    tiles: [earth]
+    notes:
+      layers:
+        deep: Earth.
+        air: the Leviathan descends and drifts across the upper half.
+        ground: none (open lane).
+      purpose: The set-piece fight.
+  - name: Clear Lane
+    end: 185
+    atmosphere: light
+    tiles: [earth]
+    notes:
+      layers:
+        far: the orbital defence ring ahead.
+        ground: the first ring platforms.
+      purpose: Mop-up and Okafor's Hammer flight news.
+
+waves:  # at: a whirl cluster's release point [x, y below the top edge]: the Leviathan's blowhole on its first pass
+  - {t: 12, formation: single, enemy: spore-bomber, count: 1, from: front, notes: "**Introduction**: `straight` down, nothing else on screen"}
+  - {t: 22, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - {t: 34, formation: V-wing, enemy: stinger, count: 3, from: front, notes: Dives between debris chunks}
+  - {t: 42, formation: line abreast, enemy: spore-bomber, count: 3, from: front}
+  - {t: 50, formation: V-wing, enemy: needler, count: 5, from: front, notes: Partly behind debris}
+  - {t: 56, formation: column, enemy: stinger, count: 3, from: front}
+  - {t: 63, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [40, 40], hard: {count: 8}, notes: "From the Leviathan's blowhole on `high-air`; 8 on hard"}
+  - {t: 66, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [173, 123], hard: {count: 8}}
+  - {t: 69, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [307, 207], hard: {count: 8}}
+  - {t: 72, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [440, 290], hard: {count: 8}}
+  - {t: 84, formation: snake, enemy: skitter, count: 8, from: front, edge: right}
+  - {t: 92, formation: line abreast, enemy: spore-bomber, count: 3, from: front, notes: Inside the spore banks}
+  - {t: 102, formation: convoy, enemy: spore-bomber, count: 3, from: front, notes: "`strafe` at y≈200 after entering; in the heavy peak"}
+  - {t: 165, formation: stream, enemy: skitter, count: 8, from: front, edge: alternating, interval: 0.5}
+  - {t: 175, formation: line abreast, enemy: needler, count: 4, from: front}
+
+set_pieces:  # huge units on a scripted course (design/enemies/space/leviathan); path: [t, x, y below the top edge] of the centre
+  - enemy: leviathan
+    passes:
+      - name: cross             # out of reach on high-air: only homing and beam weapons hit it
+        section: 3
+        layer: high-air
+        heading: 58             # degrees from straight down, positive to the right; fixed for the pass
+        path: [[55, -265, -150], [80, 846, 544]]  # top left to bottom right, its blowhole over the four clusters
+        notes:
+          t: 62–74
+          name: first pass
+          from: front (top-left, diagonal)
+          notes: '`high-air`; its blowhole releases the four whirl clusters below (24 seeds)'
+      - name: descend
+        section: 5
+        layer: air
+        heading: 0              # facing down at the player, drifting without turning
+        path: [[124, 240, -305], [128, 240, 195], [131, 150, 195], [137, 330, 205], [143, 150, 195], [149, 330, 205], [155, 240, 195]]  # 30 px/s across the upper half
+        descend: {at: 128, seconds: 2}   # from high-air to the play plane
+        hold: 30                # s from the descent's start; then it rises to high-air and leaves through the top edge
+        leave_speed: 160        # px/s
+        hard: {hold: 24}
+        notes:
+          t: 128–158
+          name: second pass
+          from: front (descends at the top)
+          notes: Descends to `air` over 2 s, drifts for up to 30 s, then leaves
+
+debris:  # the debris field on the air layer (design/world/earth-orbit, hazards); sprites assets/sprites/debris-<chunk>.png
+  chunks:
+    large-a: {size: [96, 80], damage: 15}   # indestructible: blocks shots both ways, contact damage once per second
+    large-b: {size: [72, 64], damage: 15}
+    large-c: {size: [56, 48], damage: 15}
+    small-a: {size: [32, 28], hp: 6}        # breakable: blocks shots, breaks after 6 damage, pays nothing
+    small-b: {size: [24, 24], hp: 6}
+  clearance: 120        # px: a chunk never enters closer to the ship than this (it moves sideways)
+  max_large: 4          # large chunks on the screen at once, at most
+  placed:               # t it enters at the top edge, its x, the chunk, its drift [x, y] px/s (y up: negative drifts down), 20–40 px/s
+    # 2. Debris Field
+    - {t: 30.5, x: 120, chunk: large-a, drift: [6, -36]}
+    - {t: 33, x: 340, chunk: small-a, drift: [-10, -36]}
+    - {t: 36, x: 380, chunk: large-b, drift: [-8, -32]}
+    - {t: 38.5, x: 70, chunk: small-b, drift: [12, -38]}
+    - {t: 41, x: 240, chunk: large-c, drift: [5, -36]}
+    - {t: 44, x: 420, chunk: small-a, drift: [-14, -34]}
+    - {t: 46, x: 80, chunk: large-a, drift: [8, -38]}
+    - {t: 48.5, x: 300, chunk: small-b, drift: [-6, -39]}
+    - {t: 49, x: 400, chunk: large-b, drift: [-10, -38]}
+    - {t: 52, x: 190, chunk: small-a, drift: [10, -38]}
+    # 4. Spore Bloom
+    - {t: 81, x: 360, chunk: large-c, drift: [-6, -36]}
+    - {t: 83.5, x: 140, chunk: small-b, drift: [10, -38]}
+    - {t: 86, x: 110, chunk: large-a, drift: [8, -34]}
+    - {t: 89, x: 300, chunk: small-a, drift: [-12, -36]}
+    - {t: 92, x: 420, chunk: large-b, drift: [-10, -38]}
+    - {t: 96, x: 230, chunk: small-b, drift: [6, -39]}
+    - {t: 99, x: 200, chunk: large-c, drift: [6, -39]}
+    - {t: 103, x: 380, chunk: small-a, drift: [-8, -39]}
+    - {t: 106, x: 330, chunk: large-a, drift: [-6, -39]}
+    - {t: 109, x: 90, chunk: small-b, drift: [10, -38]}
+  easy: {leave_out_large: 2}   # every second large chunk is left out
+  hard: {drift_factor: 1.5}    # up to 60 px/s
+
+ground_targets:
+  - target: lifeboat rack lights
+    section: 2
+    count: 4
+    layer: ground
+    size: [12, 12]
+    hits: 1             # one-hit triggers; all four together reveal the crate
+    reveals: lifeboat rack
+    at: [[42.03, 259], [42.05, 299], [41.60, 263], [41.62, 303]]  # the amber lenses on the Kestrel wreck (backdrop piece kestrel at t 44.4, x 210; lenses at dx 49/89/53/93, dy -56/-53/-116/-113 from its centre)
+    notes:
+      target: Lifeboat rack lights ×{count} on the *Kestrel* wreck (t≈{at.0.0})
+      effect: 'All four shot: the hidden crate'
+
+secrets:
+  - name: lifeboat rack
+    crate: 75
+    radio: {speaker: Rook, line: "The *Kestrel*'s lifeboat stores. Her crew would want you to have them, Lancer."}
+
+pickups:
+  - {pickup: armour patch, dropped_by: {wave: 50, unit: last}}
+  - {pickup: overdrive, dropped_by: {wave: 102, unit: second}}   # the campaign's second (Level 02 drops the first)
+
+radio:  # trigger: t or event (first-kill / enemy-escaped with its enemy, secondary-objective, level-end); portrait: a generic one for an unnamed speaker
+  - {t: 1, speaker: Okafor, line: "Aegis, the high lanes are filling up with something. Find out what, and stop it."}
+  - {t: 12, speaker: Varga, line: "That gas-bag is full of spores. They float up to your level after a second. Shoot them once they glow.", notes: {trigger: first bomber}}
+  - {t: 24, speaker: Rook, line: "Aegis Two in the wreck field north of you. Watch the big chunks, Lancer. They don't care whose side you're on."}
+  - {t: 36.5, speaker: Ring Control, portrait: generic-cdf, line: "Debris field ahead. Big pieces will stop your rounds. And theirs."}
+  - {event: enemy-escaped, enemy: spore-bomber, speaker: Okafor, expression: grim, line: "One got past. That's spores on somebody's city, Aegis.", notes: {trigger: First bomber leaves the screen}}
+  - {t: 47, speaker: Varga, line: "Commander, something very large on long range. It's not on any chart. And it's… singing?"}
+  - {t: 58.5, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
+  - {t: 64.5, speaker: Rook, line: "Okay. Okay. That's big. We can do big."}
+  - {t: 71, speaker: Varga, line: "It's above you. Your guns can't reach that high. Dodge the seeds and wait."}
+  - {t: 126, speaker: Varga, line: "It's coming down to your level! The vents on its back, the fins, the blowhole. Hit the glow."}
+  - {event: first-kill, enemy: leviathan, speaker: Ring Control, portrait: generic-cdf, line: "Ring Control confirms: the big contact is down.", notes: {trigger: Leviathan destroyed}}
+  - {event: enemy-escaped, enemy: leviathan, speaker: Varga, line: "It's leaving. I have a feeling we'll see that one again.", notes: {trigger: Leviathan leaves alive}}
+  - {t: 168.5, speaker: Okafor, line: "Good flying. And Lancer, High Command just gave us Hammer flight: two bombers on call. You'll find them in the hangar."}
+  - {event: level-end, speaker: Okafor, line: "Lane's clear. Come home, Aegis."}
+  - {event: secondary-objective, speaker: Okafor, line: "Not one bomber got through. Earth owes you a drink, Lancer.", notes: {trigger: Secondary met}}
+
+objectives:
+  primary: reach-end
+  secondary: {escapes: spore-bomber, credits: 50}  # "Nothing gets through": no Spore Bomber leaves the screen alive
+
+music:
+  track: 5            # Act 1 B "Coalition Rising" (audio/music track list)
+  start_section: 1
+  full_section: 2     # the intensity stem from the debris field on
+  stems: {3: base, 5: full}  # the first pass drops to the base stem under the whale song; the second pass forces the intensity stem on
+  ambience: earth-orbit
+  end_jingle: mission-complete
+
+difficulty: {}  # the per-wave, debris and pass changes are in their entries; the stat blocks' hooks apply
+
+briefing:
+  pages:
+    - {speaker: Okafor, line: "Lancer, the yards are holding. Now the Vrell have changed tactics. Slow carriers are drifting through the high lanes over last week's battle site, dropping something as they go. Varga thinks they're seeding the planet. Clear the lane. Every carrier that gets past you is headed for an atmosphere full of people."}
+    - {speaker: Varga, line: "They're spore bombers, gas-bags flying below your level. The spores they drop float up to you a second later, so a wide spread of fire is your friend. There's also an echo on long range I can't explain. Very big, very slow. If it comes your way, don't try to out-shoot it. Out-fly it."}
+  teaser: {speaker: Varga, line: "Slow targets, and lots of little things drifting at you. Bring something wide."}
+
+backdrop:
+  # Presentation only. As Level 01's (see its data file): the high orbital lanes over the wreckage
+  # of the first battle, the day side far below. Art: tools/art/backdrop_l03.py.
+  # Motion budget: the only moving backdrop element is the low-air banks' drift (the debris chunks
+  # on the air layer are the other strong mover); no animated set pieces.
+  scroll_factors: {deep: 0.12, far: 0.45, ground: 1.0, low-air: 1.4, high-air: 2.4}
+  ramp: 4
+  haze_colour: 464c3a  # olive grey: the spores between the lane and Earth
+  atmosphere:
+    clear: {haze: 0.03}                                     # no banks, no wisps: the Leviathan's first pass on high-air
+    light: {banks: banks-light, wisps: wisps, haze: 0.06}   # thin cloud decks (Level 01's)
+    medium: {banks: spore-haze, wisps: wisps, haze: 0.14}   # olive-grey spore haze
+    heavy: {banks: spore-banks, wisps: wisps, haze: 0.26}   # the dense spore banks of the peak
+  tile_sets:
+    earth: {layer: deep, height: 1024}                      # Level 01's day side
+    banks-light: {layer: low-air, height: 1120, drift: 8}   # Level 01's thin cloud decks, ~12 % cover
+    spore-haze: {layer: low-air, height: 1120, drift: 10}   # ~24 % cover, translucent
+    spore-banks: {layer: low-air, height: 1120, drift: 12}  # ~50 % cover, dense
+    wisps: {layer: high-air, height: 960}                   # Level 01's
+    ice-streaks: {layer: high-air, height: 960}             # Level 02's frost streaks
+    spore-streaks: {layer: high-air, height: 960}
+  pieces:
+    weather-front-a: {layer: deep, size: [480, 420]}        # a cloud front with a small cyclone over the earth tiles
+    weather-front-b: {layer: deep, size: [480, 420]}        # a long frontal band
+    nav-beacon: {layer: far, size: [44, 84]}                # a lane beacon, its red lamp lit (still)
+    defence-ring: {layer: far, size: [480, 300], mid_size: true}  # the orbital defence ring ahead
+    lane-buoy: {layer: ground, size: [32, 32]}
+    kestrel: {layer: ground, size: [240, 720], mid_size: true}    # the broken frigate, the lifeboat rack on its stern half
+    platform-half-a: {layer: ground, size: [110, 110], mid_size: true}
+    platform-half-b: {layer: ground, size: [110, 110], mid_size: true}
+    wreck-a: {layer: ground, size: [64, 52]}
+    wreck-b: {layer: ground, size: [84, 60]}
+    wreck-c: {layer: ground, size: [56, 76]}
+    tug-burnt: {layer: ground, size: [100, 160], mid_size: true}
+    platform: {layer: ground, size: [140, 140], mid_size: true}   # Level 01's: the defence ring's platforms
+    crossbeam: {layer: ground, size: [480, 40]}                   # Level 01's: the ring's truss
+  placed:
+    # deep: cloud fronts drifting by far below
+    - {piece: weather-front-a, t: 16, x: 240}
+    - {piece: weather-front-b, t: 140, x: 240}  # under the second pass, still
+    # 1. High Lane: beacons along the lane on far, marker buoys on ground
+    - {piece: nav-beacon, t: 2, x: 40}
+    - {piece: nav-beacon, t: 9, x: 440}
+    - {piece: nav-beacon, t: 16, x: 40}
+    - {piece: nav-beacon, t: 23, x: 440}
+    - {piece: nav-beacon, t: 30, x: 40}
+    - {piece: lane-buoy, t: 6, x: 70}
+    - {piece: lane-buoy, t: 13, x: 410}
+    - {piece: lane-buoy, t: 20, x: 70}
+    - {piece: lane-buoy, t: 27, x: 410}
+    # 2. Debris Field: the Kestrel (lifeboat rack at t = 45) and halves of CDF platforms
+    - {piece: platform-half-a, t: 33, x: 390}
+    - {piece: wreck-a, t: 37, x: 80}
+    - {piece: kestrel, t: 44.4, x: 210}  # the lifeboat rack passes the middle of the screen at t = 45.0
+    - {piece: wreck-b, t: 52, x: 420}
+    - {piece: platform-half-b, t: 56, x: 110}
+    # 3. Whale Song: sparse wreckage
+    - {piece: wreck-c, t: 64, x: 380}
+    - {piece: wreck-a, t: 71, x: 90}
+    - {piece: wreck-b, t: 78, x: 300}
+    # 4. Spore Bloom: thinning wreckage, the burnt-out tug; nothing after 119 s
+    - {piece: wreck-c, t: 85, x: 130}
+    - {piece: tug-burnt, t: 94, x: 360}
+    - {piece: wreck-a, t: 104, x: 110}
+    - {piece: wreck-b, t: 116, x: 330}
+    # 5. Second Pass: open lane, nothing on ground
+    # 6. Clear Lane: an outlying ring platform, then a ring segment; the ring itself ahead on far
+    - {piece: platform, t: 165, x: 130}
+    - {piece: crossbeam, t: 176, x: 240}
+    - {piece: platform, t: 176, x: 90}
+    - {piece: platform, t: 176, x: 390}
+    - {piece: defence-ring, t: 186, x: 240}  # enters at the top at about 179 s: ahead at the level end, passing in the outro

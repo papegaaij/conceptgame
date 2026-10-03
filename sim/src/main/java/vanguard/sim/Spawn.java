@@ -15,6 +15,7 @@ import java.util.Optional;
  * @param exit how it leaves after holding
  * @param leadsTarget whether its gun aims where the ship is going
  * @param carried the pickup it drops when destroyed
+ * @param release where a whirl cluster's unit spirals out from, instead of flying its path
  */
 record Spawn(
         int tick,
@@ -26,7 +27,25 @@ record Spawn(
         Optional<Orbit> orbit,
         Exit exit,
         boolean leadsTarget,
-        Optional<PickupType> carried) {
+        Optional<PickupType> carried,
+        Optional<Release> release) {
+
+    Spawn(
+            int tick,
+            int kind,
+            EnemySpec enemy,
+            FlightPath path,
+            double speed,
+            double holdSeconds,
+            Optional<Orbit> orbit,
+            Exit exit,
+            boolean leadsTarget,
+            Optional<PickupType> carried) {
+        this(tick, kind, enemy, path, speed, holdSeconds, orbit, exit, leadsTarget, carried, Optional.empty());
+    }
+
+    /** A whirl cluster's release point and this unit's starting angle on the spiral (radians). */
+    record Release(double x, double y, double angle) {}
 
     /** Circling {@code (centreX, centreY)} at {@code radius}, starting at {@code angle} (radians). */
     record Orbit(double centreX, double centreY, double radius, double angle, double radiansPerSecond) {}

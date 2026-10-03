@@ -58,7 +58,7 @@ sensor suite decides how much of it is visible:
 |---|---|
 | none | Setting, dominant layers, main attack direction |
 | L1 | + all attack directions with the share of waves per direction, density (1–5), hazards |
-| L2 | + enemy types with portraits, boss name and silhouette, special availability |
+| L2 | + enemy types with portraits, boss name and silhouette, a set piece as an "unknown huge contact" with its silhouette, special availability |
 | L3 | + recommended weapon traits highlighted in the shop, wave timeline strip, secret count |
 
 Dr. Varga speaks one line per intel item. With low sensors, her lines are more uncertain
@@ -96,3 +96,6 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
   sensor bonus (easy +1) allows, at most L3 (`vanguard.content.campaign.Intel`). Two utility bays;
   the same module may be fitted in both (the document does not forbid it). The modules' flight
   effects (magnet, scanner, threat arrows, …) and the third bay (Act 3) follow.
+- 2026-10-02 (user decision): sensor L2 also shows a level's set pieces, unnamed, as an unknown
+  contact of their size tier with their silhouette (Level 03's Leviathan: "unknown huge contact";
+  see [hangar](../../ui/hangar/README.md#decisions)).

@@ -1,5 +1,7 @@
 package vanguard.game.render;
 
+import com.badlogic.gdx.Files;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -7,15 +9,22 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
+import java.util.HashMap;
+import java.util.Map;
 import vanguard.content.LevelData;
 import vanguard.sim.Crane;
+import vanguard.sim.Debris;
 import vanguard.sim.Enemy;
 import vanguard.sim.EnemyBullet;
 import vanguard.sim.GroundObject;
+import vanguard.sim.Layer;
 import vanguard.sim.LevelScript;
+import vanguard.sim.Mine;
 import vanguard.sim.Pickup;
 import vanguard.sim.PickupType;
+import vanguard.sim.SetPiece;
 import vanguard.sim.Ship;
 import vanguard.sim.ShipSpec;
 import vanguard.sim.Shot;
@@ -26,10 +35,12 @@ import vanguard.sim.WeaponSpec;
 /**
  * Draws a level back to front, interpolating every position between the last two simulation
  * steps: the backdrop down to the ground layer, the ground objects with their debris and glints,
- * the low-air layer, the enemies, the pickups, the solid rounds (missiles, bombs, shells), the ship
- * with its wing pods, the glowing shots, muzzle flashes and effects, the high-air layer, then the
- * enemy bullets above every layer (design/enemies, bullet readability rules), the edge warnings
- * and the credit numbers.
+ * the low-air flyers, the low-air layer's banks (so a low flyer can sit inside them), the flyers
+ * and a set piece on the play plane, the solid death pieces of air units (tatters, husks), the debris chunks, the cranes, the pickups, the solid rounds
+ * (missiles, bombs, shells), the ship with its wing pods, the glowing shots, muzzle flashes and
+ * effects, a set piece on high-air (above the ship, at the high-air scale), the high-air layer,
+ * then the spore mines and the enemy bullets above every layer (design/enemies, bullet readability
+ * rules), the edge warnings and the credit numbers.
  */
 public final class LevelRenderer {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
@@ -55,6 +66,25 @@ public final class LevelRenderer {
     private static final int GLINT_FRAME_TICKS = 3;
     private static final int BEACON_BLINK_TICKS = 30;
 
+    /** A spore mine pulses at 10 fps; while it rises it grows from 70 % and brightens from half. */
+    private static final int MINE_FRAME_TICKS = 6;
+
+    private static final float MINE_RISING_SCALE = 0.7f;
+    private static final float MINE_RISING_ALPHA = 0.5f;
+    /**
+     * A set piece on high-air is drawn this much larger than on the play plane (the first pass's
+     * sprites are drawn at it); descending and rising it scales between the two.
+     */
+    private static final float HIGH_AIR_SCALE = 1.25f;
+    /**
+     * A set piece off the play plane is drawn at 75 % opacity (body, parts and glow alike); descending
+     * and rising it eases between that and opaque by its altitude, so it is opaque when it reaches the
+     * plane, where it switches below the ship and can collide.
+     */
+    private static final float HIGH_AIR_OPACITY = 0.75f;
+    /** The vital part's glow pulses between 55 % and full every 1.2 s (the review loop's). */
+    private static final double GLOW_PERIOD_SECONDS = 1.2;
+
     private static final Color HIT_WHITE = Color.WHITE;
     /** The white flashes' strength with the Gameplay tab's flash reduction on. */
     private static final float REDUCED_FLASH = 0.35f;
@@ -72,33 +102,62 @@ public final class LevelRenderer {
     private final EnemyLooks[] looks;
     private final WeaponLooks weapons;
     private final CraneLooks craneLooks;
+    /** Per set piece of the level, its sprites. */
+    private final SetPieceLooks[] setPieceLooks;
+    /** The debris chunks' sprites by name, looked up once. */
+    private final Map<String, AtlasRegion> debrisSprites = new HashMap<>();
+    /**
+     * The light a level's triggers are drawn as when its backdrop has one (Level 03's lifeboat
+     * rack: a lit lamp over the wreck's lens, off once shot); otherwise the crane beacon.
+     */
+    private final AtlasRegion triggerLight;
+
+    private final Array<AtlasRegion> mine;
     private final Backdrop backdrop;
     private final FlashShader flash;
     private final BitmapFont font;
     private float whiteFlash = 1;
 
-    /** @param levelKey the level's key, {@code <act>/level-NN-<slug>} */
+    /**
+     * @param files the assets, for the pivot files of the cranes and set pieces
+     * @param script the level's script, whose set pieces it draws
+     * @param levelKey the level's key, {@code <act>/level-NN-<slug>}
+     */
     public LevelRenderer(
             Sprites sprites,
             EnemyLooks[] looks,
             WeaponLooks weapons,
-            JsonValue cranePivots,
+            Files files,
             FlashShader flash,
             BitmapFont font,
             LevelData level,
+            LevelScript script,
             String levelKey) {
         this.sprites = sprites;
         this.looks = looks;
         this.weapons = weapons;
-        this.craneLooks = new CraneLooks(sprites, cranePivots);
+        this.craneLooks = new CraneLooks(sprites, level.cranes().isPresent() ? pivots(files, "crane-four") : null);
+        setPieceLooks = script.setPieces().stream()
+                .map(spec -> new SetPieceLooks(sprites, spec, pivots(files, spec.slug())))
+                .toArray(SetPieceLooks[]::new);
+        String light = Backdrop.folder(levelKey) + "lifeboat-light";
+        triggerLight = sprites.hasBackdrop(light) ? sprites.backdrop(light, 1).first() : null;
+        mine = sprites.has("spore-mine") ? sprites.frames("spore-mine") : null;
         this.backdrop = new Backdrop(sprites, level, levelKey);
         this.flash = flash;
         this.font = font;
     }
 
+    /** A unit's pivot file in assets/pivots/, or null when it has none. */
+    private static JsonValue pivots(Files files, String name) {
+        FileHandle file = files.internal("pivots/" + name + ".json");
+        return file.exists() ? new JsonReader().parse(file) : null;
+    }
+
     /**
      * @param debris animations started at ground positions (y plus the ground's scroll), see
      *     {@link Effects#draw}
+     * @param pieces solid animations at play-field positions: the death pieces of air units
      * @param alpha interpolation between the previous and the current step
      * @param shieldShimmer 0..1, how strongly the ship shows its last shield hit
      * @param flashReduction tone the white hit and invulnerability flashes down (Gameplay tab)
@@ -108,6 +167,7 @@ public final class LevelRenderer {
             Sortie sortie,
             Effects effects,
             Effects debris,
+            Effects pieces,
             CreditNumbers credits,
             EdgeWarnings warnings,
             float alpha,
@@ -120,10 +180,14 @@ public final class LevelRenderer {
         backdrop.drawBehind(batch, scroll, seconds);
         drawGround(batch, sortie, alpha);
         debris.draw(batch, -scroll);
-        drawEnemies(batch, sortie, alpha, true);
+        drawEnemies(batch, sortie, alpha, Depth.GROUND);
         drawGlints(batch, sortie, alpha);
+        drawEnemies(batch, sortie, alpha, Depth.LOW_AIR);
         backdrop.drawLowAir(batch, scroll, seconds);
-        drawEnemies(batch, sortie, alpha, false);
+        drawEnemies(batch, sortie, alpha, Depth.AIR);
+        drawSetPieces(batch, sortie, alpha, seconds, false);
+        pieces.draw(batch, 0);
+        drawDebris(batch, sortie, alpha);
         drawCranes(batch, sortie, alpha);
         drawPickups(batch, sortie, alpha);
         drawShots(batch, sortie, alpha, false);
@@ -140,16 +204,25 @@ public final class LevelRenderer {
             drawMuzzles(batch, sortie, alpha, false);
         }
         effects.draw(batch, 0);
+        drawSetPieces(batch, sortie, alpha, seconds, true);
         backdrop.drawFront(batch, scroll, seconds);
+        drawMines(batch, sortie, alpha);
         drawBullets(batch, sortie, alpha);
         warnings.draw(batch, sortie.tick(), alpha);
         credits.draw(batch, font);
     }
 
-    /** The loot targets, intact or damaged, a hit flashing white; the beacon blinks until spent. */
+    /**
+     * The loot targets, intact or damaged, a hit flashing white; the beacon blinks until spent, a
+     * trigger light blinks until it is shot and is off then.
+     */
     private void drawGround(SpriteBatch batch, Sortie sortie, float alpha) {
         for (int i = 0; i < sortie.groundObjectCount(); i++) {
             GroundObject object = sortie.groundObject(i);
+            if (object.spec().trigger() && triggerLight != null) {
+                drawTriggerLight(batch, sortie, object, alpha);
+                continue;
+            }
             int damaged = object.damaged() ? 1 : 0;
             TextureRegion frame;
             if (object.spec().trigger()) {
@@ -172,6 +245,19 @@ public final class LevelRenderer {
         }
     }
 
+    /** A trigger light: lit at the beacon's 1 Hz blink until shot, a white flash, then dark (the wreck's lens shows). */
+    private void drawTriggerLight(SpriteBatch batch, Sortie sortie, GroundObject object, float alpha) {
+        float x = Math.round(X0 + object.renderX());
+        float y = Math.round(object.renderY(alpha));
+        if (object.ticksSinceHit() < HIT_FLASH_TICKS) {
+            flash.draw(batch, triggerLight, x, y, HIT_WHITE, whiteFlash);
+        } else if (!object.spent() && sortie.tick() / BEACON_BLINK_TICKS % 2 == 0) {
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+            drawCentred(batch, triggerLight, object.renderX(), object.renderY(alpha));
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        }
+    }
+
     /** Each loot target sparkles at its top-left quarter (the key light's side) every ~2 s. */
     private void drawGlints(SpriteBatch batch, Sortie sortie, float alpha) {
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
@@ -190,15 +276,32 @@ public final class LevelRenderer {
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    /** The ground units (with the ground objects) or the flyers; a diver flares in its pause. */
-    private void drawEnemies(SpriteBatch batch, Sortie sortie, float alpha, boolean ground) {
+    /** Where an enemy is drawn in the stack. */
+    private enum Depth {
+        /** The ground units, with the ground objects. */
+        GROUND,
+        /** The low flyers, below the low-air banks. */
+        LOW_AIR,
+        /** The flyers on the play plane. */
+        AIR;
+
+        static Depth of(Enemy enemy) {
+            if (enemy.grounded()) {
+                return GROUND;
+            }
+            return enemy.spec().layer() == Layer.LOW_AIR ? LOW_AIR : AIR;
+        }
+    }
+
+    /** The enemies at one depth; a diver flares in its pause. */
+    private void drawEnemies(SpriteBatch batch, Sortie sortie, float alpha, Depth depth) {
         for (int i = 0; i < sortie.enemyCount(); i++) {
             Enemy enemy = sortie.enemy(i);
-            if (enemy.grounded() != ground) {
+            if (Depth.of(enemy) != depth) {
                 continue;
             }
             EnemyLooks look = looks[enemy.kind()];
-            AtlasRegion frame = look.frame(enemy.facing(), sortie.tick() / look.frameTicks() + i);
+            AtlasRegion frame = look.frame(enemy.facing(), look.step(sortie.tick(), i));
             drawCentred(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
             if (enemy.paused() && !look.flare().isEmpty()) {
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
@@ -207,6 +310,132 @@ public final class LevelRenderer {
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
             }
         }
+    }
+
+    /**
+     * The set pieces on the play plane ({@code high} false) or above it: the first pass's unit as
+     * drawn on its heading; the second pass's body in its sway with every part on it, intact or
+     * wrecked, a hit part flashing white, and the vital part's glow pulsing until it is destroyed.
+     * Off the play plane (arriving, descending, rising) it is drawn above the ship, scaled between
+     * the high-air and the play-plane size and faded between 75 % and full opacity by its altitude;
+     * it switches below the ship, opaque, when it reaches the plane, where it can collide.
+     */
+    private void drawSetPieces(SpriteBatch batch, Sortie sortie, float alpha, double seconds, boolean high) {
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPiece piece = sortie.setPiece(k);
+            if (!piece.present() || piece.onPlane() == high) {
+                continue;
+            }
+            SetPieceLooks look = setPieceLooks[k];
+            double x = piece.renderX(alpha);
+            double y = piece.renderY(alpha);
+            int sway = SetPieceLooks.sway(seconds);
+            float altitude = piece.onPlane() ? 0 : (float) piece.altitude(alpha);
+            float opacity = highAirOpacity(altitude);
+            batch.setColor(1, 1, 1, opacity);
+            if (!piece.spec().passes().get(piece.pass()).descends()) {
+                // The crossing pass: one sprite of the whole unit at its heading and the high-air
+                // scale. Its parts have no wrecked look there; a part a homing weapon wrecks on
+                // this pass stays drawn intact until the second pass.
+                drawCentred(batch, look.cross.get(sway % look.cross.size), x, y);
+                batch.setColor(Color.WHITE);
+                continue;
+            }
+            float scale = highAirScale(altitude);
+            drawScaled(batch, look.down.get(sway % look.down.size), x, y, scale);
+            for (int p = 0; p < piece.partCount(); p++) {
+                if (!look.drawn(p)) {
+                    continue;
+                }
+                double dx = look.pivoted(p) ? look.pivot(p, sway)[0] : piece.partOffsetX(p);
+                double dy = look.pivoted(p) ? look.pivot(p, sway)[1] : piece.partOffsetY(p);
+                AtlasRegion part = look.part(p, sway, piece.partWrecked(p));
+                double px = x + dx * scale;
+                double py = y + dy * scale;
+                if (scale == 1 && piece.partTicksSinceHit(p) < HIT_FLASH_TICKS) {
+                    flash.draw(batch, part, Math.round(X0 + px), Math.round(py), HIT_WHITE, whiteFlash);
+                } else {
+                    drawScaled(batch, part, px, py, scale);
+                }
+            }
+            batch.setColor(Color.WHITE);
+            if (look.glow != null && !piece.partWrecked(look.glowPart)) {
+                double pulse = 0.55 + 0.45 * Math.sin(2 * Math.PI * seconds / GLOW_PERIOD_SECONDS);
+                batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+                batch.setColor(1, 1, 1, (float) pulse * opacity);
+                drawScaled(
+                        batch,
+                        look.glow,
+                        x + piece.partOffsetX(look.glowPart) * scale,
+                        y + piece.partOffsetY(look.glowPart) * scale,
+                        scale);
+                batch.setColor(Color.WHITE);
+                batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            }
+        }
+    }
+
+    /** A set piece's scale at {@code altitude} (0 on the play plane, 1 on high-air), for it and its effects. */
+    public static float highAirScale(double altitude) {
+        return (float) (1 + (HIGH_AIR_SCALE - 1) * altitude);
+    }
+
+    /** A set piece's opacity at {@code altitude} (0 on the play plane, 1 on high-air), for it and its effects. */
+    public static float highAirOpacity(double altitude) {
+        return (float) (1 - (1 - HIGH_AIR_OPACITY) * altitude);
+    }
+
+    /**
+     * The debris chunks on the play plane, unrotated; a hit on a small, breakable chunk flashes it
+     * white. A large chunk only shows the glancing spark: it takes no damage, and with the guns on
+     * it a white flash per hit would strobe.
+     */
+    private void drawDebris(SpriteBatch batch, Sortie sortie, float alpha) {
+        for (int i = 0; i < sortie.debrisCount(); i++) {
+            Debris chunk = sortie.debris(i);
+            AtlasRegion sprite = debrisSprites.get(chunk.sprite());
+            if (sprite == null) {
+                sprite = sprites.region(chunk.sprite());
+                debrisSprites.put(chunk.sprite(), sprite);
+            }
+            if (!chunk.large() && chunk.ticksSinceHit() < HIT_FLASH_TICKS) {
+                flash.draw(
+                        batch,
+                        sprite,
+                        Math.round(X0 + chunk.renderX(alpha)),
+                        Math.round(chunk.renderY(alpha)),
+                        HIT_WHITE,
+                        whiteFlash);
+            } else {
+                drawCentred(batch, sprite, chunk.renderX(alpha), chunk.renderY(alpha));
+            }
+        }
+    }
+
+    /**
+     * The spore mines, additive and above the haze like bullets, each pulsing at its own phase:
+     * while one rises to the play plane it grows from 70 % and brightens from half, armed it is full.
+     */
+    private void drawMines(SpriteBatch batch, Sortie sortie, float alpha) {
+        if (sortie.mineCount() == 0) {
+            return;
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        for (int i = 0; i < sortie.mineCount(); i++) {
+            Mine spore = sortie.mine(i);
+            AtlasRegion frame = mine.get((int) ((sortie.tick() / MINE_FRAME_TICKS + i) % mine.size));
+            double x = spore.renderX(alpha);
+            double y = spore.renderY(alpha);
+            if (spore.armed()) {
+                drawCentred(batch, frame, x, y);
+            } else {
+                float rising = (float) spore.rising();
+                batch.setColor(1, 1, 1, MINE_RISING_ALPHA + (1 - MINE_RISING_ALPHA) * rising);
+                drawScaled(batch, frame, x, y, MINE_RISING_SCALE + (1 - MINE_RISING_SCALE) * rising);
+                batch.setColor(Color.WHITE);
+            }
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
 
     /**
@@ -267,6 +496,7 @@ public final class LevelRenderer {
             case SMALL_SALVAGE -> sprites.salvageSmall;
             case MEDIUM_SALVAGE -> sprites.frames("pickup-salvage-medium");
             case OVERDRIVE -> sprites.frames("pickup-overdrive");
+            case LARGE_SALVAGE -> sprites.frames("pickup-salvage-large");
             case HIDDEN_CRATE -> sprites.crate;
             case SHIELD_CELL -> sprites.shieldCell;
             case ARMOUR_PATCH -> sprites.armourPatch;

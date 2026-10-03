@@ -143,6 +143,13 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), by `tools/a
 | [concept/pickups-final-r15-a.png](concept/pickups-final-r15-a.png) | Final 8-frame loops of salvage M (three credit chips) and the overdrive, rocking, with the pulsing light outline and halo of the Level 01 pickups | chosen |
 | [concept/pickups-final-r15-a.gif](concept/pickups-final-r15-a.gif) | The two loops at 10 fps | chosen |
 
+Production art for concept round 16 (M4 part C, the Level 03 batch), by `tools/art/pickups.py salvage-large`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/pickups-final-r16-a.png](concept/pickups-final-r16-a.png) | Final 8-frame loop of the large salvage (35×35, a raised chip in a ring of six; the hidden crate stays the crate), rocking, with the pulsing light outline and halo of the other pickups | proposed |
+| [concept/pickups-final-r16-a.gif](concept/pickups-final-r16-a.gif) | The loop at 10 fps | proposed |
+
 ## Implementation
 
 - [x] Loadout data model: slots, fitted items, inventory, upgrade levels

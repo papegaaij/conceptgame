@@ -48,6 +48,13 @@ final class Formations {
     static final double BREAK_INTERVAL_SECONDS = 0.5;
     /** Divers of a V go one after another this far apart (design/enemies/air/stinger), and the units of a column enter so. */
     static final double DIVE_STAGGER_SECONDS = 0.4;
+    /** A convoy's units follow one another this far apart, and come down this far from their side edge. */
+    static final double CONVOY_INTERVAL_SECONDS = 1.5;
+
+    private static final double CONVOY_EDGE_GAP = 70;
+    private static final double CONVOY_TURN = 60;
+    /** A whirl cluster releases its units within this time. */
+    static final double CLUSTER_RELEASE_SECONDS = 0.3;
     /** The gap between the stops of a column entering from a side edge, inwards from the edge. */
     private static final double COLUMN_STOP_SPACING = 70;
 
@@ -58,6 +65,8 @@ final class Formations {
         Planner planner = new Planner(wave, kind, rng, out);
         switch (wave.formation()) {
             case SINGLE -> planner.single();
+            case CONVOY -> planner.convoy();
+            case WHIRL_CLUSTER -> planner.whirlCluster();
             case COLUMN -> planner.column();
             case SNAKE -> planner.snake();
             case V_WING -> planner.vWing();
@@ -116,12 +125,75 @@ final class Formations {
         void single() {
             requireFront();
             double x = frontColumn();
+            if (!stops()) {
+                add(
+                        0,
+                        wave.t(),
+                        FlightPath.through(x, HEIGHT + OUTSIDE, x, -OUTSIDE),
+                        speed(enemy().speed()),
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.DOWN);
+                return;
+            }
             stopAt(
                     0,
                     wave.t(),
                     FlightPath.through(
                             x, HEIGHT + OUTSIDE, x, HEIGHT - stopDepth().at(0.5)),
                     x);
+        }
+
+        /**
+         * A column from the top near one side edge that comes down to its strafe height and turns
+         * across the screen to leave through the other side, {@link #CONVOY_INTERVAL_SECONDS} apart.
+         */
+        void convoy() {
+            requireFront();
+            Range strafe = required(enemy().strafe(), "strafe");
+            boolean fromLeft = wave.edge() != Edge.RIGHT;
+            double x = fromLeft ? CONVOY_EDGE_GAP : WIDTH - CONVOY_EDGE_GAP;
+            double y = HEIGHT - strafe.at(0.5);
+            double out = fromLeft ? WIDTH + OUTSIDE * 2 : -OUTSIDE * 2;
+            double turn = fromLeft ? CONVOY_TURN : -CONVOY_TURN;
+            // The turn starts and ends this far from the corner, so the curve hardly dips below the strafe height.
+            FlightPath path = FlightPath.through(x, HEIGHT + OUTSIDE * 2, x, y + CONVOY_TURN, x + turn, y, out, y);
+            for (int i = 0; i < wave.count(); i++) {
+                add(
+                        i,
+                        wave.t() + i * CONVOY_INTERVAL_SECONDS,
+                        path,
+                        speed(enemy().speed()),
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.DOWN);
+            }
+        }
+
+        /**
+         * The units of a whirl cluster released from its point within {@link #CLUSTER_RELEASE_SECONDS}
+         * at 360/n degrees apart, so the spiral reads as one shape (design/enemies/air/whirl-seed).
+         */
+        void whirlCluster() {
+            WaveSpec.At at = required(wave.at(), "a release point (at)");
+            double x = at.x();
+            double y = HEIGHT - at.depth();
+            for (int i = 0; i < wave.count(); i++) {
+                double angle = 2 * StrictMath.PI * i / wave.count();
+                double t = wave.t() + CLUSTER_RELEASE_SECONDS * i / wave.count();
+                out.add(new Spawn(
+                        SimStep.ticks(t),
+                        kind,
+                        enemy(),
+                        FlightPath.through(x, y, x, y - 1),
+                        speed(enemy().speed()),
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.DOWN,
+                        false,
+                        carried(i),
+                        Optional.of(new Spawn.Release(x, y, angle))));
+            }
         }
 
         /**
@@ -346,7 +418,7 @@ final class Formations {
 
         private Optional<PickupType> carried(int unit) {
             for (WaveSpec.Carried carried : wave.carried()) {
-                if (unit == (carried.lastUnit() ? wave.count() - 1 : 0)) {
+                if (unit == (carried.lastUnit() ? wave.count() - 1 : Math.min(carried.unit(), wave.count() - 1))) {
                     return Optional.of(carried.pickup());
                 }
             }

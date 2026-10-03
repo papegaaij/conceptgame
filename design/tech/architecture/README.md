@@ -141,11 +141,21 @@ first entry of a part's model list is the starter (price 0, `start`).
   `single_target` (`distance`, `width`).
 - **Enemy** (`enemies/<category>/<slug>/data.yaml`): the stat block of the
   [enemies](../../enemies/README.md#stat-block-template) template: `name`, `faction`, `layer`,
-  `tier`, `size`, `hitbox`, `parts`, `orientation`, `hp`, `armour`, `speed`, `movement` (one
+  `tier`, `size`, `hitbox`, `parts` (`single` or `multi`: a multi-part unit lists its
+  `part_list`, each part a `name`, an `offset` `[dx, dy]` from the centre in its own frame facing
+  down (dx right, dy up towards the tail), a `hitbox`, `hp`, `kind` `destroyable`/`vital`/
+  `armoured`, `bounty` and the `attack` it fires by name; the parts' HP and bounties add up to the
+  unit's), `orientation`, `hp`, `armour`, `speed`, `movement` (one
   entry per pattern: `snake` `spacing`; `swoop` `radius`, `top_speed`; `straight` `speed`;
-  `hover` `seconds`, `y`; `orbit` `radius`, `turn_rate`), `attacks` (`pattern`, `bullet` class,
-  `interval`, `speed`, `first_shot_delay`), `formations` (`name`, `size` `[n]` or `[min, max]`),
-  `weak_points` (`name`, `multiplier`), `traits`, `bounty`, `first_level`, `difficulty` hooks.
+  `hover` `seconds`, `y`; `orbit` `radius`, `turn_rate`; `strafe` `y`, the height a convoy turns
+  across at; `spiral_out` `seconds`, `turns`, `growth`, `drift`, `ricochets`), `attacks`
+  (`pattern` `aimed`/`fan`/`mine`, an optional `name`, `bullet` class, `interval`, `speed`,
+  `first_shot_delay` (for parts sharing an attack: the stagger between them), a fan's `count` and
+  `spread`, a mine's `mine` with `arm`, `life`, `drift`, `hp`, `ring`, `ring_bullet`, `credits`),
+  `formations` (`name`, `size` `[n]` or `[min, max]`),
+  `weak_points` (`name`, `multiplier`), `traits`, `bounty`, `first_level`, `difficulty` hooks
+  (`easy`/`hard`: `fan_count`, `dive_pause`, `burst` (aimed attacks), `leads_target_in`, a mine's
+  `ring` and `mine_bursts`, a `death_burst` with `count`, `speed`, `bullet`).
   `drops` (`pickup`, `every`: every n-th kill of the enemy in a level drops it).
   Easy/hard HP in the table are derived from the difficulty levers (rounded half to even, at
   least 1), the
@@ -153,23 +163,38 @@ first entry of a part's model list is the starter (price 0, `start`).
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`,
-  `control_prompts`; `sections` back to back from t = 0 (`name`, `end`, `atmosphere`, optional
+  `control_prompts`, timed `prompts` (`t`, `action`, `keys`, `seconds`, an optional `skip` layer:
+  the prompt leaves once an enemy on it is destroyed); `sections` back to back from t = 0 (`name`, `end`, `atmosphere`, optional
   `speed`, the backdrop's `tiles` (tile set ids, at most one per layer); scroll distances are
   derived); `waves` in time order, one row each (`t`,
   `formation`, `enemy` slug, `count`, `from` `front`/`sides`/`rear`, `edge`
   `left`/`right`/`alternating` (`sides` without an edge enters from both side edges), optional
   `hold`, `warning`, `break_group`, `speed` (px/s instead of the enemy's own), `interval` (s
-  between the units of a stream), and `easy` / `hard` changes), a mixed wave lists `groups`
-  instead; `ground_targets` (`target`, `section`, `layer`, `size`, `at` (one `[t, x]` per object:
+  between the units of a stream), `at` (a whirl cluster's release point `[x, y]`, y below the top
+  edge), and `easy` / `hard` changes), a mixed wave lists `groups`
+  instead; `set_pieces` (an `enemy` with a `part_list` and its `passes`, each a `name`, `section`,
+  `layer`, fixed `heading` (° from straight down, positive to the right) and a `path` of
+  `[t, x, y]` waypoints (y below the top edge); a pass on the player's layer adds `descend`
+  (`at`, `seconds`), `hold` (s from the descent's start until it rises and leaves through the top
+  edge), `leave_speed` and `easy` / `hard` holds; the README's *Waves* row comes from its
+  `notes`); `debris` (the chunk kinds by name with their `size` and a large one's contact
+  `damage` or a small one's `hp`, the `clearance` from the ship they enter at, `max_large` on
+  screen, the `placed` chunks with `t`, `x`, `chunk` and `drift` `[x, y]` px/s, `easy`
+  `leave_out_large` (every n-th large chunk) and `hard` `drift_factor`); `ground_targets` (`target`, `section`, `layer`, `size`, `at` (one `[t, x]` per object:
   when it enters at the top edge and its x), a destructible's `count`, `hp`, `bounty`, `drop`, or
-  a trigger's `hits`, `reveals`); `secrets` (`name`, hidden `crate` credits, `radio` line); placed
-  `pickups` (`pickup`, `dropped_by` wave and unit); `radio` cues (trigger `t` or `event`
-  `first-kill` (with `enemy`) / `secondary-objective` / `level-end`; `speaker`, `line`,
+  a trigger's `hits`, `reveals` (triggers revealing the same secret reveal it together, when the
+  last of them is spent)); `secrets` (`name`, hidden `crate` credits, `radio` line); placed
+  `pickups` (`pickup`, `dropped_by` wave and unit `first`/`second`/`last`); `radio` cues (trigger
+  `t` or `event` `first-kill` or `enemy-escaped` (with `enemy`; a set piece escapes at the end of
+  its last pass) / `group-cleared` / `group-lost` (with `group`) / `first-group-lost` /
+  `secondary-objective` / `level-end`; `speaker`, `line`,
   `distorted`, the portrait's optional `expression` (`neutral`, `grim`, `fierce`; neutral if not
   given; a secret's `radio` line takes it too), and `easy` / `hard` changes giving another `line`,
-  as when a wave enters elsewhere on that difficulty); `objectives` (`primary`, `secondary` `kill_ratio` and `credits`); `music`
+  as when a wave enters elsewhere on that difficulty); `objectives` (`primary`, `secondary` `kill_ratio`, `groups` or `escapes` (the enemy none of
+  which may leave the screen alive) and `credits`); `music`
   (`track`, `start_section`, optional `start_db` (the theme's level through its start section,
-  rising to full at the next), `full_section`, `ambience`, `end_jingle`); `difficulty` (level-wide
+  rising to full at the next), `full_section`, optional `stems` (section: `base` or `full`,
+  overriding it), `ambience`, `end_jingle`); `difficulty` (level-wide
   `easy` / `hard` enemy changes such as `burst`, and `extra_pickups` placed like `pickups`);
   `threat_profile` (the hangar intel: `setting`, `layers`, `density` 1–5, recommended `traits`,
   `hazards`, `boss`, optional `specials` limits, `varga` lines per sensor level `none`/`l1`/`l2`/
@@ -500,3 +525,26 @@ Screenshot tests are left out until there is a need.
   `CraneLooks` (`pivots/crane-four.json`), the tracker's group pips, the level's theme by its
   track number. Debug option `--level <n>` (`DebugFit.startAt`, testing only). The Level 01 replay
   is unchanged (`c58ff0e1fb68eae9`).
+- 2026-10-02: M4 part C (Level 03), the game. `LevelRenderer` draws the low-air flyers below the
+  low-air layer's banks, the debris chunks on the play plane above the flyers (hit flash from
+  `Debris.ticksSinceHit`), the spore mines additively just below the enemy bullets (growing and
+  brightening while they rise), and the set pieces through `SetPieceLooks` (a part's sprite is
+  `<slug>-<part>` with the screen side last, `fin-left`; a part without one is drawn as its
+  `-glow`; per-frame pivots from `pivots/<slug>.json`): on the play plane below the ship, off it
+  (arriving, descending, rising) above the ship and scaled between 1.25 and 1 by
+  `SetPiece.altitude`. A level whose backdrop holds a `lifeboat-light` image draws its triggers as
+  that light. `Sprites.frames` returns a sprite's frames in index order; `EnemyLooks` plays a
+  radial spinner's frames at its spin; `Effects` can start an animation after a delay (the set
+  piece's chained death). `LevelMusic` crossfades both ways per section (`Music.full`); a prompt's
+  `skip` layer (`Prompt.skipLayer`) replaces Level 02's ground-prompt special case. The level's
+  `backdrop` stays required.
+- 2026-10-02: M4 part C, the death effects. `EnemyLooks` finds a unit's death animations by its
+  slug like its flare and remains: `<slug>-death` additive, `<slug>-tatters` or `<slug>-husk`
+  solid, as `DeathEffect`s (frames, steps per frame, delay) timed by tier (`tiny`: 2 steps a
+  frame, the glow 4 steps after the pop; larger: 4 steps a frame, with the burst). `LevelScreen`
+  keeps a second solid `Effects` at play-field positions (no ground scroll) for the pieces, which
+  `LevelRenderer` draws after the set piece on the play plane, below the ship and the glows; a set
+  piece's `<slug>-ichor` cloud (6 steps a frame) starts with each chained burst and the large one,
+  `Effects` drawing it at the high-air scale and opacity (`LevelRenderer.highAirScale` and
+  `highAirOpacity`) when the unit dies off the plane. `FlightSounds` plays a set piece's cry by
+  slug (`Sfx.LEVIATHAN_CRY`) with its death.

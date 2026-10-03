@@ -65,16 +65,24 @@ class MissionLayoutTest {
     }
 
     @Test
-    void everyControlPromptFitsItsLine() {
+    void everyControlAndLevelPromptFitsItsLine() {
         var texts = new PromptTexts(Bindings.defaults());
         for (LevelData level : CONTENT.levels().values()) {
             List<ControlPrompts.Prompt> prompts = level.controlPrompts().stream()
                     .map(ControlPrompts.Prompt::of)
                     .toList();
             assertTrue(prompts.size() <= MissionLayout.PROMPT_LINES, "at most one line per prompt");
-            for (PromptTexts.Text text : texts.of(prompts)) {
+            List<PromptTexts.Text> lines = new ArrayList<>(texts.of(prompts));
+            level.prompts()
+                    .orElse(List.of())
+                    .forEach(prompt -> lines.add(new PromptTexts.Text(prompt.action(), prompt.keys())));
+            for (PromptTexts.Text text : lines) {
                 assertFits(SMALL, text.action(), MissionLayout.PROMPT_ACTION_WIDTH - MissionLayout.PAD);
-                assertFits(SMALL, text.keys(), MissionLayout.TEXT_WIDTH - MissionLayout.PROMPT_ACTION_WIDTH);
+                // As MissionPanel lays a line out: the keys after the action and the gap.
+                assertFits(
+                        SMALL,
+                        text.keys(),
+                        MissionLayout.TEXT_WIDTH - width(SMALL, text.action()) - MissionLayout.PROMPT_GAP);
             }
         }
     }

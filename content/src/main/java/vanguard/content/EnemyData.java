@@ -20,6 +20,7 @@ public record EnemyData(
         Size size,
         Size hitbox,
         String parts,
+        Optional<List<PartData>> partList,
         Orientation orientation,
         double hp,
         String armour,
@@ -49,7 +50,41 @@ public record EnemyData(
             Optional<Hover> hover,
             Optional<Orbit> orbit,
             Optional<Dive> dive,
-            Optional<Terrain> terrain) {}
+            Optional<Terrain> terrain,
+            Optional<Strafe> strafe,
+            Optional<SpiralOut> spiralOut) {}
+
+    /** A convoy unit turns across the screen at a height in {@code y}, px from the top. */
+    public record Strafe(Span y) {}
+
+    /**
+     * Spirals out from its release point for {@code seconds} ({@code turns} per second, the radius
+     * growing {@code growth} px/s, the release point drifting down {@code drift} px/s), then flies on
+     * along its outward angle turned downward, bouncing off the side edges up to {@code ricochets} times.
+     */
+    public record SpiralOut(double seconds, double turns, double growth, double drift, int ricochets) {
+        public SpiralOut {
+            Check.positive("seconds", seconds);
+            Check.notNegative("ricochets", ricochets);
+        }
+    }
+
+    /**
+     * A part of a multi-part unit ({@code parts: multi}): a hit box around the unit's centre in its
+     * own frame (facing down the screen: dx right, dy up towards its tail).
+     *
+     * @param kind {@code armoured}, {@code destroyable} or {@code vital} (destroying it destroys the rest)
+     * @param attack the name of the unit's attack it fires
+     */
+    public record PartData(
+            String name, Point offset, Size hitbox, double hp, String kind, int bounty, Optional<String> attack) {
+        public PartData {
+            Check.positive("hp", hp);
+            Check.that(
+                    kind.equals("destroyable") || kind.equals("vital") || kind.equals("armoured"),
+                    "kind must be armoured, destroyable or vital, was '" + kind + "'");
+        }
+    }
 
     /**
      * Enters to a height of {@code y} px below the top of the play field, pauses for {@code pause}
@@ -112,6 +147,7 @@ public record EnemyData(
      */
     public record Attack(
             String pattern,
+            Optional<String> name,
             String bullet,
             Optional<Double> interval,
             double speed,
@@ -119,11 +155,13 @@ public record EnemyData(
             Optional<Integer> count,
             Optional<Double> spread,
             Optional<Double> turnRate,
-            Optional<Double> arc) {
+            Optional<Double> arc,
+            Optional<Mine> mine) {
         public Attack {
             Check.that(
-                    pattern.equals("aimed") || pattern.equals("fan"),
-                    "pattern must be aimed or fan, was '" + pattern + "'");
+                    pattern.equals("aimed") || pattern.equals("fan") || pattern.equals("mine"),
+                    "pattern must be aimed, fan or mine, was '" + pattern + "'");
+            Check.that(pattern.equals("mine") == mine.isPresent(), "a mine attack has its mine, the others none");
             interval.ifPresent(i -> Check.positive("interval", i));
             Check.positive("speed", speed);
             firstShotDelay.ifPresent(d -> Check.notNegative("first_shot_delay", d));
@@ -156,6 +194,19 @@ public record EnemyData(
         }
     }
 
+    /**
+     * A dropped spore mine: it arms (rises to the player plane) after {@code arm} s, drifts
+     * {@code drift} px/s in a random direction, has {@code hp}, and bursts after {@code life} s into
+     * a {@code ring} of {@code ringBullet} bullets at the attack's speed; destroyed it pays {@code credits}.
+     */
+    public record Mine(double arm, double life, double drift, double hp, int ring, String ringBullet, int credits) {
+        public Mine {
+            Check.notNegative("arm", arm);
+            Check.positive("life", life);
+            Check.positive("hp", hp);
+        }
+    }
+
     /** Overrides of the global difficulty levers. */
     public record Hooks(Optional<Hook> easy, Optional<Hook> hard) {}
 
@@ -166,10 +217,36 @@ public record EnemyData(
      * @param fanCount a fan's bullets instead
      * @param divePause a dive's pause instead, s
      * @param burst shots per volley instead of one
+     * @param ring a mine's ring bullets instead
+     * @param mineBursts false: mines never burst on their own
+     * @param deathBurst the puff of bullets it pops into when destroyed
      */
     public record Hook(
             Optional<List<String>> leadsTargetIn,
             Optional<Integer> fanCount,
             Optional<Double> divePause,
-            Optional<Integer> burst) {}
+            Optional<Integer> burst,
+            Optional<Integer> ring,
+            Optional<Boolean> mineBursts,
+            Optional<DeathBurst> deathBurst) {}
+
+    /** {@code count} bullets of class {@code bullet} in a ring at {@code speed} px/s. */
+    public record DeathBurst(int count, double speed, String bullet) {
+        public DeathBurst {
+            Check.positive("count", count);
+            Check.positive("speed", speed);
+        }
+    }
+
+    /** The attack named {@code name} (a part's {@code attack}). */
+    public Optional<Attack> attack(String name) {
+        return attacks.stream()
+                .filter(attack -> attack.name().filter(name::equals).isPresent())
+                .findFirst();
+    }
+
+    /** Whether it is a multi-part unit ({@code parts: multi} with a {@code part_list}). */
+    public boolean multiPart() {
+        return parts.equals("multi");
+    }
 }

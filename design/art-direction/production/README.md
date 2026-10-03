@@ -122,6 +122,7 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] M3 parts final and approved by the user (the UI batch, concept round 13)
 - [x] M4 part A: the Act 1 arsenal's effects rendered by `tools/art/weapon_fx.py` and drawn by the game; approved as final in round 14
 - [x] M4 part B: Level 02's Stinger, Spine Turret, salvage M and overdrive, backdrop, Crane Four and the "Afterburner" stems approved as final in round 15
+- [ ] M4 part C (Level 03, M4 part C batch): the Spore Bomber and its spore mine, the Whirl Seed and the debris chunks (`tools/art/vrell_l03.py`), the Leviathan (`tools/art/leviathan.py`), the Level 03 backdrop (`tools/art/backdrop_l03.py`), salvage L (`tools/art/pickups.py`) and the Spore Bomber's and Whirl Seed's intel portraits (`tools/art/intel.py`) rendered, review files for round 16; approved as final there
 - [ ] M4 and M5 parts final, each with its milestone (a round per M4 part, user decision)
 
 ## Open questions
@@ -220,3 +221,28 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - 2026-10-02: M4 plan (user decision): each M4 part gets its production-art round right after it; part A's is round 14, the arsenal's effects (`tools/art/weapon_fx.py`), made by the production generator at once instead of placeholders.
 - 2026-10-02: Concept round 14 closed (user decision): M4 part A's effects and the HUD's weapon rows approved as final.
 - 2026-10-02: Concept round 15 closed (user decision): M4 part B's art (Level 02) approved as final.
+- 2026-10-02: M4 part C batch (Level 03), review files for round 16: `tools/art/vrell_l03.py`
+  renders the Spore Bomber (the chosen round-04 model at 72 px, the gas bag breathing over four
+  frames), its spore mine (a 2D lime light field, additive), the Whirl Seed (the round-05 seed with
+  six blades instead of five, as the six-fold spinner and its 60° loop need, the material patterns
+  turning with the blades) and the debris field's wreck chunks (the Earth-orbit station kit broken
+  along jagged cuts, posed in the model under the fixed key light); `tools/art/leviathan.py` the
+  Leviathan set piece, its second-pass body in three tail-sway frames with every shootable part
+  (vents, fins, fluke) as its own sprite and a `-wrecked` one, cut from whole-unit renders by an ID
+  pass so occlusion and shadows match, and the whole unit on its diagonal first pass;
+  `tools/art/backdrop_l03.py` the Level 03 backdrop from the shared kit. Salvage L (the Leviathan's
+  200-credit drop, `pickup-salvage-large`) has no concept model of its own, since the round-09
+  salvage L is the crate that stays the hidden crate: `tools/art/pickups.py` grows the salvage chips
+  into a cluster of seven (a raised centre chip in a ring of six) with the other pickups'
+  presentation. `tools/art/intel.py` adds the sensor portraits of Level 03's new wave enemies, the
+  Spore Bomber and the Whirl Seed (the six-blade production seed); the Leviathan, a set piece and
+  not one of the waves' enemy types, gets no intel portrait, as the hangar lists only the waves'
+  types and draws a silhouette only for the threat profile's boss (none in Level 03). No part is
+  `final` until the user approves it in round 16.
+- 2026-10-02: M4 part C batch, the death effects the Level 03 units left to this track:
+  `tools/art/vrell_fx.py` renders the Spore Bomber's lime spore cloud (additive) and membrane
+  tatters (solid), the Whirl Seed's husk split (solid) and teal glint (additive) and the
+  Leviathan's ichor cloud (additive, one per wound), each played with the unit's
+  explosion-ladder burst; physical pieces are a solid set of their own, ray-marched per frame
+  from the units' models, since opaque hide added as light would glow. The Leviathan's
+  whale-song cry is synthesized (`tools/concept/audio/sfx_r16.py`). Review files for round 16.

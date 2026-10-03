@@ -59,13 +59,16 @@ illustrative and come from [player](../../player/README.md).)
   fitted item** (green/red deltas).
 - **Test fire**: a small looping preview box showing the weapon's pattern at the current level
   against dummy targets. Quick way to understand spread, rear and side weapons.
-- **Intel** (right): the next level's threat profile, voiced by Dr. Varga. How much is shown
+- **Intel** (right): the next level's threat profile, voiced by Dr. Varga (her 72×72 radio portrait
+  with the hangar teaser beside it). How much is shown
   depends on the sensor suite level, see [ship systems](../../player/systems/README.md#sensor-levels-and-hangar-intel).
   Fields come from the level's threat profile (see the
   [level template](../../campaign/README.md#level-document-template)): setting, dominant layers,
   attack directions with the share of waves per direction (e.g. "front 60 %, rear 40 %"),
   density (1–5), hazards, special availability (e.g. "No air support under the ice"), boss,
-  recommended weapon traits.
+  recommended weapon traits. A set piece (a `huge` unit outside the waves, such as Level 03's
+  Leviathan) is not named: from sensor L2 it shows as an "unknown huge contact" (its size tier)
+  with its 40×40 silhouette at the right of the boss row.
 - **Repair**: armour repair per point or "repair all", with cost. Also Rook's repairs.
 - **Save**: slot list, see [saves](../../systems/saves/README.md).
 - **Launch**: confirmation if the loadout lacks a recommended trait ("No anti-sub weapon
@@ -106,6 +109,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 | [concept/hangar-final-r13-a.png](concept/hangar-final-r13-a.png) | Review sheet: the 960×540 tactical map (Act 1, Earth from orbit) and all 47 icons, 16×16 at 1× and 3×, 24×24 at 1× and 2× | chosen |
 | [concept/hangar-capture-final-r13-a.png](concept/hangar-capture-final-r13-a.png) | Game capture before Level 01: the right wing's shop rows with icons (locked ones dimmed), the Bomb Rack selected with its large icon, the holographic callouts with the fitted Pulse Cannon's icon, the locked escort with Rook's craft, the power bar in its trough | chosen |
 | [concept/intel-final-r13-a.png](concept/intel-final-r13-a.png) | Review sheet (part U3, `tools/art/intel.py`): the intel's sensor-L2 pictures at 1× and 3×, the 30×30 portraits of the Skitter, Needler, Stinger and Spine Turret and the 40×40 silhouettes of the Gorgon Frigate and the Brood Carrier | chosen |
+| [concept/intel-final-r16-a.png](concept/intel-final-r16-a.png) | Review sheet (M4 part C batch, `tools/art/intel.py`): the 30×30 intel portraits of the Spore Bomber and the six-bladed Whirl Seed and the Leviathan's 40×40 "unknown huge contact" silhouette (facing down, `boss-leviathan`), at 1× and 3× | proposed |
 
 ## Implementation
 
@@ -119,6 +123,8 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 - [ ] Varga's line per intel item — **later: M4** (writing pass, see *Open questions*)
 - [x] Equipment icons: one per shop item and the escort, in the shop rows, the selected item and the schematic's callouts (`tools/art/icons.py`)
 - [x] Sensor L2 enemy portraits and boss silhouette in the intel
+- [x] Sensor L2 set pieces as an "unknown huge contact" with their silhouette in the intel
+      (Level 03's Leviathan; `Intel.contacts()`, the silhouette `intel/boss-<enemy>`)
 - [x] Trait-match markers in the shop
 - [x] Launch warnings (missing recommended trait, low armour)
 
@@ -218,3 +224,23 @@ until it is handled where stated.
   Review sheet proposed for round 13; `art` stays `chosen`.
 - 2026-10-02: Concept round 13 closed (user decision): the Act 1 tactical map (`tools/art/ui_scenes.py`), the equipment icons in both sizes (`tools/art/icons.py`) and the intel's sensor-L2 portraits and Act 1 boss silhouettes (`tools/art/intel.py`) approved as **final**; `art` stays `chosen`, since the later acts' tactical maps and the intel pictures of the later enemies do not exist yet.
 - 2026-10-02: M4 part A: the shop's "not yet in flight" note now marks only what the simulation does not fly yet (the specials, the utility modules, the mines and the Torpedo Pod).
+- 2026-10-02 (user decision): the intel shows a level's set pieces from sensor L2 as unknown
+  contacts, as Level 03's threat profile promises: "UNKNOWN HUGE CONTACT" (the unit's size tier) in
+  the boss row's value column with the unit's 40×40 silhouette at the row's right, as a boss's
+  (`tools/art/intel.py`, `assets/sprites/intel/boss-leviathan.png`); without a boss the label sits
+  below the row's `NONE`. The content derives them from the level's `set_pieces` and the stat
+  block's tier (`vanguard.content.campaign.Intel.contacts()`, field `CONTACTS`, sensor L2), so the
+  name never shows and nothing is keyed to the Leviathan; below L2 nothing tells of a contact.
+  Tests: `IntelTest.aSetPieceIsAnUnknownContactOfItsSizeTierFromSensorL2`,
+  `PortraitsTest.everyContactOfALevelHasItsIntelSilhouette`.
+- 2026-10-02 (user decision): the intel shows the teaser's speaker with the 72×72 radio portrait
+  (`portraits/radio-<speaker>-<expression>`, the existing asset at its own size, not scaled) instead
+  of the 144×144 briefing one, the name, `CDF INTEL` and the teaser beside it (22 characters a line),
+  and the level's name below whichever ends lower: the fields move up about 64 px. Captured before
+  Level 03 at sensor L2 and L3, the panel ran out at the bottom (the wave strip, the secrets and
+  traits rows over Varga's four-line line, which itself ended below the panel); now everything
+  fits. Varga's line now ends at the panel's foot whatever its length (its last line 10 px above
+  the bottom edge) instead of starting at a fixed height. `IntelPanel` lays out on a canvas, and
+  `IntelPanelLayoutTest` checks every level at every sensor level: no two parts overlap, nothing
+  leaves the panel, every field ends above Varga's line;
+  `PortraitsTest.everyHangarTeaserHasItsSpeakersRadioPortrait`.

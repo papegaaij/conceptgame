@@ -2,6 +2,7 @@ package vanguard.content;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -101,16 +102,63 @@ final class ContentValidator {
                     enemy.formations().get(i).name());
         }
         for (int i = 0; i < enemy.attacks().size(); i++) {
-            String bullet = enemy.attacks().get(i).bullet();
-            if (!content.enemyBasis().knowsBullet(bullet)) {
-                problem(enemy, "attacks[" + i + "].bullet", "unknown bullet class '" + bullet + "'");
-            }
+            EnemyData.Attack attack = enemy.attacks().get(i);
+            checkBullet(enemy, "attacks[" + i + "].bullet", attack.bullet());
+            String field = "attacks[" + i + "]";
+            attack.mine().ifPresent(mine -> checkBullet(enemy, field + ".mine.ring_bullet", mine.ringBullet()));
         }
+        for (var hook : List.of(
+                enemy.difficulty().flatMap(EnemyData.Hooks::easy),
+                enemy.difficulty().flatMap(EnemyData.Hooks::hard))) {
+            hook.flatMap(EnemyData.Hook::deathBurst)
+                    .ifPresent(puff -> checkBullet(enemy, "difficulty.death_burst.bullet", puff.bullet()));
+        }
+        checkParts(enemy);
         enemy.difficulty()
                 .flatMap(EnemyData.Hooks::hard)
                 .flatMap(EnemyData.Hook::leadsTargetIn)
                 .ifPresent(
                         names -> names.forEach(name -> checkFormation(enemy, "difficulty.hard.leads_target_in", name)));
+    }
+
+    private void checkBullet(Object file, String field, String bullet) {
+        if (!content.enemyBasis().knowsBullet(bullet)) {
+            problem(file, field, "unknown bullet class '" + bullet + "'");
+        }
+    }
+
+    /**
+     * A multi-part unit lists its parts: their HP and bounties add up to the unit's, a part's
+     * attack names one of the unit's attacks, and it has a vital part.
+     */
+    private void checkParts(EnemyData enemy) {
+        if (enemy.multiPart() != enemy.partList().isPresent()) {
+            problem(enemy, "part_list", "a unit with parts: multi lists its parts, a single one none");
+        }
+        if (enemy.partList().isEmpty()) {
+            return;
+        }
+        List<EnemyData.PartData> parts = enemy.partList().get();
+        double hp = parts.stream().mapToDouble(EnemyData.PartData::hp).sum();
+        if (hp != enemy.hp()) {
+            problem(enemy, "hp", "is " + enemy.hp() + ", the parts' HP add up to " + hp);
+        }
+        int bounty = parts.stream().mapToInt(EnemyData.PartData::bounty).sum();
+        if (bounty != enemy.bounty()) {
+            problem(enemy, "bounty", "is " + enemy.bounty() + ", the parts' bounties add up to " + bounty);
+        }
+        if (parts.stream().noneMatch(part -> part.kind().equals("vital"))) {
+            problem(enemy, "part_list", "has no vital part");
+        }
+        for (int i = 0; i < parts.size(); i++) {
+            EnemyData.PartData part = parts.get(i);
+            int index = i;
+            part.attack().ifPresent(name -> {
+                if (enemy.attack(name).isEmpty()) {
+                    problem(enemy, "part_list[" + index + "].attack", "no attack named '" + name + "'");
+                }
+            });
+        }
     }
 
     private void checkFormation(Object file, String field, String name) {
@@ -139,8 +187,28 @@ final class ContentValidator {
                 checkFormation(level, groupField + ".formation", group.formation());
                 checkEnemyName(level, groupField + ".enemy", group.enemy());
                 levelEnemies.add(group.enemy());
+                if (group.formation().equals("whirl cluster") && wave.at().isEmpty()) {
+                    problem(level, field + ".at", "a whirl cluster needs its release point");
+                }
             }
+            wave.at().ifPresent(at -> {
+                if (at.x() < 0 || at.x() > PlayField.WIDTH || at.y() < 0 || at.y() > PlayField.HEIGHT) {
+                    problem(level, field + ".at", "[" + at.x() + ", " + at.y() + "] is outside the play field");
+                }
+            });
         }
+        checkSetPieces(level, levelEnemies);
+        checkDebris(level);
+        level.prompts().ifPresent(prompts -> {
+            for (int i = 0; i < prompts.size(); i++) {
+                checkTime(level, "prompts[" + i + "].t", prompts.get(i).t());
+            }
+        });
+        level.objectives().secondary().flatMap(LevelData.Secondary::escapes).ifPresent(slug -> {
+            if (!levelEnemies.contains(slug)) {
+                problem(level, "objectives.secondary.escapes", "no wave of '" + slug + "' in this level");
+            }
+        });
         Set<String> secrets =
                 level.secrets().stream().map(LevelData.Secret::name).collect(Collectors.toSet());
         for (int i = 0; i < level.groundTargets().size(); i++) {
@@ -214,11 +282,134 @@ final class ContentValidator {
         if (music.fullSection() > level.sections().size()) {
             problem(level, "music.full_section", "no section " + music.fullSection());
         }
+        music.stems().ifPresent(stems -> stems.keySet().forEach(section -> {
+            if (section < 1 || section > level.sections().size()) {
+                problem(level, "music.stems", "no section " + section);
+            }
+        }));
         for (var variant : List.of(level.difficulty().easy(), level.difficulty().hard())) {
             variant.flatMap(LevelData.Variant::enemies)
                     .ifPresent(changes -> changes.keySet().forEach(slug -> checkEnemyName(level, "difficulty", slug)));
         }
         new BackdropCheck(level, (field, message) -> problem(level, field, message)).run();
+    }
+
+    /**
+     * A set piece is a multi-part enemy; its passes fit their sections and the level, a descent
+     * lies on its path, and no wave starts while it is on the player's layer on any difficulty
+     * (design/campaign, Level 03: the fight has the screen to itself).
+     */
+    private void checkSetPieces(LevelData level, Set<String> levelEnemies) {
+        List<LevelData.SetPieceData> pieces = level.setPieces().orElse(List.of());
+        for (int i = 0; i < pieces.size(); i++) {
+            LevelData.SetPieceData piece = pieces.get(i);
+            String field = "set_pieces[" + i + "]";
+            checkEnemyName(level, field + ".enemy", piece.enemy());
+            levelEnemies.add(piece.enemy());
+            if (content.enemies().containsKey(piece.enemy())
+                    && content.enemy(piece.enemy()).partList().isEmpty()) {
+                problem(level, field + ".enemy", "'" + piece.enemy() + "' is no multi-part unit (no part_list)");
+            }
+            for (int p = 0; p < piece.passes().size(); p++) {
+                LevelData.PassData pass = piece.passes().get(p);
+                String passField = field + ".passes[" + p + "]";
+                if (pass.section() < 1 || pass.section() > level.sections().size()) {
+                    problem(level, passField + ".section", "no section " + pass.section());
+                }
+                if (p > 0
+                        && pass.path().getFirst().t()
+                                < piece.passes().get(p - 1).path().getLast().t()) {
+                    problem(level, passField + ".path", "starts before the pass before it ends");
+                }
+                pass.path().forEach(point -> checkTime(level, passField + ".path", point.t()));
+                pass.descend().ifPresent(descent -> {
+                    if (descent.at() < pass.path().getFirst().t()
+                            || descent.at() > pass.path().getLast().t()) {
+                        problem(level, passField + ".descend.at", "t=" + descent.at() + " is not on the pass's path");
+                    }
+                    double from = descent.at() + descent.seconds();
+                    double to = descent.at();
+                    for (Difficulty difficulty : Difficulty.values()) {
+                        to = Math.max(to, descent.at() + pass.holdOn(difficulty).orElseThrow());
+                    }
+                    for (int w = 0; w < level.waves().size(); w++) {
+                        double t = level.waves().get(w).t();
+                        if (t >= from && t < to) {
+                            problem(
+                                    level,
+                                    "waves[" + w + "].t",
+                                    "t=" + t + " while " + piece.enemy() + " is on the player's layer");
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * The debris chunks resolve, enter inside the play field and within the level, and no more
+     * large ones than allowed are on the screen at once, on any difficulty.
+     */
+    private void checkDebris(LevelData level) {
+        if (level.debris().isEmpty()) {
+            return;
+        }
+        LevelData.DebrisField field = level.debris().get();
+        List<LevelData.PlacedChunk> placed = field.placed();
+        for (int i = 0; i < placed.size(); i++) {
+            LevelData.PlacedChunk chunk = placed.get(i);
+            String at = "debris.placed[" + i + "]";
+            checkTime(level, at + ".t", chunk.t());
+            if (!field.chunks().containsKey(chunk.chunk())) {
+                problem(
+                        level,
+                        at + ".chunk",
+                        "no chunk '" + chunk.chunk() + "' in debris.chunks "
+                                + field.chunks().keySet());
+            } else if (chunk.x() < 0 || chunk.x() > PlayField.WIDTH) {
+                problem(level, at + ".x", "x=" + chunk.x() + " is outside the play field");
+            }
+        }
+        if (field.maxLarge().isEmpty()
+                || !placed.stream().allMatch(c -> field.chunks().containsKey(c.chunk()))) {
+            return;
+        }
+        int max = field.maxLarge().get();
+        for (Difficulty difficulty : Difficulty.values()) {
+            double factor = field.driftFactor(difficulty);
+            List<LevelData.PlacedChunk> chunks = field.placedOn(difficulty);
+            for (double t = 0; t < level.seconds(); t += 0.05) {
+                int large = 0;
+                for (LevelData.PlacedChunk chunk : chunks) {
+                    LevelData.Chunk kind = field.chunks().get(chunk.chunk());
+                    if (kind.large() && onScreen(chunk, kind.size(), factor, t)) {
+                        large++;
+                    }
+                }
+                if (large > max) {
+                    problem(
+                            level,
+                            "debris.placed",
+                            large + " large chunks on the screen at t=" + Math.round(t * 100) / 100.0 + " on "
+                                    + difficulty.name().toLowerCase(Locale.ROOT) + " (at most " + max + ")");
+                    break;
+                }
+            }
+        }
+    }
+
+    /** Whether a chunk drifting from the top edge is on the screen at {@code t}. */
+    private static boolean onScreen(LevelData.PlacedChunk chunk, Size size, double factor, double t) {
+        if (t < chunk.t()) {
+            return false;
+        }
+        double age = t - chunk.t();
+        double x = chunk.x() + chunk.drift().x() * factor * age;
+        double y = PlayField.HEIGHT + size.height() / 2 + chunk.drift().y() * factor * age;
+        return y + size.height() / 2 > 0
+                && y - size.height() / 2 < PlayField.HEIGHT
+                && x + size.width() / 2 > 0
+                && x - size.width() / 2 < PlayField.WIDTH;
     }
 
     /** A group name must be one of the secondary objective's groups. */

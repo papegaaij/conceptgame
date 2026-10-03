@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import vanguard.sim.Layer;
 import vanguard.sim.PlayField;
 
 /**
@@ -18,6 +19,8 @@ import vanguard.sim.PlayField;
  * @param prompts contextual prompts shown at a time (design/ui/hud: one line, an action and its keys)
  * @param sections back to back from t = 0
  * @param cranes the crane hazards (Level 02: Crane Four)
+ * @param debris the debris field's chunks (Level 03)
+ * @param setPieces the huge set-piece units and their passes (Level 03's Leviathan)
  * @param pickups pickups placed by the script (normal drops come from the enemies)
  * @param radio the radio chatter
  * @param backdrop the parallax layers behind and above the play plane
@@ -36,6 +39,8 @@ public record LevelData(
         List<PlacedPickup> pickups,
         List<RadioCue> radio,
         Optional<List<CraneData>> cranes,
+        Optional<DebrisField> debris,
+        Optional<List<SetPieceData>> setPieces,
         Objectives objectives,
         Music music,
         Difficulties difficulty,
@@ -173,13 +178,180 @@ public record LevelData(
     /**
      * A contextual prompt (design/ui/hud, control prompts): shown from {@code t} for {@code seconds}
      * in the prompts' well, the {@code action} on the left and its {@code keys} on the right.
+     *
+     * @param skip a layer: the prompt leaves early, done what it says, once an enemy on that layer
+     *     is destroyed (Level 03's {@code LOW-AIR} prompt); without it, it stays for its seconds
      */
-    public record Prompt(double t, String action, String keys, double seconds) {
+    public record Prompt(double t, String action, String keys, double seconds, Optional<String> skip) {
         public Prompt {
             Check.notNegative("t", t);
             Check.positive("seconds", seconds);
+            skip.ifPresent(Layers::of);
+        }
+
+        /** The layer whose first destroyed enemy makes the prompt leave, if any. */
+        public Optional<Layer> skipLayer() {
+            return skip.map(Layers::of);
         }
     }
+
+    /**
+     * The debris field (design/world/earth-orbit, hazards): drifting wreck chunks on the air layer
+     * that block shots and enemy bullets. Each placed chunk enters at the top edge at its time.
+     *
+     * @param chunks the chunk kinds by name; the sprite of {@code large-a} is {@code debris-large-a}
+     * @param clearance a chunk never enters closer to the ship than this, px (it moves sideways)
+     * @param placed in time order
+     * @param maxLarge the most large chunks on the screen at once (checked by the loader on every difficulty)
+     * @param easy which large chunks are left out on easy
+     * @param hard how much faster they drift on hard
+     */
+    public record DebrisField(
+            Map<String, Chunk> chunks,
+            double clearance,
+            List<PlacedChunk> placed,
+            Optional<Integer> maxLarge,
+            Optional<DebrisEasy> easy,
+            Optional<DebrisHard> hard) {
+        public DebrisField {
+            Check.notEmpty("chunks", new ArrayList<>(chunks.keySet()));
+            Check.notNegative("clearance", clearance);
+            for (int i = 1; i < placed.size(); i++) {
+                Check.that(
+                        placed.get(i).t() >= placed.get(i - 1).t(),
+                        "placed[" + i + "]: chunks are listed in time order");
+            }
+        }
+
+        /** The chunks entering on {@code difficulty}, in time order. */
+        public List<PlacedChunk> placedOn(Difficulty difficulty) {
+            if (difficulty != Difficulty.EASY || easy.isEmpty()) {
+                return placed;
+            }
+            int every = easy.get().leaveOutLarge();
+            List<PlacedChunk> kept = new ArrayList<>();
+            int large = 0;
+            for (PlacedChunk chunk : placed) {
+                if (chunks.get(chunk.chunk()).large() && ++large % every == 0) {
+                    continue;
+                }
+                kept.add(chunk);
+            }
+            return kept;
+        }
+
+        /** The factor on the drift on {@code difficulty}. */
+        public double driftFactor(Difficulty difficulty) {
+            return difficulty == Difficulty.HARD
+                    ? hard.map(DebrisHard::driftFactor).orElse(1.0)
+                    : 1;
+        }
+    }
+
+    /**
+     * A chunk kind: a large one is indestructible and deals contact {@code damage} (once per
+     * second), a small one breaks after {@code hp} damage and pays nothing.
+     */
+    public record Chunk(Size size, Optional<Double> damage, Optional<Double> hp) {
+        public Chunk {
+            Check.that(damage.isPresent() != hp.isPresent(), "give damage (a large chunk) or hp (a small one)");
+            damage.ifPresent(d -> Check.positive("damage", d));
+            hp.ifPresent(h -> Check.positive("hp", h));
+        }
+
+        public boolean large() {
+            return damage.isPresent();
+        }
+    }
+
+    /** A chunk entering at the top edge at {@code t} at {@code x}, drifting at {@code drift} [x, y] px/s (y up: negative is down). */
+    public record PlacedChunk(double t, double x, String chunk, Point drift) {
+        public PlacedChunk {
+            Check.notNegative("t", t);
+            Check.that(drift.y() < 0, "drift: a chunk drifts down the screen (a negative y)");
+        }
+    }
+
+    /** On easy every {@code leaveOutLarge}-th large chunk is left out. */
+    public record DebrisEasy(int leaveOutLarge) {
+        public DebrisEasy {
+            Check.that(leaveOutLarge >= 2, "leave_out_large: 2 or more");
+        }
+    }
+
+    /** On hard the chunks drift {@code driftFactor} times as fast. */
+    public record DebrisHard(double driftFactor) {
+        public DebrisHard {
+            Check.positive("drift_factor", driftFactor);
+        }
+    }
+
+    /** A huge set-piece unit ({@code enemy}, a multi-part stat block) flying its {@code passes} in order. */
+    public record SetPieceData(String enemy, List<PassData> passes) {
+        public SetPieceData {
+            Check.notEmpty("passes", passes);
+        }
+    }
+
+    /**
+     * A pass of a set piece: its centre flies along {@code path} on {@code layer} facing
+     * {@code heading} (degrees from straight down, positive to the right; fixed for the pass). A
+     * pass on the player's layer arrives on {@code high-air}, {@code descend}s, holds until
+     * {@code hold} seconds after its descent began and then rises and leaves straight up through
+     * the top edge at {@code leave_speed}; a pass without a descent ends with its path.
+     *
+     * @param section the section it belongs to (the README's waves table)
+     * @param path one {@code [t, x, y]} per waypoint: level seconds, px from the left, px below the top edge
+     */
+    public record PassData(
+            String name,
+            int section,
+            String layer,
+            double heading,
+            List<PathPoint> path,
+            Optional<Descent> descend,
+            Optional<Double> hold,
+            Optional<Double> leaveSpeed,
+            Optional<PassChange> easy,
+            Optional<PassChange> hard) {
+        public PassData {
+            Layers.of(layer);
+            Check.notEmpty("path", path);
+            for (int i = 1; i < path.size(); i++) {
+                Check.that(path.get(i).t() > path.get(i - 1).t(), "path[" + i + "]: waypoints are in time order");
+            }
+            Check.that(
+                    descend.isPresent() == hold.isPresent() && hold.isPresent() == leaveSpeed.isPresent(),
+                    "a descending pass gives descend, hold and leave_speed, a flight none of them");
+            hold.ifPresent(h -> Check.that(h > descend.orElseThrow().seconds(), "hold: longer than the descent"));
+            leaveSpeed.ifPresent(v -> Check.positive("leave_speed", v));
+        }
+
+        /** Its hold on {@code difficulty}, from the start of the descent. */
+        public Optional<Double> holdOn(Difficulty difficulty) {
+            Optional<PassChange> change =
+                    switch (difficulty) {
+                        case EASY -> easy;
+                        case MEDIUM -> Optional.empty();
+                        case HARD -> hard;
+                    };
+            return change.flatMap(PassChange::hold).or(() -> hold);
+        }
+    }
+
+    /** A waypoint: level seconds, px from the left, px below the top edge. */
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    public record PathPoint(double t, double x, double y) {}
+
+    /** The descent from {@code high-air} to the player's layer: starts {@code at} level seconds, takes {@code seconds}. */
+    public record Descent(double at, double seconds) {
+        public Descent {
+            Check.positive("seconds", seconds);
+        }
+    }
+
+    /** A difficulty's change to a pass: another hold. */
+    public record PassChange(Optional<Double> hold) {}
 
     /**
      * A crane hazard ({@code sim.LevelScript.CraneSpec}): an arm of {@code length} x {@code width}
@@ -246,6 +418,7 @@ public record LevelData(
      * @param breakGroup how many units of a circle break toward the player together
      * @param speed px/s instead of the enemy's own speed
      * @param interval seconds between two units of a stream
+     * @param at a whirl cluster's release point: {@code [x, y]}, px from the left and below the top edge
      * @param easy changes on easy
      * @param hard changes on hard
      */
@@ -262,6 +435,7 @@ public record LevelData(
             Optional<Integer> breakGroup,
             Optional<Double> speed,
             Optional<Double> interval,
+            Optional<Point> at,
             Optional<Change> easy,
             Optional<Change> hard) {
         public Wave {
@@ -378,11 +552,12 @@ public record LevelData(
     /** A pickup carried by a unit of the wave starting at {@code droppedBy.wave}, dropped when it is destroyed. */
     public record PlacedPickup(Pickup pickup, Carrier droppedBy) {}
 
-    /** The {@code unit} ({@code first} or {@code last}) of the wave starting at {@code wave} seconds. */
+    /** The {@code unit} ({@code first}, {@code second} or {@code last}) of the wave starting at {@code wave} seconds. */
     public record Carrier(double wave, CarrierUnit unit) {}
 
     public enum CarrierUnit {
         FIRST,
+        SECOND,
         LAST
     }
 
@@ -397,7 +572,7 @@ public record LevelData(
     /**
      * A radio chatter cue, triggered at {@code t} seconds or by an {@code event}.
      *
-     * @param enemy the enemy of a {@code first-kill} event
+     * @param enemy the enemy of a {@code first-kill} or {@code enemy-escaped} event
      * @param expression the speaker's portrait expression, neutral when not given
      * @param easy changes on easy
      * @param hard changes on hard
@@ -416,9 +591,10 @@ public record LevelData(
             Optional<RadioChange> hard) {
         public RadioCue {
             Check.that(t.isPresent() != event.isPresent(), "give the trigger as t or as event");
+            boolean byEnemy = event.orElse(null) == CueEvent.FIRST_KILL || event.orElse(null) == CueEvent.ENEMY_ESCAPED;
             Check.that(
-                    enemy.isPresent() == (event.orElse(null) == CueEvent.FIRST_KILL),
-                    "a first-kill event names its enemy, other triggers do not");
+                    enemy.isPresent() == byEnemy,
+                    "a first-kill or enemy-escaped event names its enemy, other triggers do not");
             boolean byGroup = event.orElse(null) == CueEvent.GROUP_CLEARED || event.orElse(null) == CueEvent.GROUP_LOST;
             Check.that(
                     group.isPresent() == byGroup,
@@ -441,20 +617,27 @@ public record LevelData(
         @JsonProperty("group-lost")
         GROUP_LOST,
         @JsonProperty("first-group-lost")
-        FIRST_GROUP_LOST
+        FIRST_GROUP_LOST,
+        /** The first unit of the enemy left the screen alive (a set piece: at the end of its last pass). */
+        @JsonProperty("enemy-escaped")
+        ENEMY_ESCAPED
     }
 
     /** The primary objective's kind and the optional secondary objective. */
     public record Objectives(String primary, Optional<Secondary> secondary) {}
 
     /**
-     * Destroy at least {@code killRatio} of all enemies for {@code credits}, or clear the ground
+     * Destroy at least {@code killRatio} of all enemies for {@code credits}, clear the ground
      * enemies of every one of the {@code groups} (named by its ground targets' {@code group}) for
-     * {@code credits} each.
+     * {@code credits} each, or let none of the enemy {@code escapes} leave the screen alive
+     * ("nothing gets through", Level 03) for {@code credits}.
      */
-    public record Secondary(Optional<Double> killRatio, Optional<List<String>> groups, int credits) {
+    public record Secondary(
+            Optional<Double> killRatio, Optional<List<String>> groups, Optional<String> escapes, int credits) {
         public Secondary {
-            Check.that(killRatio.isPresent() != groups.isPresent(), "give kill_ratio or groups");
+            Check.that(
+                    (killRatio.isPresent() ? 1 : 0) + (groups.isPresent() ? 1 : 0) + (escapes.isPresent() ? 1 : 0) == 1,
+                    "give kill_ratio, groups or escapes");
             killRatio.ifPresent(r -> Check.share("kill_ratio", r));
             groups.ifPresent(g -> Check.notEmpty("groups", g));
             Check.notNegative("credits", credits);
@@ -469,9 +652,31 @@ public record LevelData(
      * @param startDb the theme's level through its start section, dB (full when absent); it rises
      *     to full at the next section
      * @param fullSection the section from which all stems play (the base stem before)
+     * @param stems sections that override that: {@code base} drops to the base stem (Level 03's
+     *     first Leviathan pass), {@code full} forces every stem on
      */
     public record Music(
-            int track, int startSection, Optional<Double> startDb, int fullSection, String ambience, String endJingle) {
+            int track,
+            int startSection,
+            Optional<Double> startDb,
+            int fullSection,
+            Optional<Map<Integer, Stems>> stems,
+            String ambience,
+            String endJingle) {
+        /** The stems a section plays. */
+        public enum Stems {
+            @JsonProperty("base")
+            BASE,
+            @JsonProperty("full")
+            FULL
+        }
+
+        /** Whether section {@code section} (1-based) plays every stem. */
+        public boolean full(int section) {
+            Stems override = stems.map(map -> map.get(section)).orElse(null);
+            return override != null ? override == Stems.FULL : section >= fullSection;
+        }
+
         public Music {
             Check.that(startSection <= fullSection, "full_section must not come before start_section");
             startDb.ifPresent(db -> Check.that(db <= 0, "start_db: must not be above full level"));

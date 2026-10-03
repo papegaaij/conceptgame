@@ -37,8 +37,13 @@ final class MissionLayout {
     static final int NAME_WIDTH = HudKit.INNER_WIDTH - PORTRAIT - NAME_GAP;
     /** The most control prompts shown at once: one line each. */
     static final int PROMPT_LINES = 3;
-    /** A prompt's action is left-aligned in this column, its keys right-aligned in the rest of the line. */
+    /**
+     * A prompt's action is left-aligned and cut off at this width, its keys right-aligned in the
+     * rest of the line after the action and a {@link #PROMPT_GAP}.
+     */
     static final int PROMPT_ACTION_WIDTH = 88;
+    /** Between a prompt's action and its keys. */
+    static final int PROMPT_GAP = 8;
 
     static final int CHAIN_BAR = 6;
     static final int PROGRESS_BAR = 10;

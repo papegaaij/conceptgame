@@ -10,15 +10,23 @@ halo on every side):
   pickup-crate_0..7.png          34x34 hidden crate (salvage L), turning
   pickup-salvage-medium_0..7.png 31x31 three credit chips (salvage M), rocking (M4 part B batch)
   pickup-overdrive_0..7.png      32x32 overdrive, rocking (M4 part B batch)
-  design/player/concept/pickups-final-r12-a.png/.gif
+  pickup-salvage-large_0..7.png  35x35 seven credit chips (salvage L, a set piece's death drop),
+                                 rocking (M4 part C batch)
+  design/player/concept/pickups-final-r12-a.png/.gif   the Level 01 batch's pickups
+  design/player/concept/pickups-final-r15-a.png/.gif   the M4 part B batch's (salvage M, overdrive)
+  design/player/concept/pickups-final-r16-a.png/.gif   the M4 part C batch's (salvage L)
 
 Models, spin and the pulsing presentation are the chosen round-09 ones (tools/concept/vfx_r09.py:
 PICKUPS, pickup_fx): each frame is its own render at 8x with the key light fixed, then a 1 px
 light outline whose brightness pulses and a soft white halo stepped to four translucency levels.
 The crate carries its cyan cross on all four faces it shows while it turns (the concept had it on
-the top only, so the side-on frames were a plain dark box).
+the top only, so the side-on frames were a plain dark box). Salvage L has no round-09 model of its
+own: the concept's salvage L is the crate, which stays the hidden crate, so the large drop is the
+chips' family grown (``salvage_large_model``): a raised centre chip in a ring of six, rocking like
+the other chips.
 
-Run: python3 tools/art/pickups.py [name ...] [--review]   (~10 s; with names only those pickups)
+Run: python3 tools/art/pickups.py [name ...] [--review]   (~10 s; with names only those pickups
+and the review files of their batch)
 """
 import sys
 from concurrent.futures import ProcessPoolExecutor
@@ -44,9 +52,12 @@ HALO = (225, 245, 255)
 COLOURS = 24
 # asset name -> round-09 pickup key
 PICKUPS = {"salvage-small": "salvage-s", "shield-cell": "shield", "armour-patch": "armour", "crate": "salvage-l",
-           "salvage-medium": "salvage-m", "overdrive": "overdrive"}
-# the batch each was made in (the Source note)
-BATCHES = {"salvage-medium": "M4 part B batch", "overdrive": "M4 part B batch"}
+           "salvage-medium": "salvage-m", "overdrive": "overdrive", "salvage-large": "salvage-xl"}
+# the batch each was made in (the Source note); the Level 01 batch's are left out
+BATCHES = {"salvage-medium": "M4 part B batch", "overdrive": "M4 part B batch",
+           "salvage-large": "M4 part C batch"}
+# the concept round that reviews a batch
+ROUNDS = {"Level 01 batch": "r12", "M4 part B batch": "r15", "M4 part C batch": "r16"}
 CRATE_GLOW = 2                    # the concept crate's glowing stripe material
 
 
@@ -67,12 +78,34 @@ def crate_model():
     return scene, mats
 
 
+@v8.oriented
+def salvage_large_model():
+    """Salvage L (200 credits): the salvage chips grown into a cluster, a raised centre chip in a
+    ring of six, so it outshines salvage M's three loose chips in size and count."""
+    mats = [v9.m_metal((205, 210, 226)), v9.m_metal((60, 66, 86)), v9.m_glow((60, 230, 255), 1.3)]
+    ring = [(np.cos(k * np.pi / 3) * 0.66, np.sin(k * np.pi / 3) * 0.66) for k in range(6)]
+
+    def scene(p):
+        items = []
+        for ox, oy in ring:
+            items += v9._chip(p, 0.42, (ox, oy, -0.04))
+        items += v9._chip(p, 0.6, (0, 0, 0.12))
+        return union(*items, k=0.0)
+    return scene, mats
+
+
 MODELS = {"salvage-l": crate_model}
+# production pickups without a round-09 row: key -> (model, kwargs, native size)
+EXTRA = {"salvage-xl": (salvage_large_model, {}, 25)}
+FLAT = (*v9.FLAT, "salvage-xl")
 
 
 def render(key, i):
-    _, _, _, model, kw, n = next(r for r in v9.PICKUPS if r[0] == key)
-    spin = np.radians(55) * np.sin(i * TAU / FRAMES) if key in v9.FLAT else i * TAU / FRAMES
+    if key in EXTRA:
+        model, kw, n = EXTRA[key]
+    else:
+        _, _, _, model, kw, n = next(r for r in v9.PICKUPS if r[0] == key)
+    spin = np.radians(55) * np.sin(i * TAU / FRAMES) if key in FLAT else i * TAU / FRAMES
     scene, mats = MODELS.get(key, model)(tilt=TILT, spin=spin, **kw)
     hi, factor = artkit.render_hi(scene, mats, (n, n), EXTENT)
     return artkit.native(hi, factor)
@@ -109,11 +142,20 @@ def build(names):
         artkit.write_frames(f"pickup-{name}", [presentation(b, i) for i, b in enumerate(loop)], source)
 
 
-def review():
-    sets = {name: artkit.load_frames(f"pickup-{name}") for name in PICKUPS}
-    if any(name in BATCHES for name in sys.argv[1:]):
-        review_batch({name: frames for name, frames in sets.items() if name in BATCHES})
-        return
+def review(names):
+    """The review files of the named pickups' batches; without names every batch's."""
+    batches = {BATCHES.get(name, "Level 01 batch") for name in names or PICKUPS}
+    for batch in sorted(batches, key=list(ROUNDS).index):
+        members = [name for name in PICKUPS if BATCHES.get(name, "Level 01 batch") == batch]
+        sets = {name: artkit.load_frames(f"pickup-{name}") for name in members}
+        if batch == "Level 01 batch":
+            review_level01(sets)
+        else:
+            review_batch(sets, batch)
+
+
+def review_level01(sets):
+    artkit.REVIEW_ROUND = ROUNDS["Level 01 batch"]
     rows = [(name.upper().replace("-", " "), frames, 4, False) for name, frames in sets.items()]
     sheet = artkit.review_sheet("PICKUPS - FINAL SPRITES", rows)
     gif = []
@@ -125,11 +167,11 @@ def review():
     artkit.save_review(sheet, gif, DESIGN / "player" / "concept", "pickups", fps=10)
 
 
-def review_batch(sets):
+def review_batch(sets, batch):
     """The review files of a later batch's pickups alone."""
-    artkit.REVIEW_ROUND = "r15"
+    artkit.REVIEW_ROUND = ROUNDS[batch]
     rows = [(name.upper().replace("-", " "), frames, 4, False) for name, frames in sets.items()]
-    sheet = artkit.review_sheet("PICKUPS - FINAL SPRITES", rows, batch="M4 part B batch")
+    sheet = artkit.review_sheet("PICKUPS - FINAL SPRITES", rows, batch=batch)
     gif = []
     for i in range(FRAMES * 3):
         img = Image.new("RGBA", (len(sets) * 40, 48), (20, 28, 60, 255))
@@ -143,4 +185,4 @@ if __name__ == "__main__":
     names = [a for a in sys.argv[1:] if not a.startswith("--")]
     if "--review" not in sys.argv[1:]:
         build(names or list(PICKUPS))
-    review()
+    review(names)

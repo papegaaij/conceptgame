@@ -160,6 +160,16 @@ versions in `gradle/libs.versions.toml`.
 - CI: `.github/workflows/ci.yml` (check on three OSes, smoke test under xvfb, release bundles on
   `v*` tags).
 
+## Working with sub-agents
+
+- Real work goes to sub-agents: implementation, art generators, data files, captures, test
+  runs and investigations each run in a (background) sub-agent with a precise brief. The main
+  agent only coordinates (splitting the work, briefing, reviewing and merging results, talking
+  to the user) and does very small tasks itself.
+- Give each agent its own files so parallel agents never edit the same file; the main agent
+  merges shared files (READMEs, `data.yaml`, the parent Contents tables) afterwards.
+- Keep a few agents running at a time (token budget), and stop an agent only at a safe spot.
+
 ## Git
 
 - Ask before committing or pushing. Binaries must go through LFS (`git lfs ls-files` to check).

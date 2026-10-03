@@ -35,8 +35,19 @@ class CampaignRouteTest {
     }
 
     @Test
-    void afterLevel02TheCampaignWaitsInTheHangarUntilLevel03IsBuilt() {
+    void afterLevel02TheBriefingOfLevel03Comes() {
         Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+
+        assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.beforeNextLevel(content, campaign));
+        assertEquals(Optional.of("act-1-first-contact/level-03-spore-drift"), CampaignRoute.launch(content, campaign));
+    }
+
+    @Test
+    void afterLevel03TheCampaignWaitsInTheHangarUntilLevel04IsBuilt() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        campaign.complete(CampaignTest.won("A", 80, 1000), 60);
         campaign.complete(CampaignTest.won("A", 80, 1000), 60);
         campaign.complete(CampaignTest.won("A", 80, 1000), 60);
 

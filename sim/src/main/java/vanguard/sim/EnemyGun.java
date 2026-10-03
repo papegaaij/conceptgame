@@ -1,5 +1,7 @@
 package vanguard.sim;
 
+import java.util.Optional;
+
 /**
  * An enemy's attack (design/enemies, attack vocabulary), with the difficulty levers already
  * applied: an {@code aimed} shot, a {@code burst} of them, or an n-way {@code fan} centred on the
@@ -19,6 +21,7 @@ package vanguard.sim;
  * @param turnRate a turret's barrel turn rate in radians per second; infinite for units that aim at once
  * @param arcRadians a turret fires while the player is within this angle of its facing (straight
  *     down); infinite for units that fire every way
+ * @param mine a mine layer's spore: it drops one at the interval instead of firing
  */
 public record EnemyGun(
         double intervalSeconds,
@@ -30,7 +33,8 @@ public record EnemyGun(
         int fan,
         double spreadRadians,
         double turnRate,
-        double arcRadians) {
+        double arcRadians,
+        Optional<MineSpec> mine) {
     /**
      * The gap between the shots of a burst. "Quick succession" in the attack vocabulary has no
      * number yet; this is a first value to tune.
@@ -39,6 +43,53 @@ public record EnemyGun(
 
     /** The hit box of a {@code small} enemy bullet (the 9 px orb or the 5x13 needle; no number in the design yet). */
     public static final Hitbox BULLET = new Hitbox(6, 6);
+
+    /**
+     * A spore mine: it drifts at {@code drift} px/s in a random direction, arms (rises to the player
+     * plane, where it can be hit and burst on contact) after {@code armSeconds}, and after
+     * {@code lifeSeconds} bursts into a ring of {@code ring} bullets at the attack's bullet speed,
+     * or just fades when it never {@code bursts}; destroyed it pays {@code credits}.
+     *
+     * @param ringDamage the ring bullets' damage; a contact burst deals the attack's damage
+     */
+    public record MineSpec(
+            double armSeconds,
+            double lifeSeconds,
+            double drift,
+            double hp,
+            int ring,
+            double ringDamage,
+            boolean bursts,
+            int credits) {
+        /** A spore's hit box. */
+        public static final Hitbox BOX = new Hitbox(10, 10);
+    }
+
+    /** An attack without a mine (aimed, a burst, a fan or a turret's). */
+    public EnemyGun(
+            double intervalSeconds,
+            double firstShotDelay,
+            int burst,
+            double bulletSpeed,
+            double damage,
+            boolean leadsTargetInCircle,
+            int fan,
+            double spreadRadians,
+            double turnRate,
+            double arcRadians) {
+        this(
+                intervalSeconds,
+                firstShotDelay,
+                burst,
+                bulletSpeed,
+                damage,
+                leadsTargetInCircle,
+                fan,
+                spreadRadians,
+                turnRate,
+                arcRadians,
+                Optional.empty());
+    }
 
     /** An aimed attack that aims at once in every direction. */
     public static EnemyGun aimed(

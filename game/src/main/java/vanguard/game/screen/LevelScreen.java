@@ -3,8 +3,8 @@ package vanguard.game.screen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.JsonReader;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -25,6 +25,7 @@ import vanguard.game.level.ControlPrompts;
 import vanguard.game.level.Outro;
 import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
+import vanguard.game.level.RadioSchedule;
 import vanguard.game.render.CreditNumbers;
 import vanguard.game.render.EdgeWarnings;
 import vanguard.game.render.Effects;
@@ -35,9 +36,11 @@ import vanguard.game.render.PodPivots;
 import vanguard.game.render.WeaponLooks;
 import vanguard.game.settings.Settings;
 import vanguard.sim.FixedStepClock;
+import vanguard.sim.Layer;
 import vanguard.sim.LevelResult;
 import vanguard.sim.LevelScript;
 import vanguard.sim.Rules;
+import vanguard.sim.SetPiece;
 import vanguard.sim.SimEvents;
 import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
@@ -86,10 +89,18 @@ public final class LevelScreen implements GameScreen {
     private final FixedStepClock clock = new FixedStepClock(SimStep.SECONDS, MAX_STEPS_PER_FRAME);
     private final EnemyLooks[] looks;
     private final WeaponLooks weaponLooks;
-    /** The ground prompt's action (design/campaign, Level 02). */
-    private static final String GROUND_PROMPT = "GROUND";
-    /** Whether a ground unit was destroyed in this attempt, which skips the ground prompt. */
-    private boolean groundTargetHit;
+    /** The layers on which an enemy was destroyed in this attempt: a prompt that skips on one of them has left. */
+    private final EnumSet<Layer> layersHit = EnumSet.noneOf(Layer.class);
+    /** A set piece's death: a medium burst at each part, one after the other, then a large one at its centre. */
+    private static final int CHAIN_STEP_TICKS = 6;
+
+    private static final int MEDIUM_EXPLOSION_FRAME_TICKS = 3;
+    /** A set piece's death cloud (the Leviathan's ichor) shows each frame for 6 steps. */
+    private static final int DEATH_CLOUD_FRAME_TICKS = 6;
+
+    private final Array<AtlasRegion> explosionMedium;
+    /** Each set piece's death cloud, its slug's {@code -ichor} frames, by index in the script; empty for none. */
+    private final List<Array<AtlasRegion>> deathClouds;
     /** The spark of a shot glancing off a hardened target. */
     private final Array<AtlasRegion> glance;
 
@@ -98,9 +109,13 @@ public final class LevelScreen implements GameScreen {
     private final Hud hud;
     private final Effects effects = Effects.glowing();
     private final Effects debris = Effects.solid();
+    /** The solid death pieces of air units, at play-field positions (no ground scroll). */
+    private final Effects pieces = Effects.solid();
+
     private final CreditNumbers creditNumbers = new CreditNumbers();
     private final EdgeWarnings warnings;
     private final RadioQueue radio = new RadioQueue();
+    private final RadioSchedule radioSchedule;
     private final ControlPrompts prompts;
     private final PromptTexts promptTexts;
     private final LevelMusic music;
@@ -135,6 +150,7 @@ public final class LevelScreen implements GameScreen {
                 SimSpecs.level(services.content, levelKey, difficulty),
                 services.invulnerable ? rules.withInvulnerableShip() : rules,
                 campaign.armour());
+        radioSchedule = new RadioSchedule(sortie.script());
         looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites, services.content);
         weaponLooks = new WeaponLooks(
                 sortie.armament(),
@@ -142,17 +158,28 @@ public final class LevelScreen implements GameScreen {
                 services.sprites,
                 new PodPivots(services.files));
         glance = services.sprites.frames("ballistic-impact");
-        sounds = new FlightSounds(services.sfx, looks, sortie.armament());
+        explosionMedium = services.sprites.frames("explosion-medium");
+        deathClouds = sortie.script().setPieces().stream()
+                .map(spec -> services.sprites.has(spec.slug() + "-ichor")
+                        ? services.sprites.frames(spec.slug() + "-ichor")
+                        : new Array<AtlasRegion>())
+                .toList();
+        sounds = new FlightSounds(
+                services.sfx,
+                looks,
+                sortie.armament(),
+                sortie.script().setPieces().stream()
+                        .map(LevelScript.SetPieceSpec::slug)
+                        .toList());
         renderer = new LevelRenderer(
                 services.sprites,
                 looks,
                 weaponLooks,
-                level.cranes().isPresent()
-                        ? new JsonReader().parse(services.files.internal("pivots/crane-four.json"))
-                        : null,
+                services.files,
                 services.flash,
                 services.fonts.body,
                 level,
+                sortie.script(),
                 levelKey);
         warnings = new EdgeWarnings(services.sprites.pixel, services.fonts.body);
         name = Content.levelName(levelKey);
@@ -179,7 +206,7 @@ public final class LevelScreen implements GameScreen {
                 ambience(level.music().ambience()),
                 level.music().startSection(),
                 level.music().startDb().orElse(0.0),
-                level.music().fullSection());
+                level.music()::full);
     }
 
     /** The file name of a level theme's stems by its track number (design/audio/music, track list). */
@@ -266,6 +293,7 @@ public final class LevelScreen implements GameScreen {
             }
             effects.step();
             debris.step();
+            pieces.step();
             creditNumbers.step();
             if (shimmer > 0) {
                 shimmer--;
@@ -294,13 +322,22 @@ public final class LevelScreen implements GameScreen {
                 case BLAST -> effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
                 case ENEMY_DESTROYED -> {
                     EnemyLooks look = looks[events.value(i)];
-                    groundTargetHit |= sortie.enemyKinds().get(events.value(i)).terrain();
+                    layersHit.add(sortie.enemyKinds().get(events.value(i)).layer());
+                    // The solid pieces first, so the glows of the same death draw over them.
+                    start(pieces, look.deathPieces(), x, y);
                     effects.start(look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
+                    start(effects, look.deathGlow(), x, y);
                     if (!look.remains().isEmpty()) {
                         debris.start(look.remains(), REMAINS_TICKS, x, y + sortie.groundScroll());
                     }
                 }
                 case CLAMP_HIT -> effects.start(glance, IMPACT_FRAME_TICKS, x, y);
+                case DEBRIS_HIT -> effects.start(weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y);
+                case DEBRIS_DESTROYED, MINE_BURST, MINE_DESTROYED ->
+                    effects.start(services.sprites.explosionTiny, TINY_EXPLOSION_FRAME_TICKS, x, y);
+                case PART_DESTROYED -> effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y);
+                case SET_PIECE_DESTROYED ->
+                    chainedDeath(sortie.setPiece(events.value(i)), deathClouds.get(events.value(i)), x, y);
                 case GROUND_DESTROYED -> {
                     debris.start(
                             services.sprites.cargoContainerBreak, DEBRIS_FRAME_TICKS, x, y + sortie.groundScroll());
@@ -310,7 +347,13 @@ public final class LevelScreen implements GameScreen {
                 case SHIELD_HIT -> shimmer = SHIMMER_TICKS;
                 case RADIO -> {
                     LevelScript.RadioCue cue = sortie.script().radio().get(events.value(i));
-                    radio.add(cue.speaker(), cue.portrait(), cue.expression(), cue.line(), cue.distorted());
+                    radio.add(
+                            cue.speaker(),
+                            cue.portrait(),
+                            cue.expression(),
+                            cue.line(),
+                            cue.distorted(),
+                            radioSchedule.priority(events.value(i)));
                 }
                 case SHIP_DESTROYED -> {
                     effects.start(services.sprites.explosionLarge, LARGE_EXPLOSION_FRAME_TICKS, x, y);
@@ -323,9 +366,10 @@ public final class LevelScreen implements GameScreen {
                     failedIn = FAILED_SCREEN_SECONDS;
                 }
                 case SORTIE_RESTARTED -> {
-                    groundTargetHit = false;
+                    layersHit.clear();
                     effects.clear();
                     debris.clear();
+                    pieces.clear();
                     creditNumbers.clear();
                     radio.clear();
                     warnings.clear();
@@ -345,14 +389,53 @@ public final class LevelScreen implements GameScreen {
                         OVERDRIVE_ENDED,
                         GROUP_CLEARED,
                         GROUP_LOST,
-                        OBJECTIVE_MET -> {}
+                        OBJECTIVE_MET,
+                        OBJECTIVE_FAILED,
+                        MINE_DROPPED,
+                        SET_PIECE_DESCENDED,
+                        SET_PIECE_ESCAPED -> {}
             }
+        }
+    }
+
+    /** Starts a unit's death animation, if it has one, centred on it. */
+    private static void start(Effects into, EnemyLooks.DeathEffect death, double x, double y) {
+        if (!death.frames().isEmpty()) {
+            into.start(death.frames(), death.ticksPerFrame(), x, y, death.delayTicks());
+        }
+    }
+
+    /**
+     * A set piece's chained death (design/enemies/space/leviathan: chained {@code medium} bursts
+     * along the body, ichor cloud): a burst at each part in turn, then a large one at the centre,
+     * each with its death cloud when it has one. Off the play plane the bursts sit where its parts
+     * are drawn there, and the clouds are scaled and faded as it is.
+     */
+    private void chainedDeath(SetPiece piece, Array<AtlasRegion> cloud, double x, double y) {
+        double altitude = piece.onPlane() ? 0 : piece.altitude(1);
+        float scale = LevelRenderer.highAirScale(altitude);
+        float opacity = LevelRenderer.highAirOpacity(altitude);
+        for (int p = 0; p < piece.partCount(); p++) {
+            int delay = p * CHAIN_STEP_TICKS;
+            double px = x + piece.partOffsetX(p) * scale;
+            double py = y + piece.partOffsetY(p) * scale;
+            effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, px, py, delay);
+            if (!cloud.isEmpty()) {
+                effects.start(cloud, DEATH_CLOUD_FRAME_TICKS, px, py, delay, scale, opacity);
+            }
+        }
+        int delay = piece.partCount() * CHAIN_STEP_TICKS;
+        effects.start(services.sprites.explosionLarge, LARGE_EXPLOSION_FRAME_TICKS, x, y, delay);
+        if (!cloud.isEmpty()) {
+            effects.start(cloud, DEATH_CLOUD_FRAME_TICKS, x, y, delay, scale, opacity);
         }
     }
 
     /** The radio's squelch on open and close, and a soft blip for every other typed character. */
     private void playRadio(float seconds) {
-        switch (radio.update(seconds)) {
+        float untilTimed =
+                sortie.complete() ? Float.POSITIVE_INFINITY : radioSchedule.untilTimed(sortie.levelSeconds());
+        switch (radio.update(seconds, untilTimed)) {
             case OPENED -> services.sfx.play(Sfx.RADIO_OPEN, RADIO_VOLUME, 1, 0);
             case CLOSED -> services.sfx.play(Sfx.RADIO_CLOSE, RADIO_VOLUME, 1, 0);
             case TYPED -> {
@@ -371,6 +454,7 @@ public final class LevelScreen implements GameScreen {
                 sortie,
                 effects,
                 debris,
+                pieces,
                 creditNumbers,
                 warnings,
                 clock.alpha(),
@@ -390,8 +474,9 @@ public final class LevelScreen implements GameScreen {
         }
         double t = sortie.levelSeconds();
         for (LevelData.Prompt prompt : level.prompts().orElse(List.of())) {
-            // Done what it says, as the control prompts: a ground unit destroyed skips the ground prompt.
-            boolean done = groundTargetHit && prompt.action().equals(GROUND_PROMPT);
+            // Done what it says, as the control prompts: an enemy destroyed on its skip layer
+            // (Level 02's ground unit, Level 03's Spore Bomber on low-air) makes it leave.
+            boolean done = prompt.skipLayer().map(layersHit::contains).orElse(false);
             if (!done && t >= prompt.t() && t < prompt.t() + prompt.seconds()) {
                 shown.add(new PromptTexts.Text(prompt.action(), prompt.keys()));
             }

@@ -78,6 +78,15 @@ final class WaveSchedule {
         return edges;
     }
 
+    /** The units of the enemy {@code slug} the level sends. */
+    int unitsOf(String slug) {
+        int count = 0;
+        for (Spawn spawn : spawns) {
+            count += spawn.enemy().slug().equals(slug) ? 1 : 0;
+        }
+        return count;
+    }
+
     /** Every unit the level sends. */
     int units() {
         return spawns.length;

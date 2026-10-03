@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import java.util.Comparator;
 
 /**
  * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from {@code assets/}:
@@ -111,9 +112,17 @@ public final class Sprites implements Disposable {
         return region(sprites, name);
     }
 
-    /** The frames of a region of the sprite pages by its name, or the single region; it must exist. */
+    /**
+     * The frames of a region of the sprite pages by its name in their index order ({@code _0},
+     * {@code _1}, ...), or the single region; it must exist.
+     */
     public Array<AtlasRegion> frames(String name) {
         return frames(sprites, name);
+    }
+
+    /** Whether the backdrop pages hold an image of that name ({@code level-NN/<id>}). */
+    public boolean hasBackdrop(String name) {
+        return backdrop.findRegion(name) != null;
     }
 
     /** Whether the sprite pages hold a region of that name. */
@@ -141,6 +150,8 @@ public final class Sprites implements Disposable {
         if (frames.isEmpty()) {
             throw new IllegalStateException("no frames '" + name + "' in the atlas");
         }
+        // The atlas lists a sprite's frames page by page; animations and sway sets go by the index.
+        frames.sort(Comparator.comparingInt(region -> region.index));
         return frames;
     }
 

@@ -1,0 +1,33 @@
+# Whirl Seed stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Whirl Seed
+faction: Vrell
+layer: air
+tier: tiny
+size: [26, 26]    # sprite px
+hitbox: [16, 16]
+parts: single
+orientation: radial
+hp: 1
+armour: none
+speed: 160        # px/s after the spiral
+movement:
+  spiral_out: {seconds: 1.5, turns: 1, growth: 90, drift: 60, ricochets: 3}  # s; turns/s; px/s radius growth; px/s the release point drifts down; side bounces
+attacks: []       # contact only
+formations:
+  - {name: whirl cluster, size: [5, 8]}
+  - {name: stream}
+weak_points: []
+drops: []
+traits: [spread, area]
+bounty: 3
+first_level: 3
+difficulty:
+  hard: {death_burst: {count: 3, speed: 90, bullet: small}}   # each seed pops into a 3-bullet puff
+notes:
+  orientation: (6-fold spinner, 8 frames per 60°)
+  speed: after the spiral; spin 1.5 turns/s
+  movement: '`spiral-out` from the release point for {movement.spiral_out.seconds} s ({movement.spiral_out.turns} turn/s, radius growth {movement.spiral_out.growth} px/s, the release point drifting down {movement.spiral_out.drift} px/s), then on along its outward angle (turned downward), `ricochet` off the side edges up to {movement.spiral_out.ricochets} times; leaves through the bottom edge'
+  attack: '`none` — contact (damage `{tier}` = {contact_damage})'
+  death: '`tiny` pop: seed husk splits, teal glint'
+  used_in: the Leviathan's clusters; L12 (storm clusters); returns in Act 7 (L45)
+  difficulty: 'hard: each seed pops into a 3-bullet puff (90 px/s, `small` = 4)'

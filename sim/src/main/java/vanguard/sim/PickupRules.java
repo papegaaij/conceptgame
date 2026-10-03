@@ -12,6 +12,7 @@ package vanguard.sim;
  * @param seconds how long an uncollected pickup stays before it is gone
  * @param driftSpeed how fast pickups drift down the screen in px/s
  * @param collectionRadius distance from the ship's centre within which pickups are collected
+ * @param largeSalvageCredits credits of a large salvage pickup before the credit factor
  */
 public record PickupRules(
         int smallSalvageCredits,
@@ -21,4 +22,27 @@ public record PickupRules(
         double armourPatch,
         double seconds,
         double driftSpeed,
-        double collectionRadius) {}
+        double collectionRadius,
+        int largeSalvageCredits) {
+    /** Rules without large salvage. */
+    public PickupRules(
+            int smallSalvageCredits,
+            int mediumSalvageCredits,
+            double overdriveSeconds,
+            double shieldCellShare,
+            double armourPatch,
+            double seconds,
+            double driftSpeed,
+            double collectionRadius) {
+        this(
+                smallSalvageCredits,
+                mediumSalvageCredits,
+                overdriveSeconds,
+                shieldCellShare,
+                armourPatch,
+                seconds,
+                driftSpeed,
+                collectionRadius,
+                0);
+    }
+}

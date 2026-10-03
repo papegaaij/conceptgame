@@ -13,5 +13,7 @@ public enum PickupType {
     /** Restores armour points. */
     ARMOUR_PATCH,
     /** A secret's hidden crate, worth that secret's credits. */
-    HIDDEN_CRATE
+    HIDDEN_CRATE,
+    /** +credits (salvage large): a set piece's death drop. */
+    LARGE_SALVAGE
 }

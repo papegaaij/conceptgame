@@ -1,7 +1,7 @@
 ---
 title: Level 03 – Spore Drift
 design: approved
-implementation: not-started
+implementation: done
 art: chosen
 depends-on: [../../../enemies/air/spore-bomber, ../../../enemies/air/whirl-seed, ../../../enemies/space/leviathan]
 updated: 2026-10-02
@@ -20,6 +20,7 @@ low enough to fight. The level introduces the Spore Bomber and its mines, the `l
 
 ## Briefing
 
+<!-- data: briefing -->
 > **Commander Okafor:** "Lancer, the yards are holding. Now the Vrell have changed tactics. Slow
 > carriers are drifting through the high lanes over last week's battle site, dropping something
 > as they go. Varga thinks they're seeding the planet. Clear the lane. Every carrier that gets
@@ -29,12 +30,17 @@ low enough to fight. The level introduces the Spore Bomber and its mines, the `l
 > float up to you a second later, so a wide spread of fire is your friend. There's also an echo
 > on long range I can't explain. Very big, very slow. If it comes your way, don't try to
 > out-shoot it. Out-fly it."
+<!-- /data -->
 
 *Hangar teaser* (shop screen after L02):
-> **Dr. Varga:** "Slow targets, and lots of little things drifting at you. Bring something wide."
+<!-- data: teaser -->
+> **Dr. Varga:** "Slow targets, and lots of little things drifting at you. Bring something
+> wide."
+<!-- /data -->
 
 ## Threat profile
 
+<!-- data: threat-profile -->
 | Field | Value |
 |---|---|
 | Dominant layers | `air`, `low-air` (Spore Bombers), `high-air` (the Leviathan's first pass) |
@@ -44,6 +50,7 @@ low enough to fight. The level introduces the Spore Bomber and its mines, the `l
 | Hazards | Debris field (blocks shots, contact damage); drifting spore mines |
 | Boss / mid-boss | none; set piece: the Leviathan (`huge`) |
 | Sensor-suite detail | none: setting, `air` + `low-air`, front · L1: + front 100%, density 2, hazards "debris, mines" · L2: + Skitter, Needler, Stinger, Spore Bomber portraits; "unknown huge contact" silhouette · L3: + `spread` highlighted, wave strip, 1 secret |
+<!-- /data -->
 
 ## Objective
 
@@ -59,7 +66,8 @@ Scroll speed 140 px/s, slowing to 90 px/s while the Leviathan fights on the play
 Total ≈ 185 s ≈ 24,250 px. Motion budget: the drifting debris and the low-air spore haze are
 the two strong background movers; the haze stays thin while the Leviathan is on screen.
 
-| Section | t (s) | Scroll (px) | Speed (px/s) | Atmosphere | Parallax content per layer | Purpose |
+<!-- data: level-sections -->
+| Section | t (s) | Scroll (px) | Speed (px/s) | Atmosphere | Layers and content | Purpose |
 |---|---|---|---|---|---|---|
 | 1. High Lane | 0–30 | 0–4,200 | 140 | light | `deep`: Earth's full disc below, cloud fronts. `far`: navigation beacons along the lane. `ground`: a few lane-marker buoys. `low-air`: thin cloud-deck wisps. | First Spore Bomber alone; HUD prompt for layers. |
 | 2. Debris Field | 30–60 | 4,200–8,400 | 140 | medium | `ground`: the broken frigate *Kestrel* and halves of CDF platforms. `air`: drifting debris chunks (hazard). `low-air`: olive-grey spore haze. `high-air`: ice streaks. | Shots blocked by debris; Stingers; the lifeboat secret. |
@@ -67,11 +75,15 @@ the two strong background movers; the haze stays thin while the Leviathan is on 
 | 4. Spore Bloom | 80–125 | 11,200–17,500 | 140 | medium, heavy peak 100–108 | `ground`: thinning wreckage, a burnt-out tug. `air`: debris returns. `low-air`: dense spore banks (the heavy peak). `high-air`: spore streaks. | Bomber lines; spread fire pays off. |
 | 5. Second Pass | 125–158 | 17,500–20,470 | 90 | light | `deep`: Earth. `air`: the Leviathan descends and drifts across the upper half. `ground`: none (open lane). | The set-piece fight. |
 | 6. Clear Lane | 158–185 | 20,470–24,250 | 140 | light | `far`: the orbital defence ring ahead. `ground`: the first ring platforms. | Mop-up and Okafor's Hammer flight news. |
+<!-- /data -->
 
 ### Contextual prompts
 
-- t=12 (first Spore Bomber): "LOW-AIR: below your flight level. No collision; every weapon hits it."
-- t=62 (Leviathan): "HIGH-AIR: above you. Only homing and beam weapons reach it."
+- t=12 (first Spore Bomber): `LOW-AIR` · `BELOW YOU: FIRE` (leaves once a Spore Bomber is destroyed)
+- t=62 (Leviathan): `HIGH-AIR` · `HOMING ONLY` (leaves after its time)
+
+Varga's radio lines say the rest: the first at the same moment, the second (t=71) once the
+Choir and Rook have reacted to the crossing.
 
 ## Waves
 
@@ -82,6 +94,7 @@ Enemy specs: [Spore Bomber](../../../enemies/air/spore-bomber/README.md),
 [Needler](../../../enemies/air/needler/README.md),
 [Stinger](../../../enemies/air/stinger/README.md).
 
+<!-- data: waves -->
 | t (s) | Section | Formation | Enemies (link) | Count | Enter from | Notes |
 |---|---|---|---|---|---|---|
 | 12 | 1 | single | [Spore Bomber](../../../enemies/air/spore-bomber/README.md) | 1 | front | **Introduction**: `straight` down, nothing else on screen |
@@ -90,7 +103,11 @@ Enemy specs: [Spore Bomber](../../../enemies/air/spore-bomber/README.md),
 | 42 | 2 | line abreast | [Spore Bomber](../../../enemies/air/spore-bomber/README.md) | 3 | front | |
 | 50 | 2 | V-wing | [Needler](../../../enemies/air/needler/README.md) | 5 | front | Partly behind debris |
 | 56 | 2 | column | [Stinger](../../../enemies/air/stinger/README.md) | 3 | front | |
-| 62–74 | 3 | solo set piece | [Leviathan](../../../enemies/space/leviathan/README.md) (first pass) | 1 | front (top-left, diagonal) | `high-air`; whirl clusters of 6 [Whirl Seeds](../../../enemies/air/whirl-seed/README.md) at t=63, 66, 69, 72 (24 seeds) |
+| 62–74 | 3 | solo set piece | [Leviathan](../../../enemies/space/leviathan/README.md) (first pass) | 1 | front (top-left, diagonal) | `high-air`; its blowhole releases the four whirl clusters below (24 seeds) |
+| 63 | 3 | whirl cluster | [Whirl Seed](../../../enemies/air/whirl-seed/README.md) | 6 | front | From the Leviathan's blowhole on `high-air`; 8 on hard |
+| 66 | 3 | whirl cluster | [Whirl Seed](../../../enemies/air/whirl-seed/README.md) | 6 | front | |
+| 69 | 3 | whirl cluster | [Whirl Seed](../../../enemies/air/whirl-seed/README.md) | 6 | front | |
+| 72 | 3 | whirl cluster | [Whirl Seed](../../../enemies/air/whirl-seed/README.md) | 6 | front | |
 | 84 | 4 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 8 | front (right) | |
 | 92 | 4 | line abreast | [Spore Bomber](../../../enemies/air/spore-bomber/README.md) | 3 | front | Inside the spore banks |
 | 102 | 4 | convoy | [Spore Bomber](../../../enemies/air/spore-bomber/README.md) | 3 | front | `strafe` at y≈200 after entering; in the heavy peak |
@@ -98,7 +115,8 @@ Enemy specs: [Spore Bomber](../../../enemies/air/spore-bomber/README.md),
 | 165 | 6 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 8 | front (alternating edges) | |
 | 175 | 6 | line abreast | [Needler](../../../enemies/air/needler/README.md) | 4 | front | |
 
-Totals: Spore Bomber 10 · Whirl Seed 24 · Skitter 22 · Needler 9 · Stinger 6 · Leviathan 1.
+Totals: Spore Bomber 10 · Skitter 22 · Stinger 6 · Needler 9 · Whirl Seed 24 · Leviathan 1.
+<!-- /data -->
 
 ## Ground targets
 
@@ -120,8 +138,9 @@ secret below.
 
 Pickup types are defined in [player](../../../player/README.md#in-level-pickups).
 
-- **Lifeboat rack** (hidden crate, 75): on the *Kestrel* wreck (ground layer, t≈45) four amber
-  lights blink around an escape-pod rack. Shooting all four releases a salvage canister.
+- **Lifeboat rack** (hidden crate, 75): on the *Kestrel* wreck (ground layer, t≈44) four amber
+  lights blink around an escape-pod rack. Shooting all four releases a salvage canister; Rook:
+  "The *Kestrel*'s lifeboat stores. Her crew would want you to have them, Lancer."
 - **Large salvage** (200): the Leviathan's death drop, per its spec. Only paid if it dies before
   leaving at the end of its second pass.
 - **Overdrive**: dropped by the second Spore Bomber of the t=102 convoy (the campaign's second;
@@ -133,23 +152,25 @@ Pickup types are defined in [player](../../../player/README.md#in-level-pickups)
 
 Text and radio blips only. Rook flies Aegis Two in the wreck field to the north (radio only).
 
+<!-- data: radio -->
 | Trigger | Speaker | Line |
 |---|---|---|
-| t=2 | Okafor | "Aegis, the high lanes are filling up with something. Find out what, and stop it." |
+| t=1 | Okafor | "Aegis, the high lanes are filling up with something. Find out what, and stop it." |
 | t=12 (first bomber) | Varga | "That gas-bag is full of spores. They float up to your level after a second. Shoot them once they glow." |
 | t=24 | Rook | "Aegis Two in the wreck field north of you. Watch the big chunks, Lancer. They don't care whose side you're on." |
-| t=30 | Generic CDF (Ring Control) | "Debris field ahead. Big pieces will stop your rounds. And theirs." |
+| t=36.5 | Generic CDF (Ring Control) | "Debris field ahead. Big pieces will stop your rounds. And theirs." |
 | First bomber leaves the screen | Okafor | "One got past. That's spores on somebody's city, Aegis." |
-| t=58 | Varga | "Commander, something very large on long range. It's not on any chart. And it's… singing?" |
-| t=61 | The Choir (distorted) | "[the Choir sings]" |
-| t=63 | Rook | "Okay. Okay. That's big. We can do big." |
-| t=65 | Varga | "It's above you. Your guns can't reach that high. Dodge the seeds and wait." |
+| t=47 | Varga | "Commander, something very large on long range. It's not on any chart. And it's… singing?" |
+| t=58.5 | The Choir (distorted) | "[the Choir sings]" |
+| t=64.5 | Rook | "Okay. Okay. That's big. We can do big." |
+| t=71 | Varga | "It's above you. Your guns can't reach that high. Dodge the seeds and wait." |
 | t=126 | Varga | "It's coming down to your level! The vents on its back, the fins, the blowhole. Hit the glow." |
 | Leviathan destroyed | Generic CDF (Ring Control) | "Ring Control confirms: the big contact is down." |
 | Leviathan leaves alive | Varga | "It's leaving. I have a feeling we'll see that one again." |
-| t=160 | Okafor | "Good flying. And Lancer, High Command just gave us Hammer flight: two bombers on call. You'll find them in the hangar." |
+| t=168.5 | Okafor | "Good flying. And Lancer, High Command just gave us Hammer flight: two bombers on call. You'll find them in the hangar." |
 | Level end | Okafor | "Lane's clear. Come home, Aegis." |
 | Secondary met | Okafor | "Not one bomber got through. Earth owes you a drink, Lancer." |
+<!-- /data -->
 
 ## Boss / mid-boss
 
@@ -157,11 +178,11 @@ No boss. The [Leviathan](../../../enemies/space/leviathan/README.md) is a `huge`
 (at most one per level, announced by radio):
 
 - **First pass** (t=62–74): crosses diagonally from top-left to bottom-right on `high-air`,
-  releasing four whirl clusters. At L03 the player cannot own a `homing` or `beam` weapon yet
+  releasing four whirl clusters; drawn above the ship, large and at 75 % opacity. At L03 the player cannot own a `homing` or `beam` weapon yet
   (the Micro-missile Pod arrives at L06), so the pass is survived, not fought.
 - **Second pass** (t=128–158): descends to `air` near the top centre and drifts across the upper
   half. The scroll slows to 90 px/s; no other waves enter while it is on screen. At the
-  reference DPS for L03 (32) its ≈ 550 HP take about 17–25 s, inside the 30-s window.
+  reference DPS for L03 (32) its 510 HP take about 16–24 s, inside the 30-s window.
 - Killing the blowhole first destroys the rest for the full 190 (spec rule).
 
 ## Music & ambience
@@ -178,13 +199,16 @@ Budget(3) = 1,000 × 1.07² ≈ **1,145** ([economy](../../../systems/economy/RE
 Bounties from the stat blocks: Spore Bomber 25, Whirl Seed 3, Skitter 5, Needler 12, Stinger 15,
 Leviathan 190 (part bounties, ≈ 17% of the budget, close to the 15% set-piece share).
 
+<!-- data: credit-budget -->
 | Source | Credits (medium) |
 |---|---|
-| Kills: Spore Bomber 10 × 25 + Whirl Seed 24 × 3 + Skitter 22 × 5 + Needler 9 × 12 + Stinger 6 × 15 | 630 |
+| Kills: Spore Bomber 10 × 25 + Skitter 22 × 5 + Stinger 6 × 15 + Needler 9 × 12 + Whirl Seed 24 × 3 | 630 |
 | Set piece: Leviathan parts | 190 |
-| Pickups: Leviathan large salvage 200 + lifeboat rack 75 (6.5%) | 275 |
-| Secondary: no bomber gets through | 50 |
+| Pickup: Leviathan large salvage | 200 |
+| Secret: lifeboat rack (hidden crate, 7% of budget) | 75 |
+| Secondary: no Spore Bomber gets through | 50 |
 | **Total** | **1,145** |
+<!-- /data -->
 
 Spore mines pay 1 each but their number depends on how long each bomber lives (up to ~7 per
 bomber), so they are not part of the total; a typical run adds 20–30 credits, inside the ± 5%
@@ -193,25 +217,46 @@ tolerance.
 ## Difficulty notes
 
 - **Easy**: spores never burst on their own (stat-block hook); half the large debris chunks; the
-  Leviathan's second pass holds for 40 s before it leaves.
+  Leviathan's second pass holds for 30 s, as on medium (40 s would run past its section and over
+  the t=165 wave).
 - **Hard**: whirl clusters of 8 and 2-orb vent bursts (stat-block hooks); spores burst into
   8-bullet rings; debris drifts at up to 60 px/s; the Leviathan leaves after 24 s.
 
+## Concept art
+
+Production art for concept round 16 (M4 part C, the Level 03 batch), review files built from the final files in `assets/` by `tools/art/backdrop_l03.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/backdrop-final-r16-a.png](concept/backdrop-final-r16-a.png) | Final backdrop pieces: every tile set and set piece of the level's `backdrop` data (the broken *Kestrel* with its lifeboat rack and the additive rack light, platform halves, wrecks, the burnt-out tug, beacons, buoys, the defence ring, spore haze and banks, ice and spore streaks, weather fronts; Level 01's Earth, decks, wisps and kit for the rest) | proposed |
+| [concept/level-03-capture-final-r16-a.png](concept/level-03-capture-final-r16-a.png) | Game captures of the level with `--level 3` (whole window, HUD included): the first Spore Bomber and its rising spores with the LOW-AIR prompt, the debris field and the *Kestrel*'s lifeboat lights, the Leviathan's translucent first pass with whirl seeds, the Spore Bloom peak, the second pass with wrecked vents and fins, the clear lane with the defence ring | proposed |
+
 ## Implementation
 
-- [ ] Scroll timeline, sections, atmosphere intensity and parallax content as in *Layout*,
-      including the 90 px/s slowdown for the second pass.
-- [ ] Wave script matches the *Waves* table; no other waves while the Leviathan is on the play
-      plane.
-- [ ] Debris chunks: indestructible large / breakable small, both block shots; spawn rules.
-- [ ] Leviathan first pass on `high-air` (seed clusters), second pass on `air` with part
+- [x] Scroll timeline and sections as in *Layout*, including the 90 px/s slowdown for the
+      second pass.
+- [x] Atmosphere intensity and parallax content as in *Layout* (the backdrop block and its
+      rendering).
+- [x] Wave script matches the *Waves* table; no other waves while the Leviathan is on the play
+      plane (the loader checks it on every difficulty).
+- [x] Debris chunks: indestructible large / breakable small, both block shots; spawn rules
+      (simulation; at most 4 large on screen, checked by the loader).
+- [x] Debris chunks, spore mines, Whirl Seeds and the Leviathan drawn (its parts wrecked, its
+      descent and rise).
+- [x] Leviathan first pass on `high-air` (seed clusters), second pass on `air` with part
       bounties, leaves after 30 s if alive.
-- [ ] Layer prompts at t=12 and t=62 (once, skippable).
-- [ ] Secondary objective tracks bombers leaving the bottom edge.
-- [ ] Lifeboat rack secret and the scripted overdrive and armour patch drops.
-- [ ] Radio cues fire at their triggers.
-- [ ] Credit total at medium with perfect collection is 1,145 (± 5%, spores excluded).
-- [ ] Easy/hard variations as in *Difficulty notes*.
+- [x] Layer prompts at t=12 and t=62 in the data (once, skippable).
+- [x] The `LOW-AIR` prompt leaves once a `low-air` enemy is destroyed (its `skip`, in the HUD).
+- [x] Secondary objective tracks bombers leaving the screen (simulation).
+- [x] HUD tracker for the "nothing gets through" objective.
+- [x] Lifeboat rack secret and the scripted overdrive and armour patch drops.
+- [x] Radio cues fire at their triggers.
+- [x] The timed radio lines start at most 1 s late behind the queue at the default text speed
+      (`RadioTimelineTest`).
+- [x] Hangar intel before the level: from sensor L2 the Leviathan shows as an "unknown huge
+      contact" with its silhouette, not by name (the level's set pieces, `Intel.contacts()`).
+- [x] Credit total at medium with perfect collection is 1,145 (± 5%, spores excluded).
+- [x] Easy/hard variations as in *Difficulty notes*.
 
 ## Open questions
 
@@ -226,3 +271,52 @@ tolerance.
   Airstrike is in the shop before L04.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
 - 2026-10-02: M4 part B (user decision): Level 02 drops the campaign's first overdrive; this level's is the second.
+- 2026-10-02: M4 part C (user decisions): the layer prompts in the one-line prompt format, `LOW-AIR` · `BELOW YOU: FIRE` and `HIGH-AIR` · `HOMING ONLY`; the Leviathan's 510 HP; its easy hold 30 s like medium; the debris chunks are placed in the data (time, x, size, drift), the easy level leaving out every second large chunk and the hard one drifting them up to 60 px/s; "nothing gets through" fails as soon as a Spore Bomber leaves the screen; the lifeboat rack's four lights are one-hit triggers that together reveal the secret.
+- 2026-10-02: M4 part C, the simulation (choices for review): the Leviathan's first pass crosses
+  on a fixed heading of 58° from the top left (centre from (-265, -150) at t=55 to (846, 544) at
+  t=80, y below the top edge), its blowhole over the four cluster release points; the second pass
+  comes down the centre on `high-air` (t=124–128), descends over 2 s, drifts 30 px/s between
+  x=150 and 330 at about y=195 and rises out through the top at 160 px/s at t=158 (152 on hard);
+  shots over the armoured body fly on towards a living part ahead of them and glance off where
+  none is; the vents' first orbs come 0.6, 1.2, 1.8 and 2.4 s after it reaches the play plane
+  and the fins' first fans 4 s after it; the debris drifts at most 40 px/s (the speed, not each
+  axis); the lifeboat line is Rook's.
+- 2026-10-02: M4 part C, the game (choices for review): the Spore Bombers on `low-air` are drawn
+  at their sprite size above the ground and below the low-air banks, so the heavy peak's spore
+  banks veil them ("inside the spore banks"); the spore mines are drawn above the haze just below
+  the bullets, growing from 70 % and brightening from half while they rise; the Leviathan off the
+  play plane (its first pass, arriving, descending, rising) is drawn above the ship at 1.25× (the
+  first pass's sprites are drawn at that scale) and scales to 1× by its altitude, switching below
+  the ship when it reaches the play plane; its sway plays 0-1-2-1 at 0.3 s a frame and the
+  blowhole's glow pulses every 1.2 s; its death is a medium burst at each part in turn, 0.1 s
+  apart, then a large one. The objective tracker reads `BOMBERS n / 10`, `DONE` in green or
+  `FAILED` in red, the box flashing green or red; the lifeboat lights blink at the beacon's 1 Hz
+  until shot. The lights' placements were moved onto the *Kestrel*'s lenses (they were mirrored
+  about the wreck's centre, about 1 s late).
+- 2026-10-02 (user decision): the Leviathan is drawn at 75 % opacity while it is off the play plane
+  (the first pass on `high-air`, the second arriving, descending and rising), body, parts and glow
+  alike, and opaque on the plane, where it collides; descending and rising the opacity eases with
+  its altitude and reaches full when it switches below the ship (see its
+  [spec](../../../enemies/space/leviathan/README.md#decisions)).
+- 2026-10-02 (user decision): the hangar intel before this level shows the Leviathan from sensor
+  L2 as an "unknown huge contact" with its 40×40 silhouette, as the threat profile promises; it is
+  derived from the level's set pieces and their size tier, not named (see
+  [hangar](../../../ui/hangar/README.md#decisions)).
+- 2026-10-02: Radio retimed to the queue (one line at a time, each page typed at 30 characters a
+  second and held 3 s, the last 5 s, 0.4 s between lines): the lines around the first pass played
+  up to 17 s late behind the ones before them, after the Leviathan had gone. Order and text kept,
+  times moved: Okafor 2 → 1, Ring Control 30 → 36.5, Varga's long-range echo 58 → 47, the Choir
+  61 → 58.5 (as the Leviathan's nose comes on screen), Rook 63 → 64.5, Varga's "It's above you"
+  65 → 71 (the earliest it can play after the lines before it). Every timed line now starts at
+  most 0.2 s late at the default text speed (`RadioTimelineTest`). Ring Control's "Debris field
+  ahead" plays inside the field (its first chunk enters at 30.5 s): the three lines before it fill
+  the radio until 36 s.
+- 2026-10-02 (user decision): radio priorities (the rule is in the
+  [HUD](../../../ui/hud/README.md#decisions) radio): timed lines go first, an event line waits for a
+  gap before the next timed line and is dropped after 6 s of waiting, so an escaped bomber or the
+  lifeboat secret no longer pushes the first pass's lines back. For the Leviathan's lines to find
+  their gap, Okafor's Hammer flight line moves from t=160 to 168.5: leaving alive, the Leviathan
+  is gone through the top edge at about 160.7 s (154.7 s on hard), and Varga's "It's leaving" (7 s)
+  now plays before Okafor; killed during the fight, Ring Control's line fits before it too.
+  `RadioTimelineTest` checks the timed lines with an escaped bomber before the first pass, the
+  secret, both, and either Leviathan line.

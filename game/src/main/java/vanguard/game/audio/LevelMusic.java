@@ -4,13 +4,16 @@ import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Disposable;
 import java.util.Optional;
+import java.util.function.IntPredicate;
 
 /**
  * A level's music cues (design/audio/music): the setting's ambience from the start, the level
  * theme from its start section (at the level's start level through that section, rising to full in
  * two seconds at the next one), a cut when the ship is destroyed and a one-second fade when the
  * level is won. The theme plays as two sample-aligned stems: the base stem alone until the level's
- * full section, where it crossfades in a second to the full mix (Intensity layers). While a radio
+ * full section, where it crossfades in a second to the full mix (Intensity layers); a section can
+ * override that either way (Level 03 drops to the base stem under the Leviathan's first pass and
+ * forces the full mix for its second), crossfading the same way. While a radio
  * message is shown the music ducks by 4 dB (design/audio, Mix groups).
  */
 public final class LevelMusic implements Disposable {
@@ -34,7 +37,7 @@ public final class LevelMusic implements Disposable {
     private final Sfx ambience;
     private final int startSection;
     private final float startLevel;
-    private final int fullSection;
+    private final IntPredicate fullMix;
     private Optional<MusicStreamer> music = Optional.empty();
     private Optional<StemMix> stems = Optional.empty();
     private boolean cut;
@@ -47,7 +50,7 @@ public final class LevelMusic implements Disposable {
      * @param full the theme's full mix, sample-aligned with the base stem
      * @param startSection the section the theme starts in
      * @param startDb the theme's level through its start section, dB (0 for full)
-     * @param fullSection the section from which the full mix plays
+     * @param fullMix whether a section (1-based) plays the full mix rather than the base stem
      */
     public LevelMusic(
             Audio audio,
@@ -58,7 +61,7 @@ public final class LevelMusic implements Disposable {
             Sfx ambience,
             int startSection,
             double startDb,
-            int fullSection) {
+            IntPredicate fullMix) {
         this.audio = audio;
         this.mixer = mixer;
         this.base = base;
@@ -68,13 +71,14 @@ public final class LevelMusic implements Disposable {
         this.startSection = startSection;
         startLevel = (float) Math.pow(10, startDb / 20);
         rise = startLevel;
-        this.fullSection = fullSection;
+        this.fullMix = fullMix;
         sfx.loop(ambience, AMBIENCE_VOLUME);
     }
 
     /**
      * Starts the theme once the scroll reaches its section, raises it to full after that section,
-     * crossfades to the full mix at its section, and runs the fade and the duck.
+     * crossfades between the base stem and the full mix as the sections ask, and runs the fade and
+     * the duck.
      *
      * @param radio whether a radio message is shown
      */
@@ -84,12 +88,12 @@ public final class LevelMusic implements Disposable {
                     new VorbisFile(base.readBytes()),
                     new VorbisFile(full.readBytes()),
                     CROSSFADE_SECONDS,
-                    section >= fullSection ? 1 : 0);
+                    fullMix.test(section) ? 1 : 0);
             stems = Optional.of(mix);
             music = Optional.of(MusicStreamer.play(audio, mix, MUSIC_VOLUME * rise, mixer));
         }
-        if (section >= fullSection) {
-            stems.ifPresent(mix -> mix.fadeTo(1));
+        if (stems.isPresent()) {
+            stems.get().fadeTo(fullMix.test(section) ? 1 : 0);
         }
         if (section > startSection) {
             rise = Math.min(1, rise + seconds * (1 - startLevel) / RISE_SECONDS);

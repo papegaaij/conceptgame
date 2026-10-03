@@ -79,6 +79,14 @@ The look of this setting is set by the chosen parallax scene in art direction: E
 [sheet](../../art-direction/concept/parallax-r03-a.png), [scroll loop](../../art-direction/concept/parallax-r03-a.gif).
 The concept files live in [art-direction](../../art-direction/README.md).
 
+## Concept art
+
+Production art for concept round 16 (M4 part C, the Level 03 batch), review files built from the final files in `assets/` by `tools/art/vrell_l03.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/debris-final-r16-a.png](concept/debris-final-r16-a.png) | Final debris chunks of the Level 03 debris field: large (indestructible) 96×80, 72×64, 56×48 and small (breakable) 32×28, 24×24, scorched station kit and frigate wreckage, 32 colours | proposed |
+
 ## Decisions
 
 - 2026-09-30: Earth orbit as Act 1 opening setting; signature set piece: shipyard crane.

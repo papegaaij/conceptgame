@@ -3,12 +3,14 @@ package vanguard.content.campaign;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import vanguard.content.Content;
 import vanguard.content.LevelData;
 import vanguard.content.LevelData.Entry;
+import vanguard.content.Tier;
 
 /**
  * The hangar intel on the next level (design/ui/hangar, Intel; design/player/systems, Sensor levels
@@ -20,6 +22,8 @@ import vanguard.content.LevelData.Entry;
  * @param directions each entry's share of the enemies (medium), whole per cent, in the order front, sides, rear
  * @param enemies the enemy types by name, in order of appearance
  * @param waves the waves' start times, seconds
+ * @param contacts the level's set pieces (its {@code set_pieces}, outside the waves), which the intel
+ *     shows from sensor L2 as unknown contacts of their size tier with their silhouette, not by name
  * @param seconds the level's length
  */
 public record Intel(
@@ -29,6 +33,7 @@ public record Intel(
         Map<Entry, Integer> directions,
         List<String> enemies,
         List<Double> waves,
+        List<Contact> contacts,
         int secrets,
         double seconds) {
     /** An intel item and the sensor level that shows it. */
@@ -41,6 +46,7 @@ public record Intel(
         HAZARDS(1),
         ENEMIES(2),
         BOSS(2),
+        CONTACTS(2),
         SPECIALS(2),
         TRAITS(3),
         WAVES(3),
@@ -58,10 +64,23 @@ public record Intel(
         }
     }
 
+    /**
+     * A set piece as the sensors see it: an unknown contact of its size tier.
+     *
+     * @param enemy the unit's slug (its stat block), which names its silhouette
+     */
+    public record Contact(String enemy, Tier tier) {
+        /** What the intel calls it: {@code unknown huge contact}. */
+        public String label() {
+            return "unknown " + tier.name().toLowerCase(Locale.ROOT) + " contact";
+        }
+    }
+
     public Intel {
         directions = Map.copyOf(directions);
         enemies = List.copyOf(enemies);
         waves = List.copyOf(waves);
+        contacts = List.copyOf(contacts);
     }
 
     /** The intel on level {@code levelKey} at a sensor level. */
@@ -85,6 +104,10 @@ public record Intel(
                 shares,
                 List.copyOf(enemies),
                 level.waves().stream().map(LevelData.Wave::t).toList(),
+                level.setPieces().orElse(List.of()).stream()
+                        .map(piece -> new Contact(
+                                piece.enemy(), content.enemy(piece.enemy()).tier()))
+                        .toList(),
                 level.secrets().size(),
                 level.seconds());
     }
