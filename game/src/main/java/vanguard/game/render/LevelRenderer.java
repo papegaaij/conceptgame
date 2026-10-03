@@ -36,7 +36,7 @@ import vanguard.sim.WeaponSpec;
  * Draws a level back to front, interpolating every position between the last two simulation
  * steps: the backdrop down to the ground layer, the ground objects with their debris and glints,
  * the low-air flyers, the low-air layer's banks (so a low flyer can sit inside them), the flyers
- * and a set piece on the play plane, the solid death pieces of air units (tatters, husks), the debris chunks, the cranes, the pickups, the solid rounds
+ * and a set piece on the play plane, a set piece breaking up at its death, the solid death pieces of air units (tatters, husks), the debris chunks, the cranes, the pickups, the solid rounds
  * (missiles, bombs, shells), the ship with its wing pods, the glowing shots, muzzle flashes and
  * effects, a set piece on high-air (above the ship, at the high-air scale), the high-air layer,
  * then the spore mines and the enemy bullets above every layer (design/enemies, bullet readability
@@ -158,6 +158,7 @@ public final class LevelRenderer {
      * @param debris animations started at ground positions (y plus the ground's scroll), see
      *     {@link Effects#draw}
      * @param pieces solid animations at play-field positions: the death pieces of air units
+     * @param wrecks the set pieces whose death is playing, drawn breaking up
      * @param alpha interpolation between the previous and the current step
      * @param shieldShimmer 0..1, how strongly the ship shows its last shield hit
      * @param flashReduction tone the white hit and invulnerability flashes down (Gameplay tab)
@@ -168,6 +169,7 @@ public final class LevelRenderer {
             Effects effects,
             Effects debris,
             Effects pieces,
+            SetPieceWrecks wrecks,
             CreditNumbers credits,
             EdgeWarnings warnings,
             float alpha,
@@ -186,6 +188,7 @@ public final class LevelRenderer {
         backdrop.drawLowAir(batch, scroll, seconds);
         drawEnemies(batch, sortie, alpha, Depth.AIR);
         drawSetPieces(batch, sortie, alpha, seconds, false);
+        drawWrecks(batch, sortie, wrecks, alpha, seconds);
         pieces.draw(batch, 0);
         drawDebris(batch, sortie, alpha);
         drawCranes(batch, sortie, alpha);
@@ -342,22 +345,7 @@ public final class LevelRenderer {
                 continue;
             }
             float scale = highAirScale(altitude);
-            drawScaled(batch, look.down.get(sway % look.down.size), x, y, scale);
-            for (int p = 0; p < piece.partCount(); p++) {
-                if (!look.drawn(p)) {
-                    continue;
-                }
-                double dx = look.pivoted(p) ? look.pivot(p, sway)[0] : piece.partOffsetX(p);
-                double dy = look.pivoted(p) ? look.pivot(p, sway)[1] : piece.partOffsetY(p);
-                AtlasRegion part = look.part(p, sway, piece.partWrecked(p));
-                double px = x + dx * scale;
-                double py = y + dy * scale;
-                if (scale == 1 && piece.partTicksSinceHit(p) < HIT_FLASH_TICKS) {
-                    flash.draw(batch, part, Math.round(X0 + px), Math.round(py), HIT_WHITE, whiteFlash);
-                } else {
-                    drawScaled(batch, part, px, py, scale);
-                }
-            }
+            drawBody(batch, piece, look, x, y, sway, scale, true);
             batch.setColor(Color.WHITE);
             if (look.glow != null && !piece.partWrecked(look.glowPart)) {
                 double pulse = 0.55 + 0.45 * Math.sin(2 * Math.PI * seconds / GLOW_PERIOD_SECONDS);
@@ -373,6 +361,87 @@ public final class LevelRenderer {
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
             }
         }
+    }
+
+    /** The second pass's body in sway frame {@code sway} with every part on it, intact or wrecked (a hit part flashing). */
+    private void drawBody(
+            SpriteBatch batch,
+            SetPiece piece,
+            SetPieceLooks look,
+            double x,
+            double y,
+            int sway,
+            float scale,
+            boolean hitFlash) {
+        drawScaled(batch, look.down.get(sway % look.down.size), x, y, scale);
+        for (int p = 0; p < piece.partCount(); p++) {
+            if (!look.drawn(p)) {
+                continue;
+            }
+            double dx = look.pivoted(p) ? look.pivot(p, sway)[0] : piece.partOffsetX(p);
+            double dy = look.pivoted(p) ? look.pivot(p, sway)[1] : piece.partOffsetY(p);
+            AtlasRegion part = look.part(p, sway, piece.partWrecked(p));
+            double px = x + dx * scale;
+            double py = y + dy * scale;
+            if (hitFlash && scale == 1 && piece.partTicksSinceHit(p) < HIT_FLASH_TICKS) {
+                flash.draw(batch, part, Math.round(X0 + px), Math.round(py), HIT_WHITE, whiteFlash);
+            } else {
+                drawScaled(batch, part, px, py, scale);
+            }
+        }
+    }
+
+    /**
+     * The set pieces whose death is playing (their {@link SetPieceDeath break-up}): until the swap
+     * the body where it died, as it was drawn there (without the glow of its destroyed vital part);
+     * then, facing down, the chunks drifting apart from their offsets, sinking (drawn smaller),
+     * darkening and fading out. A death on the crossing pass keeps its sprite until the swap and
+     * has no chunks. Drawn on the play plane's layer, under the effects, whatever the altitude.
+     */
+    private void drawWrecks(SpriteBatch batch, Sortie sortie, SetPieceWrecks wrecks, float alpha, double seconds) {
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPieceDeath death = setPieceLooks[k].death;
+            if (death == null || !wrecks.active(k)) {
+                continue;
+            }
+            SetPieceLooks look = setPieceLooks[k];
+            float age = wrecks.age(k) + alpha;
+            float x = wrecks.x(k);
+            float y = wrecks.y(k);
+            float scale = wrecks.scale(k);
+            if (age < death.swap) {
+                batch.setColor(1, 1, 1, wrecks.opacity(k));
+                int sway = SetPieceLooks.sway(seconds);
+                if (wrecks.crossing(k)) {
+                    drawCentred(batch, look.cross.get(sway % look.cross.size), x, y);
+                } else {
+                    drawBody(batch, sortie.setPiece(k), look, x, y, sway, scale, false);
+                }
+            } else if (!wrecks.crossing(k) && age < death.end) {
+                float t = death.progress(age);
+                float s = scale * (1 - death.sink * t);
+                float e = 1 - (1 - t) * (1 - t);
+                float shade = 1 - death.darken * t;
+                float fade = t < death.fadeFrom ? 1 : 1 - (t - death.fadeFrom) / (1 - death.fadeFrom);
+                batch.setColor(shade, shade, shade, wrecks.opacity(k) * fade);
+                for (SetPieceDeath.Chunk chunk : death.chunks) {
+                    int f = Math.min(chunk.frames().size - 1, (int) ((age - death.swap) / death.frameSteps));
+                    int[] offset = chunk.offsets()[f];
+                    drawScaled(
+                            batch,
+                            chunk.frames().get(f),
+                            x + s * (offset[0] + chunk.driftX() * e),
+                            y + s * (offset[1] + chunk.driftY() * e),
+                            s);
+                }
+            }
+            batch.setColor(Color.WHITE);
+        }
+    }
+
+    /** Set piece {@code k}'s break-up at its death, or null for none. */
+    public SetPieceDeath death(int k) {
+        return setPieceLooks[k].death;
     }
 
     /** A set piece's scale at {@code altitude} (0 on the play plane, 1 on high-air), for it and its effects. */

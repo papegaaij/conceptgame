@@ -12,3 +12,9 @@ Round 16, production art (M4 part C batch): the death effect beyond the `tiny` p
 - `whirl-seed-death_0..7` (32×32, additive, 16 colours, 0.27 s, started 4 game steps after the pop, as its white flash fades): the teal glint, a four-point star flare with shorter diagonals over a teal halo, flaring and closing, six teal sparks flying out. No ring: with the star it read as a targeting reticle.
 
 The sheet shows both sets at 6×, the two with the tiny pop (every second game step) and at 1×; the loop has three spinning seeds popping in turn. Not an image-generator prompt: the brief for reviewing the production frames. AI prompt for the look: "late-90s pre-rendered CGI sprite effect, top-down, a tiny plum alien seed pod with six blades popping: the blades breaking off and tumbling away, the round husk splitting in two, a sharp teal star glint, on black, additive glow, no text".
+
+## whirl-seed-dive-capture-r16-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --invulnerable --level 3` under `xvfb-run -s "-screen 0 960x540x24"` (settings: a 960×540 window at 0,0, `audio.master=0`), recorded with `ffmpeg -f x11grab -draw_mouse 0` at 20 fps and encoded with ffmpeg's `palettegen` (128 colours, `stats_mode=diff`) and `paletteuse` (Bayer dither, scale 5); level time ≈ the recording's time − 1.5 s. Run with `--bench 136` and `controls.auto-fire=false` (the ship never fires, so the seeds
+live out their paths), no keys sent. Crop: the whole play field (480×540 at x 240), recording
+68–74.5 s (t≈66.5–73), 15 fps: the second and third clusters spiralling out and diving.

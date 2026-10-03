@@ -2,7 +2,7 @@
 title: Scuttler
 design: approved
 implementation: not-started
-art: chosen
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-03
 ---
@@ -54,8 +54,8 @@ Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pen
 
 | File | What | Status |
 |---|---|---|
-| [concept/scuttler-final-r16-a.png](concept/scuttler-final-r16-a.png) | Final sprites: 16 headings × 6 walk frames (`scuttler_0..95`, 64×64, 32 colours, 24 px per cycle), the walk cycle at three headings, the legless husks (`scuttler-husk_0..15`) and the additive lime-back glow masks (`scuttler-glow_0..95`) | proposed |
-| [concept/scuttler-final-r16-a.gif](concept/scuttler-final-r16-a.gif) | A Scuttler walking a circle under a dust bank, its back glow added on top | proposed |
+| [concept/scuttler-final-r16-a.png](concept/scuttler-final-r16-a.png) | Final sprites: 16 headings × 6 walk frames (`scuttler_0..95`, 64×64, 32 colours, 24 px per cycle), the walk cycle at three headings, the legless husks (`scuttler-husk_0..15`) and the additive lime-back glow masks (`scuttler-glow_0..95`) | chosen |
+| [concept/scuttler-final-r16-a.gif](concept/scuttler-final-r16-a.gif) | A Scuttler walking a circle under a dust bank, its back glow added on top | chosen |
 
 ## Implementation
 
@@ -69,3 +69,4 @@ Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pen
 
 - 2026-10-01: Promoted from the ground roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
+- 2026-10-03: Concept round 16 closed (user decision): the production sprites (16 headings × 6 walk frames, the husks, the back-glow masks) approved as **final**, `art: final`, ahead of M4 part D. Part D's doc gaps may still require changes to them; those go through a later round.

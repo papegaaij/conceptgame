@@ -3,7 +3,7 @@ title: Concept rounds
 design: review
 implementation: n/a
 art: chosen
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Concept rounds
@@ -34,7 +34,7 @@ they belong to; a round only collects them.
 | [round-13](round-13/README.md) | UI production batch: HUD, glass kit and screens, portraits with expressions, briefing images, intel pictures, themes, fonts, the north-arm fix | approved | n/a | chosen |
 | [round-14](round-14/README.md) | M4 part A: the Act 1 arsenal's effects and the HUD's weapon rows | approved | n/a | chosen |
 | [round-15](round-15/README.md) | M4 part B: Level 02's Stinger, Spine Turret, pickups, backdrop, Crane Four and Afterburner stems | approved | n/a | chosen |
-| [round-16](round-16/README.md) | M4 part C: Level 03's Spore Bomber, Whirl Seed, debris, Leviathan, backdrop, large salvage, intel pictures and game captures | review | n/a | proposed |
+| [round-16](round-16/README.md) | M4 part C: Level 03's Spore Bomber, Whirl Seed, debris, Leviathan, backdrop, large salvage, intel pictures and game captures | approved | n/a | chosen |
 
 ## Design
 
@@ -70,4 +70,4 @@ How a round works:
 | 13 | 2026-10-02 | closed | UI production batch: final art review of U1–U3 |
 | 14 | 2026-10-02 | closed | M4 part A: the Act 1 arsenal's effects (final art review) |
 | 15 | 2026-10-02 | closed | M4 part B: Level 02 (final art review) |
-| 16 | 2026-10-02 | open | M4 part C: Level 03 (final art review) |
+| 16 | 2026-10-02 | closed | M4 part C: Level 03 (final art review) |

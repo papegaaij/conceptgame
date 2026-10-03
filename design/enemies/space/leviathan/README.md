@@ -2,9 +2,9 @@
 title: Leviathan
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Leviathan
@@ -61,14 +61,16 @@ Chosen concept: [leviathan-r05-a.png](../concept/leviathan-r05-a.png), [leviatha
 
 Production art for concept round 16 (M4 part C, the Level 03 batch), review files built from the final files in `assets/` by `tools/art/leviathan.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
 
-The ichor cloud of its death (round 16 too) is rendered by `tools/art/vrell_fx.py` (`--review ichor` rebuilds only its review files); the whale-song cry is a sound, listed in the [SFX](../../../audio/sfx/README.md#concept-art) Concept art table.
+The ichor cloud of its death (round 16 too) is rendered by `tools/art/vrell_fx.py` (`--review ichor` rebuilds only its review files); the break-up of the redo, variant b (the body's chunks and the blast table), by `tools/art/leviathan_death.py` (`--review` rebuilds only its review files); the whale-song cry is a sound, listed in the [SFX](../../../audio/sfx/README.md#concept-art) Concept art table.
 
 | File | What | Status |
 |---|---|---|
-| [concept/leviathan-final-r16-a.png](concept/leviathan-final-r16-a.png) | Final sprites: the second pass facing down (body in 3 tail-sway frames, 300×480) with its parts intact and wrecked (4 vents, 2 fins, the fluke, the additive blowhole glow), the data's hit boxes over them, and the first pass crossing diagonally at 1.25× (3 frames, heading −58.01°, along Level 03's path, which a last row draws as an arrow over frame 1); 48 colours per pass | proposed |
-| [concept/leviathan-final-r16-a.gif](concept/leviathan-final-r16-a.gif) | The second pass swaying with the blowhole glow pulsing, then parts wrecked | proposed |
-| [concept/leviathan-death-final-r16-a.png](concept/leviathan-death-final-r16-a.png) | Final ichor cloud (`leviathan-ichor_0..15`, 160×160, additive, 16 frames at 10 fps): a wound's violet globules and a plum-violet mist that billows and thins; one per part with its chained burst and one at the centre with the large burst | proposed |
-| [concept/leviathan-death-final-r16-a.gif](concept/leviathan-death-final-r16-a.gif) | The death over the `leviathan-down` sprite: the chained medium bursts with their ichor, then the large burst | proposed |
+| [concept/leviathan-final-r16-a.png](concept/leviathan-final-r16-a.png) | Final sprites: the second pass facing down (body in 3 tail-sway frames, 300×480) with its parts intact and wrecked (4 vents, 2 fins, the fluke, the additive blowhole glow), the data's hit boxes over them, and the first pass crossing diagonally at 1.25× (3 frames, heading −58.01°, along Level 03's path, which a last row draws as an arrow over frame 1); 48 colours per pass | chosen |
+| [concept/leviathan-final-r16-a.gif](concept/leviathan-final-r16-a.gif) | The second pass swaying with the blowhole glow pulsing, then parts wrecked | chosen |
+| [concept/rejected/leviathan-death-final-r16-a.png](concept/rejected/leviathan-death-final-r16-a.png) | Final ichor cloud (`leviathan-ichor_0..15`, 160×160, additive, 16 frames at 10 fps): a wound's violet globules and a plum-violet mist that billows and thins; one per part with its chained burst and one at the centre with the large burst | rejected — redo as variant b ([round 16](../../../concept-rounds/round-16/README.md), choice 19) |
+| [concept/rejected/leviathan-death-final-r16-a.gif](concept/rejected/leviathan-death-final-r16-a.gif) | The death over the `leviathan-down` sprite: the chained medium bursts with their ichor, then the large burst | rejected — redo as variant b ([round 16](../../../concept-rounds/round-16/README.md), choice 19) |
+| [concept/leviathan-death-final-r16-b.png](concept/leviathan-death-final-r16-b.png) | The death redo (round 16 item 19, `tools/art/leviathan_death.py`): the body cut into five chunks along jagged seams (head, left and right flank with their fins, the back with the blowhole, the tail), charred hide and violet torn flesh at the cuts, 3 tumble frames each rendered under the fixed light; composed in place, separated, and the layout of the 11 large and trailing blasts over the body | chosen |
+| [concept/leviathan-death-final-r16-b.gif](concept/leviathan-death-final-r16-b.gif) | The whole death over the body: the part chain, a cluster of large blasts that whites out the body as it is swapped for the chunks, the chunks drifting apart, darkening and fading under trailing blasts and ichor | chosen |
 
 ## Implementation
 
@@ -84,8 +86,7 @@ The ichor cloud of its death (round 16 too) is rendered by `tools/art/vrell_fx.p
 - [x] Bounty and score per this spec
 - [x] Death effect per this spec: the ichor cloud at each part with its chained burst and at the
       centre with the large one (scaled and faded with the unit off the play plane), and the
-      whale-song cry under the explosion (round 16 a, a placeholder until the recorded enemy
-      sounds decide it)
+      whale-song cry under the explosion (round 16 a, synthesized, accepted as final in round 16)
 
 ## Decisions
 
@@ -104,3 +105,5 @@ The ichor cloud of its death (round 16 too) is rendered by `tools/art/vrell_fx.p
   one round 160 px set played at every wound (each part with its chained burst, and the centre
   with the large burst) instead of one body-sized cloud, so it fits either pass and heading
   without turning a sprite; the whale-song cry is synthesized (`tools/concept/audio/sfx_r16.py`).
+- 2026-10-03: Concept round 16 closed (user decision): the production sprites (the second pass with its parts intact and wrecked and the blowhole glow, the first pass at 1.25×) approved as **final**. The death effect is to be redone (user: "The body vanishing looks strange like this. We either need the body to come apart or we need several more, larger explosions all over its body to cover it up while it vanishes. We probably need both."); the redo comes back into round 16 as variant b (choice 19), the variant-a ichor files moved to `concept/rejected/`. The synthesized whale-song cry is accepted as final (see the [SFX](../../../audio/sfx/README.md#decisions)). `art` stays `chosen` until the death is approved.
+- 2026-10-03: Concept round 16 closed again (user decision, choice 19): the death redo, variant b, approved as **final**: the body cut into five chunks that drift apart, tumble, darken and fade under a cluster of large blasts and trailing ones, with the ichor (`tools/art/leviathan_death.py`). With the production sprites and the cry approved earlier today all of its art is final, `art: final`.

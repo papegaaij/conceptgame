@@ -2,7 +2,7 @@
 title: Brood Pod
 design: approved
 implementation: not-started
-art: chosen
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-03
 ---
@@ -55,8 +55,8 @@ Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pen
 
 | File | What | Status |
 |---|---|---|
-| [concept/brood-pod-final-r16-a.png](concept/brood-pod-final-r16-a.png) | Final sprites: the 8-frame pulse loop (`brood-pod_0..7`, 64×64, 32 colours, veins brightening with the swell), the wet burst (`brood-pod-burst_0..11`, 96×96, additive) and the membrane tatters with rib shards (`brood-pod-tatters_0..11`, 96×96, solid), shown alone and with the medium burst | proposed |
-| [concept/brood-pod-final-r16-a.gif](concept/brood-pod-final-r16-a.gif) | The pulse, the faster telegraph pulse, then the burst with six Skitters fanning out | proposed |
+| [concept/brood-pod-final-r16-a.png](concept/brood-pod-final-r16-a.png) | Final sprites: the 8-frame pulse loop (`brood-pod_0..7`, 64×64, 32 colours, veins brightening with the swell), the wet burst (`brood-pod-burst_0..11`, 96×96, additive) and the membrane tatters with rib shards (`brood-pod-tatters_0..11`, 96×96, solid), shown alone and with the medium burst | chosen |
+| [concept/brood-pod-final-r16-a.gif](concept/brood-pod-final-r16-a.gif) | The pulse, the faster telegraph pulse, then the burst with six Skitters fanning out | chosen |
 
 ## Implementation
 
@@ -70,3 +70,4 @@ Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pen
 
 - 2026-10-01: Promoted from the air roster to a full spec for the Acts 1–2 wrap-up.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
+- 2026-10-03: Concept round 16 closed (user decision): the production sprites (pulse loop, wet burst, membrane tatters) approved as **final**, `art: final`, ahead of M4 part D. Part D's doc gaps may still require changes to them; those go through a later round.

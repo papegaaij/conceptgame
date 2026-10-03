@@ -17,7 +17,8 @@ rotated or mirrored afterwards:
                              with a lobe shot off
   leviathan-blowhole-glow.png  56x56 violet glow over the blowhole (additive)
   pivots/leviathan.json      {"down": {"fluke": [[dx, dy] x 3]}}: the fluke sprite's centre per sway
-                             frame, px from the unit centre, dx right and dy up (towards the tail)
+                             frame, px from the unit centre, dx right and dy up (towards the tail);
+                             its "death" entry is leviathan_death.py's and is kept
   leviathan-cross_0..2.png   the first pass (high-air, crossing diagonally down and to the right):
                              the whole intact unit at heading -58.01 degrees (clockwise from straight
                              down; its head turned to the right), the course of Level 03's `cross`
@@ -487,7 +488,11 @@ def build():
         stem = NAMES[name] + ("-wrecked" if state == "wrecked" else "")
         artkit.write_frames(stem, out, SOURCE, single=(n == 1))
     artkit.write_frames("leviathan-blowhole-glow", [blowhole_glow()], SOURCE, single=True)
-    artkit.write_pivots("leviathan", SOURCE, {"down": {"fluke": [fluke_offset(s) for s in SWAY]}})
+    # keeps the "death" entry of tools/art/leviathan_death.py (the break-up's chunks and blasts)
+    old = artkit.PIVOTS / "leviathan.json"
+    keep = {k: v for k, v in json.loads(old.read_text(encoding="utf-8")).items()
+            if k == "death"} if old.exists() else {}
+    artkit.write_pivots("leviathan", SOURCE, {"down": {"fluke": [fluke_offset(s) for s in SWAY]}, **keep})
     write_cross([results[("cross", k)][0] for k in range(3)])
     # how well body + parts reproduce the whole render (pixels that differ, before the palette)
     for k in range(3):

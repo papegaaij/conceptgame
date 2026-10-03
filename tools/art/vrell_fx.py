@@ -15,15 +15,15 @@ Outputs (assets/sprites/; glows additive, premultiplied on black; physical piece
                                violet mist that billows out and thins (one per wound, see below)
   design/enemies/air/spore-bomber/concept/spore-bomber-death-final-r16-a.png/.gif
   design/enemies/air/whirl-seed/concept/whirl-seed-death-final-r16-a.png/.gif
-  design/enemies/space/leviathan/concept/leviathan-death-final-r16-a.png/.gif
+  (the Leviathan's death review, with its ichor, is tools/art/leviathan_death.py's: r16-b)
 
 Timing (game steps of 1/60 s per frame; all centred on the unit's position):
   spore-bomber-death, -tatters  4 steps (15 fps, 1.07 s), both started with the medium burst
   whirl-seed-husk, -death       2 steps (30 fps, 0.40 s and 0.27 s), the husk started with the tiny pop,
                                 the glint 4 steps later (as the pop's white flash fades)
   leviathan-ichor               6 steps (10 fps, 1.60 s), one at each part with that part's chained
-                                medium burst (same delay) and one at the centre with the
-                                large burst
+                                medium burst (same delay), and more where leviathan_death.py's
+                                blast table puts them
 
 The glows are vfx_r08's 2D light fields (its Canvas, gauss, the cartesian fBm), like the explosions
 and the spore mine; the solid pieces are ray-marched from the units' own models and materials
@@ -45,7 +45,6 @@ from artkit import DESIGN, TAU, sprite
 
 import enemies_r04 as e4  # noqa: E402  (concept script, imported unchanged)
 import vfx_r08 as v8  # noqa: E402
-import leviathan as lev  # noqa: E402  (tools/art: the unit's layout and review compose)
 import vrell_l03 as l03  # noqa: E402  (tools/art: the seed's blade and material frames)
 from render import enemy_models as em  # noqa: E402
 from render.sdf import rotate_x, rotate_z, sd_capsule, sd_plate, sd_sphere, union  # noqa: E402
@@ -508,50 +507,8 @@ def review_seed():
     artkit.save_review(sheet, gif, DESIGN / "enemies" / "air" / "whirl-seed" / "concept", "whirl-seed-death", fps=fps)
 
 
-CHAIN_STEP = 6                                  # steps between the chained bursts (the game's chain)
-
-
-def review_ichor():
-    bodies = artkit.load_frames("leviathan-down")
-    intact = lev.load_parts("intact")
-    glow = artkit.load_frames("leviathan-blowhole-glow")[0]
-    medium = artkit.load_frames("explosion-medium")
-    large = artkit.load_frames("explosion-large")
-    cloud = artkit.load_frames("leviathan-ichor")
-    parts = lev.SPEC["part_list"]
-    sheet = artkit.review_sheet("LEVIATHAN DEATH - FINAL ICHOR CLOUD", rows_for(["leviathan-ichor"], 1, every=2) + [
-        ("EVERY 3RD FRAME, 2X", cloud[::3], 2, True)], width=2000, batch=BATCH)
-    fps = 30
-    pad = 70
-    W, H = lev.W + 2 * pad, lev.H + 2 * pad
-    death = 20                                                # steps of the unit alive first
-    end_chain = len(parts) * CHAIN_STEP
-    gif = []
-    for f in range(int(fps * 3.2)):
-        step = f * 2
-        cell = Image.new("RGBA", (W, H), PLATE_SPACE)
-        age = step - death
-        if age < end_chain:                                   # the body stays until the large burst
-            k = [0, 1, 2, 1][(step // 6) % 4]
-            unit = lev.compose(bodies[k], {n: fr[k] if n == "fluke" else fr[0] for n, fr in intact.items()}, k,
-                               glow, 0.55 + 0.45 * np.sin(TAU * step / 72))
-            cell.alpha_composite(unit, (pad, pad))
-        for p, part in enumerate(parts):
-            x, y = lev.canvas_xy(part["offset"])
-            x, y = x + pad, y + pad
-            for frames, steps in ((cloud, 6), (medium, 3)):
-                fr = timed(frames, steps, age - p * CHAIN_STEP)
-                if fr is not None:
-                    cell = artkit.add_light(cell, fr, (int(x - fr.width / 2), int(y - fr.height / 2)))
-        for frames, steps in ((cloud, 6), (large, 4)):            # the centre's ichor with the large burst
-            fr = timed(frames, steps, age - end_chain)
-            if fr is not None:
-                cell = artkit.add_light(cell, fr, (W // 2 - fr.width // 2, H // 2 - fr.height // 2))
-        gif.append(cell)
-    artkit.save_review(sheet, gif, lev.UNIT / "concept", "leviathan-death", fps=fps)
-
-
-REVIEWS = {"bomber": review_bomber, "seed": review_seed, "ichor": review_ichor}
+# the ichor has no review of its own: tools/art/leviathan_death.py plays it in the Leviathan's death
+REVIEWS = {"bomber": review_bomber, "seed": review_seed, "ichor": lambda: None}
 
 if __name__ == "__main__":
     artkit.REVIEW_ROUND = REVIEW_ROUND

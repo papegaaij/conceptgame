@@ -27,3 +27,16 @@ field, the Spore Bloom, the second pass, the clear lane); the arrow key Left hel
 after the start (an XTEST key event, `--bench 30`, 4 fps), so the first Spore Bomber is not shot at
 once and drops its spores; Right held 1.2 s from 57 s (`--bench 82`, 4 fps), so the seed clusters
 under the Leviathan's first pass live long enough to be seen.
+
+## level-03-rendering-capture-r16-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --invulnerable --level 3` under `xvfb-run -s "-screen 0 960x540x24"` (settings: a 960×540 window at 0,0, `audio.master=0`), recorded with `ffmpeg -f x11grab -draw_mouse 0` at 20 fps and encoded with ffmpeg's `palettegen` (128 colours, `stats_mode=diff`) and `paletteuse` (Bayer dither, scale 5); level time ≈ the recording's time − 1.5 s. Run with `--bench 136` and `controls.auto-fire=false` (the ship never fires, so every unit
+lives out its path), no keys sent. Crop: the play field's lower 480×360 (x 240, y 180), recording
+101.5–107 s (t≈100–105.5), 15 fps: the bombers veiled by the heavy banks and their spore mines
+rising.
+
+## level-03-rendering-capture-r16-b
+
+The same run as [level-03-rendering-capture-r16-a](#level-03-rendering-capture-r16-a). Crop: the
+whole play field (480×540 at x 240), recording 126.2–132.5 s (t≈124.7–131), 15 fps: the
+Leviathan's second pass descending to the play plane.

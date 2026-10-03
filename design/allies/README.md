@@ -2,7 +2,7 @@
 title: Allies
 design: approved
 implementation: not-started
-art: proposed
+art: chosen
 depends-on: [../enemies, ../art-direction, ../ui/hud]
 updated: 2026-10-03
 ---
@@ -34,7 +34,7 @@ equipment, see [wingmen](../player/wingmen/README.md).
 - **HUD**: objective allies show in the [objective tracker](../ui/hud/README.md#left-panel-mission)
   as pips or an integrity bar.
 - **No contact damage** to the player: the player can fly over or through every ally.
-- **Art**: the civilian crawler has proposals in concept round 16 (see *Concept art*); the other
+- **Art**: the civilian crawler's concept is chosen (round 16, variant c; see *Concept art*); the other
   allies get concept art in a later round. The chosen ocean
   scene ([scene-ocean-r10-a](../art-direction/concept/scene-ocean-r10-a.png)) already has the
   container-ship and frigate models the convoy will reuse.
@@ -45,7 +45,7 @@ CDF heavy crawler, a civilian evacuation hauler.
 
 | Property | Value |
 |---|---|
-| Size / layer | 72×40 px, `ground` |
+| Size / layer | 40×72 px (40 wide, 72 long), `ground` |
 | HP | 60 at medium (difficulty variants in the level) |
 | Damaged by | Bullets fired by `ground`-layer enemies (turrets, walkers); a walker's claws on contact (10 per second). `air`-layer bullets pass over it |
 | Behaviour | Follows the road spline in a column at the scroll speed, drifting left and right as the road winds; never stops for threats |
@@ -117,9 +117,9 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
 
 | File | What | Status |
 |---|---|---|
-| [concept/civilian-crawler-r16-a.png](concept/civilian-crawler-r16-a.png) | Civilian crawler A: tracked crawler-transporter, 72×40 (deck on four twin-track trucks, passenger drum, cargo pods, amber corner beacons); on regolith, column of five, damaged and wrecked | proposed |
-| [concept/civilian-crawler-r16-b.png](concept/civilian-crawler-r16-b.png) | Civilian crawler B: six-wheeled rover train, 72×40 (three pressurised cylinders abreast, cab car in the middle, amber beacons); on regolith, column of five, damaged and wrecked | proposed |
-| [concept/civilian-crawler-r16-c.png](concept/civilian-crawler-r16-c.png) | Civilian crawler C: pressurised bus with a cargo sled, 40×72 (the long size reading); on regolith, column of five (84 px apart, 60 would overlap), damaged and wrecked | proposed |
+| [concept/rejected/civilian-crawler-r16-a.png](concept/rejected/civilian-crawler-r16-a.png) | Civilian crawler A: tracked crawler-transporter, 72×40 (deck on four twin-track trucks, passenger drum, cargo pods, amber corner beacons); on regolith, column of five, damaged and wrecked | rejected — c chosen |
+| [concept/rejected/civilian-crawler-r16-b.png](concept/rejected/civilian-crawler-r16-b.png) | Civilian crawler B: six-wheeled rover train, 72×40 (three pressurised cylinders abreast, cab car in the middle, amber beacons); on regolith, column of five, damaged and wrecked | rejected — c chosen |
+| [concept/civilian-crawler-r16-c.png](concept/civilian-crawler-r16-c.png) | Civilian crawler C: pressurised bus with a cargo sled, 40×72 (the long size reading); on regolith, column of five (84 px apart, 60 would overlap), damaged and wrecked | chosen |
 
 ## Implementation
 
@@ -130,7 +130,6 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
 
 ## Open questions
 
-- Civilian crawler: pick a variant in round 16 (and the size reading)
 - Sprites for the shuttle, cargo ship, frigate and relay: a later concept round. The cargo ship
   and frigate can reuse the ocean scene's models.
 
@@ -141,3 +140,9 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
   Relay (L13), plus supply drones, the L07 lifeboat and the L02 drydocks as roster rows. Level
   documents now link here instead of repeating the specs.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../reviews/acts-1-2/README.md).
+- 2026-10-03: Concept round 16 closed (user decision): civilian crawler variant **c** chosen, the
+  pressurised bus with a cargo sled, with the long size reading: 40 wide × 72 long (the size row
+  above). Variants a (tracked crawler-transporter) and b (rover train), both 72×40, moved to
+  `concept/rejected/`. Knock-ons for M4 part D: the column needs 84 px spacing instead of
+  Level 04's "60 px apart" (60 would overlap), and the chosen Luna road (18–28 px) must widen.
+  It is a concept, not production art, so `art: chosen`.

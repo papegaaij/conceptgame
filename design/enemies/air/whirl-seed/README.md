@@ -2,9 +2,9 @@
 title: Whirl Seed
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Whirl Seed
@@ -63,10 +63,11 @@ The death effect beyond the `tiny` pop (round 16 too) is rendered by `tools/art/
 
 | File | What | Status |
 |---|---|---|
-| [concept/whirl-seed-final-r16-a.png](concept/whirl-seed-final-r16-a.png) | Final sprites: 8 spin frames covering 60° (26×26, 24 colours), each its own render under the fixed key light; six blades instead of the concept's five so the spin loops | proposed |
-| [concept/whirl-seed-final-r16-a.gif](concept/whirl-seed-final-r16-a.gif) | The seed spinning, and a cluster of six spiralling out by the data's numbers | proposed |
-| [concept/whirl-seed-death-final-r16-a.png](concept/whirl-seed-death-final-r16-a.png) | Final death effect: the husk splitting (`whirl-seed-husk_0..11`, 40×40, solid: the six blades tumbling off, the core in two halves, ray-marched from the production seed) and the teal glint (`whirl-seed-death_0..7`, 32×32, additive star flare and sparks), 30 fps, shown alone and with the tiny pop | proposed |
-| [concept/whirl-seed-death-final-r16-a.gif](concept/whirl-seed-death-final-r16-a.gif) | Three spinning seeds popping in turn | proposed |
+| [concept/whirl-seed-final-r16-a.png](concept/whirl-seed-final-r16-a.png) | Final sprites: 8 spin frames covering 60° (26×26, 24 colours), each its own render under the fixed key light; six blades instead of the concept's five so the spin loops | chosen |
+| [concept/whirl-seed-final-r16-a.gif](concept/whirl-seed-final-r16-a.gif) | The seed spinning, and a cluster of six spiralling out by the data's numbers | chosen |
+| [concept/whirl-seed-death-final-r16-a.png](concept/whirl-seed-death-final-r16-a.png) | Final death effect: the husk splitting (`whirl-seed-husk_0..11`, 40×40, solid: the six blades tumbling off, the core in two halves, ray-marched from the production seed) and the teal glint (`whirl-seed-death_0..7`, 32×32, additive star flare and sparks), 30 fps, shown alone and with the tiny pop | chosen |
+| [concept/whirl-seed-death-final-r16-a.gif](concept/whirl-seed-death-final-r16-a.gif) | Three spinning seeds popping in turn | chosen |
+| [concept/whirl-seed-dive-capture-r16-a.gif](concept/whirl-seed-dive-capture-r16-a.gif) | Game capture of Level 03 (play field at 1×, 15 fps, 6.5 s, t≈66.5–73, the ship not firing): the clusters released under the Leviathan's first pass spiralling out and the seeds diving off the bottom edge, the sideways ones at least as steeply as the release point drifted | chosen |
 
 ## Implementation
 
@@ -95,3 +96,5 @@ The death effect beyond the `tiny` pop (round 16 too) is rendered by `tools/art/
 - 2026-10-02: Production art, the death effect (choice for review, round 16): the husk split is
   a solid set (`whirl-seed-husk`, with the pop) and the teal glint an additive one
   (`whirl-seed-death`, 4 game steps after the pop, so the pop's white flash does not swallow it).
+- 2026-10-03: Concept round 16 closed (user decision): the production spin frames and the death effect (husk split and teal glint) approved as **final**, `art: final`.
+- 2026-10-03: Concept round 16 closed again (user decision, choice 18): the simulation choice for review above accepted as it is (after the spiral a seed dives at least as steeply as its release point drifted), with the dive capture; the death effect's choice for review (the solid husk split with the pop, the additive teal glint 4 steps after it) accepted as well.

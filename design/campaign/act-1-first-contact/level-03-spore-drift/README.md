@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../../../enemies/air/spore-bomber, ../../../enemies/air/whirl-seed, ../../../enemies/space/leviathan]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Level 03 – Spore Drift
@@ -228,8 +228,10 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), review file
 
 | File | What | Status |
 |---|---|---|
-| [concept/backdrop-final-r16-a.png](concept/backdrop-final-r16-a.png) | Final backdrop pieces: every tile set and set piece of the level's `backdrop` data (the broken *Kestrel* with its lifeboat rack and the additive rack light, platform halves, wrecks, the burnt-out tug, beacons, buoys, the defence ring, spore haze and banks, ice and spore streaks, weather fronts; Level 01's Earth, decks, wisps and kit for the rest) | proposed |
-| [concept/level-03-capture-final-r16-a.png](concept/level-03-capture-final-r16-a.png) | Game captures of the level with `--level 3` (whole window, HUD included): the first Spore Bomber and its rising spores with the LOW-AIR prompt, the debris field and the *Kestrel*'s lifeboat lights, the Leviathan's translucent first pass with whirl seeds, the Spore Bloom peak, the second pass with wrecked vents and fins, the clear lane with the defence ring | proposed |
+| [concept/backdrop-final-r16-a.png](concept/backdrop-final-r16-a.png) | Final backdrop pieces: every tile set and set piece of the level's `backdrop` data (the broken *Kestrel* with its lifeboat rack and the additive rack light, platform halves, wrecks, the burnt-out tug, beacons, buoys, the defence ring, spore haze and banks, ice and spore streaks, weather fronts; Level 01's Earth, decks, wisps and kit for the rest) | chosen |
+| [concept/level-03-capture-final-r16-a.png](concept/level-03-capture-final-r16-a.png) | Game captures of the level with `--level 3` (whole window, HUD included): the first Spore Bomber and its rising spores with the LOW-AIR prompt, the debris field and the *Kestrel*'s lifeboat lights, the Leviathan's translucent first pass with whirl seeds, the Spore Bloom peak, the second pass with wrecked vents and fins, the clear lane with the defence ring | chosen |
+| [concept/level-03-rendering-capture-r16-a.gif](concept/level-03-rendering-capture-r16-a.gif) | Game capture (play field at 1×, its lower 480×360, 15 fps, 5.5 s, t≈100–105.5, the ship not firing): the 92 s Spore Bomber line veiled by the Spore Bloom's heavy low-air banks, their spore mines growing and brightening as they rise above the haze | chosen |
+| [concept/level-03-rendering-capture-r16-b.gif](concept/level-03-rendering-capture-r16-b.gif) | Game capture (play field at 1×, 15 fps, 6.3 s, t≈124.7–131): the Leviathan's second pass coming down from `high-air` at 1.25× over the ship, switching below it at 1× on the play plane, with the 0-1-2-1 tail sway and the blowhole glow pulsing | chosen |
 
 ## Implementation
 
@@ -320,3 +322,6 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), review file
   now plays before Okafor; killed during the fight, Ring Control's line fits before it too.
   `RadioTimelineTest` checks the timed lines with an escaped bomber before the first pass, the
   secret, both, and either Leviathan line.
+- 2026-10-03: Concept round 16 closed (user decision): the backdrop approved as **final**, with the game captures; `art` stays `chosen`, since the level has no briefing images yet.
+- 2026-10-03 (user decision): the M4 part C points left for review accepted as they are: shots over the Leviathan's armoured body fly on towards a living part ahead of them; the lifeboat line is Rook's, in its written wording; Varga's intel line without a sensor ("Slow carriers in the high lanes and a lot of wreckage, Lancer. And something big on long range.").
+- 2026-10-03: Concept round 16 closed again (user decision, choice 17): the game choices for review above accepted as they are: the Spore Bombers drawn between the ground and the low-air banks, the spore mines above the haze growing and brightening as they rise, the Leviathan off the play plane above the ship at 1.25× scaling to 1× and switching below it on the plane, its 0-1-2-1 sway and the blowhole glow, the chained death bursts, the objective tracker and the lifeboat lights' blink. The simulation choices for review left after the points accepted earlier today (the first pass's path, the second pass's timings, the vents' and fins' first shots, the debris speed) accepted as they are too, with the user's acceptance of the captures. `art` stays `chosen`: the level still has no briefing images.

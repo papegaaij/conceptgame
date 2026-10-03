@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../../enemies/ground/spine-turret, ../../../enemies/air/stinger, ../../../world/earth-orbit]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Level 02 – Shipyard Burning
@@ -287,3 +287,4 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
   ship rather than as it enters), Dock One 30 → 34 (its nest enters at 30–33). Every timed line now
   starts on time at the default text speed, also with the dock events in between
   (`RadioTimelineTest`, with the radio priorities of the [HUD](../../../ui/hud/README.md#decisions)).
+- 2026-10-03 (user decision): Varga's turret line at t=22.5 (the retiming above) accepted as it is.

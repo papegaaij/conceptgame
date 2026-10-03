@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Architecture
@@ -548,3 +548,4 @@ Screenshot tests are left out until there is a need.
   `Effects` drawing it at the high-air scale and opacity (`LevelRenderer.highAirScale` and
   `highAirOpacity`) when the unit dies off the plane. `FlightSounds` plays a set piece's cry by
   slug (`Sfx.LEVIATHAN_CRY`) with its death.
+- 2026-10-03 (user decision): two M4 part C points accepted as they are: the Level 01 replay's state hash changed with part C (`ReplayTest`, now `616ea9b687b6d5a9`), and the death pieces (`-tatters`, `-husk`) are drawn below the ship.

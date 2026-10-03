@@ -3,7 +3,7 @@ title: Game design
 design: approved
 implementation: not-started
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 # Game design
@@ -25,7 +25,7 @@ guided by intel about the next level.
 | [world](world/README.md) | The settings the levels take place in | approved | n/a | chosen |
 | [campaign](campaign/README.md) | Acts and the 50-level outline, pacing and difficulty curve | approved | not-started | none |
 | [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | approved | in-progress | chosen |
-| [allies](allies/README.md) | Friendly units and structures to escort or defend (crawlers, shuttles, convoy, relay) | approved | not-started | proposed |
+| [allies](allies/README.md) | Friendly units and structures to escort or defend (crawlers, shuttles, convoy, relay) | approved | not-started | chosen |
 | [player](player/README.md) | The player ship, its loadout slots and all equipment | approved | in-progress | chosen |
 | [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | approved | not-started | n/a |
 | [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | approved | in-progress | chosen |

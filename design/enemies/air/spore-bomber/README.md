@@ -2,9 +2,9 @@
 title: Spore Bomber
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Spore Bomber
@@ -59,10 +59,10 @@ The death effect beyond the `medium` burst (round 16 too) is rendered by `tools/
 
 | File | What | Status |
 |---|---|---|
-| [concept/spore-bomber-final-r16-a.png](concept/spore-bomber-final-r16-a.png) | Final sprites: the 4-frame idle loop (72×72, 32 colours, facing down), the spore mine's 4-frame additive pulse (14×14) and the mine as drawn while it rises | proposed |
-| [concept/spore-bomber-final-r16-a.gif](concept/spore-bomber-final-r16-a.gif) | A bomber flying down the screen, dropping drifting spores | proposed |
-| [concept/spore-bomber-death-final-r16-a.png](concept/spore-bomber-death-final-r16-a.png) | Final death effect: the lime spore cloud (`spore-bomber-death_0..15`, 96×96, additive) and the olive membrane tatters with chitin bits (`spore-bomber-tatters_0..15`, 96×96, solid, ray-marched from the bomber's materials), 16 frames at 15 fps each, shown alone and with the medium burst | proposed |
-| [concept/spore-bomber-death-final-r16-a.gif](concept/spore-bomber-death-final-r16-a.gif) | A bomber flying down the screen and dying: medium burst, tatters and spore cloud | proposed |
+| [concept/spore-bomber-final-r16-a.png](concept/spore-bomber-final-r16-a.png) | Final sprites: the 4-frame idle loop (72×72, 32 colours, facing down), the spore mine's 4-frame additive pulse (14×14) and the mine as drawn while it rises | chosen |
+| [concept/spore-bomber-final-r16-a.gif](concept/spore-bomber-final-r16-a.gif) | A bomber flying down the screen, dropping drifting spores | chosen |
+| [concept/spore-bomber-death-final-r16-a.png](concept/spore-bomber-death-final-r16-a.png) | Final death effect: the lime spore cloud (`spore-bomber-death_0..15`, 96×96, additive) and the olive membrane tatters with chitin bits (`spore-bomber-tatters_0..15`, 96×96, solid, ray-marched from the bomber's materials), 16 frames at 15 fps each, shown alone and with the medium burst | chosen |
+| [concept/spore-bomber-death-final-r16-a.gif](concept/spore-bomber-death-final-r16-a.gif) | A bomber flying down the screen and dying: medium burst, tatters and spore cloud | chosen |
 
 ## Implementation
 
@@ -86,3 +86,4 @@ The death effect beyond the `medium` burst (round 16 too) is rendered by `tools/
   with the `medium` burst, the spore cloud additive (`spore-bomber-death`) and the membrane
   tatters solid (`spore-bomber-tatters`, drawn under the glows): opaque olive hide added as light
   would glow instead of reading as torn skin.
+- 2026-10-03: Concept round 16 closed (user decision): the production sprites, the spore mine and the death effect (spore cloud and membrane tatters) approved as **final**, `art: final`.

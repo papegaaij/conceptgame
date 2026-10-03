@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: final
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # HUD
@@ -158,6 +158,12 @@ Concept [round 14](../../concept-rounds/round-14/README.md) — the right panel 
 |---|---|---|
 | [concept/hud-capture-final-r14-a.png](concept/hud-capture-final-r14-a.png) | Game capture of Level 01 with `--loadout` (Hammer Mortar, Bomb Rack, Autocannon Pod, Side Splitter): the power row and the four weapon rows with pips and the overdrive timer | chosen |
 
+Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker and the layer-skip prompt in the game (no new art: the round-13 kit). Prompts: [concept/prompts.md](concept/prompts.md#escapes-tracker-capture-r16-a).
+
+| File | What | Status |
+|---|---|---|
+| [concept/escapes-tracker-capture-r16-a.gif](concept/escapes-tracker-capture-r16-a.gif) | Game capture of Level 03 (left panel and play field at 1×, 12 fps, two cuts, 6.5 s): the `LOW-AIR` prompt leaving as the first Spore Bomber dies and `BOMBERS 0 / 10` turning `1 / 10`; then `2 / 10` turning `FAILED` in red with the box's red flash as a bomber of the 42 s line escapes | chosen |
+
 ## Implementation
 
 - [x] Side panel frames: bevelled metal plates with corner rivets, label plates, LCD wells, bar troughs and phosphor fills from the production art (`tools/art/hud.py`)
@@ -286,3 +292,5 @@ Concept [round 14](../../concept-rounds/round-14/README.md) — the right panel 
   rule). The queue has no clock or randomness of its own. Tests: `RadioQueueTest`, and
   `RadioTimelineTest` for Levels 01–03 with the event lines a player can set off (every timed line
   within 1 s of its time; Level 01's Varga line after the Choir is exempt, it follows that line).
+- 2026-10-03 (user decision): the radio reading above accepted as it is: the level-end and secondary-objective lines (`RadioQueue.Priority.CLOSING`) are never dropped.
+- 2026-10-03: Concept round 16 closed again (user decision, choice 16): the M4 part C choice for review above accepted as it is: the escapes objective's tracker (`BOMBERS n / 10`, then `DONE` in green or `FAILED` in red with the box flashing) and the timed prompt with a `skip` layer (Level 03's `LOW-AIR`, Level 02's `GROUND` via `skip: ground`).

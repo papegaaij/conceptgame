@@ -33,6 +33,8 @@ import vanguard.game.render.EnemyLooks;
 import vanguard.game.render.Hud;
 import vanguard.game.render.LevelRenderer;
 import vanguard.game.render.PodPivots;
+import vanguard.game.render.SetPieceDeath;
+import vanguard.game.render.SetPieceWrecks;
 import vanguard.game.render.WeaponLooks;
 import vanguard.game.settings.Settings;
 import vanguard.sim.FixedStepClock;
@@ -111,6 +113,8 @@ public final class LevelScreen implements GameScreen {
     private final Effects debris = Effects.solid();
     /** The solid death pieces of air units, at play-field positions (no ground scroll). */
     private final Effects pieces = Effects.solid();
+    /** The set pieces breaking up at their death. */
+    private final SetPieceWrecks wrecks;
 
     private final CreditNumbers creditNumbers = new CreditNumbers();
     private final EdgeWarnings warnings;
@@ -151,6 +155,7 @@ public final class LevelScreen implements GameScreen {
                 services.invulnerable ? rules.withInvulnerableShip() : rules,
                 campaign.armour());
         radioSchedule = new RadioSchedule(sortie.script());
+        wrecks = new SetPieceWrecks(sortie.setPieceCount());
         looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites, services.content);
         weaponLooks = new WeaponLooks(
                 sortie.armament(),
@@ -294,6 +299,8 @@ public final class LevelScreen implements GameScreen {
             effects.step();
             debris.step();
             pieces.step();
+            wrecks.step();
+            sounds.step();
             creditNumbers.step();
             if (shimmer > 0) {
                 shimmer--;
@@ -336,8 +343,7 @@ public final class LevelScreen implements GameScreen {
                 case DEBRIS_DESTROYED, MINE_BURST, MINE_DESTROYED ->
                     effects.start(services.sprites.explosionTiny, TINY_EXPLOSION_FRAME_TICKS, x, y);
                 case PART_DESTROYED -> effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y);
-                case SET_PIECE_DESTROYED ->
-                    chainedDeath(sortie.setPiece(events.value(i)), deathClouds.get(events.value(i)), x, y);
+                case SET_PIECE_DESTROYED -> chainedDeath(events.value(i), deathClouds.get(events.value(i)), x, y);
                 case GROUND_DESTROYED -> {
                     debris.start(
                             services.sprites.cargoContainerBreak, DEBRIS_FRAME_TICKS, x, y + sortie.groundScroll());
@@ -370,6 +376,7 @@ public final class LevelScreen implements GameScreen {
                     effects.clear();
                     debris.clear();
                     pieces.clear();
+                    wrecks.clear();
                     creditNumbers.clear();
                     radio.clear();
                     warnings.clear();
@@ -407,28 +414,44 @@ public final class LevelScreen implements GameScreen {
 
     /**
      * A set piece's chained death (design/enemies/space/leviathan: chained {@code medium} bursts
-     * along the body, ichor cloud): a burst at each part in turn, then a large one at the centre,
-     * each with its death cloud when it has one. Off the play plane the bursts sit where its parts
-     * are drawn there, and the clouds are scaled and faded as it is.
+     * along the body, ichor cloud): a burst at each part in turn, each with its death cloud when it
+     * has one; then its break-up's blasts over the body while the body comes apart (or, without a
+     * break-up, a large burst at the centre). Off the play plane the bursts sit where its parts are
+     * drawn there, turned with the pass's heading, and every burst is scaled and faded as it is.
      */
-    private void chainedDeath(SetPiece piece, Array<AtlasRegion> cloud, double x, double y) {
+    private void chainedDeath(int k, Array<AtlasRegion> cloud, double x, double y) {
+        SetPiece piece = sortie.setPiece(k);
         double altitude = piece.onPlane() ? 0 : piece.altitude(1);
         float scale = LevelRenderer.highAirScale(altitude);
         float opacity = LevelRenderer.highAirOpacity(altitude);
+        LevelScript.Pass pass = piece.spec().passes().get(piece.pass());
+        SetPieceDeath death = renderer.death(k);
+        wrecks.start(k, x, y, scale, opacity, !pass.descends());
         for (int p = 0; p < piece.partCount(); p++) {
             int delay = p * CHAIN_STEP_TICKS;
             double px = x + piece.partOffsetX(p) * scale;
             double py = y + piece.partOffsetY(p) * scale;
-            effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, px, py, delay);
+            effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, px, py, delay, scale, opacity);
             if (!cloud.isEmpty()) {
                 effects.start(cloud, DEATH_CLOUD_FRAME_TICKS, px, py, delay, scale, opacity);
             }
         }
-        int delay = piece.partCount() * CHAIN_STEP_TICKS;
-        effects.start(services.sprites.explosionLarge, LARGE_EXPLOSION_FRAME_TICKS, x, y, delay);
-        if (!cloud.isEmpty()) {
-            effects.start(cloud, DEATH_CLOUD_FRAME_TICKS, x, y, delay, scale, opacity);
+        if (death == null) {
+            int delay = piece.partCount() * CHAIN_STEP_TICKS;
+            effects.start(services.sprites.explosionLarge, LARGE_EXPLOSION_FRAME_TICKS, x, y, delay, scale, opacity);
+            if (!cloud.isEmpty()) {
+                effects.start(cloud, DEATH_CLOUD_FRAME_TICKS, x, y, delay, scale, opacity);
+            }
+            return;
         }
+        double cos = Math.cos(pass.headingRadians());
+        double sin = Math.sin(pass.headingRadians());
+        for (SetPieceDeath.Blast blast : death.blasts) {
+            double px = x + (blast.dx() * cos + blast.dy() * sin) * scale;
+            double py = y + (-blast.dx() * sin + blast.dy() * cos) * scale;
+            effects.start(blast.frames(), blast.ticksPerFrame(), px, py, blast.at(), scale, opacity);
+        }
+        sounds.breakUp(x, death.swap);
     }
 
     /** The radio's squelch on open and close, and a soft blip for every other typed character. */
@@ -455,6 +478,7 @@ public final class LevelScreen implements GameScreen {
                 effects,
                 debris,
                 pieces,
+                wrecks,
                 creditNumbers,
                 warnings,
                 clock.alpha(),

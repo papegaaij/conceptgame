@@ -4,7 +4,7 @@ design: draft
 implementation: in-progress
 art: n/a
 depends-on: [.., ../../tech/roadmap, ../../tech/architecture, ../../audio/music, ../../audio/sfx]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Production art plan
@@ -71,7 +71,8 @@ on the same pages since `packAtlases` combines the sprites' subfolders): shared 
 are textures of their own in `assets/ui/` (about 3 MiB loaded, the scene always, the map in the
 hangar), outside the atlas budget. With the portraits (`assets/sprites/portraits/`) and the intel
 pictures (`assets/sprites/intel/`): 1 page of 2048×1024 (8 MiB of 32); the briefing images are
-textures of their own in `assets/ui/briefing/` (0.6 MiB each, loaded by the briefing that shows them).
+textures of their own in `assets/ui/briefing/` (0.6 MiB each, loaded by the briefing that shows them). The Leviathan's frames (Level 03,
+with the death chunks): about 1.88 M px, about 7.2 MiB of its 16 MiB one-page budget.
 
 **Sounds**: a final OGG carries a `SOURCE` Vorbis comment; `importPlaceholders`
 (`PlaceholderSounds`) keeps every sound in `assets/sfx/` that has one.
@@ -122,7 +123,7 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] M3 parts final and approved by the user (the UI batch, concept round 13)
 - [x] M4 part A: the Act 1 arsenal's effects rendered by `tools/art/weapon_fx.py` and drawn by the game; approved as final in round 14
 - [x] M4 part B: Level 02's Stinger, Spine Turret, salvage M and overdrive, backdrop, Crane Four and the "Afterburner" stems approved as final in round 15
-- [ ] M4 part C (Level 03, M4 part C batch): the Spore Bomber and its spore mine, the Whirl Seed and the debris chunks (`tools/art/vrell_l03.py`), the Leviathan (`tools/art/leviathan.py`), the Level 03 backdrop (`tools/art/backdrop_l03.py`), salvage L (`tools/art/pickups.py`) and the Spore Bomber's and Whirl Seed's intel portraits (`tools/art/intel.py`) rendered, review files for round 16; approved as final there
+- [x] M4 part C (Level 03, M4 part C batch): the Spore Bomber and its spore mine, the Whirl Seed and the debris chunks (`tools/art/vrell_l03.py`), the Leviathan (`tools/art/leviathan.py`) and its break-up at its death (`tools/art/leviathan_death.py`), the Level 03 backdrop (`tools/art/backdrop_l03.py`), salvage L (`tools/art/pickups.py`) and the Spore Bomber's and Whirl Seed's intel portraits (`tools/art/intel.py`) rendered, review files for round 16; approved as final there (the Leviathan's death effect as the redo, variant b, choice 19)
 - [ ] M4 and M5 parts final, each with its milestone (a round per M4 part, user decision)
 
 ## Open questions
@@ -246,3 +247,5 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
   explosion-ladder burst; physical pieces are a solid set of their own, ray-marched per frame
   from the units' models, since opaque hide added as light would glow. The Leviathan's
   whale-song cry is synthesized (`tools/concept/audio/sfx_r16.py`). Review files for round 16.
+- 2026-10-03: Concept round 16 closed (user decision): M4 part C's art (Level 03) approved as final, except the Leviathan's death effect, which is redone as variant b in round 16 (choice 19); the part D head starts (the Brood Pod and the Scuttler) approved as final too.
+- 2026-10-03: Concept round 16 closed again (user decision): the Leviathan's death redo, variant b (choice 19), approved as final: `tools/art/leviathan_death.py` cuts the second-pass body into five chunks under a cluster of large blasts and writes the death's data; with it M4 part C's art is final. The Leviathan's frames are about 1.88 M px, about 7.2 MiB of the 16 MiB one-page budget.

@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Sound effects
@@ -361,7 +361,7 @@ burst it plays with. Brief: [concept/prompts.md](concept/prompts.md#enemy-leviat
 
 | File | What | Status |
 |---|---|---|
-| [concept/enemy-leviathan-cry-r16-a.ogg](concept/enemy-leviathan-cry-r16-a.ogg) | Synthesized — the Leviathan's whale-song cry: a deep, mournful alien call (a throat-like pulse voice through moving "oo–aah–oo" formants, its fundamental rising 92 → 128 Hz and falling to 52 Hz with a yodel break, a second voice a tritone above beating against it, a breathy blowhole rasp at the start, a long dark reverb), 3.0 s with the tail; −22.5 LUFS, peak −11.3 dBFS | proposed |
+| [concept/enemy-leviathan-cry-r16-a.ogg](concept/enemy-leviathan-cry-r16-a.ogg) | Synthesized — the Leviathan's whale-song cry: a deep, mournful alien call (a throat-like pulse voice through moving "oo–aah–oo" formants, its fundamental rising 92 → 128 Hz and falling to 52 Hz with a yodel break, a second voice a tritone above beating against it, a breathy blowhole rasp at the start, a long dark reverb), 3.0 s with the tail; −22.5 LUFS, peak −11.3 dBFS | chosen |
 
 ## Implementation
 
@@ -428,3 +428,4 @@ burst it plays with. Brief: [concept/prompts.md](concept/prompts.md#enemy-leviat
   is synthesized for the M4 part C batch, so a deep alien call with its own glide and formants
   exists without a source search. The user decides in round 16 whether it stays or a recorded
   CC0/CC-BY call replaces it.
+- 2026-10-03: Concept round 16 closed (user decision): the synthesized Leviathan whale-song cry (`enemy-leviathan-cry-r16-a`) approved as **final**. The user accepts this synthesized cry, so its placeholder note against the 2026-10-01 rule (enemy sounds are recorded CC0/CC-BY) is resolved: no recorded replacement is sought. This doc's `art` stays `chosen`.

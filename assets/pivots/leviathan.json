@@ -15,5 +15,284 @@
     205
    ]
   ]
+ },
+ "death": {
+  "source": "tools/art/leviathan_death.py (production art, M4 part C batch (redo))",
+  "swap": 60,
+  "end": 170,
+  "frame_steps": 37,
+  "sink": 0.15,
+  "darken": 0.6,
+  "fade_from": 0.55,
+  "chunks": [
+   {
+    "sprite": "leviathan-chunk-1",
+    "offsets": [
+     [
+      0,
+      -161
+     ],
+     [
+      0,
+      -159
+     ],
+     [
+      0,
+      -157
+     ]
+    ],
+    "drift": [
+     5,
+     -55
+    ]
+   },
+   {
+    "sprite": "leviathan-chunk-2",
+    "offsets": [
+     [
+      -48,
+      -29
+     ],
+     [
+      -45,
+      -29
+     ],
+     [
+      -40,
+      -29
+     ]
+    ],
+    "drift": [
+     -42,
+     -8
+    ]
+   },
+   {
+    "sprite": "leviathan-chunk-3",
+    "offsets": [
+     [
+      47,
+      -30
+     ],
+     [
+      44,
+      -30
+     ],
+     [
+      40,
+      -30
+     ]
+    ],
+    "drift": [
+     42,
+     -3
+    ]
+   },
+   {
+    "sprite": "leviathan-chunk-4",
+    "offsets": [
+     [
+      0,
+      88
+     ],
+     [
+      0,
+      87
+     ],
+     [
+      -1,
+      87
+     ]
+    ],
+    "drift": [
+     -8,
+     25
+    ]
+   },
+   {
+    "sprite": "leviathan-chunk-5",
+    "offsets": [
+     [
+      11,
+      177
+     ],
+     [
+      11,
+      175
+     ],
+     [
+      11,
+      174
+     ]
+    ],
+    "drift": [
+     10,
+     57
+    ]
+   }
+  ],
+  "blast_frame_steps": {
+   "explosion-large": 4,
+   "explosion-medium": 3,
+   "leviathan-ichor": 6
+  },
+  "blasts": [
+   {
+    "at": 30,
+    "sprite": "explosion-large",
+    "dx": 0,
+    "dy": -40
+   },
+   {
+    "at": 36,
+    "sprite": "explosion-large",
+    "dx": -40,
+    "dy": 80
+   },
+   {
+    "at": 40,
+    "sprite": "explosion-large",
+    "dx": 38,
+    "dy": -60
+   },
+   {
+    "at": 44,
+    "sprite": "explosion-large",
+    "dx": 0,
+    "dy": -175
+   },
+   {
+    "at": 48,
+    "sprite": "explosion-large",
+    "dx": -46,
+    "dy": -10
+   },
+   {
+    "at": 51,
+    "sprite": "explosion-large",
+    "dx": 0,
+    "dy": 170
+   },
+   {
+    "at": 54,
+    "sprite": "explosion-large",
+    "dx": 46,
+    "dy": 40
+   },
+   {
+    "at": 54,
+    "sprite": "leviathan-ichor",
+    "dx": 0,
+    "dy": -125
+   },
+   {
+    "at": 56,
+    "sprite": "explosion-large",
+    "dx": 6,
+    "dy": 105
+   },
+   {
+    "at": 56,
+    "sprite": "explosion-medium",
+    "dx": -52,
+    "dy": -150
+   },
+   {
+    "at": 58,
+    "sprite": "explosion-large",
+    "dx": -22,
+    "dy": -120
+   },
+   {
+    "at": 58,
+    "sprite": "leviathan-ichor",
+    "dx": 0,
+    "dy": 120
+   },
+   {
+    "at": 58,
+    "sprite": "explosion-medium",
+    "dx": 52,
+    "dy": -130
+   },
+   {
+    "at": 60,
+    "sprite": "explosion-large",
+    "dx": 24,
+    "dy": 155
+   },
+   {
+    "at": 60,
+    "sprite": "explosion-medium",
+    "dx": 0,
+    "dy": 30
+   },
+   {
+    "at": 61,
+    "sprite": "explosion-large",
+    "dx": 18,
+    "dy": -190
+   },
+   {
+    "at": 62,
+    "sprite": "explosion-medium",
+    "dx": -40,
+    "dy": 145
+   },
+   {
+    "at": 64,
+    "sprite": "explosion-medium",
+    "dx": 58,
+    "dy": 95
+   },
+   {
+    "at": 72,
+    "sprite": "explosion-medium",
+    "dx": -66,
+    "dy": -22
+   },
+   {
+    "at": 80,
+    "sprite": "explosion-large",
+    "dx": 8,
+    "dy": -184
+   },
+   {
+    "at": 88,
+    "sprite": "explosion-medium",
+    "dx": 75,
+    "dy": -36
+   },
+   {
+    "at": 96,
+    "sprite": "leviathan-ichor",
+    "dx": -4,
+    "dy": 97
+   },
+   {
+    "at": 104,
+    "sprite": "explosion-medium",
+    "dx": 8,
+    "dy": 213
+   },
+   {
+    "at": 118,
+    "sprite": "explosion-large",
+    "dx": -70,
+    "dy": -36
+   },
+   {
+    "at": 122,
+    "sprite": "explosion-medium",
+    "dx": -8,
+    "dy": -182
+   },
+   {
+    "at": 136,
+    "sprite": "explosion-medium",
+    "dx": 76,
+    "dy": -19
+   }
+  ]
  }
 }

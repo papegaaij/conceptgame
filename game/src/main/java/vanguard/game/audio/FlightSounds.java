@@ -35,6 +35,8 @@ public final class FlightSounds {
     /** Rear guns play their family's sound about 10 % lower (design/audio/sfx, Weapon sound families). */
     private static final float REAR_PITCH = 0.9f;
 
+    private static final int MAX_PENDING = 8;
+
     private final SfxBank bank;
     private final EnemyLooks[] looks;
     private final Sfx[] shots;
@@ -43,6 +45,14 @@ public final class FlightSounds {
     private final Sfx[] cries;
 
     private final SplitMix64 random = new SplitMix64(0x5F3);
+    /** Sounds waiting for their step (a set piece's break-up): what, how loud, pitch, pan, steps left. */
+    private final Sfx[] pending = new Sfx[MAX_PENDING];
+
+    private final float[] pendingVolume = new float[MAX_PENDING];
+    private final float[] pendingPitch = new float[MAX_PENDING];
+    private final float[] pendingPan = new float[MAX_PENDING];
+    private final int[] pendingSteps = new int[MAX_PENDING];
+    private int pendingCount;
     private boolean variantB;
 
     /**
@@ -107,6 +117,47 @@ public final class FlightSounds {
         bank.play(Sfx.EDGE_WARNING, PLAYER_DAMAGE, 1, pan);
     }
 
+    /**
+     * A set piece's break-up after its death cry (design/enemies/space/leviathan): deep, slowed
+     * explosions layered under the blasts, one as the cluster builds, two together at the swap
+     * where the body comes apart, and one under the trailing blasts.
+     *
+     * @param swap the step after the death at which the body is replaced by its chunks
+     */
+    public void breakUp(double x, int swap) {
+        float pan = pan(x);
+        later(Sfx.EXPLOSION_SMALL_A, EXPLOSIONS, 0.6f, pan, swap - 24);
+        later(Sfx.EXPLOSION_SMALL_B, PLAYER_DAMAGE, 0.5f, pan, swap);
+        later(Sfx.EXPLOSION_SMALL_A, EXPLOSIONS, 0.55f, -pan, swap + 3);
+        later(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.65f, pan, swap + 40);
+    }
+
+    private void later(Sfx sfx, float volume, float pitch, float pan, int steps) {
+        if (pendingCount < MAX_PENDING) {
+            pending[pendingCount] = sfx;
+            pendingVolume[pendingCount] = volume;
+            pendingPitch[pendingCount] = pitch;
+            pendingPan[pendingCount] = pan;
+            pendingSteps[pendingCount] = steps;
+            pendingCount++;
+        }
+    }
+
+    /** Advances the waiting sounds by one simulation step and plays the due ones. */
+    public void step() {
+        for (int i = pendingCount - 1; i >= 0; i--) {
+            if (--pendingSteps[i] <= 0) {
+                bank.play(pending[i], pendingVolume[i], pendingPitch[i], pendingPan[i]);
+                pendingCount--;
+                pending[i] = pending[pendingCount];
+                pendingVolume[i] = pendingVolume[pendingCount];
+                pendingPitch[i] = pendingPitch[pendingCount];
+                pendingPan[i] = pendingPan[pendingCount];
+                pendingSteps[i] = pendingSteps[pendingCount];
+            }
+        }
+    }
+
     /** Plays the sounds of one step's events. */
     public void play(SimEvents events) {
         for (int i = 0; i < events.size(); i++) {
@@ -162,12 +213,12 @@ public final class FlightSounds {
                     bank.play(Sfx.SHIP_DESTROYED, PLAYER_DAMAGE, 1, pan);
                     bank.play(Sfx.MISSION_FAILED, PLAYER_DAMAGE, 1, 0);
                 }
+                case SORTIE_RESTARTED -> pendingCount = 0;
                 case SECRET_FOUND,
                         CREDITS_PICKED_UP,
                         RADIO,
                         OBJECTIVE_MET,
                         LEVEL_COMPLETE,
-                        SORTIE_RESTARTED,
                         GROUP_CLEARED,
                         GROUP_LOST,
                         OBJECTIVE_FAILED,

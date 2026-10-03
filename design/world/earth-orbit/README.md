@@ -3,7 +3,7 @@ title: Earth orbit
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Earth orbit
@@ -85,7 +85,7 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), review file
 
 | File | What | Status |
 |---|---|---|
-| [concept/debris-final-r16-a.png](concept/debris-final-r16-a.png) | Final debris chunks of the Level 03 debris field: large (indestructible) 96×80, 72×64, 56×48 and small (breakable) 32×28, 24×24, scorched station kit and frigate wreckage, 32 colours | proposed |
+| [concept/debris-final-r16-a.png](concept/debris-final-r16-a.png) | Final debris chunks of the Level 03 debris field: large (indestructible) 96×80, 72×64, 56×48 and small (breakable) 32×28, 24×24, scorched station kit and frigate wreckage, 32 colours | chosen |
 
 ## Decisions
 
@@ -94,3 +94,4 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), review file
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-02: Station structures on the ground layer use muted accents; warm amber is reserved
   for loot targets (user decision, art direction readability rule 7).
+- 2026-10-03: Concept round 16 closed (user decision): the Level 03 debris chunks approved as **final**; this doc's `art` stays `chosen`.

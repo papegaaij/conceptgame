@@ -155,3 +155,12 @@ A capture of the game, not generated art: `desktop/build/install/terran-vanguard
 (settings in a temporary directory, so the saves are too: `display.mode=window`, a 960×540 window
 at 0,0, `audio.master=0`), recorded with `ffmpeg -f x11grab -draw_mouse 0 -framerate 2`; the frame
 at game time 12 s (Rook on the radio, the control prompts, the kill tracker), uncropped.
+
+## escapes-tracker-capture-r16-a
+
+A capture of the game, not generated art: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file> --invulnerable --level 3` under `xvfb-run -s "-screen 0 960x540x24"` (settings: a 960×540 window at 0,0, `audio.master=0`), recorded with `ffmpeg -f x11grab -draw_mouse 0` at 20 fps and encoded with ffmpeg's `palettegen` (128 colours, `stats_mode=diff`) and `paletteuse` (Bayer dither, scale 5); level time ≈ the recording's time − 1.5 s. Run with `--bench 140 --loadout front=scatter-vulcan:3` and `controls.auto-fire=true`; the
+arrow key Right held 2.5 s from 16 s after the start (an XTEST key event), so the ship kills the
+first Spore Bomber at about t=15.3 and then sits at the right edge, letting the 42 s line through.
+Crop: the left panel and the play field (720×540, 1×), 12 fps; two cuts joined: t≈14–17 (the
+`LOW-AIR` prompt leaving at the first kill, `0 / 10` → `1 / 10`) and t≈54–57.5 (`2 / 10` →
+`FAILED` with the red flash). The `DONE` case is not shown: it needs all ten bombers killed.

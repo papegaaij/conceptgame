@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../systems, ../ui/hangar]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Player
@@ -147,8 +147,8 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), by `tools/a
 
 | File | What | Status |
 |---|---|---|
-| [concept/pickups-final-r16-a.png](concept/pickups-final-r16-a.png) | Final 8-frame loop of the large salvage (35×35, a raised chip in a ring of six; the hidden crate stays the crate), rocking, with the pulsing light outline and halo of the other pickups | proposed |
-| [concept/pickups-final-r16-a.gif](concept/pickups-final-r16-a.gif) | The loop at 10 fps | proposed |
+| [concept/pickups-final-r16-a.png](concept/pickups-final-r16-a.png) | Final 8-frame loop of the large salvage (35×35, a raised chip in a ring of six; the hidden crate stays the crate), rocking, with the pulsing light outline and halo of the other pickups | chosen |
+| [concept/pickups-final-r16-a.gif](concept/pickups-final-r16-a.gif) | The loop at 10 fps | chosen |
 
 ## Implementation
 
@@ -201,3 +201,4 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), by `tools/a
 - 2026-10-02: M4 part A: every fitted weapon flies, each mount on its own clock while fire is held; the spare power (the generator's output less every fitted item's draw) raises the shield regen in flight, +10 % per MW up to +50 % (the starter fit has 4 MW spare: +40 %), and the HUD's power row shows it; an overdrive switches every weapon to its next level's pattern (L5: the overdrive pattern) for its time, timed on the HUD. The overdrive pickup lands with Level 02 (part B).
 - 2026-10-02: M4 part B: the overdrive and salvage M pickups (Level 02), their production loops proposed in concept round 15.
 - 2026-10-02: Concept round 15 closed (user decision): salvage M and the overdrive approved as **final**; this doc's `art` stays `chosen`.
+- 2026-10-03: Concept round 16 closed (user decision): the large salvage (salvage L) approved as **final**; this doc's `art` stays `chosen`.

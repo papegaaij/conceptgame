@@ -241,15 +241,17 @@ def review_sheet(title, rows, width=1300, batch="Level 01 batch"):
     return img
 
 
-def review_paths(concept_dir, subject):
+def review_paths(concept_dir, subject, variant="a"):
     concept_dir = Path(concept_dir)
     concept_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"{subject}-final-{REVIEW_ROUND}-a"
+    stem = f"{subject}-final-{REVIEW_ROUND}-{variant}"
     return concept_dir / f"{stem}.png", concept_dir / f"{stem}.gif"
 
 
-def save_review(sheet, gif_frames, concept_dir, subject, fps=10):
-    png, gif = review_paths(concept_dir, subject)
+def save_review(sheet, gif_frames, concept_dir, subject, fps=10, variant="a"):
+    """The review sheet and GIF as ``<subject>-final-<round>-<variant>``: a redo in the same round
+    is the next variant."""
+    png, gif = review_paths(concept_dir, subject, variant)
     sheet.convert("RGB").save(png, optimize=True)
     write_gif(gif_frames, gif, fps=fps, colors=128)
     print(f"review: {png.relative_to(ROOT)}, {gif.relative_to(ROOT)}")

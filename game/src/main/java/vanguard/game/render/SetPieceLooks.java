@@ -13,7 +13,7 @@ import vanguard.sim.LevelScript;
  * sway frames with every shootable part as a sprite of its own, intact and wrecked, centred on its
  * data offset (the fluke per sway frame on its pivot from assets/pivots/{@code <slug>}.json), the
  * additive glow over the vital part, and the first pass's whole unit already drawn at its diagonal
- * heading and at the high-air scale. Lit sprites are never rotated or mirrored.
+ * heading and at the high-air scale, and the break-up at its death. Lit sprites are never rotated or mirrored.
  */
 final class SetPieceLooks {
     /** The sway plays its three frames 0-1-2-1, 0.3 s each (the review loop's timing). */
@@ -35,6 +35,8 @@ final class SetPieceLooks {
     final AtlasRegion glow;
     /** The part the glow sits on. */
     final int glowPart;
+    /** The break-up at its death; null for none (the body then just goes). */
+    final SetPieceDeath death;
 
     /** @param pivots the parsed pivot file ({@code {"down": {"<part>": [[dx, dy], ...]}}}), or null */
     SetPieceLooks(Sprites sprites, LevelScript.SetPieceSpec spec, JsonValue pivots) {
@@ -71,6 +73,7 @@ final class SetPieceLooks {
         }
         glow = glowRegion;
         glowPart = glowAt;
+        death = SetPieceDeath.of(sprites, pivots);
     }
 
     /** A part's sprite name: {@code vent 1} is {@code vent-1}, {@code left fin} is {@code fin-left} (the screen side last). */
