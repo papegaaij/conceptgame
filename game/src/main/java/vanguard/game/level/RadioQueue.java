@@ -20,6 +20,10 @@ import vanguard.game.ui.Words;
  * the line on the radio and plays at once; the interrupted line plays again from its start right
  * after it. The queue has no clock or randomness of its own, so the same updates always play the
  * same lines.
+ *
+ * <p>A spoken line (design/audio/voice) holds its subtitle until its voice ends: a page stays up at
+ * least until the voice has reached the page's end (in characters), the last page until the voice
+ * is over, so a line is on the radio for the longer of its text time and its voice.
  */
 public final class RadioQueue {
     public static final int LINE_CHARS = 22;
@@ -61,8 +65,17 @@ public final class RadioQueue {
      *
      * @param portrait whose portrait shows: the speaker's own, or a generic one ({@code generic-cdf})
      * @param expression the speaker's portrait expression ({@code grim})
+     * @param voice the spoken line's asset path, empty for a line without a voice file
+     * @param voiceSeconds the spoken line's length, 0 without one
      */
-    public record Message(String speaker, String portrait, String expression, List<String> lines, boolean distorted) {
+    public record Message(
+            String speaker,
+            String portrait,
+            String expression,
+            List<String> lines,
+            boolean distorted,
+            Optional<String> voice,
+            float voiceSeconds) {
         int pages() {
             return (lines.size() + PAGE_LINES - 1) / PAGE_LINES;
         }
@@ -80,13 +93,29 @@ public final class RadioQueue {
             return lines.subList(page * PAGE_LINES, Math.min(lines.size(), (page + 1) * PAGE_LINES));
         }
 
-        /** How long it is on the radio at {@code charsPerSecond}: every page typed and held. */
+        /** How long it is on the radio at {@code charsPerSecond}: every page typed and held, and at least its voice. */
         float seconds(float charsPerSecond) {
             float seconds = LAST_PAGE_SECONDS + PAGE_SECONDS * (pages() - 1);
             for (int page = 0; page < pages(); page++) {
                 seconds += length(page) / charsPerSecond;
             }
-            return seconds;
+            return Math.max(seconds, voiceSeconds);
+        }
+
+        /** Seconds from the opening until the voice has reached the end of {@code page}. */
+        float voiceThrough(int page) {
+            if (page == pages() - 1) {
+                return voiceSeconds;
+            }
+            int through = 0;
+            int all = 0;
+            for (int i = 0; i < pages(); i++) {
+                all += length(i);
+                if (i <= page) {
+                    through += length(i);
+                }
+            }
+            return voiceSeconds * through / all;
         }
     }
 
@@ -127,7 +156,21 @@ public final class RadioQueue {
     /** Queues a line shown with {@code portrait}'s portrait, by its priority. */
     public void add(
             String speaker, String portrait, String expression, String line, boolean distorted, Priority priority) {
-        queue.add(new Waiting(new Message(speaker, portrait, expression, wrap(line), distorted), priority));
+        add(speaker, portrait, expression, line, distorted, priority, Optional.empty(), 0);
+    }
+
+    /** Queues a spoken line: {@code voice} is its file, {@code voiceSeconds} its length. */
+    public void add(
+            String speaker,
+            String portrait,
+            String expression,
+            String line,
+            boolean distorted,
+            Priority priority,
+            Optional<String> voice,
+            float voiceSeconds) {
+        queue.add(new Waiting(
+                new Message(speaker, portrait, expression, wrap(line), distorted, voice, voiceSeconds), priority));
     }
 
     /** Drops everything, as when the level restarts. */
@@ -186,7 +229,7 @@ public final class RadioQueue {
         }
         held += seconds;
         boolean last = page == message.pages() - 1;
-        if (held < (last ? LAST_PAGE_SECONDS : PAGE_SECONDS)) {
+        if (held < (last ? LAST_PAGE_SECONDS : PAGE_SECONDS) || opened < message.voiceThrough(page)) {
             return Change.NONE;
         }
         if (!last) {
@@ -245,7 +288,7 @@ public final class RadioQueue {
         }
         Message message = current.get();
         boolean typedOut = page == message.pages() - 1 && typed >= message.length(page);
-        return typedOut ? LAST_PAGE_SECONDS - held : Float.POSITIVE_INFINITY;
+        return typedOut ? Math.max(LAST_PAGE_SECONDS - held, message.voiceSeconds() - opened) : Float.POSITIVE_INFINITY;
     }
 
     /** The lines of the current page as typed so far. */

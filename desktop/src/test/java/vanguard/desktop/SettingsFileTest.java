@@ -91,7 +91,7 @@ class SettingsFileTest {
                 .withButton(Action.FIRE, GamepadControl.Y);
         var settings = new Settings(
                 new VideoSettings(Scaling.SHARP_BILINEAR, true),
-                new AudioSettings(0.8, 0.55, 0.3, 0.05),
+                new AudioSettings(0.8, 0.55, 0.3, 0.05, 0.65),
                 new ControlSettings(true, 0.35, bindings),
                 new GameplaySettings(60, 0.4, true));
 
@@ -165,7 +165,7 @@ class SettingsFileTest {
         assertTrue(file.readSettings().controls().autoFire());
         assertFalse(Files.readString(path).contains("window."), "stale window bounds are dropped");
 
-        file.save(Settings.defaults().withAudio(new AudioSettings(0.5, 1, 1, 1)));
+        file.save(Settings.defaults().withAudio(new AudioSettings(0.5, 1, 1, 1, 1)));
 
         assertEquals(Optional.of("DP-1"), file.read().monitor());
         assertEquals(0.5, file.readSettings().audio().master());

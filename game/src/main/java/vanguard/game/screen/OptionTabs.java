@@ -69,10 +69,11 @@ final class OptionTabs {
                         volume("MUSIC", AudioSettings::music, AudioSettings::withMusic, Sfx.MENU_MOVE),
                         volume("EFFECTS", AudioSettings::effects, AudioSettings::withEffects, Sfx.MENU_MOVE),
                         volume("RADIO BLIPS", AudioSettings::radio, AudioSettings::withRadio, Sfx.TYPEWRITER),
+                        volume("VOICE", AudioSettings::voice, AudioSettings::withVoice, Sfx.MENU_MOVE),
                         new OptionRow.Sound("SOUND TEST: MUSIC", SoundTest.Kind.MUSIC),
                         new OptionRow.Sound("SOUND TEST: EFFECTS", SoundTest.Kind.EFFECTS)),
-                "SOUND TEST: LEFT/RIGHT PICKS, ENTER PLAYS; ENTER AGAIN STOPS A TRACK. RADIO MESSAGES ARE TEXT WITH A"
-                        + " BLIP PER LINE: THERE IS NO VOICE ACTING.");
+                "SOUND TEST: LEFT/RIGHT PICKS, ENTER PLAYS; ENTER AGAIN STOPS A TRACK. VOICE IS THE SPOKEN RADIO"
+                        + " AND BRIEFINGS; THE SUBTITLES STAY.");
     }
 
     private static OptionRow volume(

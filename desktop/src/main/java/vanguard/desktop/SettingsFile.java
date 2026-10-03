@@ -59,6 +59,7 @@ final class SettingsFile implements SettingsStore {
     private static final String MUSIC = "audio.music";
     private static final String EFFECTS = "audio.effects";
     private static final String RADIO = "audio.radio";
+    private static final String VOICE = "audio.voice";
     private static final String AUTO_FIRE = "controls.auto-fire";
     private static final String DEAD_ZONE = "controls.dead-zone";
     private static final String TEXT_SPEED = "gameplay.text-speed";
@@ -101,7 +102,8 @@ final class SettingsFile implements SettingsStore {
                 share(properties, MASTER, audio.master(), 0, 1),
                 share(properties, MUSIC, audio.music(), 0, 1),
                 share(properties, EFFECTS, audio.effects(), 0, 1),
-                share(properties, RADIO, audio.radio(), 0, 1));
+                share(properties, RADIO, audio.radio(), 0, 1),
+                share(properties, VOICE, audio.voice(), 0, 1));
         var controls = new ControlSettings(
                 Boolean.parseBoolean(properties.getProperty(AUTO_FIRE)),
                 share(properties, DEAD_ZONE, ControlSettings.DEFAULT_DEAD_ZONE, 0.05, 0.5),
@@ -240,6 +242,7 @@ final class SettingsFile implements SettingsStore {
             properties.setProperty(MUSIC, Double.toString(audio.music()));
             properties.setProperty(EFFECTS, Double.toString(audio.effects()));
             properties.setProperty(RADIO, Double.toString(audio.radio()));
+            properties.setProperty(VOICE, Double.toString(audio.voice()));
             ControlSettings controls = settings.controls();
             properties.setProperty(AUTO_FIRE, Boolean.toString(controls.autoFire()));
             properties.setProperty(DEAD_ZONE, Double.toString(controls.deadZone()));

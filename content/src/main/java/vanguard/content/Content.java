@@ -29,7 +29,8 @@ public record Content(
         DifficultyData difficulty,
         ScoringData scoring,
         RetryData retry,
-        AlliesData allies) {
+        AlliesData allies,
+        VoiceData voices) {
     public Content {
         weapons = Map.copyOf(weapons);
         enemies = Map.copyOf(enemies);

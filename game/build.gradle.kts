@@ -26,4 +26,6 @@ tasks.test {
     inputs.dir(rootProject.layout.projectDirectory.dir("assets/sprites/portraits")).withPropertyName("portraits")
     inputs.dir(rootProject.layout.projectDirectory.dir("assets/sprites/intel")).withPropertyName("intel")
     inputs.dir(rootProject.layout.projectDirectory.dir("assets/ui/briefing")).withPropertyName("briefingImages")
+    // RadioTimelineTest's voiced run reads the voice lengths.
+    inputs.files(rootProject.fileTree("assets/voice")).withPropertyName("voice")
 }

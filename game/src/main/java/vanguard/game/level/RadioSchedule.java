@@ -1,5 +1,6 @@
 package vanguard.game.level;
 
+import vanguard.content.voice.VoiceLines;
 import vanguard.sim.LevelScript;
 import vanguard.sim.SimStep;
 
@@ -37,18 +38,11 @@ public final class RadioSchedule {
     }
 
     /** The placeholder in a convoy line that names the unit it is about ("Crawler {ally} is hit!"). */
-    public static final String ALLY = "{ally}";
-
-    private static final String[] NUMBERS = {
-        "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"
-    };
+    public static final String ALLY = VoiceLines.ALLY;
 
     /** A cue's line with {@link #ALLY} filled in as the convoy unit's number word ({@code unit} from 0). */
     public static String line(String line, int unit) {
-        if (unit < 0 || !line.contains(ALLY)) {
-            return line;
-        }
-        return line.replace(ALLY, unit < NUMBERS.length ? NUMBERS[unit] : Integer.toString(unit + 1));
+        return VoiceLines.allyLine(line, unit);
     }
 
     /** Seconds from {@code levelSeconds} until the next timed cue starts; infinite after the last. */

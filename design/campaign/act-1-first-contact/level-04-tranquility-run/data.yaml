@@ -77,15 +77,21 @@ sections:  # back to back from t = 0; tiles: the backdrop's tile sets (no deep l
       purpose: Final pods and walker; the convoy drives into the hangar.
 
 waves:  # paths: a walker wave's ground paths, one list of [x, y] points per unit (y below the top edge at the wave's t; they scroll with the ground)
+  - {t: 7, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 13.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 2, easy: {count: 4}, hard: {count: 4}, notes: Pacing filler}
   - {t: 22, formation: single, enemy: brood-pod, count: 1, from: front, notes: "**Introduction**: alone, above the base; bursts into 6 Skitters"}
+  - {t: 27.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
   - {t: 32, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - {t: 35.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
   - t: 45
     groups:
       - {formation: carrier + escorts, enemy: brood-pod, count: 1}
       - {formation: carrier + escorts, enemy: needler, count: 3}
     from: front
     notes: Needlers `orbit` the pod
+  - {t: 51.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 2, easy: {count: 4}, hard: {count: 4}, notes: Pacing filler}
   - {t: 60, formation: V-wing, enemy: needler, count: 3, from: front, notes: Over a turret nest}
+  - {t: 66.5, formation: stream, enemy: skitter, count: 3, from: front, edge: right, interval: 2.75, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
   - t: 75
     formation: single
     enemy: scuttler
@@ -93,6 +99,7 @@ waves:  # paths: a walker wave's ground paths, one list of [x, y] points per uni
     from: front
     paths: [[[200, -40], [200, 10], [130, 40], [70, -30]]]   # down the rille's west rim, across the road, then away north-west
     notes: '**Introduction**: walks along the rille rim on the ground layer beside the road, then turns toward the column, showing its back as it turns'
+  - {t: 80, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
   - t: 88
     formation: pincer
     enemy: scuttler
@@ -104,6 +111,7 @@ waves:  # paths: a walker wave's ground paths, one list of [x, y] points per uni
     notes: Walk in over both crater rims toward the convoy; edge warnings
   - {t: 95, formation: stream, enemy: skitter, count: 9, from: front, edge: alternating, interval: 0.5, notes: While the pincer walks in}
   - {t: 100, formation: single, enemy: brood-pod, count: 1, from: front}
+  - {t: 107.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
   - t: 115
     groups:
       - {formation: carrier + escorts, enemy: brood-pod, count: 1}
@@ -116,6 +124,8 @@ waves:  # paths: a walker wave's ground paths, one list of [x, y] points per uni
     from: front
     paths: [[[265, -40], [276, 200], [289, 320], [322, 600]]]   # down the road (its ground positions at t=120), 1.5 s apart
     notes: Walk down the road toward the column, claws first
+  - {t: 127.5, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 133.5, formation: stream, enemy: skitter, count: 3, from: front, edge: right, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
   - t: 140
     formation: pincer
     enemy: scuttler
@@ -126,6 +136,7 @@ waves:  # paths: a walker wave's ground paths, one list of [x, y] points per uni
     notes: Out of the heavy dust; edge warnings; two per side on hard
   - {t: 150, formation: line abreast, enemy: brood-pod, count: 2, from: front}
   - {t: 160, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 163, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
   - t: 165
     formation: single
     enemy: scuttler
@@ -203,17 +214,17 @@ pickups:
   - {pickup: overdrive, dropped_by: {wave: 45, unit: first}}      # the Brood Pod of the t=45 group, if killed before it bursts
   - {pickup: armour patch, dropped_by: {wave: 115, unit: last}}   # the last Needler of the t=115 group
 
-radio:  # trigger: t or event; {ally} becomes the crawler's number word; requires: special = only with a special fitted
+radio:  # trigger: t or event; {ally} becomes the crawler's number word; requires: special = only with a special fitted; shout: true = the voice shouts it
   - {t: 0, speaker: Okafor, line: "Five crawlers, four hundred civilians. Get them to the terminal, Lancer."}
   - {t: 11, speaker: Crawler One, portrait: generic-civilian, line: "Crawler One rolling. We're slow and we're loud, Aegis. Please don't leave us."}
   - {t: 22, speaker: Varga, line: "That's an egg sac. It hatches on its own in eight seconds. Kill it before then, and be ready for what comes out.", notes: {trigger: first pod}}
   - {t: 34.5, speaker: Rook, line: "Aegis Two over Shackleton. My family's down there somewhere, Lancer. Bring those crawlers home."}
   - {t: 60, requires: special, speaker: Okafor, line: "Hammer flight is on station. Your call, Lancer.", notes: {trigger: Airstrike fitted}}
-  - {event: first-ally-hit, speaker: Convoy, portrait: generic-civilian, line: "We're taking fire! Crawler {ally} is hit!", notes: {trigger: First crawler hit}}
+  - {event: first-ally-hit, speaker: Convoy, portrait: generic-civilian, shout: true, line: "We're taking fire! Crawler {ally} is hit!", notes: {trigger: First crawler hit}}
   - {event: first-ally-lost, speaker: Crawler One, portrait: generic-civilian, line: "We lost {ally}. Oh God, we lost {ally}.", notes: {trigger: Crawler lost (first)}}
   - {event: first-ally-lost, speaker: Okafor, expression: grim, line: "Keep the rest moving, Lancer.", notes: {trigger: "Crawler lost (first), after the convoy's line"}}
   - {t: 74, speaker: Varga, line: "Walker on the rille rim. The claws are armour. Wait for it to turn, then hit the glowing back.", notes: {trigger: first Scuttler}}
-  - {t: 86, speaker: Tranquility Control, portrait: generic-cdf, line: "Walkers coming over the crater rims, both sides of the road!"}
+  - {t: 86, speaker: Tranquility Control, portrait: generic-cdf, shout: true, line: "Walkers coming over the crater rims, both sides of the road!"}
   - {t: 128, speaker: Tranquility Control, portrait: generic-cdf, line: "Lander impact, grid four. Dust everywhere. Stay on the convoy."}
   - {t: 176, speaker: Crawler One, portrait: generic-civilian, line: "Terminal in sight! Open those doors!"}
   - {event: level-end, allies: [5, 5], speaker: Okafor, line: "All five. Four hundred people. That's what we're for, Aegis.", notes: {trigger: "Level end, 5 crawlers"}}

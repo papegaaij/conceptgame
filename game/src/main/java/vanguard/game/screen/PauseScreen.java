@@ -124,10 +124,14 @@ public final class PauseScreen implements GameScreen {
                 yield Transition.BACK;
             }
             case ABORT -> {
+                services.voices.stop();
                 level.campaign().retry();
                 yield Transition.replace(new HangarScreen(services, level.campaign(), true));
             }
-            default -> Transition.replace(MainMenuScreen.menu(services));
+            default -> {
+                services.voices.stop();
+                yield Transition.replace(MainMenuScreen.menu(services));
+            }
         };
     }
 

@@ -8,5 +8,7 @@ public enum Bus {
     MUSIC,
     EFFECTS,
     /** The radio blips: squelch and typing. */
-    RADIO
+    RADIO,
+    /** The spoken radio lines and briefing pages (design/audio/voice). */
+    VOICE
 }

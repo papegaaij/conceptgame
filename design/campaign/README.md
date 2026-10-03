@@ -3,7 +3,7 @@ title: Campaign
 design: approved
 implementation: not-started
 art: none
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Campaign
@@ -55,6 +55,11 @@ consecutive levels.
 - **Mostly from the front.** In any level at least ~60% of waves enter from the top edge, even
   where the intel lists `all` directions. Levels with a `rear` or `sides` focus say so in their
   threat profile, so the hangar can warn the player.
+- **No long pauses** (user decision): from Level 04 on, the screen is never empty of enemies
+  (air or ground) for longer than about 3 s, outside the launch and scripted moments, and a level
+  has at most 2 longer pauses. Gaps are filled with small, easy waves of enemies the act already
+  knows, so the difficulty does not rise. Levels 01–03 are exempt as the warm-up. `PacingTest`
+  measures it on the autopilot's runs.
 - **Level length**: 3–5 minutes of scroll plus the boss fight. Act 1 levels sit near 3 minutes;
   Act 7 levels near 5.
 - **Objective types**: `reach-end` (default), `escort`, `defend` (scroll halts and waves come
@@ -199,3 +204,7 @@ criteria), Open questions, Decisions. The worked example is
   ([saves](../systems/saves/README.md)); the briefing before a level that opens its act starts with
   the act's title card and act briefing, from the act's data file. Only Level 01 is built, so after
   it the campaign waits in the hangar.
+- 2026-10-03: Pacing rule (user decision): the pauses between enemies were too long. From Level 04 on,
+  the screen is never empty of enemies for more than about 3 s outside the launch and scripted
+  moments, with at most 2 longer pauses per level, without raising the difficulty. Levels 01–03
+  stay as they are, as the warm-up.

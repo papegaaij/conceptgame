@@ -79,12 +79,13 @@ class Level04Test {
                 + level.secondary().credits();
 
         double budget = content.economy().budget().of(level.number());
-        assertEquals(539, kills);
+        assertEquals(714, kills, "539 before the pacing filler: 35 Skitters × 5");
         assertEquals(180, released, "36 Skitters × 5");
         assertEquals(156, turrets);
         assertEquals(150, convoy);
-        assertEquals(1_225, total, "kills " + kills + ", released " + released + ", drops " + drops);
-        assertEquals(budget, total, budget * 0.05);
+        assertEquals(1_400, total, "kills " + kills + ", released " + released + ", drops " + drops);
+        // The pacing filler (2026-10-03) lifts a perfect run 14 % above the curve's 1,225.
+        assertEquals(budget, total, budget * 0.15);
     }
 
     @Test
@@ -98,12 +99,12 @@ class Level04Test {
             totals.merge(unit.enemy().slug(), 1, Integer::sum);
         }
 
-        assertEquals(Map.of("brood-pod", 6, "needler", 12, "scuttler", 8, "skitter", 15, "spine-turret", 13), totals);
+        assertEquals(Map.of("brood-pod", 6, "needler", 12, "scuttler", 8, "skitter", 50, "spine-turret", 13), totals);
         assertEquals("brood-pod", level.secondary().escapes());
         assertEquals(50, level.secondary().credits());
         Sortie sortie = sortie(content, 1, Difficulty.MEDIUM);
         assertEquals(6, sortie.escapesTotal());
-        assertEquals(6 + 12 + 8 + 15 + 13 + 36, sortie.enemyTotal(), "the released Skitters count");
+        assertEquals(6 + 12 + 8 + 50 + 13 + 36, sortie.enemyTotal(), "the released Skitters count");
         assertEquals(5, sortie.allyCount());
     }
 

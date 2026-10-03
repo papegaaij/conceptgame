@@ -25,9 +25,9 @@ public final class LevelMusic implements Disposable {
     /** The start level rises to full over this long. */
     private static final float RISE_SECONDS = 2;
     /** −4 dB. */
-    private static final float DUCKED = (float) Math.pow(10, -4 / 20.0);
+    public static final float DUCKED = (float) Math.pow(10, -4 / 20.0);
     /** The duck moves this much of the way per second, so it does not click. */
-    private static final float DUCK_RATE = 4;
+    public static final float DUCK_RATE = 4;
 
     private final Audio audio;
     private final Mixer mixer;

@@ -17,6 +17,7 @@ import vanguard.content.campaign.SaveSlots;
 import vanguard.game.audio.Mixer;
 import vanguard.game.audio.Sfx;
 import vanguard.game.audio.SfxBank;
+import vanguard.game.audio.Voices;
 import vanguard.game.display.DisplayModes;
 import vanguard.game.input.ActionInput;
 import vanguard.game.input.GdxDevices;
@@ -63,6 +64,9 @@ public final class GameServices implements Disposable {
     public final Sprites sprites;
     public final Mixer mixer;
     public final SfxBank sfx;
+    /** The spoken radio lines and briefing pages (design/audio/voice). */
+    public final Voices voices;
+
     public final Fonts fonts;
     public final Glass glass;
     public final TitleScene titleScene;
@@ -100,6 +104,7 @@ public final class GameServices implements Disposable {
         sprites = new Sprites(files);
         mixer = new Mixer(settings.audio());
         sfx = new SfxBank(audio, files, mixer);
+        voices = new Voices(audio, files, mixer, content);
         fonts = new Fonts(files);
         glass = new Glass(fonts, sprites);
         titleScene = new TitleScene(files);
@@ -150,6 +155,7 @@ public final class GameServices implements Disposable {
         flash.dispose();
         titleScene.dispose();
         fonts.dispose();
+        voices.stop();
         sfx.dispose();
         sprites.dispose();
     }

@@ -214,7 +214,9 @@ first entry of a part's model list is the starter (price 0, `start`).
   has its line), and `requires: special` (only with a special fitted; on any cue);
   `speaker`, `line`,
   `distorted`, the portrait's optional `expression` (`neutral`, `grim`, `fierce`; neutral if not
-  given; a secret's `radio` line takes it too), and `easy` / `hard` changes giving another `line`,
+  given; a secret's `radio` line takes it too), `shout: true` (the voice shouts the line, with the
+  speaker table's `shout` row; separate from how the line queues), and `easy` / `hard` changes
+  giving another `line`,
   as when a wave enters elsewhere on that difficulty); `objectives` (`primary`, `secondary` `kill_ratio`, `groups` or `escapes` (the enemy none of
   which may leave the screen alive; a spawner's self-burst counts as an escape) and `credits`;
   `primary` is `reach-end` or `escort`, which adds an `escort` block: the `ally` slug, the
@@ -288,6 +290,12 @@ first entry of a part's model list is the starter (price 0, `start`).
   `repair_cost`, `retries`, `boss_checkpoint`, `sensor_bonus`); scoring (`kill_score`,
   `pickup_score`, `chain`, `rating` weights, `bonuses`, `grades`); retry (`armour_floor`, the
   share of the maximum armour a retry starts with at least).
+- **Voice** (`audio/voice/data.yaml`): `expressions` (`neutral`, `grim`, `fierce` and `shout`,
+  each `exaggeration`, `cfg_weight`, `temperature`: Chatterbox's settings) and `speakers` by voice
+  slug: `names` (the speakers as the level data writes them), `ref` (the clip in
+  `design/audio/voice/refs/`), optional `shift` (added to the expression's row), `fixed` (settings
+  for every line instead), `layering` (`choir`) and `pins` (a line's seed by its key). The line
+  list and keys: `vanguard.content.voice.VoiceLines`; the files `assets/voice/<voice>/<key>.ogg`.
 - **Allies** (`allies/data.yaml`): one entry per ally
   slug with `name`, `layer`, `size`, `hitbox`, `hp` (medium; the level sets difficulty variants),
   `damaged_by` (`objective_aimed`: only shots the target-the-objective hook aims at it;

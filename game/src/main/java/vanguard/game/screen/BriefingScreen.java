@@ -17,8 +17,10 @@ import vanguard.content.BriefingPage;
 import vanguard.content.campaign.BriefingScript;
 import vanguard.content.campaign.Campaign;
 import vanguard.game.GameServices;
+import vanguard.game.audio.LevelMusic;
 import vanguard.game.audio.MusicStreamer;
 import vanguard.game.audio.Sfx;
+import vanguard.game.audio.Voices;
 import vanguard.game.briefing.BriefingPager;
 import vanguard.game.input.MenuInput;
 import vanguard.game.render.PixelScreen;
@@ -81,6 +83,13 @@ public final class BriefingScreen implements GameScreen {
     private final List<Screen> screens = new ArrayList<>();
     private final Map<String, Texture> images = new HashMap<>();
     private final BriefingPager pager;
+    /** Each briefing page's voice, by its index in the script. */
+    private final List<Optional<Voices.Voice>> pageVoices = new ArrayList<>();
+    /** The page whose voice was started last. */
+    private int voicedPage = -1;
+    /** The music's duck under the voice, 1 for none. */
+    private float duck = 1;
+
     private final List<String> teaser;
     private float titleCard;
     private float elapsed;
@@ -98,10 +107,11 @@ public final class BriefingScreen implements GameScreen {
         this.next = next;
         List<Integer> lengths = new ArrayList<>();
         for (BriefingPage page : script.pages()) {
+            pageVoices.add(services.voices.briefing(page));
             Speaker speaker = Speaker.of(page.speaker(), page.portrait(), services.sprites);
             Optional<Texture> image = page.image().map(name -> images.computeIfAbsent(name, this::image));
             for (List<String> lines : screens(page)) {
-                screens.add(new Screen(page.speaker(), speaker, image, lines));
+                screens.add(new Screen(page.speaker(), speaker, image, lines, pageVoices.size() - 1));
                 lengths.add(lines.stream().mapToInt(String::length).sum());
             }
         }
@@ -124,7 +134,8 @@ public final class BriefingScreen implements GameScreen {
      * A screen of a briefing page: its speaker (the short name and the name plate with the page's
      * portrait), its image and the lines it shows.
      */
-    private record Screen(String speakerName, Speaker speaker, Optional<Texture> image, List<String> lines) {}
+    private record Screen(
+            String speakerName, Speaker speaker, Optional<Texture> image, List<String> lines, int dataPage) {}
 
     /** Upper case, as the bitmap fonts write it. */
     static String displayed(String text) {
@@ -187,9 +198,11 @@ public final class BriefingScreen implements GameScreen {
             pager.confirm();
         }
         if (pager.done()) {
+            services.voices.stop();
             untilClosed = TransmissionStatic.SECONDS;
             return Transition.STAY;
         }
+        speak(seconds);
         if (!speaker().equals(speaker)) {
             sinceOpened = 0;
         }
@@ -311,8 +324,25 @@ public final class BriefingScreen implements GameScreen {
         glass.centred(batch, glass.fonts.label, missions, Glass.LABEL, PixelScreen.WIDTH / 2f, PixelScreen.HEIGHT - 36);
     }
 
+    /**
+     * The page's voice starts with its first screen and plays over the screens it goes on over;
+     * turning to another page cuts it (design/audio/voice, Briefings). The music ducks under it.
+     */
+    private void speak(float seconds) {
+        int dataPage = screens.get(pager.page()).dataPage();
+        if (dataPage != voicedPage) {
+            voicedPage = dataPage;
+            pageVoices.get(dataPage).ifPresentOrElse(services.voices::play, services.voices::stop);
+        }
+        services.voices.update(seconds);
+        float target = services.voices.playing() ? LevelMusic.DUCKED : 1;
+        duck += (target - duck) * Math.min(1, LevelMusic.DUCK_RATE * seconds);
+        music.ifPresent(streamer -> streamer.setVolume(MUSIC_VOLUME * duck));
+    }
+
     @Override
     public void dispose() {
+        services.voices.stop();
         music.ifPresent(MusicStreamer::close);
         titleLettering.ifPresent(Texture::dispose);
         images.values().forEach(Texture::dispose);

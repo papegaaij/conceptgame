@@ -598,6 +598,7 @@ public record LevelData(
      *
      * @param enemy the enemy of a {@code first-kill} or {@code enemy-escaped} event
      * @param expression the speaker's portrait expression, neutral when not given
+     * @param shout whether the voice shouts the line (design/audio/voice), apart from how it queues
      * @param easy changes on easy
      * @param hard changes on hard
      */
@@ -611,6 +612,7 @@ public record LevelData(
             String line,
             Optional<Boolean> distorted,
             Optional<Expression> expression,
+            Optional<Boolean> shout,
             Optional<RadioChange> easy,
             Optional<RadioChange> hard,
             Optional<String> requires,

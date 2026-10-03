@@ -20,6 +20,7 @@ import vanguard.game.GameServices;
 import vanguard.game.audio.FlightSounds;
 import vanguard.game.audio.LevelMusic;
 import vanguard.game.audio.Sfx;
+import vanguard.game.audio.Voices;
 import vanguard.game.input.Action;
 import vanguard.game.input.FlightCommands;
 import vanguard.game.level.ControlPrompts;
@@ -295,6 +296,7 @@ public final class LevelScreen implements GameScreen {
     public Transition update(float seconds) {
         campaign.play(seconds);
         if (services.input.pressed(Action.PAUSE) || services.input.interrupted()) {
+            services.voices.pause();
             return Transition.open(new PauseScreen(services, this));
         }
         if (outro.update(seconds, radio)) {
@@ -305,6 +307,7 @@ public final class LevelScreen implements GameScreen {
             if (failedIn <= 0) {
                 Campaign.Failure what = failure.get();
                 failure = Optional.empty();
+                services.voices.stop();
                 return what == Campaign.Failure.GAME_OVER
                         ? Transition.replace(new GameOverScreen(services, campaign, mission()))
                         : Transition.open(new MissionFailedScreen(services, this));
@@ -341,8 +344,10 @@ public final class LevelScreen implements GameScreen {
             sounds.launch();
             launchPending = false;
         }
+        services.voices.resume();
         playRadio(seconds);
-        music.update(sortie.section(), seconds, radio.current().isPresent());
+        services.voices.update(seconds);
+        music.update(sortie.section(), seconds, radio.current().isPresent() || services.voices.playing());
         return Transition.STAY;
     }
 
@@ -403,8 +408,7 @@ public final class LevelScreen implements GameScreen {
                     // the radio, which plays again after it (design/ui/hud, priority interrupts).
                     SpecialsData.Radio call =
                             services.content.specials().airstrike().radio();
-                    radio.add(
-                            call.speaker(), call.portrait(), "neutral", call.line(), false, RadioQueue.Priority.URGENT);
+                    queue(call.speaker(), call.portrait(), "neutral", call.line(), false, RadioQueue.Priority.URGENT);
                 }
                 case SPECIAL_DENIED -> hud.specialDenied();
                 case AIRSTRIKE_BLAST ->
@@ -422,7 +426,7 @@ public final class LevelScreen implements GameScreen {
                                 case FIRST_ALLY_LOST -> sortie.firstAllyLost();
                                 default -> -1;
                             };
-                    radio.add(
+                    queue(
                             cue.speaker(),
                             cue.portrait(),
                             cue.expression(),
@@ -461,6 +465,7 @@ public final class LevelScreen implements GameScreen {
                     wrecks.clear();
                     creditNumbers.clear();
                     radio.clear();
+                    services.voices.stop();
                     warnings.clear();
                     music.restart();
                     launchPending = true;
@@ -538,13 +543,45 @@ public final class LevelScreen implements GameScreen {
         sounds.breakUp(x, death.swap);
     }
 
+    /** Queues a radio line with its voice file, if it has one; without one it shows as text only. */
+    private void queue(
+            String speaker,
+            String portrait,
+            String expression,
+            String line,
+            boolean distorted,
+            RadioQueue.Priority priority) {
+        Optional<Voices.Voice> voice = services.voices.radio(speaker, line, expression);
+        radio.add(
+                speaker,
+                portrait,
+                expression,
+                line,
+                distorted,
+                priority,
+                voice.map(Voices.Voice::path),
+                voice.map(Voices.Voice::seconds).orElse(0f));
+    }
+
     /** The radio's squelch on open and close, and a soft blip for every other typed character. */
     private void playRadio(float seconds) {
         float untilTimed =
                 sortie.complete() ? Float.POSITIVE_INFINITY : radioSchedule.untilTimed(sortie.levelSeconds());
         switch (radio.update(seconds, untilTimed)) {
-            case OPENED -> services.sfx.play(Sfx.RADIO_OPEN, RADIO_VOLUME, 1, 0);
-            case CLOSED -> services.sfx.play(Sfx.RADIO_CLOSE, RADIO_VOLUME, 1, 0);
+            case OPENED -> {
+                services.sfx.play(Sfx.RADIO_OPEN, RADIO_VOLUME, 1, 0);
+                // The voice starts with the message; an urgent line cuts the one that plays
+                // (design/audio/voice, Playback).
+                RadioQueue.Message message = radio.current().orElseThrow();
+                message.voice()
+                        .ifPresentOrElse(
+                                path -> services.voices.play(new Voices.Voice(path, message.voiceSeconds())),
+                                services.voices::stop);
+            }
+            case CLOSED -> {
+                services.sfx.play(Sfx.RADIO_CLOSE, RADIO_VOLUME, 1, 0);
+                services.voices.stop();
+            }
             case TYPED -> {
                 if (++typed % 2 == 0) {
                     services.sfx.play(Sfx.TYPEWRITER, TYPING_VOLUME, 1, 0);

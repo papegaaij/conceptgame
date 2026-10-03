@@ -31,6 +31,7 @@ public final class Mixer {
                     case MUSIC -> settings.music();
                     case EFFECTS -> settings.effects();
                     case RADIO -> settings.radio();
+                    case VOICE -> settings.voice();
                 };
         return (float) (settings.master() * volume);
     }

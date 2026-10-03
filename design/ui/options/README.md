@@ -3,8 +3,8 @@ title: Options
 design: approved
 implementation: done
 art: final
-depends-on: [../controls, ../../art-direction]
-updated: 2026-10-02
+depends-on: [../controls, ../../art-direction, ../../audio/voice]
+updated: 2026-10-03
 ---
 
 # Options
@@ -30,8 +30,8 @@ Settings screen reachable from the main menu and the pause menu, in the glass st
     restarts anything.
   - The first start opens in full screen. The mode, window size and position, and the monitor are
     remembered in the settings file.
-- **Audio:** master, music, effects and radio-blip volumes; sound test. No voice volume —
-  there is no voice acting (text and radio blips only).
+- **Audio:** master, music, effects, radio-blip and voice volumes; sound test. The voice
+  volume is the spoken radio lines and briefing pages ([voice](../../audio/voice/README.md)).
 - **Controls:** keyboard and gamepad bindings with remapping (press-a-key capture, conflicts
   swap), **auto-fire toggle (off = hold to fire, the default)**, gamepad dead zone. Mapping
   rules live in [controls](../controls/README.md).
@@ -86,7 +86,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
   window, the same switch as Alt+Enter and F11), scaling (integer + letterbox, or sharp-bilinear:
   a shader that samples as an integer pre-scale with bilinear filtering does and fills the window
   at any scale), CRT scanlines (off / on: the lower half of every pixel row darkened by 35 %, from a
-  2× scale up). Audio: master, music, effects and radio-blip volumes in 5 % steps, applied live
+  2× scale up). Audio: master, music, effects, radio-blip and voice volumes in 5 % steps, applied live
   through the mixer to the playing music, the looped ambience and every new sound; a change plays a
   menu blip (the radio slider a typing blip) at the new level. Controls: the remapping table
   (primary, alternative, gamepad for move up/down/left/right, fire, special, precision, dash and
@@ -95,7 +95,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
   (10–90 characters/s, default 30: the radio's typing; briefings type at twice it), screen shake (0–100 %, stored only: the game
   has no screen shake yet) and flash reduction (the white hit flash of loot targets and the ship's
   invulnerability blink at 35 %). Settings file keys: `video.scaling` (`integer` /
-  `sharp-bilinear`), `video.scanlines`, `audio.master|music|effects|radio` (0..1),
+  `sharp-bilinear`), `video.scanlines`, `audio.master|music|effects|radio|voice` (0..1),
   `controls.auto-fire`, `controls.dead-zone`, `controls.<action>.primary|alternative` (libGDX key
   names, `none`), `controls.<action>.gamepad` (button names), `gameplay.text-speed`,
   `gameplay.screen-shake`, `gameplay.flash-reduction`; an unreadable value falls back to its own
@@ -120,3 +120,6 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
   bindings, chips and sliders with the recessed track, lit fill and steel knob; layout and fonts
   unchanged. Capture proposed for round 13 (on the pause sheet); `art` stays `chosen`.
 - 2026-10-02: Concept round 13 closed (user decision): the options screen in the production glass kit approved as **final**; it has no art of its own, so `art: final`.
+- 2026-10-03: A separate **voice** volume slider after the radio blips (user decision in
+  [voice](../../audio/voice/README.md#decisions)), times the master volume, stored as
+  `audio.voice`; it applies to the spoken radio and the briefings.

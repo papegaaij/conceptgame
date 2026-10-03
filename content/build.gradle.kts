@@ -58,3 +58,9 @@ tasks.test {
         systemProperty("vanguard.recordDir", rootProject.layout.projectDirectory.dir(it).asFile.absolutePath)
     }
 }
+
+tasks.test {
+    // VoiceFilesTest checks that every spoken line has its rendered file in assets/voice.
+    systemProperty("vanguard.assetsDir", rootProject.layout.projectDirectory.dir("assets").asFile.absolutePath)
+    inputs.files(rootProject.fileTree("assets/voice")).withPropertyName("voice")
+}

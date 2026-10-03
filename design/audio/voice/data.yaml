@@ -1,0 +1,30 @@
+# The voice pipeline's speaker table (design/audio/voice): the Chatterbox settings per expression
+# and the speakers' voices. Schema: ../../tech/architecture/README.md#data-file-schemas
+# The renderer (tools/art/voice.py) and the game (vanguard.content.voice.VoiceLines) read it: a
+# change here changes the key of every line it touches, so only those lines are rendered again.
+
+expressions:   # exaggeration 0.25-2, cfg_weight (lower: slower, more dramatic), temperature
+  neutral: {exaggeration: 0.5, cfg_weight: 0.5, temperature: 0.7}
+  grim: {exaggeration: 0.45, cfg_weight: 0.5, temperature: 0.7}
+  fierce: {exaggeration: 0.8, cfg_weight: 0.4, temperature: 0.8}
+  shout: {exaggeration: 1.2, cfg_weight: 0.3, temperature: 0.8}   # a cue with shout: true
+
+# names: the speaker as the level data writes it; ref: the clip in refs/ (without .wav);
+# shift: added to the expression's row (optional); fixed: settings for every line instead of the
+# expression's; layering: choir = the Choir's post-processing; pins: a line's seed by its key.
+speakers:
+  okafor: {names: [Okafor], ref: ref-okafor}
+  varga: {names: [Varga], ref: ref-varga}
+  rook: {names: [Rook], ref: ref-rook}
+  choir:
+    names: [The Choir]
+    ref: ref-varga
+    fixed: {exaggeration: 0.3, cfg_weight: 0.3, temperature: 0.7}
+    layering: choir
+  yard-control: {names: [Yard Control], ref: ref-yard-control}
+  dock: {names: [Dock One, Dock Two, Dock Three, Dock Four], ref: ref-dock}
+  ring-control: {names: [Ring Control], ref: ref-ring-control}
+  tranquility-control: {names: [Tranquility Control], ref: ref-tranquility-control}
+  crawler-one: {names: [Crawler One], ref: ref-crawler-one}
+  convoy: {names: [Convoy], ref: ref-convoy}
+  hammer-lead: {names: [Hammer Lead], ref: ref-hammer-lead}

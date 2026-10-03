@@ -73,15 +73,23 @@ public final class MissionFailedScreen implements GameScreen {
                         .orElse(DEFAULT_LINE)
                         .toUpperCase(Locale.ROOT),
                 LINE_CHARS);
+        // The level's own line is spoken too (design/audio/voice); the default line has no voice.
+        level.failureLine()
+                .flatMap(cue -> services.voices.radio(cue.speaker(), cue.line(), cue.expression()))
+                .ifPresent(services.voices::play);
     }
 
     @Override
     public Transition update(float seconds) {
         campaign.play(seconds);
+        services.voices.update(seconds);
         MenuInput input = services.menu;
         if (quit.isPresent()) {
             return switch (quit.get().update(input)) {
-                case YES -> Transition.replace(MainMenuScreen.menu(services));
+                case YES -> {
+                    services.voices.stop();
+                    yield Transition.replace(MainMenuScreen.menu(services));
+                }
                 case NO -> {
                     services.play(Sfx.MENU_BACK);
                     quit = Optional.empty();
@@ -97,6 +105,9 @@ public final class MissionFailedScreen implements GameScreen {
             return Transition.STAY;
         }
         services.play(Sfx.MENU_CONFIRM);
+        if (menu.selectedId() != Item.QUIT) {
+            services.voices.stop();
+        }
         return switch (menu.selectedId()) {
             case RETRY -> {
                 level.retry(campaign.armour());

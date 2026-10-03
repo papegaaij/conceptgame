@@ -12,6 +12,8 @@ import vanguard.content.Content;
 import vanguard.content.ContentLoader;
 import vanguard.content.Difficulty;
 import vanguard.content.SimSpecs;
+import vanguard.content.voice.VoiceLines;
+import vanguard.game.audio.VorbisFile;
 import vanguard.sim.LevelScript;
 import vanguard.sim.LevelScript.CueTrigger;
 import vanguard.sim.SimStep;
@@ -26,6 +28,9 @@ import vanguard.sim.SimStep;
 class RadioTimelineTest {
     private static final Content CONTENT = ContentLoader.fromClasspath();
     private static final double MAX_LATE_SECONDS = 1;
+    private static final Map<String, VoiceLines.VoiceLine> VOICES = VoiceLines.radioIndex(CONTENT);
+    private static final java.nio.file.Path ASSETS =
+            java.nio.file.Path.of(System.getProperty("vanguard.assetsDir", "../assets"));
 
     private static final String LEVEL_01 = "act-1-first-contact/level-01-break-at-dawn";
     private static final String LEVEL_02 = "act-1-first-contact/level-02-shipyard-burning";
@@ -114,6 +119,58 @@ class RadioTimelineTest {
         });
     }
 
+    /**
+     * The same runs with the voices (design/audio/voice): a line holds the radio for the longer of
+     * its text and its voice. Every timed line still plays; the ones that start more than a second
+     * late are printed for the user to decide on a retiming (the data is not retimed here).
+     */
+    @Test
+    void theVoicedTimelinePlaysEveryTimedLineAndListsTheLateOnes() {
+        Map<String, Double> worst = new java.util.TreeMap<>();
+        RUNS.forEach((level, runs) -> {
+            for (Difficulty difficulty : Difficulty.values()) {
+                LevelScript script = SimSpecs.level(CONTENT, level, difficulty);
+                for (List<Event> events : runs) {
+                    for (Played line : play(script, events, true)) {
+                        LevelScript.RadioCue cue = line.cue();
+                        if (cue.trigger() != CueTrigger.TIME) {
+                            continue;
+                        }
+                        assertTrue(line.opened().isPresent(), level + ": the timed line at t=" + cue.t() + " plays");
+                        assertTrue(
+                                VoiceLines.spoken(cue.line()).isEmpty() || voiceSeconds(cue) > 0,
+                                level + ": the timed line at t=" + cue.t() + " has its voice");
+                        if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
+                            continue;
+                        }
+                        double late = line.opened().get() - cue.t();
+                        if (late > MAX_LATE_SECONDS) {
+                            worst.merge(
+                                    String.format("%s t=%s %s (%s)", level, cue.t(), cue.speaker(), difficulty),
+                                    late,
+                                    Math::max);
+                        }
+                    }
+                }
+            }
+        });
+        worst.forEach((line, late) -> System.out.printf("voiced line late by %.1f s: %s%n", late, line));
+    }
+
+    /** The voice length of a radio line from its rendered file, 0 without one. */
+    private static float voiceSeconds(LevelScript.RadioCue cue) {
+        VoiceLines.VoiceLine line =
+                VOICES.get(VoiceLines.indexKey(cue.speaker(), VoiceLines.allyLine(cue.line(), 2), cue.expression()));
+        if (line == null) {
+            return 0;
+        }
+        try (VorbisFile file = new VorbisFile(java.nio.file.Files.readAllBytes(ASSETS.resolve(line.path())))) {
+            return (float) file.frameCount() / file.sampleRate();
+        } catch (java.io.IOException e) {
+            return 0;
+        }
+    }
+
     @Test
     void theLeviathansLinesFindTheirGapsAndALateReactionIsDropped() {
         LevelScript script = SimSpecs.level(CONTENT, LEVEL_03, Difficulty.MEDIUM);
@@ -144,6 +201,10 @@ class RadioTimelineTest {
      * until it is idle.
      */
     private static List<Played> play(LevelScript script, List<Event> events) {
+        return play(script, events, false);
+    }
+
+    private static List<Played> play(LevelScript script, List<Event> events, boolean voiced) {
         RadioSchedule schedule = new RadioSchedule(script);
         RadioQueue radio = new RadioQueue();
         List<LevelScript.RadioCue> cues = script.radio();
@@ -171,7 +232,9 @@ class RadioTimelineTest {
                             cue.expression(),
                             cue.line(),
                             cue.distorted(),
-                            schedule.priority(i));
+                            schedule.priority(i),
+                            Optional.empty(),
+                            voiced ? voiceSeconds(cue) : 0);
                 }
             }
             float untilTimed = tick < end ? schedule.untilTimed(seconds) : Float.POSITIVE_INFINITY;

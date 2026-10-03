@@ -5,10 +5,23 @@ plugins {
 
 dependencies {
     implementation(libs.gdx.tools)
+    implementation(project(":content"))
 }
 
 val design = rootProject.layout.projectDirectory.dir("design")
 val assets = rootProject.layout.projectDirectory.dir("assets")
+
+/**
+ * Lists every spoken line with its key and settings for the offline voice renderer
+ * (tools/art/voice.py, design/audio/voice) in build/voice/lines.json.
+ */
+tasks.register<JavaExec>("voiceLines") {
+    description = "Writes the spoken lines and their keys for tools/art/voice.py."
+    group = "assets"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "vanguard.pipeline.VoiceLineList"
+    args(layout.buildDirectory.file("voice/lines.json").get().asFile.absolutePath)
+}
 
 /** Cuts the placeholder sprites out of the chosen concept sheets (crop rectangles in PlaceholderSprites). */
 val cutPlaceholderSprites = tasks.register<JavaExec>("cutPlaceholderSprites") {

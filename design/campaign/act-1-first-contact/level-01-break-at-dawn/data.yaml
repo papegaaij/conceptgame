@@ -149,13 +149,13 @@ secrets:
 pickups:  # placed pickups; shield cells drop from Needlers by their stat block's drop rule
   - {pickup: armour patch, dropped_by: {wave: 122, unit: last}}
 
-radio:  # trigger: t (seconds) or event (first-kill of an enemy, secondary-objective, level-end); easy/hard: another line; expression: the portrait (grim, fierce; neutral if not given)
+radio:  # trigger: t (seconds) or event (first-kill of an enemy, secondary-objective, level-end); easy/hard: another line; expression: the portrait (grim, fierce; neutral if not given); shout: true = the voice shouts it
   - {t: 2, speaker: Rook, line: "Lancer, Rook. Aegis Two's got the north arm, you've got the south. Try not to have all the fun."}
   - {t: 18, speaker: Okafor, expression: fierce, line: "Contacts inbound. Weapons free."}
   - {event: first-kill, enemy: skitter, speaker: Rook, line: "They pop like bugs. Big, angry bugs."}
   - {t: 40, speaker: Varga, expression: grim, line: "Those ones are armed. Keep moving.", notes: {trigger: Needlers enter}}
-  - {t: 73, speaker: Rook, expression: fierce, line: "Movement on your left! They're flanking the yard.", notes: {trigger: before side wave}}
-  - {t: 131, speaker: Okafor, expression: fierce, line: "Contacts on your six, Lancer!", easy: {line: "More contacts, dead ahead!"}, notes: {trigger: before rear wave}}
+  - {t: 73, speaker: Rook, expression: fierce, shout: true, line: "Movement on your left! They're flanking the yard.", notes: {trigger: before side wave}}
+  - {t: 131, speaker: Okafor, expression: fierce, shout: true, line: "Contacts on your six, Lancer!", easy: {line: "More contacts, dead ahead!"}, notes: {trigger: before rear wave}}
   - {t: 160, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
   - {t: 161, speaker: Varga, expression: grim, line: "That isn't noise. There's structure in it. Commander, I think that was a signal."}
   - {event: level-end, speaker: Okafor, expression: grim, line: "Good work, Aegis. That was the scouts. The rest are coming."}
