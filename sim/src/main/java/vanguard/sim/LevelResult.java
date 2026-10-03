@@ -13,6 +13,8 @@ import java.util.List;
  * @param score the level's score including the bonuses
  * @param rating the grade rating, 0–100
  * @param gradeBonus the grade's credit bonus on the credits earned
+ * @param escort the convoy of an {@code escort} primary objective: its units home and their pay
+ *     (part of the objectives' credits); {@link Escort#NONE} without one
  */
 public record LevelResult(
         int kills,
@@ -28,9 +30,57 @@ public record LevelResult(
         long score,
         double rating,
         ScoringRules.Grade grade,
-        int gradeBonus) {
+        int gradeBonus,
+        Escort escort) {
     public LevelResult {
         bonuses = List.copyOf(bonuses);
+    }
+
+    /** A result without a convoy. */
+    public LevelResult(
+            int kills,
+            int enemies,
+            double armourDamage,
+            int secretsFound,
+            int secrets,
+            int maxChain,
+            double maxMultiplier,
+            boolean secondaryMet,
+            Credits credits,
+            List<BonusScore> bonuses,
+            long score,
+            double rating,
+            ScoringRules.Grade grade,
+            int gradeBonus) {
+        this(
+                kills,
+                enemies,
+                armourDamage,
+                secretsFound,
+                secrets,
+                maxChain,
+                maxMultiplier,
+                secondaryMet,
+                credits,
+                bonuses,
+                score,
+                rating,
+                grade,
+                gradeBonus,
+                Escort.NONE);
+    }
+
+    /**
+     * The convoy at the level end: {@code home} of its {@code units} of {@code ally} arrived and paid
+     * {@code credits} (after the credit factor), which the objectives' credits include.
+     */
+    public record Escort(String ally, int home, int units, int credits) {
+        public static final Escort NONE = new Escort("", 0, 0, 0);
+
+        /** Whether the level had a convoy. */
+        public boolean present() {
+            return units > 0;
+        }
     }
 
     /** The credits earned in the level by source, before the grade bonus. */
@@ -62,6 +112,19 @@ public record LevelResult(
             double maxArmour,
             int secretsFound,
             boolean secondaryMet) {
+        return of(rules, script, tally, enemies, armourDamage, maxArmour, secretsFound, secondaryMet, Escort.NONE);
+    }
+
+    static LevelResult of(
+            ScoringRules rules,
+            LevelScript script,
+            Tally tally,
+            int enemies,
+            double armourDamage,
+            double maxArmour,
+            int secretsFound,
+            boolean secondaryMet,
+            Escort escort) {
         Credits credits = new Credits(
                 tally.credits(CreditSource.KILLS),
                 tally.credits(CreditSource.GROUND_TARGETS),
@@ -120,6 +183,7 @@ public record LevelResult(
                 score,
                 rating,
                 grade,
-                gradeBonus);
+                gradeBonus,
+                escort);
     }
 }

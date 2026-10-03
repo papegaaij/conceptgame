@@ -59,7 +59,12 @@ public final class HangarScreen implements GameScreen {
         this.services = services;
         this.campaign = campaign;
         nextLevel = CampaignRoute.launch(services.content, campaign);
+        // A special's free charges at its unlock (the first Airstrike charge), before the autosave.
+        List<Campaign.FreeCharges> given = campaign.giveFreeCharges(services.content.specials());
         state = new HangarState(new Hangar(services.catalogue, campaign), nextLevel.isPresent());
+        for (Campaign.FreeCharges free : given) {
+            state.notice(HangarState.freeChargesNotice(free));
+        }
         view = new HangarView(services.files, services.glass, services.sprites, services.catalogue, services.content);
         if (autosave) {
             this.autosave = services.save(SaveSlots.Slot.AUTOSAVE, campaign) ? "AUTOSAVED" : "AUTOSAVE FAILED";

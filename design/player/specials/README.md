@@ -1,10 +1,10 @@
 ---
 title: Special abilities
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
 depends-on: [../../campaign, ../../world]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Special abilities
@@ -20,7 +20,7 @@ no airstrikes under the Europa ice. This gives the hangar intel another thing to
 
 | Special | Type | Effect | Cost | Unlock | Setting limits | Design |
 |---|---|---|---|---|---|---|
-| Airstrike | 2 charges max 4 | Two CDF bombers sweep up the screen: heavy damage (300) to `ground` and `low-air`, 60 to `air` | 300 / charge | L04 (CDF bomber support assigned after L03) | Not under ice/water; not beyond the gate | draft |
+| Airstrike | charges, max 4 (1 free at unlock) | Two CDF bombers sweep up the screen: heavy damage (300) to `ground` and `low-air`, 60 to `air` | 300 / charge | L04 (CDF bomber support assigned after L03) | Not under ice/water; not beyond the gate | draft |
 | Smart Bomb | max 3 charges | Flash: clears all enemy bullets, 120 damage to everything on screen | 400 / charge | L06 | none | draft |
 | Decoy Flares | max 6 charges | Homing missiles and seekers retarget to flares for 4 s | 150 / charge | L07 | none | draft |
 | EMP Burst | max 3 charges | Stuns machines 3 s and strips enemy shields; Vrell (biomechanical) stunned 1.5 s | 350 / charge | L15 | none | idea |
@@ -43,17 +43,21 @@ bonus. "Boss part" = any hittable part of a mid-boss or act boss.
 
 #### Airstrike (L04)
 
+The numbers the game reads are in [data.yaml](data.yaml) (`airstrike` block); the table below
+describes them.
+
 | Property | Value |
 |---|---|
 | Charges | Bought at 300 cr each, at most 4 carried; one call uses one charge. **1 free charge** when the Airstrike unlocks (hangar visit before L04), so the player can try it without paying |
-| Call | Press special → radio line ("Hammer flight, inbound!", text + blip). After **0.6 s** two CDF bombers enter at the bottom edge at the player's x − 64 px and x + 64 px (clamped to the play field) and fly straight up at 600 px/s (0.9 s across the screen) |
-| Bombs | Each bomber drops a bomb every 36 px of travel (≈ 15 each); a bomb lands 0.25 s after release; blast radius 32 px. The strike covers a corridor about 190 px wide |
-| Damage | Per blast: 100 to `ground` and `low-air` targets (hardened included), 20 to `air` targets. One strike deals at most **300** to a ground/low-air target and **60** to an air target. `high-air` and `sub` are not hit |
+| Call | Press special → radio line ("Hammer flight, inbound!", Hammer Lead in the generic CDF portrait, text + blip). After **0.6 s** two CDF bombers (56×64 px) enter at the bottom edge at the player's x at the call − 64 px and + 64 px (clamped to the play field) and fly straight up at 600 px/s (0.9 s across the screen) |
+| Bombs | Each bomber drops a bomb every 36 px of travel, the first at 18 px (15 each); a bomb bursts 0.25 s after release on the ground point under its release, which the scroll carries down meanwhile (ground coordinates); blast radius 32 px. The strike covers a corridor about 190 px wide |
+| Damage | Per blast: 100 to `ground` and `low-air` targets (hardened included), 20 to `air` targets. One strike deals at most **300** to a ground/low-air target and **60** to an air target. `high-air`, `sub` and allies are not hit. Blasts come from above: they ignore frontal armour (the Scuttler's) |
+| Rewards | Kills pay their normal bounty and keep the chain multiplier going |
 | Bosses | At most 150 per boss part per strike (weak-point multipliers do not apply) |
 | Defence | No invulnerability; enemy bullets are not cleared |
-| Repeat | A new strike can be called once the bombers have left the screen (≈ 1.5 s after the call) |
+| Repeat | A new strike can be called once the bombers have left the screen (≈ 1.6 s after the call) |
 | Limits | Not under the ice or under water, not beyond the gate (see the table above) |
-| Audio / VFX | `bomb` family with the full whistle plus a jet flyby (SFX list); bombers, bomb carpet and blasts on the round-08 specials sheet |
+| Audio / VFX | `bomb` family with the full whistle plus a jet flyby (SFX list); bombers, bomb carpet and blasts on the round-09 specials sheet |
 
 #### Smart Bomb (L06)
 
@@ -67,7 +71,7 @@ bonus. "Boss part" = any hittable part of a mid-boss or act boss.
 | Defence | Player invulnerable for **1.0 s** from activation (ship blinks) |
 | Repeat | 1.5 s between bombs |
 | Rewards | Kills pay their normal bounty and keep the chain multiplier going |
-| Audio / VFX | `huge` explosion rung layered with a whoosh; flash and ring on the round-08 specials sheet |
+| Audio / VFX | `huge` explosion rung layered with a whoosh; flash and ring on the round-09 specials sheet |
 
 #### Decoy Flares (L07)
 
@@ -80,12 +84,17 @@ bonus. "Boss part" = any hittable part of a mid-boss or act boss.
 | Bosses | Same rules for boss homing attacks |
 | Damage / defence | None |
 | Repeat | 1.0 s between launches |
-| Audio / VFX | `micromissile` family pitched up; flares on the round-08 specials sheet |
+| Audio / VFX | `micromissile` family pitched up; flares on the round-09 specials sheet |
 
 #### Common input rules
 
-- The special button is buffered for 0.1 s. With no charge left (or in a setting where the special
-  is unavailable) it plays the "special denied" sound and flashes the HUD special icon.
+- The special button is buffered for 0.1 s: a press while the strike still flies calls the next one
+  if the bombers leave within 0.1 s. With no charge left, no special fitted, a press that the buffer
+  could not place (or in a setting where the special is unavailable) it plays the "special denied"
+  sound and flashes the HUD special row.
+- Charges are counted in flight: a special charge pickup adds one up to the most carried (it is only
+  dropped when a special is fitted). The level reports the charges used and found, and the campaign
+  applies them only for a won level.
 - Charges used in a failed attempt are restored on retry (see above).
 
 ### One special at a time
@@ -101,19 +110,26 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 |---|---|---|
 | [concept/specials-r09-a.png](concept/specials-r09-a.png) | Airstrike (CDF bombers, bomb carpet), Smart Bomb (flash, ring, bullets popping), Decoy Flares (homing shots retarget) (sheet) | chosen |
 | [concept/specials-r09-a.gif](concept/specials-r09-a.gif) | Airstrike (CDF bombers, bomb carpet), Smart Bomb (flash, ring, bullets popping), Decoy Flares (homing shots retarget) (motion) | chosen |
+| [concept/airstrike-bomber-final-r17-a.png](concept/airstrike-bomber-final-r17-a.png) | Production art, round 17 (`tools/art/airstrike_bomber.py`): the Airstrike's CDF bomber, 56×64 facing up, 4 engine-flame frames, and its soft ground shadow (sheet) | chosen |
+| [concept/airstrike-bomber-final-r17-a.gif](concept/airstrike-bomber-final-r17-a.gif) | Production art, round 17: three bombers crossing a Luna road with their shadows (motion) | chosen |
 
 ## Implementation
 
-- [ ] Special slot, charge counting and cooldown timers
-- [ ] Airstrike, Smart Bomb and Decoy Flares as specified in *Acts 1–2 specials in detail*
-- [ ] One free Airstrike charge granted once, at the unlock before L04
+- [x] Special slot and charge counting: the special button (`Command.SPECIAL`) with its 0.1 s
+  buffer and the denied sound, charges used and found reported by the level and applied for a won
+  level only (a retry restores them), the special charge pickup (`--special airstrike:2` fits it
+  for testing)
+- [ ] Cooldown timers — with the cooldown specials (L19 and later)
+- [x] Airstrike as specified in *Acts 1–2 specials in detail* (M4 part D: the production bomber
+  sprite with its engine flicker and ground shadow, the Bomb Rack's bomb, the blasts
+  `explosion-medium`; the boss-part cap applies once bosses exist)
+- [ ] Smart Bomb — **later: M4** (part F)
+- [ ] Decoy Flares — **later: M4** (part G)
+- [x] One free Airstrike charge granted once, at the unlock before L04
 - [ ] Setting restrictions read from the level data
-- [ ] HUD icon states: ready, charges, cooldown, unavailable
-
-## Open questions
-
-- Airstrike charges (for M4): the roster table says "2 charges max 4", while the Airstrike section
-  grants **1 free charge** at the unlock. Which start count is meant: 2, 1, or 1 free plus 1 bought?
+- [x] HUD special row: icon, name, charges; greyed while the strike flies or with no charge; flashes
+  when denied
+- [ ] HUD: cooldown ring and the unavailable-in-this-setting state
 
 ## Decisions
 
@@ -125,8 +141,34 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - 2026-10-01: One special equipped at a time (user accepted the recommendation).
 - 2026-10-01: Airstrike, Smart Bomb and Decoy Flares specified in full for Acts 1–2 (timing, area, damage caps, boss rules, invulnerability, repeat delay).
 - 2026-10-01: Concept round 09: specials chosen.
-- 2026-10-01: Free first Airstrike charge (user decision): 1 charge is granted when the Airstrike unlocks before L04. The balance plan in `balance-data.json` now buys 1 charge at L04 instead of 2 (same 2 charges carried).
+- 2026-10-01: Free first Airstrike charge (user decision): 1 charge is granted when the Airstrike unlocks before L04. The balance plan in `balance-plan.yaml` now buys 1 charge at L04 instead of 2 (same 2 charges carried).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-02: The charge price, charge limit and unlock of the three Acts 1–2 specials moved into [data.yaml](data.yaml) (M2 data files), where `tools/balance.py` reads them; the specials table stays hand-written for now (mostly prose).
 - 2026-10-02: The "2 charges max 4" in the roster against the 1 free charge is left as it is for
   now (user decision during M2); it is an open question for M4, when the Airstrike is built.
+- 2026-10-03: Airstrike charges (user decision): 1 free Airstrike charge, given once at the hangar
+  visit before Level 04 (a save flag); if the special slot is empty the Airstrike is fitted into it,
+  with a hangar notice. The roster cell is now "charges, max 4 (1 free at unlock)", which closes
+  the open question.
+- 2026-10-03: Bombs, shells and the Airstrike ignore the Scuttler's frontal armour, because they
+  come from above (user decision). Their damage carries a from-above flag that the armour check
+  reads once the Scuttler is built.
+- 2026-10-03: M4 part D conventions (main-agent choice): `Command.SPECIAL` is the last command bit,
+  so existing recordings keep their bits; the existing bindings (X, left Ctrl, gamepad B); a 0.1 s
+  input buffer; with no charge the denied sound and a flashing HUD row; a new call only once the
+  bombers have left the screen; the level reports the charges used and found and the campaign
+  applies them only for a won level; the blasts land in ground coordinates (the release point
+  carried down by the scroll during the 0.25 s fall); kills pay their bounty and keep the chain;
+  a strike hits `ground` and `low-air` (100 per blast, at most 300 per strike) and `air` (20 per
+  blast, at most 60), not `high-air`, `sub` or allies; the HUD special box is a right-panel row in
+  the weapon rows' style, `SPECIAL  AIRSTRIKE ×2` with the 16 px hangar icon.
+- 2026-10-03: The "Hammer flight, inbound!" call queues as an event line (main-agent choice): the
+  radio has no interrupting priority yet (the HUD's *priority interrupts* item), so it plays as
+  soon as the radio is free and is dropped if it would come later than the stale limit, rather
+  than as a timed line that would play however late.
+- 2026-10-03: The Airstrike's numbers moved into [data.yaml](data.yaml) (`airstrike` block, with
+  the bomber's 56×64 size and the call's radio line), the free charge as `free_charges` and the
+  input buffer as `input_buffer`. The Audio / VFX rows cited the round-08 specials sheet; the
+  concept is round 09.
+- 2026-10-03: M4 part D built the special slot and the Airstrike (see Implementation).
+- 2026-10-03: Concept round 17 (user decision): the Airstrike's CDF bomber production art approved as **final** ([round 17](../../concept-rounds/round-17/README.md)).

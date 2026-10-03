@@ -17,6 +17,14 @@ final class EnemyForce {
     /** What the sortie does when a unit leaves the screen alive (just before it is gone). */
     interface Escapes {
         void escaped(Enemy enemy);
+
+        /**
+         * A spawner burst on its own (design/enemies/air/brood-pod), just before it is gone: its
+         * units are released already.
+         */
+        default void burst(Enemy enemy) {
+            escaped(enemy);
+        }
     }
 
     private static final int MINE_CAPACITY = 96;
@@ -35,6 +43,14 @@ final class EnemyForce {
     private final Pool<Mine> mines = new Pool<>(MINE_CAPACITY, Mine::new, Mine[]::new);
     private int spawned;
     private int nextGround;
+    /** The convoy the target-the-objective hook aims at; null without one. */
+    private Convoy convoy;
+    /** Per enemy kind, whether its aimed attacks use the hook (mode {@code nearest}). */
+    private boolean[] hooked;
+    /** Per enemy kind, the kind a spawner releases; -1 for others. */
+    private final int[] broodKinds;
+    /** The spawner that entered last, which the escorts entering after it circle. */
+    private Enemy lastCarrier;
 
     /** Plans the waves with {@code rng}, which also spreads the aimed shots later. */
     EnemyForce(
@@ -55,7 +71,21 @@ final class EnemyForce {
                 distinct.add(unit.enemy());
             }
         }
+        // The units a spawner releases are among the kinds too.
+        for (int k = 0; k < distinct.size(); k++) {
+            EnemySpec spec = distinct.get(k);
+            if (spec.brood().isPresent()
+                    && !distinct.contains(spec.brood().get().enemy())) {
+                distinct.add(spec.brood().get().enemy());
+            }
+        }
         kinds = List.copyOf(distinct);
+        broodKinds = new int[kinds.size()];
+        for (int k = 0; k < kinds.size(); k++) {
+            EnemySpec spec = kinds.get(k);
+            broodKinds[k] =
+                    spec.brood().isPresent() ? kinds.indexOf(spec.brood().get().enemy()) : -1;
+        }
         this.waves = new WaveSchedule(waveSpecs, kinds, rng);
         this.groundUnits = groundUnits;
         groundKinds = new int[groundUnits.size()];
@@ -63,6 +93,19 @@ final class EnemyForce {
         for (int i = 0; i < groundUnits.size(); i++) {
             groundKinds[i] = kinds.indexOf(groundUnits.get(i).enemy());
             groundTicks[i] = SimStep.ticks(groundUnits.get(i).t());
+        }
+    }
+
+    /**
+     * The target-the-objective hook in mode {@code nearest} (design/enemies): the aimed attacks of
+     * the enemies {@code slugs} go at the ship or the nearest unit of {@code target}, whichever is
+     * closer, chosen every step and as each shot is fired.
+     */
+    void hook(Convoy target, List<String> slugs) {
+        convoy = target;
+        hooked = new boolean[kinds.size()];
+        for (int k = 0; k < kinds.size(); k++) {
+            hooked[k] = slugs.contains(kinds.get(k).slug());
         }
     }
 
@@ -74,6 +117,7 @@ final class EnemyForce {
         waves.reset();
         spawned = 0;
         nextGround = 0;
+        lastCarrier = null;
     }
 
     /** Lets in every unit due at {@code levelTick}, flying and on the ground. */
@@ -82,6 +126,12 @@ final class EnemyForce {
             Enemy enemy = enemies.obtain();
             if (enemy != null) {
                 enemy.spawn(spawn, spawned);
+                if (spawn.escort().isPresent()) {
+                    enemy.escort(lastCarrier);
+                }
+            }
+            if (spawn.enemy().brood().isPresent()) {
+                lastCarrier = enemy;
             }
             spawned++;
         }
@@ -104,18 +154,111 @@ final class EnemyForce {
     void move(Ship ship, boolean firing, double groundScroll) {
         for (int i = enemies.size() - 1; i >= 0; i--) {
             Enemy enemy = enemies.get(i);
-            if (!enemy.move(ship.x(), ship.y(), groundScroll)) {
+            int target = target(enemy, ship);
+            double aimX = target < 0 ? ship.x() : convoy.get(target).x();
+            double aimY = target < 0 ? ship.y() : convoy.get(target).y();
+            if (!enemy.move(ship.x(), ship.y(), groundScroll, aimX, aimY)) {
+                if (enemy.spec().brood().isPresent()) {
+                    carrierEnded(enemy);
+                }
                 escapes.escaped(enemy);
                 enemies.free(i);
+            } else if (enemy.spec().brood().isPresent() && enemy.burstDue()) {
+                hatch(enemy, ship);
+                escapes.burst(enemy);
+                enemies.free(i);
+            } else if (enemy.walking()) {
+                fireWalker(enemy, ship, firing);
             } else if (enemy.trigger() && firing) {
                 EnemyGun gun = enemy.spec().gun().orElseThrow();
                 if (gun.mine().isPresent()) {
                     dropMine(enemy, gun);
                 } else {
-                    fireAt(enemy, ship);
+                    fireAt(enemy, ship, target(enemy, ship));
                 }
             }
         }
+    }
+
+    /**
+     * A walker's attacks (design/enemies/ground/scuttler): its fan along its facing, which aims at
+     * nobody, and its spit, aimed (at the ship, or the convoy unit the hook picks) while the ship
+     * is behind it.
+     */
+    private void fireWalker(Enemy enemy, Ship ship, boolean firing) {
+        boolean fan = enemy.trigger();
+        boolean spit = enemy.spit(ship.x(), ship.y());
+        if (!firing) {
+            return;
+        }
+        if (fan) {
+            fire(enemy.x(), enemy.y(), enemy.spec().gun().orElseThrow(), false, enemy.facing(), ship, -1, true);
+        }
+        if (spit) {
+            EnemyGun gun = enemy.spec().walker().orElseThrow().spit().orElseThrow();
+            int target = convoy != null && hooked[enemy.kind()]
+                    ? convoy.nearest(enemy.x(), enemy.y(), ship.x(), ship.y())
+                    : -1;
+            fire(enemy.x(), enemy.y(), gun, false, 0, ship, target, false);
+        }
+    }
+
+    /**
+     * A spawner ends, destroyed or bursting on its own (design/enemies/air/brood-pod): its units
+     * fly out of its centre, spread evenly over its arc centred on the direction to the ship, and
+     * its escorts break off.
+     */
+    void hatch(Enemy pod, Ship ship) {
+        EnemySpec.Brood brood = pod.spec().brood().orElseThrow();
+        int kind = broodKinds[pod.kind()];
+        double toShip = StrictMath.atan2(ship.y() - pod.y(), ship.x() - pod.x());
+        for (int k = 0; k < brood.count(); k++) {
+            double angle = brood.count() == 1
+                    ? toShip
+                    : toShip - brood.arcRadians() / 2 + k * brood.arcRadians() / (brood.count() - 1);
+            Enemy unit = enemies.obtain();
+            if (unit != null) {
+                unit.hatch(
+                        brood.enemy(),
+                        kind,
+                        pod.x(),
+                        pod.y(),
+                        Trig.cos(angle) * brood.speed(),
+                        Trig.sin(angle) * brood.speed(),
+                        spawned);
+            }
+            spawned++;
+        }
+        events.add(SimEvents.Type.BROOD_HATCHED, pod.x(), pod.y(), pod.kind());
+        carrierEnded(pod);
+    }
+
+    /** The escorts circling {@code carrier} break off: it is gone. */
+    private void carrierEnded(Enemy carrier) {
+        for (int i = 0; i < enemies.size(); i++) {
+            Enemy enemy = enemies.get(i);
+            if (enemy.escorts(carrier)) {
+                enemy.carrierEnded();
+            }
+        }
+        if (lastCarrier == carrier) {
+            lastCarrier = null;
+        }
+    }
+
+    /**
+     * Whom a unit's aimed attack goes at now: the convoy unit the hook picks, or -1 for the ship
+     * (units without the hook, fans and mines always aim at the ship).
+     */
+    private int target(Enemy enemy, Ship ship) {
+        if (convoy == null || !hooked[enemy.kind()] || enemy.spec().gun().isEmpty()) {
+            return -1;
+        }
+        EnemyGun gun = enemy.spec().gun().get();
+        if (gun.fan() != 1 || gun.mine().isPresent()) {
+            return -1;
+        }
+        return convoy.nearest(enemy.x(), enemy.y(), ship.x(), ship.y());
     }
 
     /**
@@ -123,28 +266,49 @@ final class EnemyForce {
      * its barrel, or a fan centred on that line; turned by a random angle within the difficulty's
      * spread.
      */
-    private void fireAt(Enemy enemy, Ship ship) {
-        fire(enemy.x(), enemy.y(), enemy.spec().gun().orElseThrow(), enemy.leadsTarget(), enemy.aim(), ship);
+    private void fireAt(Enemy enemy, Ship ship, int target) {
+        fire(
+                enemy.x(),
+                enemy.y(),
+                enemy.spec().gun().orElseThrow(),
+                enemy.leadsTarget(),
+                enemy.aim(),
+                ship,
+                target,
+                false);
     }
 
     /** A set piece's part fires its gun from (x, y) at the ship, as a unit that aims at once. */
     void fireFrom(double x, double y, EnemyGun gun, Ship ship) {
-        fire(x, y, gun, false, 0, ship);
+        fire(x, y, gun, false, 0, ship, -1, false);
     }
 
-    private void fire(double x, double y, EnemyGun gun, boolean leads, double aim, Ship ship) {
+    /**
+     * @param target the convoy unit the shot is aimed at; -1 for the ship
+     * @param alongAim whether the volley goes along {@code aim} (a walker's facing fan) whatever the gun
+     */
+    private void fire(
+            double x, double y, EnemyGun gun, boolean leads, double aim, Ship ship, int target, boolean alongAim) {
         double dx = ship.x() - x;
         double dy = ship.y() - y;
         double distance = Math.sqrt(dx * dx + dy * dy);
         if (distance < NO_FIRE_DISTANCE || bullets.size() >= rules.bulletBudget()) {
             return;
         }
-        if (Double.isFinite(gun.turnRate())) {
+        if (target >= 0) {
+            dx = convoy.get(target).x() - x;
+            dy = convoy.get(target).y() - y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance == 0) {
+                return;
+            }
+        }
+        if (alongAim || Double.isFinite(gun.turnRate())) {
             // Along the barrel: radians clockwise from straight down.
             dx = -Trig.sin(aim);
             dy = -Trig.cos(aim);
             distance = 1;
-        } else if (leads) {
+        } else if (leads && target < 0) {
             double flight = distance / gun.bulletSpeed();
             dx += ship.vx() * flight;
             dy += ship.vy() * flight;
@@ -167,7 +331,8 @@ final class EnemyForce {
                     y,
                     (dx * cos - dy * sin) * gun.bulletSpeed(),
                     (dx * sin + dy * cos) * gun.bulletSpeed(),
-                    gun.damage());
+                    gun.damage(),
+                    target);
         }
         events.add(SimEvents.Type.ENEMY_FIRED, x, y);
     }
@@ -264,11 +429,22 @@ final class EnemyForce {
         for (LevelScript.GroundUnit unit : groundUnits) {
             count += unit.enemy().slug().equals(slug) ? 1 : 0;
         }
+        for (EnemySpec kind : kinds) {
+            if (kind.brood().isPresent() && kind.brood().get().enemy().slug().equals(slug)) {
+                count += waves.unitsOf(kind.slug()) * kind.brood().get().count();
+            }
+        }
         return count;
     }
 
-    /** Every unit the level sends, flying and on the ground. */
+    /** Every unit the level sends, flying and on the ground, and the units its spawners release. */
     int units() {
-        return waves.units() + groundUnits.size();
+        int count = waves.units() + groundUnits.size();
+        for (EnemySpec kind : kinds) {
+            if (kind.brood().isPresent()) {
+                count += waves.unitsOf(kind.slug()) * kind.brood().get().count();
+            }
+        }
+        return count;
     }
 }

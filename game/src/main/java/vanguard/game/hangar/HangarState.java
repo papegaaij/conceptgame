@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import vanguard.content.campaign.Campaign;
 import vanguard.content.campaign.Hangar;
 import vanguard.content.campaign.Hangar.Action;
 import vanguard.content.campaign.Hangar.Choice;
@@ -134,6 +135,19 @@ public final class HangarState {
     }
 
     /** What the last transaction did or why it was refused. */
+    /** Shows {@code text} on the shop's message line until the next transaction. */
+    public void notice(String text) {
+        message = text;
+    }
+
+    /** The notice for a special's free charges: "1 FREE AIRSTRIKE CHARGE, FITTED". */
+    public static String freeChargesNotice(Campaign.FreeCharges free) {
+        String name = free.special().toUpperCase(Locale.ROOT);
+        String charges =
+                free.charges() == 1 ? "1 FREE " + name + " CHARGE" : free.charges() + " FREE " + name + " CHARGES";
+        return free.fitted() ? charges + ", FITTED" : charges;
+    }
+
     public String message() {
         return message;
     }

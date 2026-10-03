@@ -1,0 +1,49 @@
+# Brood Pod stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Brood Pod
+faction: Vrell
+layer: air
+tier: medium
+size: [64, 64]    # sprite px (the stat block wins over the concept's 48 px)
+hitbox: [50, 50]
+parts: single
+orientation: fixed
+hp: 30
+armour: none
+speed: 40         # px/s
+movement:
+  drift: {speed: 40}                  # straight down the screen
+  sine: {amplitude: 20, period: 4}    # px to each side, s per full swing
+attacks:
+  - pattern: spawn
+    spawn:
+      enemy: skitter
+      count: 6
+      after: 8            # s from when its centre crosses the top edge to the self-burst
+      telegraph: 3        # s: the pulse speeds up over the last 3 s
+      arc: 120            # ° the Skitters fan out in, centred on the player
+      speed: 160          # px/s, the released Skitters fly straight out
+      burst_bounty: 8     # credits for a self-burst instead of the bounty; not a kill
+    notes:
+      text: '`{pattern}`: bursts into {spawn.count} Skitters when killed **or** {spawn.after} s after entering (the pulse speeds up over the last {spawn.telegraph} s as a telegraph); the Skitters fly out straight at {spawn.speed} px/s in a {spawn.arc}° arc toward the player. Contact damage `{tier}` = {contact_damage}'
+formations:
+  - {name: carrier + escorts}
+  - {name: single}
+  - {name: line abreast, size: [2]}
+weak_points:
+  - {name: teal veins}
+drops: []
+traits: [forward, piercing]
+bounty: 20
+first_level: 4
+difficulty:
+  hard: {spawn_count: 8}
+  easy: {spawn_after: 10}
+notes:
+  orientation: (pulse animation)
+  movement: '`drift` down the screen, slight `sine` (amplitude {movement.sine.amplitude} px, {movement.sine.period} s per swing)'
+  formations: (with 2–4 Needlers orbiting it as escorts)
+  weak_points: (drawn only)
+  bounty: '; {attacks.0.spawn.burst_bounty} if it bursts on its own (score accordingly, not a kill); the Skitters pay their own 5'
+  death: '`medium` wet burst: membrane, ichor; the Skitters fan out in a 120° arc toward the player'
+  used_in: recurring in Acts 1–2
+  difficulty: 'hard: 8 Skitters; easy: bursts after 10 s'

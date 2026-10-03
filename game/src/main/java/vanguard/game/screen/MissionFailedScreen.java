@@ -16,10 +16,13 @@ import vanguard.game.ui.Dialog;
 import vanguard.game.ui.Glass;
 import vanguard.game.ui.Menu;
 import vanguard.game.ui.Speaker;
+import vanguard.game.ui.Words;
+import vanguard.sim.LevelScript;
 
 /**
  * The mission failed screen (design/systems/retry, chosen mission-failed-r08-a) over the frozen
- * level, tinted red: Okafor's portrait and line, Retry (the level at once, from its start state),
+ * level, tinted red: Okafor's portrait and line (a failed primary objective's own line and speaker
+ * when the level has one), Retry (the level at once, from its start state),
  * Back to hangar (the level-start state, to change the loadout first) and Quit to main menu (after
  * a confirmation), with what the attempt earned and, on hard, the retries left: the failure has
  * used its retry already (and the autosave holds it), so Retry and Back to hangar only take it. Retry from boss
@@ -34,6 +37,10 @@ public final class MissionFailedScreen implements GameScreen {
     private static final int ITEM_X = 421;
     private static final int ITEM_Y = 180;
     private static final int ITEM_STEP = 34;
+    /** The line under the portrait: two lines of the label font fit there. */
+    private static final int LINE_CHARS = 22;
+
+    private static final String DEFAULT_LINE = "Pull back, Lancer. Regroup and try again.";
 
     private enum Item {
         RETRY,
@@ -48,14 +55,24 @@ public final class MissionFailedScreen implements GameScreen {
             Menu.Item.of(Item.RETRY, "RETRY"),
             Menu.Item.of(Item.HANGAR, "BACK TO HANGAR"),
             Menu.Item.of(Item.QUIT, "QUIT TO MAIN MENU")));
-    private final Speaker okafor;
+    private final Speaker speaker;
+    private final List<String> lines;
     private Optional<Dialog> quit = Optional.empty();
 
     MissionFailedScreen(GameServices services, LevelScreen level) {
         this.services = services;
         this.level = level;
         this.campaign = level.campaign();
-        okafor = Speaker.of("Okafor", Expression.GRIM, services.sprites);
+        speaker = level.failureLine()
+                .map(cue -> Speaker.of(
+                        cue.speaker(), Expression.valueOf(cue.expression().toUpperCase(Locale.ROOT)), services.sprites))
+                .orElseGet(() -> Speaker.of("Okafor", Expression.GRIM, services.sprites));
+        lines = Words.wrap(
+                level.failureLine()
+                        .map(LevelScript.RadioCue::line)
+                        .orElse(DEFAULT_LINE)
+                        .toUpperCase(Locale.ROOT),
+                LINE_CHARS);
     }
 
     @Override
@@ -107,10 +124,11 @@ public final class MissionFailedScreen implements GameScreen {
         int portraitX = PANEL_X + 16;
         int portraitY = PANEL_Y + 66;
         glass.frame(batch, portraitX - 3, portraitY - 3, 150, 150);
-        batch.draw(okafor.portrait(), portraitX, PixelScreen.HEIGHT - portraitY - 144);
-        glass.shadowed(batch, glass.fonts.label, okafor.name(), Glass.AMBER, portraitX, portraitY + 152);
-        glass.shadowed(batch, glass.fonts.label, "PULL BACK, LANCER.", Glass.WHITE, portraitX, portraitY + 166);
-        glass.shadowed(batch, glass.fonts.label, "REGROUP AND TRY AGAIN.", Glass.WHITE, portraitX, portraitY + 178);
+        batch.draw(speaker.portrait(), portraitX, PixelScreen.HEIGHT - portraitY - 144);
+        glass.shadowed(batch, glass.fonts.label, speaker.name(), Glass.AMBER, portraitX, portraitY + 152);
+        for (int i = 0; i < lines.size(); i++) {
+            glass.shadowed(batch, glass.fonts.label, lines.get(i), Glass.WHITE, portraitX, portraitY + 166 + 12 * i);
+        }
         List<Menu.Item<Item>> items = menu.items();
         for (int i = 0; i < items.size(); i++) {
             Menu.Item<Item> item = items.get(i);

@@ -52,7 +52,8 @@ public final class ContentLoader {
             Map.entry("systems/economy/data.yaml", EconomyData.class),
             Map.entry("systems/difficulty/data.yaml", DifficultyData.class),
             Map.entry("systems/scoring/data.yaml", ScoringData.class),
-            Map.entry("systems/retry/data.yaml", RetryData.class));
+            Map.entry("systems/retry/data.yaml", RetryData.class),
+            Map.entry("allies/data.yaml", AlliesData.class));
 
     private ContentLoader() {}
 
@@ -141,7 +142,8 @@ public final class ContentLoader {
                 part(parts, EconomyData.class),
                 part(parts, DifficultyData.class),
                 part(parts, ScoringData.class),
-                part(parts, RetryData.class));
+                part(parts, RetryData.class),
+                part(parts, AlliesData.class));
         problems.addAll(new ContentValidator(content, paths).problems());
         if (!problems.isEmpty()) {
             throw new ContentException(problems);

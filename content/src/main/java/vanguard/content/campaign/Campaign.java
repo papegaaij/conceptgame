@@ -2,11 +2,14 @@ package vanguard.content.campaign;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import vanguard.content.Difficulty;
+import vanguard.content.SpecialsData;
 import vanguard.sim.LevelResult;
 
 /**
@@ -116,6 +119,54 @@ public final class Campaign {
                 new SaveGame.Stats(kills, deaths));
     }
 
+    /** The story flag that records a special's free charges as given (a save flag). */
+    static String freeChargesFlag(String special) {
+        return "free-charges:" + special;
+    }
+
+    /**
+     * Free charges given at a special's unlock (design/player/specials: the first Airstrike charge).
+     *
+     * @param fitted whether the special was fitted into the empty special slot
+     */
+    public record FreeCharges(String special, int charges, boolean fitted) {}
+
+    /**
+     * Gives the free charges of every special that is unlocked by the next level and has not given
+     * them yet, once per campaign (a story flag), up to its most charges; a special that gave some
+     * is fitted when the special slot is empty. Called as the hangar opens, before its autosave.
+     *
+     * @return what was given, for the hangar's notice; empty when nothing was
+     */
+    public List<FreeCharges> giveFreeCharges(SpecialsData specials) {
+        List<FreeCharges> given = new ArrayList<>();
+        Map<String, Integer> charges = new HashMap<>(gear.specials());
+        Map<LoadoutSlot, Fitted> loadout = new EnumMap<>(LoadoutSlot.class);
+        loadout.putAll(gear.loadout());
+        for (SpecialsData.Special special : specials.specials()) {
+            String flag = freeChargesFlag(special.name());
+            if (special.free() == 0 || special.unlock() > nextLevel || storyFlags.contains(flag)) {
+                continue;
+            }
+            storyFlags.add(flag);
+            int carried = charges.getOrDefault(special.name(), 0);
+            int added = Math.min(special.free(), special.maxCharges() - carried);
+            if (added <= 0) {
+                continue;
+            }
+            charges.put(special.name(), carried + added);
+            boolean fit = !loadout.containsKey(LoadoutSlot.SPECIAL);
+            if (fit) {
+                loadout.put(LoadoutSlot.SPECIAL, new Fitted(special.name(), 1));
+            }
+            given.add(new FreeCharges(special.name(), added, fit));
+        }
+        if (!given.isEmpty()) {
+            gear = new Gear(gear.credits(), loadout, gear.inventory(), charges, gear.armour());
+        }
+        return given;
+    }
+
     /** Adds time played; every campaign screen counts its frames. */
     public void play(double seconds) {
         playtime += seconds;
@@ -178,11 +229,29 @@ public final class Campaign {
      * @return whether the grade is a new best for the level
      */
     public boolean complete(LevelResult result, double armourLeft) {
+        return complete(result, armourLeft, 0, 0);
+    }
+
+    /**
+     * The level was won, as {@link #complete(LevelResult, double)}, and the fitted special's charges
+     * change by what the level used and found. A failed attempt changes nothing, so a retry starts
+     * with the level-start charges (design/player/specials).
+     *
+     * @param chargesUsed the fitted special's charges used in the winning attempt
+     * @param chargesFound its charges found there (already limited to its most)
+     */
+    public boolean complete(LevelResult result, double armourLeft, int chargesUsed, int chargesFound) {
         if (!(armourLeft > 0)) {
             throw new IllegalArgumentException("a won level leaves armour, not " + armourLeft);
         }
         gear = gear.withCredits(gear.credits() + result.credits().total() + result.gradeBonus())
                 .withArmour(Math.min(armourLeft, maxArmour()));
+        Fitted special = gear.loadout().get(LoadoutSlot.SPECIAL);
+        if (special != null && (chargesUsed != 0 || chargesFound != 0)) {
+            Map<String, Integer> charges = new HashMap<>(gear.specials());
+            charges.put(special.item(), Math.max(0, gear.charges(special.item()) - chargesUsed + chargesFound));
+            gear = new Gear(gear.credits(), gear.loadout(), gear.inventory(), charges, gear.armour());
+        }
         score += result.score();
         kills += result.kills();
         String grade = result.grade().letter();
@@ -233,6 +302,11 @@ public final class Campaign {
     /** Replaces the hangar's state: a transaction, or its undo. */
     void gear(Gear changed) {
         gear = changed;
+    }
+
+    /** The story state, saved as the save's story flags (among them the free charges given). */
+    public List<String> storyFlags() {
+        return List.copyOf(storyFlags);
     }
 
     /** Shop items unlocked ahead of their normal unlock (data cores, story), by id. */

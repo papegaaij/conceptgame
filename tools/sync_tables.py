@@ -273,7 +273,7 @@ def formations(d):
 
 EDGES = {"left": "left", "right": "right", "alternating": "alternating edges"}
 EVENTS = {"level-end": "Level end", "secondary-objective": "Secondary objective met"}
-PORTRAITS = {"generic-cdf": "Generic CDF"}  # the generic portraits of unnamed speakers
+PORTRAITS = {"generic-cdf": "Generic CDF", "generic-civilian": "Generic civilian"}  # the generic portraits of unnamed speakers
 
 
 def sections(level):
@@ -422,7 +422,7 @@ def waves(d):
     for w in level["waves"]:
         gs = groups(w)
         enter = entry(w)
-        rows.append((w["t"], [num(w["t"]), str(section_of(level, w["t"])), " + ".join(g["formation"] for g in gs),
+        rows.append((w["t"], [num(w["t"]), str(section_of(level, w["t"])), " + ".join(dict.fromkeys(g["formation"] for g in gs)),
                               " + ".join(enemy_link(d, g["enemy"]) for g in gs), " + ".join(str(g["count"]) for g in gs),
                               enter, fill(w["notes"], w) if "notes" in w else ""]))
     # a set piece's passes, each a row at its window on screen (notes.t, "62–74")
@@ -542,13 +542,22 @@ def stat_bounty(slug):
     return load(f"{enemy_dir(slug)}/data.yaml")["bounty"]
 
 
+def spawns(slug):
+    """An enemy's spawn attacks' `spawn` blocks (the Brood Pod's Skitters)."""
+    return [a["spawn"] for a in load(f"{enemy_dir(slug)}/data.yaml").get("attacks", []) if a.get("spawn")]
+
+
 def credit_budget(d):
     level = data(d)
     economy = load("systems/economy/data.yaml")["budget"]
     budget = economy["base"] * economy["growth"] ** (level_number(d) - 1)
     rows = []
-    kills = [(slug, n, stat_bounty(slug)) for slug, n in enemy_totals(level).items()]
-    rows.append(["Kills: " + " + ".join(f"{enemy_name(s)} {n} × {b}" for s, n, b in kills),
+    kills = [(enemy_name(slug), n, stat_bounty(slug)) for slug, n in enemy_totals(level).items()]
+    # the units a spawner releases (Level 04's Brood Pods: their Skitters), killed too
+    for slug, n in enemy_totals(level).items():
+        for spawn in spawns(slug):
+            kills.append((f"released {enemy_name(spawn['enemy'])}", n * spawn["count"], stat_bounty(spawn["enemy"])))
+    rows.append(["Kills: " + " + ".join(f"{name} {n} × {b}" for name, n, b in kills),
                  sum(n * b for _, n, b in kills)])
     # ground enemies by their stat block's bounty, then the destructibles that pay or drop credits
     enemies = {}
@@ -569,12 +578,20 @@ def credit_budget(d):
         for drop in e.get("drops", []):
             if drop["pickup"].endswith("salvage"):
                 rows.append([f"Pickup: {e['name']} {drop['pickup']}", pickup_credits(drop["pickup"])])
+    escort = level["objectives"].get("escort")
+    if escort:
+        units = len(escort["y"])
+        noun = escort["ally"].split("-")[-1]
+        rows.append([f"Primary objective: {units} {noun}s home × {escort['credits']}", units * escort["credits"]])
     for s in level["secrets"]:
         rows.append([f"Secret: {s['name']} (hidden crate, {round(100 * s['crate'] / budget)}% of budget)", s["crate"]])
     secondary = level["objectives"]["secondary"]
     if "groups" in secondary:
         n = len(secondary["groups"])
         rows.append([f"Secondary: {n} {group_noun(level)}s × {secondary['credits']}", n * secondary["credits"]])
+    elif "escapes" in secondary and spawns(secondary["escapes"]):
+        rows.append([f"Secondary: every {enemy_name(secondary['escapes'])} killed before it bursts",
+                     secondary["credits"]])
     elif "escapes" in secondary:
         rows.append([f"Secondary: no {enemy_name(secondary['escapes'])} gets through", secondary["credits"]])
     else:

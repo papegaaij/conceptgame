@@ -17,10 +17,10 @@ import vanguard.sim.LevelScript.CueTrigger;
 import vanguard.sim.SimStep;
 
 /**
- * The timed radio lines of Levels 01–03 play when the level scripts mean them to: the real queue,
+ * The timed radio lines of Levels 01–04 play when the level scripts mean them to: the real queue,
  * stepped at the simulation's rate at the default text speed, with the event lines a player can
  * set off in between (an escaped Spore Bomber before the Leviathan's first pass, the lifeboat
- * secret, …), starts none of them more than a second after its time. Event lines wait for a gap
+ * secret, a convoy's first hit and loss, …), starts none of them more than a second after its time. Event lines wait for a gap
  * and may be dropped as stale; they never push a timed line back.
  */
 class RadioTimelineTest {
@@ -30,6 +30,7 @@ class RadioTimelineTest {
     private static final String LEVEL_01 = "act-1-first-contact/level-01-break-at-dawn";
     private static final String LEVEL_02 = "act-1-first-contact/level-02-shipyard-burning";
     private static final String LEVEL_03 = "act-1-first-contact/level-03-spore-drift";
+    private static final String LEVEL_04 = "act-1-first-contact/level-04-tranquility-run";
 
     /**
      * Timed lines written to follow the line before them rather than to start at their time, by
@@ -70,10 +71,22 @@ class RadioTimelineTest {
                             new Event(52, CueTrigger.ENEMY_ESCAPED, "spore-bomber")),
                     List.of(new Event(150, CueTrigger.FIRST_KILL, "leviathan")),
                     // it leaves alive: up through the top edge 2.7 s after its rise at t=158
-                    List.of(new Event(160.7, CueTrigger.ENEMY_ESCAPED, "leviathan"))));
+                    List.of(new Event(160.7, CueTrigger.ENEMY_ESCAPED, "leviathan"))),
+            LEVEL_04,
+            List.of(
+                    List.of(),
+                    // the first turret nest hits a crawler, a walker of the pincer claws one to death
+                    List.of(new Event(41, CueTrigger.FIRST_ALLY_HIT, "")),
+                    List.of(
+                            new Event(41, CueTrigger.FIRST_ALLY_HIT, ""),
+                            new Event(91, CueTrigger.FIRST_ALLY_LOST, "")),
+                    // a crawler lost to the bridge turrets, just before Varga's walker line … and after it
+                    List.of(new Event(72, CueTrigger.FIRST_ALLY_LOST, "")),
+                    List.of(new Event(126, CueTrigger.SECRET, "prospector's cache")),
+                    List.of(new Event(23, CueTrigger.FIRST_ALLY_HIT, ""))));
 
     @Test
-    void theTimedLinesOfLevels01To03StartAtMostASecondLate() {
+    void theTimedLinesOfLevels01To04StartAtMostASecondLate() {
         RUNS.forEach((level, runs) -> {
             for (Difficulty difficulty : Difficulty.values()) {
                 LevelScript script = SimSpecs.level(CONTENT, level, difficulty);

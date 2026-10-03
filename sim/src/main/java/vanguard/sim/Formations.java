@@ -63,6 +63,10 @@ final class Formations {
     /** Adds the units of {@code wave} to {@code out}; {@code kind} is the wave's enemy kind. */
     static void plan(WaveSpec wave, int kind, SplitMix64 rng, List<Spawn> out) {
         Planner planner = new Planner(wave, kind, rng, out);
+        if (wave.enemy().walker().isPresent()) {
+            planner.walkers();
+            return;
+        }
         switch (wave.formation()) {
             case SINGLE -> planner.single();
             case CONVOY -> planner.convoy();
@@ -74,6 +78,7 @@ final class Formations {
             case STREAM -> planner.stream();
             case PINCER -> planner.pincer();
             case CIRCLE -> planner.circle();
+            case CARRIER_ESCORTS -> planner.carrierEscorts();
         }
     }
 
@@ -400,6 +405,100 @@ final class Formations {
                         place,
                         Spawn.Exit.TOWARD_SHIP);
             }
+        }
+
+        /**
+         * A {@code carrier + escorts} group (design/enemies/air/brood-pod): the carriers (spawners)
+         * drift straight down, side by side; the escorts circle the carrier that entered last
+         * (the wave lists the carrier's group first) at their orbit's radius and rate, evenly
+         * spaced, and break off toward the ship {@link #BREAK_INTERVAL_SECONDS} apart when it ends.
+         */
+        void carrierEscorts() {
+            requireFront();
+            if (enemy().brood().isPresent()) {
+                for (int i = 0; i < wave.count(); i++) {
+                    double x = (i + 1) * WIDTH / (wave.count() + 1);
+                    add(
+                            i,
+                            wave.t(),
+                            FlightPath.through(x, HEIGHT + OUTSIDE, x, -OUTSIDE * 2),
+                            speed(enemy().speed()),
+                            0,
+                            Optional.empty(),
+                            Spawn.Exit.DOWN);
+                }
+                return;
+            }
+            EnemySpec.Orbit orbit = required(enemy().orbit(), "orbit");
+            double rate = StrictMath.toRadians(orbit.degreesPerSecond());
+            double x = WIDTH / 2;
+            for (int i = 0; i < wave.count(); i++) {
+                double angle = StrictMath.PI / 2 + 2 * StrictMath.PI * i / wave.count();
+                out.add(new Spawn(
+                        SimStep.ticks(wave.t()),
+                        kind,
+                        enemy(),
+                        FlightPath.through(x, HEIGHT + OUTSIDE, x, HEIGHT),
+                        speed(enemy().speed()),
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.TOWARD_SHIP,
+                        false,
+                        carried(i),
+                        Optional.empty(),
+                        Optional.of(new Spawn.Escort(orbit.radius(), angle, rate, i * BREAK_INTERVAL_SECONDS)),
+                        Optional.empty()));
+            }
+        }
+
+        /**
+         * Walkers (design/enemies/ground/scuttler) on the wave's ground paths: unit i walks path
+         * i (wrapping); a pincer with a single path mirrors it about the centre line for every
+         * second unit and sends each further pair {@link #CONVOY_INTERVAL_SECONDS} later; any other
+         * formation (a convoy, a single) sends its units one after another that far apart. These
+         * planners are separate from the air formations of the same names.
+         */
+        void walkers() {
+            if (wave.paths().isEmpty()) {
+                throw unsupported("a walker wave needs its paths");
+            }
+            for (int i = 0; i < wave.count(); i++) {
+                WalkPath path = walkPath(wave.paths().get(i % wave.paths().size()));
+                double delay;
+                if (wave.formation() == WaveSpec.Formation.PINCER) {
+                    if (wave.paths().size() == 1 && i % 2 == 1) {
+                        path = path.mirrored();
+                    }
+                    delay = (i / 2) * CONVOY_INTERVAL_SECONDS;
+                } else {
+                    delay = i * CONVOY_INTERVAL_SECONDS;
+                }
+                double x = path.x(0);
+                double y = path.y(0);
+                out.add(new Spawn(
+                        SimStep.ticks(wave.t() + delay),
+                        kind,
+                        enemy(),
+                        FlightPath.through(x, y, x, y - 1),
+                        enemy().walker().orElseThrow().speed(),
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.DOWN,
+                        false,
+                        carried(i),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.of(path)));
+            }
+        }
+
+        private static WalkPath walkPath(List<WaveSpec.At> points) {
+            double[] xy = new double[points.size() * 2];
+            for (int i = 0; i < points.size(); i++) {
+                xy[2 * i] = points.get(i).x();
+                xy[2 * i + 1] = HEIGHT - points.get(i).depth();
+            }
+            return WalkPath.through(xy);
         }
 
         private void add(

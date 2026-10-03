@@ -27,6 +27,7 @@ formations:
   - {name: line abreast}
   - {name: pincer}
   - {name: circle, size: [8]}
+  - {name: carrier + escorts, size: [3]}   # escorting a Brood Pod
 weak_points:
   - {name: glowing violet eye cluster}
 drops:  # every `every`-th kill of this enemy in a level drops the pickup (a deterministic counter)
@@ -38,7 +39,7 @@ difficulty:
   hard: {leads_target_in: [circle]}  # selected Needlers in these formations lead the target
 notes:
   speed: entering, 0 while hovering
-  movement: '`swoop` in, `hover` {movement.hover.seconds} s at y = {movement.hover.y} px, then exit down or to the side; in `circle` formations `orbit` a point (radius {movement.orbit.radius} px, {movement.orbit.turn_rate}°/s)'
+  movement: '`swoop` in, `hover` {movement.hover.seconds} s at y = {movement.hover.y} px, then exit down or to the side; in `circle` formations `orbit` a point, as escorts the moving carrier (radius {movement.orbit.radius} px, {movement.orbit.turn_rate}°/s)'
   weak_points: (drawn only)
   death: '`small` burst: ivory shards, violet flash; every {drops.0.every}th Needler kill in a level drops a {drops.0.pickup}'
   used_in: recurring gunner through Acts 1–2 and spawned by the Brood Carrier

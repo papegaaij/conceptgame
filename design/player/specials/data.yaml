@@ -1,7 +1,21 @@
 # Specials: the charge-based specials of Acts 1-2. Schema: ../../tech/architecture/README.md#data-file-schemas
 # The README's specials table is hand-written; keep its Cost and Unlock cells in step.
+input_buffer: 0.1   # s a press of the special button waits while the special is busy (Common input rules)
 specials:
-  # charge price cr, most charges carried, unlock level
-  - {name: Airstrike, charge_price: 300, max_charges: 4, unlock: 4}
+  # charge price cr, most charges carried, unlock level, charges given once at the unlock (optional)
+  - {name: Airstrike, charge_price: 300, max_charges: 4, unlock: 4, free_charges: 1}
   - {name: Smart Bomb, charge_price: 400, max_charges: 3, unlock: 6}
   - {name: Decoy Flares, charge_price: 150, max_charges: 6, unlock: 7}
+
+# The Airstrike (README, Airstrike (L04)). The damage already includes the x2 anti-ground bonus.
+airstrike:
+  delay: 0.6              # s from the call to the bombers entering at the bottom edge
+  offset: 64              # px left and right of the ship's x at the call (clamped to the play field)
+  speed: 600              # px/s straight up the screen
+  bomber_size: [56, 64]   # sprite px, facing up; the bombers leave when this box has left the top edge
+  bomb_spacing: 36        # px of travel between two bombs of a bomber, the first at half of it
+  fall: 0.25              # s from release to the blast; the landing point scrolls with the ground
+  blast_radius: 32        # px
+  damage: {ground: 100, air: 20}               # per blast: ground and low-air targets / air targets
+  cap: {ground: 300, air: 60, boss_part: 150}  # most damage one strike deals to one target
+  radio: {speaker: Hammer Lead, portrait: generic-cdf, line: "Hammer flight, inbound!"}

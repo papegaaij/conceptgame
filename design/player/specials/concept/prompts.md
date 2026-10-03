@@ -20,3 +20,12 @@ ship, enemy seeker missiles curving onto them and exploding; Raptor / Tyrian 200
 
 **Negative prompt:** magenta or yellow flares (reserved for enemy bullets), cartoon bombs,
 photographic footage, text other than HUD captions, watermark.
+
+## airstrike-bomber-final-r17-a
+
+Round 17, production art (M4 part D batch). Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by `tools/art/airstrike_bomber.py --review`; the frames themselves are rendered by `tools/art/airstrike_bomber.py` (see `tools/art/README.md`) from the chosen round-09 bomber model of `tools/concept/vfx_r09.py`, imported unchanged. Two sets:
+
+- `airstrike-bomber_0..3` (56×64, facing up, 40 colours): the CDF bomber (grey hull, UTC blue wing bands, dark canopy), ray-marched at 8× at 26 px per model unit so the wings fit the 56 px width, with its two blue-white engine flames (2D light fields as in the concept, the soft edge stepped to four translucency levels) in four flicker lengths; the nose 3 px below the top edge, the hull's centre 4 px above the sprite's centre.
+- `airstrike-bomber-shadow` (56×64): the hull's silhouette shrunk to 85 % about the sprite centre and blurred, near-black at up to 50 % opacity in four steps; the game draws it as is, offset on the ground layer (the concept used +34, +48 px).
+
+The sheet shows the four frames and the shadow at 4× and all at 1×; the loop has three bombers crossing a Luna road at 600 px/s, their shadows on the ground. Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.

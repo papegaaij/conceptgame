@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: none
 depends-on: [../generator, ../../ui/hangar]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Ship systems
@@ -57,7 +57,7 @@ sensor suite decides how much of it is visible:
 | Sensor | Intel shown |
 |---|---|
 | none | Setting, dominant layers, main attack direction |
-| L1 | + all attack directions with the share of waves per direction, density (1–5), hazards |
+| L1 | + all attack directions with the share of waves per direction, density (1–5), hazards, and an OBJECTIVE field in a level with one (e.g. `ESCORT 5 CRAWLERS`) |
 | L2 | + enemy types with portraits, boss name and silhouette, a set piece as an "unknown huge contact" with its silhouette, special availability |
 | L3 | + recommended weapon traits highlighted in the shop, wave timeline strip, secret count |
 
@@ -99,3 +99,4 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
 - 2026-10-02 (user decision): sensor L2 also shows a level's set pieces, unnamed, as an unknown
   contact of their size tier with their silhouette (Level 03's Leviathan: "unknown huge contact";
   see [hangar](../../ui/hangar/README.md#decisions)).
+- 2026-10-03: Sensor L1 also shows the level's objective as an OBJECTIVE field (main-agent choice, M4 part D: Level 04's intel already promised "escort: 5 crawlers" at L1).

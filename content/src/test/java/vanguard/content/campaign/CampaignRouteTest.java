@@ -45,11 +45,23 @@ class CampaignRouteTest {
     }
 
     @Test
-    void afterLevel03TheCampaignWaitsInTheHangarUntilLevel04IsBuilt() {
+    void afterLevel03TheBriefingOfLevel04Comes() {
         Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
         campaign.complete(CampaignTest.won("A", 80, 1000), 60);
         campaign.complete(CampaignTest.won("A", 80, 1000), 60);
         campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+
+        assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.beforeNextLevel(content, campaign));
+        assertEquals(
+                Optional.of("act-1-first-contact/level-04-tranquility-run"), CampaignRoute.launch(content, campaign));
+    }
+
+    @Test
+    void afterLevel04TheCampaignWaitsInTheHangarUntilLevel05IsBuilt() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 4; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
 
         assertInstanceOf(CampaignRoute.Step.Hangar.class, CampaignRoute.beforeNextLevel(content, campaign));
         assertEquals(Optional.empty(), CampaignRoute.launch(content, campaign));

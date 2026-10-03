@@ -17,7 +17,8 @@ import vanguard.content.campaign.DebugFit;
  * @param invulnerable a debug option: nothing hits the ship, to see a level to its end when testing
  * @param startLevel start in Level 01 rather than at the title screen; by default only a bench run
  *     and a debug fit do, {@code --start title} lets a bench run test the menus
- * @param debugFit a debug option ({@code --loadout}): weapons fitted for the level start, see {@link DebugFit}
+ * @param debugFit debug options ({@code --loadout}, {@code --special}): weapons and a special with
+ *     its charges fitted for the level start, see {@link DebugFit}
  * @param level a debug option ({@code --level}): the level the level start flies, 1 by default
  */
 record LaunchOptions(
@@ -31,7 +32,8 @@ record LaunchOptions(
         int level) {
     /**
      * Parses {@code [--bench <seconds>] [--settings <file>] [--difficulty easy|medium|hard] [--debug-speed <factor>]
-     * [--invulnerable] [--start title|level] [--loadout <slot>=<weapon>[:<level>],...] [--level <n>]}.
+     * [--invulnerable] [--start title|level] [--loadout <slot>=<weapon>[:<level>],...] [--special <special>[:<charges>]]
+     * [--level <n>]}.
      */
     static LaunchOptions parse(String... args) {
         Boolean start = null;
@@ -41,6 +43,7 @@ record LaunchOptions(
         float debugSpeed = 1;
         boolean invulnerable = false;
         DebugFit debugFit = null;
+        String special = null;
         int level = 1;
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -50,6 +53,7 @@ record LaunchOptions(
                 case "--debug-speed" -> debugSpeed = Float.parseFloat(value(args, ++i));
                 case "--invulnerable" -> invulnerable = true;
                 case "--loadout" -> debugFit = DebugFit.parse(value(args, ++i));
+                case "--special" -> special = value(args, ++i);
                 case "--level" -> level = Integer.parseInt(value(args, ++i));
                 case "--start" ->
                     start = switch (value(args, ++i)) {
@@ -60,12 +64,16 @@ record LaunchOptions(
                 default -> throw new IllegalArgumentException("unknown option " + args[i]);
             }
         }
+        if (special != null) {
+            debugFit = (debugFit == null ? DebugFit.NONE : debugFit).withSpecial(special);
+        }
         if (!(debugSpeed > 0)) {
             throw new IllegalArgumentException("--debug-speed must be > 0");
         }
         boolean startLevel = start != null ? start : benchSeconds > 0 || debugFit != null || level != 1;
         if ((debugFit != null || level != 1) && !startLevel) {
-            throw new IllegalArgumentException("--loadout and --level set the level start, they need --start level");
+            throw new IllegalArgumentException(
+                    "--loadout, --special and --level set the level start, they need --start level");
         }
         if (level < 1) {
             throw new IllegalArgumentException("--level must be at least 1");

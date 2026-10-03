@@ -110,6 +110,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 | [concept/hangar-capture-final-r13-a.png](concept/hangar-capture-final-r13-a.png) | Game capture before Level 01: the right wing's shop rows with icons (locked ones dimmed), the Bomb Rack selected with its large icon, the holographic callouts with the fitted Pulse Cannon's icon, the locked escort with Rook's craft, the power bar in its trough | chosen |
 | [concept/intel-final-r13-a.png](concept/intel-final-r13-a.png) | Review sheet (part U3, `tools/art/intel.py`): the intel's sensor-L2 pictures at 1× and 3×, the 30×30 portraits of the Skitter, Needler, Stinger and Spine Turret and the 40×40 silhouettes of the Gorgon Frigate and the Brood Carrier | chosen |
 | [concept/intel-final-r16-a.png](concept/intel-final-r16-a.png) | Review sheet (M4 part C batch, `tools/art/intel.py`): the 30×30 intel portraits of the Spore Bomber and the six-bladed Whirl Seed and the Leviathan's 40×40 "unknown huge contact" silhouette (facing down, `boss-leviathan`), at 1× and 3× | chosen |
+| [concept/intel-final-r17-a.png](concept/intel-final-r17-a.png) | Review sheet (M4 part D batch, `tools/art/intel.py`): the 30×30 intel portraits of Level 04's Brood Pod (between swells) and Scuttler (walking down), from the production models of `tools/art/vrell_l04.py`, at 1× and 3× | chosen |
 
 ## Implementation
 
@@ -245,3 +246,4 @@ until it is handled where stated.
   leaves the panel, every field ends above Varga's line;
   `PortraitsTest.everyHangarTeaserHasItsSpeakersRadioPortrait`.
 - 2026-10-03: Concept round 16 closed (user decision): the intel portraits of the Spore Bomber and the Whirl Seed and the Leviathan's "unknown huge contact" silhouette approved as **final**; this doc's `art` stays `chosen`.
+- 2026-10-03: Concept round 17 (user decision): the intel portraits of the Brood Pod and the Scuttler approved as **final** ([round 17](../../concept-rounds/round-17/README.md)).

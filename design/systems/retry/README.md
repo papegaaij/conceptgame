@@ -1,17 +1,18 @@
 ---
 title: Retry
 design: approved
-implementation: done
+implementation: in-progress
 art: n/a
 depends-on: [../../player/armor, ../../player/shields, ../difficulty, ../saves]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Retry
 
 ## Summary
 
-When armour reaches zero the Stormhawk is destroyed and the level fails. The player retries
+When armour reaches zero the Stormhawk is destroyed and the level fails; a failed primary
+objective fails it the same way. The player retries
 it with the state they had when it started: the loadout, credits, score, armour and special
 charges are all restored. Whatever was earned in the failed attempt is lost. There are no lives.
 
@@ -40,6 +41,19 @@ charges are all restored. Whatever was earned in the failed attempt is lost. The
    (otherwise aborting just before dying would be a free retry); with no retry left both are
    disabled. A restart writes the autosave like a failure; an abort opens the hangar, which
    autosaves.
+
+### On a failed primary objective
+
+Some levels fail without the ship dying: their primary objective fails (Level 04's convoy is
+lost, Level 05's battery scrolls past alive). This mirrors a wreck, for every such level:
+
+1. The failure is reported at the moment it happens. The ship does not explode and there is no
+   slow motion; from then on nothing can hurt it. The music cuts to the failure sting, and the
+   mission failed screen follows **3 s** later over the frozen level, as after a wreck.
+2. The screen shows the level's own failure line when it has one (Level 04: Okafor's "The convoy
+   is gone, Lancer. Pull back."), otherwise the default line.
+3. Everything else is as on destruction: the same options, a hard-mode retry used at once with the
+   autosave, the attempt's earnings lost and the level-start state restored.
 
 ### Boss checkpoint (easy and medium)
 
@@ -73,6 +87,7 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 - [x] Mission failed screen with the three (four) options
 - [x] Hard-mode retry counter and game over
 - [x] "Back to hangar" path that keeps the level as the next one
+- [x] A failed primary objective fails the level like a wreck (no explosion, the level's failure line) — M4 part D, reused by Level 05
 
 ## Decisions
 
@@ -118,3 +133,13 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 - 2026-10-02: M3 close-out (user decision): the level-start snapshot is done (the campaign state is it, part B1), so the item is split; the boss checkpoint's snapshot moves to M4 with the first boss. The document is done for M3.
 - 2026-10-02: Production art, UI batch part U3: the mission failed screen shows Okafor's grim
   portrait (`tools/art/portraits.py`).
+- 2026-10-03: Failed primary objective (main-agent choice, M4 part D): a level whose primary
+  objective fails (Level 04's convoy, Level 05's batteries) fails like a wreck: the failure sting,
+  the mission failed screen 3 s later with the level's own failure line, a retry, the attempt's
+  earnings lost. Generic, so Level 05 reuses it. Chosen here: no explosion or slow motion, and the
+  ship cannot be hurt during the 3 s.
+- 2026-10-03: M4 part D step 2: a failed primary objective is generic (`Sortie.primaryFailed()`,
+  the `PRIMARY_FAILED` event): the ship flies on and nothing can hurt it, the level cannot complete,
+  the presentation runs the wreck's flow without the explosion and the slow motion, and the mission
+  failed screen shows the level's `mission-failed` radio line (its speaker and portrait) instead of
+  the default one. Level 04's convoy is the first to use it.

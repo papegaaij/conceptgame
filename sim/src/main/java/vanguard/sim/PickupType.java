@@ -15,5 +15,7 @@ public enum PickupType {
     /** A secret's hidden crate, worth that secret's credits. */
     HIDDEN_CRATE,
     /** +credits (salvage large): a set piece's death drop. */
-    LARGE_SALVAGE
+    LARGE_SALVAGE,
+    /** +1 charge of the fitted special, up to its most; only dropped when a special is fitted. */
+    SPECIAL_CHARGE
 }

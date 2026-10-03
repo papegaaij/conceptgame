@@ -3,7 +3,7 @@ title: Luna
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 # Luna
@@ -36,11 +36,22 @@ across the craters. Touchstones: *Moon* (2009), Apollo photography, Tyrian's lun
 
 | Layer | Contents |
 |---|---|
-| deep | Black sky, stars, Earth hanging on the horizon (half-lit). |
-| ground | Regolith, craters, domes, roads, rails; ground turrets, bunkers, Vrell nests. |
+| far | Only where the surface drops away below the ground layer, such as a rille floor (with haze). |
+| ground | Regolith, craters, domes, roads, the mass-driver rail (sleds ride it before they climb); ground turrets, bunkers, Vrell nests. |
 | low-air | Landing craft, low drones, dust plumes from impacts. |
 | air | Player's plane. |
 | high-air | Occasional ejected rock from impacts, launch sleds from the mass driver. |
+
+The view looks straight down onto the surface, so there is **no `deep` layer** and no horizon:
+the black sky, the stars and Earth never show. Earth is present only as its light, the blue
+earthshine tint in the crater shadows (as in the chosen scene). Scroll factors from the scene:
+`ground` 1.0, `low-air` 1.35, `high-air` 2.2.
+
+**Roads.** A convoy road is level data, not tiles: a curve of `[t, x]` points (`t` when that
+road point passes the middle of the screen, as for placed backdrop pieces), drawn by the game as
+a textured ribbon on the ground layer (compacted regolith, two tyre tracks, orange edge posts as
+in the scene). Vehicles that follow it (Level 04's crawlers) take their x and heading from it.
+The road is 56 px wide, wide enough for the 40 px civilian crawler (the scene's road was 18–28 px).
 
 ### Palette & lighting
 
@@ -80,3 +91,9 @@ The concept files live in [art-direction](../../art-direction/README.md).
 - 2026-10-01: Linked the chosen scene from art direction; `art: chosen`.
 - 2026-10-01: Chosen far side scene linked (scene-luna-farside-r09-a, round 09).
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-03: Layers and roads (user decisions, M4 part D): no `deep` layer on a top-down
+  surface, Earth shows only as an earthshine tint; the mass-driver rail lies on the ground layer
+  (as in the chosen scene scene-luna-r06-a); the road is level data, a curve of `[t, x]` points
+  drawn as a textured ribbon on the ground layer that the crawlers follow, and it widens to fit
+  the 40 px crawler. Chosen here (main-agent choice): the 56 px road width; `far` only for drops
+  below the surface such as Level 04's rille floor; the scene's scroll factors.

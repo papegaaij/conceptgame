@@ -52,3 +52,13 @@ lit windows along the roof edges and a glass nose, six dark wheels, towing on a 
 navy sled on skids loaded with four strapped beige cargo pods, glowing amber hazard beacons at
 the bus roof corners and the sled's rear corners, glossy metal highlights from a point light at
 the top-left, crisp palette-limited pixel edges, on grey lunar regolith with long black shadows`
+
+## civilian-crawler-final-r17-a
+
+Round 17, production art (M4 part D batch). Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by `tools/art/civilian_crawler.py --review`; the frames themselves are rendered by `tools/art/civilian_crawler.py` (see `tools/art/README.md`) from the chosen variant c model of `tools/concept/allies_r16.py`, imported unchanged. Three sets:
+
+- `civilian-crawler_0..20` (72×84 canvas, the 40×72 crawler centred, driving up the screen, 40 colours): 7 headings × 3 wheel frames, indexed heading × 3 + phase. Heading k is turned −30 + 10k degrees clockwise on screen from straight up (index 0 = nose to the left, 3 = straight up, 6 = nose to the right); each heading is its own render under the fixed key light, the tyre tread evaluated around each wheel's axle in the model's frame and moved 1 px forward per frame.
+- `civilian-crawler-wreck_0..6` (72×84, 32 colours): per heading the burnt-out wreck, windows, beacons and lights dead, the hull darkened to 62 % and charred in seven blast spots that turn with it. The fire and smoke are game effects.
+- `civilian-crawler-pip` (10×18): the HUD pip, a flat white top-down silhouette (bus with wheel notches, tow bar, four pods), tinted at runtime; the sheet shows it white and tinted green, amber and dark.
+
+The sheet shows the headings at 2×, the wheel frames at 4×, the wrecks at 2×, the pip at 6× and all at 1×; the loop has a column of five at Level 04's spacing (84 px, centres at y = 150 … 486) following a winding road on the Luna regolith of round 16 while the ground scrolls at 120 px/s, each crawler showing the heading nearest the road's direction. The concept's additive glow around the amber beacons is not in the sprites (the beacons themselves are emissive). Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.

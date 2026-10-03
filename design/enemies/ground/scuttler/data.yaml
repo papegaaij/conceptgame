@@ -1,0 +1,54 @@
+# Scuttler stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Scuttler
+faction: Vrell
+layer: ground
+tier: medium
+size: [64, 64]    # sprite px
+hitbox: [46, 40]
+parts: single
+orientation: 16 angles
+hp: 28
+armour:
+  front_arc: 45     # ° each side of its facing: direct shots arriving from there glance off
+speed: 40         # px/s walking, on top of the scroll
+movement:
+  walk: {speed: 40, turn_rate: 90, stride: 24}   # px/s, °/s, px of ground per 6-frame walk cycle
+attacks:
+  - pattern: fan
+    bullet: small
+    aim: facing       # centred on its facing, not on the player
+    interval: 2.8
+    speed: 140
+    count: 5
+    spread: 60
+    notes:
+      text: '{count}-way `{pattern}` in its facing direction every {interval} s (spread {spread}°, {speed} px/s, `{bullet}` = {damage})'
+  - pattern: aimed
+    name: acid spit
+    bullet: medium
+    interval: 4
+    speed: 120
+    away: 90          # fires only while the player is more than this many ° off its facing
+    notes:
+      text: 'acid spit (`{pattern}`, {speed} px/s, `{bullet}` = {damage}) every {interval} s while facing away from the player (more than {away}° off its facing)'
+formations:
+  - {name: single}
+  - {name: convoy}
+  - {name: pincer}
+weak_points:
+  - {name: glowing lime back}
+drops: []
+traits: [anti-ground, side, homing]
+bounty: 25
+first_level: 4
+difficulty:
+  hard: {fan_count: 7}
+notes:
+  orientation: (16 headings × 6 walk frames; it faces where it walks)
+  speed: (plus scroll)
+  movement: '`walk` along an authored ground path; turns at {movement.walk.turn_rate}°/s; the walk phase advances with distance ({movement.walk.stride} px per cycle)'
+  formations: (walking in from both sides)
+  weak_points: (drawn only)
+  death: '`medium` organic burst: shell fragments, legs scatter; leaves a legless husk at its last heading'
+  used_in: returns L13 and on Europa's sea floor (L24)
+  difficulty: 'hard: fan 7-way'

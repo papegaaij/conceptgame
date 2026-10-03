@@ -79,6 +79,15 @@ public final class Shot implements Hashed {
         ticks++;
     }
 
+    /** Its velocity across the screen, px/s (y up); 0 for a bomb or shell. */
+    double vx() {
+        return vx;
+    }
+
+    double vy() {
+        return vy;
+    }
+
     /** Turns towards (tx, ty) by at most the weapon's turn rate for one step. */
     void steer(double tx, double ty) {
         double wanted = StrictMath.atan2(tx - x, ty - y);

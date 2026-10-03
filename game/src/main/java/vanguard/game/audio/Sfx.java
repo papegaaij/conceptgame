@@ -54,8 +54,18 @@ public enum Sfx {
      * placeholder until the recorded enemy sounds replace it.
      */
     LEVIATHAN_CRY("sfx/enemy-leviathan-cry-r16-a.ogg", 1, Bus.EFFECTS),
+    /** A Brood Pod bursting into its Skitters, shot or on its own (round 08 b, the fleshy burst). */
+    BROOD_BURST("sfx/enemy-spawn-r08-b.ogg", 2, Bus.EFFECTS),
+    /** The Airstrike's jets flyby (round 08 a), as the bombers enter. */
+    AIRSTRIKE_JETS("sfx/special-airstrike-jets-r08-a.ogg", 1, Bus.EFFECTS),
+    /** The Airstrike's bomb carpet (round 08 a), from its first blast. */
+    AIRSTRIKE_BOMBS("sfx/special-airstrike-bombs-r08-a.ogg", 1, Bus.EFFECTS),
+    /** The special button with no charge, no special or a strike still flying (round 08 a). */
+    SPECIAL_DENIED("sfx/special-denied-r08-a.ogg", 1, Bus.EFFECTS),
     /** The Earth-orbit ambience, looped (design/audio/sfx, Ambience per setting). */
     AMBIENCE_ORBIT("sfx/ambience-orbit-r08-a.ogg", 1, Bus.EFFECTS),
+    /** The Luna ambience, looped (design/audio/sfx, Ambience per setting): Level 04. */
+    AMBIENCE_LUNA("sfx/ambience-luna-r08-a.ogg", 1, Bus.EFFECTS),
     /** The mission complete jingle (design/audio/music, track 23), played as a one-shot. */
     MISSION_COMPLETE("music/mission-complete.ogg", 1, Bus.MUSIC),
     /** The music's failure sting (design/audio/music, track 25), played over the cut music. */

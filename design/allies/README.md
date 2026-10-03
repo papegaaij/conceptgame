@@ -1,8 +1,8 @@
 ---
 title: Allies
 design: approved
-implementation: not-started
-art: chosen
+implementation: in-progress
+art: final
 depends-on: [../enemies, ../art-direction, ../ui/hud]
 updated: 2026-10-03
 ---
@@ -41,14 +41,16 @@ equipment, see [wingmen](../player/wingmen/README.md).
 
 ### Civilian crawler
 
-CDF heavy crawler, a civilian evacuation hauler.
+CDF heavy crawler, a civilian evacuation hauler (a pressurised bus with a cargo sled). Its numbers
+live in [data.yaml](data.yaml); the table below is still hand-written (`tools/sync_tables.py` has
+no renderer for allies yet).
 
 | Property | Value |
 |---|---|
-| Size / layer | 40×72 px (40 wide, 72 long), `ground` |
+| Size / layer | 40×72 px (40 wide, 72 long), hitbox 32×64, `ground` |
 | HP | 60 at medium (difficulty variants in the level) |
-| Damaged by | Bullets fired by `ground`-layer enemies (turrets, walkers); a walker's claws on contact (10 per second). `air`-layer bullets pass over it |
-| Behaviour | Follows the road spline in a column at the scroll speed, drifting left and right as the road winds; never stops for threats |
+| Damaged by | Only enemy shots **aimed at a crawler** through the [target-the-objective hook](../enemies/README.md#target-the-objective-hook) (normal damage class; the rule of the Nansen Relay). Shots aimed at the player, fans and air enemies' bullets pass over it. A walker's claws: 10 per second while its hitbox overlaps the crawler's as the walker passes (no grip) |
+| Behaviour | Follows the level's road curve in a column at the scroll speed, so it holds its height on screen and drifts left and right as the road winds; never stops for threats. Its x is the road's x at its centre, its heading the road's direction rounded to the nearest of **7 headings** (±30° in 10° steps), each rendered, not rotated |
 | Destroyed | Stops and burns on the road |
 | Levels | [L04 Tranquility Run](../campaign/act-1-first-contact/level-04-tranquility-run/README.md) (five crawlers, escort objective) |
 
@@ -120,13 +122,16 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
 | [concept/rejected/civilian-crawler-r16-a.png](concept/rejected/civilian-crawler-r16-a.png) | Civilian crawler A: tracked crawler-transporter, 72×40 (deck on four twin-track trucks, passenger drum, cargo pods, amber corner beacons); on regolith, column of five, damaged and wrecked | rejected — c chosen |
 | [concept/rejected/civilian-crawler-r16-b.png](concept/rejected/civilian-crawler-r16-b.png) | Civilian crawler B: six-wheeled rover train, 72×40 (three pressurised cylinders abreast, cab car in the middle, amber beacons); on regolith, column of five, damaged and wrecked | rejected — c chosen |
 | [concept/civilian-crawler-r16-c.png](concept/civilian-crawler-r16-c.png) | Civilian crawler C: pressurised bus with a cargo sled, 40×72 (the long size reading); on regolith, column of five (84 px apart, 60 would overlap), damaged and wrecked | chosen |
+| [concept/civilian-crawler-final-r17-a.png](concept/civilian-crawler-final-r17-a.png) | Production art, round 17 (`tools/art/civilian_crawler.py`): the 7 headings (±30° in 10° steps) with 3 wheel frames each, the 7 wrecks and the HUD pip (sheet) | chosen |
+| [concept/civilian-crawler-final-r17-a.gif](concept/civilian-crawler-final-r17-a.gif) | Production art, round 17: a column of five following a winding Luna road, each at the heading nearest the road's direction (motion) | chosen |
 
 ## Implementation
 
-- [ ] Ally entity type: layer, HP or integrity, damage sources per spec, immune to player fire
-- [ ] Damage feedback: hit flash, smoke below 50 %, non-debris destruction per type
-- [ ] HUD objective tracker hookup (pips or integrity bar)
-- [ ] Specs above loaded from data; level overrides (difficulty HP, positions) from the level
+- [x] Ally entity type: layer, HP or integrity, damage sources per spec, immune to player fire (the ground convoy, `vanguard.sim.Convoy`; the air and structure allies come with their levels)
+- [x] Damage feedback: hit flash, smoke below 50 %, non-debris destruction per type (the crawler: a wreck burning on the road)
+- [x] HUD objective tracker hookup (pips or integrity bar) (the crawler's pips; the relay's integrity bar with Level 13)
+- [x] Specs above loaded from data; level overrides (difficulty HP, positions) from the level
+- [x] Civilian crawler: follows the road curve with 7 headings; hit only by crawler-aimed shots and pass-through claws (10/s)
 
 ## Open questions
 
@@ -146,3 +151,20 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
   `concept/rejected/`. Knock-ons for M4 part D: the column needs 84 px spacing instead of
   Level 04's "60 px apart" (60 would overlap), and the chosen Luna road (18–28 px) must widen.
   It is a concept, not production art, so `art: chosen`.
+- 2026-10-03: Crawler damage (user decisions, part D): crawlers are hit only by enemy shots aimed at
+  a crawler (the Nansen Relay rule) instead of by every ground-enemy bullet; a crawler-aimed bullet
+  still hurts the player, so the player can body-block it. Scuttler claws pass through: 10 per
+  second while a walker overlaps a crawler as it scrolls past, no grip. The column's spacing is
+  84 px and the Luna road widens to fit (see [Level 04](../campaign/act-1-first-contact/level-04-tranquility-run/README.md#the-convoy)).
+- 2026-10-03: Crawler data (main-agent choices): the numbers moved into [data.yaml](data.yaml), the
+  first ally data (`planned (part D)`: no loader reads it yet). The road's bends are shown with 7
+  rendered headings, ±30° in 10° steps. Chosen here: the 32×64 hitbox, axis-aligned at every
+  heading.
+- 2026-10-03: M4 part D step 2 (main-agent choices): the loader reads [data.yaml](data.yaml) and the
+  simulation flies the crawler as a convoy unit of an `escort` primary objective (the convoy rolls in
+  from the bottom edge one unit per second to its stations, then follows the road). A
+  crawler-aimed shot hits the first crawler it touches, not only the one it was aimed at (the column
+  is in its path), and a walker is any `ground` enemy that is not fixed to the ground. Until a smoke
+  and a fire effect exist, the wreck's fire is the engine flame drawn additively and the smoke a
+  darkened small explosion.
+- 2026-10-03: Concept round 17 (user decision): the civilian crawler's production art approved as **final** ([round 17](../concept-rounds/round-17/README.md)).

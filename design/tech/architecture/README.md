@@ -83,6 +83,7 @@ README), and the tables in the README are **rendered from the data**:
 | Player-wide | `design/player/data.yaml` (shop availability, pickups) | the *In-level pickups* table |
 | Level | `design/campaign/<act>/<level>/data.yaml` (sections, scroll, waves, ground targets, secrets, cues, objectives, music, difficulty changes, backdrop) | the *Threat profile*, *Layout*, *Backdrop*, *Waves*, *Ground targets*, *Radio chatter* and *Credit budget* tables |
 | Act | `design/campaign/<act>/data.yaml` (the act's levels, title card and act briefing) | the act's *Act intro and outro* quotes |
+| Allies | `design/allies/data.yaml` (one entry per ally) | the allies' spec tables (still hand-written) |
 | Economy, scoring, difficulty, retry | `design/systems/<part>/data.yaml` | the scoring bonus and grade tables and the difficulty levers (the economy's tables are still hand-written; retry has no table) |
 
 - **Marked tables.** A generated table sits between `<!-- data: NAME -->` and `<!-- /data -->`;
@@ -148,14 +149,25 @@ first entry of a part's model list is the starter (price 0, `start`).
   unit's), `orientation`, `hp`, `armour`, `speed`, `movement` (one
   entry per pattern: `snake` `spacing`; `swoop` `radius`, `top_speed`; `straight` `speed`;
   `hover` `seconds`, `y`; `orbit` `radius`, `turn_rate`; `strafe` `y`, the height a convoy turns
-  across at; `spiral_out` `seconds`, `turns`, `growth`, `drift`, `ricochets`), `attacks`
+  across at; `spiral_out` `seconds`, `turns`, `growth`, `drift`, `ricochets`;
+  `drift` `speed` (straight down, no intent); `sine` `amplitude`, `period` (a side-to-side offset
+  on another pattern); `walk` `speed`, `turn_rate`, `stride` (px of ground per walk cycle), the
+  path coming from the wave), `attacks`
   (`pattern` `aimed`/`fan`/`mine`, an optional `name`, `bullet` class, `interval`, `speed`,
   `first_shot_delay` (for parts sharing an attack: the stagger between them), a fan's `count` and
-  `spread`, a mine's `mine` with `arm`, `life`, `drift`, `hp`, `ring`, `ring_bullet`, `credits`),
+  `spread`, a mine's `mine` with `arm`, `life`, `drift`, `hp`, `ring`, `ring_bullet`, `credits`;
+  a fan's `aim` (`target`, the default, `down` or `facing`), an aimed attack's
+  `away` (fires only while the player is more than this many ° off its facing), and the pattern
+  `spawn` with no `bullet`, `interval` or `speed` but a `spawn` block: `enemy`, `count`, `after`
+  (s from entering to the self-burst), `telegraph` (s), `arc` (°), `speed` (the released units')
+  and `burst_bounty` (credits for a self-burst, which is not a kill)),
   `formations` (`name`, `size` `[n]` or `[min, max]`),
   `weak_points` (`name`, `multiplier`), `traits`, `bounty`, `first_level`, `difficulty` hooks
   (`easy`/`hard`: `fan_count`, `dive_pause`, `burst` (aimed attacks), `leads_target_in`, a mine's
-  `ring` and `mine_bursts`, a `death_burst` with `count`, `speed`, `bullet`).
+  `ring` and `mine_bursts`, a `death_burst` with `count`, `speed`, `bullet`;
+  a spawner's `spawn_count` and `spawn_after`). `armour` is a text, or a mapping
+  with `front_arc` (° each side of the facing from which direct shots glance; dropped bombs,
+  lobbed shells and specials ignore it).
   `drops` (`pickup`, `every`: every n-th kill of the enemy in a level drops it).
   Easy/hard HP in the table are derived from the difficulty levers (rounded half to even, at
   least 1), the
@@ -164,14 +176,18 @@ first entry of a part's model list is the starter (price 0, `start`).
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`,
   `control_prompts`, timed `prompts` (`t`, `action`, `keys`, `seconds`, an optional `skip` layer:
-  the prompt leaves once an enemy on it is destroyed); `sections` back to back from t = 0 (`name`, `end`, `atmosphere`, optional
+  the prompt leaves once an enemy on it is destroyed; `requires: special`: shown only with a special fitted); `sections` back to back from t = 0 (`name`, `end`, `atmosphere`, optional
   `speed`, the backdrop's `tiles` (tile set ids, at most one per layer); scroll distances are
   derived); `waves` in time order, one row each (`t`,
   `formation`, `enemy` slug, `count`, `from` `front`/`sides`/`rear`, `edge`
   `left`/`right`/`alternating` (`sides` without an edge enters from both side edges), optional
   `hold`, `warning`, `break_group`, `speed` (px/s instead of the enemy's own), `interval` (s
   between the units of a stream), `at` (a whirl cluster's release point `[x, y]`, y below the top
-  edge), and `easy` / `hard` changes), a mixed wave lists `groups`
+  edge), and `easy` / `hard` changes; a walker wave's `paths`, one list of
+  `[x, y]` points per unit in screen coordinates at the wave's `t` (y below the top edge, points
+  may lie outside the play field), which then scroll with the ground; a `pincer` with one path
+  mirrors it for every second unit, other walker formations repeat it 1.5 s apart), a mixed wave
+  lists `groups` (a `carrier + escorts` wave lists the carrier's group first)
   instead; `set_pieces` (an `enemy` with a `part_list` and its `passes`, each a `name`, `section`,
   `layer`, fixed `heading` (° from straight down, positive to the right) and a `path` of
   `[t, x, y]` waypoints (y below the top edge); a pass on the player's layer adds `descend`
@@ -181,23 +197,45 @@ first entry of a part's model list is the starter (price 0, `start`).
   `damage` or a small one's `hp`, the `clearance` from the ship they enter at, `max_large` on
   screen, the `placed` chunks with `t`, `x`, `chunk` and `drift` `[x, y]` px/s, `easy`
   `leave_out_large` (every n-th large chunk) and `hard` `drift_factor`); `ground_targets` (`target`, `section`, `layer`, `size`, `at` (one `[t, x]` per object:
-  when it enters at the top edge and its x), a destructible's `count`, `hp`, `bounty`, `drop`, or
+  when it enters at the top edge and its x), a destructible's `count`, `hp`, `bounty`, `drop`, an
+  optional `bonus_drop` with it (a special charge drops only with a special fitted), `hardened`, an
+  optional `reveals` (its hidden crate drops when it is destroyed), an optional `sprite` (its sprite
+  set: `<sprite>_0..2` intact, damaged, wrecked and `<sprite>-break_<n>`; Level 01's
+  `cargo-container`, without a wreck, if left out), or
   a trigger's `hits`, `reveals` (triggers revealing the same secret reveal it together, when the
   last of them is spent)); `secrets` (`name`, hidden `crate` credits, `radio` line); placed
   `pickups` (`pickup`, `dropped_by` wave and unit `first`/`second`/`last`); `radio` cues (trigger
   `t` or `event` `first-kill` or `enemy-escaped` (with `enemy`; a set piece escapes at the end of
   its last pass) / `group-cleared` / `group-lost` (with `group`) / `first-group-lost` /
-  `secondary-objective` / `level-end`; `speaker`, `line`,
+  `secondary-objective` / `level-end` / `first-ally-hit` / `first-ally-lost` (a convoy's first hit
+  and first loss; `{ally}` in the line becomes the unit's number word, "Three") / `mission-failed`
+  (not played: the line and speaker on the mission failed screen after a failed primary objective;
+  at most one); a `level-end` cue's `allies` `[min, max]` (the convoy units home, so each outcome
+  has its line), and `requires: special` (only with a special fitted; on any cue);
+  `speaker`, `line`,
   `distorted`, the portrait's optional `expression` (`neutral`, `grim`, `fierce`; neutral if not
   given; a secret's `radio` line takes it too), and `easy` / `hard` changes giving another `line`,
   as when a wave enters elsewhere on that difficulty); `objectives` (`primary`, `secondary` `kill_ratio`, `groups` or `escapes` (the enemy none of
-  which may leave the screen alive) and `credits`); `music`
+  which may leave the screen alive; a spawner's self-burst counts as an escape) and `credits`;
+  `primary` is `reach-end` or `escort`, which adds an `escort` block: the `ally` slug, the
+  column's centre heights `y` (px below the top edge, the leading unit first, at least the ally's
+  length apart), `credits` per unit home (through the credit factor, with a debrief row), `enter`
+  (`t` of the first unit, `interval` s between units, `speed` px/s up the screen: they roll in from
+  the bottom edge to their stations), the target-the-objective `hook` (`mode`, only `nearest` so
+  far, and the `enemies` whose aimed attacks go for the convoy) and `easy` / `hard` `hp`; it fails
+  when every unit is lost); `road` (`width`, an optional `texture` id: the ribbon's image
+  `assets/backdrop/level-NN/<texture>.png`, its rows by arc length from the first point, a flat
+  placeholder colour without one; and `points`, one `[t, x]` per road point, `t` when it passes the
+  middle of the screen, which may lie before the start; straight between points and straight up
+  beyond them; the convoy follows it; the ribbon stays inside the play field and bends no further
+  than the ally's headings, ±30° for the crawler); `music`
   (`track`, `start_section`, optional `start_db` (the theme's level through its start section,
   rising to full at the next), `full_section`, optional `stems` (section: `base` or `full`,
   overriding it), `ambience`, `end_jingle`); `difficulty` (level-wide
-  `easy` / `hard` enemy changes such as `burst`, and `extra_pickups` placed like `pickups`);
+  `easy` / `hard` enemy changes such as `burst` and a walker's `speed_factor`, and `extra_pickups` placed like `pickups`);
   `threat_profile` (the hangar intel: `setting`, `layers`, `density` 1–5, recommended `traits`,
-  `hazards`, `boss`, optional `specials` limits, `varga` lines per sensor level `none`/`l1`/`l2`/
+  `hazards`, `boss`, optional `specials` limits, optional `objective` (the OBJECTIVE field
+  shown from sensor L1, "ESCORT 5 CRAWLERS"), `varga` lines per sensor level `none`/`l1`/`l2`/
   `l3`, and `notes` with the *Threat profile* rows, where `{directions}` is derived and the other
   `{fields}` come from the profile); `briefing`
   (`pages` of `speaker` and `line` with the optional portrait `expression` and `image`, the name of
@@ -207,7 +245,10 @@ first entry of a part's model list is the starter (price 0, `start`).
   table is derived: kills × bounties, ground targets, crates, the secondary objective, against
   budget(n) of the economy; the attack directions are each entry's share of the enemies.
 - **Level backdrop** (`backdrop` in a level's data file; the *Backdrop* table is rendered from it):
-  `scroll_factors` per layer (`deep`, `far`, `ground` = 1.0, `low-air`, `high-air`); `ramp` (s an
+  `scroll_factors` per layer (`deep`, `far`, `ground` = 1.0, `low-air`, `high-air`; `deep` may be
+  left out on a top-down surface, Level 04's Luna: then the ground is the layer that covers the
+  screen, its tile set in every section and its pieces' edges checked as the deep layer's are, and
+  where a ground tile set is not opaque the section's far tile set must be); `ramp` (s an
   atmosphere change takes, centred on the section boundary); `haze_colour` (`rrggbb`);
   `atmosphere` per intensity the level uses (`clear`/`light`/`medium`/`heavy`: optional `banks`
   tile set on low-air, optional `wisps` tile set on high-air, `haze` 0..1 over deep and far);
@@ -215,8 +256,10 @@ first entry of a part's model list is the starter (price 0, `start`).
   px/s sideways, wrapping); `pieces` by id (`layer`, `size`, an animation's `frames` and `fps` or
   an angle set's `headings`, `mid_size` if it counts towards the density rule); `placed` set
   pieces (`piece`, `t` when its centre passes the middle of the screen, `x` in the play field,
-  optional `mirror`, a `path` of `[t, dx, dy]` waypoints for a piece with headings; later pieces
-  on a layer are drawn over earlier ones). A layer position is the layer's scroll (the ground's
+  optional `mirror`, a `path` of `[t, dx, dy]` waypoints for a piece with headings, `overhead`
+  for a ground piece's part above the road (a bridge's arches, a gate's blockhouse: drawn over
+  the convoy and the ground objects and under the ground units, so the crawlers pass under it and
+  a turret placed on it stands on it); later pieces on a layer are drawn over earlier ones). A layer position is the layer's scroll (the ground's
   scroll × its factor) plus the screen height; a section's tile set begins at the seam that enters
   at the top edge when the section starts. The images are `assets/backdrop/level-NN/<id>.png`
   (frames and headings `<id>_<n>.png`). `content` checks that the ids and layers resolve and,
@@ -229,8 +272,12 @@ first entry of a part's model list is the starter (price 0, `start`).
   `mounts`: `front`, `wings`, `roots` (the side guns' muzzles), `rear`, `engines`; its speed is the fitted engine's); shields (`break_seconds`, `models` with
   `capacity`, `regen`, `delay`, `draw`); armour (`plating` with `max`); generator
   (`spare_power`, `models` with `output`); systems (`engines` with `speed`, `draw`; `utility`
-  with `draw`, one price per level, `design` status); specials (`charge_price`, `max_charges`,
-  `unlock`). Each model also has `name`, `price` and `available`.
+  with `draw`, one price per level, `design` status); specials (`input_buffer` (s a press waits
+  while the special is busy), `specials` with `name`, `charge_price`, `max_charges`, `unlock` and
+  optional `free_charges` (given once at the unlock), and the `airstrike` block: `delay`, `offset`,
+  `speed`, `bomber_size`, `bomb_spacing`, `fall`, `blast_radius`, `damage` (`ground`, `air` per
+  blast), `cap` (`ground`, `air`, `boss_part` per strike) and the call's `radio` (`speaker`,
+  `portrait`, `line`)). Each model also has `name`, `price` and `available`.
 - **Player** (`player/data.yaml`): `availability`, `pickup_seconds`, `pickup_drift_speed`, `pickups` (salvage
   credits, overdrive `levels` and `seconds`, shield cell `shield_percent`, armour patch
   `armour`, special charge `charges`, data core). Levels name pickups as `small salvage`,
@@ -241,6 +288,12 @@ first entry of a part's model list is the starter (price 0, `start`).
   `repair_cost`, `retries`, `boss_checkpoint`, `sensor_bonus`); scoring (`kill_score`,
   `pickup_score`, `chain`, `rating` weights, `bonuses`, `grades`); retry (`armour_floor`, the
   share of the maximum armour a retry starts with at least).
+- **Allies** (`allies/data.yaml`): one entry per ally
+  slug with `name`, `layer`, `size`, `hitbox`, `hp` (medium; the level sets difficulty variants),
+  `damaged_by` (`objective_aimed`: only shots the target-the-objective hook aims at it;
+  `claws`: damage per second while a walker overlaps it), `follows` (`road`), `headings`
+  (`count`, `step` in °, centred on straight up; rendered, not rotated) and `smoke_below` (share
+  of its HP).
 - **Act** (`campaign/<act>/data.yaml`): `levels` `[first, last]` (global numbers), `title_card`
   (`act`, `name`, `line`), `briefing` (pages as a level's); the loader checks that every
   level's act exists and includes it.
@@ -549,3 +602,37 @@ Screenshot tests are left out until there is a need.
   `highAirOpacity`) when the unit dies off the plane. `FlightSounds` plays a set piece's cry by
   slug (`Sfx.LEVIATHAN_CRY`) with its death.
 - 2026-10-03 (user decision): two M4 part C points accepted as they are: the Level 01 replay's state hash changed with part C (`ReplayTest`, now `616ea9b687b6d5a9`), and the death pieces (`-tatters`, `-husk`) are drawn below the ship.
+- 2026-10-03: Schema text for M4 part D (Level 04), marked "planned (part D)" until the loader
+  reads it: the `drift`, `sine` and `walk` movement, the `spawn` attack and its hooks, a fan's
+  `aim`, an aimed attack's `away`, `armour` as a mapping with `front_arc`, a walker wave's `paths`,
+  the level's `road`, the `escort` primary, the threat profile's `objective`, `requires: special`
+  on prompts and radio cues, the ally radio events, and the allies' data file. The Brood Pod,
+  Scuttler and crawler data files exist ahead of the code, so the content loader rejects them
+  until part D's loader work lands.
+- 2026-10-03: M4 part D step 2, the convoy: `vanguard.sim.Convoy` (the `escort` primary's units,
+  `Ally`, allocated up front and in the state hash only in levels with a convoy, so the Level 01–03
+  replay hashes are unchanged), `Road` (straight between its points, as the backdrop art lays it
+  out), the target-the-objective hook in mode `nearest` in `EnemyForce` (an aimed shot's target is
+  chosen each step and as it fires; a turret's barrel turns toward it; `EnemyBullet` remembers a
+  convoy target), the generic failed primary objective (`Sortie.primaryFailed()`, `PRIMARY_FAILED`),
+  the escort's pay (`LevelResult.Escort`, part of the objectives' credits) and the radio's
+  `FIRST_ALLY_HIT`, `FIRST_ALLY_LOST`, `MISSION_FAILED` cues, level-end ranges and special-only cues.
+  The schema text above lost its "planned (part D)" marks for the road, the escort primary, the
+  ally events, `requires: special`, the threat profile's `objective` and the allies' data file.
+- 2026-10-03: M4 part D step 3, Level 04: `EnemySpec` gains `Sine`, `Brood` (a spawner) and
+  `Walker` (walk, frontal arc, the spit as a second gun, the away angle); `Spawn` an `Escort` circle
+  and a `WalkPath` (`vanguard.sim.WalkPath`, the authored ground path); `WaveSpec` the `paths` and
+  the `CARRIER_ESCORTS` formation. `Enemy` has two new phases, `ESCORT` (circling its carrier, which
+  `EnemyForce` hands it as the spawner that entered last, and released when it ends) and `WALK`;
+  their fields and a spawner's burst timer enter the state hash only for such units, so the Level
+  01–03 replay hashes are unchanged. `EnemyForce.hatch` releases a spawner's units (pooled ordinary
+  units in the `LEAVE` phase), the released units count among the level's enemies, and a self-burst
+  calls `Escapes.burst` (`Tally.unchained`: the burst bounty at the kill score, no chain, no kill).
+  `PlayerFire` makes a direct shot glance off a walker's front (`Enemy.glances`, from `Shot.vx/vy`).
+  New events `BROOD_HATCHED`, `BROOD_BURST` and `WALKER_DOWN` (the kind and facing, for the husk).
+  Content: `LevelData.Wave.paths`, `EnemyChange.speedFactor`, `GroundTarget.bonusDrop`, a
+  destructible's `reveals`, and `BackdropData.base()` (`BackdropLayer.opaque()` is gone). Game:
+  `EnemyLooks` reads `-burst` as a death glow, a walker's `-glow` and `-husk` (its remains per
+  heading), the walk frame by distance and a spawner's faster telegraph pulse; `LevelRenderer` draws
+  walkers on the ground depth and their glow above the low-air layer; `Sfx.BROOD_BURST` and
+  `AMBIENCE_LUNA`.

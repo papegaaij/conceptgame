@@ -26,6 +26,29 @@ class RadioQueueTest {
     }
 
     @Test
+    void anUrgentLineInterruptsAndTheInterruptedLinePlaysAgainAfterIt() {
+        radio.add("Okafor", "neutral", "Five crawlers, four hundred civilians. Get them to the terminal.", false);
+        radio.add("Rook", "neutral", "Aegis Two over Shackleton.", false);
+        radio.update(0.01f);
+        run(2);
+        assertEquals("Okafor", radio.current().orElseThrow().speaker());
+
+        radio.add(
+                "Hammer Lead", "generic-cdf", "neutral", "Hammer flight, inbound!", false, RadioQueue.Priority.URGENT);
+
+        assertEquals(RadioQueue.Change.OPENED, radio.update(0.01f), "at once, without a gap");
+        assertEquals("Hammer Lead", radio.current().orElseThrow().speaker());
+        run(0.3);
+        assertTrue(radio.visibleLines().getFirst().startsWith("Hammer"));
+        assertEquals(RadioQueue.Change.CLOSED, run(5.6));
+        assertEquals(RadioQueue.Change.OPENED, run(0.6));
+        assertEquals("Okafor", radio.current().orElseThrow().speaker(), "the interrupted line plays again");
+        assertEquals(1, radio.visibleLines().size(), "from its start");
+        run(12);
+        assertEquals("Rook", radio.current().orElseThrow().speaker(), "then the queue goes on");
+    }
+
+    @Test
     void aMessageOpensTypesPagesAndCloses() {
         radio.add("Rook", "neutral", "Lancer, Rook. Aegis Two's got the north arm, you've got the south.", false);
 

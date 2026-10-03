@@ -15,10 +15,12 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.utils.Array;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
+import vanguard.sim.Ally;
 import vanguard.sim.Sortie;
 
 /**
@@ -26,7 +28,9 @@ import vanguard.sim.Sortie;
  * launch balance plus what the level has earned), the chain with its draining window, the radio
  * with the speaker's portrait and the typed subtitle, the control prompts, the objective tracker
  * for the secondary objective and the level progress, each in its region of the
- * {@link MissionLayout}; text is cut off at the end of its well rather than run over it.
+ * {@link MissionLayout}; text is cut off at the end of its well rather than run over it. A level
+ * with a convoy (an escort primary objective) has a two-line tracker: the convoy's pips over the
+ * secondary objective, in a well that takes a line from the control prompts'.
  */
 final class MissionPanel {
     private static final int X = HudKit.INSET;
@@ -40,6 +44,22 @@ final class MissionPanel {
     private int[] groupStates = new int[0];
 
     private int[] groupChanged = new int[0];
+    /** The step of a convoy unit's pip. */
+    static final int ALLY_PIP_STEP = 14;
+    /** A convoy pip flashes white this many simulation steps after a hit. */
+    private static final int ALLY_HIT_TICKS = 6;
+    /** The pip sprite's width (civilian-crawler-pip: 10x18, a line tall). */
+    static final int ALLY_PIP_WIDTH = 10;
+
+    private static final Color ALLY_DARK = Color.valueOf("3A4060");
+    /** The convoy's label ("CRAWLERS") and pip, once known. */
+    private String alliesLabel;
+
+    private AtlasRegion allyPip;
+    /** The frame each convoy unit was first drawn lost in; -1 while alive. */
+    private int[] allyLost = new int[0];
+
+    private int primaryFailedFrame = -1;
 
     /** The tracker flashes this many frames after the objective is met. */
     private static final int FLASH_FRAMES = 90;
@@ -93,7 +113,13 @@ final class MissionPanel {
         if (groupsLabel == null) {
             groupsLabel = groupsLabel(sortie.script().secondary().groups());
             escapesLabel = escapesLabel(sortie.script().secondary().escapes());
+            sortie.script().escort().ifPresent(escort -> {
+                alliesLabel = escapesLabel(escort.ally().slug());
+                String pip = escort.ally().slug() + "-pip";
+                allyPip = sprites.has(pip) ? sprites.region(pip) : null;
+            });
         }
+        boolean two = sortie.allyCount() > 0;
         kit.leftPanel(batch);
         int top = MissionLayout.MISSION.yTop();
         plate(batch, mission, top);
@@ -104,8 +130,12 @@ final class MissionPanel {
 
         drawChain(batch, sortie);
         drawRadio(batch, radio);
-        drawPrompts(batch, prompts);
-        drawTracker(batch, sortie);
+        drawPrompts(batch, prompts, two);
+        if (two) {
+            drawTwoTrackers(batch, sortie);
+        } else {
+            drawTracker(batch, sortie);
+        }
 
         MissionLayout.Region progress = MissionLayout.PROGRESS;
         plate(batch, "PROGRESS", progress.yTop());
@@ -197,12 +227,15 @@ final class MissionPanel {
         }
     }
 
-    private void drawPrompts(SpriteBatch batch, List<PromptTexts.Text> prompts) {
+    private void drawPrompts(SpriteBatch batch, List<PromptTexts.Text> prompts, boolean two) {
         if (prompts.isEmpty()) {
             return;
         }
-        int wellTop = well(batch, MissionLayout.PROMPTS.yTop(), PAGE_WELL);
-        for (int i = 0; i < Math.min(prompts.size(), MissionLayout.PROMPT_LINES); i++) {
+        int wellTop = two
+                ? well(batch, MissionLayout.TWO_PROMPTS.yTop(), MissionLayout.TWO_LINE_WELL)
+                : well(batch, MissionLayout.PROMPTS.yTop(), PAGE_WELL);
+        int shown = two ? MissionLayout.TWO_PROMPT_LINES : MissionLayout.PROMPT_LINES;
+        for (int i = 0; i < Math.min(prompts.size(), shown); i++) {
             PromptTexts.Text prompt = prompts.get(i);
             int y = wellTop - TEXT_DROP - i * LINE;
             // The keys take the rest of the line after the action ("LOW-AIR" leaves room for "BELOW YOU: FIRE").
@@ -216,6 +249,69 @@ final class MissionPanel {
     }
 
     private void drawTracker(SpriteBatch batch, Sortie sortie) {
+        int wellTop = well(batch, MissionLayout.OBJECTIVE.yTop(), WELL);
+        drawSecondary(batch, sortie, wellTop, WELL);
+    }
+
+    /**
+     * The two-line tracker (design/ui/hud, Level 04): the convoy's label and a pip per unit (green;
+     * amber below half its HP; white on a hit; a red flash, then dark, when lost), the line flashing
+     * red when the last one is lost; the secondary objective on the second line.
+     */
+    private void drawTwoTrackers(SpriteBatch batch, Sortie sortie) {
+        int wellTop = well(batch, MissionLayout.TWO_OBJECTIVES.yTop(), MissionLayout.TWO_LINE_WELL);
+        // Line one is a line tall at the top; line two takes the rest, as a one-line well's text does.
+        if (sortie.primaryFailed() && primaryFailedFrame < 0) {
+            primaryFailedFrame = frame;
+        } else if (!sortie.primaryFailed()) {
+            primaryFailedFrame = -1;
+        }
+        boolean failFlash = primaryFailedFrame >= 0
+                && frame - primaryFailedFrame < FLASH_FRAMES
+                && (frame - primaryFailedFrame) / 8 % 2 == 0;
+        if (failFlash) {
+            kit.fill(batch, LOST, X, wellTop - LINE, WIDTH, LINE);
+        }
+        Color colour = failFlash ? HudKit.LCD : sortie.primaryFailed() ? LOST : HudKit.LABEL;
+        int y = wellTop - TEXT_DROP;
+        kit.text(batch, kit.body, alliesLabel, colour, X + PAD, y, TEXT_WIDTH);
+        int count = sortie.allyCount();
+        if (allyLost.length != count) {
+            allyLost = new int[count];
+            Arrays.fill(allyLost, -1);
+        }
+        int pipX = X + PAD + TEXT_WIDTH - count * ALLY_PIP_STEP + ALLY_PIP_STEP - ALLY_PIP_WIDTH;
+        for (int k = 0; k < count; k++) {
+            Ally ally = sortie.ally(k);
+            Color pip;
+            if (ally.alive()) {
+                allyLost[k] = -1;
+                pip = ally.ticksSinceHit() < ALLY_HIT_TICKS
+                        ? Color.WHITE
+                        : ally.hpShare() < 0.5 ? HudKit.AMBER : SUCCESS;
+            } else {
+                if (allyLost[k] < 0) {
+                    allyLost[k] = frame;
+                }
+                int since = frame - allyLost[k];
+                pip = since < FLASH_FRAMES && since / 8 % 2 == 0 ? LOST : ALLY_DARK;
+            }
+            int left = pipX + k * ALLY_PIP_STEP;
+            int bottom = y - LINE + 3;
+            if (allyPip != null) {
+                batch.setColor(pip);
+                batch.draw(allyPip, left, bottom);
+                batch.setColor(Color.WHITE);
+            } else {
+                kit.fill(batch, pip, left, bottom, ALLY_PIP_WIDTH, LINE);
+            }
+        }
+        drawSecondary(batch, sortie, wellTop - LINE, MissionLayout.TWO_LINE_WELL - LINE);
+    }
+
+    /** The secondary objective's line in a well (or the lower half of one) whose top is at {@code top}. */
+    private void drawSecondary(SpriteBatch batch, Sortie sortie, int top, int height) {
+        int wellTop = top;
         if (sortie.secondaryMet() && metFrame < 0) {
             metFrame = frame;
         } else if (!sortie.secondaryMet()) {
@@ -230,9 +326,8 @@ final class MissionPanel {
         boolean flash = metFrame >= 0 && frame - metFrame < FLASH_FRAMES && (frame - metFrame) / 8 % 2 == 0;
         boolean failFlash =
                 failedFrame >= 0 && frame - failedFrame < FLASH_FRAMES && (frame - failedFrame) / 8 % 2 == 0;
-        int wellTop = well(batch, MissionLayout.OBJECTIVE.yTop(), WELL);
         if (flash || failFlash) {
-            kit.fill(batch, flash ? SUCCESS : LOST, X, wellTop - WELL, WIDTH, WELL);
+            kit.fill(batch, flash ? SUCCESS : LOST, X, wellTop - height, WIDTH, height);
         }
         Color colour = flash || failFlash
                 ? HudKit.LCD

@@ -308,6 +308,12 @@ final class PlayerFire {
                         || (weapon.pierce() > 1 && shot.struck(2 * enemy.serial()))) {
                     continue;
                 }
+                if (enemy.glances(shot.vx(), shot.vy())) {
+                    // A walker's frontal armour: a direct shot from ahead sparks off.
+                    events.add(SimEvents.Type.SHOT_GLANCED, shot.x(), shot.y(), shot.mount());
+                    shots.free(i);
+                    break;
+                }
                 events.add(SimEvents.Type.ENEMY_HIT, shot.x(), shot.y(), shot.mount());
                 boolean spent = shot.pierced();
                 if (enemy.damage(shot.damage() * groundFactor(weapon, spec.layer()))) {
@@ -486,7 +492,7 @@ final class PlayerFire {
             if (spec.layer() == Layer.GROUND
                     && onField(enemy)
                     && inBlast(x, y, weapon.blast(), enemy.x(), enemy.y(), spec.hitbox())
-                    && enemy.damage(shot.damage())) {
+                    && enemy.damage(shot.damage(), true)) {
                 hits.enemyDestroyed(j);
             }
         }
@@ -513,13 +519,13 @@ final class PlayerFire {
     }
 
     /** Whether a blast of {@code radius} around (x, y) reaches a box around (bx, by). */
-    private static boolean inBlast(double x, double y, double radius, double bx, double by, Hitbox box) {
+    static boolean inBlast(double x, double y, double radius, double bx, double by, Hitbox box) {
         double dx = Math.max(Math.abs(x - bx) - box.width() / 2, 0);
         double dy = Math.max(Math.abs(y - by) - box.height() / 2, 0);
         return dx * dx + dy * dy <= radius * radius;
     }
 
-    private static boolean onField(Enemy enemy) {
+    static boolean onField(Enemy enemy) {
         return PlayField.overlaps(enemy.x(), enemy.y(), enemy.spec().hitbox());
     }
 

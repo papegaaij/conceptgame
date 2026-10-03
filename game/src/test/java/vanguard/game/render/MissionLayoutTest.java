@@ -45,6 +45,44 @@ class MissionLayoutTest {
         assertTrue(regions.getLast().bottom() <= PixelScreen.HEIGHT - MissionLayout.MARGIN);
     }
 
+    @Test
+    void theTwoObjectiveWellsShareThePromptsAndTrackerSpace() {
+        List<MissionLayout.Region> regions = MissionLayout.TWO_OBJECTIVE_REGIONS;
+        for (int i = 1; i < regions.size(); i++) {
+            assertEquals(
+                    regions.get(i - 1).bottom() + MissionLayout.GAP,
+                    regions.get(i).top(),
+                    "region " + i);
+        }
+        // design/ui/hud: control prompts 384–430, objective tracker 436–482, the progress bar unmoved.
+        assertEquals(new MissionLayout.Region(384, 46), MissionLayout.TWO_PROMPTS);
+        assertEquals(new MissionLayout.Region(436, 46), MissionLayout.TWO_OBJECTIVES);
+        assertEquals(MissionLayout.PROMPTS.top(), MissionLayout.TWO_PROMPTS.top());
+        assertEquals(MissionLayout.OBJECTIVE.bottom(), MissionLayout.TWO_OBJECTIVES.bottom());
+        float lines = MissionLayout.LINE + drop(BODY);
+        assertTrue(lines <= MissionLayout.TWO_LINE_WELL, "two body lines fit the tracker's well: " + lines);
+        float prompts = (MissionLayout.TWO_PROMPT_LINES - 1) * MissionLayout.LINE + drop(SMALL);
+        assertTrue(prompts <= MissionLayout.TWO_LINE_WELL, "two prompt lines fit their well: " + prompts);
+    }
+
+    /**
+     * Level 04's two-line tracker: {@code CRAWLERS} with a pip per unit, then the secondary's label and
+     * its widest count, {@code DONE} or {@code FAILED}.
+     */
+    @Test
+    void theConvoyTrackerFitsItsLines() {
+        String crawlers = MissionPanel.escapesLabel("civilian-crawler");
+        assertEquals("CRAWLERS", crawlers);
+        int pips = 5 * MissionPanel.ALLY_PIP_STEP;
+        assertTrue(
+                width(BODY, crawlers) + pips <= MissionLayout.TEXT_WIDTH,
+                "the label and five pips fit: " + (width(BODY, crawlers) + pips));
+        String pods = MissionPanel.escapesLabel("brood-pod");
+        for (String count : List.of("6 / 6", "DONE", "FAILED")) {
+            assertFits(BODY, pods + " " + count, MissionLayout.TEXT_WIDTH);
+        }
+    }
+
     private static BitmapFont.BitmapFontData font(String file) {
         return new BitmapFont.BitmapFontData(
                 new FileHandle(new File(System.getProperty("vanguard.assetsDir"), file)), false);
@@ -72,6 +110,11 @@ class MissionLayoutTest {
                     .map(ControlPrompts.Prompt::of)
                     .toList();
             assertTrue(prompts.size() <= MissionLayout.PROMPT_LINES, "at most one line per prompt");
+            if (level.objectives().escort().isPresent()) {
+                assertTrue(
+                        prompts.size() <= MissionLayout.TWO_PROMPT_LINES,
+                        "beside a two-line tracker the prompts have two lines");
+            }
             List<PromptTexts.Text> lines = new ArrayList<>(texts.of(prompts));
             level.prompts()
                     .orElse(List.of())

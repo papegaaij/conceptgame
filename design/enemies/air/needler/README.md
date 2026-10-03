@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Needler
@@ -31,9 +31,9 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | HP | 4 (easy 3 / hard 5, from the global multipliers) |
 | Armour / shield | none |
 | Speed | 120 px/s entering, 0 while hovering |
-| Movement | `swoop` in, `hover` 2–4 s at y = 80–220 px, then exit down or to the side; in `circle` formations `orbit` a point (radius 90 px, 60°/s) |
+| Movement | `swoop` in, `hover` 2–4 s at y = 80–220 px, then exit down or to the side; in `circle` formations `orbit` a point, as escorts the moving carrier (radius 90 px, 60°/s) |
 | Attack | `aimed` thorn (standard orb) every 2.5 s, 150 px/s, damage `small` = 4; first shot 0.8 s after it stops |
-| Formations | V-wing (5), line abreast, pincer, circle (8) |
+| Formations | V-wing (5), line abreast, pincer, circle (8), carrier + escorts (3) |
 | Weak points | glowing violet eye cluster (drawn only) |
 | Effective traits | `forward`, `spread` |
 | Credits | 12 (score 120 × chain) |
@@ -95,3 +95,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - 2026-10-02: Orientation stays `fixed` (user decision, Level 01 batch part P3); the claw snap got
   a wider swing (opening over three frames, snapping shut in one) so it reads in play.
 - 2026-10-02: Concept round 12 closed (user decision): the 6-frame claw-snap production sprites approved as **final**, `art: final`.
+- 2026-10-03: `carrier + escorts` (3) added to the formations (main-agent choice, part D doc gaps): Level 04's Needlers orbit a moving Brood Pod at their orbit numbers and break off like a circle when it ends (see the [Brood Pod](../brood-pod/README.md#behaviour)).

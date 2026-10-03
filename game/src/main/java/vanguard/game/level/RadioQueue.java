@@ -16,8 +16,10 @@ import vanguard.game.ui.Words;
  * line. An event line waits for a gap, a free radio long enough to play it before the next timed
  * line is due; one that has waited longer than {@link #STALE_SECONDS} is dropped as stale. The lines
  * that close a level (its end, a met secondary objective) wait for a gap too but never go stale:
- * the outro waits for them. The queue has no clock or randomness of its own, so the same updates
- * always play the same lines.
+ * the outro waits for them. An urgent line (the Airstrike's "Hammer flight, inbound!") interrupts
+ * the line on the radio and plays at once; the interrupted line plays again from its start right
+ * after it. The queue has no clock or randomness of its own, so the same updates always play the
+ * same lines.
  */
 public final class RadioQueue {
     public static final int LINE_CHARS = 22;
@@ -41,7 +43,9 @@ public final class RadioQueue {
         /** A reaction to an event (an escaped enemy, a secret): waits for a gap, stale after {@link #STALE_SECONDS}. */
         EVENT,
         /** A line that closes the level (its end, a met secondary objective): waits for a gap, never stale. */
-        CLOSING
+        CLOSING,
+        /** A line that cannot wait (a reply to the player's call): interrupts the current line and plays at once. */
+        URGENT
     }
 
     /** What changed in an update, for the squelch and typing sounds. */
@@ -100,6 +104,9 @@ public final class RadioQueue {
 
     private final List<Waiting> queue = new ArrayList<>();
     private Optional<Message> current = Optional.empty();
+    /** How the current message queued. */
+    private Priority currentPriority = Priority.TIMED;
+
     private int page;
     private float typed;
     private float held;
@@ -144,8 +151,15 @@ public final class RadioQueue {
                 waiting.remove();
             }
         }
+        boolean urgent = queue.stream().anyMatch(waiting -> waiting.priority == Priority.URGENT);
+        if (urgent && current.isPresent() && currentPriority != Priority.URGENT) {
+            // The interrupted line goes back to the head of the queue, to play again in full once the
+            // urgent lines (which go first wherever they wait) are done.
+            queue.addFirst(new Waiting(current.get(), currentPriority));
+            current = Optional.empty();
+        }
         if (current.isEmpty()) {
-            gap = Math.max(0, gap - seconds);
+            gap = urgent ? 0 : Math.max(0, gap - seconds);
             if (gap > 0) {
                 return Change.NONE;
             }
@@ -155,6 +169,7 @@ public final class RadioQueue {
             }
             queue.remove(next.get());
             current = Optional.of(next.get().message);
+            currentPriority = next.get().priority;
             page = 0;
             typed = 0;
             held = 0;
@@ -186,10 +201,16 @@ public final class RadioQueue {
     }
 
     /**
-     * The message to open now: the oldest timed line, else the oldest other line if it ends, with
+     * The message to open now: the oldest urgent line, else the oldest timed line, else the oldest other line if it ends, with
      * the gap after it, before the next timed line is due.
      */
     private Optional<Waiting> next(float untilTimed) {
+        Optional<Waiting> urgent = queue.stream()
+                .filter(waiting -> waiting.priority == Priority.URGENT)
+                .findFirst();
+        if (urgent.isPresent()) {
+            return urgent;
+        }
         Optional<Waiting> timed = queue.stream()
                 .filter(waiting -> waiting.priority == Priority.TIMED)
                 .findFirst();

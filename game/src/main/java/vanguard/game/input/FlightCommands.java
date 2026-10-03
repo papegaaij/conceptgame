@@ -14,6 +14,7 @@ public final class FlightCommands {
         commands |= bit(input, Action.MOVE_LEFT, Command.LEFT);
         commands |= bit(input, Action.MOVE_RIGHT, Command.RIGHT);
         commands |= bit(input, Action.PRECISION, Command.PRECISION);
+        commands |= bit(input, Action.SPECIAL, Command.SPECIAL);
         // With auto-fire on, holding fire does nothing extra (design/ui/controls).
         if (settings.autoFire() || input.held(Action.FIRE)) {
             commands |= Command.FIRE.bit();

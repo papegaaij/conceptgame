@@ -5,17 +5,20 @@
 Outputs (assets/sprites/intel/, packed onto the shared sprite pages as ``intel/<name>``):
   <enemy>.png        30x30 sensor portrait of an enemy type of a level's waves: skitter, needler,
                      stinger, spine-turret (Levels 01-02, UI batch); spore-bomber, whirl-seed
-                     (Level 03, M4 part C batch)
+                     (Level 03, M4 part C batch); brood-pod, scuttler (Level 04, M4 part D batch)
   boss-<boss>.png    40x40 sensor silhouette of a boss of Act 1: gorgon-frigate (L05 mid-boss),
                      brood-carrier (L07) (UI batch); leviathan (L03's set piece, the threat
                      profile's "unknown huge contact", M4 part C batch)
   design/ui/hangar/concept/intel-final-r13-a.png   review sheet of the UI batch's pictures
   design/ui/hangar/concept/intel-final-r16-a.png   review sheet of the M4 part C batch's
+  design/ui/hangar/concept/intel-final-r17-a.png   review sheet of the M4 part D batch's
 
 The names are the enemy's or boss's name as a slug (vanguard.game.render.Portraits.slug). A
 portrait is the unit's chosen round-04 model (tools/concept/enemies_r04.py, imported unchanged) in
 its own colours, nose down as it comes at the player (the Whirl Seed is the six-blade production
-seed of tools/art/vrell_l03.py, as the game draws it, at rest), ray-marched at 8x through the sprite path
+seed of tools/art/vrell_l03.py, as the game draws it, at rest; the Brood Pod and the Scuttler are
+the production models of tools/art/vrell_l04.py, the pod between swells, the Scuttler walking down
+at heading 0 in its first walk frame), ray-marched at 8x through the sprite path
 (1-bit alpha, unsharp mask) onto the intel's sensor plate: a dark teal screen with a dot grid, a
 cyan scan line and corner brackets, lightly tinted cyan as the scan sees it, 32 colours. A boss
 silhouette shows what L2 knows of it: the outline only, the shape filled flat in dark teal with a
@@ -44,6 +47,7 @@ from artkit import DESIGN, ROOT, SPRITES, sprite
 
 import leviathan  # noqa: E402  (the Leviathan's production model)
 import vrell_l03  # noqa: E402  (the Whirl Seed's production model)
+import vrell_l04  # noqa: E402  (the Brood Pod's and the Scuttler's production models)
 
 import bosses_r06  # noqa: E402  (concept scripts, imported unchanged)
 import enemies_r03 as e3  # noqa: E402
@@ -57,9 +61,10 @@ SCRIPT = "intel.py"
 UI_BATCH = "UI batch"
 # the batch each picture was made in (the Source note); the UI batch's are left out
 BATCHES = {"spore-bomber": "M4 part C batch", "whirl-seed": "M4 part C batch",
-           "boss-leviathan": "M4 part C batch"}
+           "boss-leviathan": "M4 part C batch",
+           "brood-pod": "M4 part D batch", "scuttler": "M4 part D batch"}
 # the concept round that reviews a batch
-ROUNDS = {UI_BATCH: "r13", "M4 part C batch": "r16"}
+ROUNDS = {UI_BATCH: "r13", "M4 part C batch": "r16", "M4 part D batch": "r17"}
 OUT = SPRITES / "intel"
 CONCEPT = DESIGN / "ui" / "hangar" / "concept"
 PORTRAIT = 30
@@ -73,12 +78,21 @@ ENEMIES = {
     "spine-turret": lambda: e4.R04["spine-turret-a"][4](0.0, 1.0),
     "spore-bomber": lambda: e4.R04["spore-bomber-a"][4](0.0, 1.0),
     "whirl-seed": lambda: vrell_l03.seed_model(0.0),
+    "brood-pod": lambda: vrell_l04.pod_model(0.0, 1.0),
+    "scuttler": lambda: scuttler_model(),
 }
 BOSSES = ("gorgon-frigate", "brood-carrier", "leviathan")
 PLATE = np.array([4, 16, 28], float)
 GRID = np.array([16, 60, 80], float)
 SCAN = np.array([60, 220, 255], float)
 SHAPE = np.array([10, 52, 66], float)
+
+
+def scuttler_model():
+    """The Scuttler at heading 0 (walking down the screen), walk frame 0, as vrell_l04 renders it."""
+    rot = np.pi
+    base = vrell_l04.scuttler_scene(0.0)
+    return (lambda p: base(rotate_z(p, rot))), model_space_materials(vrell_l04.scuttler_mats("unit"), rot)
 
 
 def plate(n):

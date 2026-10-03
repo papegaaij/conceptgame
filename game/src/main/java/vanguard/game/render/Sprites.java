@@ -45,10 +45,6 @@ public final class Sprites implements Disposable {
     public final Array<AtlasRegion> explosionTiny;
     public final Array<AtlasRegion> explosionSmall;
     public final Array<AtlasRegion> explosionLarge;
-    /** Intact, damaged. */
-    public final Array<AtlasRegion> cargoContainer;
-    /** The damaged container breaking apart, drawn solid. */
-    public final Array<AtlasRegion> cargoContainerBreak;
     /** Dark, lit; the same two after the first hit. */
     public final Array<AtlasRegion> beacon;
     /** The loot targets' sparkle, drawn additively. */
@@ -88,8 +84,6 @@ public final class Sprites implements Disposable {
         explosionTiny = frames(sprites, "explosion-tiny");
         explosionSmall = frames(sprites, "explosion-small");
         explosionLarge = frames(sprites, "explosion-large");
-        cargoContainer = frames(sprites, "cargo-container");
-        cargoContainerBreak = frames(sprites, "cargo-container-break");
         beacon = frames(sprites, "beacon");
         glint = frames(sprites, "glint");
         hudPanelLeft = region(sprites, "hud/panel-left");

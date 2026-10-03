@@ -26,7 +26,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 | [stinger](stinger/README.md) | Diver that fires a fan at the bottom of its dive (L02) | approved | done | final |
 | [spore-bomber](spore-bomber/README.md) | Low-air bomber dropping rising spore mines (L03) | approved | done | final |
 | [whirl-seed](whirl-seed/README.md) | Tiny radial spinner released in clusters (L03) | approved | done | final |
-| [brood-pod](brood-pod/README.md) | Egg sac that bursts into Skitters when killed or after 8 s (L04) | approved | not-started | final |
+| [brood-pod](brood-pod/README.md) | Egg sac that bursts into Skitters when killed or after 8 s (L04) | approved | done | final |
 | [mantis](mantis/README.md) | Side-entering laser sweeper (L06) | approved | not-started | chosen |
 | [coilwyrm](coilwyrm/README.md) | Segment-chain serpent that loops to the rear and regrows a head once (L06) | approved | not-started | chosen |
 | [wraith](wraith/README.md) | Cloaked manta that decloaks behind the player (L10) | approved | not-started | chosen |

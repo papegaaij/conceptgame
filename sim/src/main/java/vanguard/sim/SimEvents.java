@@ -49,7 +49,7 @@ public final class SimEvents {
         SET_PIECE_DESTROYED,
         /** A set piece ended its last pass alive (at its centre); value: its index. */
         SET_PIECE_ESCAPED,
-        /** A destructible ground object was destroyed (at the object). */
+        /** A destructible ground object was destroyed (at the object); value: its index in the script. */
         GROUND_DESTROYED,
         /** A trigger released its secret's hidden crate (at the trigger). */
         SECRET_FOUND,
@@ -74,10 +74,54 @@ public final class SimEvents {
         /** The scroll reached the end: the primary objective is met and the level is over. */
         LEVEL_COMPLETE,
         /** The level started again after the ship was destroyed (at the ship's start position). */
-        SORTIE_RESTARTED;
+        SORTIE_RESTARTED,
+        /** The special was called and used a charge (at the ship): the Airstrike's radio call. */
+        SPECIAL_CALLED,
+        /** The special button found no charge, no special, or a strike still flying (at the ship). */
+        SPECIAL_DENIED,
+        /** The Airstrike's bombers entered at the bottom edge (between them). */
+        AIRSTRIKE_INBOUND,
+        /** An Airstrike bomb burst on the ground (at its landing point); value: its number in the strike, from 0. */
+        AIRSTRIKE_BLAST,
+        /** A convoy unit took a hit, or a walker's claws started on it (at the unit); value: its index. */
+        ALLY_HIT,
+        /** A convoy unit was destroyed (at the unit); value: its index. */
+        ALLY_LOST,
+        /** The primary objective failed (the last convoy unit was lost): the level fails without a wreck (at the ship). */
+        PRIMARY_FAILED,
+        /**
+         * A spawner released its units, destroyed or bursting on its own (at its centre); value: its
+         * kind. A self-burst has no {@link #ENEMY_DESTROYED}: this event is its end.
+         */
+        BROOD_HATCHED,
+        /** A spawner burst on its own (at its centre), after {@link #BROOD_HATCHED}; value: its kind. */
+        BROOD_BURST,
+        /**
+         * A walker was destroyed (at it), after its {@link #ENEMY_DESTROYED}, for its remains at its
+         * last heading; value: {@link #walkerValue(int, double)}.
+         */
+        WALKER_DOWN;
 
         private static final Type[] VALUES = values();
     }
+
+    /** A {@link Type#WALKER_DOWN} value: the kind and its facing (radians clockwise from straight down). */
+    static int walkerValue(int kind, double facing) {
+        double turn = 2 * StrictMath.PI;
+        return kind * WALKER_KIND + (int) Math.floor(((facing % turn) + turn) % turn * 1000);
+    }
+
+    /** The kind of a {@link Type#WALKER_DOWN} value. */
+    public static int walkerKind(int value) {
+        return value / WALKER_KIND;
+    }
+
+    /** The facing of a {@link Type#WALKER_DOWN} value, radians clockwise from straight down. */
+    public static double walkerFacing(int value) {
+        return value % WALKER_KIND / 1000.0;
+    }
+
+    private static final int WALKER_KIND = 10_000;
 
     private final int[] types;
     private final double[] xs;

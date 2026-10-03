@@ -16,6 +16,8 @@ import java.util.Optional;
  * @param leadsTarget whether its gun aims where the ship is going
  * @param carried the pickup it drops when destroyed
  * @param release where a whirl cluster's unit spirals out from, instead of flying its path
+ * @param escort how an escort circles its carrier (the unit of a spawner planned just before it)
+ * @param walk a walker's ground path, instead of its flight path
  */
 record Spawn(
         int tick,
@@ -28,7 +30,37 @@ record Spawn(
         Exit exit,
         boolean leadsTarget,
         Optional<PickupType> carried,
-        Optional<Release> release) {
+        Optional<Release> release,
+        Optional<Escort> escort,
+        Optional<WalkPath> walk) {
+
+    Spawn(
+            int tick,
+            int kind,
+            EnemySpec enemy,
+            FlightPath path,
+            double speed,
+            double holdSeconds,
+            Optional<Orbit> orbit,
+            Exit exit,
+            boolean leadsTarget,
+            Optional<PickupType> carried,
+            Optional<Release> release) {
+        this(
+                tick,
+                kind,
+                enemy,
+                path,
+                speed,
+                holdSeconds,
+                orbit,
+                exit,
+                leadsTarget,
+                carried,
+                release,
+                Optional.empty(),
+                Optional.empty());
+    }
 
     Spawn(
             int tick,
@@ -43,6 +75,13 @@ record Spawn(
             Optional<PickupType> carried) {
         this(tick, kind, enemy, path, speed, holdSeconds, orbit, exit, leadsTarget, carried, Optional.empty());
     }
+
+    /**
+     * An escort's circle around its moving carrier: {@code radius} px, starting at {@code angle}
+     * (radians), {@code radiansPerSecond}; when the carrier ends it breaks off toward the ship
+     * after {@code breakSeconds}.
+     */
+    record Escort(double radius, double angle, double radiansPerSecond, double breakSeconds) {}
 
     /** A whirl cluster's release point and this unit's starting angle on the spiral (radians). */
     record Release(double x, double y, double angle) {}

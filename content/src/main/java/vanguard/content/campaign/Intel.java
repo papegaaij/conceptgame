@@ -44,6 +44,8 @@ public record Intel(
         DIRECTIONS(1),
         DENSITY(1),
         HAZARDS(1),
+        /** The primary objective when it is more than reaching the end ("ESCORT 5 CRAWLERS"). */
+        OBJECTIVE(1),
         ENEMIES(2),
         BOSS(2),
         CONTACTS(2),

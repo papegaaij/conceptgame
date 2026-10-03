@@ -28,7 +28,8 @@ public record Content(
         EconomyData economy,
         DifficultyData difficulty,
         ScoringData scoring,
-        RetryData retry) {
+        RetryData retry,
+        AlliesData allies) {
     public Content {
         weapons = Map.copyOf(weapons);
         enemies = Map.copyOf(enemies);

@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import vanguard.sim.PlayField;
+import vanguard.sim.Road;
 
 /**
  * The checks across files, after every file has parsed: names resolve (a wave's enemy and
@@ -103,8 +105,8 @@ final class ContentValidator {
         }
         for (int i = 0; i < enemy.attacks().size(); i++) {
             EnemyData.Attack attack = enemy.attacks().get(i);
-            checkBullet(enemy, "attacks[" + i + "].bullet", attack.bullet());
             String field = "attacks[" + i + "]";
+            attack.bullet().ifPresent(bullet -> checkBullet(enemy, field + ".bullet", bullet));
             attack.mine().ifPresent(mine -> checkBullet(enemy, field + ".mine.ring_bullet", mine.ringBullet()));
         }
         for (var hook : List.of(
@@ -278,6 +280,7 @@ final class ContentValidator {
             });
             cue.group().ifPresent(group -> checkGroup(level, field + ".group", group));
         }
+        checkEscort(level, levelEnemies);
         LevelData.Music music = level.music();
         if (music.fullSection() > level.sections().size()) {
             problem(level, "music.full_section", "no section " + music.fullSection());
@@ -429,6 +432,94 @@ final class ContentValidator {
             double wave = pickups.get(i).droppedBy().wave();
             if (!waveTimes.contains(wave)) {
                 problem(level, field + "[" + i + "].dropped_by.wave", "no wave at t=" + wave);
+            }
+        }
+    }
+
+    /**
+     * An escort objective's convoy (design/allies; Level 04): its ally exists and follows the
+     * level's road, its column fits the screen without units overlapping, its hooked enemies fly in
+     * the level, and the ally events and level-end ranges are used only with a convoy. The road keeps
+     * its ribbon inside the play field and bends no further than the ally's rendered headings.
+     */
+    private void checkEscort(LevelData level, Set<String> levelEnemies) {
+        Optional<LevelData.Escort> escort = level.objectives().escort();
+        for (int i = 0; i < level.radio().size(); i++) {
+            LevelData.RadioCue cue = level.radio().get(i);
+            String field = "radio[" + i + "]";
+            boolean allyEvent = cue.event()
+                    .map(event -> event == LevelData.CueEvent.FIRST_ALLY_HIT
+                            || event == LevelData.CueEvent.FIRST_ALLY_LOST
+                            || event == LevelData.CueEvent.MISSION_FAILED)
+                    .orElse(false);
+            if ((allyEvent || cue.allies().isPresent()) && escort.isEmpty()) {
+                problem(level, field, "convoy events and allies ranges need an escort objective");
+            }
+            int units = escort.map(e -> e.y().size()).orElse(0);
+            cue.allies().ifPresent(range -> {
+                if (range.max() > units) {
+                    problem(level, field + ".allies", "the convoy has " + units + " units");
+                }
+            });
+        }
+        if (level.radio().stream()
+                        .filter(cue -> cue.event().orElse(null) == LevelData.CueEvent.MISSION_FAILED)
+                        .count()
+                > 1) {
+            problem(level, "radio", "at most one mission-failed line");
+        }
+        level.road().ifPresent(road -> checkRoad(level, road, escort));
+        if (escort.isEmpty()) {
+            return;
+        }
+        LevelData.Escort convoy = escort.get();
+        AlliesData.Ally ally = content.allies().allies().get(convoy.ally());
+        if (ally == null) {
+            problem(level, "objectives.escort.ally", "unknown ally '" + convoy.ally() + "'");
+            return;
+        }
+        if (ally.follows().equals("road") && level.road().isEmpty()) {
+            problem(level, "objectives.escort", "a " + convoy.ally() + " follows the level's road: give road");
+        }
+        double length = ally.size().height();
+        for (int k = 0; k < convoy.y().size(); k++) {
+            double y = convoy.y().get(k);
+            if (y - length / 2 < 0 || y + length / 2 > PlayField.HEIGHT) {
+                problem(level, "objectives.escort.y[" + k + "]", "y=" + y + " puts the unit off the screen");
+            }
+            if (k > 0 && y - convoy.y().get(k - 1) < length) {
+                problem(level, "objectives.escort.y[" + k + "]", "units overlap: less than " + length + " px apart");
+            }
+        }
+        checkTime(level, "objectives.escort.enter.t", convoy.enter().t());
+        for (String slug : convoy.hook().enemies()) {
+            checkEnemyName(level, "objectives.escort.hook.enemies", slug);
+            if (content.enemies().containsKey(slug) && !levelEnemies.contains(slug)) {
+                problem(level, "objectives.escort.hook.enemies", "no '" + slug + "' in this level");
+            }
+        }
+    }
+
+    /** The road's ribbon stays inside the play field and bends no further than the convoy's headings. */
+    private void checkRoad(LevelData level, LevelData.Road data, Optional<LevelData.Escort> escort) {
+        Road road = SimSpecs.road(level, data);
+        double most = escort.map(e -> content.allies().allies().get(e.ally()))
+                .map(ally -> (ally.headings().count() - 1) / 2 * ally.headings().step())
+                .orElse(90.0);
+        double half = data.width() / 2;
+        for (double along = road.start(); along <= road.end(); along += 1) {
+            double x = road.x(along);
+            if (x - half < 0 || x + half > PlayField.WIDTH) {
+                problem(level, "road.points", "the ribbon leaves the play field at x=" + Math.round(x));
+                return;
+            }
+            if (Math.abs(road.headingDegrees(along)) > most + 1e-6) {
+                problem(
+                        level,
+                        "road.points",
+                        "bends " + Math.round(Math.abs(road.headingDegrees(along))) + "° from straight up, more than "
+                                + most + "°");
+                return;
             }
         }
     }

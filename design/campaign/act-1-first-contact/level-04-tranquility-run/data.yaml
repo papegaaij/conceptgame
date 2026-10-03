@@ -1,0 +1,415 @@
+# Level 04 – Tranquility Run: the level script, rendered into README.md (briefing, threat profile,
+# layout, waves, ground targets, radio, credit budget). Times are seconds from the level start.
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+# The `backdrop` and `road` blocks and the sections' tiles are merged in from the round 17
+# backdrop proposal (art: tools/art/backdrop_l04.py, which reads them from here).
+scroll_speed: 120     # px/s: the crawlers' pace
+launch_seconds: 5     # flying in from the bottom edge, as in Levels 01-03
+control_prompts: []
+prompts:  # contextual prompts in the HUD's prompt well; requires: special = only with a special fitted
+  - {t: 75, action: SPECIAL, keys: CALL HAMMER, seconds: 6, requires: special}
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Luna
+  layers: [ground, air]
+  density: 2
+  traits: [forward, anti-ground]
+  hazards: []
+  boss: none
+  objective: ESCORT 5 CRAWLERS   # the OBJECTIVE field from sensor L1
+  varga:
+    none: Walkers in the craters and egg sacs coming down, Lancer. And five crawlers that can't dodge.
+  notes:
+    Dominant layers: '`ground` (turrets, walkers, the convoy), `air`'
+    Attack directions: '{directions} (walker pincers over the crater rims)'
+    Density: '{density}'
+    Recommended traits: '{traits}'
+    Hazards: none lethal; ground fire targets the convoy
+    Boss / mid-boss: '{boss}'
+    Sensor-suite detail: 'none: Luna, `ground` + `air`, front · L1: + directions, density {density}, OBJECTIVE `{objective}` · L2: + Brood Pod, Scuttler, Spine Turret, Needler, Skitter portraits; Airstrike available · L3: + `anti-ground` highlighted, wave strip, 1 secret'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets (no deep layer on Luna); peak: a heavier atmosphere inside the section
+  - name: Tranquility Base
+    end: 25
+    atmosphere: clear
+    tiles: [mare-a]
+    notes:
+      layers:
+        ground: 'Tranquility Base: domes, the Apollo 11 heritage dome, the convoy assembling and pulling out, earthshine-tinted crater shadows.'
+        low-air: none.
+      purpose: First planetary surface; the convoy forms up; the first Brood Pod alone.
+  - name: Mare Road
+    end: 70
+    atmosphere: light
+    tiles: [mare-b, rille-floor]
+    notes:
+      layers:
+        ground: the convoy road across grey mare, abandoned rovers, turret growth on boulders.
+        low-air: thin regolith plumes from impacts.
+      purpose: Protect the convoy from turrets; pods with escorts.
+  - name: Rille Crossing
+    end: 110
+    atmosphere: medium
+    tiles: [rille-rims, rille-floor]
+    notes:
+      layers:
+        far: the floor of a sinuous rille (40% haze).
+        ground: the rille rim and a road bridge across it.
+        low-air: dust kicked up by the walkers.
+      purpose: The first walker, alone on the rille rim; then pairs.
+  - name: Landing Zone
+    end: 155
+    atmosphere: medium
+    peak: {atmosphere: heavy, from: 130, to: 137}   # the pod lander's impact plume
+    tiles: [crater-growth, ejecta-streaks]
+    notes:
+      layers:
+        ground: craters with split pod husks and the first teal Vrell growth.
+        low-air: a regolith plume from a pod lander impact (the heavy peak).
+        high-air: ejected rock streaks.
+      purpose: Walker pincer and pods together; the hidden cache.
+  - name: Terminal Gate
+    end: 190
+    atmosphere: light
+    tiles: [mass-driver-field]
+    notes:
+      layers:
+        ground: "the mass-driver rail with sleds launching to orbit (scenery), the terminal's vehicle hangar (380×300 px) with its lit door, landing lights on its apron, the road ending inside it."
+      purpose: Final pods and walker; the convoy drives into the hangar.
+
+waves:  # paths: a walker wave's ground paths, one list of [x, y] points per unit (y below the top edge at the wave's t; they scroll with the ground)
+  - {t: 22, formation: single, enemy: brood-pod, count: 1, from: front, notes: "**Introduction**: alone, above the base; bursts into 6 Skitters"}
+  - {t: 32, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - t: 45
+    groups:
+      - {formation: carrier + escorts, enemy: brood-pod, count: 1}
+      - {formation: carrier + escorts, enemy: needler, count: 3}
+    from: front
+    notes: Needlers `orbit` the pod
+  - {t: 60, formation: V-wing, enemy: needler, count: 3, from: front, notes: Over a turret nest}
+  - t: 75
+    formation: single
+    enemy: scuttler
+    count: 1
+    from: front
+    paths: [[[200, -40], [200, 10], [130, 40], [70, -30]]]   # down the rille's west rim, across the road, then away north-west
+    notes: '**Introduction**: walks along the rille rim on the ground layer beside the road, then turns toward the column, showing its back as it turns'
+  - t: 88
+    formation: pincer
+    enemy: scuttler
+    count: 2
+    from: sides
+    paths:
+      - [[-40, 0], [50, 40], [170, -20]]     # over the west rim and across the road
+      - [[520, 20], [420, 30], [350, -60]]   # over the east rim, up beside the rille
+    notes: Walk in over both crater rims toward the convoy; edge warnings
+  - {t: 95, formation: stream, enemy: skitter, count: 9, from: front, edge: alternating, interval: 0.5, notes: While the pincer walks in}
+  - {t: 100, formation: single, enemy: brood-pod, count: 1, from: front}
+  - t: 115
+    groups:
+      - {formation: carrier + escorts, enemy: brood-pod, count: 1}
+      - {formation: carrier + escorts, enemy: needler, count: 3}
+    from: front
+  - t: 120
+    formation: convoy
+    enemy: scuttler
+    count: 2
+    from: front
+    paths: [[[265, -40], [276, 200], [289, 320], [322, 600]]]   # down the road (its ground positions at t=120), 1.5 s apart
+    notes: Walk down the road toward the column, claws first
+  - t: 140
+    formation: pincer
+    enemy: scuttler
+    count: 2
+    from: sides
+    paths: [[[-40, 40], [70, 70], [200, -10]]]   # mirrored for the unit from the right
+    hard: {count: 4}
+    notes: Out of the heavy dust; edge warnings; two per side on hard
+  - {t: 150, formation: line abreast, enemy: brood-pod, count: 2, from: front}
+  - {t: 160, formation: line abreast, enemy: needler, count: 3, from: front}
+  - t: 165
+    formation: single
+    enemy: scuttler
+    count: 1
+    from: front
+    paths: [[[300, -40], [255, 110], [180, 250]]]   # out of the gate yard, across the road
+    notes: Comes out of the gate yard toward the convoy
+
+ground_targets:  # at: [t, x], when it enters at the top edge (2.25 s before its base piece's centre passes the screen middle) and its x
+  - target: Mare Road nest
+    section: 2
+    enemy: spine-turret
+    count: 3
+    at: [[39.48, 173], [40.28, 339], [41.08, 161]]   # on the boulder-growth sockets at 41.8 / 42.6 / 43.4 s
+    notes:
+      target: 'Turret nest: Spine Turret ×{count} by the road (t≈40)'
+      effect: Fires at the player and the convoy
+  - target: supply drop
+    section: 2
+    layer: ground
+    size: [32, 24]
+    sprite: supply-drop   # assets/sprites/supply-drop_0..2, -break_0..7 (tools/art/l04_targets.py)
+    hp: 3
+    drop: medium salvage
+    bonus_drop: special charge
+    at: [[52.5, 330]]    # beside the road; passes the screen middle at about 54.9 s
+    notes:
+      target: CDF supply drop (ground layer, {hp} HP; t≈55)
+      effect: 'Medium salvage ({drop_credits}); also a special charge if a special is fitted (on top of the free first Airstrike charge)'
+      budget: supply drop {drop} {drop_credits}
+
+  - target: boulder nest
+    section: 2
+    enemy: spine-turret
+    count: 4
+    at: [[61.08, 293], [61.68, 93], [62.48, 323], [63.08, 97]]   # sockets at 63.4 / 64.0 / 64.8 / 65.4 s
+    notes:
+      target: 'Turret nest: Spine Turret ×{count} on boulders (t≈62)'
+      effect: As above
+  - target: bridge abutments
+    section: 3
+    enemy: spine-turret
+    count: 2
+    at: [[103.35, 202], [104.95, 308]]   # on the road bridge's two arches, over the road
+    notes:
+      target: Spine Turret ×{count} on the bridge arches over the road (t≈105)
+      effect: As above
+  - target: prospector's dugout
+    section: 4
+    layer: ground
+    size: [48, 32]
+    sprite: dugout
+    hp: 20
+    hardened: true
+    reveals: prospector's cache
+    at: [[122.8, 110]]   # in a crater rim west of the road; passes the screen middle at about 125.2 s
+    notes:
+      target: "Collapsed prospector's dugout in a crater rim (**hardened**, {hp} HP; t≈125)"
+      effect: Only `anti-ground` weapons or the Airstrike open it; releases the hidden crate
+  - target: husk nest
+    section: 4
+    enemy: spine-turret
+    count: 4
+    at: [[144.05, 92], [144.45, 150], [145.75, 344], [146.15, 400]]   # on the rims of the pod husks at 146.5 s (x 120) and 148.2 s (x 372)
+    notes:
+      target: 'Turret nest: Spine Turret ×{count} among the pod husks (t≈145)'
+      effect: As above
+
+secrets:
+  - name: prospector's cache
+    crate: 100
+    radio: {speaker: Okafor, line: "A prospector's cache. Whoever dug in there would want it used, Lancer."}
+
+pickups:
+  - {pickup: overdrive, dropped_by: {wave: 45, unit: first}}      # the Brood Pod of the t=45 group, if killed before it bursts
+  - {pickup: armour patch, dropped_by: {wave: 115, unit: last}}   # the last Needler of the t=115 group
+
+radio:  # trigger: t or event; {ally} becomes the crawler's number word; requires: special = only with a special fitted
+  - {t: 0, speaker: Okafor, line: "Five crawlers, four hundred civilians. Get them to the terminal, Lancer."}
+  - {t: 11, speaker: Crawler One, portrait: generic-civilian, line: "Crawler One rolling. We're slow and we're loud, Aegis. Please don't leave us."}
+  - {t: 22, speaker: Varga, line: "That's an egg sac. It hatches on its own in eight seconds. Kill it before then, and be ready for what comes out.", notes: {trigger: first pod}}
+  - {t: 34.5, speaker: Rook, line: "Aegis Two over Shackleton. My family's down there somewhere, Lancer. Bring those crawlers home."}
+  - {t: 60, requires: special, speaker: Okafor, line: "Hammer flight is on station. Your call, Lancer.", notes: {trigger: Airstrike fitted}}
+  - {event: first-ally-hit, speaker: Convoy, portrait: generic-civilian, line: "We're taking fire! Crawler {ally} is hit!", notes: {trigger: First crawler hit}}
+  - {event: first-ally-lost, speaker: Crawler One, portrait: generic-civilian, line: "We lost {ally}. Oh God, we lost {ally}.", notes: {trigger: Crawler lost (first)}}
+  - {event: first-ally-lost, speaker: Okafor, expression: grim, line: "Keep the rest moving, Lancer.", notes: {trigger: "Crawler lost (first), after the convoy's line"}}
+  - {t: 74, speaker: Varga, line: "Walker on the rille rim. The claws are armour. Wait for it to turn, then hit the glowing back.", notes: {trigger: first Scuttler}}
+  - {t: 86, speaker: Tranquility Control, portrait: generic-cdf, line: "Walkers coming over the crater rims, both sides of the road!"}
+  - {t: 128, speaker: Tranquility Control, portrait: generic-cdf, line: "Lander impact, grid four. Dust everywhere. Stay on the convoy."}
+  - {t: 176, speaker: Crawler One, portrait: generic-civilian, line: "Terminal in sight! Open those doors!"}
+  - {event: level-end, allies: [5, 5], speaker: Okafor, line: "All five. Four hundred people. That's what we're for, Aegis.", notes: {trigger: "Level end, 5 crawlers"}}
+  - {event: level-end, allies: [1, 4], speaker: Okafor, line: "We got most of them home. Most.", notes: {trigger: "Level end, 1–4 crawlers"}}
+  - {event: mission-failed, speaker: Okafor, expression: grim, line: "The convoy is gone, Lancer. Pull back.", notes: {trigger: Mission failed (the failed screen's line)}}
+  - {event: secondary-objective, speaker: Varga, line: "Not one sac hatched on its own. You're learning their rhythm.", notes: {trigger: Secondary met}}
+
+objectives:
+  primary: escort
+  escort:
+    ally: civilian-crawler
+    y: [150, 234, 318, 402, 486]   # the column's centres, px below the top edge, Crawler One first
+    credits: 30                    # per crawler home, through the credit factor
+    enter: {t: 4, interval: 1, speed: 84}   # rolling in from the bottom edge, one per second
+    hook: {mode: nearest, enemies: [spine-turret, scuttler]}
+    easy: {hp: 90}
+    hard: {hp: 45}
+  secondary: {escapes: brood-pod, credits: 50}   # "Quick hands": every Brood Pod killed before it bursts on its own
+
+music:
+  track: 4            # Act 1 A "Afterburner"
+  start_section: 1
+  full_section: 3     # the intensity stem from the Rille Crossing, where the first walker comes
+  ambience: luna
+  end_jingle: mission-complete
+
+difficulty:  # the hard pincer at t=140 is in its wave; the stat blocks' hooks apply
+  easy: {enemies: {scuttler: {speed_factor: 0.8}}}   # Scuttlers walk 20% slower
+
+briefing:
+  pages:
+    - {speaker: Okafor, line: "Lancer, brood pods came down around Tranquility Base overnight. The heritage site is fine. The town around it is not. Four hundred civilians are loading into five crawlers for the run to the mass-driver terminal, and Vrell walkers are already in the craters along the road. You are their escort. Crawlers are slow and they can't dodge: anything on the ground that shoots will shoot at them. Lose all five and this mission is over. High Command has released Hammer flight to us. Use it."}
+    - {speaker: Varga, line: "The walkers turn to face where they're going. Their claws stop your rounds, but their backs glow. Be patient."}
+  teaser: {speaker: Okafor, line: "Tomorrow you fly over people, Lancer. Bring something that can hit the ground."}
+
+# The road (from the round 17 backdrop proposal): matched to the art, so move its points only
+# together with a rerun of tools/art/backdrop_l04.py. Texture road-texture.png, 56x192 (its
+# contract is in the script); bends <= 29 degrees, centre x 94-392; it begins under the convoy
+# apron and ends inside the terminal's hangar.
+road:
+  width: 56
+  texture: road-texture
+  points:
+    # 1. out of the convoy apron, a gentle bend west
+    - [-3, 240]
+    - [6, 240]
+    - [12, 232]
+    - [18, 214]
+    - [24, 206]
+    # 2. across the mare: past the t=40 turret nest (road ~262), swinging west for the rille
+    - [30, 214]
+    - [36, 246]
+    - [42, 262]
+    - [48, 250]
+    - [54, 226]
+    - [60, 222]
+    - [64, 196]
+    - [68, 150]
+    # 3. 150 px west of the rille's channel, then across the bridge
+    - [70, 136]
+    - [72.5, 125]
+    - [75, 94]
+    - [77.5, 133]
+    - [80, 125]
+    - [82.5, 101]
+    - [85, 124]
+    - [87.5, 127]
+    - [90, 111]
+    - [92.5, 112]
+    - [95, 130]
+    - [97.5, 119]
+    - [100, 100]
+    - [102.5, 134]
+    - [104.9, 155]
+    - [108.4, 386]    # the bridge: 28.8 degrees, its centre at 106.4 s
+    - [110.75, 392]
+    # 4. east of the rille's end, back to the middle through the landing zone
+    - [112.5, 390]
+    - [115, 360]
+    - [118, 310]
+    - [121, 270]
+    - [126, 252]
+    - [132, 236]
+    - [138, 238]
+    - [144, 256]
+    - [150, 262]
+    - [155, 250]
+    # 5. to the terminal's hangar, centred on its door (x 216, clear of the rail); ends 40 px inside
+    #    the door (6 px below the hangar pieces' centre), where the crawlers are no longer drawn
+    - [160, 240]
+    - [170, 236]
+    - [178, 236]
+    - [184, 216]
+    - [187.6, 216]
+
+# Rille: the ground channel's centre is x = 268 + 18 sin(2pi u/960 + 0.6) + 8 sin(4pi u/960 + 2.0),
+# u = layer position mod 960; open 30 px either side, walls to 46, rims to ~56. In section 3 the
+# road runs 150 px west of it, crosses on the bridge at 104.9-108.4 s and runs east of it to the
+# rille's end. Motion budget: the plumes (the atmosphere's banks, drifting) and the sled-run
+# overlays (one animated piece id, placed 10 times along the rail) are the only movers.
+backdrop:
+  # Presentation only. Luna, Mare Tranquillitatis: a top-down surface (no deep layer, Earth only as
+  # the earthshine tint in the shadows), the rille floor on far only where the ground opens.
+  scroll_factors: {far: 0.85, ground: 1.0, low-air: 1.35, high-air: 2.2}
+  ramp: 2
+  haze_colour: 5a6274  # grey-blue: shows only over the rille floor
+  atmosphere:
+    clear: {haze: 0.3}                                # no plumes
+    light: {banks: plumes-light, haze: 0.35}          # thin regolith plumes from impacts
+    medium: {banks: plumes-medium, haze: 0.4}         # dust kicked up by walkers and landings
+    heavy: {banks: plumes-heavy, haze: 0.5}           # the pod lander's impact plume (130-137 s)
+  tile_sets:
+    # ground: one shared terrain and palette; seams fall on rows where the features fade out
+    mare-a: {layer: ground, height: 960}              # grey mare regolith
+    mare-b: {layer: ground, height: 960}              # grey mare regolith, second variant
+    rille-rims: {layer: ground, height: 960}          # mare-b with the rille's channel (transparent)
+    crater-growth: {layer: ground, height: 960}       # crater field with teal Vrell roots
+    mass-driver-field: {layer: ground, height: 960}   # cratered mare with the mass-driver rail at x 432
+    rille-floor: {layer: far, height: 960}            # the rille floor in earthshine
+    plumes-light: {layer: low-air, height: 960, drift: 6}     # ~10 % cover
+    plumes-medium: {layer: low-air, height: 960, drift: 8}    # ~22 % cover
+    plumes-heavy: {layer: low-air, height: 960, drift: 10}    # ~52 % cover, dense
+    ejecta-streaks: {layer: high-air, height: 960}            # ejected rock (additive)
+  pieces:
+    convoy-apron: {layer: ground, size: [168, 540], mid_size: true}   # the marshalling slab, lamps, cargo
+    hab-domes-a: {layer: ground, size: [180, 150], mid_size: true}    # pressure domes, truss, radiator, cargo
+    hab-domes-b: {layer: ground, size: [180, 150], mid_size: true}
+    heritage-dome: {layer: ground, size: [128, 128], mid_size: true}  # the Eagle's descent stage under glass
+    landing-pad: {layer: ground, size: [96, 96]}
+    rover-a: {layer: ground, size: [64, 72]}          # abandoned pressurised rover
+    rover-b: {layer: ground, size: [72, 72]}          # abandoned utility rover with trailer
+    boulder: {layer: ground, size: [64, 56]}
+    boulder-growth-a: {layer: ground, size: [72, 64]} # a Vrell socket on top: a Spine Turret's base
+    boulder-growth-b: {layer: ground, size: [72, 64]}
+    rille-end-south: {layer: ground, size: [200, 160]}   # covers the channel's start at the section 3 seam
+    rille-end-north: {layer: ground, size: [200, 160]}   # covers its end at the section 4 seam
+    road-bridge: {layer: ground, size: [216, 280], mid_size: true}   # turned to the road (28.8 degrees)
+    road-bridge-arches: {layer: ground, size: [216, 280]}            # its overhead arches, the turrets on top
+    pod-husk-a: {layer: ground, size: [110, 100], mid_size: true}    # split lander husk in its crater
+    pod-husk-b: {layer: ground, size: [110, 100], mid_size: true}
+    rail-head: {layer: ground, size: [112, 176], mid_size: true}     # loading station over the rail's start
+    sled-run: {layer: ground, size: [48, 480], frames: 30, fps: 10}  # rail lamps + the sled shot (3 s loop)
+    terminal-gate: {layer: ground, size: [432, 480], mid_size: true} # the hangar's apron, static landing lights
+    terminal-gate-roof: {layer: ground, size: [432, 480]}            # the overhead vehicle hangar, 380x300
+  placed:
+    # 1. Tranquility Base
+    - {piece: convoy-apron, t: 0, x: 240}            # exactly the screen at t = 0: the column on it
+    - {piece: landing-pad, t: 2, x: 400}
+    - {piece: hab-domes-a, t: 5.5, x: 92}
+    - {piece: heritage-dome, t: 9.5, x: 372}
+    - {piece: landing-pad, t: 14, x: 96}
+    - {piece: hab-domes-b, t: 19, x: 378}
+    - {piece: boulder, t: 23, x: 420}
+    # 2. Mare Road: rovers, boulders, the two turret nests' bases
+    - {piece: rover-a, t: 29, x: 110}
+    - {piece: boulder, t: 33, x: 390}
+    - {piece: boulder-growth-a, t: 41.8, x: 180}
+    - {piece: boulder-growth-b, t: 42.6, x: 346}
+    - {piece: boulder-growth-a, t: 43.4, x: 168}
+    - {piece: rover-b, t: 50, x: 392}
+    - {piece: boulder, t: 56, x: 96}
+    - {piece: boulder-growth-b, t: 63.4, x: 300}
+    - {piece: boulder-growth-a, t: 64, x: 100}
+    - {piece: boulder-growth-b, t: 64.8, x: 330}
+    - {piece: boulder-growth-a, t: 65.4, x: 104}
+    - {piece: boulder, t: 68, x: 330}
+    # 3. Rille Crossing: the rille's ends sit on the seams (layer position 8952 and 13728)
+    - {piece: rille-end-south, t: 72.35, x: 275}
+    - {piece: boulder, t: 80, x: 420}
+    - {piece: rover-b, t: 86, x: 410}
+    - {piece: boulder, t: 99, x: 420}
+    - {piece: road-bridge, t: 106.4, x: 255}
+    - {piece: road-bridge-arches, t: 106.4, x: 255, overhead: true}   # over the convoy, under the turrets
+    - {piece: rille-end-north, t: 112.15, x: 275}
+    # 4. Landing Zone: pod husks (the t=145 nest among them)
+    - {piece: pod-husk-a, t: 117, x: 110}
+    - {piece: pod-husk-b, t: 124, x: 380}
+    - {piece: boulder, t: 129, x: 100}
+    - {piece: pod-husk-a, t: 135, x: 110}
+    - {piece: pod-husk-b, t: 146.5, x: 120}
+    - {piece: pod-husk-a, t: 148.2, x: 372}
+    - {piece: rover-a, t: 152, x: 400}
+    # 5. Terminal Gate: the rail head on the seam (layer position 19140), the sled overlays on the
+    #    rail (bottom edges at multiples of 60 px: on the pylons), the gate at the road's end
+    - {piece: rail-head, t: 157.25, x: 432}
+    - {piece: sled-run, t: 160.25, x: 432}
+    - {piece: sled-run, t: 164.25, x: 432}
+    - {piece: sled-run, t: 168.25, x: 432}
+    - {piece: sled-run, t: 172.25, x: 432}
+    - {piece: sled-run, t: 176.25, x: 432}
+    - {piece: sled-run, t: 180.25, x: 432}
+    - {piece: sled-run, t: 184.25, x: 432}
+    - {piece: sled-run, t: 188.25, x: 432}
+    - {piece: sled-run, t: 192.25, x: 432}
+    - {piece: sled-run, t: 196.25, x: 432}
+    - {piece: landing-pad, t: 168, x: 110}
+    - {piece: boulder, t: 176, x: 96}
+    - {piece: terminal-gate, t: 187.65, x: 216}      # door at 187.27 s; the column is in from 186.6 to 189.4 s
+    - {piece: terminal-gate-roof, t: 187.65, x: 216, overhead: true}   # the crawlers vanish under it

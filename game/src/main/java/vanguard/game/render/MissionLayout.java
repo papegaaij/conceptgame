@@ -29,6 +29,8 @@ final class MissionLayout {
     static final int WELL = LINE + 6;
     /** An LCD well for three lines: a radio page, or the control prompts. */
     static final int PAGE_WELL = 3 * LINE + 6;
+    /** An LCD well for two lines: the control prompts and the tracker in a level with two objectives. */
+    static final int TWO_LINE_WELL = 2 * LINE + 6;
 
     static final int PORTRAIT = 72;
     /** Between the portrait and the speaker's name. */
@@ -60,6 +62,19 @@ final class MissionLayout {
     static final Region PROGRESS = below(OBJECTIVE, block(framed(PROGRESS_BAR)));
 
     static final List<Region> REGIONS = List.of(MISSION, SCORE, CREDITS, CHAIN, RADIO, PROMPTS, OBJECTIVE, PROGRESS);
+
+    /**
+     * In a level with a primary and a secondary objective (design/ui/hud: Level 04) the tracker
+     * takes a line from the control prompts' well: both are two-line wells in the same space.
+     */
+    static final Region TWO_PROMPTS = below(RADIO, framed(TWO_LINE_WELL));
+
+    static final Region TWO_OBJECTIVES = below(TWO_PROMPTS, framed(TWO_LINE_WELL));
+    /** The most control prompts shown at once beside a two-line tracker. */
+    static final int TWO_PROMPT_LINES = 2;
+
+    static final List<Region> TWO_OBJECTIVE_REGIONS =
+            List.of(MISSION, SCORE, CREDITS, CHAIN, RADIO, TWO_PROMPTS, TWO_OBJECTIVES, PROGRESS);
 
     private MissionLayout() {}
 

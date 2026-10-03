@@ -5,6 +5,7 @@ import vanguard.sim.Debris;
 import vanguard.sim.Enemy;
 import vanguard.sim.EnemyBullet;
 import vanguard.sim.GroundObject;
+import vanguard.sim.Layer;
 import vanguard.sim.Mine;
 import vanguard.sim.Pickup;
 import vanguard.sim.PlayField;
@@ -15,13 +16,17 @@ import vanguard.sim.Sortie;
  * A simple pilot for headless runs of a whole level: fires all the time, lines up under the lowest
  * enemy on screen (or a ground object when the air is clear), sidesteps bullets, rammers, armed
  * spores and large debris that come close, stays under a set piece on the player's layer and
- * aims at its vital part, and picks up what drops when nothing threatens. It reads the sortie's state only, so
- * it is deterministic; the recorded replay stores its commands.
+ * aims at its vital part, and picks up what drops when nothing threatens. With a convoy (Level 04) it
+ * cruises among the column, so more of the ground enemies' aimed shots (at the nearer of the ship
+ * and the convoy) go for it, and it shoots the ground enemies nearest the convoy first. It reads the sortie's state only, so it is
+ * deterministic; the recorded replay stores its commands.
  */
 final class Autopilot {
     private static final double CRUISE_Y = 110;
     private static final double DANGER = 70;
     private static final double DEAD_ZONE = 4;
+    /** Its cruise height over a convoy (the column spans y = 118-526). */
+    private static final double CONVOY_CRUISE = 220;
 
     private Autopilot() {}
 
@@ -34,7 +39,7 @@ final class Autopilot {
             return commands | (threat < 0 ? Command.LEFT.bit() : Command.RIGHT.bit()) | Command.DOWN.bit();
         }
         double targetX = shipX;
-        double targetY = CRUISE_Y;
+        double targetY = cruise(sortie);
         SetPiece piece = descended(sortie);
         if (piece != null) {
             return commands | steer(shipX, shipY, vitalX(piece), Math.min(CRUISE_Y, bodyBottom(piece) - 70));
@@ -47,7 +52,10 @@ final class Autopilot {
                 lowest = enemy;
             }
         }
-        if (lowest != null) {
+        Enemy walker = convoyThreat(sortie, shipY);
+        if (walker != null) {
+            targetX = walker.renderX(1);
+        } else if (lowest != null) {
             targetX = lowest.renderX(1);
         } else {
             GroundObject ground = lowestGround(sortie, shipY);
@@ -59,7 +67,7 @@ final class Autopilot {
                 targetX = ground.renderX();
             }
         }
-        if (lowest != null && sortie.pickupCount() > 0) {
+        if ((lowest != null || walker != null) && sortie.pickupCount() > 0) {
             Pickup pickup = sortie.pickup(0);
             if (Math.abs(pickup.renderX() - shipX) < 120 && pickup.renderY(1) < 260) {
                 targetX = pickup.renderX();
@@ -67,6 +75,55 @@ final class Autopilot {
             }
         }
         return commands | steer(shipX, shipY, targetX, targetY);
+    }
+
+    /**
+     * Its cruise height: low, or with a convoy alive among the column, high enough that the air
+     * enemies above still give it time and close enough that the ground enemies' aimed shots go for
+     * it rather than the crawlers.
+     */
+    private static double cruise(Sortie sortie) {
+        for (int k = 0; k < sortie.allyCount(); k++) {
+            if (sortie.ally(k).alive()) {
+                return CONVOY_CRUISE;
+            }
+        }
+        return CRUISE_Y;
+    }
+
+    /**
+     * With a convoy, the ground enemy on the screen above the ship that is closest to a convoy unit
+     * (a turret or a walker about to fire at it or claw it); null without one.
+     */
+    private static Enemy convoyThreat(Sortie sortie, double shipY) {
+        if (sortie.allyCount() == 0) {
+            return null;
+        }
+        Enemy best = null;
+        double bestDistance = Double.POSITIVE_INFINITY;
+        for (int i = 0; i < sortie.enemyCount(); i++) {
+            Enemy enemy = sortie.enemy(i);
+            double x = enemy.renderX(1);
+            double y = enemy.renderY(1);
+            if (enemy.spec().layer() != Layer.GROUND
+                    || y > PlayField.HEIGHT - 10
+                    || y < shipY - 20
+                    || x < 0
+                    || x > PlayField.WIDTH) {
+                continue;
+            }
+            for (int k = 0; k < sortie.allyCount(); k++) {
+                if (sortie.ally(k).alive()) {
+                    double distance = Math.hypot(
+                            sortie.ally(k).renderX(1) - x, sortie.ally(k).renderY(1) - y);
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        best = enemy;
+                    }
+                }
+            }
+        }
+        return best;
     }
 
     private static int steer(double shipX, double shipY, double targetX, double targetY) {

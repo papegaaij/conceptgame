@@ -27,6 +27,14 @@ import vanguard.sim.SimStep;
  * @param deathGlow drawn additively with its explosion (a Vrell's spore cloud or glint); no frames for none
  * @param deathPieces solid pieces scattering where an air unit was destroyed (membrane tatters, a
  *     split husk), drawn under the glows; no frames for none
+ * @param glow a walker's emissive back, drawn additively over its frame above the low-air layer
+ *     (the Scuttler's lime back through the dust), indexed like {@code frames}; empty for none
+ * @param husks a walker's remains, one frame per heading (the Scuttler's legless husk, left at its
+ *     last heading like a turret's stump); empty for none
+ * @param walkFrames a walker's frames per heading: one walk cycle; 1 for other units
+ * @param stride a walker's ground distance per walk cycle, px
+ * @param telegraphSeconds a spawner's telegraph: its pulse speeds up over these last seconds before it
+ *     bursts on its own (the Brood Pod); 0 for none
  */
 public record EnemyLooks(
         Array<AtlasRegion> frames,
@@ -39,7 +47,12 @@ public record EnemyLooks(
         Array<AtlasRegion> flare,
         Array<AtlasRegion> remains,
         DeathEffect deathGlow,
-        DeathEffect deathPieces) {
+        DeathEffect deathPieces,
+        Array<AtlasRegion> glow,
+        Array<AtlasRegion> husks,
+        int walkFrames,
+        double stride,
+        double telegraphSeconds) {
     /** Vrell organic motion runs at 8-12 fps: 10 fps. */
     private static final double ORGANIC_FPS = 10;
     /**
@@ -75,10 +88,16 @@ public record EnemyLooks(
      */
     public record DeathEffect(Array<AtlasRegion> frames, int ticksPerFrame, int delayTicks) {}
 
-    /** A death animation's sprite names: the glow additive, the pieces solid. */
-    private static final List<String> DEATH_GLOW = List.of("-death");
+    /**
+     * A death animation's sprite names: the glow additive ({@code -death}, or the Brood Pod's wet
+     * {@code -burst}), the pieces solid. A walker's {@code -husk} is not a death animation but its
+     * remains, one frame per heading ({@link #husks}).
+     */
+    private static final List<String> DEATH_GLOW = List.of("-death", "-burst");
 
     private static final List<String> DEATH_PIECES = List.of("-tatters", "-husk");
+    /** How much faster a spawner's pulse plays at the end of its telegraph than before it: ×3. */
+    private static final double TELEGRAPH_SPEED_UP = 2;
     /**
      * A tiny unit's death frames show 2 steps each, a larger one's 4 (the art track's sets: a Whirl
      * Seed's husk and glint, a Spore Bomber's tatters and cloud); a tiny unit's glow shows 4 steps
@@ -97,6 +116,8 @@ public record EnemyLooks(
     private static EnemyLooks of(String slug, Sprites sprites, EnemyData data) {
         Orientation orientation = data.orientation();
         Array<AtlasRegion> none = new Array<>();
+        boolean walker = data.movement().walk().isPresent();
+        int walkFrames = walker ? sprites.frames(slug).size / orientation.headings() : 1;
         return new EnemyLooks(
                 sprites.frames(slug),
                 orientation.headings(),
@@ -113,13 +134,24 @@ public record EnemyLooks(
                 data.tier() == Tier.TINY ? Sfx.EXPLOSION_TINY_B : Sfx.EXPLOSION_SMALL_B,
                 sprites.has(slug + "-flare") ? sprites.frames(slug + "-flare") : none,
                 sprites.has(slug + "-stump") ? sprites.frames(slug + "-stump") : none,
-                death(sprites, slug, DEATH_GLOW, data.tier(), true),
-                death(sprites, slug, DEATH_PIECES, data.tier(), false));
+                death(sprites, slug, DEATH_GLOW, data.tier(), true, walker),
+                death(sprites, slug, DEATH_PIECES, data.tier(), false, walker),
+                sprites.has(slug + "-glow") ? sprites.frames(slug + "-glow") : none,
+                walker && sprites.has(slug + "-husk") ? sprites.frames(slug + "-husk") : none,
+                walkFrames,
+                data.movement().walk().map(EnemyData.Walk::stride).orElse(1.0),
+                data.attacks().stream()
+                        .flatMap(attack -> attack.spawn().stream())
+                        .mapToDouble(EnemyData.Spawn::telegraph)
+                        .findFirst()
+                        .orElse(0));
     }
 
-    private static DeathEffect death(Sprites sprites, String slug, List<String> suffixes, Tier tier, boolean glow) {
+    private static DeathEffect death(
+            Sprites sprites, String slug, List<String> suffixes, Tier tier, boolean glow, boolean walker) {
         boolean tiny = tier == Tier.TINY;
         Array<AtlasRegion> frames = suffixes.stream()
+                .filter(suffix -> !(walker && suffix.equals("-husk")))
                 .filter(suffix -> sprites.has(slug + suffix))
                 .findFirst()
                 .map(suffix -> sprites.frames(slug + suffix))
@@ -131,6 +163,41 @@ public record EnemyLooks(
     /** The animation step at simulation step {@code tick} for the unit at {@code phase} of its cycle. */
     public long step(long tick, int phase) {
         return (long) Math.floor(tick * fps / SimStep.PER_SECOND) + phase;
+    }
+
+    /**
+     * A spawner's animation step with its telegraph (the Brood Pod's pulse): over the last
+     * {@link #telegraphSeconds} before it bursts on its own its pulse speeds up evenly to three
+     * times its rate, so the frames it gained are the integral of the extra rate.
+     *
+     * @param burstSeconds the seconds left before it bursts ({@code Enemy.burstSeconds()})
+     */
+    public long step(long tick, int phase, double burstSeconds) {
+        double into = telegraphSeconds - burstSeconds;
+        if (telegraphSeconds <= 0 || into <= 0) {
+            return step(tick, phase);
+        }
+        double gained = fps * TELEGRAPH_SPEED_UP * into * into / (2 * telegraphSeconds);
+        return (long) Math.floor(tick * fps / SimStep.PER_SECOND + gained) + phase;
+    }
+
+    /**
+     * A walker's frame: the heading nearest {@code facing} at the walk frame its distance walked
+     * reaches, one cycle per stride.
+     */
+    public int walkFrame(double facing, double walked) {
+        int frame = (int) Math.floorMod((long) Math.floor(walked / stride * walkFrames), (long) walkFrames);
+        return heading(facing, headings) * walkFrames + frame;
+    }
+
+    /** A walker's husk at its last heading, as a one-frame animation; empty without husks. */
+    public Array<AtlasRegion> husk(double facing) {
+        if (husks.isEmpty()) {
+            return husks;
+        }
+        Array<AtlasRegion> one = new Array<>(1);
+        one.add(husks.get(heading(facing, husks.size)));
+        return one;
     }
 
     /**

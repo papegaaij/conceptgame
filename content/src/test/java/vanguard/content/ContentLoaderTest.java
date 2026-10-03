@@ -22,7 +22,16 @@ class ContentLoaderTest {
 
         assertEquals(14, content.weapons().size());
         assertEquals(
-                List.of("leviathan", "needler", "skitter", "spine-turret", "spore-bomber", "stinger", "whirl-seed"),
+                List.of(
+                        "brood-pod",
+                        "leviathan",
+                        "needler",
+                        "scuttler",
+                        "skitter",
+                        "spine-turret",
+                        "spore-bomber",
+                        "stinger",
+                        "whirl-seed"),
                 content.enemies().keySet().stream().sorted().toList());
         assertEquals(
                 180, content.level("act-1-first-contact/level-01-break-at-dawn").seconds());
@@ -100,12 +109,35 @@ class ContentLoaderTest {
     }
 
     @Test
+    void thePartDDataIsRead() {
+        Content content = ContentLoader.load(DesignTree.dataFiles());
+
+        AlliesData.Ally crawler = content.allies().allies().get("civilian-crawler");
+        assertEquals(60, crawler.hp());
+        assertEquals(10, crawler.damagedBy().claws());
+        assertEquals(7, crawler.headings().count());
+        EnemyData.Attack spawn = content.enemy("brood-pod").attacks().getFirst();
+        assertEquals("skitter", spawn.spawn().orElseThrow().enemy());
+        assertEquals(6, spawn.spawn().orElseThrow().count());
+        assertEquals(
+                40, content.enemy("brood-pod").movement().drift().orElseThrow().speed());
+        EnemyData scuttler = content.enemy("scuttler");
+        assertEquals(45, scuttler.armour().frontArc().orElseThrow());
+        assertEquals("facing", scuttler.attacks().getFirst().aim().orElseThrow());
+        assertEquals(90, scuttler.attacks().get(1).away().orElseThrow());
+        assertEquals(24, scuttler.movement().walk().orElseThrow().stride());
+        assertEquals("none", content.enemy("needler").armour().text().orElseThrow());
+        assertEquals(1, content.specials().specials().getFirst().free());
+        assertEquals(36, content.specials().airstrike().bombSpacing());
+    }
+
+    @Test
     void aWaveOfAnUnknownEnemyIsRejected() {
         assertProblem(
                 LEVEL_01,
                 text -> text.replaceFirst("enemy: needler", "enemy: neddler"),
                 "design/" + LEVEL_01
-                        + ": waves[2].enemy: unknown enemy 'neddler' (known: leviathan, needler, skitter, spine-turret, spore-bomber, stinger, whirl-seed)");
+                        + ": waves[2].enemy: unknown enemy 'neddler' (known: brood-pod, leviathan, needler, scuttler, skitter, spine-turret, spore-bomber, stinger, whirl-seed)");
     }
 
     @Test

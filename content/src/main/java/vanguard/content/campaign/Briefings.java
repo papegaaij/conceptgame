@@ -41,16 +41,26 @@ public final class Briefings {
                 number,
                 Content.levelName(key.get()).toUpperCase(Locale.ROOT),
                 pages,
-                objectives(level.objectives()),
+                objectives(content, level.objectives()),
                 level.briefing().teaser()));
     }
 
     /** The objective lines of the briefing: the primary objective, then the secondary one as a bonus. */
-    static List<String> objectives(LevelData.Objectives objectives) {
+    static List<String> objectives(Content content, LevelData.Objectives objectives) {
         List<String> lines = new ArrayList<>();
         lines.add(
                 switch (objectives.primary()) {
                     case "reach-end" -> "SURVIVE TO THE END OF THE MISSION";
+                    case "escort" -> {
+                        // "ESCORT THE 5 CRAWLERS TO THE END": the ally slug's last word
+                        LevelData.Escort escort = objectives.escort().orElseThrow();
+                        String ally = escort.ally().substring(escort.ally().lastIndexOf('-') + 1);
+                        yield String.format(
+                                Locale.ROOT,
+                                "ESCORT THE %d %sS TO THE END",
+                                escort.y().size(),
+                                ally.toUpperCase(Locale.ROOT));
+                    }
                     default ->
                         throw new IllegalArgumentException("no briefing line for objective " + objectives.primary());
                 });
@@ -61,14 +71,23 @@ public final class Briefings {
                         .map(ratio -> String.format(Locale.ROOT, "BONUS: DESTROY %.0f %% OF ALL ENEMIES", 100 * ratio))
                         .or(() -> secondary
                                 .escapes()
-                                .map(slug -> "BONUS: NO "
-                                        + slug.replace('-', ' ').toUpperCase(Locale.ROOT) + " GETS THROUGH"))
+                                .map(slug -> spawner(content, slug)
+                                        // a spawner's self-burst is its escape (Level 04's Brood Pods)
+                                        ? "BONUS: KILL EVERY "
+                                                + slug.replace('-', ' ').toUpperCase(Locale.ROOT) + " BEFORE IT BURSTS"
+                                        : "BONUS: NO " + slug.replace('-', ' ').toUpperCase(Locale.ROOT)
+                                                + " GETS THROUGH"))
                         .orElseGet(() -> String.format(
                                 Locale.ROOT,
                                 "BONUS: CLEAR ALL %d %s",
                                 secondary.groups().orElseThrow().size(),
                                 groupsName(secondary)))));
         return lines;
+    }
+
+    private static boolean spawner(Content content, String slug) {
+        return content.enemy(slug).attacks().stream()
+                .anyMatch(attack -> attack.pattern().equals("spawn"));
     }
 
     /** What the groups of a group objective are: their names' common last word in plural ("Dock One" ... "DOCKS"). */

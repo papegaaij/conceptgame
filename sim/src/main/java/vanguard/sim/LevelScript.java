@@ -22,6 +22,8 @@ import java.util.Optional;
  * @param cranes the crane hazards
  * @param debris the debris chunks drifting on the air layer, in time order
  * @param setPieces the huge set-piece units flying their passes (Level 03's Leviathan)
+ * @param escort the {@code escort} primary objective's convoy, instead of only reaching the end
+ * @param road the road on the ground layer that a convoy follows
  */
 public record LevelScript(
         int number,
@@ -36,7 +38,9 @@ public record LevelScript(
         Secondary secondary,
         List<CraneSpec> cranes,
         List<DebrisSpec> debris,
-        List<SetPieceSpec> setPieces) {
+        List<SetPieceSpec> setPieces,
+        Optional<Escort> escort,
+        Optional<Road> road) {
     public LevelScript {
         sections = List.copyOf(sections);
         waves = List.copyOf(waves);
@@ -49,6 +53,42 @@ public record LevelScript(
         if (sections.isEmpty()) {
             throw new IllegalArgumentException("a level needs at least one section");
         }
+        if (escort.isPresent() && road.isEmpty()) {
+            throw new IllegalArgumentException("a convoy follows the level's road");
+        }
+    }
+
+    /** A level without a convoy or a road. */
+    public LevelScript(
+            int number,
+            int act,
+            double launchSeconds,
+            List<Section> sections,
+            List<WaveSpec> waves,
+            List<GroundObjectSpec> groundObjects,
+            List<GroundUnit> groundUnits,
+            int secrets,
+            List<RadioCue> radio,
+            Secondary secondary,
+            List<CraneSpec> cranes,
+            List<DebrisSpec> debris,
+            List<SetPieceSpec> setPieces) {
+        this(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                Optional.empty(),
+                Optional.empty());
     }
 
     /** A level without debris or set pieces. */
@@ -83,6 +123,34 @@ public record LevelScript(
     /** The level's length in seconds. */
     public double seconds() {
         return sections.getLast().end();
+    }
+
+    /**
+     * The {@code escort} primary objective (design/allies; design/campaign, Level 04): a convoy of
+     * {@code ally} units, one per station, rolling in from the bottom edge one every
+     * {@code enterInterval} seconds from {@code enterSeconds} at {@code enterSpeed} px/s up the
+     * screen to their stations, then following the road. Each unit alive at the level end pays
+     * {@code credits} (before the credit factor); the objective fails when every unit is lost.
+     *
+     * @param stations the units' centre heights, px from the bottom edge (y up), the leading unit first
+     * @param targetedBy the enemies whose aimed attacks use the target-the-objective hook in mode
+     *     {@code nearest}: each aimed shot goes at the ship or the nearest unit, whichever is closer
+     */
+    public record Escort(
+            AllySpec ally,
+            List<Double> stations,
+            double enterSeconds,
+            double enterInterval,
+            double enterSpeed,
+            int credits,
+            List<String> targetedBy) {
+        public Escort {
+            stations = List.copyOf(stations);
+            targetedBy = List.copyOf(targetedBy);
+            if (stations.isEmpty() || !(enterSpeed > 0) || enterInterval < 0 || credits < 0) {
+                throw new IllegalArgumentException("a convoy has units that roll in at a speed");
+            }
+        }
     }
 
     /** A stretch of the scroll ending at {@code end} seconds, scrolling at {@code speed} px/s. */
@@ -188,6 +256,10 @@ public record LevelScript(
      * @param secretIndex a trigger's secret, its index among the level's secrets
      * @param secretTriggers how many triggers reveal that secret together (Level 03's four lifeboat
      *     lights): the crate drops when the last of them is spent; 1 for a trigger of its own
+     * @param bonusDrop a second pickup a destructible drops with its {@code drop} (Level 04's supply
+     *     drop: a special charge, which drops only with a special fitted)
+     * @param look a destructible's sprite set, which the game draws it with (the simulation does not
+     *     read it)
      */
     public record GroundObjectSpec(
             double t,
@@ -201,11 +273,78 @@ public record LevelScript(
             String secret,
             boolean hardened,
             int secretIndex,
-            int secretTriggers) {
+            int secretTriggers,
+            Optional<PickupType> bonusDrop,
+            String look) {
+        /** Level 01's cargo container, the look of a destructible that names none. */
+        public static final String CARGO_CONTAINER = "cargo-container";
+
         public GroundObjectSpec {
             if (hits > 0 && (secretTriggers < 1 || secretIndex < 0)) {
                 throw new IllegalArgumentException("a trigger reveals a secret, alone or with others");
             }
+        }
+
+        /** With the cargo container's look. */
+        public GroundObjectSpec(
+                double t,
+                double x,
+                Hitbox size,
+                double hp,
+                int bounty,
+                Optional<PickupType> drop,
+                int hits,
+                int crateCredits,
+                String secret,
+                boolean hardened,
+                int secretIndex,
+                int secretTriggers,
+                Optional<PickupType> bonusDrop) {
+            this(
+                    t,
+                    x,
+                    size,
+                    hp,
+                    bounty,
+                    drop,
+                    hits,
+                    crateCredits,
+                    secret,
+                    hardened,
+                    secretIndex,
+                    secretTriggers,
+                    bonusDrop,
+                    CARGO_CONTAINER);
+        }
+
+        /** Without a bonus drop. */
+        public GroundObjectSpec(
+                double t,
+                double x,
+                Hitbox size,
+                double hp,
+                int bounty,
+                Optional<PickupType> drop,
+                int hits,
+                int crateCredits,
+                String secret,
+                boolean hardened,
+                int secretIndex,
+                int secretTriggers) {
+            this(
+                    t,
+                    x,
+                    size,
+                    hp,
+                    bounty,
+                    drop,
+                    hits,
+                    crateCredits,
+                    secret,
+                    hardened,
+                    secretIndex,
+                    secretTriggers,
+                    Optional.empty());
         }
 
         /** A destructible, or a trigger that reveals the level's first secret on its own. */
@@ -399,6 +538,9 @@ public record LevelScript(
      *     presentation only, nothing in the simulation reads it
      * @param portrait the portrait's speaker when it is not the speaker's own (a generic one);
      *     presentation only
+     * @param requiresSpecial it starts only with a special fitted
+     * @param alliesMin a level-end cue starts only with at least this many convoy units home
+     * @param alliesMax ... and at most this many
      */
     public record RadioCue(
             CueTrigger trigger,
@@ -408,7 +550,22 @@ public record LevelScript(
             String line,
             boolean distorted,
             String expression,
-            String portrait) {
+            String portrait,
+            boolean requiresSpecial,
+            int alliesMin,
+            int alliesMax) {
+        public RadioCue(
+                CueTrigger trigger,
+                double t,
+                String subject,
+                String speaker,
+                String line,
+                boolean distorted,
+                String expression,
+                String portrait) {
+            this(trigger, t, subject, speaker, line, distorted, expression, portrait, false, 0, Integer.MAX_VALUE);
+        }
+
         public RadioCue(
                 CueTrigger trigger,
                 double t,
@@ -434,6 +591,12 @@ public record LevelScript(
         /** The first group of the attempt was lost. */
         FIRST_GROUP_LOST,
         /** The first unit of an enemy left the screen alive (a set piece: at the end of its last pass); the subject is its slug. */
-        ENEMY_ESCAPED
+        ENEMY_ESCAPED,
+        /** The first hit on a convoy unit in the attempt; its line may name the unit ({@code {ally}}). */
+        FIRST_ALLY_HIT,
+        /** The first convoy unit lost in the attempt; its line may name the unit ({@code {ally}}). */
+        FIRST_ALLY_LOST,
+        /** The primary objective failed: the line the mission failed screen shows, not played on the radio. */
+        MISSION_FAILED
     }
 }

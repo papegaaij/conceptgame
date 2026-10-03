@@ -1,7 +1,9 @@
 package vanguard.game.render;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import java.util.List;
+import java.util.Locale;
 import vanguard.content.campaign.Flight;
 import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
@@ -38,12 +40,29 @@ public final class Hud {
             double overdriveLength) {
         HudKit kit = new HudKit(sprites, fonts);
         mission = new MissionPanel(kit, sprites, transmissionStatic, number, name, launchBalance);
-        ship = new ShipPanel(kit, overdriveLength);
+        ship = new ShipPanel(
+                kit,
+                overdriveLength,
+                flight.loadout()
+                        .special()
+                        .map(special -> sprites.region("icons/" + iconName(special.name())))
+                        .map(TextureRegion.class::cast)
+                        .orElse(null));
         this.flight = flight;
         this.regenBonus = regenBonus;
         for (Flight.Weapon weapon : flight.weapons()) {
             weapons[weapon.slot().ordinal()] = weapon;
         }
+    }
+
+    /** The hangar icon of a special: {@code special-} and its name in lower case, hyphenated (tools/art/icons.py). */
+    static String iconName(String special) {
+        return "special-" + special.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
+    }
+
+    /** The special button was denied: the special's row flashes. */
+    public void specialDenied() {
+        ship.specialDenied();
     }
 
     /** @param prompts the control prompts to show */

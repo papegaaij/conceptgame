@@ -126,14 +126,17 @@ public final class Backdrop {
     }
 
     /**
-     * The layers below the ground objects: deep, far, the haze and ground.
+     * The layers below the ground objects: deep (if the level has one), far, the haze and ground.
      *
      * @param groundScroll the ground layer's distance in px
      * @param seconds the time since the level start
      */
     public void drawBehind(SpriteBatch batch, double groundScroll, double seconds) {
         blend(seconds);
-        drawLayer(batch, BackdropLayer.DEEP, groundScroll, seconds);
+        if (level.backdrop().hasDeep()) {
+            // A surface without a deep layer (Luna) has ground tiles that cover the screen.
+            drawLayer(batch, BackdropLayer.DEEP, groundScroll, seconds);
+        }
         drawLayer(batch, BackdropLayer.FAR, groundScroll, seconds);
         float veil = from.haze() + (to.haze() - from.haze()) * weight;
         if (veil > 0) {
@@ -141,7 +144,24 @@ public final class Backdrop {
             batch.draw(pixel, X0, 0, WIDTH, HEIGHT);
             batch.setColor(Color.WHITE);
         }
-        drawLayer(batch, BackdropLayer.GROUND, groundScroll, seconds);
+        drawSectionTiles(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), seconds);
+    }
+
+    /**
+     * The ground layer's set pieces, over its tiles and the level's road (design/campaign, Level 04:
+     * the convoy apron, the bridge and the gate lie over the road).
+     */
+    public void drawGroundPieces(SpriteBatch batch, double groundScroll, double seconds) {
+        drawPieces(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), seconds, false);
+    }
+
+    /**
+     * The ground layer's overhead pieces, over the convoy and the ground objects and under the
+     * ground units (design/campaign, Level 04: the crawlers pass under the bridge's arches and drive
+     * into the gate; the Spine Turrets stand on the arches).
+     */
+    public void drawOverhead(SpriteBatch batch, double groundScroll, double seconds) {
+        drawPieces(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), seconds, true);
     }
 
     /** The low-air layer above the ground objects and below the play plane: its tiles, the cloud banks, its pieces. */
@@ -150,7 +170,7 @@ public final class Backdrop {
         long scroll = scroll(BackdropLayer.LOW_AIR, groundScroll);
         drawSectionTiles(batch, BackdropLayer.LOW_AIR, scroll, seconds);
         drawAtmosphere(batch, from.banks(), to.banks(), scroll, seconds);
-        drawPieces(batch, BackdropLayer.LOW_AIR, scroll, seconds);
+        drawPieces(batch, BackdropLayer.LOW_AIR, scroll, seconds, false);
     }
 
     /** The high-air layer above the play plane, additive and at most 40 % opaque. */
@@ -160,7 +180,7 @@ public final class Backdrop {
         long scroll = scroll(BackdropLayer.HIGH_AIR, groundScroll);
         batch.setColor(1, 1, 1, HIGH_AIR_OPACITY);
         drawSectionTiles(batch, BackdropLayer.HIGH_AIR, scroll, seconds);
-        drawPieces(batch, BackdropLayer.HIGH_AIR, scroll, seconds);
+        drawPieces(batch, BackdropLayer.HIGH_AIR, scroll, seconds, false);
         drawAtmosphere(batch, from.wisps(), to.wisps(), scroll, seconds);
         batch.setColor(Color.WHITE);
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -193,7 +213,7 @@ public final class Backdrop {
     private void drawLayer(SpriteBatch batch, BackdropLayer layer, double groundScroll, double seconds) {
         long scroll = scroll(layer, groundScroll);
         drawSectionTiles(batch, layer, scroll, seconds);
-        drawPieces(batch, layer, scroll, seconds);
+        drawPieces(batch, layer, scroll, seconds, false);
     }
 
     private long scroll(BackdropLayer layer, double groundScroll) {
@@ -251,9 +271,12 @@ public final class Backdrop {
         batch.draw(strip, screenX, screenY);
     }
 
-    private void drawPieces(SpriteBatch batch, BackdropLayer layer, long scroll, double seconds) {
+    private void drawPieces(SpriteBatch batch, BackdropLayer layer, long scroll, double seconds, boolean overhead) {
         for (Piece piece : pieces[layer.ordinal()]) {
             BackdropData.PlacedPiece placed = piece.placed();
+            if (placed.isOverhead() != overhead) {
+                continue;
+            }
             float width = (float) piece.spec().size().width();
             float height = (float) piece.spec().size().height();
             float y = piece.bottom() - scroll + Math.round(placed.offsetY(seconds));

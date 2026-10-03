@@ -1,0 +1,16 @@
+# Allies: the specs the game reads, one entry per ally slug; README.md's tables are hand-written for
+# now. Schema: ../tech/architecture/README.md#data-file-schemas
+# Only the civilian crawler (Level 04) has data; the other allies get theirs with the levels that
+# use them.
+civilian-crawler:
+  name: Civilian crawler
+  layer: ground
+  size: [40, 72]          # sprite px: 40 wide, 72 long
+  hitbox: [32, 64]        # axis-aligned at every heading
+  hp: 60                  # at medium; the level sets the difficulty variants
+  damaged_by:
+    objective_aimed: true # only enemy shots aimed at a crawler by the target-the-objective hook
+    claws: 10             # damage per second while a walker's hitbox overlaps it (pass-through)
+  follows: road           # the level's road curve, at the scroll speed
+  headings: {count: 7, step: 10}   # ±30° in 10° steps, rendered, not rotated
+  smoke_below: 0.5        # share of its HP

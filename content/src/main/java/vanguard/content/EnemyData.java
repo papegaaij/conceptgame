@@ -1,5 +1,6 @@
 package vanguard.content;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +24,7 @@ public record EnemyData(
         Optional<List<PartData>> partList,
         Orientation orientation,
         double hp,
-        String armour,
+        Armour armour,
         double speed,
         Movement movement,
         List<Attack> attacks,
@@ -43,6 +44,24 @@ public record EnemyData(
     }
 
     /** The movement patterns it uses, with their parameters (design/enemies/README.md, Movement pattern vocabulary). */
+    /**
+     * The armour: a text ({@code none}, {@code hardened}, ...), or planned (part D) a mapping with
+     * {@code front_arc}, the degrees each side of the facing from which direct shots glance off
+     * (dropped bombs, lobbed shells and the specials ignore it). Read, not flown yet.
+     */
+    public record Armour(Optional<String> text, Optional<Double> frontArc) {
+        @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+        public Armour {
+            frontArc.ifPresent(arc -> Check.notNegative("front_arc", arc));
+        }
+
+        /** The armour written as a text. */
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        public static Armour of(String text) {
+            return new Armour(Optional.of(text), Optional.empty());
+        }
+    }
+
     public record Movement(
             Optional<Snake> snake,
             Optional<Swoop> swoop,
@@ -52,7 +71,37 @@ public record EnemyData(
             Optional<Dive> dive,
             Optional<Terrain> terrain,
             Optional<Strafe> strafe,
-            Optional<SpiralOut> spiralOut) {}
+            Optional<SpiralOut> spiralOut,
+            Optional<Drift> drift,
+            Optional<Sine> sine,
+            Optional<Walk> walk) {}
+
+    /** Planned (part D): straight down the screen at {@code speed} px/s, with no intent. Read, not flown yet. */
+    public record Drift(double speed) {
+        public Drift {
+            Check.positive("speed", speed);
+        }
+    }
+
+    /** Planned (part D): a side-to-side offset of {@code amplitude} px, {@code period} s per swing. Read, not flown yet. */
+    public record Sine(double amplitude, double period) {
+        public Sine {
+            Check.notNegative("amplitude", amplitude);
+            Check.positive("period", period);
+        }
+    }
+
+    /**
+     * Planned (part D): a walker on a ground path at {@code speed} px/s, turning at {@code turn_rate}
+     * °/s, {@code stride} px of ground per walk cycle. Read, not flown yet.
+     */
+    public record Walk(double speed, double turnRate, double stride) {
+        public Walk {
+            Check.positive("speed", speed);
+            Check.positive("turn_rate", turnRate);
+            Check.positive("stride", stride);
+        }
+    }
 
     /** A convoy unit turns across the screen at a height in {@code y}, px from the top. */
     public record Strafe(Span y) {}
@@ -145,25 +194,45 @@ public record EnemyData(
      * @param turnRate a turret's barrel turn rate, °/s; the shots leave along the barrel
      * @param arc a turret fires while the player is within this many degrees of its facing (down the screen)
      */
+    /**
+     * @param aim planned (part D): where a fan points, {@code target} (the default), {@code down} or {@code facing}
+     * @param away planned (part D): an aimed attack fires only while the player is more than this many ° off its facing
+     * @param spawn planned (part D): the {@code spawn} pattern's release, which has no bullet, interval or speed
+     */
     public record Attack(
             String pattern,
             Optional<String> name,
-            String bullet,
+            Optional<String> bullet,
             Optional<Double> interval,
-            double speed,
+            Optional<Double> speed,
             Optional<Double> firstShotDelay,
             Optional<Integer> count,
             Optional<Double> spread,
             Optional<Double> turnRate,
             Optional<Double> arc,
-            Optional<Mine> mine) {
+            Optional<Mine> mine,
+            Optional<String> aim,
+            Optional<Double> away,
+            Optional<Spawn> spawn) {
         public Attack {
             Check.that(
-                    pattern.equals("aimed") || pattern.equals("fan") || pattern.equals("mine"),
-                    "pattern must be aimed, fan or mine, was '" + pattern + "'");
+                    pattern.equals("aimed")
+                            || pattern.equals("fan")
+                            || pattern.equals("mine")
+                            || pattern.equals("spawn"),
+                    "pattern must be aimed, fan, mine or spawn, was '" + pattern + "'");
             Check.that(pattern.equals("mine") == mine.isPresent(), "a mine attack has its mine, the others none");
+            Check.that(pattern.equals("spawn") == spawn.isPresent(), "a spawn attack has its spawn, the others none");
+            Check.that(
+                    pattern.equals("spawn") != (bullet.isPresent() && speed.isPresent()),
+                    "an attack has a bullet and a speed, a spawn attack neither");
+            Check.that(!pattern.equals("spawn") || interval.isEmpty(), "a spawn attack has no interval");
+            aim.ifPresent(a -> Check.that(
+                    a.equals("target") || a.equals("down") || a.equals("facing"),
+                    "aim must be target, down or facing, was '" + a + "'"));
+            away.ifPresent(a -> Check.notNegative("away", a));
             interval.ifPresent(i -> Check.positive("interval", i));
-            Check.positive("speed", speed);
+            speed.ifPresent(s -> Check.positive("speed", s));
             firstShotDelay.ifPresent(d -> Check.notNegative("first_shot_delay", d));
             Check.that(pattern.equals("fan") == count.isPresent(), "a fan has a count, an aimed attack none");
             Check.that(count.isPresent() == spread.isPresent(), "a fan has a count and a spread");
@@ -171,6 +240,24 @@ public record EnemyData(
     }
 
     /** A formation it appears in, with the unit count: {@code [n]} or {@code [min, max]}. */
+    /**
+     * Planned (part D): a spawner's release. {@code count} units of {@code enemy} when it is killed or
+     * {@code after} s from entering (a self-burst paying {@code burst_bounty}, not a kill), with a
+     * {@code telegraph} of s before it, flying out at {@code speed} in an {@code arc} of °. Read, not
+     * flown yet.
+     */
+    public record Spawn(
+            String enemy, int count, double after, double telegraph, double arc, double speed, int burstBounty) {
+        public Spawn {
+            Check.positive("count", count);
+            Check.positive("after", after);
+            Check.notNegative("telegraph", telegraph);
+            Check.positive("arc", arc);
+            Check.positive("speed", speed);
+            Check.notNegative("burst_bounty", burstBounty);
+        }
+    }
+
     public record FormationUse(String name, Optional<List<Integer>> size) {
         public FormationUse {
             size.ifPresent(s -> Check.that(s.size() == 1 || s.size() == 2, "size must be [n] or [min, max]"));
@@ -228,7 +315,9 @@ public record EnemyData(
             Optional<Integer> burst,
             Optional<Integer> ring,
             Optional<Boolean> mineBursts,
-            Optional<DeathBurst> deathBurst) {}
+            Optional<DeathBurst> deathBurst,
+            Optional<Integer> spawnCount,
+            Optional<Double> spawnAfter) {}
 
     /** {@code count} bullets of class {@code bullet} in a ring at {@code speed} px/s. */
     public record DeathBurst(int count, double speed, String bullet) {

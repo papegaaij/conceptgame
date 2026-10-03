@@ -126,13 +126,29 @@ public final class DebriefScreen implements GameScreen {
                 "",
                 "",
                 VALUE));
+        LevelResult.Escort escort = result.escort();
+        if (escort.present()) {
+            // The escort objective's own row: "CRAWLERS HOME 4 / 5 + 120 CR" (design/campaign, Level 04).
+            rows.add(new Row(
+                    alliesLabel(escort.ally()) + " HOME",
+                    escort.home() + " / " + escort.units(),
+                    escort.credits(),
+                    "+ ",
+                    " CR",
+                    CREDITS));
+        }
         rows.add(new Row(
                 "SECONDARY OBJECTIVE",
                 result.secondaryMet() ? "MET" : "MISSED",
-                result.secondaryMet() ? result.credits().objectives() : -1,
+                result.secondaryMet() ? result.credits().objectives() - escort.credits() : -1,
                 "+ ",
                 " CR",
                 CREDITS));
+    }
+
+    /** {@code civilian-crawler} reads "CRAWLERS". */
+    static String alliesLabel(String slug) {
+        return slug.substring(slug.lastIndexOf('-') + 1).toUpperCase(Locale.ROOT) + "S";
     }
 
     private void addCredits(LevelResult result, int launchBalance) {

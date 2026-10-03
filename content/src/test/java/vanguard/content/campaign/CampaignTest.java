@@ -239,4 +239,78 @@ class CampaignTest {
         assertEquals(Optional.of(2), loaded.retriesLeft());
         assertEquals(125.5, loaded.playtime());
     }
+
+    private static final vanguard.content.Content CONTENT = ContentLoader.fromClasspath();
+
+    /** A campaign whose next level is {@code level}. */
+    private static Campaign at(int level) {
+        return DebugFit.startAt(RULES, Difficulty.MEDIUM, level);
+    }
+
+    @Test
+    void theFirstAirstrikeChargeIsGivenOnceAtItsUnlockAndFittedIntoAnEmptySlot() {
+        assertEquals(List.of(), at(3).giveFreeCharges(CONTENT.specials()));
+        Campaign campaign = at(4);
+
+        List<Campaign.FreeCharges> given = campaign.giveFreeCharges(CONTENT.specials());
+
+        assertEquals(List.of(new Campaign.FreeCharges("Airstrike", 1, true)), given);
+        assertEquals(1, campaign.gear().charges("Airstrike"));
+        assertEquals(new Fitted("Airstrike", 1), campaign.loadout().get(LoadoutSlot.SPECIAL));
+        assertEquals(List.of(), campaign.giveFreeCharges(CONTENT.specials()));
+        assertEquals(1, campaign.gear().charges("Airstrike"));
+        Campaign loaded = Campaign.load(RULES, campaign.save(Instant.EPOCH));
+        assertEquals(List.of(), loaded.giveFreeCharges(CONTENT.specials()));
+        assertEquals(1, loaded.gear().charges("Airstrike"));
+    }
+
+    @Test
+    void theFreeChargeLeavesAFittedSpecialInPlace() {
+        Campaign campaign = at(7);
+        Gear gear = campaign.gear();
+        var loadout = new java.util.EnumMap<LoadoutSlot, Fitted>(LoadoutSlot.class);
+        loadout.putAll(gear.loadout());
+        loadout.put(LoadoutSlot.SPECIAL, new Fitted("Smart Bomb", 1));
+        campaign.gear(
+                new Gear(gear.credits(), loadout, gear.inventory(), java.util.Map.of("Smart Bomb", 2), gear.armour()));
+
+        List<Campaign.FreeCharges> given = campaign.giveFreeCharges(CONTENT.specials());
+
+        assertEquals(List.of(new Campaign.FreeCharges("Airstrike", 1, false)), given);
+        assertEquals(new Fitted("Smart Bomb", 1), campaign.loadout().get(LoadoutSlot.SPECIAL));
+        assertEquals(1, campaign.gear().charges("Airstrike"));
+    }
+
+    @Test
+    void aWonLevelAppliesTheChargesUsedAndFoundAFailedOneNone() {
+        Campaign campaign = at(4);
+        campaign.giveFreeCharges(CONTENT.specials());
+        var charges = new java.util.HashMap<>(campaign.gear().specials());
+        charges.put("Airstrike", 3);
+        Gear gear = campaign.gear();
+        campaign.gear(new Gear(gear.credits(), gear.loadout(), gear.inventory(), charges, gear.armour()));
+        campaign.launch();
+
+        campaign.fail();
+        campaign.retry();
+        assertEquals(3, campaign.gear().charges("Airstrike"));
+        campaign.complete(won("B", 0, 1000), 40, 2, 1);
+
+        assertEquals(2, campaign.gear().charges("Airstrike"));
+    }
+
+    @Test
+    void theFlightCarriesTheAirstrikeWithItsCharges() {
+        Campaign campaign = at(4);
+        campaign.giveFreeCharges(CONTENT.specials());
+
+        Flight flight = Flight.of(CONTENT, Catalogue.of(CONTENT), campaign);
+
+        var special = flight.loadout().special().orElseThrow();
+        assertEquals("Airstrike", special.name());
+        assertEquals(1, special.charges());
+        assertEquals(4, special.maxCharges());
+        assertEquals(36, special.airstrike().bombSpacing());
+        assertEquals(List.of(), flight.notFlown());
+    }
 }

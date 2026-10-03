@@ -67,6 +67,15 @@ final class Tally {
         return earn(CreditSource.KILLS, bounty);
     }
 
+    /**
+     * A bounty that is not a kill (a spawner bursting on its own): scored at the kill score without
+     * the chain's multiplier, no kill, the chain untouched; returns the credits.
+     */
+    int unchained(int bounty) {
+        score += Math.round(bounty * rules.killScore() * rules.scoreFactor());
+        return earn(CreditSource.KILLS, bounty);
+    }
+
     /** A set piece destroyed: one kill, its parts paid already. */
     void countKill() {
         kills++;

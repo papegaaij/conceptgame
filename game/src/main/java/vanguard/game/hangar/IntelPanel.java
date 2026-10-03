@@ -165,6 +165,15 @@ final class IntelPanel {
                 "HAZARDS",
                 List.of(joinedOrNone(level.profile().hazards())),
                 y);
+        if (level.profile().objective().isPresent()) {
+            y = field(
+                    canvas,
+                    level,
+                    Field.OBJECTIVE,
+                    "OBJECTIVE",
+                    List.of(Names.of(level.profile().objective().get())),
+                    y);
+        }
         y = field(
                 canvas,
                 level,

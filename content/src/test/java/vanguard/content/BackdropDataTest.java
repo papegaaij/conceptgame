@@ -17,7 +17,8 @@ class BackdropDataTest {
             Optional.of(List.of(
                     new BackdropData.Waypoint(1, 0, 0),
                     new BackdropData.Waypoint(3, 0, 100),
-                    new BackdropData.Waypoint(5, 100, 100))));
+                    new BackdropData.Waypoint(5, 100, 100))),
+            Optional.empty());
 
     @Test
     void aPieceRestsAtItsFirstWaypointUntilThePathStarts() {

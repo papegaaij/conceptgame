@@ -12,6 +12,7 @@ import vanguard.content.Content;
 import vanguard.content.Difficulty;
 import vanguard.content.LevelData;
 import vanguard.content.SimSpecs;
+import vanguard.content.SpecialsData;
 import vanguard.content.campaign.Campaign;
 import vanguard.content.campaign.Flight;
 import vanguard.content.campaign.SaveSlots;
@@ -54,7 +55,9 @@ import vanguard.sim.Sortie;
  * last messages ({@link Outro}), banks the result in the campaign and shows the debrief. When the ship is destroyed the
  * death plays out, then the mission failed screen opens over the level, or the game over screen
  * follows when no retry is left (design/systems/retry); the failure's used retry is autosaved at
- * once, and so is a game over's return to the hangar before the level. The sortie flies what {@link Flight} maps of the fitted loadout; the HUD lists the fitted
+ * once, and so is a game over's return to the hangar before the level. A failed primary objective (the
+ * convoy lost) fails the level the same way without the explosion and the slow motion, and the
+ * mission failed screen shows the level's own failure line. The sortie flies what {@link Flight} maps of the fitted loadout; the HUD lists the fitted
  * items that fly from M4 on. Pause (Esc / P / Start), the window losing
  * the focus and a gamepad disconnecting open the pause menu over it. The Gameplay tab's text speed
  * and flash reduction and the Controls tab's auto-fire apply from the next frame on.
@@ -103,6 +106,13 @@ public final class LevelScreen implements GameScreen {
     private final Array<AtlasRegion> explosionMedium;
     /** Each set piece's death cloud, its slug's {@code -ichor} frames, by index in the script; empty for none. */
     private final List<Array<AtlasRegion>> deathClouds;
+    /** Each ground object's break-apart, its look's {@code -break} frames, by index in the script. */
+    private final List<Array<AtlasRegion>> groundBreaks;
+    /**
+     * Each ground object's wreck, left where it was destroyed: its look's wrecked frame (the third),
+     * by index in the script; empty for a look without one (the cargo container).
+     */
+    private final List<Array<AtlasRegion>> groundWrecks;
     /** The spark of a shot glancing off a hardened target. */
     private final Array<AtlasRegion> glance;
 
@@ -113,6 +123,8 @@ public final class LevelScreen implements GameScreen {
     private final Effects debris = Effects.solid();
     /** The solid death pieces of air units, at play-field positions (no ground scroll). */
     private final Effects pieces = Effects.solid();
+    /** The Airstrike's blasts, at ground positions (y plus the scroll), so they stay where the bombs landed. */
+    private final Effects blasts = Effects.glowing();
     /** The set pieces breaking up at their death. */
     private final SetPieceWrecks wrecks;
 
@@ -129,6 +141,8 @@ public final class LevelScreen implements GameScreen {
     private final Outro outro = new Outro();
     /** What the ship's destruction leads to, and how long until its screen opens. */
     private Optional<Campaign.Failure> failure = Optional.empty();
+    /** The level's line for its failed primary objective, once it failed in this attempt. */
+    private Optional<LevelScript.RadioCue> failureLine = Optional.empty();
 
     private float failedIn;
     private boolean launchPending = true;
@@ -154,7 +168,7 @@ public final class LevelScreen implements GameScreen {
                 SimSpecs.level(services.content, levelKey, difficulty),
                 services.invulnerable ? rules.withInvulnerableShip() : rules,
                 campaign.armour());
-        radioSchedule = new RadioSchedule(sortie.script());
+        radioSchedule = new RadioSchedule(sortie.script(), sortie.special().fitted());
         wrecks = new SetPieceWrecks(sortie.setPieceCount());
         looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites, services.content);
         weaponLooks = new WeaponLooks(
@@ -168,6 +182,13 @@ public final class LevelScreen implements GameScreen {
                 .map(spec -> services.sprites.has(spec.slug() + "-ichor")
                         ? services.sprites.frames(spec.slug() + "-ichor")
                         : new Array<AtlasRegion>())
+                .toList();
+        groundBreaks = sortie.script().groundObjects().stream()
+                .map(spec -> services.sprites.frames(spec.look() + "-break"))
+                .toList();
+        groundWrecks = sortie.script().groundObjects().stream()
+                .map(spec -> services.sprites.frames(spec.look()))
+                .map(frames -> frames.size > 2 ? Array.with(frames.get(2)) : new Array<AtlasRegion>())
                 .toList();
         sounds = new FlightSounds(
                 services.sfx,
@@ -227,6 +248,7 @@ public final class LevelScreen implements GameScreen {
     private static Sfx ambience(String setting) {
         return switch (setting) {
             case "earth-orbit" -> Sfx.AMBIENCE_ORBIT;
+            case "luna" -> Sfx.AMBIENCE_LUNA;
             default -> throw new IllegalArgumentException("no ambience for " + setting + " yet");
         };
     }
@@ -255,12 +277,18 @@ public final class LevelScreen implements GameScreen {
         return sortie.credits();
     }
 
+    /** The level's own line for the mission failed screen, when its primary objective failed (design/systems/retry). */
+    Optional<LevelScript.RadioCue> failureLine() {
+        return failureLine;
+    }
+
     /** Starts the level over from its start state with {@code armour} (a retry, or the pause menu's restart). */
     void retry(double armour) {
         sortie.retry(armour);
         outro.stop();
         slowMotion = 0;
         failure = Optional.empty();
+        failureLine = Optional.empty();
     }
 
     @Override
@@ -299,6 +327,7 @@ public final class LevelScreen implements GameScreen {
             effects.step();
             debris.step();
             pieces.step();
+            blasts.step();
             wrecks.step();
             sounds.step();
             creditNumbers.step();
@@ -338,6 +367,22 @@ public final class LevelScreen implements GameScreen {
                         debris.start(look.remains(), REMAINS_TICKS, x, y + sortie.groundScroll());
                     }
                 }
+                case BROOD_BURST -> {
+                    // A self-burst: the pod's death animation without a kill.
+                    EnemyLooks look = looks[events.value(i)];
+                    start(pieces, look.deathPieces(), x, y);
+                    effects.start(look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
+                    start(effects, look.deathGlow(), x, y);
+                }
+                case WALKER_DOWN -> {
+                    // The legless husk at its last heading, left on the ground like a turret's stump.
+                    int value = events.value(i);
+                    EnemyLooks look = looks[SimEvents.walkerKind(value)];
+                    if (!look.husks().isEmpty()) {
+                        debris.start(
+                                look.husk(SimEvents.walkerFacing(value)), REMAINS_TICKS, x, y + sortie.groundScroll());
+                    }
+                }
                 case CLAMP_HIT -> effects.start(glance, IMPACT_FRAME_TICKS, x, y);
                 case DEBRIS_HIT -> effects.start(weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y);
                 case DEBRIS_DESTROYED, MINE_BURST, MINE_DESTROYED ->
@@ -345,21 +390,56 @@ public final class LevelScreen implements GameScreen {
                 case PART_DESTROYED -> effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y);
                 case SET_PIECE_DESTROYED -> chainedDeath(events.value(i), deathClouds.get(events.value(i)), x, y);
                 case GROUND_DESTROYED -> {
-                    debris.start(
-                            services.sprites.cargoContainerBreak, DEBRIS_FRAME_TICKS, x, y + sortie.groundScroll());
+                    int object = events.value(i);
+                    if (!groundWrecks.get(object).isEmpty()) {
+                        debris.start(groundWrecks.get(object), REMAINS_TICKS, x, y + sortie.groundScroll());
+                    }
+                    debris.start(groundBreaks.get(object), DEBRIS_FRAME_TICKS, x, y + sortie.groundScroll());
                     effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
                 }
                 case CREDITS_PICKED_UP -> creditNumbers.show(events.value(i), x, y);
+                case SPECIAL_CALLED -> {
+                    // The call answers the player at once: an urgent line that interrupts whatever is on
+                    // the radio, which plays again after it (design/ui/hud, priority interrupts).
+                    SpecialsData.Radio call =
+                            services.content.specials().airstrike().radio();
+                    radio.add(
+                            call.speaker(), call.portrait(), "neutral", call.line(), false, RadioQueue.Priority.URGENT);
+                }
+                case SPECIAL_DENIED -> hud.specialDenied();
+                case AIRSTRIKE_BLAST ->
+                    blasts.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y + sortie.groundScroll());
                 case SHIELD_HIT -> shimmer = SHIMMER_TICKS;
                 case RADIO -> {
                     LevelScript.RadioCue cue = sortie.script().radio().get(events.value(i));
+                    if (cue.trigger() == LevelScript.CueTrigger.MISSION_FAILED) {
+                        failureLine = Optional.of(cue);
+                        continue;
+                    }
+                    int unit =
+                            switch (cue.trigger()) {
+                                case FIRST_ALLY_HIT -> sortie.firstAllyHit();
+                                case FIRST_ALLY_LOST -> sortie.firstAllyLost();
+                                default -> -1;
+                            };
                     radio.add(
                             cue.speaker(),
                             cue.portrait(),
                             cue.expression(),
-                            cue.line(),
+                            RadioSchedule.line(cue.line(), unit),
                             cue.distorted(),
                             radioSchedule.priority(events.value(i)));
+                }
+                case ALLY_LOST -> {
+                    // It burns on the road: the blast stays where it was, scrolling with the ground.
+                    blasts.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y + sortie.groundScroll());
+                }
+                case PRIMARY_FAILED -> {
+                    // As a wreck, without the explosion and the slow motion (design/systems/retry).
+                    music.cut();
+                    failure = Optional.of(campaign.fail());
+                    services.save(SaveSlots.Slot.AUTOSAVE, campaign);
+                    failedIn = FAILED_SCREEN_SECONDS;
                 }
                 case SHIP_DESTROYED -> {
                     effects.start(services.sprites.explosionLarge, LARGE_EXPLOSION_FRAME_TICKS, x, y);
@@ -372,10 +452,12 @@ public final class LevelScreen implements GameScreen {
                     failedIn = FAILED_SCREEN_SECONDS;
                 }
                 case SORTIE_RESTARTED -> {
+                    failureLine = Optional.empty();
                     layersHit.clear();
                     effects.clear();
                     debris.clear();
                     pieces.clear();
+                    blasts.clear();
                     wrecks.clear();
                     creditNumbers.clear();
                     radio.clear();
@@ -400,7 +482,9 @@ public final class LevelScreen implements GameScreen {
                         OBJECTIVE_FAILED,
                         MINE_DROPPED,
                         SET_PIECE_DESCENDED,
-                        SET_PIECE_ESCAPED -> {}
+                        SET_PIECE_ESCAPED,
+                        AIRSTRIKE_INBOUND,
+                        ALLY_HIT -> {}
             }
         }
     }
@@ -478,6 +562,7 @@ public final class LevelScreen implements GameScreen {
                 effects,
                 debris,
                 pieces,
+                blasts,
                 wrecks,
                 creditNumbers,
                 warnings,
@@ -498,6 +583,9 @@ public final class LevelScreen implements GameScreen {
         }
         double t = sortie.levelSeconds();
         for (LevelData.Prompt prompt : level.prompts().orElse(List.of())) {
+            if (prompt.requiresSpecial() && !sortie.special().fitted()) {
+                continue;
+            }
             // Done what it says, as the control prompts: an enemy destroyed on its skip layer
             // (Level 02's ground unit, Level 03's Spore Bomber on low-air) makes it leave.
             boolean done = prompt.skipLayer().map(layersHit::contains).orElse(false);
@@ -512,7 +600,11 @@ public final class LevelScreen implements GameScreen {
     private DebriefScreen debrief() {
         LevelResult result = sortie.result();
         int launchBalance = campaign.credits();
-        boolean newBest = campaign.complete(result, sortie.ship().defences().armour());
+        boolean newBest = campaign.complete(
+                result,
+                sortie.ship().defences().armour(),
+                sortie.special().used(),
+                sortie.special().found());
         return new DebriefScreen(services, campaign, result, sortie.script().number(), name, launchBalance, newBest);
     }
 

@@ -214,7 +214,25 @@ public final class FlightSounds {
                     bank.play(Sfx.MISSION_FAILED, PLAYER_DAMAGE, 1, 0);
                 }
                 case SORTIE_RESTARTED -> pendingCount = 0;
-                case SECRET_FOUND,
+                // The Airstrike (design/audio/sfx, Specials): the jets' flyby as the bombers enter,
+                // the bomb carpet from the first blast; its single blasts play no sound of their own.
+                case AIRSTRIKE_INBOUND -> bank.play(Sfx.AIRSTRIKE_JETS, EXPLOSIONS, 1, pan);
+                case AIRSTRIKE_BLAST -> {
+                    if (events.value(i) == 0) {
+                        bank.play(Sfx.AIRSTRIKE_BOMBS, EXPLOSIONS, 1, pan);
+                    }
+                }
+                case SPECIAL_DENIED -> bank.play(Sfx.SPECIAL_DENIED, PICKUPS, 1, 0);
+                // A convoy unit: metal hit and a small explosion; the convoy lost plays the sting as a wreck does.
+                case ALLY_HIT -> bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, 0.9f * pitch(0.05), pan);
+                case ALLY_LOST ->
+                    bank.play(alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B), EXPLOSIONS, 1, pan);
+                case PRIMARY_FAILED -> bank.play(Sfx.MISSION_FAILED, PLAYER_DAMAGE, 1, 0);
+                // A Brood Pod's fleshy burst, shot or on its own (round 08 b), as its Skitters fly out.
+                case BROOD_HATCHED -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, pitch(0.04), pan);
+                case BROOD_BURST,
+                        WALKER_DOWN,
+                        SECRET_FOUND,
                         CREDITS_PICKED_UP,
                         RADIO,
                         OBJECTIVE_MET,
@@ -223,14 +241,16 @@ public final class FlightSounds {
                         GROUP_LOST,
                         OBJECTIVE_FAILED,
                         SET_PIECE_DESCENDED,
-                        SET_PIECE_ESCAPED -> {}
+                        SET_PIECE_ESCAPED,
+                        SPECIAL_CALLED -> {}
             }
         }
     }
 
     private static Sfx pickupSound(PickupType type) {
         return switch (type) {
-            case SMALL_SALVAGE, MEDIUM_SALVAGE -> Sfx.SALVAGE_SMALL;
+            // A special charge plays the small salvage until its own sound is imported.
+            case SMALL_SALVAGE, MEDIUM_SALVAGE, SPECIAL_CHARGE -> Sfx.SALVAGE_SMALL;
             case OVERDRIVE -> Sfx.OVERDRIVE_START;
             case HIDDEN_CRATE, LARGE_SALVAGE -> Sfx.SALVAGE_LARGE;
             case SHIELD_CELL -> Sfx.SHIELD_CELL;

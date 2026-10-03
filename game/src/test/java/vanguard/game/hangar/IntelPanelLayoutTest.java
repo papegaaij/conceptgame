@@ -6,10 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.badlogic.gdx.graphics.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import vanguard.content.BriefingPage;
 import vanguard.content.Content;
 import vanguard.content.ContentLoader;
+import vanguard.content.LevelData;
 import vanguard.content.campaign.Intel;
 
 /**
@@ -89,31 +91,75 @@ class IntelPanelLayoutTest {
         for (String level : CONTENT.levels().keySet()) {
             BriefingPage teaser = CONTENT.level(level).briefing().teaser();
             for (int sensor = 0; sensor <= 3; sensor++) {
-                Measure measure = new Measure();
-                IntelPanel.layout(measure, Intel.of(CONTENT, level, sensor), teaser, level);
-                String where = level + " at sensor L" + sensor + ": ";
-                List<Box> all = new ArrayList<>(measure.parts);
-                all.addAll(measure.quote);
-                for (Box box : all) {
-                    assertTrue(
-                            box.left() >= IntelPanel.X
-                                    && box.right() <= RIGHT
-                                    && box.top() >= TOP
-                                    && box.bottom() <= BOTTOM,
-                            where + box + " leaves the panel");
-                }
-                for (int i = 0; i < all.size(); i++) {
-                    for (int j = i + 1; j < all.size(); j++) {
-                        assertFalse(all.get(i).overlaps(all.get(j)), where + all.get(i) + " overlaps " + all.get(j));
-                    }
-                }
-                if (!measure.quote.isEmpty()) {
-                    int quoteTop = measure.quote.getFirst().top();
-                    for (Box box : measure.parts) {
-                        assertTrue(box.bottom() <= quoteTop, where + box + " runs into Varga's quote");
-                    }
-                }
+                assertFits(Intel.of(CONTENT, level, sensor), teaser, level, level + " at sensor L" + sensor + ": ");
             }
         }
+    }
+
+    /**
+     * An escort level's OBJECTIVE row (Level 04, from sensor L1) fits beside the other fields of every
+     * level like it: one without set-piece contacts, whose row the escort levels do not have (Level 03
+     * with both would run 2 px into Varga's quote). Level 04's own intel is checked above.
+     */
+    @Test
+    void everyLevelsIntelFitsWithAnObjective() {
+        for (String level : CONTENT.levels().keySet()) {
+            BriefingPage teaser = CONTENT.level(level).briefing().teaser();
+            for (int sensor = 0; sensor <= 3; sensor++) {
+                Intel intel = Intel.of(CONTENT, level, sensor);
+                if (!intel.contacts().isEmpty()) {
+                    continue;
+                }
+                LevelData.ThreatProfile profile = intel.profile();
+                LevelData.ThreatProfile escort = new LevelData.ThreatProfile(
+                        profile.setting(),
+                        profile.layers(),
+                        profile.density(),
+                        profile.traits(),
+                        profile.hazards(),
+                        profile.boss(),
+                        profile.specials(),
+                        Optional.of("ESCORT 5 CRAWLERS"),
+                        profile.varga());
+                Intel withObjective = new Intel(
+                        intel.number(),
+                        intel.sensor(),
+                        escort,
+                        intel.directions(),
+                        intel.enemies(),
+                        intel.waves(),
+                        intel.contacts(),
+                        intel.secrets(),
+                        intel.seconds());
+                Measure measure = assertFits(withObjective, teaser, level, level + " escort at L" + sensor + ": ");
+                assertTrue(
+                        measure.parts.stream().anyMatch(box -> box.what().equals("text \"OBJECTIVE\"")),
+                        "the row is shown");
+            }
+        }
+    }
+
+    private static Measure assertFits(Intel intel, BriefingPage teaser, String level, String where) {
+        Measure measure = new Measure();
+        IntelPanel.layout(measure, intel, teaser, level);
+        List<Box> all = new ArrayList<>(measure.parts);
+        all.addAll(measure.quote);
+        for (Box box : all) {
+            assertTrue(
+                    box.left() >= IntelPanel.X && box.right() <= RIGHT && box.top() >= TOP && box.bottom() <= BOTTOM,
+                    where + box + " leaves the panel");
+        }
+        for (int i = 0; i < all.size(); i++) {
+            for (int j = i + 1; j < all.size(); j++) {
+                assertFalse(all.get(i).overlaps(all.get(j)), where + all.get(i) + " overlaps " + all.get(j));
+            }
+        }
+        if (!measure.quote.isEmpty()) {
+            int quoteTop = measure.quote.getFirst().top();
+            for (Box box : measure.parts) {
+                assertTrue(box.bottom() <= quoteTop, where + box + " runs into Varga's quote");
+            }
+        }
+        return measure;
     }
 }

@@ -27,7 +27,15 @@ class BriefingsTest {
     }
 
     @Test
+    void anEscortLevelBriefsItsConvoyAndASpawnersSecondary() {
+        BriefingScript level04 = Briefings.before(content, 4).orElseThrow();
+        assertEquals(
+                List.of("ESCORT THE 5 CRAWLERS TO THE END", "BONUS: KILL EVERY BROOD POD BEFORE IT BURSTS"),
+                level04.objectives());
+    }
+
+    @Test
     void aLevelThatIsNotBuiltYetHasNoBriefing() {
-        assertEquals(Optional.empty(), Briefings.before(content, 4));
+        assertEquals(Optional.empty(), Briefings.before(content, 5));
     }
 }

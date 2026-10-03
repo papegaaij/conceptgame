@@ -21,6 +21,7 @@ import vanguard.sim.PlayField;
  * @param cranes the crane hazards (Level 02: Crane Four)
  * @param debris the debris field's chunks (Level 03)
  * @param setPieces the huge set-piece units and their passes (Level 03's Leviathan)
+ * @param road the road on the ground layer that an escort objective's convoy follows (Level 04)
  * @param pickups pickups placed by the script (normal drops come from the enemies)
  * @param radio the radio chatter
  * @param backdrop the parallax layers behind and above the play plane
@@ -41,6 +42,7 @@ public record LevelData(
         Optional<List<CraneData>> cranes,
         Optional<DebrisField> debris,
         Optional<List<SetPieceData>> setPieces,
+        Optional<Road> road,
         Objectives objectives,
         Music music,
         Difficulties difficulty,
@@ -182,11 +184,18 @@ public record LevelData(
      * @param skip a layer: the prompt leaves early, done what it says, once an enemy on that layer
      *     is destroyed (Level 03's {@code LOW-AIR} prompt); without it, it stays for its seconds
      */
-    public record Prompt(double t, String action, String keys, double seconds, Optional<String> skip) {
+    public record Prompt(
+            double t, String action, String keys, double seconds, Optional<String> skip, Optional<String> requires) {
         public Prompt {
             Check.notNegative("t", t);
             Check.positive("seconds", seconds);
             skip.ifPresent(Layers::of);
+            requires.ifPresent(Requirement::check);
+        }
+
+        /** Whether it shows only with a special fitted (Level 04's {@code SPECIAL} · {@code CALL HAMMER}). */
+        public boolean requiresSpecial() {
+            return requires.isPresent();
         }
 
         /** The layer whose first destroyed enemy makes the prompt leave, if any. */
@@ -419,6 +428,8 @@ public record LevelData(
      * @param speed px/s instead of the enemy's own speed
      * @param interval seconds between two units of a stream
      * @param at a whirl cluster's release point: {@code [x, y]}, px from the left and below the top edge
+     * @param paths a walker wave's ground paths, one list of {@code [x, y]} points per unit (y below
+     *     the top edge, at the wave's {@code t}; they then scroll with the ground)
      * @param easy changes on easy
      * @param hard changes on hard
      */
@@ -436,10 +447,15 @@ public record LevelData(
             Optional<Double> speed,
             Optional<Double> interval,
             Optional<Point> at,
+            Optional<List<List<Point>>> paths,
             Optional<Change> easy,
             Optional<Change> hard) {
         public Wave {
             Check.notNegative("t", t);
+            paths.ifPresent(p -> {
+                Check.that(!p.isEmpty(), "paths: at least one path");
+                p.forEach(path -> Check.that(!path.isEmpty(), "paths: every path has a point"));
+            });
             speed.ifPresent(s -> Check.positive("speed", s));
             interval.ifPresent(i -> Check.positive("interval", i));
             boolean single = formation.isPresent() || enemy.isPresent() || count.isPresent();
@@ -484,7 +500,8 @@ public record LevelData(
             Optional<Entry> from, Optional<Edge> edge, Optional<Integer> count, Optional<Integer> breakGroup) {}
 
     /**
-     * A ground target: a destructible ({@code hp}, {@code bounty}, {@code drop}), a trigger hit
+     * A ground target: a destructible ({@code hp}, {@code bounty}, {@code drop}; one that
+     * {@code reveals} a secret drops its hidden crate when destroyed), a trigger hit
      * {@code hits} times that {@code reveals} a secret, or ground enemies of a stat block
      * ({@code enemy}, such as a Spine Turret nest), which may belong to a {@code group} of the
      * secondary objective.
@@ -493,8 +510,12 @@ public record LevelData(
      *     enemy's come from its stat block
      * @param at where each of them is placed
      * @param hardened only {@code anti-ground} weapons damage it (design/enemies, layer rules)
+     * @param bonusDrop a second pickup it drops with its {@code drop} (Level 04's supply drop: a
+     *     special charge, only with a special fitted)
      * @param easy another placement list on easy (an enemy nest's size)
      * @param hard another placement list on hard
+     * @param sprite a destructible's sprite set: {@code <sprite>_0..2} (intact, damaged, wrecked)
+     *     and {@code <sprite>-break_<n>}; Level 01's cargo container if left out
      */
     public record GroundTarget(
             String target,
@@ -509,10 +530,12 @@ public record LevelData(
             Optional<Integer> hits,
             Optional<String> reveals,
             Optional<Boolean> hardened,
+            Optional<Pickup> bonusDrop,
             Optional<String> enemy,
             Optional<String> group,
             Optional<Placements> easy,
-            Optional<Placements> hard) {
+            Optional<Placements> hard,
+            Optional<String> sprite) {
         public GroundTarget {
             layer.ifPresent(Layers::of);
             Check.that(at.size() == count.orElse(1), "at: one placement per target (count, or 1 for a trigger)");
@@ -523,7 +546,8 @@ public record LevelData(
             } else {
                 Check.that(layer.isPresent() && size.isPresent(), "a destructible or trigger needs layer and size");
                 Check.that(hp.isPresent() != hits.isPresent(), "give hp (destructible) or hits (trigger)");
-                Check.that(reveals.isPresent() == hits.isPresent(), "a trigger (hits) reveals a secret");
+                Check.that(hits.isEmpty() || reveals.isPresent(), "a trigger (hits) reveals a secret");
+                Check.that(bonusDrop.isEmpty() || drop.isPresent(), "a bonus_drop comes with a drop");
                 Check.that(
                         group.isEmpty() && easy.isEmpty() && hard.isEmpty(),
                         "only enemies have a group or easy/hard placements");
@@ -588,9 +612,15 @@ public record LevelData(
             Optional<Boolean> distorted,
             Optional<Expression> expression,
             Optional<RadioChange> easy,
-            Optional<RadioChange> hard) {
+            Optional<RadioChange> hard,
+            Optional<String> requires,
+            Optional<Count> allies) {
         public RadioCue {
             Check.that(t.isPresent() != event.isPresent(), "give the trigger as t or as event");
+            requires.ifPresent(Requirement::check);
+            Check.that(
+                    allies.isEmpty() || event.orElse(null) == CueEvent.LEVEL_END,
+                    "only a level-end cue names the allies home");
             boolean byEnemy = event.orElse(null) == CueEvent.FIRST_KILL || event.orElse(null) == CueEvent.ENEMY_ESCAPED;
             Check.that(
                     enemy.isPresent() == byEnemy,
@@ -599,6 +629,25 @@ public record LevelData(
             Check.that(
                     group.isPresent() == byGroup,
                     "a group-cleared or group-lost event names its group, other triggers do not");
+        }
+    }
+
+    /** What a prompt or radio cue requires: only {@code special} (a special fitted) so far. */
+    static final class Requirement {
+        private Requirement() {}
+
+        static void check(String requires) {
+            Check.that(requires.equals("special"), "requires: only 'special' is known, was '" + requires + "'");
+        }
+    }
+
+    /** A whole-number range, written {@code [min, max]}. */
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    public record Count(int min, int max) {
+        public Count {
+            Check.that(
+                    0 <= min && min <= max,
+                    "a count range is written [min, max] from 0, was [" + min + ", " + max + "]");
         }
     }
 
@@ -620,11 +669,106 @@ public record LevelData(
         FIRST_GROUP_LOST,
         /** The first unit of the enemy left the screen alive (a set piece: at the end of its last pass). */
         @JsonProperty("enemy-escaped")
-        ENEMY_ESCAPED
+        ENEMY_ESCAPED,
+        /** The first hit on a convoy unit; the line may name it as {@code {ally}} ("Three"). */
+        @JsonProperty("first-ally-hit")
+        FIRST_ALLY_HIT,
+        /** The first convoy unit lost; the line may name it as {@code {ally}}. */
+        @JsonProperty("first-ally-lost")
+        FIRST_ALLY_LOST,
+        /** The primary objective failed: the line on the mission failed screen (not on the radio). */
+        @JsonProperty("mission-failed")
+        MISSION_FAILED
     }
 
-    /** The primary objective's kind and the optional secondary objective. */
-    public record Objectives(String primary, Optional<Secondary> secondary) {}
+    /**
+     * The primary objective's kind ({@code reach-end}, or {@code escort} with its {@code escort}
+     * block) and the optional secondary objective.
+     */
+    public record Objectives(String primary, Optional<Escort> escort, Optional<Secondary> secondary) {
+        public Objectives {
+            Check.that(
+                    primary.equals("reach-end") || primary.equals("escort"),
+                    "primary: reach-end or escort, was '" + primary + "'");
+            Check.that(
+                    escort.isPresent() == primary.equals("escort"),
+                    "an escort primary has its escort block, other primaries do not");
+        }
+    }
+
+    /**
+     * The {@code escort} primary objective (design/allies; Level 04): a convoy of {@code ally}
+     * units, one per height in {@code y} (centres, px below the top edge, the leading unit first),
+     * rolling in from the bottom edge as {@code enter} says and following the level's road. Each
+     * unit alive at the end pays {@code credits}; the objective fails when every unit is lost.
+     *
+     * @param hook the target-the-objective hook: which enemies' aimed attacks go for the convoy
+     * @param easy the units' HP on easy
+     * @param hard the units' HP on hard
+     */
+    public record Escort(
+            String ally,
+            List<Double> y,
+            int credits,
+            Enter enter,
+            Hook hook,
+            Optional<AllyChange> easy,
+            Optional<AllyChange> hard) {
+        public Escort {
+            Check.notEmpty("y", y);
+            Check.notNegative("credits", credits);
+            y = List.copyOf(y);
+        }
+    }
+
+    /** The convoy rolls in: the first unit at {@code t} s, then one every {@code interval} s, at {@code speed} px/s up the screen. */
+    public record Enter(double t, double interval, double speed) {
+        public Enter {
+            Check.notNegative("t", t);
+            Check.notNegative("interval", interval);
+            Check.positive("speed", speed);
+        }
+    }
+
+    /**
+     * The target-the-objective hook (design/enemies): in {@code mode} (only {@code nearest} so far)
+     * the aimed attacks of the {@code enemies} go at the ship or the nearest convoy unit.
+     */
+    public record Hook(String mode, List<String> enemies) {
+        public Hook {
+            Check.that(mode.equals("nearest"), "mode: only 'nearest' is implemented, was '" + mode + "'");
+            Check.notEmpty("enemies", enemies);
+            enemies = List.copyOf(enemies);
+        }
+    }
+
+    /** A difficulty's change to the convoy units: their HP. */
+    public record AllyChange(double hp) {
+        public AllyChange {
+            Check.positive("hp", hp);
+        }
+    }
+
+    /**
+     * The road on the ground layer (Level 04): a curve through {@code points}, one {@code [t, x]}
+     * each ({@code t} when it passes the middle of the screen, as for placed backdrop pieces),
+     * drawn as a ribbon {@code width} px wide with the backdrop image {@code texture}
+     * ({@code assets/backdrop/level-NN/<texture>.png}; a flat placeholder colour without one).
+     */
+    public record Road(double width, Optional<String> texture, List<RoadPoint> points) {
+        public Road {
+            Check.positive("width", width);
+            Check.that(points.size() >= 2, "points: a road has at least two");
+            for (int i = 1; i < points.size(); i++) {
+                Check.that(points.get(i).t() > points.get(i - 1).t(), "points: in time order, point " + i);
+            }
+            points = List.copyOf(points);
+        }
+    }
+
+    /** A road point: {@code t} when it passes the middle of the screen (may lie before the start), its {@code x}. */
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    public record RoadPoint(double t, double x) {}
 
     /**
      * Destroy at least {@code killRatio} of all enemies for {@code credits}, clear the ground
@@ -693,6 +837,7 @@ public record LevelData(
      * @param traits the recommended weapon traits
      * @param boss the boss or mid-boss, {@code none} without one
      * @param specials the special availability, where the level limits it ("No air support under the ice")
+     * @param objective the OBJECTIVE field shown from sensor L1 ("ESCORT 5 CRAWLERS"); none without
      * @param varga Dr. Varga's intel line per sensor level: {@code none}, {@code l1}, {@code l2}, {@code l3}
      */
     public record ThreatProfile(
@@ -703,6 +848,7 @@ public record LevelData(
             List<String> hazards,
             String boss,
             Optional<String> specials,
+            Optional<String> objective,
             Map<String, String> varga) {
         /** The keys of Varga's lines, from no sensor suite to L3. */
         public static final List<String> SENSOR_KEYS = List.of("none", "l1", "l2", "l3");
@@ -746,10 +892,16 @@ public record LevelData(
     /** Changes to enemies (by slug) and extra placed pickups. */
     public record Variant(Optional<Map<String, EnemyChange>> enemies, Optional<List<PlacedPickup>> extraPickups) {}
 
-    /** Aimed shots fired in bursts of {@code burst}. */
-    public record EnemyChange(Optional<Integer> burst) {
+    /** Aimed shots fired in bursts of {@code burst}; walking at {@code speedFactor} times its speed. */
+    public record EnemyChange(Optional<Integer> burst, Optional<Double> speedFactor) {
         public EnemyChange {
             burst.ifPresent(b -> Check.positive("burst", b));
+            speedFactor.ifPresent(f -> Check.positive("speed_factor", f));
+        }
+
+        /** Only a burst change. */
+        public EnemyChange(Optional<Integer> burst) {
+            this(burst, Optional.empty());
         }
     }
 }

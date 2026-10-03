@@ -150,8 +150,9 @@ versions in `gradle/libs.versions.toml`.
   lets nothing hit the ship (to see a level to its end, e.g. with `--bench` for captures);
   `--loadout front=scatter-vulcan:3,left=bomb-rack,right=micro-missile-pod:2,rear=side-splitter`
   fits weapons (slot `front`/`rear`/`left`/`right`, level 1 if left out, the power cap unchecked)
-  and starts in the level; `--level <n>` starts at level n instead of Level 01; all four are for
-  testing only.
+  and starts in the level; `--special airstrike:2` fits a special with its charges (its name in
+  lower case, hyphenated; 1 charge if left out, at most its most) and starts in the level;
+  `--level <n>` starts at level n instead of Level 01; all five are for testing only.
 - `./gradlew :desktop:installDist` – the start script in `desktop/build/install/terran-vanguard/`.
 - `./gradlew :desktop:packageLinuxX64` (also `packageWinX64`, `packageMacX64`, `packageMacM1`) –
   Construo bundles with a trimmed JRE in `desktop/build/construo/dist/`.

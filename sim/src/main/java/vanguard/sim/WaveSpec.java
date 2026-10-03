@@ -19,6 +19,8 @@ import java.util.Optional;
  * @param intervalSeconds the gap between two units of a stream
  * @param carried pickups that a unit of this group drops when destroyed
  * @param at a whirl cluster's release point
+ * @param paths a walker wave's ground paths, one per unit (a pincer mirrors the first for the
+ *     units on the right, a convoy repeats it), in play-field points at {@code t}
  */
 public record WaveSpec(
         double t,
@@ -33,9 +35,42 @@ public record WaveSpec(
         Optional<Double> speed,
         Optional<Double> intervalSeconds,
         List<Carried> carried,
-        Optional<At> at) {
+        Optional<At> at,
+        List<List<At>> paths) {
     public WaveSpec {
         carried = List.copyOf(carried);
+        paths = paths.stream().map(List::copyOf).toList();
+    }
+
+    public WaveSpec(
+            double t,
+            Formation formation,
+            EnemySpec enemy,
+            int count,
+            Entry entry,
+            Edge edge,
+            Optional<Double> holdSeconds,
+            Optional<Double> warningSeconds,
+            int breakGroup,
+            Optional<Double> speed,
+            Optional<Double> intervalSeconds,
+            List<Carried> carried,
+            Optional<At> at) {
+        this(
+                t,
+                formation,
+                enemy,
+                count,
+                entry,
+                edge,
+                holdSeconds,
+                warningSeconds,
+                breakGroup,
+                speed,
+                intervalSeconds,
+                carried,
+                at,
+                List.of());
     }
 
     public WaveSpec(
@@ -85,7 +120,9 @@ public record WaveSpec(
         LINE_ABREAST,
         STREAM,
         PINCER,
-        CIRCLE
+        CIRCLE,
+        /** A spawner (the carrier) with the units that circle it as escorts (design/enemies/air/brood-pod). */
+        CARRIER_ESCORTS
     }
 
     /** The play-field edge a wave enters from. */

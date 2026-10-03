@@ -105,6 +105,12 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 |---|---|---|
 | `allies_r16.py [a] [b] [c]` | `design/allies/concept/civilian-crawler-r16-{a,b,c}.png` | three civilian crawler looks for Level 04's escort (station kit, `KIT_PAL`, the round-06 Luna regolith): a tracked crawler-transporter and a rover train at 72×40, a bus with a cargo sled at 40×72; a column of five on a road, a 3× close-up, damaged and wrecked; ~20 s |
 
+## Scripts (round 17)
+
+| Script | Outputs | Notes |
+|---|---|---|
+| `ground_targets_r17.py` | `design/campaign/act-1-first-contact/level-04-tranquility-run/concept/{dugout,supply-drop}-r17-{a,b}.png` | Level 04's two small loot targets on the ground layer, two variants each: the prospector's dugout (48×32, hardened) and the CDF supply drop (32×24); intact, damaged and wrecked frames, each its own top-down SDF render with the station kit's materials in `KIT_PAL` plus the loot amber under black hazard stripes (`ground_targets.py`'s stripes, light rim and scorch), shown on a strip of the round-06 Luna regolith at 1× and 3×; a few seconds |
+
 ## Scripts (game placeholders – level backdrops, ground targets and the UI kit)
 
 | Script | Outputs | Notes |

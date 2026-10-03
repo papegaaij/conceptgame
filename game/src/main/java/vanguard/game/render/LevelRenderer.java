@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.JsonValue;
 import java.util.HashMap;
 import java.util.Map;
 import vanguard.content.LevelData;
+import vanguard.sim.AirstrikeBomb;
 import vanguard.sim.Crane;
 import vanguard.sim.Debris;
 import vanguard.sim.Enemy;
@@ -30,11 +31,14 @@ import vanguard.sim.ShipSpec;
 import vanguard.sim.Shot;
 import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
+import vanguard.sim.SpecialSlot;
 import vanguard.sim.WeaponSpec;
 
 /**
  * Draws a level back to front, interpolating every position between the last two simulation
- * steps: the backdrop down to the ground layer, the ground objects with their debris and glints,
+ * steps: the backdrop down to the ground layer, the ground objects and the convoy, the overhead
+ * ground pieces (a bridge's arches, a gate's roof: the convoy passes under them), the debris and
+ * the ground units (a turret stands on an arch) with their glints,
  * the low-air flyers, the low-air layer's banks (so a low flyer can sit inside them), the flyers
  * and a set piece on the play plane, a set piece breaking up at its death, the solid death pieces of air units (tatters, husks), the debris chunks, the cranes, the pickups, the solid rounds
  * (missiles, bombs, shells), the ship with its wing pods, the glowing shots, muzzle flashes and
@@ -93,17 +97,34 @@ public final class LevelRenderer {
     private static final float SHIELD_SHIMMER = 0.6f;
     /** A bomb is drawn shrinking to this scale as it falls (design/player/weapons/bomb-rack). */
     private static final float BOMB_LANDING_SCALE = 0.6f;
+    /** The bomber sprite's hull centre is this far above the sprite's centre, px. */
+    private static final int BOMBER_HULL_DY = 4;
+    /** The bomber's shadow on the ground, offset from the bomber (the concept's light from the upper left). */
+    private static final int BOMBER_SHADOW_DX = 34;
+
+    private static final int BOMBER_SHADOW_DY = -48;
+    /** The bomber's engine flicker: each of its frames shows this many steps. */
+    private static final int BOMBER_FRAME_TICKS = 2;
     /** A shell grows by this much at the top of its arc (design/player/weapons/hammer-mortar: 1.0 -> 1.4 -> 1.0). */
     private static final float SHELL_ARC_SCALE = 0.4f;
     /** Bolts with a range fade out over its last part (design/player/weapons/scatter-vulcan). */
     private static final double FADE_SHARE = 0.25;
 
     private final Sprites sprites;
+    /** The Airstrike's bomb: the Bomb Rack's (design/player/specials, Audio / VFX). */
+    private final AtlasRegion airstrikeBomb;
+    /** The Airstrike's CDF bomber, facing up, with its engine flicker, and its shadow. */
+    private final Array<AtlasRegion> airstrikeBomber;
+
+    private final AtlasRegion airstrikeShadow;
+
     private final EnemyLooks[] looks;
     private final WeaponLooks weapons;
     private final CraneLooks craneLooks;
     /** Per set piece of the level, its sprites. */
     private final SetPieceLooks[] setPieceLooks;
+    /** The destructible ground objects' frames (intact, damaged) by their look, looked up once. */
+    private final Map<String, Array<AtlasRegion>> groundLooks = new HashMap<>();
     /** The debris chunks' sprites by name, looked up once. */
     private final Map<String, AtlasRegion> debrisSprites = new HashMap<>();
     /**
@@ -114,6 +135,9 @@ public final class LevelRenderer {
 
     private final Array<AtlasRegion> mine;
     private final Backdrop backdrop;
+    /** The level's road and convoy, if it has them. */
+    private final ConvoyLooks convoy;
+
     private final FlashShader flash;
     private final BitmapFont font;
     private float whiteFlash = 1;
@@ -134,6 +158,9 @@ public final class LevelRenderer {
             LevelScript script,
             String levelKey) {
         this.sprites = sprites;
+        airstrikeBomb = sprites.region("bomb-rack-shot");
+        airstrikeBomber = sprites.frames("airstrike-bomber");
+        airstrikeShadow = sprites.region("airstrike-bomber-shadow");
         this.looks = looks;
         this.weapons = weapons;
         this.craneLooks = new CraneLooks(sprites, level.cranes().isPresent() ? pivots(files, "crane-four") : null);
@@ -143,7 +170,13 @@ public final class LevelRenderer {
         String light = Backdrop.folder(levelKey) + "lifeboat-light";
         triggerLight = sprites.hasBackdrop(light) ? sprites.backdrop(light, 1).first() : null;
         mine = sprites.has("spore-mine") ? sprites.frames("spore-mine") : null;
+        for (LevelScript.GroundObjectSpec spec : script.groundObjects()) {
+            if (!spec.trigger()) {
+                groundLooks.computeIfAbsent(spec.look(), sprites::frames);
+            }
+        }
         this.backdrop = new Backdrop(sprites, level, levelKey);
+        this.convoy = new ConvoyLooks(sprites, flash, level, script, levelKey);
         this.flash = flash;
         this.font = font;
     }
@@ -158,6 +191,7 @@ public final class LevelRenderer {
      * @param debris animations started at ground positions (y plus the ground's scroll), see
      *     {@link Effects#draw}
      * @param pieces solid animations at play-field positions: the death pieces of air units
+     * @param blasts glowing animations at ground positions: the Airstrike's blasts
      * @param wrecks the set pieces whose death is playing, drawn breaking up
      * @param alpha interpolation between the previous and the current step
      * @param shieldShimmer 0..1, how strongly the ship shows its last shield hit
@@ -169,6 +203,7 @@ public final class LevelRenderer {
             Effects effects,
             Effects debris,
             Effects pieces,
+            Effects blasts,
             SetPieceWrecks wrecks,
             CreditNumbers credits,
             EdgeWarnings warnings,
@@ -180,13 +215,21 @@ public final class LevelRenderer {
         double scroll = sortie.groundScroll() - sortie.groundSpeed() * lag;
         double seconds = sortie.levelSeconds() - lag;
         backdrop.drawBehind(batch, scroll, seconds);
+        convoy.drawRoad(batch, Math.round(scroll));
+        backdrop.drawGroundPieces(batch, scroll, seconds);
         drawGround(batch, sortie, alpha);
+        convoy.drawConvoy(batch, sortie, alpha, whiteFlash);
+        backdrop.drawOverhead(batch, scroll, seconds);
         debris.draw(batch, -scroll);
         drawEnemies(batch, sortie, alpha, Depth.GROUND);
         drawGlints(batch, sortie, alpha);
+        drawBomberShadows(batch, sortie, alpha);
         drawEnemies(batch, sortie, alpha, Depth.LOW_AIR);
+        blasts.draw(batch, -scroll);
         backdrop.drawLowAir(batch, scroll, seconds);
+        drawWalkerGlows(batch, sortie, alpha);
         drawEnemies(batch, sortie, alpha, Depth.AIR);
+        drawAirstrike(batch, sortie, alpha);
         drawSetPieces(batch, sortie, alpha, seconds, false);
         drawWrecks(batch, sortie, wrecks, alpha, seconds);
         pieces.draw(batch, 0);
@@ -232,7 +275,7 @@ public final class LevelRenderer {
                 int lit = !object.spent() && sortie.tick() / BEACON_BLINK_TICKS % 2 == 0 ? 1 : 0;
                 frame = sprites.beacon.get(2 * damaged + lit);
             } else {
-                frame = sprites.cargoContainer.get(damaged);
+                frame = groundLooks.get(object.spec().look()).get(damaged);
             }
             if (object.ticksSinceHit() < HIT_FLASH_TICKS) {
                 flash.draw(
@@ -289,7 +332,7 @@ public final class LevelRenderer {
         AIR;
 
         static Depth of(Enemy enemy) {
-            if (enemy.grounded()) {
+            if (enemy.grounded() || enemy.walking()) {
                 return GROUND;
             }
             return enemy.spec().layer() == Layer.LOW_AIR ? LOW_AIR : AIR;
@@ -304,7 +347,9 @@ public final class LevelRenderer {
                 continue;
             }
             EnemyLooks look = looks[enemy.kind()];
-            AtlasRegion frame = look.frame(enemy.facing(), look.step(sortie.tick(), i));
+            AtlasRegion frame = enemy.walking()
+                    ? look.frames().get(look.walkFrame(enemy.facing(), enemy.walked()))
+                    : look.frame(enemy.facing(), look.step(sortie.tick(), i, enemy.burstSeconds()));
             drawCentred(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
             if (enemy.paused() && !look.flare().isEmpty()) {
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
@@ -313,6 +358,26 @@ public final class LevelRenderer {
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
             }
         }
+    }
+
+    /**
+     * The walkers' emissive backs, additive above the low-air layer, so the Scuttler's lime back
+     * glows through the dust that hides its body (design/campaign, Level 04 hazards).
+     */
+    private void drawWalkerGlows(SpriteBatch batch, Sortie sortie, float alpha) {
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        for (int i = 0; i < sortie.enemyCount(); i++) {
+            Enemy enemy = sortie.enemy(i);
+            EnemyLooks look = looks[enemy.kind()];
+            if (enemy.walking() && !look.glow().isEmpty()) {
+                drawCentred(
+                        batch,
+                        look.glow().get(look.walkFrame(enemy.facing(), enemy.walked())),
+                        enemy.renderX(alpha),
+                        enemy.renderY(alpha));
+            }
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
 
     /**
@@ -569,7 +634,45 @@ public final class LevelRenderer {
             case HIDDEN_CRATE -> sprites.crate;
             case SHIELD_CELL -> sprites.shieldCell;
             case ARMOUR_PATCH -> sprites.armourPatch;
+            // The crate stands in until the special charge's own pickup sprite is made.
+            case SPECIAL_CHARGE -> sprites.crate;
         };
+    }
+
+    /**
+     * The Airstrike: its bombs shrinking as they fall to the ground point they burst on (the Bomb
+     * Rack's bomb), and the two bombers (their production sprite) above them on their way up.
+     */
+    private void drawAirstrike(SpriteBatch batch, Sortie sortie, float alpha) {
+        SpecialSlot special = sortie.special();
+        if (!special.fitted()) {
+            return;
+        }
+        for (int i = 0; i < special.bombCount(); i++) {
+            AirstrikeBomb bomb = special.bomb(i);
+            float scale = 1 - (1 - BOMB_LANDING_SCALE) * (float) bomb.progress(alpha);
+            drawScaled(batch, airstrikeBomb, bomb.renderX(), bomb.renderY(alpha), scale);
+        }
+        if (!special.bombersIn()) {
+            return;
+        }
+        double y = special.bomberRenderY(alpha) - BOMBER_HULL_DY;
+        int frame = (int) (sortie.tick() / BOMBER_FRAME_TICKS % airstrikeBomber.size);
+        for (int b = 0; b < SpecialSlot.BOMBERS; b++) {
+            drawCentred(batch, airstrikeBomber.get(frame), special.bomberX(b), y);
+        }
+    }
+
+    /** The bombers' shadows on the ground, below the low-air layer (the 50 % opacity is in the sprite). */
+    private void drawBomberShadows(SpriteBatch batch, Sortie sortie, float alpha) {
+        SpecialSlot special = sortie.special();
+        if (!special.fitted() || !special.bombersIn()) {
+            return;
+        }
+        double y = special.bomberRenderY(alpha) - BOMBER_HULL_DY + BOMBER_SHADOW_DY;
+        for (int b = 0; b < SpecialSlot.BOMBERS; b++) {
+            drawCentred(batch, airstrikeShadow, special.bomberX(b) + BOMBER_SHADOW_DX, y);
+        }
     }
 
     private void drawShip(SpriteBatch batch, Ship ship, float alpha, float shieldShimmer) {

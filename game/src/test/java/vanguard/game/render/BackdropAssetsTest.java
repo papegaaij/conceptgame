@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
 import vanguard.content.BackdropData;
+import vanguard.content.BackdropLayer;
 import vanguard.content.Content;
 import vanguard.content.ContentLoader;
 import vanguard.content.LevelData;
@@ -68,13 +69,64 @@ class BackdropAssetsTest {
             Path folder = BACKDROP.resolve(Backdrop.folder(entry.getKey()));
             for (BackdropData.PlacedPiece placed : backdrop.placed()) {
                 BackdropData.Piece spec = backdrop.pieces().get(placed.piece());
-                if (spec.layer().opaque()) {
+                if (spec.layer() == backdrop.base()) {
                     for (BufferedImage image : images(folder, placed.piece(), spec)) {
                         assertNoEdgeOnScreen(level, placed, spec, image);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * A level without a deep layer (Level 04's Luna, a top-down surface) has nothing behind its
+     * ground: each section's ground tile set is opaque, or where it is not (the rille's channel) the
+     * section's far tile set, opaque everywhere, shows through. The set pieces on the ground then
+     * follow the edge rule above, as the deep layer's do.
+     */
+    @Test
+    void withoutADeepLayerTheGroundTilesCoverTheScreen() throws IOException {
+        Content content = ContentLoader.fromClasspath();
+        for (Map.Entry<String, LevelData> entry : content.levels().entrySet()) {
+            BackdropData backdrop = entry.getValue().backdrop();
+            if (backdrop.hasDeep()) {
+                continue;
+            }
+            Path folder = BACKDROP.resolve(Backdrop.folder(entry.getKey()));
+            for (LevelData.Section section : entry.getValue().sections()) {
+                String ground = tileOn(backdrop, section, BackdropLayer.GROUND);
+                String far = tileOn(backdrop, section, BackdropLayer.FAR);
+                assertTrue(ground != null, section.name() + ": no ground tile set");
+                if (opaque(ImageIO.read(folder.resolve(ground + ".png").toFile()))) {
+                    continue;
+                }
+                assertTrue(
+                        far != null
+                                && opaque(ImageIO.read(
+                                        folder.resolve(far + ".png").toFile())),
+                        section.name() + ": " + ground + " has openings but no opaque far tile set lies under them");
+            }
+        }
+    }
+
+    private static String tileOn(BackdropData backdrop, LevelData.Section section, BackdropLayer layer) {
+        for (String id : section.tiles()) {
+            if (backdrop.tileSets().get(id).layer() == layer) {
+                return id;
+            }
+        }
+        return null;
+    }
+
+    private static boolean opaque(BufferedImage image) {
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                if (image.getRGB(x, y) >>> 24 != 0xff) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private static void assertNoEdgeOnScreen(

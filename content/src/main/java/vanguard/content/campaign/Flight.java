@@ -11,9 +11,10 @@ import vanguard.sim.Loadout;
 /**
  * What a sortie flies of the campaign's loadout: the fitted weapons the simulation flies (the Act 1
  * arsenal, see {@link SimSpecs#flies}), the shield with the spare-power bonus, the plating and
- * the engine (the generator's output gives the spare power). The specials and the utility modules
- * are bought, fitted and saved but fly later in M4; they and any weapon that does not fly yet are
- * listed for the HUD.
+ * the engine (the generator's output gives the spare power), and the fitted special with the
+ * charges carried when the simulation flies it (the Airstrike, {@link SimSpecs#fliesSpecial}). The
+ * other specials and the utility modules are bought, fitted and saved but fly later in M4; they and
+ * any weapon that does not fly yet are listed for the HUD.
  *
  * @param weapons the flown weapons, in the order of the loadout's {@link Armament} mounts
  * @param sparePower the generator's output minus the fitted items' draw, MW (negative when a debug
@@ -55,18 +56,20 @@ public record Flight(Loadout loadout, List<Weapon> weapons, double sparePower, L
                 .stats(1)
                 .get(Catalogue.Stat.OUTPUT);
         double spare = output - load;
-        return new Flight(
-                SimSpecs.loadout(
-                        content,
-                        loadout.get(LoadoutSlot.ENGINE).item(),
-                        fitted,
-                        loadout.get(LoadoutSlot.SHIELD).item(),
-                        loadout.get(LoadoutSlot.ARMOUR).item(),
-                        spare,
-                        campaign.difficulty()),
-                weapons,
+        Loadout flown = SimSpecs.loadout(
+                content,
+                loadout.get(LoadoutSlot.ENGINE).item(),
+                fitted,
+                loadout.get(LoadoutSlot.SHIELD).item(),
+                loadout.get(LoadoutSlot.ARMOUR).item(),
                 spare,
-                notFlown);
+                campaign.difficulty());
+        Fitted special = loadout.get(LoadoutSlot.SPECIAL);
+        if (special != null && SimSpecs.fliesSpecial(special.item())) {
+            flown = flown.withSpecial(
+                    SimSpecs.special(content, special.item(), campaign.gear().charges(special.item())));
+        }
+        return new Flight(flown, weapons, spare, notFlown);
     }
 
     /** Whether the simulation flies the item in this slot. */
@@ -74,7 +77,8 @@ public record Flight(Loadout loadout, List<Weapon> weapons, double sparePower, L
         return switch (slot.kind()) {
             case FRONT, REAR, WING -> SimSpecs.flies(content, fitted.item());
             case GENERATOR, SHIELD, PLATING, ENGINE -> true;
-            case UTILITY, SPECIAL -> false;
+            case SPECIAL -> SimSpecs.fliesSpecial(fitted.item());
+            case UTILITY -> false;
         };
     }
 

@@ -60,7 +60,7 @@ left panel is about the mission (score, radio), the right panel about the ship.
 | Radio | 72×72 portrait with static on open/close, name, subtitle below the portrait up to 3 lines × 22 chars per page; a longer line is paged: each page typed out, then held 3 s (the last page 5 s); a radio line is at most **two pages** of word-wrapped lines (writing rule); queued messages: **timed lines go first** (a line at its time in the level script plays before any waiting event line), an **event line** (a reaction to an escaped enemy, a secret, a kill) waits for a gap, a free radio long enough to play it before the next timed line is due, and is dropped as stale once it has waited more than **6 s**; the lines that close a level (its end, a met secondary objective) wait for a gap too but are never dropped; urgent warnings interrupt. After a won level the scroll runs on and the debrief waits until the radio has shown its last message (the level-end line and whatever is still queued), at most 15 s after the level end |
 | Progress | Level progress bar with a boss marker at the end |
 | Control prompts | The contextual prompts of the first levels (see [Level 01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md#launch-and-control-prompts)): one line each, the action on the left and its keys on the right (the four arrow keys read `ARROW KEYS`), at most three at once; the box is shown only while a prompt is pending |
-| Objective tracker | Shown for every primary or secondary objective; hidden in levels without one. Compact box above the progress bar: objective icon and short label (e.g. "DOCKS", "CRAWLERS", "BATTERIES", "HIVE NODES", "SHUTTLES", "RELAY"), then progress as pips or counters (docks, crawler pips, batteries A–D, hive nodes, shuttles, relay integrity bar). A pip flashes green on success and red on a loss or failure; the whole box flashes when the objective is won or lost. Used by [L02](../../campaign/act-1-first-contact/level-02-shipyard-burning/README.md), [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md) and [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md); the secondary objective of [L01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) shows a `KILLS n / 76` counter that turns `DONE` and flashes green when met; [L03](../../campaign/act-1-first-contact/level-03-spore-drift/README.md)'s "nothing gets through" shows `BOMBERS n / 10` (destroyed of all), `DONE` in green when met or `FAILED` in red once one gets through, the box flashing green or red |
+| Objective tracker | Shown for every primary or secondary objective; hidden in levels without one. Compact box above the progress bar: objective icon and short label (e.g. "DOCKS", "CRAWLERS", "BATTERIES", "HIVE NODES", "SHUTTLES", "RELAY"), then progress as pips or counters (docks, crawler pips, batteries A–D, hive nodes, shuttles, relay integrity bar). A pip flashes green on success and red on a loss or failure; the whole box flashes when the objective is won or lost. Used by [L02](../../campaign/act-1-first-contact/level-02-shipyard-burning/README.md), [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md) and [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md); the secondary objective of [L01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) shows a `KILLS n / 76` counter that turns `DONE` and flashes green when met; [L03](../../campaign/act-1-first-contact/level-03-spore-drift/README.md)'s "nothing gets through" shows `BOMBERS n / 10` (destroyed of all), `DONE` in green when met or `FAILED` in red once one gets through, the box flashing green or red. **Two objectives** (a primary and a secondary at once: [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md)): a two-line tracker, the primary on line one and the secondary on line two. Level 04: line one `CRAWLERS` with five pips (green; amber below 50 % HP; a white flash on a hit; a red flash, then dark, when lost), line two `PODS n / 6` (pods killed before they burst, of all), then `DONE` or `FAILED` |
 
 ### Left panel layout
 
@@ -82,6 +82,10 @@ content rules (radio pages of 3 × 22 characters, one-line prompts) keep that fr
 | Control prompts | 384–448 | three-line well: action left (88 px column), keys right |
 | Objective tracker | 454–482 | one-line well: label left, count right |
 | Progress | 488–524 | plate, progress bar (10 px) |
+
+In a level with two objectives the tracker takes one line from the control prompts' well:
+control prompts 384–430 (a two-line well, 42 px), objective tracker 436–482 (a two-line well,
+42 px). The layout is fixed per level, so nothing moves during it.
 
 ### Right panel (ship)
 
@@ -169,10 +173,12 @@ Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker
 - [x] Side panel frames: bevelled metal plates with corner rivets, label plates, LCD wells, bar troughs and phosphor fills from the production art (`tools/art/hud.py`)
 - [x] Left panel: mission, score, credits, chain, radio, progress
 - [x] Left panel layout: fixed regions without overlap; texts cut off at their well; a test checks the regions and that every prompt and radio line of the content fits, measured with the font's metrics
-- [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter, Level 02's dock pips and Level 03's bomber counter done; the other levels' trackers come with them in M4 and M5)
+- [x] Two-objective levels (L04, L05, L13): the two-line tracker and the two-line control prompts' well (shown with a convoy: Level 04's `CRAWLERS` line; Level 05's and Level 13's first lines come with them)
+- [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter, Level 02's dock pips, Level 03's bomber counter and Level 04's crawler pips done; the other levels' trackers come with them in M4 and M5)
 - [x] Right panel: armour, shield, power (spare-power bar and the regen bonus, glowing in an overdrive), weapons (front, rear, left, right with level pips), overdrive timer
-- [ ] Right panel: special — **later: M4** (the specials, part D); escort — **later: M5** (Rook's escort slot)
-- [ ] Radio message queue with portraits, priority interrupts
+- [x] Right panel: special (M4 part D): a row under the weapons box in their style, `SPECIAL`, the special's 16 px hangar icon, its name and `×` charges; greyed while its strike flies or with no charge left, flashing red when the button is denied
+- [ ] Right panel: escort — **later: M5** (Rook's escort slot)
+- [x] Radio message queue with portraits, priority interrupts
 - [ ] Boss bar, warning banners, edge arrows, pickup numbers
 
 ## Open questions
@@ -294,3 +300,17 @@ Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker
   within 1 s of its time; Level 01's Varga line after the Choir is exempt, it follows that line).
 - 2026-10-03 (user decision): the radio reading above accepted as it is: the level-end and secondary-objective lines (`RadioQueue.Priority.CLOSING`) are never dropped.
 - 2026-10-03: Concept round 16 closed again (user decision, choice 16): the M4 part C choice for review above accepted as it is: the escapes objective's tracker (`BOMBERS n / 10`, then `DONE` in green or `FAILED` in red with the box flashing) and the timed prompt with a `skip` layer (Level 03's `LOW-AIR`, Level 02's `GROUND` via `skip: ground`).
+- 2026-10-03 (user decision, M4 part D): a two-line objective tracker for levels with a primary and
+  a secondary objective (L04, L05, L13); it takes one line from the control prompts' well. Level
+  04: `CRAWLERS` with five pips (green; amber below 50 %; a white flash on a hit; a red flash, then
+  dark, when lost) and `PODS n / 6`, then `DONE`/`FAILED`. The region bounds (prompts 384–430,
+  tracker 436–482) follow from the well sizes (main-agent choice).
+- 2026-10-03: M4 part D step 2 (main-agent choices): an **urgent** radio line (the Airstrike's
+  "Hammer flight, inbound!", which had queued as an event line and could be dropped behind long
+  lines) interrupts the line on the radio at once, without the gap, and the interrupted line plays
+  again from its start right after it (`RadioQueue.Priority.URGENT`). The two-line tracker is
+  drawn when the level has a convoy: line one is the ally's label (`CRAWLERS`) and a pip per unit
+  (the `civilian-crawler-pip` sprite tinted green, amber below 50 % HP, white for 6 steps after a
+  hit, a red flash for 1.5 s then dark when lost; the line flashes red when the last one is lost),
+  line two the secondary objective as in a one-line tracker; the control prompts show two lines
+  then.

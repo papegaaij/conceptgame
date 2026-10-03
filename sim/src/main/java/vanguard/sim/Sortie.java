@@ -16,6 +16,10 @@ import java.util.List;
  * level-start state (design/systems/retry): what the attempt earned is lost. The level is over
  * when the scroll reaches the end of the last section; the ship then flies on, out of harm's way,
  * until the presentation moves to the debrief.
+ *
+ * <p>A level with an {@code escort} primary objective has a {@link Convoy} on its road; it fails
+ * when the last unit is lost (design/systems/retry, on a failed primary objective): the ship flies
+ * on but nothing can hurt it, and the presentation retries the level as after a wreck.
  */
 public final class Sortie {
     private static final int GROUND_CAPACITY = 32;
@@ -28,11 +32,14 @@ public final class Sortie {
     private final LevelScript script;
     private final Rules rules;
     private final PlayerFire fire;
+    private final SpecialSlot special;
     private final EnemyForce force;
     private final Pool<GroundObject> ground = new Pool<>(GROUND_CAPACITY, GroundObject::new, GroundObject[]::new);
     private final Pool<Pickup> pickups = new Pool<>(PICKUP_CAPACITY, Pickup::new, Pickup[]::new);
     private final Pool<Debris> debris = new Pool<>(DEBRIS_CAPACITY, Debris::new, Debris[]::new);
     private final SetPiece[] setPieces;
+    /** What the guns and the Airstrike destroy is handed here. */
+    private final PlayerFire.Hits hits;
     /** Per secret, the triggers spent that reveal it together (Level 03's lifeboat lights). */
     private final int[] secretTriggersSpent;
 
@@ -43,6 +50,8 @@ public final class Sortie {
     private final Crane[] cranes;
     /** Whether a group's outcome was paid and called in this attempt. */
     private final boolean[] groupCalled;
+    /** The escort objective's convoy; null without one. */
+    private final Convoy convoy;
 
     private final int launchTicks;
     private final int endTicks;
@@ -51,6 +60,10 @@ public final class Sortie {
     private int levelTick;
     private int attempt = 1;
     private boolean wrecked;
+    /** Whether the primary objective failed in this attempt (the convoy is lost). */
+    private boolean failed;
+    /** What the convoy earned at the level end, for the debrief. */
+    private int escortCredits;
     /** The armour of the next attempt, once {@link #retry(double)} asked for one; 0 while none is asked for. */
     private double retryArmour;
 
@@ -73,38 +86,46 @@ public final class Sortie {
         this.rules = rules;
         setPieces = script.setPieces().stream().map(SetPiece::new).toArray(SetPiece[]::new);
         secretTriggersSpent = new int[script.secrets()];
-        fire = new PlayerFire(
-                ship,
-                loadout.armament(),
-                events,
-                new PlayerFire.Hits() {
-                    @Override
-                    public void enemyDestroyed(int index) {
-                        destroy(index);
-                    }
+        PlayerFire.Hits hits = new PlayerFire.Hits() {
+            @Override
+            public void enemyDestroyed(int index) {
+                destroy(index);
+            }
 
-                    @Override
-                    public void groundDestroyed(int index) {
-                        demolish(index);
-                    }
+            @Override
+            public void groundDestroyed(int index) {
+                demolish(index);
+            }
 
-                    @Override
-                    public void triggerReleased(int index) {
-                        released(ground.get(index));
-                    }
+            @Override
+            public void triggerReleased(int index) {
+                released(ground.get(index));
+            }
 
-                    @Override
-                    public void mineDestroyed(int index) {
-                        shootMine(index);
-                    }
+            @Override
+            public void mineDestroyed(int index) {
+                shootMine(index);
+            }
 
-                    @Override
-                    public void partDestroyed(int piece, int part) {
-                        wreck(piece, part);
-                    }
-                },
-                setPieces);
-        force = new EnemyForce(script.waves(), script.groundUnits(), rng, rules, events, this::escaped);
+            @Override
+            public void partDestroyed(int piece, int part) {
+                wreck(piece, part);
+            }
+        };
+        this.hits = hits;
+        fire = new PlayerFire(ship, loadout.armament(), events, hits, setPieces);
+        special = new SpecialSlot(loadout.special(), events);
+        force = new EnemyForce(script.waves(), script.groundUnits(), rng, rules, events, new EnemyForce.Escapes() {
+            @Override
+            public void escaped(Enemy enemy) {
+                Sortie.this.escaped(enemy);
+            }
+
+            @Override
+            public void burst(Enemy enemy) {
+                selfBurst(enemy);
+            }
+        });
         tally = new Tally(rules.scoring());
         int escapers = force.unitsOf(script.secondary().escapes());
         for (SetPiece piece : setPieces) {
@@ -114,7 +135,13 @@ public final class Sortie {
                 new Objectives(script.secondary(), force.kinds().size(), enemyTotal(), script.groundUnits(), escapers);
         cranes = script.cranes().stream().map(Crane::new).toArray(Crane[]::new);
         groupCalled = new boolean[script.secondary().groups().size()];
-        radio = new Radio(script.radio(), events, ship);
+        radio = new Radio(script.radio(), events, ship, special.fitted());
+        convoy = script.escort()
+                .map(escort -> new Convoy(escort, script.road().orElseThrow()))
+                .orElse(null);
+        if (convoy != null) {
+            force.hook(convoy, convoy.escort().targetedBy());
+        }
         launchTicks = SimStep.ticks(script.launchSeconds());
         endTicks = SimStep.ticks(script.seconds());
         pickupTicks = SimStep.ticks(rules.pickups().seconds());
@@ -138,6 +165,7 @@ public final class Sortie {
             ship.fly(commands);
             fire.fire(commands, force.enemies(), ground);
         }
+        special.command(commands, !launching() && flying() && !complete, ship.x(), ship.y());
         tally.step();
         if (!complete) {
             force.spawn(levelTick);
@@ -164,17 +192,24 @@ public final class Sortie {
         fire.hitSetPieces();
         fire.hitMines(force.mines());
         fire.hitGround(ground, force.enemies());
-        if (flying() && !complete && !rules.invulnerableShip()) {
+        special.update(scrollStep, force.enemies(), ground, setPieces, hits);
+        if (convoy != null) {
+            convoy.update(levelTick, groundScroll, scrollStep);
+        }
+        if (flying() && !complete && !failed && !rules.invulnerableShip()) {
             hitShip();
             ramShip();
             hitByCranes();
             hitByDebris();
             hitBySetPieces();
         }
+        if (convoy != null && !complete && !wrecked && !failed) {
+            hitAllies();
+        }
         if (flying()) {
             collectPickups();
         }
-        if (!complete && !wrecked && levelTick >= endTicks) {
+        if (!complete && !wrecked && !failed && levelTick >= endTicks) {
             completeLevel();
         }
     }
@@ -201,6 +236,7 @@ public final class Sortie {
 
     private void restart() {
         fire.reset();
+        special.reset();
         force.reset();
         Pools.clear(ground);
         Pools.clear(pickups);
@@ -222,6 +258,11 @@ public final class Sortie {
         nextDebris = 0;
         complete = false;
         wrecked = false;
+        failed = false;
+        escortCredits = 0;
+        if (convoy != null) {
+            convoy.reset();
+        }
         attempt++;
         startAttempt(retryArmour);
         retryArmour = 0;
@@ -335,14 +376,29 @@ public final class Sortie {
         }
     }
 
+    /** How far to the right of a destroyed object its bonus drop lands. */
+    private static final double BONUS_DROP_OFFSET = 16;
+
     private void demolish(int index) {
         GroundObject object = ground.get(index);
         LevelScript.GroundObjectSpec spec = object.spec();
-        events.add(SimEvents.Type.GROUND_DESTROYED, object.x(), object.y());
+        events.add(
+                SimEvents.Type.GROUND_DESTROYED,
+                object.x(),
+                object.y(),
+                script.groundObjects().indexOf(spec));
         tally.earn(CreditSource.GROUND_TARGETS, spec.bounty());
         tally.scoreValue(spec.bounty());
         if (spec.drop().isPresent()) {
             drop(spec.drop().get(), object.x(), object.y());
+        }
+        if (spec.bonusDrop().isPresent()) {
+            // Beside the first, so both show.
+            drop(spec.bonusDrop().get(), object.x() + BONUS_DROP_OFFSET, object.y());
+        }
+        if (spec.secretIndex() >= 0) {
+            // A destructible that hides a secret (Level 04's dugout) reveals it when destroyed.
+            released(object);
         }
         ground.free(index);
     }
@@ -386,6 +442,16 @@ public final class Sortie {
         }
         if (spec.deathBurst().isPresent()) {
             force.deathBurst(enemy, ship);
+        }
+        if (spec.brood().isPresent()) {
+            force.hatch(enemy, ship);
+        }
+        if (enemy.walking()) {
+            events.add(
+                    SimEvents.Type.WALKER_DOWN,
+                    enemy.x(),
+                    enemy.y(),
+                    SimEvents.walkerValue(enemy.kind(), enemy.facing()));
         }
         enemies.free(index);
         if (kills == 1) {
@@ -463,6 +529,17 @@ public final class Sortie {
     }
 
     /**
+     * A spawner burst on its own (design/enemies/air/brood-pod): it pays its burst bounty, which is
+     * not a kill (no kill counter, no chain), and counts as an escape for an escapes objective.
+     */
+    private void selfBurst(Enemy enemy) {
+        int credits = enemy.spec().brood().orElseThrow().burstBounty();
+        tally.unchained(credits);
+        events.add(SimEvents.Type.BROOD_BURST, enemy.x(), enemy.y(), enemy.kind());
+        escaped(enemy);
+    }
+
+    /**
      * A unit left the screen alive: a ground group's unit can lose its group, one of an escapes
      * objective's enemy fails it, and the first of an enemy calls its line.
      */
@@ -506,6 +583,9 @@ public final class Sortie {
     }
 
     private void drop(PickupType type, double x, double y) {
+        if (type == PickupType.SPECIAL_CHARGE && !special.fitted()) {
+            return;
+        }
         Pickup pickup = pickups.obtain();
         if (pickup != null) {
             int credits =
@@ -729,6 +809,71 @@ public final class Sortie {
         return destroyed;
     }
 
+    /**
+     * The convoy takes its damage (design/allies, civilian crawler): an enemy shot the
+     * target-the-objective hook aimed at a unit hits the first unit it touches and is spent (shots
+     * aimed at the ship pass over), and a walker (a ground unit that is not fixed to the ground)
+     * claws every unit its hit box overlaps, per second.
+     */
+    private void hitAllies() {
+        AllySpec spec = convoy.escort().ally();
+        if (spec.objectiveAimed()) {
+            Pool<EnemyBullet> bullets = force.bullets();
+            for (int i = bullets.size() - 1; i >= 0 && !failed; i--) {
+                EnemyBullet bullet = bullets.get(i);
+                if (!bullet.objectiveAimed()) {
+                    continue;
+                }
+                int k = convoy.touching(bullet.x(), bullet.y(), EnemyGun.BULLET);
+                if (k >= 0) {
+                    bullets.free(i);
+                    hurt(k, bullet.damage(), true);
+                }
+            }
+        }
+        if (spec.clawsPerSecond() > 0) {
+            double claws = spec.clawsPerSecond() * SimStep.SECONDS;
+            Pool<Enemy> enemies = force.enemies();
+            for (int j = 0; j < enemies.size() && !failed; j++) {
+                Enemy enemy = enemies.get(j);
+                if (enemy.spec().layer() != Layer.GROUND || enemy.grounded()) {
+                    continue;
+                }
+                for (int k = 0; k < convoy.size() && !failed; k++) {
+                    if (convoy.touches(k, enemy.x(), enemy.y(), enemy.spec().hitbox())) {
+                        // A new contact flashes and sounds; a continuing one only takes its damage.
+                        hurt(k, claws, convoy.get(k).ticksSinceHit() > 1);
+                    }
+                }
+            }
+        }
+    }
+
+    /** Unit {@code k} of the convoy takes {@code damage}: the first hit's line, a loss's line, the failure. */
+    private void hurt(int k, double damage, boolean announce) {
+        Ally ally = convoy.get(k);
+        boolean first = convoy.firstHit() < 0;
+        boolean destroyed = convoy.damage(k, damage);
+        if (announce || destroyed) {
+            events.add(SimEvents.Type.ALLY_HIT, ally.x(), ally.y(), k);
+        }
+        if (first) {
+            radio.cue(LevelScript.CueTrigger.FIRST_ALLY_HIT, "");
+        }
+        if (!destroyed) {
+            return;
+        }
+        events.add(SimEvents.Type.ALLY_LOST, ally.x(), ally.y(), k);
+        if (convoy.firstLost() == k && convoy.alive() == convoy.size() - 1) {
+            radio.cue(LevelScript.CueTrigger.FIRST_ALLY_LOST, "");
+        }
+        if (convoy.allLost()) {
+            failed = true;
+            events.add(SimEvents.Type.PRIMARY_FAILED, ship.x(), ship.y());
+            radio.cue(LevelScript.CueTrigger.MISSION_FAILED, "");
+        }
+    }
+
     private void collectPickups() {
         double radius = rules.pickups().collectionRadius();
         for (int i = pickups.size() - 1; i >= 0; i--) {
@@ -750,6 +895,7 @@ public final class Sortie {
             case HIDDEN_CRATE -> payPickup(CreditSource.SECRETS, pickup);
             case SHIELD_CELL -> defences.restoreShield(rules.pickups().shieldCellShare() * defences.maxShield());
             case ARMOUR_PATCH -> defences.repair(rules.pickups().armourPatch());
+            case SPECIAL_CHARGE -> special.collect();
         }
         events.add(
                 SimEvents.Type.PICKUP_COLLECTED,
@@ -767,7 +913,16 @@ public final class Sortie {
     private void completeLevel() {
         complete = true;
         events.add(SimEvents.Type.LEVEL_COMPLETE, ship.x(), ship.y());
-        radio.cue(LevelScript.CueTrigger.LEVEL_END, "");
+        int home = convoy == null ? 0 : convoy.alive();
+        if (convoy != null) {
+            // Each unit home is a payout of its own (design/campaign, Level 04: the escort objective).
+            int credits = convoy.escort().credits();
+            for (int k = 0; k < home; k++) {
+                escortCredits += tally.earn(CreditSource.OBJECTIVES, credits);
+                tally.scoreValue(credits);
+            }
+        }
+        radio.end(home);
     }
 
     /** A hash over the complete state; equal hashes mean equal replays. */
@@ -786,6 +941,7 @@ public final class Sortie {
                 .add(rng.state());
         ship.addTo(hash);
         fire.addTo(hash);
+        special.addTo(hash);
         tally.addTo(hash);
         objectives.addKillsTo(hash);
         for (Crane crane : cranes) {
@@ -804,6 +960,10 @@ public final class Sortie {
         Pools.addAll(hash, pickups);
         Pools.addAll(hash, force.mines());
         Pools.addAll(hash, debris);
+        if (convoy != null) {
+            hash.add(failed ? 1 : 0).add(escortCredits);
+            convoy.addTo(hash);
+        }
         return hash.value();
     }
 
@@ -818,7 +978,11 @@ public final class Sortie {
                 defences.armourLost(),
                 defences.maxArmour(),
                 objectives.secretsFound(),
-                objectives.secondaryMet());
+                objectives.secondaryMet(),
+                convoy == null
+                        ? LevelResult.Escort.NONE
+                        : new LevelResult.Escort(
+                                convoy.escort().ally().slug(), convoy.alive(), convoy.size(), escortCredits));
     }
 
     public LevelScript script() {
@@ -842,6 +1006,11 @@ public final class Sortie {
     /** Steps since mount {@code m} last fired, for its muzzle flash; {@link Integer#MAX_VALUE} before its first shot. */
     public int ticksSinceShot(int m) {
         return fire.ticksSinceShot(m);
+    }
+
+    /** The special slot: its charges, and the Airstrike in flight for the presentation. */
+    public SpecialSlot special() {
+        return special;
     }
 
     /** Seconds of overdrive left; 0 without one. */
@@ -942,6 +1111,36 @@ public final class Sortie {
     /** Whether group {@code g} is still open (0), cleared (1) or lost (2). */
     public int groupState(int g) {
         return objectives.groupState(g);
+    }
+
+    /** The units of the escort objective's convoy; 0 without one. */
+    public int allyCount() {
+        return convoy == null ? 0 : convoy.size();
+    }
+
+    /** Convoy unit {@code k}, the leading one first. */
+    public Ally ally(int k) {
+        return convoy.get(k);
+    }
+
+    /** The convoy's units still alive in this attempt; 0 without a convoy. */
+    public int alliesAlive() {
+        return convoy == null ? 0 : convoy.alive();
+    }
+
+    /** The convoy unit hit first in this attempt, for its radio line; -1 before. */
+    public int firstAllyHit() {
+        return convoy == null ? -1 : convoy.firstHit();
+    }
+
+    /** The convoy unit lost first in this attempt, for its radio line; -1 before. */
+    public int firstAllyLost() {
+        return convoy == null ? -1 : convoy.firstLost();
+    }
+
+    /** Whether the primary objective failed in this attempt: the level is lost though the ship flies on. */
+    public boolean primaryFailed() {
+        return failed;
     }
 
     /** Events of the last step. */

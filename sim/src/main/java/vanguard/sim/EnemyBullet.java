@@ -9,8 +9,16 @@ public final class EnemyBullet implements Hashed {
     private double vx;
     private double vy;
     private double damage;
+    /** The convoy unit it was aimed at by the target-the-objective hook; -1 for the ship. */
+    private int target;
 
     void fire(double startX, double startY, double velocityX, double velocityY, double bulletDamage) {
+        fire(startX, startY, velocityX, velocityY, bulletDamage, -1);
+    }
+
+    /** @param aimedAt the convoy unit it is aimed at; -1 for the ship */
+    void fire(double startX, double startY, double velocityX, double velocityY, double bulletDamage, int aimedAt) {
+        target = aimedAt;
         x = prevX = startX;
         y = prevY = startY;
         vx = velocityX;
@@ -28,6 +36,14 @@ public final class EnemyBullet implements Hashed {
     @Override
     public void addTo(StateHash hash) {
         hash.add(x).add(y).add(vx).add(vy).add(damage);
+        if (target >= 0) {
+            hash.add(target);
+        }
+    }
+
+    /** Whether the target-the-objective hook aimed it at a convoy unit rather than the ship. */
+    boolean objectiveAimed() {
+        return target >= 0;
     }
 
     double x() {

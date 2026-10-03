@@ -8,7 +8,12 @@ public enum Command {
     RIGHT,
     FIRE,
     /** Held: precision mode, the ship flies slower for fine dodging. */
-    PRECISION;
+    PRECISION,
+    /**
+     * Pressed: calls the fitted special (design/player/specials). Last, so the bits of the commands
+     * before it, and the recordings made before it existed, stay the same.
+     */
+    SPECIAL;
 
     /** No command pressed. */
     public static final int NONE = 0;

@@ -35,6 +35,7 @@ they belong to; a round only collects them.
 | [round-14](round-14/README.md) | M4 part A: the Act 1 arsenal's effects and the HUD's weapon rows | approved | n/a | chosen |
 | [round-15](round-15/README.md) | M4 part B: Level 02's Stinger, Spine Turret, pickups, backdrop, Crane Four and Afterburner stems | approved | n/a | chosen |
 | [round-16](round-16/README.md) | M4 part C: Level 03's Spore Bomber, Whirl Seed, debris, Leviathan, backdrop, large salvage, intel pictures and game captures | approved | n/a | chosen |
+| [round-17](round-17/README.md) | M4 part D: Level 04's civilian crawler, Airstrike bomber, Luna backdrop, intel portraits, dugout and supply drop concepts, game captures and part D numbers | approved | n/a | chosen |
 
 ## Design
 
@@ -71,3 +72,4 @@ How a round works:
 | 14 | 2026-10-02 | closed | M4 part A: the Act 1 arsenal's effects (final art review) |
 | 15 | 2026-10-02 | closed | M4 part B: Level 02 (final art review) |
 | 16 | 2026-10-02 | closed | M4 part C: Level 03 (final art review) |
+| 17 | 2026-10-03 | closed | M4 part D: Level 04 (final art review, dugout and supply drop concepts, part D numbers) |

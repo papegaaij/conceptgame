@@ -2,18 +2,22 @@ package vanguard.game.render;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import java.util.List;
 import java.util.Locale;
 import vanguard.content.campaign.Flight;
 import vanguard.sim.Defences;
 import vanguard.sim.Sortie;
+import vanguard.sim.SpecialSlot;
 
 /**
  * The right HUD panel (design/ui/hud, ship): armour and shield bars with their numbers (the shield
  * bar flickers while it is down after a break), the spare power with its shield regen bonus (lit
- * up during an overdrive), the four weapon slots with their level pips and the overdrive timer.
- * Under them, until the specials and utility modules fly (later in M4): the fitted items the sortie
- * leaves out, as "not yet available". Special and escort follow with the parts that need them.
+ * up during an overdrive), the four weapon slots with their level pips and the overdrive timer,
+ * and the special's row in the same style: its 16 px hangar icon, name and charges, greyed while
+ * its strike flies or with no charge left, flashing red when the special button is denied. Under
+ * them, until the other specials and the utility modules fly (later in M4): the fitted items the
+ * sortie leaves out, as "not yet available". The escort follows with Rook's slot (M5).
  */
 final class ShipPanel {
     private static final int X = PixelScreen.WIDTH - HudKit.PANEL_WIDTH;
@@ -28,6 +32,11 @@ final class ShipPanel {
 
     private static final int ROW = 14;
     private static final int OVERDRIVE_PIPS = 10;
+    /** The special's row flashes red this many frames after a denied press, switching every few. */
+    private static final int DENIED_FRAMES = 30;
+
+    private static final int DENIED_PHASE_FRAMES = 5;
+    private static final float GREYED = 0.35f;
 
     private static final Color ARMOUR = Color.valueOf("FF4400");
     private static final Color ARMOUR_EMPTY = Color.valueOf("2A0B00");
@@ -43,11 +52,24 @@ final class ShipPanel {
     /** How long an overdrive lasts (design/player, in-level pickups), the timer's full length. */
     private final double overdriveLength;
 
-    private int frame;
+    /** The fitted special's 16 px hangar icon; {@code null} without a special that flies. */
+    private final TextureRegion specialIcon;
+    /** "×" when the font has it, else "x". */
+    private final String times;
 
-    ShipPanel(HudKit kit, double overdriveLength) {
+    private int frame;
+    private int denied;
+
+    ShipPanel(HudKit kit, double overdriveLength, TextureRegion specialIcon) {
         this.kit = kit;
         this.overdriveLength = overdriveLength;
+        this.specialIcon = specialIcon;
+        times = kit.small.getData().hasGlyph('\u00d7') ? "\u00d7" : "x";
+    }
+
+    /** The special button was denied: the special's row flashes. */
+    void specialDenied() {
+        denied = DENIED_FRAMES;
     }
 
     /**
@@ -72,13 +94,40 @@ final class ShipPanel {
         gauge(batch, "SHIELD", defences.shield(), defences.maxShield(), SHIELD, SHIELD_EMPTY, x, y - 52, !flicker);
         power(batch, sparePower, regenBonus, sortie.overdriveSeconds() > 0, x, y - 104);
         weapons(batch, weapons, sortie.overdriveSeconds(), x, y - 148);
+        special(batch, sortie.special(), x, y - 258);
+        if (denied > 0) {
+            denied--;
+        }
         if (!notFlown.isEmpty()) {
-            kit.label(batch, "NOT YET AVAILABLE", x, y - 268);
+            kit.label(batch, "NOT YET AVAILABLE", x, y - 300);
             for (int i = 0; i < Math.min(notFlown.size(), MAX_NOT_FLOWN); i++) {
                 String name = notFlown.get(i).toUpperCase(Locale.ROOT);
-                kit.text(batch, kit.small, name, HudKit.LABEL, x + 8, y - 286 - i * 13);
+                kit.text(batch, kit.small, name, HudKit.LABEL, x + 8, y - 318 - i * 13);
             }
         }
+    }
+
+    /** The special's row below the weapons box: {@code SPECIAL [icon] AIRSTRIKE ×2}. */
+    private void special(SpriteBatch batch, SpecialSlot special, int x, int top) {
+        int height = ROW + 10;
+        kit.lcd(batch, x, top - height, HudKit.INNER_WIDTH, height);
+        boolean flash = denied > 0 && denied / DENIED_PHASE_FRAMES % 2 == 0;
+        kit.glow(batch, flash ? HudKit.ALERT : HudKit.READOUT, x, top - height, HudKit.INNER_WIDTH, height);
+        int rowTop = top - 5;
+        kit.text(batch, kit.small, "SPECIAL", flash ? HudKit.ALERT : HudKit.LABEL, x + 6, rowTop);
+        if (!special.fitted() || specialIcon == null) {
+            kit.text(batch, kit.small, "-", HudKit.LABEL, x + 84, rowTop);
+            return;
+        }
+        boolean ready = special.ready();
+        float shade = ready ? 1 : GREYED;
+        batch.setColor(1, 1, 1, shade);
+        batch.draw(specialIcon, x + 64, top - 4 - specialIcon.getRegionHeight());
+        batch.setColor(Color.WHITE);
+        Color colour = flash ? HudKit.ALERT : ready ? HudKit.READOUT : HudKit.LABEL;
+        String charges = times + special.charges();
+        kit.text(batch, kit.small, special.name().toUpperCase(Locale.ROOT), colour, x + 84, rowTop, 90);
+        kit.textRight(batch, kit.small, charges, colour, x, rowTop, HudKit.INNER_WIDTH - 6);
     }
 
     private void power(SpriteBatch batch, double spare, double bonus, boolean overdrive, int x, int y) {

@@ -12,7 +12,8 @@ import java.util.Optional;
  * pieces are placed along the scroll; each section's atmosphere intensity picks its cloud banks,
  * wisps and haze.
  *
- * @param scrollFactors every layer's scroll speed relative to the ground layer
+ * @param scrollFactors every layer's scroll speed relative to the ground layer ({@code deep} optional:
+ *     a surface level without one has opaque ground tiles, see {@link #base()})
  * @param ramp seconds an atmosphere change takes, centred on the section boundary
  * @param hazeColour the setting's haze colour, {@code rrggbb}
  * @param atmosphere what each atmosphere intensity draws
@@ -30,8 +31,9 @@ public record BackdropData(
         List<PlacedPiece> placed) {
     public BackdropData {
         Check.that(
-                scrollFactors.keySet().containsAll(EnumSet.allOf(BackdropLayer.class)),
-                "scroll_factors: give every layer (deep, far, ground, low-air, high-air)");
+                scrollFactors.keySet().containsAll(EnumSet.complementOf(EnumSet.of(BackdropLayer.DEEP))),
+                "scroll_factors: give every layer (deep, far, ground, low-air, high-air; deep may be left"
+                        + " out on a surface whose ground tiles cover the screen)");
         scrollFactors.forEach((layer, factor) -> Check.positive("scroll_factors." + layer.key(), factor));
         Check.that(
                 scrollFactors.get(BackdropLayer.GROUND) == 1.0,
@@ -40,8 +42,23 @@ public record BackdropData(
         Check.that(hazeColour.matches("[0-9a-fA-F]{6}"), "haze_colour: a colour as rrggbb");
     }
 
+    /** The layer's scroll factor; 0 for a {@code deep} layer the level does not have. */
     public double factor(BackdropLayer layer) {
-        return scrollFactors.get(layer);
+        return scrollFactors.getOrDefault(layer, 0.0);
+    }
+
+    /** Whether the level has a {@code deep} layer (a top-down surface such as Luna's has none). */
+    public boolean hasDeep() {
+        return scrollFactors.containsKey(BackdropLayer.DEEP);
+    }
+
+    /**
+     * The layer that has to cover the whole screen, which nothing is drawn behind
+     * (design/art-direction, Parallax layer model): {@code deep}, or {@code ground} on a surface
+     * without one (Level 04's Luna), where the far layer shows only through the ground's openings.
+     */
+    public BackdropLayer base() {
+        return hasDeep() ? BackdropLayer.DEEP : BackdropLayer.GROUND;
     }
 
     /**
@@ -104,9 +121,16 @@ public record BackdropData(
      * @param mirror drawn flipped left to right
      * @param path how it moves within its layer; before the first waypoint it rests at that
      *     waypoint's offset, after the last at the last one's
+     * @param overhead a ground piece's part above the road (a bridge's arches, a gate's roof): drawn
+     *     over the convoy and the ground objects and under the ground units, which may stand on it
      */
     public record PlacedPiece(
-            String piece, double t, double x, Optional<Boolean> mirror, Optional<List<Waypoint>> path) {
+            String piece,
+            double t,
+            double x,
+            Optional<Boolean> mirror,
+            Optional<List<Waypoint>> path,
+            Optional<Boolean> overhead) {
         public PlacedPiece {
             path.ifPresent(points -> {
                 Check.that(points.size() >= 2, "path: give at least two waypoints");
@@ -118,6 +142,10 @@ public record BackdropData(
 
         public boolean mirrored() {
             return mirror.orElse(false);
+        }
+
+        public boolean isOverhead() {
+            return overhead.orElse(false);
         }
 
         /** The path's sideways offset at {@code time}, px. */

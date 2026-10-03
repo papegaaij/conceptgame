@@ -64,12 +64,14 @@ final class BackdropCheck {
                 }
             }
             if (resolved) {
-                for (BackdropLayer layer : BackdropLayer.values()) {
-                    if (layer.opaque() && !layers.contains(layer)) {
-                        problem.accept(
-                                "sections[" + i + "].tiles",
-                                "no tile set on " + layer.key() + ", which has to cover the whole screen");
-                    }
+                BackdropLayer base = backdrop.base();
+                if (!layers.contains(base)) {
+                    problem.accept(
+                            "sections[" + i + "].tiles",
+                            "no tile set on " + base.key() + ", which has to cover the whole screen");
+                }
+                if (!backdrop.hasDeep() && layers.contains(BackdropLayer.DEEP)) {
+                    problem.accept("sections[" + i + "].tiles", "a deep tile set, but scroll_factors has no deep");
                 }
             }
             ok &= resolved;
@@ -136,8 +138,14 @@ final class BackdropCheck {
                 ok = unknown(field + ".piece", "set piece", placed.piece(), backdrop.pieces());
                 continue;
             }
+            if (piece.layer() == BackdropLayer.DEEP && !backdrop.hasDeep()) {
+                problem.accept(field, "a piece on deep, but scroll_factors has no deep");
+            }
             if (piece.headings().isPresent() != placed.path().isPresent()) {
                 problem.accept(field, "a piece with headings follows a path, and only such a piece");
+            }
+            if (placed.isOverhead() && piece.layer() != BackdropLayer.GROUND) {
+                problem.accept(field + ".overhead", "only a ground piece is overhead (above the road and the convoy)");
             }
             if (piece.headings().isPresent() && placed.mirrored()) {
                 problem.accept(field + ".mirror", "a piece with headings is not mirrored");

@@ -114,3 +114,7 @@ Production art, UI batch part U3 (round 13). Not a mockup: the sheet of the inte
 ## intel-final-r16-a
 
 Production art, M4 part C batch (round 16). The sheet of Level 03's sensor-L2 pictures, rendered by [tools/art/intel.py](../../../../tools/art/intel.py) (`python3 tools/art/intel.py spore-bomber whirl-seed boss-leviathan`): the portraits of its new enemy types, the Spore Bomber from its chosen round-04 model (`tools/concept/enemies_r04.py`) and the Whirl Seed as the six-blade production seed of [tools/art/vrell_l03.py](../../../../tools/art/vrell_l03.py), and the Leviathan's 40×40 silhouette (`assets/sprites/intel/boss-leviathan.png`), the "unknown huge contact" the level's threat profile promises at L2, made like the Act 1 boss silhouettes from the production model of [tools/art/leviathan.py](../../../../tools/art/leviathan.py) facing down (every part on, the tail straight). Brief as for intel-final-r13-a. The Leviathan, a set piece rather than a wave enemy, gets no portrait, only the silhouette.
+
+## intel-final-r17-a
+
+Production art, M4 part D batch (round 17). The sheet of Level 04's sensor-L2 pictures, rendered by [tools/art/intel.py](../../../../tools/art/intel.py) (`python3 tools/art/intel.py brood-pod scuttler`): the 30×30 portraits of its new enemy types from their production models in [tools/art/vrell_l04.py](../../../../tools/art/vrell_l04.py), the Brood Pod between swells (`pod_model(0, 1)`) and the Scuttler walking down the screen (heading 0, walk frame 0, its materials turned with the body). Brief as for intel-final-r13-a.

@@ -3,7 +3,7 @@ title: Enemies
 design: approved
 implementation: in-progress
 art: chosen
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Enemies
@@ -200,7 +200,7 @@ that move in any direction must read from any angle:
 | `none` | Harmless except on contact (rammers). |
 | `aimed` | A single shot at the player's current position. |
 | `burst` | n aimed shots in quick succession (0.15 s apart). |
-| `fan` | An n-way spread, centred on the player or straight down. |
+| `fan` | An n-way spread, centred on the player, straight down or along the unit's facing. |
 | `ring` | A circular burst of n bullets. |
 | `spiral` | A rotating stream of bullets. |
 | `laser-sweep` | A continuous beam rotating through an arc; the arc is shown for 0.6 s first. |
@@ -406,6 +406,10 @@ which mode. Units without it ignore the objective.
 | `in-arc` | Attacks the objective whenever it lies in the unit's facing arc, otherwise the player |
 | `always` | The unit's attack goes at the objective: divers dive at it, mortars mark their impact on it, rammers ram it |
 
+- **Choosing the target.** `nearest` is re-evaluated every simulation step (a turret's barrel
+  turns toward the current choice), and an aimed shot picks its target as it is fired: the player
+  or the nearest living objective unit, centre to centre. Only `aimed` and `burst` attacks follow
+  the hook in `nearest` and `alternate`; a fan along a unit's facing is aimed at nobody.
 - An objective-aimed attack uses the unit's normal pattern, look and damage class; whether and
   how much it hurts the objective is in the ally's spec. Shots aimed at the player never hurt an
   objective that only takes objective-aimed damage.
@@ -530,3 +534,12 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - 2026-10-02: Concept round 12 closed (user decision): the Vrell `small` bullets (orb and needle) approved as **final**; this index's `art` stays `chosen`, since the other enemies' art is still concept art.
 - 2026-10-02: M4 part A: the layer rules of the weapons are in the simulation (`WeaponSpec.Delivery.reaches`, hardened ground targets glance off weapons without `anti-ground`); a level's ground target can be `hardened` in its data.
 - 2026-10-02: M4 part B (user decision): a single-part unit's weak point is drawn only (the glowing spot, no multiplier); damage multipliers belong to the parts of multi-part units (the bosses, the Leviathan), which have their own hit boxes.
+- 2026-10-03: Target-the-objective hook (main-agent choice, M4 part D): `nearest` is re-evaluated
+  every step, an aimed shot picks its target as it fires, and only aimed attacks follow the hook,
+  so with the crawler rule (only crawler-aimed shots hurt crawlers, user decision) a Scuttler's
+  facing fan never hurts the convoy. The `fan` may be centred on the unit's facing.
+- 2026-10-03: M4 part D (Level 04) adds to the vocabulary in the simulation: the `drift` and `sine`
+  movement, the `walk` movement on authored ground paths with facing as state, the `spawn` attack
+  (Brood Pod), a fan along the facing and an aimed attack only while facing away (Scuttler),
+  directional frontal armour, the `carrier + escorts` formation and the walker `single`, `pincer` and
+  `convoy`, and the target-the-objective hook in mode `nearest`. The broader items above stay open.

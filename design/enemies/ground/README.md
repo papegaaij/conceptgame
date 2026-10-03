@@ -22,7 +22,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 |---|---|---|---|---|
 | [spine-turret](spine-turret/README.md) | Basic grown turret with aimed thorns (L02) | approved | done | final |
 | [polyp-mortar](polyp-mortar/README.md) | Acid mortar with a marked impact and ring burst (L05) | approved | not-started | chosen |
-| [scuttler](scuttler/README.md) | Crab walker with frontal claw armour and facing fans (L04) | approved | not-started | final |
+| [scuttler](scuttler/README.md) | Crab walker with frontal claw armour and facing fans (L04) | approved | done | final |
 | [creeper](creeper/README.md) | Salamander walker crawling in convoys, 5-way fans (L08) | approved | not-started | chosen |
 | [hive-node](hive-node/README.md) | Hardened spawner mound, anti-ground only (L09) | approved | not-started | chosen |
 | [ravager](ravager/README.md) | Animal pack hunter that gallops and pounces (L09) | approved | not-started | chosen |
