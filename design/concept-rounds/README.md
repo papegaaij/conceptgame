@@ -38,6 +38,7 @@ they belong to; a round only collects them.
 | [round-17](round-17/README.md) | M4 part D: Level 04's civilian crawler, Airstrike bomber, Luna backdrop, intel portraits, dugout and supply drop concepts, game captures and part D numbers | approved | n/a | chosen |
 | [round-18](round-18/README.md) | Text-to-speech for the radio lines: Chatterbox chosen of five engines, radio filter b (more static) | approved | n/a | chosen |
 | [round-19](round-19/README.md) | Casting the generic radio speakers of Act 1: two LibriVox reference voices each, through Chatterbox and filter b | approved | n/a | chosen |
+| [round-20](round-20/README.md) | M4 briefing images: the four images of Levels 03 and 04, one per briefing page | approved | n/a | chosen |
 
 ## Design
 
@@ -77,3 +78,4 @@ How a round works:
 | 17 | 2026-10-03 | closed | M4 part D: Level 04 (final art review, dugout and supply drop concepts, part D numbers) |
 | 18 | 2026-10-03 | closed | Text-to-speech for the radio lines: Chatterbox, radio filter b (more static) |
 | 19 | 2026-10-03 | closed | Casting the generic radio speakers of Act 1 (Chatterbox, filter b): one reader per speaker |
+| 20 | 2026-10-03 | closed | M4 briefing images: Levels 03 and 04, one per briefing page |

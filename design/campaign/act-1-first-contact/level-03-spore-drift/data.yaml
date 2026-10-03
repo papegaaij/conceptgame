@@ -226,8 +226,8 @@ difficulty: {}  # the per-wave, debris and pass changes are in their entries; th
 
 briefing:
   pages:
-    - {speaker: Okafor, line: "Lancer, the yards are holding. Now the Vrell have changed tactics. Slow carriers are drifting through the high lanes over last week's battle site, dropping something as they go. Varga thinks they're seeding the planet. Clear the lane. Every carrier that gets past you is headed for an atmosphere full of people."}
-    - {speaker: Varga, line: "They're spore bombers, gas-bags flying below your level. The spores they drop float up to you a second later, so a wide spread of fire is your friend. There's also an echo on long range I can't explain. Very big, very slow. If it comes your way, don't try to out-shoot it. Out-fly it."}
+    - {speaker: Okafor, image: level-03-spore-lanes, line: "Lancer, the yards are holding. Now the Vrell have changed tactics. Slow carriers are drifting through the high lanes over last week's battle site, dropping something as they go. Varga thinks they're seeding the planet. Clear the lane. Every carrier that gets past you is headed for an atmosphere full of people."}
+    - {speaker: Varga, image: level-03-spore-echo, line: "They're spore bombers, gas-bags flying below your level. The spores they drop float up to you a second later, so a wide spread of fire is your friend. There's also an echo on long range I can't explain. Very big, very slow. If it comes your way, don't try to out-shoot it. Out-fly it."}
   teaser: {speaker: Varga, line: "Slow targets, and lots of little things drifting at you. Bring something wide."}
 
 backdrop:

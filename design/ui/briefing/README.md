@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../../story, ../../campaign]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Briefing screen
@@ -73,6 +73,7 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 | File | What | Status |
 |---|---|---|
 | [concept/briefing-images-final-r13-a.png](concept/briefing-images-final-r13-a.png) | Review sheet: the nine 672×240 images, one per page of the Act 1 intro (Tether Gate, outer stations, the L1 strike group, Earth orbit's squadrons, the Stormhawk schematic), Level 01 (the Gagarin yards' rails, the scan of the Skitter and Needler) and Level 02 (the burning south arm's docks, the "yield" pattern and the turret's blind arc) | chosen |
+| [concept/briefing-images-final-r20-a.png](concept/briefing-images-final-r20-a.png) | Review sheet, batch "M4 briefing images" ([round 20](../../concept-rounds/round-20/README.md)): the four 672×240 images of Level 03 (the high lanes over the battle site's debris field with the spore carriers seeding Earth; the Spore Bomber, its rising spores and a wide spread, the long-range echo) and Level 04 (the convoy road from Tranquility Base across the rille to the mass-driver terminal, brood pods, walkers in the craters, Hammer flight; the Scuttler's claws and glowing back) | chosen |
 
 ## Implementation
 
@@ -139,3 +140,5 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
   stopped answering…") grim, page 4 ("That makes us the line.") fierce; the rest neutral. The
   hangar teaser keeps neutral. Review files proposed for round 13; `art` stays `chosen`.
 - 2026-10-02: Concept round 13 closed (user decision): the screen in the production glass kit and the nine briefing images of the Act 1 intro and Levels 01–02 (`tools/art/briefing_images.py`) approved as **final**; `art` stays `chosen`, since the images of the later levels and a still per act for the act title cards do not exist yet.
+- 2026-10-03: Briefing images of Levels 03 and 04 (batch "M4 briefing images", `tools/art/briefing_images.py`), one per page, named in the levels' data; the review sheet `briefing-images-final-r20-a` proposed for [round 20](../../concept-rounds/round-20/README.md). `art` stays `chosen`.
+- 2026-10-03: Concept round 20 closed (user decision, "both accepted"): the four briefing images of Levels 03 and 04 (`briefing-images-final-r20-a`) approved as **final**; `art` stays `chosen`, since the images of the later levels and a still per act for the act title cards do not exist yet.

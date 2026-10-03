@@ -2,7 +2,7 @@
 title: Level 03 – Spore Drift
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../../enemies/air/spore-bomber, ../../../enemies/air/whirl-seed, ../../../enemies/space/leviathan]
 updated: 2026-10-03
 ---
@@ -31,6 +31,12 @@ low enough to fight. The level introduces the Spore Bomber and its mines, the `l
 > on long range I can't explain. Very big, very slow. If it comes your way, don't try to
 > out-shoot it. Out-fly it."
 <!-- /data -->
+
+*Images* (production art, [briefing images](../../../ui/briefing/README.md)): Okafor's page
+`level-03-spore-lanes` (the high lanes over last week's battle site and its debris field, the
+spore carriers seeding Earth, Lancer's lane), Varga's `level-03-spore-echo` (the Spore Bomber
+below, its spores rising into a wide spread, the long-range echo as a noisy silhouette); the
+level's data names them as each page's `image`.
 
 *Hangar teaser* (shop screen after L02):
 <!-- data: teaser -->
@@ -325,3 +331,8 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), review file
 - 2026-10-03: Concept round 16 closed (user decision): the backdrop approved as **final**, with the game captures; `art` stays `chosen`, since the level has no briefing images yet.
 - 2026-10-03 (user decision): the M4 part C points left for review accepted as they are: shots over the Leviathan's armoured body fly on towards a living part ahead of them; the lifeboat line is Rook's, in its written wording; Varga's intel line without a sensor ("Slow carriers in the high lanes and a lot of wreckage, Lancer. And something big on long range.").
 - 2026-10-03: Concept round 16 closed again (user decision, choice 17): the game choices for review above accepted as they are: the Spore Bombers drawn between the ground and the low-air banks, the spore mines above the haze growing and brightening as they rise, the Leviathan off the play plane above the ship at 1.25× scaling to 1× and switching below it on the plane, its 0-1-2-1 sway and the blowhole glow, the chained death bursts, the objective tracker and the lifeboat lights' blink. The simulation choices for review left after the points accepted earlier today (the first pass's path, the second pass's timings, the vents' and fins' first shots, the debris speed) accepted as they are too, with the user's acceptance of the captures. `art` stays `chosen`: the level still has no briefing images.
+- 2026-10-03: Briefing images (M4 batch, `tools/art/briefing_images.py`): one per page,
+  `level-03-spore-lanes` and `level-03-spore-echo`, named in the data; proposed for
+  [round 20](../../../concept-rounds/round-20/README.md). `art` stays `chosen` until the round is
+  approved.
+- 2026-10-03: Concept round 20 closed (user decision, "both accepted"): the briefing images approved as **final**. They were the last missing piece; every other part with a look is final, so all of the level's art is final, `art: final`.

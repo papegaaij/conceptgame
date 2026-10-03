@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Production art: the briefings' tactical maps and mission images (design/ui/briefing), one per
-briefing page of the Act 1 intro and Levels 01-02, in the chosen briefing-r08-a look: a dark
+briefing page of the Act 1 intro and Levels 01-04, in the chosen briefing-r08-a look: a dark
 tactical display with its grid, scan rows and edge ticks, holographic planets, cyan routes and
 labels, red and violet for the Vrell, amber for objectives.
 
@@ -14,16 +14,26 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
   level-01-vrell-scan     L01 p2: Varga's scan of the Skitter and Needler, the glowing parts
   level-02-burning-yards  L02 p1: the burning south arm, the four crewed drydocks and their growths
   level-02-yield-signal   L02 p2: the transmission's repeating pattern, the turret's blind arc
-  design/ui/briefing/concept/briefing-images-final-r13-a.png   review sheet
-
-Level 02's two are ready for its data (M4); the level's README names them. Every image is composed
+  level-03-spore-lanes    L03 p1: the high lanes over last week's battle site and its debris field,
+                          the spore carriers seeding Earth, Lancer's lane
+  level-03-spore-echo     L03 p2: the Spore Bomber below, its spores rising into a wide spread, the
+                          long-range echo (the Leviathan as a noisy silhouette)
+  level-04-convoy-road    L04 p1: Tranquility Base and the brood pods, the five crawlers on the road
+                          across the rille to the mass-driver terminal, walkers in the craters,
+                          Hammer flight (the Airstrike)
+  level-04-walker-scan    L04 p2: the Scuttler facing where it walks, claws forward, the glowing back
+  design/ui/briefing/concept/briefing-images-final-r13-a.png   review sheet, Act 1 intro + L01-02
+  design/ui/briefing/concept/briefing-images-final-r20-a.png   review sheet, L03-04 (M4 batch)
+ Every image is composed
 in layers like the hangar map (tools/art/ui_scenes.py): the display and planets posterized to 24
 colours with ordered dither, the lines, markers and labels to 16 of their own, then the sprites
 from assets/ (the Stormhawk, Skitter, Needler and the intel portraits) with their own palettes.
 The labels use the concept pixel font (render/raster.py), as the chosen mockup does.
 
-Run: python3 tools/art/briefing_images.py [name ...] [--review]   (~10 s; after stormhawk.py,
-vrell_air.py and intel.py, whose sprites it shows)
+Run: python3 tools/art/briefing_images.py [name ...] [r13|r20] [--review]   (~10 s; after
+stormhawk.py, vrell_air.py, intel.py, vrell_l03.py, leviathan.py, vrell_l04.py, civilian_crawler.py
+and airstrike_bomber.py, whose sprites it shows); the review sheet written is the open round's
+(r20) unless a round is named.
 """
 import sys
 
@@ -38,7 +48,8 @@ from render import raster, terrain  # noqa: E402
 
 SCRIPT = "briefing_images.py"
 SOURCE = artkit.source_note(SCRIPT, "UI batch")
-ROUND = "r13"
+SOURCE_M4 = artkit.source_note(SCRIPT, "M4 briefing images")
+ROUND = "r20"  # the open round; the sheet of an earlier batch: name its round (r13)
 OUT = ROOT / "assets" / "ui" / "briefing"
 CONCEPT = DESIGN / "ui" / "briefing" / "concept"
 W, H = 672, 240
@@ -413,6 +424,181 @@ def yield_signal():
     return b
 
 
+def spore_lanes():
+    """L03 p1: the high lanes over last week's battle site, the carriers seeding Earth."""
+    b = Board()
+    b.planet(336, 560, 360, "earth", seed=31)
+    b.title("HIGH ORBITAL LANES - OVER THE GAGARIN BATTLE SITE")
+    for y, name in ((70, "LANE 2"), (120, "LANE 1")):
+        b.dashed([(20, y), (650, y)], CYAN_DIM, 1, 10, 6)
+        b.label(24, y - 12, name, CYAN_DIM)
+    rng = np.random.default_rng(3)
+    for x, y in zip(rng.uniform(250, 470, 26), rng.uniform(84, 150, 26)):
+        s = rng.uniform(1.5, 4)
+        a = rng.uniform(0, np.pi)
+        b.draw.polygon([(x + s * np.cos(a + k * 2.1), y + s * np.sin(a + k * 2.1)) for k in range(3)],
+                       outline=GREY + (220,))
+    b.bracket(240, 80, 480, 156, GREY)
+    b.label(244, 160, "DEBRIS FIELD - LAST WEEK'S BATTLE", GREY)
+    b.marker(372, 104, "cross", GREY, 5)
+    b.label(384, 92, "KESTREL - WRECK", GREY)
+    for x, y in ((150, 96), (300, 94), (440, 112), (560, 98)):
+        b.glow(x, y, 16, (60, 30, 90), 0.7)
+        b.marker(x, y, "chevron", VIOLET, 5)
+        for k in range(4):
+            b.marker(x - 6 + 4 * k, y + 16 + 13 * k, "dot", VIOLET, 1)
+        b.dashed([(x + 4, y + 10), (x + 22, y + 74)], VIOLET, 1, 3, 4)
+    b.label(150, 36, "SPORE CARRIERS", VIOLET)
+    b.label(150, 48, "DRIFTING, DROPPING SPORES", VIOLET)
+    b.arrow(30, 132, 220, 132, CYAN, dashed=False)
+    b.label(30, 140, "LANCER - CLEAR THE LANE", CYAN)
+    b.label(W - 10, 9, "10 CARRIERS - NONE GETS THROUGH", AMBER, right=True)
+    b.label(W - 10, 176, "SEEDING THE PLANET", RED, right=True)
+    b.label(10, H - 16, "EARTH - ATMOSPHERE BELOW", CYAN_DIM)
+    return b
+
+
+def spore_echo():
+    """L03 p2: Varga's scan of the Spore Bomber and its rising spores, the long-range echo."""
+    b = Board()
+    b.title("SENSOR SCAN - SPORE BOMBER, LONG-RANGE ECHO")
+    x = 110
+    b.glow(x, 112, 60, (10, 40, 50), 0.6)
+    b.bracket(x - 76, 36, x + 76, 186)
+    b.sprite(asset("spore-bomber_0", 2), x, 112)
+    b.label(x - 74, 194, "SPORE BOMBER", WHITE)
+    b.label(x - 74, 206, "LOW-AIR - BELOW YOUR LEVEL", AMBER)
+    b.label(x - 74, 218, "DROPS SPORE MINES", RED)
+    sx, sy = 300, 200
+    ship = asset("ship_2")
+    b.sprite(ship, sx, sy)
+    for a in (-34, -17, 0, 17, 34):
+        t = np.radians(a)
+        b.dashed([(sx + 14 * np.sin(t), sy - 26), (sx + 150 * np.sin(t), sy - 26 - 130 * np.cos(t))], CYAN, 1, 4, 4)
+    mine = Image.open(SPRITES / "spore-mine_2.png").convert("RGBA")
+    rng = np.random.default_rng(11)
+    for mx, my in zip(rng.uniform(232, 372, 7), rng.uniform(64, 140, 7)):
+        b.sprite(sprite.enlarge(mine, 2), mx, my)
+        b.line([(mx, my + 16), (mx, my + 30)], VIOLET, 1, 160)
+    b.label(232, 30, "SPORES RISE TO YOU", VIOLET)
+    b.label(232, 40, "IN ABOUT 1 S", VIOLET)
+    b.label(sx + 24, sy - 4, "GO WIDE", CYAN)
+    rx, ry, r = 556, 132, 92
+    for k in (1, 2, 3):
+        b.ring(rx, ry, r * k / 3, colour=CYAN_DIM, alpha=110)
+    b.line([(rx - r, ry), (rx + r, ry)], CYAN_DIM, 1, 80)
+    b.line([(rx, ry - r), (rx, ry + r)], CYAN_DIM, 1, 80)
+    b.draw.pieslice([rx - r, ry - r, rx + r, ry + r], 250, 290, fill=CYAN + (40,))
+    b.marker(rx, ry, "square", CYAN, 3)
+    big = Image.open(SPRITES / "leviathan-cross_0.png").convert("RGBA")
+    big = big.resize((big.width // 4, big.height // 4), Image.LANCZOS)
+    a = np.array(big)
+    keep = (a[..., 3] > 128) & (np.random.default_rng(62).random(a.shape[:2]) > 0.3)
+    keep &= (np.arange(a.shape[0]) % 3 != 0)[:, None]
+    a[..., 3] = np.where(keep, 255, 0)
+    b.glow(rx + 6, ry - 46, 44, (60, 30, 110), 0.9)
+    b.sprite(holo(Image.fromarray(a), VIOLET, 6), rx + 6, ry - 46)
+    b.label(rx - r - 10, 28, "LONG-RANGE ECHO", RED, right=True)
+    b.label(rx - r - 10, 40, "VERY BIG", WHITE, right=True)
+    b.label(rx - r - 10, 52, "VERY SLOW", WHITE, right=True)
+    b.label(rx - r - 10, 64, "UNKNOWN", RED, right=True)
+    b.label(W - 10, H - 16, "DON'T OUT-SHOOT IT: OUT-FLY IT", AMBER, right=True)
+    return b
+
+
+def convoy_road():
+    """L04 p1: Tranquility Base, the brood pods, the convoy's road across the rille to the
+    mass-driver terminal, the walkers in the craters, Hammer flight."""
+    b = Board()
+    b.glow(80, 130, 90, (40, 40, 46), 0.9)
+    b.glow(600, 130, 80, (40, 40, 46), 0.7)
+    b.title("MARE TRANQUILLITATIS - CONVOY ROAD")
+    road = [(70, 150), (170, 160), (270, 136), (330, 140), (390, 128), (490, 150), (600, 138)]
+    b.line(road, CYAN_DIM, 7, 120)
+    b.line(road, AMBER, 1, 200)
+    rille = [(300 + 18 * np.sin(y / 22), y) for y in range(24, H - 20, 4)]
+    b.line(rille, CYAN_DIM, 1, 200)
+    b.line([(x + 30, y) for x, y in rille], CYAN_DIM, 1, 200)
+    b.draw.rectangle([308, 132, 352, 146], outline=CYAN + (230,))
+    b.label(358, 206, "RILLE", CYAN_DIM)
+    b.label(356, 106, "ROAD BRIDGE", CYAN)
+    for cx, cy in ((60, 116), (84, 108), (98, 128), (66, 136)):
+        b.ring(cx, cy, 7, colour=CYAN, alpha=200)
+    b.marker(80, 124, "diamond", GREEN, 3)
+    b.label(14, 36, "TRANQUILITY BASE", CYAN)
+    b.label(14, 46, "HERITAGE SITE INTACT", GREEN)
+    for px, py in ((44, 172), (126, 98), (150, 194), (30, 80), (200, 82), (230, 196)):
+        b.glow(px, py, 12, (50, 20, 80), 0.8)
+        b.ring(px, py, 5, colour=VIOLET, alpha=230)
+        b.marker(px, py, "dot", VIOLET, 1)
+    b.label(14, 214, "BROOD PODS - LANDED OVERNIGHT", VIOLET)
+    pip = holo(Image.open(SPRITES / "civilian-crawler-pip.png").convert("RGBA").transpose(Image.ROTATE_270),
+               GREEN, 6)
+    for k in range(5):
+        b.sprite(pip, 120 + 22 * k, 154 + (k > 1) * 3 - (k > 3) * 6)
+    b.label(110, 168, "5 CRAWLERS - 400 CIVILIANS", GREEN)
+    for cx, cy, walker in ((200, 120, True), (250, 178, False), (420, 172, True), (450, 100, True),
+                           (530, 182, True), (560, 104, False)):
+        b.ring(cx, cy, 14, 10, GREY, 200)
+        if walker:
+            b.marker(cx, cy + 2, "chevron", RED, 4)
+    b.label(410, 204, "WALKERS IN THE CRATERS", RED)
+    tx, ty = 620, 138
+    b.draw.rectangle([tx - 16, ty - 12, tx + 16, ty + 12], outline=AMBER + (240,))
+    b.marker(tx, ty, "diamond", AMBER, 4)
+    b.line([(tx + 16, ty - 4), (W - 4, ty - 70)], CYAN_DIM, 1, 200)
+    b.line([(tx + 16, ty + 4), (W - 4, ty - 62)], CYAN_DIM, 1, 200)
+    b.label(W - 10, 164, "MASS-DRIVER TERMINAL", AMBER, right=True)
+    b.label(W - 10, 9, "LOSE ALL FIVE: MISSION OVER", RED, right=True)
+    hx, hy = 470, 52
+    b.bracket(hx - 28, hy - 30, hx + 28, hy + 30, CYAN)
+    b.sprite(asset("airstrike-bomber_0"), hx, hy)
+    b.label(hx + 36, hy - 14, "HAMMER FLIGHT", CYAN)
+    b.label(hx + 36, hy - 2, "AIRSTRIKE - RELEASED", GREEN)
+    b.label(hx + 36, hy + 10, "TO AEGIS WING", CYAN_DIM)
+    return b
+
+
+def walker_scan():
+    """L04 p2: Varga's scan of the Scuttler: it faces where it walks, the claws stop rounds, the
+    back glows."""
+    b = Board()
+    b.title("SENSOR SCAN - VRELL WALKER")
+    x, y = 200, 122
+    frame = 12 * 6
+    b.glow(x, y, 70, (10, 40, 50), 0.6)
+    walker = asset(f"scuttler_{frame}", 2)
+    glow = asset(f"scuttler-glow_{frame}", 2)
+    w = np.array(walker).astype(np.float64)
+    g = np.array(glow).astype(np.float64)
+    w[..., :3] = np.clip(w[..., :3] + g[..., :3], 0, 255)
+    walker = artkit.quantize_set([Image.fromarray(w.astype(np.uint8))], 48)[0]
+    for a0, a1, colour, alpha in ((-45, 45, RED, 170), (135, 225, GREEN, 150)):
+        b.draw.pieslice([x - 90, y - 90, x + 90, y + 90], a0, a1, outline=colour + (alpha,))
+    b.sprite(walker, x, y)
+    b.arrow(x + 96, y, x + 150, y, CYAN, dashed=False)
+    b.label(x + 100, y + 10, "WALKS", CYAN)
+    b.label(x + 100, y + 20, "THIS WAY", CYAN)
+    b.label(x + 40, 22, "CLAWS FORWARD", RED)
+    b.label(x + 40, 32, "STOP YOUR ROUNDS", RED)
+    b.label(x - 150, 200, "BACK GLOWS", GREEN)
+    b.label(x - 150, 210, "AIM HERE", GREEN)
+    b.label(10, 22, "SCUTTLER", WHITE)
+    b.label(10, 32, "TURNS TO FACE", CYAN_DIM)
+    b.label(10, 42, "WHERE IT GOES", CYAN_DIM)
+    px = 560
+    b.label(px - 140, 40, "BE PATIENT", AMBER)
+    b.dashed([(px - 130, 150), (px - 60, 150), (px, 110), (px, 74)], RED, 1)
+    b.sprite(asset("scuttler_48"), px, 52)
+    b.sprite(asset("ship_2"), px, 196)
+    b.dashed([(px, 170), (px, 86)], CYAN, 1, 3, 3)
+    b.label(px - 140, 56, "LET IT TURN AWAY", CYAN)
+    b.label(px + 30, 160, "GET BEHIND IT", CYAN)
+    b.label(px + 30, 170, "THEN FIRE", GREEN)
+    b.label(W - 10, 9, "GROUND LAYER", CYAN_DIM, right=True)
+    return b
+
+
 IMAGES = {
     "act-1-tether-gate": tether_gate,
     "act-1-outer-stations": outer_stations,
@@ -423,35 +609,51 @@ IMAGES = {
     "level-01-vrell-scan": vrell_scan,
     "level-02-burning-yards": burning_yards,
     "level-02-yield-signal": yield_signal,
+    "level-03-spore-lanes": spore_lanes,
+    "level-03-spore-echo": spore_echo,
+    "level-04-convoy-road": convoy_road,
+    "level-04-walker-scan": walker_scan,
+}
+
+# Review sheets per batch: round, the images on it, the batch name.
+BATCHES = {
+    "r13": (list(IMAGES)[:9], "UI BATCH"),
+    "r20": (list(IMAGES)[9:], "M4 BRIEFING IMAGES"),
 }
 
 
 def build(names):
     OUT.mkdir(parents=True, exist_ok=True)
     for name in names:
-        artkit.save_png(IMAGES[name]().image(), OUT / f"{name}.png", SOURCE)
+        source = SOURCE if name in BATCHES["r13"][0] else SOURCE_M4
+        artkit.save_png(IMAGES[name]().image(), OUT / f"{name}.png", source)
     print(f"{len(names)} briefing images in {OUT.relative_to(ROOT)}")
 
 
-def review():
+def review(rnd):
+    names, batch = BATCHES[rnd]
     cols = 2
-    rows = -(-len(IMAGES) // cols)
-    sheet = raster.sheet(16 + cols * (W + 16), 56 + rows * (H + 30), "BRIEFING IMAGES (FINAL R13): ONE PER PAGE",
-                         f"PRODUCTION ART, UI BATCH - {ROUND.upper()}")
-    raster.draw_text(sheet, 16, 38, f"{len(IMAGES)} IMAGES {W}X{H} AT 1X, AS THE BRIEFING SCREEN DRAWS THEM ABOVE THE TEXT",
+    rows = -(-len(names) // cols)
+    sheet = raster.sheet(16 + cols * (W + 16), 56 + rows * (H + 30),
+                         f"BRIEFING IMAGES (FINAL {rnd.upper()}): ONE PER PAGE",
+                         f"PRODUCTION ART, {batch} - {rnd.upper()}")
+    raster.draw_text(sheet, 16, 38, f"{len(names)} IMAGES {W}X{H} AT 1X, AS THE BRIEFING SCREEN DRAWS THEM ABOVE THE TEXT",
                      raster.LABEL)
-    for i, name in enumerate(IMAGES):
+    for i, name in enumerate(names):
         img = Image.open(OUT / f"{name}.png").convert("RGBA")
         x, y = 16 + (i % cols) * (W + 16), 54 + (i // cols) * (H + 30)
         sheet.alpha_composite(img, (x, y))
         raster.draw_text(sheet, x, y + H + 6, f"{name.upper()} ({artkit.colour_count([img])} COLOURS)", raster.LABEL_DIM)
-    path = CONCEPT / f"briefing-images-final-{ROUND}-a.png"
+    path = CONCEPT / f"briefing-images-final-{rnd}-a.png"
     sheet.convert("RGB").save(path, optimize=True)
     print(f"review: {path.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if a != "--review"]
+    rounds = [a for a in args if a in BATCHES]
+    names = [a for a in args if a not in BATCHES]
     if "--review" not in sys.argv[1:]:
-        build(args or list(IMAGES))
-    review()
+        build(names or list(IMAGES))
+    for rnd in rounds or [ROUND]:
+        review(rnd)

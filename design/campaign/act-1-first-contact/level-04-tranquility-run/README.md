@@ -2,7 +2,7 @@
 title: Level 04 – Tranquility Run
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [../../../enemies/air/brood-pod, ../../../enemies/ground/scuttler, ../../../allies, ../../../world/luna, ../../../player/specials, ../../../systems/retry]
 updated: 2026-10-03
 ---
@@ -31,6 +31,12 @@ face where it walks, hardened ground targets, and the first special (the Airstri
 > **Dr. Varga:** "The walkers turn to face where they're going. Their claws stop your rounds,
 > but their backs glow. Be patient."
 <!-- /data -->
+
+*Images* (production art, [briefing images](../../../ui/briefing/README.md)): Okafor's page
+`level-04-convoy-road` (Tranquility Base and the brood pods, the five crawlers on the road across
+the rille to the mass-driver terminal, walkers in the craters, Hammer flight for the Airstrike),
+Varga's `level-04-walker-scan` (the Scuttler facing where it walks, claws forward, the glowing
+back, waiting until it turns away); the level's data names them as each page's `image`.
 
 *Hangar teaser* (shop screen after L03):
 <!-- data: teaser -->
@@ -409,3 +415,8 @@ Concept round 17 (M4 part D): the backdrop's production art proposal (its review
 - 2026-10-03 (user decision): the filler Skitters' extra credits are accepted: a perfect run
   earns 1,400 (14 % above the economy curve), so the economy runs slightly ahead from Level 04 on;
   the convoy's ~21 s run into the hangar without enemies stays as one of the two allowed pauses.
+- 2026-10-03: Briefing images (M4 batch, `tools/art/briefing_images.py`): one per page,
+  `level-04-convoy-road` and `level-04-walker-scan`, named in the data; proposed for
+  [round 20](../../../concept-rounds/round-20/README.md). `art` stays `chosen` until the round is
+  approved.
+- 2026-10-03: Concept round 20 closed (user decision, "both accepted"): the briefing images approved as **final**. They were the last missing piece; every other part with a look is final, so all of the level's art is final, `art: final`.

@@ -256,8 +256,8 @@ difficulty:  # the hard pincer at t=140 is in its wave; the stat blocks' hooks a
 
 briefing:
   pages:
-    - {speaker: Okafor, line: "Lancer, brood pods came down around Tranquility Base overnight. The heritage site is fine. The town around it is not. Four hundred civilians are loading into five crawlers for the run to the mass-driver terminal, and Vrell walkers are already in the craters along the road. You are their escort. Crawlers are slow and they can't dodge: anything on the ground that shoots will shoot at them. Lose all five and this mission is over. High Command has released Hammer flight to us. Use it."}
-    - {speaker: Varga, line: "The walkers turn to face where they're going. Their claws stop your rounds, but their backs glow. Be patient."}
+    - {speaker: Okafor, image: level-04-convoy-road, line: "Lancer, brood pods came down around Tranquility Base overnight. The heritage site is fine. The town around it is not. Four hundred civilians are loading into five crawlers for the run to the mass-driver terminal, and Vrell walkers are already in the craters along the road. You are their escort. Crawlers are slow and they can't dodge: anything on the ground that shoots will shoot at them. Lose all five and this mission is over. High Command has released Hammer flight to us. Use it."}
+    - {speaker: Varga, image: level-04-walker-scan, line: "The walkers turn to face where they're going. Their claws stop your rounds, but their backs glow. Be patient."}
   teaser: {speaker: Okafor, line: "Tomorrow you fly over people, Lancer. Bring something that can hit the ground."}
 
 # The road (from the round 17 backdrop proposal): matched to the art, so move its points only
