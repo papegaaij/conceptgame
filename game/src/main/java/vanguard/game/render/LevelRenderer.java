@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import vanguard.content.LevelData;
 import vanguard.sim.AirstrikeBomb;
+import vanguard.sim.Chain;
 import vanguard.sim.Crane;
 import vanguard.sim.Debris;
 import vanguard.sim.Enemy;
@@ -153,6 +154,9 @@ public final class LevelRenderer {
     private final ConvoyLooks convoy;
 
     private final FlashShader flash;
+    /** Level 06's darkness, glows, sweeps and the Smart Bomb's flash and ring. */
+    private final FarsideLooks farside;
+
     private final BitmapFont font;
     private float whiteFlash = 1;
 
@@ -204,7 +208,13 @@ public final class LevelRenderer {
         this.backdrop = new Backdrop(sprites, level, levelKey);
         this.convoy = new ConvoyLooks(sprites, flash, level, script, levelKey);
         this.flash = flash;
+        this.farside = new FarsideLooks(sprites, script);
         this.font = font;
+    }
+
+    /** Frees the light map and the generated textures. */
+    public void dispose() {
+        farside.dispose();
     }
 
     /** A unit's pivot file in assets/pivots/, or null when it has none. */
@@ -251,12 +261,16 @@ public final class LevelRenderer {
         debris.draw(batch, -scroll);
         drawEnemies(batch, sortie, alpha, Depth.GROUND);
         drawGlints(batch, sortie, alpha);
+        farside.darken(batch, sortie, alpha, scroll, seconds);
+        farside.drawGlows(batch, sortie, sprites, alpha, seconds);
         drawBomberShadows(batch, sortie, alpha);
         drawEnemies(batch, sortie, alpha, Depth.LOW_AIR);
         blasts.draw(batch, -scroll);
         backdrop.drawLowAir(batch, scroll, seconds);
         drawWalkerGlows(batch, sortie, alpha);
         drawEnemies(batch, sortie, alpha, Depth.AIR);
+        drawChains(batch, sortie, alpha);
+        farside.drawSweeps(batch, sortie, alpha);
         luna.drawBlobs(batch, sortie, alpha);
         drawAirstrike(batch, sortie, alpha);
         drawSetPieces(batch, sortie, alpha, seconds, false);
@@ -279,6 +293,7 @@ public final class LevelRenderer {
             drawMuzzles(batch, sortie, alpha, false);
         }
         effects.draw(batch, 0);
+        farside.drawSmartBomb(batch, sortie, alpha, whiteFlash);
         drawSetPieces(batch, sortie, alpha, seconds, true);
         backdrop.drawFront(batch, scroll, seconds);
         drawMines(batch, sortie, alpha);
@@ -397,7 +412,7 @@ public final class LevelRenderer {
     private void drawEnemies(SpriteBatch batch, Sortie sortie, float alpha, Depth depth) {
         for (int i = 0; i < sortie.enemyCount(); i++) {
             Enemy enemy = sortie.enemy(i);
-            if (Depth.of(enemy) != depth) {
+            if (Depth.of(enemy) != depth || enemy.chain() != null) {
                 continue;
             }
             EnemyLooks look = looks[enemy.kind()];
@@ -413,6 +428,36 @@ public final class LevelRenderer {
                 AtlasRegion flare = look.flare().get((int) (sortie.tick() / FLARE_FRAME_TICKS % look.flare().size));
                 drawCentred(batch, flare, enemy.renderX(alpha), enemy.renderY(alpha));
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            }
+        }
+    }
+
+    /**
+     * The segment chains (design/enemies/air/coilwyrm), each from its tail to its head so the head
+     * lies on top, the segments drawn at their tapering sizes; a cut part's head grows at the cut.
+     */
+    private void drawChains(SpriteBatch batch, Sortie sortie, float alpha) {
+        for (int c = 0; c < sortie.chainCount(); c++) {
+            Chain chain = sortie.chain(c);
+            double first = chain.spec().segmentBoxes().getFirst().width();
+            for (int k = chain.size() - 1; k >= 0; k--) {
+                Enemy member = chain.member(k);
+                if (member == null) {
+                    continue;
+                }
+                EnemyLooks look = looks[member.kind()];
+                AtlasRegion frame = look.frame(member.facing(), look.step(sortie.tick(), k));
+                boolean segment = k > 0
+                        && k < chain.spec().members() - 1
+                        && member.link() == k
+                        && member.spec() == chain.spec().segment();
+                float scale = segment ? (float) (member.hitbox().width() / first) : 1;
+                drawScaled(batch, frame, member.renderX(alpha), member.renderY(alpha), scale);
+            }
+            if (chain.regrowing() && chain.alive()) {
+                EnemyLooks look = looks[chain.regrownKind()];
+                AtlasRegion frame = look.frame(chain.headFacing(), look.step(sortie.tick(), 0));
+                drawScaled(batch, frame, chain.headX(), chain.headY(), (float) Math.max(0.2, chain.regrowth()));
             }
         }
     }
@@ -724,6 +769,8 @@ public final class LevelRenderer {
             case ARMOUR_PATCH -> sprites.armourPatch;
             // The crate stands in until the special charge's own pickup sprite is made.
             case SPECIAL_CHARGE -> sprites.crate;
+            // The data core's own pickup comes with its concept round (M4 part F).
+            case DATA_CORE -> sprites.crate;
         };
     }
 

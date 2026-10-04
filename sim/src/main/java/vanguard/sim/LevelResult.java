@@ -17,6 +17,7 @@ import java.util.List;
  *     (part of the objectives' credits); {@link Escort#NONE} without one
  * @param bossTime the level's boss: its par and kill time (the Boss rush bonus, the debrief's BOSS
  *     TIME row); {@link BossTime#NONE} without one
+ * @param dataCores the data cores collected (design/systems/economy, Data cores), with the item each unlocks
  */
 public record LevelResult(
         int kills,
@@ -34,9 +35,74 @@ public record LevelResult(
         ScoringRules.Grade grade,
         int gradeBonus,
         Escort escort,
-        BossTime bossTime) {
+        BossTime bossTime,
+        List<DataCore> dataCores) {
     public LevelResult {
         bonuses = List.copyOf(bonuses);
+        dataCores = List.copyOf(dataCores);
+    }
+
+    /** A result without data cores. */
+    public LevelResult(
+            int kills,
+            int enemies,
+            double armourDamage,
+            int secretsFound,
+            int secrets,
+            int maxChain,
+            double maxMultiplier,
+            boolean secondaryMet,
+            Credits credits,
+            List<BonusScore> bonuses,
+            long score,
+            double rating,
+            ScoringRules.Grade grade,
+            int gradeBonus,
+            Escort escort,
+            BossTime bossTime) {
+        this(
+                kills,
+                enemies,
+                armourDamage,
+                secretsFound,
+                secrets,
+                maxChain,
+                maxMultiplier,
+                secondaryMet,
+                credits,
+                bonuses,
+                score,
+                rating,
+                grade,
+                gradeBonus,
+                escort,
+                bossTime,
+                List.of());
+    }
+
+    /** A data core: the lore entry {@code name}, unlocking the shop item {@code unlocks} early. */
+    public record DataCore(String name, String unlocks) {}
+
+    /** The same result with the data cores collected. */
+    public LevelResult withDataCores(List<DataCore> cores) {
+        return new LevelResult(
+                kills,
+                enemies,
+                armourDamage,
+                secretsFound,
+                secrets,
+                maxChain,
+                maxMultiplier,
+                secondaryMet,
+                credits,
+                bonuses,
+                score,
+                rating,
+                grade,
+                gradeBonus,
+                escort,
+                bossTime,
+                cores);
     }
 
     /** A result without a boss. */

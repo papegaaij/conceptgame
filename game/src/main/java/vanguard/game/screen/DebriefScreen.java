@@ -10,7 +10,7 @@ import java.util.Locale;
 import vanguard.content.campaign.Campaign;
 import vanguard.game.GameServices;
 import vanguard.game.audio.Sfx;
-import vanguard.game.input.Action;
+import vanguard.game.input.MenuInput;
 import vanguard.game.render.PixelScreen;
 import vanguard.game.ui.Fonts;
 import vanguard.game.ui.Glass;
@@ -21,9 +21,10 @@ import vanguard.sim.LevelResult;
  * concept (debrief-r08-a), drawn with the UI kit over the dimmed title scene (Earth orbit, Level
  * 01's setting): the tally, the credits by source with the grade bonus and the total, the score and
  * the grade stamp in its amber-trimmed glass, with "NEW BEST" when the grade beats the level's
- * best. Lines appear 0.3 s apart with a tick while their numbers count up; confirm skips the
+ * best. Lines appear 0.3 s apart with a tick while their numbers count up; confirm (or Back) skips the
  * animation, and once it is done the campaign goes on with the next level's briefing, or the
- * hangar while that level is not built yet.
+ * hangar while that level is not built yet. A replay's debrief shows no credits, since a replay
+ * banks none, and goes back to the mission select (design/ui/mission-select).
  */
 public final class DebriefScreen implements GameScreen {
     private static final float LINE_SECONDS = 0.3f;
@@ -92,7 +93,11 @@ public final class DebriefScreen implements GameScreen {
         subtitle = name.toUpperCase(Locale.ROOT);
         grade = result.grade().letter();
         addTally(result);
-        addCredits(result, launchBalance);
+        if (campaign.replay().isPresent()) {
+            addReplay(result, launchBalance);
+        } else {
+            addCredits(result, launchBalance);
+        }
         services.sfx.play(Sfx.MISSION_COMPLETE, JINGLE_VOLUME, 1, 0);
     }
 
@@ -168,6 +173,14 @@ public final class DebriefScreen implements GameScreen {
         rows.add(new Row("SCORE", "", result.score(), "", "", GAIN));
     }
 
+    /** A replay banks nothing (design/ui/mission-select): the balance stays, the score is shown. */
+    private void addReplay(LevelResult result, int launchBalance) {
+        rows.add(Row.heading("REPLAY"));
+        rows.add(new Row("NO CREDITS BANKED", "", -1, "", "", LABEL));
+        rows.add(new Row("BALANCE", "", launchBalance, "", "", CREDITS));
+        rows.add(new Row("SCORE", "", result.score(), "", "", GAIN));
+    }
+
     private static long bonus(LevelResult result, String name) {
         return result.bonuses().stream()
                 .filter(b -> b.name().equals(name))
@@ -176,13 +189,24 @@ public final class DebriefScreen implements GameScreen {
                 .orElse(-1);
     }
 
+    /**
+     * Whether the frame's input goes on (skips the count-up, then leaves): confirm, and Back (Esc,
+     * the gamepad's back button) too, since the debrief has nothing to go back to.
+     */
+    static boolean goesOn(MenuInput input) {
+        return input.confirm() || input.back();
+    }
+
     @Override
     public Transition update(float seconds) {
         campaign.play(seconds);
         boolean done = stamped;
-        if (services.input.pressed(Action.MENU_CONFIRM)) {
+        if (goesOn(services.menu)) {
             if (done) {
-                return Transition.replace(HangarScreen.beforeNextLevel(services, campaign));
+                return Transition.replace(
+                        campaign.replay().isPresent()
+                                ? MissionSelectScreen.afterReplay(services)
+                                : HangarScreen.beforeNextLevel(services, campaign));
             }
             elapsed = rows.size() * LINE_SECONDS + STAMP_DELAY_SECONDS;
         } else {

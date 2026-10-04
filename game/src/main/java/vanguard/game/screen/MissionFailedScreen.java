@@ -24,7 +24,7 @@ import vanguard.sim.LevelScript;
  * level, tinted red: Okafor's portrait and line (a failed primary objective's own line and speaker
  * when the level has one), Retry (the level at once, from its start state),
  * Back to hangar (the level-start state, to change the loadout first) and Quit to main menu (after
- * a confirmation), with what the attempt earned and, on hard, the retries left: the failure has
+ * a confirmation, which Back (Esc, the gamepad's back button) asks too), with what the attempt earned and, on hard, the retries left: the failure has
  * used its retry already (and the autosave holds it), so Retry and Back to hangar only take it. Once
  * the attempt reached a boss checkpoint (easy and medium), Retry from boss comes first: the boss's
  * arrival on an empty field with the defences and tallies of then; it uses no retry.
@@ -67,7 +67,7 @@ public final class MissionFailedScreen implements GameScreen {
             items.add(Menu.Item.of(Item.BOSS, "RETRY FROM BOSS"));
         }
         items.add(Menu.Item.of(Item.RETRY, "RETRY"));
-        items.add(Menu.Item.of(Item.HANGAR, "BACK TO HANGAR"));
+        items.add(Menu.Item.of(Item.HANGAR, campaign.replay().isPresent() ? "BACK TO MISSIONS" : "BACK TO HANGAR"));
         items.add(Menu.Item.of(Item.QUIT, "QUIT TO MAIN MENU"));
         menu = new Menu<>(items);
         speaker = level.failureLine()
@@ -108,13 +108,16 @@ public final class MissionFailedScreen implements GameScreen {
         if (menu.navigate(input)) {
             services.play(Sfx.MENU_MOVE);
         }
+        if (asksToQuit(input, menu.selectedId() == Item.QUIT)) {
+            services.play(Sfx.MENU_CONFIRM);
+            quit = Optional.of(quitDialog());
+            return Transition.STAY;
+        }
         if (!input.confirm()) {
             return Transition.STAY;
         }
         services.play(Sfx.MENU_CONFIRM);
-        if (menu.selectedId() != Item.QUIT) {
-            services.voices.stop();
-        }
+        services.voices.stop();
         return switch (menu.selectedId()) {
             case BOSS -> {
                 level.retryFromBoss();
@@ -124,13 +127,26 @@ public final class MissionFailedScreen implements GameScreen {
                 level.retry(campaign.armour());
                 yield Transition.BACK;
             }
-            case HANGAR -> Transition.replace(new HangarScreen(services, campaign, true));
-            case QUIT -> {
-                quit = Optional.of(new Dialog(
-                        "QUIT TO MAIN MENU?", "PROGRESS SINCE THE LAST SAVE IS LOST.", "YES, QUIT", "NO, BACK"));
-                yield Transition.STAY;
-            }
+            case HANGAR ->
+                Transition.replace(
+                        campaign.replay().isPresent()
+                                ? MissionSelectScreen.afterReplay(services)
+                                : new HangarScreen(services, campaign, true));
+            case QUIT -> Transition.STAY; // asked above
         };
+    }
+
+    /** Whether the frame's input asks to quit: Back on any item, or confirm on Quit to main menu. */
+    static boolean asksToQuit(MenuInput input, boolean onQuit) {
+        return input.back() || onQuit && input.confirm();
+    }
+
+    /**
+     * The question Quit to main menu asks; Back (Esc, the gamepad's back button) asks it too, and
+     * Back again or No stays on the screen.
+     */
+    static Dialog quitDialog() {
+        return new Dialog("QUIT TO MAIN MENU?", "PROGRESS SINCE THE LAST SAVE IS LOST.", "YES, QUIT", "NO, BACK");
     }
 
     @Override

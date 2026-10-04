@@ -42,7 +42,8 @@ to the next briefing.
 Total credits = balance at level start + credits earned + grade bonus.)
 
 - Lines appear one after another, 0.3 s apart, with a tick SFX while numbers count; confirm
-  skips the animation.
+  skips the animation. Back (Esc, the gamepad's back button) does what confirm does: there is
+  nothing to go back to.
 - The grade stamp lands with a heavy SFX. A new best grade for the level gets a "NEW BEST" tag.
 - Data cores found show as a small list with their lore titles (readable later).
 - Act-final debriefs add an act summary (total kills, total credits for the act).
@@ -68,6 +69,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 
 - [x] Tally sequence with count-up animation and skip
 - [x] Grade calculation display and credit bonus
+- [x] Back (Esc, the gamepad's back button) skips and goes on like confirm (`DebriefExitTest`)
 - [ ] Data core list and act summary — **later: M4** (data cores and the first act end come with the Act 1 levels)
 
 ## Decisions
@@ -97,3 +99,6 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 - 2026-10-04: The top grade is **A+** (user decision, see [scoring](../../systems/scoring/README.md)):
   two full-size 20×30 glyphs at ×3 overrun the 110 px stamp, so the letter stays at ×3 and the plus
   is drawn at ×2, raised beside it.
+- 2026-10-04: Back on the debrief (user decision): Esc and the gamepad's back button go on like
+  confirm (skip the count-up, then leave), since the debrief has nothing to go back to. Test:
+  `DebriefExitTest`.

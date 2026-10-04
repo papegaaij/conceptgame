@@ -50,6 +50,17 @@ public final class Campaign {
     private final List<String> storyFlags;
     private int kills;
     private int deaths;
+    /** The replay this campaign flies, if it is one: a throwaway copy of a save. */
+    private Optional<Replay> replay = Optional.empty();
+
+    /**
+     * A replay of a level the campaign has flown (design/ui/mission-select): it flies with the save's
+     * loadout and special charges at full armour, its retries are unlimited, and nothing of it is
+     * kept but a better grade, which the mission select writes into {@code slot}.
+     *
+     * @param slot the save slot the replay was started from
+     */
+    public record Replay(SaveSlots.Slot slot, int level) {}
 
     private Campaign(CampaignRules rules, SaveGame save) {
         this.rules = rules;
@@ -92,13 +103,39 @@ public final class Campaign {
                         new SaveGame.Stats(0, 0)));
     }
 
+    /**
+     * A replay of a level the save has flown: a copy of the save's campaign that is never saved,
+     * earns no credits and leaves the save's progress alone (main-agent choice, for the user to
+     * confirm: design/ui/mission-select).
+     */
+    public static Campaign replay(CampaignRules rules, SaveSlots.Slot slot, SaveGame save, int level) {
+        if (!Missions.played(save, level)) {
+            throw new IllegalArgumentException("level " + level + " has not been flown yet");
+        }
+        Campaign campaign = new Campaign(rules, save);
+        campaign.replay = Optional.of(new Replay(slot, level));
+        campaign.nextLevel = level;
+        campaign.retriesLeft = Optional.empty();
+        campaign.gear = campaign.gear.withArmour(campaign.maxArmour());
+        campaign.launched = campaign.gear;
+        return campaign;
+    }
+
+    /** The replay this campaign flies; empty for the campaign itself. */
+    public Optional<Replay> replay() {
+        return replay;
+    }
+
     /** The campaign of a save. */
     public static Campaign load(CampaignRules rules, SaveGame save) {
         return new Campaign(rules, save);
     }
 
-    /** The state as a save written at {@code now}. */
+    /** The state as a save written at {@code now}; a replay is never saved. */
     public SaveGame save(Instant now) {
+        if (replay.isPresent()) {
+            throw new IllegalStateException("a replay is never saved");
+        }
         return new SaveGame(
                 SaveFormat.VERSION,
                 now,
@@ -244,6 +281,10 @@ public final class Campaign {
         if (!(armourLeft > 0)) {
             throw new IllegalArgumentException("a won level leaves armour, not " + armourLeft);
         }
+        if (replay.isPresent()) {
+            // A replay banks nothing: no credits, score, kills or charges, and no progress.
+            return recordGrade(result.grade().letter());
+        }
         gear = gear.withCredits(gear.credits() + result.credits().total() + result.gradeBonus())
                 .withArmour(Math.min(armourLeft, maxArmour()));
         Fitted special = gear.loadout().get(LoadoutSlot.SPECIAL);
@@ -252,19 +293,39 @@ public final class Campaign {
             charges.put(special.item(), Math.max(0, gear.charges(special.item()) - chargesUsed + chargesFound));
             gear = new Gear(gear.credits(), gear.loadout(), gear.inventory(), charges, gear.armour());
         }
+        // A data core collected in a won level: the core and its unlock are kept at once
+        // (design/systems/economy, Data cores), even before the item exists.
+        for (LevelResult.DataCore core : result.dataCores()) {
+            if (!dataCores.contains(core.name())) {
+                dataCores.add(core.name());
+            }
+            if (!unlocks.contains(core.unlocks())) {
+                unlocks.add(core.unlocks());
+            }
+        }
         score += result.score();
         kills += result.kills();
-        String grade = result.grade().letter();
+        boolean newBest = recordGrade(result.grade().letter());
+        nextLevel++;
+        retriesLeft = rules.retries(difficulty);
+        launched = gear;
+        return newBest;
+    }
+
+    /** Records the next level's grade when it beats the best; returns whether it did. */
+    private boolean recordGrade(String grade) {
         String best = grades.get(nextLevel);
         boolean newBest =
                 best == null || rules.grades().indexOf(grade) < rules.grades().indexOf(best);
         if (newBest) {
             grades.put(nextLevel, grade);
         }
-        nextLevel++;
-        retriesLeft = rules.retries(difficulty);
-        launched = gear;
         return newBest;
+    }
+
+    /** The grades from best to worst. */
+    public List<String> gradeOrder() {
+        return rules.grades();
     }
 
     public Difficulty difficulty() {

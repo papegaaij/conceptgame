@@ -76,9 +76,22 @@ public record EnemyLooks(
 
     /** The looks of the level's enemy kinds, indexed like {@code Sortie.enemyKinds()}. */
     public static EnemyLooks[] of(List<EnemySpec> kinds, Sprites sprites, Content content) {
-        return kinds.stream()
-                .map(kind -> of(kind.slug(), sprites, content.enemy(kind.slug())))
-                .toArray(EnemyLooks[]::new);
+        return kinds.stream().map(kind -> of(kind.slug(), sprites, content)).toArray(EnemyLooks[]::new);
+    }
+
+    /**
+     * A kind's looks: a segment chain's parts ({@code coilwyrm-segment}, {@code -tail},
+     * {@code -regrown}) take their unit's stat block, its segments and tail popping as {@code tiny}
+     * units; a unit without frames yet gets placeholder shapes.
+     */
+    private static EnemyLooks of(String slug, Sprites sprites, Content content) {
+        String unit = slug;
+        while (!content.enemies().containsKey(unit) && unit.contains("-")) {
+            unit = unit.substring(0, unit.lastIndexOf('-'));
+        }
+        EnemyData data = content.enemy(unit);
+        boolean part = !unit.equals(slug) && !slug.endsWith("-regrown");
+        return of(slug, sprites, data, part);
     }
 
     /**
@@ -116,29 +129,30 @@ public record EnemyLooks(
      * death animations are its slug's {@code -death} (glow) and {@code -tatters} or {@code -husk}
      * (pieces), played at its tier's frame rate.
      */
-    private static EnemyLooks of(String slug, Sprites sprites, EnemyData data) {
+    private static EnemyLooks of(String slug, Sprites sprites, EnemyData data, boolean tinyPart) {
         Orientation orientation = data.orientation();
         Array<AtlasRegion> none = new Array<>();
         boolean walker = data.movement().walk().isPresent();
         int walkFrames = walker ? sprites.frames(slug).size / orientation.headings() : 1;
+        Array<AtlasRegion> frames =
+                sprites.has(slug) ? sprites.frames(slug) : Placeholders.frames(slug, orientation.headings());
+        Tier tier = tinyPart ? Tier.TINY : data.tier();
         return new EnemyLooks(
-                sprites.frames(slug),
+                frames,
                 orientation.headings(),
                 orientation == Orientation.TILT_30,
-                orientation == Orientation.RADIAL
-                        ? SPIN_TURNS_PER_SECOND * SPIN_SYMMETRY * sprites.frames(slug).size
-                        : ORGANIC_FPS,
-                switch (data.tier()) {
+                orientation == Orientation.RADIAL ? SPIN_TURNS_PER_SECOND * SPIN_SYMMETRY * frames.size : ORGANIC_FPS,
+                switch (tier) {
                     case TINY -> sprites.explosionTiny;
                     case SMALL -> sprites.explosionSmall;
                     default -> sprites.frames("explosion-medium");
                 },
-                data.tier() == Tier.TINY ? Sfx.EXPLOSION_TINY_A : Sfx.EXPLOSION_SMALL_A,
-                data.tier() == Tier.TINY ? Sfx.EXPLOSION_TINY_B : Sfx.EXPLOSION_SMALL_B,
+                tier == Tier.TINY ? Sfx.EXPLOSION_TINY_A : Sfx.EXPLOSION_SMALL_A,
+                tier == Tier.TINY ? Sfx.EXPLOSION_TINY_B : Sfx.EXPLOSION_SMALL_B,
                 sprites.has(slug + "-flare") ? sprites.frames(slug + "-flare") : none,
                 remains(sprites, slug, none),
-                death(sprites, slug, DEATH_GLOW, data.tier(), true, walker),
-                death(sprites, slug, DEATH_PIECES, data.tier(), false, walker),
+                death(sprites, slug, DEATH_GLOW, tier, true, walker),
+                death(sprites, slug, DEATH_PIECES, tier, false, walker),
                 sprites.has(slug + "-glow") ? sprites.frames(slug + "-glow") : none,
                 walker && sprites.has(slug + "-husk") ? sprites.frames(slug + "-husk") : none,
                 walkFrames,

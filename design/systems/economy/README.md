@@ -1,7 +1,7 @@
 ---
 title: Economy
 design: approved
-implementation: done
+implementation: in-progress
 art: n/a
 depends-on: [../../player, ../difficulty]
 updated: 2026-10-04
@@ -59,6 +59,11 @@ A data core is a hidden lore pickup (see [player](../../player/README.md#in-leve
 Besides the lore entry, each core unlocks **one specific shop item one act early**: the item is
 in the shop from the next hangar visit instead of from its normal unlock. Items found this way
 cost their normal price. Later acts add rows as their level documents place cores.
+
+An unlock is recorded when the core is collected in a won level: the save keeps the core
+(`dataCores`) and the unlock (`unlocks`) at once, even when the item does not exist in the game
+yet. The L06 core's Targeting computer is such a case: Level 06 (M4 part F) records it, and the
+item enters the shop once utility modules exist (M5), from the first hangar visit after that.
 
 | Data core found in | Item unlocked early | Normal unlock | Why this item |
 |---|---|---|---|
@@ -146,6 +151,9 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   test `TypicalHaulTest` (within ±5 % of the budget for every level)
 - [x] Levels 01–05 reworked to the typical-haul budget (density and `bounty_scale`: 1.21, 1.05,
   0.97, 0.79, 0.79; the minimum density in the content test `DensityTest`)
+- [x] Data cores: the core and its unlock recorded in the save (`dataCores`, `unlocks`) when
+  collected in a won level (M4 part F: a secret's `data_core` in the level data)
+- [ ] The unlocked item in the shop once it exists (the Targeting computer: M5)
 - [ ] Balancing sheet (spreadsheet or script) that simulates per-level budgets vs prices — **later: M4** (needs the Act 1 levels; the roadmap's balance tests)
 
 ## Open questions
@@ -208,3 +216,7 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   per level put every typical haul within 1.1 % of its budget: Level 01 × 1.21 (708 of 700),
   Level 02 × 1.05 (756 of 749), Level 03 × 0.97 (805 of 801), Level 04 × 0.79 (857 of 858),
   Level 05 × 0.79 (916 of 918); a perfect run earns 1.45–1.68 × the budget.
+- 2026-10-04: The L06 data core's unlock of the Targeting computer is recorded now, as the
+  pickup and the save entries (`dataCores`, `unlocks`); the item takes effect once utility modules
+  exist in M5 (user decision D6 of M4 part F). Rejected: building the Targeting computer in M4 (a
+  whole new system) and swapping the unlock for an item that exists in Act 1.

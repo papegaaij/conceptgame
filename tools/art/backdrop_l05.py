@@ -195,7 +195,7 @@ def ridges(rows_u, centres, seed):
     out = np.zeros((len(rows_u), W))
     for c in centres:
         line = c + 14 * np.sin(2 * np.pi * xx / W * rng.uniform(1, 2.5) + rng.uniform(0, 6))
-        d = rows_u[:, None] - line
+        d = np.mod(rows_u[:, None] - line + H / 2, H) - H / 2     # periodic: the tile wraps
         out += 0.14 * np.where(d < 0, np.exp(-(d / 18) ** 2), np.exp(-(d / 70) ** 2))
     return out
 
@@ -206,15 +206,15 @@ def tile_heights():
     base = b4.base_height()
     u = (H - 1 - np.arange(H)).astype(float)
     out = {}
-    md = base + b4.features(731, 5, (14, 26), 24) * b4.seam_mask(seams_of("mass-driver-field"))
+    md = base + b4.features(731, 5, (14, 26), 24, seams_of("mass-driver-field"))
     rail = np.clip(1 - (np.abs(np.arange(W)[None, :] - RAIL_X) - 24) / 6, 0, 1)
     out["mass-driver-field"] = md * (1 - rail) + (md * 0.3 + 0.1) * rail
     m = b4.seam_mask(seams_of("crater-slope"))
-    out["crater-slope"] = base + (b4.features(911, 8, (14, 30), 70) + ridges(u, (470, 760), 912)) * m
-    out["nest-floor"] = base + b4.features(921, 12, (16, 44), 26) * b4.seam_mask(seams_of("nest-floor"))
+    out["crater-slope"] = base + b4.features(911, 8, (14, 30), 70, seams_of("crater-slope")) + ridges(u, (470, 760), 912) * m
+    out["nest-floor"] = base + b4.features(921, 12, (16, 44), 26, seams_of("nest-floor"))
     m = b4.seam_mask(seams_of("arena-floor"), 30)
     out["arena-floor"] = base * (1 - 0.6 * m) + float(base.mean()) * 0.6 * m
-    out["mare-a"] = base + b4.features(701, 7, (16, 30), 30) * b4.seam_mask(seams_of("mare-a"))
+    out["mare-a"] = base + b4.features(701, 7, (16, 30), 30, seams_of("mare-a"))
     return out
 
 
@@ -274,13 +274,15 @@ def rail_rows():
     return np.array(artkit.quantize_set([b4.rail_overlay()], 10)[0])
 
 
+ROOTS = ((80, 180), (330, 380), (200, 610), (420, 820), (120, 800))   # clear of the seam rows 689 and 959
+
+
 def roots_overlay():
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    limit = b4.seam_mask(seams_of("nest-floor"), 60) > 0.999
-    for (x, y), seed in zip(((80, 180), (330, 380), (200, 610), (420, 820), (120, 760)), range(931, 936)):
+    for (x, y), seed in zip(ROOTS, range(931, 936)):
         for dy in (-H, 0, H):
-            b4.roots(img, (x, y + dy), seed, 5, 64, 2.8, limit)
-    return img
+            b4.roots(img, (x, y + dy), seed, 5, 64, 2.8)
+    return b4.assert_clear(img, seams_of("nest-floor"), "nest-floor roots")
 
 
 def rail_end():
@@ -295,17 +297,20 @@ def rail_end():
     return b4.render_model(scene, l01.KIT_PAL, (60, 36), factor=4, colors=24)
 
 
+def rim_rail(pos, rows):
+    """rim-south's rail up to the launch lip: the mass-driver-field's rail rows exactly (already
+    quantized, so its colours match the tile's where the rim's bottom fades into it)."""
+    a = np.zeros((len(pos), W, 4), np.uint8)
+    keep = pos <= RAIL_END
+    a[keep] = rail_rows()[rows[keep]]
+    return Image.fromarray(a, "RGBA")
+
+
 def rim_overlay(name, pos, rows):
-    """What lies on a rim window: crest rubble, and on rim-south the rail and its launch lip."""
+    """What lies on a rim window: crest rubble, and on rim-south the rail's launch lip."""
     img = Image.new("RGBA", (W, len(pos)), (0, 0, 0, 0))
     crest = CREST_S if name == "rim-south" else CREST_N
     rng = np.random.default_rng(951 if name == "rim-south" else 961)
-    if name == "rim-south":
-        rail = rail_rows()
-        a = np.zeros((len(pos), W, 4), np.uint8)
-        keep = pos <= RAIL_END
-        a[keep] = rail[rows[keep]]
-        img = Image.fromarray(a, "RGBA")
     top = pos[0]
     for k in range(9):
         x = rng.uniform(20, W - 20)
@@ -348,8 +353,11 @@ def ground_group():
     quant["nest-floor"] = b4.overlaid(quant["nest-floor"], artkit.quantize_set([roots_overlay()], 10)[0])
     for name in RIMS:
         pos, rows = extra[name]
+        if name == "rim-south":
+            quant[name] = b4.overlaid(quant[name], rim_rail(pos, rows))
         over = rim_overlay(name, pos, rows)
-        quant[name] = b4.overlaid(quant[name], artkit.quantize_set([over], 10)[0])
+        spare = 32 - artkit.colour_count([quant[name]])        # the rubble and the lip in what is left of 32
+        quant[name] = b4.overlaid(quant[name], artkit.quantize_set([over], min(10, spare))[0])
         a = np.array(quant[name])
         hh = a.shape[0]
         edge = np.minimum(np.arange(hh), hh - 1 - np.arange(hh)).astype(float)[:, None] * np.ones((1, W))

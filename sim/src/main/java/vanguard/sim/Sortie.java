@@ -81,6 +81,15 @@ public final class Sortie {
     private final LevelScript.DebrisSpec rock;
     /** Rocks thrown in this attempt, for their serials. */
     private int rocksThrown;
+    /** Per secret, its data core when it is one (Level 06's settlement log); null for a crate. */
+    private final LevelResult.DataCore[] cores;
+    /** Per secret, whether its data core was collected in this attempt. */
+    private final boolean[] coresCollected;
+    /** Per secret, its name, for the core's radio line. */
+    private final String[] secretNames;
+    /** The level's darkness; null in a lit level. */
+    private final LevelScript.Darkness darkness;
+
     /** The damage of the lobs that landed on the ship in this step. */
     private double directHits;
     /** Whether a group's outcome was paid and called in this attempt. */
@@ -195,6 +204,16 @@ public final class Sortie {
         arenaStartTicks = arenaStart;
         arenaSpeed = arenaSpeedFound;
         secretTriggersSpent = new int[script.secrets()];
+        cores = new LevelResult.DataCore[script.secrets()];
+        coresCollected = new boolean[script.secrets()];
+        secretNames = new String[script.secrets()];
+        for (LevelScript.GroundObjectSpec object : script.groundObjects()) {
+            if (object.secretIndex() >= 0) {
+                secretNames[object.secretIndex()] = object.secret();
+                cores[object.secretIndex()] = object.core().orElse(null);
+            }
+        }
+        darkness = script.darkness().orElse(null);
         PlayerFire.Hits hits = new PlayerFire.Hits() {
             @Override
             public void enemyDestroyed(int index) {
@@ -223,7 +242,7 @@ public final class Sortie {
         };
         this.hits = hits;
         fire = new PlayerFire(ship, loadout.armament(), events, hits, setPieces);
-        special = new SpecialSlot(loadout.special(), events);
+        special = new SpecialSlot(loadout.special(), events, ship.defences());
         List<EnemySpec> streamKinds =
                 bossStreams.stream().map(BossSpec.Stream::enemy).toList();
         force = new EnemyForce(
@@ -382,8 +401,12 @@ public final class Sortie {
         fire.hitEnemies(force.enemies());
         fire.hitSetPieces();
         fire.hitMines(force.mines());
+        if (darkness != null) {
+            light();
+        }
         fire.hitGround(ground, force.enemies());
         special.update(scrollStep, force.enemies(), ground, setPieces, hits);
+        special.bomb(force.enemies(), setPieces, hits, force.bullets(), force.lobs());
         if (convoy != null) {
             convoy.update(levelTick, groundScroll, scrollStep);
         }
@@ -540,8 +563,35 @@ public final class Sortie {
         bossPhase = -1;
     }
 
+    /**
+     * The darkness (Level 06): a flare fired now is announced, and the triggers marked dark can be
+     * hit only while the headlight or a flare lights them (shots pass them in the dark).
+     */
+    private void light() {
+        double seconds = levelSeconds();
+        List<LevelScript.Darkness.Flare> flares = darkness.flares();
+        for (int i = 0; i < flares.size(); i++) {
+            if (SimStep.ticks(flares.get(i).t()) == levelTick && !complete) {
+                events.add(SimEvents.Type.FLARE_FIRED, flares.get(i).x(), darkness.flareY(i, seconds), i);
+            }
+        }
+        for (int i = 0; i < ground.size(); i++) {
+            GroundObject object = ground.get(i);
+            if (object.spec().dark()) {
+                object.shut(!darkness.lit(object.x(), object.y(), object.spec().size(), ship.x(), ship.y(), seconds));
+            }
+        }
+    }
+
+    /** Whether the ground object {@code object} is lit now: always outside a dark level. */
+    public boolean lit(GroundObject object) {
+        return darkness == null
+                || darkness.lit(object.x(), object.y(), object.spec().size(), ship.x(), ship.y(), levelSeconds());
+    }
+
     private void restart() {
         checkpointTaken = false;
+        Arrays.fill(coresCollected, false);
         bossRetry = false;
         streamReleased = 0;
         resetArena();
@@ -763,6 +813,13 @@ public final class Sortie {
         LevelScript.GroundObjectSpec spec = trigger.spec();
         events.add(SimEvents.Type.SECRET_FOUND, trigger.x(), trigger.y());
         Pickup crate = pickups.obtain();
+        if (spec.core().isPresent()) {
+            // A data core: its line plays when it is collected; the pickup carries its secret's index.
+            if (crate != null) {
+                crate.drop(PickupType.DATA_CORE, spec.secretIndex(), trigger.x(), trigger.y(), pickupTicks);
+            }
+            return;
+        }
         if (crate != null) {
             crate.drop(PickupType.HIDDEN_CRATE, spec.crateCredits(), trigger.x(), trigger.y(), pickupTicks);
         }
@@ -774,6 +831,18 @@ public final class Sortie {
         Enemy enemy = enemies.get(index);
         EnemySpec spec = enemy.spec();
         events.add(SimEvents.Type.ENEMY_DESTROYED, enemy.x(), enemy.y(), enemy.kind());
+        if (enemy.chain() != null) {
+            // A segment chain counts as one enemy, its wave's head: the other parts pay their bounty only.
+            boolean kill = enemy.link() == 0 && enemy.chain().original();
+            if (!kill) {
+                int bonus = force.firstBonusDue(enemy) ? enemy.chain().spec().tailFirstBonus() : 0;
+                tally.partKill(spec.bounty() + bonus);
+                force.memberDestroyed(enemy);
+                enemies.free(index);
+                return;
+            }
+            force.memberDestroyed(enemy);
+        }
         tally.kill(spec.bounty(), enemy.grounded() ? CreditSource.GROUND_TARGETS : CreditSource.KILLS);
         int kills = objectives.kill(enemy.kind());
         int group = enemy.group();
@@ -1234,6 +1303,9 @@ public final class Sortie {
                 }
             }
         }
+        if (beamsHit(hull)) {
+            return;
+        }
         // An armed spore bursts on contact with the hull, dealing its layer's attack damage.
         Pool<Mine> mines = force.mines();
         for (int i = mines.size() - 1; i >= 0; i--) {
@@ -1250,6 +1322,33 @@ public final class Sortie {
         }
     }
 
+    /**
+     * A sweeping beam (design/enemies/air/mantis) touching the hull deals its damage, at most once
+     * per sweep; returns whether it wrecked the ship.
+     */
+    private boolean beamsHit(Hull hull) {
+        Pool<Enemy> enemies = force.enemies();
+        for (int j = 0; j < enemies.size(); j++) {
+            Enemy enemy = enemies.get(j);
+            if (enemy.spec().sweep().isEmpty() || !enemy.sweeping() || enemy.sweepHit()) {
+                continue;
+            }
+            EnemySpec.Sweep sweep = enemy.spec().sweep().get();
+            double heading = enemy.beam(0);
+            double endX = enemy.x() - Trig.sin(heading) * sweep.length();
+            double endY = enemy.y() - Trig.cos(heading) * sweep.length();
+            if (hull.touchesSegment(ship.x(), ship.y(), enemy.x(), enemy.y(), endX, endY, sweep.width() / 2)) {
+                enemy.markSweepHit();
+                events.add(SimEvents.Type.SWEEP_HIT, ship.x(), ship.y());
+                double lost = ship.defences().armourLost();
+                if (damaged(lost, ship.defences().takeShot(sweep.damage(), events, ship.x(), ship.y()))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** A rammer on the player's layer deals its contact damage; a small one is destroyed by the impact. */
     private void ramShip() {
         Pool<Enemy> enemies = force.enemies();
@@ -1258,7 +1357,7 @@ public final class Sortie {
             Enemy enemy = enemies.get(j);
             EnemySpec spec = enemy.spec();
             if (spec.layer().collidesWithPlayer()
-                    && hull.overlaps(ship.x(), ship.y(), spec.hitbox(), enemy.x(), enemy.y())) {
+                    && hull.overlaps(ship.x(), ship.y(), enemy.hitbox(), enemy.x(), enemy.y())) {
                 double lost = ship.defences().armourLost();
                 boolean wrecked = ship.defences().takeCollision(spec.contactDamage(), events, ship.x(), ship.y());
                 if (spec.destroyedByRamming()) {
@@ -1317,7 +1416,7 @@ public final class Sortie {
                     continue;
                 }
                 for (int k = 0; k < convoy.size() && !failed; k++) {
-                    if (convoy.touches(k, enemy.x(), enemy.y(), enemy.spec().hitbox())) {
+                    if (convoy.touches(k, enemy.x(), enemy.y(), enemy.hitbox())) {
                         // A new contact flashes and sounds; a continuing one only takes its damage.
                         hurt(k, claws, convoy.get(k).ticksSinceHit() > 1);
                     }
@@ -1373,6 +1472,10 @@ public final class Sortie {
             case SHIELD_CELL -> defences.restoreShield(rules.pickups().shieldCellShare() * defences.maxShield());
             case ARMOUR_PATCH -> defences.repair(rules.pickups().armourPatch());
             case SPECIAL_CHARGE -> special.collect();
+            case DATA_CORE -> {
+                coresCollected[pickup.credits()] = true;
+                radio.cue(LevelScript.CueTrigger.SECRET, secretNames[pickup.credits()]);
+            }
         }
         events.add(
                 SimEvents.Type.PICKUP_COLLECTED,
@@ -1447,6 +1550,14 @@ public final class Sortie {
         if (sled != null) {
             sled.addTo(hash);
         }
+        if (force.chains().size() > 0) {
+            Pools.addAll(hash, force.chains());
+        }
+        for (int k = 0; k < cores.length; k++) {
+            if (cores[k] != null) {
+                hash.add(coresCollected[k] ? 1 : 0);
+            }
+        }
         if (!script.targets().isEmpty()) {
             hash.add(failed ? 1 : 0).add(failedGroup).add(rocksThrown);
         }
@@ -1468,19 +1579,31 @@ public final class Sortie {
     public LevelResult result() {
         Defences defences = ship.defences();
         return LevelResult.of(
-                rules.scoring(),
-                script,
-                tally,
-                enemyTotal(),
-                defences.armourLost(),
-                defences.maxArmour(),
-                objectives.secretsFound(),
-                objectives.secondaryMet(),
-                convoy == null
-                        ? LevelResult.Escort.NONE
-                        : new LevelResult.Escort(
-                                convoy.escort().ally().slug(), convoy.alive(), convoy.size(), escortCredits),
-                bossTime());
+                        rules.scoring(),
+                        script,
+                        tally,
+                        enemyTotal(),
+                        defences.armourLost(),
+                        defences.maxArmour(),
+                        objectives.secretsFound(),
+                        objectives.secondaryMet(),
+                        convoy == null
+                                ? LevelResult.Escort.NONE
+                                : new LevelResult.Escort(
+                                        convoy.escort().ally().slug(), convoy.alive(), convoy.size(), escortCredits),
+                        bossTime())
+                .withDataCores(dataCores());
+    }
+
+    /** The data cores collected in this attempt, in the level's secret order. */
+    public List<LevelResult.DataCore> dataCores() {
+        List<LevelResult.DataCore> collected = new java.util.ArrayList<>();
+        for (int k = 0; k < cores.length; k++) {
+            if (cores[k] != null && coresCollected[k]) {
+                collected.add(cores[k]);
+            }
+        }
+        return collected;
     }
 
     /** The level's boss's kill time and par, for the debrief and the Boss rush bonus; {@link LevelResult.BossTime#NONE} without a boss. */
@@ -1523,6 +1646,25 @@ public final class Sortie {
     /** Seconds of overdrive left; 0 without one. */
     public double overdriveSeconds() {
         return fire.overdriveTicks() * SimStep.SECONDS;
+    }
+
+    /** Destroys enemy {@code index} as a hit would, paying it (for tests). */
+    void destroyEnemy(int index) {
+        destroy(index);
+    }
+
+    /** The segment chains in flight (a regrowing one draws its growing head). */
+    public int chainCount() {
+        return force.chains().size();
+    }
+
+    public Chain chain(int index) {
+        return force.chains().get(index);
+    }
+
+    /** The level's darkness, if it is dark. */
+    public java.util.Optional<LevelScript.Darkness> darkness() {
+        return script.darkness();
     }
 
     /** Destroys part {@code part} of set piece {@code piece} as a hit would, paying it (for tests). */

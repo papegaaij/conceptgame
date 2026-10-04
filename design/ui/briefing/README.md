@@ -32,7 +32,7 @@ together with in-level radio chatter (see [HUD](../hud/README.md)).
 │               │   shuttles, and watch your six. Okafor out."█                │
 ├───────────────┴──────────────────────────────────────────────────────────────┤
 │ OBJECTIVES: ▪ Escort the evacuation shuttles  ▪ Bonus: no shuttle lost       │
-│                                                 [ENTER] continue  [ESC] skip │
+│                                            [ENTER] continue  [ESC] main menu │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -45,7 +45,13 @@ the real briefing text is written in each level document.
   transmissions from Vorne or the Choir).
 - Text types out at twice the radio's speed with a soft blip: 60 characters/s at the default
   text speed of 30; the Gameplay tab's text speed scales both. Confirm shows the full page, then
-  continues. Skip jumps to the objectives.
+  continues.
+- **Back (Esc / B) quits to the main menu** (user decision 2026-10-04), on the title card too,
+  after the kit's confirm dialog ("QUIT TO MAIN MENU?", as the hangar's quit asks). It leaves the
+  campaign as it is: after a won level the briefing writes the autosave the hangar would have
+  written as it opened, so the level stays won and Continue goes on in the hangar; a new game's
+  intro briefing has nothing to keep yet and writes no save (an older campaign's autosave stays).
+  Back no longer skips to the objectives; confirm still shows each page at once.
 - Portraits: 144×144, pre-rendered, three expressions per main character (neutral, grim, fierce);
   a page names its expression in the data, neutral otherwise.
   Interference/static effect for intercepted transmissions.
@@ -81,6 +87,9 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 - [x] Briefing script format: pages, speaker, text, objectives
 - [x] A page's image (tactical map or mission image): `image` in the data, drawn above the text
 - [x] Typewriter text with skip and page advance
+- [x] Back (Esc / B) asks, then quits to the main menu, keeping the campaign (the won level's
+      autosave; no save for a new game's intro): `vanguard.game.briefing.BriefingExit`, tested in
+      `BriefingExitTest`
 - [x] Portrait frame with the transmission-static effect
 - [x] Portrait expressions (neutral, grim, fierce): `expression` in the data, neutral by default
 
@@ -144,5 +153,9 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 - 2026-10-03: Briefing images of Levels 03 and 04 (batch "M4 briefing images", `tools/art/briefing_images.py`), one per page, named in the levels' data; the review sheet `briefing-images-final-r20-a` proposed for [round 20](../../concept-rounds/round-20/README.md). `art` stays `chosen`.
 - 2026-10-03: Concept round 20 closed (user decision, "both accepted"): the four briefing images of Levels 03 and 04 (`briefing-images-final-r20-a`) approved as **final**; `art` stays `chosen`, since the images of the later levels and a still per act for the act title cards do not exist yet.
 - 2026-10-04: Briefing images of Level 05 (M4 part E, `tools/art/briefing_images.py`), one per page, named in the level's data; the review sheet `briefing-images-final-r21-a` proposed for [round 21](../../concept-rounds/round-21/README.md). `art` stays `chosen`.
+- 2026-10-04 (user decision): Esc in the briefing did nothing useful (it skipped to the last
+  page), so the player had to go on to the hangar to reach the main menu. Back now quits to the
+  main menu after a confirm dialog and keeps the campaign (see Design); it no longer skips. The
+  confirm dialog and the autosave on leaving are main-agent choices, for the user to confirm.
 - 2026-10-04: Concept round 21 (user): Level 05's two briefing images (`briefing-images-final-r21-a`)
   approved as **final**; `art` stays `chosen` as after round 20.

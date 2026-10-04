@@ -85,6 +85,14 @@ final class Formations {
             planner.walkers();
             return;
         }
+        if (wave.enemy().chain().isPresent()) {
+            planner.chains();
+            return;
+        }
+        if (wave.enemy().sideHover().isPresent() && wave.entry() == Entry.SIDES) {
+            planner.sideHovers();
+            return;
+        }
         switch (wave.formation()) {
             case SINGLE -> planner.single();
             case CONVOY -> planner.convoy();
@@ -508,6 +516,114 @@ final class Formations {
                         Optional.empty(),
                         Optional.of(path)));
             }
+        }
+
+        /**
+         * Units that enter from a side edge and hover there (design/enemies/air/mantis): a
+         * {@code single} from its edge (left when none is given), a {@code pincer} one per edge in
+         * turn; each flies in to its edge distance at a height picked within its hover range,
+         * hovers its hover time and leaves through its edge (or down and out, without exit back).
+         */
+        void sideHovers() {
+            EnemySpec.SideHover side = enemy().sideHover().orElseThrow();
+            EnemySpec.Hover hover = required(enemy().hover(), "hover");
+            boolean pincer = wave.formation() == WaveSpec.Formation.PINCER;
+            if (!pincer && wave.formation() != WaveSpec.Formation.SINGLE) {
+                throw unsupported("a side hover enters as a single or a pincer");
+            }
+            for (int i = 0; i < wave.count(); i++) {
+                boolean left = pincer ? i % 2 == 0 : wave.edge() != Edge.RIGHT;
+                double y = HEIGHT - hover.depth().pick(rng);
+                double x = left ? side.edgeX() : WIDTH - side.edgeX();
+                double outside = left ? -OUTSIDE : WIDTH + OUTSIDE;
+                Spawn.Exit exit =
+                        side.exitBack() ? new Spawn.Exit(false, left ? -1 : 1, 0) : Spawn.Exit.awayFromCentre(x);
+                add(
+                        i,
+                        wave.t(),
+                        FlightPath.through(outside, y, x, y),
+                        speed(enemy().speed()),
+                        wave.holdSeconds().orElseGet(() -> hover.seconds().pick(rng)),
+                        Optional.empty(),
+                        exit);
+            }
+        }
+
+        /**
+         * Segment chains (design/enemies/air/coilwyrm): unit i's head flies the wave's path i
+         * (wrapping; with a single path every second unit flies it mirrored, so a pair crosses),
+         * in (x, depth below the top edge) points, from the front, the rear or a side as the path
+         * starts; units after the first follow {@link #DIVE_STAGGER_SECONDS} apart. A loop-back
+         * re-enters its gap after the path's end on its own path shifted to start at the head's x
+         * (straight up without one), the bottom edge warned ahead.
+         */
+        void chains() {
+            if (wave.paths().isEmpty()) {
+                throw unsupported("a segment chain flies its wave's paths");
+            }
+            for (int i = 0; i < wave.count(); i++) {
+                List<WaveSpec.At> points = wave.paths().get(i % wave.paths().size());
+                boolean mirror = wave.paths().size() == 1 && i % 2 == 1;
+                double[] xy = new double[Math.max(2, points.size()) * 2];
+                for (int k = 0; k < points.size(); k++) {
+                    double x = points.get(k).x();
+                    xy[2 * k] = mirror ? WIDTH - x : x;
+                    xy[2 * k + 1] = HEIGHT - points.get(k).depth();
+                }
+                if (points.size() == 1) {
+                    // One point: straight down through it.
+                    xy[2] = xy[0];
+                    xy[3] = -OUTSIDE * 4;
+                }
+                FlightPath path = FlightPath.through(xy);
+                Optional<Spawn.Loop> loop = wave.loopBack().map(back -> loop(back, xy[xy.length - 2], mirror));
+                out.add(new Spawn(
+                        SimStep.ticks(wave.t() + i * DIVE_STAGGER_SECONDS),
+                        kind,
+                        enemy(),
+                        path,
+                        speed(enemy().speed()),
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.DOWN,
+                        false,
+                        carried(i),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        loop));
+            }
+        }
+
+        /** A loop-back's path, shifted so it starts at {@code headX} (clamped into the field). */
+        private Spawn.Loop loop(WaveSpec.LoopBack back, double headX, boolean mirror) {
+            double x0 = Math.clamp(headX, OUTSIDE, WIDTH - OUTSIDE);
+            double[] xy;
+            if (back.path().isEmpty()) {
+                xy = new double[] {x0, -OUTSIDE * 2, x0, HEIGHT + OUTSIDE * 4};
+            } else {
+                List<WaveSpec.At> points = back.path();
+                xy = new double[Math.max(2, points.size()) * 2];
+                double first = mirror
+                        ? WIDTH - points.getFirst().x()
+                        : points.getFirst().x();
+                for (int k = 0; k < points.size(); k++) {
+                    double x =
+                            mirror ? WIDTH - points.get(k).x() : points.get(k).x();
+                    xy[2 * k] = x - first + x0;
+                    xy[2 * k + 1] = HEIGHT - points.get(k).depth();
+                }
+                if (points.size() == 1) {
+                    xy[2] = xy[0];
+                    xy[3] = HEIGHT + OUTSIDE * 4;
+                }
+            }
+            return new Spawn.Loop(
+                    FlightPath.through(xy),
+                    back.afterSeconds(),
+                    Math.max(
+                            WaveSchedule.EDGE_WARNING_SECONDS,
+                            wave.warningSeconds().orElse(0.0)));
         }
 
         private static WalkPath walkPath(List<WaveSpec.At> points) {

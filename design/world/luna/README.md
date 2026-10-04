@@ -3,7 +3,7 @@ title: Luna
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Luna
@@ -30,7 +30,7 @@ across the craters. Touchstones: *Moon* (2009), Apollo photography, Tyrian's lun
 | Tranquility Base | The Apollo 11 heritage site on Mare Tranquillitatis and the convoy roads around it; the first Vrell brood pods land here. |
 | Mass-driver line | A kilometres-long electromagnetic rail with launch sleds firing up the track. |
 | Shackleton Station | The biggest lunar city: domes, landing pads, ice mines in permanent shadow. |
-| Far side | Dark, radio-silent observatory arrays; the first Vrell nests grow here. |
+| Far side | Dark, radio-silent observatory arrays; the first Vrell nests grow here. Beyond the terminator only the ground is dark: light comes from domes, rail lamps, flares and the ship's headlight, and air units stay lit (see [Level 06](../../campaign/act-1-first-contact/level-06-farside/README.md#darkness-rules)). |
 
 ### Parallax layers
 
@@ -100,3 +100,5 @@ The concept files live in [art-direction](../../art-direction/README.md).
 - 2026-10-03: M4 part E (main-agent choice): Level 05 follows the Level 04 layers: its sleds run
   on Level 04's rail at x 432 on the ground layer, it has no `deep` layer (no Earth on a horizon)
   and no perspective `far` walls (the crater rim and walls are ground pieces).
+- 2026-10-04: Far side darkness (user decision D2 of M4 part F): a light map darkens only the
+  ground layer and the ground units; turrets and mortars show glow frames; air units stay lit.

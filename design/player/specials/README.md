@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../campaign, ../../world]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Special abilities
@@ -21,7 +21,7 @@ no airstrikes under the Europa ice. This gives the hangar intel another thing to
 | Special | Type | Effect | Cost | Unlock | Setting limits | Design |
 |---|---|---|---|---|---|---|
 | Airstrike | charges, max 4 (1 free at unlock) | Two CDF bombers sweep up the screen: heavy damage (300) to `ground` and `low-air`, 60 to `air` | 300 / charge | L04 (CDF bomber support assigned after L03) | Not under ice/water; not beyond the gate | draft |
-| Smart Bomb | max 3 charges | Flash: clears all enemy bullets, 120 damage to everything on screen | 400 / charge | L06 | none | draft |
+| Smart Bomb | max 3 charges (1 free at unlock) | Flash: clears all enemy bullets, 120 damage to everything on screen | 400 / charge | L06 | none | draft |
 | Decoy Flares | max 6 charges | Homing missiles and seekers retarget to flares for 4 s | 150 / charge | L07 | none | draft |
 | EMP Burst | max 3 charges | Stuns machines 3 s and strips enemy shields; Vrell (biomechanical) stunned 1.5 s | 350 / charge | L15 | none | idea |
 | Sonar Pulse | max 4 charges | Reveals the `sub` layer and makes it hittable by all weapons for 6 s | 250 / charge | L22 | Water levels only | idea |
@@ -63,7 +63,7 @@ describes them.
 
 | Property | Value |
 |---|---|
-| Charges | 400 cr each, at most 3 |
+| Charges | 400 cr each, at most 3. **1 free charge** when the Smart Bomb unlocks (hangar visit before L06), fitted only into an **empty** special slot (a fitted Airstrike stays) with a hangar notice, like the Airstrike's |
 | Effect | Instant. A white flash (0.1 s at 80 % opacity, fading over 0.25 s; reduced by the flash-reduction option) and a shockwave ring that expands from the ship to cover the whole play field in **0.35 s** |
 | Bullets | All enemy bullets on screen are removed at once; bullets spawned while the ring expands are removed as it passes them |
 | Damage | **120** once to every enemy on screen, on every layer (`air`, `low-air`, `ground` incl. hardened, `high-air`, `sub`) |
@@ -123,7 +123,11 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 - [x] Airstrike as specified in *Acts 1–2 specials in detail* (M4 part D: the production bomber
   sprite with its engine flicker and ground shadow, the Bomb Rack's bomb, the blasts
   `explosion-medium`; the boss-part cap applies once bosses exist)
-- [ ] Smart Bomb — **later: M4** (part F)
+- [x] Smart Bomb as specified in *Acts 1–2 specials in detail* (M4 part F: its numbers in the
+  `smart_bomb` block of data.yaml; flash and ring drawn as placeholders until production art,
+  sound from the existing explosions and jet flyby; `--special smart-bomb:2` fits it for testing)
+- [x] One free Smart Bomb charge granted once, at the unlock before L06: fitted only into an empty
+  special slot, with the hangar notice (`free_charges: 1` in data.yaml)
 - [ ] Decoy Flares — **later: M4** (part G)
 - [x] One free Airstrike charge granted once, at the unlock before L04
 - [ ] Setting restrictions read from the level data
@@ -172,3 +176,13 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   concept is round 09.
 - 2026-10-03: M4 part D built the special slot and the Airstrike (see Implementation).
 - 2026-10-03: Concept round 17 (user decision): the Airstrike's CDF bomber production art approved as **final** ([round 17](../../concept-rounds/round-17/README.md)).
+- 2026-10-04: The Smart Bomb gets **one free charge** at its unlock (hangar visit before L06),
+  fitted only into an empty special slot, with a hangar notice, like the Airstrike (user decision
+  D5 of M4 part F), so the special is tried at all. The balance plan and the tests keep the
+  Airstrike. Rejected: no free charge (at 400 cr, 41 % of budget(6), it would likely never be
+  bought in Act 1). It sets the precedent for the Decoy Flares at L07.
+- 2026-10-04: M4 part F built the Smart Bomb (main-agent choices): its ring grows from where the
+  ship was when it went off; every enemy bullet and mortar blob goes at once, bullets the ring
+  passes later go too; each enemy and boss part takes its damage once, when the ring reaches its
+  centre; the 1.0 s invulnerability is the ship's mercy time (it blinks); it has no radio call;
+  `free_charges: 1` moved into data.yaml.

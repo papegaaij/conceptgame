@@ -16,11 +16,13 @@ import vanguard.content.ActData;
 import vanguard.content.BriefingPage;
 import vanguard.content.campaign.BriefingScript;
 import vanguard.content.campaign.Campaign;
+import vanguard.content.campaign.SaveSlots;
 import vanguard.game.GameServices;
 import vanguard.game.audio.LevelMusic;
 import vanguard.game.audio.MusicStreamer;
 import vanguard.game.audio.Sfx;
 import vanguard.game.audio.Voices;
+import vanguard.game.briefing.BriefingExit;
 import vanguard.game.briefing.BriefingPager;
 import vanguard.game.input.MenuInput;
 import vanguard.game.render.PixelScreen;
@@ -37,7 +39,8 @@ import vanguard.game.ui.Words;
  * hangar teaser stay below. A page may show a tactical map or mission image (tools/art/briefing_images.py)
  * above its text; a page whose text does not fit below its image goes on over the next screens with
  * the same image, each counted as a page. The portrait shows the page's expression. Confirm shows
- * the whole page, then the next; Back skips to the last page. The portrait opens through a burst of
+ * the whole page, then the next; Back (Esc / B) asks to quit to the main menu ({@link BriefingExit}),
+ * on the title card too, keeping the campaign as it is. The portrait opens through a burst of
  * transmission static, again when the speaker changes, and closes through one after the last page;
  * then the campaign goes on with {@code next} (the hangar).
  *
@@ -83,6 +86,7 @@ public final class BriefingScreen implements GameScreen {
     private final List<Screen> screens = new ArrayList<>();
     private final Map<String, Texture> images = new HashMap<>();
     private final BriefingPager pager;
+    private final BriefingExit exit;
     /** Each briefing page's voice, by its index in the script. */
     private final List<Optional<Voices.Voice>> pageVoices = new ArrayList<>();
     /** The page whose voice was started last. */
@@ -116,6 +120,7 @@ public final class BriefingScreen implements GameScreen {
             }
         }
         pager = new BriefingPager(lengths);
+        exit = new BriefingExit(BriefingExit.autosaves(campaign));
         teaser = Words.wrap(
                 displayed(Speaker.of(script.teaser().speaker(), script.teaser().portrait(), services.sprites)
                                 .name() + ": \"" + script.teaser().line() + "\""),
@@ -176,9 +181,27 @@ public final class BriefingScreen implements GameScreen {
         campaign.play(seconds);
         elapsed += seconds;
         MenuInput input = services.menu;
+        switch (exit.update(input)) {
+            case BRIEFING -> {}
+            case ASKING -> {
+                return Transition.STAY;
+            }
+            case STAYED -> {
+                services.play(Sfx.MENU_BACK);
+                return Transition.STAY;
+            }
+            case LEAVE -> {
+                services.play(Sfx.MENU_CONFIRM);
+                services.voices.stop();
+                if (BriefingExit.autosaves(campaign)) {
+                    services.save(SaveSlots.Slot.AUTOSAVE, campaign);
+                }
+                return Transition.replace(MainMenuScreen.menu(services));
+            }
+        }
         if (titleCard > 0) {
             titleCard -= seconds;
-            if (input.confirm() || input.back()) {
+            if (input.confirm()) {
                 services.play(Sfx.MENU_CONFIRM);
                 titleCard = 0;
             }
@@ -190,10 +213,7 @@ public final class BriefingScreen implements GameScreen {
             return untilClosed > 0 ? Transition.STAY : Transition.replace(next.get());
         }
         String speaker = speaker();
-        if (input.back()) {
-            services.play(Sfx.MENU_BACK);
-            pager.skip();
-        } else if (input.confirm()) {
+        if (input.confirm()) {
             services.play(Sfx.MENU_CONFIRM);
             pager.confirm();
         }
@@ -225,8 +245,13 @@ public final class BriefingScreen implements GameScreen {
         Glass glass = services.glass;
         if (titleCard > 0) {
             drawTitleCard(batch, glass, script.titleCard().orElseThrow());
-            return;
+        } else {
+            drawPages(batch, glass);
         }
+        exit.dialog().ifPresent(dialog -> glass.dialog(batch, dialog));
+    }
+
+    private void drawPages(SpriteBatch batch, Glass glass) {
         services.titleScene.draw(batch, 0.35f);
         glass.panel(batch, LEFT_X, HEADER_Y, PixelScreen.WIDTH - 2 * LEFT_X, 34, 0.85f);
         glass.shadowed(batch, glass.fonts.body, displayed(script.act()), Glass.AMBER, LEFT_X + 14, HEADER_Y + 8);
@@ -300,7 +325,7 @@ public final class BriefingScreen implements GameScreen {
         }
         String hints = pager.page() == pager.pages() - 1 && pager.pageComplete()
                 ? "ENTER TO THE HANGAR"
-                : "ENTER CONTINUE    ESC SKIP TO OBJECTIVES";
+                : "ENTER CONTINUE    ESC MAIN MENU";
         glass.right(batch, glass.fonts.label, hints, Glass.DIM, LEFT_X + width - 12, BOTTOM_Y + 72);
     }
 

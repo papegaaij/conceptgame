@@ -139,7 +139,7 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] M4 part C (Level 03, M4 part C batch): the Spore Bomber and its spore mine, the Whirl Seed and the debris chunks (`tools/art/vrell_l03.py`), the Leviathan (`tools/art/leviathan.py`) and its break-up at its death (`tools/art/leviathan_death.py`), the Level 03 backdrop (`tools/art/backdrop_l03.py`), salvage L (`tools/art/pickups.py`) and the Spore Bomber's and Whirl Seed's intel portraits (`tools/art/intel.py`) rendered, review files for round 16; approved as final there (the Leviathan's death effect as the redo, variant b, choice 19)
 - [x] M4 part D (Level 04): the civilian crawler (`tools/art/civilian_crawler.py`), the Airstrike's CDF bomber (`tools/art/airstrike_bomber.py`), the Level 04 Luna backdrop with the road bridge and the terminal hangar (`tools/art/backdrop_l04.py`), the dugout and the supply drop (`tools/art/l04_targets.py`) and the Brood Pod's and Scuttler's intel portraits (`tools/art/intel.py`) rendered, review files for round 17; approved as final there (the bridge and the enlarged hangar as the redo, choice 9)
 - [x] M4 briefing images: the four images of Levels 03 and 04 (`tools/art/briefing_images.py`), review sheet for round 20; approved as final there
-- [x] M4 part E (Level 05, M4 part E batch): the Gorgon Frigate (`tools/art/gorgon_frigate.py`) and its break-up at its death (`tools/art/gorgon_frigate_death.py`), the Polyp Mortar with its acid blob, marker and death and the mass-driver sled (`tools/art/l05_hazards.py`), the props from the chosen concepts (rocks, ore canister, acid splash decal; `tools/art/l05_props.py`) and Level 05's briefing images (`tools/art/briefing_images.py`) rendered, review files for round 21; approved as final there (the frigate's death as the redo, item 11); Level 05's own backdrop (`tools/art/backdrop_l05.py`) proposed in round 22
+- [x] M4 part E (Level 05, M4 part E batch): the Gorgon Frigate (`tools/art/gorgon_frigate.py`) and its break-up at its death (`tools/art/gorgon_frigate_death.py`), the Polyp Mortar with its acid blob, marker and death and the mass-driver sled (`tools/art/l05_hazards.py`), the props from the chosen concepts (rocks, ore canister, acid splash decal; `tools/art/l05_props.py`) and Level 05's briefing images (`tools/art/briefing_images.py`) rendered, review files for round 21; approved as final there (the frigate's death as the redo, item 11); Level 05's own backdrop (`tools/art/backdrop_l05.py`) approved as final in round 22
 - [ ] M4 and M5 parts final, each with its milestone (a round per M4 part, user decision)
 
 ## Open questions
@@ -280,3 +280,17 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
   several levels, the hangar or the HUD use. The split is generated from the levels' data in the
   pipeline (`SpriteUse`), not kept by hand, and an unattributed sprite fails the build. Budget:
   shared ≤ 2 pages, each level's unit atlas plus its backdrop ≤ 6 pages.
+- 2026-10-04: Concept round 22 closed (user decision): Level 05's own backdrop
+  (`tools/art/backdrop_l05.py`) approved as final; with it all of Level 05's art is final.
+- 2026-10-04: Seams in the Luna backdrops (Levels 04 and 05) fixed: (1) a 1 px line where every
+  terrain tile set repeated: the finest noise octave's lattice (120 >> 4 = 7 px) did not divide the
+  960 px tile, so the height field stepped from the last row to the first; each octave's lattice
+  now divides the tile (`pfbm` in `backdrop_l04.py`; also Level 04's rille floor). (2) Craters
+  that "ended halfway" near the set borders: the tile sets faded their craters out 30–90 px from
+  a seam by scaling the height, which flattened half a crater; a feature now either keeps 30 px
+  clear of every seam or is left out, and the roots fail the run when they reach a seam (before,
+  they were clipped 120 px from it). (3) rim-south's rail was requantized with the crest rubble,
+  so its highlight changed colour where the rim fades into the mass-driver-field; it now takes
+  the tile's rail pixels. `BackdropSeamsTest` (game) checks the wrap rows of every ground and far
+  tile set of a level without a deep layer and the rows at every set border (both tile sets with
+  the still set pieces on top must match); it fails on the old line (scores 1.6–3.7 against 1.5).

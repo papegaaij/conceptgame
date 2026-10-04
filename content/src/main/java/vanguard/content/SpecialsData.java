@@ -8,7 +8,7 @@ import java.util.Optional;
  *
  * @param inputBuffer seconds a press of the special button waits while the special is busy
  */
-public record SpecialsData(double inputBuffer, List<Special> specials, Airstrike airstrike) {
+public record SpecialsData(double inputBuffer, List<Special> specials, Airstrike airstrike, SmartBomb smartBomb) {
     public SpecialsData {
         Check.notNegative("input_buffer", inputBuffer);
         specials = List.copyOf(specials);
@@ -84,4 +84,36 @@ public record SpecialsData(double inputBuffer, List<Special> specials, Airstrike
 
     /** The call's radio line. */
     public record Radio(String speaker, String portrait, String line) {}
+
+    /**
+     * The Smart Bomb (design/player/specials, Smart Bomb (L06)).
+     *
+     * @param ring seconds for the ring to cover the whole play field
+     * @param invulnerable seconds the ship takes no damage from the activation
+     * @param repeat seconds between two bombs
+     */
+    public record SmartBomb(Flash flash, double ring, BombDamage damage, double invulnerable, double repeat) {
+        public SmartBomb {
+            Check.positive("ring", ring);
+            Check.notNegative("invulnerable", invulnerable);
+            Check.positive("repeat", repeat);
+        }
+    }
+
+    /** A white flash: held {@code seconds} at {@code opacity}, then fading over {@code fade} seconds. */
+    public record Flash(double seconds, double opacity, double fade) {
+        public Flash {
+            Check.notNegative("seconds", seconds);
+            Check.notNegative("opacity", opacity);
+            Check.notNegative("fade", fade);
+        }
+    }
+
+    /** The Smart Bomb's damage to every enemy on screen and to each boss part. */
+    public record BombDamage(double all, double bossPart) {
+        public BombDamage {
+            Check.notNegative("all", all);
+            Check.notNegative("boss_part", bossPart);
+        }
+    }
 }

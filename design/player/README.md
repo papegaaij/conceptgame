@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../systems, ../ui/hangar]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Player
@@ -158,7 +158,9 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), by `tools/a
 - [x] Single fire button fires all weapons
 - [ ] Special on a separate button — **later: M4** (the specials, part D)
 - [x] Pickup types, drop tables and 6 s despawn: salvage S and M, overdrive, shield cell, armour patch, the hidden crate
-- [ ] Salvage L, special charge and data core — **later: M4** (Levels 03, 04 and 06)
+- [ ] Salvage L, special charge and data core — **later: M4** (Levels 03, 04 and 06; the data core
+  in part F: the pickup, its lore title in the debrief list and the save entry, see
+  [economy](../systems/economy/README.md#data-cores))
 - [x] Overdrive: temporary +1 weapon level with HUD timer (the overdrive pickup itself: *Pickup types* above)
 
 ## Open questions
@@ -202,3 +204,6 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), by `tools/a
 - 2026-10-02: M4 part B: the overdrive and salvage M pickups (Level 02), their production loops proposed in concept round 15.
 - 2026-10-02: Concept round 15 closed (user decision): salvage M and the overdrive approved as **final**; this doc's `art` stays `chosen`.
 - 2026-10-03: Concept round 16 closed (user decision): the large salvage (salvage L) approved as **final**; this doc's `art` stays `chosen`.
+- 2026-10-04: M4 part F builds the data core pickup: it records the lore entry and the unlock in
+  the save; an unlocked item that does not exist yet (Level 06's Targeting computer) takes effect
+  when it is built (user decision D6 of M4 part F).

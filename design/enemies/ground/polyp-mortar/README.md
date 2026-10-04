@@ -74,6 +74,7 @@ Chosen concept: [polyp-mortar-r04-a.png](../concept/polyp-mortar-r04-a.png) (lis
 - [x] Death effect, bounty and score per this spec (the small burst with its `-death` glow and
       `-tatters` pieces, the rocks, and the acid splash decal `polyp-mortar-splash` left on the
       ground for 10 s: fresh 1 s, 7 s, fading 2 s; all final in round 21)
+- [ ] Glow frames (the lime mouth) for Level 06's darkness — M4 part F
 
 ## Decisions
 
@@ -101,3 +102,7 @@ Chosen concept: [polyp-mortar-r04-a.png](../concept/polyp-mortar-r04-a.png) (lis
   review `l05-props-final-r21-c` in Level 05's concept directory, accepted with round 21's close):
   `polyp-mortar-splash`, three frames the game shows as the mortar's remains, spread over the
   remains' 10 s.
+- 2026-10-04: M4 part F (user decision D2): in Level 06's darkness only the ground layer and the
+  ground units are darkened, by a light map; this unit gets **glow frames** (its emissive lime mouth
+  at full brightness, drawn after the light pass), so it is seen by its glow in the dark. A
+  derived production pass of its final art, reviewed only.

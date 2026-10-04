@@ -9,7 +9,10 @@ import java.util.List;
  * scrolling and firing at the ship, and their bullets. What a kill earns is the {@link Sortie}'s.
  */
 final class EnemyForce {
-    private static final int ENEMY_CAPACITY = 128;
+    private static final int ENEMY_CAPACITY = 192;
+    /** Segment chains in flight: the waves' and their regrown rear parts. */
+    private static final int CHAIN_CAPACITY = 12;
+
     static final int BULLET_CAPACITY = 256;
     /** No enemy bullet spawns this close to the ship (design/enemies, bullet readability rules). */
     private static final double NO_FIRE_DISTANCE = 72;
@@ -45,6 +48,14 @@ final class EnemyForce {
     private final Pool<EnemyBullet> bullets = new Pool<>(BULLET_CAPACITY, EnemyBullet::new, EnemyBullet[]::new);
     private final Pool<Mine> mines = new Pool<>(MINE_CAPACITY, Mine::new, Mine[]::new);
     private final Pool<Lob> lobs = new Pool<>(LOB_CAPACITY, Lob::new, Lob[]::new);
+    private final Pool<Chain> chains = new Pool<>(CHAIN_CAPACITY, Chain::new, Chain[]::new);
+    /** Chains started in this attempt, for their serials. */
+    private int chainsSpawned;
+    /** Per enemy kind, its chain's segment, tail and regrown head kinds; -1 for others. */
+    private final int[] segmentKinds;
+
+    private final int[] tailKinds;
+    private final int[] regrownKinds;
     private int spawned;
     private int nextGround;
     /** The convoy the target-the-objective hook aims at; null without one. */
@@ -100,7 +111,28 @@ final class EnemyForce {
                 distinct.add(spec.brood().get().enemy());
             }
         }
+        // So are a chain's segments, tail and regrown head.
+        for (int k = 0; k < distinct.size(); k++) {
+            EnemySpec spec = distinct.get(k);
+            if (spec.chain().isPresent()) {
+                EnemySpec.ChainSpec chain = spec.chain().get();
+                for (EnemySpec part : List.of(chain.segment(), chain.tail(), chain.regrown())) {
+                    if (!distinct.contains(part)) {
+                        distinct.add(part);
+                    }
+                }
+            }
+        }
         kinds = List.copyOf(distinct);
+        segmentKinds = new int[kinds.size()];
+        tailKinds = new int[kinds.size()];
+        regrownKinds = new int[kinds.size()];
+        for (int k = 0; k < kinds.size(); k++) {
+            var chain = kinds.get(k).chain();
+            segmentKinds[k] = chain.isPresent() ? kinds.indexOf(chain.get().segment()) : -1;
+            tailKinds[k] = chain.isPresent() ? kinds.indexOf(chain.get().tail()) : -1;
+            regrownKinds[k] = chain.isPresent() ? kinds.indexOf(chain.get().regrown()) : -1;
+        }
         broodKinds = new int[kinds.size()];
         for (int k = 0; k < kinds.size(); k++) {
             EnemySpec spec = kinds.get(k);
@@ -136,6 +168,8 @@ final class EnemyForce {
         Pools.clear(bullets);
         Pools.clear(mines);
         Pools.clear(lobs);
+        Pools.clear(chains);
+        chainsSpawned = 0;
         waves.reset();
         spawned = 0;
         nextGround = 0;
@@ -145,6 +179,10 @@ final class EnemyForce {
     /** Lets in every unit due at {@code levelTick}, flying and on the ground. */
     void spawn(int levelTick) {
         for (Spawn spawn = waves.due(levelTick); spawn != null; spawn = waves.due(levelTick)) {
+            if (spawn.enemy().chain().isPresent()) {
+                spawnChain(spawn);
+                continue;
+            }
             Enemy enemy = enemies.obtain();
             if (enemy != null) {
                 enemy.spawn(spawn, spawned);
@@ -169,11 +207,134 @@ final class EnemyForce {
     }
 
     /**
+     * A wave's segment chain enters: its head (the unit that counts as the kill, carrying the
+     * wave's pickup), its segments and its tail, strung out behind the path's start; members the
+     * pool has no room for are left out.
+     */
+    private void spawnChain(Spawn spawn) {
+        Chain chain = chains.obtain();
+        if (chain == null) {
+            spawned++;
+            return;
+        }
+        EnemySpec head = spawn.enemy();
+        EnemySpec.ChainSpec spec = head.chain().orElseThrow();
+        chain.start(spec, chainsSpawned++, spawn, regrownKinds[spawn.kind()]);
+        int members = spec.members();
+        for (int i = 0; i < members; i++) {
+            Enemy member = enemies.obtain();
+            if (member == null) {
+                break;
+            }
+            boolean tail = i == members - 1;
+            EnemySpec part = i == 0 ? head : tail ? spec.tail() : spec.segment();
+            int kind = i == 0 ? spawn.kind() : tail ? tailKinds[spawn.kind()] : segmentKinds[spawn.kind()];
+            Hitbox box = i == 0 || tail ? part.hitbox() : spec.segmentBoxes().get(i - 1);
+            member.link(chain, i, part, kind, box, spawned++, 0, 0, 0);
+            if (i == 0) {
+                member.carry(spawn.carried());
+            }
+            chain.member(i, member);
+        }
+        chain.settle();
+    }
+
+    /**
+     * The chains fly a step: a rear part whose new head has grown gets it (and lunges at the ship),
+     * the dying members pop one by one, and a chain that has flown its course leaves with its
+     * members (its wave's head counting as escaped).
+     */
+    void moveChains(Ship ship) {
+        for (int c = chains.size() - 1; c >= 0; c--) {
+            Chain chain = chains.get(c);
+            if (chain.regrowDue()) {
+                Enemy head = null;
+                if (chain.alive()) {
+                    head = enemies.obtain();
+                    if (head != null) {
+                        int kind = chain.regrownKind();
+                        EnemySpec regrown = chain.spec().regrown();
+                        head.link(
+                                chain,
+                                0,
+                                regrown,
+                                kind,
+                                regrown.hitbox(),
+                                spawned++,
+                                chain.headX(),
+                                chain.headY(),
+                                chain.headFacing());
+                        events.add(SimEvents.Type.CHAIN_REGROWN, chain.headX(), chain.headY(), kind);
+                    }
+                }
+                chain.grown(head, ship.x(), ship.y());
+            }
+            Enemy popped = chain.popDue();
+            if (popped != null) {
+                events.add(SimEvents.Type.CHAIN_POP, popped.x(), popped.y(), popped.kind());
+                free(popped);
+            }
+            if (!chain.advance()) {
+                for (int i = 0; i < chain.size(); i++) {
+                    Enemy member = chain.member(i);
+                    if (member != null) {
+                        if (i == 0 && chain.original()) {
+                            escapes.escaped(member);
+                        }
+                        free(member);
+                    }
+                }
+                chains.free(c);
+            } else if (!chain.alive() && !chain.regrowing()) {
+                chains.free(c);
+            }
+        }
+    }
+
+    /** Frees the unit {@code enemy} from the pool. */
+    private void free(Enemy enemy) {
+        for (int i = enemies.size() - 1; i >= 0; i--) {
+            if (enemies.get(i) == enemy) {
+                enemies.free(i);
+                return;
+            }
+        }
+    }
+
+    /**
+     * A chain member was destroyed (before it is freed): the chain is cut there; a split-off rear
+     * part becomes a chain of its own that grows a new head.
+     */
+    void memberDestroyed(Enemy enemy) {
+        Chain chain = enemy.chain();
+        Chain rear = chains.obtain();
+        boolean split = chain.destroyed(enemy.link(), rear, chainsSpawned);
+        if (split) {
+            chainsSpawned++;
+            events.add(SimEvents.Type.CHAIN_CUT, enemy.x(), enemy.y(), enemy.kind());
+        } else if (rear != null) {
+            chains.free(chains.size() - 1);
+        }
+    }
+
+    /** Whether destroying chain member {@code enemy} now pays its chain's first bonus (the tail, first). */
+    boolean firstBonusDue(Enemy enemy) {
+        return enemy.chain().firstBonusDue(enemy.link());
+    }
+
+    Pool<Chain> chains() {
+        return chains;
+    }
+
+    /**
      * Flies every unit and scrolls the ground units by {@code groundScroll}; those whose gun is
      * ready fire at the ship when {@code firing}. A grouped ground unit that leaves the screen
      * alive is reported as escaped.
      */
     void move(Ship ship, boolean firing, double groundScroll) {
+        if (chains.size() > 0) {
+            moveChains(ship);
+        }
         for (int i = enemies.size() - 1; i >= 0; i--) {
             Enemy enemy = enemies.get(i);
             int target = target(enemy, ship);
@@ -191,6 +352,12 @@ final class EnemyForce {
                 enemies.free(i);
             } else if (enemy.walking()) {
                 fireWalker(enemy, ship, firing);
+            } else if (enemy.spec().sweep().isPresent()) {
+                if (enemy.telegraphStarted()) {
+                    events.add(SimEvents.Type.SWEEP_TELEGRAPH, enemy.x(), enemy.y(), enemy.kind());
+                } else if (enemy.sweepStarted()) {
+                    events.add(SimEvents.Type.SWEEP_FIRED, enemy.x(), enemy.y(), enemy.kind());
+                }
             } else if (enemy.trigger() && firing) {
                 EnemyGun gun = enemy.spec().gun().orElseThrow();
                 if (gun.mine().isPresent()) {

@@ -3,7 +3,7 @@ title: Act 1 – First Contact
 design: approved
 implementation: not-started
 art: chosen
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Act 1 – First Contact
@@ -23,8 +23,8 @@ Brood Carrier at the Earth–Moon L1 point.
 | [level-02-shipyard-burning](level-02-shipyard-burning/README.md) | The yards burn; first ground targets (Spine Turret), the Stinger and Crane Four; save the drydocks for a bonus | approved | done | final |
 | [level-03-spore-drift](level-03-spore-drift/README.md) | Spore Bombers in the high lanes, a debris field, and the Leviathan set piece with Whirl Seed clusters | approved | done | final |
 | [level-04-tranquility-run](level-04-tranquility-run/README.md) | First Luna level: escort five civilian crawlers past Brood Pods and Scuttler walkers; first special | approved | done | final |
-| [level-05-crater-nest](level-05-crater-nest/README.md) | Destroy four nest batteries in a crater by the mass driver; Polyp Mortar; mid-boss Gorgon Frigate | approved | in-progress | chosen |
-| [level-06-farside](level-06-farside/README.md) | The dark far side: empty settlements, Mantis snipers at the edges, Coilwyrm loop-backs from the rear | approved | not-started | chosen |
+| [level-05-crater-nest](level-05-crater-nest/README.md) | Destroy four nest batteries in a crater by the mass driver; Polyp Mortar; mid-boss Gorgon Frigate | approved | in-progress | final |
+| [level-06-farside](level-06-farside/README.md) | The dark far side: empty settlements, Mantis snipers at the edges, Coilwyrm loop-backs from the rear | approved | in-progress | chosen |
 | [level-07-brood-carrier](level-07-brood-carrier/README.md) | Through the L1 picket and the escort screen to the act boss, the Brood Carrier | approved | not-started | chosen |
 
 ## Design

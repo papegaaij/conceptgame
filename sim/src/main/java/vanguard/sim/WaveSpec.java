@@ -20,7 +20,9 @@ import java.util.Optional;
  * @param carried pickups that a unit of this group drops when destroyed
  * @param at a whirl cluster's release point
  * @param paths a walker wave's ground paths, one per unit (a pincer mirrors the first for the
- *     units on the right, a convoy repeats it), in play-field points at {@code t}
+ *     units on the right, a convoy repeats it), in play-field points at {@code t}; a segment
+ *     chain's flight paths, one per unit (its head flies it)
+ * @param loopBack a segment chain's loop-back after its path
  */
 public record WaveSpec(
         double t,
@@ -36,10 +38,55 @@ public record WaveSpec(
         Optional<Double> intervalSeconds,
         List<Carried> carried,
         Optional<At> at,
-        List<List<At>> paths) {
+        List<List<At>> paths,
+        Optional<LoopBack> loopBack) {
     public WaveSpec {
         carried = List.copyOf(carried);
         paths = paths.stream().map(List::copyOf).toList();
+    }
+
+    public WaveSpec(
+            double t,
+            Formation formation,
+            EnemySpec enemy,
+            int count,
+            Entry entry,
+            Edge edge,
+            Optional<Double> holdSeconds,
+            Optional<Double> warningSeconds,
+            int breakGroup,
+            Optional<Double> speed,
+            Optional<Double> intervalSeconds,
+            List<Carried> carried,
+            Optional<At> at,
+            List<List<At>> paths) {
+        this(
+                t,
+                formation,
+                enemy,
+                count,
+                entry,
+                edge,
+                holdSeconds,
+                warningSeconds,
+                breakGroup,
+                speed,
+                intervalSeconds,
+                carried,
+                at,
+                paths,
+                Optional.empty());
+    }
+
+    /**
+     * A segment chain's loop-back (design/enemies/air/coilwyrm): {@code afterSeconds} after its
+     * head reached its path's end (off the screen) it re-enters on {@code path}, shifted sideways
+     * so it starts at the head's x; without points straight up from below the bottom edge.
+     */
+    public record LoopBack(double afterSeconds, List<At> path) {
+        public LoopBack {
+            path = List.copyOf(path);
+        }
     }
 
     public WaveSpec(

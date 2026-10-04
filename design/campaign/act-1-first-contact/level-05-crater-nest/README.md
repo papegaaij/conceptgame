@@ -2,7 +2,7 @@
 title: Level 05 – Crater Nest
 design: approved
 implementation: in-progress
-art: chosen
+art: final
 depends-on: [../../../enemies/ground/polyp-mortar, ../../../enemies/bosses/gorgon-frigate, ../../../world/luna]
 updated: 2026-10-04
 ---
@@ -328,7 +328,7 @@ and the props' sounds are in [sfx](../../../audio/sfx/README.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/backdrop-final-r22-a.png](concept/backdrop-final-r22-a.png) | Final backdrop (`tools/art/backdrop_l05.py`, round 22): every tile set and piece of the `backdrop` block and composites at 14 times with the ground units, the sled lamps and the frigate's bell: the rail climbing the outer rim to its launch lip, the rim turrets on the crest's sockets, batteries A–D on their growth patches, the heavy peak, the calm arena floor, the burning nest under the far rim, the lift-off | proposed |
+| [concept/backdrop-final-r22-a.png](concept/backdrop-final-r22-a.png) | Final backdrop (`tools/art/backdrop_l05.py`, round 22): every tile set and piece of the `backdrop` block and composites at 14 times with the ground units, the sled lamps and the frigate's bell: the rail climbing the outer rim to its launch lip, the rim turrets on the crest's sockets, batteries A–D on their growth patches, the heavy peak, the calm arena floor, the burning nest under the far rim, the lift-off | chosen |
 | [concept/sled-final-r21-a.png](concept/sled-final-r21-a.png) | Final sled sprites (`tools/art/l05_hazards.py`): the lit sled (24×48), its motion streak (32×200, additive), a lit rail lamp (16×16, additive) | chosen |
 | [concept/sled-final-r21-a.gif](concept/sled-final-r21-a.gif) | One cycle on Level 04's rail: the lamps chasing up, then the sled racing up on its streak with every lamp lit | chosen |
 | [concept/level-05-capture-final-r21-b.png](concept/level-05-capture-final-r21-b.png) | Game capture with the production frigate (round 21 item 12, whole window, 2 × 4): a sled run, the frigate's arrival with its bar, the necks in phase 1, the open core, the core phase, its death in three frames (blast cluster, swap, chunks drifting apart) | chosen |
@@ -346,7 +346,7 @@ and the props' sounds are in [sfx](../../../audio/sfx/README.md).
 - [x] Scroll timeline, sections, atmosphere intensity and parallax content as in *Layout*,
       including the 30 px/s arena and its pausable clock (*Arena clock*); Level 05's own backdrop
       (`tools/art/backdrop_l05.py`): the rims, the batteries' growth patches, the arena floor and
-      the burning nest, proposed in [round 22](../../../concept-rounds/round-22/README.md).
+      the burning nest, approved as final in [round 22](../../../concept-rounds/round-22/README.md).
 - [x] Battery objective: four groups of four units, HUD tracker A–D, immediate mission failure
       when a battery's first unit leaves the screen alive.
 - [x] Wave script matches the *Waves* table, the frigate at t = 150; PacingTest (one pause over 3 s on hard besides the lift-off).
@@ -440,3 +440,7 @@ and the props' sounds are in [sfx](../../../audio/sfx/README.md).
 - 2026-10-04: The sled lamps are Level 05's own `sled-run` frames now (Level 04's generator,
   rendered into `assets/backdrop/level-05/` by `tools/art/backdrop_l05.py`), so the level no
   longer reads Level 04's backdrop pages.
+- 2026-10-04: Concept round 22 closed (user decision): the backdrop (`backdrop-final-r22-a`)
+  approved as **final**. It was the last missing piece: the props, the frigate, the mortar, the
+  sled and the briefing images are final, the sounds and Driver Control's voice chosen and the
+  music (track 4, shared with Level 04) final, so all of the level's art is final, `art: final`.

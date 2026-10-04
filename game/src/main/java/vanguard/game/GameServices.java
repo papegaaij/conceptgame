@@ -130,11 +130,15 @@ public final class GameServices implements Disposable {
     }
 
     /**
-     * Writes the campaign into a save slot; a failure is logged, since it must not stop the game.
+     * Writes the campaign into a save slot; a failure is logged, since it must not stop the game. A
+     * replay is never saved (design/ui/mission-select): nothing is written for it.
      *
      * @return whether the save was written
      */
     public boolean save(SaveSlots.Slot slot, Campaign campaign) {
+        if (campaign.replay().isPresent()) {
+            return false;
+        }
         try {
             saves.write(slot, campaign.save(Instant.now()));
             return true;

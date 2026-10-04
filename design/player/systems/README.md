@@ -4,7 +4,7 @@ design: approved
 implementation: not-started
 art: none
 depends-on: [../generator, ../../ui/hangar]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Ship systems
@@ -100,3 +100,7 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
   contact of their size tier with their silhouette (Level 03's Leviathan: "unknown huge contact";
   see [hangar](../../ui/hangar/README.md#decisions)).
 - 2026-10-03: Sensor L1 also shows the level's objective as an OBJECTIVE field (main-agent choice, M4 part D: Level 04's intel already promised "escort: 5 crawlers" at L1).
+- 2026-10-04: The L06 data core's unlock of the Targeting computer is recorded in the save from
+  M4 part F; the module itself comes with the utility modules in M5 and is in the shop from the
+  first hangar visit after that for a save that holds the unlock (user decision D6 of M4 part F;
+  see [economy](../../systems/economy/README.md#data-cores)).

@@ -245,8 +245,24 @@ public final class FlightSounds {
                 case SLED_LAUNCHED -> bank.play(Sfx.SLED_PASS, 0.8f, 1f, pan);
                 // A Brood Pod's fleshy burst, shot or on its own (round 08 b), as its Skitters fly out.
                 case BROOD_HATCHED -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, pitch(0.04), pan);
+                // Level 06 (placeholders from the existing sounds until the part's round): a cut
+                // chain's wet tear and its regrowth, the chained pops, the Mantis's telegraph whine
+                // and beam, the Smart Bomb's huge blast with a whoosh, the flare's launch.
+                case CHAIN_CUT -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, 0.8f * pitch(0.04), pan);
+                case CHAIN_REGROWN -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, 1.3f * pitch(0.04), pan);
+                case CHAIN_POP ->
+                    bank.play(alternate(Sfx.EXPLOSION_TINY_A, Sfx.EXPLOSION_TINY_B), EXPLOSIONS, pitch(0.06), pan);
+                case SWEEP_TELEGRAPH -> bank.play(Sfx.LASER_SHOT, ENEMY_FIRE, 0.6f, pan);
+                case SWEEP_FIRED -> bank.play(Sfx.LASER_SHOT, ENEMY_FIRE, 0.8f, pan);
+                case SMART_BOMB -> {
+                    bank.play(Sfx.EXPLOSION_SMALL_A, PLAYER_DAMAGE, 0.55f, pan);
+                    bank.play(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.7f, pan);
+                    bank.play(Sfx.AIRSTRIKE_JETS, EXPLOSIONS, 1.5f, 0);
+                }
+                case FLARE_FIRED -> bank.play(Sfx.MORTAR_LOB, 0.5f * EXPLOSIONS, 1.4f, pan);
                 case BROOD_BURST,
                         WALKER_DOWN,
+                        SWEEP_HIT,
                         SECRET_FOUND,
                         CREDITS_PICKED_UP,
                         RADIO,
@@ -269,7 +285,7 @@ public final class FlightSounds {
             // A special charge plays the small salvage until its own sound is imported.
             case SMALL_SALVAGE, MEDIUM_SALVAGE, SPECIAL_CHARGE -> Sfx.SALVAGE_SMALL;
             case OVERDRIVE -> Sfx.OVERDRIVE_START;
-            case HIDDEN_CRATE, LARGE_SALVAGE -> Sfx.SALVAGE_LARGE;
+            case HIDDEN_CRATE, LARGE_SALVAGE, DATA_CORE -> Sfx.SALVAGE_LARGE;
             case SHIELD_CELL -> Sfx.SHIELD_CELL;
             case ARMOUR_PATCH -> Sfx.ARMOUR_PATCH;
         };

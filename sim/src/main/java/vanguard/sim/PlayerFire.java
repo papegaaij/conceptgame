@@ -304,7 +304,7 @@ final class PlayerFire {
                 EnemySpec spec = enemy.spec();
                 if (!weapon.delivery().reaches(spec.layer())
                         || !onField(enemy)
-                        || !weapon.size().overlaps(shot.x(), shot.y(), spec.hitbox(), enemy.x(), enemy.y())
+                        || !weapon.size().overlaps(shot.x(), shot.y(), enemy.hitbox(), enemy.x(), enemy.y())
                         || (weapon.pierce() > 1 && shot.struck(2 * enemy.serial()))) {
                     continue;
                 }
@@ -504,7 +504,7 @@ final class PlayerFire {
             EnemySpec spec = enemy.spec();
             if (spec.layer() == Layer.GROUND
                     && onField(enemy)
-                    && inBlast(x, y, weapon.blast(), enemy.x(), enemy.y(), spec.hitbox())
+                    && inBlast(x, y, weapon.blast(), enemy.x(), enemy.y(), enemy.hitbox())
                     && enemy.damage(shot.damage(), true)) {
                 hits.enemyDestroyed(j);
             }
@@ -539,7 +539,7 @@ final class PlayerFire {
     }
 
     static boolean onField(Enemy enemy) {
-        return PlayField.overlaps(enemy.x(), enemy.y(), enemy.spec().hitbox());
+        return PlayField.overlaps(enemy.x(), enemy.y(), enemy.hitbox());
     }
 
     private static double distanceSquared(double x, double y, double ox, double oy) {

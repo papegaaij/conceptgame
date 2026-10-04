@@ -24,8 +24,10 @@ class ContentLoaderTest {
         assertEquals(
                 List.of(
                         "brood-pod",
+                        "coilwyrm",
                         "gorgon-frigate",
                         "leviathan",
+                        "mantis",
                         "needler",
                         "polyp-mortar",
                         "scuttler",
@@ -139,7 +141,7 @@ class ContentLoaderTest {
                 LEVEL_01,
                 text -> text.replaceFirst("enemy: needler", "enemy: neddler"),
                 "design/" + LEVEL_01
-                        + ": waves[2].enemy: unknown enemy 'neddler' (known: brood-pod, gorgon-frigate, leviathan, needler, polyp-mortar, scuttler, skitter, spine-turret, spore-bomber, stinger, whirl-seed)");
+                        + ": waves[2].enemy: unknown enemy 'neddler' (known: brood-pod, coilwyrm, gorgon-frigate, leviathan, mantis, needler, polyp-mortar, scuttler, skitter, spine-turret, spore-bomber, stinger, whirl-seed)");
     }
 
     @Test

@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../systems/saves, ../../systems/difficulty]
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 # Main menu
@@ -35,6 +35,7 @@ attract-mode demo (open question).
 │                              ► CONTINUE                                      │
 │                                NEW GAME                                      │
 │                                LOAD GAME                                     │
+│                                MISSIONS                                      │
 │                                OPTIONS                                       │
 │                                CREDITS                                       │
 │                                QUIT                                          │
@@ -49,6 +50,7 @@ attract-mode demo (open question).
 | Continue | Loads the most recent save. Hidden when no save exists | added |
 | New game | Difficulty select: Easy / Medium / Hard with a one-line description each, then the intro briefing | yes |
 | Load game | Slot list (8 manual + autosave), see [saves](../../systems/saves/README.md) | yes |
+| Missions | The [mission select](../mission-select/README.md): replay a mission the current campaign (the most recent save) has flown. Disabled while it has flown none | yes (2026-10-04) |
 | Options | Audio (music, SFX, radio volume), controls ([remapping](../controls/README.md)), display (fullscreen, scale, optional CRT/scanline filter) | added |
 | Credits | Scrolling credits over the credits music | added |
 | Quit | Confirmation, then exit | yes |
@@ -93,6 +95,8 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 - [x] Title screen with background scene, logo and press start
 - [x] Menu with Continue (conditional), New game, Load game, Options, Credits, Quit
 - [x] Difficulty select with descriptions
+- [x] Missions item opening the [mission select](../mission-select/README.md), disabled while the
+      current campaign has flown no mission
 - [x] Options: audio volumes, controls, display settings
 
 ## Open questions
@@ -141,3 +145,5 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
   difficulty cards and slot list draw the production glass kit. Review files proposed for round 13;
   `art` stays `chosen`.
 - 2026-10-02: Concept round 13 closed (user decision): the title scene and logo D (`tools/art/ui_scenes.py`) and the menu, difficulty and load screens in the production glass kit approved as **final**, `art: final`.
+- 2026-10-04 (user decision): a **Missions** item between Load game and Options opens the
+  [mission select](../mission-select/README.md) to replay flown missions.

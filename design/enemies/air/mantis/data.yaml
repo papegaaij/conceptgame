@@ -1,0 +1,43 @@
+# Mantis stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Mantis
+faction: Vrell
+layer: air
+tier: medium
+size: [80, 80]    # sprite px, facing inward from the left edge (mirrored on the right)
+hitbox: [40, 56]
+parts: single
+orientation: fixed
+hp: 26
+armour: none
+speed: 150        # px/s while entering and leaving
+movement:
+  hover: {seconds: 6, y: [120, 360], edge_x: 40, exit: back}  # y px from the top; edge_x: px from its entry edge; exit back: leaves through the edge it came from
+attacks:
+  - pattern: laser-sweep
+    name: beam
+    bullet: laser             # damage once per sweep
+    aim: target               # the sweep is centred on the ship's bearing when the telegraph starts
+    interval: 3.0             # s from one telegraph to the next while hovering
+    first_shot_delay: 0.6     # s after it settles: the first telegraph starts
+    sweep: {arc: 70, duration: 1.2, telegraph: 0.6, length: 300, width: 6}   # °, s, s, px, px
+    notes:
+      text: '`{pattern}` from its eye: a beam {sweep.length} px long and {sweep.width} px wide sweeps a {sweep.arc}° arc over {sweep.duration} s, centred on the ship''s bearing when the telegraph starts (clamped between straight inward and straight down, so the far side of the field stays safe); telegraphed {sweep.telegraph} s by the crimson arc; every {interval} s while hovering, the first {first_shot_delay} s after it settles; damage `{bullet}` = {damage} per touch (once per sweep)'
+formations:
+  - {name: single}
+  - {name: pincer}   # one from each side
+weak_points:
+  - {name: crimson thorax glow, multiplier: 1.5}
+drops: []
+traits: [side, spread]
+bounty: 30
+first_level: 6
+difficulty:
+  hard: {attacks: {beam: {interval: 2.5}}, sweep_arc: 90}
+notes:
+  orientation: (facing inward; the sprite is mirrored per side)
+  speed: entering and leaving, 0 while hovering
+  movement: 'enters from the left or right edge (edge-warned like every side entry), `hover` at x = {movement.hover.edge_x} px from that edge, y = {movement.hover.y} px, for {movement.hover.seconds} s (two sweeps), then exits the way it came'
+  formations: (the pincer one from each side)
+  death: '`medium` burst: bone shards, crimson flash'
+  used_in: Acts 1–2
+  difficulty: 'hard: 90° arc, every 2.5 s'

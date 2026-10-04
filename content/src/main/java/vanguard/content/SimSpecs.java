@@ -18,6 +18,7 @@ import vanguard.sim.EnemySpec;
 import vanguard.sim.Hitbox;
 import vanguard.sim.Hull;
 import vanguard.sim.Layer;
+import vanguard.sim.LevelResult;
 import vanguard.sim.LevelScript;
 import vanguard.sim.Loadout;
 import vanguard.sim.PickupRules;
@@ -30,6 +31,7 @@ import vanguard.sim.Rules;
 import vanguard.sim.ScoringRules;
 import vanguard.sim.ShieldModel;
 import vanguard.sim.ShipSpec;
+import vanguard.sim.SmartBombSpec;
 import vanguard.sim.SpecialSpec;
 import vanguard.sim.WaveSpec;
 import vanguard.sim.WeaponSpec;
@@ -136,12 +138,14 @@ public final class SimSpecs {
         return delivery(content.weapon(weapon)).isPresent();
     }
 
-    /** The special the simulation flies so far (design/player/specials): the Airstrike. */
+    /** The specials the simulation flies so far (design/player/specials): the Airstrike and the Smart Bomb. */
     public static final String AIRSTRIKE = "Airstrike";
 
-    /** Whether the simulation flies the special of this name; Smart Bomb and Decoy Flares follow later in M4. */
+    public static final String SMART_BOMB = "Smart Bomb";
+
+    /** Whether the simulation flies the special of this name; the Decoy Flares follow later in M4. */
     public static boolean fliesSpecial(String name) {
-        return name.equals(AIRSTRIKE);
+        return name.equals(AIRSTRIKE) || name.equals(SMART_BOMB);
     }
 
     /** The special of this name with {@code charges} carried into the level; it must fly. */
@@ -154,6 +158,24 @@ public final class SimSpecs {
                 .filter(item -> item.name().equals(name))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("no special '" + name + "'"));
+        int carried = Math.min(charges, special.maxCharges());
+        if (name.equals(SMART_BOMB)) {
+            SpecialsData.SmartBomb bomb = specials.smartBomb();
+            return new SpecialSpec(
+                    name,
+                    carried,
+                    special.maxCharges(),
+                    specials.inputBuffer(),
+                    new SmartBombSpec(
+                            bomb.ring(),
+                            bomb.damage().all(),
+                            bomb.damage().bossPart(),
+                            bomb.invulnerable(),
+                            bomb.repeat(),
+                            bomb.flash().seconds(),
+                            bomb.flash().opacity(),
+                            bomb.flash().fade()));
+        }
         SpecialsData.Airstrike data = specials.airstrike();
         AirstrikeSpec airstrike = new AirstrikeSpec(
                 data.delay(),
@@ -391,7 +413,30 @@ public final class SimSpecs {
                         .filter(rocks ->
                                 difficulty != Difficulty.EASY || rocks.onEasy().orElse(false))
                         .map(SimSpecs::rocks),
-                groupDrops(level, carried));
+                groupDrops(level, carried),
+                level.darkness().map(darkness -> darkness(darkness, difficulty)));
+    }
+
+    /** A dark level's light at {@code difficulty} (Level 06): easy's longer headlight and flares, the flares it fires. */
+    static LevelScript.Darkness darkness(LevelData.Darkness darkness, Difficulty difficulty) {
+        boolean easy = difficulty == Difficulty.EASY;
+        LevelData.Headlight headlight = darkness.headlight();
+        LevelData.FlareFall fall = darkness.flare();
+        return new LevelScript.Darkness(
+                headlight.from(),
+                easy ? headlight.easy().orElse(headlight.length()) : headlight.length(),
+                Math.toRadians(headlight.angle()),
+                darkness.flares().stream()
+                        .filter(flare -> flare.firedOn(difficulty))
+                        .map(flare -> new LevelScript.Darkness.Flare(flare.t(), flare.x(), flare.y()))
+                        .toList(),
+                easy ? fall.easySeconds().orElse(fall.seconds()) : fall.seconds(),
+                fall.radius(),
+                fall.drift(),
+                darkness.lights().orElse(List.of()).stream()
+                        .map(light -> new LevelScript.Darkness.Light(light.t(), light.x(), light.radius()))
+                        .toList(),
+                darkness.ambient());
     }
 
     /** The level's sleds at {@code difficulty}: the period of easy or hard. */
@@ -820,6 +865,7 @@ public final class SimSpecs {
                 };
         LevelData.Entry entry = change.flatMap(LevelData.Change::from).orElse(wave.from());
         Optional<LevelData.Edge> edge = change.flatMap(LevelData.Change::edge).or(wave::edge);
+        Optional<Double> warning = change.flatMap(LevelData.Change::warning).or(wave::warning);
         int breakGroup = change.flatMap(LevelData.Change::breakGroup)
                 .or(wave::breakGroup)
                 .orElse(1);
@@ -854,7 +900,7 @@ public final class SimSpecs {
                     },
                     edge.map(SimSpecs::edge).orElse(WaveSpec.Edge.NONE),
                     wave.hold(),
-                    wave.warning(),
+                    warning,
                     breakGroup,
                     wave.speed(),
                     wave.interval(),
@@ -864,7 +910,13 @@ public final class SimSpecs {
                             .map(path -> path.stream()
                                     .map(point -> new WaveSpec.At(point.x(), point.y()))
                                     .toList())
-                            .toList()));
+                            .toList(),
+                    wave.loopBack()
+                            .map(back -> new WaveSpec.LoopBack(
+                                    back.after(),
+                                    back.path().orElse(List.of()).stream()
+                                            .map(point -> new WaveSpec.At(point.x(), point.y()))
+                                            .toList()))));
         }
     }
 
@@ -902,6 +954,7 @@ public final class SimSpecs {
             case SHIELD_CELL -> PickupType.SHIELD_CELL;
             case ARMOUR_PATCH -> PickupType.ARMOUR_PATCH;
             case SPECIAL_CHARGE -> PickupType.SPECIAL_CHARGE;
+            case DATA_CORE -> PickupType.DATA_CORE;
             default -> throw new IllegalArgumentException("the pickup " + pickup + " is not implemented yet");
         };
     }
@@ -944,15 +997,24 @@ public final class SimSpecs {
                                 .flatMap(attack -> attack.away().stream())
                                 .findFirst()
                                 .orElse(0.0))));
-        return new EnemySpec(
+        // A segment chain's unit is its head: the head part's HP and bounty (the unit's include the body).
+        Optional<EnemyData.PartData> head = enemy.segmentChain()
+                .flatMap(chain -> enemy.partList().flatMap(parts -> parts.stream()
+                        .filter(part -> part.kind().equals("vital"))
+                        .findFirst()));
+        EnemySpec spec = new EnemySpec(
                 slug,
-                content.difficulty().enemyHp(enemy.hp(), difficulty),
+                content.difficulty().enemyHp(head.map(EnemyData.PartData::hp).orElse(enemy.hp()), difficulty),
                 hitbox(enemy.hitbox()),
                 Layers.of(enemy.layer()),
                 content.enemyBasis().contactDamage().get(enemy.tier()),
                 enemy.tier().compareTo(Tier.SMALL) <= 0,
-                enemy.bounty(),
-                movement.drift().map(EnemyData.Drift::speed).orElse(enemy.speed()) * speedFactor,
+                head.map(EnemyData.PartData::bounty).orElse(enemy.bounty()),
+                movement.drift()
+                                .map(EnemyData.Drift::speed)
+                                .or(() -> movement.path().map(EnemyData.PathMove::speed))
+                                .orElse(enemy.speed())
+                        * speedFactor,
                 movement.snake().map(snake -> new EnemySpec.Snake(snake.spacing())),
                 movement.straight().map(EnemyData.Straight::speed),
                 movement.hover()
@@ -988,7 +1050,201 @@ public final class SimSpecs {
                                 bulletDamage(content, puff.bullet()))),
                 movement.sine().map(sine -> new EnemySpec.Sine(sine.amplitude(), sine.period())),
                 brood,
-                walker);
+                walker,
+                movement.hover()
+                        .flatMap(EnemyData.Hover::edgeX)
+                        .map(edgeX -> new EnemySpec.SideHover(
+                                edgeX,
+                                movement.hover().flatMap(EnemyData.Hover::exit).isPresent())),
+                sweep(content, enemy, difficulty),
+                Optional.empty());
+        return enemy.segmentChain().isPresent() ? withChain(content, enemy, spec, difficulty) : spec;
+    }
+
+    /**
+     * A laser sweep at {@code difficulty} (design/enemies/air/mantis): the stat block's sweep with
+     * the hooks' arc and interval (an authored interval is final; otherwise the fire-rate lever
+     * applies) and the beam's bullet class as its damage.
+     */
+    private static Optional<EnemySpec.Sweep> sweep(Content content, EnemyData enemy, Difficulty difficulty) {
+        Optional<EnemyData.Hook> hook = hook(enemy, difficulty);
+        return enemy.attacks().stream()
+                .filter(attack -> attack.pattern().equals("laser-sweep"))
+                .findFirst()
+                .map(attack -> {
+                    EnemyData.Sweep sweep = attack.sweep().orElseThrow();
+                    Optional<Double> authored = attack.name()
+                            .flatMap(name ->
+                                    hook.flatMap(EnemyData.Hook::attacks).map(changes -> changes.get(name)))
+                            .flatMap(EnemyData.AttackChange::interval);
+                    double interval = authored.orElseGet(() -> attack.interval().orElseThrow()
+                            / content.difficulty().enemyFireRate().of(difficulty));
+                    return new EnemySpec.Sweep(
+                            Math.toRadians(
+                                    hook.flatMap(EnemyData.Hook::sweepArc).orElse(sweep.arc())),
+                            sweep.duration(),
+                            sweep.telegraph(),
+                            sweep.length(),
+                            sweep.width(),
+                            interval,
+                            attack.firstShotDelay().orElse(0.0),
+                            bulletDamage(content, attack.bullet().orElseThrow()));
+                });
+    }
+
+    /**
+     * A segment chain's head with its chain (design/enemies/air/coilwyrm): the segments taper
+     * evenly from the first to the last size, with hit boxes their share of it; the members follow
+     * one another their spacing × their mean length apart along the head's path (the head as long
+     * as its sprite, the tail as its hit box over the share); the tail and the regrown head from the
+     * part list and the regrow block, the regrown head firing the head's fan (the hook's count).
+     */
+    private static EnemySpec withChain(Content content, EnemyData enemy, EnemySpec head, Difficulty difficulty) {
+        EnemyData.SegmentChain chain = enemy.segmentChain().orElseThrow();
+        Optional<EnemyData.Hook> hook = hook(enemy, difficulty);
+        int segments = hook.flatMap(EnemyData.Hook::segments).orElse(chain.segments());
+        EnemyData.PartData tail = enemy.partList().orElseThrow().stream()
+                .filter(part -> !part.kind().equals("vital"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(enemy.name() + ": a chain has a tail part"));
+        double small = content.enemyBasis().contactDamage().get(chain.contact());
+        boolean rammed = chain.contact().compareTo(Tier.SMALL) <= 0;
+        List<Hitbox> boxes = new ArrayList<>();
+        List<Double> lengths = new ArrayList<>();
+        lengths.add(enemy.size().height());
+        for (int i = 0; i < segments; i++) {
+            double t = segments == 1 ? 0 : (double) i / (segments - 1);
+            double size =
+                    chain.size().get(0) + (chain.size().get(1) - chain.size().get(0)) * t;
+            boxes.add(new Hitbox(size * chain.hitboxShare(), size * chain.hitboxShare()));
+            lengths.add(size);
+        }
+        lengths.add(tail.hitbox().height() / chain.hitboxShare());
+        List<Double> offsets = new ArrayList<>();
+        offsets.add(0.0);
+        for (int i = 1; i < lengths.size(); i++) {
+            offsets.add(offsets.get(i - 1) + chain.spacing() * (lengths.get(i - 1) + lengths.get(i)) / 2);
+        }
+        String slug = head.slug();
+        EnemySpec segment = part(
+                content,
+                slug + "-segment",
+                head,
+                chain.hp(),
+                boxes.getFirst(),
+                small,
+                rammed,
+                chain.bounty(),
+                Optional.empty(),
+                head.speed(),
+                difficulty);
+        EnemySpec tailSpec = part(
+                content,
+                slug + "-tail",
+                head,
+                tail.hp(),
+                hitbox(tail.hitbox()),
+                small,
+                rammed,
+                tail.bounty(),
+                Optional.empty(),
+                head.speed(),
+                difficulty);
+        Optional<EnemyGun> fan = head.gun().map(gun -> hook.flatMap(EnemyData.Hook::regrownFanCount)
+                .map(count -> new EnemyGun(
+                        gun.intervalSeconds(),
+                        gun.firstShotDelay(),
+                        gun.burst(),
+                        gun.bulletSpeed(),
+                        gun.damage(),
+                        gun.leadsTargetInCircle(),
+                        count,
+                        gun.spreadRadians(),
+                        gun.turnRate(),
+                        gun.arcRadians(),
+                        gun.mine(),
+                        gun.mortar()))
+                .orElse(gun));
+        EnemySpec regrown = part(
+                content,
+                slug + "-regrown",
+                head,
+                chain.regrow().hp(),
+                head.hitbox(),
+                head.contactDamage(),
+                false,
+                chain.regrow().bounty(),
+                fan,
+                chain.regrow().speed(),
+                difficulty);
+        EnemySpec.ChainSpec spec = new EnemySpec.ChainSpec(
+                segment,
+                boxes,
+                tailSpec,
+                tail.firstBonus().orElse(0),
+                regrown,
+                chain.regrow().seconds(),
+                chain.regrow().speed(),
+                offsets,
+                chain.popInterval());
+        return new EnemySpec(
+                head.slug(),
+                head.hp(),
+                head.hitbox(),
+                head.layer(),
+                head.contactDamage(),
+                head.destroyedByRamming(),
+                head.bounty(),
+                head.speed(),
+                head.snake(),
+                head.streamSpeed(),
+                head.hover(),
+                head.orbit(),
+                head.gun(),
+                head.drop(),
+                head.dive(),
+                head.terrain(),
+                head.spiral(),
+                head.strafe(),
+                head.deathBurst(),
+                head.sine(),
+                head.brood(),
+                head.walker(),
+                head.sideHover(),
+                head.sweep(),
+                Optional.of(spec));
+    }
+
+    /** A chain's part as a unit of its own: its HP by the HP lever, on the head's layer. */
+    private static EnemySpec part(
+            Content content,
+            String slug,
+            EnemySpec head,
+            double hp,
+            Hitbox box,
+            double contactDamage,
+            boolean rammed,
+            int bounty,
+            Optional<EnemyGun> gun,
+            double speed,
+            Difficulty difficulty) {
+        return new EnemySpec(
+                slug,
+                content.difficulty().enemyHp(hp, difficulty),
+                box,
+                head.layer(),
+                contactDamage,
+                rammed,
+                bounty,
+                speed,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                gun,
+                Optional.empty(),
+                Optional.empty(),
+                false);
     }
 
     private static double bulletDamage(Content content, String bullet) {
@@ -1024,6 +1280,7 @@ public final class SimSpecs {
         // A spawner's spawn is its brood, a walker's spit (aimed while facing away) its second attack.
         List<EnemyData.Attack> attacks = enemy.attacks().stream()
                 .filter(attack -> !attack.pattern().equals("spawn"))
+                .filter(attack -> !attack.pattern().equals("laser-sweep"))
                 .filter(attack ->
                         attack.away().isEmpty() || enemy.movement().walk().isEmpty())
                 .toList();
@@ -1124,7 +1381,10 @@ public final class SimSpecs {
                         secret.map(sec -> secretNames.indexOf(sec.name())).orElse(-1),
                         target.reveals().map(triggersPerSecret::get).orElse(1),
                         target.bonusDrop().map(SimSpecs::pickup),
-                        target.sprite().orElse(LevelScript.GroundObjectSpec.CARGO_CONTAINER)));
+                        target.sprite().orElse(LevelScript.GroundObjectSpec.CARGO_CONTAINER),
+                        target.dark().orElse(false),
+                        secret.flatMap(sec ->
+                                sec.dataCore().map(core -> new LevelResult.DataCore(sec.name(), core.unlocks())))));
             }
         }
         objects.sort(Comparator.comparingDouble(LevelScript.GroundObjectSpec::t));

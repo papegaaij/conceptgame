@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../../player/armor, ../../player/shields, ../difficulty, ../saves]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Retry
@@ -28,7 +28,8 @@ charges are all restored. Whatever was earned in the failed attempt is lost. The
    - **Retry**: restart the level immediately with the level-start state.
    - **Back to hangar**: return to the hangar with the level-start state, to change the
      loadout. Purchases there are normal purchases. Then launch again.
-   - **Quit to main menu**: progress since the last save is lost (confirmation).
+   - **Quit to main menu**: progress since the last save is lost (confirmation). Back (Esc, the
+     gamepad's back button) asks the same question from any item; Back again or No stays.
 3. On hard, the screen shows the retries left (3 per level). The failure **uses its retry at
    once** and the autosave is written then, so quitting from this screen and continuing cannot
    give it back. With none left the campaign ends: game over screen, high-score entry, back to the
@@ -89,6 +90,7 @@ new input recording starts there. Retrying from the boss does not count as a har
 - [x] Snapshot of player state at level start (the campaign state, see the M3 part B1 decision)
 - [x] Snapshot at the boss checkpoint with the objective tallies, and *Retry from boss* restarting at the warning on an empty field — M4 part E (the Gorgon Frigate, Level 05)
 - [x] Mission failed screen with the three (four) options
+- [x] Back (Esc, the gamepad's back button) opens the quit question (`MissionFailedExitTest`)
 - [x] Hard-mode retry counter and game over
 - [x] "Back to hangar" path that keeps the level as the next one
 - [x] A failed primary objective fails the level like a wreck (no explosion, the level's failure line) — M4 part D, reused by Level 05
@@ -160,3 +162,6 @@ new input recording starts there. Retrying from the boss does not count as a har
   again. The mission failed screen lists RETRY FROM BOSS first once the attempt reached the
   checkpoint, on easy and medium only; it uses no retry. Tests: `BossTest` (sim) and
   `BossLevelTest`.
+- 2026-10-04: Back on the mission failed screen (user decision): Esc and the gamepad's back
+  button open the Quit to main menu question from any item, as choosing Quit does; Back again or
+  No stays on the screen. Test: `MissionFailedExitTest`.

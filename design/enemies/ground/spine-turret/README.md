@@ -1,10 +1,10 @@
 ---
 title: Spine Turret
 design: approved
-implementation: done
+implementation: in-progress
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 # Spine Turret
@@ -70,6 +70,7 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
 - [x] Stump decal on death
 - [x] Stat block values loaded from data; global difficulty multipliers applied
 - [x] Death effect, bounty and score per this spec
+- [ ] Glow frames (the violet barrel root) for Level 06's darkness — M4 part F
 
 ## Decisions
 
@@ -79,3 +80,7 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
 - 2026-10-02: M4 part B (user decisions): its facing is straight down the screen; the barrel tracks at 90°/s and the shots leave along it; beyond 100° off its facing it is silent; the weak point is drawn only (single-part rule of [enemies](../../README.md)).
 - 2026-10-02: M4 part B: built (a ground unit of the level's ground targets, scrolling with the ground; the barrel turns 90°/s inside its 100° arc and fires along itself; its bounty pays as a ground target; the stump stays on the ground until it scrolls off), its production sprites proposed in [concept round 15](../../../concept-rounds/round-15/README.md).
 - 2026-10-02: Concept round 15 closed (user decision): the production sprites approved as **final**, `art: final`.
+- 2026-10-04: M4 part F (user decision D2): in Level 06's darkness only the ground layer and the
+  ground units are darkened, by a light map; this unit gets **glow frames** (its emissive violet barrel root
+  at full brightness, drawn after the light pass), so it is seen by its glow in the dark. A
+  derived production pass of its final art, reviewed only.

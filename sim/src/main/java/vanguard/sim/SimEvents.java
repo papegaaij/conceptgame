@@ -125,7 +125,23 @@ public final class SimEvents {
         /** A sled struck the ship (at the ship). */
         SLED_HIT,
         /** A destroyed ground target threw a rock (at the rock). */
-        ROCK_THROWN;
+        ROCK_THROWN,
+        /** A chain's segment was cut and its rear part starts to grow a new head (at the cut); value: the segment's kind. */
+        CHAIN_CUT,
+        /** A cut chain's new head has grown (at it); value: its kind. */
+        CHAIN_REGROWN,
+        /** A dying chain member popped (at it), paying nothing; value: its kind. */
+        CHAIN_POP,
+        /** A laser sweep's telegraph started (at the unit); value: its kind. */
+        SWEEP_TELEGRAPH,
+        /** A laser sweep's beam started (at the unit); value: its kind. */
+        SWEEP_FIRED,
+        /** A laser sweep's beam hit the ship (at the ship). */
+        SWEEP_HIT,
+        /** A Smart Bomb went off (at the ship). */
+        SMART_BOMB,
+        /** A scripted flare was fired (at its start); value: its index. */
+        FLARE_FIRED;
 
         private static final Type[] VALUES = values();
     }

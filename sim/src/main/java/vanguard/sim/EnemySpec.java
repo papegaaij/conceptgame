@@ -30,6 +30,9 @@ import java.util.Optional;
  * @param brood the units it releases when it is destroyed or bursts on its own (a spawner)
  * @param walker how a walker (the Scuttler) walks its authored ground path, its frontal armour and
  *     its second attack
+ * @param sideHover a unit entering from a side edge (the Mantis): where it hovers and how it leaves
+ * @param sweep its laser sweep (the Mantis), fired while it hovers instead of a gun
+ * @param chain the segment chain behind its head (the Coilwyrm)
  */
 public record EnemySpec(
         String slug,
@@ -53,7 +56,121 @@ public record EnemySpec(
         Optional<DeathBurst> deathBurst,
         Optional<Sine> sine,
         Optional<Brood> brood,
-        Optional<Walker> walker) {
+        Optional<Walker> walker,
+        Optional<SideHover> sideHover,
+        Optional<Sweep> sweep,
+        Optional<ChainSpec> chain) {
+
+    /** The constructor of Level 05: without the side hover, sweep and chain of Level 06. */
+    public EnemySpec(
+            String slug,
+            double hp,
+            Hitbox hitbox,
+            Layer layer,
+            double contactDamage,
+            boolean destroyedByRamming,
+            int bounty,
+            double speed,
+            Optional<Snake> snake,
+            Optional<Double> streamSpeed,
+            Optional<Hover> hover,
+            Optional<Orbit> orbit,
+            Optional<EnemyGun> gun,
+            Optional<Drop> drop,
+            Optional<Dive> dive,
+            boolean terrain,
+            Optional<Spiral> spiral,
+            Optional<Range> strafe,
+            Optional<DeathBurst> deathBurst,
+            Optional<Sine> sine,
+            Optional<Brood> brood,
+            Optional<Walker> walker) {
+        this(
+                slug,
+                hp,
+                hitbox,
+                layer,
+                contactDamage,
+                destroyedByRamming,
+                bounty,
+                speed,
+                snake,
+                streamSpeed,
+                hover,
+                orbit,
+                gun,
+                drop,
+                dive,
+                terrain,
+                spiral,
+                strafe,
+                deathBurst,
+                sine,
+                brood,
+                walker,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
+    }
+
+    /**
+     * A unit that enters from a side edge and hovers {@code edgeX} px from it (design/enemies/air/mantis);
+     * with {@code exitBack} it leaves through that edge when its hover ends.
+     */
+    public record SideHover(double edgeX, boolean exitBack) {}
+
+    /**
+     * A laser sweep (design/enemies/air/mantis): while it hovers, every {@code intervalSeconds} (the
+     * first {@code firstDelaySeconds} after it settles) a telegraph of {@code telegraphSeconds}
+     * fixes the sweep's centre on the ship's bearing, clamped between straight inward and straight
+     * down; then a beam {@code length} × {@code width} px from its eye sweeps {@code arcRadians}
+     * over {@code sweepSeconds}, dealing {@code damage} at most once per sweep. A sweep starts only
+     * if it ends before the hover does.
+     */
+    public record Sweep(
+            double arcRadians,
+            double sweepSeconds,
+            double telegraphSeconds,
+            double length,
+            double width,
+            double intervalSeconds,
+            double firstDelaySeconds,
+            double damage) {}
+
+    /**
+     * A segment chain (design/enemies/air/coilwyrm): the unit is its head, flying the wave's path;
+     * behind it {@code segmentBoxes.size()} segments of {@code segment} (each with its own hit box)
+     * and the {@code tail} follow the head's path history, member {@code i} at {@code offsets[i]} px
+     * of history behind the head (the head's is 0). A segment's destruction cuts the chain: the
+     * rear part grows a {@code regrown} head over {@code regrowSeconds} (once per chain, and not
+     * when the rear part died meanwhile) and lunges at the ship at {@code regrowSpeed}; a second cut
+     * kills the severed part from the cut backwards, one member every {@code popSeconds}, as the
+     * head's death does with the whole chain. The tail pays {@code tailFirstBonus} more when it is
+     * destroyed before any other part.
+     */
+    public record ChainSpec(
+            EnemySpec segment,
+            java.util.List<Hitbox> segmentBoxes,
+            EnemySpec tail,
+            int tailFirstBonus,
+            EnemySpec regrown,
+            double regrowSeconds,
+            double regrowSpeed,
+            java.util.List<Double> offsets,
+            double popSeconds) {
+        public ChainSpec {
+            segmentBoxes = java.util.List.copyOf(segmentBoxes);
+            offsets = java.util.List.copyOf(offsets);
+            if (offsets.size() != segmentBoxes.size() + 2) {
+                throw new IllegalArgumentException("a chain has an offset per member: head, segments, tail");
+            }
+        }
+
+        /** The members: head, segments and tail. */
+        public int members() {
+            return offsets.size();
+        }
+    }
 
     /** A snake's units follow one another {@code spacingSeconds} apart. */
     public record Snake(double spacingSeconds) {}

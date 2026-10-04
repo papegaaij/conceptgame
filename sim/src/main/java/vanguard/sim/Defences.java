@@ -139,6 +139,11 @@ public final class Defences {
         return broken;
     }
 
+    /** The ship takes no damage for the next {@code ticks} steps (the Smart Bomb's), as in its mercy time. */
+    void guard(int ticks) {
+        mercy = Math.max(mercy, ticks);
+    }
+
     /** Steps of mercy invulnerability left; the hull flashes white meanwhile. */
     public int mercyTicks() {
         return mercy;

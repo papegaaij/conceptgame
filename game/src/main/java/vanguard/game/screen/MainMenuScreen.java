@@ -25,7 +25,8 @@ import vanguard.game.ui.Menu;
  *
  * <p>Continue loads the most recent save into the hangar and is hidden while there is none; Load
  * game opens the slot list and is disabled while every slot is empty (design/systems/saves). New
- * game goes through the difficulty select into the intro briefing.
+ * game goes through the difficulty select into the intro briefing. Missions opens the mission select
+ * of the current campaign (the most recent save) and is disabled while it has flown no mission.
  */
 public final class MainMenuScreen implements GameScreen {
     private static final float MUSIC_VOLUME = 0.6f;
@@ -43,6 +44,7 @@ public final class MainMenuScreen implements GameScreen {
         CONTINUE,
         NEW_GAME,
         LOAD_GAME,
+        MISSIONS,
         OPTIONS,
         CREDITS,
         QUIT
@@ -65,6 +67,7 @@ public final class MainMenuScreen implements GameScreen {
         latest.ifPresent(save -> items.add(Menu.Item.of(Item.CONTINUE, "CONTINUE")));
         items.add(Menu.Item.of(Item.NEW_GAME, "NEW GAME"));
         items.add(new Menu.Item<>(Item.LOAD_GAME, "LOAD GAME", anySave));
+        items.add(new Menu.Item<>(Item.MISSIONS, "MISSIONS", MissionSelectScreen.anyOpen(services)));
         items.add(Menu.Item.of(Item.OPTIONS, "OPTIONS"));
         items.add(Menu.Item.of(Item.CREDITS, "CREDITS"));
         items.add(Menu.Item.of(Item.QUIT, "QUIT"));
@@ -126,6 +129,7 @@ public final class MainMenuScreen implements GameScreen {
                         new HangarScreen(services, Campaign.load(services.campaignRules, latest.orElseThrow()), false));
             case NEW_GAME -> Transition.open(new DifficultyScreen(services));
             case LOAD_GAME -> Transition.open(SlotsScreen.load(services));
+            case MISSIONS -> Transition.open(MissionSelectScreen.overMenu(services));
             case OPTIONS -> Transition.open(new OptionsScreen(services));
             case CREDITS -> Transition.open(new CreditsScreen(services));
             case QUIT -> {

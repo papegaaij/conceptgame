@@ -34,15 +34,27 @@ final class WaveSchedule {
         }
         planned.sort(Comparator.comparingInt(Spawn::tick));
         spawns = planned.toArray(Spawn[]::new);
-        warningStarts = new int[warned.size()];
-        warningEnds = new int[warned.size()];
-        warningEdges = new int[warned.size()];
+        // A chain's loop-back re-enters from the bottom edge: warned like a rear entry.
+        List<Spawn> loops =
+                planned.stream().filter(spawn -> spawn.loop().isPresent()).toList();
+        int warnings = warned.size() + loops.size();
+        warningStarts = new int[warnings];
+        warningEnds = new int[warnings];
+        warningEdges = new int[warnings];
         for (int i = 0; i < warned.size(); i++) {
             WaveSpec wave = warned.get(i);
             double lead = Math.max(EDGE_WARNING_SECONDS, wave.warningSeconds().orElse(0.0));
             warningStarts[i] = SimStep.ticks(wave.t() - lead);
             warningEnds[i] = SimStep.ticks(wave.t());
             warningEdges[i] = edges(wave);
+        }
+        for (int i = 0; i < loops.size(); i++) {
+            Spawn spawn = loops.get(i);
+            int end = spawn.reentryTick();
+            warningStarts[warned.size() + i] =
+                    end - SimStep.ticks(spawn.loop().orElseThrow().warningSeconds());
+            warningEnds[warned.size() + i] = end;
+            warningEdges[warned.size() + i] = WarningEdge.BOTTOM.bit();
         }
     }
 

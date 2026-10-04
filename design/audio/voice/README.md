@@ -116,6 +116,12 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
   role.
   Level 05 adds **Driver Control** (the mass driver's operator, three lines), cast in
   [round 21](../../concept-rounds/round-21/README.md) (Alex Foster, a).
+  Level 06 adds the **Daedalus perimeter beacon** (automated, one line that also loops faintly
+  under section 2 as ambience). It gets its own audition in M4 part F's concept round: two CC0 or
+  public-domain candidates through a **public-address filter** (more band-limited than the radio
+  filter, with a slight echo), the same rendered line feeding the ambience loop. Until then it is
+  `uncast` (text with the radio blips); the PA filter is a new filter value next to radio,
+  distorted and dry (planned, part F).
 
 ### Speakers and expression
 
@@ -234,6 +240,11 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
 | [concept/voice-driver-control-r21-a.ogg](concept/voice-driver-control-r21-a.ogg) | Driver Control (round 21 audition), reader Alex Foster (`tools/concept/audio/tts_r21.py`) | chosen |
 | [concept/rejected/voice-driver-control-r21-b.ogg](concept/rejected/voice-driver-control-r21-b.ogg) | Driver Control (round 21 audition), reader Rebecca (`tools/concept/audio/tts_r21.py`) | rejected |
 
+## Open questions
+
+- Who voices the Daedalus perimeter beacon (Level 06)? Audition of two CC0/PD candidates through
+  the public-address filter in M4 part F's concept round; `uncast` until the user picks.
+
 ## Decisions
 
 - 2026-10-03: Created after concept round 18: Chatterbox chosen for the spoken radio lines (user:
@@ -271,3 +282,7 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
 - 2026-10-04: Round 21 decided (user): Driver Control is Alex Foster (a); `uncast` removed from
   the speaker table, Rebecca's take moved to `concept/rejected/` and her clip deleted with its
   CREDITS.md row; Driver Control's lines rendered by `tools/art/voice.py`.
+- 2026-10-04: M4 part F (user decision D7): Level 06's Daedalus perimeter beacon gets an audition
+  of two CC0/PD candidates through a public-address filter, in the part's concept round; the same
+  line loops under section 2. `uncast` until then. Rejected: reusing a cast generic voice with the
+  PA filter (no audition).

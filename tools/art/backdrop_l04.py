@@ -37,9 +37,12 @@ The backdrop block (and the `road`) come from the level's data.yaml.
 
 **The ground tiles share one terrain.** Every ground tile set is 480x960 and built on the same
 periodic base terrain (the chosen scene's fbm regolith, craters, low-sun cast shadows and the
-blue earthshine tint in the shadows, one shared palette); a tile set only adds its features, faded
-out near the rows where its section seams fall (tiles repeat from layer position 0, so a seam's
-row is fixed: 660, 300, 300 and 900 px above a tile's bottom). Seams between ground tile sets are
+blue earthshine tint in the shadows, one shared palette); a tile set only adds its features, none
+within 30 px of the rows where its section seams fall (tiles repeat from layer position 0, so a
+seam's row is fixed: 660, 300, 300 and 900 px above a tile's bottom; a crater faded or clipped
+there would end halfway, and the roots fail the run if they reach one). Every tile set wraps top
+to bottom: each noise octave's lattice divides 960 (pfbm). game/.../BackdropSeamsTest checks the
+tiles' wrap rows and the rows at the set borders. Seams between ground tile sets are
 therefore invisible except where a feature crosses one on purpose: the rille's channel (covered by
 the rille-end pieces) and the rail (covered by the rail head). Changing a section's start time
 moves a seam: rerun and look at the composite.
@@ -225,6 +228,24 @@ def roots(canvas, origin, seed, count, length, width=3.0, limit=None):
 
 # --------------------------------------------------------------------------- ground terrain
 
+def pfbm(w, h, cell, seed, octaves=5, gain=0.5):
+    """raster.fbm, but periodic top to bottom at every octave: raster.fbm halves the lattice per
+    octave, and a lattice that does not divide ``h`` (120 >> 4 = 7 in 960) does not wrap, which left
+    a 1 px line where the tiles repeat. Each octave's lattice is the divisor of ``h`` nearest to the
+    halved cell (the larger on a tie); octaves whose cell divides ``h`` are raster.fbm's exactly."""
+    out = np.zeros((h, w))
+    amp, total = 1.0, 0.0
+    for o in range(octaves):
+        c = max(1, cell >> o)
+        c = min((d for d in range(1, h + 1) if h % d == 0), key=lambda d: (abs(d - c), -d))
+        out += amp * raster.value_noise(w, h, c, seed + o * 101, True)
+        total += amp
+        amp *= gain
+    out /= total
+    lo, hi = out.min(), out.max()
+    return (out - lo) / max(hi - lo, 1e-9)
+
+
 def crater(hgt, cx, cy, r, depth=0.55):
     yy, xx = np.mgrid[0:hgt.shape[0], 0:hgt.shape[1]]
     d = np.hypot(xx - cx, s6.periodic_dist(yy, cy, hgt.shape[0])) / r
@@ -236,41 +257,63 @@ def crater(hgt, cx, cy, r, depth=0.55):
 @functools.lru_cache
 def base_height():
     """The shared terrain: the scene's fbm regolith with small craters, periodic in 960."""
-    hgt = raster.fbm(W, H, 120, 622, octaves=5) * 0.5 + raster.fbm(W, H, 24, 623, octaves=1) * 0.05
+    hgt = pfbm(W, H, 120, 622, octaves=5) * 0.5 + pfbm(W, H, 24, 623, octaves=1) * 0.05
     rng = np.random.default_rng(621)
     for _ in range(46):
         hgt += crater(hgt, rng.uniform(0, W), rng.uniform(0, H), rng.uniform(4, 11))
     return hgt
 
 
-def features(seed, craters, big, rocks):
+CLEAR = 30     # px a tile set's features keep from its seams (their cast shadows reach ~28 px)
+
+
+def seam_distance(row, seams):
+    """Distance (px, wrapping) from image row ``row`` to the nearest seam row (u values)."""
+    if not seams:
+        return np.inf
+    return min(min(abs(row - (H - 1 - s)) % H, H - abs(row - (H - 1 - s)) % H) for s in seams)
+
+
+def features(seed, craters, big, rocks, seams=()):
+    """Craters and rocks of a tile set. One that would reach within CLEAR px of one of ``seams``
+    (its rim at 1.4 radii, a rock at 3) is left out: a feature faded or clipped at a seam row ends
+    halfway where the next section's tiles begin."""
     rng = np.random.default_rng(seed)
     f = np.zeros((H, W))
     for _ in range(craters):
-        f += crater(f, rng.uniform(0, W), rng.uniform(0, H), rng.uniform(*big))
+        x, y, r = rng.uniform(0, W), rng.uniform(0, H), rng.uniform(*big)
+        if seam_distance(y, seams) > 1.4 * r + CLEAR:
+            f += crater(f, x, y, r)
     yy, xx = np.mgrid[0:H, 0:W]
     for _ in range(rocks):
         x, y, r = rng.uniform(0, W), rng.uniform(0, H), rng.uniform(1.5, 3.5)
-        f += 0.12 * np.exp(-(xx - x) ** 2 / (2 * r * r) - s6.periodic_dist(yy, y, H) ** 2 / (2 * r * r))
+        if seam_distance(y, seams) > 3 * r + CLEAR:
+            f += 0.12 * np.exp(-(xx - x) ** 2 / (2 * r * r) - s6.periodic_dist(yy, y, H) ** 2 / (2 * r * r))
     return f
+
+
+def assert_clear(overlay, seams, name):
+    """Fail when an overlay (roots) reaches within CLEAR px of a seam row: it would end halfway."""
+    rows = np.nonzero(np.array(overlay)[..., 3].any(axis=1))[0]
+    near = [int(r) for r in rows if seam_distance(r, seams) <= CLEAR]
+    if near:
+        raise ValueError(f"{name}: the overlay reaches rows {near[0]}..{near[-1]}, within {CLEAR} px of "
+                         f"a seam (u {seams}); move it")
+    return overlay
 
 
 @functools.lru_cache
 def tile_heights():
     """Height field of every ground tile set (and the rille's channel depth)."""
     base = base_height()
-    fa = features(701, 7, (16, 30), 30)
-    fb = features(711, 6, (14, 34), 34)
-    fc = features(721, 16, (18, 52), 22)
-    fd = features(731, 5, (14, 26), 24)
     out = {
-        "mare-a": base + fa * seam_mask(SEAMS["mare-a"]),
-        "mare-b": base + fb * seam_mask(SEAMS["mare-b"]),
-        "crater-growth": base + fc * seam_mask(SEAMS["crater-growth"]),
+        "mare-a": base + features(701, 7, (16, 30), 30, SEAMS["mare-a"]),
+        "mare-b": base + features(711, 6, (14, 34), 34, SEAMS["mare-b"]),
+        "crater-growth": base + features(721, 16, (18, 52), 22, SEAMS["crater-growth"]),
     }
     xx = np.arange(W)[None, :].astype(np.float64)
     rail = np.clip(1 - (np.abs(xx - RAIL_X) - 24) / 6, 0, 1)
-    md = base + fd * seam_mask(SEAMS["mass-driver-field"])
+    md = base + features(731, 5, (14, 26), 24, SEAMS["mass-driver-field"])
     out["mass-driver-field"] = md * (1 - rail) + (md * 0.3 + 0.1) * rail
     out["rille-rims"] = out["mare-b"]
     return out
@@ -282,7 +325,7 @@ def channel(u_from=None, u_to=None):
     u = rows_u()
     xx = np.arange(W)[None, :].astype(np.float64)
     d = np.abs(xx - channel_x(u))
-    wobble = 3 * raster.fbm(W, H, 8, 741, octaves=2)
+    wobble = 3 * pfbm(W, H, 8, 741, octaves=2)
     scale = np.ones_like(u)
     if u_from is not None:
         scale = np.minimum(scale, np.clip((u - u_from) / 60, 0, 1))
@@ -346,11 +389,10 @@ def overlaid(terrain, overlay):
 
 def crater_growth_overlay():
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    limit = seam_mask(SEAMS["crater-growth"], 60) > 0.999
     for (x, y), seed in zip(((90, 200), (380, 470), (150, 820)), (751, 752, 753)):
         for dy in (-H, 0, H):
-            roots(img, (x, y + dy), seed, 5, 70, 3.0, limit)
-    return img
+            roots(img, (x, y + dy), seed, 5, 70, 3.0)
+    return assert_clear(img, SEAMS["crater-growth"], "crater-growth roots")
 
 
 def rail_overlay():
@@ -431,7 +473,7 @@ def ground_group(caps_placed):
 
 def rille_floor(w, h):
     """The rille floor far below the rims: rubble in the wall's shadow, lit only by earthshine."""
-    hgt = raster.fbm(w, h, 60, 761, octaves=4) * 0.4
+    hgt = pfbm(w, h, 60, 761, octaves=4) * 0.4
     rng = np.random.default_rng(762)
     for _ in range(60):
         hgt += crater(hgt, rng.uniform(0, w), rng.uniform(0, h), rng.uniform(2, 7), depth=-0.6)

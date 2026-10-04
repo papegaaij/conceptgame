@@ -1,0 +1,60 @@
+# Coilwyrm stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+# A segment chain: the head flies the wave's authored path, the body segments and the tail follow its
+# path history. Counts as one enemy (density, kill ratio); the segments pay bounty only.
+name: Coilwyrm
+faction: Vrell
+layer: air
+tier: large       # ≈ 330 px along its path
+size: [58, 58]    # the head's sprite px
+hitbox: [41, 41]  # the head's: 70 % of the sprite
+parts: multi
+part_list:  # offset 0: head and tail are placed on the path history, not at a fixed offset
+  - {name: head, offset: [0, 0], hitbox: [41, 41], hp: 40, kind: vital, bounty: 40, attack: head-fan, multiplier: 2}
+  - {name: tail, offset: [0, 0], hitbox: [28, 28], hp: 10, kind: destroyable, bounty: 10, first_bonus: 10}   # first_bonus: credits when destroyed before any other part
+segment_chain:              # the body between head and tail
+  segments: 12
+  size: [54, 27]            # px, the first and the last segment's sprite (tapering)
+  hitbox_share: 0.7         # of each segment's sprite
+  spacing: 0.9              # × the segment length, along the head's path history
+  hp: 4
+  bounty: 3
+  contact: small            # contact damage class of segments and tail (the head: its tier)
+  regrow: {seconds: 0.6, speed: 220, hp: 20, bounty: 20}   # once per chain: the rear part's new head
+  pop_interval: 0.06        # s between two pops of the chained death
+orientation: 16 angles
+hp: 98              # the parts' sum: head 40, 12 segments × 4, tail 10
+armour: none
+speed: 180          # px/s, the head along its path
+movement:
+  path: {speed: 180}        # the head flies the wave's authored path (`swirl`, `loop`, `figure-8`)
+attacks:
+  - pattern: fan
+    name: head-fan
+    bullet: small
+    interval: 2.0
+    count: 3
+    spread: 24
+    speed: 160
+    notes:
+      text: 'head: {count}-way `{pattern}` every {interval} s (spread {spread}°, {speed} px/s, `{bullet}` = {damage}); contact damage `{tier}` = {contact_damage} (head) / `small` = 10 (segments, tail)'
+formations:
+  - {name: snake}
+weak_points:
+  - {name: head teal crest, multiplier: 2}
+drops: []
+traits: [piercing, spread, rear]
+bounty: 86          # the parts' sum: head 40, 12 segments × 3, tail 10
+first_level: 6
+difficulty:
+  hard: {segments: 14, regrown_fan_count: 5}
+notes:
+  parts: 'head 58 px (`vital`), 12 body segments 54→27 px (`destroyable`), tail 40 px (`destroyable`, pays a bonus if destroyed first); hitboxes 70 % of the sprite'
+  orientation: per part type (head, segment, tail)
+  hp: head 40, each segment 4, tail 10; whole
+  speed: (regrown chain 220 px/s)
+  movement: 'the head flies an authored `swirl`, `loop` or `figure-8` path from the wave; segments `chain` on the head''s path history at {segment_chain.spacing} × segment length spacing; frequent `loop` + `rear-entry` (edge-warned like every rear entry)'
+  formations: (solo; on hard two chains cross, *pairs crossing*)
+  bounty: '; segment {segment_chain.bounty} each, tail +{part_list.1.first_bonus} if destroyed first: a perfect dismantle pays 96; a head-first kill pays the head only; a regrown head pays {segment_chain.regrow.bounty}'
+  death: 'head: `medium` burst and a chained `small` pop down the body ({segment_chain.pop_interval} s per segment); segments: `tiny` pops'
+  used_in: returns in Act 7 (L44)
+  difficulty: 'hard: 14 segments; the regrown head fires a 5-way fan'

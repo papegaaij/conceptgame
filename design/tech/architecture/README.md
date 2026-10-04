@@ -193,6 +193,24 @@ first entry of a part's model list is the starter (price 0, `start`).
   between units, `edge`; the first at the settle), `exposes` (parts that take no damage before
   this phase) and `bend` (the chains' bend in this phase). During its entrance movement a boss
   takes no damage. `hover: {y}` may be one height instead of `[min, max]`.
+  For the Mantis and the Coilwyrm (M4 part F; flown in Level 06): the attack pattern
+  `laser-sweep` (its `bullet` is the beam's class, damage once per sweep; no `speed`; `aim`
+  `target` centres the sweep on the ship's bearing when the telegraph starts; a `sweep` block
+  with `arc` (°), `duration` (s), `telegraph` (s, the arc shown ahead), `length` and `width` (px));
+  `hover` `edge_x` (px from the side edge it entered by) and `exit: back` (it leaves through that
+  edge); the movement `path` with `speed` (the head flies the wave's authored path); a
+  `segment_chain` block for a chain of segments following the head's path history: `segments`,
+  `size` (the first and last segment's sprite, tapering), `hitbox_share`, `spacing` (× the
+  segment length), `hp` and `bounty` per segment, `contact` (the segments' and tail's contact
+  class), `regrow` (`seconds`, `speed`, `hp`, `bounty`: the rear part's new head after a cut,
+  once per chain) and `pop_interval` (s per segment of the chained death); the unit's `hp` and
+  `bounty` include the segments; a part's `first_bonus` (credits when it is destroyed before the
+  vital part; the tail) and the difficulty hooks `sweep_arc`, `segments` and
+  `regrown_fan_count`. A segment chain counts as one enemy (density, kill ratio): the simulation's
+  unit is its head (the vital part's HP and bounty), its segments, tail and regrown head are kinds
+  of their own (`<slug>-segment`, `-tail`, `-regrown`) that pay their bounty but are not kills; a
+  hard `attacks` change may set an attack's `interval` (authored, so the fire-rate lever does not
+  apply on top); `hover` `seconds` may be one time instead of `[min, max]`.
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`, optional
@@ -208,7 +226,13 @@ first entry of a part's model list is the starter (price 0, `start`).
   `left`/`right`/`alternating` (`sides` without an edge enters from both side edges), optional
   `hold`, `warning`, `break_group`, `speed` (px/s instead of the enemy's own), `interval` (s
   between the units of a stream), `at` (a whirl cluster's release point `[x, y]`, y below the top
-  edge), and `easy` / `hard` changes; a walker wave's `paths`, one list of
+  edge), and `easy` / `hard` changes (`from`, `edge`, `count`, `break_group`, `warning`); a
+  segment chain's `paths` (one list of `[x, y]` points per unit, y below the top edge, starting
+  outside the play field; with one path every second unit flies it mirrored) and optional
+  `loop_back` (`after`: s past the path's end, off the screen, until the head re-enters;
+  `path`: its points, shifted sideways to start at the head's x; without one straight up from
+  the bottom edge; the bottom edge is warned the wave's `warning` ahead, at least 3 s); a walker
+  wave's `paths`, one list of
   `[x, y]` points per unit in screen coordinates at the wave's `t` (y below the top edge, points
   may lie outside the play field), which then scroll with the ground; a `pincer` with one path
   mirrors it for every second unit, other walker formations repeat it 1.5 s apart), a mixed wave
@@ -224,11 +248,19 @@ first entry of a part's model list is the starter (price 0, `start`).
   `leave_out_large` (every n-th large chunk) and `hard` `drift_factor`); `ground_targets` (`target`, `section`, `layer`, `size`, `at` (one `[t, x]` per object:
   when it enters at the top edge and its x), a destructible's `count`, `hp`, `bounty`, `drop`, an
   optional `bonus_drop` with it (a special charge drops only with a special fitted), `hardened`, an
-  optional `reveals` (its hidden crate drops when it is destroyed), an optional `sprite` (its sprite
+  optional `reveals` (its hidden crate drops when it is destroyed), `dark: true` (a trigger that
+  takes hits only while the headlight or a flare lights it), an optional `sprite` (its sprite
   set: `<sprite>_0..2` intact, damaged, wrecked and `<sprite>-break_<n>`; Level 01's
   `cargo-container`, without a wreck, if left out), or
   a trigger's `hits`, `reveals` (triggers revealing the same secret reveal it together, when the
-  last of them is spent)); `secrets` (`name`, hidden `crate` credits, `radio` line); placed
+  last of them is spent)); `secrets` (`name`, hidden `crate` credits, `radio` line; or a
+  `data_core` with the shop item it `unlocks` and `crate: 0`: it drops the data core pickup, its
+  line plays when it is collected, and a won level records the core and its unlock); a dark
+  level's `darkness` (`headlight`: `from` s, `length` px, an `easy` length, `angle` °; `flare`:
+  `seconds` (`easy_seconds`) a flare burns, its pool's `radius` px and `drift` px/s down the
+  screen; `flares`: `t`, `x`, `y` (px below the top edge) and an optional `skip` list of
+  difficulties; `lights`: static ground pools with `t` (entering at the top edge), `x` and
+  `radius`; `ambient`: the ground's brightness outside light, 0 to 1); placed
   `pickups` (`pickup`, `dropped_by` wave and unit `first`/`second`/`last`, or a ground-target
   `group` and unit `last`: dropped where the group's last unit dies when it is cleared); `radio` cues (trigger
   `t` or `event` `first-kill` or `enemy-escaped` (with `enemy`; a set piece escapes at the end of
@@ -320,7 +352,9 @@ first entry of a part's model list is the starter (price 0, `start`).
   optional `free_charges` (given once at the unlock), and the `airstrike` block: `delay`, `offset`,
   `speed`, `bomber_size`, `bomb_spacing`, `fall`, `blast_radius`, `damage` (`ground`, `air` per
   blast), `cap` (`ground`, `air`, `boss_part` per strike) and the call's `radio` (`speaker`,
-  `portrait`, `line`)). Each model also has `name`, `price` and `available`.
+  `portrait`, `line`), and the `smart_bomb` block: `flash` (`seconds` held at `opacity`, then
+  `fade` s), `ring` (s to cover the play field), `damage` (`all`, `boss_part`), `invulnerable` and
+  `repeat` (s)). Each model also has `name`, `price` and `available`.
 - **Player** (`player/data.yaml`): `availability`, `pickup_seconds`, `pickup_drift_speed`, `pickups` (salvage
   credits, overdrive `levels` and `seconds`, shield cell `shield_percent`, armour patch
   `armour`, special charge `charges`, data core). Levels name pickups as `small salvage`,
@@ -738,3 +772,25 @@ Screenshot tests are left out until there is a need.
   ground units, destructibles' bounties, bursts and shot mines × credit factor × scale with one
   rounding, half to even. The economy's `typical_player` shares (`EconomyData.TypicalPlayer`)
   drive the typical haul in the credit-budget tables and the content test helper `TypicalHaul`.
+- 2026-10-04: M4 part F step 2, Level 06's mechanics (main-agent brief; code choices): a segment
+  chain is a pooled `Chain` (fixed arrays: a 512-point path history with arc lengths) whose
+  members are ordinary pooled `Enemy` units in the `CHAIN` phase with their own hit boxes
+  (`Enemy.hitbox()`, which every hit test now reads); the chain's head point flies the wave's
+  `FlightPath` and its loop-back (`Spawn.Loop`, warned on the bottom edge by `WaveSchedule`), the
+  members sit on the history at their offsets. A cut of an uncut wave's chain moves the rear
+  members to a new chain that holds 0.6 s while its head grows (the head is made only if a rear
+  member is still alive then, so parts killed together do not regrow) and then lunges straight at
+  where the ship was; any other cut and the head's death pop the members behind it one by one
+  (`CHAIN_POP`, paying nothing). The Mantis's sweep is `EnemySpec.Sweep` on the hovering unit
+  (`SWEEP_TELEGRAPH`, `SWEEP_FIRED`, `SWEEP_HIT`), the beam a thickened segment against the hull
+  (`Hull.touchesSegment`). The darkness (`LevelScript.Darkness`) is deterministic from the clock
+  and the ship: the sim uses only the headlight cone and the flare pools (a `dark` trigger is shut
+  outside them); the game's `FarsideLooks` renders a light map (an FBO cleared to the ambient
+  light, additive pools for the static lights, the headlight cone, the flares and the shots)
+  multiplied over the ground layer and the ground units, then the turrets' and mortars' glows,
+  the flare shells, the sweeps and the Smart Bomb. The Smart Bomb is a second kind of
+  `SpecialSpec` (`SmartBombSpec`); `SpecialSlot.bomb` grows the ring, clears bullets and lobs and
+  deals its damage once per target (the ledger), `Defences.guard` makes the ship invulnerable. A
+  data core is a secret whose trigger drops `PickupType.DATA_CORE`; `LevelResult.dataCores`
+  carries it to `Campaign.complete`, which records the core and its unlock. Every new piece of
+  state is hashed only where it exists, so Levels 01–05 replay with their hashes.

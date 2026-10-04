@@ -25,13 +25,31 @@ public final class Enemy implements Hashed {
         /** Circling its carrier as an escort, or about to break off once the carrier ended. */
         ESCORT,
         /** A walker on its ground path. */
-        WALK
+        WALK,
+        /** A member of a segment chain, placed by its {@link Chain}. */
+        CHAIN
     }
 
     /** A walker is at a waypoint this close to it and heads for the next. */
     private static final double ARRIVED = 6;
 
     private EnemySpec spec;
+    /** Its hit box: its stat block's, or a chain member's own (the segments taper). */
+    private Hitbox box;
+    /** The chain it is a member of; null for any other unit (the link is hashed only with one). */
+    private Chain chain;
+    /** Its place in its chain: 0 the head. */
+    private int link;
+
+    /** A sweep's state (design/enemies/air/mantis): steps to the next telegraph, -1 when none comes. */
+    private int sweepWait;
+    /** Steps into the current telegraph and sweep; -1 while none runs. */
+    private int sweepTicks;
+    /** The sweep's centre: radians clockwise from straight down. */
+    private double sweepCentre;
+    /** Whether the current sweep hit the ship. */
+    private boolean sweepHit;
+
     private int kind;
     private int serial;
     /** The ground group it belongs to (a dock of Level 02); -1 for none. */
@@ -119,6 +137,7 @@ public final class Enemy implements Hashed {
         diveFired = false;
         diveShot = false;
         spec = plan.enemy();
+        box = spec.hitbox();
         kind = plan.kind();
         path = plan.path();
         segment = 0;
@@ -178,6 +197,12 @@ public final class Enemy implements Hashed {
 
     /** The fields of Level 04's spawners, escorts and walkers back to a plain unit's. */
     private void clearLevel04() {
+        chain = null;
+        link = 0;
+        sweepWait = -1;
+        sweepTicks = -1;
+        sweepCentre = 0;
+        sweepHit = false;
         broodTicks = -1;
         escort = false;
         carrier = null;
@@ -223,6 +248,7 @@ public final class Enemy implements Hashed {
     void hatch(EnemySpec enemySpec, int enemyKind, double atX, double atY, double velX, double velY, int unitSerial) {
         clearLevel04();
         spec = enemySpec;
+        box = spec.hitbox();
         kind = enemyKind;
         serial = unitSerial;
         group = -1;
@@ -260,12 +286,13 @@ public final class Enemy implements Hashed {
     void root(EnemySpec enemySpec, int enemyKind, double atX, int unitSerial, int inGroup) {
         clearLevel04();
         spec = enemySpec;
+        box = spec.hitbox();
         kind = enemyKind;
         serial = unitSerial;
         group = inGroup;
         phase = Phase.GROUND;
         x = prevX = atX;
-        y = prevY = PlayField.HEIGHT + spec.hitbox().height() / 2;
+        y = prevY = PlayField.HEIGHT + box.height() / 2;
         hp = spec.hp();
         aim = 0;
         facing = 0;
@@ -292,6 +319,10 @@ public final class Enemy implements Hashed {
      * {@code aimY}): the ship, or the convoy unit the target-the-objective hook chose this step.
      */
     boolean move(double shipX, double shipY, double groundScroll, double aimX, double aimY) {
+        if (phase == Phase.CHAIN) {
+            // Its chain placed it this step already.
+            return true;
+        }
         prevX = x;
         prevY = y;
         switch (phase) {
@@ -302,15 +333,15 @@ public final class Enemy implements Hashed {
             case GROUND -> {
                 y -= groundScroll;
                 track(aimX, aimY);
-                return y + spec.hitbox().height() / 2 > 0;
+                return y + box.height() / 2 > 0;
             }
             case WALK -> {
                 y -= groundScroll;
                 scrolled += groundScroll;
                 walk();
-                boolean on = PlayField.overlaps(x, y, spec.hitbox());
+                boolean on = PlayField.overlaps(x, y, box);
                 entered |= on;
-                return on || (!entered && y + spec.hitbox().height() / 2 > 0);
+                return on || (!entered && y + box.height() / 2 > 0);
             }
             case ESCORT -> {
                 if (carrier != null) {
@@ -345,6 +376,9 @@ public final class Enemy implements Hashed {
                 if (orbit.isPresent()) {
                     circle(orbit.get());
                 }
+                if (spec.sweep().isPresent()) {
+                    sweep(shipX, shipY);
+                }
                 if (--holdTicks <= 0) {
                     leave(shipX, shipY);
                 }
@@ -362,7 +396,7 @@ public final class Enemy implements Hashed {
                         diveShot = true;
                     }
                 }
-                return PlayField.overlaps(x, y, spec.hitbox());
+                return PlayField.overlaps(x, y, box);
             }
         }
         turn();
@@ -457,7 +491,7 @@ public final class Enemy implements Hashed {
      * when it is ready and the ship at (shipX, shipY) is more than its away angle off its facing.
      */
     boolean spit(double shipX, double shipY) {
-        if (walkPath == null || !PlayField.overlaps(x, y, spec.hitbox())) {
+        if (walkPath == null || !PlayField.overlaps(x, y, box)) {
             return false;
         }
         EnemySpec.Walker walker = spec.walker().orElseThrow();
@@ -508,7 +542,7 @@ public final class Enemy implements Hashed {
         if (ricochetsLeft == 0) {
             return;
         }
-        double half = spec.hitbox().width() / 2;
+        double half = box.width() / 2;
         if ((x < half && vx < 0) || (x > PlayField.WIDTH - half && vx > 0)) {
             vx = -vx;
             ricochetsLeft--;
@@ -522,7 +556,7 @@ public final class Enemy implements Hashed {
      */
     private void track(double shipX, double shipY) {
         inArc = false;
-        if (spec.gun().isEmpty() || !PlayField.overlaps(x, y, spec.hitbox())) {
+        if (spec.gun().isEmpty() || !PlayField.overlaps(x, y, box)) {
             return;
         }
         EnemyGun gun = spec.gun().get();
@@ -558,6 +592,9 @@ public final class Enemy implements Hashed {
         angle = orbit.isPresent() ? orbit.get().angle() : 0;
         // + 1: the gun already counts down in the step the unit stops, which is step 0 of the delay.
         volleyTicks = spec.gun().isPresent() ? SimStep.ticks(spec.gun().get().firstShotDelay()) + 1 : 0;
+        if (spec.sweep().isPresent()) {
+            sweepWait = SimStep.ticks(spec.sweep().get().firstDelaySeconds());
+        }
     }
 
     private void circle(Spawn.Orbit circle) {
@@ -588,9 +625,17 @@ public final class Enemy implements Hashed {
      * it fires a shot this step. A diver fires once, in its dive.
      */
     boolean trigger() {
+        if (phase == Phase.CHAIN) {
+            // A chain's head fires its fan while it is on the screen.
+            if (spec.gun().isEmpty() || !PlayField.overlaps(x, y, box) || --volleyTicks > 0) {
+                return false;
+            }
+            volleyTicks = SimStep.ticks(spec.gun().get().intervalSeconds());
+            return true;
+        }
         if (phase == Phase.WALK) {
             // A walker's fan, along its facing, while it is on the screen.
-            if (spec.gun().isEmpty() || !PlayField.overlaps(x, y, spec.hitbox()) || --volleyTicks > 0) {
+            if (spec.gun().isEmpty() || !PlayField.overlaps(x, y, box) || --volleyTicks > 0) {
                 return false;
             }
             volleyTicks = SimStep.ticks(spec.gun().get().intervalSeconds());
@@ -598,7 +643,7 @@ public final class Enemy implements Hashed {
         }
         if (spec.gun().isPresent() && spec.gun().get().mine().isPresent()) {
             // A mine layer drops a spore at its interval wherever it flies on the screen.
-            if (phase == Phase.GROUND || !PlayField.overlaps(x, y, spec.hitbox()) || --volleyTicks > 0) {
+            if (phase == Phase.GROUND || !PlayField.overlaps(x, y, box) || --volleyTicks > 0) {
                 return false;
             }
             volleyTicks = SimStep.ticks(spec.gun().get().intervalSeconds());
@@ -684,6 +729,12 @@ public final class Enemy implements Hashed {
         if (escort) {
             hash.add(breakTicks).add(centreX).add(centreY).add(carrier == null ? -1 : carrier.serial);
         }
+        if (chain != null) {
+            hash.add(chain.serial()).add(link);
+        }
+        if (spec.sweep().isPresent()) {
+            hash.add(sweepWait).add(sweepTicks).add(sweepCentre).add(sweepHit ? 1 : 0);
+        }
         if (walkPath != null) {
             hash.add(facing)
                     .add(walked)
@@ -765,5 +816,175 @@ public final class Enemy implements Hashed {
     /** Position between the previous and the current step; {@code alpha} in [0, 1]. */
     public double renderY(double alpha) {
         return prevY + (y - prevY) * alpha;
+    }
+
+    /**
+     * One step of a laser sweep while it hovers (design/enemies/air/mantis): the wait for the next
+     * telegraph runs; a telegraph starts only if its sweep ends before the hover does, and fixes the
+     * sweep's centre on the ship's bearing, clamped between straight inward and straight down.
+     */
+    private void sweep(double shipX, double shipY) {
+        EnemySpec.Sweep sweep = spec.sweep().orElseThrow();
+        int telegraph = SimStep.ticks(sweep.telegraphSeconds());
+        int total = telegraph + SimStep.ticks(sweep.sweepSeconds());
+        if (sweepTicks >= 0 && ++sweepTicks >= total) {
+            sweepTicks = -1;
+        }
+        if (sweepWait < 0 || --sweepWait > 0) {
+            return;
+        }
+        if (holdTicks < total) {
+            sweepWait = -1;
+            return;
+        }
+        boolean left = x < PlayField.WIDTH / 2.0;
+        double inward = left ? -StrictMath.PI / 2 : StrictMath.PI / 2;
+        double bearing = heading(shipX - x, shipY - y);
+        sweepCentre = left ? Math.clamp(bearing, inward, 0) : Math.clamp(bearing, 0, inward);
+        sweepTicks = 0;
+        sweepHit = false;
+        sweepWait = SimStep.ticks(sweep.intervalSeconds());
+    }
+
+    /** Whether its sweep is in its telegraph now. */
+    public boolean telegraphing() {
+        return sweepTicks >= 0
+                && sweepTicks < SimStep.ticks(spec.sweep().orElseThrow().telegraphSeconds());
+    }
+
+    /** Whether its beam is sweeping now. */
+    public boolean sweeping() {
+        return sweepTicks >= 0 && !telegraphing();
+    }
+
+    /** Whether the sweep just entered its beam this step (for its sound). */
+    boolean sweepStarted() {
+        return sweepTicks == SimStep.ticks(spec.sweep().orElseThrow().telegraphSeconds());
+    }
+
+    /** Whether the sweep's telegraph just started this step (for its sound). */
+    boolean telegraphStarted() {
+        return sweepTicks == 0;
+    }
+
+    /** The sweep's centre, radians clockwise from straight down. */
+    public double sweepCentre() {
+        return sweepCentre;
+    }
+
+    /** The sweep's first edge: from straight inward's side, radians clockwise from straight down. */
+    public double sweepFrom() {
+        double half = spec.sweep().orElseThrow().arcRadians() / 2;
+        return x < PlayField.WIDTH / 2.0 ? sweepCentre - half : sweepCentre + half;
+    }
+
+    /** The sweep's last edge, toward straight down. */
+    public double sweepTo() {
+        double half = spec.sweep().orElseThrow().arcRadians() / 2;
+        return x < PlayField.WIDTH / 2.0 ? sweepCentre + half : sweepCentre - half;
+    }
+
+    /**
+     * The beam's heading now, radians clockwise from straight down, moving evenly from
+     * {@link #sweepFrom()} to {@link #sweepTo()} over the sweep; {@code alpha} interpolates between steps.
+     */
+    public double beam(double alpha) {
+        EnemySpec.Sweep sweep = spec.sweep().orElseThrow();
+        int telegraph = SimStep.ticks(sweep.telegraphSeconds());
+        double into = Math.max(0, sweepTicks - telegraph + alpha) / SimStep.ticks(sweep.sweepSeconds());
+        return sweepFrom() + (sweepTo() - sweepFrom()) * Math.min(1, into);
+    }
+
+    /** Whether the current sweep hit the ship already. */
+    boolean sweepHit() {
+        return sweepHit;
+    }
+
+    void markSweepHit() {
+        sweepHit = true;
+    }
+
+    /** Its hit box: its stat block's, or a chain member's own. */
+    public Hitbox hitbox() {
+        return box;
+    }
+
+    /**
+     * Links it into {@code into} as member {@code index} at (atX, atY), facing {@code heading}: a
+     * chain's head, segment or tail with its own hit box. A head's gun waits its first-shot delay.
+     */
+    void link(
+            Chain into,
+            int index,
+            EnemySpec memberSpec,
+            int memberKind,
+            Hitbox memberBox,
+            int unitSerial,
+            double atX,
+            double atY,
+            double heading) {
+        clearLevel04();
+        chain = into;
+        link = index;
+        spec = memberSpec;
+        box = memberBox;
+        kind = memberKind;
+        serial = unitSerial;
+        group = -1;
+        aim = 0;
+        inArc = false;
+        diveTicks = 0;
+        diveFired = false;
+        diveShot = false;
+        segment = 0;
+        distance = 0;
+        speed = 0;
+        phase = Phase.CHAIN;
+        holdTicks = 0;
+        orbit = Optional.empty();
+        exit = Spawn.Exit.DOWN;
+        hp = spec.hp();
+        volleyTicks = spec.gun().isPresent() ? SimStep.ticks(spec.gun().get().firstShotDelay()) + 1 : 0;
+        burstLeft = 0;
+        burstTicks = 0;
+        leadsTarget = false;
+        carried = Optional.empty();
+        spiralTicks = 0;
+        ricochetsLeft = 0;
+        vx = 0;
+        vy = 0;
+        x = prevX = atX;
+        y = prevY = atY;
+        facing = heading;
+    }
+
+    /** It carries {@code pickup}, dropped when it is destroyed (a chain's head carries its wave's). */
+    void carry(Optional<PickupType> pickup) {
+        carried = pickup;
+    }
+
+    /** Its chain moved it to (atX, atY), facing {@code heading}. */
+    void chainTo(double atX, double atY, double heading) {
+        prevX = x;
+        prevY = y;
+        x = atX;
+        y = atY;
+        facing = heading;
+    }
+
+    /** Moves it to another chain as member {@code index} (the rear part of a cut). */
+    void relink(Chain into, int index) {
+        chain = into;
+        link = index;
+    }
+
+    /** The chain it is a member of; null for other units. */
+    public Chain chain() {
+        return chain;
+    }
+
+    /** Its place in its chain, 0 the head. */
+    public int link() {
+        return link;
     }
 }

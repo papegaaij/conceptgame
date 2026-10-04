@@ -28,6 +28,18 @@ public final class SpecialSlot {
 
     private final SpecialSpec spec;
     private final AirstrikeSpec airstrike;
+    /** The Smart Bomb's numbers; null for an Airstrike or no special. */
+    private final SmartBombSpec smartBomb;
+    /** The ship's defences, which a Smart Bomb guards; null without one. */
+    private final Defences defences;
+
+    private final int ringTicks;
+    private final int repeatTicks;
+    private double bombX;
+    private double bombY;
+    /** The ring's radius when it covers the whole play field from the bomb's centre. */
+    private double ringReach;
+
     private final SimEvents events;
     private final Pool<AirstrikeBomb> bombs;
     private final int bufferTicks;
@@ -59,8 +71,17 @@ public final class SpecialSlot {
     private int ledgerSize;
 
     SpecialSlot(Optional<SpecialSpec> fitted, SimEvents events) {
+        this(fitted, events, null);
+    }
+
+    /** @param defences the ship's, which a Smart Bomb guards */
+    SpecialSlot(Optional<SpecialSpec> fitted, SimEvents events, Defences defences) {
         spec = fitted.orElse(null);
         airstrike = spec == null ? null : spec.airstrike();
+        smartBomb = spec == null ? null : spec.smartBomb();
+        this.defences = defences;
+        ringTicks = smartBomb == null ? 0 : Math.max(1, SimStep.ticks(smartBomb.ringSeconds()));
+        repeatTicks = smartBomb == null ? 0 : Math.max(1, SimStep.ticks(smartBomb.repeatSeconds()));
         this.events = events;
         int capacity = airstrike == null ? 0 : BOMBERS * ((int) (PlayField.HEIGHT / airstrike.bombSpacing()) + 1);
         bombs = new Pool<>(capacity, AirstrikeBomb::new, AirstrikeBomb[]::new);
@@ -89,6 +110,9 @@ public final class SpecialSlot {
         bombersIn = false;
         ledgerSize = 0;
         blasts = 0;
+        bombX = 0;
+        bombY = 0;
+        ringReach = 0;
         Pools.clear(bombs);
     }
 
@@ -128,6 +152,136 @@ public final class SpecialSlot {
         sinceCall = 0;
         callX = shipX;
         events.add(SimEvents.Type.SPECIAL_CALLED, shipX, shipY);
+        if (smartBomb != null) {
+            bombX = shipX;
+            bombY = shipY;
+            double dx = Math.max(shipX, PlayField.WIDTH - shipX);
+            double dy = Math.max(shipY, PlayField.HEIGHT - shipY);
+            ringReach = Math.sqrt(dx * dx + dy * dy);
+            ledgerSize = 0;
+            if (defences != null) {
+                defences.guard(SimStep.ticks(smartBomb.invulnerableSeconds()));
+            }
+            events.add(SimEvents.Type.SMART_BOMB, shipX, shipY);
+        }
+    }
+
+    /**
+     * One step of a Smart Bomb: its ring grows; at once every enemy bullet (and mortar blob) goes,
+     * then those the ring passes; every enemy and boss part on the screen the ring reaches takes its
+     * damage once. It is busy until its repeat time has passed.
+     */
+    void bomb(
+            Pool<Enemy> enemies,
+            SetPiece[] setPieces,
+            PlayerFire.Hits hits,
+            Pool<EnemyBullet> bullets,
+            Pool<Lob> lobs) {
+        if (smartBomb == null || sinceCall < 0) {
+            return;
+        }
+        sinceCall++;
+        if (sinceCall > repeatTicks) {
+            sinceCall = -1;
+            return;
+        }
+        if (sinceCall > ringTicks) {
+            return;
+        }
+        double radius = ringRadius();
+        for (int i = bullets.size() - 1; i >= 0; i--) {
+            EnemyBullet bullet = bullets.get(i);
+            if (sinceCall == 1 || within(bullet.x(), bullet.y(), radius)) {
+                bullets.free(i);
+            }
+        }
+        for (int i = lobs.size() - 1; i >= 0; i--) {
+            lobs.free(i);
+        }
+        for (int j = enemies.size() - 1; j >= 0; j--) {
+            Enemy enemy = enemies.get(j);
+            if (!PlayerFire.onField(enemy) || !within(enemy.x(), enemy.y(), radius)) {
+                continue;
+            }
+            if (strike(2 * enemy.serial()) && enemy.damage(smartBomb.damage(), true)) {
+                hits.enemyDestroyed(j);
+            }
+        }
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
+            for (int p = 0; p < piece.partCount() && piece.present(); p++) {
+                Hitbox box = piece.spec().parts().get(p).box();
+                double px = piece.partX(p);
+                double py = piece.partY(p);
+                if (piece.partWrecked(p)
+                        || piece.partShielded(p)
+                        || !PlayField.overlaps(px, py, box)
+                        || !within(px, py, radius)) {
+                    continue;
+                }
+                if (strike(-1 - k * LevelScript.SetPieceSpec.MAX_PARTS - p)
+                        && piece.damagePart(p, smartBomb.bossPartDamage())) {
+                    hits.partDestroyed(k, p);
+                }
+            }
+        }
+    }
+
+    private boolean within(double x, double y, double radius) {
+        double dx = x - bombX;
+        double dy = y - bombY;
+        return dx * dx + dy * dy <= radius * radius;
+    }
+
+    /** Records a strike on the target with {@code key}; false when the bomb struck it already (or the ledger is full). */
+    private boolean strike(int key) {
+        for (int entry = 0; entry < ledgerSize; entry++) {
+            if (ledgerKeys[entry] == key) {
+                return false;
+            }
+        }
+        if (ledgerSize == LEDGER_CAPACITY) {
+            return false;
+        }
+        ledgerKeys[ledgerSize] = key;
+        ledgerDealt[ledgerSize] = smartBomb.damage();
+        ledgerSize++;
+        return true;
+    }
+
+    /** The Smart Bomb ring's radius now; 0 when none expands. */
+    public double ringRadius() {
+        if (smartBomb == null || sinceCall < 0 || sinceCall > ringTicks) {
+            return 0;
+        }
+        return ringReach * sinceCall / ringTicks;
+    }
+
+    /** The ring's radius between the last step and this one; {@code alpha} in [0, 1]. */
+    public double ringRadius(double alpha) {
+        if (smartBomb == null || sinceCall < 0 || sinceCall > ringTicks) {
+            return 0;
+        }
+        return ringReach * Math.max(0, sinceCall - 1 + alpha) / ringTicks;
+    }
+
+    /** Seconds since the last Smart Bomb went off, while it is busy; negative when none is. */
+    public double bombSeconds(double alpha) {
+        return smartBomb == null || sinceCall < 0 ? -1 : (sinceCall - 1 + alpha) * SimStep.SECONDS;
+    }
+
+    /** The Smart Bomb's centre: the ship's position when it went off. */
+    public double bombX() {
+        return bombX;
+    }
+
+    public double bombY() {
+        return bombY;
+    }
+
+    /** The Smart Bomb's numbers; null when the fitted special is none. */
+    public SmartBombSpec smartBomb() {
+        return smartBomb;
     }
 
     /**
@@ -212,7 +366,7 @@ public final class SpecialSlot {
             Layer layer = spec.layer();
             if (layer == Layer.HIGH_AIR
                     || !PlayerFire.onField(enemy)
-                    || !PlayerFire.inBlast(x, y, radius, enemy.x(), enemy.y(), spec.hitbox())) {
+                    || !PlayerFire.inBlast(x, y, radius, enemy.x(), enemy.y(), enemy.hitbox())) {
                 continue;
             }
             double amount = deal(2 * enemy.serial(), layer);
@@ -301,6 +455,9 @@ public final class SpecialSlot {
     void addTo(StateHash hash) {
         if (spec == null) {
             return;
+        }
+        if (smartBomb != null) {
+            hash.add(bombX).add(bombY).add(ringReach);
         }
         hash.add(charges)
                 .add(used)

@@ -17,5 +17,7 @@ public enum PickupType {
     /** +credits (salvage large): a set piece's death drop. */
     LARGE_SALVAGE,
     /** +1 charge of the fitted special, up to its most; only dropped when a special is fitted. */
-    SPECIAL_CHARGE
+    SPECIAL_CHARGE,
+    /** A data core: a lore entry that unlocks one shop item early (design/systems/economy); no credits. */
+    DATA_CORE
 }

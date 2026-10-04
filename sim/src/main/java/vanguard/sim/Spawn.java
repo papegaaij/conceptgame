@@ -18,6 +18,7 @@ import java.util.Optional;
  * @param release where a whirl cluster's unit spirals out from, instead of flying its path
  * @param escort how an escort circles its carrier (the unit of a spawner planned just before it)
  * @param walk a walker's ground path, instead of its flight path
+ * @param loop a segment chain's loop-back: the head re-enters on this second path after a gap
  */
 record Spawn(
         int tick,
@@ -32,7 +33,54 @@ record Spawn(
         Optional<PickupType> carried,
         Optional<Release> release,
         Optional<Escort> escort,
-        Optional<WalkPath> walk) {
+        Optional<WalkPath> walk,
+        Optional<Loop> loop) {
+
+    Spawn(
+            int tick,
+            int kind,
+            EnemySpec enemy,
+            FlightPath path,
+            double speed,
+            double holdSeconds,
+            Optional<Orbit> orbit,
+            Exit exit,
+            boolean leadsTarget,
+            Optional<PickupType> carried,
+            Optional<Release> release,
+            Optional<Escort> escort,
+            Optional<WalkPath> walk) {
+        this(
+                tick,
+                kind,
+                enemy,
+                path,
+                speed,
+                holdSeconds,
+                orbit,
+                exit,
+                leadsTarget,
+                carried,
+                release,
+                escort,
+                walk,
+                Optional.empty());
+    }
+
+    /**
+     * A chain's loop-back (design/enemies/air/coilwyrm): {@code gapSeconds} after its head left the
+     * first path's end it re-enters on {@code path} (from below the bottom edge at the head's x),
+     * the bottom edge warned {@code warningSeconds} ahead.
+     */
+    record Loop(FlightPath path, double gapSeconds, double warningSeconds) {}
+
+    /** The level step a loop-back re-enters at: the first path flown, then the gap; -1 without one. */
+    int reentryTick() {
+        if (loop.isEmpty()) {
+            return -1;
+        }
+        return tick + SimStep.ticks(path.length() / speed + loop.get().gapSeconds());
+    }
 
     Spawn(
             int tick,

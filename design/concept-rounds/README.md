@@ -40,7 +40,7 @@ they belong to; a round only collects them.
 | [round-19](round-19/README.md) | Casting the generic radio speakers of Act 1: two LibriVox reference voices each, through Chatterbox and filter b | approved | n/a | chosen |
 | [round-20](round-20/README.md) | M4 briefing images: the four images of Levels 03 and 04, one per briefing page | approved | n/a | chosen |
 | [round-21](round-21/README.md) | M4 part E: Level 05's Gorgon Frigate, Polyp Mortar and its death, sled, prop and sound concepts, briefing images, Driver Control audition, capture and part E numbers | approved | n/a | chosen |
-| [round-22](round-22/README.md) | Level 05's own backdrop: the crater rims, battery patches, arena floor and burning nest | review | n/a | proposed |
+| [round-22](round-22/README.md) | Level 05's own backdrop: the crater rims, battery patches, arena floor and burning nest | approved | n/a | chosen |
 
 ## Design
 
@@ -82,4 +82,4 @@ How a round works:
 | 19 | 2026-10-03 | closed | Casting the generic radio speakers of Act 1 (Chatterbox, filter b): one reader per speaker |
 | 20 | 2026-10-03 | closed | M4 briefing images: Levels 03 and 04, one per briefing page |
 | 21 | 2026-10-04 | closed | M4 part E: Level 05 production art, prop and sound concepts, Driver Control audition |
-| 22 | 2026-10-04 | open | Level 05 backdrop (final art review) |
+| 22 | 2026-10-04 | closed | Level 05 backdrop (final art review) |

@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../art-direction, ../systems]
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 # User interface
@@ -28,6 +28,7 @@ frames and chunky bitmap fonts.
 | [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | approved | in-progress | final |
 | [pause](pause/README.md) | Pause menu during a level | approved | done | final |
 | [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | done | final |
+| [mission-select](mission-select/README.md) | Replay a flown mission: the act-by-act list with best grades, later missions locked | review | done | n/a |
 | [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | approved | in-progress | n/a |
 | [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | done | final |
 | [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | approved | not-started | chosen |
@@ -40,10 +41,12 @@ frames and chunky bitmap fonts.
 Title ─► Main menu ─┬─ Continue ─────────────► Hangar
                     ├─ New game ─► Difficulty ─► Intro briefing ─► Hangar
                     ├─ Load game ─► Slot list ─► Hangar
+                    ├─ Missions ─► Mission select ─► Level (replay) ─► Debrief ─► Mission select
                     ├─ Options
                     ├─ Credits
                     └─ Quit
 Hangar ─► Launch ─► Level ─► Debrief ─► Briefing ─► Hangar ─► …
+Briefing ─► Back ─► Quit to main menu? ─► Main menu                 (the campaign kept)
 Level ─► Pause ─► Resume / Restart / Options / Abort to hangar / Quit
 Level ─► Mission failed ─► Retry / Back to hangar / Quit      (hard, no retry left: Game over ─► Main menu)
 ```

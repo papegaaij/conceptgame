@@ -36,7 +36,8 @@ public record EnemyData(
         int firstLevel,
         Optional<Hooks> difficulty,
         Optional<List<ChainData>> chains,
-        Optional<BossData> boss) {
+        Optional<BossData> boss,
+        Optional<SegmentChain> segmentChain) {
     public EnemyData {
         Layers.of(layer);
         Check.positive("hp", hp);
@@ -76,7 +77,68 @@ public record EnemyData(
             Optional<SpiralOut> spiralOut,
             Optional<Drift> drift,
             Optional<Sine> sine,
-            Optional<Walk> walk) {}
+            Optional<Walk> walk,
+            Optional<PathMove> path) {}
+
+    /** Part F: the head of a segment chain flies the wave's authored path at {@code speed} px/s. */
+    public record PathMove(double speed) {
+        public PathMove {
+            Check.positive("speed", speed);
+        }
+    }
+
+    /**
+     * Part F: the body of a segment chain (the Coilwyrm) between its head and its tail, following
+     * the head's path history: {@code segments} segments whose sprites taper from {@code size[0]}
+     * to {@code size[1]} px, hit boxes {@code hitboxShare} of the sprite, {@code spacing} × the
+     * segment length apart, each with {@code hp} and paying {@code bounty}; {@code contact} the
+     * contact class of the segments and the tail; {@code regrow} the rear part's new head after a
+     * cut (once per chain); {@code popInterval} s per segment of the chained death.
+     */
+    public record SegmentChain(
+            int segments,
+            List<Double> size,
+            double hitboxShare,
+            double spacing,
+            double hp,
+            int bounty,
+            Tier contact,
+            Regrow regrow,
+            double popInterval) {
+        public SegmentChain {
+            Check.positive("segments", segments);
+            Check.that(size.size() == 2, "size is [first, last]");
+            Check.positive("hitbox_share", hitboxShare);
+            Check.positive("spacing", spacing);
+            Check.positive("hp", hp);
+            Check.notNegative("bounty", bounty);
+            Check.positive("pop_interval", popInterval);
+        }
+    }
+
+    /** A cut chain's rear part grows a new head over {@code seconds}, flying at {@code speed} px/s. */
+    public record Regrow(double seconds, double speed, double hp, int bounty) {
+        public Regrow {
+            Check.positive("seconds", seconds);
+            Check.positive("speed", speed);
+            Check.positive("hp", hp);
+            Check.notNegative("bounty", bounty);
+        }
+    }
+
+    /**
+     * Part F: a {@code laser-sweep}'s beam, {@code length} × {@code width} px from the eye, sweeping
+     * {@code arc} ° over {@code duration} s after a {@code telegraph} of s.
+     */
+    public record Sweep(double arc, double duration, double telegraph, double length, double width) {
+        public Sweep {
+            Check.positive("arc", arc);
+            Check.positive("duration", duration);
+            Check.notNegative("telegraph", telegraph);
+            Check.positive("length", length);
+            Check.positive("width", width);
+        }
+    }
 
     /** Planned (part D): straight down the screen at {@code speed} px/s, with no intent. Read, not flown yet. */
     public record Drift(double speed) {
@@ -136,8 +198,10 @@ public record EnemyData(
             String kind,
             int bounty,
             Optional<String> attack,
-            Optional<Double> multiplier) {
+            Optional<Double> multiplier,
+            Optional<Integer> firstBonus) {
         public PartData {
+            firstBonus.ifPresent(b -> Check.notNegative("first_bonus", b));
             Check.positive("hp", hp);
             multiplier.ifPresent(m -> Check.positive("multiplier", m));
             Check.that(
@@ -184,20 +248,43 @@ public record EnemyData(
 
     /**
      * Hovers for {@code seconds} at a height of {@code y} px from the top of the play field; without
-     * {@code seconds} it holds until it is killed (a boss).
+     * {@code seconds} it holds until it is killed (a boss). Part F: a unit entering from a side
+     * edge hovers {@code edgeX} px from that edge, and {@code exit} {@code back} leaves through it.
      */
-    public record Hover(Optional<Span> seconds, Span y) {
-        /** {@code y} written as {@code [min, max]} or as one height. */
+    public record Hover(Optional<Span> seconds, Span y, Optional<Double> edgeX, Optional<String> exit) {
+        public Hover {
+            edgeX.ifPresent(x -> Check.notNegative("edge_x", x));
+            exit.ifPresent(e -> Check.that(e.equals("back"), "exit must be back, was '" + e + "'"));
+        }
+
+        /** {@code y} and {@code seconds} written as {@code [min, max]} or as one value. */
         @JsonCreator
         static Hover of(
-                @com.fasterxml.jackson.annotation.JsonProperty("seconds") Optional<Span> seconds,
-                @com.fasterxml.jackson.annotation.JsonProperty("y") tools.jackson.databind.JsonNode y) {
-            Check.that(y != null && (y.isNumber() || (y.isArray() && y.size() == 2)), "y is a height or [min, max]");
+                @com.fasterxml.jackson.annotation.JsonProperty("seconds")
+                        Optional<tools.jackson.databind.JsonNode> seconds,
+                @com.fasterxml.jackson.annotation.JsonProperty("y") tools.jackson.databind.JsonNode y,
+                @com.fasterxml.jackson.annotation.JsonProperty("edge_x") Optional<Double> edgeX,
+                @com.fasterxml.jackson.annotation.JsonProperty("exit") Optional<String> exit) {
+            Check.that(y != null && span(y) != null, "y is a height or [min, max]");
+            Optional<tools.jackson.databind.JsonNode> time = seconds == null
+                    ? Optional.empty()
+                    : seconds.filter(node -> !node.isNull() && !node.isMissingNode());
+            Check.that(time.isEmpty() || span(time.get()) != null, "seconds is a time or [min, max]");
             return new Hover(
-                    seconds == null ? Optional.empty() : seconds,
-                    y.isNumber()
-                            ? new Span(y.doubleValue(), y.doubleValue())
-                            : new Span(y.get(0).doubleValue(), y.get(1).doubleValue()));
+                    time.map(Hover::span),
+                    span(y),
+                    edgeX == null ? Optional.empty() : edgeX,
+                    exit == null ? Optional.empty() : exit);
+        }
+
+        private static Span span(tools.jackson.databind.JsonNode node) {
+            if (node.isNumber()) {
+                return new Span(node.doubleValue(), node.doubleValue());
+            }
+            if (node.isArray() && node.size() == 2) {
+                return new Span(node.get(0).doubleValue(), node.get(1).doubleValue());
+            }
+            return null;
         }
     }
 
@@ -252,8 +339,14 @@ public record EnemyData(
             Optional<Double> burstGap,
             Optional<Boolean> rotate,
             Optional<Integer> arms,
-            Optional<Double> duration) {
+            Optional<Double> duration,
+            Optional<Sweep> sweep) {
         public Attack {
+            Check.that(
+                    pattern.equals("laser-sweep") == sweep.isPresent(), "a laser-sweep has its sweep, the others none");
+            Check.that(
+                    !pattern.equals("laser-sweep") || (bullet.isPresent() && speed.isEmpty()),
+                    "a laser-sweep has a bullet and no speed");
             Check.that(
                     pattern.equals("aimed")
                             || pattern.equals("fan")
@@ -261,8 +354,10 @@ public record EnemyData(
                             || pattern.equals("spawn")
                             || pattern.equals("mortar")
                             || pattern.equals("ring")
-                            || pattern.equals("spiral"),
-                    "pattern must be aimed, fan, mine, spawn, mortar, ring or spiral, was '" + pattern + "'");
+                            || pattern.equals("spiral")
+                            || pattern.equals("laser-sweep"),
+                    "pattern must be aimed, fan, mine, spawn, mortar, ring, spiral or laser-sweep, was '" + pattern
+                            + "'");
             Check.that(pattern.equals("mine") == mine.isPresent(), "a mine attack has its mine, the others none");
             Check.that(
                     pattern.equals("mortar") == mortar.isPresent(), "a mortar attack has its mortar, the others none");
@@ -279,7 +374,8 @@ public record EnemyData(
             Check.that(!pattern.equals("spiral") || turnRate.isPresent(), "a spiral has a turn rate");
             Check.that(pattern.equals("spawn") == spawn.isPresent(), "a spawn attack has its spawn, the others none");
             Check.that(
-                    pattern.equals("spawn") != (bullet.isPresent() && speed.isPresent()),
+                    pattern.equals("laser-sweep")
+                            || pattern.equals("spawn") != (bullet.isPresent() && speed.isPresent()),
                     "an attack has a bullet and a speed, a spawn attack neither");
             Check.that(!pattern.equals("spawn") || interval.isEmpty(), "a spawn attack has no interval");
             aim.ifPresent(a -> Check.that(
@@ -443,7 +539,7 @@ public record EnemyData(
     }
 
     /** A difficulty's change to one named attack. */
-    public record AttackChange(Optional<Integer> burst, Optional<Integer> count) {}
+    public record AttackChange(Optional<Integer> burst, Optional<Integer> count, Optional<Double> interval) {}
 
     /** Overrides of the global difficulty levers. */
     public record Hooks(Optional<Hook> easy, Optional<Hook> hard) {}
@@ -458,7 +554,10 @@ public record EnemyData(
      * @param ring a mine's ring bullets instead
      * @param mineBursts false: mines never burst on their own
      * @param deathBurst the puff of bullets it pops into when destroyed
-     * @param attacks changes per attack name (a boss's {@code burst} or {@code count})
+     * @param attacks changes per attack name (a boss's {@code burst} or {@code count}, an {@code interval})
+     * @param sweepArc a laser sweep's arc instead, °
+     * @param segments a segment chain's segments instead
+     * @param regrownFanCount a regrown head's fan bullets instead
      */
     public record Hook(
             Optional<List<String>> leadsTargetIn,
@@ -470,7 +569,10 @@ public record EnemyData(
             Optional<DeathBurst> deathBurst,
             Optional<Integer> spawnCount,
             Optional<Double> spawnAfter,
-            Optional<java.util.Map<String, AttackChange>> attacks) {}
+            Optional<java.util.Map<String, AttackChange>> attacks,
+            Optional<Double> sweepArc,
+            Optional<Integer> segments,
+            Optional<Integer> regrownFanCount) {}
 
     /** {@code count} bullets of class {@code bullet} in a ring at {@code speed} px/s. */
     public record DeathBurst(int count, double speed, String bullet) {

@@ -49,7 +49,8 @@ public record LevelScript(
         List<String> targets,
         Optional<SledSpec> sled,
         Optional<RockSpec> rocks,
-        List<GroupDrop> groupDrops) {
+        List<GroupDrop> groupDrops,
+        Optional<Darkness> darkness) {
     public LevelScript {
         targets = List.copyOf(targets);
         groupDrops = List.copyOf(groupDrops);
@@ -69,6 +70,139 @@ public record LevelScript(
         }
         if (escort.isPresent() && road.isEmpty()) {
             throw new IllegalArgumentException("a convoy follows the level's road");
+        }
+    }
+
+    /** A level without Level 06's darkness. */
+    public LevelScript(
+            int number,
+            int act,
+            double launchSeconds,
+            List<Section> sections,
+            List<WaveSpec> waves,
+            List<GroundObjectSpec> groundObjects,
+            List<GroundUnit> groundUnits,
+            int secrets,
+            List<RadioCue> radio,
+            Secondary secondary,
+            List<CraneSpec> cranes,
+            List<DebrisSpec> debris,
+            List<SetPieceSpec> setPieces,
+            Optional<Escort> escort,
+            Optional<Road> road,
+            List<String> targets,
+            Optional<SledSpec> sled,
+            Optional<RockSpec> rocks,
+            List<GroupDrop> groupDrops) {
+        this(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                Optional.empty());
+    }
+
+    /**
+     * A dark level (design/campaign Level 06, Darkness rules): only the ground layer and the
+     * ground units are dark outside the light pools. The ship's headlight, a cone
+     * {@code headlightLength} px long and {@code headlightAngle} radians wide ahead of it, is on
+     * from {@code headlightFrom} s; each scripted flare falls {@code flareSeconds}, its pool of
+     * {@code flareRadius} px drifting down the screen at {@code flareDrift} px/s from where it
+     * starts; the {@code lights} are static pools on the ground (dome and rail lamps), entering at
+     * the top edge with the scroll. {@code ambient} is how bright the ground stays outside the
+     * light (presentation only). Triggers marked dark can only be hit while lit.
+     */
+    public record Darkness(
+            double headlightFrom,
+            double headlightLength,
+            double headlightAngle,
+            List<Flare> flares,
+            double flareSeconds,
+            double flareRadius,
+            double flareDrift,
+            List<Light> lights,
+            double ambient) {
+        public Darkness {
+            flares = List.copyOf(flares);
+            lights = List.copyOf(lights);
+        }
+
+        /** A flare fired at {@code t} s, starting {@code depth} px below the top edge at {@code x}. */
+        public record Flare(double t, double x, double depth) {}
+
+        /** Flare {@code i}'s pool centre's y at {@code levelSeconds} (meaningful while it burns). */
+        public double flareY(int i, double levelSeconds) {
+            Flare flare = flares.get(i);
+            return PlayField.HEIGHT - flare.depth() - flareDrift * (levelSeconds - flare.t());
+        }
+
+        /** Whether flare {@code i} burns at {@code levelSeconds}. */
+        public boolean flareBurning(int i, double levelSeconds) {
+            double into = levelSeconds - flares.get(i).t();
+            return into >= 0 && into <= flareSeconds;
+        }
+
+        /** A static light pool of {@code radius} px on the ground, entering at the top edge at {@code t} s at {@code x}. */
+        public record Light(double t, double x, double radius) {}
+
+        /** Whether the headlight is on at {@code levelSeconds}. */
+        public boolean headlightOn(double levelSeconds) {
+            return levelSeconds >= headlightFrom;
+        }
+
+        /**
+         * Whether the box {@code size} around (x, y) is lit for the simulation: in the headlight
+         * cone of the ship at (shipX, shipY) or in a burning flare's pool at {@code levelSeconds}.
+         * The static pools light only the picture (no dark trigger lies in one).
+         */
+        public boolean lit(double x, double y, Hitbox size, double shipX, double shipY, double levelSeconds) {
+            double reach = Math.max(size.width(), size.height()) / 2;
+            if (headlightOn(levelSeconds)) {
+                double dx = x - shipX;
+                double dy = y - shipY;
+                double d = Math.sqrt(dx * dx + dy * dy);
+                if (d <= headlightLength + reach
+                        && dy > -reach
+                        && (d <= reach
+                                || Math.abs(StrictMath.atan2(dx, dy))
+                                        <= headlightAngle / 2 + StrictMath.atan2(reach, d))) {
+                    return true;
+                }
+            }
+            for (int i = 0; i < flares.size(); i++) {
+                Flare flare = flares.get(i);
+                double into = levelSeconds - flare.t();
+                if (into < 0 || into > flareSeconds) {
+                    continue;
+                }
+                double fx = flare.x();
+                double fy = PlayField.HEIGHT - flare.depth() - flareDrift * into;
+                if (near(x, y, fx, fy, flareRadius + reach)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static boolean near(double x, double y, double cx, double cy, double radius) {
+            double dx = x - cx;
+            double dy = y - cy;
+            return dx * dx + dy * dy <= radius * radius;
         }
     }
 
@@ -415,9 +549,46 @@ public record LevelScript(
             int secretIndex,
             int secretTriggers,
             Optional<PickupType> bonusDrop,
-            String look) {
+            String look,
+            boolean dark,
+            Optional<LevelResult.DataCore> core) {
         /** Level 01's cargo container, the look of a destructible that names none. */
         public static final String CARGO_CONTAINER = "cargo-container";
+
+        /** Without Level 06's darkness and data core. */
+        public GroundObjectSpec(
+                double t,
+                double x,
+                Hitbox size,
+                double hp,
+                int bounty,
+                Optional<PickupType> drop,
+                int hits,
+                int crateCredits,
+                String secret,
+                boolean hardened,
+                int secretIndex,
+                int secretTriggers,
+                Optional<PickupType> bonusDrop,
+                String look) {
+            this(
+                    t,
+                    x,
+                    size,
+                    hp,
+                    bounty,
+                    drop,
+                    hits,
+                    crateCredits,
+                    secret,
+                    hardened,
+                    secretIndex,
+                    secretTriggers,
+                    bonusDrop,
+                    look,
+                    false,
+                    Optional.empty());
+        }
 
         public GroundObjectSpec {
             if (hits > 0 && (secretTriggers < 1 || secretIndex < 0)) {

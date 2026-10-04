@@ -83,13 +83,18 @@ public final class SaveSlots {
 
     /** The most recently written save of any slot, for Continue. */
     public Optional<SaveGame> mostRecent() {
+        return mostRecentEntry().map(Entry.Saved::save);
+    }
+
+    /** The most recently written save with its slot: the current campaign (Continue, the mission select). */
+    public Optional<Entry.Saved> mostRecentEntry() {
         return list().stream()
-                .<SaveGame>mapMulti((entry, saves) -> {
+                .<Entry.Saved>mapMulti((entry, saves) -> {
                     if (entry instanceof Entry.Saved saved) {
-                        saves.accept(saved.save());
+                        saves.accept(saved);
                     }
                 })
-                .max(Comparator.comparing(SaveGame::created));
+                .max(Comparator.comparing(saved -> saved.save().created()));
     }
 
     /** Writes a save into a slot, replacing what it held. */

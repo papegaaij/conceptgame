@@ -276,9 +276,45 @@ class CampaignTest {
 
         List<Campaign.FreeCharges> given = campaign.giveFreeCharges(CONTENT.specials());
 
-        assertEquals(List.of(new Campaign.FreeCharges("Airstrike", 1, false)), given);
+        assertEquals(
+                List.of(
+                        new Campaign.FreeCharges("Airstrike", 1, false),
+                        new Campaign.FreeCharges("Smart Bomb", 1, false)),
+                given);
         assertEquals(new Fitted("Smart Bomb", 1), campaign.loadout().get(LoadoutSlot.SPECIAL));
         assertEquals(1, campaign.gear().charges("Airstrike"));
+        assertEquals(3, campaign.gear().charges("Smart Bomb"));
+    }
+
+    @Test
+    void theFreeSmartBombChargeIsGivenAtItsUnlockAndFittedOnlyIntoAnEmptySlot() {
+        Campaign six = at(6);
+        List<Campaign.FreeCharges> given = six.giveFreeCharges(CONTENT.specials());
+
+        // The Airstrike's free charge fills the empty slot first; the Smart Bomb's waits in the inventory.
+        assertEquals(
+                List.of(
+                        new Campaign.FreeCharges("Airstrike", 1, true),
+                        new Campaign.FreeCharges("Smart Bomb", 1, false)),
+                given);
+        assertEquals(new Fitted("Airstrike", 1), six.loadout().get(LoadoutSlot.SPECIAL));
+        assertEquals(1, six.gear().charges("Smart Bomb"));
+        assertEquals(List.of(), six.giveFreeCharges(CONTENT.specials()));
+    }
+
+    @Test
+    void aDataCoreCollectedInAWonLevelRecordsTheCoreAndItsUnlock() {
+        Campaign campaign = at(6);
+        campaign.launch();
+        var core = new LevelResult.DataCore("settlement-log", "Targeting computer");
+
+        campaign.fail();
+        campaign.retry();
+        campaign.complete(won("B", 0, 1000).withDataCores(List.of(core)), 40);
+
+        SaveGame save = campaign.save(Instant.EPOCH);
+        assertEquals(List.of("settlement-log"), save.dataCores());
+        assertTrue(save.unlocks().contains("Targeting computer"));
     }
 
     @Test

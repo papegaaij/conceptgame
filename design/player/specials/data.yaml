@@ -4,7 +4,7 @@ input_buffer: 0.1   # s a press of the special button waits while the special is
 specials:
   # charge price cr, most charges carried, unlock level, charges given once at the unlock (optional)
   - {name: Airstrike, charge_price: 300, max_charges: 4, unlock: 4, free_charges: 1}
-  - {name: Smart Bomb, charge_price: 400, max_charges: 3, unlock: 6}
+  - {name: Smart Bomb, charge_price: 400, max_charges: 3, unlock: 6, free_charges: 1}
   - {name: Decoy Flares, charge_price: 150, max_charges: 6, unlock: 7}
 
 # The Airstrike (README, Airstrike (L04)). The damage already includes the x2 anti-ground bonus.
@@ -19,3 +19,11 @@ airstrike:
   damage: {ground: 100, air: 20}               # per blast: ground and low-air targets / air targets
   cap: {ground: 300, air: 60, boss_part: 150}  # most damage one strike deals to one target
   radio: {speaker: Hammer Lead, portrait: generic-cdf, line: "Hammer flight, inbound!"}
+
+# The Smart Bomb (README, Smart Bomb (L06)).
+smart_bomb:
+  flash: {seconds: 0.1, opacity: 0.8, fade: 0.25}   # the white flash: held, at this opacity, then fading (flash-reduction option)
+  ring: 0.35                  # s for the shockwave ring to cover the whole play field from the ship
+  damage: {all: 120, boss_part: 60}   # once to every enemy on screen as the ring passes it / to each boss part
+  invulnerable: 1.0           # s the ship takes no damage from the activation (it blinks)
+  repeat: 1.5                 # s between two bombs

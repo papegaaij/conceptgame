@@ -57,7 +57,8 @@ public record LevelData(
         Difficulties difficulty,
         BackdropData backdrop,
         ThreatProfile threatProfile,
-        Briefing briefing) {
+        Briefing briefing,
+        Optional<Darkness> darkness) {
     public LevelData {
         Check.positive("scroll_speed", scrollSpeed);
         Check.notNegative("launch_seconds", launchSeconds);
@@ -538,6 +539,7 @@ public record LevelData(
             Optional<Double> interval,
             Optional<Point> at,
             Optional<List<List<Point>>> paths,
+            Optional<LoopBack> loopBack,
             Optional<Change> easy,
             Optional<Change> hard) {
         public Wave {
@@ -587,7 +589,75 @@ public record LevelData(
 
     /** A difficulty's changes to a wave. */
     public record Change(
-            Optional<Entry> from, Optional<Edge> edge, Optional<Integer> count, Optional<Integer> breakGroup) {}
+            Optional<Entry> from,
+            Optional<Edge> edge,
+            Optional<Integer> count,
+            Optional<Integer> breakGroup,
+            Optional<Double> warning) {}
+
+    /**
+     * Part F: a segment chain's loop-back: {@code after} s past the end of its path (off the
+     * screen) its head re-enters on {@code path} ({@code [x, y]} points, y px below the top edge),
+     * shifted sideways to start at the head's x; without a path straight up from the bottom edge.
+     * Its bottom-edge warning lasts the wave's {@code warning} (at least the 3 s minimum).
+     */
+    public record LoopBack(double after, Optional<List<Point>> path) {
+        public LoopBack {
+            Check.positive("after", after);
+        }
+    }
+
+    /**
+     * Part F: a dark level (Level 06, Darkness rules). {@code headlight}: the ship's cone, on from
+     * {@code from} s, {@code length} px (an {@code easy} length), {@code angle} ° wide.
+     * {@code flares}: fired at {@code t} at {@code x}, starting {@code y} px below the top edge
+     * (each may be left out on a difficulty with {@code skip}), falling {@code flare.seconds}
+     * ({@code easy_seconds}) with a pool of {@code flare.radius} px drifting {@code flare.drift}
+     * px/s down the screen. {@code lights}: static pools on the ground (dome and rail lamps),
+     * entering at the top edge at {@code t}. {@code ambient}: the ground's brightness outside light.
+     */
+    public record Darkness(
+            Headlight headlight, FlareFall flare, List<Flare> flares, Optional<List<Light>> lights, double ambient) {
+        public Darkness {
+            Check.that(ambient >= 0 && ambient <= 1, "ambient is between 0 and 1");
+        }
+    }
+
+    public record Headlight(double from, double length, Optional<Double> easy, double angle) {
+        public Headlight {
+            Check.notNegative("from", from);
+            Check.positive("length", length);
+            Check.positive("angle", angle);
+        }
+    }
+
+    public record FlareFall(double seconds, Optional<Double> easySeconds, double radius, double drift) {
+        public FlareFall {
+            Check.positive("seconds", seconds);
+            Check.positive("radius", radius);
+            Check.notNegative("drift", drift);
+        }
+    }
+
+    public record Flare(double t, double x, double y, Optional<List<String>> skip) {
+        public Flare {
+            Check.notNegative("t", t);
+            skip.ifPresent(names -> names.forEach(Difficulty::of));
+        }
+
+        /** Whether it is fired on {@code difficulty}. */
+        public boolean firedOn(Difficulty difficulty) {
+            return skip.map(names -> names.stream().map(Difficulty::of).noneMatch(difficulty::equals))
+                    .orElse(true);
+        }
+    }
+
+    public record Light(double t, double x, double radius) {
+        public Light {
+            Check.notNegative("t", t);
+            Check.positive("radius", radius);
+        }
+    }
 
     /**
      * A ground target: a destructible ({@code hp}, {@code bounty}, {@code drop}; one that
@@ -625,7 +695,8 @@ public record LevelData(
             Optional<String> group,
             Optional<Placements> easy,
             Optional<Placements> hard,
-            Optional<String> sprite) {
+            Optional<String> sprite,
+            Optional<Boolean> dark) {
         public GroundTarget {
             layer.ifPresent(Layers::of);
             Check.that(at.size() == count.orElse(1), "at: one placement per target (count, or 1 for a trigger)");
@@ -657,11 +728,23 @@ public record LevelData(
     }
 
     /** A hidden crate worth {@code crate} credits, with Rook's (or anyone's) line when found. */
-    public record Secret(String name, int crate, RadioLine radio) {
+    /**
+     * A secret: its hidden crate's credits, or (part F) a {@code data_core} that pays none and
+     * unlocks a shop item early; its radio line plays when it is found (a data core's when it is
+     * collected).
+     */
+    public record Secret(String name, int crate, RadioLine radio, Optional<DataCore> dataCore) {
         public Secret {
-            Check.positive("crate", crate);
+            if (dataCore.isPresent()) {
+                Check.notNegative("crate", crate);
+            } else {
+                Check.positive("crate", crate);
+            }
         }
     }
+
+    /** A data core: the shop item it {@code unlocks} (design/systems/economy, Data cores). */
+    public record DataCore(String unlocks) {}
 
     /**
      * A pickup carried by a unit of the wave starting at {@code droppedBy.wave}, dropped when it is

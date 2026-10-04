@@ -58,7 +58,7 @@ public final class PauseScreen implements GameScreen {
                 Menu.Item.of(Item.RESUME, "RESUME"),
                 new Menu.Item<>(Item.RESTART, "RESTART MISSION", retry),
                 Menu.Item.of(Item.OPTIONS, "OPTIONS"),
-                new Menu.Item<>(Item.ABORT, "ABORT TO HANGAR", retry),
+                new Menu.Item<>(Item.ABORT, replay() ? "ABORT REPLAY" : "ABORT TO HANGAR", retry),
                 Menu.Item.of(Item.QUIT, "QUIT TO MAIN MENU")));
     }
 
@@ -98,7 +98,13 @@ public final class PauseScreen implements GameScreen {
             }
             case ABORT ->
                 dialog = Optional.of(
-                        new Dialog("ABORT TO HANGAR?", "WHAT THIS ATTEMPT EARNED IS LOST.", "YES, ABORT", "NO, BACK"));
+                        replay()
+                                ? new Dialog("ABORT REPLAY?", "BACK TO THE MISSION SELECT.", "YES, ABORT", "NO, BACK")
+                                : new Dialog(
+                                        "ABORT TO HANGAR?",
+                                        "WHAT THIS ATTEMPT EARNED IS LOST.",
+                                        "YES, ABORT",
+                                        "NO, BACK"));
             case QUIT ->
                 dialog = Optional.of(new Dialog(
                         "QUIT TO MAIN MENU?", "PROGRESS SINCE THE LAST SAVE IS LOST.", "YES, QUIT", "NO, BACK"));
@@ -126,13 +132,21 @@ public final class PauseScreen implements GameScreen {
             case ABORT -> {
                 services.voices.stop();
                 level.campaign().retry();
-                yield Transition.replace(new HangarScreen(services, level.campaign(), true));
+                yield Transition.replace(
+                        replay()
+                                ? MissionSelectScreen.afterReplay(services)
+                                : new HangarScreen(services, level.campaign(), true));
             }
             default -> {
                 services.voices.stop();
                 yield Transition.replace(MainMenuScreen.menu(services));
             }
         };
+    }
+
+    /** Whether the level is a replay (design/ui/mission-select): abort goes back to the mission select. */
+    private boolean replay() {
+        return level.campaign().replay().isPresent();
     }
 
     private void resume() {

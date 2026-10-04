@@ -191,11 +191,14 @@ final class ContentValidator {
             return;
         }
         List<EnemyData.PartData> parts = enemy.partList().get();
-        double hp = parts.stream().mapToDouble(EnemyData.PartData::hp).sum();
+        // A segment chain's body adds its segments to the parts.
+        double hp = parts.stream().mapToDouble(EnemyData.PartData::hp).sum()
+                + enemy.segmentChain().map(c -> c.segments() * c.hp()).orElse(0.0);
         if (hp != enemy.hp()) {
             problem(enemy, "hp", "is " + enemy.hp() + ", the parts' HP add up to " + hp);
         }
-        int bounty = parts.stream().mapToInt(EnemyData.PartData::bounty).sum();
+        int bounty = parts.stream().mapToInt(EnemyData.PartData::bounty).sum()
+                + enemy.segmentChain().map(c -> c.segments() * c.bounty()).orElse(0);
         if (bounty != enemy.bounty()) {
             problem(enemy, "bounty", "is " + enemy.bounty() + ", the parts' bounties add up to " + bounty);
         }

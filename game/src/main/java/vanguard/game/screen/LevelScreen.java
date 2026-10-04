@@ -456,12 +456,24 @@ public final class LevelScreen implements GameScreen {
                     }
                 }
                 case SPECIAL_CALLED -> {
-                    // The call answers the player at once: an urgent line that interrupts whatever is on
-                    // the radio, which plays again after it (design/ui/hud, priority interrupts).
-                    SpecialsData.Radio call =
-                            services.content.specials().airstrike().radio();
-                    queue(call.speaker(), call.portrait(), "neutral", call.line(), false, RadioQueue.Priority.URGENT);
+                    // The Airstrike's call answers the player at once: an urgent line that interrupts
+                    // whatever is on the radio, which plays again after it (design/ui/hud, priority
+                    // interrupts). The Smart Bomb has no call.
+                    if (sortie.special().smartBomb() == null) {
+                        SpecialsData.Radio call =
+                                services.content.specials().airstrike().radio();
+                        queue(
+                                call.speaker(),
+                                call.portrait(),
+                                "neutral",
+                                call.line(),
+                                false,
+                                RadioQueue.Priority.URGENT);
+                    }
                 }
+                case CHAIN_POP -> effects.start(services.sprites.explosionTiny, TINY_EXPLOSION_FRAME_TICKS, x, y);
+                case CHAIN_CUT, CHAIN_REGROWN ->
+                    effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
                 case SPECIAL_DENIED -> hud.specialDenied();
                 case AIRSTRIKE_BLAST ->
                     blasts.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y + sortie.groundScroll());
@@ -743,11 +755,18 @@ public final class LevelScreen implements GameScreen {
                 sortie.ship().defences().armour(),
                 sortie.special().used(),
                 sortie.special().found());
+        if (newBest) {
+            // A replay's better grade goes into the save it was started from (design/ui/mission-select).
+            campaign.replay()
+                    .ifPresent(replay -> MissionSelectScreen.keepGrade(
+                            services, replay, result.grade().letter()));
+        }
         return new DebriefScreen(services, campaign, result, sortie.script().number(), name, launchBalance, newBest);
     }
 
     @Override
     public void dispose() {
+        renderer.dispose();
         music.dispose();
         warnings.dispose();
         services.sprites.leaveLevel(levelNumber);

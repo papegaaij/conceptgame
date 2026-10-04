@@ -76,8 +76,8 @@ plus raised beside it; a save written before the rename keeps its best grade (an
 | D | < 30 | — |
 <!-- /data -->
 
-Best grade per level is stored in the save and shown in the level-select of a replay mode
-(if added later).
+Best grade per level is stored in the save and shown in the
+[mission select](../../ui/mission-select/README.md), whose replays can raise it.
 
 ### High scores
 
