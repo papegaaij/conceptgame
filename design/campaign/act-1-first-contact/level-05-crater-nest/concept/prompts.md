@@ -1,5 +1,21 @@
 # Level 05 – Crater Nest: concept prompts and captures
 
+## backdrop-final-r22-a
+
+Round 22. Generated, not prompted: `python3 tools/art/backdrop_l05.py` renders every tile set and
+set piece of the level's `backdrop` block into `assets/backdrop/level-05/` and this review sheet
+(`--review` rebuilds only the sheet). Built on `tools/art/backdrop_l04.py` (imported unchanged): the
+chosen Luna scene's terrain, grey ramp, low top-left sun with long shadows and the blue earthshine
+in the shadows, posterized to 12–32 colours with ordered dither. The ground tiles share one terrain
+and palette; the rims are windows of that terrain with the rim's height added (the outer slope and
+the far rim's inner wall facing away from the sun, the crests' long shadows), equal to the tiles
+under them outside the rim; the battery patches are plum resin stains with teal-cored roots and
+Vrell sockets (the Spine Turret's growth socket, a fleshy ring for the Polyp Mortar) under the
+units' positions from the data; the burning nest is a charred brood mound (the Vrell materials
+darkened) with stepped orange-yellow flame fields in three torn vents, looping over 6 frames.
+Composites at half scale, drawn as the game draws the backdrop, with the ground units, Level 04's
+sled-run lamp frame on the rail (t ≤ 37 s) and the frigate's closed bell in the arena for scale.
+
 ## level-05-capture-final-r21-b
 
 Round 21 item 12, the redo of `level-05-capture-final-r21-a` (now in `rejected/`, taken before the
@@ -48,7 +64,7 @@ Round 21, production art (M4 part E batch): the mass-driver sled hazard. Review 
 
 - `sled`: 24×48, a lit sled facing up the rail: a grey hull with a wedge nose and an amber cargo plate, dark clamp rails at its sides, a glowing amber thrust collar and three white plasma vents at its tail (ray-marched at 8×, 32 colours).
 - `sled-streak`: 32×200, additive: a white-hot core and an amber glow trailing 176 px below the sled, fading out, with a bloom where the sled sits.
-- `sled-lamp`: 16×16, additive, one lit rail lamp (amber halo, white core), drawn over Level 04's `sled-run` lamp pixels (two columns, every 60 px with the pylons): during the 1.5 s telegraph a lit band sweeps up the rail three times over all lamps at a quarter strength, and every lamp burns at full while the sled runs.
+- `sled-lamp`: 16×16, additive, one lit rail lamp (amber halo, white core), drawn over the `sled-run` lamp pixels (Level 04's art, rendered into Level 05's backdrop too) (two columns, every 60 px with the pylons): during the 1.5 s telegraph a lit band sweeps up the rail three times over all lamps at a quarter strength, and every lamp burns at full while the sled runs.
 
 The loop plays one cycle on Level 04's rail piece: the lamps chasing upwards, then the sled racing up the rail on its streak with every lamp lit. Not an image-generator prompt: the brief for reviewing the production frames.
 

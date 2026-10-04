@@ -32,7 +32,7 @@ class Level02Test {
     }
 
     @Test
-    void aPerfectRunAtMediumEarnsTheLevelBudget() {
+    void aPerfectRunAtMediumEarnsTheReadmesTotal() {
         LevelScript level = SimSpecs.level(content, LEVEL, Difficulty.MEDIUM);
         int salvage = content.player().pickups().salvage().credits().small();
 
@@ -56,9 +56,8 @@ class Level02Test {
         int docks = level.secondary().credits() * level.secondary().groups().size();
         int total = kills + turrets + pods + crates + docks;
 
-        double budget = content.economy().budget().of(level.number());
-        assertEquals(1_070, total, "kills " + kills + ", turrets " + turrets + ", pods " + pods);
-        assertEquals(budget, total, budget * 0.05);
+        // The budget is the typical haul now (TypicalHaulTest); a perfect run earns well above it.
+        assertEquals(1_130, total, "kills " + kills + ", turrets " + turrets + ", pods " + pods);
     }
 
     @Test
@@ -66,7 +65,7 @@ class Level02Test {
         LevelScript level = SimSpecs.level(content, LEVEL, Difficulty.MEDIUM);
 
         assertEquals(
-                64, level.waves().stream().mapToInt(WaveSpec::count).sum(), "34 Skitters, 16 Needlers, 14 Stingers");
+                76, level.waves().stream().mapToInt(WaveSpec::count).sum(), "46 Skitters, 16 Needlers, 14 Stingers");
         assertEquals(24, level.groundUnits().size(), "24 Spine Turrets");
         assertEquals(
                 List.of("Dock One", "Dock Two", "Dock Three", "Dock Four"),

@@ -3,6 +3,7 @@
 # seconds from the level start. Schema: ../../../tech/architecture/README.md#data-file-schemas
 scroll_speed: 140     # px/s (calm)
 launch_seconds: 5     # the launch off the south rail, as in Level 01
+bounty_scale: 1.05         # every bounty × 1.05: the typical haul on budget (density rework)
 control_prompts: []
 prompts:  # contextual prompts in the HUD's prompt well: from t for seconds, the action and its keys; skip: leaves once an enemy on that layer is destroyed
   - {t: 18, action: GROUND, keys: "FLY OVER, FIRE", seconds: 6, skip: ground}
@@ -79,6 +80,7 @@ sections:  # back to back from t = 0; tiles: the backdrop's tile sets; peak: a h
 
 waves:
   - {t: 28, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: "Over Dock One, while its turrets fire"}
+  - {t: 34, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5, notes: Between Dock One and the Needlers}
   - {t: 40, formation: V-wing, enemy: needler, count: 5, from: front}
   - {t: 50, formation: single, enemy: stinger, count: 1, from: front, notes: "**Introduction**: alone, no other air enemies; radio tip"}
   - {t: 56, formation: column, enemy: stinger, count: 2, from: front, notes: "Dives 0.4 s apart"}
@@ -89,7 +91,9 @@ waves:
   - {t: 108, formation: column, enemy: stinger, count: 3, from: sides, edge: right, easy: {count: 1}, notes: "Edge warning; radio"}
   - {t: 118, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, easy: {count: 2}, notes: "Hold {hold} s at the edges over Dock Four"}
   - {t: 130, formation: line abreast, enemy: skitter, count: 6, from: front}
+  - {t: 136, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.5}
   - {t: 145, formation: V-wing, enemy: stinger, count: 5, from: front, notes: "Inside the coolant peak; the crimson dive glow reads through the cloud"}
+  - {t: 154, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.5, notes: Out of the coolant cloud}
   - {t: 165, formation: line abreast, enemy: needler, count: 4, from: front}
   - {t: 170, formation: stream, enemy: skitter, count: 8, from: sides, interval: 0.5, easy: {count: 6}, notes: "Finale"}
 

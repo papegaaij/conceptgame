@@ -569,17 +569,40 @@ def spawns(slug):
 
 
 def credit_budget(d):
+    """The level's credits at medium: a perfect run, and the typical haul (each source weighted by
+    the economy's typical player) that should land on budget(n). Bounties (kills, parts, ground
+    targets) are × the act factor × the level's bounty_scale, rounded half to even per payout."""
     level = data(d)
-    economy = load("systems/economy/data.yaml")["budget"]
-    budget = economy["base"] * economy["growth"] ** (level_number(d) - 1)
-    rows = []
-    kills = [(enemy_name(slug), n, stat_bounty(slug)) for slug, n in enemy_totals(level).items()]
+    economy = load("systems/economy/data.yaml")
+    n_level = level_number(d)
+    budget = economy["budget"]["base"] * economy["budget"]["growth"] ** (n_level - 1)
+    rate = economy["typical_player"]
+    act = int(re.search(r"act-(\d+)-", d).group(1))
+    factor = economy["act_factor"] ** (act - 1)
+    scale = level.get("bounty_scale", 1)
+
+    def bounty(b):
+        return round(b * factor * scale)
+
+    def pay(c):
+        return round(c * factor)
+
+    def layer_rate(slug):
+        return rate["ground_targets"] if load(f"{enemy_dir(slug)}/data.yaml")["layer"] == "ground" else rate["air_kills"]
+
+    rows = []  # [source, perfect, typical]
+
+    def add(source, items):
+        """items: (count, credits per payout, share the typical player collects)."""
+        rows.append([source, sum(n * c for n, c, _ in items), sum(n * c * r for n, c, r in items)])
+
+    kills = [(enemy_name(slug), n, slug) for slug, n in enemy_totals(level).items()]
     # the units a spawner releases (Level 04's Brood Pods: their Skitters), killed too
     for slug, n in enemy_totals(level).items():
         for spawn in spawns(slug):
-            kills.append((f"released {enemy_name(spawn['enemy'])}", n * spawn["count"], stat_bounty(spawn["enemy"])))
-    rows.append(["Kills: " + " + ".join(f"{name} {n} × {b}" for name, n, b in kills),
-                 sum(n * b for _, n, b in kills)])
+            kills.append((f"released {enemy_name(spawn['enemy'])}", n * spawn["count"], spawn["enemy"]))
+    add("Kills: " + " + ".join(f"{name} {n} × {stat_bounty(slug)}" for name, n, slug in kills),
+        [(n, bounty(stat_bounty(slug)), layer_rate(slug)) for _, n, slug in kills])
     # ground enemies by their stat block's bounty, then the destructibles that pay or drop credits
     enemies = {}
     for g in level["ground_targets"]:
@@ -587,55 +610,68 @@ def credit_budget(d):
             enemies[g["enemy"]] = enemies.get(g["enemy"], 0) + ground_values(g)["count"]
     paying = [ground_values(g) for g in level["ground_targets"]
               if "enemy" not in g and ("bounty" in g or "drop" in g)]
-    parts = [(f"{enemy_name(slug)} {n} × {stat_bounty(slug)}", n * stat_bounty(slug)) for slug, n in enemies.items()]
-    parts += [(fill(g["notes"]["budget"], g), g["count"] * (g.get("bounty", 0) + g.get("drop_credits", 0)))
-              for g in paying]
+    parts = [f"{enemy_name(slug)} {n} × {stat_bounty(slug)}" for slug, n in enemies.items()]
+    parts += [fill(g["notes"]["budget"], g) for g in paying]
+    items = [(n, bounty(stat_bounty(slug)), rate["ground_targets"]) for slug, n in enemies.items()]
+    for g in paying:
+        items.append((g["count"], bounty(g.get("bounty", 0)), rate["ground_targets"]))
+        items.append((g["count"], pay(g.get("drop_credits", 0)), rate["ground_targets"] * rate["pickups"]))
     if parts:
-        rows.append(["Ground targets: " + " + ".join(text for text, _ in parts), sum(c for _, c in parts)])
+        add("Ground targets: " + " + ".join(parts), items)
     # set pieces: their parts' bounties, and their death drop
     for piece in level.get("set_pieces", []):
         e = load(f"{enemy_dir(piece['enemy'])}/data.yaml")
-        rows.append([f"Set piece: {e['name']} parts", sum(part["bounty"] for part in e["part_list"])])
+        add(f"Set piece: {e['name']} parts",
+            [(1, bounty(part["bounty"]), rate["ground_targets"]) for part in e["part_list"]])
         for drop in e.get("drops", []):
             if drop["pickup"].endswith("salvage"):
-                rows.append([f"Pickup: {e['name']} {drop['pickup']}", pickup_credits(drop["pickup"])])
-    # the boss: its parts' bounties, and the streams of a fight at par (the budget's assumption)
+                add(f"Pickup: {e['name']} {drop['pickup']}",
+                    [(1, pay(pickup_credits(drop["pickup"])), rate["ground_targets"] * rate["pickups"])])
+    # the boss: its parts' bounties (it dies in every won run), and the streams of a fight at par
     boss = level.get("boss")
     if boss:
         e = load(f"{enemy_dir(boss['enemy'])}/data.yaml")
-        parts = " + ".join(f"{p['name']} {p['bounty']}" for p in e["part_list"])
-        rows.append([f"{boss_kind(boss['enemy']).capitalize()}: {e['name']} ({parts})",
-                     sum(p["bounty"] for p in e["part_list"])])
+        names = " + ".join(f"{p['name']} {p['bounty']}" for p in e["part_list"])
+        add(f"{boss_kind(boss['enemy']).capitalize()}: {e['name']} ({names})",
+            [(1, bounty(p["bounty"]), 1) for p in e["part_list"]])
         streams = boss.get("notes", {}).get("streams", 0)
         for enemy, count in boss_streams(boss["enemy"]):
             if streams:
-                rows.append([f"{boss_kind(boss['enemy']).capitalize()} streams: {streams} × {count} "
-                             f"{enemy_name(enemy)} × {stat_bounty(enemy)} (a fight at par)",
-                             streams * count * stat_bounty(enemy)])
+                add(f"{boss_kind(boss['enemy']).capitalize()} streams: {streams} × {count} "
+                    f"{enemy_name(enemy)} × {stat_bounty(enemy)} (a fight at par)",
+                    [(streams * count, bounty(stat_bounty(enemy)), layer_rate(enemy))])
     escort = level["objectives"].get("escort")
     if escort:
         units = len(escort["y"])
         noun = escort["ally"].split("-")[-1]
-        rows.append([f"Primary objective: {units} {noun}s home × {escort['credits']}", units * escort["credits"]])
+        add(f"Primary objective: {units} {noun}s home × {escort['credits']}",
+            [(units, pay(escort["credits"]), rate["primary"])])
     for s in level["secrets"]:
-        rows.append([f"Secret: {s['name']} (hidden crate, {round(100 * s['crate'] / budget)}% of budget)", s["crate"]])
+        add(f"Secret: {s['name']} (hidden crate, {round(100 * s['crate'] / budget)}% of budget)",
+            [(1, pay(s["crate"]), rate["secrets"])])
     secondary = level["objectives"]["secondary"]
+    count = 1
     if "groups" in secondary:
-        n = len(secondary["groups"])
-        rows.append([f"Secondary: {n} {group_noun(level)}s × {secondary['credits']}", n * secondary["credits"]])
+        count = len(secondary["groups"])
+        source = f"Secondary: {count} {group_noun(level)}s × {secondary['credits']}"
     elif "escapes" in secondary and spawns(secondary["escapes"]):
-        rows.append([f"Secondary: every {enemy_name(secondary['escapes'])} killed before it bursts",
-                     secondary["credits"]])
+        source = f"Secondary: every {enemy_name(secondary['escapes'])} killed before it bursts"
     elif "escapes" in secondary:
-        rows.append([f"Secondary: no {enemy_name(secondary['escapes'])} gets through", secondary["credits"]])
+        source = f"Secondary: no {enemy_name(secondary['escapes'])} gets through"
     elif "kill_all" in secondary:
         names = " and ".join(enemy_name(slug) for slug in secondary["kill_all"])
-        rows.append([f"Secondary: every {names} destroyed", secondary["credits"]])
+        source = f"Secondary: every {names} destroyed"
     else:
-        rows.append(["Secondary objective", secondary["credits"]])
-    total = sum(credits for _, credits in rows)
-    cells = [[source, grouped(credits, ",")] for source, credits in rows]
-    return table(["Source", "Credits (medium)"], cells + [["**Total**", f"**{grouped(total, ',')}**"]])
+        source = "Secondary objective"
+    add(source, [(count, pay(secondary["credits"]), rate["secondary"])])
+    perfect = sum(r[1] for r in rows)
+    typical = sum(r[2] for r in rows)
+    cells = [[source, grouped(p, ","), grouped(round(t), ",")] for source, p, t in rows]
+    note = f" (bounty scale {scale})" if scale != 1 else ""
+    return table(["Source", "Perfect run", "Typical haul"], cells + [
+        [f"**Total**{note}", f"**{grouped(perfect, ',')}**", f"**{grouped(round(typical), ',')}**"],
+        [f"Budget(n) = the typical haul's target; typical {100 * (typical - budget) / budget:+.0f} %, "
+         f"perfect {perfect / budget:.2f} × budget", "", grouped(round(budget), ",")]])
 
 
 # --- systems ----------------------------------------------------------------------------------

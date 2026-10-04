@@ -116,7 +116,7 @@ public final class Backdrop {
 
     /**
      * The atlas folder a level's backdrop images come from: another level's when the data names one
-     * ({@code images: level-04}, Level 05 reusing Level 04's Luna), else its own.
+     * (e.g. {@code images: level-04}, for a level without art of its own yet), else its own.
      */
     public static String folder(String levelKey, LevelData level) {
         return level.backdrop().images().map(folder -> folder + "/").orElseGet(() -> folder(levelKey));

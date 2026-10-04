@@ -22,7 +22,7 @@ class BriefingsTest {
         assertEquals(5 + 2, intro.pages().size(), "five act briefing pages, then Okafor and Varga");
         assertEquals("Varga", intro.pages().getLast().speaker());
         assertEquals(
-                List.of("SURVIVE TO THE END OF THE MISSION", "BONUS: DESTROY 80 % OF ALL ENEMIES"), intro.objectives());
+                List.of("SURVIVE TO THE END OF THE MISSION", "BONUS: DESTROY 65 % OF ALL ENEMIES"), intro.objectives());
         assertTrue(intro.teaser().line().startsWith("Unknown contacts"));
     }
 

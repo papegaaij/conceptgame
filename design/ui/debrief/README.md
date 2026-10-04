@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../systems/scoring, ../../systems/economy]
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 # Debrief screen
@@ -94,3 +94,6 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
   scene dimmed to 35 % (Earth orbit, Level 01's setting) instead of flat fills over black; layout
   and fonts unchanged. Review files proposed for round 13; `art` stays `chosen`.
 - 2026-10-02: Concept round 13 closed (user decision): the debrief in the production glass kit over the dimmed title scene approved as **final**; it has no art of its own, so `art: final`.
+- 2026-10-04: The top grade is **A+** (user decision, see [scoring](../../systems/scoring/README.md)):
+  two full-size 20×30 glyphs at ×3 overrun the 110 px stamp, so the letter stays at ×3 and the plus
+  is drawn at ×2, raised beside it.

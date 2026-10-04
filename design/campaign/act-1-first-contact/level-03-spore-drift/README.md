@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../../enemies/air/spore-bomber, ../../../enemies/air/whirl-seed, ../../../enemies/space/leviathan]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Level 03 – Spore Drift
@@ -103,8 +103,9 @@ Enemy specs: [Spore Bomber](../../../enemies/air/spore-bomber/README.md),
 <!-- data: waves -->
 | t (s) | Section | Formation | Enemies (link) | Count | Enter from | Notes |
 |---|---|---|---|---|---|---|
+| 5.5 | 1 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (right) | Gone before the first Spore Bomber |
 | 12 | 1 | single | [Spore Bomber](../../../enemies/air/spore-bomber/README.md) | 1 | front | **Introduction**: `straight` down, nothing else on screen |
-| 22 | 1 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (left) | |
+| 22 | 1 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 10 | front (left) | |
 | 34 | 2 | V-wing | [Stinger](../../../enemies/air/stinger/README.md) | 3 | front | Dives between debris chunks |
 | 42 | 2 | line abreast | [Spore Bomber](../../../enemies/air/spore-bomber/README.md) | 3 | front | |
 | 50 | 2 | V-wing | [Needler](../../../enemies/air/needler/README.md) | 5 | front | Partly behind debris |
@@ -117,11 +118,14 @@ Enemy specs: [Spore Bomber](../../../enemies/air/spore-bomber/README.md),
 | 84 | 4 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 8 | front (right) | |
 | 92 | 4 | line abreast | [Spore Bomber](../../../enemies/air/spore-bomber/README.md) | 3 | front | Inside the spore banks |
 | 102 | 4 | convoy | [Spore Bomber](../../../enemies/air/spore-bomber/README.md) | 3 | front | `strafe` at y≈200 after entering; in the heavy peak |
+| 112 | 4 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (left) | Out of the heavy peak |
 | 128–158 | 5 | solo set piece | [Leviathan](../../../enemies/space/leviathan/README.md) (second pass) | 1 | front (descends at the top) | Descends to `air` over 2 s, drifts for up to 30 s, then leaves |
-| 165 | 6 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 8 | front (alternating edges) | |
+| 159 | 6 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (right) | Once the Leviathan has gone |
+| 165 | 6 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 12 | front (alternating edges) | |
 | 175 | 6 | line abreast | [Needler](../../../enemies/air/needler/README.md) | 4 | front | |
+| 180 | 6 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (alternating edges) | The last of them as the lane clears |
 
-Totals: Spore Bomber 10 · Skitter 22 · Stinger 6 · Needler 9 · Whirl Seed 24 · Leviathan 1.
+Totals: Skitter 54 · Spore Bomber 10 · Stinger 6 · Needler 9 · Whirl Seed 24 · Leviathan 1.
 <!-- /data -->
 
 ## Ground targets
@@ -201,19 +205,20 @@ forced on for the second pass. Ambience: Earth orbit
 
 ## Credit budget
 
-Budget(3) = 1,000 × 1.07² ≈ **1,145** ([economy](../../../systems/economy/README.md#per-level-budget)).
+Budget(3) = 700 × 1.07² ≈ **801**, the typical haul's target ([economy](../../../systems/economy/README.md#per-level-budget)); the level's `bounty_scale` of 0.97 puts the typical haul on it (`TypicalHaulTest`).
 Bounties from the stat blocks: Spore Bomber 25, Whirl Seed 3, Skitter 5, Needler 12, Stinger 15,
 Leviathan 190 (part bounties, ≈ 17% of the budget, close to the 15% set-piece share).
 
 <!-- data: credit-budget -->
-| Source | Credits (medium) |
-|---|---|
-| Kills: Spore Bomber 10 × 25 + Skitter 22 × 5 + Stinger 6 × 15 + Needler 9 × 12 + Whirl Seed 24 × 3 | 630 |
-| Set piece: Leviathan parts | 190 |
-| Pickup: Leviathan large salvage | 200 |
-| Secret: lifeboat rack (hidden crate, 7% of budget) | 75 |
-| Secondary: no Spore Bomber gets through | 50 |
-| **Total** | **1,145** |
+| Source | Perfect run | Typical haul |
+|---|---|---|
+| Kills: Skitter 54 × 5 + Spore Bomber 10 × 25 + Stinger 6 × 15 + Needler 9 × 12 + Whirl Seed 24 × 3 | 780 | 468 |
+| Set piece: Leviathan parts | 183 | 146 |
+| Pickup: Leviathan large salvage | 200 | 128 |
+| Secret: lifeboat rack (hidden crate, 9% of budget) | 75 | 38 |
+| Secondary: no Spore Bomber gets through | 50 | 25 |
+| **Total** (bounty scale 0.97) | **1,288** | **805** |
+| Budget(n) = the typical haul's target; typical +0 %, perfect 1.61 × budget | | 801 |
 <!-- /data -->
 
 Spore mines pay 1 each but their number depends on how long each bomber lives (up to ~7 per
@@ -263,7 +268,8 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), review file
       (`RadioTimelineTest`).
 - [x] Hangar intel before the level: from sensor L2 the Leviathan shows as an "unknown huge
       contact" with its silhouette, not by name (the level's set pieces, `Intel.contacts()`).
-- [x] Credit total at medium with perfect collection is 1,145 (± 5%, spores excluded).
+- [x] Typical haul at medium within ±5 % of budget(3) = 801 with `bounty_scale` 0.97 (`TypicalHaulTest`); a perfect run earns 1,288.
+- [x] At least 32 enemies per minute of scroll at medium (34.3; `DensityTest`).
 - [x] Easy/hard variations as in *Difficulty notes*.
 
 ## Open questions
@@ -336,3 +342,10 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), review file
   [round 20](../../../concept-rounds/round-20/README.md). `art` stays `chosen` until the round is
   approved.
 - 2026-10-03: Concept round 20 closed (user decision, "both accepted"): the briefing images approved as **final**. They were the last missing piece; every other part with a look is final, so all of the level's art is final, `art: final`.
+- 2026-10-04: Density rework (user decision: at least 32 enemies per minute in the warm-up
+  levels): Skitter snakes of 6 at t = 5.5, 112 and 159, a stream of 6 at t = 180, the t=22 snake
+  6 → 10 and the t=165 stream 8 → 12 lift the density from 23.7 to 34.3, all outside the Spore
+  Bombers' runs and the Leviathan's pass. The autopilot took more damage on hard, so the hard
+  Stingers are thinned instead (t=34 V-wing and t=56 column 3 → 2). Damage per run (mean over the
+  Skitter waves' timings jittered): easy 19.8 → 20.8, medium 49.4 → 53.1, hard 124.7 → 112.5.
+  `bounty_scale` 0.97 puts the typical haul on the budget (805 of 801; a perfect run 1,288).

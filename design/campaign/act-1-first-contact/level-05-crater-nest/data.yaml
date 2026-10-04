@@ -2,10 +2,9 @@
 # layout, waves, ground targets, radio, credit budget). Times are seconds from the level start;
 # after t = 150 they run on the arena's pausable clock (see the README's Arena clock).
 # Schema: ../../../tech/architecture/README.md#data-file-schemas
-# No Level 05 art exists yet: the backdrop reuses Level 04's Luna images (backdrop.images) until the
-# part's production round.
 scroll_speed: 150
 launch_seconds: 5     # flying in from the bottom edge, as in Levels 01-04
+bounty_scale: 0.79         # every bounty × 0.79: the typical haul on budget (density rework)
 control_prompts: []
 prompts:  # contextual prompts in the HUD's prompt well; requires: special = only with a special fitted
   - {t: 156, action: SPECIAL, keys: CALL HAMMER, seconds: 6, requires: special}
@@ -35,12 +34,12 @@ sections:  # back to back from t = 0; tiles: the backdrop's tile sets (no deep l
     tiles: [mass-driver-field]
     notes:
       layers:
-        ground: 'regolith, the mass-driver rail at x 432 (Level 04''s rail), its signal lights, the launch sleds streaking up the rail.'
+        ground: 'regolith, the mass-driver rail at x 432 (Level 04''s rail), its signal lights, the launch sleds streaking up the rail; the rail climbs the outer rim to its launch lip.'
       purpose: Learn the sled rhythm; the first Polyp Mortar alone.
   - name: Crater Rim
     end: 75
     atmosphere: light
-    tiles: [mare-b]
+    tiles: [crater-slope]
     notes:
       layers:
         ground: the outer rim and its inner walls (ground pieces), boulders, an abandoned rover.
@@ -50,7 +49,7 @@ sections:  # back to back from t = 0; tiles: the backdrop's tile sets (no deep l
     end: 125
     atmosphere: medium
     peak: {atmosphere: heavy, from: 115, to: 122}   # the nest venting spore dust
-    tiles: [crater-growth, ejecta-streaks]
+    tiles: [nest-floor, ejecta-streaks]
     notes:
       layers:
         ground: the crater floor with teal Vrell growth and pod husks.
@@ -60,7 +59,7 @@ sections:  # back to back from t = 0; tiles: the backdrop's tile sets (no deep l
   - name: Nest Heart
     end: 150
     atmosphere: light
-    tiles: [crater-growth]
+    tiles: [nest-floor]
     notes:
       layers:
         ground: the central growth, pod husks around battery D.
@@ -71,10 +70,10 @@ sections:  # back to back from t = 0; tiles: the backdrop's tile sets (no deep l
     speed: 30
     arena: true
     atmosphere: clear
-    tiles: [crater-growth]
+    tiles: [arena-floor]
     notes:
       layers:
-        ground: the nest heart below (no terrain collision).
+        ground: the nest heart below, a calm floor (no terrain collision); the burning nest at its end, under the far rim.
         air: the frigate, its bell in the upper third.
       purpose: Mid-boss fight (≈ 55 s at medium); the scroll halts after 55 s while the frigate lives, and section 6 starts at its death.
   - name: Lift-off
@@ -86,38 +85,39 @@ sections:  # back to back from t = 0; tiles: the backdrop's tile sets (no deep l
         ground: the far rim, the burning nest behind.
       purpose: Credit shower, end.
 
-waves:  # the frigate arrives through `boss` below; pacing filler: small Skitter streams (user decision D5)
-  - {t: 5.5, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 2.5, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+waves:  # the frigate arrives through `boss` below; Skitter snakes, lines and streams between the threats (density rework)
+  - {t: 5.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5, notes: Left of the rail}
   - {t: 10, formation: V-wing, enemy: needler, count: 4, from: front, notes: Left of the rail}
-  - {t: 13, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 13, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 2}
   - {t: 20, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: Snakes across the rail between sleds}
-  - {t: 22, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 3, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
-  - {t: 30.5, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 22, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5, notes: Behind the snake of 20}
+  - {t: 30.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 2, notes: Away from the rail as the sleds stop}
   - {t: 38, formation: column, enemy: stinger, count: 3, from: front}
-  - {t: 42.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
-  - {t: 48, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, notes: "Hold {hold} s at the edges above battery A"}
-  - {t: 51.5, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 1.5, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
-  - {t: 58.5, formation: stream, enemy: skitter, count: 2, from: front, edge: left, interval: 2, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 42.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: Over the rim turrets}
+  - {t: 48, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, easy: {count: 2}, notes: "Hold {hold} s at the edges above battery A"}
+  - {t: 51.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5, notes: Between the holding Needlers}
+  - {t: 58.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1, notes: Into the stream of 62}
   - {t: 62, formation: stream, enemy: skitter, count: 8, from: sides, edge: alternating, interval: 0.5, easy: {count: 8}, notes: All eight on easy too (pacing)}
-  - {t: 70, formation: V-wing, enemy: stinger, count: 4, from: front}
-  - {t: 73, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 70, formation: V-wing, enemy: stinger, count: 4, from: front, hard: {count: 3}}
+  - {t: 73, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2, notes: Behind the Stingers}
   - {t: 80, formation: single, enemy: brood-pod, count: 1, from: front}
-  - {t: 84, formation: stream, enemy: skitter, count: 2, from: front, edge: left, interval: 1.5, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
-  - {t: 91, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 2, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 84, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - {t: 91, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1, notes: Before battery B}
   - t: 95
     groups:
       - {formation: carrier + escorts, enemy: brood-pod, count: 1}
       - {formation: carrier + escorts, enemy: needler, count: 4}
     from: front
     notes: Over battery B
-  - {t: 102, formation: stream, enemy: skitter, count: 2, from: front, edge: left, interval: 2.5, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
-  - {t: 110, formation: column, enemy: stinger, count: 3, from: sides, edge: right, notes: Over battery C; edge warning}
-  - {t: 112, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 3.5, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 102, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25, notes: Over the floor turrets}
+  - {t: 110, formation: column, enemy: stinger, count: 3, from: sides, edge: right, hard: {count: 2}, notes: Over battery C; edge warning}
+  - {t: 112, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.75}
   - {t: 118, formation: snake, enemy: skitter, count: 6, from: front, edge: right, notes: In the heavy peak}
-  - {t: 122, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
-  - {t: 128.5, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 122, formation: snake, enemy: skitter, count: 6, from: front, edge: right, notes: Out of the heavy peak}
+  - {t: 125, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.5}
+  - {t: 130.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25}
   - {t: 135, formation: single, enemy: brood-pod, count: 1, from: front, notes: Over battery D}
-  - {t: 140.5, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 2, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 140.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5, notes: Around the nest heart}
 
 ground_targets:  # at: [t, x], when it enters at the top edge and its x; a battery is two entries sharing a group
   - target: first mortar
@@ -370,11 +370,14 @@ briefing:
     - {speaker: Varga, image: level-05-mortar-scan, line: "The acid-throwers mark their target a second before it lands. Keep moving and you'll be fine. And something in orbit keeps watching that crater. I don't like it."}
   teaser: {speaker: Varga, line: "Turrets, mortars and a lot of ground to cover. Bring something that hits the surface, and something wide for the flanks."}
 
-# Luna, the Vrell nest crater: Level 04's top-down surface (no deep layer, Earth only as the
-# earthshine tint), its tile sets and pieces reused until Level 05's own art (images: level-04).
-# The sleds are drawn by the hazard itself (Level 04's sled-run lamp frames), not as placed pieces.
+# Luna, the Vrell nest crater (tools/art/backdrop_l05.py): Level 04's top-down surface and kit (no
+# deep layer, Earth only as the earthshine tint), one shared terrain and palette for the ground tiles;
+# the rims are ground pieces over the section 2 and 6 seams, the batteries' growth patches lie under
+# their units. The sleds are drawn by the hazard itself (the sled-run lamp frames, Level 04's art rendered into this level's folder, over the
+# rail at x 432, which rim-south carries on to its launch lip at the crest), not as placed pieces.
+# The generator computes the rims', batteries' and nest's sizes and placements from the scroll and
+# the ground targets and fails when these differ (python3 tools/art/backdrop_l05.py --layout).
 backdrop:
-  images: level-04
   scroll_factors: {far: 0.85, ground: 1.0, low-air: 1.35, high-air: 2.2}
   ramp: 2
   haze_colour: 5a6274
@@ -384,17 +387,26 @@ backdrop:
     medium: {banks: plumes-medium, haze: 0.4}
     heavy: {banks: plumes-heavy, haze: 0.5}      # the nest venting (115-122 s)
   tile_sets:
-    mare-a: {layer: ground, height: 960}
-    mare-b: {layer: ground, height: 960}
-    crater-growth: {layer: ground, height: 960}
-    mass-driver-field: {layer: ground, height: 960}   # the rail at x 432
+    mass-driver-field: {layer: ground, height: 960}   # Level 04's mare with the rail at x 432
+    crater-slope: {layer: ground, height: 960}        # the crater's inner slope: talus, slump ridges
+    nest-floor: {layer: ground, height: 960}          # the crater floor with teal Vrell roots
+    arena-floor: {layer: ground, height: 960}         # calm, darkened floor under the frigate
+    mare-a: {layer: ground, height: 960}              # grey mare beyond the far rim
     plumes-light: {layer: low-air, height: 960, drift: 6}
     plumes-medium: {layer: low-air, height: 960, drift: 8}
     plumes-heavy: {layer: low-air, height: 960, drift: 10}
     ejecta-streaks: {layer: high-air, height: 960}
   pieces:
+    rim-south: {layer: ground, size: [480, 920]}      # the outer rim wall over the section 2 seam, the rail's cutting and lip
+    rim-north: {layer: ground, size: [480, 640]}      # the far rim over the section 6 seam
+    sled-run: {layer: ground, size: [48, 480], frames: 30, fps: 10}   # the rail lamps and sled shot, drawn over the rail by the game (not placed)
+    battery-a: {layer: ground, size: [304, 330], mid_size: true}   # growth patch, a socket per unit
+    battery-b: {layer: ground, size: [344, 330], mid_size: true}
+    battery-c: {layer: ground, size: [304, 330], mid_size: true}
+    battery-d: {layer: ground, size: [284, 330], mid_size: true}
+    burning-nest: {layer: ground, size: [288, 224], frames: 6, fps: 8, mid_size: true}   # the brood mound on fire
     boulder: {layer: ground, size: [64, 56]}
-    boulder-growth-a: {layer: ground, size: [72, 64]}
+    boulder-growth-a: {layer: ground, size: [72, 64]}   # a Vrell socket on top: a unit's base
     boulder-growth-b: {layer: ground, size: [72, 64]}
     rover-a: {layer: ground, size: [64, 72]}
     rover-b: {layer: ground, size: [72, 72]}
@@ -405,26 +417,32 @@ backdrop:
     - {piece: boulder, t: 4, x: 90}
     - {piece: rover-b, t: 14, x: 120}
     - {piece: boulder, t: 24, x: 250}
-    # 2. Crater Rim: boulders on the rim, the turrets' sockets
+    # 2. Crater Rim: the outer rim over the seam; sockets under the rim turrets (t 40) and the inner rim mortars (t 70)
+    - {piece: rim-south, t: 39.4, x: 240}
     - {piece: boulder, t: 38, x: 300}
-    - {piece: boulder-growth-a, t: 42.3, x: 120}
-    - {piece: boulder-growth-b, t: 42.9, x: 360}
+    - {piece: boulder-growth-a, t: 41.84, x: 126}
+    - {piece: boulder-growth-b, t: 41.84, x: 366}
     - {piece: rover-a, t: 50, x: 420}
+    - {piece: battery-a, t: 57.26, x: 240}
     - {piece: boulder, t: 64, x: 80}
-    - {piece: boulder-growth-a, t: 72.3, x: 100}
-    - {piece: boulder-growth-b, t: 72.8, x: 380}
-    # 3. Nest Floor: pod husks among the batteries
+    - {piece: boulder-growth-a, t: 71.85, x: 106}
+    - {piece: boulder-growth-b, t: 72.35, x: 386}
+    # 3. Nest Floor: pod husks among the batteries; sockets under the floor turrets (t 100)
     - {piece: pod-husk-a, t: 82, x: 380}
+    - {piece: battery-b, t: 90.2533, x: 240}
     - {piece: pod-husk-b, t: 96, x: 100}
-    - {piece: boulder-growth-a, t: 102.3, x: 140}
-    - {piece: boulder-growth-b, t: 102.8, x: 340}
+    - {piece: boulder-growth-a, t: 101.84, x: 146}
+    - {piece: boulder-growth-b, t: 102.34, x: 346}
+    - {piece: battery-c, t: 110.26, x: 260}
     - {piece: pod-husk-a, t: 114, x: 400}
     # 4. Nest Heart
     - {piece: pod-husk-b, t: 129, x: 380}
+    - {piece: battery-d, t: 137.26, x: 240}
     - {piece: pod-husk-a, t: 141, x: 240}
-    # 5. Arena (30 px/s): the nest heart below
+    # 5. Arena (30 px/s): the calm floor, the burning nest at its end under the far rim
     - {piece: pod-husk-b, t: 160, x: 120}
-    - {piece: pod-husk-a, t: 190, x: 360}
-    # 6. Lift-off: the far rim
+    - {piece: burning-nest, t: 201.2667, x: 250}
+    # 6. Lift-off: the far rim, the burning nest behind
+    - {piece: rim-north, t: 207.2667, x: 240}
     - {piece: boulder, t: 209, x: 140}
     - {piece: rover-b, t: 212, x: 380}

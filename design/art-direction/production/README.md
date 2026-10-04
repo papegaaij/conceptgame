@@ -61,9 +61,21 @@ part is final-ready as soon as its generator in [tools/art/](../../../tools/art/
 written it. Pivot files (`assets/pivots/<sprite>.json`) hold per frame the points other sprites
 attach to. **Budget check**: `packAtlases` checks the packed pages against the table below
 (`AtlasBudget`) and fails the build when a budget is exceeded; the `sprites` atlas counts as the
-shared pages (Level 01's enemies and loot targets are in it until levels get their own sprite
-atlas), a level's pages are the backdrop pages holding its regions, and one sprite's frames must
-fit a page. After the Level 01 batch: shared 1 page of 2048×256 (2 MiB of 32), Level 01
+shared pages, a level's pages are its **unit atlas** (`level-NN`) plus the backdrop pages holding
+its regions, and one sprite's frames must fit a page. `packAtlases` prints every atlas's pages and
+fill. **Per-level unit atlases**: a sprite only one level uses goes in that level's unit atlas,
+which the game loads when the level starts and disposes when it ends; the shared pages keep the
+ship, weapons, shots, pickups, effects, the enemies of more than one level, the HUD, the UI kit
+and everything the hangar shows outside a level (equipment icons, intel portraits and
+silhouettes, speaker portraits: all the sprites' subfolders). The split is derived from the data
+(`SpriteUse`): a level uses the enemies of its waves, ground targets, set pieces and boss (and
+what they spawn or lob), its ground targets' looks, its escorted ally and the hazards it has
+(cranes, debris, sleds, rocks); weapons, specials and the game's own effects are shared; a sprite
+nothing claims fails the build. After the split (2026-10-04): shared 1 page of 2048×1024 (70 %
+full); Level 01 none (all its units are shared); Level 02 1 page of 2048² (48 %, the crane);
+Level 03 1 page of 2048² (54 %, Leviathan, Spore Bomber, Whirl Seed, debris); Level 04 1 page of
+2048×512 (71 %, Scuttler, crawler, dugout); Level 05 1 page of 2048×1024 (51 %, Gorgon Frigate,
+Polyp Mortar, sleds, rocks). With their backdrops every level is at 2 or 3 pages of 6. After the Level 01 batch: shared 1 page of 2048×256 (2 MiB of 32), Level 01
 2 pages, 2048² and 1024×2048 (24 MiB of 96). With the HUD's metal parts (`assets/sprites/hud/`,
 on the same pages since `packAtlases` combines the sprites' subfolders): shared 1 page of 1024²
 (4 MiB of 32). With the glass UI kit (`assets/sprites/ui/`) and the 94 equipment icons
@@ -97,7 +109,7 @@ Measured in M2: Level 01 packs into a 2048² and a 2048×1024 backdrop page (24 
 
 | Limit | Value |
 |---|---|
-| Atlas pages per level (backdrop + level sprites, boss included) | ≤ 6 pages of 2048² (96 MiB at RGBA8) |
+| Atlas pages per level (backdrop + the level's unit atlas, boss included) | ≤ 6 pages of 2048² (96 MiB at RGBA8) |
 | One unit or boss | ≤ 1 page (16 MiB); dense angle sets only with a symmetric design |
 | Shared pages (ship, weapons, pickups, effects, HUD, fonts), always loaded | ≤ 2 pages (32 MiB) |
 | Music on disk | ~3–4 MB per 2.5-minute stem at q6 |
@@ -114,6 +126,7 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] Level 01 parts final and approved by the user (list under *Order of work*)
 - [x] `importPlaceholders` skips parts that have final assets
 - [x] Atlas budget check per level in the build (pages and MiB against the table)
+- [x] Per-level unit atlases: the sprites only one level uses packed apart (split from the data), loaded while the level runs
 - [x] Level 01 backdrop rendered by `tools/art/backdrop_l01.py` (proposed in round 12)
 - [x] Recorded SFX rebuilt from the Freesound originals (`tools/art/sfx_originals.py`); `importPlaceholders` keeps final OGGs
 - [x] Concept round 12 (the Level 01 batch review) opened, with a game capture
@@ -126,7 +139,7 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] M4 part C (Level 03, M4 part C batch): the Spore Bomber and its spore mine, the Whirl Seed and the debris chunks (`tools/art/vrell_l03.py`), the Leviathan (`tools/art/leviathan.py`) and its break-up at its death (`tools/art/leviathan_death.py`), the Level 03 backdrop (`tools/art/backdrop_l03.py`), salvage L (`tools/art/pickups.py`) and the Spore Bomber's and Whirl Seed's intel portraits (`tools/art/intel.py`) rendered, review files for round 16; approved as final there (the Leviathan's death effect as the redo, variant b, choice 19)
 - [x] M4 part D (Level 04): the civilian crawler (`tools/art/civilian_crawler.py`), the Airstrike's CDF bomber (`tools/art/airstrike_bomber.py`), the Level 04 Luna backdrop with the road bridge and the terminal hangar (`tools/art/backdrop_l04.py`), the dugout and the supply drop (`tools/art/l04_targets.py`) and the Brood Pod's and Scuttler's intel portraits (`tools/art/intel.py`) rendered, review files for round 17; approved as final there (the bridge and the enlarged hangar as the redo, choice 9)
 - [x] M4 briefing images: the four images of Levels 03 and 04 (`tools/art/briefing_images.py`), review sheet for round 20; approved as final there
-- [x] M4 part E (Level 05, M4 part E batch): the Gorgon Frigate (`tools/art/gorgon_frigate.py`) and its break-up at its death (`tools/art/gorgon_frigate_death.py`), the Polyp Mortar with its acid blob, marker and death and the mass-driver sled (`tools/art/l05_hazards.py`), the props from the chosen concepts (rocks, ore canister, acid splash decal; `tools/art/l05_props.py`) and Level 05's briefing images (`tools/art/briefing_images.py`) rendered, review files for round 21; approved as final there (the frigate's death as the redo, item 11); Level 05's backdrop still reuses Level 04's images
+- [x] M4 part E (Level 05, M4 part E batch): the Gorgon Frigate (`tools/art/gorgon_frigate.py`) and its break-up at its death (`tools/art/gorgon_frigate_death.py`), the Polyp Mortar with its acid blob, marker and death and the mass-driver sled (`tools/art/l05_hazards.py`), the props from the chosen concepts (rocks, ore canister, acid splash decal; `tools/art/l05_props.py`) and Level 05's briefing images (`tools/art/briefing_images.py`) rendered, review files for round 21; approved as final there (the frigate's death as the redo, item 11); Level 05's own backdrop (`tools/art/backdrop_l05.py`) proposed in round 22
 - [ ] M4 and M5 parts final, each with its milestone (a round per M4 part, user decision)
 
 ## Open questions
@@ -255,3 +268,15 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - 2026-10-03: Concept round 17 closed (user decision): M4 part D's art (Level 04) approved as final, the bridge and the terminal hangar (enlarged to 380×300) as the redo of choice 9 and the dugout's and supply drop's production art as choice 10.
 - 2026-10-03: Concept round 20 closed (user decision): the briefing images of Levels 03 and 04 approved as final; with them all of the art of Levels 03 and 04 is final.
 - 2026-10-04: Concept round 21 closed (user decision): M4 part E's art (Level 05) approved as final, the Gorgon Frigate's death as the redo (item 11), the props' production sprites from the chosen concepts (`tools/art/l05_props.py`). The shared sprite pages are 96.7 % and 91.8 % full.
+- 2026-10-04: Level 05's own backdrop (`tools/art/backdrop_l05.py`) on `backdrop_l04.py`'s
+  helpers, replacing `backdrop.images: level-04`; the format names one image folder per level, so
+  the Level 04 pieces it shares are rendered again by their generators into `level-05/`. New: two
+  rim walls cut from the shared terrain over their seams (equal to the tiles outside the rim), the
+  battery growth patches and the burning nest placed from the data. About 5.7 M px, two backdrop
+  pages for Level 05 (of 6). Proposed in round 22.
+- 2026-10-04: Per-level unit atlases (user decision): the shared sprite pages (2 pages, about
+  97 % and 92 % full) could take no more units, so a sprite only one level uses moves into that
+  level's own unit atlas (`level-NN`, loaded while the level runs); the shared pages keep what
+  several levels, the hangar or the HUD use. The split is generated from the levels' data in the
+  pipeline (`SpriteUse`), not kept by hand, and an unattributed sprite fails the build. Budget:
+  shared ≤ 2 pages, each level's unit atlas plus its backdrop ≤ 6 pages.

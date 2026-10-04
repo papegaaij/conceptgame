@@ -103,7 +103,7 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
   hangar. The text types at the Gameplay tab's text speed (the options document: "text speed for
   briefings and radio"; default 30 characters/s, the Design section says ~60: open question), with
   the typewriter blip on every other character, over the briefing theme. The objective lines are
-  generated from the level's objectives ("SURVIVE TO THE END OF THE MISSION", "BONUS: DESTROY 80 %
+  generated from the level's objectives ("SURVIVE TO THE END OF THE MISSION", "BONUS: DESTROY 65 %
   OF ALL ENEMIES"). The act title card's chrome lettering is rendered by
   `tools/concept/ui_assets.py acts` with the chosen card's chrome treatment; its scene is the title
   scene until a still of the Gagarin yards exists. Not built: map images (no level has one), the

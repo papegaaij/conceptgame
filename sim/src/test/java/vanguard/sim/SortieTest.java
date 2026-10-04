@@ -157,9 +157,9 @@ class SortieTest {
 
         assertEquals(1, destroyed);
         assertEquals(1, sortie.kills());
-        // The bounty, plus the secondary objective: one kill of one enemy is 100 %.
-        assertEquals(5 + 50, sortie.credits());
-        assertEquals(50 + 500, sortie.score());
+        // The bounty; the kill-ratio secondary is judged only at the level's end.
+        assertEquals(5, sortie.credits());
+        assertEquals(50, sortie.score());
         assertEquals(20, sortie.ship().defences().shield(), "it never reached the ship");
     }
 
@@ -504,7 +504,7 @@ class SortieTest {
     }
 
     @Test
-    void theSecondaryObjectivePaysAt80PercentOfAllEnemies() {
+    void aKillRatioSecondaryIsMetAndAnnouncedOnlyAtTheEnd() {
         List<WaveSpec> waves = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             waves.add(skitterAt(i));
@@ -513,24 +513,55 @@ class SortieTest {
                 new LevelScript.RadioCue(
                         LevelScript.CueTrigger.FIRST_KILL, 0, "skitter", "Rook", "Bugs.", false, "neutral"),
                 new LevelScript.RadioCue(
+                        LevelScript.CueTrigger.LEVEL_END, 0, "", "Okafor", "Come home.", false, "neutral"),
+                new LevelScript.RadioCue(
                         LevelScript.CueTrigger.SECONDARY_OBJECTIVE, 0, "", "Okafor", "Clean sweep.", false, "neutral"));
         var sortie = sortie(level(20, waves, List.of(), cues));
         assertEquals(4, sortie.requiredKills());
 
         List<Integer> radio = new ArrayList<>();
-        while (sortie.kills() < 4) {
-            assertFalse(sortie.secondaryMet());
+        int metBeforeTheEnd = 0;
+        for (int i = 0; i < 30 * SimStep.PER_SECOND && !sortie.complete(); i++) {
             sortie.step(Command.FIRE.bit());
             for (int e = 0; e < sortie.events().size(); e++) {
                 if (sortie.events().type(e) == SimEvents.Type.RADIO) {
                     radio.add(sortie.events().value(e));
                 }
             }
+            if (!sortie.complete()) {
+                assertFalse(sortie.secondaryMet(), "not met before the end");
+                metBeforeTheEnd += sortie.events().count(SimEvents.Type.OBJECTIVE_MET);
+            } else {
+                assertEquals(1, sortie.events().count(SimEvents.Type.OBJECTIVE_MET), "met with the end");
+            }
         }
 
+        assertTrue(sortie.complete());
+        assertTrue(sortie.kills() >= 4);
+        assertEquals(0, metBeforeTheEnd);
         assertTrue(sortie.secondaryMet());
-        assertEquals(4 * 5 + 50, sortie.credits());
-        assertEquals(List.of(0, 1), radio);
+        assertEquals(sortie.kills() * 5 + 50, sortie.credits());
+        // The first kill's line mid-level; at the end the secondary's line before the level-end line.
+        assertEquals(List.of(0, 2, 1), radio);
+    }
+
+    @Test
+    void aMissedKillRatioPaysNothingAtTheEnd() {
+        List<WaveSpec> waves = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            waves.add(skitterAt(i));
+        }
+        var sortie = sortie(level(20, waves, List.of(), List.of()));
+
+        // The ship stays out of the Skitters' column: none rams it, none is destroyed.
+        for (int i = 0; i < 30 * SimStep.PER_SECOND && !sortie.complete(); i++) {
+            sortie.step(Command.LEFT.bit());
+        }
+
+        assertTrue(sortie.complete());
+        assertEquals(0, sortie.kills());
+        assertFalse(sortie.secondaryMet());
+        assertEquals(0, sortie.credits());
     }
 
     @Test

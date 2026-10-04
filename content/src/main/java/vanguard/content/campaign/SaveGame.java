@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import vanguard.content.Difficulty;
 
 /**
@@ -52,13 +53,19 @@ public record SaveGame(
         inventory = Gear.inventoryCopy(inventory);
         unlocks = List.copyOf(unlocks);
         specials = Map.copyOf(specials);
-        grades = Map.copyOf(grades);
+        grades = grades.entrySet().stream()
+                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, grade -> renamed(grade.getValue())));
         dataCores = List.copyOf(dataCores);
         storyFlags = List.copyOf(storyFlags);
         if (nextLevel < 1 || credits < 0 || armour <= 0 || playtime < 0) {
             throw new IllegalArgumentException("invalid save: level " + nextLevel + ", credits " + credits + ", armour "
                     + armour + ", playtime " + playtime);
         }
+    }
+
+    /** The top grade was "S" until 2026-10-04 and is "A+" since (design/systems/scoring); an old save keeps its best. */
+    private static String renamed(String grade) {
+        return grade.equals("S") ? "A+" : grade;
     }
 
     /**

@@ -292,7 +292,7 @@ class SimSpecsTest {
         assertEquals(1, medium.scoring().creditFactor());
         assertEquals(1.25, easy.scoring().creditFactor());
         assertEquals(0.75, easy.scoring().scoreFactor());
-        assertEquals("S", medium.scoring().grades().getFirst().letter());
+        assertEquals("A+", medium.scoring().grades().getFirst().letter());
     }
 
     private static WaveSpec wave(LevelScript level, double t) {

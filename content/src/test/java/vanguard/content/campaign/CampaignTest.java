@@ -201,7 +201,7 @@ class CampaignTest {
         assertFalse(again.complete(won("B", 40, 1000), 60));
         assertEquals(Optional.of("A"), again.grade(1));
         Campaign third = Campaign.load(RULES, withNextLevel(save, 1));
-        assertTrue(third.complete(won("S", 120, 1000), 60));
+        assertTrue(third.complete(won("A+", 120, 1000), 60));
     }
 
     private static SaveGame withNextLevel(SaveGame save, int level) {

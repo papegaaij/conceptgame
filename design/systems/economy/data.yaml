@@ -1,6 +1,17 @@
 # Economy numbers (Act 1 values at medium). Schema: ../../tech/architecture/README.md#data-file-schemas
-# The README's tables are hand-written; keep them in step with these numbers.
+# The README's tables are hand-written; keep them in step with these numbers. A level's
+# bounty_scale (its data.yaml) multiplies every bounty after these factors, before the one rounding.
 starting_credits: 300
-budget: {base: 1000, growth: 1.07}  # budget(n) = base × growth^(n−1): what a perfect run of level n earns
+budget: {base: 700, growth: 1.07}   # budget(n) = base × growth^(n−1): what a TYPICAL run of level n earns (medium)
 act_factor: 1.6                     # bounties and prices scale with act_factor^(act−1)
 sell_back: 0.6                      # share of the total spent on an item (purchase plus upgrades)
+# The typical medium player the budget is set for: the share of each source they collect.
+# A level's typical haul (tools/sync_tables.py's credit-budget table, the TypicalHaul content test)
+# is its perfect run with each source weighted by these shares; it should land on budget(n).
+typical_player:
+  air_kills: 0.6        # air enemies killed (released spawns and boss streams too)
+  ground_targets: 0.8   # ground units and paying destructibles destroyed; a set piece's parts too
+  secrets: 0.5          # hidden crates found
+  pickups: 0.8          # credit pickups collected, of those whose source was destroyed
+  primary: 1.0          # the primary objective's credits (an escort's units home), as authored
+  secondary: 0.5        # a secondary objective's credits: met in every other run

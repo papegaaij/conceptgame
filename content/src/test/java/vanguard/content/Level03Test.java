@@ -39,7 +39,7 @@ class Level03Test {
     }
 
     @Test
-    void aPerfectRunAtMediumEarnsTheLevelBudget() {
+    void aPerfectRunAtMediumEarnsTheReadmesTotal() {
         LevelScript level = SimSpecs.level(content, LEVEL, Difficulty.MEDIUM);
         int large = content.player().pickups().salvage().credits().large();
 
@@ -60,11 +60,10 @@ class Level03Test {
                 .sum();
         int total = kills + setPieces + drops + crates + level.secondary().credits();
 
-        double budget = content.economy().budget().of(level.number());
-        assertEquals(630, kills);
+        assertEquals(790, kills);
         assertEquals(190, setPieces);
-        assertEquals(1_145, total, "kills " + kills + ", Leviathan " + setPieces + ", drops " + drops);
-        assertEquals(budget, total, budget * 0.05);
+        // The budget is the typical haul now (TypicalHaulTest); a perfect run earns well above it.
+        assertEquals(1_305, total, "kills " + kills + ", Leviathan " + setPieces + ", drops " + drops);
     }
 
     @Test
@@ -75,7 +74,7 @@ class Level03Test {
             totals.merge(wave.enemy().slug(), wave.count(), Integer::sum);
         }
 
-        assertEquals(Map.of("needler", 9, "skitter", 22, "spore-bomber", 10, "stinger", 6, "whirl-seed", 24), totals);
+        assertEquals(Map.of("needler", 9, "skitter", 54, "spore-bomber", 10, "stinger", 6, "whirl-seed", 24), totals);
         assertEquals(
                 List.of("leviathan"),
                 level.setPieces().stream().map(LevelScript.SetPieceSpec::slug).toList());

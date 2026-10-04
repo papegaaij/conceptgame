@@ -91,6 +91,9 @@ public final class LevelScreen implements GameScreen {
     private final GameServices services;
     private final Campaign campaign;
     private final LevelData level;
+    /** The level's number: its unit atlas stays loaded while the screen is open. */
+    private final int levelNumber;
+
     private final Sortie sortie;
     private final FixedStepClock clock = new FixedStepClock(SimStep.SECONDS, MAX_STEPS_PER_FRAME);
     private final EnemyLooks[] looks;
@@ -162,6 +165,9 @@ public final class LevelScreen implements GameScreen {
         this.campaign = campaign;
         Difficulty difficulty = campaign.difficulty();
         level = services.content.level(levelKey);
+        levelNumber = Content.levelNumber(levelKey);
+        // The level's own sprites (its unit atlas) until the screen closes.
+        services.sprites.enterLevel(levelNumber);
         Rules rules = SimSpecs.rules(services.content, levelKey, difficulty);
         campaign.launch();
         flight = Flight.of(services.content, services.catalogue, campaign);
@@ -744,5 +750,6 @@ public final class LevelScreen implements GameScreen {
     public void dispose() {
         music.dispose();
         warnings.dispose();
+        services.sprites.leaveLevel(levelNumber);
     }
 }

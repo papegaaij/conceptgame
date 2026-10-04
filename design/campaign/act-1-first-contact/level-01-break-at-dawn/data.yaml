@@ -3,6 +3,7 @@
 # Schema: ../../../tech/architecture/README.md#data-file-schemas
 scroll_speed: 130     # px/s at the 960×540 baseline; a section may set its own speed
 launch_seconds: 5     # non-playable launch off the south rail; control starts after it
+bounty_scale: 1.21         # every bounty × 1.21: the typical haul on budget (density rework)
 control_prompts: [move, fire, precision]
 threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
   setting: Earth orbit
@@ -163,7 +164,7 @@ radio:  # trigger: t (seconds) or event (first-kill of an enemy, secondary-objec
 
 objectives:
   primary: reach-end
-  secondary: {kill_ratio: 0.8, credits: 50}  # destroy at least this share of all enemies
+  secondary: {kill_ratio: 0.65, credits: 50}  # destroy at least this share of all enemies (the 65 % rule of thumb)
 
 music:
   track: 5            # Act 1 B "Coalition Rising" (audio/music track list)

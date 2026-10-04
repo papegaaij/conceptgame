@@ -42,7 +42,7 @@ class Level04Test {
     }
 
     @Test
-    void aPerfectRunAtMediumEarnsTheLevelBudget() {
+    void aPerfectRunAtMediumEarnsTheReadmesTotal() {
         LevelScript level = SimSpecs.level(content, LEVEL, Difficulty.MEDIUM);
         int medium = content.player().pickups().salvage().credits().medium();
 
@@ -78,14 +78,13 @@ class Level04Test {
                 + crates
                 + level.secondary().credits();
 
-        double budget = content.economy().budget().of(level.number());
-        assertEquals(714, kills, "539 before the pacing filler: 35 Skitters × 5");
+        assertEquals(
+                815, kills, "the density rework: 60 Skitters × 5 for the 35 of the pacing filler, 2 Needlers fewer");
         assertEquals(180, released, "36 Skitters × 5");
         assertEquals(156, turrets);
         assertEquals(150, convoy);
-        assertEquals(1_400, total, "kills " + kills + ", released " + released + ", drops " + drops);
-        // The pacing filler (2026-10-03) lifts a perfect run 14 % above the curve's 1,225.
-        assertEquals(budget, total, budget * 0.15);
+        // The budget is the typical haul now (TypicalHaulTest); a perfect run earns well above it.
+        assertEquals(1_501, total, "kills " + kills + ", released " + released + ", drops " + drops);
     }
 
     @Test
@@ -99,12 +98,12 @@ class Level04Test {
             totals.merge(unit.enemy().slug(), 1, Integer::sum);
         }
 
-        assertEquals(Map.of("brood-pod", 6, "needler", 12, "scuttler", 8, "skitter", 50, "spine-turret", 13), totals);
+        assertEquals(Map.of("brood-pod", 6, "needler", 10, "scuttler", 8, "skitter", 75, "spine-turret", 13), totals);
         assertEquals("brood-pod", level.secondary().escapes());
         assertEquals(50, level.secondary().credits());
         Sortie sortie = sortie(content, 1, Difficulty.MEDIUM);
         assertEquals(6, sortie.escapesTotal());
-        assertEquals(6 + 12 + 8 + 50 + 13 + 36, sortie.enemyTotal(), "the released Skitters count");
+        assertEquals(6 + 10 + 8 + 75 + 13 + 36, sortie.enemyTotal(), "the released Skitters count");
         assertEquals(5, sortie.allyCount());
     }
 

@@ -195,7 +195,7 @@ public final class LevelRenderer {
                 groundLooks.computeIfAbsent(spec.look(), sprites::frames);
             }
         }
-        String sledRun = "level-04/sled-run";
+        String sledRun = Backdrop.folder(levelKey, level) + "sled-run";
         luna = new LunaLooks(
                 sprites,
                 script.sled().isPresent() && sprites.hasBackdrop(sledRun) ? sprites.backdrop(sledRun, 30) : null,

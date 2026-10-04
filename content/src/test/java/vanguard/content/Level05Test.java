@@ -65,7 +65,7 @@ class Level05Test {
     }
 
     @Test
-    void aPerfectRunAtMediumEarnsTheLevelBudget() {
+    void aPerfectRunAtMediumEarnsTheReadmesTotal() {
         LevelScript level = SimSpecs.level(content, LEVEL, Difficulty.MEDIUM);
         int kills = level.waves().stream()
                 .mapToInt(wave -> wave.count() * wave.enemy().bounty())
@@ -99,7 +99,7 @@ class Level05Test {
                 + level.secondary().credits();
 
         double budget = content.economy().budget().of(level.number());
-        assertEquals(1_311, Math.round(budget));
+        assertEquals(918, Math.round(budget), "the typical haul's target");
         assertEquals(402, ground, "Polyp Mortar 14 × 15 + Spine Turret 16 × 12");
         assertEquals(200, parts, "heads 3 × 30 + core 110");
         assertEquals(65, crates);
@@ -118,8 +118,8 @@ class Level05Test {
                 total,
                 budget,
                 100 * (total - budget) / budget);
-        // The pacing filler (user decision D5) lifts a perfect run about 10-15 % above the curve.
-        assertTrue(total >= budget * 0.95 && total <= budget * 1.15, "total " + total);
+        // The budget is the typical haul now (TypicalHaulTest); a perfect run earns well above it.
+        assertEquals(1_661, total, "before the bounty_scale (TypicalHaulTest checks the scaled run)");
     }
 
     @Test

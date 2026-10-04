@@ -20,8 +20,8 @@ import java.util.Optional;
  * @param tileSets the repeating textures, by id
  * @param pieces the set pieces, by id
  * @param placed the set pieces along the scroll; on a layer, later ones are drawn over earlier ones
- * @param images the folder of another level whose images it uses ({@code level-04}: Level 05 reuses
- *     Level 04's Luna until its own art exists); its own folder when not given
+ * @param images the folder of another level whose images it uses (e.g. {@code level-04}, for a level
+ *     whose own art does not exist yet); its own folder when not given
  */
 public record BackdropData(
         Map<BackdropLayer, Double> scrollFactors,

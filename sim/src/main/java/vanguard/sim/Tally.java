@@ -7,7 +7,9 @@ import java.util.Arrays;
  * design/systems/economy). Score and credits are separate: kills score bounty × kill score ×
  * chain multiplier, pickups and bonuses score their credit value × pickup score, and the
  * difficulty's score factor applies to all of it. Every credit payout is its Act 1 medium value
- * times the credit factor, rounded half to even per payout. A failed attempt's tally is discarded.
+ * times the credit factor, rounded half to even per payout; a bounty (a kill, a part, a ground
+ * target's, a burst, a shot mine) is also multiplied by the level's bounty scale before that one
+ * rounding. Score uses the bounty without the scale. A failed attempt's tally is discarded.
  */
 final class Tally {
     private final ScoringRules rules;
@@ -62,7 +64,7 @@ final class Tally {
         maxChain = Math.max(maxChain, chain);
         chainTicks = windowTicks;
         score += Math.round(bounty * rules.killScore() * multiplier() * rules.scoreFactor());
-        return earn(source, bounty);
+        return bounty(source, bounty);
     }
 
     /**
@@ -74,7 +76,7 @@ final class Tally {
         maxChain = Math.max(maxChain, chain);
         chainTicks = windowTicks;
         score += Math.round(bounty * rules.killScore() * multiplier() * rules.scoreFactor());
-        return earn(CreditSource.KILLS, bounty);
+        return bounty(CreditSource.KILLS, bounty);
     }
 
     /**
@@ -83,7 +85,7 @@ final class Tally {
      */
     int unchained(int bounty) {
         score += Math.round(bounty * rules.killScore() * rules.scoreFactor());
-        return earn(CreditSource.KILLS, bounty);
+        return bounty(CreditSource.KILLS, bounty);
     }
 
     /** A set piece destroyed: one kill, its parts paid already. */
@@ -99,7 +101,19 @@ final class Tally {
 
     /** Pays {@code baseCredits} (Act 1, medium) from {@code source}; returns the credits paid. */
     int earn(CreditSource source, int baseCredits) {
-        int paid = (int) Math.rint(baseCredits * rules.creditFactor());
+        return pay(source, baseCredits * rules.creditFactor());
+    }
+
+    /**
+     * Pays a bounty of {@code baseCredits} (Act 1, medium) from {@code source}: times the credit
+     * factor and the level's bounty scale, rounded once; returns the credits paid.
+     */
+    int bounty(CreditSource source, int baseCredits) {
+        return pay(source, baseCredits * rules.creditFactor() * rules.bountyScale());
+    }
+
+    private int pay(CreditSource source, double amount) {
+        int paid = (int) Math.rint(amount);
         credits[source.ordinal()] += paid;
         return paid;
     }

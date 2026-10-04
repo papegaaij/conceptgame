@@ -3,6 +3,7 @@
 # The `backdrop` block is merged in from backdrop-proposal.yaml (the sections' tiles are its).
 scroll_speed: 140     # px/s; the second pass slows it to 90 (section 5)
 launch_seconds: 5     # the launch, as in Levels 01 and 02
+bounty_scale: 0.97         # every bounty × 0.97: the typical haul on budget (density rework)
 control_prompts: []
 prompts:  # contextual prompts in the HUD's prompt well: from t for seconds, the action and its keys; skip: leaves once an enemy on that layer is destroyed
   - {t: 12, action: LOW-AIR, keys: "BELOW YOU: FIRE", seconds: 12, skip: low-air}
@@ -92,12 +93,13 @@ sections:  # back to back from t = 0; tiles: the backdrop's tile sets; peak: a h
       purpose: Mop-up and Okafor's Hammer flight news.
 
 waves:  # at: a whirl cluster's release point [x, y below the top edge]: the Leviathan's blowhole on its first pass
+  - {t: 5.5, formation: snake, enemy: skitter, count: 6, from: front, edge: right, notes: Gone before the first Spore Bomber}
   - {t: 12, formation: single, enemy: spore-bomber, count: 1, from: front, notes: "**Introduction**: `straight` down, nothing else on screen"}
-  - {t: 22, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
-  - {t: 34, formation: V-wing, enemy: stinger, count: 3, from: front, notes: Dives between debris chunks}
+  - {t: 22, formation: snake, enemy: skitter, count: 10, from: front, edge: left}
+  - {t: 34, formation: V-wing, enemy: stinger, count: 3, from: front, hard: {count: 2}, notes: Dives between debris chunks}
   - {t: 42, formation: line abreast, enemy: spore-bomber, count: 3, from: front}
   - {t: 50, formation: V-wing, enemy: needler, count: 5, from: front, notes: Partly behind debris}
-  - {t: 56, formation: column, enemy: stinger, count: 3, from: front}
+  - {t: 56, formation: column, enemy: stinger, count: 3, from: front, hard: {count: 2}}
   - {t: 63, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [40, 40], hard: {count: 8}, notes: "From the Leviathan's blowhole on `high-air`; 8 on hard"}
   - {t: 66, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [173, 123], hard: {count: 8}}
   - {t: 69, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [307, 207], hard: {count: 8}}
@@ -105,8 +107,11 @@ waves:  # at: a whirl cluster's release point [x, y below the top edge]: the Lev
   - {t: 84, formation: snake, enemy: skitter, count: 8, from: front, edge: right}
   - {t: 92, formation: line abreast, enemy: spore-bomber, count: 3, from: front, notes: Inside the spore banks}
   - {t: 102, formation: convoy, enemy: spore-bomber, count: 3, from: front, notes: "`strafe` at y≈200 after entering; in the heavy peak"}
-  - {t: 165, formation: stream, enemy: skitter, count: 8, from: front, edge: alternating, interval: 0.5}
+  - {t: 112, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: Out of the heavy peak}
+  - {t: 159, formation: snake, enemy: skitter, count: 6, from: front, edge: right, notes: Once the Leviathan has gone}
+  - {t: 165, formation: stream, enemy: skitter, count: 12, from: front, edge: alternating, interval: 0.5}
   - {t: 175, formation: line abreast, enemy: needler, count: 4, from: front}
+  - {t: 180, formation: stream, enemy: skitter, count: 6, from: front, edge: alternating, interval: 0.75, notes: The last of them as the lane clears}
 
 set_pieces:  # huge units on a scripted course (design/enemies/space/leviathan); path: [t, x, y below the top edge] of the centre
   - enemy: leviathan

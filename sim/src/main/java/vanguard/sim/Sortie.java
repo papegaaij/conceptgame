@@ -730,7 +730,7 @@ public final class Sortie {
                 object.x(),
                 object.y(),
                 script.groundObjects().indexOf(spec));
-        tally.earn(CreditSource.GROUND_TARGETS, spec.bounty());
+        tally.bounty(CreditSource.GROUND_TARGETS, spec.bounty());
         tally.scoreValue(spec.bounty());
         if (spec.drop().isPresent()) {
             drop(spec.drop().get(), object.x(), object.y());
@@ -811,9 +811,6 @@ public final class Sortie {
         if (objectives.escapeDestroyed(spec.slug())) {
             paySecondary();
         }
-        if (objectives.meetsSecondary(tally.kills())) {
-            paySecondary();
-        }
     }
 
     /**
@@ -877,7 +874,7 @@ public final class Sortie {
         Mine mine = mines.get(index);
         events.add(SimEvents.Type.MINE_DESTROYED, mine.x(), mine.y());
         int credits = mine.spec().credits();
-        tally.earn(CreditSource.KILLS, credits);
+        tally.bounty(CreditSource.KILLS, credits);
         tally.scoreValue(credits);
         mines.free(index);
     }
@@ -917,9 +914,6 @@ public final class Sortie {
             }
         }
         if (objectives.escapeDestroyed(spec.slug())) {
-            paySecondary();
-        }
-        if (objectives.meetsSecondary(tally.kills())) {
             paySecondary();
         }
     }
@@ -1404,6 +1398,10 @@ public final class Sortie {
                 escortCredits += tally.earn(CreditSource.OBJECTIVES, credits);
                 tally.scoreValue(credits);
             }
+        }
+        // A kill-ratio secondary is judged at the end (design/systems/scoring): its line before the level-end line.
+        if (objectives.meetsKillRatio(tally.kills())) {
+            paySecondary();
         }
         radio.end(home);
     }

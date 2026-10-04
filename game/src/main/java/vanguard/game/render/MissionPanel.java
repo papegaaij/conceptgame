@@ -409,6 +409,7 @@ final class MissionPanel {
             kit.textRight(batch, kit.body, count, colour, X + PAD, y, TEXT_WIDTH);
             return;
         }
+        // A kill ratio is judged at the level's end: the count runs on past the share, DONE only then.
         kit.text(batch, kit.body, "KILLS", colour, X + PAD, y, TEXT_WIDTH);
         String count = sortie.secondaryMet() ? "DONE" : sortie.kills() + " / " + sortie.requiredKills();
         kit.textRight(batch, kit.body, count, colour, X + PAD, y, TEXT_WIDTH);

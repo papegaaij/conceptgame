@@ -24,7 +24,7 @@ class LevelResultTest {
         LevelResult result = LevelResult.of(TestSpecs.SCORING, LEVEL, kills(80), 80, 0, 60, 1, true);
 
         assertEquals(100, result.rating(), 1e-9);
-        assertEquals("S", result.grade().letter());
+        assertEquals("A+", result.grade().letter());
         assertEquals(
                 List.of(
                         new LevelResult.BonusScore("Destruction", 10_000),

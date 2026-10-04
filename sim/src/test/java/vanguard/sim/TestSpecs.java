@@ -63,7 +63,7 @@ final class TestSpecs {
                     new ScoringRules.Bonus(ScoringRules.BonusKind.UNTOUCHED, "Untouched", 5000, false, false),
                     new ScoringRules.Bonus(ScoringRules.BonusKind.EXPLORER, "Explorer", 3000, false, false)),
             List.of(
-                    new ScoringRules.Grade("S", 90, 0.3),
+                    new ScoringRules.Grade("A+", 90, 0.3),
                     new ScoringRules.Grade("A", 75, 0.2),
                     new ScoringRules.Grade("B", 55, 0.1),
                     new ScoringRules.Grade("C", 35, 0),

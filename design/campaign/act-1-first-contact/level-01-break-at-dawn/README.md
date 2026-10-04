@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../../enemies/air/skitter, ../../../enemies/air/needler]
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 # Level 01 – Break at Dawn
@@ -53,8 +53,8 @@ and credits, and ends in a large circling Needler formation. There is no boss. A
 ## Objective
 
 - **Primary** `reach-end`: survive to the end of the scroll.
-- **Secondary**: destroy at least 80% of all enemies. Pays +50 credits and triggers a line from
-  Okafor.
+- **Secondary**: destroy at least 65 % of all enemies (the campaign's rule of thumb), judged at the level's end. Pays
+  +50 credits and triggers a line from Okafor, before the level-end line.
 
 ## Layout
 
@@ -199,17 +199,17 @@ under the radio until its last message has been shown (at most 15 s, see the
 
 ## Credit budget
 
-The total matches budget(1) from the [economy](../../../systems/economy/README.md#per-level-budget)
-curve. Bounties from the stat blocks: Skitter 5, Needler 12.
+Budget(1) = **700**, the typical haul's target ([economy](../../../systems/economy/README.md#per-level-budget)); the level's `bounty_scale` of 1.21 puts the typical haul on it (`TypicalHaulTest`). Bounties from the stat blocks: Skitter 5, Needler 12.
 
 <!-- data: credit-budget -->
-| Source | Credits (medium) |
-|---|---|
-| Kills: Skitter 60 × 5 + Needler 35 × 12 | 720 |
-| Ground targets: cargo containers 10 × (5 + small salvage 10) | 150 |
-| Secret: beacon cache (hidden crate, 8% of budget) | 80 |
-| Secondary objective | 50 |
-| **Total** | **1,000** |
+| Source | Perfect run | Typical haul |
+|---|---|---|
+| Kills: Skitter 60 × 5 + Needler 35 × 12 | 885 | 531 |
+| Ground targets: cargo containers 10 × (5 + small salvage 10) | 160 | 112 |
+| Secret: beacon cache (hidden crate, 11% of budget) | 80 | 40 |
+| Secondary objective | 50 | 25 |
+| **Total** (bounty scale 1.21) | **1,175** | **708** |
+| Budget(n) = the typical haul's target; typical +1 %, perfect 1.68 × budget | | 700 |
 <!-- /data -->
 
 ## Difficulty notes
@@ -258,7 +258,8 @@ Rework after round 12 (user decision), for concept round 13: the north arm re-re
 - [x] Radio chatter cues fire at their triggers with portraits in the side HUD.
 - [x] Music cues as in *Music & ambience*; the debrief waits for the radio's last message (at most 15 s).
 - [x] Secondary objective tracked and rewarded.
-- [x] Credit total at medium with perfect collection is 1,000 (± 5%).
+- [x] Typical haul at medium within ±5 % of budget(1) = 700 with `bounty_scale` 1.21 (`TypicalHaulTest`); a perfect run earns 1,175.
+- [x] At least 32 enemies per minute of scroll at medium (32.6; `DensityTest`).
 - [x] Easy/hard variations as in *Difficulty notes*.
 - [x] Control prompts shown in section 1 (skippable).
 - [x] Aegis Two (Rook's flight) appears only as distant `far`-layer scenery in the launch; no
@@ -393,3 +394,7 @@ Rework after round 12 (user decision), for concept round 13: the north arm re-re
   placement in the data, every other piece byte-identical. Back on the board as a review item for
   round 13 (`north-arm-final-r13-a.png`); the rest of the Level 01 art stays final.
 - 2026-10-02: Concept round 13 closed (user decision): the re-rendered north-arm piece (solar wings ending inside the piece) approved as **final**; the Level 01 art is entirely final again.
+- 2026-10-04: Density rework (user decisions): the waves already reach the warm-up minimum of 32
+  enemies per minute (32.6) and stay as they are; `bounty_scale` 1.21 puts the typical haul on the
+  budget (708 of 700; a perfect run 1,175); the kill-ratio secondary drops from 80 % to the
+  campaign's 65 % rule of thumb (62 of 95 enemies).

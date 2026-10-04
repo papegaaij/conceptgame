@@ -174,9 +174,14 @@ final class Objectives {
         return ++killsByKind[kind];
     }
 
-    /** Whether {@code kills} in all meet the secondary objective, the first time they do. */
-    boolean meetsSecondary(int kills) {
-        if (byGroups || secondary.byEscapes() || secondaryMet || kills < requiredKills) {
+    /**
+     * Whether {@code kills} in all meet a kill-ratio secondary, the first time they do. It is asked
+     * once, when the level is complete: the share is judged at the end, never mid-level, so its
+     * credits and line come with the level-end lines (design/systems/scoring). A level that sends
+     * no enemies has no share to meet.
+     */
+    boolean meetsKillRatio(int kills) {
+        if (byGroups || secondary.byEscapes() || secondaryMet || requiredKills == 0 || kills < requiredKills) {
             return false;
         }
         secondaryMet = true;

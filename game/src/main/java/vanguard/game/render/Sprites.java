@@ -10,6 +10,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * The sprite and backdrop atlases packed by {@code :pipeline:packAtlases} from {@code assets/}:
@@ -19,9 +22,18 @@ import java.util.Comparator;
  * (tools/art/ui_kit.py), the hangar's equipment icons (tools/art/icons.py) and intel portraits
  * (tools/art/intel.py) and the speakers' portraits (tools/art/portraits.py), looked up by name,
  * and the levels' backdrop images (tools/art/backdrop_l01.py), plus a white pixel for drawn lines.
+ *
+ * <p>The shared sprite pages ({@code sprites}) stay loaded; a sprite only one level uses is in that
+ * level's unit atlas ({@code level-NN}, see the pipeline's {@code SpriteUse}), which is loaded while
+ * the level runs ({@link #enterLevel}, {@link #leaveLevel}). The lookups by name search the shared
+ * pages, then the loaded unit atlases.
  */
 public final class Sprites implements Disposable {
+    private final Files files;
     private final TextureAtlas sprites;
+    /** The loaded unit atlases by level number, with the screens using them. */
+    private final Map<Integer, Units> units = new LinkedHashMap<>();
+
     private final TextureAtlas backdrop;
     private final Texture pixelTexture;
 
@@ -68,6 +80,7 @@ public final class Sprites implements Disposable {
     public final TextureRegion pixel;
 
     public Sprites(Files files) {
+        this.files = files;
         sprites = new TextureAtlas(files.internal("atlas/sprites.atlas"));
         backdrop = new TextureAtlas(files.internal("atlas/backdrop.atlas"));
         ship = frames(sprites, "ship");
@@ -101,9 +114,34 @@ public final class Sprites implements Disposable {
         pixel = new TextureRegion(pixelTexture);
     }
 
+    /**
+     * Loads a level's unit atlas, if it has one, until {@link #leaveLevel} with the same number;
+     * a level entered twice (a retry starting before the last attempt's screen closes) keeps it.
+     */
+    public void enterLevel(int number) {
+        Units entered = units.get(number);
+        if (entered != null) {
+            entered.users++;
+            return;
+        }
+        var file = files.internal(String.format(Locale.ROOT, "atlas/level-%02d.atlas", number));
+        units.put(number, new Units(file.exists() ? new TextureAtlas(file) : null));
+    }
+
+    /** Disposes a level's unit atlas once no screen of that level uses it. */
+    public void leaveLevel(int number) {
+        Units left = units.get(number);
+        if (left != null && --left.users == 0) {
+            units.remove(number);
+            if (left.atlas != null) {
+                left.atlas.dispose();
+            }
+        }
+    }
+
     /** A region of the sprite pages by its name, such as {@code ui/knob}; it must exist. */
     public AtlasRegion region(String name) {
-        return region(sprites, name);
+        return region(atlasOf(name), name);
     }
 
     /**
@@ -111,7 +149,7 @@ public final class Sprites implements Disposable {
      * {@code _1}, ...), or the single region; it must exist.
      */
     public Array<AtlasRegion> frames(String name) {
-        return frames(sprites, name);
+        return frames(atlasOf(name), name);
     }
 
     /** Whether the backdrop pages hold an image of that name ({@code level-NN/<id>}). */
@@ -119,9 +157,21 @@ public final class Sprites implements Disposable {
         return backdrop.findRegion(name) != null;
     }
 
-    /** Whether the sprite pages hold a region of that name. */
+    /** Whether the sprite pages or a loaded unit atlas hold a region of that name. */
     public boolean has(String name) {
-        return sprites.findRegion(name) != null;
+        return atlasOf(name).findRegion(name) != null;
+    }
+
+    /** The atlas that holds a region of that name: the shared pages, or else a loaded unit atlas holding it. */
+    private TextureAtlas atlasOf(String name) {
+        if (sprites.findRegion(name) == null) {
+            for (Units loaded : units.values()) {
+                if (loaded.atlas != null && loaded.atlas.findRegion(name) != null) {
+                    return loaded.atlas;
+                }
+            }
+        }
+        return sprites;
     }
 
     /** A nine-patch of the sprite pages by its name, such as {@code ui/frame}; it must exist. */
@@ -166,8 +216,24 @@ public final class Sprites implements Disposable {
         return patch;
     }
 
+    /** A level's unit atlas (null when the level has no sprites of its own) and how many screens use it. */
+    private static final class Units {
+        final TextureAtlas atlas;
+        int users = 1;
+
+        Units(TextureAtlas atlas) {
+            this.atlas = atlas;
+        }
+    }
+
     @Override
     public void dispose() {
+        for (Units loaded : units.values()) {
+            if (loaded.atlas != null) {
+                loaded.atlas.dispose();
+            }
+        }
+        units.clear();
         sprites.dispose();
         backdrop.dispose();
         pixelTexture.dispose();

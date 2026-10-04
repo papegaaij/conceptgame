@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Architecture
@@ -195,7 +195,9 @@ first entry of a part's model list is the starter (price 0, `start`).
   takes no damage. `hover: {y}` may be one height instead of `[min, max]`.
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
-- **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`,
+- **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`, optional
+  `bounty_scale` (default 1: a factor on every bounty paid in the level, after the act factor and
+  the difficulty's income, before the one rounding per payout; see the economy),
   `control_prompts`, timed `prompts` (`t`, `action`, `keys`, `seconds`, an optional `skip` layer:
   the prompt leaves once an enemy on it is destroyed; `requires: special`: shown only with a special fitted); `sections` back to back from t = 0 (`name`, `end`, `atmosphere`, optional
   `speed`, the backdrop's `tiles` (tile set ids, at most one per layer), `arena: true` for the
@@ -281,8 +283,9 @@ first entry of a part's model list is the starter (price 0, `start`).
   a tactical map or mission image in `assets/ui/briefing/`, and the hangar `teaser`, rendered into
   *Briefing*); `backdrop`
   (presentation only, see below). The credit budget
-  table is derived: kills × bounties, ground targets, crates, the secondary objective, against
-  budget(n) of the economy; the attack directions are each entry's share of the enemies.
+  table is derived: kills × bounties (× `bounty_scale`), ground targets, crates, the objectives,
+  each as a perfect run and as the typical haul (weighted by the economy's `typical_player`),
+  against budget(n) of the economy; the attack directions are each entry's share of the enemies.
 - **Level backdrop** (`backdrop` in a level's data file; the *Backdrop* table is rendered from it):
   `scroll_factors` per layer (`deep`, `far`, `ground` = 1.0, `low-air`, `high-air`; `deep` may be
   left out on a top-down surface, Level 04's Luna: then the ground is the layer that covers the
@@ -322,8 +325,9 @@ first entry of a part's model list is the starter (price 0, `start`).
   credits, overdrive `levels` and `seconds`, shield cell `shield_percent`, armour patch
   `armour`, special charge `charges`, data core). Levels name pickups as `small salvage`,
   `armour patch`, ….
-- **Systems**: economy (`starting_credits`, `budget` `base` and `growth`, `act_factor`,
-  `sell_back`); difficulty (one `{easy, medium, hard}` entry per lever: factors such as
+- **Systems**: economy (`starting_credits`, `budget` `base` and `growth` (the typical haul),
+  `act_factor`, `sell_back`, `typical_player` shares `air_kills`, `ground_targets`, `secrets`,
+  `pickups`, `primary`, `secondary`); difficulty (one `{easy, medium, hard}` entry per lever: factors such as
   `enemy_hp`, changes such as `formation_size` (−0.2 = −20 %), `aimed_spread_degrees`, `bullet_budget`,
   `repair_cost`, `retries`, `boss_checkpoint`, `sensor_bonus`); scoring (`kill_score`,
   `pickup_score`, `chain`, `rating` weights, `bonuses`, `grades`); retry (`armour_floor`, the
@@ -378,7 +382,11 @@ first entry of a part's model list is the starter (price 0, `start`).
 - The `pipeline` module turns them into build output at build time: angle sets (using the
   symmetry rule), texture atlases, audio in OGG. Generated atlases are never committed.
   `packAtlases` checks the packed pages against the budgets of the production plan and fails the
-  build when one is exceeded (`AtlasBudget`).
+  build when one is exceeded (`AtlasBudget`). It packs a shared `sprites` atlas and one unit atlas
+  `level-NN` per level for the sprites only that level uses (`SpriteUse` derives the split from the
+  levels' data and fails the build on a sprite nothing uses). `Sprites` keeps the shared atlas
+  loaded; `LevelScreen` loads its level's unit atlas (`enterLevel`) and disposes it when it closes
+  (`leaveLevel`, counted so a retry's new screen keeps it); lookups by name search both.
 
 ### Testing
 
@@ -719,3 +727,14 @@ Screenshot tests are left out until there is a need.
   keeps a lost destroy-targets group from failing the level. Tests: `CraterNestTest` (sim), `Level05Test`
   (budget, totals, difficulties, the balance plan's fit completing every difficulty), PacingTest
   and RadioTimelineTest over Level 05.
+- 2026-10-04: Per-level unit atlases (user decision; design/art-direction/production, Budgets):
+  `packAtlases` stages the sprite frames per atlas from `SpriteUse` (shared, or the one level that
+  uses them) and packs `sprites` plus `level-NN`; `AtlasBudget` counts a level's unit atlas with
+  its backdrop pages and prints every atlas's fill. `Sprites.enterLevel`/`leaveLevel` load and
+  dispose a level's unit atlas around `LevelScreen`; `LunaLooks` looks up the mortar and sled
+  sprites only in a level that has them.
+- 2026-10-04: Economy rework: the level data's optional `bounty_scale` (`LevelData.bounties()`,
+  default 1) reaches the sim as `ScoringRules.bountyScale`; `Tally.bounty` pays kills, parts,
+  ground units, destructibles' bounties, bursts and shot mines × credit factor × scale with one
+  rounding, half to even. The economy's `typical_player` shares (`EconomyData.TypicalPlayer`)
+  drive the typical haul in the credit-budget tables and the content test helper `TypicalHaul`.

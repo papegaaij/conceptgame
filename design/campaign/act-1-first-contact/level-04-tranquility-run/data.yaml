@@ -5,6 +5,7 @@
 # backdrop proposal (art: tools/art/backdrop_l04.py, which reads them from here).
 scroll_speed: 120     # px/s: the crawlers' pace
 launch_seconds: 5     # flying in from the bottom edge, as in Levels 01-03
+bounty_scale: 0.79         # every bounty × 0.79: the typical haul on budget (density rework)
 control_prompts: []
 prompts:  # contextual prompts in the HUD's prompt well; requires: special = only with a special fitted
   - {t: 75, action: SPECIAL, keys: CALL HAMMER, seconds: 6, requires: special}
@@ -77,21 +78,22 @@ sections:  # back to back from t = 0; tiles: the backdrop's tile sets (no deep l
       purpose: Final pods and walker; the convoy drives into the hangar.
 
 waves:  # paths: a walker wave's ground paths, one list of [x, y] points per unit (y below the top edge at the wave's t; they scroll with the ground)
-  - {t: 7, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
-  - {t: 13.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 2, easy: {count: 4}, hard: {count: 4}, notes: Pacing filler}
+  - {t: 7, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 2, notes: Over the domes while the convoy forms up}
+  - {t: 13.5, formation: stream, enemy: skitter, count: 5, from: front, edge: right, interval: 2, notes: Gone before the first pod}
   - {t: 22, formation: single, enemy: brood-pod, count: 1, from: front, notes: "**Introduction**: alone, above the base; bursts into 6 Skitters"}
-  - {t: 27.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 27.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: Into the snake of 32}
   - {t: 32, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
-  - {t: 35.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 35.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.5}
   - t: 45
     groups:
       - {formation: carrier + escorts, enemy: brood-pod, count: 1}
       - {formation: carrier + escorts, enemy: needler, count: 3}
     from: front
     notes: Needlers `orbit` the pod
-  - {t: 51.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 2, easy: {count: 4}, hard: {count: 4}, notes: Pacing filler}
-  - {t: 60, formation: V-wing, enemy: needler, count: 3, from: front, notes: Over a turret nest}
-  - {t: 66.5, formation: stream, enemy: skitter, count: 3, from: front, edge: right, interval: 2.75, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 51.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 2.75, notes: Over the supply drop}
+  - {t: 60, formation: V-wing, enemy: needler, count: 3, from: front, hard: {count: 2}, notes: Over a turret nest}
+  - {t: 66.5, formation: stream, enemy: skitter, count: 5, from: front, edge: right, interval: 2}
+  - {t: 70, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: Crosses the stream of 66.5}
   - t: 75
     formation: single
     enemy: scuttler
@@ -99,7 +101,7 @@ waves:  # paths: a walker wave's ground paths, one list of [x, y] points per uni
     from: front
     paths: [[[200, -40], [200, 10], [130, 40], [70, -30]]]   # down the rille's west rim, across the road, then away north-west
     notes: '**Introduction**: walks along the rille rim on the ground layer beside the road, then turns toward the column, showing its back as it turns'
-  - {t: 80, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 80, formation: stream, enemy: skitter, count: 5, from: front, edge: alternating, interval: 1.75, notes: While the first walker turns}
   - t: 88
     formation: pincer
     enemy: scuttler
@@ -111,11 +113,11 @@ waves:  # paths: a walker wave's ground paths, one list of [x, y] points per uni
     notes: Walk in over both crater rims toward the convoy; edge warnings
   - {t: 95, formation: stream, enemy: skitter, count: 9, from: front, edge: alternating, interval: 0.5, notes: While the pincer walks in}
   - {t: 100, formation: single, enemy: brood-pod, count: 1, from: front}
-  - {t: 107.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 107.5, formation: stream, enemy: skitter, count: 5, from: front, edge: alternating, interval: 2, notes: Over the bridge}
   - t: 115
     groups:
       - {formation: carrier + escorts, enemy: brood-pod, count: 1}
-      - {formation: carrier + escorts, enemy: needler, count: 3}
+      - {formation: carrier + escorts, enemy: needler, count: 2}
     from: front
   - t: 120
     formation: convoy
@@ -124,8 +126,8 @@ waves:  # paths: a walker wave's ground paths, one list of [x, y] points per uni
     from: front
     paths: [[[265, -40], [276, 200], [289, 320], [322, 600]]]   # down the road (its ground positions at t=120), 1.5 s apart
     notes: Walk down the road toward the column, claws first
-  - {t: 127.5, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
-  - {t: 133.5, formation: stream, enemy: skitter, count: 3, from: front, edge: right, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 127.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.5}
+  - {t: 133.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 2, hard: {count: 2}}
   - t: 140
     formation: pincer
     enemy: scuttler
@@ -135,8 +137,8 @@ waves:  # paths: a walker wave's ground paths, one list of [x, y] points per uni
     hard: {count: 4}
     notes: Out of the heavy dust; edge warnings; two per side on hard
   - {t: 150, formation: line abreast, enemy: brood-pod, count: 2, from: front}
-  - {t: 160, formation: line abreast, enemy: needler, count: 3, from: front}
-  - {t: 163, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 160, formation: line abreast, enemy: needler, count: 2, from: front}
+  - {t: 163, formation: stream, enemy: skitter, count: 5, from: front, edge: alternating, interval: 1.5, notes: Over the gate yard}
   - t: 165
     formation: single
     enemy: scuttler
@@ -144,6 +146,7 @@ waves:  # paths: a walker wave's ground paths, one list of [x, y] points per uni
     from: front
     paths: [[[300, -40], [255, 110], [180, 250]]]   # out of the gate yard, across the road
     notes: Comes out of the gate yard toward the convoy
+  - {t: 170, formation: stream, enemy: skitter, count: 5, from: front, edge: alternating, interval: 2.5, notes: Chasing the convoy to the gate}
 
 ground_targets:  # at: [t, x], when it enters at the top edge (2.25 s before its base piece's centre passes the screen middle) and its x
   - target: Mare Road nest

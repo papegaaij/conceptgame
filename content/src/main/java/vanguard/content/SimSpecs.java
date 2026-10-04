@@ -292,10 +292,15 @@ public final class SimSpecs {
                 levers.bulletBudget().of(difficulty),
                 Math.toRadians(levers.aimedSpreadDegrees().of(difficulty)),
                 pickupRules,
-                scoring(content.scoring(), levers.score().of(difficulty), creditFactor));
+                scoring(
+                        content.scoring(),
+                        levers.score().of(difficulty),
+                        creditFactor,
+                        content.level(levelKey).bounties()));
     }
 
-    private static ScoringRules scoring(ScoringData scoring, double scoreFactor, double creditFactor) {
+    private static ScoringRules scoring(
+            ScoringData scoring, double scoreFactor, double creditFactor, double bountyScale) {
         ScoringData.Chain chain = scoring.chain();
         ScoringData.Rating rating = scoring.rating();
         return new ScoringRules(
@@ -317,7 +322,8 @@ public final class SimSpecs {
                 scoring.grades().stream()
                         .map(grade -> new ScoringRules.Grade(
                                 grade.grade(), grade.rating().orElse(0), grade.creditBonus()))
-                        .toList());
+                        .toList(),
+                bountyScale);
     }
 
     private static ScoringRules.BonusKind bonusKind(String name) {

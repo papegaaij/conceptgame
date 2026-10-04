@@ -68,4 +68,24 @@ class TallyTest {
         assertEquals(800, tally.score());
         assertEquals(0, tally.chain(), "no chain for pickups");
     }
+
+    @Test
+    void theBountyScaleMultipliesBountiesOnlyAndRoundsOncePerPayout() {
+        var scaled = new ScoringRules(
+                10,
+                10,
+                TestSpecs.SCORING.chain(),
+                1,
+                1.6,
+                TestSpecs.SCORING.weights(),
+                List.of(),
+                TestSpecs.SCORING.grades(),
+                1.5);
+        var tally = new Tally(scaled);
+
+        assertEquals(12, tally.kill(5), "5 × 1.6 × 1.5");
+        assertEquals(29, tally.partKill(12), "28.8: one rounding after the scale");
+        assertEquals(16, tally.earn(CreditSource.SALVAGE, 10), "salvage is not a bounty");
+        assertEquals(170, tally.score(), "5 × 10 + 12 × 10: the score uses the bounty without the scale");
+    }
 }

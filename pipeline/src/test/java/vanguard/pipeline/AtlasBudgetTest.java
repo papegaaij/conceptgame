@@ -71,6 +71,40 @@ class AtlasBudgetTest {
     }
 
     @Test
+    void aLevelsUnitAtlasCountsWithItsBackdrop() throws IOException {
+        write("sprites.atlas", page("sprites.png", 2048, 2048, region("ship", 8, 8)));
+        StringBuilder units = new StringBuilder();
+        for (int i = 1; i <= 3; i++) {
+            units.append(page("level-03" + i + ".png", 2048, 2048, region("leviathan-" + i, 8, 8)));
+        }
+        write("level-03.atlas", units.toString());
+        StringBuilder backdrop = new StringBuilder();
+        for (int i = 1; i <= 4; i++) {
+            backdrop.append(page("backdrop" + i + ".png", 2048, 2048, region("level-03/piece" + i, 8, 8)));
+        }
+        write("backdrop.atlas", backdrop.toString());
+
+        List<String> violations = AtlasBudget.violations(dir);
+
+        assertEquals(1, violations.size());
+        assertTrue(violations.getFirst().startsWith("level level-03: 7 pages"), violations.getFirst());
+        assertTrue(
+                AtlasBudget.report(dir).contains("level level-03 (units + backdrop): 7/6 pages"),
+                AtlasBudget.report(dir).toString());
+    }
+
+    @Test
+    void aSpriteInAUnitAtlasMustFitAPage() throws IOException {
+        write("sprites.atlas", page("sprites.png", 64, 64, region("ship", 8, 8)));
+        String halo = region("halo", 1024, 1024).repeat(5);
+        write("level-02.atlas", page("level-02.png", 2048, 2048, halo));
+        write("backdrop.atlas", page("backdrop.png", 64, 64, region("level-02/earth", 8, 8)));
+
+        assertEquals(
+                List.of("sprite 'halo': 20 MiB of frames, more than one page (16 MiB)"), AtlasBudget.violations(dir));
+    }
+
+    @Test
     void oneSpriteLargerThanAPageFails() throws IOException {
         String halo = region("halo", 1024, 1024).repeat(5);
         write("sprites.atlas", page("sprites.png", 2048, 2048, halo) + page("sprites2.png", 2048, 1024, halo));

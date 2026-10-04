@@ -14,6 +14,8 @@ import java.util.List;
  * @param weights the grade rating's weights
  * @param bonuses the level-end score bonuses
  * @param grades from the best grade down; the last has no minimum
+ * @param bountyScale the level's bounty scale, on every bounty after the credit factor (one
+ *     rounding per payout); 1 leaves the bounties as they are
  */
 public record ScoringRules(
         double killScore,
@@ -23,10 +25,27 @@ public record ScoringRules(
         double creditFactor,
         Weights weights,
         List<Bonus> bonuses,
-        List<Grade> grades) {
+        List<Grade> grades,
+        double bountyScale) {
     public ScoringRules {
         bonuses = List.copyOf(bonuses);
         grades = List.copyOf(grades);
+        if (!(bountyScale > 0)) {
+            throw new IllegalArgumentException("the bounty scale must be positive: " + bountyScale);
+        }
+    }
+
+    /** The rules with the bounties as they are (bounty scale 1). */
+    public ScoringRules(
+            double killScore,
+            double pickupScore,
+            Chain chain,
+            double scoreFactor,
+            double creditFactor,
+            Weights weights,
+            List<Bonus> bonuses,
+            List<Grade> grades) {
+        this(killScore, pickupScore, chain, scoreFactor, creditFactor, weights, bonuses, grades, 1);
     }
 
     /**

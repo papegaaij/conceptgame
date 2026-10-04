@@ -27,6 +27,15 @@ class SaveFormatTest {
     }
 
     @Test
+    void anOldTopGradeSLoadsAsAPlus() throws SaveException {
+        String json = SaveFormat.write(save());
+        String old = json.replaceFirst("(\"grades\" : \\{\\s*\"1\" : )\"A\"", "$1\"S\"");
+        assertTrue(old.contains("\"S\""), old);
+
+        assertEquals("A+", SaveFormat.read(old).grades().get(1));
+    }
+
+    @Test
     void aNewerFormatVersionIsRejected() {
         String json = SaveFormat.write(save()).replace("\"version\" : 1", "\"version\" : 2");
 

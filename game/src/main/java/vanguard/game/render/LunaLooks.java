@@ -14,7 +14,7 @@ import vanguard.sim.Sortie;
 
 /**
  * Level 05's hazards and objective marks (design/campaign, Level 05; art: tools/art/l05_hazards.py):
- * the mass-driver sleds on Level 04's rail (its {@code sled-run} lamp frames, idle or in their fast
+ * the mass-driver sleds on Level 04's rail (the {@code sled-run} lamp frames in the level's own backdrop, idle or in their fast
  * blink, with lit lamps added over them while the lights chase up the rail and while a sled runs,
  * and the lit sled racing up the rail on its additive motion streak), the Polyp Mortars' lobs (a
  * lime marker ring as big as the impact circle where they land, pulsing faster as the blob nears,
@@ -31,7 +31,7 @@ final class LunaLooks {
     private static final double ARC = 70;
     /** The marker sprite's ring radius, px (the data's impact radius, half its 32 px circle). */
     private static final float MARKER_RADIUS = 16;
-    /** The sled-run frames: 0–13 idle blinking, 14–21 the fast warning blink (Level 04's art). */
+    /** The sled-run frames: 0–13 idle blinking, 14–21 the fast warning blink (Level 04's generator). */
     private static final int IDLE_FRAMES = 14;
 
     private static final int WARN_FIRST = 14;
@@ -61,17 +61,19 @@ final class LunaLooks {
     private final FlashShader flash;
 
     /**
-     * @param sledRun Level 04's {@code sled-run} frames, or null when the level has no sleds
+     * @param sledRun the level's {@code sled-run} backdrop frames, or null when the level has no sleds
      */
     LunaLooks(Sprites sprites, Array<AtlasRegion> sledRun, FlashShader flash) {
         this.pixel = sprites.pixel;
         this.flash = flash;
         this.sledRun = sledRun;
-        blob = sprites.frames("mortar-blob");
-        marker = sprites.region("mortar-marker");
-        sled = sprites.region("sled");
-        streak = sprites.region("sled-streak");
-        lamp = sprites.region("sled-lamp");
+        // Level 05's own sprites (its unit atlas): only a level with mortars or sleds has them.
+        boolean mortars = sprites.has("mortar-blob");
+        blob = mortars ? sprites.frames("mortar-blob") : null;
+        marker = mortars ? sprites.region("mortar-marker") : null;
+        sled = sledRun != null ? sprites.region("sled") : null;
+        streak = sledRun != null ? sprites.region("sled-streak") : null;
+        lamp = sledRun != null ? sprites.region("sled-lamp") : null;
     }
 
     /**

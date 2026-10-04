@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../../enemies/ground/spine-turret, ../../../enemies/air/stinger, ../../../world/earth-orbit]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Level 02 – Shipyard Burning
@@ -47,7 +47,7 @@ data names them as each page's `image`.
 | Field | Value |
 |---|---|
 | Dominant layers | `air`, `ground` (turrets rooted on station hulls) |
-| Attack directions | front 64% · sides 36% (10 of 14 waves from the top edge) |
+| Attack directions | front 70% · sides 30% (10 of 14 waves from the top edge) |
 | Density | 2 |
 | Recommended traits | `forward`, `spread` |
 | Hazards | Crane Four's sweeping arm (section 3); a coolant cloud in section 4 (visual only) |
@@ -114,6 +114,7 @@ Enemy specs: [Skitter](../../../enemies/air/skitter/README.md),
 | t (s) | Section | Formation | Enemies (link) | Count | Enter from | Notes |
 |---|---|---|---|---|---|---|
 | 28 | 2 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (left) | Over Dock One, while its turrets fire |
+| 34 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | Between Dock One and the Needlers |
 | 40 | 2 | V-wing | [Needler](../../../enemies/air/needler/README.md) | 5 | front | |
 | 50 | 2 | single | [Stinger](../../../enemies/air/stinger/README.md) | 1 | front | **Introduction**: alone, no other air enemies; radio tip |
 | 56 | 2 | column | [Stinger](../../../enemies/air/stinger/README.md) | 2 | front | Dives 0.4 s apart |
@@ -124,11 +125,13 @@ Enemy specs: [Skitter](../../../enemies/air/skitter/README.md),
 | 108 | 3 | column | [Stinger](../../../enemies/air/stinger/README.md) | 3 | right side | Edge warning; radio |
 | 118 | 4 | pincer | [Needler](../../../enemies/air/needler/README.md) | 4 | sides | Hold 4 s at the edges over Dock Four |
 | 130 | 4 | line abreast | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front | |
+| 136 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (alternating edges) | |
 | 145 | 4 | V-wing | [Stinger](../../../enemies/air/stinger/README.md) | 5 | front | Inside the coolant peak; the crimson dive glow reads through the cloud |
+| 154 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (left) | Out of the coolant cloud |
 | 165 | 5 | line abreast | [Needler](../../../enemies/air/needler/README.md) | 4 | front | |
 | 170 | 5 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 8 | sides | Finale |
 
-Totals: Skitter 34 · Needler 16 · Stinger 14.
+Totals: Skitter 46 · Needler 16 · Stinger 14.
 <!-- /data -->
 
 ## Ground targets
@@ -219,17 +222,18 @@ the warning klaxon looping softly while Crane Four's lights blink.
 
 ## Credit budget
 
-Budget(2) = 1,000 × 1.07 = **1,070** ([economy](../../../systems/economy/README.md#per-level-budget)).
+Budget(2) = 700 × 1.07 = **749**, the typical haul's target ([economy](../../../systems/economy/README.md#per-level-budget)); the level's `bounty_scale` of 1.05 puts the typical haul on it (`TypicalHaulTest`).
 Bounties from the stat blocks: Skitter 5, Needler 12, Stinger 15, Spine Turret 12.
 
 <!-- data: credit-budget -->
-| Source | Credits (medium) |
-|---|---|
-| Kills: Skitter 34 × 5 + Needler 16 × 12 + Stinger 14 × 15 | 572 |
-| Ground targets: Spine Turret 24 × 12 + cargo pods 3 × small salvage 10 | 318 |
-| Secret: crane cache (hidden crate, 7% of budget) | 80 |
-| Secondary: 4 docks × 25 | 100 |
-| **Total** | **1,070** |
+| Source | Perfect run | Typical haul |
+|---|---|---|
+| Kills: Skitter 46 × 5 + Needler 16 × 12 + Stinger 14 × 15 | 662 | 397 |
+| Ground targets: Spine Turret 24 × 12 + cargo pods 3 × small salvage 10 | 342 | 269 |
+| Secret: crane cache (hidden crate, 11% of budget) | 80 | 40 |
+| Secondary: 4 docks × 25 | 100 | 50 |
+| **Total** (bounty scale 1.05) | **1,184** | **756** |
+| Budget(n) = the typical haul's target; typical +1 %, perfect 1.58 × budget | | 749 |
 <!-- /data -->
 
 ## Difficulty notes
@@ -262,7 +266,8 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
 - [x] Coolant peak on `low-air` never hides bullets.
 - [x] HUD prompt for ground targets at t=18 (once, skippable).
 - [x] Radio cues fire at their triggers; dock lines fire per dock.
-- [x] Credit total at medium with perfect collection is 1,070 (± 5%).
+- [x] Typical haul at medium within ±5 % of budget(2) = 749 with `bounty_scale` 1.05 (`TypicalHaulTest`); a perfect run earns 1,184.
+- [x] At least 32 enemies per minute of scroll at medium (33.3; `DensityTest`).
 - [x] Easy/hard variations as in *Difficulty notes*.
 
 ## Open questions
@@ -288,3 +293,8 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
   starts on time at the default text speed, also with the dock events in between
   (`RadioTimelineTest`, with the radio priorities of the [HUD](../../../ui/hud/README.md#decisions)).
 - 2026-10-03 (user decision): Varga's turret line at t=22.5 (the retiming above) accepted as it is.
+- 2026-10-04: Density rework (user decision: at least 32 enemies per minute in the warm-up
+  levels): three Skitter streams of 4 at t = 34, 136 and 154 lift the density from 29.3 to 33.3;
+  `bounty_scale` 1.05 puts the typical haul on the budget (756 of 749; a perfect run 1,184). The
+  autopilot's damage per run (shield and armour, the mean over the streams' timings jittered)
+  stays level: easy 1.9 → 5.7, medium 21.9 → 20.5, hard 44.7 → 45.2.

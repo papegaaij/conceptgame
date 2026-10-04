@@ -111,7 +111,7 @@ def apply_plan(data):
         if n > 1:
             pay(plan["repair_points_per_level"] * data["repair_cost"], "repairs (estimate)")
         yield n, state
-        earned = round(budget(data, n) * plan["typical_collection"])
+        earned = round(budget(data, n))  # the budget is the typical player's haul
         state["credits"] += earned
         state["income"] += earned
 

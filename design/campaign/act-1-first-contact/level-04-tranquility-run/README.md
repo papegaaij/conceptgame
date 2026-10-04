@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../../enemies/air/brood-pod, ../../../enemies/ground/scuttler, ../../../allies, ../../../world/luna, ../../../player/specials, ../../../systems/retry]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Level 04 – Tranquility Run
@@ -50,7 +50,7 @@ back, waiting until it turns away); the level's data names them as each page's `
 | Field | Value |
 |---|---|
 | Dominant layers | `ground` (turrets, walkers, the convoy), `air` |
-| Attack directions | front 95% · sides 5% (walker pincers over the crater rims) |
+| Attack directions | front 96% · sides 4% (walker pincers over the crater rims) |
 | Density | 2 |
 | Recommended traits | `forward`, `anti-ground` |
 | Hazards | none lethal; ground fire targets the convoy |
@@ -129,42 +129,45 @@ Enemy specs: [Brood Pod](../../../enemies/air/brood-pod/README.md),
 cross the convoy's road (in screen coordinates, scrolling with the ground); they turn toward
 the column and claw a crawler they walk across.
 
-The **pacing filler** waves are small Skitter streams (3–4 units, 2–2.75 s apart, the same count
-on every difficulty) that keep the screen from emptying between the set waves, per the
-campaign's [pacing rule](../../README.md#pacing-rules). Skitters only ram the ship: they do not
-hook the convoy, so its threat is unchanged. The only long pause left is the convoy's run into
-the terminal (from about 169 s).
+Between the set waves, **Skitter streams** of 4–5 (1.25–2.75 s apart, from both edges) and a
+snake of 6 overlap the threats, so the screen is rarely empty (the campaign's
+[pacing rule](../../README.md#pacing-rules) and [minimum density](../../README.md#difficulty-curve):
+48 enemies per minute). Skitters only ram the ship: they do not hook the convoy. The only long
+pause left is the convoy's last stretch into the terminal (from about 181 s; on hard also 3.4 s
+before the t=140 pincer).
 
 <!-- data: waves -->
 | t (s) | Section | Formation | Enemies (link) | Count | Enter from | Notes |
 |---|---|---|---|---|---|---|
-| 7 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (left) | Pacing filler |
-| 13.5 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | Pacing filler |
+| 7 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (left) | Over the domes while the convoy forms up |
+| 13.5 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 5 | front (right) | Gone before the first pod |
 | 22 | 1 | single | [Brood Pod](../../../enemies/air/brood-pod/README.md) | 1 | front | **Introduction**: alone, above the base; bursts into 6 Skitters |
-| 27.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (alternating edges) | Pacing filler |
+| 27.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (alternating edges) | Into the snake of 32 |
 | 32 | 2 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (left) | |
-| 35.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (alternating edges) | Pacing filler |
+| 35.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (alternating edges) | |
 | 45 | 2 | carrier + escorts | [Brood Pod](../../../enemies/air/brood-pod/README.md) + [Needler](../../../enemies/air/needler/README.md) | 1 + 3 | front | Needlers `orbit` the pod |
-| 51.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (left) | Pacing filler |
+| 51.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (left) | Over the supply drop |
 | 60 | 2 | V-wing | [Needler](../../../enemies/air/needler/README.md) | 3 | front | Over a turret nest |
-| 66.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (right) | Pacing filler |
+| 66.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 5 | front (right) | |
+| 70 | 3 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (left) | Crosses the stream of 66.5 |
 | 75 | 3 | single | [Scuttler](../../../enemies/ground/scuttler/README.md) | 1 | front | **Introduction**: walks along the rille rim on the ground layer beside the road, then turns toward the column, showing its back as it turns |
-| 80 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (alternating edges) | Pacing filler |
+| 80 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 5 | front (alternating edges) | While the first walker turns |
 | 88 | 3 | pincer | [Scuttler](../../../enemies/ground/scuttler/README.md) | 2 | sides | Walk in over both crater rims toward the convoy; edge warnings |
 | 95 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 9 | front (alternating edges) | While the pincer walks in |
 | 100 | 3 | single | [Brood Pod](../../../enemies/air/brood-pod/README.md) | 1 | front | |
-| 107.5 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (alternating edges) | Pacing filler |
-| 115 | 4 | carrier + escorts | [Brood Pod](../../../enemies/air/brood-pod/README.md) + [Needler](../../../enemies/air/needler/README.md) | 1 + 3 | front | |
+| 107.5 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 5 | front (alternating edges) | Over the bridge |
+| 115 | 4 | carrier + escorts | [Brood Pod](../../../enemies/air/brood-pod/README.md) + [Needler](../../../enemies/air/needler/README.md) | 1 + 2 | front | |
 | 120 | 4 | convoy | [Scuttler](../../../enemies/ground/scuttler/README.md) | 2 | front | Walk down the road toward the column, claws first |
-| 127.5 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (left) | Pacing filler |
-| 133.5 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (right) | Pacing filler |
+| 127.5 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (left) | |
+| 133.5 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | |
 | 140 | 4 | pincer | [Scuttler](../../../enemies/ground/scuttler/README.md) | 2 | sides | Out of the heavy dust; edge warnings; two per side on hard |
 | 150 | 4 | line abreast | [Brood Pod](../../../enemies/air/brood-pod/README.md) | 2 | front | |
-| 160 | 5 | line abreast | [Needler](../../../enemies/air/needler/README.md) | 3 | front | |
-| 163 | 5 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (alternating edges) | Pacing filler |
+| 160 | 5 | line abreast | [Needler](../../../enemies/air/needler/README.md) | 2 | front | |
+| 163 | 5 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 5 | front (alternating edges) | Over the gate yard |
 | 165 | 5 | single | [Scuttler](../../../enemies/ground/scuttler/README.md) | 1 | front | Comes out of the gate yard toward the convoy |
+| 170 | 5 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 5 | front (alternating edges) | Chasing the convoy to the gate |
 
-Totals: Skitter 50 · Brood Pod 6 · Needler 12 · Scuttler 8.
+Totals: Skitter 75 · Brood Pod 6 · Needler 10 · Scuttler 8.
 <!-- /data -->
 
 ## Ground targets
@@ -248,20 +251,20 @@ convoy is on screen. Mission failed sting on convoy loss.
 
 ## Credit budget
 
-Budget(4) = 1,000 × 1.07³ ≈ **1,225** ([economy](../../../systems/economy/README.md#per-level-budget)).
-The pacing filler's 35 Skitters (175 credits) lift a perfect run to 1,400, 14% over the curve.
+Budget(4) = 700 × 1.07³ ≈ **858**, the typical haul's target ([economy](../../../systems/economy/README.md#per-level-budget)); the level's `bounty_scale` of 0.79 puts the typical haul on it (`TypicalHaulTest`).
 Bounties from the stat blocks: Brood Pod 20 (8 if it bursts on its own), Skitter 5, Scuttler 25,
 Needler 12, Spine Turret 12.
 
 <!-- data: credit-budget -->
-| Source | Credits (medium) |
-|---|---|
-| Kills: Skitter 50 × 5 + Brood Pod 6 × 20 + Needler 12 × 12 + Scuttler 8 × 25 + released Skitter 36 × 5 | 894 |
-| Ground targets: Spine Turret 13 × 12 + supply drop medium salvage 50 | 206 |
-| Primary objective: 5 crawlers home × 30 | 150 |
-| Secret: prospector's cache (hidden crate, 8% of budget) | 100 |
-| Secondary: every Brood Pod killed before it bursts | 50 |
-| **Total** | **1,400** |
+| Source | Perfect run | Typical haul |
+|---|---|---|
+| Kills: Skitter 75 × 5 + Brood Pod 6 × 20 + Needler 10 × 12 + Scuttler 8 × 25 + released Skitter 36 × 5 | 790 | 506 |
+| Ground targets: Spine Turret 13 × 12 + supply drop medium salvage 50 | 167 | 126 |
+| Primary objective: 5 crawlers home × 30 | 150 | 150 |
+| Secret: prospector's cache (hidden crate, 12% of budget) | 100 | 50 |
+| Secondary: every Brood Pod killed before it bursts | 50 | 25 |
+| **Total** (bounty scale 0.79) | **1,257** | **857** |
+| Budget(n) = the typical haul's target; typical -0 %, perfect 1.47 × budget | | 858 |
 <!-- /data -->
 
 ## Difficulty notes
@@ -305,7 +308,8 @@ Concept round 17 (M4 part D): the backdrop's production art proposal (its review
 - [x] Supply drop pays a special charge only if a special is fitted.
 - [x] Special prompt `SPECIAL` · `CALL HAMMER` at t=75 (once, only with the Airstrike fitted).
 - [x] Radio cues fire at their triggers, including the per-outcome end lines; Okafor's Hammer flight line only with the Airstrike fitted.
-- [x] Credit total at medium with perfect collection is 1,400 (the curve's 1,225 + 14% for the pacing filler).
+- [x] Typical haul at medium within ±5 % of budget(4) = 858 with `bounty_scale` 0.79 (`TypicalHaulTest`); a perfect run earns 1,257.
+- [x] At least 40 enemies per minute of scroll at medium (48.0; `DensityTest`).
 - [x] Pacing rule: no empty screen over 3 s after the launch except the run into the terminal, on every difficulty (`PacingTest`).
 - [x] Easy/hard variations as in *Difficulty notes*.
 
@@ -420,3 +424,13 @@ Concept round 17 (M4 part D): the backdrop's production art proposal (its review
   [round 20](../../../concept-rounds/round-20/README.md). `art` stays `chosen` until the round is
   approved.
 - 2026-10-03: Concept round 20 closed (user decision, "both accepted"): the briefing images approved as **final**. They were the last missing piece; every other part with a look is final, so all of the level's art is final, `art: final`.
+- 2026-10-04: Density rework (user decisions: Act 1's minimum of 40 enemies per minute, the
+  typical haul on budget): the eleven pacing-filler streams (35 Skitters) give way to thirteen
+  Skitter waves (60: streams of 4–5 from both edges and a snake of 6) that overlap the threats;
+  the density rises from 40.5 to 48.0 per minute, with one pause over 3 s left (the run into the
+  terminal). More targets kept the autopilot off the Needlers, so Needlers are thinned instead:
+  the t=115 escort and the t=160 line 3 → 2, on hard the t=60 V-wing 3 → 2 and the t=133.5 stream
+  4 → 2. Damage per run (shield and armour; mean over the Skitter waves' timings jittered) easy
+  22.1 → 23.0, medium 21.2 → 18.1, hard 57.7 → 61.0; crawlers home 5 on easy and medium, on hard
+  1.84 → 1.88. `bounty_scale` 0.79 puts the typical haul on the budget (857 of 858; a perfect run
+  1,257 instead of 1,400).

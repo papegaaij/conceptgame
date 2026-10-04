@@ -20,8 +20,8 @@ bonuses:
   - {name: Boss rush, points: 2000, scale: act, notes: {condition: 'Boss or mid-boss killed under its par time (the boss data''s `par`)'}}
 grades:
   # lowest rating for the grade (none for the last), credit bonus as a share of the level's credits
-  - {grade: S, rating: 90, credit_bonus: 0.3}
-  - {grade: A, rating: 75, credit_bonus: 0.2}
-  - {grade: B, rating: 55, credit_bonus: 0.1}
-  - {grade: C, rating: 35, credit_bonus: 0}
+  - {grade: A+, rating: 85, credit_bonus: 0.3}
+  - {grade: A, rating: 70, credit_bonus: 0.2}
+  - {grade: B, rating: 50, credit_bonus: 0.1}
+  - {grade: C, rating: 30, credit_bonus: 0}
   - {grade: D, credit_bonus: 0}

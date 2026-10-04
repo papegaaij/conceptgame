@@ -51,7 +51,7 @@ over the crater); the level's data names them as each page's `image`.
 | Field | Value |
 |---|---|
 | Dominant layers | `ground` (mortars, turrets, the batteries), `air` |
-| Attack directions | front 81% · sides 19% |
+| Attack directions | front 87% · sides 13% |
 | Density | 3 |
 | Recommended traits | `anti-ground`, `spread` |
 | Hazards | Mass-driver sleds (section 1); low-gravity debris from destroyed ground targets |
@@ -86,11 +86,11 @@ afterwards.
 <!-- data: level-sections -->
 | Section | t (s) | Scroll (px) | Speed (px/s) | Atmosphere | Layers and content | Purpose |
 |---|---|---|---|---|---|---|
-| 1. Mass-Driver Line | 0–35 | 0–5,250 | 150 | clear | `ground`: regolith, the mass-driver rail at x 432 (Level 04's rail), its signal lights, the launch sleds streaking up the rail. | Learn the sled rhythm; the first Polyp Mortar alone. |
+| 1. Mass-Driver Line | 0–35 | 0–5,250 | 150 | clear | `ground`: regolith, the mass-driver rail at x 432 (Level 04's rail), its signal lights, the launch sleds streaking up the rail; the rail climbs the outer rim to its launch lip. | Learn the sled rhythm; the first Polyp Mortar alone. |
 | 2. Crater Rim | 35–75 | 5,250–11,250 | 150 | light | `ground`: the outer rim and its inner walls (ground pieces), boulders, an abandoned rover. `low-air`: regolith plumes from mortar impacts. | Battery A; side waves. |
 | 3. Nest Floor | 75–125 | 11,250–18,750 | 150 | medium, heavy peak 115–122 | `ground`: the crater floor with teal Vrell growth and pod husks. `low-air`: spore dust venting from the nest (the heavy peak). `high-air`: ejected rock streaks. | Batteries B and C; Brood Pods; low-gravity debris. |
 | 4. Nest Heart | 125–150 | 18,750–22,500 | 150 | light | `ground`: the central growth, pod husks around battery D. `low-air`: thin plumes. | Battery D; the frigate's shadow falls over the floor. |
-| 5. Gorgon Frigate | 150–205 | 22,500–24,150 | 30 | clear | `ground`: the nest heart below (no terrain collision). `air`: the frigate, its bell in the upper third. | Mid-boss fight (≈ 55 s at medium); the scroll halts after 55 s while the frigate lives, and section 6 starts at its death. |
+| 5. Gorgon Frigate | 150–205 | 22,500–24,150 | 30 | clear | `ground`: the nest heart below, a calm floor (no terrain collision); the burning nest at its end, under the far rim. `air`: the frigate, its bell in the upper third. | Mid-boss fight (≈ 55 s at medium); the scroll halts after 55 s while the frigate lives, and section 6 starts at its death. |
 | 6. Lift-off | 205–215 | 24,150–25,650 | 150 | light | `ground`: the far rim, the burning nest behind. | Credit shower, end. |
 <!-- /data -->
 
@@ -116,45 +116,47 @@ Enemy specs: [Polyp Mortar](../../../enemies/ground/polyp-mortar/README.md),
 <!-- data: waves -->
 | t (s) | Section | Formation | Enemies (link) | Count | Enter from | Notes |
 |---|---|---|---|---|---|---|
-| 5.5 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 2 | front (right) | Pacing filler |
+| 5.5 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | Left of the rail |
 | 10 | 1 | V-wing | [Needler](../../../enemies/air/needler/README.md) | 4 | front | Left of the rail |
-| 13 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (left) | Pacing filler |
+| 13 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | |
 | 20 | 1 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (left) | Snakes across the rail between sleds |
-| 22 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 2 | front (right) | Pacing filler |
-| 30.5 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (left) | Pacing filler |
+| 22 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | Behind the snake of 20 |
+| 30.5 | 1 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (left) | Away from the rail as the sleds stop |
 | 38 | 2 | column | [Stinger](../../../enemies/air/stinger/README.md) | 3 | front | |
-| 42.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (alternating edges) | Pacing filler |
+| 42.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (alternating edges) | Over the rim turrets |
 | 48 | 2 | pincer | [Needler](../../../enemies/air/needler/README.md) | 4 | sides | Hold 4 s at the edges above battery A |
-| 51.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 2 | front (right) | Pacing filler |
-| 58.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 2 | front (left) | Pacing filler |
+| 51.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | Between the holding Needlers |
+| 58.5 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (left) | Into the stream of 62 |
 | 62 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 8 | sides (alternating edges) | All eight on easy too (pacing) |
 | 70 | 2 | V-wing | [Stinger](../../../enemies/air/stinger/README.md) | 4 | front | |
-| 73 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (alternating edges) | Pacing filler |
+| 73 | 2 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (alternating edges) | Behind the Stingers |
 | 80 | 3 | single | [Brood Pod](../../../enemies/air/brood-pod/README.md) | 1 | front | |
-| 84 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 2 | front (left) | Pacing filler |
-| 91 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 2 | front (right) | Pacing filler |
+| 84 | 3 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (left) | |
+| 91 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | Before battery B |
 | 95 | 3 | carrier + escorts | [Brood Pod](../../../enemies/air/brood-pod/README.md) + [Needler](../../../enemies/air/needler/README.md) | 1 + 4 | front | Over battery B |
-| 102 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 2 | front (left) | Pacing filler |
+| 102 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (left) | Over the floor turrets |
 | 110 | 3 | column | [Stinger](../../../enemies/air/stinger/README.md) | 3 | right side | Over battery C; edge warning |
-| 112 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 2 | front (right) | Pacing filler |
+| 112 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | |
 | 118 | 3 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (right) | In the heavy peak |
-| 122 | 3 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (alternating edges) | Pacing filler |
-| 128.5 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 3 | front (left) | Pacing filler |
+| 122 | 3 | snake | [Skitter](../../../enemies/air/skitter/README.md) | 6 | front (right) | Out of the heavy peak |
+| 125 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (left) | |
+| 130.5 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | |
 | 135 | 4 | single | [Brood Pod](../../../enemies/air/brood-pod/README.md) | 1 | front | Over battery D |
-| 140.5 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 2 | front (right) | Pacing filler |
+| 140.5 | 4 | stream | [Skitter](../../../enemies/air/skitter/README.md) | 4 | front (right) | Around the nest heart |
 | 150 | 5 | mid-boss | [Gorgon Frigate](../../../enemies/bosses/gorgon-frigate/README.md) | 1 | front (descends from above) | Fixed time, after battery D. Skitter streams of 6 at the settle and every 10 s in phase 1 (2 streams at medium par) |
 
-Totals: Skitter 56 · Needler 12 · Stinger 10 · Brood Pod 3 · Gorgon Frigate 1.
+Totals: Skitter 88 · Needler 12 · Stinger 10 · Brood Pod 3 · Gorgon Frigate 1.
 <!-- /data -->
 
 The frigate's streams (12 Skitters in a fight at par) and the Brood Pods' released Skitters (18) come
 on top of the totals.
 
-**Pacing filler** (user decision D5): the gaps the waves leave are filled as in Level 04, with
-small fixed-count Skitter streams (the rows marked *Pacing filler*: 14 streams of 2–3, 35
-Skitters, 175 credits) and no new hazards; the t=62 stream keeps all eight on easy. PacingTest
-leaves one gap over 3 s on medium (112–116 s) besides the lift-off. Their credits are accepted
-above the budget: +14.5 %.
+Between the set waves, **Skitter streams** of 4 (1–2 s apart, from the side away from the rail
+in section 1) and two snakes of 6 overlap the threats, so the screen is rarely empty (the
+campaign's [pacing rule](../../README.md#pacing-rules) and
+[minimum density](../../README.md#difficulty-curve): 66.6 enemies per minute up to the arena);
+the t=62 stream keeps all eight on easy. PacingTest leaves no gap over 3 s besides the
+lift-off (on hard one of 3.2 s at 112 s).
 
 ## Ground targets
 
@@ -194,8 +196,8 @@ units are outlined in the HUD's objective colour; the tracker line reads `BATTER
   upward for 1.5 s before each sled. It hits the ship whatever its layer (contact damage 15, once
   per sled) and blocks player shots and enemy bullets for the 0.4 s it is on screen; enemies are
   unharmed. The first sled runs at t = 16.5 s, after Driver Control's warning, which puts the
-  t=28 mortar between the sleds of 26.5 and 31.5 s (`sleds` in the data). The hazard draws Level
-  04's `sled-run` lamp frames over the rail (idle, the fast blink while the lights chase), lit lamps
+  t=28 mortar between the sleds of 26.5 and 31.5 s (`sleds` in the data). The hazard draws the level's
+  own `sled-run` lamp frames (Level 04's art) over the rail (idle, the fast blink while the lights chase), lit lamps
   added over them (a band sweeping up the rail three times in the telegraph, every lamp while a sled
   runs) and the lit sled on its additive motion streak (`tools/art/l05_hazards.py`).
 - **Low-gravity debris** (sections 2–4): a destroyed ground target throws 2–3 rocks (from the
@@ -290,26 +292,25 @@ rail before each sled.
 
 ## Credit budget
 
-Budget(5) = 1,000 × 1.07⁴ ≈ **1,311** ([economy](../../../systems/economy/README.md#per-level-budget)).
+Budget(5) = 700 × 1.07⁴ ≈ **918**, the typical haul's target ([economy](../../../systems/economy/README.md#per-level-budget)); the level's `bounty_scale` of 0.79 puts the typical haul on it (`TypicalHaulTest`).
 Bounties from the stat blocks: Polyp Mortar 15, Spine Turret 12, Stinger 15, Needler 12,
 Skitter 5, Brood Pod 20, Gorgon Frigate 200 (≈ 15% of the budget).
 
 <!-- data: credit-budget -->
-| Source | Credits (medium) |
-|---|---|
-| Kills: Skitter 56 × 5 + Needler 12 × 12 + Stinger 10 × 15 + Brood Pod 3 × 20 + released Skitter 18 × 5 | 724 |
-| Ground targets: Polyp Mortar 14 × 15 + Spine Turret 16 × 12 + supply canister small salvage 10 | 412 |
-| Mid-boss: Gorgon Frigate (left head 30 + centre head 30 + right head 30 + core 110) | 200 |
-| Mid-boss streams: 2 × 6 Skitter × 5 (a fight at par) | 60 |
-| Secret: stuck sled (hidden crate, 5% of budget) | 65 |
-| Secondary: every Polyp Mortar and Spine Turret destroyed | 40 |
-| **Total** | **1,501** |
+| Source | Perfect run | Typical haul |
+|---|---|---|
+| Kills: Skitter 88 × 5 + Needler 12 × 12 + Stinger 10 × 15 + Brood Pod 3 × 20 + released Skitter 18 × 5 | 700 | 420 |
+| Ground targets: Polyp Mortar 14 × 15 + Spine Turret 16 × 12 + supply canister small salvage 10 | 322 | 256 |
+| Mid-boss: Gorgon Frigate (left head 30 + centre head 30 + right head 30 + core 110) | 159 | 159 |
+| Mid-boss streams: 2 × 6 Skitter × 5 (a fight at par) | 48 | 29 |
+| Secret: stuck sled (hidden crate, 7% of budget) | 65 | 32 |
+| Secondary: every Polyp Mortar and Spine Turret destroyed | 40 | 20 |
+| **Total** (bounty scale 0.79) | **1,334** | **916** |
+| Budget(n) = the typical haul's target; typical -0 %, perfect 1.45 × budget | | 918 |
 <!-- /data -->
 
 The frigate's Skitter streams depend on how long phase 1 lasts; the budget counts the two
-streams of a medium-par fight (`boss.notes.streams`). Without the pacing filler the total is
-1,326 (+1.1 %); the filler's 175 credits (see *Waves*) lift it to 1,501, +14.5 %, accepted as in
-Level 04 (user decision D5).
+streams of a medium-par fight (`boss.notes.streams`).
 
 ## Difficulty notes
 
@@ -327,6 +328,7 @@ and the props' sounds are in [sfx](../../../audio/sfx/README.md).
 
 | File | What | Status |
 |---|---|---|
+| [concept/backdrop-final-r22-a.png](concept/backdrop-final-r22-a.png) | Final backdrop (`tools/art/backdrop_l05.py`, round 22): every tile set and piece of the `backdrop` block and composites at 14 times with the ground units, the sled lamps and the frigate's bell: the rail climbing the outer rim to its launch lip, the rim turrets on the crest's sockets, batteries A–D on their growth patches, the heavy peak, the calm arena floor, the burning nest under the far rim, the lift-off | proposed |
 | [concept/sled-final-r21-a.png](concept/sled-final-r21-a.png) | Final sled sprites (`tools/art/l05_hazards.py`): the lit sled (24×48), its motion streak (32×200, additive), a lit rail lamp (16×16, additive) | chosen |
 | [concept/sled-final-r21-a.gif](concept/sled-final-r21-a.gif) | One cycle on Level 04's rail: the lamps chasing up, then the sled racing up on its streak with every lamp lit | chosen |
 | [concept/level-05-capture-final-r21-b.png](concept/level-05-capture-final-r21-b.png) | Game capture with the production frigate (round 21 item 12, whole window, 2 × 4): a sled run, the frigate's arrival with its bar, the necks in phase 1, the open core, the core phase, its death in three frames (blast cluster, swap, chunks drifting apart) | chosen |
@@ -342,11 +344,12 @@ and the props' sounds are in [sfx](../../../audio/sfx/README.md).
 ## Implementation
 
 - [x] Scroll timeline, sections, atmosphere intensity and parallax content as in *Layout*,
-      including the 30 px/s arena and its pausable clock (*Arena clock*); the backdrop reuses
-      Level 04's Luna images (`backdrop.images: level-04`) until Level 05's own art.
+      including the 30 px/s arena and its pausable clock (*Arena clock*); Level 05's own backdrop
+      (`tools/art/backdrop_l05.py`): the rims, the batteries' growth patches, the arena floor and
+      the burning nest, proposed in [round 22](../../../concept-rounds/round-22/README.md).
 - [x] Battery objective: four groups of four units, HUD tracker A–D, immediate mission failure
       when a battery's first unit leaves the screen alive.
-- [x] Wave script matches the *Waves* table, the frigate at t = 150; pacing filler per PacingTest.
+- [x] Wave script matches the *Waves* table, the frigate at t = 150; PacingTest (one pause over 3 s on hard besides the lift-off).
 - [x] Mass-driver sleds with the 1.5 s light telegraph, contact damage 15.
 - [x] Low-gravity debris thrown by destroyed ground targets.
 - [x] Stuck-sled secret hittable only between sleds.
@@ -354,8 +357,8 @@ and the props' sounds are in [sfx](../../../audio/sfx/README.md).
       keeping the objective tallies; Boss rush par 60 s.
 - [x] Radio cues fire at their triggers, including per-battery lines (Level05Test,
       RadioTimelineTest; voices rendered, Driver Control uncast).
-- [x] Credit total at medium with perfect collection is 1,311 (± 5%) before the pacing filler
-      (1,326); with it 1,501 (+14.5 %, user decision D5).
+- [x] Typical haul at medium within ±5 % of budget(5) = 918 with `bounty_scale` 0.79 (`TypicalHaulTest`); a perfect run earns 1,334.
+- [x] At least 40 enemies per minute of scroll at medium (66.6; `DensityTest`).
 - [x] Easy/hard variations as in *Difficulty notes*.
 - [x] Production art for the props without a concept (rocks, ore canister, acid splash, sled
       streak; the battery outline stays the game's 1 px outline) and their sounds (sled whine,
@@ -414,3 +417,26 @@ and the props' sounds are in [sfx](../../../audio/sfx/README.md).
 - 2026-10-04: Round 21 closed (user): the frigate's death redo and the capture
   `level-05-capture-final-r21-b` accepted. The level's art stays `chosen`: its backdrop still
   reuses Level 04's images (no crater rim walls or burning nest of its own yet).
+- 2026-10-04: Level 05's own backdrop (`tools/art/backdrop_l05.py`, built on `backdrop_l04.py`'s
+  helpers), proposed in round 22; `backdrop.images: level-04` removed. Level 04's mass-driver field,
+  mare, plumes, ejecta and small pieces are rendered again by their generators into `level-05/`
+  (the data format names one image folder per level) with Level 05's seam rows; new: the crater
+  slope, nest floor and calm arena floor tiles, the two rim walls cut from the terrain over the
+  section 2 and 6 seams (the rail climbs the outer rim in a cutting to a launch lip, past the 6,090
+  px the sled lamps reach), a growth patch per battery with a socket under every unit of any
+  difficulty, and the burning nest (6 frames) at the arena's end, where it lies behind the ship at
+  the lift-off; the rim turrets, inner rim mortars and floor turrets stand on boulder sockets
+  re-placed for 150 px/s. The second arena pod husk (t 190) was dropped to keep the floor calm under
+  the bell. The sled lamps still come from Level 04's `sled-run` frames.
+- 2026-10-04: Density rework (user decisions: Act 1's minimum of 40 enemies per minute, the
+  typical haul on budget): the fourteen pacing-filler streams (36 Skitters) give way to sixteen
+  Skitter waves (68: streams of 4 and two snakes of 6) that overlap the threats; the density up
+  to the arena rises from 53.4 to 66.6 per minute. Where the autopilot took more damage the
+  threats are thinned instead: on easy the t=48 Needler pincer 4 → 2, on hard the t=70 Stingers
+  4 → 3 and the t=110 column 3 → 2. Damage per run (shield and armour; mean over the Skitter
+  waves' timings jittered) easy 34.2 → 35.5, medium 57.4 → 53.0, hard 187.0 → 182.4 (retries on
+  hard 0.19 → 0.60 per run). `bounty_scale` 0.79 puts the typical haul on the budget (916 of 918;
+  a perfect run 1,334 instead of 1,501).
+- 2026-10-04: The sled lamps are Level 05's own `sled-run` frames now (Level 04's generator,
+  rendered into `assets/backdrop/level-05/` by `tools/art/backdrop_l05.py`), so the level no
+  longer reads Level 04's backdrop pages.

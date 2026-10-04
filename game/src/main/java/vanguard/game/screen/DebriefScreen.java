@@ -235,7 +235,15 @@ public final class DebriefScreen implements GameScreen {
         services.glass.panel(batch, x, PixelScreen.HEIGHT - y - 110, 110, 110, 0.9f, true);
         BitmapFont heading = fonts.heading;
         heading.getData().setScale(3);
-        text(heading, batch, grade, TITLE, x, y + 95, 110, Align.center);
+        if (grade.length() == 1) {
+            text(heading, batch, grade, TITLE, x, y + 95, 110, Align.center);
+        } else {
+            // "A+": the letter at the stamp's size and its plus raised beside it at two thirds, centred
+            // as a pair (two full-size glyphs of the 20 px heading font would overrun the 110 px glass).
+            text(heading, batch, grade.substring(0, 1), TITLE, x + 12, y + 95, 60, Align.left);
+            heading.getData().setScale(2);
+            text(heading, batch, grade.substring(1), TITLE, x + 61, y + 98, 40, Align.left);
+        }
         heading.getData().setScale(1);
         text(fonts.label, batch, "GRADE", LABEL, x, y - 8, 110, Align.center);
         if (newBest) {

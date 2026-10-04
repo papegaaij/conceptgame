@@ -15,6 +15,8 @@ import vanguard.sim.PlayField;
  *
  * @param scrollSpeed px/s unless a section sets its own
  * @param launchSeconds the non-playable launch before control starts
+ * @param bountyScale multiplies every bounty paid in the level (design/systems/economy), 1 if not
+ *     given
  * @param controlPrompts the control prompts shown in the first section
  * @param prompts contextual prompts shown at a time (design/ui/hud: one line, an action and its keys)
  * @param sections back to back from t = 0
@@ -34,6 +36,7 @@ import vanguard.sim.PlayField;
 public record LevelData(
         double scrollSpeed,
         double launchSeconds,
+        Optional<Double> bountyScale,
         List<String> controlPrompts,
         Optional<List<Prompt>> prompts,
         List<Section> sections,
@@ -58,6 +61,7 @@ public record LevelData(
     public LevelData {
         Check.positive("scroll_speed", scrollSpeed);
         Check.notNegative("launch_seconds", launchSeconds);
+        bountyScale.ifPresent(scale -> Check.positive("bounty_scale", scale));
         Check.notEmpty("sections", sections);
         for (int i = 1; i < sections.size(); i++) {
             Check.that(
@@ -71,6 +75,11 @@ public record LevelData(
      * (the outro), at most this long before the debrief, so the backdrop has to hold until then.
      */
     public static final double OUTRO_SECONDS = 15;
+
+    /** The factor on every bounty paid in the level: its {@code bounty_scale}, 1 if not given. */
+    public double bounties() {
+        return bountyScale.orElse(1.0);
+    }
 
     /** The level's length in seconds: the end of the last section. */
     public double seconds() {

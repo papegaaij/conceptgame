@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../economy]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Scoring
@@ -60,16 +60,20 @@ exist):
 - secrets: secrets found ÷ secrets; full marks in a level without secrets
 - max chain: the longest chain ÷ 80 (the chain that reaches ×5), at most 1
 
-A flawless Level 01 with a chain of 30 rates about 91 (S).
+A flawless Level 01 with a chain of 30 rates about 91 (A+).
+
+The grades from best to worst are **A+ · A · B · C · D**. The debrief stamps the letter with its
+plus raised beside it; a save written before the rename keeps its best grade (an old `S` loads as
+`A+`).
 
 <!-- data: grades -->
 | Grade | Rating | Credit bonus |
 |---|---|---|
-| S | ≥ 90 | +30 % |
-| A | ≥ 75 | +20 % |
-| B | ≥ 55 | +10 % |
-| C | ≥ 35 | — |
-| D | < 35 | — |
+| A+ | ≥ 85 | +30 % |
+| A | ≥ 70 | +20 % |
+| B | ≥ 50 | +10 % |
+| C | ≥ 30 | — |
+| D | < 30 | — |
 <!-- /data -->
 
 Best grade per level is stored in the save and shown in the level-select of a replay mode
@@ -114,3 +118,15 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
 - 2026-10-03: M4 part E: the Boss rush is paid (`LevelResult.BossTime`: the level's boss killed
   within its `par` from its arrival, when its bar appears); the debrief's BOSS TIME row is still to
   come.
+- 2026-10-04: Checked the grade thresholds against the economy rework (the budget is the typical
+  haul; a typical player kills 60 % of the air enemies in denser levels): S needs about 84 %
+  kills even when flawless, so lower thresholds are proposed under Open questions; the data is
+  unchanged until the user decides.
+- 2026-10-04: Grade thresholds for dense levels (user decision): S 85 · A 70 · B 50 · C 30 (were
+  90 · 75 · 55 · 35). The typical player (kill ratio about 0.65, 70 % of the armour kept, half the
+  secrets, a chain of about 30) still rates about 60, a B; a flawless run needs about 72 % kills for
+  an S instead of 84 %, and a strong run (85 % kills, 90 % armour, every secret, a chain of 48)
+  moves from A to S.
+- 2026-10-04: The top grade **S** becomes **A+** (user decision); the scale is A+ · A · B · C · D,
+  with S's threshold and bonus. The debrief draws the plus raised beside the letter, and a save's
+  stored best grade `S` loads as `A+`. The entries above keep the old name.

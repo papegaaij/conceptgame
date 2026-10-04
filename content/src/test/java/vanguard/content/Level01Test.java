@@ -46,7 +46,7 @@ class Level01Test {
     }
 
     @Test
-    void aPerfectRunAtMediumEarnsTheLevelBudget() {
+    void aPerfectRunAtMediumEarnsTheReadmesTotal() {
         LevelScript level = SimSpecs.level(content, LEVEL, Difficulty.MEDIUM);
         int salvage = content.player().pickups().salvage().credits().small();
 
@@ -66,16 +66,16 @@ class Level01Test {
                 .sum();
         int total = kills + ground + crates + level.secondary().credits();
 
-        double budget = content.economy().budget().of(level.number());
-        assertEquals(budget, total, budget * 0.05, "kills " + kills + ", ground " + ground + ", crates " + crates);
+        // The budget is the typical haul now (TypicalHaulTest); a perfect run earns well above it.
+        assertEquals(1_000, total, "kills " + kills + ", ground " + ground + ", crates " + crates);
     }
 
     @Test
-    void theSecondaryObjectiveNeeds80PercentOfTheEnemies() {
+    void theSecondaryObjectiveNeeds65PercentOfTheEnemies() {
         Sortie sortie = sortie(content, 1, Difficulty.MEDIUM);
 
         assertEquals(95, sortie.enemyTotal());
-        assertEquals(76, sortie.requiredKills());
+        assertEquals(62, sortie.requiredKills());
         assertEquals(
                 95,
                 SimSpecs.level(content, LEVEL, Difficulty.MEDIUM).waves().stream()

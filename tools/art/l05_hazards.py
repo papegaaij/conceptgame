@@ -332,7 +332,7 @@ def review():
     sl = artkit.load_frames("sled")[0]
     st = artkit.load_frames("sled-streak")[0]
     lp = artkit.load_frames("sled-lamp")[0]
-    rail = Image.open(artkit.ROOT / "assets" / "backdrop" / "level-04" / "sled-run_0.png").convert("RGBA")
+    rail = Image.open(artkit.ROOT / "assets" / "backdrop" / "level-05" / "sled-run_0.png").convert("RGBA")
     sheet = artkit.review_sheet("MASS-DRIVER SLED - FINAL SPRITES", [
         ("SLED (SOLID)", [sl], 4, False), ("MOTION STREAK (ADDITIVE)", [st], 2, True),
         ("RAIL LAMP LIT (ADDITIVE)", [lp], 6, True)], batch=BATCH)

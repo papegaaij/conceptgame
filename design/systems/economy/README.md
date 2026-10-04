@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: n/a
 depends-on: [../../player, ../difficulty]
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 # Economy
@@ -43,6 +43,12 @@ Two budgeting conventions, used by level documents and `tools/balance.py`:
 
 - **Act-factor bounties round per kill**: an enemy's Act 1 bounty times the act factor is
   rounded to whole credits for each kill, not summed first and rounded once.
+- **The level's bounty scale comes last**: a level's data may set a `bounty_scale` (1 if not
+  given) that multiplies every bounty paid in it: kills, boss and set-piece parts, ground units,
+  a destructible's own bounty, a spawner's burst and a shot spore mine. Not salvage, crates or
+  objectives. The order per payout is: Act 1 bounty × act factor × difficulty income × bounty
+  scale, then **one** rounding, half to even. The scale only moves credits; the score uses the
+  bounty without it. A level sets its scale so its typical haul lands on its budget (below).
 - **Spawned adds are budgeted at their expected count**: units that appear during play
   (Skitters from hive nodes, units launched by a boss) count in the level budget at the number
   a typical run expects to see, at their normal bounty.
@@ -61,23 +67,46 @@ cost their normal price. Later acts add rows as their level documents place core
 ### Per-level budget
 
 This curve is the single source for level credit budgets; level documents and the
-[campaign](../../campaign/README.md#credit-budget) use it. The credits a perfect run of level
-*n* can earn (medium, before grade bonus):
+[campaign](../../campaign/README.md#credit-budget) use it. The budget is **the typical player's
+haul**, not a perfect run: what a typical medium player earns in level *n*, before the grade
+bonus:
 
-**budget(n) ≈ 1 000 × 1.07^(n−1)**
+**budget(n) ≈ 700 × 1.07^(n−1)**
+
+This is exactly what the shop plan expected before: the old curve (1 000 × 1.07^(n−1), a perfect
+run) times the old typical collection of 70 %. So the prices, the shop plan in
+[balance-plan.yaml](../../player/balance-plan.yaml) and `tools/balance.py`'s income are unchanged;
+the plan's `typical_collection: 0.7` is gone (it is 1.0 now: the plan earns the budget).
 
 | Act | Levels | Budget per level | Act total |
 |---|---|---|---|
-| 1 | 01–07 | 1 000 – 1 500 | ≈ 8 700 |
-| 2 | 08–14 | 1 600 – 2 400 | ≈ 13 900 |
-| 3 | 15–21 | 2 600 – 3 900 | ≈ 22 300 |
-| 4 | 22–28 | 4 100 – 6 200 | ≈ 35 800 |
-| 5 | 29–35 | 6 600 – 10 000 | ≈ 57 500 |
-| 6 | 36–42 | 10 700 – 16 000 | ≈ 92 400 |
-| 7 | 43–50 | 17 100 – 27 500 | ≈ 175 900 |
+| 1 | 01–07 | 700 – 1 050 | ≈ 6 100 |
+| 2 | 08–14 | 1 120 – 1 690 | ≈ 9 700 |
+| 3 | 15–21 | 1 800 – 2 710 | ≈ 15 600 |
+| 4 | 22–28 | 2 900 – 4 350 | ≈ 25 100 |
+| 5 | 29–35 | 4 650 – 6 980 | ≈ 40 300 |
+| 6 | 36–42 | 7 470 – 11 220 | ≈ 64 700 |
+| 7 | 43–50 | 12 000 – 19 270 | ≈ 123 100 |
 
-The campaign total is about 406 000. A typical medium run collects about 70 %, roughly
-285 000.
+The campaign total for a typical medium player is about 285 000.
+
+**The typical player** (`typical_player` in [data.yaml](data.yaml)) collects of each source:
+
+| Source | Share | Why |
+|---|---|---|
+| Air enemies killed (released spawns and boss streams too) | 60 % | Dense levels: a typical player cannot shoot everything that crosses the screen |
+| Ground targets (ground units, paying destructibles, a set piece's parts) | 80 % | They hold still or move slowly; most are taken |
+| Hidden crates (secrets) | 50 % | Half the secrets are found |
+| Credit pickups (salvage), of those whose source was destroyed | 80 % | Some drift off screen in a fight |
+| Primary objective credits (an escort's units home) | 100 % | As authored: the level is won |
+| Secondary objective credits | 50 % | A stretch goal, met in every other run |
+| Boss and mid-boss parts | 100 % | The boss dies in every won run |
+
+A level's **typical haul** is its perfect run with each source weighted by these shares (the
+*Credit budget* table of each level shows both). It must land within ±5 % of budget(n); a
+perfect run then earns well above the budget, about 1.5× or more. Levels are **dense** (see the
+[campaign's minimum density](../../campaign/README.md#difficulty-curve)) and set a `bounty_scale`
+so the typical haul lands on the budget.
 
 For comparison, maxing out everything would cost roughly 450 000 (generators ≈ 65 000,
 shields ≈ 25 000, plating ≈ 22 000, and several weapons at 7.5–8.5 × their base price each).
@@ -111,6 +140,12 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 - [ ] Bounty values per enemy class; boss bounty per act — **later: M4** (the Act 1 enemy classes and bosses)
 - [x] Hangar transaction log for undo; 60 % sell-back otherwise (100 % for an item bought in the
   same visit)
+- [x] Level `bounty_scale` (default 1) on every bounty, after the credit factor, one rounding
+  per payout (`ScoringRules.bountyScale`, `Tally.bounty`, test `TallyTest`)
+- [x] Typical haul per level: the credit-budget tables (`tools/sync_tables.py`) and the content
+  test `TypicalHaulTest` (within ±5 % of the budget for every level)
+- [x] Levels 01–05 reworked to the typical-haul budget (density and `bounty_scale`: 1.21, 1.05,
+  0.97, 0.79, 0.79; the minimum density in the content test `DensityTest`)
 - [ ] Balancing sheet (spreadsheet or script) that simulates per-level budgets vs prices — **later: M4** (needs the Act 1 levels; the roadmap's balance tests)
 
 ## Open questions
@@ -156,3 +191,20 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   `vanguard.content.campaign.Hangar`, tests in `HangarTest`). The B2 rule (60 % for any sale) is
   replaced.
 - 2026-10-02: M3 close-out (user decision): the bounty table per enemy class with the boss bounty per act and the balancing sheet move to M4, where the Act 1 enemies, bosses and levels exist; with them marked, the document is done for M3.
+- 2026-10-04: The level credit budget is the **typical player's haul**, not a perfect run (user
+  decision). The curve becomes 700 × 1.07^(n−1), the old perfect-run curve × the old 70 % typical
+  collection, so the shop plan and prices stay; `typical_collection` is dropped from the balance
+  plan. A typical player kills 60 % of the air enemies (user decision); the other shares
+  (ground 80 %, secrets 50 %, pickups 80 %, primary 100 %, secondary 50 %) are proposed. A perfect
+  run earns about 1.5× the budget or more. Levels become denser and get a `bounty_scale` (default
+  1), the last factor on every bounty before the one rounding per payout. Today Levels 01–03 fall
+  9–14 % under their budget and Levels 04–05 12–15 % over it (perfect 1.43–1.64 × budget); they are
+  reworked next.
+- 2026-10-04: The typical player's shares are confirmed as proposed (user decision): air 60 %,
+  ground 80 %, secrets 50 %, pickups 80 %, primary 100 %, secondary 50 %, boss and mid-boss parts
+  100 %.
+- 2026-10-04: Density rework of Levels 01–05: denser waves (see the
+  [campaign's minimum density](../../campaign/README.md#difficulty-curve)) and a `bounty_scale`
+  per level put every typical haul within 1.1 % of its budget: Level 01 × 1.21 (708 of 700),
+  Level 02 × 1.05 (756 of 749), Level 03 × 0.97 (805 of 801), Level 04 × 0.79 (857 of 858),
+  Level 05 × 0.79 (916 of 918); a perfect run earns 1.45–1.68 × the budget.

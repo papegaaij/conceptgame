@@ -3,7 +3,7 @@ title: Campaign
 design: approved
 implementation: not-started
 art: none
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Campaign
@@ -65,6 +65,13 @@ consecutive levels.
 - **Objective types**: `reach-end` (default), `escort`, `defend` (scroll halts and waves come
   from all sides), `destroy-targets` (a set of named ground targets), `survive` (timer),
   `boss`. A level has one primary objective. Optional secondary objectives give bonus credits.
+  A secondary objective is a stretch goal the typical player meets in about every other run; for
+  a kill-ratio secondary the rule of thumb is **65 % of the level's enemies** (was 80 %, too high
+  for dense levels where a typical player kills 60 % of the air enemies). A kill-ratio secondary
+  is **judged at the level's end**: its credits and its line come on completion, with the
+  level-end lines (its line before the level-end line); the HUD counts the kills against the
+  share during the level but shows it met only then. Group, escape and kill-all secondaries are
+  decided when their last unit is gone, which can be mid-level.
 - **Objective failure**: failing the **primary** objective is mission failed — the level is
   retried (see [retry](../systems/retry/README.md)). Each level doc sets the failure condition;
   defaults: `defend` fails when the defended station is destroyed, `escort` when every escorted
@@ -91,6 +98,19 @@ level, density climbs through the act, and breathers dip in just before a spike.
 | 5 | 4 · 3 · 4 · 4 · 4 · 2 · 5 | 2–5 |
 | 6 | 4 · 4 · 5 · 4 · 5 · 5 · 5 | 4–5 |
 | 7 | 4 · 4 · 5 · 3 · 5 · 5 · 5 · 5 | 3–5 |
+
+**Minimum density** (user decision): levels are dense, more to shoot in the same duration at the
+same momentary threat: many small, easy units rather than more dangerous ones. Every level
+reaches its act's minimum in **enemies per minute of scroll** (air and ground units, released
+spawns included, at medium; the launch and the boss fight excluded: a level with an arena counts
+up to the arena). The warm-up Levels 01–03 need at least 32 per minute (user decision); a breather
+may dip 20 % under its act's minimum. The content test `DensityTest` checks every level.
+
+| Act | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|---|
+| Minimum enemies per minute | 40 | 50 | 55 | 60 | 70 | 75 | 80 |
+
+After the density rework: L01 32.6, L02 33.3, L03 34.3, L04 48.0, L05 66.6 per minute (before it: 32.6, 29.3, 23.7, 40.5 and 53.4 by this count; the earlier note's L05 36 spread its enemies over the boss fight too).
 
 Density is only one axis. Later levels also get harder through enemy mix, hazards and
 mechanics, so a density-4 level in Act 6 is much harder than one in Act 2.
@@ -131,10 +151,14 @@ L22 (it covers Rook's absence in L27–L29); the Hunter drone from L29.
 
 ### Credit budget
 
-Each level has a **credit budget**: the credits available at medium difficulty if every enemy
-and pickup is collected. The budget per level comes from the curve in
-[economy](../systems/economy/README.md#per-level-budget) (level 01 = 1,000). A level document
-splits its budget into kills, ground targets, pickups and secondary objectives.
+Each level has a **credit budget**: the credits a **typical** medium player earns in it (user
+decision 2026-10-04): 60 % of the air enemies, most ground targets, half the secrets, the
+objectives as authored; the shares are in
+[economy](../systems/economy/README.md#per-level-budget), with the curve (level 01 = 700). A
+perfect run earns about 1.5× the budget or more. A level document's *Credit budget* table splits
+the perfect run and the typical haul into kills, ground targets, pickups, secrets and objectives;
+the typical haul must land within ±5 % of the budget, which a level reaches with its density and
+its `bounty_scale` (a factor on every bounty in the level, see the economy).
 
 ### Level document template
 
@@ -165,8 +189,8 @@ directory `level-NN-slug/` with a README holding these sections (after Summary):
 9. **Radio chatter** – cue list `| Trigger | Speaker | Line |` (portrait in the side HUD).
 10. **Boss / mid-boss** – link to the boss document, arena notes specific to this level.
 11. **Music & ambience** – link to the track in [audio](../audio/README.md), plus stings.
-12. **Credit budget** – total available at medium, split into kills / ground targets / pickups
-    / secondary objectives.
+12. **Credit budget** – the perfect run and the typical haul at medium (generated), split into
+    kills / ground targets / pickups / secrets / objectives, against the budget.
 13. **Difficulty notes** – what changes on easy and hard beyond the global scaling.
 
 It then continues with the standard sections: Concept art, Implementation (acceptance
@@ -208,3 +232,20 @@ criteria), Open questions, Decisions. The worked example is
   the screen is never empty of enemies for more than about 3 s outside the launch and scripted
   moments, with at most 2 longer pauses per level, without raising the difficulty. Levels 01–03
   stay as they are, as the warm-up.
+- 2026-10-04: Economy rework (user decision): the credit budget is the typical player's haul
+  (level 01 = 700), levels become denser with a minimum density per act (enemies per minute:
+  40 · 50 · 55 · 60 · 70 · 75 · 80, proposed values) and a per-level `bounty_scale`; the
+  kill-ratio secondary's rule of thumb drops from 80 % to 65 % (proposed). Level 01's 80 %
+  secondary changes with its density rework, the next step.
+- 2026-10-04: User decisions on the economy rework: the minimum density per act stays 40 · 50 · 55
+  · 60 · 70 · 75 · 80 enemies per minute (a breather may dip 20 %), with at least 32 for the
+  warm-up Levels 01–03; the kill-ratio secondary's rule of thumb is 65 % (Level 01's 80 % becomes
+  65 %). The density rework of Levels 01–05 follows it: Levels 04–05 replace their small Skitter
+  filler streams by longer, overlapping Skitter streams and snakes, Levels 02–03 get a few more
+  Skitter waves, and every level a `bounty_scale` that puts its typical haul on budget. Where the
+  autopilot took more damage, threats were thinned (on hard, or Needlers) rather than the volume.
+- 2026-10-04: A kill-ratio secondary is judged at the level's end (fix after the user's report):
+  it was met, paid and announced the moment the kills reached the share, which with the 65 % rule
+  and the denser waves put Level 01's "Clean sweep" line about 45 s before the end (at 136 s of
+  180 on medium). It now comes on completion, before the level-end line. The other event lines of
+  Levels 01–05 were checked on the autopilot's runs and fire at the right moments.
