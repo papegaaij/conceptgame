@@ -56,27 +56,42 @@ public record VoiceData(Map<String, Settings> expressions, Map<String, Speaker> 
      * @param fixed settings for every line instead of the expression's (the Choir)
      * @param layering {@code choir}: the Choir's layering in post
      * @param pins a line's take seed by the line's key, when the automatic pick sounds wrong
+     * @param uncast a speaker whose voice is not cast yet (Level 05's Driver Control): no reference
+     *     clip, its lines have no voice file and play as text with the radio blips
      */
     public record Speaker(
             List<String> names,
-            String ref,
+            Optional<String> ref,
             Optional<Shift> shift,
             Optional<Settings> fixed,
             Optional<String> layering,
-            Optional<Map<String, Integer>> pins) {
+            Optional<Map<String, Integer>> pins,
+            Optional<Boolean> uncast) {
         public Speaker {
             Check.notEmpty("names", names);
-            Check.that(ref.matches("ref-[a-z0-9-]+"), "ref: a clip name ref-<speaker>, was '" + ref + "'");
+            Check.that(
+                    ref.isPresent() != uncast.orElse(false),
+                    "ref: a cast speaker has its reference clip, an uncast one none");
+            ref.ifPresent(clip ->
+                    Check.that(clip.matches("ref-[a-z0-9-]+"), "ref: a clip name ref-<speaker>, was '" + clip + "'"));
             Check.that(layering.map("choir"::equals).orElse(true), "layering: only 'choir' is known");
         }
     }
 
-    /** The slug of the voice that speaks as {@code name}, if any. */
+    /** The slug of the voice that speaks as {@code name}, if any; none for an uncast speaker. */
     public Optional<String> voiceOf(String name) {
         return speakers.entrySet().stream()
                 .filter(entry -> entry.getValue().names().contains(name))
+                .filter(entry -> entry.getValue().ref().isPresent())
                 .map(Map.Entry::getKey)
                 .findFirst();
+    }
+
+    /** Whether {@code name} is a speaker marked {@code uncast}: its lines have no voice yet. */
+    public boolean uncast(String name) {
+        return speakers.values().stream()
+                .anyMatch(speaker ->
+                        speaker.names().contains(name) && speaker.uncast().orElse(false));
     }
 
     /** The settings a line of {@code voice} is spoken with. */

@@ -57,9 +57,13 @@ lost, Level 05's battery scrolls past alive). This mirrors a wreck, for every su
 
 ### Boss checkpoint (easy and medium)
 
-When the boss warning starts, a checkpoint is recorded: armour, shield, special charges,
-credits and score **at that moment**. Dying during the boss offers **Retry from boss**
-(besides the normal options). Retrying from the boss does not count as a hard-mode retry
+When the boss warning starts (a mid-boss's sting, as in Level 05), a checkpoint is recorded:
+armour, shield, special charges, credits and score **at that moment**, and the level's
+**objective tallies** (Level 05's destroyed batteries and *Scorched crater* kills), so a
+secondary objective that was still reachable stays reachable. Dying during the boss offers
+**Retry from boss** (besides the normal options). It restarts at the warning with an **empty
+field** (no leftover enemies or bullets): the boss's entrance and its intro radio replay, and a
+new input recording starts there. Retrying from the boss does not count as a hard-mode retry
 (there are no boss checkpoints on hard anyway).
 
 ### What is restored
@@ -83,7 +87,7 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
 ## Implementation
 
 - [x] Snapshot of player state at level start (the campaign state, see the M3 part B1 decision)
-- [ ] Snapshot at the boss checkpoint — **later: M4** (the first boss)
+- [x] Snapshot at the boss checkpoint with the objective tallies, and *Retry from boss* restarting at the warning on an empty field — M4 part E (the Gorgon Frigate, Level 05)
 - [x] Mission failed screen with the three (four) options
 - [x] Hard-mode retry counter and game over
 - [x] "Back to hangar" path that keeps the level as the next one
@@ -143,3 +147,16 @@ credits and score **at that moment**. Dying during the boss offers **Retry from 
   the presentation runs the wreck's flow without the explosion and the slow motion, and the mission
   failed screen shows the level's `mission-failed` radio line (its speaker and portrait) instead of
   the default one. Level 04's convoy is the first to use it.
+- 2026-10-03: M4 part E (user decision): the boss checkpoint also keeps the objective tallies, so
+  the secondary stays reachable after a boss retry; *Retry from boss* restarts at the boss
+  warning (Level 05: the mini-boss sting) on an empty field. "When the boss warning starts" and
+  Level 05's "at the mini-boss sting" are the same moment.
+- 2026-10-03: M4 part E: the boss checkpoint is built. `Sortie` records it on the step before the
+  boss arrives (the tally, the objective tallies, the radio cues already played, the secrets'
+  triggers, shield, armour and the armour lost so far, the special's charges, the wave and ground
+  schedules' place, the ground scroll and the random state; all preallocated), and
+  `retryFromBoss()` restarts there as a new attempt on an empty field, so the boss's arrival, its
+  timed radio and the music replay; a retry from the level start drops it until the boss is reached
+  again. The mission failed screen lists RETRY FROM BOSS first once the attempt reached the
+  checkpoint, on easy and medium only; it uses no retry. Tests: `BossTest` (sim) and
+  `BossLevelTest`.

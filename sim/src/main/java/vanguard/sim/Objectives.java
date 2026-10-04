@@ -18,7 +18,7 @@ final class Objectives {
     static final int LOST = 2;
 
     private final boolean byGroups;
-    private final String escapes;
+    private final LevelScript.Secondary secondary;
     private final int escapesTotal;
     private int escapesDestroyed;
     private boolean escapesFailed;
@@ -34,22 +34,24 @@ final class Objectives {
     private boolean secondaryMet;
 
     /**
+     * @param groups the groups the ground units belong to: the secondary's or the destroy-targets
+     *     primary's ({@link LevelScript#groups()})
      * @param kinds the number of distinct enemies in the level
      * @param units every enemy the level sends
+     * @param escapesTotal the units of the enemies of an escapes or kill-all objective the level sends
      */
-    /** @param escapesTotal the units of the enemy of an escapes objective the level sends */
     Objectives(
             LevelScript.Secondary secondary,
+            int groups,
             int kinds,
             int units,
             List<LevelScript.GroundUnit> groundUnits,
             int escapesTotal) {
+        this.secondary = secondary;
         byGroups = secondary.byGroups();
-        escapes = secondary.escapes();
         this.escapesTotal = escapesTotal;
         killsByKind = new int[kinds];
         requiredKills = byGroups || secondary.byEscapes() ? 0 : (int) Math.ceil(secondary.killRatio() * units - 1e-9);
-        int groups = secondary.groups().size();
         groupUnits = new int[groups];
         groupDestroyed = new int[groups];
         groupEscaped = new int[groups];
@@ -59,6 +61,20 @@ final class Objectives {
                 groupUnits[unit.group()]++;
             }
         }
+    }
+
+    /** Takes over {@code other}'s tallies (a boss checkpoint); both are of the same level. */
+    void copyFrom(Objectives other) {
+        System.arraycopy(other.killsByKind, 0, killsByKind, 0, killsByKind.length);
+        System.arraycopy(other.groupDestroyed, 0, groupDestroyed, 0, groupDestroyed.length);
+        System.arraycopy(other.groupEscaped, 0, groupEscaped, 0, groupEscaped.length);
+        System.arraycopy(other.groupState, 0, groupState, 0, groupState.length);
+        secretsFound = other.secretsFound;
+        groupsCleared = other.groupsCleared;
+        groupsLost = other.groupsLost;
+        escapesDestroyed = other.escapesDestroyed;
+        escapesFailed = other.escapesFailed;
+        secondaryMet = other.secondaryMet;
     }
 
     /** Back to the level start. */
@@ -77,7 +93,7 @@ final class Objectives {
 
     /** A unit of {@code slug} was destroyed; returns whether that met an escapes objective. */
     boolean escapeDestroyed(String slug) {
-        if (escapes.isEmpty() || !escapes.equals(slug) || escapesFailed) {
+        if (!secondary.counts(slug) || escapesFailed) {
             return false;
         }
         escapesDestroyed++;
@@ -90,7 +106,7 @@ final class Objectives {
 
     /** A unit of {@code slug} got away; returns whether that failed an escapes objective. */
     boolean escapeLost(String slug) {
-        if (escapes.isEmpty() || !escapes.equals(slug) || escapesFailed || secondaryMet) {
+        if (!secondary.counts(slug) || escapesFailed || secondaryMet) {
             return false;
         }
         escapesFailed = true;
@@ -126,13 +142,18 @@ final class Objectives {
             if (groupEscaped[g] == 0) {
                 groupState[g] = CLEARED;
                 groupsCleared++;
-                secondaryMet = groupsCleared == groupState.length;
+                secondaryMet |= byGroups && groupsCleared == groupState.length;
             } else {
                 groupState[g] = LOST;
                 groupsLost++;
             }
         }
         return groupState[g];
+    }
+
+    /** The groups cleared in this attempt. */
+    int groupsCleared() {
+        return groupsCleared;
     }
 
     /** The groups lost in this attempt. */
@@ -155,7 +176,7 @@ final class Objectives {
 
     /** Whether {@code kills} in all meet the secondary objective, the first time they do. */
     boolean meetsSecondary(int kills) {
-        if (byGroups || !escapes.isEmpty() || secondaryMet || kills < requiredKills) {
+        if (byGroups || secondary.byEscapes() || secondaryMet || kills < requiredKills) {
             return false;
         }
         secondaryMet = true;

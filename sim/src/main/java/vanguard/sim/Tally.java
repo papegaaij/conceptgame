@@ -24,6 +24,16 @@ final class Tally {
         windowTicks = SimStep.ticks(rules.chain().windowSeconds());
     }
 
+    /** Takes over {@code other}'s state (a boss checkpoint). */
+    void copyFrom(Tally other) {
+        System.arraycopy(other.credits, 0, credits, 0, credits.length);
+        score = other.score;
+        chain = other.chain;
+        maxChain = other.maxChain;
+        chainTicks = other.chainTicks;
+        kills = other.kills;
+    }
+
     void reset() {
         Arrays.fill(credits, 0);
         score = 0;

@@ -108,6 +108,7 @@ final class ContentValidator {
             String field = "attacks[" + i + "]";
             attack.bullet().ifPresent(bullet -> checkBullet(enemy, field + ".bullet", bullet));
             attack.mine().ifPresent(mine -> checkBullet(enemy, field + ".mine.ring_bullet", mine.ringBullet()));
+            attack.mortar().ifPresent(mortar -> checkBullet(enemy, field + ".mortar.ring_bullet", mortar.ringBullet()));
         }
         for (var hook : List.of(
                 enemy.difficulty().flatMap(EnemyData.Hooks::easy),
@@ -116,11 +117,60 @@ final class ContentValidator {
                     .ifPresent(puff -> checkBullet(enemy, "difficulty.death_burst.bullet", puff.bullet()));
         }
         checkParts(enemy);
+        checkBoss(enemy);
         enemy.difficulty()
                 .flatMap(EnemyData.Hooks::hard)
                 .flatMap(EnemyData.Hook::leadsTargetIn)
                 .ifPresent(
                         names -> names.forEach(name -> checkFormation(enemy, "difficulty.hard.leads_target_in", name)));
+    }
+
+    /**
+     * A boss's chains end on its parts, its phases name its parts and attacks, its streams known
+     * enemies; a difficulty's attack changes name its attacks.
+     */
+    private void checkBoss(EnemyData enemy) {
+        List<EnemyData.ChainData> chains = enemy.chains().orElse(List.of());
+        for (int i = 0; i < chains.size(); i++) {
+            checkPartName(enemy, "chains[" + i + "].to", chains.get(i).to());
+        }
+        for (var hook : List.of(
+                enemy.difficulty().flatMap(EnemyData.Hooks::easy),
+                enemy.difficulty().flatMap(EnemyData.Hooks::hard))) {
+            hook.flatMap(EnemyData.Hook::attacks)
+                    .ifPresent(changes -> changes.keySet().forEach(name -> {
+                        if (enemy.attack(name).isEmpty()) {
+                            problem(enemy, "difficulty.attacks", "no attack named '" + name + "'");
+                        }
+                    }));
+        }
+        if (enemy.boss().isEmpty()) {
+            return;
+        }
+        if (enemy.partList().isEmpty()) {
+            problem(enemy, "boss", "a boss is a multi-part unit (part_list)");
+        }
+        List<EnemyData.PhaseData> phases = enemy.boss().get().phases();
+        for (int i = 0; i < phases.size(); i++) {
+            EnemyData.PhaseData phase = phases.get(i);
+            String field = "boss.phases[" + i + "]";
+            phase.until().parts().forEach(part -> checkPartName(enemy, field + ".until.parts", part));
+            phase.exposes().ifPresent(parts -> parts.forEach(part -> checkPartName(enemy, field + ".exposes", part)));
+            phase.attacks()
+                    .or(phase::alternate)
+                    .ifPresent(names -> names.forEach(name -> {
+                        if (enemy.attack(name).isEmpty()) {
+                            problem(enemy, field + ".attacks", "no attack named '" + name + "'");
+                        }
+                    }));
+            phase.streams().ifPresent(stream -> checkEnemyName(enemy, field + ".streams.enemy", stream.enemy()));
+        }
+    }
+
+    private void checkPartName(EnemyData enemy, String field, String part) {
+        if (enemy.partIndex(part) < 0) {
+            problem(enemy, field, "no part named '" + part + "'");
+        }
     }
 
     private void checkBullet(Object file, String field, String bullet) {
@@ -200,6 +250,23 @@ final class ContentValidator {
             });
         }
         checkSetPieces(level, levelEnemies);
+        level.boss().ifPresent(boss -> {
+            checkEnemyName(level, "boss.enemy", boss.enemy());
+            levelEnemies.add(boss.enemy());
+            if (content.enemies().containsKey(boss.enemy())
+                    && content.enemy(boss.enemy()).boss().isEmpty()) {
+                problem(level, "boss.enemy", "'" + boss.enemy() + "' has no boss script");
+            }
+            if (boss.section() > level.sections().size()) {
+                problem(level, "boss.section", "no section " + boss.section());
+            }
+            checkTime(level, "boss.t", boss.t());
+        });
+        if (level.sections().stream().filter(LevelData.Section::isArena).count() > 1
+                || (level.sections().stream().anyMatch(LevelData.Section::isArena)
+                        && level.boss().isEmpty())) {
+            problem(level, "sections", "a level has at most one arena, and only with a boss");
+        }
         checkDebris(level);
         level.prompts().ifPresent(prompts -> {
             for (int i = 0; i < prompts.size(); i++) {
@@ -415,21 +482,26 @@ final class ContentValidator {
                 && x - size.width() / 2 < PlayField.WIDTH;
     }
 
-    /** A group name must be one of the secondary objective's groups. */
+    /** A group name must be one of the objectives' groups (the primary's targets or the secondary's groups). */
     private void checkGroup(LevelData level, String field, String group) {
-        List<String> groups = level.objectives()
-                .secondary()
-                .flatMap(LevelData.Secondary::groups)
-                .orElse(List.of());
+        List<String> groups = level.objectives().groups();
         if (!groups.contains(group)) {
-            problem(level, field, "no group '" + group + "' in objectives.secondary.groups " + groups);
+            problem(level, field, "no group '" + group + "' in the objectives' groups " + groups);
         }
     }
 
     private void checkCarriers(
             LevelData level, String field, List<LevelData.PlacedPickup> pickups, Set<Double> waveTimes) {
         for (int i = 0; i < pickups.size(); i++) {
-            double wave = pickups.get(i).droppedBy().wave();
+            LevelData.Carrier carrier = pickups.get(i).droppedBy();
+            if (carrier.group().isPresent()) {
+                checkGroup(
+                        level,
+                        field + "[" + i + "].dropped_by.group",
+                        carrier.group().get());
+                continue;
+            }
+            double wave = carrier.waveT();
             if (!waveTimes.contains(wave)) {
                 problem(level, field + "[" + i + "].dropped_by.wave", "no wave at t=" + wave);
             }
@@ -448,12 +520,18 @@ final class ContentValidator {
             LevelData.RadioCue cue = level.radio().get(i);
             String field = "radio[" + i + "]";
             boolean allyEvent = cue.event()
-                    .map(event -> event == LevelData.CueEvent.FIRST_ALLY_HIT
-                            || event == LevelData.CueEvent.FIRST_ALLY_LOST
-                            || event == LevelData.CueEvent.MISSION_FAILED)
+                    .map(event ->
+                            event == LevelData.CueEvent.FIRST_ALLY_HIT || event == LevelData.CueEvent.FIRST_ALLY_LOST)
                     .orElse(false);
             if ((allyEvent || cue.allies().isPresent()) && escort.isEmpty()) {
                 problem(level, field, "convoy events and allies ranges need an escort objective");
+            }
+            boolean canFail = escort.isPresent() || level.objectives().targets().isPresent();
+            if (cue.event().orElse(null) == LevelData.CueEvent.MISSION_FAILED && !canFail) {
+                problem(
+                        level,
+                        field,
+                        "a mission-failed line needs a primary objective that can fail (escort, destroy-targets)");
             }
             int units = escort.map(e -> e.y().size()).orElse(0);
             cue.allies().ifPresent(range -> {

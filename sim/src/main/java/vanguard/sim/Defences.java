@@ -43,6 +43,13 @@ public final class Defences {
         broken = false;
     }
 
+    /** Back to a boss checkpoint's shield and armour, with the armour lost in the level until then. */
+    void restore(double shield, double armour, double armourLost) {
+        restore(armour);
+        this.shield = Math.min(shield, model.capacity());
+        this.armourLost = armourLost;
+    }
+
     /** Counts down the mercy time and regenerates the shield once the delay has passed. */
     void step() {
         if (mercy > 0) {

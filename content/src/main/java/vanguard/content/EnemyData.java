@@ -34,7 +34,9 @@ public record EnemyData(
         List<String> traits,
         int bounty,
         int firstLevel,
-        Optional<Hooks> difficulty) {
+        Optional<Hooks> difficulty,
+        Optional<List<ChainData>> chains,
+        Optional<BossData> boss) {
     public EnemyData {
         Layers.of(layer);
         Check.positive("hp", hp);
@@ -124,11 +126,20 @@ public record EnemyData(
      *
      * @param kind {@code armoured}, {@code destroyable} or {@code vital} (destroying it destroys the rest)
      * @param attack the name of the unit's attack it fires
+     * @param multiplier the damage it takes is multiplied by this (a weak point); 1 when not given
      */
     public record PartData(
-            String name, Point offset, Size hitbox, double hp, String kind, int bounty, Optional<String> attack) {
+            String name,
+            Point offset,
+            Size hitbox,
+            double hp,
+            String kind,
+            int bounty,
+            Optional<String> attack,
+            Optional<Double> multiplier) {
         public PartData {
             Check.positive("hp", hp);
+            multiplier.ifPresent(m -> Check.positive("multiplier", m));
             Check.that(
                     kind.equals("destroyable") || kind.equals("vital") || kind.equals("armoured"),
                     "kind must be armoured, destroyable or vital, was '" + kind + "'");
@@ -171,8 +182,24 @@ public record EnemyData(
         }
     }
 
-    /** Hovers for {@code seconds} at a height of {@code y} px from the top of the play field. */
-    public record Hover(Span seconds, Span y) {}
+    /**
+     * Hovers for {@code seconds} at a height of {@code y} px from the top of the play field; without
+     * {@code seconds} it holds until it is killed (a boss).
+     */
+    public record Hover(Optional<Span> seconds, Span y) {
+        /** {@code y} written as {@code [min, max]} or as one height. */
+        @JsonCreator
+        static Hover of(
+                @com.fasterxml.jackson.annotation.JsonProperty("seconds") Optional<Span> seconds,
+                @com.fasterxml.jackson.annotation.JsonProperty("y") tools.jackson.databind.JsonNode y) {
+            Check.that(y != null && (y.isNumber() || (y.isArray() && y.size() == 2)), "y is a height or [min, max]");
+            return new Hover(
+                    seconds == null ? Optional.empty() : seconds,
+                    y.isNumber()
+                            ? new Span(y.doubleValue(), y.doubleValue())
+                            : new Span(y.get(0).doubleValue(), y.get(1).doubleValue()));
+        }
+    }
 
     /** Orbits a point at {@code radius} px and {@code turnRate} °/s. */
     public record Orbit(double radius, double turnRate) {
@@ -198,6 +225,12 @@ public record EnemyData(
      * @param aim planned (part D): where a fan points, {@code target} (the default), {@code down} or {@code facing}
      * @param away planned (part D): an aimed attack fires only while the player is more than this many ° off its facing
      * @param spawn planned (part D): the {@code spawn} pattern's release, which has no bullet, interval or speed
+     * @param mortar the {@code mortar} pattern's lob (its {@code bullet} is the direct hit, its {@code speed} the ring's)
+     * @param burst an aimed attack's shots per volley
+     * @param burstGap seconds between the shots of a burst
+     * @param rotate the parts sharing the attack take turns, one volley every interval among the living ones
+     * @param arms a {@code spiral}'s arms; its {@code interval} is between two bullets of an arm
+     * @param duration seconds a {@code spiral} runs before it hands over
      */
     public record Attack(
             String pattern,
@@ -213,15 +246,37 @@ public record EnemyData(
             Optional<Mine> mine,
             Optional<String> aim,
             Optional<Double> away,
-            Optional<Spawn> spawn) {
+            Optional<Spawn> spawn,
+            Optional<Mortar> mortar,
+            Optional<Integer> burst,
+            Optional<Double> burstGap,
+            Optional<Boolean> rotate,
+            Optional<Integer> arms,
+            Optional<Double> duration) {
         public Attack {
             Check.that(
                     pattern.equals("aimed")
                             || pattern.equals("fan")
                             || pattern.equals("mine")
-                            || pattern.equals("spawn"),
-                    "pattern must be aimed, fan, mine or spawn, was '" + pattern + "'");
+                            || pattern.equals("spawn")
+                            || pattern.equals("mortar")
+                            || pattern.equals("ring")
+                            || pattern.equals("spiral"),
+                    "pattern must be aimed, fan, mine, spawn, mortar, ring or spiral, was '" + pattern + "'");
             Check.that(pattern.equals("mine") == mine.isPresent(), "a mine attack has its mine, the others none");
+            Check.that(
+                    pattern.equals("mortar") == mortar.isPresent(), "a mortar attack has its mortar, the others none");
+            Check.that(
+                    pattern.equals("aimed") || (burst.isEmpty() && burstGap.isEmpty() && rotate.isEmpty()),
+                    "only an aimed attack has a burst, a burst gap or rotates");
+            burst.ifPresent(b -> Check.positive("burst", b));
+            burstGap.ifPresent(g -> Check.positive("burst_gap", g));
+            Check.that(
+                    pattern.equals("spiral") == (arms.isPresent() && duration.isPresent()),
+                    "a spiral has its arms and a duration, the others neither");
+            arms.ifPresent(a -> Check.positive("arms", a));
+            duration.ifPresent(d -> Check.positive("duration", d));
+            Check.that(!pattern.equals("spiral") || turnRate.isPresent(), "a spiral has a turn rate");
             Check.that(pattern.equals("spawn") == spawn.isPresent(), "a spawn attack has its spawn, the others none");
             Check.that(
                     pattern.equals("spawn") != (bullet.isPresent() && speed.isPresent()),
@@ -234,8 +289,11 @@ public record EnemyData(
             interval.ifPresent(i -> Check.positive("interval", i));
             speed.ifPresent(s -> Check.positive("speed", s));
             firstShotDelay.ifPresent(d -> Check.notNegative("first_shot_delay", d));
-            Check.that(pattern.equals("fan") == count.isPresent(), "a fan has a count, an aimed attack none");
-            Check.that(count.isPresent() == spread.isPresent(), "a fan has a count and a spread");
+            Check.that(
+                    (pattern.equals("fan") || pattern.equals("ring")) == count.isPresent(),
+                    "a fan or a ring has a count, the others none");
+            Check.that(pattern.equals("fan") == spread.isPresent(), "a fan has a spread, the others none");
+            count.ifPresent(c -> Check.positive("count", c));
         }
     }
 
@@ -294,6 +352,99 @@ public record EnemyData(
         }
     }
 
+    /**
+     * A mortar's lob: the impact marker shows {@code marker} s ahead (the blob's flight), a ship
+     * inside the {@code impact} px circle when it lands takes the direct hit, and it bursts into a
+     * ring of {@code ring} bullets of class {@code ringBullet}. Parsed; flown with the Polyp Mortar.
+     */
+    public record Mortar(double marker, double impact, int ring, String ringBullet) {
+        public Mortar {
+            Check.positive("marker", marker);
+            Check.positive("impact", impact);
+            Check.positive("ring", ring);
+        }
+    }
+
+    /**
+     * An articulated neck: {@code segments} {@code armoured} hit boxes from the anchor {@code from}
+     * on the body to the part {@code to} at its end (whose offset is the chain's rest end); each
+     * segment follows the one before it {@code lag} s late, and the chain turns at most
+     * {@code bend} degrees towards the player.
+     */
+    public record ChainData(String name, Point from, String to, int segments, Size hitbox, double lag, double bend) {
+        public ChainData {
+            Check.positive("segments", segments);
+            Check.positive("lag", lag);
+            Check.notNegative("bend", bend);
+        }
+    }
+
+    /**
+     * A boss's script: {@code kind} {@code boss} or {@code mid-boss} (the short bar), its bar's
+     * name, the par time in s (the Boss rush bonus) and its phases in order.
+     */
+    public record BossData(String kind, String barName, double par, List<PhaseData> phases) {
+        public BossData {
+            Check.that(
+                    kind.equals("boss") || kind.equals("mid-boss"),
+                    "kind must be boss or mid-boss, was '" + kind + "'");
+            Check.positive("par", par);
+            Check.notEmpty("phases", phases);
+        }
+
+        /** Whether it is a mid-boss, with the short bar. */
+        public boolean midBoss() {
+            return kind.equals("mid-boss");
+        }
+    }
+
+    /**
+     * A boss phase: it ends when at most {@code until.left} of {@code until.parts} are alive; it
+     * fires its {@code attacks} together or the {@code alternate} ones in turn, sends its
+     * {@code streams}, {@code exposes} parts that took no damage before it and bends the chains
+     * {@code bend} degrees.
+     */
+    public record PhaseData(
+            String name,
+            Until until,
+            Optional<List<String>> attacks,
+            Optional<List<String>> alternate,
+            Optional<StreamData> streams,
+            Optional<List<String>> exposes,
+            Optional<Double> bend) {
+        public PhaseData {
+            Check.that(attacks.isEmpty() || alternate.isEmpty(), "a phase has attacks or an alternate list, not both");
+            bend.ifPresent(b -> Check.notNegative("bend", b));
+        }
+    }
+
+    /** The end of a phase: at most {@code left} of {@code parts} alive. */
+    public record Until(List<String> parts, int left) {
+        public Until {
+            Check.notEmpty("parts", parts);
+            Check.notNegative("left", left);
+        }
+    }
+
+    /**
+     * Streams of {@code count} units of {@code enemy}, {@code interval} s apart, from the side
+     * edges ({@code left}, {@code right} or {@code alternating}): the first when the boss settles,
+     * then every {@code every} s while the phase lasts.
+     */
+    public record StreamData(String enemy, int count, double every, double interval, String edge) {
+        public StreamData {
+            Check.positive("count", count);
+            Check.positive("every", every);
+            Check.positive("interval", interval);
+            Check.that(
+                    edge.equals("left") || edge.equals("right") || edge.equals("alternating"),
+                    "edge must be left, right or alternating, was '" + edge + "'");
+        }
+    }
+
+    /** A difficulty's change to one named attack. */
+    public record AttackChange(Optional<Integer> burst, Optional<Integer> count) {}
+
     /** Overrides of the global difficulty levers. */
     public record Hooks(Optional<Hook> easy, Optional<Hook> hard) {}
 
@@ -307,6 +458,7 @@ public record EnemyData(
      * @param ring a mine's ring bullets instead
      * @param mineBursts false: mines never burst on their own
      * @param deathBurst the puff of bullets it pops into when destroyed
+     * @param attacks changes per attack name (a boss's {@code burst} or {@code count})
      */
     public record Hook(
             Optional<List<String>> leadsTargetIn,
@@ -317,7 +469,8 @@ public record EnemyData(
             Optional<Boolean> mineBursts,
             Optional<DeathBurst> deathBurst,
             Optional<Integer> spawnCount,
-            Optional<Double> spawnAfter) {}
+            Optional<Double> spawnAfter,
+            Optional<java.util.Map<String, AttackChange>> attacks) {}
 
     /** {@code count} bullets of class {@code bullet} in a ring at {@code speed} px/s. */
     public record DeathBurst(int count, double speed, String bullet) {
@@ -332,6 +485,17 @@ public record EnemyData(
         return attacks.stream()
                 .filter(attack -> attack.name().filter(name::equals).isPresent())
                 .findFirst();
+    }
+
+    /** The part named {@code name}'s index in the part list; -1 without one. */
+    public int partIndex(String name) {
+        List<PartData> parts = partList.orElse(List.of());
+        for (int i = 0; i < parts.size(); i++) {
+            if (parts.get(i).name().equals(name)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /** Whether it is a multi-part unit ({@code parts: multi} with a {@code part_list}). */

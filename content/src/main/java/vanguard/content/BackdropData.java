@@ -20,6 +20,8 @@ import java.util.Optional;
  * @param tileSets the repeating textures, by id
  * @param pieces the set pieces, by id
  * @param placed the set pieces along the scroll; on a layer, later ones are drawn over earlier ones
+ * @param images the folder of another level whose images it uses ({@code level-04}: Level 05 reuses
+ *     Level 04's Luna until its own art exists); its own folder when not given
  */
 public record BackdropData(
         Map<BackdropLayer, Double> scrollFactors,
@@ -28,8 +30,10 @@ public record BackdropData(
         Atmospheres atmosphere,
         Map<String, TileSet> tileSets,
         Map<String, Piece> pieces,
-        List<PlacedPiece> placed) {
+        List<PlacedPiece> placed,
+        Optional<String> images) {
     public BackdropData {
+        images.ifPresent(folder -> Check.that(folder.matches("level-\\d{2}"), "images: a level folder, level-NN"));
         Check.that(
                 scrollFactors.keySet().containsAll(EnumSet.complementOf(EnumSet.of(BackdropLayer.DEEP))),
                 "scroll_factors: give every layer (deep, far, ground, low-air, high-air; deep may be left"

@@ -17,6 +17,13 @@ import java.util.List;
  * when the scroll reaches the end of the last section; the ship then flies on, out of harm's way,
  * until the presentation moves to the debrief.
  *
+ * <p>A boss (a {@link SetPiece} with a {@link BossSpec}) arrives on the level clock; in its arena
+ * section the clock halts at the section's end while it lives, and jumps to that end when it dies
+ * earlier (the ground scroll jumps with it), after which the scroll ramps up to the next section's
+ * speed over {@link #ARENA_RAMP_SECONDS}. Just before it arrives a boss checkpoint is recorded
+ * (design/systems/retry): {@link #retryFromBoss()} restarts there on an empty field with the
+ * defences, charges, credits, score and objective tallies of that moment.
+ *
  * <p>A level with an {@code escort} primary objective has a {@link Convoy} on its road; it fails
  * when the last unit is lost (design/systems/retry, on a failed primary objective): the ship flies
  * on but nothing can hurt it, and the presentation retries the level as after a wreck.
@@ -25,7 +32,9 @@ public final class Sortie {
     private static final int GROUND_CAPACITY = 32;
     private static final int PICKUP_CAPACITY = 64;
     private static final int EVENT_CAPACITY = 256;
-    private static final int DEBRIS_CAPACITY = 24;
+    private static final int DEBRIS_CAPACITY = 48;
+    /** Thrown rocks' serials start here, above the level's placed chunks. */
+    private static final int DEBRIS_THROWN = 1 << 20;
 
     private final SplitMix64 rng;
     private final Ship ship;
@@ -38,6 +47,22 @@ public final class Sortie {
     private final Pool<Pickup> pickups = new Pool<>(PICKUP_CAPACITY, Pickup::new, Pickup[]::new);
     private final Pool<Debris> debris = new Pool<>(DEBRIS_CAPACITY, Debris::new, Debris[]::new);
     private final SetPiece[] setPieces;
+    /** What the bosses do to the level. */
+    private final SetPiece.BossActions bossActions;
+    /** The boss streams' units, planned once: per stream, from the left and from the right. */
+    private final BossSpec.Stream[] streams;
+
+    private final Spawn[] streamFromLeft;
+    private final Spawn[] streamFromRight;
+    /** The boss whose arrival records the checkpoint (the first boss); -1 without one. */
+    private final int checkpointBoss;
+    /** The arena section's end and start, steps; -1 without an arena. */
+    private final int arenaEndTicks;
+
+    private final int arenaStartTicks;
+    private final double arenaSpeed;
+    /** The boss checkpoint; null in a level without a boss. */
+    private final Checkpoint checkpoint;
     /** What the guns and the Airstrike destroy is handed here. */
     private final PlayerFire.Hits hits;
     /** Per secret, the triggers spent that reveal it together (Level 03's lifeboat lights). */
@@ -48,6 +73,16 @@ public final class Sortie {
     private final Objectives objectives;
     private final Radio radio;
     private final Crane[] cranes;
+    /** The mass-driver sleds; null without them. */
+    private final Sled sled;
+    /** {@link #sled} for the presentation, made once (stepping allocates nothing). */
+    private final java.util.Optional<Sled> sledView;
+    /** The chunk a thrown rock is; null in a level without rocks. */
+    private final LevelScript.DebrisSpec rock;
+    /** Rocks thrown in this attempt, for their serials. */
+    private int rocksThrown;
+    /** The damage of the lobs that landed on the ship in this step. */
+    private double directHits;
     /** Whether a group's outcome was paid and called in this attempt. */
     private final boolean[] groupCalled;
     /** The escort objective's convoy; null without one. */
@@ -60,8 +95,10 @@ public final class Sortie {
     private int levelTick;
     private int attempt = 1;
     private boolean wrecked;
-    /** Whether the primary objective failed in this attempt (the convoy is lost). */
+    /** Whether the primary objective failed in this attempt (the convoy is lost, a battery got away). */
     private boolean failed;
+    /** The destroy-targets group whose loss failed the primary; -1 for none. */
+    private int failedGroup = -1;
     /** What the convoy earned at the level end, for the debrief. */
     private int escortCredits;
     /** The armour of the next attempt, once {@link #retry(double)} asked for one; 0 while none is asked for. */
@@ -72,6 +109,53 @@ public final class Sortie {
     private int nextDebris;
     private int edgeWarnings;
     private boolean complete;
+    /** Boss stream units let in in this attempt (they count among the enemies). */
+    private int streamReleased;
+    /** Whether this attempt recorded the boss checkpoint. */
+    private boolean checkpointTaken;
+    /** Whether the next step restarts at the boss checkpoint. */
+    private boolean bossRetry;
+    /** Whether the next step jumps the clock to the arena's end (the boss died early). */
+    private boolean arenaJump;
+    /** The scroll ramps from this speed ... */
+    private double rampFrom;
+    /** ... for this many steps so far; -1 without a ramp. */
+    private int rampTicks = -1;
+    /** The phase a boss entered in this step, for its event; -1 for none. */
+    private int bossPhase = -1;
+
+    /**
+     * The state recorded just before the boss arrives (design/systems/retry, the boss checkpoint),
+     * allocated with the sortie.
+     */
+    private final class Checkpoint {
+        long rng;
+        final Tally tally = new Tally(rules.scoring());
+        final Objectives objectives = new Objectives(
+                script.secondary(),
+                script.groups().size(),
+                force.kinds().size(),
+                enemyTotal(),
+                script.groundUnits(),
+                0);
+        final boolean[] radioFired = new boolean[radio.size()];
+        final int[] secretTriggersSpent = new int[Sortie.this.secretTriggersSpent.length];
+        final boolean[] groupCalled = new boolean[Sortie.this.groupCalled.length];
+        double shield;
+        double armour;
+        double armourLost;
+        int charges;
+        int chargesUsed;
+        int chargesFound;
+        int scheduleNext;
+        int nextGround;
+        int spawned;
+        int nextGroundObject;
+        int nextDebris;
+        double groundScroll;
+        int levelTick;
+        int streamReleased;
+    }
 
     /** @param armour the ship's armour at the level start (design/systems/retry: not full, unless it was full) */
     public Sortie(long seed, Loadout loadout, LevelScript script, Rules rules, double armour) {
@@ -85,6 +169,31 @@ public final class Sortie {
         this.script = script;
         this.rules = rules;
         setPieces = script.setPieces().stream().map(SetPiece::new).toArray(SetPiece[]::new);
+        List<BossSpec.Stream> bossStreams = script.setPieces().stream()
+                .flatMap(piece -> piece.boss().stream())
+                .flatMap(boss -> boss.phases().stream())
+                .flatMap(phase -> phase.stream().stream())
+                .toList();
+        streams = bossStreams.toArray(BossSpec.Stream[]::new);
+        int firstBoss = -1;
+        for (int k = setPieces.length - 1; k >= 0; k--) {
+            firstBoss = setPieces[k].boss().isPresent() ? k : firstBoss;
+        }
+        checkpointBoss = firstBoss;
+        int arenaEnd = -1;
+        int arenaStart = -1;
+        double arenaSpeedFound = 0;
+        for (int i = 0; i < script.sections().size(); i++) {
+            if (script.sections().get(i).arena()) {
+                arenaStart =
+                        i == 0 ? 0 : SimStep.ticks(script.sections().get(i - 1).end());
+                arenaEnd = SimStep.ticks(script.sections().get(i).end());
+                arenaSpeedFound = script.sections().get(i).speed();
+            }
+        }
+        arenaEndTicks = arenaEnd;
+        arenaStartTicks = arenaStart;
+        arenaSpeed = arenaSpeedFound;
         secretTriggersSpent = new int[script.secrets()];
         PlayerFire.Hits hits = new PlayerFire.Hits() {
             @Override
@@ -115,26 +224,80 @@ public final class Sortie {
         this.hits = hits;
         fire = new PlayerFire(ship, loadout.armament(), events, hits, setPieces);
         special = new SpecialSlot(loadout.special(), events);
-        force = new EnemyForce(script.waves(), script.groundUnits(), rng, rules, events, new EnemyForce.Escapes() {
+        List<EnemySpec> streamKinds =
+                bossStreams.stream().map(BossSpec.Stream::enemy).toList();
+        force = new EnemyForce(
+                script.waves(), script.groundUnits(), streamKinds, rng, rules, events, new EnemyForce.Escapes() {
+                    @Override
+                    public void escaped(Enemy enemy) {
+                        Sortie.this.escaped(enemy);
+                    }
+
+                    @Override
+                    public void burst(Enemy enemy) {
+                        selfBurst(enemy);
+                    }
+                });
+        streamFromLeft = new Spawn[streams.length];
+        streamFromRight = new Spawn[streams.length];
+        for (int i = 0; i < streams.length; i++) {
+            int kind = force.kinds().indexOf(streams[i].enemy());
+            streamFromLeft[i] = Formations.streamUnit(streams[i].enemy(), kind, true);
+            streamFromRight[i] = Formations.streamUnit(streams[i].enemy(), kind, false);
+        }
+        bossActions = new SetPiece.BossActions() {
             @Override
-            public void escaped(Enemy enemy) {
-                Sortie.this.escaped(enemy);
+            public void aimed(double x, double y, EnemyGun gun) {
+                force.fireFrom(x, y, gun, ship);
             }
 
             @Override
-            public void burst(Enemy enemy) {
-                selfBurst(enemy);
+            public void ring(double x, double y, int count, double speed, double damage) {
+                force.burst(x, y, count, speed, damage, ship);
+                events.add(SimEvents.Type.ENEMY_FIRED, x, y);
             }
-        });
+
+            @Override
+            public void bullet(double x, double y, double angle, double speed, double damage) {
+                force.fireAngle(x, y, angle, speed, damage, ship);
+            }
+
+            @Override
+            public void release(BossSpec.Stream stream, boolean left) {
+                for (int i = 0; i < streams.length; i++) {
+                    if (streams[i] == stream) {
+                        force.release(left ? streamFromLeft[i] : streamFromRight[i]);
+                        streamReleased++;
+                        return;
+                    }
+                }
+            }
+
+            @Override
+            public void phase(int phase) {
+                bossPhase = phase;
+            }
+        };
         tally = new Tally(rules.scoring());
         int escapers = force.unitsOf(script.secondary().escapes());
-        for (SetPiece piece : setPieces) {
-            escapers += piece.slug().equals(script.secondary().escapes()) ? 1 : 0;
+        for (String slug : script.secondary().killAll()) {
+            escapers += force.unitsOf(slug);
         }
-        objectives =
-                new Objectives(script.secondary(), force.kinds().size(), enemyTotal(), script.groundUnits(), escapers);
+        for (SetPiece piece : setPieces) {
+            escapers += script.secondary().counts(piece.slug()) ? 1 : 0;
+        }
+        objectives = new Objectives(
+                script.secondary(),
+                script.groups().size(),
+                force.kinds().size(),
+                enemyTotal(),
+                script.groundUnits(),
+                escapers);
         cranes = script.cranes().stream().map(Crane::new).toArray(Crane[]::new);
-        groupCalled = new boolean[script.secondary().groups().size()];
+        sled = script.sled().map(Sled::new).orElse(null);
+        sledView = java.util.Optional.ofNullable(sled);
+        rock = script.rocks().map(LevelScript.RockSpec::chunk).orElse(null);
+        groupCalled = new boolean[script.groups().size()];
         radio = new Radio(script.radio(), events, ship, special.fitted());
         convoy = script.escort()
                 .map(escort -> new Convoy(escort, script.road().orElseThrow()))
@@ -142,6 +305,7 @@ public final class Sortie {
         if (convoy != null) {
             force.hook(convoy, convoy.escort().targetedBy());
         }
+        checkpoint = checkpointBoss < 0 ? null : new Checkpoint();
         launchTicks = SimStep.ticks(script.launchSeconds());
         endTicks = SimStep.ticks(script.seconds());
         pickupTicks = SimStep.ticks(rules.pickups().seconds());
@@ -154,9 +318,32 @@ public final class Sortie {
         events.clear();
         if (retryArmour > 0) {
             restart();
+        } else if (bossRetry) {
+            restoreCheckpoint();
         }
-        double scrollStep = scrollSpeed() * SimStep.SECONDS;
-        levelTick++;
+        if (checkpoint != null && !checkpointTaken && levelTick + 1 == arrivalTicks()) {
+            recordCheckpoint();
+        }
+        double scrollStep;
+        if (arenaJump) {
+            // The boss died before the arena's end: the next section starts now.
+            arenaJump = false;
+            groundScroll += (arenaEndTicks - 1 - levelTick) * arenaSpeed * SimStep.SECONDS;
+            levelTick = arenaEndTicks - 1;
+            rampFrom = arenaSpeed;
+            rampTicks = 0;
+        }
+        if (clockHeld()) {
+            scrollStep = 0;
+            rampFrom = 0;
+            rampTicks = 0;
+        } else {
+            scrollStep = scrollSpeed() * SimStep.SECONDS;
+            if (rampTicks >= 0 && ++rampTicks >= SimStep.ticks(ARENA_RAMP_SECONDS)) {
+                rampTicks = -1;
+            }
+            levelTick++;
+        }
         groundScroll += scrollStep;
         ship.rememberPosition();
         if (launching()) {
@@ -176,6 +363,9 @@ public final class Sortie {
         for (Crane crane : cranes) {
             crane.update(levelTick);
         }
+        if (sled != null) {
+            updateSled();
+        }
         flySetPieces();
         edgeWarnings = complete ? 0 : force.warnings(levelTick);
         fire.move(scrollStep, force.enemies());
@@ -184,6 +374,7 @@ public final class Sortie {
         fireSetPieces(firing);
         force.moveBullets();
         force.moveMines(ship);
+        directHits = force.moveLobs(ship, scrollStep);
         moveDebris();
         blockShots();
         scrollGround(scrollStep);
@@ -200,6 +391,7 @@ public final class Sortie {
             hitShip();
             ramShip();
             hitByCranes();
+            hitBySled();
             hitByDebris();
             hitBySetPieces();
         }
@@ -234,7 +426,125 @@ public final class Sortie {
         }
     }
 
+    /** When the checkpoint boss arrives, steps on the level clock; -1 without one. */
+    private int arrivalTicks() {
+        return SimStep.ticks(setPieces[checkpointBoss].boss().orElseThrow().arriveSeconds());
+    }
+
+    /**
+     * Whether the level clock halts: at the end of the arena section while the boss that fights
+     * there lives (the scroll stops until it dies).
+     */
+    private boolean clockHeld() {
+        if (arenaEndTicks < 0 || levelTick + 1 < arenaEndTicks || levelTick >= arenaEndTicks) {
+            return false;
+        }
+        for (SetPiece piece : setPieces) {
+            if (piece.boss().isPresent() && piece.present() && !piece.destroyed()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether the level clock is halted in the arena now (the boss outlived its arena). */
+    public boolean arenaHalted() {
+        return clockHeld();
+    }
+
+    /**
+     * Restarts at the boss checkpoint at the next step (design/systems/retry, Retry from boss): a
+     * new attempt with the defences, charges, credits, score and objective tallies recorded just
+     * before the boss arrived, on an empty field; the boss arrives again.
+     */
+    public void retryFromBoss() {
+        if (!bossCheckpoint()) {
+            throw new IllegalStateException("no boss checkpoint in this attempt");
+        }
+        bossRetry = true;
+    }
+
+    /** Whether this attempt has reached a boss checkpoint, so {@link #retryFromBoss()} can restart there. */
+    public boolean bossCheckpoint() {
+        return checkpointTaken;
+    }
+
+    private void recordCheckpoint() {
+        Checkpoint c = checkpoint;
+        c.rng = rng.state();
+        c.tally.copyFrom(tally);
+        c.objectives.copyFrom(objectives);
+        radio.saveFired(c.radioFired);
+        System.arraycopy(secretTriggersSpent, 0, c.secretTriggersSpent, 0, secretTriggersSpent.length);
+        System.arraycopy(groupCalled, 0, c.groupCalled, 0, groupCalled.length);
+        Defences defences = ship.defences();
+        c.shield = defences.shield();
+        c.armour = defences.armour();
+        c.armourLost = defences.armourLost();
+        c.charges = special.charges();
+        c.chargesUsed = special.used();
+        c.chargesFound = special.found();
+        c.scheduleNext = force.scheduleNext();
+        c.nextGround = force.nextGround();
+        c.spawned = force.spawned();
+        c.nextGroundObject = nextGroundObject;
+        c.nextDebris = nextDebris;
+        c.groundScroll = groundScroll;
+        c.levelTick = levelTick;
+        c.streamReleased = streamReleased;
+        checkpointTaken = true;
+    }
+
+    private void restoreCheckpoint() {
+        Checkpoint c = checkpoint;
+        bossRetry = false;
+        fire.reset();
+        special.restore(c.charges, c.chargesUsed, c.chargesFound);
+        force.restore(c.scheduleNext, c.nextGround, c.spawned);
+        Pools.clear(ground);
+        Pools.clear(pickups);
+        Pools.clear(debris);
+        for (SetPiece piece : setPieces) {
+            piece.reset();
+        }
+        rng.state(c.rng);
+        System.arraycopy(c.secretTriggersSpent, 0, secretTriggersSpent, 0, secretTriggersSpent.length);
+        tally.copyFrom(c.tally);
+        objectives.copyFrom(c.objectives);
+        radio.restoreFired(c.radioFired);
+        for (Crane crane : cranes) {
+            crane.reset();
+        }
+        System.arraycopy(c.groupCalled, 0, groupCalled, 0, groupCalled.length);
+        levelTick = c.levelTick;
+        groundScroll = c.groundScroll;
+        nextGroundObject = c.nextGroundObject;
+        nextDebris = c.nextDebris;
+        streamReleased = c.streamReleased;
+        resetArena();
+        complete = false;
+        wrecked = false;
+        failed = false;
+        failedGroup = -1;
+        attempt++;
+        ship.reset(c.armour);
+        ship.defences().restore(c.shield, c.armour, c.armourLost);
+        events.add(SimEvents.Type.SORTIE_RESTARTED, ship.x(), ship.y());
+        events.add(SimEvents.Type.BOSS_RETRY, ship.x(), ship.y());
+    }
+
+    private void resetArena() {
+        arenaJump = false;
+        rampFrom = 0;
+        rampTicks = -1;
+        bossPhase = -1;
+    }
+
     private void restart() {
+        checkpointTaken = false;
+        bossRetry = false;
+        streamReleased = 0;
+        resetArena();
         fire.reset();
         special.reset();
         force.reset();
@@ -251,6 +561,10 @@ public final class Sortie {
         for (Crane crane : cranes) {
             crane.reset();
         }
+        if (sled != null) {
+            sled.reset();
+        }
+        rocksThrown = 0;
         Arrays.fill(groupCalled, false);
         levelTick = 0;
         groundScroll = 0;
@@ -259,6 +573,7 @@ public final class Sortie {
         complete = false;
         wrecked = false;
         failed = false;
+        failedGroup = -1;
         escortCredits = 0;
         if (convoy != null) {
             convoy.reset();
@@ -270,8 +585,16 @@ public final class Sortie {
     }
 
     private double scrollSpeed() {
-        return script.sections().get(section() - 1).speed();
+        double speed = script.sections().get(section() - 1).speed();
+        if (rampTicks >= 0) {
+            // Out of the arena the scroll ramps up to the section's speed.
+            speed = rampFrom + (speed - rampFrom) * rampTicks / SimStep.ticks(ARENA_RAMP_SECONDS);
+        }
+        return speed;
     }
+
+    /** Out of the arena the scroll ramps up to the next section's speed over this time. */
+    public static final double ARENA_RAMP_SECONDS = 1;
 
     private void placeGroundObjects() {
         List<LevelScript.GroundObjectSpec> objects = script.groundObjects();
@@ -334,6 +657,15 @@ public final class Sortie {
         for (int k = 0; k < setPieces.length; k++) {
             SetPiece piece = setPieces[k];
             boolean onPlane = piece.onPlane();
+            if (piece.boss().isPresent()) {
+                piece.update(levelTick);
+                if (piece.bossTicks() == 0) {
+                    events.add(SimEvents.Type.BOSS_ARRIVED, piece.x(), piece.y(), k);
+                } else if (piece.swayTicks() == 0) {
+                    events.add(SimEvents.Type.BOSS_SETTLED, piece.x(), piece.y(), k);
+                }
+                continue;
+            }
             if (piece.update(levelTick)) {
                 events.add(SimEvents.Type.SET_PIECE_ESCAPED, piece.x(), piece.y(), k);
                 if (objectives.escapeLost(piece.slug())) {
@@ -349,6 +681,17 @@ public final class Sortie {
     /** The set pieces' living parts fire their guns while on the player's layer. */
     private void fireSetPieces(boolean firing) {
         for (SetPiece piece : setPieces) {
+            if (piece.boss().isPresent()) {
+                bossPhase = -1;
+                piece.act(ship.x(), ship.y(), bossActions, firing);
+                if (bossPhase > 0) {
+                    events.add(SimEvents.Type.BOSS_PHASE, piece.x(), piece.y(), bossPhase);
+                    radio.cue(
+                            LevelScript.CueTrigger.BOSS_PHASE,
+                            piece.boss().get().phases().get(bossPhase).name());
+                }
+                continue;
+            }
             List<LevelScript.PartSpec> parts = piece.spec().parts();
             for (int p = 0; p < parts.size(); p++) {
                 if (piece.trigger(p) && firing) {
@@ -434,6 +777,11 @@ public final class Sortie {
         tally.kill(spec.bounty(), enemy.grounded() ? CreditSource.GROUND_TARGETS : CreditSource.KILLS);
         int kills = objectives.kill(enemy.kind());
         int group = enemy.group();
+        double x = enemy.x();
+        double y = enemy.y();
+        if (rock != null && enemy.grounded()) {
+            throwRocks(x, y);
+        }
         if (enemy.carried().isPresent()) {
             drop(enemy.carried().get(), enemy.x(), enemy.y());
         }
@@ -458,13 +806,68 @@ public final class Sortie {
             radio.cue(LevelScript.CueTrigger.FIRST_KILL, spec.slug());
         }
         if (group >= 0) {
-            decided(group, objectives.groupUnitDestroyed(group));
+            decided(group, objectives.groupUnitDestroyed(group), x, y);
         }
         if (objectives.escapeDestroyed(spec.slug())) {
             paySecondary();
         }
         if (objectives.meetsSecondary(tally.kills())) {
             paySecondary();
+        }
+    }
+
+    /**
+     * A destroyed ground unit throws its rocks in low gravity (Level 05): a number between the
+     * spec's least and most, each drifting in a random direction; none when it lies close to the ship.
+     */
+    private void throwRocks(double x, double y) {
+        LevelScript.RockSpec spec = script.rocks().orElseThrow();
+        int count = spec.min() + rng.nextInt(spec.max() - spec.min() + 1);
+        double dx = ship.x() - x;
+        double dy = ship.y() - y;
+        if (dx * dx + dy * dy < spec.clearance() * spec.clearance()) {
+            return;
+        }
+        for (int k = 0; k < count; k++) {
+            double angle = rng.range(0, 2 * StrictMath.PI);
+            double speed = rng.range(spec.minSpeed(), spec.maxSpeed());
+            Debris chunk = debris.obtain();
+            if (chunk != null) {
+                chunk.toss(
+                        rock,
+                        DEBRIS_THROWN + rocksThrown,
+                        x,
+                        y,
+                        Trig.cos(angle) * speed,
+                        Trig.sin(angle) * speed,
+                        SimStep.ticks(spec.lifeSeconds()));
+                events.add(SimEvents.Type.ROCK_THROWN, x, y);
+            }
+            rocksThrown++;
+        }
+    }
+
+    /** The rail's sleds: their lights, their launches, and the stuck sled's clamp that only takes hits in the dark. */
+    private void updateSled() {
+        SimEvents.Type event = sled.update(levelTick);
+        if (event != null) {
+            events.add(event, sled.spec().x(), 0);
+        }
+        String clamp = sled.spec().clampSecret();
+        for (int i = 0; i < ground.size(); i++) {
+            GroundObject object = ground.get(i);
+            if (object.spec().trigger() && object.spec().secret().equals(clamp)) {
+                object.shut(sled.lit());
+            }
+        }
+    }
+
+    /** A running sled hits the ship whatever its layer, once per sled. */
+    private void hitBySled() {
+        if (sled != null && sled.strikes(ship.spec().hull(), ship.x(), ship.y())) {
+            events.add(SimEvents.Type.SLED_HIT, ship.x(), ship.y());
+            double lost = ship.defences().armourLost();
+            damaged(lost, ship.defences().takeCollision(sled.spec().damage(), events, ship.x(), ship.y()));
         }
     }
 
@@ -506,12 +909,28 @@ public final class Sortie {
         }
         piece.destroy();
         radio.cue(LevelScript.CueTrigger.FIRST_KILL, spec.slug());
+        if (spec.isBoss()) {
+            events.add(SimEvents.Type.BOSS_DESTROYED, piece.x(), piece.y(), bossCredits(spec));
+            radio.cue(LevelScript.CueTrigger.BOSS_DESTROYED, spec.slug());
+            if (arenaEndTicks >= 0 && levelTick >= arenaStartTicks && levelTick < arenaEndTicks - 1) {
+                arenaJump = true;
+            }
+        }
         if (objectives.escapeDestroyed(spec.slug())) {
             paySecondary();
         }
         if (objectives.meetsSecondary(tally.kills())) {
             paySecondary();
         }
+    }
+
+    /** What a boss's parts paid together, after the credit factor: the credit shower's number. */
+    private int bossCredits(LevelScript.SetPieceSpec spec) {
+        int credits = 0;
+        for (LevelScript.PartSpec part : spec.parts()) {
+            credits += (int) Math.rint(part.bounty() * rules.scoring().creditFactor());
+        }
+        return credits;
     }
 
     private void payPart(SetPiece piece, int part) {
@@ -546,7 +965,14 @@ public final class Sortie {
     private void escaped(Enemy enemy) {
         String slug = enemy.spec().slug();
         if (enemy.group() >= 0) {
-            decided(enemy.group(), objectives.groupUnitEscaped(enemy.group()));
+            int group = enemy.group();
+            int state = objectives.groupUnitEscaped(group);
+            if (!script.targets().isEmpty()) {
+                // A battery whose unit got away can no longer be destroyed: the mission fails at once.
+                failTargets(group);
+            } else {
+                decided(group, state, enemy.x(), enemy.y());
+            }
         }
         if (objectives.escapeLost(slug)) {
             events.add(SimEvents.Type.OBJECTIVE_FAILED, enemy.x(), enemy.y());
@@ -559,13 +985,20 @@ public final class Sortie {
      * the objective is met when every group is cleared; a lost group calls its line, and the first
      * lost one also the first-loss line.
      */
-    private void decided(int group, int state) {
-        String name = script.secondary().groups().get(group);
+    private void decided(int group, int state, double x, double y) {
+        String name = script.groups().get(group);
         if (state == Objectives.CLEARED && !groupCalled[group]) {
             groupCalled[group] = true;
-            int credits = script.secondary().credits();
-            tally.earn(CreditSource.OBJECTIVES, credits);
-            tally.scoreValue(credits);
+            if (script.targets().isEmpty()) {
+                int credits = script.secondary().credits();
+                tally.earn(CreditSource.OBJECTIVES, credits);
+                tally.scoreValue(credits);
+            }
+            for (LevelScript.GroupDrop drop : script.groupDrops()) {
+                if (drop.group() == group) {
+                    drop(drop.pickup(), x, y);
+                }
+            }
             events.add(SimEvents.Type.GROUP_CLEARED, ship.x(), ship.y(), group);
             radio.cue(LevelScript.CueTrigger.GROUP_CLEARED, name);
             if (objectives.secondaryMet()) {
@@ -580,6 +1013,27 @@ public final class Sortie {
                 radio.cue(LevelScript.CueTrigger.FIRST_GROUP_LOST, "");
             }
         }
+    }
+
+    /**
+     * A unit of a destroy-targets group left the screen alive: the group is lost and the primary
+     * objective fails at once (design/systems/retry, on a failed primary objective), with the
+     * level's line naming the group.
+     */
+    private void failTargets(int group) {
+        if (failed || complete || wrecked || groupCalled[group]) {
+            return;
+        }
+        groupCalled[group] = true;
+        events.add(SimEvents.Type.GROUP_LOST, ship.x(), ship.y(), group);
+        if (rules.invulnerableShip()) {
+            // The debug option that lets a capture see the level to its end keeps it going too.
+            return;
+        }
+        failed = true;
+        failedGroup = group;
+        events.add(SimEvents.Type.PRIMARY_FAILED, ship.x(), ship.y(), group);
+        radio.cue(LevelScript.CueTrigger.MISSION_FAILED, "");
     }
 
     private void drop(PickupType type, double x, double y) {
@@ -603,6 +1057,23 @@ public final class Sortie {
     private void blockShots() {
         Pool<Shot> shots = fire.shots();
         Pool<EnemyBullet> bullets = force.bullets();
+        if (sled != null && sled.running()) {
+            // A running sled stops every shot and bullet that crosses the rail.
+            for (int i = shots.size() - 1; i >= 0; i--) {
+                Shot shot = shots.get(i);
+                if (!shot.weapon().delivery().landing()
+                        && sled.blocks(shot.x(), shot.y(), shot.weapon().size())) {
+                    events.add(SimEvents.Type.SHOT_GLANCED, shot.x(), shot.y(), shot.mount());
+                    shots.free(i);
+                }
+            }
+            for (int i = bullets.size() - 1; i >= 0; i--) {
+                EnemyBullet bullet = bullets.get(i);
+                if (sled.blocks(bullet.x(), bullet.y(), EnemyGun.BULLET)) {
+                    bullets.free(i);
+                }
+            }
+        }
         for (Crane crane : cranes) {
             if (!crane.present()) {
                 continue;
@@ -683,6 +1154,12 @@ public final class Sortie {
                     && hull.overlaps(ship.x(), ship.y(), spec.size(), chunk.x(), chunk.y())
                     && chunk.strike()) {
                 double lost = ship.defences().armourLost();
+                boolean thrown = chunk.thrown();
+                if (thrown) {
+                    // A thrown rock breaks on the hull.
+                    events.add(SimEvents.Type.DEBRIS_DESTROYED, chunk.x(), chunk.y());
+                    debris.free(d--);
+                }
                 if (damaged(lost, ship.defences().takeCollision(spec.damage(), events, ship.x(), ship.y()))) {
                     return;
                 }
@@ -745,6 +1222,12 @@ public final class Sortie {
     }
 
     private void hitShip() {
+        if (directHits > 0) {
+            double lost = ship.defences().armourLost();
+            if (damaged(lost, ship.defences().takeShot(directHits, events, ship.x(), ship.y()))) {
+                return;
+            }
+        }
         Pool<EnemyBullet> bullets = force.bullets();
         Hull hull = ship.spec().hull();
         for (int i = bullets.size() - 1; i >= 0; i--) {
@@ -960,9 +1443,25 @@ public final class Sortie {
         Pools.addAll(hash, pickups);
         Pools.addAll(hash, force.mines());
         Pools.addAll(hash, debris);
+        if (force.lobs().size() > 0) {
+            Pools.addAll(hash, force.lobs());
+        }
+        if (sled != null) {
+            sled.addTo(hash);
+        }
+        if (!script.targets().isEmpty()) {
+            hash.add(failed ? 1 : 0).add(failedGroup).add(rocksThrown);
+        }
         if (convoy != null) {
             hash.add(failed ? 1 : 0).add(escortCredits);
             convoy.addTo(hash);
+        }
+        if (checkpoint != null || arenaEndTicks >= 0) {
+            hash.add(checkpointTaken ? 1 : 0)
+                    .add(streamReleased)
+                    .add(arenaJump ? 1 : 0)
+                    .add(rampFrom)
+                    .add(rampTicks);
         }
         return hash.value();
     }
@@ -982,7 +1481,17 @@ public final class Sortie {
                 convoy == null
                         ? LevelResult.Escort.NONE
                         : new LevelResult.Escort(
-                                convoy.escort().ally().slug(), convoy.alive(), convoy.size(), escortCredits));
+                                convoy.escort().ally().slug(), convoy.alive(), convoy.size(), escortCredits),
+                bossTime());
+    }
+
+    /** The level's boss's kill time and par, for the debrief and the Boss rush bonus; {@link LevelResult.BossTime#NONE} without a boss. */
+    private LevelResult.BossTime bossTime() {
+        if (checkpointBoss < 0) {
+            return LevelResult.BossTime.NONE;
+        }
+        SetPiece boss = setPieces[checkpointBoss];
+        return new LevelResult.BossTime(boss.boss().orElseThrow().parSeconds(), boss.killSeconds());
     }
 
     public LevelScript script() {
@@ -1016,6 +1525,13 @@ public final class Sortie {
     /** Seconds of overdrive left; 0 without one. */
     public double overdriveSeconds() {
         return fire.overdriveTicks() * SimStep.SECONDS;
+    }
+
+    /** Destroys part {@code part} of set piece {@code piece} as a hit would, paying it (for tests). */
+    void destroyPart(int piece, int part) {
+        if (setPieces[piece].damagePart(part, Double.MAX_VALUE)) {
+            wreck(piece, part);
+        }
     }
 
     /** Drops a spore of {@code gun}'s mine at (x, y) drifting at {@code angle}, as a mine layer does (for tests). */
@@ -1138,6 +1654,25 @@ public final class Sortie {
         return convoy == null ? -1 : convoy.firstLost();
     }
 
+    /** The lobs in flight, their markers on the ground. */
+    public int lobCount() {
+        return force.lobs().size();
+    }
+
+    public Lob lob(int index) {
+        return force.lobs().get(index);
+    }
+
+    /** The mass-driver sleds, if the level has them. */
+    public java.util.Optional<Sled> sled() {
+        return sledView;
+    }
+
+    /** The destroy-targets group whose loss failed the primary objective; -1 for none. */
+    public int failedGroup() {
+        return failedGroup;
+    }
+
     /** Whether the primary objective failed in this attempt: the level is lost though the ship flies on. */
     public boolean primaryFailed() {
         return failed;
@@ -1231,9 +1766,9 @@ public final class Sortie {
         return tally.kills();
     }
 
-    /** Every enemy the level sends, its set pieces among them. */
+    /** Every enemy the level sends, its set pieces among them and the boss streams' units let in so far. */
     public int enemyTotal() {
-        return force.units() + setPieces.length;
+        return force.units() + setPieces.length + streamReleased;
     }
 
     /** Kills needed for the secondary objective. */

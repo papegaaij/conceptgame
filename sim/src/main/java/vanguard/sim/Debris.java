@@ -15,6 +15,10 @@ public final class Debris implements Hashed {
     private double hp;
     private int hitCooldown;
     private int ticksSinceHit;
+    private double vx;
+    private double vy;
+    /** A thrown rock's steps left; -1 for a chunk drifting through. */
+    private int life = -1;
 
     /** Enters at the top edge at {@code atX}; {@code index} is its place in the level's list, unique in an attempt. */
     void place(LevelScript.DebrisSpec debrisSpec, int index, double atX) {
@@ -25,14 +29,39 @@ public final class Debris implements Hashed {
         hp = debrisSpec.hp();
         hitCooldown = 0;
         ticksSinceHit = Integer.MAX_VALUE;
+        vx = debrisSpec.vx();
+        vy = debrisSpec.vy();
+        life = -1;
+    }
+
+    /**
+     * Thrown from (x, y) at (vx, vy) px/s (a rock from a destroyed ground unit, Level 05); it vanishes
+     * after {@code lifeTicks} steps. {@code index} is unique in an attempt.
+     */
+    void toss(
+            LevelScript.DebrisSpec debrisSpec,
+            int index,
+            double atX,
+            double atY,
+            double velocityX,
+            double velocityY,
+            int lifeTicks) {
+        place(debrisSpec, index, atX);
+        y = prevY = atY;
+        vx = velocityX;
+        vy = velocityY;
+        life = lifeTicks;
     }
 
     /** Drifts one step; returns false once it has left the screen through the bottom or a side edge. */
     boolean move() {
         prevX = x;
         prevY = y;
-        x += spec.vx() * SimStep.SECONDS;
-        y += spec.vy() * SimStep.SECONDS;
+        x += vx * SimStep.SECONDS;
+        y += vy * SimStep.SECONDS;
+        if (life >= 0 && --life < 0) {
+            return false;
+        }
         if (hitCooldown > 0) {
             hitCooldown--;
         }
@@ -67,6 +96,9 @@ public final class Debris implements Hashed {
     @Override
     public void addTo(StateHash hash) {
         hash.add(serial).add(x).add(y).add(hp).add(hitCooldown).add(ticksSinceHit);
+        if (life >= 0) {
+            hash.add(life).add(vx).add(vy);
+        }
     }
 
     double x() {
@@ -79,6 +111,21 @@ public final class Debris implements Hashed {
 
     public LevelScript.DebrisSpec spec() {
         return spec;
+    }
+
+    /** Its place in the level's list, unique in an attempt (a thrown rock's look picks its shape by it). */
+    public int serial() {
+        return serial;
+    }
+
+    /** Whether it is a thrown rock, which rises and vanishes. */
+    public boolean thrown() {
+        return life >= 0;
+    }
+
+    /** A thrown rock's steps left; -1 for a chunk drifting through. */
+    public int life() {
+        return life;
     }
 
     /** Whether it is a large, indestructible chunk. */

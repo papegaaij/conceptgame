@@ -172,13 +172,36 @@ first entry of a part's model list is the starter (price 0, `start`).
   Easy/hard HP in the table are derived from the difficulty levers (rounded half to even, at
   least 1), the
   contact and bullet damage from the basis, the score from the bounty.
+  For the Polyp Mortar and the Gorgon Frigate (M4 part E; both flown in Level 05): the attack
+  patterns `mortar`
+  (its `bullet` is the direct hit, `speed` the ring's; a `mortar` block with `marker` (s the
+  impact marker shows ahead, the blob's flight), `impact` (px, the direct-hit circle's diameter),
+  `ring` and `ring_bullet`; the difficulty hook `ring` applies to it as to a mine), `ring`
+  (`count` bullets) and `spiral` (`arms`, `interval` between two bullets of an arm, `turn_rate`,
+  `duration` s); on an aimed attack `burst` (shots per volley), `burst_gap` (s between them) and
+  `rotate: true` (the parts sharing it take turns, one volley every `interval` among the living
+  ones); a part's `multiplier` (its damage multiplier as a weak point); `hover` without `seconds`
+  (holds until killed); `chains` (articulated necks: `name`, `from` (the anchor offset on the
+  body), `to` (the part at its end, whose `offset` is the chain's rest end), `segments`,
+  `hitbox` per `armoured` segment, `lag` (s of follow-through per segment), `bend` (° it may turn
+  towards the player)); the difficulty hook `attacks` (changes per attack name, such as
+  `burst` or `count`); and a `boss` block: `kind` (`boss`/`mid-boss`; a mid-boss has the short
+  bar), `bar_name`, `par` (s from the bar appearing to the kill, the Boss rush bonus), `phases`
+  in order, each a `name`, `until` (`parts` and how many of them are `left` alive when it ends),
+  the `attacks` it fires by name or an `alternate` list (each attack runs its `interval` or
+  `duration`, then hands over), optional `streams` (`enemy`, `count`, `every` s, `interval` s
+  between units, `edge`; the first at the settle), `exposes` (parts that take no damage before
+  this phase) and `bend` (the chains' bend in this phase). During its entrance movement a boss
+  takes no damage. `hover: {y}` may be one height instead of `[min, max]`.
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`,
   `control_prompts`, timed `prompts` (`t`, `action`, `keys`, `seconds`, an optional `skip` layer:
   the prompt leaves once an enemy on it is destroyed; `requires: special`: shown only with a special fitted); `sections` back to back from t = 0 (`name`, `end`, `atmosphere`, optional
-  `speed`, the backdrop's `tiles` (tile set ids, at most one per layer); scroll distances are
-  derived); `waves` in time order, one row each (`t`,
+  `speed`, the backdrop's `tiles` (tile set ids, at most one per layer), `arena: true` for the
+  boss's arena (the level clock halts at its end while the boss lives and jumps to its end at an
+  earlier death; at most one, only with a `boss`); scroll distances are derived); `boss` (`enemy`
+  with a `boss` script, `t` it arrives, `x` of its centre, `section`); `waves` in time order, one row each (`t`,
   `formation`, `enemy` slug, `count`, `from` `front`/`sides`/`rear`, `edge`
   `left`/`right`/`alternating` (`sides` without an edge enters from both side edges), optional
   `hold`, `warning`, `break_group`, `speed` (px/s instead of the enemy's own), `interval` (s
@@ -204,22 +227,29 @@ first entry of a part's model list is the starter (price 0, `start`).
   `cargo-container`, without a wreck, if left out), or
   a trigger's `hits`, `reveals` (triggers revealing the same secret reveal it together, when the
   last of them is spent)); `secrets` (`name`, hidden `crate` credits, `radio` line); placed
-  `pickups` (`pickup`, `dropped_by` wave and unit `first`/`second`/`last`); `radio` cues (trigger
+  `pickups` (`pickup`, `dropped_by` wave and unit `first`/`second`/`last`, or a ground-target
+  `group` and unit `last`: dropped where the group's last unit dies when it is cleared); `radio` cues (trigger
   `t` or `event` `first-kill` or `enemy-escaped` (with `enemy`; a set piece escapes at the end of
   its last pass) / `group-cleared` / `group-lost` (with `group`) / `first-group-lost` /
   `secondary-objective` / `level-end` / `first-ally-hit` / `first-ally-lost` (a convoy's first hit
-  and first loss; `{ally}` in the line becomes the unit's number word, "Three") / `mission-failed`
+  and first loss; `{ally}` in the line becomes the unit's number word, "Three") / `boss-phase`
+  (with `phase`, the phase's name) / `boss-destroyed` / `mission-failed`
   (not played: the line and speaker on the mission failed screen after a failed primary objective;
-  at most one); a `level-end` cue's `allies` `[min, max]` (the convoy units home, so each outcome
+  at most one; only with an `escort` or `destroy-targets` primary; `{group}` in it becomes the
+  lost group's name); a `level-end` cue's `allies` `[min, max]` (the convoy units home, so each outcome
   has its line), and `requires: special` (only with a special fitted; on any cue);
   `speaker`, `line`,
   `distorted`, the portrait's optional `expression` (`neutral`, `grim`, `fierce`; neutral if not
   given; a secret's `radio` line takes it too), `shout: true` (the voice shouts the line, with the
   speaker table's `shout` row; separate from how the line queues), and `easy` / `hard` changes
   giving another `line`,
-  as when a wave enters elsewhere on that difficulty); `objectives` (`primary`, `secondary` `kill_ratio`, `groups` or `escapes` (the enemy none of
-  which may leave the screen alive; a spawner's self-burst counts as an escape) and `credits`;
-  `primary` is `reach-end` or `escort`, which adds an `escort` block: the `ally` slug, the
+  as when a wave enters elsewhere on that difficulty); `objectives` (`primary`, `secondary` `kill_ratio`, `groups`, `escapes` (the enemy none of
+  which may leave the screen alive; a spawner's self-burst counts as an escape) or `kill_all`
+  (enemies every unit of which must die, met and failed as `escapes`, with the tracker's `label`)
+  and `credits`;
+  `primary` is `reach-end`, `destroy-targets` with its `targets` (the ground-target groups that
+  must be cleared; it fails as soon as a unit of one leaves the screen alive, the groups pay no
+  credits, and the secondary then cannot use `groups`) or `escort`, which adds an `escort` block: the `ally` slug, the
   column's centre heights `y` (px below the top edge, the leading unit first, at least the ally's
   length apart), `credits` per unit home (through the credit factor, with a debrief row), `enter`
   (`t` of the first unit, `interval` s between units, `speed` px/s up the screen: they roll in from
@@ -233,7 +263,14 @@ first entry of a part's model list is the starter (price 0, `start`).
   than the ally's headings, ±30° for the crawler); `music`
   (`track`, `start_section`, optional `start_db` (the theme's level through its start section,
   rising to full at the next), `full_section`, optional `stems` (section: `base` or `full`,
-  overriding it), `ambience`, `end_jingle`); `difficulty` (level-wide
+  overriding it), `ambience`, `end_jingle`, optional `boss_sting` (`miniboss-sting`: track 21 over
+  a 0.5 s crossfade when the boss arrives, the theme returning after it)); `sleds` (Level 05's
+  mass-driver sleds: rail `x`, `width`, the `first` launch, `period`, `until`, `lights` (s of the
+  telegraph), `run` (s on screen), contact `damage`, the `clamp` secret whose trigger only takes
+  hits while the rail is dark, and `easy` / `hard` `period`); `rocks` (low-gravity debris a
+  destroyed ground unit throws: `count` and `speed` `[min, max]`, `life` s, `size`, `hp`, contact
+  `damage`, `clearance` px from the ship, none on easy unless `on_easy`); `boss.notes.streams` (the
+  boss streams the credit budget counts); `difficulty` (level-wide
   `easy` / `hard` enemy changes such as `burst` and a walker's `speed_factor`, and `extra_pickups` placed like `pickups`);
   `threat_profile` (the hangar intel: `setting`, `layers`, `density` 1–5, recommended `traits`,
   `hazards`, `boss`, optional `specials` limits, optional `objective` (the OBJECTIVE field
@@ -264,7 +301,8 @@ first entry of a part's model list is the starter (price 0, `start`).
   a turret placed on it stands on it); later pieces on a layer are drawn over earlier ones). A layer position is the layer's scroll (the ground's
   scroll × its factor) plus the screen height; a section's tile set begins at the seam that enters
   at the top edge when the section starts. The images are `assets/backdrop/level-NN/<id>.png`
-  (frames and headings `<id>_<n>.png`). `content` checks that the ids and layers resolve and,
+  (frames and headings `<id>_<n>.png`); `images: level-NN` takes them from another level's
+  folder (Level 05 reuses Level 04's Luna until its own art). `content` checks that the ids and layers resolve and,
   sampled every simulation step, the art direction's density (at most 3 mid-size set pieces on
   screen) and motion budget (at most 2 strongly animated elements: animated or moving pieces,
   drifting tile sets, the atmosphere's banks counting as one; nothing moving faster than 120 px/s,
@@ -644,3 +682,40 @@ Screenshot tests are left out until there is a need.
   heading), the walk frame by distance and a spawner's faster telegraph pulse; `LevelRenderer` draws
   walkers on the ground depth and their glow above the low-air layer; `Sfx.BROOD_BURST` and
   `AMBIENCE_LUNA`.
+- 2026-10-03: M4 part E (main-agent choice): the enemy schema gains the planned boss and mortar
+  fields (the `mortar`, `ring` and `spiral` patterns, aimed bursts and rotation, part
+  multipliers, `chains`, per-attack difficulty changes, the `boss` block with phases and par),
+  first used by the Polyp Mortar's and the Gorgon Frigate's data files; the loader accepts them
+  once part E builds them.
+- 2026-10-03: M4 part E step 2, the boss layer (main-agent brief): a boss is a `SetPiece` with a
+  `BossSpec` (`vanguard.sim`) instead of passes, built by `SimSpecs.boss` from the stat block's
+  `boss`, `chains` and attacks and the level's `boss` placement. It arrives on the level clock,
+  descends invulnerable (`partShielded`), settles and sways; its necks are per-piece angles eased
+  toward the ship with a first-order lag (`chainAngle`, armoured segments glance shots); its phases
+  end on `until`, fire their attacks through `SetPiece.BossActions` (aimed bursts with rotation,
+  rings, spirals, alternation after a 1 s crown opening) and release stream units planned once
+  (`Formations.streamUnit`). The `Sortie` holds the arena clock (`Section.arena`: halt, early-death
+  jump with the ground scroll, 1 s ramp), the boss checkpoint (`retryFromBoss()`: preallocated
+  copies of the tally, objectives, radio, defences, charges and the schedule's place, recorded
+  just before the arrival) and the Boss rush (`LevelResult.BossTime`). New events `BOSS_ARRIVED`,
+  `BOSS_SETTLED`, `BOSS_PHASE`, `BOSS_DESTROYED` (the credit shower's credits), `BOSS_RETRY`; cue
+  triggers `boss-phase` and `boss-destroyed`. The game draws the boss in plain shapes
+  (`BossLooks`, no concept cut exists) with the bar at the top of the play field, a coin shower
+  and the existing Sfx; the mission failed screen offers *Retry from boss* on easy and medium. The
+  Level 01–04 replay hashes are unchanged (the new hash fields are added only with a boss or an
+  arena). Tests: `BossTest` (sim) and `BossLevelTest` (Level 01's data cut at 150 s with the
+  frigate's arena, loaded at Level 05's place: the specs, an autopilot kill on every difficulty,
+  determinism).
+- 2026-10-03: M4 part E, Level 05 playable: `Lob` (the mortar's blob in `EnemyForce`, marker fixed
+  where the ship was, the ring starting 12 px outside the impact circle, the direct hit applied in
+  `hitShip`), `Sled` (time-driven like `Crane`: lights, run, one strike per sled, blocking shots and
+  bullets, shutting the stuck sled's trigger while lit), thrown rocks as `Debris.toss` (a life, a
+  random drift, breaking on the hull), `LevelScript.targets` / `sled` / `rocks` / `groupDrops` and
+  `Secondary.killAll` / `label`; `GroundUnit.group` indexes `LevelScript.groups()` (the primary's
+  targets or the secondary's groups). The voice speaker table gains `uncast: true` (no `ref`; the
+  speaker's lines have no voice file, VoiceFilesTest allows that only for such speakers). The
+  Level 01–04 replay hashes are unchanged: the new fields join the state hash only when lobs are
+  in flight or the level has sleds or targets. The debug option `--invulnerable` (captures) also
+  keeps a lost destroy-targets group from failing the level. Tests: `CraterNestTest` (sim), `Level05Test`
+  (budget, totals, difficulties, the balance plan's fit completing every difficulty), PacingTest
+  and RadioTimelineTest over Level 05.

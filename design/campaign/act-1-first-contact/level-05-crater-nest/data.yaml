@@ -1,0 +1,430 @@
+# Level 05 – Crater Nest: the level script, rendered into README.md (briefing, threat profile,
+# layout, waves, ground targets, radio, credit budget). Times are seconds from the level start;
+# after t = 150 they run on the arena's pausable clock (see the README's Arena clock).
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+# No Level 05 art exists yet: the backdrop reuses Level 04's Luna images (backdrop.images) until the
+# part's production round.
+scroll_speed: 150
+launch_seconds: 5     # flying in from the bottom edge, as in Levels 01-04
+control_prompts: []
+prompts:  # contextual prompts in the HUD's prompt well; requires: special = only with a special fitted
+  - {t: 156, action: SPECIAL, keys: CALL HAMMER, seconds: 6, requires: special}
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Luna
+  layers: [ground, air]
+  density: 3
+  traits: [anti-ground, spread]
+  hazards: [sleds, debris]
+  boss: Gorgon Frigate
+  objective: DESTROY 4 BATTERIES   # the OBJECTIVE field from sensor L1
+  varga:
+    none: Acid mortars and turrets on a crater floor, Lancer. Something in orbit is watching.
+  notes:
+    Dominant layers: '`ground` (mortars, turrets, the batteries), `air`'
+    Attack directions: '{directions}'
+    Density: '{density}'
+    Recommended traits: '{traits}'
+    Hazards: Mass-driver sleds (section 1); low-gravity debris from destroyed ground targets
+    Boss / mid-boss: 'Mid-boss: {boss}'
+    Sensor-suite detail: 'none: Luna, `ground` + `air`, front · L1: + directions, density {density}, hazards "sleds, debris", OBJECTIVE `{objective}` · L2: + Needler, Skitter, Stinger, Brood Pod portraits; mid-boss name and silhouette · L3: + `anti-ground` highlighted, wave strip, 1 secret'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets (no deep layer on Luna); peak: a heavier atmosphere inside the section
+  - name: Mass-Driver Line
+    end: 35
+    atmosphere: clear
+    tiles: [mass-driver-field]
+    notes:
+      layers:
+        ground: 'regolith, the mass-driver rail at x 432 (Level 04''s rail), its signal lights, the launch sleds streaking up the rail.'
+      purpose: Learn the sled rhythm; the first Polyp Mortar alone.
+  - name: Crater Rim
+    end: 75
+    atmosphere: light
+    tiles: [mare-b]
+    notes:
+      layers:
+        ground: the outer rim and its inner walls (ground pieces), boulders, an abandoned rover.
+        low-air: regolith plumes from mortar impacts.
+      purpose: Battery A; side waves.
+  - name: Nest Floor
+    end: 125
+    atmosphere: medium
+    peak: {atmosphere: heavy, from: 115, to: 122}   # the nest venting spore dust
+    tiles: [crater-growth, ejecta-streaks]
+    notes:
+      layers:
+        ground: the crater floor with teal Vrell growth and pod husks.
+        low-air: spore dust venting from the nest (the heavy peak).
+        high-air: ejected rock streaks.
+      purpose: Batteries B and C; Brood Pods; low-gravity debris.
+  - name: Nest Heart
+    end: 150
+    atmosphere: light
+    tiles: [crater-growth]
+    notes:
+      layers:
+        ground: the central growth, pod husks around battery D.
+        low-air: thin plumes.
+      purpose: Battery D; the frigate's shadow falls over the floor.
+  - name: Gorgon Frigate
+    end: 205
+    speed: 30
+    arena: true
+    atmosphere: clear
+    tiles: [crater-growth]
+    notes:
+      layers:
+        ground: the nest heart below (no terrain collision).
+        air: the frigate, its bell in the upper third.
+      purpose: Mid-boss fight (≈ 55 s at medium); the scroll halts after 55 s while the frigate lives, and section 6 starts at its death.
+  - name: Lift-off
+    end: 215
+    atmosphere: light
+    tiles: [mare-a]
+    notes:
+      layers:
+        ground: the far rim, the burning nest behind.
+      purpose: Credit shower, end.
+
+waves:  # the frigate arrives through `boss` below; pacing filler: small Skitter streams (user decision D5)
+  - {t: 5.5, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 2.5, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 10, formation: V-wing, enemy: needler, count: 4, from: front, notes: Left of the rail}
+  - {t: 13, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 20, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: Snakes across the rail between sleds}
+  - {t: 22, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 3, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 30.5, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 38, formation: column, enemy: stinger, count: 3, from: front}
+  - {t: 42.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 48, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, notes: "Hold {hold} s at the edges above battery A"}
+  - {t: 51.5, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 1.5, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 58.5, formation: stream, enemy: skitter, count: 2, from: front, edge: left, interval: 2, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 62, formation: stream, enemy: skitter, count: 8, from: sides, edge: alternating, interval: 0.5, easy: {count: 8}, notes: All eight on easy too (pacing)}
+  - {t: 70, formation: V-wing, enemy: stinger, count: 4, from: front}
+  - {t: 73, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 80, formation: single, enemy: brood-pod, count: 1, from: front}
+  - {t: 84, formation: stream, enemy: skitter, count: 2, from: front, edge: left, interval: 1.5, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 91, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 2, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - t: 95
+    groups:
+      - {formation: carrier + escorts, enemy: brood-pod, count: 1}
+      - {formation: carrier + escorts, enemy: needler, count: 4}
+    from: front
+    notes: Over battery B
+  - {t: 102, formation: stream, enemy: skitter, count: 2, from: front, edge: left, interval: 2.5, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 110, formation: column, enemy: stinger, count: 3, from: sides, edge: right, notes: Over battery C; edge warning}
+  - {t: 112, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 3.5, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+  - {t: 118, formation: snake, enemy: skitter, count: 6, from: front, edge: right, notes: In the heavy peak}
+  - {t: 122, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 128.5, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 2.5, easy: {count: 3}, hard: {count: 3}, notes: Pacing filler}
+  - {t: 135, formation: single, enemy: brood-pod, count: 1, from: front, notes: Over battery D}
+  - {t: 140.5, formation: stream, enemy: skitter, count: 2, from: front, edge: right, interval: 2, easy: {count: 2}, hard: {count: 2}, notes: Pacing filler}
+
+ground_targets:  # at: [t, x], when it enters at the top edge and its x; a battery is two entries sharing a group
+  - target: first mortar
+    section: 1
+    enemy: polyp-mortar
+    count: 1
+    at: [[28, 380]]   # on the rail embankment, between two sleds
+    notes:
+      target: '[Polyp Mortar](../../../enemies/ground/polyp-mortar/README.md) ×1 on the rail embankment (t≈28)'
+      effect: '**Introduction**: alone, between two sleds; radio tip'
+  - target: stuck sled
+    section: 1
+    layer: ground
+    size: [40, 28]
+    hits: 3
+    reveals: stuck sled
+    at: [[30, 432]]   # jammed halfway up the rail; its clamp only takes hits while the rail is dark
+    notes:
+      target: 'Stuck ore canister on the rail (t≈30)'
+      effect: Its clamp takes 3 hits, only while the rail lights are dark; releases the hidden crate
+  - target: rim turrets
+    section: 2
+    enemy: spine-turret
+    count: 2
+    at: [[40, 120], [40.6, 360]]
+    notes:
+      target: '[Spine Turret](../../../enemies/ground/spine-turret/README.md) ×{count} on the rim (t≈40)'
+      effect: Bounty
+  - target: battery A mortars
+    section: 2
+    enemy: polyp-mortar
+    count: 2
+    group: Battery A
+    at: [[54.6, 140], [56.1, 340]]   # a battery's units enter one after another across the floor
+    easy: {at: [[54.6, 140]]}
+    notes:
+      target: '**Battery A**: Polyp Mortar ×{count} (t≈55)'
+      effect: Objective target
+  - target: battery A turrets
+    section: 2
+    enemy: spine-turret
+    count: 2
+    group: Battery A
+    at: [[55.1, 210], [55.6, 280]]
+    easy: {at: [[55.6, 280]]}
+    notes:
+      target: '**Battery A**: Spine Turret ×{count}'
+      effect: Objective target
+  - target: inner rim mortars
+    section: 2
+    enemy: polyp-mortar
+    count: 2
+    at: [[70, 100], [70.5, 380]]
+    notes:
+      target: 'Polyp Mortar ×{count} on the inner rim (t≈70)'
+      effect: Bounty
+  - target: battery B mortars
+    section: 3
+    enemy: polyp-mortar
+    count: 2
+    group: Battery B
+    at: [[88.1, 300], [89.1, 120]]
+    easy: {at: [[89.1, 120]]}
+    notes:
+      target: '**Battery B**: Polyp Mortar ×{count} (t≈88)'
+      effect: Objective target
+  - target: battery B turrets
+    section: 3
+    enemy: spine-turret
+    count: 2
+    group: Battery B
+    at: [[87.6, 360], [88.6, 190]]
+    easy: {at: [[87.6, 360]]}
+    notes:
+      target: '**Battery B**: Spine Turret ×{count}'
+      effect: Objective target
+  - target: floor turrets
+    section: 3
+    enemy: spine-turret
+    count: 2
+    at: [[100, 140], [100.5, 340]]
+    notes:
+      target: 'Spine Turret ×{count} (t≈100)'
+      effect: Bounty
+  - target: battery C mortars
+    section: 3
+    enemy: polyp-mortar
+    count: 2
+    group: Battery C
+    at: [[107.6, 160], [109.1, 360]]
+    easy: {at: [[107.6, 160]]}
+    notes:
+      target: '**Battery C**: Polyp Mortar ×{count} (t≈108, just before the heavy peak)'
+      effect: Objective target; its last unit to die drops the armour patch
+  - target: battery C turrets
+    section: 3
+    enemy: spine-turret
+    count: 2
+    group: Battery C
+    at: [[108.1, 240], [108.6, 300]]
+    easy: {at: [[108.6, 300]]}
+    notes:
+      target: '**Battery C**: Spine Turret ×{count}'
+      effect: Objective target
+  - target: peak mortar
+    section: 3
+    enemy: polyp-mortar
+    count: 1
+    at: [[120, 240]]
+    notes:
+      target: 'Polyp Mortar ×{count} (t≈120)'
+      effect: Bounty
+  - target: peak turrets
+    section: 3
+    enemy: spine-turret
+    count: 2
+    at: [[119.6, 150], [120.4, 330]]
+    notes:
+      target: 'Spine Turret ×{count} (t≈120)'
+      effect: Bounty
+  - target: battery D mortars
+    section: 4
+    enemy: polyp-mortar
+    count: 2
+    group: Battery D
+    at: [[134.6, 330], [136.1, 150]]
+    easy: {at: [[134.6, 330]]}
+    hard: {at: [[134.6, 330], [135.35, 240], [136.1, 150]]}
+    notes:
+      target: '**Battery D**: Polyp Mortar ×{count} around the nest heart (t≈135; the last battery, gone by ≈ 139 s)'
+      effect: Objective target
+  - target: battery D turrets
+    section: 4
+    enemy: spine-turret
+    count: 2
+    group: Battery D
+    at: [[135.1, 270], [135.6, 210]]
+    easy: {at: [[135.6, 210]]}
+    notes:
+      target: '**Battery D**: Spine Turret ×{count}'
+      effect: Objective target
+  - target: heart mortars
+    section: 4
+    enemy: polyp-mortar
+    count: 2
+    at: [[145, 130], [145.4, 350]]
+    notes:
+      target: 'Polyp Mortar ×{count} (t≈145; gone by ≈ 149 s, before the frigate)'
+      effect: Bounty
+  - target: heart turrets
+    section: 4
+    enemy: spine-turret
+    count: 2
+    at: [[144.6, 200], [145.8, 280]]
+    notes:
+      target: 'Spine Turret ×{count} (t≈145)'
+      effect: Bounty
+  - target: supply drop
+    section: 4
+    layer: ground
+    size: [32, 24]
+    sprite: supply-drop   # Level 04's CDF supply drop
+    hp: 3
+    drop: small salvage
+    bonus_drop: special charge
+    at: [[145.5, 60]]    # leaves the screen before the frigate arrives
+    notes:
+      target: CDF supply canister (Level 04's supply drop; ground layer, {hp} HP; t≈147)
+      effect: 'Small salvage ({drop_credits}); also a special charge if a special is fitted'
+      budget: supply canister {drop} {drop_credits}
+
+boss:  # the mid-boss arrives at a fixed time, after battery D (user decision D2)
+  enemy: gorgon-frigate
+  t: 150
+  x: 240
+  section: 5
+  notes:
+    waves: Fixed time, after battery D. Skitter streams of 6 at the settle and every 10 s in phase 1 (2 streams at medium par)
+    streams: 2   # the streams of a fight at par, which the credit budget counts
+
+sleds:  # the mass-driver sleds on Level 04's rail (user decision; design/world/luna, hazards)
+  x: 432
+  width: 24
+  first: 16.5      # after Driver Control's warning; the t=28 mortar enters between the sleds of 26.5 and 31.5 s
+  period: 5
+  until: 35
+  lights: 1.5
+  run: 0.4
+  damage: 15
+  clamp: stuck sled
+  easy: {period: 8}
+  hard: {period: 4}
+
+rocks:  # low-gravity debris from destroyed ground units (sections 2-4; the first mortar is alone on the rail)
+  count: [2, 3]
+  speed: [40, 60]
+  life: 2.5
+  size: [16, 16]
+  hp: 1
+  damage: 6
+  clearance: 72
+
+secrets:
+  - name: stuck sled
+    crate: 65
+    radio: {speaker: Rook, line: "That canister sat jammed on the rail all week. Finders keepers, Lancer."}
+
+pickups:
+  - {pickup: overdrive, dropped_by: {wave: 95, unit: first}}             # the Brood Pod of the t=95 group, if killed before it bursts
+  - {pickup: armour patch, dropped_by: {group: Battery C, unit: last}}   # whichever unit of battery C dies last
+
+radio:  # trigger: t or event; {group} becomes the battery's name; shout: true = the voice shouts it
+  - {t: 1, speaker: Okafor, line: "There's the crater, Aegis. Four batteries on the floor. All four die, or this was for nothing."}
+  - {t: 12.5, speaker: Driver Control, portrait: generic-cdf, line: "Mass driver's still on automatic, Aegis. Sleds every five seconds. Watch the rail lights."}
+  - {t: 27, speaker: Varga, line: "That one lobs acid. It marks where it'll land, a second ahead. Don't be there.", notes: {trigger: first mortar}}
+  - {t: 46, speaker: Rook, expression: fierce, shout: true, line: "Aegis Two here. Two groups, both flanks of you, Lancer!", notes: {trigger: pincer}}
+  - {event: group-cleared, group: Battery A, speaker: Okafor, line: "Battery down."}
+  - {event: group-cleared, group: Battery B, speaker: Okafor, line: "Two."}
+  - {event: group-cleared, group: Battery C, speaker: Okafor, line: "Three. One left."}
+  - {event: group-cleared, group: Battery D, speaker: Okafor, line: "That's the last battery. The nest is open."}
+  - {event: mission-failed, speaker: Okafor, expression: grim, line: "{group} is behind you. The nest survives. Pull back, Lancer.", notes: {trigger: "Battery passes alive (the failed screen's line)"}}
+  - {t: 116.5, speaker: Driver Control, portrait: generic-cdf, line: "The nest is venting. Dust everywhere. Your scopes will clear in a few seconds."}
+  - {t: 144.5, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
+  - {t: 150.5, speaker: Driver Control, portrait: generic-cdf, shout: true, line: "Big contact dropping out of orbit, right on top of the crater!"}
+  - {t: 158, speaker: Varga, line: "A warship. Three heads, all guns. Take the heads one at a time; then the crown opens. Hit the core.", notes: {trigger: the frigate settles}}
+  - {t: 170, speaker: Rook, line: "Oh, it has *heads*. Of course it has heads.", notes: {trigger: after the first stream}}
+  - {event: boss-phase, phase: Core, speaker: Varga, expression: fierce, line: "Crown's opening. That's the core. Lime glow, Lancer!", notes: {trigger: Last head destroyed}}
+  - {event: boss-destroyed, speaker: Okafor, line: "Frigate down. The nest is dead. Get out of there, Aegis.", notes: {trigger: Frigate destroyed}}
+  - {event: level-end, speaker: Okafor, line: "Good work. Varga wants samples. I told her no.", notes: {trigger: Level end}}
+  - {event: secondary-objective, speaker: Varga, line: "Every growth in that crater burned. We'll have nothing to study. Well done, I suppose.", notes: {trigger: Secondary met}}
+
+objectives:
+  primary: destroy-targets
+  targets: [Battery A, Battery B, Battery C, Battery D]   # fails as soon as a unit of one leaves the screen alive
+  secondary: {kill_all: [polyp-mortar, spine-turret], label: NEST, credits: 40}   # "Scorched crater"
+
+music:
+  track: 4            # Act 1 A "Afterburner"
+  start_section: 1
+  full_section: 2     # the intensity stem from the crater rim, where battery A comes
+  ambience: luna
+  end_jingle: mission-complete
+  boss_sting: miniboss-sting   # track 21 over a 0.5 s crossfade at the frigate's arrival, then the track again
+
+difficulty: {}   # the batteries' sizes are in their placements; the sleds' periods in `sleds`; the stat blocks' hooks apply
+
+briefing:
+  pages:
+    - {speaker: Okafor, image: level-05-crater-nest, line: "Lancer, the pods at Tranquility weren't random. Survey drones found where they came from: a crater beside the mass-driver line, and the Vrell are growing a nest in it. Four batteries of acid-throwers and turrets guard the floor. Destroy all four. If a battery is still alive when you pass it, the nest survives and the mission fails. There's no second run at that crater today. And stay clear of the rail. The mass driver is still firing on automatic."}
+    - {speaker: Varga, image: level-05-mortar-scan, line: "The acid-throwers mark their target a second before it lands. Keep moving and you'll be fine. And something in orbit keeps watching that crater. I don't like it."}
+  teaser: {speaker: Varga, line: "Turrets, mortars and a lot of ground to cover. Bring something that hits the surface, and something wide for the flanks."}
+
+# Luna, the Vrell nest crater: Level 04's top-down surface (no deep layer, Earth only as the
+# earthshine tint), its tile sets and pieces reused until Level 05's own art (images: level-04).
+# The sleds are drawn by the hazard itself (Level 04's sled-run lamp frames), not as placed pieces.
+backdrop:
+  images: level-04
+  scroll_factors: {far: 0.85, ground: 1.0, low-air: 1.35, high-air: 2.2}
+  ramp: 2
+  haze_colour: 5a6274
+  atmosphere:
+    clear: {haze: 0.3}
+    light: {banks: plumes-light, haze: 0.35}
+    medium: {banks: plumes-medium, haze: 0.4}
+    heavy: {banks: plumes-heavy, haze: 0.5}      # the nest venting (115-122 s)
+  tile_sets:
+    mare-a: {layer: ground, height: 960}
+    mare-b: {layer: ground, height: 960}
+    crater-growth: {layer: ground, height: 960}
+    mass-driver-field: {layer: ground, height: 960}   # the rail at x 432
+    plumes-light: {layer: low-air, height: 960, drift: 6}
+    plumes-medium: {layer: low-air, height: 960, drift: 8}
+    plumes-heavy: {layer: low-air, height: 960, drift: 10}
+    ejecta-streaks: {layer: high-air, height: 960}
+  pieces:
+    boulder: {layer: ground, size: [64, 56]}
+    boulder-growth-a: {layer: ground, size: [72, 64]}
+    boulder-growth-b: {layer: ground, size: [72, 64]}
+    rover-a: {layer: ground, size: [64, 72]}
+    rover-b: {layer: ground, size: [72, 72]}
+    pod-husk-a: {layer: ground, size: [110, 100], mid_size: true}
+    pod-husk-b: {layer: ground, size: [110, 100], mid_size: true}
+  placed:
+    # 1. Mass-Driver Line
+    - {piece: boulder, t: 4, x: 90}
+    - {piece: rover-b, t: 14, x: 120}
+    - {piece: boulder, t: 24, x: 250}
+    # 2. Crater Rim: boulders on the rim, the turrets' sockets
+    - {piece: boulder, t: 38, x: 300}
+    - {piece: boulder-growth-a, t: 42.3, x: 120}
+    - {piece: boulder-growth-b, t: 42.9, x: 360}
+    - {piece: rover-a, t: 50, x: 420}
+    - {piece: boulder, t: 64, x: 80}
+    - {piece: boulder-growth-a, t: 72.3, x: 100}
+    - {piece: boulder-growth-b, t: 72.8, x: 380}
+    # 3. Nest Floor: pod husks among the batteries
+    - {piece: pod-husk-a, t: 82, x: 380}
+    - {piece: pod-husk-b, t: 96, x: 100}
+    - {piece: boulder-growth-a, t: 102.3, x: 140}
+    - {piece: boulder-growth-b, t: 102.8, x: 340}
+    - {piece: pod-husk-a, t: 114, x: 400}
+    # 4. Nest Heart
+    - {piece: pod-husk-b, t: 129, x: 380}
+    - {piece: pod-husk-a, t: 141, x: 240}
+    # 5. Arena (30 px/s): the nest heart below
+    - {piece: pod-husk-b, t: 160, x: 120}
+    - {piece: pod-husk-a, t: 190, x: 360}
+    # 6. Lift-off: the far rim
+    - {piece: boulder, t: 209, x: 140}
+    - {piece: rover-b, t: 212, x: 380}

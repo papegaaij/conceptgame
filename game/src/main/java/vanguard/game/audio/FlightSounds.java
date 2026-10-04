@@ -36,6 +36,8 @@ public final class FlightSounds {
     private static final float REAR_PITCH = 0.9f;
 
     private static final int MAX_PENDING = 8;
+    /** The sled whine's loop (0.78 s) in simulation steps: its second play over the lights' 1.5 s chase. */
+    private static final int SLED_WHINE_LOOP_STEPS = 47;
 
     private final SfxBank bank;
     private final EnemyLooks[] looks;
@@ -228,6 +230,19 @@ public final class FlightSounds {
                 case ALLY_LOST ->
                     bank.play(alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B), EXPLOSIONS, 1, pan);
                 case PRIMARY_FAILED -> bank.play(Sfx.MISSION_FAILED, PLAYER_DAMAGE, 1, 0);
+                // The boss's arrival warns like an edge warning; its death pays out in a shower.
+                case BOSS_ARRIVED -> bank.play(Sfx.EDGE_WARNING, PICKUPS, 1, 0);
+                case BOSS_PHASE -> bank.play(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.8f, pan);
+                case BOSS_DESTROYED -> bank.play(Sfx.SALVAGE_LARGE, PICKUPS, 1, pan);
+                // Level 05's sounds (round 21): the Polyp Mortar's lob and impact; the rail's charge
+                // hum, its loop played twice over the lights' 1.5 s chase, and the sled's pass.
+                case MORTAR_LOBBED -> bank.play(Sfx.MORTAR_LOB, 0.6f * EXPLOSIONS, pitch(0.05), pan);
+                case MORTAR_IMPACT -> bank.play(Sfx.MORTAR_IMPACT, 0.7f * EXPLOSIONS, pitch(0.05), pan);
+                case SLED_LIGHTS -> {
+                    bank.play(Sfx.SLED_WHINE, 0.7f, 1f, pan);
+                    later(Sfx.SLED_WHINE, 0.7f, 1f, pan, SLED_WHINE_LOOP_STEPS);
+                }
+                case SLED_LAUNCHED -> bank.play(Sfx.SLED_PASS, 0.8f, 1f, pan);
                 // A Brood Pod's fleshy burst, shot or on its own (round 08 b), as its Skitters fly out.
                 case BROOD_HATCHED -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, pitch(0.04), pan);
                 case BROOD_BURST,
@@ -242,6 +257,8 @@ public final class FlightSounds {
                         OBJECTIVE_FAILED,
                         SET_PIECE_DESCENDED,
                         SET_PIECE_ESCAPED,
+                        SLED_HIT,
+                        ROCK_THROWN,
                         SPECIAL_CALLED -> {}
             }
         }

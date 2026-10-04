@@ -24,6 +24,21 @@ final class Radio {
         this.specialFitted = specialFitted;
     }
 
+    /** Copies which cues have started into {@code into} (a boss checkpoint). */
+    void saveFired(boolean[] into) {
+        System.arraycopy(fired, 0, into, 0, fired.length);
+    }
+
+    /** Back to the cues started at a boss checkpoint. */
+    void restoreFired(boolean[] from) {
+        System.arraycopy(from, 0, fired, 0, fired.length);
+    }
+
+    /** The number of cues. */
+    int size() {
+        return fired.length;
+    }
+
     /** Back to the level start: every cue can start again. */
     void reset() {
         Arrays.fill(fired, false);

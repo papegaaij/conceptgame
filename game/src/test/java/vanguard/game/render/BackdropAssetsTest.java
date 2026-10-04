@@ -33,7 +33,7 @@ class BackdropAssetsTest {
     void everyTileSetAndSetPieceHasItsImagesAtTheirSize() throws IOException {
         Content content = ContentLoader.fromClasspath();
         for (Map.Entry<String, LevelData> level : content.levels().entrySet()) {
-            Path folder = BACKDROP.resolve(Backdrop.folder(level.getKey()));
+            Path folder = BACKDROP.resolve(Backdrop.folder(level.getKey(), level.getValue()));
             BackdropData backdrop = level.getValue().backdrop();
             for (Map.Entry<String, BackdropData.TileSet> tileSet :
                     backdrop.tileSets().entrySet()) {
@@ -66,7 +66,7 @@ class BackdropAssetsTest {
         for (Map.Entry<String, LevelData> entry : content.levels().entrySet()) {
             LevelData level = entry.getValue();
             BackdropData backdrop = level.backdrop();
-            Path folder = BACKDROP.resolve(Backdrop.folder(entry.getKey()));
+            Path folder = BACKDROP.resolve(Backdrop.folder(entry.getKey(), entry.getValue()));
             for (BackdropData.PlacedPiece placed : backdrop.placed()) {
                 BackdropData.Piece spec = backdrop.pieces().get(placed.piece());
                 if (spec.layer() == backdrop.base()) {
@@ -92,7 +92,7 @@ class BackdropAssetsTest {
             if (backdrop.hasDeep()) {
                 continue;
             }
-            Path folder = BACKDROP.resolve(Backdrop.folder(entry.getKey()));
+            Path folder = BACKDROP.resolve(Backdrop.folder(entry.getKey(), entry.getValue()));
             for (LevelData.Section section : entry.getValue().sections()) {
                 String ground = tileOn(backdrop, section, BackdropLayer.GROUND);
                 String far = tileOn(backdrop, section, BackdropLayer.FAR);

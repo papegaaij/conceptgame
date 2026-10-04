@@ -26,7 +26,7 @@ directories hold the rosters.
 | [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | approved | not-started | chosen |
 | [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | approved | not-started | chosen |
 | [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | approved | not-started | chosen |
-| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | approved | not-started | chosen |
+| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | approved | in-progress | chosen |
 
 ## Design
 

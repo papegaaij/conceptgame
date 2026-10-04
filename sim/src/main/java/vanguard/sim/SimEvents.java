@@ -100,7 +100,32 @@ public final class SimEvents {
          * A walker was destroyed (at it), after its {@link #ENEMY_DESTROYED}, for its remains at its
          * last heading; value: {@link #walkerValue(int, double)}.
          */
-        WALKER_DOWN;
+        WALKER_DOWN,
+        /** A boss arrived: it starts its descent, its bar and its sting start (at its centre); value: its set piece's index. */
+        BOSS_ARRIVED,
+        /** A boss ended its descent (at its centre); value: its set piece's index. */
+        BOSS_SETTLED,
+        /** A boss entered a phase after its first (at its centre); value: the phase's index. */
+        BOSS_PHASE,
+        /**
+         * A boss was destroyed (at its centre), after its {@link #SET_PIECE_DESTROYED}: the credit
+         * shower; value: the credits its parts paid.
+         */
+        BOSS_DESTROYED,
+        /** A Retry from boss restarted the level at its boss checkpoint (at the ship). */
+        BOSS_RETRY,
+        /** A mortar lobbed a blob (at the mortar). */
+        MORTAR_LOBBED,
+        /** A lob landed and burst (at its marker); value: 1 for a direct hit on the ship, else 0. */
+        MORTAR_IMPACT,
+        /** The rail lights start their chase before a sled (at the rail's foot). */
+        SLED_LIGHTS,
+        /** A sled shoots up the rail (at the rail's foot). */
+        SLED_LAUNCHED,
+        /** A sled struck the ship (at the ship). */
+        SLED_HIT,
+        /** A destroyed ground target threw a rock (at the rock). */
+        ROCK_THROWN;
 
         private static final Type[] VALUES = values();
     }

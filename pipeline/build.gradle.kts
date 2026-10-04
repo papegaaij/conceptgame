@@ -78,6 +78,10 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
         "launch-rail-r11-b.ogg",
         "ui-edge-warning-r11-b.ogg",
         "enemy-leviathan-cry-r16-a.ogg",
+        "enemy-mortar-lob-r21-a.ogg",
+        "enemy-mortar-impact-r21-a.ogg",
+        "hazard-sled-whine-r21-a.ogg",
+        "hazard-sled-pass-r21-b.ogg",
     )
 }
 
@@ -102,6 +106,7 @@ val copyPlaceholderMusic = tasks.register<JavaExec>("copyPlaceholderMusic") {
         "hangar-theme-full-r08-a.ogg=hangar-theme.ogg",
         "game-over-r08-a.ogg=game-over.ogg",
         "mission-failed-r08-a.ogg=mission-failed.ogg",
+        "miniboss-sting-r08-a.ogg=miniboss-sting.ogg",
         "mission-complete-r08-a.ogg=mission-complete.ogg",
     )
 }

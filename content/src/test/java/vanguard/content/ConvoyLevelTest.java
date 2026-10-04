@@ -154,7 +154,7 @@ class ConvoyLevelTest {
                                 file.text()
                                         .replace(
                                                 "radio:  #",
-                                                "radio:\n  - {event: mission-failed, speaker: Okafor, line: Gone.}\n  #"))
+                                                "radio:\n  - {event: first-ally-lost, speaker: Okafor, line: Gone.}\n  #"))
                         : file)
                 .toList();
 

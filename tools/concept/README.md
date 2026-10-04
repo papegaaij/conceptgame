@@ -110,6 +110,7 @@ was made at 640x360 and is frozen; rejected outputs are rewritten into `concept/
 | Script | Outputs | Notes |
 |---|---|---|
 | `ground_targets_r17.py` | `design/campaign/act-1-first-contact/level-04-tranquility-run/concept/{dugout,supply-drop}-r17-{a,b}.png` | Level 04's two small loot targets on the ground layer, two variants each: the prospector's dugout (48×32, hardened) and the CDF supply drop (32×24); intact, damaged and wrecked frames, each its own top-down SDF render with the station kit's materials in `KIT_PAL` plus the loot amber under black hazard stripes (`ground_targets.py`'s stripes, light rim and scorch), shown on a strip of the round-06 Luna regolith at 1× and 3×; a few seconds |
+| `props_r21.py` | `design/campaign/act-1-first-contact/level-05-crater-nest/concept/{rocks,ore-canister,acid-splash}-r21-{a,b}.png` | Level 05's small props, two variants each: the low-gravity rocks (16×16, displaced-sphere SDF), the stuck sled's ore canister (40×28, SDF with `ground_targets.py`'s materials, on Level 04's rail frame) and the acid splash decal (40×40, 2D fields); on the round-06 Luna regolith strip at 1× and 3×; a few seconds |
 
 ## Scripts (game placeholders – level backdrops, ground targets and the UI kit)
 

@@ -4,7 +4,7 @@ design: draft
 implementation: in-progress
 art: n/a
 depends-on: [.., ../../tech/roadmap, ../../tech/architecture, ../../audio/music, ../../audio/sfx]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Production art plan
@@ -126,6 +126,7 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] M4 part C (Level 03, M4 part C batch): the Spore Bomber and its spore mine, the Whirl Seed and the debris chunks (`tools/art/vrell_l03.py`), the Leviathan (`tools/art/leviathan.py`) and its break-up at its death (`tools/art/leviathan_death.py`), the Level 03 backdrop (`tools/art/backdrop_l03.py`), salvage L (`tools/art/pickups.py`) and the Spore Bomber's and Whirl Seed's intel portraits (`tools/art/intel.py`) rendered, review files for round 16; approved as final there (the Leviathan's death effect as the redo, variant b, choice 19)
 - [x] M4 part D (Level 04): the civilian crawler (`tools/art/civilian_crawler.py`), the Airstrike's CDF bomber (`tools/art/airstrike_bomber.py`), the Level 04 Luna backdrop with the road bridge and the terminal hangar (`tools/art/backdrop_l04.py`), the dugout and the supply drop (`tools/art/l04_targets.py`) and the Brood Pod's and Scuttler's intel portraits (`tools/art/intel.py`) rendered, review files for round 17; approved as final there (the bridge and the enlarged hangar as the redo, choice 9)
 - [x] M4 briefing images: the four images of Levels 03 and 04 (`tools/art/briefing_images.py`), review sheet for round 20; approved as final there
+- [x] M4 part E (Level 05, M4 part E batch): the Gorgon Frigate (`tools/art/gorgon_frigate.py`) and its break-up at its death (`tools/art/gorgon_frigate_death.py`), the Polyp Mortar with its acid blob, marker and death and the mass-driver sled (`tools/art/l05_hazards.py`), the props from the chosen concepts (rocks, ore canister, acid splash decal; `tools/art/l05_props.py`) and Level 05's briefing images (`tools/art/briefing_images.py`) rendered, review files for round 21; approved as final there (the frigate's death as the redo, item 11); Level 05's backdrop still reuses Level 04's images
 - [ ] M4 and M5 parts final, each with its milestone (a round per M4 part, user decision)
 
 ## Open questions
@@ -253,3 +254,4 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - 2026-10-03: Concept round 16 closed again (user decision): the Leviathan's death redo, variant b (choice 19), approved as final: `tools/art/leviathan_death.py` cuts the second-pass body into five chunks under a cluster of large blasts and writes the death's data; with it M4 part C's art is final. The Leviathan's frames are about 1.88 M px, about 7.2 MiB of the 16 MiB one-page budget.
 - 2026-10-03: Concept round 17 closed (user decision): M4 part D's art (Level 04) approved as final, the bridge and the terminal hangar (enlarged to 380×300) as the redo of choice 9 and the dugout's and supply drop's production art as choice 10.
 - 2026-10-03: Concept round 20 closed (user decision): the briefing images of Levels 03 and 04 approved as final; with them all of the art of Levels 03 and 04 is final.
+- 2026-10-04: Concept round 21 closed (user decision): M4 part E's art (Level 05) approved as final, the Gorgon Frigate's death as the redo (item 11), the props' production sprites from the chosen concepts (`tools/art/l05_props.py`). The shared sprite pages are 96.7 % and 91.8 % full.

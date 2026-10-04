@@ -688,3 +688,47 @@ gaps rather than its low boom, and 20 % in the 60–200 Hz chest). −22.5 LUFS,
 Generator: `tools/concept/audio/sfx_r16.py`.
 AI prompt: "late-90s sci-fi game sound, a huge alien space whale dying: one deep, mournful whale-song call, a moaning glide that rises and then falls slowly with a yodel break, two voices beating against each other, breathy, with a long dark reverb, about 3 seconds, no explosion, no music"
 
+## Round 21 — Level 05's sled and Polyp Mortar (M4 part E, user decision D8)
+
+Recorded third-party sounds (enemy and hazard sounds are recorded CC0/CC-BY, the 2026-10-01 rule), imported by `tools/concept/audio/import_sfx.py` from the Freesound HQ previews; one a/b pair per sound. The production files will be rebuilt from the originals (`tools/art/sfx_originals.py`) once chosen.
+
+### hazard-sled-whine-r21-a — "Railgun_ChargeLoop" by BaggoNotes
+Source: <https://freesound.org/people/BaggoNotes/sounds/785400/> — CC0 1.0. Use: sled whine a, a loop played while the rail lights chase (1.5 s).
+Why: A rail-gun charge hum: a steady electric drone that loops cleanly; mechanical and close to the rail's own machinery.
+Edit: leading silence trimmed, a seamless 0.78 s loop from 0.00 s (0.04 s cross-fade); 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### hazard-sled-whine-r21-b — "charging power" by JavierZumer
+Source: <https://freesound.org/people/JavierZumer/sounds/257229/> — CC-BY 4.0. Use: sled whine b, played once over the 1.5 s chase.
+Why: An electrical machine charging up: the last 1.6 s of a rising whine that ends at its peak as the sled fires.
+Edit: leading silence trimmed, cut from 2.00 s, cut to 1.60 s, 0.30 s fade-in, 0.10 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### hazard-sled-pass-r21-a — "shipboard_railgun.mp3" by deleted_user_1941307
+Source: <https://freesound.org/people/deleted_user_1941307/sounds/155790/> — CC0 1.0. Use: sled pass a, the 0.4 s run.
+Why: A heavy shipboard rail-gun crack with a long decaying tail (the uploader's own mix of Freesound sounds, released as CC0; the account has since been deleted).
+Edit: leading silence trimmed, cut to 1.80 s, 0.70 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -3.0 dBFS).
+
+### hazard-sled-pass-r21-b — "Planetary Flyby faster.aif" by mattpavone
+Source: <https://freesound.org/people/mattpavone/sounds/76175/> — CC0 1.0. Use: sled pass b, the 0.4 s run.
+Why: A large object rushing past with a low rumble: cut around its loudest second, so it reads as the sled racing by.
+Edit: leading silence trimmed, cut from 0.30 s, cut to 1.60 s, 0.15 s fade-in, 0.70 s fade-out; 200 Hz–5 kHz band RMS normalised to -24.0 dB (peak ceiling -3.0 dBFS).
+
+### enemy-mortar-lob-r21-a — "Mortar" by Mozfoo
+Source: <https://freesound.org/people/Mozfoo/sounds/529239/> — CC0 1.0. Use: Polyp Mortar lob a.
+Why: A real mortar being fired (from a military training recording, with reverb): a deep, hollow thump.
+Edit: leading silence trimmed, cut to 1.20 s, 0.60 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -6.0 dBFS).
+
+### enemy-mortar-lob-r21-b — "NPX Throat Gathering Spit 3.wav" by noahpardo
+Source: <https://freesound.org/people/noahpardo/sounds/352404/> — CC0 1.0. Use: Polyp Mortar lob b.
+Why: An organic spit: the polyp hawking its acid glob, wetter and more creature-like than a gun.
+Edit: leading silence trimmed, cut to 0.60 s, 0.15 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -6.0 dBFS).
+
+### enemy-mortar-impact-r21-a — "Wet Splat" by JustInvoke
+Source: <https://freesound.org/people/JustInvoke/sounds/446115/> — CC-BY 4.0. Use: Polyp Mortar impact a, the blob landing.
+Why: A moist splat: short, so the 8-bullet ring stays readable.
+Edit: leading silence trimmed, cut to 0.69 s, 0.30 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -4.0 dBFS).
+
+### enemy-mortar-impact-r21-b — "Acid Bubbling.wav" by spookymodem
+Source: <https://freesound.org/people/spookymodem/sounds/202094/> — CC0 1.0. Use: Polyp Mortar impact b, the blob landing.
+Why: Acid bubbling up: a hissing sizzle rather than a splat.
+Edit: leading silence trimmed, cut to 1.60 s, 0.60 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+

@@ -62,6 +62,16 @@ final class WaveSchedule {
         next = 0;
     }
 
+    /** The next unit's index in the plan. */
+    int next() {
+        return next;
+    }
+
+    /** Back to the plan's unit {@code index} (a boss checkpoint). */
+    void next(int index) {
+        next = index;
+    }
+
     /** The next unit if it enters at or before {@code tick}, advancing past it; otherwise {@code null}. */
     Spawn due(int tick) {
         return next < spawns.length && spawns[next].tick() <= tick ? spawns[next++] : null;

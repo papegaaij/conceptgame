@@ -13,6 +13,8 @@ public final class GroundObject implements Hashed {
     private double hp;
     private int hitsLeft;
     private int ticksSinceHit;
+    /** Whether a trigger is shut for now (the stuck sled's clamp while the rail is lit). */
+    private boolean shut;
 
     /** @param index its place in the level's list of ground objects, unique in an attempt */
     void place(LevelScript.GroundObjectSpec objectSpec, int index) {
@@ -22,6 +24,7 @@ public final class GroundObject implements Hashed {
         hp = objectSpec.hp();
         hitsLeft = objectSpec.hits();
         ticksSinceHit = Integer.MAX_VALUE;
+        shut = false;
     }
 
     /** Scrolls down by {@code distance}; returns false once it has left the bottom edge. */
@@ -36,7 +39,17 @@ public final class GroundObject implements Hashed {
 
     /** Whether shots still hit it: always for a destructible, until it is spent for a trigger. */
     boolean hittable() {
-        return !spec.trigger() || hitsLeft > 0;
+        return !spec.trigger() || (hitsLeft > 0 && !shut);
+    }
+
+    /** Shuts a trigger for now, or opens it again: shots pass a shut one. */
+    void shut(boolean closed) {
+        shut = closed;
+    }
+
+    /** Whether the trigger is shut for now. */
+    public boolean shut() {
+        return shut;
     }
 
     /** A destructible takes damage; returns whether it was destroyed. */

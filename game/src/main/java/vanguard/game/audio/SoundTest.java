@@ -46,6 +46,7 @@ public final class SoundTest implements AutoCloseable {
             new Track("COALITION RISING", "LEVEL THEME: ACT 1", "music/coalition-rising.ogg", true, THEME_VOLUME),
             new Track("MISSION COMPLETE", "JINGLE: DEBRIEF", "music/mission-complete.ogg", false, CUE_VOLUME),
             new Track("MISSION FAILED", "STING: MISSION FAILED", "music/mission-failed.ogg", false, CUE_VOLUME),
+            new Track("CONTACT HEAVY", "STING: MINI-BOSS", "music/miniboss-sting.ogg", false, CUE_VOLUME),
             new Track("GAME OVER", "CUE: GAME OVER", "music/game-over.ogg", false, CUE_VOLUME));
 
     /** Every sound effect but the music cues, which are tracks here. */

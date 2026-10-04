@@ -23,7 +23,8 @@ import vanguard.sim.SimStep;
  * @param fps animation frames per second: 10 for the Vrell's organic motion; a radial spinner's
  *     frames cover one turn of its symmetry, so they play at its spin
  * @param flare drawn over a diver in its pause, additive; empty for none
- * @param remains left on the ground where a ground unit was destroyed; empty for none
+ * @param remains left on the ground where a ground unit was destroyed, its frames spread over the
+ *     remains' time (a stump, an acid splash decal); empty for none
  * @param deathGlow drawn additively with its explosion (a Vrell's spore cloud or glint); no frames for none
  * @param deathPieces solid pieces scattering where an air unit was destroyed (membrane tatters, a
  *     split husk), drawn under the glows; no frames for none
@@ -107,6 +108,8 @@ public record EnemyLooks(
 
     private static final int DEATH_FRAME_TICKS = 4;
     private static final int TINY_GLOW_DELAY_TICKS = 4;
+    /** A splash decal's frame for each second of the remains' 10 s. */
+    private static final int[] SPLASH_TIMELINE = {0, 1, 1, 1, 1, 1, 1, 1, 2, 2};
 
     /**
      * A unit's frames are its slug's on the sprite pages; its explosion follows its size tier; its
@@ -133,7 +136,7 @@ public record EnemyLooks(
                 data.tier() == Tier.TINY ? Sfx.EXPLOSION_TINY_A : Sfx.EXPLOSION_SMALL_A,
                 data.tier() == Tier.TINY ? Sfx.EXPLOSION_TINY_B : Sfx.EXPLOSION_SMALL_B,
                 sprites.has(slug + "-flare") ? sprites.frames(slug + "-flare") : none,
-                sprites.has(slug + "-stump") ? sprites.frames(slug + "-stump") : none,
+                remains(sprites, slug, none),
                 death(sprites, slug, DEATH_GLOW, data.tier(), true, walker),
                 death(sprites, slug, DEATH_PIECES, data.tier(), false, walker),
                 sprites.has(slug + "-glow") ? sprites.frames(slug + "-glow") : none,
@@ -145,6 +148,26 @@ public record EnemyLooks(
                         .mapToDouble(EnemyData.Spawn::telegraph)
                         .findFirst()
                         .orElse(0));
+    }
+
+    /**
+     * A ground unit's remains, together shown for {@code REMAINS} (10 s, LevelScreen): a turret's
+     * {@code -stump}, or a decal's {@code -splash} frames (fresh, after 1 s, fading) laid out on a
+     * 1 s timeline: fresh 1 s, then 7 s, fading over the last 2 s (the Polyp Mortar's acid splash).
+     */
+    private static Array<AtlasRegion> remains(Sprites sprites, String slug, Array<AtlasRegion> none) {
+        if (sprites.has(slug + "-stump")) {
+            return sprites.frames(slug + "-stump");
+        }
+        if (!sprites.has(slug + "-splash")) {
+            return none;
+        }
+        Array<AtlasRegion> splash = sprites.frames(slug + "-splash");
+        Array<AtlasRegion> timeline = new Array<>();
+        for (int i : SPLASH_TIMELINE) {
+            timeline.add(splash.get(Math.min(i, splash.size - 1)));
+        }
+        return timeline;
     }
 
     private static DeathEffect death(

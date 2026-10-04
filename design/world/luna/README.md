@@ -97,3 +97,6 @@ The concept files live in [art-direction](../../art-direction/README.md).
   drawn as a textured ribbon on the ground layer that the crawlers follow, and it widens to fit
   the 40 px crawler. Chosen here (main-agent choice): the 56 px road width; `far` only for drops
   below the surface such as Level 04's rille floor; the scene's scroll factors.
+- 2026-10-03: M4 part E (main-agent choice): Level 05 follows the Level 04 layers: its sleds run
+  on Level 04's rail at x 432 on the ground layer, it has no `deep` layer (no Earth on a horizon)
+  and no perspective `far` walls (the crater rim and walls are ground pieces).

@@ -30,6 +30,9 @@ public final class VoiceLines {
     /** The placeholder in a convoy line that names the unit it is about ("Crawler {ally} is hit!"). */
     public static final String ALLY = "{ally}";
 
+    /** The placeholder in a line that names the ground-target group it is about ("{group} is behind you"). */
+    public static final String GROUP = "{group}";
+
     /** Bumped when the rendering changes in a way that must redo every line. */
     private static final String VERSION = "voice-1";
 
@@ -94,6 +97,11 @@ public final class VoiceLines {
         return line.replace(ALLY, unit < NUMBERS.length ? NUMBERS[unit] : Integer.toString(unit + 1));
     }
 
+    /** A cue's line with {@link #GROUP} as the group's name; unchanged without a group. */
+    public static String groupLine(String line, String group) {
+        return group.isEmpty() ? line : line.replace(GROUP, group);
+    }
+
     /**
      * The text as the voice says it: square-bracketed stage directions left out, the {@code *}
      * of italics removed and a dash read as a comma; empty when nothing is left to say.
@@ -127,7 +135,7 @@ public final class VoiceLines {
                 "\n",
                 VERSION,
                 voice.get(),
-                table.ref(),
+                table.ref().orElseThrow(),
                 format(settings.exaggeration()),
                 format(settings.cfgWeight()),
                 format(settings.temperature()),
@@ -200,7 +208,13 @@ public final class VoiceLines {
                             .map(t -> "t=" + t)
                             .orElseGet(() -> cue.event().orElseThrow().toString());
             for (String text : texts) {
-                if (text.contains(ALLY)) {
+                if (text.contains(GROUP)) {
+                    for (String group : level.objectives().groups()) {
+                        add(
+                                lines,
+                                line(voices, cue.speaker(), groupLine(text, group), expression, shout, filter, source));
+                    }
+                } else if (text.contains(ALLY)) {
                     for (int unit = 0; unit < Math.max(1, units); unit++) {
                         add(
                                 lines,

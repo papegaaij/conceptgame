@@ -56,6 +56,12 @@ public final class LevelRenderer {
     private static final int FLARE_FRAME_TICKS = 6;
 
     private static final int BLINK_FRAME_TICKS = 10;
+    /** The stuck sled's ore canister (Level 05): beacon dark, beacon lit, clamp shot. */
+    private static final String ORE_CANISTER = "ore-canister";
+    /** A thrown rock's tumble frames per shape, and the steps each shows. */
+    private static final int ROCK_TUMBLE = 4;
+
+    private static final int ROCK_TUMBLE_TICKS = 6;
     /** Enemy bullets pulse their core at 15 fps, each at its own phase. */
     private static final int BULLET_FRAME_TICKS = 4;
 
@@ -122,7 +128,10 @@ public final class LevelRenderer {
     private final WeaponLooks weapons;
     private final CraneLooks craneLooks;
     /** Per set piece of the level, its sprites. */
+    /** Per set piece its sprites; null for a boss, which {@link #bossLooks} draws. */
     private final SetPieceLooks[] setPieceLooks;
+
+    private final BossLooks bossLooks;
     /** The destructible ground objects' frames (intact, damaged) by their look, looked up once. */
     private final Map<String, Array<AtlasRegion>> groundLooks = new HashMap<>();
     /** The debris chunks' sprites by name, looked up once. */
@@ -134,6 +143,11 @@ public final class LevelRenderer {
     private final AtlasRegion triggerLight;
 
     private final Array<AtlasRegion> mine;
+    /** Level 05's sleds, lobs and battery outlines. */
+    private final LunaLooks luna;
+    /** The thrown rocks' looks: three shapes of {@value #ROCK_TUMBLE} tumble frames each; null without them. */
+    private final Array<AtlasRegion> rocks;
+
     private final Backdrop backdrop;
     /** The level's road and convoy, if it has them. */
     private final ConvoyLooks convoy;
@@ -165,8 +179,14 @@ public final class LevelRenderer {
         this.weapons = weapons;
         this.craneLooks = new CraneLooks(sprites, level.cranes().isPresent() ? pivots(files, "crane-four") : null);
         setPieceLooks = script.setPieces().stream()
-                .map(spec -> new SetPieceLooks(sprites, spec, pivots(files, spec.slug())))
+                .map(spec -> spec.isBoss() ? null : new SetPieceLooks(sprites, spec, pivots(files, spec.slug())))
                 .toArray(SetPieceLooks[]::new);
+        String boss = script.setPieces().stream()
+                .filter(LevelScript.SetPieceSpec::isBoss)
+                .map(LevelScript.SetPieceSpec::slug)
+                .findFirst()
+                .orElse(null);
+        bossLooks = new BossLooks(sprites, flash, boss, boss == null ? null : pivots(files, boss));
         String light = Backdrop.folder(levelKey) + "lifeboat-light";
         triggerLight = sprites.hasBackdrop(light) ? sprites.backdrop(light, 1).first() : null;
         mine = sprites.has("spore-mine") ? sprites.frames("spore-mine") : null;
@@ -175,6 +195,12 @@ public final class LevelRenderer {
                 groundLooks.computeIfAbsent(spec.look(), sprites::frames);
             }
         }
+        String sledRun = "level-04/sled-run";
+        luna = new LunaLooks(
+                sprites,
+                script.sled().isPresent() && sprites.hasBackdrop(sledRun) ? sprites.backdrop(sledRun, 30) : null,
+                flash);
+        rocks = sprites.has("rock") ? sprites.frames("rock") : null;
         this.backdrop = new Backdrop(sprites, level, levelKey);
         this.convoy = new ConvoyLooks(sprites, flash, level, script, levelKey);
         this.flash = flash;
@@ -217,6 +243,8 @@ public final class LevelRenderer {
         backdrop.drawBehind(batch, scroll, seconds);
         convoy.drawRoad(batch, Math.round(scroll));
         backdrop.drawGroundPieces(batch, scroll, seconds);
+        luna.drawSled(batch, sortie, scroll, alpha);
+        luna.drawMarkers(batch, sortie, alpha);
         drawGround(batch, sortie, alpha);
         convoy.drawConvoy(batch, sortie, alpha, whiteFlash);
         backdrop.drawOverhead(batch, scroll, seconds);
@@ -229,6 +257,7 @@ public final class LevelRenderer {
         backdrop.drawLowAir(batch, scroll, seconds);
         drawWalkerGlows(batch, sortie, alpha);
         drawEnemies(batch, sortie, alpha, Depth.AIR);
+        luna.drawBlobs(batch, sortie, alpha);
         drawAirstrike(batch, sortie, alpha);
         drawSetPieces(batch, sortie, alpha, seconds, false);
         drawWrecks(batch, sortie, wrecks, alpha, seconds);
@@ -256,6 +285,17 @@ public final class LevelRenderer {
         drawBullets(batch, sortie, alpha);
         warnings.draw(batch, sortie.tick(), alpha);
         credits.draw(batch, font);
+        drawBossBar(batch, sortie);
+    }
+
+    /** The boss bar at the top of the play field while a boss is on the screen (design/ui/hud). */
+    private void drawBossBar(SpriteBatch batch, Sortie sortie) {
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPiece piece = sortie.setPiece(k);
+            if (piece.boss().isPresent() && piece.present()) {
+                bossLooks.drawBar(batch, font, piece);
+            }
+        }
     }
 
     /**
@@ -265,13 +305,20 @@ public final class LevelRenderer {
     private void drawGround(SpriteBatch batch, Sortie sortie, float alpha) {
         for (int i = 0; i < sortie.groundObjectCount(); i++) {
             GroundObject object = sortie.groundObject(i);
-            if (object.spec().trigger() && triggerLight != null) {
+            if (object.spec().trigger() && triggerLight != null && !sledClamp(sortie, object)) {
                 drawTriggerLight(batch, sortie, object, alpha);
                 continue;
             }
             int damaged = object.damaged() ? 1 : 0;
             TextureRegion frame;
-            if (object.spec().trigger()) {
+            if (object.spec().trigger() && sledClamp(sortie, object)) {
+                // The stuck sled (Level 05): the ore canister, its clamp's beacon lit while it can be
+                // hit (the rail dark), the clamp shot open once spent.
+                int state = object.spent() ? 2 : !object.shut() ? 1 : 0;
+                frame = groundLooks
+                        .computeIfAbsent(ORE_CANISTER, sprites::frames)
+                        .get(state);
+            } else if (object.spec().trigger()) {
                 int lit = !object.spent() && sortie.tick() / BEACON_BLINK_TICKS % 2 == 0 ? 1 : 0;
                 frame = sprites.beacon.get(2 * damaged + lit);
             } else {
@@ -289,6 +336,13 @@ public final class LevelRenderer {
                 drawCentred(batch, frame, object.renderX(), object.renderY(alpha));
             }
         }
+    }
+
+    /** Whether the trigger is the clamp of the level's stuck sled. */
+    private static boolean sledClamp(Sortie sortie, GroundObject object) {
+        return sortie.sled()
+                .map(sled -> sled.spec().clampSecret().equals(object.spec().secret()))
+                .orElse(false);
     }
 
     /** A trigger light: lit at the beacon's 1 Hz blink until shot, a white flash, then dark (the wreck's lens shows). */
@@ -350,6 +404,9 @@ public final class LevelRenderer {
             AtlasRegion frame = enemy.walking()
                     ? look.frames().get(look.walkFrame(enemy.facing(), enemy.walked()))
                     : look.frame(enemy.facing(), look.step(sortie.tick(), i, enemy.burstSeconds()));
+            if (LunaLooks.target(sortie, enemy)) {
+                luna.drawOutline(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
+            }
             drawCentred(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
             if (enemy.paused() && !look.flare().isEmpty()) {
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
@@ -392,6 +449,10 @@ public final class LevelRenderer {
         for (int k = 0; k < sortie.setPieceCount(); k++) {
             SetPiece piece = sortie.setPiece(k);
             if (!piece.present() || piece.onPlane() == high) {
+                continue;
+            }
+            if (piece.boss().isPresent()) {
+                bossLooks.draw(batch, piece, alpha, seconds, whiteFlash);
                 continue;
             }
             SetPieceLooks look = setPieceLooks[k];
@@ -465,11 +526,12 @@ public final class LevelRenderer {
      */
     private void drawWrecks(SpriteBatch batch, Sortie sortie, SetPieceWrecks wrecks, float alpha, double seconds) {
         for (int k = 0; k < sortie.setPieceCount(); k++) {
-            SetPieceDeath death = setPieceLooks[k].death;
+            SetPieceDeath death = death(k);
             if (death == null || !wrecks.active(k)) {
                 continue;
             }
             SetPieceLooks look = setPieceLooks[k];
+            boolean boss = look == null;
             float age = wrecks.age(k) + alpha;
             float x = wrecks.x(k);
             float y = wrecks.y(k);
@@ -477,7 +539,9 @@ public final class LevelRenderer {
             if (age < death.swap) {
                 batch.setColor(1, 1, 1, wrecks.opacity(k));
                 int sway = SetPieceLooks.sway(seconds);
-                if (wrecks.crossing(k)) {
+                if (boss) {
+                    bossLooks.drawWreck(batch, sortie.setPiece(k), x, y);
+                } else if (wrecks.crossing(k)) {
                     drawCentred(batch, look.cross.get(sway % look.cross.size), x, y);
                 } else {
                     drawBody(batch, sortie.setPiece(k), look, x, y, sway, scale, false);
@@ -506,7 +570,7 @@ public final class LevelRenderer {
 
     /** Set piece {@code k}'s break-up at its death, or null for none. */
     public SetPieceDeath death(int k) {
-        return setPieceLooks[k].death;
+        return setPieceLooks[k] != null ? setPieceLooks[k].death : bossLooks.death;
     }
 
     /** A set piece's scale at {@code altitude} (0 on the play plane, 1 on high-air), for it and its effects. */
@@ -527,6 +591,10 @@ public final class LevelRenderer {
     private void drawDebris(SpriteBatch batch, Sortie sortie, float alpha) {
         for (int i = 0; i < sortie.debrisCount(); i++) {
             Debris chunk = sortie.debris(i);
+            if (chunk.thrown()) {
+                drawRock(batch, chunk, alpha);
+                continue;
+            }
             AtlasRegion sprite = debrisSprites.get(chunk.sprite());
             if (sprite == null) {
                 sprite = sprites.region(chunk.sprite());
@@ -544,6 +612,26 @@ public final class LevelRenderer {
                 drawCentred(batch, sprite, chunk.renderX(alpha), chunk.renderY(alpha));
             }
         }
+    }
+
+    /**
+     * A thrown rock (Level 05): one of the three shapes (by its serial), tumbling, scaled to the
+     * rock's size, growing as it rises in low gravity and fading out in its last half second.
+     */
+    private void drawRock(SpriteBatch batch, Debris chunk, float alpha) {
+        if (rocks == null) {
+            return;
+        }
+        int shape = Math.floorMod(chunk.serial(), rocks.size / ROCK_TUMBLE);
+        int tumble = Math.floorMod(chunk.life() / ROCK_TUMBLE_TICKS + chunk.serial(), ROCK_TUMBLE);
+        AtlasRegion rock = rocks.get(shape * ROCK_TUMBLE + tumble);
+        double size = chunk.spec().size().width();
+        double rise = 1 - Math.max(0, chunk.life() - alpha) / (double) SimStep.ticks(2.5);
+        float scale = (float) (size / rock.getRegionWidth() * (1 + 0.3 * Math.sin(Math.PI * Math.clamp(rise, 0, 1))));
+        float fade = (float) Math.min(1, chunk.life() / (double) SimStep.ticks(0.5));
+        batch.setColor(1, 1, 1, fade);
+        drawScaled(batch, rock, chunk.renderX(alpha), chunk.renderY(alpha), scale);
+        batch.setColor(Color.WHITE);
     }
 
     /**

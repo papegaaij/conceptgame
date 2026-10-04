@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import vanguard.sim.AirstrikeSpec;
 import vanguard.sim.AllySpec;
 import vanguard.sim.Armament;
+import vanguard.sim.BossSpec;
 import vanguard.sim.EnemyGun;
 import vanguard.sim.EnemySpec;
 import vanguard.sim.Hitbox;
@@ -355,7 +356,7 @@ public final class SimSpecs {
                 level.launchSeconds(),
                 level.sections().stream()
                         .map(section -> new LevelScript.Section(
-                                section.end(), section.speed().orElse(level.scrollSpeed())))
+                                section.end(), section.speed().orElse(level.scrollSpeed()), section.isArena()))
                         .toList(),
                 waves,
                 groundObjects(level),
@@ -366,14 +367,68 @@ public final class SimSpecs {
                         secondary.killRatio().orElse(0.0),
                         secondary.credits(),
                         secondary.groups().orElse(List.of()),
-                        secondary.escapes().orElse("")),
+                        secondary.escapes().orElse(""),
+                        secondary.killAll().orElse(List.of()),
+                        secondary.label().orElse("")),
                 cranes(level, difficulty),
                 debris(level, difficulty),
-                level.setPieces().orElse(List.of()).stream()
-                        .map(piece -> setPiece(content, piece, difficulty))
+                java.util.stream.Stream.concat(
+                                level.setPieces().orElse(List.of()).stream()
+                                        .map(piece -> setPiece(content, piece, difficulty)),
+                                level.boss().map(boss -> boss(content, boss, difficulty)).stream())
                         .toList(),
                 level.objectives().escort().map(escort -> escort(content, escort, difficulty)),
-                level.road().map(road -> road(level, road)));
+                level.road().map(road -> road(level, road)),
+                level.objectives().targets().orElse(List.of()),
+                level.sleds().map(sleds -> sled(sleds, difficulty)),
+                level.rocks()
+                        .filter(rocks ->
+                                difficulty != Difficulty.EASY || rocks.onEasy().orElse(false))
+                        .map(SimSpecs::rocks),
+                groupDrops(level, carried));
+    }
+
+    /** The level's sleds at {@code difficulty}: the period of easy or hard. */
+    static LevelScript.SledSpec sled(LevelData.Sleds sleds, Difficulty difficulty) {
+        Optional<LevelData.SledChange> change =
+                switch (difficulty) {
+                    case EASY -> sleds.easy();
+                    case MEDIUM -> Optional.empty();
+                    case HARD -> sleds.hard();
+                };
+        return new LevelScript.SledSpec(
+                sleds.x(),
+                sleds.width(),
+                sleds.first(),
+                change.map(LevelData.SledChange::period).orElse(sleds.period()),
+                sleds.until(),
+                sleds.lights(),
+                sleds.run(),
+                sleds.damage(),
+                sleds.clamp().orElse(""));
+    }
+
+    private static LevelScript.RockSpec rocks(LevelData.Rocks rocks) {
+        return new LevelScript.RockSpec(
+                rocks.count().min(),
+                rocks.count().max(),
+                rocks.speed().min(),
+                rocks.speed().max(),
+                rocks.life(),
+                hitbox(rocks.size()),
+                rocks.hp(),
+                rocks.damage(),
+                rocks.clearance());
+    }
+
+    /** The pickups a ground-target group's last unit drops when the group is cleared (Level 05's battery C). */
+    private static List<LevelScript.GroupDrop> groupDrops(LevelData level, List<LevelData.PlacedPickup> carried) {
+        List<String> groups = level.objectives().groups();
+        return carried.stream()
+                .filter(p -> p.droppedBy().group().isPresent())
+                .map(p -> new LevelScript.GroupDrop(
+                        groups.indexOf(p.droppedBy().group().get()), pickup(p.pickup())))
+                .toList();
     }
 
     /**
@@ -519,10 +574,170 @@ public final class SimSpecs {
                 drop(enemy).map(EnemySpec.Drop::pickup));
     }
 
+    /**
+     * The level's boss at {@code difficulty} (design/enemies/bosses): a set piece with its parts (the
+     * HP lever, weak-point multipliers), its chains, its attacks (the fire-rate and bullet-speed
+     * levers, the stat block's per-attack changes) and its phases, arriving where the level places it.
+     */
+    public static LevelScript.SetPieceSpec boss(
+            Content content, LevelData.BossPlacement placement, Difficulty difficulty) {
+        String slug = placement.enemy();
+        EnemyData enemy = content.enemy(slug);
+        EnemyData.BossData script =
+                enemy.boss().orElseThrow(() -> new IllegalArgumentException(slug + ": no boss script"));
+        List<EnemyData.PartData> partList =
+                enemy.partList().orElseThrow(() -> new IllegalArgumentException(slug + ": a boss has a part_list"));
+        List<LevelScript.PartSpec> parts = new ArrayList<>();
+        for (EnemyData.PartData part : partList) {
+            parts.add(new LevelScript.PartSpec(
+                    part.name(),
+                    part.offset().x(),
+                    part.offset().y(),
+                    hitbox(part.hitbox()),
+                    content.difficulty().enemyHp(part.hp(), difficulty),
+                    part.kind().equals("vital"),
+                    part.bounty(),
+                    Optional.empty(),
+                    0,
+                    part.multiplier().orElse(1.0)));
+        }
+        List<BossSpec.Chain> chains = new ArrayList<>();
+        for (EnemyData.ChainData chain : enemy.chains().orElse(List.of())) {
+            chains.add(new BossSpec.Chain(
+                    chain.name(),
+                    chain.from().x(),
+                    chain.from().y(),
+                    partIndex(enemy, chain.to()),
+                    chain.segments(),
+                    hitbox(chain.hitbox()),
+                    chain.lag(),
+                    Math.toRadians(chain.bend())));
+        }
+        List<String> attackNames = new ArrayList<>();
+        List<BossSpec.Attack> attacks = new ArrayList<>();
+        DifficultyData levers = content.difficulty();
+        Map<String, EnemyData.AttackChange> changes =
+                hook(enemy, difficulty).flatMap(EnemyData.Hook::attacks).orElse(Map.of());
+        for (EnemyData.Attack attack : enemy.attacks()) {
+            String name =
+                    attack.name().orElseThrow(() -> new IllegalArgumentException(slug + ": a boss names its attacks"));
+            Optional<EnemyData.AttackChange> change = Optional.ofNullable(changes.get(name));
+            BossSpec.Pattern pattern =
+                    switch (attack.pattern()) {
+                        case "aimed" -> BossSpec.Pattern.AIMED;
+                        case "ring" -> BossSpec.Pattern.RING;
+                        case "spiral" -> BossSpec.Pattern.SPIRAL;
+                        default ->
+                            throw new IllegalArgumentException(
+                                    slug + ": a boss fires aimed, ring or spiral attacks, not " + attack.pattern());
+                    };
+            int burst = change.flatMap(EnemyData.AttackChange::burst)
+                    .or(attack::burst)
+                    .orElse(1);
+            int count = change.flatMap(EnemyData.AttackChange::count)
+                    .or(attack::count)
+                    .orElse(1);
+            List<Integer> firing = new ArrayList<>();
+            for (int p = 0; p < partList.size(); p++) {
+                if (partList.get(p).attack().filter(name::equals).isPresent()) {
+                    firing.add(p);
+                }
+            }
+            attackNames.add(name);
+            attacks.add(new BossSpec.Attack(
+                    name,
+                    pattern,
+                    EnemyGun.aimed(
+                            attack.interval().orElseThrow()
+                                    / levers.enemyFireRate().of(difficulty),
+                            0,
+                            burst,
+                            attack.speed().orElseThrow()
+                                    * levers.enemyBulletSpeed().of(difficulty),
+                            bulletDamage(content, attack.bullet().orElseThrow()),
+                            false),
+                    attack.burstGap().orElse(EnemyGun.BURST_GAP_SECONDS),
+                    attack.rotate().orElse(false),
+                    count,
+                    attack.arms().orElse(0),
+                    Math.toRadians(attack.turnRate().orElse(0.0)),
+                    attack.duration().orElse(0.0),
+                    firing));
+        }
+        List<BossSpec.Phase> phases = new ArrayList<>();
+        for (EnemyData.PhaseData phase : script.phases()) {
+            List<String> fired = phase.alternate().or(phase::attacks).orElse(List.of());
+            phases.add(new BossSpec.Phase(
+                    phase.name(),
+                    phase.until().parts().stream()
+                            .map(part -> partIndex(enemy, part))
+                            .toList(),
+                    phase.until().left(),
+                    fired.stream()
+                            .map(name -> {
+                                int index = attackNames.indexOf(name);
+                                if (index < 0) {
+                                    throw new IllegalArgumentException(slug + ": no attack '" + name + "'");
+                                }
+                                return index;
+                            })
+                            .toList(),
+                    phase.alternate().isPresent(),
+                    phase.streams()
+                            .map(stream -> new BossSpec.Stream(
+                                    enemy(content, stream.enemy(), difficulty, Optional.empty()),
+                                    stream.count(),
+                                    stream.every(),
+                                    stream.interval(),
+                                    switch (stream.edge()) {
+                                        case "left" -> WaveSpec.Edge.LEFT;
+                                        case "right" -> WaveSpec.Edge.RIGHT;
+                                        default -> WaveSpec.Edge.ALTERNATING;
+                                    })),
+                    phase.exposes().orElse(List.of()).stream()
+                            .map(part -> partIndex(enemy, part))
+                            .toList(),
+                    phase.bend().map(Math::toRadians).orElse(Double.NaN)));
+        }
+        EnemyData.Movement movement = enemy.movement();
+        EnemyData.Hover hover =
+                movement.hover().orElseThrow(() -> new IllegalArgumentException(slug + ": a boss hovers"));
+        return new LevelScript.SetPieceSpec(
+                slug,
+                hitbox(enemy.size()),
+                hitbox(enemy.hitbox()),
+                content.enemyBasis().contactDamage().get(enemy.tier()),
+                parts,
+                List.of(),
+                drop(enemy).map(EnemySpec.Drop::pickup),
+                Optional.of(new BossSpec(
+                        placement.t(),
+                        placement.x(),
+                        PlayField.HEIGHT - hover.y().min(),
+                        movement.straight().map(EnemyData.Straight::speed).orElse(enemy.speed()),
+                        movement.sine().map(EnemyData.Sine::amplitude).orElse(0.0),
+                        movement.sine().map(EnemyData.Sine::period).orElse(1.0),
+                        Layers.of(enemy.layer()),
+                        script.midBoss(),
+                        script.barName(),
+                        script.par(),
+                        chains,
+                        attacks,
+                        phases)));
+    }
+
+    private static int partIndex(EnemyData enemy, String part) {
+        int index = enemy.partIndex(part);
+        if (index < 0) {
+            throw new IllegalArgumentException(enemy.name() + ": no part '" + part + "'");
+        }
+        return index;
+    }
+
     /** The ground enemies of the level's ground targets at {@code difficulty}, each in its group of the secondary objective. */
     private static List<LevelScript.GroundUnit> groundUnits(
             Content content, LevelData level, Difficulty difficulty, LevelData.Secondary secondary) {
-        List<String> groups = secondary.groups().orElse(List.of());
+        List<String> groups = level.objectives().groups();
         List<LevelScript.GroundUnit> units = new ArrayList<>();
         for (LevelData.GroundTarget target : level.groundTargets()) {
             if (target.enemy().isEmpty()) {
@@ -611,7 +826,7 @@ public final class SimSpecs {
             boolean first = g == 0;
             boolean last = g == groups.size() - 1;
             List<WaveSpec.Carried> pickups = carried.stream()
-                    .filter(p -> p.droppedBy().wave() == wave.t())
+                    .filter(p -> p.droppedBy().waveT() == wave.t())
                     .filter(p -> p.droppedBy().unit() == LevelData.CarrierUnit.LAST ? last : first)
                     .map(p -> new WaveSpec.Carried(
                             pickup(p.pickup()),
@@ -734,7 +949,12 @@ public final class SimSpecs {
                 movement.drift().map(EnemyData.Drift::speed).orElse(enemy.speed()) * speedFactor,
                 movement.snake().map(snake -> new EnemySpec.Snake(snake.spacing())),
                 movement.straight().map(EnemyData.Straight::speed),
-                movement.hover().map(hover -> new EnemySpec.Hover(range(hover.seconds()), range(hover.y()))),
+                movement.hover()
+                        .map(hover -> new EnemySpec.Hover(
+                                hover.seconds()
+                                        .map(SimSpecs::range)
+                                        .orElse(new Range(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)),
+                                range(hover.y()))),
                 movement.orbit().map(orbit -> new EnemySpec.Orbit(orbit.radius(), orbit.turnRate())),
                 gun(content, enemy, difficulty, change),
                 drop(enemy),
@@ -838,6 +1058,12 @@ public final class SimSpecs {
                         bulletDamage(content, spore.ringBullet()),
                         hook.flatMap(EnemyData.Hook::mineBursts).orElse(true),
                         spore.credits()));
+        Optional<EnemyGun.MortarSpec> mortar = attack.mortar()
+                .map(lob -> new EnemyGun.MortarSpec(
+                        lob.marker(),
+                        lob.impact() / 2,
+                        hook.flatMap(EnemyData.Hook::ring).orElse(lob.ring()),
+                        bulletDamage(content, lob.ringBullet())));
         return new EnemyGun(
                 attack.interval()
                         .map(i -> i / levers.enemyFireRate().of(difficulty))
@@ -853,7 +1079,8 @@ public final class SimSpecs {
                 Math.toRadians(attack.spread().orElse(0.0)),
                 attack.turnRate().map(Math::toRadians).orElse(Double.POSITIVE_INFINITY),
                 attack.arc().map(Math::toRadians).orElse(Double.POSITIVE_INFINITY),
-                mine);
+                mine,
+                mortar);
     }
 
     /**
@@ -919,12 +1146,14 @@ public final class SimSpecs {
                         case FIRST_ALLY_HIT -> LevelScript.CueTrigger.FIRST_ALLY_HIT;
                         case FIRST_ALLY_LOST -> LevelScript.CueTrigger.FIRST_ALLY_LOST;
                         case MISSION_FAILED -> LevelScript.CueTrigger.MISSION_FAILED;
+                        case BOSS_PHASE -> LevelScript.CueTrigger.BOSS_PHASE;
+                        case BOSS_DESTROYED -> LevelScript.CueTrigger.BOSS_DESTROYED;
                     })
                     .orElse(LevelScript.CueTrigger.TIME);
             cues.add(new LevelScript.RadioCue(
                     trigger,
                     cue.t().orElse(0.0),
-                    cue.enemy().or(cue::group).orElse(""),
+                    cue.enemy().or(cue::group).or(cue::phase).orElse(""),
                     cue.speaker(),
                     change.map(LevelData.RadioChange::line).orElse(cue.line()),
                     cue.distorted().orElse(false),

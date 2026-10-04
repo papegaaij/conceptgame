@@ -61,6 +61,15 @@ public final class Briefings {
                                 escort.y().size(),
                                 ally.toUpperCase(Locale.ROOT));
                     }
+                    case "destroy-targets" -> {
+                        // "DESTROY ALL 4 BATTERIES": the groups' common first word in plural
+                        List<String> targets = objectives.targets().orElseThrow();
+                        yield String.format(
+                                Locale.ROOT,
+                                "DESTROY ALL %d %s",
+                                targets.size(),
+                                plural(firstWord(targets.getFirst())));
+                    }
                     default ->
                         throw new IllegalArgumentException("no briefing line for objective " + objectives.primary());
                 });
@@ -77,6 +86,15 @@ public final class Briefings {
                                                 + slug.replace('-', ' ').toUpperCase(Locale.ROOT) + " BEFORE IT BURSTS"
                                         : "BONUS: NO " + slug.replace('-', ' ').toUpperCase(Locale.ROOT)
                                                 + " GETS THROUGH"))
+                        .or(() -> secondary
+                                .killAll()
+                                .map(slugs -> "BONUS: DESTROY EVERY "
+                                        + String.join(
+                                                        " AND ",
+                                                        slugs.stream()
+                                                                .map(slug -> slug.replace('-', ' '))
+                                                                .toList())
+                                                .toUpperCase(Locale.ROOT)))
                         .orElseGet(() -> String.format(
                                 Locale.ROOT,
                                 "BONUS: CLEAR ALL %d %s",
@@ -90,10 +108,18 @@ public final class Briefings {
                 .anyMatch(attack -> attack.pattern().equals("spawn"));
     }
 
-    /** What the groups of a group objective are: their names' common last word in plural ("Dock One" ... "DOCKS"). */
+    /** What the groups of a group objective are: their names' common first word in plural ("Dock One" ... "DOCKS"). */
     private static String groupsName(LevelData.Secondary secondary) {
-        String first = secondary.groups().orElseThrow().getFirst();
-        String word = first.contains(" ") ? first.substring(0, first.indexOf(' ')) : first;
-        return word.toUpperCase(Locale.ROOT) + "S";
+        return plural(firstWord(secondary.groups().orElseThrow().getFirst()));
+    }
+
+    private static String firstWord(String name) {
+        return name.contains(" ") ? name.substring(0, name.indexOf(' ')) : name;
+    }
+
+    /** "DOCK" reads "DOCKS", "BATTERY" "BATTERIES". */
+    private static String plural(String word) {
+        String upper = word.toUpperCase(Locale.ROOT);
+        return upper.endsWith("Y") ? upper.substring(0, upper.length() - 1) + "IES" : upper + "S";
     }
 }

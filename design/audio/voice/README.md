@@ -4,7 +4,7 @@ design: draft
 implementation: in-progress
 art: chosen
 depends-on: [.., ../../story/characters, ../../ui/hud, ../../ui/options, ../../tech/architecture]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Voice
@@ -106,6 +106,7 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
 | Crawler One | Kara Shallenberg | `refs/ref-crawler-one.wav` |
 | Convoy | Adrian Praetzellis | `refs/ref-convoy.wav` |
 | Hammer Lead | Gord Mackenzie | `refs/ref-hammer-lead.wav` |
+| Driver Control | Alex Foster | `refs/ref-driver-control.wav` |
 
 - **Generic speakers** get readers from the same sources, never a main-cast reader, auditioned in
   [round 19](../../concept-rounds/round-19/README.md). One voice per role, so a role keeps its
@@ -113,6 +114,8 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
   (Level 03), Tranquility Control, Crawler One and Convoy (Level 04) and Hammer Lead (the
   Airstrike special). Every role keeps its own voice (round 19, item 8); the four docks are one
   role.
+  Level 05 adds **Driver Control** (the mass driver's operator, three lines), cast in
+  [round 21](../../concept-rounds/round-21/README.md) (Alex Foster, a).
 
 ### Speakers and expression
 
@@ -194,7 +197,7 @@ level).
       the radio filter (filter b; none for briefing pages), OGG under
       `assets/voice/<speaker>/<hash>.ogg`; skips lines already rendered; deletes unused files
 - [ ] Act 1 lines rendered and committed; reviewed in a concept round (rendered, not yet
-      committed or reviewed)
+      committed or reviewed; Level 05's 20 lines rendered 2026-10-03, Driver Control's after its casting on 2026-10-04)
 - [x] Playback with the radio message: voice on its own voice bus, music ducking while it plays,
       URGENT cuts and replays, a subtitle page held until its voice ends, pause and stop,
       text-only fallback; the mission failed screen speaks the level's line (the cut has no
@@ -228,6 +231,8 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
 | [concept/rejected/voice-convoy-r19-b.ogg](concept/rejected/voice-convoy-r19-b.ogg) | Convoy, reader Judy Bieber (`tools/concept/audio/tts_r19.py`) | rejected |
 | [concept/rejected/voice-hammer-lead-r19-a.ogg](concept/rejected/voice-hammer-lead-r19-a.ogg) | Hammer Lead, reader Mark F. Smith (`tools/concept/audio/tts_r19.py`) | rejected |
 | [concept/voice-hammer-lead-r19-b.ogg](concept/voice-hammer-lead-r19-b.ogg) | Hammer Lead, reader Gord Mackenzie (`tools/concept/audio/tts_r19.py`) | chosen |
+| [concept/voice-driver-control-r21-a.ogg](concept/voice-driver-control-r21-a.ogg) | Driver Control (round 21 audition), reader Alex Foster (`tools/concept/audio/tts_r21.py`) | chosen |
+| [concept/rejected/voice-driver-control-r21-b.ogg](concept/rejected/voice-driver-control-r21-b.ogg) | Driver Control (round 21 audition), reader Rebecca (`tools/concept/audio/tts_r21.py`) | rejected |
 
 ## Decisions
 
@@ -253,3 +258,16 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
   Level 04), the renderer `tools/art/voice.py` (it deletes unused files rather than only listing
   them), playback in the level, the briefings and the mission failed screen, and the voice
   slider. Act 1's lines rendered; their review and the timing of the voiced radio are open.
+- 2026-10-03: M4 part E (user decision): Level 05's new speaker Driver Control gets its own voice
+  from a short audition (two CC0 or public-domain candidates, as in round 19), held later in the
+  part; no voice is merged with Tranquility Control.
+- 2026-10-03: M4 part E: until its audition, Driver Control is marked `uncast: true` in the
+  speaker table (no `ref`): its Level 05 lines have no voice file and play as text with the radio
+  blips; VoiceFilesTest allows a missing voice only for such a speaker, and Level 05's lines are
+  checked (20 rendered: the radio, the four per-battery failure lines from `{group}`, the
+  secret and the briefing pages).
+- 2026-10-04: Driver Control audition (user decision D4 of M4 part E) opened in round 21: its
+  t=12.5 warning with two public-domain LibriVox voices (`tools/concept/audio/tts_r21.py`).
+- 2026-10-04: Round 21 decided (user): Driver Control is Alex Foster (a); `uncast` removed from
+  the speaker table, Rebecca's take moved to `concept/rejected/` and her clip deleted with its
+  CREDITS.md row; Driver Control's lines rendered by `tools/art/voice.py`.

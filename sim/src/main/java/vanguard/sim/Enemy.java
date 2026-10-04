@@ -712,6 +712,11 @@ public final class Enemy implements Hashed {
         return group;
     }
 
+    /** Its ground group (a dock, a battery), or -1; for the presentation. */
+    public int groupIndex() {
+        return group;
+    }
+
     /** A turret's barrel, radians clockwise from straight down. */
     double aim() {
         return aim;

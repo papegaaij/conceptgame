@@ -102,7 +102,8 @@ control prompts 384–430 (a two-line well, 42 px), objective tracker 436–482 
 
 ### In the play field
 
-- Boss health bar and name at the top during boss fights.
+- Boss health bar and name at the top during boss fights: the sum of the boss's remaining
+  part HP; a mid-boss's bar is shorter (Level 05's Gorgon Frigate is the first, M4 part E).
 - **Warning** banners ("WARNING — HOSTILES FROM THE REAR") and **edge warnings**: every wave
   that enters from the sides or the rear gets a flashing arrow at that edge of the play field
   at least 3 s ahead, always, often with a radio call (readability rule in
@@ -174,12 +175,13 @@ Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker
 - [x] Left panel: mission, score, credits, chain, radio, progress
 - [x] Left panel layout: fixed regions without overlap; texts cut off at their well; a test checks the regions and that every prompt and radio line of the content fits, measured with the font's metrics
 - [x] Two-objective levels (L04, L05, L13): the two-line tracker and the two-line control prompts' well (shown with a convoy: Level 04's `CRAWLERS` line; Level 05's and Level 13's first lines come with them)
-- [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter, Level 02's dock pips, Level 03's bomber counter and Level 04's crawler pips done; the other levels' trackers come with them in M4 and M5)
+- [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter, Level 02's dock pips, Level 03's bomber counter, Level 04's crawler pips and Level 05's `BATTERIES A B C D` over `NEST n / 30` done; the other levels' trackers come with them in M4 and M5)
 - [x] Right panel: armour, shield, power (spare-power bar and the regen bonus, glowing in an overdrive), weapons (front, rear, left, right with level pips), overdrive timer
 - [x] Right panel: special (M4 part D): a row under the weapons box in their style, `SPECIAL`, the special's 16 px hangar icon, its name and `×` charges; greyed while its strike flies or with no charge left, flashing red when the button is denied
 - [ ] Right panel: escort — **later: M5** (Rook's escort slot)
 - [x] Radio message queue with portraits, priority interrupts
-- [ ] Boss bar, warning banners, edge arrows, pickup numbers
+- [x] Boss bar and name at the top of the play field, shorter for a mid-boss (M4 part E; drawn plainly until its production art)
+- [ ] Warning banners, edge arrows, pickup numbers
 
 ## Open questions
 
@@ -317,3 +319,12 @@ Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker
 - 2026-10-03: The radio is spoken ([voice](../../audio/voice/README.md)): the voice starts with
   the message, a page is held until its voice has reached it, the music ducks while the voice
   plays and an urgent line cuts it.
+- 2026-10-03: M4 part E (main-agent choice): the boss bar and name sit at the top of the play
+  field, not in the side HUD; it shows the sum of the boss's remaining part HP, shorter for a
+  mid-boss. The tracker for Level 05 reads `BATTERIES A B C D`, a letter struck through once
+  that battery is cleared.
+- 2026-10-03: M4 part E, Level 05's tracker built: line one `BATTERIES` and the letters A–D (dim
+  while open, struck through in green once cleared, red when lost, the line flashing red as the
+  primary fails), line two the *Scorched crater* count `NEST n / 30`, then `DONE` or `FAILED`; the
+  batteries' units carry a 1 px outline in the objective colour (amber `FFE04A`, a placeholder
+  until the production round).

@@ -48,6 +48,9 @@ public final class PlaceholderSprites {
     private static final String SHIP_SHEET = "player/ship/concept/player-ship-r08-a.png";
     private static final String SKITTER_SHEET = "enemies/air/concept/skitter-r04-a.png";
     private static final String NEEDLER_SHEET = "enemies/air/concept/needler-r04-a.png";
+    /** The Polyp Mortar's chosen concept (round 04), the same sheet layout as the Needler's. */
+    private static final String POLYP_MORTAR_SHEET = "enemies/ground/concept/polyp-mortar-r04-a.png";
+
     private static final String BULLET_SHEET = "enemies/concept/enemy-bullets-r09-a.png";
     private static final String PICKUP_SHEET = "player/concept/pickups-r09-a.png";
     private static final String PROJECTILE_SHEET = "player/weapons/concept/projectiles-r08-a.png";
@@ -166,6 +169,22 @@ public final class PlaceholderSprites {
             new Cut(
                     "needler",
                     NEEDLER_SHEET,
+                    16,
+                    366,
+                    108,
+                    108,
+                    3,
+                    3,
+                    118,
+                    spriteChecker(16, 366, 118, 8),
+                    Treatment.KEYED,
+                    false,
+                    NATIVE_SIZE),
+            // enemies_r04 Polyp Mortar sheet: the 3 sac-pulse frames at 3x, kept at their native 36x36
+            // (the stat block's 44 px sprite comes with its production round, M4 part E).
+            new Cut(
+                    "polyp-mortar",
+                    POLYP_MORTAR_SHEET,
                     16,
                     366,
                     108,

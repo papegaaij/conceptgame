@@ -1,0 +1,381 @@
+{
+ "source": "tools/art/gorgon_frigate.py (production art, M4 part E batch)",
+ "bell": {
+  "origin": [
+   120,
+   118
+  ],
+  "crown_frames": 4
+ },
+ "headings": {
+  "steps": 32,
+  "first": -7,
+  "count": 15
+ },
+ "core": {
+  "offset": [
+   0,
+   10
+  ]
+ },
+ "death": {
+  "source": "tools/art/gorgon_frigate_death.py (production art, M4 part E batch (redo))",
+  "swap": 54,
+  "end": 160,
+  "frame_steps": 36,
+  "sink": 0.15,
+  "darken": 0.6,
+  "fade_from": 0.55,
+  "chunks": [
+   {
+    "sprite": "gorgon-frigate-chain-1",
+    "offsets": [
+     [
+      -71,
+      -117
+     ],
+     [
+      -71,
+      -115
+     ],
+     [
+      -71,
+      -116
+     ]
+    ],
+    "drift": [
+     -46,
+     -64
+    ]
+   },
+   {
+    "sprite": "gorgon-frigate-chain-2",
+    "offsets": [
+     [
+      0,
+      -133
+     ],
+     [
+      0,
+      -133
+     ],
+     [
+      0,
+      -132
+     ]
+    ],
+    "drift": [
+     4,
+     -82
+    ]
+   },
+   {
+    "sprite": "gorgon-frigate-chain-3",
+    "offsets": [
+     [
+      71,
+      -118
+     ],
+     [
+      71,
+      -116
+     ],
+     [
+      71,
+      -116
+     ]
+    ],
+    "drift": [
+     46,
+     -64
+    ]
+   },
+   {
+    "sprite": "gorgon-frigate-chunk-1",
+    "offsets": [
+     [
+      56,
+      -4
+     ],
+     [
+      52,
+      -4
+     ],
+     [
+      48,
+      -4
+     ]
+    ],
+    "drift": [
+     72,
+     -8
+    ]
+   },
+   {
+    "sprite": "gorgon-frigate-chunk-2",
+    "offsets": [
+     [
+      27,
+      55
+     ],
+     [
+      26,
+      54
+     ],
+     [
+      23,
+      53
+     ]
+    ],
+    "drift": [
+     34,
+     48
+    ]
+   },
+   {
+    "sprite": "gorgon-frigate-chunk-3",
+    "offsets": [
+     [
+      -55,
+      59
+     ],
+     [
+      -52,
+      54
+     ],
+     [
+      -50,
+      51
+     ]
+    ],
+    "drift": [
+     -36,
+     46
+    ]
+   },
+   {
+    "sprite": "gorgon-frigate-chunk-4",
+    "offsets": [
+     [
+      -57,
+      -19
+     ],
+     [
+      -54,
+      -20
+     ],
+     [
+      -51,
+      -17
+     ]
+    ],
+    "drift": [
+     -72,
+     -10
+    ]
+   },
+   {
+    "sprite": "gorgon-frigate-chunk-5",
+    "offsets": [
+     [
+      2,
+      -29
+     ],
+     [
+      4,
+      -27
+     ],
+     [
+      5,
+      -24
+     ]
+    ],
+    "drift": [
+     2,
+     -34
+    ]
+   }
+  ],
+  "blast_frame_steps": {
+   "explosion-large": 4,
+   "explosion-medium": 3,
+   "gorgon-frigate-ichor": 6
+  },
+  "blasts": [
+   {
+    "at": 24,
+    "sprite": "explosion-large",
+    "dx": -70,
+    "dy": 12
+   },
+   {
+    "at": 28,
+    "sprite": "explosion-large",
+    "dx": 62,
+    "dy": -18
+   },
+   {
+    "at": 32,
+    "sprite": "explosion-large",
+    "dx": 4,
+    "dy": 44
+   },
+   {
+    "at": 36,
+    "sprite": "explosion-large",
+    "dx": -50,
+    "dy": -100
+   },
+   {
+    "at": 40,
+    "sprite": "explosion-large",
+    "dx": 74,
+    "dy": 30
+   },
+   {
+    "at": 43,
+    "sprite": "explosion-large",
+    "dx": 46,
+    "dy": -118
+   },
+   {
+    "at": 44,
+    "sprite": "explosion-medium",
+    "dx": -20,
+    "dy": -62
+   },
+   {
+    "at": 46,
+    "sprite": "explosion-large",
+    "dx": -88,
+    "dy": -22
+   },
+   {
+    "at": 48,
+    "sprite": "explosion-large",
+    "dx": 0,
+    "dy": -150
+   },
+   {
+    "at": 50,
+    "sprite": "explosion-large",
+    "dx": 26,
+    "dy": 22
+   },
+   {
+    "at": 50,
+    "sprite": "explosion-medium",
+    "dx": 52,
+    "dy": 62
+   },
+   {
+    "at": 52,
+    "sprite": "explosion-large",
+    "dx": -32,
+    "dy": 52
+   },
+   {
+    "at": 52,
+    "sprite": "gorgon-frigate-ichor",
+    "dx": 0,
+    "dy": 10
+   },
+   {
+    "at": 53,
+    "sprite": "explosion-medium",
+    "dx": -66,
+    "dy": -150
+   },
+   {
+    "at": 54,
+    "sprite": "explosion-large",
+    "dx": 0,
+    "dy": 8
+   },
+   {
+    "at": 55,
+    "sprite": "explosion-large",
+    "dx": 92,
+    "dy": -8
+   },
+   {
+    "at": 56,
+    "sprite": "explosion-large",
+    "dx": -96,
+    "dy": 4
+   },
+   {
+    "at": 56,
+    "sprite": "explosion-medium",
+    "dx": 64,
+    "dy": -150
+   },
+   {
+    "at": 56,
+    "sprite": "gorgon-frigate-ichor",
+    "dx": -56,
+    "dy": -118
+   },
+   {
+    "at": 58,
+    "sprite": "explosion-medium",
+    "dx": 0,
+    "dy": -84
+   },
+   {
+    "at": 60,
+    "sprite": "explosion-medium",
+    "dx": 34,
+    "dy": 40
+   },
+   {
+    "at": 66,
+    "sprite": "explosion-medium",
+    "dx": 64,
+    "dy": 0
+   },
+   {
+    "at": 74,
+    "sprite": "explosion-large",
+    "dx": 1,
+    "dy": -166
+   },
+   {
+    "at": 82,
+    "sprite": "explosion-medium",
+    "dx": -78,
+    "dy": -23
+   },
+   {
+    "at": 90,
+    "sprite": "gorgon-frigate-ichor",
+    "dx": 44,
+    "dy": 84
+   },
+   {
+    "at": 98,
+    "sprite": "explosion-medium",
+    "dx": 95,
+    "dy": -162
+   },
+   {
+    "at": 108,
+    "sprite": "explosion-large",
+    "dx": -3,
+    "dy": -47
+   },
+   {
+    "at": 118,
+    "sprite": "explosion-medium",
+    "dx": -94,
+    "dy": -163
+   },
+   {
+    "at": 130,
+    "sprite": "explosion-medium",
+    "dx": -89,
+    "dy": 96
+   }
+  ]
+ }
+}

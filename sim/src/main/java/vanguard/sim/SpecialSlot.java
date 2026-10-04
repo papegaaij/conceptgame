@@ -70,6 +70,14 @@ public final class SpecialSlot {
         reset();
     }
 
+    /** Back to a boss checkpoint: its charges, those used and found until then, nothing flying. */
+    void restore(int charges, int used, int found) {
+        reset();
+        this.charges = charges;
+        this.used = used;
+        this.found = found;
+    }
+
     /** Back to the level start: the level-start charges, nothing flying. */
     void reset() {
         charges = spec == null ? 0 : spec.charges();
@@ -239,6 +247,7 @@ public final class SpecialSlot {
                 double px = piece.partX(p);
                 double py = piece.partY(p);
                 if (piece.partWrecked(p)
+                        || piece.partShielded(p)
                         || !PlayField.overlaps(px, py, box)
                         || !PlayerFire.inBlast(x, y, radius, px, py, box)) {
                     continue;

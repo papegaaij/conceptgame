@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../campaign]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Music
@@ -246,3 +246,6 @@ unchanged, OGG Vorbis q6, −14 LUFS, loop comments, `SOURCE` comment). Prompts:
   comments and the seam. Review sheet proposed for round 13; `art` stays `chosen`.
 - 2026-10-02: Concept round 13 closed (user decision): the title, hangar and briefing themes (`tools/art/themes.py`, identical to the chosen mixes) approved as **final**; `art` stays `chosen`, since the other tracks of the 28 are not final yet.
 - 2026-10-02: Concept round 15 closed (user decision): the "Afterburner" base stem approved as **final**.
+- 2026-10-03: M4 part E: track 21, the mini-boss sting, is imported (`assets/music/miniboss-sting.ogg`)
+  and plays when Level 05's frigate arrives (`music.boss_sting`): the level theme dips out over
+  0.5 s, the sting plays, the theme comes back over 0.5 s with the intensity stem on.

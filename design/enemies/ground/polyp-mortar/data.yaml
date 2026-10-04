@@ -1,0 +1,41 @@
+# Polyp Mortar stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Polyp Mortar
+faction: Vrell
+layer: ground
+tier: small
+size: [44, 44]    # sprite px
+hitbox: [32, 32]
+parts: single
+orientation: fixed
+hp: 10
+armour: none
+speed: 0          # scrolls with the ground
+movement:
+  terrain: {}
+attacks:
+  - pattern: mortar           # planned (part E)
+    bullet: heavy             # the blob's direct hit
+    interval: 3.5             # s between two lobs
+    speed: 110                # px/s, the ring's bullets
+    first_shot_delay: 1.5     # s after it enters the screen
+    mortar: {marker: 1.0, impact: 32, ring: 8, ring_bullet: small}   # planned (part E)
+    notes:
+      text: '`{pattern}` every {interval} s at the player''s position (first {first_shot_delay} s after it enters): a lime impact marker shows {mortar.marker} s ahead; the blob (not shootable) lands and bursts into a `ring` of {mortar.ring} bullets ({speed} px/s, `{mortar.ring_bullet}` = 4); a ship inside the {mortar.impact} px impact circle when it lands takes the direct hit `{bullet}` = {damage}'
+formations:
+  - {name: turret nest}
+weak_points:
+  - {name: lime mouth}
+drops: []
+traits: [anti-ground, area]
+bounty: 15
+first_level: 5
+difficulty:
+  hard: {ring: 12}
+notes:
+  speed: (scrolls with the ground)
+  movement: '`terrain`'
+  formations: (pairs or with Spine Turrets)
+  weak_points: (drawn only)
+  death: '`small` wet burst; acid splash decal on the ground layer'
+  used_in: Acts 1–2
+  difficulty: 'hard: 12-bullet ring'

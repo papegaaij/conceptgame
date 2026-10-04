@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../economy]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Scoring
@@ -46,7 +46,7 @@ a separate number, shown next to credits on the HUD:
 | Destruction | Kill ratio | kill % × 100 × level number |
 | Untouched | No armour damage | 5 000 × act |
 | Explorer | All secrets / data cores found | 3 000 × act |
-| Boss rush | Boss killed under par time | 2 000 × act |
+| Boss rush | Boss or mid-boss killed under its par time (the boss data's `par`) | 2 000 × act |
 <!-- /data -->
 
 ### Grades
@@ -108,3 +108,9 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
   more levels exist (user decision).
 - 2026-10-02: Ground targets are not kills (score like pickups, no chain, not in the kill ratio);
   a rammed enemy counts as a kill and pays its bounty (user decision).
+- 2026-10-03: M4 part E (user decision): mid-bosses earn the Boss rush bonus too; each boss's par
+  is its data's `par` (the Gorgon Frigate: 60 s at every difficulty), timed from its bar
+  appearing to the kill. The debrief's BOSS TIME row shows it.
+- 2026-10-03: M4 part E: the Boss rush is paid (`LevelResult.BossTime`: the level's boss killed
+  within its `par` from its arrival, when its bar appears); the debrief's BOSS TIME row is still to
+  come.

@@ -22,6 +22,9 @@ import java.util.Optional;
  * @param arcRadians a turret fires while the player is within this angle of its facing (straight
  *     down); infinite for units that fire every way
  * @param mine a mine layer's spore: it drops one at the interval instead of firing
+ * @param mortar a mortar's lob (design/enemies/ground/polyp-mortar): it lobs one at the interval at
+ *     the player's position instead of firing; {@code damage} is the direct hit's, {@code bulletSpeed}
+ *     the ring's
  */
 public record EnemyGun(
         double intervalSeconds,
@@ -34,7 +37,8 @@ public record EnemyGun(
         double spreadRadians,
         double turnRate,
         double arcRadians,
-        Optional<MineSpec> mine) {
+        Optional<MineSpec> mine,
+        Optional<MortarSpec> mortar) {
     /**
      * The gap between the shots of a burst. "Quick succession" in the attack vocabulary has no
      * number yet; this is a first value to tune.
@@ -63,6 +67,42 @@ public record EnemyGun(
             int credits) {
         /** A spore's hit box. */
         public static final Hitbox BOX = new Hitbox(10, 10);
+    }
+
+    /**
+     * A mortar's lob: a blob (not shootable) flies {@code flightSeconds} to where the player was at
+     * launch, its lime marker showing there all the while; it lands and bursts into a ring of
+     * {@code ring} bullets of {@code ringDamage}, and a ship within {@code impactRadius} px of the
+     * point takes the attack's damage (the direct hit).
+     */
+    public record MortarSpec(double flightSeconds, double impactRadius, int ring, double ringDamage) {}
+
+    /** An attack without a mortar. */
+    public EnemyGun(
+            double intervalSeconds,
+            double firstShotDelay,
+            int burst,
+            double bulletSpeed,
+            double damage,
+            boolean leadsTargetInCircle,
+            int fan,
+            double spreadRadians,
+            double turnRate,
+            double arcRadians,
+            Optional<MineSpec> mine) {
+        this(
+                intervalSeconds,
+                firstShotDelay,
+                burst,
+                bulletSpeed,
+                damage,
+                leadsTargetInCircle,
+                fan,
+                spreadRadians,
+                turnRate,
+                arcRadians,
+                mine,
+                Optional.empty());
     }
 
     /** An attack without a mine (aimed, a burst, a fan or a turret's). */

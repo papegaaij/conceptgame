@@ -4,7 +4,7 @@ design: draft
 implementation: done
 art: chosen
 depends-on: [..]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Reference voices
@@ -32,6 +32,7 @@ How the clips are chosen and used: [voice](../README.md#reference-voices).
 | `ref-crawler-one.wav` | Crawler One | Kara Shallenberg | [Heidi, introduction (Spyri)](https://archive.org/details/heidi_solo_librivox) | public domain | chosen (round 19) |
 | `ref-convoy.wav` | Convoy | Adrian Praetzellis | [Treasure Island, front matter (Stevenson)](https://archive.org/details/treasure_island_ap_librivox) | public domain | chosen (round 19) |
 | `ref-hammer-lead.wav` | Hammer Lead | Gord Mackenzie | [Scaramouche, book 1 ch. 1 (Sabatini)](https://archive.org/details/scaramouche_gm_librivox) | public domain | chosen (round 19) |
+| `ref-driver-control.wav` | Driver Control | Alex Foster | [The Invisible Man, ch. 1–2 (Wells)](https://archive.org/details/invisible_man_librivox) | public domain | chosen (round 21) |
 
 Round 19's chosen candidates were renamed to `ref-<speaker>.wav`; the rejected candidates and
 round 18's Tranquility Control clip (David Leeson), which no speaker uses any more, were deleted
@@ -42,6 +43,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
 
 - [x] Main cast clips (Okafor, Varga, Rook) in the repo, in CREDITS.md
 - [x] One clip per generic speaker, cast in [round 19](../../../concept-rounds/round-19/README.md)
+- [x] Driver Control's clip, cast in [round 21](../../../concept-rounds/round-21/README.md); the chosen
+      candidate renamed `ref-driver-control.wav`, the other deleted with its CREDITS.md row
 
 ## Decisions
 
@@ -50,3 +53,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
 - 2026-10-03: Round 19 closed: one clip per generic speaker (convoy a, crawler one b, dock b,
   Hammer Lead b, Ring Control b, Tranquility Control b, Yard Control a); the rejected candidates
   and `ref-control.wav` deleted with their CREDITS.md rows.
+- 2026-10-04: Round 21 candidates for Driver Control added (licences checked on each archive.org
+  item's `licenseurl`).
+- 2026-10-04: Round 21 decided (user): Driver Control is Alex Foster (a), renamed
+  `ref-driver-control.wav`; Rebecca's candidate (b) deleted with its CREDITS.md row (its source and
+  cut stay in `tools/concept/audio/tts_r21.py`).

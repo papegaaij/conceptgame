@@ -1,0 +1,107 @@
+# Gorgon Frigate stat block and boss script at medium: the stat block is rendered into README.md.
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+# A multi-part boss: its parts are hit boxes around the bell's centre, in its own frame (facing down
+# the screen: dx right, dy up towards its tail, so the heads hang at negative dy).
+name: Gorgon Frigate
+faction: Vrell
+layer: air
+tier: large
+size: [300, 320]    # sprite px, necks at rest
+hitbox: [200, 120]  # the bell (armoured)
+parts: multi
+part_list:  # offset [dx, dy] px from the bell's centre, the heads at their chains' rest ends
+  - {name: left head, offset: [-80, -170], hitbox: [36, 36], hp: 220, kind: destroyable, bounty: 30, attack: head-burst, multiplier: 1.5}
+  - {name: centre head, offset: [0, -190], hitbox: [36, 36], hp: 220, kind: destroyable, bounty: 30, attack: head-burst, multiplier: 1.5}
+  - {name: right head, offset: [80, -170], hitbox: [36, 36], hp: 220, kind: destroyable, bounty: 30, attack: head-burst, multiplier: 1.5}
+  - {name: core, offset: [0, 10], hitbox: [60, 60], hp: 840, kind: vital, bounty: 110, multiplier: 2}
+chains:  # the necks, armoured segments from the bell to a head
+  - {name: left neck, from: [-60, -50], to: left head, segments: 5, hitbox: [22, 22], lag: 0.12, bend: 30}
+  - {name: centre neck, from: [0, -60], to: centre head, segments: 5, hitbox: [22, 22], lag: 0.12, bend: 30}
+  - {name: right neck, from: [60, -50], to: right head, segments: 5, hitbox: [22, 22], lag: 0.12, bend: 30}
+orientation: 32 angles
+hp: 1500            # the parts' sum
+armour: bell and neck segments armoured (sparks, no damage)
+speed: 60           # px/s, the descent
+movement:
+  straight: {speed: 60}          # the descent from above the top edge, invulnerable
+  hover: {y: 110}                # the bell's centre, px below the top edge; holds until killed
+  sine: {amplitude: 40, period: 6}
+attacks:
+  - pattern: aimed
+    name: head-burst
+    bullet: small
+    interval: 1.2       # s: the living heads take turns, one burst every interval
+    speed: 160
+    burst: 3
+    burst_gap: 0.15     # s between the shots of a burst
+    rotate: true
+    notes:
+      text: 'phase 1: the heads take turns, one {burst}-shot `{pattern}` burst every {interval} s ({burst_gap} s apart, {speed} px/s, `{bullet}` = {damage})'
+  - pattern: aimed
+    name: head-rage
+    bullet: small
+    interval: 0.8
+    speed: 160
+    burst: 3
+    burst_gap: 0.15
+    notes:
+      text: 'phase 2: the last head bursts every {interval} s'
+  - pattern: ring
+    name: core-ring
+    bullet: small
+    count: 12
+    interval: 2.0       # s from the ring until the spiral starts
+    speed: 110
+    notes:
+      text: 'phase 3: the core fires a {count}-bullet `{pattern}` ({speed} px/s)'
+  - pattern: spiral
+    name: core-spiral
+    bullet: small
+    arms: 3
+    interval: 0.25      # s between two bullets of an arm
+    turn_rate: 60       # °/s the arms turn
+    duration: 3         # s the spiral runs before the next ring
+    speed: 90
+    notes:
+      text: '{attacks.2.interval} s later a slow {arms}-arm `{pattern}` for {duration} s ({speed} px/s, turning {turn_rate}°/s), then the next ring'
+formations:
+  - {name: carrier + escorts}
+weak_points:
+  - {name: heads' lime eyes, multiplier: 1.5}
+  - {name: lime core, multiplier: 2}
+drops: []
+traits: [forward, piercing, spread]
+bounty: 200         # the parts' sum
+first_level: 5
+difficulty:
+  hard:
+    attacks: {head-rage: {burst: 5}, core-ring: {count: 16}}
+boss:
+  kind: mid-boss    # mid-boss: the short bar
+  bar_name: GORGON FRIGATE
+  par: 60           # s from the boss bar appearing to the kill: the Boss rush bonus
+  phases:
+    - name: Three heads
+      until: {parts: [left head, centre head, right head], left: 1}
+      attacks: [head-burst]
+      streams: {enemy: skitter, count: 6, every: 10, interval: 0.5, edge: alternating}  # the first at the settle
+    - name: Last head
+      until: {parts: [left head, centre head, right head], left: 0}
+      attacks: [head-rage]
+      bend: 55      # the last neck lashes wider (° instead of its chain's bend)
+    - name: Core
+      until: {parts: [core], left: 0}
+      exposes: [core]
+      alternate: [core-ring, core-spiral]
+notes:
+  parts: 'bell (`armoured`), 3 necks of 5 `armoured` segments, 3 cobra heads (`destroyable` turrets), crown petals + core (`vital`, exposed in phase 3)'
+  orientation: (neck segments and heads; the bell 32 angles for its sway)
+  hp: head 220 each; core 840; total
+  speed: (the descent), then `hover`
+  movement: 'descends at {movement.straight.speed} px/s (invulnerable), then `hover` with bell centre at y {movement.hover.y} and a slow `sine` (amplitude {movement.sine.amplitude} px, period {movement.sine.period} s); the necks bend toward the player with lagged follow-through'
+  attack_prefix: 'see *Phases*: '
+  formations: (Skitter streams of 6 in phase 1)
+  bounty: ' (heads 30 each, core 110; ≈ 15 % of the L05 budget, 1,311)'
+  death: '`medium` chained bursts at each part, a cluster of `large` blasts over the bell and necks; the bell breaks into five wedges and the necks fall away, drifting apart and fading; crown petals tear off; credit shower'
+  used_in: mid-boss of L05 only
+  difficulty: 'hard: the last head fires 5-shot bursts; core rings of 16 bullets'

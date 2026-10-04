@@ -411,6 +411,41 @@ SOURCES = {
         page="https://freesound.org/people/cobratronik/sounds/117136/",
         preview="https://cdn.freesound.org/previews/117/117136_732072-hq.ogg",
         licence="CC0 1.0", loop=(30.0, 16.0, 2.0), band_rms=-36.0, peak=-10.0),
+    # Round 21 (Level 05, M4 part E, user decision D8): the mass-driver sled's whine (played
+    # while the rail lights chase, 1.5 s) and its pass (the 0.4 s run), the Polyp Mortar's lob
+    # and its impact; a/b per sound.
+    "hazard-sled-whine-r21-a": dict(          # a rail-gun charge hum, cut as a loop
+        page="https://freesound.org/people/BaggoNotes/sounds/785400/",
+        preview="https://cdn.freesound.org/previews/785/785400_15107322-hq.ogg",
+        licence="CC0 1.0", loop=(0.0, 0.78, 0.04, 'auto'), band_rms=-30.0, peak=-8.0),
+    "hazard-sled-whine-r21-b": dict(          # an electrical machine charging up: the last 1.6 s of its rise
+        page="https://freesound.org/people/JavierZumer/sounds/257229/",
+        preview="https://cdn.freesound.org/previews/257/257229_2836758-hq.ogg",
+        licence="CC-BY 4.0", offset=2.0, length=1.6, fade=0.1, fadein=0.3, band_rms=-30.0, peak=-8.0),
+    "hazard-sled-pass-r21-a": dict(           # a shipboard rail-gun crack with its tail
+        page="https://freesound.org/people/deleted_user_1941307/sounds/155790/",
+        preview="https://cdn.freesound.org/previews/155/155790_1941307-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.8, fade=0.7, band_rms=-24.0, peak=-3.0),
+    "hazard-sled-pass-r21-b": dict(           # a large object rushing past, low rumble
+        page="https://freesound.org/people/mattpavone/sounds/76175/",
+        preview="https://cdn.freesound.org/previews/76/76175_1163073-hq.ogg",
+        licence="CC0 1.0", offset=0.3, length=1.6, fade=0.7, fadein=0.15, band_rms=-24.0, peak=-3.0),
+    "enemy-mortar-lob-r21-a": dict(           # a real mortar fired, with reverb
+        page="https://freesound.org/people/Mozfoo/sounds/529239/",
+        preview="https://cdn.freesound.org/previews/529/529239_8708205-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.2, fade=0.6, band_rms=-27.0, peak=-6.0),
+    "enemy-mortar-lob-r21-b": dict(           # an organic spit
+        page="https://freesound.org/people/noahpardo/sounds/352404/",
+        preview="https://cdn.freesound.org/previews/352/352404_6246023-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.6, fade=0.15, band_rms=-27.0, peak=-6.0),
+    "enemy-mortar-impact-r21-a": dict(        # a moist splat
+        page="https://freesound.org/people/JustInvoke/sounds/446115/",
+        preview="https://cdn.freesound.org/previews/446/446115_758593-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=0.69, fade=0.3, band_rms=-27.0, peak=-4.0),
+    "enemy-mortar-impact-r21-b": dict(        # acid bubbling up: a sizzle
+        page="https://freesound.org/people/spookymodem/sounds/202094/",
+        preview="https://cdn.freesound.org/previews/202/202094_3756348-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=1.6, fade=0.6, band_rms=-30.0, peak=-8.0),
 }
 
 

@@ -19,7 +19,7 @@ import vanguard.sim.LevelScript.CueTrigger;
 import vanguard.sim.SimStep;
 
 /**
- * The timed radio lines of Levels 01–04 play when the level scripts mean them to: the real queue,
+ * The timed radio lines of Levels 01–05 play when the level scripts mean them to: the real queue,
  * stepped at the simulation's rate at the default text speed, with the event lines a player can
  * set off in between (an escaped Spore Bomber before the Leviathan's first pass, the lifeboat
  * secret, a convoy's first hit and loss, …), starts none of them more than a second after its time. Event lines wait for a gap
@@ -36,6 +36,7 @@ class RadioTimelineTest {
     private static final String LEVEL_02 = "act-1-first-contact/level-02-shipyard-burning";
     private static final String LEVEL_03 = "act-1-first-contact/level-03-spore-drift";
     private static final String LEVEL_04 = "act-1-first-contact/level-04-tranquility-run";
+    private static final String LEVEL_05 = "act-1-first-contact/level-05-crater-nest";
 
     /**
      * Timed lines written to follow the line before them rather than to start at their time, by
@@ -88,10 +89,25 @@ class RadioTimelineTest {
                     // a crawler lost to the bridge turrets, just before Varga's walker line … and after it
                     List.of(new Event(72, CueTrigger.FIRST_ALLY_LOST, "")),
                     List.of(new Event(126, CueTrigger.SECRET, "prospector's cache")),
-                    List.of(new Event(23, CueTrigger.FIRST_ALLY_HIT, ""))));
+                    List.of(new Event(23, CueTrigger.FIRST_ALLY_HIT, ""))),
+            LEVEL_05,
+            List.of(
+                    List.of(),
+                    // the batteries cleared as the autopilot clears them, the stuck sled opened between two sleds
+                    List.of(
+                            new Event(57.5, CueTrigger.GROUP_CLEARED, "Battery A"),
+                            new Event(90.5, CueTrigger.GROUP_CLEARED, "Battery B"),
+                            new Event(110.5, CueTrigger.GROUP_CLEARED, "Battery C"),
+                            new Event(137.5, CueTrigger.GROUP_CLEARED, "Battery D")),
+                    List.of(new Event(33, CueTrigger.SECRET, "stuck sled")),
+                    // the frigate's phases in a fast fight (the arena clock runs on), and its death
+                    List.of(
+                            new Event(137.5, CueTrigger.GROUP_CLEARED, "Battery D"),
+                            new Event(170, CueTrigger.BOSS_PHASE, "Core"),
+                            new Event(185, CueTrigger.BOSS_DESTROYED, "gorgon-frigate"))));
 
     @Test
-    void theTimedLinesOfLevels01To04StartAtMostASecondLate() {
+    void theTimedLinesOfLevels01To05StartAtMostASecondLate() {
         RUNS.forEach((level, runs) -> {
             for (Difficulty difficulty : Difficulty.values()) {
                 LevelScript script = SimSpecs.level(CONTENT, level, difficulty);
@@ -138,7 +154,9 @@ class RadioTimelineTest {
                         }
                         assertTrue(line.opened().isPresent(), level + ": the timed line at t=" + cue.t() + " plays");
                         assertTrue(
-                                VoiceLines.spoken(cue.line()).isEmpty() || voiceSeconds(cue) > 0,
+                                VoiceLines.spoken(cue.line()).isEmpty()
+                                        || voiceSeconds(cue) > 0
+                                        || CONTENT.voices().uncast(cue.speaker()),
                                 level + ": the timed line at t=" + cue.t() + " has its voice");
                         if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
                             continue;

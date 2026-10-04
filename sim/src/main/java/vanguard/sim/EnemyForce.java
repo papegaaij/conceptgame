@@ -28,6 +28,9 @@ final class EnemyForce {
     }
 
     private static final int MINE_CAPACITY = 96;
+    private static final int LOB_CAPACITY = 32;
+    /** How far outside a lob's impact circle its ring starts, px. */
+    private static final double RING_MARGIN = 12;
 
     private final SplitMix64 rng;
     private final Rules rules;
@@ -41,6 +44,7 @@ final class EnemyForce {
     private final Pool<Enemy> enemies = new Pool<>(ENEMY_CAPACITY, Enemy::new, Enemy[]::new);
     private final Pool<EnemyBullet> bullets = new Pool<>(BULLET_CAPACITY, EnemyBullet::new, EnemyBullet[]::new);
     private final Pool<Mine> mines = new Pool<>(MINE_CAPACITY, Mine::new, Mine[]::new);
+    private final Pool<Lob> lobs = new Pool<>(LOB_CAPACITY, Lob::new, Lob[]::new);
     private int spawned;
     private int nextGround;
     /** The convoy the target-the-objective hook aims at; null without one. */
@@ -60,6 +64,18 @@ final class EnemyForce {
             Rules rules,
             SimEvents events,
             Escapes escapes) {
+        this(waveSpecs, groundUnits, List.of(), rng, rules, events, escapes);
+    }
+
+    /** @param extraKinds enemies that enter outside the waves (a boss's streams), among the kinds too */
+    EnemyForce(
+            List<WaveSpec> waveSpecs,
+            List<LevelScript.GroundUnit> groundUnits,
+            List<EnemySpec> extraKinds,
+            SplitMix64 rng,
+            Rules rules,
+            SimEvents events,
+            Escapes escapes) {
         this.rng = rng;
         this.rules = rules;
         this.events = events;
@@ -69,6 +85,11 @@ final class EnemyForce {
         for (LevelScript.GroundUnit unit : groundUnits) {
             if (!distinct.contains(unit.enemy())) {
                 distinct.add(unit.enemy());
+            }
+        }
+        for (EnemySpec extra : extraKinds) {
+            if (!distinct.contains(extra)) {
+                distinct.add(extra);
             }
         }
         // The units a spawner releases are among the kinds too.
@@ -114,6 +135,7 @@ final class EnemyForce {
         Pools.clear(enemies);
         Pools.clear(bullets);
         Pools.clear(mines);
+        Pools.clear(lobs);
         waves.reset();
         spawned = 0;
         nextGround = 0;
@@ -173,6 +195,8 @@ final class EnemyForce {
                 EnemyGun gun = enemy.spec().gun().orElseThrow();
                 if (gun.mine().isPresent()) {
                     dropMine(enemy, gun);
+                } else if (gun.mortar().isPresent()) {
+                    lob(enemy, gun, ship);
                 } else {
                     fireAt(enemy, ship, target(enemy, ship));
                 }
@@ -278,6 +302,49 @@ final class EnemyForce {
                 false);
     }
 
+    /** Lets in one unit planned outside the waves (a boss's stream), now. */
+    void release(Spawn plan) {
+        Enemy enemy = enemies.obtain();
+        if (enemy != null) {
+            enemy.spawn(plan, spawned);
+        }
+        spawned++;
+    }
+
+    /**
+     * One bullet from (x, y) at {@code angle} radians (0 = right, y up), within the bullet budget;
+     * none when the ship is closer than the bullets may spawn.
+     */
+    void fireAngle(double x, double y, double angle, double speed, double damage, Ship ship) {
+        double dx = ship.x() - x;
+        double dy = ship.y() - y;
+        if (dx * dx + dy * dy < NO_FIRE_DISTANCE * NO_FIRE_DISTANCE || bullets.size() >= rules.bulletBudget()) {
+            return;
+        }
+        bullets.obtain().fire(x, y, Trig.cos(angle) * speed, Trig.sin(angle) * speed, damage);
+    }
+
+    /** The schedule's place, for a boss checkpoint: the next wave unit, the next ground unit, the units let in. */
+    int scheduleNext() {
+        return waves.next();
+    }
+
+    int nextGround() {
+        return nextGround;
+    }
+
+    int spawned() {
+        return spawned;
+    }
+
+    /** Back to a boss checkpoint: an empty field, the schedule where it was then. */
+    void restore(int scheduleNext, int ground, int spawnedUnits) {
+        reset();
+        waves.next(scheduleNext);
+        nextGround = ground;
+        spawned = spawnedUnits;
+    }
+
     /** A set piece's part fires its gun from (x, y) at the ship, as a unit that aims at once. */
     void fireFrom(double x, double y, EnemyGun gun, Ship ship) {
         fire(x, y, gun, false, 0, ship, -1, false);
@@ -367,6 +434,64 @@ final class EnemyForce {
                 mines.free(i);
             }
         }
+    }
+
+    /** A mortar lobs a blob at where the ship is now (the marker does not follow it). */
+    private void lob(Enemy enemy, EnemyGun gun, Ship ship) {
+        Lob lob = lobs.obtain();
+        if (lob != null) {
+            lob.launch(gun, enemy.x(), enemy.y(), ship.x(), ship.y());
+            events.add(SimEvents.Type.MORTAR_LOBBED, enemy.x(), enemy.y());
+        }
+    }
+
+    /**
+     * Flies the lobs, their start scrolling with the ground by {@code groundScroll}; one that lands
+     * bursts into its ring (whether the ship is near or not: the ring starts just outside the impact
+     * circle) and hits a ship within its impact circle. Returns the damage of the direct hits in this
+     * step, which the ship takes when it can be hit.
+     */
+    double moveLobs(Ship ship, double groundScroll) {
+        double direct = 0;
+        for (int i = lobs.size() - 1; i >= 0; i--) {
+            Lob lob = lobs.get(i);
+            lob.scroll(groundScroll);
+            if (!lob.fly()) {
+                continue;
+            }
+            EnemyGun gun = lob.gun();
+            EnemyGun.MortarSpec mortar = gun.mortar().orElseThrow();
+            double x = lob.targetX();
+            double y = lob.targetY();
+            // The ring starts just outside the impact circle, so a ship hit directly is not also
+            // hit by the ring as it forms.
+            double start = mortar.impactRadius() + RING_MARGIN;
+            for (int k = 0; k < mortar.ring() && bullets.size() < rules.bulletBudget(); k++) {
+                double angle = 2 * StrictMath.PI * k / mortar.ring();
+                double cos = Trig.cos(angle);
+                double sin = Trig.sin(angle);
+                bullets.obtain()
+                        .fire(
+                                x + cos * start,
+                                y + sin * start,
+                                cos * gun.bulletSpeed(),
+                                sin * gun.bulletSpeed(),
+                                mortar.ringDamage());
+            }
+            double dx = ship.x() - x;
+            double dy = ship.y() - y;
+            boolean hit = dx * dx + dy * dy <= mortar.impactRadius() * mortar.impactRadius();
+            if (hit) {
+                direct += gun.damage();
+            }
+            events.add(SimEvents.Type.MORTAR_IMPACT, x, y, hit ? 1 : 0);
+            lobs.free(i);
+        }
+        return direct;
+    }
+
+    Pool<Lob> lobs() {
+        return lobs;
     }
 
     /** A destroyed unit with a death burst pops into its puff of bullets. */

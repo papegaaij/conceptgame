@@ -15,6 +15,8 @@ import java.util.List;
  * @param gradeBonus the grade's credit bonus on the credits earned
  * @param escort the convoy of an {@code escort} primary objective: its units home and their pay
  *     (part of the objectives' credits); {@link Escort#NONE} without one
+ * @param bossTime the level's boss: its par and kill time (the Boss rush bonus, the debrief's BOSS
+ *     TIME row); {@link BossTime#NONE} without one
  */
 public record LevelResult(
         int kills,
@@ -31,9 +33,64 @@ public record LevelResult(
         double rating,
         ScoringRules.Grade grade,
         int gradeBonus,
-        Escort escort) {
+        Escort escort,
+        BossTime bossTime) {
     public LevelResult {
         bonuses = List.copyOf(bonuses);
+    }
+
+    /** A result without a boss. */
+    public LevelResult(
+            int kills,
+            int enemies,
+            double armourDamage,
+            int secretsFound,
+            int secrets,
+            int maxChain,
+            double maxMultiplier,
+            boolean secondaryMet,
+            Credits credits,
+            List<BonusScore> bonuses,
+            long score,
+            double rating,
+            ScoringRules.Grade grade,
+            int gradeBonus,
+            Escort escort) {
+        this(
+                kills,
+                enemies,
+                armourDamage,
+                secretsFound,
+                secrets,
+                maxChain,
+                maxMultiplier,
+                secondaryMet,
+                credits,
+                bonuses,
+                score,
+                rating,
+                grade,
+                gradeBonus,
+                escort,
+                BossTime.NONE);
+    }
+
+    /**
+     * The level's boss: killed {@code killSeconds} after its bar appeared (negative: not killed),
+     * against its {@code parSeconds}.
+     */
+    public record BossTime(double parSeconds, double killSeconds) {
+        public static final BossTime NONE = new BossTime(0, -1);
+
+        /** Whether the level had a boss. */
+        public boolean present() {
+            return parSeconds > 0;
+        }
+
+        /** Whether it was killed within its par: the Boss rush bonus. */
+        public boolean underPar() {
+            return present() && killSeconds >= 0 && killSeconds <= parSeconds;
+        }
     }
 
     /** A result without a convoy. */
@@ -125,6 +182,30 @@ public record LevelResult(
             int secretsFound,
             boolean secondaryMet,
             Escort escort) {
+        return of(
+                rules,
+                script,
+                tally,
+                enemies,
+                armourDamage,
+                maxArmour,
+                secretsFound,
+                secondaryMet,
+                escort,
+                BossTime.NONE);
+    }
+
+    static LevelResult of(
+            ScoringRules rules,
+            LevelScript script,
+            Tally tally,
+            int enemies,
+            double armourDamage,
+            double maxArmour,
+            int secretsFound,
+            boolean secondaryMet,
+            Escort escort,
+            BossTime bossTime) {
         Credits credits = new Credits(
                 tally.credits(CreditSource.KILLS),
                 tally.credits(CreditSource.GROUND_TARGETS),
@@ -142,7 +223,7 @@ public record LevelResult(
                         case DESTRUCTION -> kills > 0;
                         case UNTOUCHED -> armourDamage == 0;
                         case EXPLORER -> secrets > 0 && secretsFound == secrets;
-                        case BOSS_RUSH -> false;
+                        case BOSS_RUSH -> bossTime.underPar();
                     };
             if (paid) {
                 double points = bonus.points() * (bonus.perLevel() ? script.number() : script.act());
@@ -184,6 +265,7 @@ public record LevelResult(
                 rating,
                 grade,
                 gradeBonus,
-                escort);
+                escort,
+                bossTime);
     }
 }

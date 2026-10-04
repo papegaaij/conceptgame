@@ -21,6 +21,7 @@ import java.util.Locale;
 import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
 import vanguard.sim.Ally;
+import vanguard.sim.LevelScript;
 import vanguard.sim.Sortie;
 
 /**
@@ -111,15 +112,17 @@ final class MissionPanel {
     void draw(SpriteBatch batch, Sortie sortie, RadioQueue radio, List<PromptTexts.Text> prompts) {
         frame++;
         if (groupsLabel == null) {
-            groupsLabel = groupsLabel(sortie.script().secondary().groups());
-            escapesLabel = escapesLabel(sortie.script().secondary().escapes());
+            groupsLabel = groupsLabel(sortie.script().groups());
+            LevelScript.Secondary secondary = sortie.script().secondary();
+            escapesLabel = secondary.killAll().isEmpty() ? escapesLabel(secondary.escapes()) : secondary.label();
             sortie.script().escort().ifPresent(escort -> {
                 alliesLabel = escapesLabel(escort.ally().slug());
                 String pip = escort.ally().slug() + "-pip";
                 allyPip = sprites.has(pip) ? sprites.region(pip) : null;
             });
         }
-        boolean two = sortie.allyCount() > 0;
+        boolean targets = !sortie.script().targets().isEmpty();
+        boolean two = sortie.allyCount() > 0 || targets;
         kit.leftPanel(batch);
         int top = MissionLayout.MISSION.yTop();
         plate(batch, mission, top);
@@ -131,7 +134,9 @@ final class MissionPanel {
         drawChain(batch, sortie);
         drawRadio(batch, radio);
         drawPrompts(batch, prompts, two);
-        if (two) {
+        if (targets) {
+            drawTargetsTracker(batch, sortie);
+        } else if (two) {
             drawTwoTrackers(batch, sortie);
         } else {
             drawTracker(batch, sortie);
@@ -309,6 +314,64 @@ final class MissionPanel {
         drawSecondary(batch, sortie, wellTop - LINE, MissionLayout.TWO_LINE_WELL - LINE);
     }
 
+    /**
+     * The two-line tracker of a destroy-targets primary (design/ui/hud, Level 05): its label
+     * ({@code BATTERIES}) and each group's letter, dim while open, struck through in green once
+     * cleared, red when lost (the line flashing red as the primary fails); the secondary below.
+     */
+    private void drawTargetsTracker(SpriteBatch batch, Sortie sortie) {
+        int wellTop = well(batch, MissionLayout.TWO_OBJECTIVES.yTop(), MissionLayout.TWO_LINE_WELL);
+        if (sortie.primaryFailed() && primaryFailedFrame < 0) {
+            primaryFailedFrame = frame;
+        } else if (!sortie.primaryFailed()) {
+            primaryFailedFrame = -1;
+        }
+        boolean failFlash = primaryFailedFrame >= 0
+                && frame - primaryFailedFrame < FLASH_FRAMES
+                && (frame - primaryFailedFrame) / 8 % 2 == 0;
+        if (failFlash) {
+            kit.fill(batch, LOST, X, wellTop - LINE, WIDTH, LINE);
+        }
+        Color colour = failFlash ? HudKit.LCD : sortie.primaryFailed() ? LOST : HudKit.LABEL;
+        int y = wellTop - TEXT_DROP;
+        kit.text(batch, kit.body, groupsLabel, colour, X + PAD, y, TEXT_WIDTH);
+        List<String> groups = sortie.script().groups();
+        int count = groups.size();
+        if (groupStates.length != count) {
+            groupStates = new int[count];
+            groupChanged = new int[count];
+        }
+        int letterX = X + PAD + TEXT_WIDTH - count * GROUP_PIP_STEP;
+        for (int g = 0; g < count; g++) {
+            int state = sortie.groupState(g);
+            if (state != groupStates[g]) {
+                groupStates[g] = state;
+                groupChanged[g] = frame;
+            }
+            int since = frame - groupChanged[g];
+            boolean blink = state != 0 && since < FLASH_FRAMES && since / 8 % 2 == 1;
+            Color letter =
+                    switch (state) {
+                        case 1 -> SUCCESS;
+                        case 2 -> LOST;
+                        default -> HudKit.LABEL;
+                    };
+            if (failFlash) {
+                letter = HudKit.LCD;
+            } else if (blink) {
+                letter = GROUP_OPEN;
+            }
+            String name = groups.get(g);
+            String mark = name.substring(name.lastIndexOf(' ') + 1);
+            int left = letterX + g * GROUP_PIP_STEP;
+            kit.text(batch, kit.body, mark, letter, left, y, GROUP_PIP_STEP);
+            if (state == 1) {
+                kit.fill(batch, letter, left - 1, y - LINE / 2 - 1, GROUP_PIP_STEP - 4, 2);
+            }
+        }
+        drawSecondary(batch, sortie, wellTop - LINE, MissionLayout.TWO_LINE_WELL - LINE);
+    }
+
     /** The secondary objective's line in a well (or the lower half of one) whose top is at {@code top}. */
     private void drawSecondary(SpriteBatch batch, Sortie sortie, int top, int height) {
         int wellTop = top;
@@ -333,7 +396,7 @@ final class MissionPanel {
                 ? HudKit.LCD
                 : sortie.secondaryMet() ? SUCCESS : sortie.secondaryFailed() ? LOST : HudKit.LABEL;
         int y = wellTop - TEXT_DROP;
-        if (sortie.groupCount() > 0) {
+        if (sortie.script().secondary().byGroups()) {
             drawGroups(batch, sortie, colour, y);
             return;
         }
@@ -382,14 +445,15 @@ final class MissionPanel {
         }
     }
 
-    /** "Dock One", "Dock Two" ... reads "DOCKS". */
+    /** "Dock One", "Dock Two" ... reads "DOCKS"; "Battery A" ... "BATTERIES". */
     static String groupsLabel(List<String> groups) {
         if (groups.isEmpty()) {
             return "";
         }
         String first = groups.getFirst();
         int space = first.indexOf(' ');
-        return (space > 0 ? first.substring(0, space) : first).toUpperCase(Locale.ROOT) + "S";
+        String noun = (space > 0 ? first.substring(0, space) : first).toUpperCase(Locale.ROOT);
+        return noun.endsWith("Y") ? noun.substring(0, noun.length() - 1) + "IES" : noun + "S";
     }
 
     /** {@code spore-bomber} reads "BOMBERS"; empty for none. */

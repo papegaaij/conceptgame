@@ -54,6 +54,14 @@ public enum Sfx {
      * placeholder until the recorded enemy sounds replace it.
      */
     LEVIATHAN_CRY("sfx/enemy-leviathan-cry-r16-a.ogg", 1, Bus.EFFECTS),
+    /** The Polyp Mortar's lob (round 21 a, a real mortar thump). */
+    MORTAR_LOB("sfx/enemy-mortar-lob-r21-a.ogg", 2, Bus.EFFECTS),
+    /** The Polyp Mortar's blob landing on its marker (round 21 a, a wet splat). */
+    MORTAR_IMPACT("sfx/enemy-mortar-impact-r21-a.ogg", 3, Bus.EFFECTS),
+    /** The mass-driver rail's charge hum while the lights chase before a sled (round 21 a, a 0.78 s loop). */
+    SLED_WHINE("sfx/hazard-sled-whine-r21-a.ogg", 2, Bus.EFFECTS),
+    /** A sled racing up the rail (round 21 b, a rushing flyby). */
+    SLED_PASS("sfx/hazard-sled-pass-r21-b.ogg", 1, Bus.EFFECTS),
     /** A Brood Pod bursting into its Skitters, shot or on its own (round 08 b, the fleshy burst). */
     BROOD_BURST("sfx/enemy-spawn-r08-b.ogg", 2, Bus.EFFECTS),
     /** The Airstrike's jets flyby (round 08 a), as the bombers enter. */
@@ -70,6 +78,8 @@ public enum Sfx {
     MISSION_COMPLETE("music/mission-complete.ogg", 1, Bus.MUSIC),
     /** The music's failure sting (design/audio/music, track 25), played over the cut music. */
     MISSION_FAILED("music/mission-failed.ogg", 1, Bus.MUSIC),
+    /** Track 21, the mini-boss sting (round 08 a "Contact Heavy"). */
+    MINIBOSS_STING("music/miniboss-sting.ogg", 1, Bus.MUSIC),
     /** The game over cue (design/audio/music, track 26), played as a one-shot. */
     GAME_OVER("music/game-over.ogg", 1, Bus.MUSIC),
     MENU_MOVE("sfx/ui-menu-move-r08-a.ogg", 2, Bus.EFFECTS),

@@ -80,3 +80,15 @@ Hammer Lead (Airstrike special, the call), fierce (0.8 / 0.4 / 0.8): "Hammer fli
 |---|---|---|---|---|
 | a | Mark F. Smith | [The Lost World, ch. 1 (Doyle)](https://archive.org/details/lost_world_mfs_librivox), cut at 120 s | public domain | 102 Hz |
 | b | Gord Mackenzie | [Scaramouche, book 1 ch. 1 (Sabatini)](https://archive.org/details/scaramouche_gm_librivox), cut at 60 s | public domain | 100 Hz |
+
+## voice-driver-control
+
+Round 21 (the Level 05 audition, user decision D4 of M4 part E), generated with
+`tools/concept/audio/tts_r21.py` the same way as round 19 (seed 21 + the take's index). Driver
+Control (L05, t 12.5), fierce (0.8 / 0.4 / 0.8): "Mass driver's still on automatic, Aegis. Sleds
+every five seconds. Watch the rail lights."
+
+| Variant | Reader | Source | Licence | Clip pitch |
+|---|---|---|---|---|
+| a | Alex Foster | [The Invisible Man, ch. 1–2 (Wells)](https://archive.org/details/invisible_man_librivox), cut at 60 s | public domain | 81 Hz (a deep, slow narrator) |
+| b | Rebecca | [The War of the Worlds, book 1 ch. 1 (Wells)](https://archive.org/details/war_worlds_solo_librivox), cut at 60 s | public domain | 113 Hz (a low female voice) |

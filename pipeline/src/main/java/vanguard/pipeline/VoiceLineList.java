@@ -36,7 +36,7 @@ public final class VoiceLineList {
                     .append(", ")
                     .append(field("speaker", line.speaker()))
                     .append(", ")
-                    .append(field("ref", speaker.ref()))
+                    .append(field("ref", speaker.ref().orElseThrow()))
                     .append(", ")
                     .append(field("layering", speaker.layering().orElse("")))
                     .append(", ")

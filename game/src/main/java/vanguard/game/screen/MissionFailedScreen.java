@@ -25,8 +25,9 @@ import vanguard.sim.LevelScript;
  * when the level has one), Retry (the level at once, from its start state),
  * Back to hangar (the level-start state, to change the loadout first) and Quit to main menu (after
  * a confirmation), with what the attempt earned and, on hard, the retries left: the failure has
- * used its retry already (and the autosave holds it), so Retry and Back to hangar only take it. Retry from boss
- * comes with the first boss checkpoint (Level 01 has no boss).
+ * used its retry already (and the autosave holds it), so Retry and Back to hangar only take it. Once
+ * the attempt reached a boss checkpoint (easy and medium), Retry from boss comes first: the boss's
+ * arrival on an empty field with the defences and tallies of then; it uses no retry.
  */
 public final class MissionFailedScreen implements GameScreen {
     private static final Color TINT = new Color(0.45f, 0.02f, 0.02f, 0.5f);
@@ -43,6 +44,7 @@ public final class MissionFailedScreen implements GameScreen {
     private static final String DEFAULT_LINE = "Pull back, Lancer. Regroup and try again.";
 
     private enum Item {
+        BOSS,
         RETRY,
         HANGAR,
         QUIT
@@ -51,10 +53,7 @@ public final class MissionFailedScreen implements GameScreen {
     private final GameServices services;
     private final LevelScreen level;
     private final Campaign campaign;
-    private final Menu<Item> menu = new Menu<>(List.of(
-            Menu.Item.of(Item.RETRY, "RETRY"),
-            Menu.Item.of(Item.HANGAR, "BACK TO HANGAR"),
-            Menu.Item.of(Item.QUIT, "QUIT TO MAIN MENU")));
+    private final Menu<Item> menu;
     private final Speaker speaker;
     private final List<String> lines;
     private Optional<Dialog> quit = Optional.empty();
@@ -63,6 +62,14 @@ public final class MissionFailedScreen implements GameScreen {
         this.services = services;
         this.level = level;
         this.campaign = level.campaign();
+        List<Menu.Item<Item>> items = new java.util.ArrayList<>();
+        if (level.bossCheckpoint()) {
+            items.add(Menu.Item.of(Item.BOSS, "RETRY FROM BOSS"));
+        }
+        items.add(Menu.Item.of(Item.RETRY, "RETRY"));
+        items.add(Menu.Item.of(Item.HANGAR, "BACK TO HANGAR"));
+        items.add(Menu.Item.of(Item.QUIT, "QUIT TO MAIN MENU"));
+        menu = new Menu<>(items);
         speaker = level.failureLine()
                 .map(cue -> Speaker.of(
                         cue.speaker(), Expression.valueOf(cue.expression().toUpperCase(Locale.ROOT)), services.sprites))
@@ -109,6 +116,10 @@ public final class MissionFailedScreen implements GameScreen {
             services.voices.stop();
         }
         return switch (menu.selectedId()) {
+            case BOSS -> {
+                level.retryFromBoss();
+                yield Transition.BACK;
+            }
             case RETRY -> {
                 level.retry(campaign.armour());
                 yield Transition.BACK;

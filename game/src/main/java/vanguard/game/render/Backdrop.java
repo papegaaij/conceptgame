@@ -66,7 +66,7 @@ public final class Backdrop {
         ramp = data.ramp();
         pixel = sprites.pixel;
         haze = Color.valueOf(data.hazeColour());
-        String folder = folder(levelKey);
+        String folder = folder(levelKey, level);
         int layerCount = BackdropLayer.values().length;
         int sectionCount = level.sections().size();
         tiles = new Tiles[layerCount][sectionCount];
@@ -112,6 +112,14 @@ public final class Backdrop {
                             .orElse(null),
                     (float) look.haze());
         }
+    }
+
+    /**
+     * The atlas folder a level's backdrop images come from: another level's when the data names one
+     * ({@code images: level-04}, Level 05 reusing Level 04's Luna), else its own.
+     */
+    public static String folder(String levelKey, LevelData level) {
+        return level.backdrop().images().map(folder -> folder + "/").orElseGet(() -> folder(levelKey));
     }
 
     /** The atlas folder of a level's backdrop: {@code level-NN/}. */

@@ -24,6 +24,11 @@ import java.util.Optional;
  * @param setPieces the huge set-piece units flying their passes (Level 03's Leviathan)
  * @param escort the {@code escort} primary objective's convoy, instead of only reaching the end
  * @param road the road on the ground layer that a convoy follows
+ * @param targets the {@code destroy-targets} primary objective's groups (Level 05's batteries):
+ *     the ground units' {@link GroundUnit#group()} indexes them; empty for another primary
+ * @param sled the mass-driver sleds (Level 05)
+ * @param rocks the rocks a destroyed ground unit throws in low gravity (Level 05)
+ * @param groupDrops pickups dropped where a group's last unit dies when it is cleared
  */
 public record LevelScript(
         int number,
@@ -40,8 +45,17 @@ public record LevelScript(
         List<DebrisSpec> debris,
         List<SetPieceSpec> setPieces,
         Optional<Escort> escort,
-        Optional<Road> road) {
+        Optional<Road> road,
+        List<String> targets,
+        Optional<SledSpec> sled,
+        Optional<RockSpec> rocks,
+        List<GroupDrop> groupDrops) {
     public LevelScript {
+        targets = List.copyOf(targets);
+        groupDrops = List.copyOf(groupDrops);
+        if (!targets.isEmpty() && secondary.byGroups()) {
+            throw new IllegalArgumentException("groups belong to the primary or to the secondary objective");
+        }
         sections = List.copyOf(sections);
         waves = List.copyOf(waves);
         groundObjects = List.copyOf(groundObjects);
@@ -56,6 +70,45 @@ public record LevelScript(
         if (escort.isPresent() && road.isEmpty()) {
             throw new IllegalArgumentException("a convoy follows the level's road");
         }
+    }
+
+    /** A level without the destroy-targets primary, sleds or rocks. */
+    public LevelScript(
+            int number,
+            int act,
+            double launchSeconds,
+            List<Section> sections,
+            List<WaveSpec> waves,
+            List<GroundObjectSpec> groundObjects,
+            List<GroundUnit> groundUnits,
+            int secrets,
+            List<RadioCue> radio,
+            Secondary secondary,
+            List<CraneSpec> cranes,
+            List<DebrisSpec> debris,
+            List<SetPieceSpec> setPieces,
+            Optional<Escort> escort,
+            Optional<Road> road) {
+        this(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                List.of(),
+                Optional.empty(),
+                Optional.empty(),
+                List.of());
     }
 
     /** A level without a convoy or a road. */
@@ -125,6 +178,68 @@ public record LevelScript(
         return sections.getLast().end();
     }
 
+    /** The names of the groups the ground units' {@link GroundUnit#group()} indexes: the primary's or the secondary's. */
+    public List<String> groups() {
+        return targets.isEmpty() ? secondary.groups() : targets;
+    }
+
+    /**
+     * The mass-driver sleds (design/world/luna, hazards): every {@code periodSeconds} from
+     * {@code firstSeconds} until {@code untilSeconds} a sled shoots up the rail at {@code x}, a line
+     * {@code width} px wide across the field, for {@code runSeconds}, after its lights chased for
+     * {@code lightsSeconds}. It hits the ship for {@code damage} (once per sled) and blocks shots
+     * and enemy bullets while it runs; the trigger that reveals {@code clampSecret} can only be hit
+     * while the rail is dark.
+     */
+    public record SledSpec(
+            double x,
+            double width,
+            double firstSeconds,
+            double periodSeconds,
+            double untilSeconds,
+            double lightsSeconds,
+            double runSeconds,
+            double damage,
+            String clampSecret) {
+        public SledSpec {
+            if (!(periodSeconds > lightsSeconds + runSeconds) || !(width > 0) || !(damage > 0)) {
+                throw new IllegalArgumentException("a sled's period holds its lights and its run");
+            }
+        }
+    }
+
+    /**
+     * Rocks a destroyed ground unit throws in low gravity (design/campaign, Level 05): {@code min}
+     * to {@code max} of them (from the simulation's random numbers) on the air layer, each drifting
+     * at {@code minSpeed}..{@code maxSpeed} px/s in a random direction until it vanishes after
+     * {@code lifeSeconds}; {@code hp}, contact {@code damage}, no credits. None is thrown when the
+     * unit lies within {@code clearance} px of the ship.
+     */
+    public record RockSpec(
+            int min,
+            int max,
+            double minSpeed,
+            double maxSpeed,
+            double lifeSeconds,
+            Hitbox size,
+            double hp,
+            double damage,
+            double clearance) {
+        public RockSpec {
+            if (min < 0 || max < min || !(lifeSeconds > 0)) {
+                throw new IllegalArgumentException("rocks: min <= max, a life");
+            }
+        }
+
+        /** The debris chunk a rock is. */
+        public DebrisSpec chunk() {
+            return new DebrisSpec(0, 0, "rock", size, 0, -1, hp, damage, clearance);
+        }
+    }
+
+    /** A pickup dropped where the last unit of group {@code group} died, when the group is cleared. */
+    public record GroupDrop(int group, PickupType pickup) {}
+
     /**
      * The {@code escort} primary objective (design/allies; design/campaign, Level 04): a convoy of
      * {@code ally} units, one per station, rolling in from the bottom edge one every
@@ -153,8 +268,16 @@ public record LevelScript(
         }
     }
 
-    /** A stretch of the scroll ending at {@code end} seconds, scrolling at {@code speed} px/s. */
-    public record Section(double end, double speed) {}
+    /**
+     * A stretch of the scroll ending at {@code end} seconds, scrolling at {@code speed} px/s. In a
+     * boss {@code arena} the level clock halts at the section's end while the boss lives, and jumps
+     * to that end when the boss dies earlier (design/enemies/bosses, the arena).
+     */
+    public record Section(double end, double speed, boolean arena) {
+        public Section(double end, double speed) {
+            this(end, speed, false);
+        }
+    }
 
     /**
      * The secondary objective: destroy at least {@code killRatio} of all enemies for
@@ -165,10 +288,19 @@ public record LevelScript(
      * @param groups the groups' names (the ground units' {@link GroundUnit#group()} indexes them); empty for a kill ratio
      * @param escapes the slug of the enemy none of which may leave the screen alive ("nothing gets
      *     through", Level 03): met when all are destroyed, failed when one gets away; empty for none
+     * @param killAll the enemies every unit of which must be destroyed (Level 05's "Scorched
+     *     crater"), met and failed as {@code escapes}; empty for none
+     * @param label the tracker's label of a kill-all objective ("NEST")
      */
-    public record Secondary(double killRatio, int credits, List<String> groups, String escapes) {
+    public record Secondary(
+            double killRatio, int credits, List<String> groups, String escapes, List<String> killAll, String label) {
         public Secondary {
             groups = List.copyOf(groups);
+            killAll = List.copyOf(killAll);
+        }
+
+        public Secondary(double killRatio, int credits, List<String> groups, String escapes) {
+            this(killRatio, credits, groups, escapes, List.of(), "");
         }
 
         public Secondary(double killRatio, int credits, List<String> groups) {
@@ -184,9 +316,17 @@ public record LevelScript(
             return !groups.isEmpty();
         }
 
-        /** Whether the objective is that none of an enemy gets away. */
+        /**
+         * Whether the objective is that none of an enemy gets away, or that every unit of the
+         * {@code killAll} enemies is destroyed (Level 05's "Scorched crater").
+         */
         public boolean byEscapes() {
-            return !escapes.isEmpty();
+            return !escapes.isEmpty() || !killAll.isEmpty();
+        }
+
+        /** Whether a unit of {@code slug} counts towards an escapes or kill-all objective. */
+        public boolean counts(String slug) {
+            return escapes.equals(slug) || killAll.contains(slug);
         }
     }
 
@@ -429,7 +569,8 @@ public record LevelScript(
             double contactDamage,
             List<PartSpec> parts,
             List<Pass> passes,
-            Optional<PickupType> drop) {
+            Optional<PickupType> drop,
+            Optional<BossSpec> boss) {
         /** The body hits the ship at most once in this time. */
         public static final double HIT_INTERVAL_SECONDS = 1;
         /** The most parts a set piece can have (homing locks and pierce keys encode the part in this). */
@@ -438,12 +579,30 @@ public record LevelScript(
         public SetPieceSpec {
             parts = List.copyOf(parts);
             passes = List.copyOf(passes);
-            if (parts.isEmpty() || parts.size() > MAX_PARTS || passes.isEmpty()) {
-                throw new IllegalArgumentException(slug + ": a set piece has 1–" + MAX_PARTS + " parts and a pass");
+            if (parts.isEmpty() || parts.size() > MAX_PARTS || passes.isEmpty() == boss.isEmpty()) {
+                throw new IllegalArgumentException(
+                        slug + ": a set piece has 1–" + MAX_PARTS + " parts and passes, or a boss script");
             }
             if (parts.stream().noneMatch(PartSpec::vital)) {
                 throw new IllegalArgumentException(slug + ": a set piece has a vital part");
             }
+        }
+
+        /** A set piece flying passes, without a boss script. */
+        public SetPieceSpec(
+                String slug,
+                Hitbox size,
+                Hitbox body,
+                double contactDamage,
+                List<PartSpec> parts,
+                List<Pass> passes,
+                Optional<PickupType> drop) {
+            this(slug, size, body, contactDamage, parts, passes, drop, Optional.empty());
+        }
+
+        /** Whether it is a boss (it has a boss script rather than passes). */
+        public boolean isBoss() {
+            return boss.isPresent();
         }
 
         /** Its bounty: the parts' together. */
@@ -460,6 +619,7 @@ public record LevelScript(
      * @param vital destroying it destroys the rest of the unit
      * @param gun the attack it fires while the unit is on the player's layer
      * @param firstShotSeconds when it first fires after the unit has reached the player's layer
+     * @param multiplier the damage it takes is multiplied by this (a weak point: a boss's lime eyes)
      */
     public record PartSpec(
             String name,
@@ -470,7 +630,21 @@ public record LevelScript(
             boolean vital,
             int bounty,
             Optional<EnemyGun> gun,
-            double firstShotSeconds) {}
+            double firstShotSeconds,
+            double multiplier) {
+        public PartSpec(
+                String name,
+                double dx,
+                double dy,
+                Hitbox box,
+                double hp,
+                boolean vital,
+                int bounty,
+                Optional<EnemyGun> gun,
+                double firstShotSeconds) {
+            this(name, dx, dy, box, hp, vital, bounty, gun, firstShotSeconds, 1);
+        }
+    }
 
     /**
      * One pass of a set piece: from the first waypoint's time it flies along {@code path} on
@@ -597,6 +771,10 @@ public record LevelScript(
         /** The first convoy unit lost in the attempt; its line may name the unit ({@code {ally}}). */
         FIRST_ALLY_LOST,
         /** The primary objective failed: the line the mission failed screen shows, not played on the radio. */
-        MISSION_FAILED
+        MISSION_FAILED,
+        /** A boss entered a phase after its first; the subject is the phase's name. */
+        BOSS_PHASE,
+        /** A boss was destroyed; the subject is its slug. */
+        BOSS_DESTROYED
     }
 }

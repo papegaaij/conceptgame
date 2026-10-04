@@ -60,6 +60,24 @@ final class Formations {
 
     private Formations() {}
 
+    /**
+     * A boss stream's unit (design/enemies/bosses: Skitter streams from the side edges), entering
+     * from the left or the right edge on a side stream's path; its tick is not read.
+     */
+    static Spawn streamUnit(EnemySpec enemy, int kind, boolean left) {
+        return new Spawn(
+                0,
+                kind,
+                enemy,
+                left ? SIDE_STREAM : SIDE_STREAM.mirrored(),
+                enemy.streamSpeed().orElse(enemy.speed()),
+                0,
+                Optional.empty(),
+                Spawn.Exit.DOWN,
+                false,
+                Optional.empty());
+    }
+
     /** Adds the units of {@code wave} to {@code out}; {@code kind} is the wave's enemy kind. */
     static void plan(WaveSpec wave, int kind, SplitMix64 rng, List<Spawn> out) {
         Planner planner = new Planner(wave, kind, rng, out);

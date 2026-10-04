@@ -1,9 +1,9 @@
 ---
 title: Bosses
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-03
 ---
 
 # Bosses
@@ -20,7 +20,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [gorgon-frigate](gorgon-frigate/README.md) | Act 1 mid-boss: medusa-bell warship with three serpent-neck turrets (L05) | approved | not-started | chosen |
+| [gorgon-frigate](gorgon-frigate/README.md) | Act 1 mid-boss: medusa-bell warship with three serpent-neck turrets (L05) | approved | in-progress | final |
 | [brood-carrier](brood-carrier/README.md) | Act 1 boss: living carrier, overhead pass, broadside bays, core (L07) | approved | not-started | chosen |
 | [harbour-kraken](harbour-kraken/README.md) | Act 2 mid-boss: cephalopod around a platform, lane slams, surfacing head (L11) | approved | not-started | chosen |
 | [siege-spire](siege-spire/README.md) | Act 2 boss: rooted citadel that tears free and rises (L14) | approved | not-started | chosen |
@@ -53,13 +53,18 @@ boss assets with a spectral tint, not new designs.
 
 ## Design
 
-- Every boss has a **health bar** in the side HUD, visible **phases** (a distinct change in
+- Every boss has a **health bar** with its name at the top of the play field ([HUD](../../ui/hud/README.md#in-the-play-field); a mid-boss's bar is shorter), visible **phases** (a distinct change in
   look and pattern), and weak points marked by glow (Vrell) or exposed machinery (Ascendancy).
 - Bosses use only attack patterns from the [vocabulary](../README.md), combined; they add no
   new hidden rules.
 - Every boss fight has a short **intro** (the boss enters, a radio line, its name on the HUD)
   and a large **death sequence** (chain explosions, screen flash) followed by a credit shower.
-- Target duration: act bosses 90–180 s at medium, mid-bosses 45–75 s.
+- Target duration: act bosses 90–180 s at medium, mid-bosses 45–75 s. Every boss and mid-boss
+  has a **par** time in its data; a kill under par pays the
+  [Boss rush](../../systems/scoring/README.md#level-end-bonuses) bonus.
+- A boss's stat block and script (parts, neck or limb chains, phases, par) live in its
+  `data.yaml` ([schema](../../tech/architecture/README.md#data-file-schemas)); the first is the
+  [Gorgon Frigate](gorgon-frigate/README.md) (M4 part E).
 
 ## Concept art
 
@@ -97,8 +102,10 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — Kraken redone as
 
 - [ ] Each boss promoted to its own directory with phases, attack scripts and weak-point
       layout before it is implemented.
-- [ ] Shared boss framework: multi-part hitboxes, phase transitions, HUD boss bar, intro and
-      death sequences.
+- [x] Shared boss framework: multi-part hitboxes, neck chains, phase transitions, HUD boss bar,
+      the intro descent, the chained death and the credit shower (M4 part E, with the Gorgon
+      Frigate; drawn in plain shapes until its production sprites).
+- [ ] The intro's sting (with Level 05's music) and the death's screen flash.
 
 ## Open questions
 
@@ -115,3 +122,9 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — Kraken redone as
 - 2026-10-01: Brood Carrier length: about one screen, as in the chosen concept (the roster's "two screens" is dropped).
 - 2026-10-01: Acts 1–2 units promoted to full specs: Gorgon Frigate, Brood Carrier, Harbour Kraken, Siege Spire.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-03: M4 part E: the boss bar sits at the top of the play field, as the HUD document has
+  it (the "side HUD" here was a slip; main-agent choice); mid-bosses get a par and earn the Boss
+  rush bonus (user decision); the boss data schema is planned with the Gorgon Frigate.
+- 2026-10-03: M4 part E: the shared boss framework is built with the Gorgon Frigate (a set piece
+  with a boss script, see the [architecture](../../tech/architecture/README.md) log); the sting
+  comes with Level 05's data, the screen flash and the sprites with the production art.

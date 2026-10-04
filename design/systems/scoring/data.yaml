@@ -17,7 +17,7 @@ bonuses:
   - {name: Destruction, points: 100, per_kill_percent: true, scale: level, notes: {condition: Kill ratio}}
   - {name: Untouched, points: 5000, scale: act, notes: {condition: No armour damage}}
   - {name: Explorer, points: 3000, scale: act, notes: {condition: All secrets / data cores found}}
-  - {name: Boss rush, points: 2000, scale: act, notes: {condition: Boss killed under par time}}
+  - {name: Boss rush, points: 2000, scale: act, notes: {condition: 'Boss or mid-boss killed under its par time (the boss data''s `par`)'}}
 grades:
   # lowest rating for the grade (none for the last), credit bonus as a share of the level's credits
   - {grade: S, rating: 90, credit_bonus: 0.3}

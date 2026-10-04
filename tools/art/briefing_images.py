@@ -22,18 +22,23 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
                           across the rille to the mass-driver terminal, walkers in the craters,
                           Hammer flight (the Airstrike)
   level-04-walker-scan    L04 p2: the Scuttler facing where it walks, claws forward, the glowing back
+  level-05-crater-nest    L05 p1: the nest crater beside the mass-driver line, the four batteries A-D
+                          on its floor, Lancer's run down the rail and over the rim, the rail's sleds
+  level-05-mortar-scan    L05 p2: the Polyp Mortar's lob arcing to its lime marker a second ahead, the
+                          ship moving out of it; an unknown contact holding in orbit over the crater
   design/ui/briefing/concept/briefing-images-final-r13-a.png   review sheet, Act 1 intro + L01-02
   design/ui/briefing/concept/briefing-images-final-r20-a.png   review sheet, L03-04 (M4 batch)
+  design/ui/briefing/concept/briefing-images-final-r21-a.png   review sheet, L05 (M4 part E)
  Every image is composed
 in layers like the hangar map (tools/art/ui_scenes.py): the display and planets posterized to 24
 colours with ordered dither, the lines, markers and labels to 16 of their own, then the sprites
 from assets/ (the Stormhawk, Skitter, Needler and the intel portraits) with their own palettes.
 The labels use the concept pixel font (render/raster.py), as the chosen mockup does.
 
-Run: python3 tools/art/briefing_images.py [name ...] [r13|r20] [--review]   (~10 s; after
+Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21] [--review]   (~10 s; after
 stormhawk.py, vrell_air.py, intel.py, vrell_l03.py, leviathan.py, vrell_l04.py, civilian_crawler.py
-and airstrike_bomber.py, whose sprites it shows); the review sheet written is the open round's
-(r20) unless a round is named.
+airstrike_bomber.py and l05_hazards.py, whose sprites it shows); the review sheet written is the open
+round's (r21) unless a round is named.
 """
 import sys
 
@@ -49,7 +54,7 @@ from render import raster, terrain  # noqa: E402
 SCRIPT = "briefing_images.py"
 SOURCE = artkit.source_note(SCRIPT, "UI batch")
 SOURCE_M4 = artkit.source_note(SCRIPT, "M4 briefing images")
-ROUND = "r20"  # the open round; the sheet of an earlier batch: name its round (r13)
+ROUND = "r21"  # the open round; the sheet of an earlier batch: name its round (r13, r20)
 OUT = ROOT / "assets" / "ui" / "briefing"
 CONCEPT = DESIGN / "ui" / "briefing" / "concept"
 W, H = 672, 240
@@ -599,6 +604,84 @@ def walker_scan():
     return b
 
 
+def crater_nest():
+    """L05 p1: the nest crater beside the mass-driver line, batteries A-D on its floor, Lancer's
+    run up the rail and over the rim, the sleds on automatic."""
+    b = Board()
+    b.planet(336, 760, 560, "moon", seed=51)
+    b.title("MASS-DRIVER LINE - VRELL NEST CRATER")
+    cx, cy, rx, ry = 400, 128, 170, 84
+    b.glow(cx, cy, 120, (30, 14, 50), 0.9)
+    b.ring(cx, cy, rx, ry, CYAN, 220, 2)
+    b.ring(cx, cy, rx - 10, ry - 7, CYAN_DIM, 140)
+    b.label(cx + rx - 4, cy - 50, "CRATER RIM", CYAN_DIM)
+    rng = np.random.default_rng(55)
+    for _ in range(9):
+        a, r = rng.uniform(0, 2 * np.pi), rng.uniform(0.15, 0.7)
+        x, y = cx + np.cos(a) * rx * r, cy + np.sin(a) * ry * r
+        b.glow(x, y, 10, (50, 20, 80), 0.7)
+        b.marker(x, y, "dot", VIOLET, 1)
+    b.label(cx - 12, cy + 8, "NEST", VIOLET)
+    for name, (x, y) in zip("ABCD", ((280, 104), (350, 170), (450, 92), (520, 160))):
+        b.glow(x, y, 14, (90, 60, 10), 0.8)
+        b.marker(x, y, "diamond", AMBER, 5)
+        for k in (-1, 1):
+            b.marker(x + 12 * k, y + 8, "chevron", RED, 3)
+        b.label(x + 10, y - 16, f"BATTERY {name}", AMBER)
+    ry0 = 30
+    b.line([(20, ry0), (650, ry0)], CYAN, 2)
+    b.line([(20, ry0 + 5), (650, ry0 + 5)], CYAN_DIM, 1, 140)
+    for x in range(40, 650, 30):
+        b.marker(x, ry0 + 2, "dot", AMBER, 1)
+    b.label(W - 10, 9, "MASS DRIVER: AUTOMATIC, SLEDS EVERY 5 S", AMBER, right=True)
+    b.label(W - 10, H - 40, "STAY OFF THE RAIL", RED, right=True)
+    b.arrow(30, 52, 200, 52, CYAN, dashed=False)
+    b.dashed([(200, 52), (236, 92), (300, 132), (420, 132), (560, 128), (630, 128)], CYAN, 1)
+    b.label(30, 60, "LANCER - DOWN THE RAIL, OVER THE RIM", CYAN)
+    b.label(10, H - 28, "DESTROY ALL FOUR BATTERIES", AMBER)
+    b.label(10, H - 16, "A BATTERY LEFT ALIVE: MISSION FAILED", RED)
+    b.label(W - 10, H - 16, "NO SECOND RUN TODAY", WHITE, right=True)
+    return b
+
+
+def mortar_scan():
+    """L05 p2: Varga's scan of the Polyp Mortar: the lob arcing to its lime marker a second ahead,
+    the ship moving out of it; something in orbit watching the crater."""
+    b = Board()
+    b.title("SENSOR SCAN - VRELL ACID-THROWER")
+    x, y = 90, 150
+    b.glow(x, y, 54, (10, 40, 50), 0.6)
+    b.bracket(x - 44, y - 44, x + 44, y + 44)
+    b.sprite(asset("polyp-mortar_0", 2), x, y)
+    b.label(x - 44, y + 52, "POLYP MORTAR", WHITE)
+    b.label(x - 44, y + 64, "GROUND LAYER", CYAN_DIM)
+    tx, ty = 330, 132
+    arc = [(x + (tx - x) * t, y + (ty - y) * t - np.sin(np.pi * t) * 96) for t in np.linspace(0.08, 1, 24)]
+    b.dashed(arc, GREEN, 1, 4, 4)
+    for t in (0.35, 0.7):
+        b.sprite(asset("mortar-blob_0"), *arc[int(t * 23)])
+    b.glow(tx, ty, 26, (40, 70, 10), 0.8)
+    b.sprite(asset("mortar-marker"), tx, ty)
+    b.label(tx - 60, ty + 30, "MARKED 1 S AHEAD", GREEN)
+    b.label(tx - 60, ty + 42, "THEN A RING OF ACID", RED)
+    ship = asset("ship_2")
+    b.sprite(ship, tx + 10, ty + 2)
+    b.arrow(tx + 26, ty + 2, tx + 92, ty + 2, CYAN, dashed=False)
+    b.label(tx + 30, ty - 12, "KEEP MOVING", CYAN)
+    rx, ry, r = 572, 112, 72
+    for k in (1, 2, 3):
+        b.ring(rx, ry, r * k / 3, colour=CYAN_DIM, alpha=110)
+    b.ring(rx, ry, 10, colour=AMBER, alpha=200)
+    b.label(rx - 30, ry + 16, "CRATER", AMBER)
+    b.arc(rx, ry, r * 0.8, r * 0.8, 200, 340, VIOLET, 220)
+    b.glow(rx + 30, ry - 52, 16, (60, 30, 110), 0.9)
+    b.marker(rx + 30, ry - 52, "square", RED, 4)
+    b.label(rx - r, ry + r + 8, "ORBIT: UNKNOWN CONTACT", RED)
+    b.label(rx - r, ry + r + 20, "HOLDING OVER THE CRATER", WHITE)
+    b.label(W - 10, 9, "DON'T BE THERE", AMBER, right=True)
+    return b
+
+
 IMAGES = {
     "act-1-tether-gate": tether_gate,
     "act-1-outer-stations": outer_stations,
@@ -613,12 +696,15 @@ IMAGES = {
     "level-03-spore-echo": spore_echo,
     "level-04-convoy-road": convoy_road,
     "level-04-walker-scan": walker_scan,
+    "level-05-crater-nest": crater_nest,
+    "level-05-mortar-scan": mortar_scan,
 }
 
 # Review sheets per batch: round, the images on it, the batch name.
 BATCHES = {
     "r13": (list(IMAGES)[:9], "UI BATCH"),
-    "r20": (list(IMAGES)[9:], "M4 BRIEFING IMAGES"),
+    "r20": (list(IMAGES)[9:13], "M4 BRIEFING IMAGES"),
+    "r21": (list(IMAGES)[13:], "M4 PART E"),
 }
 
 

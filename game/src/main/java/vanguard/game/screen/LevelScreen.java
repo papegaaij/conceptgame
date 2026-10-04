@@ -103,6 +103,8 @@ public final class LevelScreen implements GameScreen {
     private static final int MEDIUM_EXPLOSION_FRAME_TICKS = 3;
     /** A set piece's death cloud (the Leviathan's ichor) shows each frame for 6 steps. */
     private static final int DEATH_CLOUD_FRAME_TICKS = 6;
+    /** A boss's crown petals tearing off: 10 fps. */
+    private static final int PETAL_FRAME_TICKS = 6;
 
     private final Array<AtlasRegion> explosionMedium;
     /** Each set piece's death cloud, its slug's {@code -ichor} frames, by index in the script; empty for none. */
@@ -279,8 +281,46 @@ public final class LevelScreen implements GameScreen {
     }
 
     /** The level's own line for the mission failed screen, when its primary objective failed (design/systems/retry). */
+    /** The failure line with the lost group's name in it ("Battery C is behind you"), when a group failed the level. */
+    private LevelScript.RadioCue failedGroupLine(LevelScript.RadioCue cue) {
+        int group = sortie.failedGroup();
+        if (group < 0) {
+            return cue;
+        }
+        return new LevelScript.RadioCue(
+                cue.trigger(),
+                cue.t(),
+                cue.subject(),
+                cue.speaker(),
+                vanguard.content.voice.VoiceLines.groupLine(
+                        cue.line(), sortie.script().groups().get(group)),
+                cue.distorted(),
+                cue.expression(),
+                cue.portrait(),
+                cue.requiresSpecial(),
+                cue.alliesMin(),
+                cue.alliesMax());
+    }
+
     Optional<LevelScript.RadioCue> failureLine() {
         return failureLine;
+    }
+
+    /**
+     * Whether the mission failed screen offers Retry from boss (design/systems/retry): the attempt
+     * reached the boss checkpoint, on easy or medium (hard has no boss checkpoints).
+     */
+    boolean bossCheckpoint() {
+        return campaign.difficulty() != Difficulty.HARD && sortie.bossCheckpoint();
+    }
+
+    /** Restarts at the boss checkpoint: the boss's arrival on an empty field, with the defences and tallies of then. */
+    void retryFromBoss() {
+        sortie.retryFromBoss();
+        outro.stop();
+        slowMotion = 0;
+        failure = Optional.empty();
+        failureLine = Optional.empty();
     }
 
     /** Starts the level over from its start state with {@code armour} (a retry, or the pause menu's restart). */
@@ -369,7 +409,7 @@ public final class LevelScreen implements GameScreen {
                     effects.start(look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
                     start(effects, look.deathGlow(), x, y);
                     if (!look.remains().isEmpty()) {
-                        debris.start(look.remains(), REMAINS_TICKS, x, y + sortie.groundScroll());
+                        debris.start(look.remains(), REMAINS_TICKS / look.remains().size, x, y + sortie.groundScroll());
                     }
                 }
                 case BROOD_BURST -> {
@@ -403,6 +443,12 @@ public final class LevelScreen implements GameScreen {
                     effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
                 }
                 case CREDITS_PICKED_UP -> creditNumbers.show(events.value(i), x, y);
+                case BOSS_DESTROYED -> creditShower(events.value(i), x, y);
+                case BOSS_ARRIVED -> {
+                    if (level.music().bossSting().isPresent()) {
+                        music.sting(Sfx.MINIBOSS_STING);
+                    }
+                }
                 case SPECIAL_CALLED -> {
                     // The call answers the player at once: an urgent line that interrupts whatever is on
                     // the radio, which plays again after it (design/ui/hud, priority interrupts).
@@ -417,7 +463,7 @@ public final class LevelScreen implements GameScreen {
                 case RADIO -> {
                     LevelScript.RadioCue cue = sortie.script().radio().get(events.value(i));
                     if (cue.trigger() == LevelScript.CueTrigger.MISSION_FAILED) {
-                        failureLine = Optional.of(cue);
+                        failureLine = Optional.of(failedGroupLine(cue));
                         continue;
                     }
                     int unit =
@@ -513,9 +559,28 @@ public final class LevelScreen implements GameScreen {
         double altitude = piece.onPlane() ? 0 : piece.altitude(1);
         float scale = LevelRenderer.highAirScale(altitude);
         float opacity = LevelRenderer.highAirOpacity(altitude);
-        LevelScript.Pass pass = piece.spec().passes().get(piece.pass());
+        boolean crossing = piece.boss().isEmpty()
+                && !piece.spec().passes().get(piece.pass()).descends();
+        double heading = piece.boss().isPresent()
+                ? 0
+                : piece.spec().passes().get(piece.pass()).headingRadians();
         SetPieceDeath death = renderer.death(k);
-        wrecks.start(k, x, y, scale, opacity, !pass.descends());
+        wrecks.start(k, x, y, scale, opacity, crossing);
+        String petals = piece.spec().slug() + "-petals";
+        if (piece.boss().isPresent() && services.sprites.has(petals)) {
+            // the crown's petals tear off the core as it bursts, at the break-up's swap when it has
+            // one (design/enemies/bosses/gorgon-frigate)
+            for (int p = 0; p < piece.partCount(); p++) {
+                if (piece.spec().parts().get(p).vital()) {
+                    pieces.start(
+                            services.sprites.frames(petals),
+                            PETAL_FRAME_TICKS,
+                            x + piece.partOffsetX(p),
+                            y + piece.partOffsetY(p),
+                            death == null ? 0 : death.swap);
+                }
+            }
+        }
         for (int p = 0; p < piece.partCount(); p++) {
             int delay = p * CHAIN_STEP_TICKS;
             double px = x + piece.partOffsetX(p) * scale;
@@ -533,14 +598,44 @@ public final class LevelScreen implements GameScreen {
             }
             return;
         }
-        double cos = Math.cos(pass.headingRadians());
-        double sin = Math.sin(pass.headingRadians());
+        double cos = Math.cos(heading);
+        double sin = Math.sin(heading);
         for (SetPieceDeath.Blast blast : death.blasts) {
             double px = x + (blast.dx() * cos + blast.dy() * sin) * scale;
             double py = y + (-blast.dx() * sin + blast.dy() * cos) * scale;
             effects.start(blast.frames(), blast.ticksPerFrame(), px, py, blast.at(), scale, opacity);
         }
         sounds.breakUp(x, death.swap);
+    }
+
+    /** The coins of a boss's credit shower fly out this many steps apart, in a ring of this many. */
+    private static final int SHOWER_STEP_TICKS = 3;
+
+    private static final int SHOWER_COINS = 16;
+    /** A coin's spin: the pickups' 10 fps. */
+    private static final int SHOWER_FRAME_TICKS = 6;
+    /** The shower starts after the chained bursts over the frigate's four parts. */
+    private static final int SHOWER_DELAY_TICKS = 4 * CHAIN_STEP_TICKS;
+
+    /**
+     * A boss's credit shower (design/enemies/bosses: the death sequence): its credits as a number
+     * over the bell and a ring of salvage coins spinning out after the chained bursts.
+     */
+    private void creditShower(int credits, double x, double y) {
+        int delay = SHOWER_DELAY_TICKS;
+        creditNumbers.show(credits, x, y);
+        for (int c = 0; c < SHOWER_COINS; c++) {
+            double angle = 2 * Math.PI * c / SHOWER_COINS;
+            double reach = 40 + 50 * (c % 3);
+            effects.start(
+                    services.sprites.salvageSmall,
+                    SHOWER_FRAME_TICKS,
+                    x + Math.cos(angle) * reach,
+                    y + Math.sin(angle) * reach,
+                    delay + c * SHOWER_STEP_TICKS,
+                    1,
+                    1);
+        }
     }
 
     /** Queues a radio line with its voice file, if it has one; without one it shows as text only. */

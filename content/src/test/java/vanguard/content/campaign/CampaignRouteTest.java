@@ -57,9 +57,20 @@ class CampaignRouteTest {
     }
 
     @Test
-    void afterLevel04TheCampaignWaitsInTheHangarUntilLevel05IsBuilt() {
+    void afterLevel04TheBriefingOfLevel05Comes() {
         Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
         for (int i = 0; i < 4; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
+
+        assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.beforeNextLevel(content, campaign));
+        assertEquals(Optional.of("act-1-first-contact/level-05-crater-nest"), CampaignRoute.launch(content, campaign));
+    }
+
+    @Test
+    void afterLevel05TheCampaignWaitsInTheHangarUntilLevel06IsBuilt() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 5; i++) {
             campaign.complete(CampaignTest.won("A", 80, 1000), 60);
         }
 

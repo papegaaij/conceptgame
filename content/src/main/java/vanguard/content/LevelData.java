@@ -22,6 +22,9 @@ import vanguard.sim.PlayField;
  * @param debris the debris field's chunks (Level 03)
  * @param setPieces the huge set-piece units and their passes (Level 03's Leviathan)
  * @param road the road on the ground layer that an escort objective's convoy follows (Level 04)
+ * @param boss the level's boss and where it arrives (Level 05's Gorgon Frigate)
+ * @param sleds the mass-driver sleds on a rail (Level 05)
+ * @param rocks the rocks destroyed ground units throw in low gravity (Level 05)
  * @param pickups pickups placed by the script (normal drops come from the enemies)
  * @param radio the radio chatter
  * @param backdrop the parallax layers behind and above the play plane
@@ -43,6 +46,9 @@ public record LevelData(
         Optional<DebrisField> debris,
         Optional<List<SetPieceData>> setPieces,
         Optional<Road> road,
+        Optional<BossPlacement> boss,
+        Optional<Sleds> sleds,
+        Optional<Rocks> rocks,
         Objectives objectives,
         Music music,
         Difficulties difficulty,
@@ -163,10 +169,85 @@ public record LevelData(
             Optional<Double> speed,
             Atmosphere atmosphere,
             Optional<Peak> peak,
-            List<String> tiles) {
+            List<String> tiles,
+            Optional<Boolean> arena) {
         public Section {
             Check.positive("end", end);
             speed.ifPresent(s -> Check.positive("speed", s));
+        }
+
+        /**
+         * Whether it is the boss's arena: the level clock halts at its end while the boss lives,
+         * and the next section starts at the boss's death when it dies earlier.
+         */
+        public boolean isArena() {
+            return arena.orElse(false);
+        }
+    }
+
+    /**
+     * The level's boss ({@code enemy}, a stat block with a {@code boss} script): it arrives at
+     * {@code t} level seconds in section {@code section}, its centre at {@code x} px from the left.
+     */
+    public record BossPlacement(String enemy, double t, double x, int section) {
+        public BossPlacement {
+            Check.notNegative("t", t);
+            Check.positive("section", section);
+        }
+    }
+
+    /**
+     * The mass-driver sleds (design/world/luna, hazards): from {@code first} s every {@code period}
+     * s until {@code until} a sled shoots up the rail at {@code x}, a line {@code width} px wide, on
+     * the screen for {@code run} s after the rail {@code lights} chased; contact {@code damage}. The
+     * trigger that reveals the {@code clamp} secret can only be hit while the rail is dark.
+     */
+    public record Sleds(
+            double x,
+            double width,
+            double first,
+            double period,
+            double until,
+            double lights,
+            double run,
+            double damage,
+            Optional<String> clamp,
+            Optional<SledChange> easy,
+            Optional<SledChange> hard) {
+        public Sleds {
+            Check.positive("width", width);
+            Check.positive("period", period);
+            Check.positive("run", run);
+            Check.positive("damage", damage);
+            Check.that(period > lights + run, "a sled's period holds its lights and its run");
+        }
+    }
+
+    /** A difficulty's sled period. */
+    public record SledChange(double period) {
+        public SledChange {
+            Check.positive("period", period);
+        }
+    }
+
+    /**
+     * Rocks a destroyed ground unit throws in low gravity (Level 05): {@code count} {@code [min,
+     * max]} of them, drifting at {@code speed} {@code [min, max]} px/s in a random direction on the
+     * air layer, gone after {@code life} s; {@code hp}, contact {@code damage}, no credits; none
+     * within {@code clearance} px of the ship; none on easy unless {@code onEasy}.
+     */
+    public record Rocks(
+            Count count,
+            Span speed,
+            double life,
+            Size size,
+            double hp,
+            double damage,
+            double clearance,
+            Optional<Boolean> onEasy) {
+        public Rocks {
+            Check.positive("life", life);
+            Check.positive("hp", hp);
         }
     }
 
@@ -573,11 +654,30 @@ public record LevelData(
         }
     }
 
-    /** A pickup carried by a unit of the wave starting at {@code droppedBy.wave}, dropped when it is destroyed. */
+    /**
+     * A pickup carried by a unit of the wave starting at {@code droppedBy.wave}, dropped when it is
+     * destroyed, or by the last unit of the ground-target group {@code droppedBy.group}.
+     */
     public record PlacedPickup(Pickup pickup, Carrier droppedBy) {}
 
-    /** The {@code unit} ({@code first}, {@code second} or {@code last}) of the wave starting at {@code wave} seconds. */
-    public record Carrier(double wave, CarrierUnit unit) {}
+    /**
+     * The {@code unit} ({@code first}, {@code second} or {@code last}) of the wave starting at
+     * {@code wave} seconds, or the {@code last} unit of a ground-target {@code group} to die (when the
+     * group is cleared).
+     */
+    public record Carrier(Optional<Double> wave, Optional<String> group, CarrierUnit unit) {
+        public Carrier {
+            Check.that(wave.isPresent() != group.isPresent(), "dropped_by: give a wave or a group");
+            Check.that(
+                    group.isEmpty() || unit == CarrierUnit.LAST,
+                    "dropped_by: a group's pickup comes from its last unit");
+        }
+
+        /** The carrier wave's time; NaN for a group's pickup. */
+        public double waveT() {
+            return wave.orElse(Double.NaN);
+        }
+    }
 
     public enum CarrierUnit {
         FIRST,
@@ -616,8 +716,12 @@ public record LevelData(
             Optional<RadioChange> easy,
             Optional<RadioChange> hard,
             Optional<String> requires,
-            Optional<Count> allies) {
+            Optional<Count> allies,
+            Optional<String> phase) {
         public RadioCue {
+            Check.that(
+                    phase.isPresent() == (event.orElse(null) == CueEvent.BOSS_PHASE),
+                    "a boss-phase event names its phase, other triggers do not");
             Check.that(t.isPresent() != event.isPresent(), "give the trigger as t or as event");
             requires.ifPresent(Requirement::check);
             Check.that(
@@ -680,21 +784,44 @@ public record LevelData(
         FIRST_ALLY_LOST,
         /** The primary objective failed: the line on the mission failed screen (not on the radio). */
         @JsonProperty("mission-failed")
-        MISSION_FAILED
+        MISSION_FAILED,
+        /** The boss entered a later phase; the cue names the phase as {@code phase}. */
+        @JsonProperty("boss-phase")
+        BOSS_PHASE,
+        /** The boss was destroyed. */
+        @JsonProperty("boss-destroyed")
+        BOSS_DESTROYED
     }
 
     /**
-     * The primary objective's kind ({@code reach-end}, or {@code escort} with its {@code escort}
-     * block) and the optional secondary objective.
+     * The primary objective's kind ({@code reach-end}, {@code escort} with its {@code escort} block,
+     * or {@code destroy-targets} with the ground-target groups it names as {@code targets}) and the
+     * optional secondary objective.
+     *
+     * @param targets the groups (ground targets' {@code group}) a destroy-targets primary needs
+     *     destroyed; it fails as soon as a unit of one leaves the screen alive (Level 05)
      */
-    public record Objectives(String primary, Optional<Escort> escort, Optional<Secondary> secondary) {
+    public record Objectives(
+            String primary, Optional<Escort> escort, Optional<List<String>> targets, Optional<Secondary> secondary) {
         public Objectives {
             Check.that(
-                    primary.equals("reach-end") || primary.equals("escort"),
-                    "primary: reach-end or escort, was '" + primary + "'");
+                    primary.equals("reach-end") || primary.equals("escort") || primary.equals("destroy-targets"),
+                    "primary: reach-end, escort or destroy-targets, was '" + primary + "'");
             Check.that(
                     escort.isPresent() == primary.equals("escort"),
                     "an escort primary has its escort block, other primaries do not");
+            Check.that(
+                    targets.isPresent() == primary.equals("destroy-targets"),
+                    "a destroy-targets primary names its targets, other primaries do not");
+            targets.ifPresent(t -> Check.notEmpty("targets", t));
+            Check.that(
+                    targets.isEmpty() || secondary.flatMap(Secondary::groups).isEmpty(),
+                    "the groups belong to the primary (targets) or to the secondary, not both");
+        }
+
+        /** The ground-target groups the level names: the primary's targets or the secondary's groups. */
+        public List<String> groups() {
+            return targets.or(() -> secondary.flatMap(Secondary::groups)).orElse(List.of());
         }
     }
 
@@ -775,17 +902,29 @@ public record LevelData(
     /**
      * Destroy at least {@code killRatio} of all enemies for {@code credits}, clear the ground
      * enemies of every one of the {@code groups} (named by its ground targets' {@code group}) for
-     * {@code credits} each, or let none of the enemy {@code escapes} leave the screen alive
-     * ("nothing gets through", Level 03) for {@code credits}.
+     * {@code credits} each, let none of the enemy {@code escapes} leave the screen alive ("nothing
+     * gets through", Level 03) for {@code credits}, or destroy every unit of the enemies
+     * {@code killAll} (Level 05's "Scorched crater", the tracker's {@code label}) for {@code credits}.
      */
     public record Secondary(
-            Optional<Double> killRatio, Optional<List<String>> groups, Optional<String> escapes, int credits) {
+            Optional<Double> killRatio,
+            Optional<List<String>> groups,
+            Optional<String> escapes,
+            Optional<List<String>> killAll,
+            Optional<String> label,
+            int credits) {
         public Secondary {
             Check.that(
-                    (killRatio.isPresent() ? 1 : 0) + (groups.isPresent() ? 1 : 0) + (escapes.isPresent() ? 1 : 0) == 1,
-                    "give kill_ratio, groups or escapes");
+                    (killRatio.isPresent() ? 1 : 0)
+                                    + (groups.isPresent() ? 1 : 0)
+                                    + (escapes.isPresent() ? 1 : 0)
+                                    + (killAll.isPresent() ? 1 : 0)
+                            == 1,
+                    "give kill_ratio, groups, escapes or kill_all");
             killRatio.ifPresent(r -> Check.share("kill_ratio", r));
             groups.ifPresent(g -> Check.notEmpty("groups", g));
+            killAll.ifPresent(k -> Check.notEmpty("kill_all", k));
+            Check.that(killAll.isPresent() == label.isPresent(), "a kill_all objective has its tracker label");
             Check.notNegative("credits", credits);
         }
     }
@@ -800,6 +939,8 @@ public record LevelData(
      * @param fullSection the section from which all stems play (the base stem before)
      * @param stems sections that override that: {@code base} drops to the base stem (Level 03's
      *     first Leviathan pass), {@code full} forces every stem on
+     * @param bossSting the sting that cuts in over the level track when the boss arrives
+     *     ({@code miniboss-sting}, Level 05), the track returning after it
      */
     public record Music(
             int track,
@@ -808,7 +949,8 @@ public record LevelData(
             int fullSection,
             Optional<Map<Integer, Stems>> stems,
             String ambience,
-            String endJingle) {
+            String endJingle,
+            Optional<String> bossSting) {
         /** The stems a section plays. */
         public enum Stems {
             @JsonProperty("base")

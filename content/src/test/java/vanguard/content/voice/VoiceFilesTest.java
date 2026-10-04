@@ -31,6 +31,7 @@ class VoiceFilesTest {
             "act-1-first-contact/level-02-shipyard-burning",
             "act-1-first-contact/level-03-spore-drift",
             "act-1-first-contact/level-04-tranquility-run",
+            "act-1-first-contact/level-05-crater-nest",
             "act-1-first-contact briefing",
             "specials");
 
@@ -69,11 +70,15 @@ class VoiceFilesTest {
         }
     }
 
+    /** Every speaker has a voice; only a speaker marked {@code uncast} in the speaker table may go without. */
     @Test
     void everySpeakerOfALevelOrBriefingHasAVoice() {
         for (LevelData level : CONTENT.levels().values()) {
             for (LevelData.RadioCue cue : level.radio()) {
-                assertTrue(CONTENT.voices().voiceOf(cue.speaker()).isPresent(), "no voice for " + cue.speaker());
+                assertTrue(
+                        CONTENT.voices().voiceOf(cue.speaker()).isPresent()
+                                || CONTENT.voices().uncast(cue.speaker()),
+                        "no voice for " + cue.speaker());
             }
             level.briefing()
                     .pages()

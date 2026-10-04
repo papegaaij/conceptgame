@@ -326,6 +326,21 @@ def set_piece_totals(level):
     return totals
 
 
+def boss_kind(slug):
+    """A boss's kind as the wave table names it ("mid-boss")."""
+    return load(f"{enemy_dir(slug)}/data.yaml")["boss"]["kind"]
+
+
+def boss_totals(level):
+    return {level["boss"]["enemy"]: 1} if "boss" in level else {}
+
+
+def boss_streams(slug):
+    """A boss's streams: (enemy, count) per phase that sends them."""
+    return [(p["streams"]["enemy"], p["streams"]["count"])
+            for p in load(f"{enemy_dir(slug)}/data.yaml")["boss"]["phases"] if "streams" in p]
+
+
 def entry(wave):
     """Where a wave enters: `sides` alone means both side edges, one side reads "left side"."""
     edge = wave.get("edge")
@@ -433,9 +448,15 @@ def waves(d):
             rows.append((start, [str(notes["t"]), str(p["section"]), "solo set piece",
                                  f"{enemy_link(d, piece['enemy'])} ({notes['name']})", "1", notes["from"],
                                  fill(notes.get("notes", ""), p)]))
+    # a boss arrives at its time (Level 05's mid-boss), its streams in the notes
+    boss = level.get("boss")
+    if boss:
+        notes = boss.get("notes", {}).get("waves", "")
+        rows.append((boss["t"], [num(boss["t"]), str(boss["section"]), boss_kind(boss["enemy"]),
+                                 enemy_link(d, boss["enemy"]), "1", "front (descends from above)", notes]))
     rows = [cells for _, cells in sorted(rows, key=lambda r: r[0])]
     totals = " · ".join(f"{enemy_name(slug)} {n}"
-                        for slug, n in (enemy_totals(level) | set_piece_totals(level)).items())
+                        for slug, n in (enemy_totals(level) | set_piece_totals(level) | boss_totals(level)).items())
     head = ["t (s)", "Section", "Formation", "Enemies (link)", "Count", "Enter from", "Notes"]
     return table(head, rows) + f"\n\nTotals: {totals}."
 
@@ -578,6 +599,19 @@ def credit_budget(d):
         for drop in e.get("drops", []):
             if drop["pickup"].endswith("salvage"):
                 rows.append([f"Pickup: {e['name']} {drop['pickup']}", pickup_credits(drop["pickup"])])
+    # the boss: its parts' bounties, and the streams of a fight at par (the budget's assumption)
+    boss = level.get("boss")
+    if boss:
+        e = load(f"{enemy_dir(boss['enemy'])}/data.yaml")
+        parts = " + ".join(f"{p['name']} {p['bounty']}" for p in e["part_list"])
+        rows.append([f"{boss_kind(boss['enemy']).capitalize()}: {e['name']} ({parts})",
+                     sum(p["bounty"] for p in e["part_list"])])
+        streams = boss.get("notes", {}).get("streams", 0)
+        for enemy, count in boss_streams(boss["enemy"]):
+            if streams:
+                rows.append([f"{boss_kind(boss['enemy']).capitalize()} streams: {streams} × {count} "
+                             f"{enemy_name(enemy)} × {stat_bounty(enemy)} (a fight at par)",
+                             streams * count * stat_bounty(enemy)])
     escort = level["objectives"].get("escort")
     if escort:
         units = len(escort["y"])
@@ -594,6 +628,9 @@ def credit_budget(d):
                      secondary["credits"]])
     elif "escapes" in secondary:
         rows.append([f"Secondary: no {enemy_name(secondary['escapes'])} gets through", secondary["credits"]])
+    elif "kill_all" in secondary:
+        names = " and ".join(enemy_name(slug) for slug in secondary["kill_all"])
+        rows.append([f"Secondary: every {names} destroyed", secondary["credits"]])
     else:
         rows.append(["Secondary objective", secondary["credits"]])
     total = sum(credits for _, credits in rows)

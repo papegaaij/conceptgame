@@ -234,7 +234,7 @@ final class PlayerFire {
 
     /** Whether a set piece's part can be a homing target: present, alive and on the field; it is then the target position. */
     private boolean partTarget(SetPiece piece, int part) {
-        if (!piece.present() || piece.partWrecked(part)) {
+        if (!piece.present() || piece.partWrecked(part) || piece.partShielded(part)) {
             return false;
         }
         double x = piece.partX(part);
@@ -382,6 +382,13 @@ final class PlayerFire {
                             || (weapon.pierce() > 1 && shot.struck(-1 - k * LevelScript.SetPieceSpec.MAX_PARTS - p))) {
                         continue;
                     }
+                    if (piece.partShielded(p)) {
+                        // A boss part that takes no damage yet (its descent, a core before its phase).
+                        events.add(SimEvents.Type.SHOT_GLANCED, shot.x(), shot.y(), shot.mount());
+                        shots.free(i);
+                        gone = true;
+                        break;
+                    }
                     events.add(SimEvents.Type.ENEMY_HIT, shot.x(), shot.y(), shot.mount());
                     boolean spent = shot.pierced();
                     if (piece.damagePart(p, shot.damage())) {
@@ -395,9 +402,15 @@ final class PlayerFire {
                 }
                 if (!gone
                         && piece.present()
-                        && weapon.size()
-                                .overlaps(shot.x(), shot.y(), piece.spec().body(), piece.x(), piece.y())
-                        && !partAhead(piece, shot)) {
+                        && ((weapon.size()
+                                                .overlaps(
+                                                        shot.x(),
+                                                        shot.y(),
+                                                        piece.spec().body(),
+                                                        piece.x(),
+                                                        piece.y())
+                                        && !partAhead(piece, shot))
+                                || piece.neckTouches(weapon.size(), shot.x(), shot.y()))) {
                     events.add(SimEvents.Type.SHOT_GLANCED, shot.x(), shot.y(), shot.mount());
                     shots.free(i);
                 }

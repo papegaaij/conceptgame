@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Sound effects
@@ -153,6 +153,8 @@ reused round 02 files marked (r02).
 | Carrier launching drones | P3 |
 | Boss roars and phase-change cues (per boss) | P3 |
 | Leviathan whale-song cry (its death, under the large burst) — [a](concept/enemy-leviathan-cry-r16-a.ogg) (synthesized, round 16) | P2 |
+| Polyp Mortar lob — chosen [a](concept/enemy-mortar-lob-r21-a.ogg) (mortar thump; an organic spit was rejected); impact — chosen [a](concept/enemy-mortar-impact-r21-a.ogg) (wet splat; an acid sizzle was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
+| Mass-driver sled (Level 05 hazard): whine while the rail lights chase — chosen [a](concept/hazard-sled-whine-r21-a.ogg) (charge hum loop, played twice over the 1.5 s chase; a rising charge was rejected); pass — chosen [b](concept/hazard-sled-pass-r21-b.ogg) (rushing flyby; a rail-gun crack was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
 
 ### UI and radio
 
@@ -363,6 +365,21 @@ burst it plays with. Brief: [concept/prompts.md](concept/prompts.md#enemy-leviat
 |---|---|---|
 | [concept/enemy-leviathan-cry-r16-a.ogg](concept/enemy-leviathan-cry-r16-a.ogg) | Synthesized — the Leviathan's whale-song cry: a deep, mournful alien call (a throat-like pulse voice through moving "oo–aah–oo" formants, its fundamental rising 92 → 128 Hz and falling to 52 Hz with a yodel break, a second voice a tritone above beating against it, a breathy blowhole rasp at the start, a long dark reverb), 3.0 s with the tail; −22.5 LUFS, peak −11.3 dBFS | chosen |
 
+Concept round 21 (M4 part E, Level 05; user decision D8) — recorded, imported by
+`tools/concept/audio/import_sfx.py`, an a/b pair for each of the sled's whine and pass and the
+Polyp Mortar's lob and impact. Briefs and sources: [concept/prompts.md](concept/prompts.md#round-21--level-05s-sled-and-polyp-mortar-m4-part-e-user-decision-d8), [CREDITS.md](../../../CREDITS.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/hazard-sled-whine-r21-a.ogg](concept/hazard-sled-whine-r21-a.ogg) | "Railgun_ChargeLoop" by BaggoNotes (CC0 1.0) — sled whine a, a loop played while the rail lights chase (1.5 s) | chosen |
+| [concept/rejected/hazard-sled-whine-r21-b.ogg](concept/rejected/hazard-sled-whine-r21-b.ogg) | "charging power" by JavierZumer (CC-BY 4.0) — sled whine b, played once over the 1.5 s chase | rejected |
+| [concept/rejected/hazard-sled-pass-r21-a.ogg](concept/rejected/hazard-sled-pass-r21-a.ogg) | "shipboard_railgun.mp3" by deleted_user_1941307 (CC0 1.0) — sled pass a, the 0.4 s run | rejected |
+| [concept/hazard-sled-pass-r21-b.ogg](concept/hazard-sled-pass-r21-b.ogg) | "Planetary Flyby faster.aif" by mattpavone (CC0 1.0) — sled pass b, the 0.4 s run | chosen |
+| [concept/enemy-mortar-lob-r21-a.ogg](concept/enemy-mortar-lob-r21-a.ogg) | "Mortar" by Mozfoo (CC0 1.0) — Polyp Mortar lob a | chosen |
+| [concept/rejected/enemy-mortar-lob-r21-b.ogg](concept/rejected/enemy-mortar-lob-r21-b.ogg) | "NPX Throat Gathering Spit 3.wav" by noahpardo (CC0 1.0) — Polyp Mortar lob b | rejected |
+| [concept/enemy-mortar-impact-r21-a.ogg](concept/enemy-mortar-impact-r21-a.ogg) | "Wet Splat" by JustInvoke (CC-BY 4.0) — Polyp Mortar impact a, the blob landing | chosen |
+| [concept/rejected/enemy-mortar-impact-r21-b.ogg](concept/rejected/enemy-mortar-impact-r21-b.ogg) | "Acid Bubbling.wav" by spookymodem (CC0 1.0) — Polyp Mortar impact b, the blob landing | rejected |
+
 ## Implementation
 
 - [ ] SFX playback with instance limits, stealing by priority, pitch variation
@@ -429,3 +446,9 @@ burst it plays with. Brief: [concept/prompts.md](concept/prompts.md#enemy-leviat
   exists without a source search. The user decides in round 16 whether it stays or a recorded
   CC0/CC-BY call replaces it.
 - 2026-10-03: Concept round 16 closed (user decision): the synthesized Leviathan whale-song cry (`enemy-leviathan-cry-r16-a`) approved as **final**. The user accepts this synthesized cry, so its placeholder note against the 2026-10-01 rule (enemy sounds are recorded CC0/CC-BY) is resolved: no recorded replacement is sought. This doc's `art` stays `chosen`.
+- 2026-10-04: Round 21 opened with the sounds of Level 05's props (user decision D8 of M4 part E): recorded a/b pairs for the sled's whine and pass and the Polyp Mortar's lob and impact.
+- 2026-10-04: Round 21 closed for the sounds (user): mortar lob a, mortar impact a, sled whine a
+  (its 0.78 s loop played twice over the 1.5 s chase) and sled pass b chosen and played by the game
+  (`Sfx.MORTAR_LOB`, `MORTAR_IMPACT`, `SLED_WHINE`, `SLED_PASS`, in the `:pipeline` copy list),
+  replacing the placeholders; the four others moved to `concept/rejected/`, their CREDITS.md rows
+  kept with the new paths, as for the earlier rounds' rejected recordings.

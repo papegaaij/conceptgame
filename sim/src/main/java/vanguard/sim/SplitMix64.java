@@ -33,6 +33,11 @@ public final class SplitMix64 {
         return (int) ((nextLong() >>> 33) % bound);
     }
 
+    /** Back to a state read with {@link #state()} (a boss checkpoint). */
+    void state(long state) {
+        this.state = state;
+    }
+
     long state() {
         return state;
     }

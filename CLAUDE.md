@@ -147,7 +147,8 @@ versions in `gradle/libs.versions.toml`.
   `--bench`. `--difficulty
   easy|medium|hard` (default medium) picks the difficulty until the menus exist (M3);
   `--debug-speed <n>` runs the simulation n times faster and the debug option `--invulnerable`
-  lets nothing hit the ship (to see a level to its end, e.g. with `--bench` for captures);
+  lets nothing hit the ship and keeps a lost battery from failing a level (to see a level to its
+  end, e.g. with `--bench` for captures);
   `--loadout front=scatter-vulcan:3,left=bomb-rack,right=micro-missile-pod:2,rear=side-splitter`
   fits weapons (slot `front`/`rear`/`left`/`right`, level 1 if left out, the power cap unchecked)
   and starts in the level; `--special airstrike:2` fits a special with its charges (its name in

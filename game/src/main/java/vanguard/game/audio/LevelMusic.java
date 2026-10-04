@@ -44,6 +44,12 @@ public final class LevelMusic implements Disposable {
     private float fade = -1;
     private float duck = 1;
     private float rise;
+    /** Seconds left of a sting over the theme; negative without one. */
+    private float sting = -1;
+    /** A sting's length, its 0.5 s crossfades included (track 21 is 4.6 s). */
+    private static final float STING_SECONDS = 4.6f;
+
+    private static final float STING_FADE = 0.5f;
 
     /**
      * @param base the theme's base stem
@@ -100,7 +106,10 @@ public final class LevelMusic implements Disposable {
         }
         float target = radio ? DUCKED : 1;
         duck += (target - duck) * Math.min(1, DUCK_RATE * seconds);
-        float level = rise * (fade >= 0 ? fade / FADE_SECONDS : 1);
+        float level = rise * (fade >= 0 ? fade / FADE_SECONDS : 1) * stingDip();
+        if (sting >= 0) {
+            sting -= seconds;
+        }
         music.ifPresent(streamer -> streamer.setVolume(MUSIC_VOLUME * duck * level));
         if (fade >= 0) {
             fade = Math.max(0, fade - seconds);
@@ -108,6 +117,24 @@ public final class LevelMusic implements Disposable {
                 stopTheme();
             }
         }
+    }
+
+    /**
+     * A boss arrived (design/audio/music, Level 05's mini-boss): {@code sting} cuts in over a 0.5 s
+     * crossfade from the theme, which comes back after it.
+     */
+    public void sting(Sfx stingSound) {
+        sfx.play(stingSound, 1, 1, 0);
+        sting = STING_SECONDS;
+    }
+
+    /** The theme's level under a sting: down over the first half second, back over the last. */
+    private float stingDip() {
+        if (sting < 0) {
+            return 1;
+        }
+        float in = STING_SECONDS - sting;
+        return Math.clamp(Math.max(1 - in / STING_FADE, 1 - sting / STING_FADE), 0, 1);
     }
 
     /** The ship was destroyed: the music cuts (the failure sting plays as a sound effect). */
@@ -119,6 +146,7 @@ public final class LevelMusic implements Disposable {
     /** The level restarts: the theme waits for its section again, at its start level. */
     public void restart() {
         cut = false;
+        sting = -1;
         rise = startLevel;
         stopTheme();
     }
