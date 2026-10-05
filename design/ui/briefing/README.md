@@ -82,7 +82,7 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 | [concept/briefing-images-final-r20-a.png](concept/briefing-images-final-r20-a.png) | Review sheet, batch "M4 briefing images" ([round 20](../../concept-rounds/round-20/README.md)): the four 672×240 images of Level 03 (the high lanes over the battle site's debris field with the spore carriers seeding Earth; the Spore Bomber, its rising spores and a wide spread, the long-range echo) and Level 04 (the convoy road from Tranquility Base across the rille to the mass-driver terminal, brood pods, walkers in the craters, Hammer flight; the Scuttler's claws and glowing back) | chosen |
 | [concept/briefing-images-final-r21-a.png](concept/briefing-images-final-r21-a.png) | Review sheet, M4 part E ([round 21](../../concept-rounds/round-21/README.md)): the two 672×240 images of Level 05 (the nest crater beside the mass-driver line with batteries A–D, Lancer's run over the rim, the sleds; the Polyp Mortar's lob to its marker a second ahead, the ship moving out, an unknown contact in orbit) | chosen |
 | [concept/briefing-images-final-r23-a.png](concept/briefing-images-final-r23-a.png) | Review sheet, M4 part F ([round 23](../../concept-rounds/round-23/README.md)): the two 672×240 images of Level 06 (the far side across the terminator, the silent settlements, Daedalus Rim's lit domes, Lancer's run into the dark by headlight; the Mantis at the screen edge sweeping its beam, side-firing guns reaching it, the Coilwyrm coming round behind the ship) | chosen |
-| [concept/briefing-images-final-r25-a.png](concept/briefing-images-final-r25-a.png) | Review sheet, M4 part G (round 25): the two 672×240 images of Level 07 (the Brood Carrier holding at L1 with its escort screen, the overrun picket and the pods on Luna traced back to it; the overhead scan: nose-down on high air over the ship with its shadow and a bay pair open, only missiles reaching up, the turn in place, broadside at the ship's level with a pair open and the plate iris open over the lime core) and the four of the Act 1 outro, one per page (the carcass drifting apart at L1 with Earth beyond; Daedalus Rim still empty, lights on, the file open; the second fleet's track from beyond the Moon into Earth's atmosphere; Aegis Wing reassigned to Earth defence, Rook's craft on Lancer's wing) | proposed |
+| [concept/briefing-images-final-r25-a.png](concept/briefing-images-final-r25-a.png) | Review sheet, M4 part G (round 25): the two 672×240 images of Level 07 (the Brood Carrier holding at L1 with its escort screen, the overrun picket and the pods on Luna traced back to it; the overhead scan: nose-down on high air over the ship with its shadow and a bay pair open, only missiles reaching up, the turn in place, broadside at the ship's level with a pair open and the plate iris open over the lime core) and the four of the Act 1 outro, one per page (the carcass drifting apart at L1 with Earth beyond; Daedalus Rim still empty, lights on, the file open; the second fleet's track from beyond the Moon into Earth's atmosphere; Aegis Wing reassigned to Earth defence, Rook's craft on Lancer's wing) | chosen |
 
 ## Implementation
 
@@ -198,3 +198,18 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
   chosen round-09 render (`vfx_r08.py`; no production wingman sprite until the escort slot is built).
   The earlier seventeen images and sheets re-render byte-identical. Review sheet
   `briefing-images-final-r25-a` proposed for round 25. `art` stays `chosen`.
+- 2026-10-05: Round 25 closed (user): the two Level 07 images and the four Act 1 outro images
+  approved as **final** as they are; `art` stays `chosen`, as after round 20 (the images of the
+  later levels and the act title cards' stills do not exist yet). The carcass image still shows the
+  head chunk's eye lights from before the carcass fix; a trial re-render with the current death
+  art moved the chunks (one over the header's "AFTER"), so the approved file was kept and a
+  re-render is left for a later round.
+- 2026-10-05: `act-1-outro-carcass` re-rendered with the current carcass (the round-25 close left
+  it for later): the eight break-up chunks now take their last tumble frame (the cut flesh cooled,
+  no lime glow, no eye lights) instead of a random one, and only their placement changed. The
+  image had drawn the death data's offsets with y down although they are y up, so the carrier was
+  mirrored top to bottom; the pieces now assemble the right way up, each moved by its drift less
+  the carcass's common drift (1.6× across, 1× up and down, 4 px high), so they come apart round
+  the bracket's middle, all inside it, clear of the title and the labels. Scale, labels, colours,
+  Earth, Luna, the ichor clouds and the debris dots are unchanged; the other twenty-two images stay
+  byte-identical. Review sheet `briefing-images-final-r25-a` rebuilt.

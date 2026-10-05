@@ -1,7 +1,7 @@
 ---
 title: Music
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../../campaign]
 updated: 2026-10-05
@@ -184,19 +184,20 @@ loop comments, `SOURCE` comment; audio identical to the chosen files). Prompts:
 
 | File | What | Status |
 |---|---|---|
-| [concept/choir-descends-final-r25-a.ogg](concept/choir-descends-final-r25-a.ogg) | #18 "The Choir Descends" final, `assets/music/choir-descends.ogg` byte for byte: 125.2 s, loop 299880 + 5080320 samples (6.80 s + 115.20 s), −14.0 LUFS, −1.2 dBTP, seam 0.35 | proposed |
-| [concept/boss-warning-final-r25-a.ogg](concept/boss-warning-final-r25-a.ogg) | #22 "Red Alert" final, `assets/music/boss-warning.ogg` byte for byte: 5.30 s, played once, track 18 comes in at sample 211680 (4.8 s, three bars at 150 BPM), −14.0 LUFS, −2.2 dBTP | proposed |
-| [concept/act-complete-final-r25-a.ogg](concept/act-complete-final-r25-a.ogg) | #24 "Act Complete" final, `assets/music/act-complete.ogg` byte for byte: 16.33 s, played once, −14.0 LUFS, −2.1 dBTP | proposed |
-| [concept/boss-handoff-final-r25-a.ogg](concept/boss-handoff-final-r25-a.ogg) | Listening aid: the boss cue as the game mixes it (track 22, then track 18 from 4.8 s, 8 bars); last bar of 22 −11.6 LUFS → first bar of 18 −14.9 LUFS, no clipping | proposed |
-| [concept/choir-descends-seam-final-r25-a.ogg](concept/choir-descends-seam-final-r25-a.ogg) | Listening aid: track 18 across its loop seam, 8 s each side | proposed |
-| [concept/boss-music-final-r25-a.png](concept/boss-music-final-r25-a.png) | Review sheet: the three finals' waveforms and the hand-off mix, with the loop points and the hand-off marked and the measured numbers | proposed |
+| [concept/choir-descends-final-r25-a.ogg](concept/choir-descends-final-r25-a.ogg) | #18 "The Choir Descends" final, `assets/music/choir-descends.ogg` byte for byte: 125.2 s, loop 299880 + 5080320 samples (6.80 s + 115.20 s), −14.0 LUFS, −1.2 dBTP, seam 0.35 | chosen |
+| [concept/boss-warning-final-r25-a.ogg](concept/boss-warning-final-r25-a.ogg) | #22 "Red Alert" final, `assets/music/boss-warning.ogg` byte for byte: 5.30 s, played once, track 18 comes in at sample 211680 (4.8 s, three bars at 150 BPM), −14.0 LUFS, −2.2 dBTP | chosen |
+| [concept/act-complete-final-r25-a.ogg](concept/act-complete-final-r25-a.ogg) | #24 "Act Complete" final, `assets/music/act-complete.ogg` byte for byte: 16.33 s, played once, −14.0 LUFS, −2.1 dBTP | chosen |
+| [concept/boss-handoff-final-r25-a.ogg](concept/boss-handoff-final-r25-a.ogg) | Listening aid: the boss cue as the game mixes it (track 22, then track 18 from 4.8 s, 8 bars); last bar of 22 −11.6 LUFS → first bar of 18 −14.9 LUFS, no clipping | chosen |
+| [concept/choir-descends-seam-final-r25-a.ogg](concept/choir-descends-seam-final-r25-a.ogg) | Listening aid: track 18 across its loop seam, 8 s each side | chosen |
+| [concept/boss-music-final-r25-a.png](concept/boss-music-final-r25-a.png) | Review sheet: the three finals' waveforms and the hand-off mix, with the loop points and the hand-off marked and the measured numbers | chosen |
 
 ## Implementation
 
 - [x] Music player with intro + loop points
-- [ ] Crossfades and stinger transitions (boss warning, jingles)
+- [x] Crossfades and stinger transitions (boss warning, jingles)
 - [x] Two-stem intensity layer driven by density or level script
-- [ ] Per-level track assignment from level data
+- [x] Per-level track assignment from level data (each level's `music` block: track, stems,
+      sting, boss warning and boss track)
 
 ## Open questions
 
@@ -276,3 +277,8 @@ loop comments, `SOURCE` comment; audio identical to the chosen files). Prompts:
   30 dB under the track; loudness step within 4 LU: measured −3.3 LU). Measured only, not listened
   to. The Options sound test lists the three tracks. Review files and the sheet proposed for round
   25; `art` stays `chosen`.
+- 2026-10-05: Round 25 closed (user): tracks 18, 22 and 24 approved as final as they are (the
+  22 → 18 hand-off's 3.3 LU drop and the loop seam accepted); the boss warning's crossfade and the
+  hand-off into track 18 are built (`BossCue`), so the crossfade item is done. The document's `art`
+  stays `chosen`: the level themes, the jingles and the mini-boss sting in `assets/music/` are still
+  the chosen concept files.

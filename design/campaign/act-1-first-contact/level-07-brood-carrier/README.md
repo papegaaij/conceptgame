@@ -1,8 +1,8 @@
 ---
 title: Level 07 – Brood Carrier
 design: approved
-implementation: in-progress
-art: chosen
+implementation: done
+art: final
 depends-on: [../../../enemies/bosses/brood-carrier, ../../../world/earth-orbit]
 updated: 2026-10-05
 ---
@@ -195,8 +195,8 @@ Pickup types are defined in [player](../../../player/README.md#in-level-pickups)
 
 Text and radio blips, voiced like every Act 1 level ([voice](../../../audio/voice/README.md));
 the Choir's lines stay text. Rook leads Aegis Two and the rest of the wing against the carrier's
-far-flank escorts (radio only). Lifeboat Seven is a generic CDF voice still to be cast (an
-audition in the part's concept round; uncast until then).
+far-flank escorts (radio only). Lifeboat Seven is a generic CDF voice, cast in
+[round 25](../../../concept-rounds/round-25/README.md) (Tadhg Hynes).
 
 The times are the retimed plan of part G: every timed line starts within 1 s of its time on every
 difficulty, with or without a homing weapon or a special fitted, with the lifeboat secret and the
@@ -315,14 +315,16 @@ Briefs and generators: [concept/prompts.md](concept/prompts.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/backdrop-final-r25-a.png](concept/backdrop-final-r25-a.png) | Final backdrop (`tools/art/backdrop_l07.py`, its block merged into the level's data): stars, Earth's whole disc and the Moon on deep (0.015), the sister sensor station breaking up and the picket's torn ring on far, the carrier's hazed silhouette ahead (sections 2–3, on a path) and the second fleet's glittering line (aftermath), overrun picket platforms, torn gun mounts and truss, wrecks on ground, Level 03's spore haze and banks and the aftermath's ichor clouds on low-air, frost and spore streaks on high-air; with twelve composites of the level | proposed |
-| [concept/lifeboat-r25-a.png](concept/lifeboat-r25-a.png), [.gif](concept/lifeboat-r25-a.gif) | Lifeboat tow A, "white rescue boat" (`tools/concept/props_r25.py`): a white lifting-body lifeboat (72×36, nose down) with orange outer wings, a CDF blue band, four lit windows and a green strobe; a plain olive canister pod (32×32, not a target); a braided tether (16×44) whose three blinking amber marker lamps are the only target cue, one going out per hit; in context over the level's backdrop with the player ship | proposed |
-| [concept/lifeboat-r25-b.png](concept/lifeboat-r25-b.png), [.gif](concept/lifeboat-r25-b.gif) | Lifeboat tow B, "orange lifeboat capsule": a rescue-orange pressure capsule lying across, white end caps and bands, lit portholes, two blue strobes and a tow bridle; a crate-pod with an amber/black hazard lid (reads as loot); a thin cable with an amber light strip and a hazard-striped breakaway coupler where the hits land, split by the second hit | proposed |
-| [concept/level-07-capture-final-r25-a.png](concept/level-07-capture-final-r25-a.png), [.mp4](concept/level-07-capture-final-r25-a.mp4) | A capture of the game, not generated art, retaken after the round's fixes (see [prompts.md](concept/prompts.md#level-07-capture-final-r25-a)): 30 play fields and 6 screens, each labelled with its level time (bar + s from the boss warning, kill + s after the flash): the lifeboat tow (placeholder sprites) entering at t 23, its cable shot (3 hits in 0.2 s), the pod tumbling away, the crate falling out of it 160 px above the bottom edge at t 28.4 and collected; the boss warning banner; the carrier coming over nose-first on high-air at 75 % opacity, bay pair 1 open, launched Skitters drawn over the hull, the hold over the ship (and a 1:1 crop of the ship under the hull); the descend (BAYS 0 / 8, the bar at 77 % from missiles on the open sacs), the turn and the broadside station; pair 1 open with the steady pale hit tint, a sac bursting, a launched Skitter; the iris opening and the core's spiral and ring; the death chain from the tail, the screen flash, the break-up; the aftermath's carcass, its cracks fading, the dark carcass to the end and the second fleet's line of glittering contacts; the debrief (BOSS TIME 0:59, PAR 1:40, SECRETS 1 / 1 with 75 secret credits), the ACT I COMPLETE summary and the four outro pages. The mp4 (81 s, with the game's sound under the master limiter, peak 1.0) plays the tow from t 21.5 to the pick-up and the whole fight from t 98.5 to kill + 8 s | proposed |
+| [concept/backdrop-final-r25-a.png](concept/backdrop-final-r25-a.png) | Final backdrop (`tools/art/backdrop_l07.py`, its block merged into the level's data): stars, Earth's whole disc and the Moon on deep (0.015), the sister sensor station breaking up and the picket's torn ring on far, the carrier's hazed silhouette ahead (sections 2–3, on a path) and the second fleet's glittering line (aftermath), overrun picket platforms, torn gun mounts and truss, wrecks on ground, Level 03's spore haze and banks and the aftermath's ichor clouds on low-air, frost and spore streaks on high-air; with twelve composites of the level | chosen |
+| [concept/rejected/lifeboat-r25-a.png](concept/rejected/lifeboat-r25-a.png), [.gif](concept/rejected/lifeboat-r25-a.gif) | Lifeboat tow A, "white rescue boat" (`tools/concept/props_r25.py`): a white lifting-body lifeboat (72×36, nose down) with orange outer wings, a CDF blue band, four lit windows and a green strobe; a plain olive canister pod (32×32, not a target); a braided tether (16×44) whose three blinking amber marker lamps are the only target cue, one going out per hit; in context over the level's backdrop with the player ship | rejected (user picked b) |
+| [concept/lifeboat-r25-b.png](concept/lifeboat-r25-b.png), [.gif](concept/lifeboat-r25-b.gif) | Lifeboat tow B, "orange lifeboat capsule": a rescue-orange pressure capsule lying across, white end caps and bands, lit portholes, two blue strobes and a tow bridle; a crate-pod with an amber/black hazard lid (reads as loot); a thin cable with an amber light strip and a hazard-striped breakaway coupler where the hits land, split by the second hit | chosen |
+| [concept/lifeboat-final-r25-a.png](concept/lifeboat-final-r25-a.png), [.gif](concept/lifeboat-final-r25-a.gif) | Final lifeboat tow sprites from the chosen b (`tools/art/lifeboat.py`): the boat 72×36 with the strobes lit and dark and the strobes' additive halo; the cable 16×44 intact, after 1 hit (the strip above the coupler dark), 2 hits (the coupler split), cut (the lower jaw on the stub from the boat), with the light strip's additive glow (intact, hit); the pod 44×44 at 24 tumble headings, then the same headings with the lid blown off and the hold empty (after the crate fell out); in the level over the backdrop, the GIF from the tow's entry to the crate falling | chosen |
+| [concept/lifeboat-capture-final-r25-a.png](concept/lifeboat-capture-final-r25-a.png) | A capture of the game with the final tow sprites, not generated art (see [prompts.md](concept/prompts.md#lifeboat-capture-final-r25-a)): seven play-field crops labelled with the level time (intact, 1 hit, 2 hits, the cut, the pod tumbling, the crate out of the emptied pod, the crate drifting down) and 2× crops of the tow | chosen |
+| [concept/level-07-capture-final-r25-a.png](concept/level-07-capture-final-r25-a.png), [.mp4](concept/level-07-capture-final-r25-a.mp4) | A capture of the game, not generated art, retaken after the round's fixes (see [prompts.md](concept/prompts.md#level-07-capture-final-r25-a)): 30 play fields and 6 screens, each labelled with its level time (bar + s from the boss warning, kill + s after the flash): the lifeboat tow (placeholder sprites) entering at t 23, its cable shot (3 hits in 0.2 s), the pod tumbling away, the crate falling out of it 160 px above the bottom edge at t 28.4 and collected; the boss warning banner; the carrier coming over nose-first on high-air at 75 % opacity, bay pair 1 open, launched Skitters drawn over the hull, the hold over the ship (and a 1:1 crop of the ship under the hull); the descend (BAYS 0 / 8, the bar at 77 % from missiles on the open sacs), the turn and the broadside station; pair 1 open with the steady pale hit tint, a sac bursting, a launched Skitter; the iris opening and the core's spiral and ring; the death chain from the tail, the screen flash, the break-up; the aftermath's carcass, its cracks fading, the dark carcass to the end and the second fleet's line of glittering contacts; the debrief (BOSS TIME 0:59, PAR 1:40, SECRETS 1 / 1 with 75 secret credits), the ACT I COMPLETE summary and the four outro pages. The mp4 (81 s, with the game's sound under the master limiter, peak 1.0) plays the tow from t 21.5 to the pick-up and the whole fight from t 98.5 to kill + 8 s | chosen |
 
 ## Implementation
 
-- [ ] Scroll timeline, sections, atmosphere intensity and parallax content as in *Layout*,
+- [x] Scroll timeline, sections, atmosphere intensity and parallax content as in *Layout*,
       including the 20 px/s boss arena and the 35 s aftermath (Level 07's own backdrop).
 - [x] Wave script from the level's data, densified: at least 40 enemies per minute of scroll at
       medium up to the arena (`DensityTest`) and the pacing rule (`PacingTest`) on every
@@ -335,9 +337,9 @@ Briefs and generators: [concept/prompts.md](concept/prompts.md).
 - [x] Lifeboat tow secret; the lifeboat is not hittable, the cable takes 3 hits (its sprites come
       with the art step).
 - [x] Pickups as in *Secrets and pickups*, the overdrive from the first destroyed sac.
-- [ ] Boss checkpoint on easy/medium.
-- [ ] Music: the boss warning (track 22, klaxon, banner) into track 18, out at the kill.
-- [ ] After the aftermath: the debrief with the act summary, then the act-end outro (not on a
+- [x] Boss checkpoint on easy/medium.
+- [x] Music: the boss warning (track 22, klaxon, banner) into track 18, out at the kill.
+- [x] After the aftermath: the debrief with the act summary, then the act-end outro (not on a
       replay).
 - [x] Typical haul at medium within ±5 % of budget(7) = 1,051 with the level's `bounty_scale`
       (`TypicalHaulTest`).
@@ -435,3 +437,23 @@ Briefs and generators: [concept/prompts.md](concept/prompts.md).
   easy 448, hard 198) and 884 HP with pods L4 (one sac burst, the overdrive drop); the bays
   secondary is met in every run, the kill at 82.8 s with L1 pods (90.2 s with the plan's fit). No
   number changes: phase 1 stays about clearing the spawns, with missiles a head start on the sacs.
+- 2026-10-05: Round 25 closed (user): the backdrop approved as final as it is (the deep factor
+  0.015 kept), the capture and the part G numbers accepted (density, `bounty_scale` 0.75, par
+  100 s, the boss spawns and timing, the homing fix, the tow, the radio retimes, the shortened intel
+  texts, Rook's secret line, the act summary layout and the D-decision defaults); the lifeboat tow
+  **b** (the orange capsule, the hazard-lidded crate-pod and the amber cable with its breakaway
+  coupler) for its production sprites; Lifeboat Seven cast (Tadhg Hynes, a), its t=22 line rendered;
+  the chosen sounds play (roar b, sac opening and closing b, launch b, sac burst a, iris b, cable
+  snap a). Every Implementation item is done; `art: final` with the round's approval (the tow's
+  production sprites follow from b).
+- 2026-10-05: Lifeboat tow variant **b** chosen (user), variant a moved to `concept/rejected/`
+  (user picked b). Its production sprites (`tools/art/lifeboat.py`, in the level's unit atlas, now
+  68 % of its 2048² page; the level at 2 of 6 pages) are drawn by the game: the boat's strobes flash
+  once a second (lit frame plus an additive halo), the cable shows the hits taken (`hits` minus the
+  hits left; the cut stub last) with its light strip pulsing at 1.2 Hz and the shared loot glint on
+  the coupler every 2 s while it holds, and the loose pod tumbles through 24 pre-rendered headings
+  (the art rule: nothing lit is rotated at runtime) and shows its emptied hold once the crate has
+  fallen out, so the pod no longer reads as loot. The pod's frames are 44×44 over its 32×32 box so
+  the corner posts fit at 45°. Review files and a game capture proposed in round 25.
+- 2026-10-05: The lifeboat's production sprites (variant b, `tools/art/lifeboat.py`) approved as final by the
+  user, including the empty pod (lid blown off) shown once the crate has fallen out.

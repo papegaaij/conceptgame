@@ -50,7 +50,7 @@ final class SpriteUse {
     /** The sprites an enemy's attack pattern draws besides the enemy (the game's names). */
     private static final Map<String, String> PATTERN_ROOTS = Map.of("mortar", "mortar", "mine", "spore-mine");
 
-    /** The sprites of a level's tows: {@code lifeboat}, {@code lifeboat-pod}, {@code lifeboat-cable}. */
+    /** The sprites of a level's tows: {@code lifeboat}, {@code lifeboat-pod}, {@code lifeboat-cable} and their {@code -glow}s. */
     static final String TOW_ROOT = "lifeboat";
 
     /** The look of a destructible ground target that names none (Level 01's cargo container). */

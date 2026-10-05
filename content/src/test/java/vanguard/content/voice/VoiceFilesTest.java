@@ -92,6 +92,26 @@ class VoiceFilesTest {
         }
     }
 
+    /**
+     * The rendered levels have no uncast speaker left: Level 07's Lifeboat Seven was cast in round 25,
+     * so its line has a voice (and its file, above) instead of playing as text.
+     */
+    @Test
+    void everySpeakerOfARenderedLevelIsCast() {
+        CONTENT.levels().forEach((id, level) -> {
+            if (RENDERED.contains(id)) {
+                level.radio()
+                        .forEach(cue -> assertTrue(
+                                CONTENT.voices().voiceOf(cue.speaker()).isPresent(),
+                                id + ": " + cue.speaker() + " is not cast"));
+            }
+        });
+        assertEquals(
+                "lifeboat-seven",
+                CONTENT.voices().voiceOf("Lifeboat Seven").orElse(null),
+                "Lifeboat Seven speaks with its own voice");
+    }
+
     /** The acts' briefings and outros are spoken too: every page's speaker has a voice and a line. */
     @Test
     void everyPageOfAnActBriefingOrOutroIsALine() {

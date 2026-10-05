@@ -20,7 +20,7 @@ crunchy, and clearly readable. Radio chatter is spoken (text-to-speech rendered 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [music](music/README.md) | Track list, styles per act, loop and transition rules | approved | in-progress | chosen |
+| [music](music/README.md) | Track list, styles per act, loop and transition rules | approved | done | chosen |
 | [sfx](sfx/README.md) | Full sound-effect list with priorities, mixing rules | approved | in-progress | chosen |
 | [voice](voice/README.md) | Spoken radio lines: Chatterbox text-to-speech rendered offline through the radio filter | draft | in-progress | chosen |
 
@@ -144,7 +144,7 @@ spoken lines are designed in [voice](voice/README.md).
 
 - [x] Audio buses with volume settings and ducking
 - [x] Master limiter on the final mix: no peak over full scale, levels unchanged below it
-- [ ] Music playback with loop points and crossfades (see [music](music/README.md))
+- [x] Music playback with loop points and crossfades (see [music](music/README.md))
 - [ ] SFX playback with voice limits and priorities (see [sfx](sfx/README.md))
 
 ## Open questions
@@ -184,3 +184,6 @@ spoken lines are designed in [voice](voice/README.md).
   mix sample for sample until the first over; after an over it costs 0.1 dB on average for a few
   seconds. A limiter of our own that releases at once would need the whole mix rendered in
   software and replayed, about 20 ms more latency on every sound: not worth it for that 0.1 dB.
+- 2026-10-05: Round 25 closed (user): the master limiter approved as built (measured, not judged by
+  ear: a slow make-up release after an over, on average 0.1 dB lower through a fight); the music's
+  crossfades into the boss cue are done, so the music playback item is ticked.

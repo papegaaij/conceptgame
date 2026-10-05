@@ -39,7 +39,7 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
                           its shadow, a bay pair open, only missiles reaching up; the turn in place
                           (a turn frame as a hologram); broadside at the ship's level, a pair open,
                           a pair burst, the plate iris open over the lime core
-  act-1-outro-carcass     Act 1 outro p1: the carcass at L1 (the break-up chunks, burnt dark, drifting,
+  act-1-outro-carcass     Act 1 outro p1: the carcass at L1 (the break-up chunks, dead, burnt dark, drifting,
                           ichor clouds), Earth beyond, what the act saved
   act-1-outro-daedalus-rim  outro p2: Daedalus Rim still empty (Level 06's gate and domes, lights on),
                           the search's tally, the file kept open
@@ -1092,7 +1092,7 @@ def overhead_scan():
 
 def outro_carcass():
     """Act 1 outro p1: the carrier's carcass drifting apart at L1 (its production break-up chunks,
-    burnt dark, and ichor clouds), Earth beyond; what the week saved."""
+    dead and burnt dark, and ichor clouds), Earth beyond; what the week saved."""
     b = Board()
     b.planet(500, 330, 230, "earth", seed=23)
     b.planet(54, 58, 16, "moon", seed=5)
@@ -1104,13 +1104,19 @@ def outro_carcass():
     for k, name in enumerate(("ichor-c", "ichor-a", "ichor-b")):
         cloud(b, "level-07", name, 0.6, cx - 120 + 120 * k, cy + (30, -40, 44)[k])
     rng = np.random.default_rng(71)
-    for chunk in death["chunks"]:
+    chunks = death["chunks"]
+    mx, my = (np.mean([c["drift"][i] for c in chunks]) for i in (0, 1))
+    for chunk in chunks:
+        # the last tumble frame (the cut flesh cooled to dead tissue, nothing glows) at its centre
+        # moved by its drift less the carcass's common drift, the pieces coming apart round the
+        # bracket's middle (wider than the data across, as far as the data up and down, 4 px high:
+        # clear of the title and the labels); offsets and drift are dy up, the display's y down
         (ox, oy), (dx, dy) = chunk["offsets"][2], chunk["drift"]
-        f = artkit.load_frames(chunk["sprite"])[rng.integers(0, 3)]
-        a = np.array(f).astype(float)
+        rng.integers(0, 3)  # the frame draw of the approved image, kept so the debris dots stay put
+        a = np.array(artkit.load_frames(chunk["sprite"])[2]).astype(float)
         a[..., :3] *= darken
         piece = scaled(Image.fromarray(a.astype(np.uint8)), s, 24)
-        b.sprite(piece, cx + (ox + dx * 0.8) * s, cy + (oy + dy * 0.8) * s)
+        b.sprite(piece, cx + (ox + 1.6 * (dx - mx)) * s, cy - 4 - (oy + dy - my) * s)
     for x, y in rng.uniform((cx - 150, cy - 70), (cx + 150, cy + 70), (14, 2)):
         b.marker(x, y, "dot", GREY, 1)
     b.bracket(cx - 160, cy - 76, cx + 160, cy + 82, GREY)

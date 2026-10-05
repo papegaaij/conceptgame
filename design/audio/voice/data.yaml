@@ -36,4 +36,4 @@ speakers:
     ref: ref-perimeter-beacon
     fixed: {exaggeration: 0.3, cfg_weight: 0.5, temperature: 0.6}
     filter: pa
-  lifeboat-seven: {names: [Lifeboat Seven], uncast: true}   # Level 07; auditioned in round 25 (part G), text only until cast
+  lifeboat-seven: {names: [Lifeboat Seven], ref: ref-lifeboat-seven}   # Level 07; cast in round 25 (a, Tadhg Hynes), neutral as auditioned

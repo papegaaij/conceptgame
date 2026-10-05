@@ -126,9 +126,9 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
   F. Smith, a): flat, even settings (`fixed`: exaggeration 0.3, cfg_weight 0.5, temperature 0.6)
   and the **public-address filter** (`filter: pa` in the speaker table) instead of the radio
   filter; the same rendered line feeds the ambience loop.
-  Level 07 adds **Lifeboat Seven** (a drifting CDF lifeboat's crew, one line at t=22), uncast until
-  its audition in round 25 (two public-domain LibriVox readers through radio filter b, the neutral
-  settings).
+  Level 07 adds **Lifeboat Seven** (a drifting CDF lifeboat's crew, one line at t=22), cast in
+  [round 25](../../concept-rounds/round-25/README.md) (Tadhg Hynes, a), at the neutral settings
+  through radio filter b, as auditioned.
 
 ### Speakers and expression
 
@@ -197,8 +197,9 @@ level).
 
 ## Implementation
 
-- [ ] Reference clips per speaker in `design/audio/voice/refs/` under LFS, each in CREDITS.md
-      (main cast done; the generic speakers after round 19)
+- [x] Reference clips per speaker in `design/audio/voice/refs/` under LFS, each in CREDITS.md
+      (Act 1's: the main cast, the generic speakers of round 19, Driver Control, the perimeter
+      beacon and Lifeboat Seven)
 - [x] Speaker table (`data.yaml`) with clips, base settings and the expression offsets
 - [x] Line list and key (hash of speaker settings, text, expression, `shout`, filter; `{ally}`
       and difficulty variants expanded; briefing pages included; bracketed stage directions
@@ -211,7 +212,8 @@ level).
       `assets/voice/<speaker>/<hash>.ogg`; skips lines already rendered; deletes unused files
 - [ ] Act 1 lines rendered and committed; reviewed in a concept round (rendered, not yet
       committed or reviewed; Level 05's 20 lines rendered 2026-10-03, Driver Control's after its casting on 2026-10-04,
-      Level 07's 18 and the Act 1 outro's four pages on 2026-10-05; Lifeboat Seven's line waits for round 25)
+      Level 07's 18 and the Act 1 outro's four pages on 2026-10-05, Lifeboat Seven's after its casting
+      in round 25; Level 07's and the outro's reviewed and accepted in round 25)
 - [x] Playback with the radio message: voice on its own voice bus, music ducking while it plays,
       URGENT cuts and replays, a subtitle page held until its voice ends, pause and stop,
       text-only fallback; the mission failed screen speaks the level's line (the cut has no
@@ -249,8 +251,8 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
 | [concept/rejected/voice-driver-control-r21-b.ogg](concept/rejected/voice-driver-control-r21-b.ogg) | Driver Control (round 21 audition), reader Rebecca (`tools/concept/audio/tts_r21.py`) | rejected |
 | [concept/voice-perimeter-beacon-r23-a.ogg](concept/voice-perimeter-beacon-r23-a.ogg) | Daedalus perimeter beacon (round 23 audition, public-address filter), reader Mark F. Smith (`tools/concept/audio/tts_r23.py`) | chosen |
 | [concept/rejected/voice-perimeter-beacon-r23-b.ogg](concept/rejected/voice-perimeter-beacon-r23-b.ogg) | Daedalus perimeter beacon (round 23 audition, public-address filter), reader Lucy Burgoyne (`tools/concept/audio/tts_r23.py`) | rejected |
-| [concept/voice-lifeboat-seven-r25-a.ogg](concept/voice-lifeboat-seven-r25-a.ogg) | Lifeboat Seven (round 25 audition), reader Tadhg Hynes (`tools/concept/audio/tts_r25.py`) | proposed |
-| [concept/voice-lifeboat-seven-r25-b.ogg](concept/voice-lifeboat-seven-r25-b.ogg) | Lifeboat Seven (round 25 audition), reader Lizzie Driver (`tools/concept/audio/tts_r25.py`) | proposed |
+| [concept/voice-lifeboat-seven-r25-a.ogg](concept/voice-lifeboat-seven-r25-a.ogg) | Lifeboat Seven (round 25 audition), reader Tadhg Hynes (`tools/concept/audio/tts_r25.py`) | chosen |
+| [concept/rejected/voice-lifeboat-seven-r25-b.ogg](concept/rejected/voice-lifeboat-seven-r25-b.ogg) | Lifeboat Seven (round 25 audition), reader Lizzie Driver (`tools/concept/audio/tts_r25.py`) | rejected |
 
 ## Open questions
 
@@ -328,3 +330,11 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
   table so a rerun keeps it). Whisper reads every take back (names such as Aegis and Daedalus only
   with a name prompt, as in the earlier levels). Outro page 1 is 14.3 s, under track 24's 16.3 s.
   VoiceFilesTest now checks Level 07 and the outro; RadioTimelineTest no longer exempts Level 07.
+- 2026-10-05: Round 25 decided (user): Lifeboat Seven is Tadhg Hynes (a), at the audition's
+  neutral settings through radio filter b; `uncast` removed, `ref-lifeboat-seven.wav` in the
+  speaker table; Lizzie Driver's take moved to `concept/rejected/` and her clip deleted with its
+  CREDITS.md row. The t=22 line rendered by `tools/art/voice.py` on the key's seed (6.2 s of speech,
+  6.5 s with the filter's tail); Whisper reads it back word for word, "Aegis" included, without a
+  name prompt. VoiceFilesTest now requires every speaker of a rendered level to be cast, and
+  RadioTimelineTest no longer exempts an uncast speaker's line. Level 07's other lines and the four
+  outro pages were accepted as rendered (round 25, choice 10).

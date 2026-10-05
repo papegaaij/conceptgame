@@ -1,7 +1,7 @@
 ---
 title: Level 05 – Crater Nest
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../../enemies/ground/polyp-mortar, ../../../enemies/bosses/gorgon-frigate, ../../../world/luna]
 updated: 2026-10-04

@@ -322,7 +322,7 @@ public final class LevelRenderer {
         backdrop.drawLowAir(batch, scroll, seconds);
         drawBossShadows(batch, sortie, alpha);
         drawWalkerGlows(batch, sortie, alpha);
-        tows.draw(batch, sortie, alpha);
+        tows.draw(batch, sortie, alpha, seconds);
         drawEnemies(batch, sortie, alpha, Depth.AIR, overHull ? Launched.NOT : Launched.ANY);
         drawChains(batch, sortie, alpha);
         farside.drawSweeps(batch, sortie, alpha);

@@ -43,9 +43,10 @@ class RadioTimelineTest {
     private static final String LEVEL_07 = "act-1-first-contact/level-07-brood-carrier";
 
     /**
-     * Levels whose lines are not rendered yet (none: Level 07's were rendered in M4 part G): their
-     * voiced runs play the lines as text and list the late ones, without asking for the files. An
-     * uncast speaker's line (Lifeboat Seven's) is exempt on its own.
+     * Levels whose lines are not rendered yet (none: Level 07's were rendered in M4 part G, Lifeboat
+     * Seven's after round 25 cast it): their voiced runs play the lines as text and list the late
+     * ones, without asking for the files. A level with an uncast speaker belongs here until the
+     * speaker is cast: an uncast line is not exempt on its own.
      */
     private static final Set<String> UNVOICED = Set.of();
 
@@ -212,7 +213,6 @@ class RadioTimelineTest {
                             assertTrue(
                                     VoiceLines.spoken(cue.line()).isEmpty()
                                             || voiceSeconds(cue) > 0
-                                            || CONTENT.voices().uncast(cue.speaker())
                                             || UNVOICED.contains(level),
                                     level + ": the timed line at t=" + cue.t() + " has its voice");
                             if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {

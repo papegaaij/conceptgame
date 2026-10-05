@@ -434,8 +434,9 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - [ ] Perspective geometry between layers (canyon walls, cliffs) as well as tall structures.
 - [ ] Runtime drop shadows from sprite alpha, offset per layer, masked to shadow-catching layers.
 - [ ] Perspective roof projection for tall ground structures.
-- [ ] High-air weather and decoration opacity capped where it overlaps the play plane; high-air
-  enemies drawn at 75 % opacity, perspective-scaled, with shadows.
+- [x] High-air weather and decoration opacity capped where it overlaps the play plane; high-air
+  enemies drawn at 75 % opacity, perspective-scaled, with shadows (the weather at 40 %; the
+  Leviathan from M4 part C, the Brood Carrier with its shadow in part G, approved in round 25).
 - [ ] Bullet sprites follow the readability rules (core, ring, dark rim, reserved hues).
 - [ ] Hit flash and explosion sequences as described under Animation rules.
 - [x] Loot targets follow readability rule 7 (Level 01's cargo containers and beacon, placeholder
@@ -507,3 +508,6 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - 2026-10-05: High-air enemies are drawn at 75 % opacity, not fully opaque (user decision in M4 part G,
   after the Brood Carrier hid the ship for about 10 s; as the Leviathan already was), coming to full
   opacity as they descend to the play plane.
+- 2026-10-05: Round 25 closed (user): the 75 % high-air opacity kept as it is for the Brood
+  Carrier (the ship under the hull reads at about 25 % contrast; the shared set-piece value, so
+  the Leviathan keeps it too).

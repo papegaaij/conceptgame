@@ -3,7 +3,7 @@ title: Bosses
 design: approved
 implementation: in-progress
 art: chosen
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Bosses
@@ -21,7 +21,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [gorgon-frigate](gorgon-frigate/README.md) | Act 1 mid-boss: medusa-bell warship with three serpent-neck turrets (L05) | approved | in-progress | final |
-| [brood-carrier](brood-carrier/README.md) | Act 1 boss: living carrier, overhead pass, broadside bays, core (L07) | approved | in-progress | chosen |
+| [brood-carrier](brood-carrier/README.md) | Act 1 boss: living carrier, overhead pass, broadside bays, core (L07) | approved | done | final |
 | [harbour-kraken](harbour-kraken/README.md) | Act 2 mid-boss: cephalopod around a platform, lane slams, surfacing head (L11) | approved | not-started | chosen |
 | [siege-spire](siege-spire/README.md) | Act 2 boss: rooted citadel that tears free and rises (L14) | approved | not-started | chosen |
 
@@ -105,7 +105,8 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — Kraken redone as
 - [x] Shared boss framework: multi-part hitboxes, neck chains, phase transitions, HUD boss bar,
       the intro descent, the chained death and the credit shower (M4 part E, with the Gorgon
       Frigate; drawn in plain shapes until its production sprites).
-- [ ] The intro's sting (with Level 05's music) and the death's screen flash.
+- [x] The intro's sting (with Level 05's music) and the death's screen flash (an act boss's
+      only, with the Brood Carrier in M4 part G).
 
 ## Open questions
 

@@ -1,7 +1,7 @@
 ---
 title: Debrief screen
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../systems/scoring, ../../systems/economy, ../../systems/saves]
 updated: 2026-10-05
@@ -91,10 +91,10 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 - [x] Grade calculation display and credit bonus
 - [x] Back (Esc, the gamepad's back button) skips and goes on like confirm (`DebriefExitTest`)
 - [x] Grade breakdown: the rating's parts, the rating and the next grade's threshold beside the stamp (`DebriefRatingTest`)
-- [ ] Data core list with the lore titles (M4 part G)
-- [ ] Act summary page after the act's last level, from the save's per-level records; not on a
+- [x] Data core list with the lore titles (M4 part G)
+- [x] Act summary page after the act's last level, from the save's per-level records; not on a
       replay (M4 part G)
-- [ ] BOSS TIME row with the par and the Boss rush bonus in levels with a boss (M4 part G; the
+- [x] BOSS TIME row with the par and the Boss rush bonus in levels with a boss (M4 part G; the
       bonus itself is paid since part E)
 
 ## Decisions
@@ -140,3 +140,5 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
   with the best grade, the act's data cores with their lore titles, and no summary on a replay.
   The BOSS TIME row of the mock, missing since part E, is built with it. Status back to
   `in-progress` for these items.
+- 2026-10-05: Round 25 closed (user): the act summary layout, the DATA CORE rows and the BOSS TIME
+  row accepted as built (seen in the Level 07 capture); every item is done.

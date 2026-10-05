@@ -27,7 +27,7 @@ frames and chunky bitmap fonts.
 | [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | approved | done | chosen |
 | [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | approved | in-progress | final |
 | [pause](pause/README.md) | Pause menu during a level | approved | done | final |
-| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | in-progress | final |
+| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | done | final |
 | [mission-select](mission-select/README.md) | Replay a flown mission: the act-by-act list with best grades, later missions locked | review | done | n/a |
 | [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | approved | in-progress | n/a |
 | [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | done | final |

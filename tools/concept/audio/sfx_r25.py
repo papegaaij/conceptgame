@@ -37,6 +37,12 @@ the script prints what each file reaches.
 Nobody listened to these: they were picked by the sources' descriptions, ratings and tags and by
 their envelopes, band balance and levels (printed by this script for every file it writes).
 
+Chosen (round 25 closed, 2026-10-05): roar b, sac open b, sac close b, launch b, sac burst a, iris
+b, cable snap a. PRODUCTION holds the chosen variants' treatment for tools/art/sfx_originals.py,
+which applies it to the Freesound originals and writes them to assets/sfx/ under the concept
+file's name with a SOURCE comment (the same cut as the concept file, which was already cut from the
+original).
+
 Usage: python3 tools/concept/audio/sfx_r25.py [subject-or-file ...]
        e.g. enemy-carrier-roar (both variants) or enemy-carrier-roar-r25-a. Deterministic.
 """
@@ -165,12 +171,7 @@ def build(subject, v, preview_cache):
     src = sound["variants"][v]
     with tempfile.TemporaryDirectory() as tmp:
         path, used = source(src, preview_cache, tmp)
-        st = process(dict(src["cut"], peak=-1.0), path)
-    if src.get("speed", 1.0) != 1.0:
-        st = resample(st, src["speed"])
-    if src.get("reverse"):
-        st = st[:, ::-1].copy()
-    st = level(st, sound["level"], sound["ceiling"])
+        st = treat(subject, v)(path)
     name = f"{subject}-r25-{v}"
     tags = {"COMMENT": f"{SCRIPT} {name} from {used}"}
     out = write_ogg(OUT / f"{name}.ogg", st, max_peak_db=sound["ceiling"], tags=tags)
@@ -194,6 +195,32 @@ def report(path, used):
           f"edges {db(np.abs(x[:, :edge]).max()):.0f}/{db(np.abs(x[:, -edge:]).max()):.0f} dBFS, "
           f"energy <200 Hz {low:.0%}, 200 Hz-5 kHz {mid:.0%}\n"
           f"  envelope (100 ms RMS, dBFS): {' '.join(f'{e:.0f}' for e in env)}")
+
+
+CHOSEN = {"enemy-carrier-roar": "b", "enemy-carrier-sac-open": "b", "enemy-carrier-sac-close": "b",
+          "enemy-carrier-launch": "b", "enemy-carrier-sac-burst": "a", "enemy-carrier-iris": "b",
+          "secret-cable-snap": "a"}
+
+
+def treat(subject, v):
+    """The chosen variant's treatment of a (full-scale clipped) source file: cut, speed, reversal, level."""
+    sound = SOUNDS[subject]
+    src = sound["variants"][v]
+
+    def run(path):
+        st = process(dict(src["cut"], peak=-1.0), path)
+        if src.get("speed", 1.0) != 1.0:
+            st = resample(st, src["speed"])
+        if src.get("reverse"):
+            st = st[:, ::-1].copy()
+        return level(st, sound["level"], sound["ceiling"])
+    return run
+
+
+# The chosen variants for tools/art/sfx_originals.py (its DERIVED sounds): page, peak and build.
+PRODUCTION = {f"{subject}-r25-{v}": dict(page=SOUNDS[subject]["variants"][v]["page"],
+                                         peak=SOUNDS[subject]["ceiling"], build=treat(subject, v))
+              for subject, v in CHOSEN.items()}
 
 
 def main(argv):

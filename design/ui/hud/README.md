@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: final
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # HUD
@@ -181,7 +181,10 @@ Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker
 - [ ] Right panel: escort — **later: M5** (Rook's escort slot)
 - [x] Radio message queue with portraits, priority interrupts
 - [x] Boss bar and name at the top of the play field, shorter for a mid-boss (M4 part E; drawn plainly until its production art)
-- [ ] Warning banners, edge arrows, pickup numbers
+- [x] Edge-warning arrows and floating credit numbers (M3) and the boss warning banner (M4 part G,
+      with track 22 and the klaxon)
+- [ ] Wave warning banners ("WARNING — HOSTILES FROM THE REAR"), the sensor suite's threat
+      arrows, the option to hide the credit numbers
 
 ## Open questions
 
@@ -328,3 +331,6 @@ Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker
   primary fails), line two the *Scorched crater* count `NEST n / 30`, then `DONE` or `FAILED`; the
   batteries' units carry a 1 px outline in the objective colour (amber `FFE04A`, a placeholder
   until the production round).
+- 2026-10-05: Round 25 closed (user): the boss warning banner accepted as built (Level 07's
+  capture); the warnings item split into what is built (edge arrows, credit numbers, the boss
+  banner) and what is not (wave banners, the sensor's threat arrows, the numbers' option).

@@ -150,9 +150,9 @@ reused round 02 files marked (r02).
 | Vrell screech (spawn/attack cue), 2 variants: [c](concept/enemy-screech-r08-c.ogg), [d](concept/enemy-screech-r08-d.ogg) | P2 |
 | Turret rotate / lock-on beep — [a](concept/enemy-lock-r08-a.ogg) | P2 |
 | Portal / warp-in; Vrell spawn (Brood Pod bursting, Hive Node and Brood Carrier spawns) — [a](concept/enemy-spawn-r08-a.ogg) (wet creature swell), [b](concept/enemy-spawn-r08-b.ogg) (fleshy burst) | P2 |
-| Carrier launching drones — the Brood Carrier's units leaving its sacs: [a](concept/enemy-carrier-launch-r25-a.ogg) (creature spit), [b](concept/enemy-carrier-launch-r25-b.ogg) (slime lunge), proposed in [round 25](../../concept-rounds/README.md) | P2 |
-| Boss roars and phase-change cues (per boss) — the Brood Carrier (Level 07): roar as it arrives and, lower, as it turns broadside [a](concept/enemy-carrier-roar-r25-a.ogg) (deep roar with echo), [b](concept/enemy-carrier-roar-r25-b.ogg) (bear and didgeridoo); a bay sac opening [a](concept/enemy-carrier-sac-open-r25-a.ogg), [b](concept/enemy-carrier-sac-open-r25-b.ogg) and closing [a](concept/enemy-carrier-sac-close-r25-a.ogg), [b](concept/enemy-carrier-sac-close-r25-b.ogg); a sac bursting [a](concept/enemy-carrier-sac-burst-r25-a.ogg), [b](concept/enemy-carrier-sac-burst-r25-b.ogg); the plate iris opening [a](concept/enemy-carrier-iris-r25-a.ogg) (alien hatch), [b](concept/enemy-carrier-iris-r25-b.ogg) (organic morph), proposed in round 25; other bosses P3 | P2 |
-| Lifeboat tow (Level 07 secret): the amber cable snapping on its third hit — [a](concept/secret-cable-snap-r25-a.ogg) (chain snap, CC-BY), [b](concept/secret-cable-snap-r25-b.ogg) (string twang, slowed, CC-BY), proposed in round 25; the hits play the metal hit, the crate the large salvage | P2 |
+| Carrier launching drones — the Brood Carrier's units leaving its sacs: chosen [b](concept/enemy-carrier-launch-r25-b.ogg) (slime lunge; a creature spit was rejected), [round 25](../../concept-rounds/round-25/README.md) | P2 |
+| Boss roars and phase-change cues (per boss) — the Brood Carrier (Level 07): roar as it arrives and, lower, as it turns broadside, chosen [b](concept/enemy-carrier-roar-r25-b.ogg) (bear and didgeridoo; a deep roar with echo was rejected); a bay sac opening, chosen [b](concept/enemy-carrier-sac-open-r25-b.ogg), and closing, chosen [b](concept/enemy-carrier-sac-close-r25-b.ogg) (a tear out of sucking mud and its reverse; flesh pulled apart was rejected); a sac bursting, chosen [a](concept/enemy-carrier-sac-burst-r25-a.ogg) (very wet, fleshy explosion, CC-BY; a visceral tear was rejected); the plate iris opening, chosen [b](concept/enemy-carrier-iris-r25-b.ogg) (organic morph; an alien hatch was rejected), [round 25](../../concept-rounds/round-25/README.md); other bosses P3 | P2 |
+| Lifeboat tow (Level 07 secret): the amber cable snapping on its third hit — chosen [a](concept/secret-cable-snap-r25-a.ogg) (chain snap, CC-BY; a slowed string twang was rejected), [round 25](../../concept-rounds/round-25/README.md); the hits play the metal hit, the crate the large salvage | P2 |
 | Leviathan whale-song cry (its death, under the large burst) — [a](concept/enemy-leviathan-cry-r16-a.ogg) (synthesized, round 16) | P2 |
 | Polyp Mortar lob — chosen [a](concept/enemy-mortar-lob-r21-a.ogg) (mortar thump; an organic spit was rejected); impact — chosen [a](concept/enemy-mortar-impact-r21-a.ogg) (wet splat; an acid sizzle was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
 | Mass-driver sled (Level 05 hazard): whine while the rail lights chase — chosen [a](concept/hazard-sled-whine-r21-a.ogg) (charge hum loop, played twice over the 1.5 s chase; a rising charge was rejected); pass — chosen [b](concept/hazard-sled-pass-r21-b.ogg) (rushing flyby; a rail-gun crack was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
@@ -430,26 +430,28 @@ Concept round 25 (M4 part G, Level 07) — recorded (CC0 / CC-BY), an a/b pair f
 Brood Carrier's roar, a bay sac opening, closing and bursting, a unit launched from a sac, the
 plate iris opening, and the lifeboat tow's cable snap (`tools/concept/audio/sfx_r25.py`, cut from
 the cached Freesound **originals**, levelled on the loudest 100 ms of the 200 Hz–5 kHz band).
-Option a plays in the game for now (`Sfx`, `FlightSounds`). The klaxon keeps its chosen
+Closed 2026-10-05: roar **b**, sac opening **b**, closing **b**, launch **b**, sac burst **a**, iris
+**b**, cable snap **a**; the production files in `assets/sfx/` are written by
+`tools/art/sfx_originals.py` with sfx_r25.py's treatment (`PRODUCTION`). The klaxon keeps its chosen
 `ui-klaxon-r08-a` (already rebuilt from its original), so it is not in the round. Briefs and
 sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carrier-and-lifeboat-tow-m4-part-g), [CREDITS.md](../../../CREDITS.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/enemy-carrier-roar-r25-a.ogg](concept/enemy-carrier-roar-r25-a.ogg) | "Deep Roar Echo 2.wav" by noahpardo (CC0 1.0) — carrier roar a: a 0.6 s swell, 2.5 s of deep roar, its echo (4.0 s) | proposed |
-| [concept/enemy-carrier-roar-r25-b.ogg](concept/enemy-carrier-roar-r25-b.ogg) | "Didgeridoo Monster Roar" by Noxdl (CC0 1.0) — carrier roar b: a bear's roar over a didgeridoo drone, a buzzing, whale-like body (3.0 s) | proposed |
-| [concept/enemy-carrier-sac-open-r25-a.ogg](concept/enemy-carrier-sac-open-r25-a.ogg) | "GOREFlsh_Flesh Manipulation 01_KVV AUDIO_FREE" by KVV_Audio (CC-BY 4.0) — sac opening a: flesh pulled apart close up (0.85 s) | proposed |
-| [concept/enemy-carrier-sac-open-r25-b.ogg](concept/enemy-carrier-sac-open-r25-b.ogg) | "Squelch.mp3" by LucasDuff (CC0 1.0) — sac opening b: something torn out of a sucking mud (0.9 s) | proposed |
-| [concept/enemy-carrier-sac-close-r25-a.ogg](concept/enemy-carrier-sac-close-r25-a.ogg) | "GOREFlsh_Flesh Manipulation 01_KVV AUDIO_FREE" by KVV_Audio (CC-BY 4.0) — sac closing a: the same recording's third gesture, quieter (0.6 s) | proposed |
-| [concept/enemy-carrier-sac-close-r25-b.ogg](concept/enemy-carrier-sac-close-r25-b.ogg) | "Squelch.mp3" by LucasDuff (CC0 1.0) — sac closing b: opening b's tear reversed, a wet suck that ends shut (0.6 s) | proposed |
-| [concept/enemy-carrier-launch-r25-a.ogg](concept/enemy-carrier-launch-r25-a.ogg) | "Spit 1 - The Ridge - Spanker" by bananplyte (CC0 1.0) — launch a: a creature's throaty spit (0.5 s) | proposed |
-| [concept/enemy-carrier-launch-r25-b.ogg](concept/enemy-carrier-launch-r25-b.ogg) | "Slime Attack 1" by qubodup (CC0 1.0) — launch b: a slime monster's wet lunge, brighter (0.4 s) | proposed |
-| [concept/enemy-carrier-sac-burst-r25-a.ogg](concept/enemy-carrier-sac-burst-r25-a.ogg) | "Headshot 2" by SilverIllusionist (CC-BY 4.0) — sac burst a: a very wet, fleshy explosion, 10 % slower (1.56 s) | proposed |
-| [concept/enemy-carrier-sac-burst-r25-b.ogg](concept/enemy-carrier-sac-burst-r25-b.ogg) | "Gutsy Spillage 1" by magnuswaker (CC0 1.0) — sac burst b: a visceral tear with a wet tail, 10 % slower (1.22 s) | proposed |
-| [concept/enemy-carrier-iris-r25-a.ogg](concept/enemy-carrier-iris-r25-a.ogg) | "SFX Door Open.wav" by Paul368 (CC0 1.0) — iris a: an alien hatch morphing open, a pressure release up front (1.6 s) | proposed |
-| [concept/enemy-carrier-iris-r25-b.ogg](concept/enemy-carrier-iris-r25-b.ogg) | "Simple Mutate (Monster)" by Division4884 (CC0 1.0) — iris b: a grinding, organic morph (1.3 s) | proposed |
-| [concept/secret-cable-snap-r25-a.ogg](concept/secret-cable-snap-r25-a.ogg) | "snapping-chain" by CosmicEmbers (CC-BY 3.0) — cable snap a: a sharp crack, the loose chain rattling after it (1.2 s) | proposed |
-| [concept/secret-cable-snap-r25-b.ogg](concept/secret-cable-snap-r25-b.ogg) | "Guitar string snaps.wav" by juskiddink (CC-BY 4.0) — cable snap b: a string snapping, 25 % slower, a heavy cable's twang and ring (1.6 s) | proposed |
+| [concept/rejected/enemy-carrier-roar-r25-a.ogg](concept/rejected/enemy-carrier-roar-r25-a.ogg) | "Deep Roar Echo 2.wav" by noahpardo (CC0 1.0) — carrier roar a: a 0.6 s swell, 2.5 s of deep roar, its echo (4.0 s) | rejected |
+| [concept/enemy-carrier-roar-r25-b.ogg](concept/enemy-carrier-roar-r25-b.ogg) | "Didgeridoo Monster Roar" by Noxdl (CC0 1.0) — carrier roar b: a bear's roar over a didgeridoo drone, a buzzing, whale-like body (3.0 s) | chosen |
+| [concept/rejected/enemy-carrier-sac-open-r25-a.ogg](concept/rejected/enemy-carrier-sac-open-r25-a.ogg) | "GOREFlsh_Flesh Manipulation 01_KVV AUDIO_FREE" by KVV_Audio (CC-BY 4.0) — sac opening a: flesh pulled apart close up (0.85 s) | rejected |
+| [concept/enemy-carrier-sac-open-r25-b.ogg](concept/enemy-carrier-sac-open-r25-b.ogg) | "Squelch.mp3" by LucasDuff (CC0 1.0) — sac opening b: something torn out of a sucking mud (0.9 s) | chosen |
+| [concept/rejected/enemy-carrier-sac-close-r25-a.ogg](concept/rejected/enemy-carrier-sac-close-r25-a.ogg) | "GOREFlsh_Flesh Manipulation 01_KVV AUDIO_FREE" by KVV_Audio (CC-BY 4.0) — sac closing a: the same recording's third gesture, quieter (0.6 s) | rejected |
+| [concept/enemy-carrier-sac-close-r25-b.ogg](concept/enemy-carrier-sac-close-r25-b.ogg) | "Squelch.mp3" by LucasDuff (CC0 1.0) — sac closing b: opening b's tear reversed, a wet suck that ends shut (0.6 s) | chosen |
+| [concept/rejected/enemy-carrier-launch-r25-a.ogg](concept/rejected/enemy-carrier-launch-r25-a.ogg) | "Spit 1 - The Ridge - Spanker" by bananplyte (CC0 1.0) — launch a: a creature's throaty spit (0.5 s) | rejected |
+| [concept/enemy-carrier-launch-r25-b.ogg](concept/enemy-carrier-launch-r25-b.ogg) | "Slime Attack 1" by qubodup (CC0 1.0) — launch b: a slime monster's wet lunge, brighter (0.4 s) | chosen |
+| [concept/enemy-carrier-sac-burst-r25-a.ogg](concept/enemy-carrier-sac-burst-r25-a.ogg) | "Headshot 2" by SilverIllusionist (CC-BY 4.0) — sac burst a: a very wet, fleshy explosion, 10 % slower (1.56 s) | chosen |
+| [concept/rejected/enemy-carrier-sac-burst-r25-b.ogg](concept/rejected/enemy-carrier-sac-burst-r25-b.ogg) | "Gutsy Spillage 1" by magnuswaker (CC0 1.0) — sac burst b: a visceral tear with a wet tail, 10 % slower (1.22 s) | rejected |
+| [concept/rejected/enemy-carrier-iris-r25-a.ogg](concept/rejected/enemy-carrier-iris-r25-a.ogg) | "SFX Door Open.wav" by Paul368 (CC0 1.0) — iris a: an alien hatch morphing open, a pressure release up front (1.6 s) | rejected |
+| [concept/enemy-carrier-iris-r25-b.ogg](concept/enemy-carrier-iris-r25-b.ogg) | "Simple Mutate (Monster)" by Division4884 (CC0 1.0) — iris b: a grinding, organic morph (1.3 s) | chosen |
+| [concept/secret-cable-snap-r25-a.ogg](concept/secret-cable-snap-r25-a.ogg) | "snapping-chain" by CosmicEmbers (CC-BY 3.0) — cable snap a: a sharp crack, the loose chain rattling after it (1.2 s) | chosen |
+| [concept/rejected/secret-cable-snap-r25-b.ogg](concept/rejected/secret-cable-snap-r25-b.ogg) | "Guitar string snaps.wav" by juskiddink (CC-BY 4.0) — cable snap b: a string snapping, 25 % slower, a heavy cable's twang and ring (1.6 s) | rejected |
 
 ## Implementation
 
@@ -458,7 +460,7 @@ sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carri
 - [ ] Underwater low-pass on the sfx bus
 - [ ] All P1 sounds
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
-  from rounds 02–08, round 21's four and round 23's five) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
+  from rounds 02–08, round 21's four, round 23's five, round 24's two and round 25's seven) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
   [`tools/art/sfx_originals.py`](../../../tools/art/README.md); `importPlaceholders` keeps them
   (only the synthesized sounds are still copied). `art: final` waits for the user's round-12 review.
 
@@ -574,3 +576,12 @@ sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carri
   metal hit). The carrier plays no generic phase blast. All at the explosions' level. The klaxon
   keeps the chosen, already final `ui-klaxon-r08-a`. Not listened to: picked by description,
   rating, envelope, band balance and level.
+- 2026-10-05: Round 25 closed (user): carrier roar **b**, sac opening **b**, sac closing **b**,
+  launch **b**, sac burst **a** (CC-BY 4.0, SilverIllusionist), iris **b** and cable snap **a**
+  (CC-BY 3.0, CosmicEmbers); the other variants moved to `concept/rejected/` (their CREDITS.md
+  rows follow). The chosen files were already cut from the Freesound originals; the production
+  files are written by `tools/art/sfx_originals.py`, which takes round 25's chosen treatment as
+  `DERIVED` (`sfx_r25.py`'s `PRODUCTION`: the cut, the slowdown or reversal, the loudest-100-ms
+  levelling), into `assets/sfx/` under their concept names with a `SOURCE` comment; `Sfx` and
+  `copyPlaceholderSounds` play the chosen ones, the provisional option-a files that are no longer
+  used were removed from `assets/sfx/`. The two CC-BY sounds join the credits screen's list.

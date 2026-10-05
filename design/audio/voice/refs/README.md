@@ -34,8 +34,7 @@ How the clips are chosen and used: [voice](../README.md#reference-voices).
 | `ref-hammer-lead.wav` | Hammer Lead | Gord Mackenzie | [Scaramouche, book 1 ch. 1 (Sabatini)](https://archive.org/details/scaramouche_gm_librivox) | public domain | chosen (round 19) |
 | `ref-driver-control.wav` | Driver Control | Alex Foster | [The Invisible Man, ch. 1–2 (Wells)](https://archive.org/details/invisible_man_librivox) | public domain | chosen (round 21) |
 | `ref-perimeter-beacon.wav` | Daedalus perimeter beacon | Mark F. Smith | [The Time Machine (version 2), ch. 1 (Wells)](https://archive.org/details/time_machine_ms_librivox) | CC0 1.0 | chosen (round 23) |
-| `ref-lifeboat-seven-r25-a.wav` | Lifeboat Seven, candidate a | Tadhg Hynes | [Far From the Madding Crowd, ch. 1 (Hardy)](https://archive.org/details/far_from_the_madding_crowd_th_librivox) | public domain | proposed (round 25) |
-| `ref-lifeboat-seven-r25-b.wav` | Lifeboat Seven, candidate b | Lizzie Driver | [Gulliver's Travels, part 1 ch. 1 (Swift)](https://archive.org/details/gulliver_ld_librivox) | public domain | proposed (round 25) |
+| `ref-lifeboat-seven.wav` | Lifeboat Seven | Tadhg Hynes | [Far From the Madding Crowd, ch. 1 (Hardy)](https://archive.org/details/far_from_the_madding_crowd_th_librivox) | public domain | chosen (round 25) |
 
 Round 19's chosen candidates were renamed to `ref-<speaker>.wav`; the rejected candidates and
 round 18's Tranquility Control clip (David Leeson), which no speaker uses any more, were deleted
@@ -50,8 +49,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
       candidate renamed `ref-driver-control.wav`, the other deleted with its CREDITS.md row
 - [x] The perimeter beacon's clip, cast in [round 23](../../../concept-rounds/round-23/README.md); the chosen
       candidate renamed `ref-perimeter-beacon.wav`, the other deleted with its CREDITS.md row
-- [ ] Lifeboat Seven's clip, cast in round 25; the chosen candidate renamed
-      `ref-lifeboat-seven.wav`, the other deleted with its CREDITS.md row
+- [x] Lifeboat Seven's clip, cast in [round 25](../../../concept-rounds/round-25/README.md); the chosen
+      candidate renamed `ref-lifeboat-seven.wav`, the other deleted with its CREDITS.md row
 
 ## Decisions
 
@@ -72,3 +71,6 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
   source and cut stay in `tools/concept/audio/tts_r23.py`).
 - 2026-10-05: Round 25 candidates for Lifeboat Seven added (Tadhg Hynes, Lizzie Driver; licences
   checked on each archive.org item's `licenseurl`).
+- 2026-10-05: Round 25 decided (user): Lifeboat Seven is Tadhg Hynes (a), renamed
+  `ref-lifeboat-seven.wav`; Lizzie Driver's candidate (b) deleted with its CREDITS.md row (its
+  source and cut stay in `tools/concept/audio/tts_r25.py`).

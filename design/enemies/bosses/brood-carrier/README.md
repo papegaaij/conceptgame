@@ -1,8 +1,8 @@
 ---
 title: Brood Carrier
 design: approved
-implementation: in-progress
-art: chosen
+implementation: done
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-05
 ---
@@ -111,23 +111,23 @@ Chosen concept: [brood-carrier-r04-a.png](../concept/brood-carrier-r04-a.png) (l
 
 | File | What | Status |
 |---|---|---|
-| [concept/brood-carrier-final-r25-a.png](concept/brood-carrier-final-r25-a.png) | Final sprites (`tools/art/brood_carrier.py`): the carrier as the game composes it (nose-down closed and open, broadside closed and in phase 3), the data's hit boxes and part offsets over both poses, the 9 hull frames of the turn (nose-down 288×626, 7 turn frames 11.25° apart with the head swinging right, broadside 626×288), the bay sac nose-down and broadside (closed, 2 swelling, open, burst; 40×40), the plate iris (5 stages, 64×64), the core glow, the mandible turret at 17 headings (±90° of straight down); one 48-colour palette | proposed |
-| [concept/brood-carrier-final-r25-a.gif](concept/brood-carrier-final-r25-a.gif) | The pairs opening head to tail nose-down with the turret tracking, the turn, the broadside windows with two sacs bursting, the iris opening over the pulsing core | proposed |
-| [concept/brood-carrier-death-final-r25-a.png](concept/brood-carrier-death-final-r25-a.png) | The break-up (`tools/art/brood_carrier_death.py`): the eight chunks at their offsets beside the wreck as the game draws it, the break-up at four steps up to the level's end (the play field outlined), each chunk's 3 tumble frames (dead: no lights; the cuts cooling), the blast layout over the game's tail-to-head chain, the ichor cloud | proposed |
-| [concept/brood-carrier-death-final-r25-a.gif](concept/brood-carrier-death-final-r25-a.gif) | The whole death: the chain from tail to head with the blast wave, the flash and the swap at 3 s, the chunks drifting apart under trailing blasts, from 5 s after the swap a 10× time-lapse to the level's end (35 s after the kill), sinking and darkening | proposed |
-| [concept/brood-carrier-capture-final-r25-a.png](concept/brood-carrier-capture-final-r25-a.png) | Game capture: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench 150 --settings <file> --level 7 --invulnerable --debug-speed 2 --loadout front=pulse-cannon:5,left=micro-missile-pod:3,right=micro-missile-pod:3` under `xvfb-run -s "-screen 0 960x540x24"` (settings: a 960×540 window at 0,0, `audio.master=0`, `controls.auto-fire=true`), recorded with `ffmpeg -f x11grab -draw_mouse 0` (4 fps, the turn from a second run at 15 fps), eight whole-window frames in a 2 × 4 grid, 8 px apart on `#0b0e14`. Left to right, top to bottom: on `high-air` over the ship (1.25×), the pairs open nose-down; two frames of the turn; broadside with a pair open; phase 3 (iris open, the spiral and the ring; after the phase-2 timeout); the chain's blasts; the chunks drifting apart | proposed |
+| [concept/brood-carrier-final-r25-a.png](concept/brood-carrier-final-r25-a.png) | Final sprites (`tools/art/brood_carrier.py`): the carrier as the game composes it (nose-down closed and open, broadside closed and in phase 3), the data's hit boxes and part offsets over both poses, the 9 hull frames of the turn (nose-down 288×626, 7 turn frames 11.25° apart with the head swinging right, broadside 626×288), the bay sac nose-down and broadside (closed, 2 swelling, open, burst; 40×40), the plate iris (5 stages, 64×64), the core glow, the mandible turret at 17 headings (±90° of straight down); one 48-colour palette | chosen |
+| [concept/brood-carrier-final-r25-a.gif](concept/brood-carrier-final-r25-a.gif) | The pairs opening head to tail nose-down with the turret tracking, the turn, the broadside windows with two sacs bursting, the iris opening over the pulsing core | chosen |
+| [concept/brood-carrier-death-final-r25-a.png](concept/brood-carrier-death-final-r25-a.png) | The break-up (`tools/art/brood_carrier_death.py`): the eight chunks at their offsets beside the wreck as the game draws it, the break-up at four steps up to the level's end (the play field outlined), each chunk's 3 tumble frames (dead: no lights; the cuts cooling), the blast layout over the game's tail-to-head chain, the ichor cloud | chosen |
+| [concept/brood-carrier-death-final-r25-a.gif](concept/brood-carrier-death-final-r25-a.gif) | The whole death: the chain from tail to head with the blast wave, the flash and the swap at 3 s, the chunks drifting apart under trailing blasts, from 5 s after the swap a 10× time-lapse to the level's end (35 s after the kill), sinking and darkening | chosen |
+| [concept/brood-carrier-capture-final-r25-a.png](concept/brood-carrier-capture-final-r25-a.png) | Game capture: `desktop/build/install/terran-vanguard/bin/terran-vanguard --bench 150 --settings <file> --level 7 --invulnerable --debug-speed 2 --loadout front=pulse-cannon:5,left=micro-missile-pod:3,right=micro-missile-pod:3` under `xvfb-run -s "-screen 0 960x540x24"` (settings: a 960×540 window at 0,0, `audio.master=0`, `controls.auto-fire=true`), recorded with `ffmpeg -f x11grab -draw_mouse 0` (4 fps, the turn from a second run at 15 fps), eight whole-window frames in a 2 × 4 grid, 8 px apart on `#0b0e14`. Left to right, top to bottom: on `high-air` over the ship (1.25×), the pairs open nose-down; two frames of the turn; broadside with a pair open; phase 3 (iris open, the spiral and the ring; after the phase-2 timeout); the chain's blasts; the chunks drifting apart | chosen |
 
 ## Implementation
 
 - [x] Overhead phase on `high-air` with the openings and spawns; hits on open sacs by `homing` only
 - [x] The turn: descent to `air` and the broadside pose, invulnerable; station off-centre
 - [x] Bay sac windows between fan volleys, cycling the living pairs; 70 s timeout
-- [ ] Core phase with the spiral and rings together; timeout spawns; 3-s chained death tail to
+- [x] Core phase with the spiral and rings together; timeout spawns; 3-s chained death tail to
       head with the surviving sacs paying, screen flash
 - [x] Fire-only armoured turrets, out of the bar
 - [x] Stat block values and boss script loaded from data; global difficulty multipliers and the
       easy/hard hooks applied; par 100 s
-- [ ] Death effect, bounty and score per this spec
+- [x] Death effect, bounty and score per this spec
 - [x] Production sprites: the three poses, the sac and iris stages, the turrets, the break-up
       (`tools/art/brood_carrier.py`, `tools/art/brood_carrier_death.py`; review in round 25)
 
@@ -183,3 +183,10 @@ Chosen concept: [brood-carrier-r04-a.png](../concept/brood-carrier-r04-a.png) (l
   frames, and the blasts trailing on the chunks are fire only (an ichor burst on a chunk at kill
   + 1.5 s read as a lime glow dot); the chunks drift for the whole 35 s aftermath (they were gone after
   12 s), the carcass drifting down and to the right as a whole.
+- 2026-10-05: Round 25 closed (user): the production sprites and the turn, the death and the
+  drifting carcass approved as final; the 75 % opacity on `high-air` kept as it is (the shared
+  set-piece value, the ship under the hull at about 25 % contrast); the part G numbers accepted.
+  Its sounds: roar **b** (a bear over a didgeridoo, at the arrival and lower at the turn), sac
+  opening and closing **b** (a tear out of sucking mud, reversed for the close), launch **b** (a
+  slime lunge), sac burst **a** (a very wet, fleshy explosion, CC-BY) and iris **b** (a grinding
+  organic morph) ([sfx](../../../audio/sfx/README.md#concept-art)).

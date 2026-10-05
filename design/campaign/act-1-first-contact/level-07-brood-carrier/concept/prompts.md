@@ -31,6 +31,8 @@ real speed. Sprites as frames: `lifeboat` (strobe lit, dark), `lifeboat-pod`, `l
 
 ### lifeboat-r25-a
 
+Rejected (user picked b); the files are in `rejected/`.
+
 Variant A "white rescue boat": a white lifting-body lifeboat, nose down the way it drifts, with
 international-orange outer wings and nose band, a CDF blue band, four lit cabin windows (crew of
 four), a green strobe on a short mast, red/green nav lights at the wingtips, a dark engine block
@@ -58,6 +60,23 @@ splits it, the cut leaves its lower jaw hanging from the boat.
 - **Prompt:** as A, but a bright orange cylindrical lifeboat capsule with white end caps, lit
   portholes and two blue strobes, towing a square cargo pod with a black-and-amber hazard lid on a
   thin cable with a glowing amber light strip and a hazard-striped breakaway coupler in the middle.
+
+### lifeboat-final-r25-a
+
+Production art from the chosen b, round 25 (`lifeboat-final-r25-a.png`, `.gif`): not prompted,
+rendered by `python3 tools/art/lifeboat.py` (`--review` rebuilds only the sheet and GIF from the
+files in `assets/sprites/`) with the concept's models and materials (`tools/concept/props_r25.py`,
+imported unchanged) at 8×, one 48-colour palette over the boat, the pod and the cable, each PNG
+tagged with a `Source` chunk. Frames: `lifeboat` 72×36 (strobes lit, dark) and `lifeboat-glow`
+(the strobes' stepped blue halo, additive); `lifeboat-cable` 16×44 (intact, 1 hit, 2 hits, cut,
+the hit frames with the concept's scorch) and `lifeboat-cable-glow` (the light strip, intact and
+hit, additive); `lifeboat-pod` 44×44, 24 headings 15° apart clockwise from hanging (the model
+turned, the key light fixed), then the same headings with the hazard lid gone and the hold empty
+for after the crate has fallen out. The cable's glint is the shared loot `glint`. The sheet shows
+every frame and seven 1× crops of the level over its backdrop drawn as TowLooks draws the tow
+(the concept's shot simulation, the pod falling as the sim's Tow does: slip 30 px/s, fall 60 px/s²,
+the crate out 160 px above the bottom edge); the GIF plays from t=22.6 s to 2.5 s after the crate
+falls out.
 
 ## level-07-capture-final-r25-a
 
@@ -95,3 +114,17 @@ crack glow gone by kill + 12 s, the dark carcass on screen to the debrief, the f
 kill + 10 s (behind the carcass first). Debrief: 153 / 165 kills, SECRETS FOUND 1 / 1 with 75 secret
 credits, 2 143 total credits, A+ (rating 97). The mix's peak is 1.000 (52 samples at full scale, in
 runs of at most 2 samples; the first capture peaked at 1.46).
+
+## lifeboat-capture-final-r25-a
+
+Round 25, a capture of the game with the final tow sprites, not generated art (`.png` sheet):
+`build/.../install/terran-vanguard/bin/terran-vanguard --bench 40 --settings <file> --level 7
+--invulnerable` at medium with the default loadout on a private Xvfb display (960×540; settings: a
+960×540 window at 0,0, `controls.auto-fire=true`, `audio.master=0`), the atlases packed from the
+current `assets/`, recorded with `ffmpeg -f x11grab -framerate 30` (lossless). The ship was moved by
+one XTest Left key press of 0.26 s (about 70 px at 270 px/s) early in the level and then held still
+under the tow's path, so the auto-fire cut the cable when it drifted over (3 hits from t 24.8, cut at
+t 25.06). Level time from the boat's height on the screen (it enters at the top edge at t 22 and
+drifts down at 45 px/s). The sheet: seven 220×540 play-field crops at 1× (intact, 1 hit, 2 hits, the
+cut, the pod tumbling, the crate out of the emptied pod at t 27.76, the crate drifting down) and
+2× crops around the tow for the first five.

@@ -23,9 +23,9 @@ Brood Carrier at the Earth–Moon L1 point.
 | [level-02-shipyard-burning](level-02-shipyard-burning/README.md) | The yards burn; first ground targets (Spine Turret), the Stinger and Crane Four; save the drydocks for a bonus | approved | done | final |
 | [level-03-spore-drift](level-03-spore-drift/README.md) | Spore Bombers in the high lanes, a debris field, and the Leviathan set piece with Whirl Seed clusters | approved | done | final |
 | [level-04-tranquility-run](level-04-tranquility-run/README.md) | First Luna level: escort five civilian crawlers past Brood Pods and Scuttler walkers; first special | approved | done | final |
-| [level-05-crater-nest](level-05-crater-nest/README.md) | Destroy four nest batteries in a crater by the mass driver; Polyp Mortar; mid-boss Gorgon Frigate | approved | in-progress | final |
-| [level-06-farside](level-06-farside/README.md) | The dark far side: empty settlements, Mantis snipers at the edges, Coilwyrm loop-backs from the rear | approved | in-progress | final |
-| [level-07-brood-carrier](level-07-brood-carrier/README.md) | Through the L1 picket and the escort screen to the act boss, the Brood Carrier | approved | in-progress | chosen |
+| [level-05-crater-nest](level-05-crater-nest/README.md) | Destroy four nest batteries in a crater by the mass driver; Polyp Mortar; mid-boss Gorgon Frigate | approved | done | final |
+| [level-06-farside](level-06-farside/README.md) | The dark far side: empty settlements, Mantis snipers at the edges, Coilwyrm loop-backs from the rear | approved | done | final |
+| [level-07-brood-carrier](level-07-brood-carrier/README.md) | Through the L1 picket and the escort screen to the act boss, the Brood Carrier | approved | done | final |
 
 ## Design
 
@@ -193,8 +193,9 @@ and *Act complete*.
 ## Implementation
 
 - [ ] All 7 levels promoted to draft level documents and implemented.
-- [ ] Act 1 title card, opening briefing and act-end outro as in *Act intro and outro* (the
-      title card and the briefing are built; the outro and the act-end flow come with M4 part G).
+- [x] Act 1 title card, opening briefing and act-end outro as in *Act intro and outro* (the
+      outro's four voiced pages with their images and the act-end flow built in M4 part G; the
+      title card still stands over the title scene until a still of the yards exists).
 - [ ] Shop unlocks for L02–L07 as listed in the campaign loadout-pressure table.
 
 ## Open questions
@@ -232,3 +233,8 @@ and *Act complete*.
   *Act-end flow*; no outro on a replay. **D3** one image per outro page (the carcass, the empty
   Daedalus Rim, the second fleet's track, Rook on Lancer's wing) instead of one still, matching the
   act briefing. The outro pages are voiced like the briefings and are in data.yaml (`outro`). Implementation status `in-progress`: L01–L04 are done and L05–L07 under way.
+- 2026-10-05: Round 25 closed (user): the four outro images, the voiced outro pages, track 24
+  under page 1 and the act-end flow (aftermath, debrief with the act summary, outro, hangar)
+  approved; Level 07 is done and final. The act stays `in-progress`: Levels 05 and 06 are still
+  marked `in-progress` and the shop-unlock item is open; its art stays `chosen` (the title card
+  has no still of the yards yet).

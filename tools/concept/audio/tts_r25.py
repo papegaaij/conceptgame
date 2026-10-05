@@ -15,7 +15,8 @@ CREDITS.md), 12 s cuts from LibriVox chapter recordings (public domain, sources 
 checked on each archive.org item's `licenseurl`), made as in rounds 19, 21 and 23 with
     ffmpeg -ss 60 -t 12 -i https://archive.org/download/<item>/<file> -ac 1 -ar 24000 <clip>.wav
 and checked with their Whisper (faster-whisper base.en) transcript, the .txt next to each clip.
-When the round closes, the chosen clip becomes ref-lifeboat-seven.wav and the other is deleted.
+Round 25 closed (2026-10-05): a was cast and its clip renamed ref-lifeboat-seven.wav; b's was deleted
+(the command above with REFS's entry cuts it again, to rerun the audition).
 
 Setup: the Chatterbox venv of round 18 (~/.cache/tv-tts/venv-chatterbox, see tts_r18.py).
 Rerun: python3 tools/concept/audio/tts_r25.py            (generate + post-process)

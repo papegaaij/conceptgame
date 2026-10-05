@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../../player, ../difficulty]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Economy
@@ -142,7 +142,8 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 ## Implementation
 
 - [x] Credit balance, income multiplier by difficulty
-- [ ] Bounty values per enemy class; boss bounty per act — **later: M4** (the Act 1 enemy classes and bosses)
+- [x] Bounty values per enemy class; boss bounty per act (Act 1's enemy classes, the Gorgon
+  Frigate and the Brood Carrier's 450 with its bays and core, M4 parts A–G)
 - [x] Hangar transaction log for undo; 60 % sell-back otherwise (100 % for an item bought in the
   same visit)
 - [x] Level `bounty_scale` (default 1) on every bounty, after the credit factor, one rounding
@@ -220,3 +221,7 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   pickup and the save entries (`dataCores`, `unlocks`); the item takes effect once utility modules
   exist in M5 (user decision D6 of M4 part F). Rejected: building the Targeting computer in M4 (a
   whole new system) and swapping the unlock for an item that exists in Act 1.
+- 2026-10-05: Round 25 closed (user): Level 07's numbers accepted (`bounty_scale` 0.75, typical
+  haul 1,049 of the budget's 1,051, perfect 1,542; the Brood Carrier's 450 bounty, 340 at the
+  scale; the boss spawns counted at their expected numbers), so every Act 1 enemy class and boss
+  has its bounty.

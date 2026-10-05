@@ -43,7 +43,7 @@ they belong to; a round only collects them.
 | [round-22](round-22/README.md) | Level 05's own backdrop: the crater rims, battery patches, arena floor and burning nest | approved | n/a | chosen |
 | [round-23](round-23/README.md) | M4 part F: Level 06's Mantis, Coilwyrm, darkness glows and light shapes, backdrop, intel portraits, beam, prop and sound concepts, perimeter beacon audition, capture and part F numbers | approved | n/a | chosen |
 | [round-24](round-24/README.md) | The Coilwyrm's death: a ripple of wet bursts head to tail, 0.25 s apart; head burst c and segment burst b chosen | approved | n/a | chosen |
-| [round-25](round-25/README.md) | M4 part G: Level 07's Brood Carrier, its turn, death and carcass, backdrop, lifeboat tow and sound concepts, Lifeboat Seven audition, tracks 18/22/24, briefing and outro images, voiced lines, master limiter, capture and part G numbers | review | n/a | proposed |
+| [round-25](round-25/README.md) | M4 part G: Level 07's Brood Carrier, its turn, death and carcass, backdrop, lifeboat tow and sound concepts, Lifeboat Seven audition, tracks 18/22/24, briefing and outro images, voiced lines, master limiter, capture and part G numbers | approved | n/a | chosen |
 
 ## Design
 
@@ -88,4 +88,4 @@ How a round works:
 | 22 | 2026-10-04 | closed | Level 05 backdrop (final art review) |
 | 23 | 2026-10-04 | closed | M4 part F: Level 06 production art, beam, prop and sound concepts, perimeter beacon audition |
 | 24 | 2026-10-05 | closed | The Coilwyrm's death bursts (four sound options, the ripple timing) |
-| 25 | 2026-10-05 | open | M4 part G: Level 07 and the act end (final art review, lifeboat and sound concepts, Lifeboat Seven audition, part G numbers) |
+| 25 | 2026-10-05 | closed | M4 part G: Level 07 and the act end (final art review, lifeboat and sound concepts, Lifeboat Seven audition, part G numbers) |

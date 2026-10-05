@@ -126,3 +126,7 @@ Whisper (faster-whisper base.en) reads both takes back whole; it hears "Aegis" a
 | a | Tadhg Hynes | [Far From the Madding Crowd, ch. 1 (Hardy)](https://archive.org/details/far_from_the_madding_crowd_th_librivox), cut at 60 s | public domain | 105 Hz (a warm Irish male narrator) |
 | b | Lizzie Driver | [Gulliver's Travels, part 1 ch. 1 (Swift)](https://archive.org/details/gulliver_ld_librivox), cut at 60 s | public domain | 190 Hz (a clear female narrator) |
 
+
+Outcome (user, 2026-10-05): **a** cast (`refs/ref-lifeboat-seven.wav`; the production line by
+`tools/art/voice.py` at the neutral settings through radio filter b); b moved to
+`concept/rejected/`, its clip deleted.

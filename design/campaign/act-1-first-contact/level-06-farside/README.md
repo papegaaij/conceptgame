@@ -1,7 +1,7 @@
 ---
 title: Level 06 – Farside
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../../enemies/air/mantis, ../../../enemies/air/coilwyrm, ../../../world/luna]
 updated: 2026-10-05

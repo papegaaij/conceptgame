@@ -89,13 +89,12 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
         "enemy-coilwyrm-regrow-r23-b.ogg",
         "enemy-coilwyrm-burst-r24-b.ogg",
         "enemy-coilwyrm-head-burst-r24-c.ogg",
-        // Round 25 (Level 07), option a played provisionally until the round closes.
-        "enemy-carrier-roar-r25-a.ogg",
-        "enemy-carrier-sac-open-r25-a.ogg",
-        "enemy-carrier-sac-close-r25-a.ogg",
-        "enemy-carrier-launch-r25-a.ogg",
+        "enemy-carrier-roar-r25-b.ogg",
+        "enemy-carrier-sac-open-r25-b.ogg",
+        "enemy-carrier-sac-close-r25-b.ogg",
+        "enemy-carrier-launch-r25-b.ogg",
         "enemy-carrier-sac-burst-r25-a.ogg",
-        "enemy-carrier-iris-r25-a.ogg",
+        "enemy-carrier-iris-r25-b.ogg",
         "secret-cable-snap-r25-a.ogg",
     )
 }

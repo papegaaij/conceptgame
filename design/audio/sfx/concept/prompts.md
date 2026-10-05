@@ -854,7 +854,10 @@ file. Levels on the loudest 100 ms of the 200 Hz–5 kHz band (sfx_r24.py's `lev
 (the Vrell spawns -23 / -27), closing -28 dB, launch -24 dB, sac burst -15 dB (explosion-r02-a
 -15.2), iris -20 dB, cable snap -17 dB (the large salvage -17.7). A sharp transient meets its
 ceiling first: sac opening a reaches -25.6, the sac bursts -16.3 and -17.3, the cable snaps -20.0.
-Not listened to.
+Not listened to. Closed 2026-10-05 (user): roar b, sac opening b, closing b, launch b, sac burst a,
+iris b, cable snap a; the other variants are in `concept/rejected/`. The game's files in
+`assets/sfx/` are written by `tools/art/sfx_originals.py` with sfx_r25.py's `PRODUCTION` (the same
+cut, with a `SOURCE` comment).
 
 ### enemy-carrier-roar-r25-a — "Deep Roar Echo 2.wav" by noahpardo
 Source: <https://freesound.org/people/noahpardo/sounds/345735/> — CC0 1.0. Use: the Brood Carrier's roar as it arrives (with the klaxon) and, at 0.85 pitch, as it turns broadside.
