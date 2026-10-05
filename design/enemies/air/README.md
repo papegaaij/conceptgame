@@ -28,7 +28,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 | [whirl-seed](whirl-seed/README.md) | Tiny radial spinner released in clusters (L03) | approved | done | final |
 | [brood-pod](brood-pod/README.md) | Egg sac that bursts into Skitters when killed or after 8 s (L04) | approved | done | final |
 | [mantis](mantis/README.md) | Side-entering laser sweeper (L06) | approved | in-progress | chosen |
-| [coilwyrm](coilwyrm/README.md) | Segment-chain serpent that loops to the rear and regrows a head once (L06) | approved | in-progress | chosen |
+| [coilwyrm](coilwyrm/README.md) | Segment-chain serpent that loops to the rear and regrows a head once (L06) | approved | in-progress | final |
 | [wraith](wraith/README.md) | Cloaked manta that decloaks behind the player (L10) | approved | not-started | chosen |
 | [mote-swarm](mote-swarm/README.md) | Flock of tiny motes that loops round for a rear attack (L10) | approved | not-started | chosen |
 | [lamprey](lamprey/README.md) | Homing eel that latches and drains the shield (L12) | approved | not-started | chosen |

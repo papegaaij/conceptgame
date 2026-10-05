@@ -1,0 +1,428 @@
+# Level 06 – Farside: the level script, rendered into README.md (briefing, threat profile, layout,
+# waves, ground targets, radio, credit budget). Times are seconds from the level start.
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+scroll_speed: 130     # calm, so the dark stays readable
+launch_seconds: 5     # flying in from the bottom edge, as in Levels 01-05
+bounty_scale: 0.75    # every bounty × 0.75: the typical haul on budget(6) (user decision D1)
+control_prompts: []
+prompts: []
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Luna
+  layers: [air, ground]
+  density: 3
+  traits: [side, spread]
+  hazards: [darkness]
+  boss: none
+  varga:
+    none: The far side is dark, Lancer. Snipers at the edges, and something long that comes round behind you.
+  notes:
+    Dominant layers: '`air`, `ground` (turrets and mortars, seen only by their glow)'
+    Attack directions: '{directions} by enemy count (the Skitter streams come from the front); by threat **the sides and rear**: 8 Mantis at the edges, and every Coilwyrm but the first strikes from the bottom edge (two loop-backs, one rear entry)'
+    Density: '{density}'
+    Recommended traits: '{traits} (`homing` from the Micro-missile Pod helps against the edges)'
+    Hazards: 'Darkness: the ground visible only in light pools; no rear-firing weapon available yet'
+    Boss / mid-boss: '{boss}'
+    Sensor-suite detail: 'none: Luna far side, `air` + `ground`, front · L1: + directions with the rear warning, density {density}, hazard "darkness" · L2: + Mantis, Coilwyrm, Needler, Stinger, Skitter, Spine Turret, Polyp Mortar portraits; Smart Bomb available · L3: + `side` highlighted, wave strip, 1 secret + 1 data core'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets (no deep layer on Luna); peak: a heavier atmosphere inside the section
+  - name: Terminator
+    end: 25
+    atmosphere: clear
+    tiles: [terminator]
+    notes:
+      layers:
+        ground: 'the last sunlit crater rims sliding into black (no `deep` layer on Luna, so no Milky Way and no Earth: it never rises on the far side); the headlight cone switches on at t=22.'
+      purpose: Into the dark; the headlight.
+  - name: Silent Domes
+    end: 70
+    atmosphere: clear
+    tiles: [dome-field]
+    notes:
+      layers:
+        ground: Daedalus Rim's outer domes, lights on, airlocks open; the ore rail with lamp posts.
+        low-air: none.
+      purpose: First Mantis alone; edges matter.
+  - name: Observatory Array
+    end: 110
+    atmosphere: light
+    tiles: [array-field, ejecta-streaks]
+    notes:
+      layers:
+        ground: radio-silent dish arrays, a dark crater (the secret).
+        low-air: faint regolith plumes.
+      purpose: First Coilwyrm (no loop), then the first loop-back. Flare at t=70.
+  - name: Vrell Fields
+    end: 160
+    atmosphere: medium
+    peak: {atmosphere: heavy, from: 140, to: 146}   # a collapsing dome's dust cloud
+    tiles: [vrell-field]
+    notes:
+      layers:
+        ground: teal nest growth with branching luminous tendrils spreading between domes.
+        low-air: regolith plumes; a collapsing dome's dust cloud (the heavy peak).
+      purpose: Mantis pincers with Coilwyrms; turrets known only by their glow. Flares at t=112 and t=150.
+  - name: Daedalus Gate
+    end: 190
+    atmosphere: light
+    tiles: [dome-field]
+    notes:
+      layers:
+        ground: the settlement's main airlock, wide open and lit; the empty landing pad.
+      purpose: Final Coilwyrm and Mantis pincer; the data core.
+
+# The Mantis and Coilwyrm beats as in the first draft; Skitter streams and snakes, Needler and
+# Stinger groups of this level's roster between them (user decision D1: at least 40 a minute, no
+# generic filler). Coilwyrm paths: [x, y] points, y px below the top edge; a loop-back's path is
+# shifted sideways to start at the head's x when it re-enters from the bottom edge.
+waves:
+  - {t: 6, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5, notes: Over the last sunlit rims}
+  - {t: 11, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.5}
+  - {t: 16, formation: V-wing, enemy: needler, count: 4, from: front, notes: Into the terminator}
+  - {t: 18.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: As the headlight switches on}
+  - {t: 23.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5}
+  - {t: 28.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - {t: 33, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, notes: Away from the Mantis's edge}
+  - {t: 36, formation: single, enemy: mantis, count: 1, from: sides, edge: left, notes: '**Introduction**: alone, edge warning, radio tip'}
+  - {t: 37.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5}
+  - {t: 42, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: Over the dome turrets}
+  - {t: 48, formation: V-wing, enemy: needler, count: 5, from: front}
+  - {t: 52, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.5}
+  - {t: 56, formation: pincer, enemy: mantis, count: 2, from: sides, notes: One per edge}
+  - {t: 60, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.5, notes: Between the two Mantis}
+  - {t: 64, formation: column, enemy: stinger, count: 3, from: front, notes: Crimson dive glow reads in the dark}
+  - {t: 67, formation: snake, enemy: skitter, count: 6, from: front, edge: right}
+  - {t: 72, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.5, notes: Under the first flare}
+  - t: 78
+    formation: snake
+    enemy: coilwyrm
+    count: 1
+    from: front
+    paths: [[[380, -60], [340, 140], [200, 240], [110, 170], [150, 70], [260, 100], [300, 250], [220, 400], [170, 640]]]
+    notes: '**Introduction**: `swirl` down and out of the bottom edge, **no loop**'
+  - {t: 84, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5}
+  - {t: 88, formation: stream, enemy: skitter, count: 8, from: front, edge: alternating, interval: 0.75}
+  - {t: 92.5, formation: V-wing, enemy: stinger, count: 3, from: front}
+  - {t: 96, formation: line abreast, enemy: needler, count: 4, from: front}
+  - {t: 99, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25}
+  - t: 102
+    formation: snake
+    enemy: coilwyrm
+    count: 1
+    from: front
+    paths: [[[100, -60], [160, 200], [300, 300], [390, 190], [310, 100], [230, 230], [260, 640]]]
+    loop_back: {after: 6, path: [[260, 600], [220, 380], [300, 200], [240, -80]]}
+    easy: {warning: 4}
+    notes: '`loop` out of the bottom edge, back from the rear 6 s later (`rear-entry`; edge warning 3 s, 4 s on easy); radio "six"'
+  - {t: 104.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.5}
+  - {t: 110, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: Into the Vrell fields}
+  - {t: 113, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: Under the second flare}
+  - {t: 116, formation: pincer, enemy: mantis, count: 2, from: sides}
+  - {t: 120, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.5}
+  - {t: 124, formation: column, enemy: stinger, count: 3, from: front}
+  - {t: 127.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 2, notes: Up to the rear entry}
+  - t: 134
+    formation: snake
+    enemy: coilwyrm
+    count: 1
+    from: rear
+    paths: [[[140, 620], [180, 400], [320, 300], [370, 160], [240, 80], [200, -80]]]
+    easy: {warning: 4}
+    notes: Enters from the bottom edge (`rear-entry`), swirls up and out the top
+  - {t: 137, formation: V-wing, enemy: needler, count: 4, from: front}
+  - {t: 142, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1, notes: In the heavy dust}
+  - {t: 146, formation: snake, enemy: skitter, count: 6, from: front, edge: right, skip: [hard], notes: 'Out of the heavy dust; hard: the Coilwyrm pair instead'}
+  - t: 146
+    formation: snake
+    enemy: coilwyrm
+    count: 2
+    from: front
+    skip: [easy, medium]
+    paths: [[[60, -60], [190, 170], [290, 330], [420, 640]]]
+    notes: 'Hard only: *pairs crossing*, the second chain on the mirrored path'
+  - {t: 150, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.5, notes: Under the third flare}
+  - {t: 152, formation: single, enemy: mantis, count: 1, from: sides, edge: right}
+  - {t: 155, formation: column, enemy: stinger, count: 3, from: front}
+  - {t: 158, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25}
+  - {t: 162, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 166, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - t: 168
+    formation: snake
+    enemy: coilwyrm
+    count: 1
+    from: front
+    paths: [[[200, -60], [240, 290], [330, 390], [240, 470], [150, 390], [240, 290], [330, 190], [240, 110], [160, 200], [200, 380], [230, 640]]]
+    loop_back: {after: 6, path: [[230, 600], [310, 360], [230, 160], [190, -80]]}
+    easy: {warning: 4}
+    notes: '`figure-8`, then out of the bottom edge and back from the rear (edge warning)'
+  - {t: 172, formation: pincer, enemy: mantis, count: 2, from: sides, notes: Finale with the last Coilwyrm}
+  - {t: 176, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - {t: 179, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: Past the open airlock}
+
+ground_targets:  # at: [t, x], when it enters at the top edge and its x
+  - target: dome turrets
+    section: 2
+    enemy: spine-turret
+    count: 2
+    at: [[45, 130], [45.6, 350]]
+    notes:
+      target: '[Spine Turret](../../../enemies/ground/spine-turret/README.md) ×{count} between domes (t≈45)'
+      effect: Bounty; violet barrel glow only until lit
+  - target: ore cart
+    section: 2
+    layer: ground
+    size: [28, 40]
+    sprite: ore-cart    # round 23 b, the closed hopper (tools/art/l06_props.py)
+    hp: 3
+    drop: medium salvage
+    at: [[54.83, 410]]  # on the ore rail (x 410), beside the t=57 rail lamp
+    notes:
+      target: Abandoned ore cart on the rail (ground layer, {hp} HP; t≈55), under a rail lamp
+      effect: 'Medium salvage ({drop_credits})'
+      budget: ore cart {drop} {drop_credits}
+  - target: array mortars
+    section: 3
+    enemy: polyp-mortar
+    count: 2
+    at: [[70, 150], [70.5, 330]]
+    notes:
+      target: '[Polyp Mortar](../../../enemies/ground/polyp-mortar/README.md) ×{count} at the array (t≈70)'
+      effect: Bounty; revealed by the first flare
+  - target: array turret nest
+    section: 3
+    enemy: spine-turret
+    count: 3
+    at: [[90, 110], [90.4, 240], [90.8, 370]]
+    notes:
+      target: 'Turret nest: Spine Turret ×{count} (t≈90)'
+      effect: Bounty
+  - target: survey cache
+    section: 3
+    layer: ground
+    size: [32, 24]
+    sprite: survey-cache   # round 23 a, the CDF field case; its markers glint only while lit
+    hits: 3
+    reveals: survey cache
+    dark: true
+    at: [[108.84, 286]]  # on the dark crater's floor: the t=112 flare lights it as it passes, or the headlight
+    notes:
+      target: CDF survey cache in the dark crater (t≈109.5), three marker lights on its lid
+      effect: 'Takes 3 hits, only while the headlight or the t=112 flare lights it; releases the hidden crate'
+  - target: field mortars
+    section: 4
+    enemy: polyp-mortar
+    count: 2
+    at: [[118, 120], [118.8, 360]]
+    notes:
+      target: 'Polyp Mortar ×{count} in the Vrell field (t≈118)'
+      effect: Bounty
+  - target: field turrets
+    section: 4
+    enemy: spine-turret
+    count: 2
+    at: [[118.4, 200], [119.2, 290]]
+    notes:
+      target: 'Spine Turret ×{count} in the Vrell field (t≈118)'
+      effect: Bounty
+  - target: dust turret nest
+    section: 4
+    enemy: spine-turret
+    count: 3
+    at: [[140, 130], [140.4, 250], [140.8, 360]]
+    notes:
+      target: 'Turret nest: Spine Turret ×{count} (t≈140)'
+      effect: Bounty; inside the heavy peak
+  - target: pad mortars
+    section: 5
+    enemy: polyp-mortar
+    count: 2
+    at: [[165, 150], [165.6, 330]]
+    notes:
+      target: 'Polyp Mortar ×{count} on the landing pad (t≈165)'
+      effect: Bounty
+  - target: airlock terminal
+    section: 5
+    layer: ground
+    size: [40, 32]
+    sprite: data-core-terminal   # round 23 b, the wall cabinet; its LEDs glow in the dark
+    hits: 2
+    reveals: settlement log
+    at: [[180.01, 240]]  # in the main airlock's lit bay (darkness.lights)
+    notes:
+      target: The open airlock's terminal at Daedalus Gate (t≈180), lit by the dome light
+      effect: 'Takes 2 hits; releases the data core (the settlement log)'
+
+secrets:
+  - name: survey cache
+    crate: 135
+    radio: {speaker: Rook, line: "A CDF survey cache. Somebody meant to come back for that. Finders keepers, Lancer."}
+  - name: settlement log
+    crate: 0
+    data_core: {unlocks: Targeting computer}
+    radio: {speaker: Varga, line: "That's the settlement log. I'll... read it later."}
+
+pickups:
+  - {pickup: armour patch, dropped_by: {wave: 56, unit: second}}   # the second Mantis of the first pincer
+  - {pickup: overdrive, dropped_by: {wave: 96, unit: last}}        # the last Needler of the line
+  - {pickup: armour patch, dropped_by: {wave: 162, unit: last}}    # the last Needler of the line
+
+# The far side's darkness (Darkness rules; user decisions D2, D3): only the ground layer and the
+# ground units are darkened. Flares are fired by the perimeter beacon; lights are the domes' and
+# rail lamps' static pools (t: entering at the top edge).
+darkness:
+  headlight: {from: 20, length: 200, easy: 260, angle: 60}
+  flare: {seconds: 8, easy_seconds: 12, radius: 120, drift: 30}   # a 240 px pool falling slowly
+  flares:
+    - {t: 70, x: 200, y: 140}
+    - {t: 112, x: 286, y: 380, skip: [hard]}   # over the survey cache as it passes
+    - {t: 150, x: 260, y: 140}
+  lights:   # the domes, the rail lamps, the dish's work lamp, the pad and the airlocks (backdrop_l06.py's placements)
+    - {t: 24.43, x: 392, radius: 64}   # rail lamp
+    - {t: 28.08, x: 120, radius: 110}   # dome-a
+    - {t: 30.43, x: 392, radius: 64}   # rail lamp
+    - {t: 36.43, x: 392, radius: 64}   # rail lamp
+    - {t: 37.08, x: 270, radius: 110}   # dome-b
+    - {t: 42.43, x: 392, radius: 64}   # rail lamp
+    - {t: 48.43, x: 392, radius: 64}   # rail lamp
+    - {t: 51.08, x: 110, radius: 110}   # dome-c
+    - {t: 54.43, x: 392, radius: 64}   # rail lamp
+    - {t: 60.43, x: 392, radius: 64}   # rail lamp
+    - {t: 61.08, x: 270, radius: 110}   # dome-a
+    - {t: 66.43, x: 392, radius: 64}   # rail lamp
+    - {t: 76.43, x: 392, radius: 64}   # rail lamp
+    - {t: 82.17, x: 344, radius: 50}   # the dish's work lamp
+    - {t: 90.43, x: 392, radius: 64}   # rail lamp
+    - {t: 104.43, x: 392, radius: 64}   # rail lamp
+    - {t: 118.43, x: 392, radius: 64}   # rail lamp
+    - {t: 125.08, x: 110, radius: 110}   # dome-overgrown
+    - {t: 146.43, x: 392, radius: 64}   # rail lamp
+    - {t: 155.58, x: 320, radius: 110}   # dome-overgrown
+    - {t: 160.43, x: 392, radius: 64}   # rail lamp
+    - {t: 164.35, x: 240, radius: 100}   # landing-pad
+    - {t: 166.43, x: 392, radius: 64}   # rail lamp
+    - {t: 171.08, x: 110, radius: 110}   # dome-c
+    - {t: 179.02, x: 240, radius: 140}   # the main airlock
+    - {t: 179.85, x: 410, radius: 70}   # the freight lock
+    - {t: 185.58, x: 120, radius: 110}   # dome-b
+  ambient: 0.12
+
+radio:  # trigger: t or event; the "six" lines start with the bottom-edge warning of the rear strike they call
+  - {t: 2, speaker: Okafor, line: "Aegis, Daedalus Rim stopped answering thirty hours ago. Find out why."}
+  - {t: 12.5, speaker: Rook, line: "Aegis Two on the north lane. I've got cousins on Daedalus, Lancer."}
+  - {t: 20, speaker: Varga, line: "You're over the terminator. Headlight on. The Vrell glow; the ground doesn't. Trust the glow."}
+  - {t: 32.5, speaker: Rook, line: "Something on your left edge. It's just... sitting there.", notes: {trigger: the first Mantis's warning}}
+  - {t: 40, speaker: Varga, line: "It's a sniper. It holds at the edge and sweeps a beam across you. Get an angle on it, or get away from that side."}
+  - {t: 52.5, speaker: Perimeter beacon, portrait: generic-cdf, line: "...Daedalus perimeter. All residents report to shelter... all residents report..."}
+  - {t: 64, speaker: Okafor, expression: grim, line: "Domes intact. Airlocks open. Nobody's home."}
+  - {t: 76, speaker: Varga, line: "Long contact, moving like a snake. Cut it and the back half grows a new head. Go for the head."}
+  - {t: 112, speaker: Rook, shout: true, line: "It's turning, it's coming round behind you! Six, Lancer, six!", notes: {trigger: the t=102 loop-back's warning}}
+  - {t: 119.5, speaker: Varga, line: "You can't shoot behind you yet. Dodge it."}
+  - {t: 131, speaker: Rook, shout: true, line: "Contacts on six! Why is it always six?", notes: {trigger: the t=134 rear entry's warning}}
+  - {t: 160, speaker: Varga, expression: grim, line: "No bodies. No damage. Commander, the Vrell didn't kill them. They took them."}
+  - {t: 171, speaker: Okafor, expression: grim, line: "...Understood. Log it, Varga. Aegis, finish this and come home."}
+  - {t: 180.5, speaker: Rook, line: "Another one's coming round. Watch your tail.", notes: {trigger: the t=168 loop-back's warning}}
+  - {event: level-end, speaker: Okafor, expression: grim, line: "Daedalus is empty. So are the others. We'll find them.", notes: {trigger: Level end}}
+  - {event: level-end, speaker: Rook, line: "...Copy. Aegis Two, heading home.", notes: {trigger: "Level end, after Okafor's line"}}
+  - {event: secondary-objective, speaker: Okafor, line: "Not one sniper left standing. Good eyes in the dark, Lancer.", notes: {trigger: Secondary met}}
+
+objectives:
+  primary: reach-end
+  secondary: {escapes: mantis, credits: 50}   # "Clear the edges": every Mantis destroyed before it leaves
+
+music:
+  track: 5            # Act 1 B "Coalition Rising" (audio/music track list)
+  start_section: 1    # the base stem: the far side is sparse and tense
+  full_section: 4     # the intensity stem from the Vrell Fields
+  ambience: luna
+  ambience_from: 186  # the theme fades out: ambience only for the last seconds, after the Varga/Okafor exchange
+  voice_loop: {speaker: Perimeter beacon, section: 2, db: -18}   # the beacon's radio line, looping faintly under section 2
+  end_jingle: mission-complete
+
+difficulty: {}   # the Coilwyrm warnings and the hard pair are in their waves, the t=112 flare in the darkness; the stat blocks' hooks apply
+
+briefing:
+  pages:
+    - {speaker: Okafor, image: level-06-daedalus-rim, line: "Lancer, three farside settlements stopped answering in the last thirty hours. Daedalus Rim is the largest: two thousand people, mostly miners and their families. No distress call, no wreckage, just silence. You'll cross the terminator into full dark. Your headlight and whatever the settlement still has lit are all you'll see by. Find out what happened. If the Vrell are still there, make them leave."}
+    - {speaker: Varga, image: level-06-edge-scan, line: "Two new contacts. A sniper that sits at the edges of your screen, so guns that fire sideways will help. And something long that moves like a serpent and likes to come round behind you. Your rear is open, Lancer. Don't fight it there. Move."}
+  teaser: {speaker: Varga, line: "Farside is dark, and they're holding at the edges. Something that shoots sideways would earn its keep."}
+
+# Far side (tools/art/backdrop_l06.py, round 23): Level 04's top-down kit, no deep layer, one shared
+# terrain and palette for the ground tiles, the ore rail at x 410 in every ground tile set. The ground
+# images are the regolith as a lamp shows it; the runtime light map (darkness) darkens it.
+backdrop:
+  scroll_factors: {far: 0.85, ground: 1.0, low-air: 1.35, high-air: 2.2}
+  ramp: 2
+  haze_colour: 0c0e16
+  atmosphere:
+    clear: {haze: 0.2}
+    light: {banks: plumes-light, haze: 0.25}
+    medium: {banks: plumes-medium, haze: 0.3}
+    heavy: {banks: plumes-heavy, haze: 0.4}      # the collapsing dome's dust (140-146 s)
+  tile_sets:
+    terminator: {layer: ground, height: 960}     # section 1: big craters, their rims catch the last sun
+    dome-field: {layer: ground, height: 960}     # sections 2 and 5: settlement regolith, low relief
+    array-field: {layer: ground, height: 960}    # section 3: cratered regolith round the dishes
+    vrell-field: {layer: ground, height: 960}    # section 4: teal Vrell roots
+    plumes-light: {layer: low-air, height: 960, drift: 6}     # darkened (the low-air layer is not)
+    plumes-medium: {layer: low-air, height: 960, drift: 8}
+    plumes-heavy: {layer: low-air, height: 960, drift: 10}
+    ejecta-streaks: {layer: high-air, height: 960}
+  pieces:
+    dome-a: {layer: ground, size: [180, 150], mid_size: true}   # mining domes, windows lit, airlocks open
+    dome-b: {layer: ground, size: [170, 140], mid_size: true}   # two domes, a walkway, a dish
+    dome-c: {layer: ground, size: [150, 140], mid_size: true}   # a big dome, two open airlocks
+    dome-overgrown: {layer: ground, size: [170, 150], mid_size: true}   # a dome under Vrell growth
+    dome-broken: {layer: ground, size: [170, 150], mid_size: true}   # the collapsed dome (heavy peak)
+    nest-a: {layer: ground, size: [240, 220], mid_size: true}   # Vrell nest, teal well, luminous tendrils
+    nest-b: {layer: ground, size: [220, 200], mid_size: true}   # a smaller nest
+    dish-big: {layer: ground, size: [140, 140], mid_size: true}   # the observatory's big dish
+    dish-array: {layer: ground, size: [280, 120], mid_size: true}   # three dishes, cable trench, control hut
+    dark-crater: {layer: ground, size: [200, 200], mid_size: true}   # the survey cache's crater, cut from the terrain
+    landing-pad: {layer: ground, size: [240, 240], mid_size: true}   # the empty landing pad (Level 04's)
+    daedalus-gate: {layer: ground, size: [480, 280], mid_size: true}   # the pressure wall, the main airlock open, the freight lock over the rail
+    rail-lamp: {layer: ground, size: [24, 24]}   # lamp mast beside the rail (its pool is a darkness light)
+    boulder: {layer: ground, size: [64, 56]}
+    boulder-growth-a: {layer: ground, size: [72, 64]}   # a Vrell socket on top: a turret's base
+    boulder-growth-b: {layer: ground, size: [72, 64]}
+  placed:
+    # 1. Terminator: the sunlit crater rims
+    - {piece: boulder, t: 7, x: 120}
+    - {piece: boulder, t: 19, x: 300}
+    # 2. Silent Domes: domes, the ore rail's lamps, the turrets' sockets between domes
+    - {piece: rail-lamp, t: 27, x: 384}
+    - {piece: dome-a, t: 31, x: 120}
+    - {piece: rail-lamp, t: 33, x: 384}
+    - {piece: rail-lamp, t: 39, x: 384}
+    - {piece: dome-b, t: 40, x: 270}
+    - {piece: rail-lamp, t: 45, x: 384}
+    - {piece: boulder-growth-a, t: 47.23, x: 130}
+    - {piece: boulder-growth-b, t: 47.83, x: 350}
+    - {piece: rail-lamp, t: 51, x: 384}
+    - {piece: dome-c, t: 54, x: 110}
+    - {piece: rail-lamp, t: 57, x: 384}
+    - {piece: rail-lamp, t: 63, x: 384}
+    - {piece: dome-a, t: 64, x: 270}
+    - {piece: rail-lamp, t: 69, x: 384}
+    # 3. Observatory Array: the dishes, the dark crater (the survey cache)
+    - {piece: dish-array, t: 76, x: 170}
+    - {piece: rail-lamp, t: 79, x: 384}
+    - {piece: dish-big, t: 85, x: 300}
+    - {piece: rail-lamp, t: 93, x: 384}
+    - {piece: dish-array, t: 99, x: 200}
+    - {piece: rail-lamp, t: 107, x: 384}
+    - {piece: dark-crater, t: 111, x: 280}
+    # 4. Vrell Fields: nests and tendrils between the domes
+    - {piece: nest-b, t: 120.3, x: 240}
+    - {piece: rail-lamp, t: 121, x: 384}
+    - {piece: dome-overgrown, t: 128, x: 110}
+    - {piece: nest-a, t: 134, x: 320}
+    - {piece: dome-broken, t: 147, x: 300}
+    - {piece: rail-lamp, t: 149, x: 384}
+    - {piece: nest-a, t: 153, x: 120}
+    - {piece: dome-overgrown, t: 158.5, x: 320}
+    # 5. Daedalus Gate: the landing pad, the main airlock (the data core)
+    - {piece: landing-pad, t: 167.2, x: 240}
+    - {piece: rail-lamp, t: 163, x: 384}
+    - {piece: rail-lamp, t: 169, x: 384}
+    - {piece: dome-c, t: 174, x: 110}
+    - {piece: daedalus-gate, t: 182.25, x: 240}
+    - {piece: dome-b, t: 188.5, x: 120}

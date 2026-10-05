@@ -27,7 +27,7 @@ import vanguard.sim.Sortie;
 class ReplayTest {
     private static final String RECORDING = "level-01-medium-2185.rec";
     private static final long SEED = 2185;
-    private static final long EXPECTED_HASH = 0xf838545bce9d8c2fL;
+    private static final long EXPECTED_HASH = 0xf9c4fd8a704e44dfL;
     private static final int EXPECTED_KILLS = 90;
     private static final int EXPECTED_CREDITS = 1079;
 

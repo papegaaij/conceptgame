@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../systems/retry]
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 # Pause menu
@@ -24,7 +24,10 @@ panels stay visible.
 | Abort to hangar | Same as "Back to hangar" after a failure: level-start state; counts as a retry on hard. Confirmation |
 | Quit to main menu | Progress since the last save is lost. Confirmation |
 
-The game also pauses automatically when the window loses focus or a gamepad disconnects.
+The game also pauses automatically when the window loses focus, is minimised or a gamepad
+disconnects. A full-screen window stays on screen when it loses the focus on Linux (a screenshot
+tool or a notification must not throw the player to the desktop); on Windows and macOS it
+minimises, and the game stops drawing until it is restored.
 
 ## Concept art
 
@@ -73,3 +76,11 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
   over the dimmed play field; layout and fonts unchanged. Review files proposed for round 13 (its
   sheet also shows the options screen); `art` stays `chosen`.
 - 2026-10-02: Concept round 13 closed (user decision): the pause menu in the production glass kit approved as **final**; it has no art of its own, so `art: final`.
+- 2026-10-04: Focus loss in full screen (user report: an OS screenshot tool "threw the game to the
+  desktop with an error"). Not a crash: GLFW minimises a full-screen window that loses the focus
+  (auto-iconify); the level paused and the window restored cleanly (reproduced under Xvfb with a
+  window manager). On Linux the full-screen window no longer minimises (`setAutoIconify(false)` in
+  `DesktopLauncher`); Windows and macOS keep it. Minimising now also pauses a level where the
+  focus stays (`ActionInput.interrupt()` from `TerranVanguard.pause()`), and the game stops
+  drawing while minimised instead of spinning unthrottled. Tests: `ActionInputTest`,
+  `DesktopLauncherTest`.

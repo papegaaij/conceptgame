@@ -32,6 +32,7 @@ class VoiceFilesTest {
             "act-1-first-contact/level-03-spore-drift",
             "act-1-first-contact/level-04-tranquility-run",
             "act-1-first-contact/level-05-crater-nest",
+            "act-1-first-contact/level-06-farside",
             "act-1-first-contact briefing",
             "specials");
 
@@ -101,6 +102,31 @@ class VoiceFilesTest {
                         VoiceLines.Filter.DISTORTED,
                         "test")
                 .isEmpty());
+    }
+
+    /** Level 06's perimeter beacon (round 23): its radio lines go through the public-address filter. */
+    @Test
+    void thePerimeterBeaconSpeaksThroughThePublicAddressFilter() {
+        var radio = VoiceLines.line(
+                        CONTENT.voices(),
+                        "Perimeter beacon",
+                        "All residents report to shelter.",
+                        Expression.NEUTRAL,
+                        false,
+                        VoiceLines.Filter.RADIO,
+                        "t")
+                .orElseThrow();
+        assertEquals(VoiceLines.Filter.PA, radio.filter());
+        var rook = VoiceLines.line(
+                        CONTENT.voices(),
+                        "Rook",
+                        "All residents report to shelter.",
+                        Expression.NEUTRAL,
+                        false,
+                        VoiceLines.Filter.RADIO,
+                        "t")
+                .orElseThrow();
+        assertEquals(VoiceLines.Filter.RADIO, rook.filter());
     }
 
     @Test

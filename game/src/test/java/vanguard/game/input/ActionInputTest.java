@@ -116,6 +116,16 @@ class ActionInputTest {
     }
 
     @Test
+    void minimisingInterruptsTheNextUpdateOnce() {
+        input.interrupt();
+        input.update(devices);
+        assertTrue(input.interrupted(), "even in the first frame and with the focus kept");
+
+        input.update(devices);
+        assertFalse(input.interrupted());
+    }
+
+    @Test
     void theMenusKeepTheirKeysWhenTheFlightKeysAreRemapped() {
         var remapped = new ActionInput(Bindings.defaults().with(Action.MOVE_UP, Binding.of(Keys.I, Keys.W)));
         devices.keys.add(Keys.UP);

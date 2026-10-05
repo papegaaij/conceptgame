@@ -134,7 +134,7 @@ class Level01Test {
                 result.credits(),
                 result.score(),
                 result.grade().letter(),
-                result.rating());
+                result.rating().total());
         assertTrue(sortie.complete());
         assertTrue(result.kills() > result.enemies() / 2, "the autopilot shoots most of them down");
     }

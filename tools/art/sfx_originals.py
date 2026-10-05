@@ -10,7 +10,9 @@ Outputs (assets/sfx/, OGG Vorbis q6, Git LFS):
 
 The treatment is the concept one, unchanged: tools/concept/audio/import_sfx.py's SOURCES entry
 (offset, length, fades, loop, filters, peak or band levelling) is applied by its `process` to the
-original file instead of the lossy HQ preview. One step comes first: an original whose decoded
+original file instead of the lossy HQ preview. Sounds with a treatment of their own bring it along
+(DERIVED: tools/concept/audio/sfx_r24.py's PRODUCTION, the Coilwyrm's bursts: cut, levelled on
+the loudest 100 ms, the head's slowed over a sub thump). One step comes first: an original whose decoded
 samples exceed full scale (lossy originals and float WAVs, up to +18.7 dBFS for "Machine Gun 001")
 is clipped at full scale, as every integer decoder plays it and as Freesound made the preview the
 user chose from; levelled on its unclipped peak, such a sound came out up to 11 dB quieter. Originals come from the cache that
@@ -35,6 +37,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "concept" / "audio"))
 from import_sfx import SOURCES, band_rms_db, process  # noqa: E402
+from sfx_r24 import PRODUCTION as DERIVED  # noqa: E402  (sounds with their own treatment: round 24)
 from synth import SR, db, decode, write_ogg, write_wav  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -53,7 +56,7 @@ MAX_LEVEL_DIFF = 1.0      # dB
 def chosen():
     """The SOURCES entries whose Concept art row in the SFX README is chosen."""
     status = {name: s.strip() for name, s in ROW.findall(SFX_DOC.read_text(encoding="utf-8"))}
-    return [name for name in SOURCES if status.get(name, "").startswith("chosen")]
+    return [name for name in [*SOURCES, *DERIVED] if status.get(name, "").startswith("chosen")]
 
 
 def original(src):
@@ -66,7 +69,7 @@ def original(src):
 
 
 def build(name):
-    src = SOURCES[name]
+    src = SOURCES.get(name) or DERIVED[name]
     sound, path = original(src)
     note = f"{SCRIPT} (production audio) from the Freesound original {sound} {path.name}"
     x = decode(path)
@@ -74,7 +77,7 @@ def build(name):
         if np.max(np.abs(x)) > 1:
             path = Path(tmp) / "clipped.wav"
             write_wav(path, np.clip(x, -1, 1))
-        out = process(src, path)
+        out = src["build"](path) if "build" in src else process(src, path)
     write_ogg(OUT / f"{name}.ogg", out, max_peak_db=src["peak"], tags={"SOURCE": note})
     print(f"wrote assets/sfx/{name}.ogg  <- {path.name}")
 

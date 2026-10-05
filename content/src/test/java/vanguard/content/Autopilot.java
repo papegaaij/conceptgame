@@ -19,8 +19,10 @@ import vanguard.sim.Sortie;
  * spores and large debris that come close, stays under a set piece on the player's layer and
  * aims at its vital part (a boss's lowest part that takes damage), and picks up what drops when nothing threatens. With a convoy (Level 04) it
  * cruises among the column, so more of the ground enemies' aimed shots (at the nearer of the ship
- * and the convoy) go for it, and it shoots the ground enemies nearest the convoy first. It reads the sortie's state only, so it is
- * deterministic; the recorded replay stores its commands.
+ * and the convoy) go for it, and it shoots the ground enemies nearest the convoy first. With a segment chain on the
+ * screen (Level 06) it slips sideways to the side clear of its members and lines up under a
+ * chain's head rather than its body (a cut grows a new head). It reads the sortie's state only, so
+ * it is deterministic; the recorded replay stores its commands.
  */
 final class Autopilot {
     private static final double CRUISE_Y = 110;
@@ -30,6 +32,11 @@ final class Autopilot {
     private static final double CONVOY_CRUISE = 220;
     /** How far it keeps from a lit rail (Level 05's sleds), px. */
     private static final double RAIL_CLEARANCE = 44;
+    /** How close a chain member may come before it slips aside (Level 06), px. */
+    private static final double CHAIN_DX = 52;
+
+    private static final double CHAIN_ABOVE = 120;
+    private static final double CHAIN_BELOW = 70;
 
     private Autopilot() {}
 
@@ -40,6 +47,10 @@ final class Autopilot {
         double lob = lobThreat(sortie, shipX, shipY);
         if (lob != 0) {
             return commands | (lob < 0 ? Command.LEFT.bit() : Command.RIGHT.bit());
+        }
+        double coil = chainThreat(sortie, shipX, shipY);
+        if (coil != 0) {
+            return commands | (coil < 0 ? Command.LEFT.bit() : Command.RIGHT.bit());
         }
         double threat = threat(sortie, shipX, shipY);
         if (threat != 0) {
@@ -62,6 +73,10 @@ final class Autopilot {
         Enemy battery = battery(sortie, shipY);
         if (battery != null) {
             lowest = battery;
+        }
+        Enemy head = chainHead(sortie, shipY);
+        if (head != null) {
+            lowest = head;
         }
         Enemy walker = convoyThreat(sortie, shipY);
         if (walker != null) {
@@ -108,6 +123,73 @@ final class Autopilot {
             }
         }
         return lowest;
+    }
+
+    /** Level 06: the lowest head of a segment chain on the screen above the ship; null without one. */
+    private static Enemy chainHead(Sortie sortie, double shipY) {
+        Enemy lowest = null;
+        for (int c = 0; c < sortie.chainCount(); c++) {
+            Enemy head = sortie.chain(c).member(0);
+            if (head == null) {
+                continue;
+            }
+            double x = head.renderX(1);
+            double y = head.renderY(1);
+            if (x > 0
+                    && x < PlayField.WIDTH
+                    && y < PlayField.HEIGHT - 10
+                    && y > shipY + 60
+                    && (lowest == null || y < lowest.renderY(1))) {
+                lowest = head;
+            }
+        }
+        return lowest;
+    }
+
+    /**
+     * Level 06: with a member of a segment chain close above, beside or below, the side whose
+     * position 50 px away lies farther from every member (negative = left); 0 when none is close.
+     */
+    private static double chainThreat(Sortie sortie, double shipX, double shipY) {
+        boolean close = false;
+        for (int c = 0; c < sortie.chainCount() && !close; c++) {
+            var chain = sortie.chain(c);
+            for (int k = 0; k < chain.size(); k++) {
+                Enemy member = chain.member(k);
+                if (member != null
+                        && Math.abs(member.renderX(1) - shipX) < CHAIN_DX
+                        && member.renderY(1) - shipY > -CHAIN_BELOW
+                        && member.renderY(1) - shipY < CHAIN_ABOVE) {
+                    close = true;
+                    break;
+                }
+            }
+        }
+        if (!close) {
+            return 0;
+        }
+        if (shipX < 60) {
+            return 1;
+        }
+        if (shipX > PlayField.WIDTH - 60) {
+            return -1;
+        }
+        return chainClearance(sortie, shipX - 50, shipY) > chainClearance(sortie, shipX + 50, shipY) ? -1 : 1;
+    }
+
+    /** The distance from (x, y) to the nearest chain member, the vertical counted at 0.7. */
+    private static double chainClearance(Sortie sortie, double x, double y) {
+        double nearest = Double.POSITIVE_INFINITY;
+        for (int c = 0; c < sortie.chainCount(); c++) {
+            var chain = sortie.chain(c);
+            for (int k = 0; k < chain.size(); k++) {
+                Enemy member = chain.member(k);
+                if (member != null) {
+                    nearest = Math.min(nearest, Math.hypot(member.renderX(1) - x, 0.7 * (member.renderY(1) - y)));
+                }
+            }
+        }
+        return nearest;
     }
 
     /** Level 05: while the rail is lit (lights or a sled), a target beside the rail rather than on it. */

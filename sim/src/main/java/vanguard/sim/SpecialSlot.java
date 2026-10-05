@@ -168,15 +168,17 @@ public final class SpecialSlot {
 
     /**
      * One step of a Smart Bomb: its ring grows; at once every enemy bullet (and mortar blob) goes,
-     * then those the ring passes; every enemy and boss part on the screen the ring reaches takes its
-     * damage once. It is busy until its repeat time has passed.
+     * then those the ring passes; the spore mines it passes pop as if shot; every enemy and boss
+     * part on the screen the ring reaches takes its damage once. It is busy until its repeat time
+     * has passed.
      */
     void bomb(
             Pool<Enemy> enemies,
             SetPiece[] setPieces,
             PlayerFire.Hits hits,
             Pool<EnemyBullet> bullets,
-            Pool<Lob> lobs) {
+            Pool<Lob> lobs,
+            Pool<Mine> mines) {
         if (smartBomb == null || sinceCall < 0) {
             return;
         }
@@ -197,6 +199,12 @@ public final class SpecialSlot {
         }
         for (int i = lobs.size() - 1; i >= 0; i--) {
             lobs.free(i);
+        }
+        for (int i = mines.size() - 1; i >= 0; i--) {
+            Mine mine = mines.get(i);
+            if (within(mine.x(), mine.y(), radius)) {
+                hits.mineDestroyed(i);
+            }
         }
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);

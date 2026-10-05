@@ -538,8 +538,12 @@ final class PlayerFire {
         return dx * dx + dy * dy <= radius * radius;
     }
 
+    /**
+     * Whether shots, blasts and specials can reach {@code enemy}: on the play field, and not a chain
+     * member waiting for its burst ({@link Chain#doomed}).
+     */
     static boolean onField(Enemy enemy) {
-        return PlayField.overlaps(enemy.x(), enemy.y(), enemy.hitbox());
+        return PlayField.overlaps(enemy.x(), enemy.y(), enemy.hitbox()) && !Chain.doomed(enemy);
     }
 
     private static double distanceSquared(double x, double y, double ox, double oy) {

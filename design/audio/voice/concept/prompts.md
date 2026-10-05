@@ -92,3 +92,22 @@ every five seconds. Watch the rail lights."
 |---|---|---|---|---|
 | a | Alex Foster | [The Invisible Man, ch. 1–2 (Wells)](https://archive.org/details/invisible_man_librivox), cut at 60 s | public domain | 81 Hz (a deep, slow narrator) |
 | b | Rebecca | [The War of the Worlds, book 1 ch. 1 (Wells)](https://archive.org/details/war_worlds_solo_librivox), cut at 60 s | public domain | 113 Hz (a low female voice) |
+
+## voice-perimeter-beacon
+
+Round 23 (the Level 06 audition, user decision D7 of M4 part F), generated with
+`tools/concept/audio/tts_r23.py` the same way as round 21 (seed 23 + the take's index), through
+the **public-address filter** (`pa()` in `tools/concept/audio/tts_r18.py`, next to the radio
+filter): 250–4000 Hz horn band with resonances at 1.1 and 2.6 kHz, a driven horn's saturation, a
+faint 60 Hz mains hum, slap echoes from the farther speakers at 0.13, 0.29 and 0.47 s and a
+1.4 s hall reverb; no static and no squelch clicks. The Daedalus perimeter beacon (L06, t 50,
+automated), flat (0.3 / 0.5 / 0.6): "…Daedalus perimeter. All residents report to shelter… all
+residents report…" (the leading ellipsis is not spoken).
+
+| Variant | Reader | Source | Licence | Clip pitch |
+|---|---|---|---|---|
+| a | Mark F. Smith | [The Time Machine (version 2), ch. 1 (Wells)](https://archive.org/details/time_machine_ms_librivox), cut at 60 s | CC0 1.0 | 105 Hz (an even, measured male narrator; Hammer Lead's rejected candidate a in round 19) |
+| b | Lucy Burgoyne | [Madame Midas, ch. 1 (Hume)](https://archive.org/details/madame_midas_lb_librivox), cut at 60 s | public domain | 147 Hz (a calm female voice) |
+
+Outcome (user, 2026-10-05): **a** cast (`refs/ref-perimeter-beacon.wav`; the production line by
+`tools/art/voice.py` with `filter: pa`); b moved to `concept/rejected/`, its clip deleted.

@@ -130,7 +130,10 @@ public final class SimEvents {
         CHAIN_CUT,
         /** A cut chain's new head has grown (at it); value: its kind. */
         CHAIN_REGROWN,
-        /** A dying chain member popped (at it), paying nothing; value: its kind. */
+        /**
+         * A dying chain member burst (at it), paying nothing; value: its kind and its hit box's width
+         * ({@link #chainPopKind}, {@link #chainPopWidth}), so the burst can follow the chain's taper.
+         */
         CHAIN_POP,
         /** A laser sweep's telegraph started (at the unit); value: its kind. */
         SWEEP_TELEGRAPH,
@@ -163,6 +166,23 @@ public final class SimEvents {
     }
 
     private static final int WALKER_KIND = 10_000;
+
+    /** A {@link Type#CHAIN_POP} value: the member's kind and its hit box's width, px (to 0.1 px, below 100). */
+    static int chainPopValue(int kind, double width) {
+        return kind * CHAIN_POP_KIND + (int) Math.min(CHAIN_POP_KIND - 1, Math.round(width * 10));
+    }
+
+    /** The kind of a {@link Type#CHAIN_POP} value. */
+    public static int chainPopKind(int value) {
+        return value / CHAIN_POP_KIND;
+    }
+
+    /** The hit box width of a {@link Type#CHAIN_POP} value, px. */
+    public static double chainPopWidth(int value) {
+        return value % CHAIN_POP_KIND / 10.0;
+    }
+
+    private static final int CHAIN_POP_KIND = 1_000;
 
     private final int[] types;
     private final double[] xs;

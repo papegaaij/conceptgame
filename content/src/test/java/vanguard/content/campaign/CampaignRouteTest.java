@@ -68,9 +68,20 @@ class CampaignRouteTest {
     }
 
     @Test
-    void afterLevel05TheCampaignWaitsInTheHangarUntilLevel06IsBuilt() {
+    void afterLevel05TheBriefingOfLevel06Comes() {
         Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
         for (int i = 0; i < 5; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
+
+        assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.beforeNextLevel(content, campaign));
+        assertEquals(Optional.of("act-1-first-contact/level-06-farside"), CampaignRoute.launch(content, campaign));
+    }
+
+    @Test
+    void afterLevel06TheCampaignWaitsInTheHangarUntilLevel07IsBuilt() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 6; i++) {
             campaign.complete(CampaignTest.won("A", 80, 1000), 60);
         }
 

@@ -11,7 +11,7 @@ import java.util.List;
  * @param maxMultiplier the chain multiplier at the longest chain
  * @param bonuses the level-end bonuses that were paid
  * @param score the level's score including the bonuses
- * @param rating the grade rating, 0–100
+ * @param rating the grade rating, 0–100, by part
  * @param gradeBonus the grade's credit bonus on the credits earned
  * @param escort the convoy of an {@code escort} primary objective: its units home and their pay
  *     (part of the objectives' credits); {@link Escort#NONE} without one
@@ -31,7 +31,7 @@ public record LevelResult(
         Credits credits,
         List<BonusScore> bonuses,
         long score,
-        double rating,
+        Rating rating,
         ScoringRules.Grade grade,
         int gradeBonus,
         Escort escort,
@@ -55,7 +55,7 @@ public record LevelResult(
             Credits credits,
             List<BonusScore> bonuses,
             long score,
-            double rating,
+            Rating rating,
             ScoringRules.Grade grade,
             int gradeBonus,
             Escort escort,
@@ -118,7 +118,7 @@ public record LevelResult(
             Credits credits,
             List<BonusScore> bonuses,
             long score,
-            double rating,
+            Rating rating,
             ScoringRules.Grade grade,
             int gradeBonus,
             Escort escort) {
@@ -172,7 +172,7 @@ public record LevelResult(
             Credits credits,
             List<BonusScore> bonuses,
             long score,
-            double rating,
+            Rating rating,
             ScoringRules.Grade grade,
             int gradeBonus) {
         this(
@@ -216,15 +216,36 @@ public record LevelResult(
     /** A level-end bonus and the score it paid. */
     public record BonusScore(String name, long score) {}
 
+    /**
+     * The grade rating by part (design/systems/scoring, Grades), each in rating points out of its
+     * weight's, for the debrief's breakdown.
+     *
+     * @param target the next grade up, or the top grade once it is reached
+     */
+    public record Rating(Part kills, Part armour, Part secrets, Part chain, ScoringRules.Grade target) {
+        /** The rating, 0–100. */
+        public double total() {
+            return kills.points() + armour.points() + secrets.points() + chain.points();
+        }
+
+        /** A part's {@code points} of its {@code most} (its weight × 100). */
+        public record Part(double points, double most) {
+            /** The part for a {@code weight} and a {@code share} (0–1) of it. */
+            static Part of(double weight, double share) {
+                return new Part(100 * weight * share, 100 * weight);
+            }
+        }
+    }
+
     /** The kill ratio in whole percent, rounded half to even. */
     public int killPercent() {
         return enemies == 0 ? 100 : (int) Math.rint(100.0 * kills / enemies);
     }
 
     /**
-     * Rates and grades a level. The design gives the rating's weights but not how each part maps
-     * to 0–1; here: the kill ratio, 1 − armour lost ÷ the plating's maximum, secrets found ÷
-     * secrets (1 without secrets) and the longest chain ÷ the chain that reaches the top multiplier.
+     * Rates and grades a level (design/systems/scoring, Grades): the kill ratio, 1 − armour lost ÷
+     * the plating's maximum, secrets found ÷ secrets (1 without secrets) and the longest chain ÷ the
+     * weights' full chain (at most 1), each times its weight.
      */
     static LevelResult of(
             ScoringRules rules,
@@ -302,19 +323,19 @@ public record LevelResult(
         long score =
                 tally.score() + bonuses.stream().mapToLong(BonusScore::score).sum();
         ScoringRules.Weights weights = rules.weights();
-        double rating = 100
-                * (weights.killRatio() * killRatio
-                        + weights.armourDamage() * Math.max(0, 1 - armourDamage / maxArmour)
-                        + weights.secrets() * (secrets == 0 ? 1 : (double) secretsFound / secrets)
-                        + weights.maxChain()
-                                * Math.min(
-                                        1,
-                                        (double) tally.maxChain()
-                                                / rules.chain().countAtMax()));
-        ScoringRules.Grade grade = rules.grades().stream()
-                .filter(g -> rating >= g.minRating())
-                .findFirst()
-                .orElse(rules.grades().getLast());
+        Rating.Part kill = Rating.Part.of(weights.killRatio(), killRatio);
+        Rating.Part armour = Rating.Part.of(weights.armourDamage(), Math.max(0, 1 - armourDamage / maxArmour));
+        Rating.Part found = Rating.Part.of(weights.secrets(), secrets == 0 ? 1 : (double) secretsFound / secrets);
+        Rating.Part chain =
+                Rating.Part.of(weights.maxChain(), Math.min(1, (double) tally.maxChain() / weights.fullChain()));
+        double total = kill.points() + armour.points() + found.points() + chain.points();
+        List<ScoringRules.Grade> grades = rules.grades();
+        int reached = 0;
+        while (reached < grades.size() - 1 && total < grades.get(reached).minRating()) {
+            reached++;
+        }
+        ScoringRules.Grade grade = grades.get(reached);
+        Rating rating = new Rating(kill, armour, found, chain, grades.get(Math.max(0, reached - 1)));
         int gradeBonus = (int) Math.rint(grade.creditBonus() * credits.total());
         return new LevelResult(
                 kills,

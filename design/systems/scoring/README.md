@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../economy]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Scoring
@@ -36,7 +36,13 @@ a separate number, shown next to credits on the HUD:
 - Multiplier = 1 + 0.5 × floor(chain / 10), max ×5 (at a chain of 80).
 - The chain ends when the 2 s window runs out, or when armour takes damage (shield hits do not
   break it).
-- HUD shows `CHAIN 34  ×2.5` with a draining bar for the window.
+- The window **pauses while no enemy is on screen**, so a gap in the level never breaks a chain;
+  only enemies left alive on screen can, by outlasting the window. On screen counts a live enemy
+  (air or ground unit) on a layer the standard shots reach (not high air) whose hit box overlaps
+  the play field, and a set piece or boss while one of its parts on such a layer is on the field,
+  not wrecked and not shielded (a boss's descent and the parts a later phase exposes do not count).
+- HUD shows `CHAIN 34  ×2.5` with a draining bar for the window; the bar stands still while the
+  window is paused.
 
 ### Level-end bonuses
 
@@ -58,9 +64,11 @@ exist):
 - kill ratio: kills ÷ enemies in the level
 - armour damage taken: 1 − armour lost ÷ the plating's maximum
 - secrets: secrets found ÷ secrets; full marks in a level without secrets
-- max chain: the longest chain ÷ 80 (the chain that reaches ×5), at most 1
+- max chain: the longest chain ÷ 40 (the data's `full_chain`), at most 1
 
-A flawless Level 01 with a chain of 30 rates about 91 (A+).
+A flawless Level 01 with a chain of 30 rates about 96 (A+). The debrief shows each part's points
+of its weight, the rating and the next grade's threshold
+([debrief](../../ui/debrief/README.md)).
 
 The grades from best to worst are **A+ · A · B · C · D**. The debrief stamps the letter with its
 plus raised beside it; a save written before the rename keeps its best grade (an old `S` loads as
@@ -130,3 +138,16 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
 - 2026-10-04: The top grade **S** becomes **A+** (user decision); the scale is A+ · A · B · C · D,
   with S's threshold and bonus. The debrief draws the plus raised beside the letter, and a save's
   stored best grade `S` loads as `A+`. The entries above keep the old name.
+- 2026-10-05: Full chain marks at a chain of **40** instead of 80 (user decision): the rating's
+  chain part is the longest chain ÷ 40 (`rating.full_chain` in the data), no longer tied to the
+  ×5 multiplier, which stays at 80. Trigger: a Level 06 run with every kill, both secrets, 24
+  armour lost and a chain of 19 rated about 77 and got an A; at ÷ 40 it rates about 80 (still an
+  A; the plan fit's 60 armour). The debrief shows the breakdown.
+- 2026-10-05: The chain window **pauses while no enemy is on screen** (user decision); the window
+  stays 2 s. On screen: live enemies (air and ground units) on a layer the standard shots reach and
+  overlapping the play field, and set pieces and bosses while a part that is on the field can be
+  damaged (not wrecked, not shielded); high-air units and a boss's descent pause it. Implemented
+  in the sim (`Tally.step`, `Sortie.chainTargets`, the pause flag in the state hash; tests
+  `ChainPauseTest`, `TallyTest`). The autopilot's longest chain on medium (L01–L06) goes from
+  20 · 18 · 12 · 15 · 25 · 44 to 36 · 32 · 17 · 30 · 87 · 124; the Level 01 replay hash changed
+  (kills and credits unchanged).

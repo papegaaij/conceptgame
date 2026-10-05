@@ -49,7 +49,12 @@ public final class VoiceLines {
         /** Radio filter b with more static and dropouts: a damaged channel. */
         DISTORTED,
         /** No radio filter: a briefing page, spoken face to face. */
-        DRY;
+        DRY,
+        /**
+         * The public-address filter instead of the radio filter: horn loudspeakers with echoes, for a
+         * speaker whose table says {@code filter: pa} (Level 06's perimeter beacon).
+         */
+        PA;
 
         public String slug() {
             return name().toLowerCase(Locale.ROOT);
@@ -130,6 +135,7 @@ public final class VoiceLines {
             return Optional.empty();
         }
         VoiceData.Speaker table = voices.speakers().get(voice.get());
+        Filter post = filter != Filter.DRY && table.filter().isPresent() ? Filter.PA : filter;
         VoiceData.Settings settings = voices.settings(voice.get(), expression, shout);
         String key = key(String.join(
                 "\n",
@@ -143,9 +149,9 @@ public final class VoiceLines {
                 spoken,
                 expression.slug(),
                 Boolean.toString(shout),
-                filter.slug()));
+                post.slug()));
         return Optional.of(
-                new VoiceLine(voice.get(), speaker, text, spoken, expression, shout, filter, settings, key, source));
+                new VoiceLine(voice.get(), speaker, text, spoken, expression, shout, post, settings, key, source));
     }
 
     private static String format(double value) {

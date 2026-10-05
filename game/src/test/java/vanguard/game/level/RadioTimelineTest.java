@@ -19,7 +19,7 @@ import vanguard.sim.LevelScript.CueTrigger;
 import vanguard.sim.SimStep;
 
 /**
- * The timed radio lines of Levels 01–05 play when the level scripts mean them to: the real queue,
+ * The timed radio lines of Levels 01–06 play when the level scripts mean them to: the real queue,
  * stepped at the simulation's rate at the default text speed, with the event lines a player can
  * set off in between (an escaped Spore Bomber before the Leviathan's first pass, the lifeboat
  * secret, a convoy's first hit and loss, …), starts none of them more than a second after its time. Event lines wait for a gap
@@ -37,6 +37,7 @@ class RadioTimelineTest {
     private static final String LEVEL_03 = "act-1-first-contact/level-03-spore-drift";
     private static final String LEVEL_04 = "act-1-first-contact/level-04-tranquility-run";
     private static final String LEVEL_05 = "act-1-first-contact/level-05-crater-nest";
+    private static final String LEVEL_06 = "act-1-first-contact/level-06-farside";
 
     /**
      * Timed lines written to follow the line before them rather than to start at their time, by
@@ -104,10 +105,19 @@ class RadioTimelineTest {
                     List.of(
                             new Event(137.5, CueTrigger.GROUP_CLEARED, "Battery D"),
                             new Event(170, CueTrigger.BOSS_PHASE, "Core"),
-                            new Event(185, CueTrigger.BOSS_DESTROYED, "gorgon-frigate"))));
+                            new Event(185, CueTrigger.BOSS_DESTROYED, "gorgon-frigate"))),
+            LEVEL_06,
+            List.of(
+                    List.of(),
+                    // the survey cache lit by the t=112 flare (or found by headlight on the way in)
+                    List.of(new Event(112.5, CueTrigger.SECRET, "survey cache")),
+                    List.of(new Event(111, CueTrigger.SECRET, "survey cache")),
+                    // the data core collected as the terminal passes, before and between the last lines
+                    List.of(new Event(182, CueTrigger.SECRET, "settlement log")),
+                    List.of(new Event(178, CueTrigger.SECRET, "settlement log"))));
 
     @Test
-    void theTimedLinesOfLevels01To05StartAtMostASecondLate() {
+    void theTimedLinesOfLevels01To06StartAtMostASecondLate() {
         RUNS.forEach((level, runs) -> {
             for (Difficulty difficulty : Difficulty.values()) {
                 LevelScript script = SimSpecs.level(CONTENT, level, difficulty);

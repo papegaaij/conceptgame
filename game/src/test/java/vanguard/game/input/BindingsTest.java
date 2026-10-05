@@ -122,7 +122,7 @@ class BindingsTest {
     void theSystemKeysCannotBeBound() {
         var target = new Bindings.Assignment(Action.FIRE, BindingSlot.PRIMARY);
 
-        for (int key : new int[] {Keys.ESCAPE, Keys.ENTER, Keys.NUMPAD_ENTER, Keys.F11}) {
+        for (int key : new int[] {Keys.ESCAPE, Keys.ENTER, Keys.NUMPAD_ENTER, Keys.F11, Keys.F12}) {
             assertTrue(Bindings.systemKey(key));
             assertThrows(IllegalArgumentException.class, () -> defaults.withKey(target, key));
         }

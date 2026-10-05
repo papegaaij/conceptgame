@@ -19,6 +19,7 @@ public final class ActionInput {
     private boolean focused;
     private int gamepads;
     private boolean interrupted;
+    private boolean interruption;
 
     public ActionInput(Bindings bindings) {
         this.bindings = bindings;
@@ -50,7 +51,8 @@ public final class ActionInput {
         }
         boolean nowFocused = devices.focused();
         int nowGamepads = devices.gamepads();
-        interrupted = sampled && (focused && !nowFocused || nowGamepads < gamepads);
+        interrupted = interruption || sampled && (focused && !nowFocused || nowGamepads < gamepads);
+        interruption = false;
         sampled = true;
         focused = nowFocused;
         gamepads = nowGamepads;
@@ -69,7 +71,18 @@ public final class ActionInput {
         return pressed[action.ordinal()];
     }
 
-    /** Whether the window lost the focus or a gamepad disconnected in the last {@link #update}. */
+    /**
+     * Reports an interruption in the next {@link #update}: the window was minimised (libGDX's
+     * {@code pause}), which normally also loses the focus, but a level must pause even where it does not.
+     */
+    public void interrupt() {
+        interruption = true;
+    }
+
+    /**
+     * Whether the window lost the focus, was minimised ({@link #interrupt}) or a gamepad disconnected
+     * in the last {@link #update}.
+     */
     public boolean interrupted() {
         return interrupted;
     }

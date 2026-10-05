@@ -12,7 +12,9 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import vanguard.content.LevelData;
 import vanguard.sim.AirstrikeBomb;
 import vanguard.sim.Chain;
@@ -59,6 +61,8 @@ public final class LevelRenderer {
     private static final int BLINK_FRAME_TICKS = 10;
     /** The stuck sled's ore canister (Level 05): beacon dark, beacon lit, clamp shot. */
     private static final String ORE_CANISTER = "ore-canister";
+    /** The survey cache's markers twinkle at 10 fps while lit. */
+    private static final int GLINT_TWINKLE_TICKS = 6;
     /** A thrown rock's tumble frames per shape, and the steps each shows. */
     private static final int ROCK_TUMBLE = 4;
 
@@ -133,8 +137,21 @@ public final class LevelRenderer {
     private final SetPieceLooks[] setPieceLooks;
 
     private final BossLooks bossLooks;
-    /** The destructible ground objects' frames (intact, damaged) by their look, looked up once. */
+    /**
+     * The destructible ground objects' frames (intact, damaged, wrecked) and the frames of the
+     * triggers with a look of their own (Level 06's survey cache: closed, hit, opened; its terminal:
+     * intact, released) by their look, looked up once.
+     */
     private final Map<String, Array<AtlasRegion>> groundLooks = new HashMap<>();
+    /** The looks of the triggers drawn with frames of their own instead of the beacon or trigger light. */
+    private final Set<String> triggerLooks = new HashSet<>();
+    /** A trigger look's {@code -glow} frame (the terminal's LEDs), drawn after the light pass until it is spent. */
+    private final Map<String, Array<AtlasRegion>> groundGlows = new HashMap<>();
+    /**
+     * A trigger look's {@code -glint} frames (the survey cache's markers), drawn after the light
+     * pass only while the headlight or a flare lights it, until it is spent.
+     */
+    private final Map<String, Array<AtlasRegion>> groundGlints = new HashMap<>();
     /** The debris chunks' sprites by name, looked up once. */
     private final Map<String, AtlasRegion> debrisSprites = new HashMap<>();
     /**
@@ -195,8 +212,18 @@ public final class LevelRenderer {
         triggerLight = sprites.hasBackdrop(light) ? sprites.backdrop(light, 1).first() : null;
         mine = sprites.has("spore-mine") ? sprites.frames("spore-mine") : null;
         for (LevelScript.GroundObjectSpec spec : script.groundObjects()) {
+            String look = spec.look();
             if (!spec.trigger()) {
-                groundLooks.computeIfAbsent(spec.look(), sprites::frames);
+                groundLooks.computeIfAbsent(look, sprites::frames);
+            } else if (!look.equals(LevelScript.GroundObjectSpec.CARGO_CONTAINER) && sprites.has(look)) {
+                triggerLooks.add(look);
+                groundLooks.computeIfAbsent(look, sprites::frames);
+                if (sprites.has(look + "-glow")) {
+                    groundGlows.computeIfAbsent(look, name -> sprites.frames(name + "-glow"));
+                }
+                if (sprites.has(look + "-glint")) {
+                    groundGlints.computeIfAbsent(look, name -> sprites.frames(name + "-glint"));
+                }
             }
         }
         String sledRun = Backdrop.folder(levelKey, level) + "sled-run";
@@ -262,7 +289,8 @@ public final class LevelRenderer {
         drawEnemies(batch, sortie, alpha, Depth.GROUND);
         drawGlints(batch, sortie, alpha);
         farside.darken(batch, sortie, alpha, scroll, seconds);
-        farside.drawGlows(batch, sortie, sprites, alpha, seconds);
+        farside.drawGlows(batch, sortie, looks, alpha, seconds);
+        drawGroundGlows(batch, sortie, alpha);
         drawBomberShadows(batch, sortie, alpha);
         drawEnemies(batch, sortie, alpha, Depth.LOW_AIR);
         blasts.draw(batch, -scroll);
@@ -320,13 +348,20 @@ public final class LevelRenderer {
     private void drawGround(SpriteBatch batch, Sortie sortie, float alpha) {
         for (int i = 0; i < sortie.groundObjectCount(); i++) {
             GroundObject object = sortie.groundObject(i);
-            if (object.spec().trigger() && triggerLight != null && !sledClamp(sortie, object)) {
+            boolean ownLook = object.spec().trigger()
+                    && triggerLooks.contains(object.spec().look());
+            if (object.spec().trigger() && !ownLook && triggerLight != null && !sledClamp(sortie, object)) {
                 drawTriggerLight(batch, sortie, object, alpha);
                 continue;
             }
             int damaged = object.damaged() ? 1 : 0;
             TextureRegion frame;
-            if (object.spec().trigger() && sledClamp(sortie, object)) {
+            if (ownLook) {
+                // Its own frames: hit after the first hit (with three frames), the last once spent.
+                Array<AtlasRegion> frames = groundLooks.get(object.spec().look());
+                int state = object.spent() ? frames.size - 1 : frames.size > 2 ? damaged : 0;
+                frame = frames.get(state);
+            } else if (object.spec().trigger() && sledClamp(sortie, object)) {
                 // The stuck sled (Level 05): the ore canister, its clamp's beacon lit while it can be
                 // hit (the rail dark), the clamp shot open once spent.
                 int state = object.spent() ? 2 : !object.shut() ? 1 : 0;
@@ -373,11 +408,17 @@ public final class LevelRenderer {
         }
     }
 
-    /** Each loot target sparkles at its top-left quarter (the key light's side) every ~2 s. */
+    /**
+     * Each loot target sparkles at its top-left quarter (the key light's side) every ~2 s; not a
+     * dark one (Level 06's survey cache), which only its markers' glint shows, while lit.
+     */
     private void drawGlints(SpriteBatch batch, Sortie sortie, float alpha) {
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         for (int i = 0; i < sortie.groundObjectCount(); i++) {
             GroundObject object = sortie.groundObject(i);
+            if (object.spec().dark()) {
+                continue;
+            }
             int phase = (int) object.renderX() * 7;
             int frame = (int) ((sortie.tick() + phase) % GLINT_PERIOD_TICKS / GLINT_FRAME_TICKS);
             if (!object.spent() && frame < sprites.glint.size) {
@@ -386,6 +427,34 @@ public final class LevelRenderer {
                         sprites.glint.get(frame),
                         object.renderX() - object.spec().size().width() / 4,
                         object.renderY(alpha) + object.spec().size().height() / 4);
+            }
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    /**
+     * After the light pass, at full brightness: the triggers' glow frames (the data core terminal's
+     * LEDs) until they are spent, and their markers' glint (the survey cache's) only while the
+     * headlight or a flare lights them, so the secret stays dark until found.
+     */
+    private void drawGroundGlows(SpriteBatch batch, Sortie sortie, float alpha) {
+        if (groundGlows.isEmpty() && groundGlints.isEmpty()) {
+            return;
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        for (int i = 0; i < sortie.groundObjectCount(); i++) {
+            GroundObject object = sortie.groundObject(i);
+            if (object.spent()) {
+                continue;
+            }
+            Array<AtlasRegion> glow = groundGlows.get(object.spec().look());
+            if (glow != null) {
+                drawCentred(batch, glow.first(), object.renderX(), object.renderY(alpha));
+            }
+            Array<AtlasRegion> glint = groundGlints.get(object.spec().look());
+            if (glint != null && sortie.lit(object)) {
+                int frame = (int) (sortie.tick() / GLINT_TWINKLE_TICKS % glint.size);
+                drawCentred(batch, glint.get(frame), object.renderX(), object.renderY(alpha));
             }
         }
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -416,9 +485,12 @@ public final class LevelRenderer {
                 continue;
             }
             EnemyLooks look = looks[enemy.kind()];
-            AtlasRegion frame = enemy.walking()
-                    ? look.frames().get(look.walkFrame(enemy.facing(), enemy.walked()))
-                    : look.frame(enemy.facing(), look.step(sortie.tick(), i, enemy.burstSeconds()));
+            AtlasRegion mantis = farside.mantisFrame(look, enemy, sortie.tick());
+            AtlasRegion frame = mantis != null
+                    ? mantis
+                    : enemy.walking()
+                            ? look.frames().get(look.walkFrame(enemy.facing(), enemy.walked()))
+                            : look.frame(enemy.facing(), look.step(sortie.tick(), i, enemy.burstSeconds()));
             if (LunaLooks.target(sortie, enemy)) {
                 luna.drawOutline(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
             }
@@ -446,12 +518,17 @@ public final class LevelRenderer {
                     continue;
                 }
                 EnemyLooks look = looks[member.kind()];
-                AtlasRegion frame = look.frame(member.facing(), look.step(sortie.tick(), k));
                 boolean segment = k > 0
                         && k < chain.spec().members() - 1
                         && member.link() == k
                         && member.spec() == chain.spec().segment();
-                float scale = segment ? (float) (member.hitbox().width() / first) : 1;
+                // The production segments are one set per size of the taper (the frames' phases):
+                // the nearest size, unscaled; the placeholder is scaled to the member's size.
+                int sizes = look.frames().size / look.headings();
+                boolean sized = segment && sizes > 1;
+                long step = sized ? sizeIndex(chain, member, sizes) : look.step(sortie.tick(), k);
+                AtlasRegion frame = look.frame(member.facing(), step);
+                float scale = segment && !sized ? (float) (member.hitbox().width() / first) : 1;
                 drawScaled(batch, frame, member.renderX(alpha), member.renderY(alpha), scale);
             }
             if (chain.regrowing() && chain.alive()) {
@@ -460,6 +537,21 @@ public final class LevelRenderer {
                 drawScaled(batch, frame, chain.headX(), chain.headY(), (float) Math.max(0.2, chain.regrowth()));
             }
         }
+    }
+
+    /**
+     * A segment's size in a production set of {@code sizes} sizes tapering from the chain's first
+     * segment to its last (tools/art/coilwyrm.py: size 0 the largest): the nearest to its hit box,
+     * so a hard chain's 14 segments take the 12 sizes' nearest.
+     */
+    private static int sizeIndex(Chain chain, Enemy member, int sizes) {
+        double first = chain.spec().segmentBoxes().getFirst().width();
+        double last = chain.spec().segmentBoxes().getLast().width();
+        if (first <= last) {
+            return 0;
+        }
+        long index = Math.round((first - member.hitbox().width()) / (first - last) * (sizes - 1));
+        return Math.clamp(index, 0, sizes - 1);
     }
 
     /**
@@ -769,8 +861,8 @@ public final class LevelRenderer {
             case ARMOUR_PATCH -> sprites.armourPatch;
             // The crate stands in until the special charge's own pickup sprite is made.
             case SPECIAL_CHARGE -> sprites.crate;
-            // The data core's own pickup comes with its concept round (M4 part F).
-            case DATA_CORE -> sprites.crate;
+            // The amber orb of round 23 b (tools/art/l06_props.py).
+            case DATA_CORE -> sprites.frames("pickup-data-core");
         };
     }
 

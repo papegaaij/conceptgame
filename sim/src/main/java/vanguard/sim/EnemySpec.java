@@ -125,7 +125,9 @@ public record EnemySpec(
      * fixes the sweep's centre on the ship's bearing, clamped between straight inward and straight
      * down; then a beam {@code length} × {@code width} px from its eye sweeps {@code arcRadians}
      * over {@code sweepSeconds}, dealing {@code damage} at most once per sweep. A sweep starts only
-     * if it ends before the hover does.
+     * if it ends before the hover does. The eye, where the beam and its telegraph start, is
+     * {@code originIn} px from the unit's centre toward the field (mirrored on the right edge) and
+     * {@code originDown} px down the screen.
      */
     public record Sweep(
             double arcRadians,
@@ -135,7 +137,33 @@ public record EnemySpec(
             double width,
             double intervalSeconds,
             double firstDelaySeconds,
-            double damage) {}
+            double damage,
+            double originIn,
+            double originDown) {
+
+        /** A sweep from the unit's centre. */
+        public Sweep(
+                double arcRadians,
+                double sweepSeconds,
+                double telegraphSeconds,
+                double length,
+                double width,
+                double intervalSeconds,
+                double firstDelaySeconds,
+                double damage) {
+            this(
+                    arcRadians,
+                    sweepSeconds,
+                    telegraphSeconds,
+                    length,
+                    width,
+                    intervalSeconds,
+                    firstDelaySeconds,
+                    damage,
+                    0,
+                    0);
+        }
+    }
 
     /**
      * A segment chain (design/enemies/air/coilwyrm): the unit is its head, flying the wave's path;

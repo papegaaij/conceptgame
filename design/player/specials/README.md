@@ -65,7 +65,7 @@ describes them.
 |---|---|
 | Charges | 400 cr each, at most 3. **1 free charge** when the Smart Bomb unlocks (hangar visit before L06), fitted only into an **empty** special slot (a fitted Airstrike stays) with a hangar notice, like the Airstrike's |
 | Effect | Instant. A white flash (0.1 s at 80 % opacity, fading over 0.25 s; reduced by the flash-reduction option) and a shockwave ring that expands from the ship to cover the whole play field in **0.35 s** |
-| Bullets | All enemy bullets on screen are removed at once; bullets spawned while the ring expands are removed as it passes them |
+| Bullets | All enemy bullets on screen are removed at once; bullets spawned while the ring expands are removed as it passes them; spore mines pop as the ring passes them, as if shot |
 | Damage | **120** once to every enemy on screen, on every layer (`air`, `low-air`, `ground` incl. hardened, `high-air`, `sub`) |
 | Bosses | 60 to each boss part |
 | Defence | Player invulnerable for **1.0 s** from activation (ship blinks) |
@@ -186,3 +186,5 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   passes later go too; each enemy and boss part takes its damage once, when the ring reaches its
   centre; the 1.0 s invulnerability is the ship's mercy time (it blinks); it has no radio call;
   `free_charges: 1` moved into data.yaml.
+- 2026-10-04: M4 part F step 3 (main-agent fix): the ring pops the spore mines it passes as if
+  they were shot (their burst, their credits), like the bullets it clears.

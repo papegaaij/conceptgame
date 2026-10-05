@@ -64,8 +64,11 @@ public record ScoringRules(
         }
     }
 
-    /** The grade rating's weights; they add up to 1. */
-    public record Weights(double killRatio, double armourDamage, double secrets, double maxChain) {}
+    /**
+     * The grade rating's weights, which add up to 1, and {@code fullChain}: the longest chain that
+     * earns the {@code maxChain} part in full.
+     */
+    public record Weights(double killRatio, double armourDamage, double secrets, double maxChain, int fullChain) {}
 
     /**
      * A level-end bonus: {@code points} × (the kill % when {@code perKillPercent}) × the level

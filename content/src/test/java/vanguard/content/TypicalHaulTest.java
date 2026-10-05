@@ -45,7 +45,7 @@ class TypicalHaulTest {
         // The level tests count each source by hand; the README tables show the same totals.
         Map<Integer, Integer> perfect = new TreeMap<>();
         hauls().forEach((number, haul) -> perfect.put(number, haul.perfect()));
-        assertEquals(Map.of(1, 1_175, 2, 1_184, 3, 1_288, 4, 1_257, 5, 1_334), perfect);
+        assertEquals(Map.of(1, 1_175, 2, 1_184, 3, 1_288, 4, 1_257, 5, 1_334, 6, 1_615), perfect);
     }
 
     private Map<Integer, TypicalHaul> hauls() {

@@ -310,9 +310,14 @@ def enemy_name(slug):
     return load(f"{enemy_dir(slug)}/data.yaml")["name"]
 
 
+def medium_waves(level):
+    """The waves flown at medium: a wave may `skip` difficulties (Level 06's hard-only pair)."""
+    return [w for w in level["waves"] if "medium" not in w.get("skip", [])]
+
+
 def enemy_totals(level):
     totals = {}
-    for wave in level["waves"]:
+    for wave in medium_waves(level):
         for g in groups(wave):
             totals[g["enemy"]] = totals.get(g["enemy"], 0) + g["count"]
     return totals
@@ -352,7 +357,7 @@ def entry(wave):
 def directions(level):
     """The share of the level's enemies (medium) per entry direction, front · sides · rear."""
     counts = {"front": 0, "sides": 0, "rear": 0}
-    for wave in level["waves"]:
+    for wave in medium_waves(level):
         counts[wave["from"]] += sum(g["count"] for g in groups(wave))
     total = sum(counts.values())
     return " · ".join(f"{name} {round(100 * n / total)}%" for name, n in counts.items() if n)
@@ -601,8 +606,19 @@ def credit_budget(d):
     for slug, n in enemy_totals(level).items():
         for spawn in spawns(slug):
             kills.append((f"released {enemy_name(spawn['enemy'])}", n * spawn["count"], spawn["enemy"]))
+    def kill_items(n, slug):
+        """A kill's payouts; a segment chain's head, segments and tail each pay (and round) their own."""
+        e = load(f"{enemy_dir(slug)}/data.yaml")
+        chain = e.get("segment_chain")
+        if not chain:
+            return [(n, bounty(e["bounty"]), layer_rate(slug))]
+        head, tail = e["part_list"][0], e["part_list"][1]
+        return [(n, bounty(head["bounty"]), layer_rate(slug)),
+                (n * chain["segments"], bounty(chain["bounty"]), layer_rate(slug)),
+                (n, bounty(tail["bounty"]), layer_rate(slug))]
+
     add("Kills: " + " + ".join(f"{name} {n} × {stat_bounty(slug)}" for name, n, slug in kills),
-        [(n, bounty(stat_bounty(slug)), layer_rate(slug)) for _, n, slug in kills])
+        [item for _, n, slug in kills for item in kill_items(n, slug)])
     # ground enemies by their stat block's bounty, then the destructibles that pay or drop credits
     enemies = {}
     for g in level["ground_targets"]:
@@ -647,6 +663,9 @@ def credit_budget(d):
         add(f"Primary objective: {units} {noun}s home × {escort['credits']}",
             [(units, pay(escort["credits"]), rate["primary"])])
     for s in level["secrets"]:
+        if "data_core" in s:  # Level 06's settlement log: no credits, an early unlock
+            add(f"Data core: {s['name']} (unlocks the {s['data_core']['unlocks']}; no credits)", [(1, 0, 0)])
+            continue
         add(f"Secret: {s['name']} (hidden crate, {round(100 * s['crate'] / budget)}% of budget)",
             [(1, pay(s["crate"]), rate["secrets"])])
     secondary = level["objectives"]["secondary"]

@@ -109,6 +109,16 @@ final class ContentValidator {
             attack.bullet().ifPresent(bullet -> checkBullet(enemy, field + ".bullet", bullet));
             attack.mine().ifPresent(mine -> checkBullet(enemy, field + ".mine.ring_bullet", mine.ringBullet()));
             attack.mortar().ifPresent(mortar -> checkBullet(enemy, field + ".mortar.ring_bullet", mortar.ringBullet()));
+            attack.sweep().flatMap(EnemyData.Sweep::origin).ifPresent(origin -> {
+                if (Math.abs(origin.x()) > enemy.size().width() / 2
+                        || Math.abs(origin.y()) > enemy.size().height() / 2) {
+                    problem(
+                            enemy,
+                            field + ".sweep.origin",
+                            "the eye lies outside the " + enemy.size().width() + "×"
+                                    + enemy.size().height() + " sprite");
+                }
+            });
         }
         for (var hook : List.of(
                 enemy.difficulty().flatMap(EnemyData.Hooks::easy),
@@ -360,6 +370,16 @@ final class ContentValidator {
                 problem(level, "music.stems", "no section " + section);
             }
         }));
+        music.voiceLoop().ifPresent(loop -> {
+            if (loop.section() > level.sections().size()) {
+                problem(level, "music.voice_loop.section", "no section " + loop.section());
+            }
+            if (level.radio().stream()
+                    .noneMatch(cue -> cue.t().isPresent() && cue.speaker().equals(loop.speaker()))) {
+                problem(level, "music.voice_loop.speaker", "no timed radio line of " + loop.speaker());
+            }
+        });
+        music.ambienceFrom().ifPresent(t -> checkTime(level, "music.ambience_from", t));
         for (var variant : List.of(level.difficulty().easy(), level.difficulty().hard())) {
             variant.flatMap(LevelData.Variant::enemies)
                     .ifPresent(changes -> changes.keySet().forEach(slug -> checkEnemyName(level, "difficulty", slug)));

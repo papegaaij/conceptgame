@@ -19,7 +19,7 @@ attacks:
     aim: target               # the sweep is centred on the ship's bearing when the telegraph starts
     interval: 3.0             # s from one telegraph to the next while hovering
     first_shot_delay: 0.6     # s after it settles: the first telegraph starts
-    sweep: {arc: 70, duration: 1.2, telegraph: 0.6, length: 300, width: 6}   # °, s, s, px, px
+    sweep: {arc: 70, duration: 1.2, telegraph: 0.6, length: 300, width: 6, origin: [14, 25]}   # °, s, s, px, px; origin: the eye, px from the centre [toward the field (mirrored on the right edge), down] in the sweep pose of tools/art/mantis.py
     notes:
       text: '`{pattern}` from its eye: a beam {sweep.length} px long and {sweep.width} px wide sweeps a {sweep.arc}° arc over {sweep.duration} s, centred on the ship''s bearing when the telegraph starts (clamped between straight inward and straight down, so the far side of the field stays safe); telegraphed {sweep.telegraph} s by the crimson arc; every {interval} s while hovering, the first {first_shot_delay} s after it settles; damage `{bullet}` = {damage} per touch (once per sweep)'
 formations:
@@ -34,7 +34,7 @@ first_level: 6
 difficulty:
   hard: {attacks: {beam: {interval: 2.5}}, sweep_arc: 90}
 notes:
-  orientation: (facing inward; the sprite is mirrored per side)
+  orientation: (facing inward, nose down and leaning into the field; its own render per side, nothing mirrored)
   speed: entering and leaving, 0 while hovering
   movement: 'enters from the left or right edge (edge-warned like every side entry), `hover` at x = {movement.hover.edge_x} px from that edge, y = {movement.hover.y} px, for {movement.hover.seconds} s (two sweeps), then exits the way it came'
   formations: (the pincer one from each side)

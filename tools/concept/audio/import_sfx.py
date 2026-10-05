@@ -446,6 +446,49 @@ SOURCES = {
         page="https://freesound.org/people/spookymodem/sounds/202094/",
         preview="https://cdn.freesound.org/previews/202/202094_3756348-hq.ogg",
         licence="CC0 1.0", offset=0.0, length=1.6, fade=0.6, band_rms=-30.0, peak=-8.0),
+    # Round 23 (Level 06, M4 part F, user decision D8): the Mantis's 0.6 s telegraph and its
+    # 1.2 s beam sweep, the perimeter beacon's flare launch and the falling flare's burn (a loop
+    # under its 8 s fall), the Coilwyrm's 0.6 s head regrowth; a/b per sound.
+    "enemy-mantis-telegraph-r23-a": dict(     # a bright laser charge-up, cut in its rise
+        page="https://freesound.org/people/magnuswaker/sounds/588242/",
+        preview="https://cdn.freesound.org/previews/588/588242_11537497-hq.ogg",
+        licence="CC0 1.0", offset=0.1, length=0.6, fade=0.06, band_rms=-30.0, peak=-8.0),
+    "enemy-mantis-telegraph-r23-b": dict(     # a lower, buzzing charge, its loudest 0.6 s
+        page="https://freesound.org/people/StavSounds/sounds/701702/",
+        preview="https://cdn.freesound.org/previews/701/701702_7862587-hq.ogg",
+        licence="CC0 1.0", offset=0.6, length=0.6, fade=0.06, fadein=0.05, band_rms=-30.0, peak=-8.0),
+    "enemy-mantis-sweep-r23-a": dict(         # a steady game-style laser beam
+        page="https://freesound.org/people/Jofae/sounds/352852/",
+        preview="https://cdn.freesound.org/previews/352/352852_6512973-hq.ogg",
+        licence="CC0 1.0", offset=0.2, length=1.3, fade=0.25, fadein=0.02, band_rms=-27.0, peak=-6.0),
+    "enemy-mantis-sweep-r23-b": dict(         # a 1.2 kHz death-ray tone with crackle
+        page="https://freesound.org/people/zimbot/sounds/177099/",
+        preview="https://cdn.freesound.org/previews/177/177099_1449999-hq.ogg",
+        licence="CC-BY 4.0", offset=1.0, length=1.3, fade=0.25, fadein=0.02, band_rms=-27.0, peak=-6.0),
+    "hazard-flare-launch-r23-a": dict(        # a flare pistol shot: pop and a short hiss
+        page="https://freesound.org/people/marb7e/sounds/674375/",
+        preview="https://cdn.freesound.org/previews/674/674375_13732472-hq.ogg",
+        licence="CC-BY 4.0", offset=0.0, length=0.8, fade=0.4, band_rms=-27.0, peak=-4.0),
+    "hazard-flare-launch-r23-b": dict(        # a firework rocket igniting and climbing away
+        page="https://freesound.org/people/derplayer/sounds/587173/",
+        preview="https://cdn.freesound.org/previews/587/587173_13123807-hq.ogg",
+        licence="CC0 1.0", offset=0.4, length=1.6, fade=0.7, fadein=0.05, band_rms=-37.0, peak=-8.0),
+    "hazard-flare-burn-r23-a": dict(          # a road flare's steady sputter, cut as a loop
+        page="https://freesound.org/people/frankelmedico/sounds/348766/",
+        preview="https://cdn.freesound.org/previews/348/348766_299928-hq.ogg",
+        licence="CC0 1.0", loop=(4.0, 3.0, 0.5), band_rms=-34.0, peak=-10.0),
+    "hazard-flare-burn-r23-b": dict(          # a road flare burning close by, a hissier loop
+        page="https://freesound.org/people/theshaggyfreak/sounds/317834/",
+        preview="https://cdn.freesound.org/previews/317/317834_8335-hq.ogg",
+        licence="CC-BY 4.0", loop=(3.0, 3.0, 0.5), band_rms=-34.0, peak=-10.0),
+    "enemy-coilwyrm-regrow-r23-a": dict(      # wet slime stretching: flesh knitting into a head
+        page="https://freesound.org/people/Archos/sounds/433826/",
+        preview="https://cdn.freesound.org/previews/433/433826_652422-hq.ogg",
+        licence="CC0 1.0", offset=0.0, length=0.6, fade=0.15, band_rms=-27.0, peak=-6.0),
+    "enemy-coilwyrm-regrow-r23-b": dict(      # an insect growl and chitter: the new head waking
+        page="https://freesound.org/people/SecureSubset/sounds/800277/",
+        preview="https://cdn.freesound.org/previews/800/800277_16752880-hq.ogg",
+        licence="CC0 1.0", offset=0.1, length=0.6, fade=0.15, fadein=0.03, band_rms=-27.0, peak=-6.0),
 }
 
 

@@ -33,7 +33,7 @@ class SpriteUseTest {
         assertEquals("level-02", atlases.get("crane-four-arm"));
         assertEquals("level-04", atlases.get("civilian-crawler-pip"));
         assertEquals("level-05", atlases.get("gorgon-frigate-head"));
-        assertEquals("level-05", atlases.get("mortar-blob"));
+        assertEquals(SpriteUse.SHARED, atlases.get("mortar-blob"), "Levels 05 and 06 both have Polyp Mortars");
         assertEquals("level-05", atlases.get("ore-canister"));
     }
 

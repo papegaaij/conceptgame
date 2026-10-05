@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Sound effects
@@ -155,6 +155,10 @@ reused round 02 files marked (r02).
 | Leviathan whale-song cry (its death, under the large burst) — [a](concept/enemy-leviathan-cry-r16-a.ogg) (synthesized, round 16) | P2 |
 | Polyp Mortar lob — chosen [a](concept/enemy-mortar-lob-r21-a.ogg) (mortar thump; an organic spit was rejected); impact — chosen [a](concept/enemy-mortar-impact-r21-a.ogg) (wet splat; an acid sizzle was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
 | Mass-driver sled (Level 05 hazard): whine while the rail lights chase — chosen [a](concept/hazard-sled-whine-r21-a.ogg) (charge hum loop, played twice over the 1.5 s chase; a rising charge was rejected); pass — chosen [b](concept/hazard-sled-pass-r21-b.ogg) (rushing flyby; a rail-gun crack was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
+| Mantis (Level 06): telegraph, the 0.6 s arc — chosen [a](concept/enemy-mantis-telegraph-r23-a.ogg) (laser charge-up; a second charge was rejected); beam sweep, 1.3 s — chosen [b](concept/enemy-mantis-sweep-r23-b.ogg) (death ray with crackle, CC-BY; a game-style beam was rejected), [round 23](../../concept-rounds/round-23/README.md) | P2 |
+| Coilwyrm head regrowth (Level 06), 0.6 s — chosen [b](concept/enemy-coilwyrm-regrow-r23-b.ogg) (insect growl and chitter; a wet slime was rejected), [round 23](../../concept-rounds/round-23/README.md) | P2 |
+| Coilwyrm death (Level 06): the head's deeper burst — chosen [c](concept/enemy-coilwyrm-head-burst-r24-c.ogg) (messy splatter, slowed over a sub thump, CC-BY), then a segment's or the tail's wet burst, 13 times down the chain 0.25 s apart — chosen [b](concept/enemy-coilwyrm-burst-r24-b.ogg) (fleshy burst; a wet gib crack, the messy splatter and a synthesized pop were rejected); [preview](concept/enemy-coilwyrm-death-final-r24-a.ogg), [round 24](../../concept-rounds/round-24/README.md) | P2 |
+| Perimeter beacon flares (Level 06 hazard): launch — chosen [a](concept/hazard-flare-launch-r23-a.ogg) (flare-gun shot, CC-BY; a firework ignition was rejected); burn loop while it falls — chosen [a](concept/hazard-flare-burn-r23-a.ogg) (road flare, the 3 s loop played back to back while a flare burns; a second road flare was rejected), [round 23](../../concept-rounds/round-23/README.md) | P2 |
 
 ### UI and radio
 
@@ -380,14 +384,55 @@ Polyp Mortar's lob and impact. Briefs and sources: [concept/prompts.md](concept/
 | [concept/enemy-mortar-impact-r21-a.ogg](concept/enemy-mortar-impact-r21-a.ogg) | "Wet Splat" by JustInvoke (CC-BY 4.0) — Polyp Mortar impact a, the blob landing | chosen |
 | [concept/rejected/enemy-mortar-impact-r21-b.ogg](concept/rejected/enemy-mortar-impact-r21-b.ogg) | "Acid Bubbling.wav" by spookymodem (CC0 1.0) — Polyp Mortar impact b, the blob landing | rejected |
 
+Concept round 23 (M4 part F, Level 06; user decision D8) — recorded, imported by
+`tools/concept/audio/import_sfx.py`, an a/b pair for each of the Mantis's telegraph and beam sweep,
+the perimeter beacon's flare launch and the falling flare's burn loop, and the Coilwyrm's head
+regrowth. Briefs and sources: [concept/prompts.md](concept/prompts.md#round-23--level-06s-mantis-flares-and-coilwyrm-m4-part-f-user-decision-d8), [CREDITS.md](../../../CREDITS.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/enemy-mantis-telegraph-r23-a.ogg](concept/enemy-mantis-telegraph-r23-a.ogg) | "Laser Charge Up" by magnuswaker (CC0 1.0) — Mantis telegraph a, the 0.6 s crimson arc before a sweep | chosen |
+| [concept/rejected/enemy-mantis-telegraph-r23-b.ogg](concept/rejected/enemy-mantis-telegraph-r23-b.ogg) | "laser-charge.wav" by StavSounds (CC0 1.0) — Mantis telegraph b, the 0.6 s crimson arc before a sweep | rejected |
+| [concept/rejected/enemy-mantis-sweep-r23-a.ogg](concept/rejected/enemy-mantis-sweep-r23-a.ogg) | "Game - Style Laser Beam" by Jofae (CC0 1.0) — Mantis sweep a, the 1.2 s beam | rejected |
+| [concept/enemy-mantis-sweep-r23-b.ogg](concept/enemy-mantis-sweep-r23-b.ogg) | "SonicDeathRay_1.2KHzWithCrackle.wav" by zimbot (CC-BY 4.0) — Mantis sweep b, the 1.2 s beam | chosen |
+| [concept/hazard-flare-launch-r23-a.ogg](concept/hazard-flare-launch-r23-a.ogg) | "FlareGun_Shot01.wav" by marb7e (CC-BY 4.0) — flare launch a, the perimeter beacon firing a flare shell (t=70, 112, 150) | chosen |
+| [concept/rejected/hazard-flare-launch-r23-b.ogg](concept/rejected/hazard-flare-launch-r23-b.ogg) | "firework_rocket_ignition.ogg" by derplayer (CC0 1.0) — flare launch b, the perimeter beacon firing a flare shell (t=70, 112, 150) | rejected |
+| [concept/hazard-flare-burn-r23-a.ogg](concept/hazard-flare-burn-r23-a.ogg) | "ROAD FLARE.wav" by frankelmedico (CC0 1.0) — flare burn a, a quiet loop while a flare falls (8 s, 12 s on easy) | chosen |
+| [concept/rejected/hazard-flare-burn-r23-b.ogg](concept/rejected/hazard-flare-burn-r23-b.ogg) | "Road Flare1" by theshaggyfreak (CC-BY 4.0) — flare burn b, a quiet loop while a flare falls (8 s, 12 s on easy) | rejected |
+| [concept/rejected/enemy-coilwyrm-regrow-r23-a.ogg](concept/rejected/enemy-coilwyrm-regrow-r23-a.ogg) | "Slime 3.wav" by Archos (CC0 1.0) — Coilwyrm regrowth a, the 0.6 s a cut chain's new head grows | rejected |
+| [concept/enemy-coilwyrm-regrow-r23-b.ogg](concept/enemy-coilwyrm-regrow-r23-b.ogg) | "Insect Animal Growl Chitter" by SecureSubset (CC0 1.0) — Coilwyrm regrowth b, the 0.6 s a cut chain's new head grows | chosen |
+
+Concept round 24 (the Coilwyrm's death, user request of 2026-10-05) — four options, each a
+segment burst, the head's deeper burst and a preview of the whole chained death at the round's
+0.05 s rhythm (`tools/concept/audio/sfx_r24.py`; a–c recorded, cut by `import_sfx.py`'s functions,
+d synthesized). Closed 2026-10-05: segment burst **b**, head burst **c**, the ripple slowed to
+0.25 s; the production files are rebuilt from the Freesound originals by
+`tools/art/sfx_originals.py` (with sfx_r24.py's treatment). Briefs and sources: [concept/prompts.md](concept/prompts.md#round-24--the-coilwyrms-death-bursts), [CREDITS.md](../../../CREDITS.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/rejected/enemy-coilwyrm-burst-r24-a.ogg](concept/rejected/enemy-coilwyrm-burst-r24-a.ogg) | "Gib sound" by RoozyDB (CC0 1.0) — Coilwyrm segment burst a, a sharp wet crack with gooey bits (0.30 s) | rejected |
+| [concept/rejected/enemy-coilwyrm-head-burst-r24-a.ogg](concept/rejected/enemy-coilwyrm-head-burst-r24-a.ogg) | Coilwyrm head burst a: the same source, a longer cut 18 % slower over a sub thump (0.57 s) | rejected |
+| [concept/rejected/enemy-coilwyrm-death-r24-a.ogg](concept/rejected/enemy-coilwyrm-death-r24-a.ogg) | Preview a (review only): the head's burst, then 13 segment bursts 0.05 s apart | rejected |
+| [concept/enemy-coilwyrm-burst-r24-b.ogg](concept/enemy-coilwyrm-burst-r24-b.ogg) | "Burst Flesh" by magnuswaker (CC0 1.0) — Coilwyrm segment burst b, a dense fleshy burst with a low body (0.26 s): the segments' and the tail's burst | chosen |
+| [concept/rejected/enemy-coilwyrm-head-burst-r24-b.ogg](concept/rejected/enemy-coilwyrm-head-burst-r24-b.ogg) | Coilwyrm head burst b: the same source, a longer cut 18 % slower over a sub thump (0.75 s) | rejected |
+| [concept/rejected/enemy-coilwyrm-death-r24-b.ogg](concept/rejected/enemy-coilwyrm-death-r24-b.ogg) | Preview b (review only): the whole chained death at 0.05 s | rejected |
+| [concept/rejected/enemy-coilwyrm-burst-r24-c.ogg](concept/rejected/enemy-coilwyrm-burst-r24-c.ogg) | "Messy Splat 3" by FoolBoyMedia (CC-BY 4.0) — Coilwyrm segment burst c, a bright, messy splatter (0.22 s) | rejected |
+| [concept/enemy-coilwyrm-head-burst-r24-c.ogg](concept/enemy-coilwyrm-head-burst-r24-c.ogg) | "Messy Splat 3" by FoolBoyMedia (CC-BY 4.0) — Coilwyrm head burst c: a longer cut 18 % slower over a sub thump (0.75 s): the heads' burst (original and regrown) | chosen |
+| [concept/rejected/enemy-coilwyrm-death-r24-c.ogg](concept/rejected/enemy-coilwyrm-death-r24-c.ogg) | Preview c (review only): the whole chained death at 0.05 s | rejected |
+| [concept/rejected/enemy-coilwyrm-burst-r24-d.ogg](concept/rejected/enemy-coilwyrm-burst-r24-d.ogg) | Synthesized — Coilwyrm segment burst d, a pressurised pop: membrane snap, chitin crackle, a falling gas bloop, wet bubble chirps and a splash hiss (0.28 s) | rejected |
+| [concept/rejected/enemy-coilwyrm-head-burst-r24-d.ogg](concept/rejected/enemy-coilwyrm-head-burst-r24-d.ogg) | Coilwyrm head burst d: a bigger synthesized pop (lower bloop, more drops), 18 % slower over a sub thump (0.73 s) | rejected |
+| [concept/rejected/enemy-coilwyrm-death-r24-d.ogg](concept/rejected/enemy-coilwyrm-death-r24-d.ogg) | Preview d (review only): the whole chained death at 0.05 s | rejected |
+| [concept/enemy-coilwyrm-death-final-r24-a.ogg](concept/enemy-coilwyrm-death-final-r24-a.ogg) | Preview of the chosen pair at the game's rhythm (review only, from the Freesound originals): the head burst c, then 13 bursts b 0.25 s apart, each at the explosion level, pitched up as the members narrow down the taper | chosen |
+
 ## Implementation
 
 - [ ] SFX playback with instance limits, stealing by priority, pitch variation
 - [x] Stereo panning by play-field X
 - [ ] Underwater low-pass on the sfx bus
 - [ ] All P1 sounds
-- [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75)
-  in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
+- [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
+  from rounds 02–08, round 21's four and round 23's five) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
   [`tools/art/sfx_originals.py`](../../../tools/art/README.md); `importPlaceholders` keeps them
   (only the synthesized sounds are still copied). `art: final` waits for the user's round-12 review.
 
@@ -452,3 +497,41 @@ Polyp Mortar's lob and impact. Briefs and sources: [concept/prompts.md](concept/
   (`Sfx.MORTAR_LOB`, `MORTAR_IMPACT`, `SLED_WHINE`, `SLED_PASS`, in the `:pipeline` copy list),
   replacing the placeholders; the four others moved to `concept/rejected/`, their CREDITS.md rows
   kept with the new paths, as for the earlier rounds' rejected recordings.
+- 2026-10-04: Round 23 opened with Level 06's new sounds (user decision D8 of M4 part F): recorded
+  a/b pairs for the Mantis's telegraph and beam sweep, the flare launch and burn loop and the
+  Coilwyrm's head regrowth. The data core keeps its round-08 mapping to the chosen `pickup-r01-b`
+  and the Smart Bomb its chosen `special-smartbomb-r08-a`, so neither is in the round.
+- 2026-10-05: Round 23 decided (user): Mantis telegraph **a** and sweep **b** (CC-BY), flare
+  launch **a** (CC-BY) and burn **a**, Coilwyrm regrowth **b** chosen; the other five moved to
+  `concept/rejected/` (their CREDITS.md rows follow). Wired into the game as round 21's sounds
+  were: copied into `assets/sfx/` under their concept names by `:pipeline:importPlaceholders`
+  (`copyPlaceholderSounds`), played by `FlightSounds` through new `Sfx` entries: the telegraph at
+  the warnings' level, the sweep at the hits' level (a little above enemy fire), the launch with
+  the burn's 3 s loop played back to back while the flare burns (8 s, 12 s on easy; the last play
+  at half level as the pool fades), the regrowth at the explosions' level. The two CC-BY picks
+  reach the credits screen through their CREDITS.md rows (the screen's list is generated from
+  them, skipping rejected files). Rebuilding them (and round 21's) from the Freesound originals
+  with `tools/art/sfx_originals.py` needs `freesound_fetch.py --download` first: the originals
+  are not cached.
+- 2026-10-05: Production audio for rounds 21 and 23, now that the originals are cached: the nine
+  chosen recorded sounds (sled whine a, sled pass b, mortar lob a and impact a; Mantis telegraph a
+  and sweep b, flare launch a and burn a, Coilwyrm regrowth b) rebuilt from the Freesound
+  originals with their unchanged `import_sfx.py` settings by `tools/art/sfx_originals.py` into
+  `assets/sfx/` under their concept names, with a `SOURCE` comment and CREDITS.md rows for the
+  `assets/` files; `copyPlaceholderSounds` keeps them, as round 12's. The script builds every
+  sound whose Concept art row is `chosen` and stops at the first one whose original is not cached,
+  which was the stop above; the rows stay `chosen` (the concept files record the choice, the
+  `SOURCE` comment marks the final file). Only the sled pass's original decodes above full scale
+  (82 samples, +0.01 dBFS) and is clipped first. Checked against the chosen files: same lengths
+  (the whine's 0.78 s and the burn's 3.00 s loops still seamless), peaks within 0.3 dB, 200 Hz–5
+  kHz band RMS within 0.5 dB and 50 ms envelopes within 0.7 dB, except the regrowth: held at its
+  −6 dBFS ceiling by the original's 0.6 dB higher crest, it is 0.8 dB lower on its band and 0.9
+  dB on average over its envelope (within the 1 dB tolerance). This doc's `art` stays `chosen` (the synthesized sounds are not final).
+- 2026-10-05: Round 24 closed (user): the Coilwyrm's head burst **c** (CC-BY) and segment burst
+  **b**; a and d and the round's previews moved to `concept/rejected/` (their CREDITS.md rows
+  follow). Rebuilt from the Freesound originals by `tools/art/sfx_originals.py`, which now also
+  takes sounds with a treatment of their own (`DERIVED`: `sfx_r24.py`'s `PRODUCTION`, the cut,
+  the loudest-100-ms levelling and the head's slowed thump), into `assets/sfx/` under their
+  concept names; within 0.4 dB of the concept files on peak and band. The chained death plays one
+  burst every 0.25 s at the explosion level (they no longer overlap), each pitched by the member's
+  width down the taper; `enemy-coilwyrm-death-final-r24-a` previews it.

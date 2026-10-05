@@ -42,6 +42,14 @@ record TypicalHaul(int perfect, double typical, double budget) {
 
         for (var wave : level.waves()) {
             sum.bounty(wave.count(), wave.enemy().bounty(), rate(rate, wave.enemy()));
+            // a segment chain's unit is its head; its segments and tail pay their own bounty
+            wave.enemy().chain().ifPresent(chain -> {
+                sum.bounty(
+                        wave.count() * chain.segmentBoxes().size(),
+                        chain.segment().bounty(),
+                        rate(rate, wave.enemy()));
+                sum.bounty(wave.count(), chain.tail().bounty(), rate(rate, wave.enemy()));
+            });
             wave.enemy()
                     .brood()
                     .ifPresent(brood -> sum.bounty(

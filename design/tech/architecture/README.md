@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Architecture
@@ -196,7 +196,9 @@ first entry of a part's model list is the starter (price 0, `start`).
   For the Mantis and the Coilwyrm (M4 part F; flown in Level 06): the attack pattern
   `laser-sweep` (its `bullet` is the beam's class, damage once per sweep; no `speed`; `aim`
   `target` centres the sweep on the ship's bearing when the telegraph starts; a `sweep` block
-  with `arc` (°), `duration` (s), `telegraph` (s, the arc shown ahead), `length` and `width` (px));
+  with `arc` (°), `duration` (s), `telegraph` (s, the arc shown ahead), `length` and `width` (px), and an optional `origin: [in, down]`
+  (px from the unit's centre to where the beam starts, toward the field and down, mirrored on the
+  right edge; default the centre));
   `hover` `edge_x` (px from the side edge it entered by) and `exit: back` (it leaves through that
   edge); the movement `path` with `speed` (the head flies the wave's authored path); a
   `segment_chain` block for a chain of segments following the head's path history: `segments`,
@@ -226,7 +228,8 @@ first entry of a part's model list is the starter (price 0, `start`).
   `left`/`right`/`alternating` (`sides` without an edge enters from both side edges), optional
   `hold`, `warning`, `break_group`, `speed` (px/s instead of the enemy's own), `interval` (s
   between the units of a stream), `at` (a whirl cluster's release point `[x, y]`, y below the top
-  edge), and `easy` / `hard` changes (`from`, `edge`, `count`, `break_group`, `warning`); a
+  edge), and `easy` / `hard` changes (`from`, `edge`, `count`, `break_group`, `warning`), an
+optional `skip` list of the difficulties it is left out on (Level 06's hard-only Coilwyrm pair); a
   segment chain's `paths` (one list of `[x, y]` points per unit, y below the top edge, starting
   outside the play field; with one path every second unit flies it mirrored) and optional
   `loop_back` (`after`: s past the path's end, off the screen, until the head re-enters;
@@ -253,7 +256,10 @@ first entry of a part's model list is the starter (price 0, `start`).
   set: `<sprite>_0..2` intact, damaged, wrecked and `<sprite>-break_<n>`; Level 01's
   `cargo-container`, without a wreck, if left out), or
   a trigger's `hits`, `reveals` (triggers revealing the same secret reveal it together, when the
-  last of them is spent)); `secrets` (`name`, hidden `crate` credits, `radio` line; or a
+  last of them is spent) and optional `sprite` (its own frames instead of the beacon or the level's
+  trigger light: `<sprite>_0..2` intact, hit, spent, or `_0..1` intact, spent; an optional
+  `<sprite>-glow` drawn after the darkness's light pass until it is spent, and `<sprite>-glint_<n>`
+  drawn after it only while it is lit; Level 06's survey cache and terminal)); `secrets` (`name`, hidden `crate` credits, `radio` line; or a
   `data_core` with the shop item it `unlocks` and `crate: 0`: it drops the data core pickup, its
   line plays when it is collected, and a won level records the core and its unlock); a dark
   level's `darkness` (`headlight`: `from` s, `length` px, an `easy` length, `angle` °; `flare`:
@@ -298,7 +304,11 @@ first entry of a part's model list is the starter (price 0, `start`).
   (`track`, `start_section`, optional `start_db` (the theme's level through its start section,
   rising to full at the next), `full_section`, optional `stems` (section: `base` or `full`,
   overriding it), `ambience`, `end_jingle`, optional `boss_sting` (`miniboss-sting`: track 21 over
-  a 0.5 s crossfade when the boss arrives, the theme returning after it)); `sleds` (Level 05's
+  a 0.5 s crossfade when the boss arrives, the theme returning after it), optional `ambience_from`
+  (the level time from which only the ambience plays: the theme fades out as at a won level) and
+  `voice_loop` (`speaker`, `section`, `db`: that speaker's first timed radio line loops at `db`
+  on the voice bus while the section plays, silent without a voice file; Level 06's perimeter
+  beacon)); `sleds` (Level 05's
   mass-driver sleds: rail `x`, `width`, the `first` launch, `period`, `until`, `lights` (s of the
   telegraph), `run` (s on screen), contact `damage`, the `clamp` secret whose trigger only takes
   hits while the rail is dark, and `easy` / `hard` `period`); `rocks` (low-gravity debris a
@@ -364,13 +374,14 @@ first entry of a part's model list is the starter (price 0, `start`).
   `pickups`, `primary`, `secondary`); difficulty (one `{easy, medium, hard}` entry per lever: factors such as
   `enemy_hp`, changes such as `formation_size` (−0.2 = −20 %), `aimed_spread_degrees`, `bullet_budget`,
   `repair_cost`, `retries`, `boss_checkpoint`, `sensor_bonus`); scoring (`kill_score`,
-  `pickup_score`, `chain`, `rating` weights, `bonuses`, `grades`); retry (`armour_floor`, the
+  `pickup_score`, `chain`, `rating` weights and `full_chain`, `bonuses`, `grades`); retry (`armour_floor`, the
   share of the maximum armour a retry starts with at least).
 - **Voice** (`audio/voice/data.yaml`): `expressions` (`neutral`, `grim`, `fierce` and `shout`,
   each `exaggeration`, `cfg_weight`, `temperature`: Chatterbox's settings) and `speakers` by voice
   slug: `names` (the speakers as the level data writes them), `ref` (the clip in
   `design/audio/voice/refs/`), optional `shift` (added to the expression's row), `fixed` (settings
-  for every line instead), `layering` (`choir`) and `pins` (a line's seed by its key). The line
+  for every line instead), `layering` (`choir`), `pins` (a line's seed by its key) and `filter`
+  (`pa`: the public-address filter instead of the radio filter, part of the key). The line
   list and keys: `vanguard.content.voice.VoiceLines`; the files `assets/voice/<voice>/<key>.ogg`.
 - **Allies** (`allies/data.yaml`): one entry per ally
   slug with `name`, `layer`, `size`, `hitbox`, `hp` (medium; the level sets difficulty variants),
@@ -794,3 +805,12 @@ Screenshot tests are left out until there is a need.
   data core is a secret whose trigger drops `PickupType.DATA_CORE`; `LevelResult.dataCores`
   carries it to `Campaign.complete`, which records the core and its unlock. Every new piece of
   state is hashed only where it exists, so Levels 01–05 replay with their hashes.
+- 2026-10-05: Round 23's close: a trigger may name a `sprite` of its own (Level 06's survey cache
+  and terminal; `LevelRenderer` draws its hit and spent frames, its `-glow` after the light pass
+  until spent and its `-glint` only while `Sortie.lit`, and gives a `dark` object no loot
+  sparkle); `SpriteUse` claims such a trigger's sprite for its level; `LevelScreen` gives
+  triggers no break-apart or wreck. The voice speaker table's `filter: pa` maps a speaker's radio
+  lines to `VoiceLines.Filter.PA` (in the key; `tools/art/voice.py` posts them with `pa()`).
+  `FlightSounds` plays the round's Mantis, flare and regrowth sounds (`Sfx`), the flare's burn
+  loop as back-to-back plays over the level's `flareSeconds`. No simulation change: the replay
+  hashes stay.

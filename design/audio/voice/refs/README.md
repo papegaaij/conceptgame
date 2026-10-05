@@ -1,10 +1,10 @@
 ---
 title: Reference voices
 design: draft
-implementation: done
+implementation: in-progress
 art: chosen
 depends-on: [..]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Reference voices
@@ -33,6 +33,7 @@ How the clips are chosen and used: [voice](../README.md#reference-voices).
 | `ref-convoy.wav` | Convoy | Adrian Praetzellis | [Treasure Island, front matter (Stevenson)](https://archive.org/details/treasure_island_ap_librivox) | public domain | chosen (round 19) |
 | `ref-hammer-lead.wav` | Hammer Lead | Gord Mackenzie | [Scaramouche, book 1 ch. 1 (Sabatini)](https://archive.org/details/scaramouche_gm_librivox) | public domain | chosen (round 19) |
 | `ref-driver-control.wav` | Driver Control | Alex Foster | [The Invisible Man, ch. 1–2 (Wells)](https://archive.org/details/invisible_man_librivox) | public domain | chosen (round 21) |
+| `ref-perimeter-beacon.wav` | Daedalus perimeter beacon | Mark F. Smith | [The Time Machine (version 2), ch. 1 (Wells)](https://archive.org/details/time_machine_ms_librivox) | CC0 1.0 | chosen (round 23) |
 
 Round 19's chosen candidates were renamed to `ref-<speaker>.wav`; the rejected candidates and
 round 18's Tranquility Control clip (David Leeson), which no speaker uses any more, were deleted
@@ -45,6 +46,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
 - [x] One clip per generic speaker, cast in [round 19](../../../concept-rounds/round-19/README.md)
 - [x] Driver Control's clip, cast in [round 21](../../../concept-rounds/round-21/README.md); the chosen
       candidate renamed `ref-driver-control.wav`, the other deleted with its CREDITS.md row
+- [x] The perimeter beacon's clip, cast in [round 23](../../../concept-rounds/round-23/README.md); the chosen
+      candidate renamed `ref-perimeter-beacon.wav`, the other deleted with its CREDITS.md row
 
 ## Decisions
 
@@ -58,3 +61,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
 - 2026-10-04: Round 21 decided (user): Driver Control is Alex Foster (a), renamed
   `ref-driver-control.wav`; Rebecca's candidate (b) deleted with its CREDITS.md row (its source and
   cut stay in `tools/concept/audio/tts_r21.py`).
+- 2026-10-04: Round 23 candidates for the Daedalus perimeter beacon added (licences checked on each
+  archive.org item's `licenseurl`).
+- 2026-10-05: Round 23 decided (user): the perimeter beacon is Mark F. Smith (a), renamed
+  `ref-perimeter-beacon.wav`; Lucy Burgoyne's candidate (b) deleted with its CREDITS.md row (its
+  source and cut stay in `tools/concept/audio/tts_r23.py`).

@@ -63,11 +63,14 @@ class PacingTest {
 
     /** The empty stretches of the completed attempt, as [from, to] in level seconds. */
     static List<double[]> emptyStretches(String key, Difficulty difficulty) {
-        // The starter fit; from Level 05 on, where the starter cannot clear the batteries in time,
+        // The starter fit; for Levels 05 and 06, where the starter cannot clear the batteries in time
+        // (Level 05) or finish hard (Level 06),
         // the balance plan's fit for the level.
         Loadout loadout = key.equals(Level05Test.LEVEL)
                 ? Level05Test.planLoadout(CONTENT, difficulty)
-                : SimSpecs.starterLoadout(CONTENT, difficulty);
+                : key.equals(Level06Test.LEVEL)
+                        ? Level06Test.planLoadout(CONTENT, difficulty)
+                        : SimSpecs.starterLoadout(CONTENT, difficulty);
         Sortie sortie = new Sortie(
                 2185,
                 loadout,

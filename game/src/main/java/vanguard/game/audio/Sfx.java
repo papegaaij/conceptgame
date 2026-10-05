@@ -62,8 +62,25 @@ public enum Sfx {
     SLED_WHINE("sfx/hazard-sled-whine-r21-a.ogg", 2, Bus.EFFECTS),
     /** A sled racing up the rail (round 21 b, a rushing flyby). */
     SLED_PASS("sfx/hazard-sled-pass-r21-b.ogg", 1, Bus.EFFECTS),
+    /** The Mantis's 0.6 s telegraph before a sweep (round 23 a, a laser charge-up). */
+    MANTIS_TELEGRAPH("sfx/enemy-mantis-telegraph-r23-a.ogg", 2, Bus.EFFECTS),
+    /** The Mantis's beam sweep (round 23 b, a death ray with crackle, CC-BY). */
+    MANTIS_SWEEP("sfx/enemy-mantis-sweep-r23-b.ogg", 2, Bus.EFFECTS),
+    /** The perimeter beacon firing a flare shell (round 23 a, a flare-gun shot, CC-BY). */
+    FLARE_LAUNCH("sfx/hazard-flare-launch-r23-a.ogg", 1, Bus.EFFECTS),
+    /** A flare burning as it falls (round 23 a, a road flare, a seamless 3 s loop played back to back). */
+    FLARE_BURN("sfx/hazard-flare-burn-r23-a.ogg", 2, Bus.EFFECTS),
+    /** A cut Coilwyrm's rear part growing its new head (round 23 b, an insect growl and chitter). */
+    COILWYRM_REGROW("sfx/enemy-coilwyrm-regrow-r23-b.ogg", 2, Bus.EFFECTS),
     /** A Brood Pod bursting into its Skitters, shot or on its own (round 08 b, the fleshy burst). */
     BROOD_BURST("sfx/enemy-spawn-r08-b.ogg", 2, Bus.EFFECTS),
+    /**
+     * A Coilwyrm segment or tail bursting, shot or in the chained death's ripple (round 24 b, the
+     * fleshy burst). Six instances, for segments shot together by a spread.
+     */
+    COILWYRM_BURST("sfx/enemy-coilwyrm-burst-r24-b.ogg", 6, Bus.EFFECTS),
+    /** A Coilwyrm head's (or regrown head's) burst that starts the chained death (round 24 c, the slowed splatter). */
+    COILWYRM_HEAD_BURST("sfx/enemy-coilwyrm-head-burst-r24-c.ogg", 2, Bus.EFFECTS),
     /** The Airstrike's jets flyby (round 08 a), as the bombers enter. */
     AIRSTRIKE_JETS("sfx/special-airstrike-jets-r08-a.ogg", 1, Bus.EFFECTS),
     /** The Airstrike's bomb carpet (round 08 a), from its first blast. */

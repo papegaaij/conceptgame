@@ -143,8 +143,8 @@ versions in `gradle/libs.versions.toml`.
 - `./gradlew :desktop:run --args="--bench 3 --settings <file>"` – starts the game; `--bench <s>`
   exits after `<s>` seconds, `--settings` uses another settings file than the one in the
   platform's config directory; the save slots live in `saves/` next to the settings file, so a
-  temporary `--settings` file keeps test saves away from the real ones. Automated runs always pass
-  `--bench`. `--difficulty
+  temporary `--settings` file keeps test saves away from the real ones (as do the F12 screenshots
+  in `screenshots/`). Automated runs always pass `--bench`. `--difficulty
   easy|medium|hard` (default medium) picks the difficulty until the menus exist (M3);
   `--debug-speed <n>` runs the simulation n times faster and the debug option `--invulnerable`
   lets nothing hit the ship and keeps a lost battery from failing a level (to see a level to its

@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../systems/scoring, ../../systems/economy]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Debrief screen
@@ -21,11 +21,14 @@ to the next briefing.
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                     MISSION 21 COMPLETE · DUST COLOSSUS                      │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│   ENEMIES DESTROYED        184 / 203     91 %          + 18 200              │
-│   ARMOUR DAMAGE TAKEN      12                                                │
-│   SECRETS FOUND            2 / 3                                             │
-│   MAX CHAIN                58   ×3.5                                         │
-│   BOSS TIME                1:42  (par 2:00)            BOSS RUSH + 6 000     │
+│   ENEMIES DESTROYED        184 / 203     91 %   + 18 200   RATING ─────────  │
+│   ARMOUR DAMAGE TAKEN      12                              KILLS     36 / 40 │
+│   SECRETS FOUND            2 / 3                           ARMOUR    21 / 30 │
+│   MAX CHAIN                58   ×3.5                       SECRETS   10 / 15 │
+│   BOSS TIME                1:42  (par 2:00)  RUSH + 6 000  CHAIN     15 / 15 │
+│                                                            ───────────────── │
+│                                                            RATING         82 │
+│                                                                     A+ AT 85 │
 │                                                                              │
 │   CREDITS EARNED           2 710                                             │
 │   GRADE BONUS  A  +20 %      542                                             │
@@ -45,6 +48,11 @@ Total credits = balance at level start + credits earned + grade bonus.)
   skips the animation. Back (Esc, the gamepad's back button) does what confirm does: there is
   nothing to go back to.
 - The grade stamp lands with a heavy SFX. A new best grade for the level gets a "NEW BEST" tag.
+- With the stamp, the **grade breakdown** appears above it in the right column: the rating's parts
+  ([scoring](../../systems/scoring/README.md#grades)) as points of their weight (KILLS of 40,
+  ARMOUR of 30, SECRETS of 15, CHAIN of 15; a part at full marks in green), a rule, the RATING
+  (rounded down, so it never shows a threshold the grade missed) and the next grade's threshold
+  (`A+ AT 85`; the top grade shows its own).
 - Data cores found show as a small list with their lore titles (readable later).
 - Act-final debriefs add an act summary (total kills, total credits for the act).
 
@@ -70,6 +78,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 - [x] Tally sequence with count-up animation and skip
 - [x] Grade calculation display and credit bonus
 - [x] Back (Esc, the gamepad's back button) skips and goes on like confirm (`DebriefExitTest`)
+- [x] Grade breakdown: the rating's parts, the rating and the next grade's threshold beside the stamp (`DebriefRatingTest`)
 - [ ] Data core list and act summary — **later: M4** (data cores and the first act end come with the Act 1 levels)
 
 ## Decisions
@@ -102,3 +111,9 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 - 2026-10-04: Back on the debrief (user decision): Esc and the gamepad's back button go on like
   confirm (skip the count-up, then leave), since the debrief has nothing to go back to. Test:
   `DebriefExitTest`.
+- 2026-10-05: Grade breakdown in the debrief (user decision): KILLS, ARMOUR, SECRETS and CHAIN as
+  points of their weight, the rating and the next grade's threshold (`RATING 88`, `A+ AT 85`), in
+  the right column above the stamp with an amber RATING heading and trim rules like the tally's; it
+  appears with the stamp. The tally's and credits' heading rules now end at the number column
+  (they ran under the new column). The sim's `LevelResult.Rating` carries the parts and the target
+  grade.

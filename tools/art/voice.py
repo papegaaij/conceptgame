@@ -23,8 +23,9 @@ the expected length is retried with the next seed, up to TAKES seeds; every retr
 
 Post: the Choir's layering (choir() of tools/concept/audio/tts_r18.py) for a voice with
 `layering: choir`; then radio filter b (radio() there) for a radio line, the same plus dropouts
-and more crackle for a distorted one, and no filter for a briefing page (dry: the same
-mastering, -16 LUFS, -1.5 dBFS ceiling).
+and more crackle for a distorted one, the public-address filter (pa() there: horn band, slap
+echoes, a hall) for a voice with `filter: pa` (the Level 06 perimeter beacon), and no filter for
+a briefing page (dry: the same mastering, -16 LUFS, -1.5 dBFS ceiling).
 
 Rerun: python3 tools/art/voice.py            render what is missing, delete unused files
        python3 tools/art/voice.py --keep     the same, but only list the unused files
@@ -55,12 +56,18 @@ TAKES = 8                # seeds tried per chunk
 CHUNK_WORDS = 28
 PAUSE = 0.35             # s between the chunks of a long line
 TOKENS_PER_SECOND = 25   # Chatterbox's speech tokens
+SENTENCE_PAUSE = 0.4     # s expected per sentence end
 
 
 def expected_seconds(text):
+    """The expected length: the words at the measured pace, a short pause per comma, colon or
+    semicolon and a longer one per sentence end (a run of dots, an ellipsis, counts once), which
+    terse lines of short sentences need ("Domes intact. Airlocks open. Nobody's home." hit the
+    cap with every seed at 0.12 s a stop)."""
     words = len(text.split())
-    stops = len(re.findall(r"[.!?;:,]", text))
-    return 0.3 + words / WORDS_PER_SECOND + 0.12 * stops
+    commas = len(re.findall(r"[;:,]", text))
+    ends = len(re.findall(r"[.!?]+", text))
+    return 0.3 + words / WORDS_PER_SECOND + 0.12 * commas + SENTENCE_PAUSE * ends
 
 
 def chunks(text):
@@ -195,7 +202,7 @@ def post(line, log_entry):
         pad = np.zeros(int(0.1 * s.SR))
         y = s.master(np.concatenate([pad, x, pad])[None, :], target_lufs=-16.0, ceiling_db=-1.5)
     else:
-        y = r18.radio(x)
+        y = r18.pa(x) if line["filter"] == "pa" else r18.radio(x)
         if line["filter"] == "distorted":
             y = distorted(y, s)
     seeds = ",".join(str(seed) for seed in log_entry.get("seeds", []))

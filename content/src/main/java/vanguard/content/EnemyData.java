@@ -128,9 +128,13 @@ public record EnemyData(
 
     /**
      * Part F: a {@code laser-sweep}'s beam, {@code length} × {@code width} px from the eye, sweeping
-     * {@code arc} ° over {@code duration} s after a {@code telegraph} of s.
+     * {@code arc} ° over {@code duration} s after a {@code telegraph} of s. The eye is at {@code
+     * origin} {@code [in, down]} px from the unit's centre: toward the field (mirrored on the right
+     * edge) and down the screen; the centre when it is left out. The beam, its hit test and its
+     * telegraph start there.
      */
-    public record Sweep(double arc, double duration, double telegraph, double length, double width) {
+    public record Sweep(
+            double arc, double duration, double telegraph, double length, double width, Optional<Point> origin) {
         public Sweep {
             Check.positive("arc", arc);
             Check.positive("duration", duration);

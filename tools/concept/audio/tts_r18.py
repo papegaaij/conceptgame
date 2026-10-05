@@ -326,6 +326,38 @@ def radio(x, variant="b"):
     return y
 
 
+def pa(x):
+    """The public-address filter (round 23, the Daedalus perimeter beacon): an automated message
+    from horn loudspeakers across a settlement, not a radio. 250-4000 Hz band-pass with the horns'
+    resonances (1.1 and 2.6 kHz), a driven horn's saturation, a faint 60 Hz mains hum, then the
+    same message from the farther speakers: slap echoes at 0.13, 0.29 and 0.47 s (each darker)
+    and a 1.4 s hall reverb; no static and no squelch clicks (the radio filter's). -16 LUFS.
+    Mono float at synth.SR in, (1, n) out, like radio()."""
+    import numpy as np
+    s = _synth()
+    sr = s.SR
+    rng = np.random.default_rng(23)
+    x = x / max(1e-9, np.max(np.abs(x))) * 0.8
+    x = np.concatenate([np.zeros(int(0.1 * sr)), x, np.zeros(int(1.2 * sr))])
+    n = len(x)
+    y = x
+    for _ in range(2):
+        y = s.svf(y, 250, mode="hp")
+        y = s.svf(y, 4000, mode="lp")
+    y = y + 0.9 * s.svf(y, 1100, q=2.0, mode="bp") + 0.6 * s.svf(y, 2600, q=3.0, mode="bp")
+    y = s.saturate(y * 2.2, 2.5) * 0.7
+    out = y.copy()
+    for at, gain, cutoff in ((0.13, 0.42, 3000), (0.29, 0.24, 2200), (0.47, 0.13, 1600)):
+        d = int(at * sr)
+        out[d:] += s.svf(y, cutoff, mode="lp")[: n - d] * gain
+    t = np.arange(n) / sr
+    hum = (np.sin(2 * np.pi * 60 * t) + 0.5 * np.sin(2 * np.pi * 120 * t)
+           + 0.25 * np.sin(2 * np.pi * 180 * t)) * 0.004 + s.noise(n, rng) * 0.0015
+    out = out + s.svf(hum, 250, mode="hp")
+    wet = s.reverb(np.vstack([out, out]), seconds=1.4, mix=0.28, damping=0.6, seed=23)[0][:n]
+    return s.master(wet[None, :], target_lufs=-16.0, ceiling_db=-1.5)
+
+
 def post():
     import numpy as np
     s = _synth()

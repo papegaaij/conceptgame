@@ -1,0 +1,20 @@
+{
+ "source": "tools/art/coilwyrm.py (production art, M4 part F batch)",
+ "headings": 48,
+ "head_frames": 4,
+ "segment_sizes": [
+  54,
+  52,
+  49,
+  47,
+  44,
+  42,
+  39,
+  37,
+  34,
+  32,
+  29,
+  27
+ ],
+ "segment_index": "heading * sizes + size, size 0 the largest (next to the head)"
+}

@@ -8,7 +8,7 @@ import java.util.Optional;
  *
  * @param killScore score per kill = bounty × killScore × chain multiplier
  * @param pickupScore pickups and bonuses score pickupScore × their credit value
- * @param rating the weights of the grade rating
+ * @param rating the grade rating's weights and the chain that earns the chain part in full
  */
 public record ScoringData(
         double killScore, double pickupScore, Chain chain, Rating rating, List<Bonus> bonuses, List<Grade> grades) {
@@ -33,11 +33,16 @@ public record ScoringData(
         }
     }
 
-    public record Rating(double killRatio, double armourDamage, double secrets, double maxChain) {
+    /**
+     * The grade rating's weights (they add up to 1) and {@code fullChain}, the longest chain that
+     * earns the {@code maxChain} part in full.
+     */
+    public record Rating(double killRatio, double armourDamage, double secrets, double maxChain, int fullChain) {
         public Rating {
             Check.that(
                     Math.abs(killRatio + armourDamage + secrets + maxChain - 1) < 1e-9,
                     "the rating weights add up to 1");
+            Check.positive("full_chain", fullChain);
         }
     }
 

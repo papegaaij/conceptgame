@@ -21,7 +21,8 @@ import vanguard.sim.LevelResult;
  * concept (debrief-r08-a), drawn with the UI kit over the dimmed title scene (Earth orbit, Level
  * 01's setting): the tally, the credits by source with the grade bonus and the total, the score and
  * the grade stamp in its amber-trimmed glass, with "NEW BEST" when the grade beats the level's
- * best. Lines appear 0.3 s apart with a tick while their numbers count up; confirm (or Back) skips the
+ * best, and above it the grade's breakdown (each rating part's points, the rating and the next
+ * grade's threshold). Lines appear 0.3 s apart with a tick while their numbers count up; confirm (or Back) skips the
  * animation, and once it is done the campaign goes on with the next level's briefing, or the
  * hangar while that level is not built yet. A replay's debrief shows no credits, since a replay
  * banks none, and goes back to the mission select (design/ui/mission-select).
@@ -68,6 +69,7 @@ public final class DebriefScreen implements GameScreen {
     private final String subtitle;
     private final List<Row> rows = new ArrayList<>();
     private final String grade;
+    private final LevelResult.Rating rating;
     private float elapsed;
     private int shownLines;
     private boolean stamped;
@@ -92,6 +94,7 @@ public final class DebriefScreen implements GameScreen {
         title = String.format(Locale.ROOT, "MISSION %02d COMPLETE", number);
         subtitle = name.toUpperCase(Locale.ROOT);
         grade = result.grade().letter();
+        rating = result.rating();
         addTally(result);
         if (campaign.replay().isPresent()) {
             addReplay(result, launchBalance);
@@ -240,7 +243,7 @@ public final class DebriefScreen implements GameScreen {
             double progress = Math.clamp((elapsed - i * LINE_SECONDS) / LINE_SECONDS, 0, 1);
             if (row.colour() == HEADING) {
                 text(font, batch, row.label(), HEADING, LEFT, y, 200, Align.left);
-                glass.rule(batch, LEFT + 80, LEFT + 600, PixelScreen.HEIGHT - y + 6);
+                glass.rule(batch, LEFT + 80, RIGHT, PixelScreen.HEIGHT - y + 6);
                 continue;
             }
             text(font, batch, row.label(), LABEL, LEFT, y, 220, Align.left);
@@ -248,9 +251,62 @@ public final class DebriefScreen implements GameScreen {
             text(font, batch, row.right(progress), row.colour(), RIGHT - 200, y, 200, Align.right);
         }
         if (stamped) {
+            drawRating(batch, fonts);
             drawStamp(batch, fonts);
             text(font, batch, "[ENTER] CONTINUE", TITLE, 560, 60, 260, Align.right);
         }
+    }
+
+    /**
+     * The grade's breakdown above the stamp: each part's points of its weight, the rating and the
+     * next grade's threshold (the top grade's own once it is reached).
+     */
+    private void drawRating(SpriteBatch batch, Fonts fonts) {
+        int x = 670;
+        int right = 820;
+        int y = TOP - 20;
+        Glass glass = services.glass;
+        text(fonts.body, batch, "RATING", HEADING, x, y, 100, Align.left);
+        glass.rule(batch, x + 66, right, PixelScreen.HEIGHT - y + 6);
+        String[] labels = {"KILLS", "ARMOUR", "SECRETS", "CHAIN"};
+        LevelResult.Rating.Part[] parts = {rating.kills(), rating.armour(), rating.secrets(), rating.chain()};
+        for (int i = 0; i < parts.length; i++) {
+            float row = y - (i + 1) * LINE;
+            text(fonts.label, batch, labels[i], LABEL, x, row - 4, 80, Align.left);
+            text(
+                    fonts.body,
+                    batch,
+                    ratingPart(parts[i]),
+                    full(parts[i]) ? GAIN : VALUE,
+                    right - 90,
+                    row,
+                    90,
+                    Align.right);
+        }
+        float total = y - 5 * LINE - 10;
+        glass.rule(batch, x, right, PixelScreen.HEIGHT - (y - 4 * LINE - 23));
+        text(fonts.label, batch, "RATING", LABEL, x, total - 4, 80, Align.left);
+        text(fonts.body, batch, ratingTotal(rating), TITLE, right - 90, total, 90, Align.right);
+        text(fonts.label, batch, ratingTarget(rating), LABEL, x, total - LINE - 2, right - x, Align.right);
+    }
+
+    /** A part's points of its weight, "18 / 30". */
+    static String ratingPart(LevelResult.Rating.Part part) {
+        return Math.round(part.points()) + " / " + Math.round(part.most());
+    }
+
+    private static boolean full(LevelResult.Rating.Part part) {
+        return part.points() >= part.most() - 1e-9;
+    }
+
+    /** The rating, rounded down so that it never shows a threshold the grade did not reach. */
+    static String ratingTotal(LevelResult.Rating rating) {
+        return Integer.toString((int) Math.floor(rating.total() + 1e-9));
+    }
+
+    /** The next grade's threshold, "A+ AT 85". */
+    static String ratingTarget(LevelResult.Rating rating) {
+        return rating.target().letter() + " AT " + Math.round(rating.target().minRating());
     }
 
     private void drawStamp(SpriteBatch batch, Fonts fonts) {

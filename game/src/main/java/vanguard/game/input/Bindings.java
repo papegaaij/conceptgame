@@ -81,10 +81,15 @@ public final class Bindings {
 
     /**
      * Whether a key is one of the fixed system keys (design/ui/controls): Esc (back and pause), Enter
-     * (confirm) and the full-screen toggle F11. They are never bound to another action.
+     * (confirm), the full-screen toggle F11 and the screenshot key F12. They are never bound to another
+     * action.
      */
     public static boolean systemKey(int key) {
-        return key == Keys.ESCAPE || key == Keys.ENTER || key == Keys.NUMPAD_ENTER || key == Keys.F11;
+        return key == Keys.ESCAPE
+                || key == Keys.ENTER
+                || key == Keys.NUMPAD_ENTER
+                || key == Keys.F11
+                || key == Keys.F12;
     }
 
     /** The remappable key slot other than {@code target} that has {@code key}. */

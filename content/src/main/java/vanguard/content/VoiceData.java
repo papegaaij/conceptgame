@@ -58,6 +58,8 @@ public record VoiceData(Map<String, Settings> expressions, Map<String, Speaker> 
      * @param pins a line's take seed by the line's key, when the automatic pick sounds wrong
      * @param uncast a speaker whose voice is not cast yet (Level 05's Driver Control): no reference
      *     clip, its lines have no voice file and play as text with the radio blips
+     * @param filter {@code pa}: its radio lines go through the public-address filter instead of the
+     *     radio filter (Level 06's perimeter beacon, an automated message from loudspeakers)
      */
     public record Speaker(
             List<String> names,
@@ -66,7 +68,8 @@ public record VoiceData(Map<String, Settings> expressions, Map<String, Speaker> 
             Optional<Settings> fixed,
             Optional<String> layering,
             Optional<Map<String, Integer>> pins,
-            Optional<Boolean> uncast) {
+            Optional<Boolean> uncast,
+            Optional<String> filter) {
         public Speaker {
             Check.notEmpty("names", names);
             Check.that(
@@ -75,6 +78,7 @@ public record VoiceData(Map<String, Settings> expressions, Map<String, Speaker> 
             ref.ifPresent(clip ->
                     Check.that(clip.matches("ref-[a-z0-9-]+"), "ref: a clip name ref-<speaker>, was '" + clip + "'"));
             Check.that(layering.map("choir"::equals).orElse(true), "layering: only 'choir' is known");
+            Check.that(filter.map("pa"::equals).orElse(true), "filter: only 'pa' is known");
         }
     }
 

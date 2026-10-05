@@ -83,6 +83,16 @@ class MissionLayoutTest {
         }
     }
 
+    /** Level 06's secondary: every Mantis destroyed before it leaves, {@code MANTISES 8 / 8}. */
+    @Test
+    void theMantisTrackerReadsMantisesAndFits() {
+        String mantises = MissionPanel.escapesLabel("mantis");
+        assertEquals("MANTISES", mantises);
+        for (String count : List.of("8 / 8", "DONE", "FAILED")) {
+            assertFits(BODY, mantises + " " + count, MissionLayout.TEXT_WIDTH);
+        }
+    }
+
     private static BitmapFont.BitmapFontData font(String file) {
         return new BitmapFont.BitmapFontData(
                 new FileHandle(new File(System.getProperty("vanguard.assetsDir"), file)), false);

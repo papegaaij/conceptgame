@@ -332,7 +332,11 @@ public final class SimSpecs {
                 scoreFactor,
                 creditFactor,
                 new ScoringRules.Weights(
-                        rating.killRatio(), rating.armourDamage(), rating.secrets(), rating.maxChain()),
+                        rating.killRatio(),
+                        rating.armourDamage(),
+                        rating.secrets(),
+                        rating.maxChain(),
+                        rating.fullChain()),
                 scoring.bonuses().stream()
                         .map(bonus -> new ScoringRules.Bonus(
                                 bonusKind(bonus.name()),
@@ -376,6 +380,9 @@ public final class SimSpecs {
                 variant.flatMap(LevelData.Variant::enemies).orElse(Map.of());
         List<WaveSpec> waves = new ArrayList<>();
         for (LevelData.Wave wave : level.waves()) {
+            if (!wave.fliesOn(difficulty)) {
+                continue;
+            }
             addWave(content, wave, difficulty, enemyChanges, carried, waves);
         }
         return new LevelScript(
@@ -1064,7 +1071,7 @@ public final class SimSpecs {
     /**
      * A laser sweep at {@code difficulty} (design/enemies/air/mantis): the stat block's sweep with
      * the hooks' arc and interval (an authored interval is final; otherwise the fire-rate lever
-     * applies) and the beam's bullet class as its damage.
+     * applies), the beam's bullet class as its damage and its origin at the eye.
      */
     private static Optional<EnemySpec.Sweep> sweep(Content content, EnemyData enemy, Difficulty difficulty) {
         Optional<EnemyData.Hook> hook = hook(enemy, difficulty);
@@ -1088,7 +1095,9 @@ public final class SimSpecs {
                             sweep.width(),
                             interval,
                             attack.firstShotDelay().orElse(0.0),
-                            bulletDamage(content, attack.bullet().orElseThrow()));
+                            bulletDamage(content, attack.bullet().orElseThrow()),
+                            sweep.origin().map(Point::x).orElse(0.0),
+                            sweep.origin().map(Point::y).orElse(0.0));
                 });
     }
 

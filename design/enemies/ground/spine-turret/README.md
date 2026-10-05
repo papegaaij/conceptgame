@@ -84,3 +84,7 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
   ground units are darkened, by a light map; this unit gets **glow frames** (its emissive violet barrel root
   at full brightness, drawn after the light pass), so it is seen by its glow in the dark. A
   derived production pass of its final art, reviewed only.
+- 2026-10-04: The glow frames rendered (`tools/art/l06_darkness.py`, M4 part F batch):
+  `spine-turret-glow_0..31 (40×40, one per barrel heading)`, the final model with only its emission left plus a stepped halo, additive,
+  indexed like the unit's frames; reviewed in [round 23](../../../concept-rounds/round-23/README.md)
+  (`darkness-final-r23-a` in Level 06's concept directory).

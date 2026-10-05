@@ -457,12 +457,13 @@ final class MissionPanel {
         return noun.endsWith("Y") ? noun.substring(0, noun.length() - 1) + "IES" : noun + "S";
     }
 
-    /** {@code spore-bomber} reads "BOMBERS"; empty for none. */
+    /** {@code spore-bomber} reads "BOMBERS", {@code mantis} "MANTISES"; empty for none. */
     static String escapesLabel(String slug) {
         if (slug.isEmpty()) {
             return "";
         }
-        return slug.substring(slug.lastIndexOf('-') + 1).toUpperCase(Locale.ROOT) + "S";
+        String noun = slug.substring(slug.lastIndexOf('-') + 1).toUpperCase(Locale.ROOT);
+        return noun + (noun.endsWith("S") ? "ES" : "S");
     }
 
     /** A number with thin-space thousands groups, as on the HUD mock: 1 204 350. */

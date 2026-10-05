@@ -66,6 +66,11 @@ public record EnemyLooks(
     private static final int SPIN_SYMMETRY = 6;
     /** The tilt set's step between two headings. */
     private static final double TILT_STEP = Math.toRadians(10);
+    /**
+     * A segment chain's production sprites (tools/art/coilwyrm.py) turn in 48 headings, finer than
+     * the stat block's 16, so the chain's members on a curve turn smoothly.
+     */
+    static final int CHAIN_HEADINGS = 48;
 
     public EnemyLooks {
         if (frames.size % headings != 0) {
@@ -136,10 +141,15 @@ public record EnemyLooks(
         int walkFrames = walker ? sprites.frames(slug).size / orientation.headings() : 1;
         Array<AtlasRegion> frames =
                 sprites.has(slug) ? sprites.frames(slug) : Placeholders.frames(slug, orientation.headings());
+        int headings = data.segmentChain().isPresent() && sprites.has(slug) ? CHAIN_HEADINGS : orientation.headings();
         Tier tier = tinyPart ? Tier.TINY : data.tier();
+        // A segment chain (the Coilwyrm, the only one) bursts wet: its segments and tail with the
+        // segment burst (shot or in the chained death's ripple), its heads with the deeper one.
+        boolean chain = data.segmentChain().isPresent();
+        Sfx chainBurst = tinyPart ? Sfx.COILWYRM_BURST : Sfx.COILWYRM_HEAD_BURST;
         return new EnemyLooks(
                 frames,
-                orientation.headings(),
+                headings,
                 orientation == Orientation.TILT_30,
                 orientation == Orientation.RADIAL ? SPIN_TURNS_PER_SECOND * SPIN_SYMMETRY * frames.size : ORGANIC_FPS,
                 switch (tier) {
@@ -147,8 +157,8 @@ public record EnemyLooks(
                     case SMALL -> sprites.explosionSmall;
                     default -> sprites.frames("explosion-medium");
                 },
-                tier == Tier.TINY ? Sfx.EXPLOSION_TINY_A : Sfx.EXPLOSION_SMALL_A,
-                tier == Tier.TINY ? Sfx.EXPLOSION_TINY_B : Sfx.EXPLOSION_SMALL_B,
+                chain ? chainBurst : tier == Tier.TINY ? Sfx.EXPLOSION_TINY_A : Sfx.EXPLOSION_SMALL_A,
+                chain ? chainBurst : tier == Tier.TINY ? Sfx.EXPLOSION_TINY_B : Sfx.EXPLOSION_SMALL_B,
                 sprites.has(slug + "-flare") ? sprites.frames(slug + "-flare") : none,
                 remains(sprites, slug, none),
                 death(sprites, slug, DEATH_GLOW, tier, true, walker),
@@ -245,6 +255,17 @@ public record EnemyLooks(
         int phases = frames.size / headings;
         int heading = tilt ? tiltHeading(facing, headings) : heading(facing, headings);
         return frames.get(heading * phases + (int) (step % phases));
+    }
+
+    /**
+     * The glow frame drawn over {@link #frame}: the same heading and animation frame of the
+     * {@code -glow} set, which is indexed like the frames (a turret's or mortar's emissive parts,
+     * drawn over the darkness of Level 06).
+     */
+    public AtlasRegion glowFrame(double facing, long step) {
+        int phases = glow.size / headings;
+        int heading = tilt ? tiltHeading(facing, headings) : heading(facing, headings);
+        return glow.get(heading * phases + (int) (step % phases));
     }
 
     /** The index of the heading nearest {@code facing} in a set of {@code headings}. */

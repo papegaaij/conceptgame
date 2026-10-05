@@ -6,6 +6,7 @@ import vanguard.sim.Armament;
 import vanguard.sim.PickupType;
 import vanguard.sim.PlayField;
 import vanguard.sim.SimEvents;
+import vanguard.sim.SimStep;
 import vanguard.sim.SplitMix64;
 import vanguard.sim.WarningEdge;
 
@@ -38,6 +39,10 @@ public final class FlightSounds {
     private static final int MAX_PENDING = 8;
     /** The sled whine's loop (0.78 s) in simulation steps: its second play over the lights' 1.5 s chase. */
     private static final int SLED_WHINE_LOOP_STEPS = 47;
+    /** The flare burn's seamless loop (round 23 a), played back to back while a flare burns. */
+    private static final double FLARE_BURN_LOOP_SECONDS = 3;
+    /** How long a flare burns (the level's darkness, by difficulty); 0 without flares. */
+    private double flareSeconds;
 
     private final SfxBank bank;
     private final EnemyLooks[] looks;
@@ -58,6 +63,18 @@ public final class FlightSounds {
     private boolean variantB;
 
     /**
+     * A chained death's bursts (design/enemies/air/coilwyrm) follow the chain's taper: the pitch of
+     * a member's burst rises as its hit box narrows, 0.94 at the first segment's 37.8 px (54 px x
+     * 0.7) up to at most 1.2 at the last one's 18.9 px (the tail, 28 px, in between), with ±2 %
+     * random on top; one burst every 0.25 s, so they do not overlap and play at the explosion level.
+     */
+    private static final double RIPPLE_REFERENCE_WIDTH = 37.8;
+
+    private static final double RIPPLE_PITCH_START = 0.94;
+    private static final double RIPPLE_PITCH_EXPONENT = 0.35;
+    private static final double RIPPLE_PITCH_MAX = 1.2;
+
+    /**
      * @param looks the explosions of the level's enemy kinds
      * @param armament the fitted weapons, whose sound families the shots play
      * @param setPieces the slugs of the level's set pieces, whose death cries they play
@@ -72,6 +89,11 @@ public final class FlightSounds {
             shots[m] = shot(armament.mount(m).weapon().sfx());
             shotPitch[m] = armament.mount(m).slot() == Armament.Slot.REAR ? REAR_PITCH : 1;
         }
+    }
+
+    /** How long the level's flares burn (its darkness at the difficulty): the burn loop's length. */
+    public void flareSeconds(double seconds) {
+        flareSeconds = seconds;
     }
 
     /** A set piece's cry at its death, or null for none: the Leviathan's whale song. */
@@ -245,21 +267,46 @@ public final class FlightSounds {
                 case SLED_LAUNCHED -> bank.play(Sfx.SLED_PASS, 0.8f, 1f, pan);
                 // A Brood Pod's fleshy burst, shot or on its own (round 08 b), as its Skitters fly out.
                 case BROOD_HATCHED -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, pitch(0.04), pan);
-                // Level 06 (placeholders from the existing sounds until the part's round): a cut
-                // chain's wet tear and its regrowth, the chained pops, the Mantis's telegraph whine
-                // and beam, the Smart Bomb's huge blast with a whoosh, the flare's launch.
+                // Level 06: a cut chain's wet tear (a placeholder from the existing sounds), its
+                // regrowth, the chained pops, the Mantis's telegraph and beam, the Smart Bomb's huge
+                // blast with a whoosh (placeholders), the flare's launch and burn.
                 case CHAIN_CUT -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, 0.8f * pitch(0.04), pan);
-                case CHAIN_REGROWN -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, 1.3f * pitch(0.04), pan);
-                case CHAIN_POP ->
-                    bank.play(alternate(Sfx.EXPLOSION_TINY_A, Sfx.EXPLOSION_TINY_B), EXPLOSIONS, pitch(0.06), pan);
-                case SWEEP_TELEGRAPH -> bank.play(Sfx.LASER_SHOT, ENEMY_FIRE, 0.6f, pan);
-                case SWEEP_FIRED -> bank.play(Sfx.LASER_SHOT, ENEMY_FIRE, 0.8f, pan);
+                // The new head growing (round 23 b, an insect growl and chitter).
+                case CHAIN_REGROWN -> bank.play(Sfx.COILWYRM_REGROW, EXPLOSIONS, pitch(0.04), pan);
+                // A chained death's burst (round 24): the member's own burst, in the step its look bursts.
+                case CHAIN_POP -> {
+                    int value = events.value(i);
+                    EnemyLooks kind = looks[SimEvents.chainPopKind(value)];
+                    bank.play(
+                            alternate(kind.explosionA(), kind.explosionB()),
+                            EXPLOSIONS,
+                            ripplePitch(SimEvents.chainPopWidth(value)) * pitch(0.02),
+                            pan);
+                }
+                // The Mantis (round 23): its telegraph a warning (the player-damage level), its beam a
+                // little above the enemy fire, one long sound.
+                case SWEEP_TELEGRAPH -> bank.play(Sfx.MANTIS_TELEGRAPH, PLAYER_DAMAGE, pitch(0.03), pan);
+                case SWEEP_FIRED -> bank.play(Sfx.MANTIS_SWEEP, HITS, pitch(0.03), pan);
                 case SMART_BOMB -> {
                     bank.play(Sfx.EXPLOSION_SMALL_A, PLAYER_DAMAGE, 0.55f, pan);
                     bank.play(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.7f, pan);
                     bank.play(Sfx.AIRSTRIKE_JETS, EXPLOSIONS, 1.5f, 0);
                 }
-                case FLARE_FIRED -> bank.play(Sfx.MORTAR_LOB, 0.5f * EXPLOSIONS, 1.4f, pan);
+                // The perimeter beacon's flare (round 23 a): the flare-gun shot, then the road flare's
+                // 3 s loop back to back while it burns, the last play quieter as the pool fades.
+                case FLARE_FIRED -> {
+                    bank.play(Sfx.FLARE_LAUNCH, 0.6f * EXPLOSIONS, pitch(0.03), pan);
+                    bank.play(Sfx.FLARE_BURN, ENEMY_FIRE, 1, pan);
+                    for (int k = 1; k * FLARE_BURN_LOOP_SECONDS < flareSeconds; k++) {
+                        boolean last = (k + 1) * FLARE_BURN_LOOP_SECONDS >= flareSeconds;
+                        later(
+                                Sfx.FLARE_BURN,
+                                (last ? 0.5f : 1) * ENEMY_FIRE,
+                                1,
+                                pan,
+                                SimStep.ticks(k * FLARE_BURN_LOOP_SECONDS));
+                    }
+                }
                 case BROOD_BURST,
                         WALKER_DOWN,
                         SWEEP_HIT,
@@ -278,6 +325,12 @@ public final class FlightSounds {
                         SPECIAL_CALLED -> {}
             }
         }
+    }
+
+    /** A chained burst's pitch by the member's hit box width (see {@link #RIPPLE_REFERENCE_WIDTH}). */
+    static float ripplePitch(double width) {
+        double ratio = RIPPLE_REFERENCE_WIDTH / Math.max(1, width);
+        return (float) Math.min(RIPPLE_PITCH_MAX, RIPPLE_PITCH_START * Math.pow(ratio, RIPPLE_PITCH_EXPONENT));
     }
 
     private static Sfx pickupSound(PickupType type) {

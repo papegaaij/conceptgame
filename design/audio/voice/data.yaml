@@ -12,7 +12,8 @@ expressions:   # exaggeration 0.25-2, cfg_weight (lower: slower, more dramatic),
 # names: the speaker as the level data writes it; ref: the clip in refs/ (without .wav);
 # shift: added to the expression's row (optional); fixed: settings for every line instead of the
 # expression's; layering: choir = the Choir's post-processing; pins: a line's seed by its key;
-# uncast: true = no voice cast yet (no ref): its lines have no voice file and play as text.
+# uncast: true = no voice cast yet (no ref): its lines have no voice file and play as text;
+# filter: pa = the public-address filter instead of the radio filter (an automated loudspeaker).
 speakers:
   okafor: {names: [Okafor], ref: ref-okafor}
   varga: {names: [Varga], ref: ref-varga}
@@ -30,3 +31,8 @@ speakers:
   convoy: {names: [Convoy], ref: ref-convoy}
   hammer-lead: {names: [Hammer Lead], ref: ref-hammer-lead}
   driver-control: {names: [Driver Control], ref: ref-driver-control}   # Level 05; cast in round 21 (a)
+  perimeter-beacon:   # Level 06; cast in round 23 (a, Mark F. Smith): flat and even, through the PA filter
+    names: [Perimeter beacon]
+    ref: ref-perimeter-beacon
+    fixed: {exaggeration: 0.3, cfg_weight: 0.5, temperature: 0.6}
+    filter: pa

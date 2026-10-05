@@ -9,8 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Placeholder frames for units whose art is not made yet (M4 part F: the Mantis and the Coilwyrm's
- * head, segments, tail and regrown head): simple shapes in the concept's colours, drawn once per
+ * Placeholder frames for units whose art is not made yet (M4 part F made them for the Mantis and the
+ * Coilwyrm's head, segments, tail and regrown head, which now have production sprites, so these
+ * only stand in when a sprite is missing): simple shapes in the concept's colours, drawn once per
  * run and kept, an angle set with a nose mark where the unit turns.
  */
 final class Placeholders {

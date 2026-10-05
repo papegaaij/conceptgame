@@ -110,6 +110,20 @@ public final class PixelScreen implements Disposable {
         batch.begin();
     }
 
+    /**
+     * Reads the internal screen as drawn so far, bottom row first (as frame buffers store it), RGBA
+     * with the alpha the blending left; call between {@link #begin} and {@link #end}, {@code batch}
+     * drawing. The caller disposes the pixmap.
+     */
+    public Pixmap read(SpriteBatch batch) {
+        batch.flush();
+        frameBuffer.bind();
+        var pixmap = new Pixmap(WIDTH, HEIGHT, Pixmap.Format.RGBA8888);
+        Gdx.gl.glPixelStorei(GL20.GL_PACK_ALIGNMENT, 1);
+        Gdx.gl.glReadPixels(0, 0, WIDTH, HEIGHT, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE, pixmap.getPixels());
+        return pixmap;
+    }
+
     /** Ends the internal screen and draws it into the window with the video settings. */
     public void end(SpriteBatch batch, VideoSettings video) {
         batch.end();

@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../../story, ../../campaign]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Briefing screen
@@ -81,6 +81,7 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 | [concept/briefing-images-final-r13-a.png](concept/briefing-images-final-r13-a.png) | Review sheet: the nine 672×240 images, one per page of the Act 1 intro (Tether Gate, outer stations, the L1 strike group, Earth orbit's squadrons, the Stormhawk schematic), Level 01 (the Gagarin yards' rails, the scan of the Skitter and Needler) and Level 02 (the burning south arm's docks, the "yield" pattern and the turret's blind arc) | chosen |
 | [concept/briefing-images-final-r20-a.png](concept/briefing-images-final-r20-a.png) | Review sheet, batch "M4 briefing images" ([round 20](../../concept-rounds/round-20/README.md)): the four 672×240 images of Level 03 (the high lanes over the battle site's debris field with the spore carriers seeding Earth; the Spore Bomber, its rising spores and a wide spread, the long-range echo) and Level 04 (the convoy road from Tranquility Base across the rille to the mass-driver terminal, brood pods, walkers in the craters, Hammer flight; the Scuttler's claws and glowing back) | chosen |
 | [concept/briefing-images-final-r21-a.png](concept/briefing-images-final-r21-a.png) | Review sheet, M4 part E ([round 21](../../concept-rounds/round-21/README.md)): the two 672×240 images of Level 05 (the nest crater beside the mass-driver line with batteries A–D, Lancer's run over the rim, the sleds; the Polyp Mortar's lob to its marker a second ahead, the ship moving out, an unknown contact in orbit) | chosen |
+| [concept/briefing-images-final-r23-a.png](concept/briefing-images-final-r23-a.png) | Review sheet, M4 part F ([round 23](../../concept-rounds/round-23/README.md)): the two 672×240 images of Level 06 (the far side across the terminator, the silent settlements, Daedalus Rim's lit domes, Lancer's run into the dark by headlight; the Mantis at the screen edge sweeping its beam, side-firing guns reaching it, the Coilwyrm coming round behind the ship) | chosen |
 
 ## Implementation
 
@@ -92,6 +93,8 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
       `BriefingExitTest`
 - [x] Portrait frame with the transmission-static effect
 - [x] Portrait expressions (neutral, grim, fierce): `expression` in the data, neutral by default
+- [x] Level 06's two images rendered again for round 23's outcomes: the Coilwyrm at spacing 0.5
+      (overlapping) and the Mantis's beam and telegraph from its head
 
 ## Decisions
 
@@ -159,3 +162,24 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
   confirm dialog and the autosave on leaving are main-agent choices, for the user to confirm.
 - 2026-10-04: Concept round 21 (user): Level 05's two briefing images (`briefing-images-final-r21-a`)
   approved as **final**; `art` stays `chosen` as after round 20.
+- 2026-10-04: Briefing images of Level 06 (M4 part F, straight to production per user decision D8,
+  `tools/art/briefing_images.py`), one per page, named in the level's data; they show the
+  production Mantis, Coilwyrm, headlight cone and a Daedalus dome (`mantis.py`, `coilwyrm.py`,
+  `l06_darkness.py`, `backdrop_l06.py`); the review sheet `briefing-images-final-r23-a` proposed
+  for [round 23](../../concept-rounds/round-23/README.md). `art` stays `chosen`.
+- 2026-10-05: Concept round 23 (user decision): Level 06's two briefing images
+  (`level-06-daedalus-rim`, `level-06-edge-scan`) accepted. **Pending**: both are to be rendered
+  again for the round's other outcomes, the Coilwyrm's spacing of 0.5 (an overlapping chain of
+  about 330 px instead of beads with gaps) and the Mantis's beam and telegraph starting at its
+  head (its eye), not its centre; `art` stays `chosen`.
+- 2026-10-05: Level 06's two images rendered again for round 23's outcomes
+  (`tools/art/briefing_images.py`, sheet `briefing-images-final-r23-a` rebuilt). `level-06-edge-scan`:
+  the Coilwyrm at the data's spacing of 0.5, an overlapping chain of about 330 px on the same loop,
+  with the head's path history dashed beyond the tail so the image still shows it coming round; the
+  Mantis's telegraph and beam start at its eye (`sweep.origin`) in the chosen charged-lance look
+  (`tools/art/mantis_beam.py`: its beam, tip and eye-ring sprites, the 70° wedge from its generator
+  code at the image's 240 px reach, centred on the bearing to the ship), the beam 30 % into the
+  sweep; "its beam sweeps across you" moved inside the new wedge. The wedge is no longer drawn in the
+  lines layer, so that layer's 16 colours are no longer pulled toward its red: the labels and arrows
+  show their intended red, violet, green and cyan. `level-06-daedalus-rim` shows neither unit and
+  came out pixel-identical. `art` stays `chosen`.

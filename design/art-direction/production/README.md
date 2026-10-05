@@ -4,7 +4,7 @@ design: draft
 implementation: in-progress
 art: n/a
 depends-on: [.., ../../tech/roadmap, ../../tech/architecture, ../../audio/music, ../../audio/sfx]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Production art plan
@@ -140,6 +140,7 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] M4 part D (Level 04): the civilian crawler (`tools/art/civilian_crawler.py`), the Airstrike's CDF bomber (`tools/art/airstrike_bomber.py`), the Level 04 Luna backdrop with the road bridge and the terminal hangar (`tools/art/backdrop_l04.py`), the dugout and the supply drop (`tools/art/l04_targets.py`) and the Brood Pod's and Scuttler's intel portraits (`tools/art/intel.py`) rendered, review files for round 17; approved as final there (the bridge and the enlarged hangar as the redo, choice 9)
 - [x] M4 briefing images: the four images of Levels 03 and 04 (`tools/art/briefing_images.py`), review sheet for round 20; approved as final there
 - [x] M4 part E (Level 05, M4 part E batch): the Gorgon Frigate (`tools/art/gorgon_frigate.py`) and its break-up at its death (`tools/art/gorgon_frigate_death.py`), the Polyp Mortar with its acid blob, marker and death and the mass-driver sled (`tools/art/l05_hazards.py`), the props from the chosen concepts (rocks, ore canister, acid splash decal; `tools/art/l05_props.py`) and Level 05's briefing images (`tools/art/briefing_images.py`) rendered, review files for round 21; approved as final there (the frigate's death as the redo, item 11); Level 05's own backdrop (`tools/art/backdrop_l05.py`) approved as final in round 22
+- [x] M4 part F (Level 06, M4 part F batch): the Mantis (`tools/art/mantis.py`) and its beam b (`tools/art/mantis_beam.py`), the Coilwyrm at 48 headings (`tools/art/coilwyrm.py`), the darkness's glow frames, flare shell and light shapes (`tools/art/l06_darkness.py`), the Level 06 backdrop (`tools/art/backdrop_l06.py`), the Mantis's and Coilwyrm's intel portraits (`tools/art/intel.py`) and the props from the chosen concepts (ore cart b, survey cache a, data core terminal b and the data core pickup; `tools/art/l06_props.py`) rendered; approved as final in round 23 (the Level 06 briefing images accepted, to be re-rendered for the Coilwyrm's 0.5 spacing and the beam from the Mantis's head)
 - [ ] M4 and M5 parts final, each with its milestone (a round per M4 part, user decision)
 
 ## Open questions
@@ -294,3 +295,17 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
   the tile's rail pixels. `BackdropSeamsTest` (game) checks the wrap rows of every ground and far
   tile set of a level without a deep layer and the rows at every set border (both tile sets with
   the still set pieces on top must match); it fails on the old line (scores 1.6–3.7 against 1.5).
+- 2026-10-04: M4 part F batch (Level 06), review files for round 23: the Mantis as two sets, one
+  per edge it holds (the data's "mirrored per side" would mirror a lit sprite), by state (hover,
+  telegraph, sweep, exit); the Coilwyrm at 48 headings per part (the stat block's 16 showed as
+  kinks along a chain), its segments at the 12 sizes of the taper; the darkness's glow frames are
+  the turret's and mortar's production models with only their emission left, indexed like their
+  frames, and the flare pool and headlight cone are production light-map shapes (white, the light
+  in the alpha, ordered-dithered). Level 06's unit atlas: 1 page of 2048² (57 %); the shared pages
+  gain the glow frames (79 % of 2048×1024).
+- 2026-10-05: Round 23 closed: M4 part F's production art approved as final (the Mantis with its
+  beam moved to its head, the Coilwyrm at spacing 0.5, the darkness, Level 06's backdrop, the
+  intel portraits); the props' production sprites from the chosen concepts made at the close
+  (`tools/art/l06_props.py`: `ore-cart`, `survey-cache` with its `-glint`, `data-core-terminal`
+  with its `-glow`, `pickup-data-core`), as Level 05's props in round 21. Atlases after it: the
+  shared page 79 % of 2048×1024, Level 06's unit page 64 % of 2048², the level at 3 of 6 pages.

@@ -57,16 +57,16 @@ final class TestSpecs {
             new ScoringRules.Chain(2, 10, 0.5, 5),
             1,
             1,
-            new ScoringRules.Weights(0.4, 0.3, 0.15, 0.15),
+            new ScoringRules.Weights(0.4, 0.3, 0.15, 0.15, 40),
             List.of(
                     new ScoringRules.Bonus(ScoringRules.BonusKind.DESTRUCTION, "Destruction", 100, true, true),
                     new ScoringRules.Bonus(ScoringRules.BonusKind.UNTOUCHED, "Untouched", 5000, false, false),
                     new ScoringRules.Bonus(ScoringRules.BonusKind.EXPLORER, "Explorer", 3000, false, false)),
             List.of(
-                    new ScoringRules.Grade("A+", 90, 0.3),
-                    new ScoringRules.Grade("A", 75, 0.2),
-                    new ScoringRules.Grade("B", 55, 0.1),
-                    new ScoringRules.Grade("C", 35, 0),
+                    new ScoringRules.Grade("A+", 85, 0.3),
+                    new ScoringRules.Grade("A", 70, 0.2),
+                    new ScoringRules.Grade("B", 50, 0.1),
+                    new ScoringRules.Grade("C", 30, 0),
                     new ScoringRules.Grade("D", 0, 0)));
     static final Rules RULES = new Rules(120, 0, new PickupRules(10, 50, 20, 0.25, 10, 6, 40, 36), SCORING);
 

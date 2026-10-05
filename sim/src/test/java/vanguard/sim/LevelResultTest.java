@@ -23,7 +23,9 @@ class LevelResultTest {
     void aPerfectLevelGetsAnSWithEveryBonus() {
         LevelResult result = LevelResult.of(TestSpecs.SCORING, LEVEL, kills(80), 80, 0, 60, 1, true);
 
-        assertEquals(100, result.rating(), 1e-9);
+        assertEquals(100, result.rating().total(), 1e-9);
+        assertEquals(new LevelResult.Rating.Part(40, 40), result.rating().kills());
+        assertEquals("A+", result.rating().target().letter(), "the top grade aims at itself");
         assertEquals("A+", result.grade().letter());
         assertEquals(
                 List.of(
@@ -37,11 +39,19 @@ class LevelResultTest {
 
     @Test
     void theRatingWeighsKillsArmourSecretsAndTheLongestChain() {
-        // Half the enemies, a third of the armour lost, the secret missed, a chain of 40 of 80.
-        LevelResult result = LevelResult.of(TestSpecs.SCORING, LEVEL, kills(40), 80, 20, 60, 0, false);
+        // Half the enemies, a third of the armour lost, the secret missed, a chain of 20 of the full 40.
+        LevelResult result = LevelResult.of(TestSpecs.SCORING, LEVEL, kills(20), 40, 20, 60, 0, false);
 
-        assertEquals(100 * (0.4 * 0.5 + 0.3 * (2.0 / 3) + 0.15 * 0 + 0.15 * 0.5), result.rating(), 1e-9);
+        assertEquals(
+                100 * (0.4 * 0.5 + 0.3 * (2.0 / 3) + 0.15 * 0 + 0.15 * 0.5),
+                result.rating().total(),
+                1e-9);
+        assertEquals(20, result.rating().armour().points(), 1e-9);
+        assertEquals(new LevelResult.Rating.Part(0, 15), result.rating().secrets());
+        assertEquals(7.5, result.rating().chain().points(), 1e-9);
         assertEquals("C", result.grade().letter());
+        assertEquals("B", result.rating().target().letter(), "the next grade up");
+        assertEquals(50, result.rating().target().minRating());
         assertEquals(0, result.gradeBonus());
         assertEquals(50, result.killPercent());
         assertEquals(List.of(new LevelResult.BonusScore("Destruction", 5000)), result.bonuses());

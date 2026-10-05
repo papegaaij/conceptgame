@@ -1,6 +1,7 @@
 package vanguard.sim;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -32,14 +33,30 @@ class TallyTest {
     void theChainEndsWhenTheWindowRunsOut() {
         tally.kill(5);
         for (int i = 0; i < SimStep.ticks(2) - 1; i++) {
-            tally.step();
+            tally.step(true);
         }
         assertEquals(1, tally.chain());
 
-        tally.step();
+        tally.step(true);
 
         assertEquals(0, tally.chain());
         assertEquals(1, tally.maxChain());
+    }
+
+    @Test
+    void theWindowPausesWhileNoEnemyIsOnScreen() {
+        tally.kill(5);
+        for (int i = 0; i < 10 * SimStep.PER_SECOND; i++) {
+            tally.step(false);
+        }
+        assertEquals(1, tally.chain());
+        assertTrue(tally.paused());
+        assertEquals(1.0, tally.window(), "the window has not drained");
+
+        for (int i = 0; i < SimStep.ticks(2); i++) {
+            tally.step(true);
+        }
+        assertEquals(0, tally.chain());
     }
 
     @Test

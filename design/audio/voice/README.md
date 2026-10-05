@@ -4,7 +4,7 @@ design: draft
 implementation: in-progress
 art: chosen
 depends-on: [.., ../../story/characters, ../../ui/hud, ../../ui/options, ../../tech/architecture]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Voice
@@ -22,7 +22,7 @@ voiced by the same pipeline. The engine and the radio filter were chosen in conc
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [refs](refs/README.md) | Reference clips the voices are cloned from: LibriVox readings, public domain or CC0 | draft | done | chosen |
+| [refs](refs/README.md) | Reference clips the voices are cloned from: LibriVox readings, public domain or CC0 | draft | in-progress | chosen |
 
 ## Design
 
@@ -59,7 +59,8 @@ header of `tools/concept/audio/tts_r18.py`; the production renderer reuses it.
 3. **Render.** Chatterbox speaks the line with the speaker's reference clip and the settings of
    the expression (below). Each take has a fixed seed (from the key); the generation is capped
    at 1.5× the expected length from the word count (2.6 words/s plus a little per punctuation
-   mark), and a take that hits the cap or runs past it, or is shorter than half the expected
+   mark, more per sentence end: 0.12 s a comma, 0.4 s a sentence end, an ellipsis counting once),
+   and a take that hits the cap or runs past it, or is shorter than half the expected
    length, is retried with the next seed (up to eight); the retries are logged. Long lines (the
    briefing pages) are spoken by sentences, in chunks of up to 28 words, joined with 0.35 s of
    silence; leading and trailing silence is trimmed. A take can be pinned by seed in the speaker
@@ -72,7 +73,11 @@ header of `tools/concept/audio/tts_r18.py`; the production renderer reuses it.
    ±25 %) and crackle on 0.1 % of the samples at up to 0.11, about 27 dB under the voice; it is
    `radio()`'s default in the round's generator. **Briefing pages** skip the radio filter: the
    same render and mastering (−16 LUFS, −1.5 dBFS), no band-pass, static or clicks, since the
-   briefing is a face-to-face talk, not a transmission. OGG Vorbis q4, 44.1 kHz mono, with a
+   briefing is a face-to-face talk, not a transmission. A speaker marked `filter: pa` (the
+   Level 06 perimeter beacon) gets the **public-address filter** instead of the radio filter
+   (`pa()` next to `radio()`: a 250 Hz–4 kHz horn band with resonances at 1.1 and 2.6 kHz, a
+   driven horn's saturation, a faint mains hum, slap echoes at 0.13, 0.29 and 0.47 s and a 1.4 s
+   hall; no static or clicks), as auditioned in round 23. OGG Vorbis q4, 44.1 kHz mono, with a
    comment tag naming the tool, the speaker and the key.
 5. **Commit.** The rendered OGGs are committed under LFS like the other assets.
 
@@ -117,11 +122,10 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
   Level 05 adds **Driver Control** (the mass driver's operator, three lines), cast in
   [round 21](../../concept-rounds/round-21/README.md) (Alex Foster, a).
   Level 06 adds the **Daedalus perimeter beacon** (automated, one line that also loops faintly
-  under section 2 as ambience). It gets its own audition in M4 part F's concept round: two CC0 or
-  public-domain candidates through a **public-address filter** (more band-limited than the radio
-  filter, with a slight echo), the same rendered line feeding the ambience loop. Until then it is
-  `uncast` (text with the radio blips); the PA filter is a new filter value next to radio,
-  distorted and dry (planned, part F).
+  under section 2 as ambience), cast in [round 23](../../concept-rounds/round-23/README.md) (Mark
+  F. Smith, a): flat, even settings (`fixed`: exaggeration 0.3, cfg_weight 0.5, temperature 0.6)
+  and the **public-address filter** (`filter: pa` in the speaker table) instead of the radio
+  filter; the same rendered line feeds the ambience loop.
 
 ### Speakers and expression
 
@@ -239,11 +243,12 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
 | [concept/voice-hammer-lead-r19-b.ogg](concept/voice-hammer-lead-r19-b.ogg) | Hammer Lead, reader Gord Mackenzie (`tools/concept/audio/tts_r19.py`) | chosen |
 | [concept/voice-driver-control-r21-a.ogg](concept/voice-driver-control-r21-a.ogg) | Driver Control (round 21 audition), reader Alex Foster (`tools/concept/audio/tts_r21.py`) | chosen |
 | [concept/rejected/voice-driver-control-r21-b.ogg](concept/rejected/voice-driver-control-r21-b.ogg) | Driver Control (round 21 audition), reader Rebecca (`tools/concept/audio/tts_r21.py`) | rejected |
+| [concept/voice-perimeter-beacon-r23-a.ogg](concept/voice-perimeter-beacon-r23-a.ogg) | Daedalus perimeter beacon (round 23 audition, public-address filter), reader Mark F. Smith (`tools/concept/audio/tts_r23.py`) | chosen |
+| [concept/rejected/voice-perimeter-beacon-r23-b.ogg](concept/rejected/voice-perimeter-beacon-r23-b.ogg) | Daedalus perimeter beacon (round 23 audition, public-address filter), reader Lucy Burgoyne (`tools/concept/audio/tts_r23.py`) | rejected |
 
 ## Open questions
 
-- Who voices the Daedalus perimeter beacon (Level 06)? Audition of two CC0/PD candidates through
-  the public-address filter in M4 part F's concept round; `uncast` until the user picks.
+- None open.
 
 ## Decisions
 
@@ -286,3 +291,20 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
   of two CC0/PD candidates through a public-address filter, in the part's concept round; the same
   line loops under section 2. `uncast` until then. Rejected: reusing a cast generic voice with the
   PA filter (no audition).
+- 2026-10-04: Perimeter beacon audition (user decision D7 of M4 part F) opened in round 23: its
+  t=50 message with two LibriVox voices, Mark F. Smith (a, CC0) and Lucy Burgoyne (b, public
+  domain), through the new public-address filter (`pa()` next to `radio()` in
+  `tools/concept/audio/tts_r18.py`; horn band and resonances, slap echoes and a hall instead of
+  static and squelch clicks); `tools/concept/audio/tts_r23.py`.
+- 2026-10-05: Round 23 decided (user): the perimeter beacon is Mark F. Smith (a), through the
+  public-address filter only, as auditioned (not the radio filter on top); `uncast` removed,
+  `ref-perimeter-beacon.wav`, `fixed` settings as the audition's and `filter: pa` in the speaker
+  table (`VoiceLines.Filter.PA`, part of the line's key; `pa()` in `tools/art/voice.py`'s post);
+  Lucy Burgoyne's take moved to `concept/rejected/` and her clip deleted with its CREDITS.md row.
+  The beacon's line rendered (6.9 s with the echoes' tail; Whisper reads it back), so it is spoken
+  at t=52.5 and loops under section 2.
+- 2026-10-05: Okafor's Level 06 line "Domes intact. Airlocks open. Nobody's home." hit the length
+  cap with all eight seeds: three short sentences, with Okafor's pauses between them, ran past
+  1.5× an estimate that gave a sentence end only 0.12 s. The estimate now gives a sentence end
+  0.4 s (an ellipsis counts once); re-rendered, the third seed passed (4.6 s; Whisper reads it
+  back). Only missing lines are rendered, so no other file changed.

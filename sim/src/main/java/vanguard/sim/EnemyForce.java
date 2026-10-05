@@ -271,7 +271,11 @@ final class EnemyForce {
             }
             Enemy popped = chain.popDue();
             if (popped != null) {
-                events.add(SimEvents.Type.CHAIN_POP, popped.x(), popped.y(), popped.kind());
+                events.add(
+                        SimEvents.Type.CHAIN_POP,
+                        popped.x(),
+                        popped.y(),
+                        SimEvents.chainPopValue(popped.kind(), popped.hitbox().width()));
                 free(popped);
             }
             if (!chain.advance()) {

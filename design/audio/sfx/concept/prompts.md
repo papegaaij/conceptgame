@@ -690,7 +690,7 @@ AI prompt: "late-90s sci-fi game sound, a huge alien space whale dying: one deep
 
 ## Round 21 — Level 05's sled and Polyp Mortar (M4 part E, user decision D8)
 
-Recorded third-party sounds (enemy and hazard sounds are recorded CC0/CC-BY, the 2026-10-01 rule), imported by `tools/concept/audio/import_sfx.py` from the Freesound HQ previews; one a/b pair per sound. The production files will be rebuilt from the originals (`tools/art/sfx_originals.py`) once chosen.
+Recorded third-party sounds (enemy and hazard sounds are recorded CC0/CC-BY, the 2026-10-01 rule), imported by `tools/concept/audio/import_sfx.py` from the Freesound HQ previews; one a/b pair per sound. The chosen four (whine a, pass b, lob a, impact a) were rebuilt from the Freesound originals with the same settings by `tools/art/sfx_originals.py` (2026-10-05; the pass's original clipped at full scale first) into `assets/sfx/` under their concept names; the files here stay the record of the choice.
 
 ### hazard-sled-whine-r21-a — "Railgun_ChargeLoop" by BaggoNotes
 Source: <https://freesound.org/people/BaggoNotes/sounds/785400/> — CC0 1.0. Use: sled whine a, a loop played while the rail lights chase (1.5 s).
@@ -732,3 +732,106 @@ Source: <https://freesound.org/people/spookymodem/sounds/202094/> — CC0 1.0. U
 Why: Acid bubbling up: a hissing sizzle rather than a splat.
 Edit: leading silence trimmed, cut to 1.60 s, 0.60 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
 
+## Round 23 — Level 06's Mantis, flares and Coilwyrm (M4 part F, user decision D8)
+
+Recorded third-party sounds (enemy and hazard sounds are recorded CC0/CC-BY, the 2026-10-01 rule), imported by `tools/concept/audio/import_sfx.py` from the Freesound HQ previews; one a/b pair per sound. The chosen five (telegraph a, sweep b, flare launch a, flare burn a, regrowth b) were rebuilt from the Freesound originals with the same settings by `tools/art/sfx_originals.py` (2026-10-05; the burn stays a seamless 3.00 s loop) into `assets/sfx/` under their concept names; the files here stay the record of the choice. Not in this round: the data core pickup (already mapped to the chosen `pickup-r01-b`, round 08), the Smart Bomb (chosen `special-smartbomb-r08-a`), the Coilwyrm's fan and pops (the enemy shot and explosion ladder) and the round-08 `enemy-laser-warning-r08-a` (chosen for enemy laser charges in general; it stays an option for the Mantis telegraph).
+
+Outcome (user, 2026-10-05): telegraph **a**, sweep **b** (CC-BY), flare launch **a** (CC-BY), flare burn **a**, Coilwyrm regrowth **b**; the other five moved to `concept/rejected/` (the headings below keep the files' names).
+
+### enemy-mantis-telegraph-r23-a — "Laser Charge Up" by magnuswaker
+Source: <https://freesound.org/people/magnuswaker/sounds/588242/> — CC0 1.0. Use: Mantis telegraph a, the 0.6 s crimson arc before a sweep.
+Why: A bright, rising laser charge-up cut in its rise, so it ends as the beam fires.
+Edit: leading silence trimmed, cut from 0.10 s, cut to 0.60 s, 0.06 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### enemy-mantis-telegraph-r23-b — "laser-charge.wav" by StavSounds
+Source: <https://freesound.org/people/StavSounds/sounds/701702/> — CC0 1.0. Use: Mantis telegraph b, the 0.6 s crimson arc before a sweep.
+Why: A lower, buzzing charge: its loudest 0.6 s, more menace than sparkle.
+Edit: leading silence trimmed, cut from 0.60 s, cut to 0.60 s, 0.05 s fade-in, 0.06 s fade-out; 200 Hz–5 kHz band RMS normalised to -30.0 dB (peak ceiling -8.0 dBFS).
+
+### enemy-mantis-sweep-r23-a — "Game - Style Laser Beam" by Jofae
+Source: <https://freesound.org/people/Jofae/sounds/352852/> — CC0 1.0. Use: Mantis sweep a, the 1.2 s beam.
+Why: A steady, game-style laser beam: a bright continuous tone that reads over the music.
+Edit: leading silence trimmed, cut from 0.20 s, cut to 1.30 s, 0.02 s fade-in, 0.25 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -6.0 dBFS).
+
+### enemy-mantis-sweep-r23-b — "SonicDeathRay_1.2KHzWithCrackle.wav" by zimbot
+Source: <https://freesound.org/people/zimbot/sounds/177099/> — CC-BY 4.0. Use: Mantis sweep b, the 1.2 s beam.
+Why: A 1.2 kHz death-ray tone with crackle: harsher and more organic-electric.
+Edit: leading silence trimmed, cut from 1.00 s, cut to 1.30 s, 0.02 s fade-in, 0.25 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -6.0 dBFS).
+
+### hazard-flare-launch-r23-a — "FlareGun_Shot01.wav" by marb7e
+Source: <https://freesound.org/people/marb7e/sounds/674375/> — CC-BY 4.0. Use: flare launch a, the perimeter beacon firing a flare shell (t=70, 112, 150).
+Why: A real flare pistol shot: a sharp pop with a short hiss.
+Edit: leading silence trimmed, cut to 0.80 s, 0.40 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -4.0 dBFS).
+
+### hazard-flare-launch-r23-b — "firework_rocket_ignition.ogg" by derplayer
+Source: <https://freesound.org/people/derplayer/sounds/587173/> — CC0 1.0. Use: flare launch b, the perimeter beacon firing a flare shell (t=70, 112, 150).
+Why: A firework rocket igniting and climbing away: a longer rushing hiss, the shell going up.
+Edit: leading silence trimmed, cut from 0.40 s, cut to 1.60 s, 0.05 s fade-in, 0.70 s fade-out; 200 Hz–5 kHz band RMS normalised to -37.0 dB (peak ceiling -8.0 dBFS).
+
+### hazard-flare-burn-r23-a — "ROAD FLARE.wav" by frankelmedico
+Source: <https://freesound.org/people/frankelmedico/sounds/348766/> — CC0 1.0. Use: flare burn a, a quiet loop while a flare falls (8 s, 12 s on easy).
+Why: A road flare's steady sputter, cut as a seamless loop.
+Edit: leading silence trimmed, a seamless 3.00 s loop from 4.00 s (0.50 s cross-fade); 200 Hz–5 kHz band RMS normalised to -34.0 dB (peak ceiling -10.0 dBFS).
+
+### hazard-flare-burn-r23-b — "Road Flare1" by theshaggyfreak
+Source: <https://freesound.org/people/theshaggyfreak/sounds/317834/> — CC-BY 4.0. Use: flare burn b, a quiet loop while a flare falls (8 s, 12 s on easy).
+Why: A road flare burning close by: a brighter, hissier loop.
+Edit: leading silence trimmed, a seamless 3.00 s loop from 3.00 s (0.50 s cross-fade); 200 Hz–5 kHz band RMS normalised to -34.0 dB (peak ceiling -10.0 dBFS).
+
+### enemy-coilwyrm-regrow-r23-a — "Slime 3.wav" by Archos
+Source: <https://freesound.org/people/Archos/sounds/433826/> — CC0 1.0. Use: Coilwyrm regrowth a, the 0.6 s a cut chain's new head grows.
+Why: Wet slime stretching: flesh knitting itself into a head.
+Edit: leading silence trimmed, cut to 0.60 s, 0.15 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -6.0 dBFS).
+
+### enemy-coilwyrm-regrow-r23-b — "Insect Animal Growl Chitter" by SecureSubset
+Source: <https://freesound.org/people/SecureSubset/sounds/800277/> — CC0 1.0. Use: Coilwyrm regrowth b, the 0.6 s a cut chain's new head grows.
+Why: An insect growl and chitter: the new head waking, more creature than flesh.
+Edit: leading silence trimmed, cut from 0.10 s, cut to 0.60 s, 0.03 s fade-in, 0.15 s fade-out; 200 Hz–5 kHz band RMS normalised to -27.0 dB (peak ceiling -6.0 dBFS).
+
+## Round 24 — the Coilwyrm's death bursts
+
+Brief: the Coilwyrm's chained death as a ripple of bursts from the head to the tail, one every
+0.05 s (13 at medium): wet organic bursts with some crunch, a pressurised bio-creature popping, not
+a fireball. Each burst must read on its own when it repeats every 50 ms (a sharp onset, most of its
+energy in the first 100–150 ms, no long tail), so the sequence sounds like a ripple rather than a
+smear; the head's burst is deeper and longer and starts it. All files come from
+`tools/concept/audio/sfx_r24.py` (a–c: the public HQ previews, fetched and cut with
+`import_sfx.py`'s functions; d synthesized), deterministic. Levels are matched on the loudest
+100 ms of the 200 Hz–5 kHz band: a segment burst at -16 dB (the tiny explosions measure -18 and
+-14), ceiling -1.5 dBFS; the head's burst at -14 dB (explosion-r02-a -15), ceiling -1.5 dBFS. The
+head burst of every option is its source cut longer, played 18 % slower, over a sub thump (85 →
+38 Hz). The `enemy-coilwyrm-death-r24-<v>` previews are for the review only: the head's burst
+at the explosion level, then 13 bursts 0.05 s apart, 4 dB lower, pitch rising 1.8 % a burst from
+0.94 (±2 % random), the oldest stopped beyond six instances, as `FlightSounds` played them in the
+round.
+
+**Outcome (2026-10-05):** the segment burst is **b** and the head burst **c**; the other files are
+in `rejected/`. The ripple is slowed to one burst every 0.25 s (user: "the effects too fast"), so
+the bursts no longer overlap and play at the explosion level, each pitched by the member's hit box
+width (0.94 at the first segment up to 1.2 at the last, the tail in between). The production
+files `assets/sfx/enemy-coilwyrm-burst-r24-b.ogg` and `assets/sfx/enemy-coilwyrm-head-burst-r24-c.ogg`
+are rebuilt from the Freesound originals by `tools/art/sfx_originals.py` with sfx_r24.py's
+treatment (its `PRODUCTION`).
+
+### enemy-coilwyrm-death-final-r24-a — the chosen pair at the game's rhythm
+Source: `tools/concept/audio/sfx_r24.py final`, from the Freesound originals of b and c (the HQ previews when they are not cached). Use: review only.
+Why: To hear the chained death as the game plays it: the head burst c at 0 s, then the 12 segments and the tail with burst b, 0.25 s apart (about 3.25 s), each at the explosion level and pitched by its width down the taper with ±2 % random.
+
+### enemy-coilwyrm-burst-r24-a — "Gib sound" by RoozyDB (rejected)
+Source: <https://freesound.org/people/RoozyDB/sounds/504629/> — CC0 1.0. Use: Coilwyrm segment and tail burst a (and its head burst).
+Why: A sharp wet crack with gooey bits after it; the cleanest onset of the four, so the ripple's bursts stay distinct.
+Edit: leading silence trimmed, cut to 0.30 s, 90 Hz high-pass, 0.16 s fade-out; levelled as the brief says (the crack meets the ceiling, so its band level ends near -20 dB). Head: cut to 0.45 s, 50 Hz high-pass, 0.20 s fade-out, slowed, with the thump.
+
+### enemy-coilwyrm-burst-r24-b — "Burst Flesh" by magnuswaker (segment burst chosen)
+Source: <https://freesound.org/people/magnuswaker/sounds/581092/> — CC0 1.0. Use: Coilwyrm segment and tail burst b (and its head burst).
+Why: A dense fleshy burst with a low body: the biggest of the four.
+Edit: leading silence trimmed, cut from 0.015 s to 0.24 s, 90 Hz high-pass, 0.14 s fade-out; levelled as the brief says. Head: cut to 0.62 s, 50 Hz high-pass, 0.30 s fade-out, slowed, with the thump.
+
+### enemy-coilwyrm-burst-r24-c — "Messy Splat 3" by FoolBoyMedia (head burst chosen)
+Source: <https://freesound.org/people/FoolBoyMedia/sounds/237927/> — CC-BY 4.0. Use: Coilwyrm segment and tail burst c (and its head burst).
+Why: A bright, messy splatter (most of it at 600 Hz–2 kHz): splashier and less punchy.
+Edit: leading silence trimmed, cut to 0.22 s, 90 Hz high-pass, 0.14 s fade-out; levelled as the brief says. Head: cut to 0.62 s, 50 Hz high-pass, 0.30 s fade-out, slowed, with the thump.
+
+### enemy-coilwyrm-burst-r24-d — synthesized pressurised pop (rejected)
+Source: `tools/concept/audio/sfx_r24.py` (`splat`), seeds 2401 (segment) and 2402 (head). Use: Coilwyrm segment and tail burst d (and its head burst).
+Why: A burst made for the ripple: a band-noise snap (the membrane rupturing), ten hard chitin clicks in the first 50 ms, a saturated gas "bloop" falling 230 → 70 Hz with a low thud, twelve wet bubble chirps (0.9–2.6 kHz, rising) scattered over 200 ms and a splash hiss; 90 Hz high-pass, 0.26 s. The head: a lower bloop (170 → 45 Hz), twenty drops over 350 ms, 0.6 s, slowed, with the thump.

@@ -73,7 +73,12 @@ class BriefingExitTest {
                         new vanguard.sim.LevelResult.Credits(300, 50, 0, 0, 50),
                         java.util.List.of(),
                         1000,
-                        80,
+                        new vanguard.sim.LevelResult.Rating(
+                                new vanguard.sim.LevelResult.Rating.Part(34, 40),
+                                new vanguard.sim.LevelResult.Rating.Part(25, 30),
+                                new vanguard.sim.LevelResult.Rating.Part(15, 15),
+                                new vanguard.sim.LevelResult.Rating.Part(6, 15),
+                                new vanguard.sim.ScoringRules.Grade("A+", 85, 0.3)),
                         new vanguard.sim.ScoringRules.Grade("A", 0, 0),
                         80),
                 40);

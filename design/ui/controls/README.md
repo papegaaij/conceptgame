@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../../player/ship, ../../player/specials]
-updated: 2026-10-02
+updated: 2026-10-04
 ---
 
 # Controls
@@ -25,6 +25,7 @@ gamepad are both first-class; everything can be remapped in Options.
 | Dash (evasive thrusters) | Double-tap a direction | V | Left bumper |
 | Pause | Esc (fixed) | P | Start |
 | Toggle full screen | Alt+Enter | F11 | — |
+| Screenshot | F12 (fixed) | — | — |
 
 - **Hold to fire** is the default: weapons fire while the fire button is held. An **auto-fire
   toggle** in Options makes the ship fire continuously without holding (holding then does nothing
@@ -40,6 +41,13 @@ gamepad are both first-class; everything can be remapped in Options.
 - **Toggle full screen** works everywhere, is not remappable (both keys are the platform
   conventions) and has no gamepad binding; the display mode rules live in
   [options](../options/README.md).
+- **Screenshot (F12)** works on every screen, in a level as in the menus, and is a fixed system key
+  like the full-screen keys: not remappable, never bound to another action, no gamepad binding. It
+  saves the game's 960x540 picture (the 16:9 internal screen, without the window's black bars or
+  scanlines) as a PNG into a `screenshots` folder next to the settings file (beside `saves`),
+  named by date and time (`terran-vanguard-2026-10-04_21-05-09.png`; a second one in the same
+  second gets `-2`). A small "SCREENSHOT SAVED" note (or "SCREENSHOT FAILED") shows at the top of
+  the screen for 1.5 s; it is drawn after the capture, so it is never in the picture.
 
 ## Implementation
 
@@ -47,6 +55,7 @@ gamepad are both first-class; everything can be remapped in Options.
 - [x] Auto-fire option
 - [x] Remapping screen in Options with conflict detection
 - [x] Alt+Enter / F11 toggle full screen on every screen
+- [x] F12 screenshot on every screen, into `screenshots/` next to the settings file
 - [ ] Double-tap dash detection (only when the evasive thrusters module is fitted)
 
 ## Open questions
@@ -78,3 +87,10 @@ gamepad are both first-class; everything can be remapped in Options.
   cell shows ESC dimmed and cannot be selected for a capture; a capture never takes Enter (nor F11),
   Esc cancels it; the settings file's Pause primary key and any slot naming Esc, Enter or F11 are
   ignored (default kept). Tests: `BindingsTest`, `KeyCaptureTest`, `SettingsFileTest`.
+- 2026-10-04: Screenshot key (user decision): F12 on every screen writes a PNG of the game's
+  picture into `screenshots/` next to the settings file, with a short "SCREENSHOT SAVED" note that
+  is not in the picture. Fixed rather than remappable, like F11: the Controls tab's table holds
+  only the remappable flight actions, and a system key there would need a dimmed row of its own.
+  Built as `vanguard.game.display.Screenshots` (the PNG is encoded on a background thread, so a
+  level does not stutter); F12 joins `Bindings.systemKey`, so a capture never takes it and the
+  settings file cannot bind it. Tests: `ScreenshotsTest`, `BindingsTest`.

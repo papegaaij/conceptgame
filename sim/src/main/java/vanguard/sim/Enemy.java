@@ -821,7 +821,8 @@ public final class Enemy implements Hashed {
     /**
      * One step of a laser sweep while it hovers (design/enemies/air/mantis): the wait for the next
      * telegraph runs; a telegraph starts only if its sweep ends before the hover does, and fixes the
-     * sweep's centre on the ship's bearing, clamped between straight inward and straight down.
+     * sweep's centre on the ship's bearing from its eye, clamped between straight inward and straight
+     * down.
      */
     private void sweep(double shipX, double shipY) {
         EnemySpec.Sweep sweep = spec.sweep().orElseThrow();
@@ -839,7 +840,7 @@ public final class Enemy implements Hashed {
         }
         boolean left = x < PlayField.WIDTH / 2.0;
         double inward = left ? -StrictMath.PI / 2 : StrictMath.PI / 2;
-        double bearing = heading(shipX - x, shipY - y);
+        double bearing = heading(shipX - x - beamOffsetX(), shipY - y - beamOffsetY());
         sweepCentre = left ? Math.clamp(bearing, inward, 0) : Math.clamp(bearing, 0, inward);
         sweepTicks = 0;
         sweepHit = false;
@@ -893,6 +894,21 @@ public final class Enemy implements Hashed {
         int telegraph = SimStep.ticks(sweep.telegraphSeconds());
         double into = Math.max(0, sweepTicks - telegraph + alpha) / SimStep.ticks(sweep.sweepSeconds());
         return sweepFrom() + (sweepTo() - sweepFrom()) * Math.min(1, into);
+    }
+
+    /**
+     * The beam's origin (its eye) from the unit's centre along x: toward the field it hovers over,
+     * so mirrored on the right edge; with {@link #beamOffsetY()} where the beam, its hit test and
+     * its telegraph start.
+     */
+    public double beamOffsetX() {
+        double in = spec.sweep().orElseThrow().originIn();
+        return x < PlayField.WIDTH / 2.0 ? in : -in;
+    }
+
+    /** The beam's origin from the unit's centre along y (up the field: its eye hangs below it). */
+    public double beamOffsetY() {
+        return -spec.sweep().orElseThrow().originDown();
     }
 
     /** Whether the current sweep hit the ship already. */

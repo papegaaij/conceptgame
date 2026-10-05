@@ -20,6 +20,13 @@ import vanguard.sim.ScoringRules;
 class CampaignTest {
     static final CampaignRules RULES = CampaignRules.of(ContentLoader.fromClasspath());
 
+    private static final LevelResult.Rating RATING = new LevelResult.Rating(
+            new LevelResult.Rating.Part(34, 40),
+            new LevelResult.Rating.Part(25, 30),
+            new LevelResult.Rating.Part(15, 15),
+            new LevelResult.Rating.Part(6, 15),
+            new ScoringRules.Grade("A+", 85, 0.3));
+
     /** A won level: 400 credits earned, the grade's bonus and score as given. */
     static LevelResult won(String grade, int gradeBonus, long score) {
         return new LevelResult(
@@ -34,7 +41,7 @@ class CampaignTest {
                 new LevelResult.Credits(300, 50, 0, 0, 50),
                 List.of(),
                 score,
-                80,
+                RATING,
                 new ScoringRules.Grade(grade, 0, 0),
                 gradeBonus);
     }

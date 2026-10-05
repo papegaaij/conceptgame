@@ -5,13 +5,16 @@
 Outputs (assets/sprites/intel/, packed onto the shared sprite pages as ``intel/<name>``):
   <enemy>.png        30x30 sensor portrait of an enemy type of a level's waves: skitter, needler,
                      stinger, spine-turret (Levels 01-02, UI batch); spore-bomber, whirl-seed
-                     (Level 03, M4 part C batch); brood-pod, scuttler (Level 04, M4 part D batch)
+                     (Level 03, M4 part C batch); brood-pod, scuttler (Level 04, M4 part D batch); mantis,
+                     coilwyrm (Level 06, M4 part F batch: the production models of tools/art/mantis.py,
+                     nose down, and tools/art/coilwyrm.py, the head with a segment trailing)
   boss-<boss>.png    40x40 sensor silhouette of a boss of Act 1: gorgon-frigate (L05 mid-boss),
                      brood-carrier (L07) (UI batch); leviathan (L03's set piece, the threat
                      profile's "unknown huge contact", M4 part C batch)
   design/ui/hangar/concept/intel-final-r13-a.png   review sheet of the UI batch's pictures
   design/ui/hangar/concept/intel-final-r16-a.png   review sheet of the M4 part C batch's
   design/ui/hangar/concept/intel-final-r17-a.png   review sheet of the M4 part D batch's
+  design/ui/hangar/concept/intel-final-r23-a.png   review sheet of the M4 part F batch's
 
 The names are the enemy's or boss's name as a slug (vanguard.game.render.Portraits.slug). A
 portrait is the unit's chosen round-04 model (tools/concept/enemies_r04.py, imported unchanged) in
@@ -45,7 +48,9 @@ from PIL import Image
 import artkit
 from artkit import DESIGN, ROOT, SPRITES, sprite
 
+import coilwyrm  # noqa: E402  (the Coilwyrm's production models)
 import leviathan  # noqa: E402  (the Leviathan's production model)
+import mantis  # noqa: E402  (the Mantis's production model)
 import vrell_l03  # noqa: E402  (the Whirl Seed's production model)
 import vrell_l04  # noqa: E402  (the Brood Pod's and the Scuttler's production models)
 
@@ -62,9 +67,10 @@ UI_BATCH = "UI batch"
 # the batch each picture was made in (the Source note); the UI batch's are left out
 BATCHES = {"spore-bomber": "M4 part C batch", "whirl-seed": "M4 part C batch",
            "boss-leviathan": "M4 part C batch",
-           "brood-pod": "M4 part D batch", "scuttler": "M4 part D batch"}
+           "brood-pod": "M4 part D batch", "scuttler": "M4 part D batch",
+           "mantis": "M4 part F batch", "coilwyrm": "M4 part F batch"}
 # the concept round that reviews a batch
-ROUNDS = {UI_BATCH: "r13", "M4 part C batch": "r16", "M4 part D batch": "r17"}
+ROUNDS = {UI_BATCH: "r13", "M4 part C batch": "r16", "M4 part D batch": "r17", "M4 part F batch": "r23"}
 OUT = SPRITES / "intel"
 CONCEPT = DESIGN / "ui" / "hangar" / "concept"
 PORTRAIT = 30
@@ -80,6 +86,8 @@ ENEMIES = {
     "whirl-seed": lambda: vrell_l03.seed_model(0.0),
     "brood-pod": lambda: vrell_l04.pod_model(0.0, 1.0),
     "scuttler": lambda: scuttler_model(),
+    "mantis": lambda: mantis.turned(*mantis.model(0.3, 0.0, 1.0), 0.0),
+    "coilwyrm": lambda: coilwyrm_model(),
 }
 BOSSES = ("gorgon-frigate", "brood-carrier", "leviathan")
 PLATE = np.array([4, 16, 28], float)
@@ -93,6 +101,23 @@ def scuttler_model():
     rot = np.pi
     base = vrell_l04.scuttler_scene(0.0)
     return (lambda p: base(rotate_z(p, rot))), model_space_materials(vrell_l04.scuttler_mats("unit"), rot)
+
+
+def coilwyrm_model():
+    """The Coilwyrm's head nose down with its first segment trailing up behind it, slightly off line,
+    the production models (tools/art/coilwyrm.py) at heading 0."""
+    from render import archetype_models as am
+    head, mats = coilwyrm.turned(*am.coil_head(0.45), 0.0)
+    seg, _ = coilwyrm.turned(*am.coil_segment(), 0.0)
+    parts = [(head, (0.0, -0.28), 0.86), (seg, (0.14, 0.72), 0.62)]
+
+    def scene(p):
+        out = []
+        for model, (x, y), k in parts:
+            d, m = model((p - np.array([x, y, 0.0])) / k)
+            out.append((d * k, m))
+        return sdf.union(*out[::-1])
+    return scene, mats
 
 
 def plate(n):

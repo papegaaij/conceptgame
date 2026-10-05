@@ -101,6 +101,10 @@ final class SpriteUse {
             target.enemy().ifPresent(enemies::add);
             if (target.enemy().isEmpty() && target.hits().isEmpty()) {
                 roots.add(target.sprite().orElse(DEFAULT_LOOK));
+            } else if (target.enemy().isEmpty()) {
+                // A trigger with a look of its own (Level 06's survey cache and terminal); others
+                // are drawn as the beacon or the level's trigger light.
+                target.sprite().ifPresent(roots::add);
             }
         }
         List<String> open = new ArrayList<>(enemies);
@@ -123,6 +127,10 @@ final class SpriteUse {
             roots.add("ore-canister");
         });
         level.rocks().ifPresent(rocks -> roots.add("rock"));
+        level.darkness().ifPresent(darkness -> {
+            roots.add("flare");
+            roots.add("headlight");
+        });
         return roots;
     }
 

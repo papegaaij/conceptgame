@@ -10,7 +10,8 @@ package vanguard.sim;
  * <p>A cut (a destroyed segment) of a chain that has not regrown yet splits it: the rear part
  * becomes a chain of its own that holds still while it grows a new head, then lunges at the ship
  * (the cut used the regrowth, for both parts). A cut of any other chain, and the head's death, let
- * the members behind it die one by one, from the cut backwards. Pooled, with fixed arrays, so the
+ * the members behind it die one by one, from the cut backwards; while they wait for their burst
+ * they are {@linkplain #doomed doomed}. Pooled, with fixed arrays, so the
  * chain never allocates while it flies.
  */
 public final class Chain implements Hashed {
@@ -22,6 +23,14 @@ public final class Chain implements Hashed {
     private static final double PREFILL_STEP = 4;
     /** The prefilled history reaches this far behind the last member. */
     private static final double PREFILL_MARGIN = 64;
+    /**
+     * A headless body's speed is multiplied by this every step: at 180 px/s it drifts about 60 px
+     * and comes to rest in about 1.5 s, so the bursts of its chained death happen in place, on the
+     * play field (design/enemies/air/coilwyrm, Chained death).
+     */
+    private static final double DRIFT = 0.95;
+    /** Below this speed, px/s, a drifting body is at rest. */
+    private static final double STILL = 1;
 
     /** How the head point moves. */
     enum Mode {
@@ -79,6 +88,8 @@ public final class Chain implements Hashed {
     private int popTicks;
     /** Whether any member has been on the play field (a regrown part or a loop-back counts as on). */
     private boolean entered;
+    /** Whether its head is dead: the body drifts to a halt while it bursts. */
+    private boolean drifting;
 
     /** A wave's chain: the head point starts at its path's start, the members strung out behind it. */
     void start(EnemySpec.ChainSpec chainSpec, int chainSerial, Spawn plan, int regrownHeadKind) {
@@ -116,6 +127,7 @@ public final class Chain implements Hashed {
         dyingFrom = MAX_MEMBERS;
         popTicks = 0;
         entered = false;
+        drifting = false;
         for (int i = 0; i < MAX_MEMBERS; i++) {
             members[i] = null;
         }
@@ -160,6 +172,15 @@ public final class Chain implements Hashed {
      * and no member is on the play field any more.
      */
     boolean advance() {
+        if (drifting) {
+            speed *= DRIFT;
+            vx *= DRIFT;
+            vy *= DRIFT;
+            if (speed < STILL && mode != Mode.REGROW) {
+                // At rest: the members stay where they are until they burst.
+                return place() || alive();
+            }
+        }
         boolean moved = true;
         switch (mode) {
             case PATH -> {
@@ -278,6 +299,7 @@ public final class Chain implements Hashed {
         if (i == 0) {
             canRegrow = false;
             dyingFrom = Math.min(dyingFrom, 1);
+            drift();
             popTicks = popTicks > 0 ? popTicks : SimStep.ticks(spec.popSeconds());
             return false;
         }
@@ -301,6 +323,12 @@ public final class Chain implements Hashed {
             popTicks = SimStep.ticks(spec.popSeconds());
         }
         return false;
+    }
+
+    /** The head is dead: no loop-back, and the body drifts to a halt while it bursts. */
+    private void drift() {
+        drifting = true;
+        loop = null;
     }
 
     /** The members behind the cut at {@code i} become {@code rear}, which grows a new head at the cut. */
@@ -390,6 +418,7 @@ public final class Chain implements Hashed {
         if (head == null) {
             canRegrow = false;
             dyingFrom = Math.min(dyingFrom, 1);
+            drift();
             popTicks = SimStep.ticks(spec.popSeconds());
         }
     }
@@ -416,6 +445,16 @@ public final class Chain implements Hashed {
         }
         dyingFrom = size;
         return null;
+    }
+
+    /**
+     * Whether {@code enemy} is a chain member waiting for its burst in a chained death: it flies on
+     * with the chain and is drawn intact, but nothing hits it, it rams nothing and it pays nothing
+     * until it bursts (design/enemies/air/coilwyrm, Chained death).
+     */
+    public static boolean doomed(Enemy enemy) {
+        Chain chain = enemy.chain();
+        return chain != null && enemy.link() >= chain.dyingFrom && enemy.link() < chain.size;
     }
 
     /** Whether any member is alive. */
@@ -510,6 +549,7 @@ public final class Chain implements Hashed {
                 .add(dyingFrom)
                 .add(popTicks)
                 .add(entered ? 1 : 0)
+                .add(drifting ? 1 : 0)
                 .add(size)
                 .add(count)
                 .add(newest);

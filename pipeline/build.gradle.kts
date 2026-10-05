@@ -82,6 +82,13 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
         "enemy-mortar-impact-r21-a.ogg",
         "hazard-sled-whine-r21-a.ogg",
         "hazard-sled-pass-r21-b.ogg",
+        "enemy-mantis-telegraph-r23-a.ogg",
+        "enemy-mantis-sweep-r23-b.ogg",
+        "hazard-flare-launch-r23-a.ogg",
+        "hazard-flare-burn-r23-a.ogg",
+        "enemy-coilwyrm-regrow-r23-b.ogg",
+        "enemy-coilwyrm-burst-r24-b.ogg",
+        "enemy-coilwyrm-head-burst-r24-c.ogg",
     )
 }
 

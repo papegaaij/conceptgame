@@ -523,6 +523,7 @@ public record LevelData(
      *     the top edge, at the wave's {@code t}; they then scroll with the ground)
      * @param easy changes on easy
      * @param hard changes on hard
+     * @param skip the difficulties the wave is left out on (Level 06's hard-only Coilwyrm pair)
      */
     public record Wave(
             double t,
@@ -541,9 +542,11 @@ public record LevelData(
             Optional<List<List<Point>>> paths,
             Optional<LoopBack> loopBack,
             Optional<Change> easy,
-            Optional<Change> hard) {
+            Optional<Change> hard,
+            Optional<List<String>> skip) {
         public Wave {
             Check.notNegative("t", t);
+            skip.ifPresent(names -> names.forEach(Difficulty::of));
             paths.ifPresent(p -> {
                 Check.that(!p.isEmpty(), "paths: at least one path");
                 p.forEach(path -> Check.that(!path.isEmpty(), "paths: every path has a point"));
@@ -565,6 +568,12 @@ public record LevelData(
         /** The wave's groups; one for a plain wave. */
         public List<Group> groupList() {
             return groups.orElseThrow();
+        }
+
+        /** Whether it flies on {@code difficulty}. */
+        public boolean fliesOn(Difficulty difficulty) {
+            return skip.map(names -> names.stream().map(Difficulty::of).noneMatch(difficulty::equals))
+                    .orElse(true);
         }
     }
 
@@ -1033,6 +1042,9 @@ public record LevelData(
      *     first Leviathan pass), {@code full} forces every stem on
      * @param bossSting the sting that cuts in over the level track when the boss arrives
      *     ({@code miniboss-sting}, Level 05), the track returning after it
+     * @param ambienceFrom the level time from which only the ambience plays: the theme fades out
+     *     (Level 06's last seconds)
+     * @param voiceLoop a radio line looping faintly under a section (Level 06's perimeter beacon)
      */
     public record Music(
             int track,
@@ -1042,7 +1054,20 @@ public record LevelData(
             Optional<Map<Integer, Stems>> stems,
             String ambience,
             String endJingle,
-            Optional<String> bossSting) {
+            Optional<String> bossSting,
+            Optional<Double> ambienceFrom,
+            Optional<VoiceLoop> voiceLoop) {
+        /**
+         * The timed radio line of {@code speaker} (its first), looping at {@code db} (below full)
+         * while section {@code section} (1-based) plays; silent while the speaker has no voice file.
+         */
+        public record VoiceLoop(String speaker, int section, double db) {
+            public VoiceLoop {
+                Check.positive("section", section);
+                Check.that(db <= 0, "db: must not be above full level");
+            }
+        }
+
         /** The stems a section plays. */
         public enum Stems {
             @JsonProperty("base")
@@ -1060,6 +1085,7 @@ public record LevelData(
         public Music {
             Check.that(startSection <= fullSection, "full_section must not come before start_section");
             startDb.ifPresent(db -> Check.that(db <= 0, "start_db: must not be above full level"));
+            ambienceFrom.ifPresent(t -> Check.positive("ambience_from", t));
         }
     }
 

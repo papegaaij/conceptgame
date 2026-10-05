@@ -19,6 +19,9 @@ final class Tally {
     private int chain;
     private int maxChain;
     private int chainTicks;
+    /** Whether the chain window stood still in the last step: no enemy on screen to keep it going. */
+    private boolean paused;
+
     private int kills;
 
     Tally(ScoringRules rules) {
@@ -33,6 +36,7 @@ final class Tally {
         chain = other.chain;
         maxChain = other.maxChain;
         chainTicks = other.chainTicks;
+        paused = other.paused;
         kills = other.kills;
     }
 
@@ -42,14 +46,24 @@ final class Tally {
         chain = 0;
         maxChain = 0;
         chainTicks = 0;
+        paused = false;
         kills = 0;
     }
 
-    /** Counts down the chain window; the chain ends when it runs out. */
-    void step() {
-        if (chainTicks > 0 && --chainTicks == 0) {
+    /**
+     * Counts down the chain window while {@code enemiesOnScreen}, and pauses it otherwise (a gap in
+     * the level never breaks a chain); the chain ends when the window runs out.
+     */
+    void step(boolean enemiesOnScreen) {
+        paused = !enemiesOnScreen;
+        if (!paused && chainTicks > 0 && --chainTicks == 0) {
             chain = 0;
         }
+    }
+
+    /** Whether the chain window stood still in the last step (no enemy on screen). */
+    boolean paused() {
+        return paused;
     }
 
     /** A kill: extends the chain, scores with the multiplier and pays the bounty; returns the credits. */
@@ -161,7 +175,12 @@ final class Tally {
     }
 
     void addTo(StateHash hash) {
-        hash.add(score).add(chain).add(maxChain).add(chainTicks).add(kills);
+        hash.add(score)
+                .add(chain)
+                .add(maxChain)
+                .add(chainTicks)
+                .add(paused ? 1 : 0)
+                .add(kills);
         for (int amount : credits) {
             hash.add(amount);
         }

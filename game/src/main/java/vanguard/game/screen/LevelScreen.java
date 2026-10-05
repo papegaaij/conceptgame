@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Optional;
 import vanguard.content.Content;
 import vanguard.content.Difficulty;
+import vanguard.content.Expression;
 import vanguard.content.LevelData;
 import vanguard.content.SimSpecs;
 import vanguard.content.SpecialsData;
@@ -192,11 +193,13 @@ public final class LevelScreen implements GameScreen {
                         ? services.sprites.frames(spec.slug() + "-ichor")
                         : new Array<AtlasRegion>())
                 .toList();
+        // A trigger is never destroyed (it is spent and stays): no break-apart, no wreck.
         groundBreaks = sortie.script().groundObjects().stream()
-                .map(spec -> services.sprites.frames(spec.look() + "-break"))
+                .map(spec ->
+                        spec.trigger() ? new Array<AtlasRegion>() : services.sprites.frames(spec.look() + "-break"))
                 .toList();
         groundWrecks = sortie.script().groundObjects().stream()
-                .map(spec -> services.sprites.frames(spec.look()))
+                .map(spec -> spec.trigger() ? new Array<AtlasRegion>() : services.sprites.frames(spec.look()))
                 .map(frames -> frames.size > 2 ? Array.with(frames.get(2)) : new Array<AtlasRegion>())
                 .toList();
         sounds = new FlightSounds(
@@ -206,6 +209,10 @@ public final class LevelScreen implements GameScreen {
                 sortie.script().setPieces().stream()
                         .map(LevelScript.SetPieceSpec::slug)
                         .toList());
+        sounds.flareSeconds(sortie.script()
+                .darkness()
+                .map(LevelScript.Darkness::flareSeconds)
+                .orElse(0.0));
         renderer = new LevelRenderer(
                 services.sprites,
                 looks,
@@ -241,7 +248,22 @@ public final class LevelScreen implements GameScreen {
                 ambience(level.music().ambience()),
                 level.music().startSection(),
                 level.music().startDb().orElse(0.0),
-                level.music()::full);
+                level.music()::full,
+                level.music().ambienceFrom().orElse(Double.POSITIVE_INFINITY),
+                level.music().voiceLoop().flatMap(loop -> voiceLoop(level, loop)));
+    }
+
+    /** A music block's voice loop: its speaker's first timed radio line, if it has a voice file. */
+    private Optional<LevelMusic.VoiceLoop> voiceLoop(LevelData level, LevelData.Music.VoiceLoop loop) {
+        return level.radio().stream()
+                .filter(cue -> cue.t().isPresent() && cue.speaker().equals(loop.speaker()))
+                .findFirst()
+                .flatMap(cue -> services.voices.radio(
+                        cue.speaker(),
+                        cue.line(),
+                        cue.expression().orElse(Expression.NEUTRAL).slug()))
+                .map(voice -> new LevelMusic.VoiceLoop(
+                        services.files.internal(voice.path()), loop.section(), (float) Math.pow(10, loop.db() / 20)));
     }
 
     /** The file name of a level theme's stems by its track number (design/audio/music, track list). */
@@ -393,7 +415,11 @@ public final class LevelScreen implements GameScreen {
         services.voices.resume();
         playRadio(seconds);
         services.voices.update(seconds);
-        music.update(sortie.section(), seconds, radio.current().isPresent() || services.voices.playing());
+        music.update(
+                sortie.section(),
+                sortie.levelSeconds(),
+                seconds,
+                radio.current().isPresent() || services.voices.playing());
         return Transition.STAY;
     }
 
@@ -471,7 +497,14 @@ public final class LevelScreen implements GameScreen {
                                 RadioQueue.Priority.URGENT);
                     }
                 }
-                case CHAIN_POP -> effects.start(services.sprites.explosionTiny, TINY_EXPLOSION_FRAME_TICKS, x, y);
+                case CHAIN_POP -> {
+                    // A chained death's burst: the member's own death, as when it is shot (no kill), in
+                    // the same step as its sound; until then the member was drawn intact.
+                    EnemyLooks look = looks[SimEvents.chainPopKind(events.value(i))];
+                    start(pieces, look.deathPieces(), x, y);
+                    effects.start(look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
+                    start(effects, look.deathGlow(), x, y);
+                }
                 case CHAIN_CUT, CHAIN_REGROWN ->
                     effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
                 case SPECIAL_DENIED -> hud.specialDenied();

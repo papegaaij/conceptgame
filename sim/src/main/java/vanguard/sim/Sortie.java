@@ -372,7 +372,7 @@ public final class Sortie {
             fire.fire(commands, force.enemies(), ground);
         }
         special.command(commands, !launching() && flying() && !complete, ship.x(), ship.y());
-        tally.step();
+        tally.step(chainTargets());
         if (!complete) {
             force.spawn(levelTick);
             placeGroundObjects();
@@ -406,7 +406,7 @@ public final class Sortie {
         }
         fire.hitGround(ground, force.enemies());
         special.update(scrollStep, force.enemies(), ground, setPieces, hits);
-        special.bomb(force.enemies(), setPieces, hits, force.bullets(), force.lobs());
+        special.bomb(force.enemies(), setPieces, hits, force.bullets(), force.lobs(), force.mines());
         if (convoy != null) {
             convoy.update(levelTick, groundScroll, scrollStep);
         }
@@ -1335,9 +1335,11 @@ public final class Sortie {
             }
             EnemySpec.Sweep sweep = enemy.spec().sweep().get();
             double heading = enemy.beam(0);
-            double endX = enemy.x() - Trig.sin(heading) * sweep.length();
-            double endY = enemy.y() - Trig.cos(heading) * sweep.length();
-            if (hull.touchesSegment(ship.x(), ship.y(), enemy.x(), enemy.y(), endX, endY, sweep.width() / 2)) {
+            double fromX = enemy.x() + enemy.beamOffsetX();
+            double fromY = enemy.y() + enemy.beamOffsetY();
+            double endX = fromX - Trig.sin(heading) * sweep.length();
+            double endY = fromY - Trig.cos(heading) * sweep.length();
+            if (hull.touchesSegment(ship.x(), ship.y(), fromX, fromY, endX, endY, sweep.width() / 2)) {
                 enemy.markSweepHit();
                 events.add(SimEvents.Type.SWEEP_HIT, ship.x(), ship.y());
                 double lost = ship.defences().armourLost();
@@ -1357,6 +1359,7 @@ public final class Sortie {
             Enemy enemy = enemies.get(j);
             EnemySpec spec = enemy.spec();
             if (spec.layer().collidesWithPlayer()
+                    && !Chain.doomed(enemy)
                     && hull.overlaps(ship.x(), ship.y(), enemy.hitbox(), enemy.x(), enemy.y())) {
                 double lost = ship.defences().armourLost();
                 boolean wrecked = ship.defences().takeCollision(spec.contactDamage(), events, ship.x(), ship.y());
@@ -1507,6 +1510,37 @@ public final class Sortie {
             paySecondary();
         }
         radio.end(home);
+    }
+
+    /**
+     * Whether anything that keeps the chain going is on screen (design/systems/scoring, Chain
+     * multiplier): a live enemy on a layer the standard shots reach (not high air) whose hit box
+     * overlaps the play field, or a set piece or boss with a part on such a layer that is on the
+     * field, not wrecked and not shielded (a boss's descent). Otherwise the chain window pauses.
+     */
+    private boolean chainTargets() {
+        Pool<Enemy> enemies = force.enemies();
+        for (int i = 0; i < enemies.size(); i++) {
+            Enemy enemy = enemies.get(i);
+            if (enemy.spec().layer().hitByStandardShots() && PlayerFire.onField(enemy)) {
+                return true;
+            }
+        }
+        for (SetPiece piece : setPieces) {
+            if (!piece.present() || !piece.layer().hitByStandardShots()) {
+                continue;
+            }
+            List<LevelScript.PartSpec> parts = piece.spec().parts();
+            for (int p = 0; p < parts.size(); p++) {
+                if (!piece.partWrecked(p)
+                        && !piece.partShielded(p)
+                        && PlayField.overlaps(
+                                piece.partX(p), piece.partY(p), parts.get(p).box())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** A hash over the complete state; equal hashes mean equal replays. */

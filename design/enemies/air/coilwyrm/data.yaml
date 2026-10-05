@@ -15,12 +15,12 @@ segment_chain:              # the body between head and tail
   segments: 12
   size: [54, 27]            # px, the first and the last segment's sprite (tapering)
   hitbox_share: 0.7         # of each segment's sprite
-  spacing: 0.9              # × the segment length, along the head's path history
+  spacing: 0.5              # × the segment length, along the head's path history (overlapping, ≈ 330 px)
   hp: 4
   bounty: 3
   contact: small            # contact damage class of segments and tail (the head: its tier)
   regrow: {seconds: 0.6, speed: 220, hp: 20, bounty: 20}   # once per chain: the rear part's new head
-  pop_interval: 0.06        # s between two pops of the chained death
+  pop_interval: 0.25        # s between two bursts of the chained death (15 steps): a ripple head to tail
 orientation: 16 angles
 hp: 98              # the parts' sum: head 40, 12 segments × 4, tail 10
 armour: none
@@ -55,6 +55,6 @@ notes:
   movement: 'the head flies an authored `swirl`, `loop` or `figure-8` path from the wave; segments `chain` on the head''s path history at {segment_chain.spacing} × segment length spacing; frequent `loop` + `rear-entry` (edge-warned like every rear entry)'
   formations: (solo; on hard two chains cross, *pairs crossing*)
   bounty: '; segment {segment_chain.bounty} each, tail +{part_list.1.first_bonus} if destroyed first: a perfect dismantle pays 96; a head-first kill pays the head only; a regrown head pays {segment_chain.regrow.bounty}'
-  death: 'head: `medium` burst and a chained `small` pop down the body ({segment_chain.pop_interval} s per segment); segments: `tiny` pops'
+  death: 'head: `medium` burst (its teal flash and a deep wet burst), then the segments and the tail burst one after another down the body ({segment_chain.pop_interval} s apart) as it drifts to rest, each with its glint, pieces and wet burst; the waiting members cannot be hit and pay nothing; a segment shot on its own bursts the same way'
   used_in: returns in Act 7 (L44)
   difficulty: 'hard: 14 segments; the regrown head fires a 5-way fan'

@@ -26,26 +26,39 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
                           on its floor, Lancer's run down the rail and over the rim, the rail's sleds
   level-05-mortar-scan    L05 p2: the Polyp Mortar's lob arcing to its lime marker a second ahead, the
                           ship moving out of it; an unknown contact holding in orbit over the crater
+  level-06-daedalus-rim   L06 p1: the far side across the terminator, the silent settlements, Daedalus
+                          Rim's lit domes, Lancer's run into the dark by headlight along the ore rail
+  level-06-edge-scan      L06 p2: the Mantis at the screen edge sweeping its beam from its eye (the
+                          production telegraph wedge and charged-lance beam), side-firing guns
+                          reaching it; the Coilwyrm at the data's spacing coming round behind the
+                          ship (its path history dashed beyond the tail), its open rear
   design/ui/briefing/concept/briefing-images-final-r13-a.png   review sheet, Act 1 intro + L01-02
   design/ui/briefing/concept/briefing-images-final-r20-a.png   review sheet, L03-04 (M4 batch)
   design/ui/briefing/concept/briefing-images-final-r21-a.png   review sheet, L05 (M4 part E)
+  design/ui/briefing/concept/briefing-images-final-r23-a.png   review sheet, L06 (M4 part F)
  Every image is composed
 in layers like the hangar map (tools/art/ui_scenes.py): the display and planets posterized to 24
 colours with ordered dither, the lines, markers and labels to 16 of their own, then the sprites
-from assets/ (the Stormhawk, Skitter, Needler and the intel portraits) with their own palettes.
+from assets/ (the Stormhawk, Skitter, Needler and the intel portraits) with their own palettes;
+additive light (the Mantis's beam parts from assets/, its wedge from mantis_beam.py's generator
+code) added as the game blends it, its pixels to 32 colours of their own.
 The labels use the concept pixel font (render/raster.py), as the chosen mockup does.
 
-Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21] [--review]   (~10 s; after
+Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23] [--review]   (~10 s; after
 stormhawk.py, vrell_air.py, intel.py, vrell_l03.py, leviathan.py, vrell_l04.py, civilian_crawler.py
-airstrike_bomber.py and l05_hazards.py, whose sprites it shows); the review sheet written is the open
-round's (r21) unless a round is named.
+airstrike_bomber.py, l05_hazards.py, mantis.py, mantis_beam.py, coilwyrm.py, l06_darkness.py and
+backdrop_l06.py, whose sprites it shows); the review sheet written is the open round's (r23) unless
+a round is named.
 """
+import json
 import sys
 
 import numpy as np
+import yaml
 from PIL import Image, ImageDraw
 
 import artkit
+import mantis_beam
 import ui_scenes
 from artkit import DESIGN, ROOT, SPRITES, sprite
 
@@ -54,12 +67,13 @@ from render import raster, terrain  # noqa: E402
 SCRIPT = "briefing_images.py"
 SOURCE = artkit.source_note(SCRIPT, "UI batch")
 SOURCE_M4 = artkit.source_note(SCRIPT, "M4 briefing images")
-ROUND = "r21"  # the open round; the sheet of an earlier batch: name its round (r13, r20)
+ROUND = "r23"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21)
 OUT = ROOT / "assets" / "ui" / "briefing"
 CONCEPT = DESIGN / "ui" / "briefing" / "concept"
 W, H = 672, 240
 DISPLAY_COLOURS = 24
 LINE_COLOURS = 16
+LIGHT_COLOURS = 32   # each additive light layer's own palette (the Mantis's telegraph wedge: 32 colours)
 CYAN = (60, 220, 255)
 CYAN_DIM = (40, 130, 180)
 WHITE = (220, 240, 255)
@@ -73,7 +87,9 @@ GRID = 32
 
 class Board:
     """An image in its layers: ``base`` the display as float RGB with the ``grid`` on it, ``over``
-    the lines, markers and labels, ``sprites`` pasted last with their own palettes."""
+    the lines, markers and labels, ``sprites`` pasted last with their own palettes; ``light`` the
+    additive sprites (premultiplied on black, as the game blends them), ``under`` on the display
+    below the lines or ``over`` the sprites, each with a palette of its own."""
 
     def __init__(self):
         yy, xx = np.mgrid[0:H, 0:W].astype(np.float64)
@@ -83,6 +99,7 @@ class Board:
         self.over = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         self.draw = ImageDraw.Draw(self.over)
         self.sprites = []
+        self.light = {"under": np.zeros((H, W, 3)), "over": np.zeros((H, W, 3))}
         self.grid = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         g = ImageDraw.Draw(self.grid)
         for x in range(0, W, GRID):
@@ -190,6 +207,10 @@ class Board:
         """A sprite (already palettised) with its centre at (x, y)."""
         self.sprites.append((img, int(x - img.width / 2), int(y - img.height / 2)))
 
+    def add_light(self, rgb, x, y, layer="under"):
+        """An additive sprite (an RGB array, premultiplied on black) with its top left at (x, y)."""
+        mantis_beam.add(self.light[layer], np.asarray(rgb, np.float64), int(round(x)), int(round(y)))
+
     # ------------------------------------------------------------------ out
 
     def image(self):
@@ -197,13 +218,23 @@ class Board:
         display.alpha_composite(self.grid)
         base = np.array(display).astype(np.float64)[..., :3] * np.where(self.yy % 2 == 1, 0.88, 1.0)[..., None]
         out = ui_scenes.dithered(base, DISPLAY_COLOURS)
+        self._lit(out, "under")
         out.alpha_composite(self.over)
         lines = np.array(self.over)[..., 3] > 0
         rgb = np.array(out).astype(np.float64)[..., :3]
         out.alpha_composite(artkit.quantize_set([raster.to_rgba_image(rgb, lines * 255)], LINE_COLOURS)[0])
         for img, x, y in self.sprites:
             out.alpha_composite(img, (x, y))
+        self._lit(out, "over")
         return out.convert("RGB")
+
+    def _lit(self, out, layer):
+        """Adds a light layer to ``out``; the pixels it touches get a palette of their own."""
+        light = self.light[layer]
+        lit = light.max(axis=-1) >= 1
+        if lit.any():
+            rgb = np.clip(np.array(out).astype(np.float64)[..., :3] + light, 0, 255)
+            out.alpha_composite(artkit.quantize_set([raster.to_rgba_image(rgb, lit * 255)], LIGHT_COLOURS)[0])
 
 
 def asset(name, zoom=1):
@@ -682,6 +713,175 @@ def mortar_scan():
     return b
 
 
+def daedalus_rim():
+    """L06 p1: the far side across the terminator, three settlements silent, Daedalus Rim the
+    largest with its lights still on, Lancer's run into the dark by headlight."""
+    b = Board()
+    tx = 190 + 10 * np.sin(b.yy / 30)
+    dark = np.clip((b.xx - tx) / 40 + 0.5, 0, 1)
+    b.base *= (1 - 0.55 * dark)[..., None]
+    b.glow(-60, 120, 170, (70, 64, 50), 1.0)
+    b.title("LUNA FAR SIDE - DAEDALUS RIM")
+    rng = np.random.default_rng(66)
+    for x, y, r in ((60, 70, 22), (120, 170, 30), (170, 92, 16), (40, 200, 12), (150, 40, 10)):
+        b.arc(x, y, r, r * 0.8, 140, 320, AMBER, 170)
+        b.arc(x, y, r, r * 0.8, -40, 140, GREY, 90)
+    for x, y in zip(rng.uniform(230, 650, 14), rng.uniform(30, 220, 14)):
+        r = rng.uniform(6, 16)
+        b.ring(x, y, r, r * 0.8, GREY, 70)
+    b.dashed([(190 + 10 * np.sin(y / 30), y) for y in range(20, H - 16, 6)], AMBER, 1, 4, 4)
+    b.label(14, 24, "SUNLIT", AMBER)
+    b.label(206, 24, "TERMINATOR", AMBER)
+    b.label(206, H - 16, "FULL DARK", CYAN_DIM)
+    b.line([(230, 214), (420, 160), (480, 138), (560, 92), (660, 60)], CYAN_DIM, 1, 160)
+    b.label(300, 206, "ORE RAIL", CYAN_DIM)
+    for x, y, name in ((330, 60, "SETTLEMENT 2"), (600, 70, "SETTLEMENT 3")):
+        b.marker(x, y, "square", GREY)
+        b.marker(x, y, "cross", RED, 6)
+        b.label(x - 30, y + 12, name, GREY)
+        b.label(x - 30, y + 22, "SILENT", RED)
+    dx, dy = 480, 118
+    dome = Image.open(ROOT / "assets" / "backdrop" / "level-06" / "dome-a.png").convert("RGBA")
+    dome = np.array(dome.resize((dome.width // 2, dome.height // 2), Image.LANCZOS))
+    dome[..., 3] = np.where(dome[..., 3] > 128, 255, 0)
+    dome = artkit.quantize_set([Image.fromarray(dome)], 32)[0]
+    for ox, oy in ((-22, -6), (14, 10), (24, -14)):
+        b.glow(dx + ox, dy + oy, 14, (90, 70, 20), 0.9)
+    b.sprite(dome, dx, dy)
+    b.bracket(dx - 52, dy - 44, dx + 52, dy + 44, AMBER)
+    b.label(dx - 52, dy + 50, "DAEDALUS RIM", AMBER)
+    b.label(dx - 52, dy + 60, "2000 PEOPLE - MINERS, FAMILIES", WHITE)
+    b.label(dx - 52, dy + 70, "LIGHTS ON - SILENT 30 H", RED)
+    sx, sy = 120, 128
+    b.sprite(asset("ship_2").transpose(Image.ROTATE_270), sx, sy)
+    cone = Image.open(SPRITES / "headlight-cone.png").convert("RGBA").transpose(Image.ROTATE_270)
+    cone = np.array(cone.resize((cone.width // 2, cone.height // 2), Image.LANCZOS))[..., 3] / 255
+    x0, y0 = sx + 20, sy - cone.shape[0] // 2
+    b.base[y0:y0 + cone.shape[0], x0:x0 + cone.shape[1]] += cone[..., None] * np.array([30, 90, 110])
+    b.arrow(sx + 26, sy, dx - 60, dy + 4, CYAN)
+    b.label(sx - 60, sy + 28, "LANCER - BY HEADLIGHT", CYAN)
+    b.label(W - 10, 9, "3 SETTLEMENTS SILENT", RED, right=True)
+    b.label(W - 10, 21, "NO DISTRESS CALL - NO WRECKAGE", WHITE, right=True)
+    b.label(10, H - 16, "FIND OUT WHAT HAPPENED", AMBER)
+    return b
+
+
+def wyrm_path(points, spacing, sizes):
+    """The chain's members along ``points`` (the head first), each ``spacing`` x the mean length of
+    two neighbours behind the one before it, as (x, y, direction of travel)."""
+    pts = np.array(points, float)
+    seg = np.hypot(*(pts[1:] - pts[:-1]).T)
+    run = np.concatenate([[0], np.cumsum(seg)])
+    out, s = [], 0.0
+    for i, size in enumerate(sizes):
+        if i:
+            s += spacing * (sizes[i - 1] + size) / 2
+        k = min(np.searchsorted(run, s, side="right") - 1, len(seg) - 1)
+        t = (s - run[k]) / seg[k]
+        p = pts[k] + (pts[k + 1] - pts[k]) * t
+        travel = pts[k] - pts[k + 1]  # the head leads, so the chain travels toward the path's start
+        out.append((p[0], p[1], travel))
+    return out
+
+
+def path_beyond(points, s):
+    """The part of the path ``points`` beyond the arc length ``s`` from its start: the head's path
+    history behind the tail, the way the chain came round (its own stretch the overlapping members
+    hide)."""
+    pts = np.array(points, float)
+    run = np.concatenate([[0], np.cumsum(np.hypot(*(pts[1:] - pts[:-1]).T))])
+    k = min(np.searchsorted(run, s, side="right") - 1, len(pts) - 2)
+    p = pts[k] + (pts[k + 1] - pts[k]) * (s - run[k]) / (run[k + 1] - run[k])
+    return [tuple(p)] + [tuple(q) for q in pts[k + 1:]]
+
+
+def heading(travel, count=48):
+    """The production heading index of a direction of travel (clockwise from straight down)."""
+    deg = np.degrees(np.arctan2(-travel[0], travel[1])) % 360
+    return int(round(deg / (360 / count))) % count
+
+
+def mantis_sweep(b, eye, target, reach=240, at=0.3):
+    """The Mantis's telegraph and beam in the production look (round 23 variant b, the charged
+    lance: tools/art/mantis_beam.py) from its eye on the left edge: the telegraph wedge at the
+    data's arc, centred on the bearing to ``target`` (clamped inward..down, as the game does), and
+    the beam ``at`` its way through the sweep with its tip spark, the eye ring over the sprite.
+    ``reach`` is the image's beam length (the game's 300 px does not fit the left half)."""
+    ex, ey = eye
+    bearing = np.arctan2(-(target[0] - ex), target[1] - ey)  # game heading: clockwise from straight down
+    centre = np.clip(bearing, -np.pi / 2, 0)
+    half = np.radians(mantis_beam.SWEEP["arc"]) / 2
+    wedge = artkit.quantize_set([artkit.additive(mantis_beam.r23.wedge_b(int(mantis_beam.SWEEP["arc"]), reach))],
+                                LIGHT_COLOURS)[0]
+    rgb, c = mantis_beam.rotated(wedge, mantis_beam.r23.heading_to_img(centre), (0, wedge.height // 2))
+    b.add_light(rgb, ex - c, ey - c)
+    a = mantis_beam.r23.heading_to_img(centre - half + 2 * half * at)
+    strip = mantis_beam.lay_beam(artkit.load_frames("mantis-beam")[0], reach)
+    rgb, c = mantis_beam.rotated(strip, a, (0, strip.height // 2))
+    b.add_light(rgb, ex - c, ey - c, "over")
+    for img, x, y in ((artkit.load_frames("mantis-beam-tip")[0], ex + np.cos(a) * reach, ey + np.sin(a) * reach),
+                      (artkit.load_frames("mantis-beam-eye")[0], ex, ey)):
+        b.add_light(np.array(img.convert("RGB")), x - img.width / 2, y - img.height / 2, "over")
+
+
+def edge_scan():
+    """L06 p2: Varga's two new contacts: the Mantis at the edge sweeping its beam across from its
+    eye, side guns reaching it; the Coilwyrm coming round behind the ship, whose rear is open."""
+    b = Board()
+    b.title("SENSOR SCAN - TWO NEW CONTACTS")
+    ex = 22
+    b.dashed([(ex, 24), (ex, H - 20)], CYAN_DIM, 1, 4, 4)
+    b.label(ex + 4, H - 16, "SCREEN EDGE", CYAN_DIM)
+    mx, my = 62, 104
+    sx, sy = 236, 188
+    mantis = asset("mantis_8")  # the left edge's sweep pose, where the data's sweep.origin is measured
+    b.glow(mx, my, 50, (10, 40, 50), 0.6)
+    mantis_sweep(b, (mx + mantis_beam.ORIGIN[0], my + mantis_beam.ORIGIN[1]), (sx, sy))
+    b.sprite(mantis, mx, my)
+    b.bracket(mx - 42, my - 42, mx + 42, my + 42)
+    b.label(110, 24, "MANTIS", WHITE)
+    b.label(110, 34, "SNIPER AT THE EDGES", RED)
+    b.label(200, 108, "ITS BEAM SWEEPS", RED)
+    b.label(200, 118, "ACROSS YOU", RED)
+    b.sprite(asset("ship_2"), sx, sy)
+    b.arrow(sx - 24, sy - 2, mx + 40, sy - 2, GREEN, dashed=False)
+    b.label(40, sy + 14, "GUNS THAT FIRE SIDEWAYS", GREEN)
+    b.line([(326, 30), (326, H - 20)], CYAN_DIM, 1, 90)
+    spec = yaml.safe_load((DESIGN / "enemies" / "air" / "coilwyrm" / "data.yaml").read_text())
+    spacing = spec["segment_chain"]["spacing"]
+    pivots = json.loads((ROOT / "assets" / "pivots" / "coilwyrm.json").read_text())
+    sizes = [58] + pivots["segment_sizes"] + [40]
+    path = [(420, 125)]
+    for (cx, cy), a0 in (((460, 175), np.pi), ((600, 165), np.pi / 2), ((600, 70), 0)):
+        path += [(cx + 40 * np.cos(a), cy + 40 * np.sin(a)) for a in np.linspace(a0, a0 - np.pi / 2, 10)]
+    path += [(500, 30)]
+    members = wyrm_path(path, spacing, sizes)
+    b.dashed(path_beyond(path, spacing * sum((u + v) / 2 for u, v in zip(sizes, sizes[1:])))[::-1],
+             VIOLET, 1, 3, 5)
+    for i in range(len(members) - 1, -1, -1):
+        x, y, travel = members[i]
+        k = heading(travel)
+        if i == 0:
+            name = f"coilwyrm_{k * 4 + 2}"
+        elif i == len(members) - 1:
+            name = f"coilwyrm-tail_{k}"
+        else:
+            name = f"coilwyrm-segment_{k * 12 + i - 1}"
+        b.sprite(asset(name), x, y)
+    px, py = 420, 66
+    b.draw.pieslice([px - 46, py - 46, px + 46, py + 46], 50, 130, fill=RED + (40,), outline=RED + (190,))
+    b.sprite(asset("ship_2"), px, py)
+    b.label(474, 100, "YOUR REAR", RED)
+    b.label(474, 110, "IS OPEN", RED)
+    b.arrow(px - 26, py + 4, 346, py + 4, CYAN, dashed=False)
+    b.label(342, py + 14, "MOVE", CYAN)
+    b.label(342, 24, "COILWYRM", WHITE)
+    b.label(342, 34, "COMES ROUND BEHIND YOU", VIOLET)
+    b.label(474, 140, "DON'T FIGHT", AMBER)
+    b.label(474, 150, "IT THERE", AMBER)
+    return b
+
+
 IMAGES = {
     "act-1-tether-gate": tether_gate,
     "act-1-outer-stations": outer_stations,
@@ -698,13 +898,16 @@ IMAGES = {
     "level-04-walker-scan": walker_scan,
     "level-05-crater-nest": crater_nest,
     "level-05-mortar-scan": mortar_scan,
+    "level-06-daedalus-rim": daedalus_rim,
+    "level-06-edge-scan": edge_scan,
 }
 
 # Review sheets per batch: round, the images on it, the batch name.
 BATCHES = {
     "r13": (list(IMAGES)[:9], "UI BATCH"),
     "r20": (list(IMAGES)[9:13], "M4 BRIEFING IMAGES"),
-    "r21": (list(IMAGES)[13:], "M4 PART E"),
+    "r21": (list(IMAGES)[13:15], "M4 PART E"),
+    "r23": (list(IMAGES)[15:], "M4 PART F"),
 }
 
 

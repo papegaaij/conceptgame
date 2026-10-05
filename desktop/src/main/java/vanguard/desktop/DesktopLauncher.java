@@ -33,6 +33,8 @@ public final class DesktopLauncher {
         System.out.println("settings: " + settingsFile.path());
         // The saves live next to the settings file (design/systems/saves), so --settings moves them too.
         var saves = new SaveSlots(settingsFile.path().toAbsolutePath().resolveSibling("saves"));
+        // So do the screenshots of the screenshot key (design/ui/controls).
+        var screenshots = settingsFile.path().toAbsolutePath().resolveSibling("screenshots");
         var displayModes = new DisplayModes(settings, settingsFile::write);
         var game = new TerranVanguard(
                 displayModes,
@@ -45,11 +47,12 @@ public final class DesktopLauncher {
                 options.debugFit(),
                 options.level(),
                 options.benchSeconds(),
-                saves);
-        new Lwjgl3Application(game, configuration(settings));
+                saves,
+                screenshots);
+        new Lwjgl3Application(game, configuration(settings, System.getProperty("os.name")));
     }
 
-    private static Lwjgl3ApplicationConfiguration configuration(DisplaySettings settings) {
+    private static Lwjgl3ApplicationConfiguration configuration(DisplaySettings settings, String osName) {
         var config = new Lwjgl3ApplicationConfiguration();
         config.setTitle("Terran Vanguard");
         Monitor[] monitors = Lwjgl3ApplicationConfiguration.getMonitors();
@@ -64,8 +67,20 @@ public final class DesktopLauncher {
             // The monitor's current mode: GLFW attaches the window without a video mode switch.
             config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode(monitor));
         }
+        config.setAutoIconify(autoIconify(osName));
         config.useVsync(true);
         config.setAudioConfig(AUDIO_SOURCES, AUDIO_BUFFER_BYTES, AUDIO_BUFFER_COUNT);
         return config;
+    }
+
+    /**
+     * Whether a full-screen window minimises when it loses the focus (GLFW's default). Not on Linux
+     * and other Unix systems (X11): there a screenshot tool, a notification or a launcher taking the focus would throw the player
+     * to the desktop, and the window manager lets other windows above an unfocused full-screen
+     * window anyway; the level pauses on the focus loss either way. Windows keeps it, because GLFW
+     * keeps its full-screen windows topmost, and macOS too.
+     */
+    static boolean autoIconify(String osName) {
+        return osName.startsWith("Windows") || osName.startsWith("Mac");
     }
 }

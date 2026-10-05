@@ -550,15 +550,50 @@ class FarsideTest {
         assertTrue(sortie.ship().defences().mercyTicks() >= SimStep.ticks(1.0) - 1, "invulnerable for 1 s");
         run(sortie, 0.4, Command.NONE);
         assertEquals(1, sortie.special().charges());
-        assertEquals(0, sortie.chainCount(), "120 destroys every part of the chain");
+        // The ring reaches the head first (nearest the ship): the body is doomed and bursts in the
+        // chained death's ripple, unhit by the rest of the ring, paying nothing.
+        assertEquals(0, count(sortie, "coilwyrm"), "120 destroys the head");
+        assertEquals(0, count(sortie, "coilwyrm-regrown"), "nothing regrows");
         assertTrue(sortie.kills() >= 4, "the chain's head and the needlers on screen: " + sortie.kills());
 
         // 1.5 s between bombs: a press now is denied, one after it goes off.
         sortie.step(SPECIAL);
         assertEquals(1, sortie.special().charges());
         run(sortie, 1.2, Command.NONE);
+        assertEquals(0, sortie.chainCount(), "every member has burst");
         sortie.step(SPECIAL);
         assertEquals(0, sortie.special().charges());
+    }
+
+    @Test
+    void aSmartBombPopsTheSporeMinesItsRingPasses() {
+        EnemyGun spores = new EnemyGun(
+                1.6,
+                0,
+                1,
+                90,
+                6,
+                false,
+                1,
+                0,
+                TestSpecs.INFINITE,
+                TestSpecs.INFINITE,
+                Optional.of(new EnemyGun.MineSpec(1, 8, 20, 1, 6, 4, true, 1)));
+        Sortie sortie = bomber(level(List.of(), List.of(), 0, Optional.empty()), 1);
+        sortie.dropMine(spores, 100, 400, 0);
+        sortie.dropMine(spores, 380, 200, 0);
+        sortie.step(Command.NONE);
+        assertEquals(2, sortie.mineCount());
+
+        sortie.step(SPECIAL);
+        int popped = 0;
+        for (int i = 0; i < SimStep.ticks(0.5); i++) {
+            sortie.step(Command.NONE);
+            popped += sortie.events().count(SimEvents.Type.MINE_DESTROYED);
+        }
+
+        assertEquals(2, popped, "both, armed or not, as the ring passes");
+        assertEquals(0, sortie.mineCount());
     }
 
     @Test

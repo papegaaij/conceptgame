@@ -7,11 +7,12 @@ chain:
   step: 10        # every this many kills ...
   increment: 0.5  # ... add this to the multiplier
   max: 5
-rating:           # weights of the grade rating
+rating:           # the grade rating: the parts' weights (they add up to 1) ...
   kill_ratio: 0.4
   armour_damage: 0.3
   secrets: 0.15
   max_chain: 0.15
+  full_chain: 40  # ... and the longest chain that earns the max_chain part in full
 bonuses:
   # points × (kill % when per_kill_percent) × (the level number or the act, by scale)
   - {name: Destruction, points: 100, per_kill_percent: true, scale: level, notes: {condition: Kill ratio}}
