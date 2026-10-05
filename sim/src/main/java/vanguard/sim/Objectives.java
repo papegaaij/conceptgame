@@ -6,7 +6,8 @@ import java.util.List;
 /**
  * What counts towards the level's objectives in an attempt: the kills of every enemy kind, the
  * secrets found and the secondary objective: destroy a share of all enemies (design/systems/scoring),
- * or clear groups of ground units (Level 02's docks). A group's outcome is decided when the last
+ * clear groups of ground units (Level 02's docks), let none of an enemy get away, destroy every unit
+ * of some enemies, or shoot off a boss's parts in time (Level 07). A group's outcome is decided when the last
  * of its units is gone: cleared if every one was destroyed, lost if any left the screen alive. The
  * primary objective, reaching the end of the scroll, is the {@link Sortie}'s.
  */
@@ -38,7 +39,8 @@ final class Objectives {
      *     primary's ({@link LevelScript#groups()})
      * @param kinds the number of distinct enemies in the level
      * @param units every enemy the level sends
-     * @param escapesTotal the units of the enemies of an escapes or kill-all objective the level sends
+     * @param escapesTotal the units of the enemies of an escapes or kill-all objective the level
+     *     sends, or the boss parts of a parts objective
      */
     Objectives(
             LevelScript.Secondary secondary,
@@ -102,6 +104,28 @@ final class Objectives {
             return true;
         }
         return false;
+    }
+
+    /** A part of a parts objective was shot off; returns whether that met the objective. */
+    boolean partShotOff() {
+        if (!secondary.byParts() || escapesFailed || secondaryMet) {
+            return false;
+        }
+        escapesDestroyed++;
+        if (escapesDestroyed == escapesTotal) {
+            secondaryMet = true;
+            return true;
+        }
+        return false;
+    }
+
+    /** A parts objective's phase ended (or its boss died) with a part alive; returns whether that failed the objective. */
+    boolean partsSurvived() {
+        if (!secondary.byParts() || escapesFailed || secondaryMet) {
+            return false;
+        }
+        escapesFailed = true;
+        return true;
     }
 
     /** A unit of {@code slug} got away; returns whether that failed an escapes objective. */

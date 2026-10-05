@@ -48,15 +48,34 @@ class BriefingLayoutTest {
     void everyPageImageIsInTheAssetsAtItsSize() throws IOException {
         for (BriefingPage page : pages()) {
             if (page.image().isPresent()) {
-                Path file = IMAGES.resolve(page.image().get() + ".png");
-                assertTrue(Files.isRegularFile(file), file.toString());
-                try (InputStream in = Files.newInputStream(file);
-                        DataInputStream png = new DataInputStream(in)) {
-                    png.skipNBytes(16);
-                    assertEquals(BriefingScreen.IMAGE_WIDTH, png.readInt(), file.toString());
-                    assertEquals(BriefingScreen.IMAGE_HEIGHT, png.readInt(), file.toString());
-                }
+                assertImageAtTheScreensSize(page.image().get());
             }
+        }
+    }
+
+    /**
+     * Every act outro page has its own image (one per page, user decision D3 of part G), rendered at
+     * the screen's image size, and its text goes on over screens that fit below the image.
+     */
+    @Test
+    void anOutroPageHasItsImageAndFitsBelowIt() throws IOException {
+        for (var act : content.acts().values()) {
+            for (BriefingPage page : act.outro().map(outro -> outro.pages()).orElse(List.of())) {
+                assertImageAtTheScreensSize(page.image().orElseThrow());
+                BriefingScreen.screens(page)
+                        .forEach(lines -> assertTrue(lines.size() <= BriefingScreen.maxLines(true)));
+            }
+        }
+    }
+
+    private static void assertImageAtTheScreensSize(String image) throws IOException {
+        Path file = IMAGES.resolve(image + ".png");
+        assertTrue(Files.isRegularFile(file), file.toString());
+        try (InputStream in = Files.newInputStream(file);
+                DataInputStream png = new DataInputStream(in)) {
+            png.skipNBytes(16);
+            assertEquals(BriefingScreen.IMAGE_WIDTH, png.readInt(), file.toString());
+            assertEquals(BriefingScreen.IMAGE_HEIGHT, png.readInt(), file.toString());
         }
     }
 

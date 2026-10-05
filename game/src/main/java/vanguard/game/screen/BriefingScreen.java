@@ -14,13 +14,17 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import vanguard.content.ActData;
 import vanguard.content.BriefingPage;
+import vanguard.content.Content;
 import vanguard.content.campaign.BriefingScript;
 import vanguard.content.campaign.Campaign;
+import vanguard.content.campaign.OutroScript;
 import vanguard.content.campaign.SaveSlots;
 import vanguard.game.GameServices;
+import vanguard.game.audio.Fanfare;
 import vanguard.game.audio.LevelMusic;
 import vanguard.game.audio.MusicStreamer;
 import vanguard.game.audio.Sfx;
+import vanguard.game.audio.Tracks;
 import vanguard.game.audio.Voices;
 import vanguard.game.briefing.BriefingExit;
 import vanguard.game.briefing.BriefingPager;
@@ -44,12 +48,22 @@ import vanguard.game.ui.Words;
  * transmission static, again when the speaker changes, and closes through one after the last page;
  * then the campaign goes on with {@code next} (the hangar).
  *
+ * <p>The act outro after an act's last debrief (design/campaign, Act intro and outro) uses the same
+ * screen: its pages with their images, the act's track (track 24, the act-complete fanfare) once
+ * under the first page instead of the briefing theme, which follows once the fanfare has played out
+ * or the first page is left; the bottom panel says the act is complete and where the campaign goes
+ * on. A page image that is not rendered yet is left out, and the page's text takes its place.
+ *
  * <p>Not built: the threat summary of the concept (it is the hangar intel panel's, part B2).
  */
 public final class BriefingScreen implements GameScreen {
     static final float TITLE_CARD_SECONDS = 3.5f;
 
     private static final float MUSIC_VOLUME = 0.6f;
+    private static final float FANFARE_VOLUME = 0.8f;
+    /** The outro's fanfare fades out over this when the first page is left, and the theme fades in. */
+    private static final float FADE_SECONDS = 1.5f;
+
     private static final float TYPING_VOLUME = 0.15f;
     private static final float CURSOR_BLINK_SECONDS = 0.5f;
 
@@ -79,12 +93,18 @@ public final class BriefingScreen implements GameScreen {
 
     private final GameServices services;
     private final Campaign campaign;
-    private final BriefingScript script;
+    private final Script script;
     private final Supplier<GameScreen> next;
-    private final Optional<MusicStreamer> music;
+    /** The briefing theme; in an outro it starts after the fanfare. */
+    private Optional<MusicStreamer> music;
+    /** The outro's fanfare under its first page. */
+    private Optional<Fanfare> fanfare;
+    /** The fanfare's fade-out and the theme's fade-in, 1 for none. */
+    private float fade = 1;
+
     private final Optional<Texture> titleLettering;
     private final List<Screen> screens = new ArrayList<>();
-    private final Map<String, Texture> images = new HashMap<>();
+    private final Map<String, Optional<Texture>> images = new HashMap<>();
     private final BriefingPager pager;
     private final BriefingExit exit;
     /** Each briefing page's voice, by its index in the script. */
@@ -94,7 +114,6 @@ public final class BriefingScreen implements GameScreen {
     /** The music's duck under the voice, 1 for none. */
     private float duck = 1;
 
-    private final List<String> teaser;
     private float titleCard;
     private float elapsed;
     private int typed;
@@ -103,8 +122,84 @@ public final class BriefingScreen implements GameScreen {
     /** Seconds until the portrait has closed after the last page; infinite before that. */
     private float untilClosed = Float.POSITIVE_INFINITY;
 
+    /**
+     * What the screen shows, a mission briefing's or an act outro's.
+     *
+     * @param header the act line of the header, on the left
+     * @param mission the header's right side, {@code MISSION 07: BROOD CARRIER}
+     * @param objectivesHeading the bottom panel's left heading
+     * @param objectives its lines, the first one in amber
+     * @param teaserHeading the bottom panel's right heading
+     * @param teaser its lines
+     * @param done the hint once the last page is shown
+     * @param fanfare the cue under the first page instead of the briefing theme
+     */
+    private record Script(
+            Optional<ActData.TitleCard> titleCard,
+            String actDirectory,
+            String header,
+            String mission,
+            List<BriefingPage> pages,
+            String objectivesHeading,
+            List<String> objectives,
+            String teaserHeading,
+            List<String> teaser,
+            String done,
+            Optional<String> fanfare) {}
+
     /** @param next the screen after the last page */
     public BriefingScreen(GameServices services, Campaign campaign, BriefingScript script, Supplier<GameScreen> next) {
+        this(services, campaign, mission(services, script), next);
+    }
+
+    /** The act outro (design/campaign, Act intro and outro); {@code next} after its last page. */
+    public static BriefingScreen outro(
+            GameServices services, Campaign campaign, OutroScript outro, Supplier<GameScreen> next) {
+        String onward = services.content
+                .levelKey(outro.nextLevel())
+                .map(key -> String.format(
+                        Locale.ROOT, "THE HANGAR BEFORE MISSION %02d: %s", outro.nextLevel(), Content.levelName(key)))
+                .orElse(String.format(Locale.ROOT, "THE HANGAR BEFORE MISSION %02d", outro.nextLevel()));
+        return new BriefingScreen(
+                services,
+                campaign,
+                new Script(
+                        Optional.empty(),
+                        outro.actDirectory(),
+                        outro.act(),
+                        String.format(Locale.ROOT, "AFTER MISSION %02d", outro.last()),
+                        outro.pages(),
+                        "ACT COMPLETE",
+                        List.of(
+                                displayed(outro.act()),
+                                String.format(Locale.ROOT, "MISSIONS %02d - %02d FLOWN", outro.first(), outro.last())),
+                        "NEXT",
+                        Words.wrap(displayed(onward), (PixelScreen.WIDTH - LEFT_X - 14 - TEASER_X) / 8),
+                        "ENTER TO THE HANGAR",
+                        outro.music()),
+                next);
+    }
+
+    private static Script mission(GameServices services, BriefingScript script) {
+        BriefingPage teaser = script.teaser();
+        return new Script(
+                script.titleCard(),
+                script.actDirectory(),
+                script.act(),
+                String.format(Locale.ROOT, "MISSION %02d: %s", script.mission(), script.missionName()),
+                script.pages(),
+                "OBJECTIVES",
+                script.objectives(),
+                "IN THE HANGAR",
+                Words.wrap(
+                        displayed(Speaker.of(teaser.speaker(), teaser.portrait(), services.sprites)
+                                        .name() + ": \"" + teaser.line() + "\""),
+                        (PixelScreen.WIDTH - LEFT_X - 14 - TEASER_X) / 8),
+                "ENTER TO THE HANGAR",
+                Optional.empty());
+    }
+
+    private BriefingScreen(GameServices services, Campaign campaign, Script script, Supplier<GameScreen> next) {
         this.services = services;
         this.campaign = campaign;
         this.script = script;
@@ -113,25 +208,28 @@ public final class BriefingScreen implements GameScreen {
         for (BriefingPage page : script.pages()) {
             pageVoices.add(services.voices.briefing(page));
             Speaker speaker = Speaker.of(page.speaker(), page.portrait(), services.sprites);
-            Optional<Texture> image = page.image().map(name -> images.computeIfAbsent(name, this::image));
-            for (List<String> lines : screens(page)) {
+            Optional<Texture> image = page.image().flatMap(name -> images.computeIfAbsent(name, this::image));
+            for (List<String> lines : screens(page, image.isPresent())) {
                 screens.add(new Screen(page.speaker(), speaker, image, lines, pageVoices.size() - 1));
                 lengths.add(lines.stream().mapToInt(String::length).sum());
             }
         }
         pager = new BriefingPager(lengths);
         exit = new BriefingExit(BriefingExit.autosaves(campaign));
-        teaser = Words.wrap(
-                displayed(Speaker.of(script.teaser().speaker(), script.teaser().portrait(), services.sprites)
-                                .name() + ": \"" + script.teaser().line() + "\""),
-                (PixelScreen.WIDTH - LEFT_X - 14 - TEASER_X) / 8);
         titleCard = script.titleCard().isPresent() ? TITLE_CARD_SECONDS : 0;
         titleLettering = script.titleCard().map(card -> {
             var texture = new Texture(services.files.internal("ui/" + script.actDirectory() + "-title.png"));
             texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
             return texture;
         });
-        music = MusicStreamer.play(
+        fanfare = script.fanfare()
+                .flatMap(name -> Fanfare.play(
+                        services.audio, services.files.internal(Tracks.path(name)), FANFARE_VOLUME, services.mixer));
+        music = fanfare.isPresent() ? Optional.empty() : theme();
+    }
+
+    private Optional<MusicStreamer> theme() {
+        return MusicStreamer.play(
                 services.audio, services.files.internal("music/briefing-theme.ogg"), MUSIC_VOLUME, services.mixer);
     }
 
@@ -154,8 +252,13 @@ public final class BriefingScreen implements GameScreen {
 
     /** A page's lines split into the screens that show them: all of them, or a few below the page's image. */
     static List<List<String>> screens(BriefingPage page) {
+        return screens(page, page.image().isPresent());
+    }
+
+    /** As {@link #screens(BriefingPage)}, with or without the page's image (one not rendered yet is left out). */
+    static List<List<String>> screens(BriefingPage page, boolean image) {
         List<String> lines = lines(page);
-        int perScreen = maxLines(page.image().isPresent());
+        int perScreen = maxLines(image);
         List<List<String>> screens = new ArrayList<>();
         for (int i = 0; i < lines.size(); i += perScreen) {
             screens.add(lines.subList(i, Math.min(lines.size(), i + perScreen)));
@@ -172,8 +275,10 @@ public final class BriefingScreen implements GameScreen {
         return image ? IMAGE_TEXT_Y : TEXT_Y;
     }
 
-    private Texture image(String name) {
-        return new Texture(services.files.internal("ui/briefing/" + name + ".png"));
+    /** A page image, if it is rendered yet (the act outro's come later). */
+    private Optional<Texture> image(String name) {
+        var file = services.files.internal("ui/briefing/" + name + ".png");
+        return file.exists() ? Optional.of(new Texture(file)) : Optional.empty();
     }
 
     @Override
@@ -254,9 +359,9 @@ public final class BriefingScreen implements GameScreen {
     private void drawPages(SpriteBatch batch, Glass glass) {
         services.titleScene.draw(batch, 0.35f);
         glass.panel(batch, LEFT_X, HEADER_Y, PixelScreen.WIDTH - 2 * LEFT_X, 34, 0.85f);
-        glass.shadowed(batch, glass.fonts.body, displayed(script.act()), Glass.AMBER, LEFT_X + 14, HEADER_Y + 8);
-        String mission = String.format(Locale.ROOT, "MISSION %02d: %s", script.mission(), script.missionName());
-        glass.right(batch, glass.fonts.body, mission, Glass.WHITE, PixelScreen.WIDTH - LEFT_X - 14, HEADER_Y + 8);
+        glass.shadowed(batch, glass.fonts.body, displayed(script.header()), Glass.AMBER, LEFT_X + 14, HEADER_Y + 8);
+        glass.right(
+                batch, glass.fonts.body, script.mission(), Glass.WHITE, PixelScreen.WIDTH - LEFT_X - 14, HEADER_Y + 8);
         drawSpeaker(batch, glass);
         drawText(batch, glass);
         drawBottom(batch, glass);
@@ -307,7 +412,7 @@ public final class BriefingScreen implements GameScreen {
     private void drawBottom(SpriteBatch batch, Glass glass) {
         int width = PixelScreen.WIDTH - 2 * LEFT_X;
         glass.panel(batch, LEFT_X, BOTTOM_Y, width, BOTTOM_HEIGHT, 0.85f);
-        glass.header(batch, "OBJECTIVES", LEFT_X + 12, TEASER_X - 20, BOTTOM_Y + 10);
+        glass.header(batch, script.objectivesHeading(), LEFT_X + 12, TEASER_X - 20, BOTTOM_Y + 10);
         for (int i = 0; i < script.objectives().size(); i++) {
             int y = BOTTOM_Y + 26 + i * 14;
             glass.bar(batch, i == 0 ? Glass.AMBER : Glass.CYAN, LEFT_X + 14, y + 2, 5, 5);
@@ -319,12 +424,13 @@ public final class BriefingScreen implements GameScreen {
                     LEFT_X + 26,
                     y);
         }
-        glass.header(batch, "IN THE HANGAR", TEASER_X, LEFT_X + width - 12, BOTTOM_Y + 10);
+        glass.header(batch, script.teaserHeading(), TEASER_X, LEFT_X + width - 12, BOTTOM_Y + 10);
+        List<String> teaser = script.teaser();
         for (int i = 0; i < Math.min(3, teaser.size()); i++) {
             glass.shadowed(batch, glass.fonts.label, teaser.get(i), Glass.BODY, TEASER_X, BOTTOM_Y + 26 + i * 12);
         }
         String hints = pager.page() == pager.pages() - 1 && pager.pageComplete()
-                ? "ENTER TO THE HANGAR"
+                ? script.done()
                 : "ENTER CONTINUE    ESC MAIN MENU";
         glass.right(batch, glass.fonts.label, hints, Glass.DIM, LEFT_X + width - 12, BOTTOM_Y + 72);
     }
@@ -362,14 +468,40 @@ public final class BriefingScreen implements GameScreen {
         services.voices.update(seconds);
         float target = services.voices.playing() ? LevelMusic.DUCKED : 1;
         duck += (target - duck) * Math.min(1, LevelMusic.DUCK_RATE * seconds);
-        music.ifPresent(streamer -> streamer.setVolume(MUSIC_VOLUME * duck));
+        followFanfare(seconds, dataPage);
+        music.ifPresent(streamer -> streamer.setVolume(MUSIC_VOLUME * duck * fade));
+    }
+
+    /**
+     * The outro's fanfare plays under the first page; once it has played out or the page is left,
+     * it fades out and the briefing theme fades in.
+     */
+    private void followFanfare(float seconds, int dataPage) {
+        if (fanfare.isEmpty()) {
+            fade = Math.min(1, fade + seconds / FADE_SECONDS);
+            return;
+        }
+        Fanfare cue = fanfare.get();
+        boolean leaving = dataPage > 0 || cue.ended();
+        if (leaving) {
+            fade -= seconds / FADE_SECONDS;
+        }
+        if (fade <= 0 || cue.ended()) {
+            cue.close();
+            fanfare = Optional.empty();
+            fade = 0;
+            music = theme();
+            return;
+        }
+        cue.setVolume(FANFARE_VOLUME * duck * fade);
     }
 
     @Override
     public void dispose() {
         services.voices.stop();
         music.ifPresent(MusicStreamer::close);
+        fanfare.ifPresent(Fanfare::close);
         titleLettering.ifPresent(Texture::dispose);
-        images.values().forEach(Texture::dispose);
+        images.values().forEach(image -> image.ifPresent(Texture::dispose));
     }
 }

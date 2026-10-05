@@ -1,13 +1,18 @@
 package vanguard.game.audio;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import vanguard.game.render.EnemyLooks;
 import vanguard.sim.Armament;
 import vanguard.sim.PickupType;
 import vanguard.sim.PlayField;
+import vanguard.sim.SetPiece;
 import vanguard.sim.SimEvents;
 import vanguard.sim.SimStep;
+import vanguard.sim.Sortie;
 import vanguard.sim.SplitMix64;
+import vanguard.sim.Tow;
 import vanguard.sim.WarningEdge;
 
 /**
@@ -75,6 +80,36 @@ public final class FlightSounds {
     private static final double RIPPLE_PITCH_MAX = 1.2;
 
     /**
+     * A boss's own sounds (design/audio/sfx, round 25: the Brood Carrier): its roar as it arrives
+     * and as it turns, its sacs opening and shutting with their windows, a sac bursting, its iris
+     * opening over the core. A boss without them keeps the generic sounds. The units its windows
+     * launch spit out with {@link Sfx#CARRIER_LAUNCH} (only the carrier has windows).
+     */
+    record BossSounds(Sfx roar, Sfx sacOpen, Sfx sacClose, Sfx sacBurst, Sfx iris) {}
+
+    /** The roar starts this many steps after the klaxon, so the klaxon's first blast is heard on its own. */
+    private static final int ARRIVAL_ROAR_STEPS = 45;
+    /** The roar at the turn is a little lower than the arrival's. */
+    private static final float TURN_ROAR_PITCH = 0.85f;
+    /** At most this many launch sounds for one opening, this many steps apart after it opens. */
+    private static final int LAUNCH_SOUNDS = 3;
+
+    private static final int LAUNCH_STEPS = 6;
+
+    /** Each set piece's own sounds, by index in the script; null for the generic ones. */
+    private final BossSounds[] bossSounds;
+    /** Whether a boss of the level brings its own phase sounds (its turn and its iris, not the generic phase blast). */
+    private final boolean ownPhaseSounds;
+    /** What {@link #watch} saw at the last step: each own-sound boss's parts open and wrecked, its turn, the tows holding. */
+    private boolean[][] wasOpen;
+
+    private boolean[][] wasWrecked;
+    private boolean[] wasTurning;
+    private boolean[] wasHolding;
+    /** The next {@link #watch} only notes the state (after a restart or a boss checkpoint's restore). */
+    private boolean resync = true;
+
+    /**
      * @param looks the explosions of the level's enemy kinds
      * @param armament the fitted weapons, whose sound families the shots play
      * @param setPieces the slugs of the level's set pieces, whose death cries they play
@@ -83,6 +118,8 @@ public final class FlightSounds {
         this.bank = bank;
         this.looks = looks;
         cries = setPieces.stream().map(FlightSounds::cry).toArray(Sfx[]::new);
+        bossSounds = setPieces.stream().map(FlightSounds::bossSounds).toArray(BossSounds[]::new);
+        ownPhaseSounds = Arrays.stream(bossSounds).anyMatch(Objects::nonNull);
         shots = new Sfx[armament.size()];
         shotPitch = new float[armament.size()];
         for (int m = 0; m < armament.size(); m++) {
@@ -102,6 +139,25 @@ public final class FlightSounds {
             case "leviathan" -> Sfx.LEVIATHAN_CRY;
             default -> null;
         };
+    }
+
+    /** A boss's own sounds, or null for the generic ones: the Brood Carrier's (round 25 a, provisional). */
+    private static BossSounds bossSounds(String slug) {
+        return switch (slug) {
+            case "brood-carrier" ->
+                new BossSounds(
+                        Sfx.CARRIER_ROAR,
+                        Sfx.CARRIER_SAC_OPEN,
+                        Sfx.CARRIER_SAC_CLOSE,
+                        Sfx.CARRIER_SAC_BURST,
+                        Sfx.CARRIER_IRIS);
+            default -> null;
+        };
+    }
+
+    /** Set piece {@code k}'s sac burst for its chained death's bursts at its sacs, or null for the generic explosions. */
+    public Sfx sacBurst(int k) {
+        return k < bossSounds.length && bossSounds[k] != null ? bossSounds[k].sacBurst() : null;
     }
 
     /** The sound of a weapon sound family; the families of later weapons play the pulse until they have theirs. */
@@ -184,6 +240,8 @@ public final class FlightSounds {
 
     /** Plays the sounds of one step's events. */
     public void play(SimEvents events) {
+        int launches = 0;
+        float launchPan = 0;
         for (int i = 0; i < events.size(); i++) {
             float pan = pan(events.x(i));
             switch (events.type(i)) {
@@ -237,7 +295,10 @@ public final class FlightSounds {
                     bank.play(Sfx.SHIP_DESTROYED, PLAYER_DAMAGE, 1, pan);
                     bank.play(Sfx.MISSION_FAILED, PLAYER_DAMAGE, 1, 0);
                 }
-                case SORTIE_RESTARTED -> pendingCount = 0;
+                case SORTIE_RESTARTED, BOSS_RETRY -> {
+                    pendingCount = 0;
+                    resync = true;
+                }
                 // The Airstrike (design/audio/sfx, Specials): the jets' flyby as the bombers enter,
                 // the bomb carpet from the first blast; its single blasts play no sound of their own.
                 case AIRSTRIKE_INBOUND -> bank.play(Sfx.AIRSTRIKE_JETS, EXPLOSIONS, 1, pan);
@@ -253,8 +314,25 @@ public final class FlightSounds {
                     bank.play(alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B), EXPLOSIONS, 1, pan);
                 case PRIMARY_FAILED -> bank.play(Sfx.MISSION_FAILED, PLAYER_DAMAGE, 1, 0);
                 // The boss's arrival warns like an edge warning; its death pays out in a shower.
-                case BOSS_ARRIVED -> bank.play(Sfx.EDGE_WARNING, PICKUPS, 1, 0);
-                case BOSS_PHASE -> bank.play(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.8f, pan);
+                // A boss with its own sounds roars as it comes in (after the klaxon's first blast); its
+                // phases sound in watch() (the turn's roar, the iris), not as the generic blast.
+                case BOSS_ARRIVED -> {
+                    bank.play(Sfx.EDGE_WARNING, PICKUPS, 1, 0);
+                    BossSounds own = events.value(i) < bossSounds.length ? bossSounds[events.value(i)] : null;
+                    if (own != null) {
+                        later(own.roar(), EXPLOSIONS, 1, pan, ARRIVAL_ROAR_STEPS);
+                    }
+                }
+                case BOSS_PHASE -> {
+                    if (!ownPhaseSounds) {
+                        bank.play(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.8f, pan);
+                    }
+                }
+                // A unit leaving an open window (the carrier's sacs): counted, played after the loop.
+                case BOSS_LAUNCHED -> {
+                    launches++;
+                    launchPan += pan;
+                }
                 case BOSS_DESTROYED -> bank.play(Sfx.SALVAGE_LARGE, PICKUPS, 1, pan);
                 // Level 05's sounds (round 21): the Polyp Mortar's lob and impact; the rail's charge
                 // hum, its loop played twice over the lights' 1.5 s chase, and the sled's pass.
@@ -325,6 +403,97 @@ public final class FlightSounds {
                         SPECIAL_CALLED -> {}
             }
         }
+        // An opening's units all leave in one step: a few spits just after the sac opens, not one each.
+        for (int n = 0; n < Math.min(launches, LAUNCH_SOUNDS); n++) {
+            later(Sfx.CARRIER_LAUNCH, EXPLOSIONS, pitch(0.06), launchPan / launches, (n + 1) * LAUNCH_STEPS);
+        }
+    }
+
+    /**
+     * Once a simulation step, after {@link #play}: the sounds that follow a state rather than an
+     * event. A boss with its own sounds (round 25, the Brood Carrier): its sacs opening (one sound
+     * for the sacs that open together) and shutting with their windows, a sac shot off bursting (not
+     * at its death, whose chain plays them), its iris opening as the core is exposed, its roar as its
+     * turn starts. And a tow's cable snapping as its pod falls free.
+     */
+    public void watch(Sortie sortie) {
+        int pieces = Math.min(bossSounds.length, sortie.setPieceCount());
+        if (wasOpen == null) {
+            wasOpen = new boolean[pieces][];
+            wasWrecked = new boolean[pieces][];
+            wasTurning = new boolean[pieces];
+            wasHolding = new boolean[sortie.towCount()];
+            for (int k = 0; k < pieces; k++) {
+                int parts = sortie.setPiece(k).partCount();
+                wasOpen[k] = new boolean[parts];
+                wasWrecked[k] = new boolean[parts];
+            }
+            resync = true;
+        }
+        for (int k = 0; k < pieces; k++) {
+            if (bossSounds[k] != null) {
+                watchBoss(bossSounds[k], sortie.setPiece(k), k);
+            }
+        }
+        for (int i = 0; i < wasHolding.length; i++) {
+            Tow tow = sortie.tow(i);
+            boolean holding = tow.holding();
+            if (!resync && wasHolding[i] && !holding) {
+                bank.play(Sfx.CABLE_SNAP, EXPLOSIONS, pitch(0.03), pan(tow.podX()));
+            }
+            wasHolding[i] = holding;
+        }
+        resync = false;
+    }
+
+    private void watchBoss(BossSounds own, SetPiece piece, int k) {
+        boolean turning = piece.motion() == SetPiece.Motion.TURN;
+        if (!resync && turning && !wasTurning[k]) {
+            bank.play(own.roar(), EXPLOSIONS, TURN_ROAR_PITCH, pan(piece.renderX(1)));
+        }
+        wasTurning[k] = turning;
+        boolean dying = false;
+        for (int p = 0; p < piece.partCount(); p++) {
+            dying |= vital(piece, p) && piece.partWrecked(p) && !wasWrecked[k][p];
+        }
+        int opened = 0;
+        int shut = 0;
+        double openedX = 0;
+        double shutX = 0;
+        for (int p = 0; p < piece.partCount(); p++) {
+            boolean wrecked = piece.partWrecked(p);
+            // As the renderer reads it: a sac open in its window, the core once it takes damage.
+            boolean open = !wrecked && (piece.partWindowed(p) ? piece.partOpen(p) : !piece.partShielded(p));
+            if (!resync && !piece.partArmoured(p)) {
+                if (vital(piece, p)) {
+                    if (open && !wasOpen[k][p]) {
+                        bank.play(own.iris(), EXPLOSIONS, 1, pan(piece.partX(p)));
+                    }
+                } else if (wrecked && !wasWrecked[k][p]) {
+                    if (!dying) {
+                        bank.play(own.sacBurst(), EXPLOSIONS, pitch(0.04), pan(piece.partX(p)));
+                    }
+                } else if (open && !wasOpen[k][p]) {
+                    opened++;
+                    openedX += piece.partX(p);
+                } else if (!open && wasOpen[k][p] && !wrecked) {
+                    shut++;
+                    shutX += piece.partX(p);
+                }
+            }
+            wasOpen[k][p] = open;
+            wasWrecked[k][p] = wrecked;
+        }
+        if (opened > 0) {
+            bank.play(own.sacOpen(), EXPLOSIONS, pitch(0.04), pan(openedX / opened));
+        }
+        if (shut > 0) {
+            bank.play(own.sacClose(), EXPLOSIONS, pitch(0.04), pan(shutX / shut));
+        }
+    }
+
+    private static boolean vital(SetPiece piece, int p) {
+        return piece.spec().parts().get(p).vital();
     }
 
     /** A chained burst's pitch by the member's hit box width (see {@link #RIPPLE_REFERENCE_WIDTH}). */

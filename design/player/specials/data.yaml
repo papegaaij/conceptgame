@@ -5,7 +5,7 @@ specials:
   # charge price cr, most charges carried, unlock level, charges given once at the unlock (optional)
   - {name: Airstrike, charge_price: 300, max_charges: 4, unlock: 4, free_charges: 1}
   - {name: Smart Bomb, charge_price: 400, max_charges: 3, unlock: 6, free_charges: 1}
-  - {name: Decoy Flares, charge_price: 150, max_charges: 6, unlock: 7}
+  - {name: Decoy Flares, charge_price: 150, max_charges: 6, unlock: 27}  # with the first homing projectiles (D4 of M4 part G; was 7)
 
 # The Airstrike (README, Airstrike (L04)). The damage already includes the x2 anti-ground bonus.
 airstrike:

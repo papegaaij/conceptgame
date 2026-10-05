@@ -28,6 +28,8 @@ import vanguard.sim.PlayField;
  * @param sleds the mass-driver sleds on a rail (Level 05)
  * @param rocks the rocks destroyed ground units throw in low gravity (Level 05)
  * @param pickups pickups placed by the script (normal drops come from the enemies)
+ * @param tows part G: friendly craft drifting on the air layer that tow a secret's crate on a
+ *     cable (Level 07's lifeboat tow)
  * @param radio the radio chatter
  * @param backdrop the parallax layers behind and above the play plane
  * @param threatProfile what the hangar intel panel shows before the level (design/ui/hangar)
@@ -58,7 +60,8 @@ public record LevelData(
         BackdropData backdrop,
         ThreatProfile threatProfile,
         Briefing briefing,
-        Optional<Darkness> darkness) {
+        Optional<Darkness> darkness,
+        Optional<List<Tow>> tows) {
     public LevelData {
         Check.positive("scroll_speed", scrollSpeed);
         Check.notNegative("launch_seconds", launchSeconds);
@@ -74,6 +77,9 @@ public record LevelData(
     /**
      * After the level end the scroll runs on under the radio until its last message has been shown
      * (the outro), at most this long before the debrief, so the backdrop has to hold until then.
+     * Lines that must play in flight, such as an act boss's closing lines (Level 07), need a last
+     * section long enough for them: the aftermath after the arena is a section like any other, as
+     * long as the data makes it.
      */
     public static final double OUTRO_SECONDS = 15;
 
@@ -281,7 +287,7 @@ public record LevelData(
             Check.notNegative("t", t);
             Check.positive("seconds", seconds);
             skip.ifPresent(Layers::of);
-            requires.ifPresent(Requirement::check);
+            requires.ifPresent(Requirement::checkPrompt);
         }
 
         /** Whether it shows only with a special fitted (Level 04's {@code SPECIAL} · {@code CALL HAMMER}). */
@@ -499,6 +505,25 @@ public record LevelData(
         }
     }
 
+    /**
+     * Part G: a friendly craft drifting on the air layer that tows a secret's crate on a cable
+     * (Level 07's lifeboat tow). The {@code boat} (its sprite box, px) enters at the top edge at
+     * {@code t} with its centre at {@code x} and drifts at {@code drift} {@code [x, y]} px/s (y up: a
+     * negative y drifts down the screen); the {@code pod} (its box) hangs at {@code tether}
+     * {@code [dx, dy]} px from the boat's centre (y up: a positive dy trails above it). Shots and
+     * bullets pass the boat and the pod, and the ship flies under them; only the {@code cable}, a hit
+     * box midway between the two, takes the player's shots: {@code hits} of them cut it and the pod
+     * falls free as the crate of the secret it {@code reveals}.
+     */
+    public record Tow(
+            double t, double x, Point drift, Size boat, Size pod, Point tether, Size cable, int hits, String reveals) {
+        public Tow {
+            Check.notNegative("t", t);
+            Check.that(drift.y() < 0, "drift: a tow drifts down the screen (a negative y)");
+            Check.positive("hits", hits);
+        }
+    }
+
     /** Low-air cloud and haze intensity (design/art-direction/README.md). */
     public enum Atmosphere {
         CLEAR,
@@ -596,13 +621,22 @@ public record LevelData(
         ALTERNATING
     }
 
-    /** A difficulty's changes to a wave. */
+    /**
+     * A difficulty's changes to a wave.
+     *
+     * @param hold part G: another hold, s (Level 07's easy Mantis pincer holding 4 s)
+     */
     public record Change(
             Optional<Entry> from,
             Optional<Edge> edge,
             Optional<Integer> count,
             Optional<Integer> breakGroup,
-            Optional<Double> warning) {}
+            Optional<Double> warning,
+            Optional<Double> hold) {
+        public Change {
+            hold.ifPresent(h -> Check.notNegative("hold", h));
+        }
+    }
 
     /**
      * Part F: a segment chain's loop-back: {@code after} s past the end of its path (off the
@@ -757,21 +791,45 @@ public record LevelData(
 
     /**
      * A pickup carried by a unit of the wave starting at {@code droppedBy.wave}, dropped when it is
-     * destroyed, or by the last unit of the ground-target group {@code droppedBy.group}.
+     * destroyed, by the last unit of the ground-target group {@code droppedBy.group}, or by one of
+     * the boss's {@code droppedBy.parts}.
+     *
+     * @param skip part G: the difficulties it is left out on (Level 07's hard: no armour patch
+     *     before the boss)
      */
-    public record PlacedPickup(Pickup pickup, Carrier droppedBy) {}
+    public record PlacedPickup(Pickup pickup, Carrier droppedBy, Optional<List<String>> skip) {
+        public PlacedPickup {
+            skip.ifPresent(names -> names.forEach(Difficulty::of));
+        }
+
+        /** Whether it drops on {@code difficulty}. */
+        public boolean dropsOn(Difficulty difficulty) {
+            return skip.map(names -> names.stream().map(Difficulty::of).noneMatch(difficulty::equals))
+                    .orElse(true);
+        }
+    }
 
     /**
      * The {@code unit} ({@code first}, {@code second} or {@code last}) of the wave starting at
-     * {@code wave} seconds, or the {@code last} unit of a ground-target {@code group} to die (when the
-     * group is cleared).
+     * {@code wave} seconds, the {@code last} unit of a ground-target {@code group} to die (when the
+     * group is cleared), or (part G) the {@code unit}-th of the level boss's {@code parts} to be
+     * shot off (Level 07's first destroyed bay sac); parts lost in the boss's death drop nothing.
      */
-    public record Carrier(Optional<Double> wave, Optional<String> group, CarrierUnit unit) {
+    public record Carrier(
+            Optional<Double> wave, Optional<String> group, Optional<List<String>> parts, CarrierUnit unit) {
         public Carrier {
-            Check.that(wave.isPresent() != group.isPresent(), "dropped_by: give a wave or a group");
+            Check.that(
+                    (wave.isPresent() ? 1 : 0) + (group.isPresent() ? 1 : 0) + (parts.isPresent() ? 1 : 0) == 1,
+                    "dropped_by: give a wave, a group or the boss's parts");
             Check.that(
                     group.isEmpty() || unit == CarrierUnit.LAST,
                     "dropped_by: a group's pickup comes from its last unit");
+            parts.ifPresent(names -> {
+                Check.notEmpty("parts", names);
+                Check.that(
+                        unit != CarrierUnit.SECOND || names.size() >= 2,
+                        "dropped_by: the second of the parts needs two of them");
+            });
         }
 
         /** The carrier wave's time; NaN for a group's pickup. */
@@ -802,6 +860,12 @@ public record LevelData(
      * @param shout whether the voice shouts the line (design/audio/voice), apart from how it queues
      * @param easy changes on easy
      * @param hard changes on hard
+     * @param requires what has to be fitted for it to play: {@code special} or (part G)
+     *     {@code homing}, a weapon with homing delivery
+     * @param requiresNot part G: what must not be fitted for it to play (Level 07's "You can't touch
+     *     it up there" without a homing weapon)
+     * @param timeout part G, a boss-phase cue: true plays it only when the phase before ended on
+     *     its timeout with parts it waited for still alive (Level 07's "Forget the sacs")
      */
     public record RadioCue(
             Optional<Double> t,
@@ -818,13 +882,22 @@ public record LevelData(
             Optional<RadioChange> hard,
             Optional<String> requires,
             Optional<Count> allies,
-            Optional<String> phase) {
+            Optional<String> phase,
+            Optional<String> requiresNot,
+            Optional<Boolean> timeout) {
         public RadioCue {
             Check.that(
                     phase.isPresent() == (event.orElse(null) == CueEvent.BOSS_PHASE),
                     "a boss-phase event names its phase, other triggers do not");
             Check.that(t.isPresent() != event.isPresent(), "give the trigger as t or as event");
             requires.ifPresent(Requirement::check);
+            requiresNot.ifPresent(Requirement::check);
+            Check.that(
+                    requires.isEmpty() || !requires.equals(requiresNot),
+                    "requires and requires_not name different things");
+            Check.that(
+                    timeout.isEmpty() || event.orElse(null) == CueEvent.BOSS_PHASE,
+                    "only a boss-phase cue waits for a timeout");
             Check.that(
                     allies.isEmpty() || event.orElse(null) == CueEvent.LEVEL_END,
                     "only a level-end cue names the allies home");
@@ -839,12 +912,27 @@ public record LevelData(
         }
     }
 
-    /** What a prompt or radio cue requires: only {@code special} (a special fitted) so far. */
+    /**
+     * What a radio cue requires: {@code special} (a special fitted) or {@code homing} (a weapon with
+     * homing delivery fitted); a prompt knows only {@code special}.
+     */
     static final class Requirement {
+        /** A special fitted. */
+        static final String SPECIAL = "special";
+        /** A weapon with homing delivery fitted. */
+        static final String HOMING = "homing";
+
         private Requirement() {}
 
         static void check(String requires) {
-            Check.that(requires.equals("special"), "requires: only 'special' is known, was '" + requires + "'");
+            Check.that(
+                    requires.equals(SPECIAL) || requires.equals(HOMING),
+                    "requires: 'special' or 'homing' (on a prompt only 'special' is known), was '" + requires + "'");
+        }
+
+        static void checkPrompt(String requires) {
+            Check.that(
+                    requires.equals(SPECIAL), "requires: on a prompt only 'special' is known, was '" + requires + "'");
         }
     }
 
@@ -1004,14 +1092,19 @@ public record LevelData(
      * Destroy at least {@code killRatio} of all enemies for {@code credits}, clear the ground
      * enemies of every one of the {@code groups} (named by its ground targets' {@code group}) for
      * {@code credits} each, let none of the enemy {@code escapes} leave the screen alive ("nothing
-     * gets through", Level 03) for {@code credits}, or destroy every unit of the enemies
-     * {@code killAll} (Level 05's "Scorched crater", the tracker's {@code label}) for {@code credits}.
+     * gets through", Level 03) for {@code credits}, destroy every unit of the enemies
+     * {@code killAll} (Level 05's "Scorched crater", the tracker's {@code label}) for {@code credits},
+     * or (part G) shoot off every one of the level boss's {@code parts} before its phase
+     * {@code before} ends (Level 07's "Gut the bays": all eight sacs before the broadside phase
+     * times out; the tracker's {@code label}) for {@code credits}.
      */
     public record Secondary(
             Optional<Double> killRatio,
             Optional<List<String>> groups,
             Optional<String> escapes,
             Optional<List<String>> killAll,
+            Optional<List<String>> parts,
+            Optional<String> before,
             Optional<String> label,
             int credits) {
         public Secondary {
@@ -1020,12 +1113,17 @@ public record LevelData(
                                     + (groups.isPresent() ? 1 : 0)
                                     + (escapes.isPresent() ? 1 : 0)
                                     + (killAll.isPresent() ? 1 : 0)
+                                    + (parts.isPresent() ? 1 : 0)
                             == 1,
-                    "give kill_ratio, groups, escapes or kill_all");
+                    "give kill_ratio, groups, escapes, kill_all or parts");
             killRatio.ifPresent(r -> Check.share("kill_ratio", r));
             groups.ifPresent(g -> Check.notEmpty("groups", g));
             killAll.ifPresent(k -> Check.notEmpty("kill_all", k));
-            Check.that(killAll.isPresent() == label.isPresent(), "a kill_all objective has its tracker label");
+            parts.ifPresent(p -> Check.notEmpty("parts", p));
+            Check.that(parts.isPresent() == before.isPresent(), "a parts objective names the phase they die before");
+            Check.that(
+                    killAll.isPresent() || parts.isPresent() ? label.isPresent() : label.isEmpty(),
+                    "a kill_all or parts objective has its tracker label, the others none");
             Check.notNegative("credits", credits);
         }
     }
@@ -1045,6 +1143,10 @@ public record LevelData(
      * @param ambienceFrom the level time from which only the ambience plays: the theme fades out
      *     (Level 06's last seconds)
      * @param voiceLoop a radio line looping faintly under a section (Level 06's perimeter beacon)
+     * @param bossWarning part G: the warning track (by file name, {@code boss-warning}: track 22 with
+     *     the klaxon and the warning banner) when an act boss arrives, the theme crossfading out
+     * @param bossTrack part G: the boss theme (by file name, {@code choir-descends}: track 18) that
+     *     comes in after the warning and fades out at the kill, leaving the ambience
      */
     public record Music(
             int track,
@@ -1056,7 +1158,9 @@ public record LevelData(
             String endJingle,
             Optional<String> bossSting,
             Optional<Double> ambienceFrom,
-            Optional<VoiceLoop> voiceLoop) {
+            Optional<VoiceLoop> voiceLoop,
+            Optional<String> bossWarning,
+            Optional<String> bossTrack) {
         /**
          * The timed radio line of {@code speaker} (its first), looping at {@code db} (below full)
          * while section {@code section} (1-based) plays; silent while the speaker has no voice file.
@@ -1086,6 +1190,7 @@ public record LevelData(
             Check.that(startSection <= fullSection, "full_section must not come before start_section");
             startDb.ifPresent(db -> Check.that(db <= 0, "start_db: must not be above full level"));
             ambienceFrom.ifPresent(t -> Check.positive("ambience_from", t));
+            Check.that(bossTrack.isEmpty() || bossWarning.isPresent(), "a boss_track comes in after its boss_warning");
         }
     }
 

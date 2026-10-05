@@ -137,7 +137,8 @@ final class ContentValidator {
 
     /**
      * A boss's chains end on its parts, its phases name its parts and attacks, its streams known
-     * enemies; a difficulty's attack changes name its attacks.
+     * enemies, an alternating spiral has a duration; a difficulty's attack changes name its attacks
+     * and its spawn counts its spawns; its poses place its parts (part G).
      */
     private void checkBoss(EnemyData enemy) {
         List<EnemyData.ChainData> chains = enemy.chains().orElse(List.of());
@@ -164,7 +165,9 @@ final class ContentValidator {
         for (int i = 0; i < phases.size(); i++) {
             EnemyData.PhaseData phase = phases.get(i);
             String field = "boss.phases[" + i + "]";
-            phase.until().parts().forEach(part -> checkPartName(enemy, field + ".until.parts", part));
+            phase.until()
+                    .parts()
+                    .ifPresent(parts -> parts.forEach(part -> checkPartName(enemy, field + ".until.parts", part)));
             phase.exposes().ifPresent(parts -> parts.forEach(part -> checkPartName(enemy, field + ".exposes", part)));
             phase.attacks()
                     .or(phase::alternate)
@@ -173,8 +176,59 @@ final class ContentValidator {
                             problem(enemy, field + ".attacks", "no attack named '" + name + "'");
                         }
                     }));
+            phase.alternate()
+                    .ifPresent(names -> names.forEach(name -> enemy.attack(name)
+                            .filter(attack -> attack.pattern().equals("spiral")
+                                    && attack.duration().isEmpty())
+                            .ifPresent(attack -> problem(
+                                    enemy,
+                                    field + ".alternate",
+                                    "spiral '" + name + "' alternates without a duration"))));
             phase.streams().ifPresent(stream -> checkEnemyName(enemy, field + ".streams.enemy", stream.enemy()));
+            checkBossPartG(enemy, field, phase);
         }
+        EnemyData.BossData boss = enemy.boss().get();
+        for (var hook : List.of(
+                enemy.difficulty().flatMap(EnemyData.Hooks::easy),
+                enemy.difficulty().flatMap(EnemyData.Hooks::hard))) {
+            hook.flatMap(EnemyData.Hook::spawns)
+                    .ifPresent(counts -> counts.keySet().forEach(name -> {
+                        boolean known = boss.phases().stream()
+                                .flatMap(f -> f.windows().flatMap(EnemyData.WindowData::spawns).stream())
+                                .flatMap(List::stream)
+                                .anyMatch(spawn -> spawn.name().equals(name));
+                        if (!known) {
+                            problem(enemy, "difficulty.spawns", "no spawn named '" + name + "'");
+                        }
+                    }));
+        }
+        boss.poses().ifPresent(poses -> {
+            for (int i = 0; i < poses.size(); i++) {
+                for (String part : poses.get(i).offsets().keySet()) {
+                    checkPartName(enemy, "boss.poses[" + i + "].offsets", part);
+                }
+            }
+        });
+    }
+
+    /**
+     * Part G: a phase's move turns into a pose of the boss, and its windows hold its parts and
+     * release known enemies.
+     */
+    private void checkBossPartG(EnemyData enemy, String field, EnemyData.PhaseData phase) {
+        EnemyData.BossData boss = enemy.boss().orElseThrow();
+        phase.move().flatMap(EnemyData.MoveData::pose).ifPresent(pose -> {
+            if (boss.poseIndex(pose) < 0) {
+                problem(enemy, field + ".move.pose", "no pose named '" + pose + "'");
+            }
+        });
+        phase.windows().ifPresent(windows -> {
+            windows.groups()
+                    .forEach(group -> group.forEach(part -> checkPartName(enemy, field + ".windows.groups", part)));
+            windows.spawns()
+                    .ifPresent(spawns -> spawns.forEach(
+                            spawn -> checkEnemyName(enemy, field + ".windows.spawns.enemy", spawn.enemy())));
+        });
     }
 
     private void checkPartName(EnemyData enemy, String field, String part) {
@@ -281,6 +335,7 @@ final class ContentValidator {
             problem(level, "sections", "a level has at most one arena, and only with a boss");
         }
         checkDebris(level);
+        checkLevelRules(level);
         level.prompts().ifPresent(prompts -> {
             for (int i = 0; i < prompts.size(); i++) {
                 checkTime(level, "prompts[" + i + "].t", prompts.get(i).t());
@@ -443,6 +498,53 @@ final class ContentValidator {
      * The debris chunks resolve, enter inside the play field and within the level, and no more
      * large ones than allowed are on the screen at once, on any difficulty.
      */
+    /**
+     * Part G's level rules (Level 07): a tow reveals a secret of the level and enters within it, and
+     * a parts objective names parts and a phase of the level's boss.
+     */
+    private void checkLevelRules(LevelData level) {
+        Set<String> secrets =
+                level.secrets().stream().map(LevelData.Secret::name).collect(Collectors.toSet());
+        List<LevelData.Tow> tows = level.tows().orElse(List.of());
+        for (int i = 0; i < tows.size(); i++) {
+            LevelData.Tow tow = tows.get(i);
+            checkTime(level, "tows[" + i + "].t", tow.t());
+            if (!secrets.contains(tow.reveals())) {
+                problem(level, "tows[" + i + "].reveals", "no secret '" + tow.reveals() + "'");
+            }
+            if (tow.x() < 0 || tow.x() > PlayField.WIDTH) {
+                problem(level, "tows[" + i + "].x", "x=" + tow.x() + " is outside the play field");
+            }
+        }
+        level.objectives().secondary().ifPresent(secondary -> {
+            secondary.parts().ifPresent(parts -> checkBossParts(level, "objectives.secondary.parts", parts));
+            secondary.before().ifPresent(before -> level.boss()
+                    .filter(boss -> content.enemies().containsKey(boss.enemy()))
+                    .flatMap(boss -> content.enemy(boss.enemy()).boss())
+                    .filter(script -> script.phases().stream()
+                            .noneMatch(phase -> phase.name().equals(before)))
+                    .ifPresent(
+                            script -> problem(level, "objectives.secondary.before", "no boss phase '" + before + "'")));
+        });
+    }
+
+    /** Parts named by a level (a part drop, a parts objective) are parts of its boss. */
+    private void checkBossParts(LevelData level, String field, List<String> parts) {
+        if (level.boss().isEmpty()) {
+            problem(level, field, "boss parts need the level's boss");
+            return;
+        }
+        String slug = level.boss().get().enemy();
+        if (!content.enemies().containsKey(slug)) {
+            return;
+        }
+        for (String part : parts) {
+            if (content.enemy(slug).partIndex(part) < 0) {
+                problem(level, field, "'" + slug + "' has no part '" + part + "'");
+            }
+        }
+    }
+
     private void checkDebris(LevelData level) {
         if (level.debris().isEmpty()) {
             return;
@@ -517,6 +619,13 @@ final class ContentValidator {
             LevelData level, String field, List<LevelData.PlacedPickup> pickups, Set<Double> waveTimes) {
         for (int i = 0; i < pickups.size(); i++) {
             LevelData.Carrier carrier = pickups.get(i).droppedBy();
+            if (carrier.parts().isPresent()) {
+                checkBossParts(
+                        level,
+                        field + "[" + i + "].dropped_by.parts",
+                        carrier.parts().get());
+                continue;
+            }
             if (carrier.group().isPresent()) {
                 checkGroup(
                         level,

@@ -1,10 +1,10 @@
 ---
 title: Saves
 design: approved
-implementation: done
+implementation: in-progress
 art: n/a
 depends-on: [../../ui/main-menu, ../../ui/hangar]
-updated: 2026-10-02
+updated: 2026-10-05
 ---
 
 # Saves
@@ -49,7 +49,7 @@ A versioned document (engine-agnostic; for example JSON):
 | `grades` | Best grade per completed level |
 | `dataCores` | Collected data cores (lore) |
 | `storyFlags` | Branch-free story state (e.g. Rook's status, twist revealed) |
-| `stats` | Kills, deaths, accuracy (for the debrief and an eventual stats screen) |
+| `stats` | Kills, deaths, accuracy (for the debrief and an eventual stats screen); `levels`: per won level (by number) the credits it banked (earnings plus the grade bonus) and its kills, for the act summary of an act's last [debrief](../../ui/debrief/README.md) (format version 2, M4 part G) |
 
 Settings (audio, controls, display) are stored separately and are not part of a save.
 
@@ -59,7 +59,9 @@ JSON, one file per slot (`autosave.json`, `slot-1.json` … `slot-8.json`) in a 
 next to the settings file (in the platform's config directory, or next to the file `--settings`
 names). A save is written next to its file and moved into place, so a crash never leaves half a
 save. A file of a newer or unknown format version, or with a missing, unknown or invalid field,
-is shown as unreadable and never half loaded; older versions are migrated when they exist.
+is shown as unreadable and never half loaded; older versions are migrated. Version 2 (M4 part
+G) adds `stats.levels`; a version 1 save loads with no level recorded, and the act summary shows
+what is recorded.
 
 ### Slot display
 
@@ -73,6 +75,7 @@ the act.
 - [x] Continue = most recent save
 - [x] Slot list UI in load/save screens
 - [ ] `escort` field, with Rook — **later: M5** (the escort slot opens in Act 2)
+- [ ] Per-level records in `stats.levels` (format version 2, migrated from version 1) for the act summary (M4 part G)
 
 ## Decisions
 
@@ -99,3 +102,8 @@ the act.
   opens the hangar before the level; no extra slot or format change (see
   [retry](../retry/README.md)).
 - 2026-10-02: M3 close-out (user decision): the `escort` field moves to M5 with Rook's escort slot; the document is done for M3.
+- 2026-10-05: M4 part G (default stated with the user's D2): the act summary needs what each level
+  brought, which the save did not keep (only campaign-wide kills and score). Each won level's
+  banked credits and kills are recorded under `stats.levels` by level number; format version 2,
+  with a migration from version 1 that records none, so old saves stay readable and the summary
+  shows what is recorded. A new win of a level replaces its record.

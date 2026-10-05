@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
-updated: 2026-10-02
+updated: 2026-10-05
 ---
 
 # Bomb Rack
@@ -57,7 +57,7 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - [x] Layer hit rules for its traits (see Layers hit)
 - [x] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
 - [x] Behaviour as described above, except:
-- [ ] Over a level without ground the rack is idle and its HUD slot reads "NO GROUND" — **later: M4** (the first Act 1 level without a ground layer)
+- [ ] Over a level without ground the rack is idle and its HUD slot reads "NO GROUND" — **later: Act 5** (every Act 1–2 level has a ground layer or water, Level 07's picket wreckage included; the first without one is the Leech Field, L33)
 - [ ] Over water only surfaced naval targets — **later: M5** (the naval levels)
 - [x] Power draw per level counted in the loadout; upgrades priced as listed
 
@@ -69,3 +69,6 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - 2026-10-02: M4 part A: the 0.5 s fall time moved into the data (`fall`); the blast hits every ground object in range, a secret's beacon included (one hit).
 - 2026-10-02: M4 part A: flies in the simulation (`vanguard.sim.WeaponSpec` built by `SimSpecs.weapon`), with its effects from `tools/art/weapon_fx.py` and its family's sound; the effects are proposed as final in [concept round 14](../../../concept-rounds/round-14/README.md).
 - 2026-10-02: Concept round 14 closed (user decision): its effects (`tools/art/weapon_fx.py`) approved as **final**, `art: final`.
+- 2026-10-05: M4 part G (main-agent default, stated to the user): Level 07 has a ground layer (the
+  overrun picket's wreckage) though no ground targets, so it is not "a level without ground"; the
+  NO GROUND item moves to Act 5, whose Leech Field (L33) is the first level without one.

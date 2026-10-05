@@ -13,7 +13,7 @@ import vanguard.content.LevelData;
 /**
  * Builds the briefing before a level from the design data: a level that opens its act gets the
  * act's title card and briefing first (design/campaign, Act intro and outro), so the intro
- * briefing of a new game is the one before Level 01.
+ * briefing of a new game is the one before Level 01; and the act's outro after its last level.
  */
 public final class Briefings {
     private Briefings() {}
@@ -43,6 +43,25 @@ public final class Briefings {
                 pages,
                 objectives(content, level.objectives()),
                 level.briefing().teaser()));
+    }
+
+    /**
+     * The act outro after the act's last debrief, if the act has one.
+     *
+     * @param nextLevel the level the campaign goes on with
+     */
+    public static Optional<OutroScript> outro(CampaignRoute.ActEnd end, int nextLevel) {
+        ActData act = end.act();
+        ActData.TitleCard card = act.titleCard();
+        return act.outro()
+                .map(outro -> new OutroScript(
+                        end.actDirectory(),
+                        card.act() + " - " + card.name(),
+                        act.levels().first(),
+                        end.level(),
+                        nextLevel,
+                        outro.music(),
+                        outro.pages()));
     }
 
     /** The objective lines of the briefing: the primary objective, then the secondary one as a bonus. */
@@ -86,6 +105,7 @@ public final class Briefings {
                                                 + slug.replace('-', ' ').toUpperCase(Locale.ROOT) + " BEFORE IT BURSTS"
                                         : "BONUS: NO " + slug.replace('-', ' ').toUpperCase(Locale.ROOT)
                                                 + " GETS THROUGH"))
+                        .or(() -> secondary.parts().map(parts -> partsLine(secondary, parts)))
                         .or(() -> secondary
                                 .killAll()
                                 .map(slugs -> "BONUS: DESTROY EVERY "
@@ -101,6 +121,19 @@ public final class Briefings {
                                 secondary.groups().orElseThrow().size(),
                                 groupsName(secondary)))));
         return lines;
+    }
+
+    /**
+     * A parts secondary's line (Level 07's "Gut the bays"): its parts by their tracker label, to be
+     * destroyed before the boss phase it names ends, "BONUS: DESTROY ALL 8 BAYS BEFORE THE BROADSIDE ENDS".
+     */
+    static String partsLine(LevelData.Secondary secondary, List<String> parts) {
+        return String.format(
+                Locale.ROOT,
+                "BONUS: DESTROY ALL %d %s BEFORE THE %s ENDS",
+                parts.size(),
+                secondary.label().orElseThrow().toUpperCase(Locale.ROOT),
+                secondary.before().orElseThrow().replace('-', ' ').toUpperCase(Locale.ROOT));
     }
 
     private static boolean spawner(Content content, String slug) {

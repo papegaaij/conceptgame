@@ -1,9 +1,9 @@
 ---
 title: Act 1 – First Contact
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Act 1 – First Contact
@@ -25,7 +25,7 @@ Brood Carrier at the Earth–Moon L1 point.
 | [level-04-tranquility-run](level-04-tranquility-run/README.md) | First Luna level: escort five civilian crawlers past Brood Pods and Scuttler walkers; first special | approved | done | final |
 | [level-05-crater-nest](level-05-crater-nest/README.md) | Destroy four nest batteries in a crater by the mass driver; Polyp Mortar; mid-boss Gorgon Frigate | approved | in-progress | final |
 | [level-06-farside](level-06-farside/README.md) | The dark far side: empty settlements, Mantis snipers at the edges, Coilwyrm loop-backs from the rear | approved | in-progress | final |
-| [level-07-brood-carrier](level-07-brood-carrier/README.md) | Through the L1 picket and the escort screen to the act boss, the Brood Carrier | approved | not-started | chosen |
+| [level-07-brood-carrier](level-07-brood-carrier/README.md) | Through the L1 picket and the escort screen to the act boss, the Brood Carrier | approved | in-progress | chosen |
 
 ## Design
 
@@ -96,9 +96,28 @@ Neptune, then Earth orbit):
 > longer. Suit up."
 <!-- /data -->
 
-**Act-end outro** (after the L07 death sequence and its radio lines; track 24 *act complete*
-under the first page; still image: the carrier's carcass drifting at L1 with Earth beyond):
+**Act-end flow** (user decisions D2 and D3 of M4 part G): the L07 kill → the 35 s aftermath
+with the closing radio lines in flight → the L07 debrief with the act summary
+([debrief](../../ui/debrief/README.md)) → the act-end outro below on the briefing screen →
+autosave into the hangar before L08. Until Act 2 is built (M5) that hangar shows L08 as not
+built yet, as after any last built level; the Act 2 title card then opens Act 2's intro (see
+[Act 2](../act-2-homefront/README.md)), not this outro. A replay of L07 from mission select shows
+no outro.
 
+**Act-end outro** (four pages in the briefing format, each voiced and with its own image in
+`assets/ui/briefing/`; track 24 *act complete* starts under the first page and plays once). The
+pages are in the act's [data.yaml](data.yaml) (`outro`, see the
+[architecture](../../tech/architecture/README.md#data-file-schemas) schema text) and rendered
+here, as the act briefing.
+
+| Page | Speaker | Image |
+|---|---|---|
+| 1 | Commander Okafor | `act-1-outro-carcass`: the carrier's carcass drifting at L1, Earth beyond |
+| 2 | Commander Okafor (grim) | `act-1-outro-daedalus-rim`: the empty Daedalus Rim settlement, airlocks open, lights on |
+| 3 | Dr. Varga (grim) | `act-1-outro-second-fleet`: the second fleet's track toward Earth on a tactical plot |
+| 4 | Commander Okafor (fierce) | `act-1-outro-rook`: Aegis Wing, Rook's ship on Lancer's wing |
+
+<!-- data: act-outro -->
 > **Commander Okafor:** "The carrier is dead. The yards are scarred but standing, the
 > Tranquility convoy made it home, and nothing is falling on Luna any more. A week ago, none of
 > that was certain. Well flown, Aegis."
@@ -113,8 +132,7 @@ under the first page; still image: the carrier's carcass drifting at L1 with Ear
 > **Commander Okafor:** "Then we meet them on the ground. Aegis is reassigned to Earth defence,
 > effective now. And Lancer, from tomorrow Rook flies on your wing. Try to keep him out of
 > trouble."
-
-The outro is followed by the Act 2 title card (see [Act 2](../act-2-homefront/README.md)).
+<!-- /data -->
 
 ### Settings
 
@@ -175,7 +193,8 @@ and *Act complete*.
 ## Implementation
 
 - [ ] All 7 levels promoted to draft level documents and implemented.
-- [ ] Act 1 title card, opening briefing and act-end outro as in *Act intro and outro*.
+- [ ] Act 1 title card, opening briefing and act-end outro as in *Act intro and outro* (the
+      title card and the briefing are built; the outro and the act-end flow come with M4 part G).
 - [ ] Shop unlocks for L02–L07 as listed in the campaign loadout-pressure table.
 
 ## Open questions
@@ -207,3 +226,9 @@ and *Act complete*.
   the outer stations fall silent 11 days later, the Vrell reach Earth orbit about six weeks after
   the gate), so the texts stay as they are.
 - 2026-10-02: M4 part B (user decision): the first overdrive pickup is Level 02's (the t=118 pincer), not Level 03's.
+- 2026-10-05: M4 part G (user decisions): **D2** the act end runs aftermath → debrief with the
+  act summary → outro → hangar before L08 (not built yet until M5); the Act 2 title card belongs
+  to Act 2's intro (M5), so "the outro is followed by the Act 2 title card" is replaced by the
+  *Act-end flow*; no outro on a replay. **D3** one image per outro page (the carcass, the empty
+  Daedalus Rim, the second fleet's track, Rook on Lancer's wing) instead of one still, matching the
+  act briefing. The outro pages are voiced like the briefings and are in data.yaml (`outro`). Implementation status `in-progress`: L01–L04 are done and L05–L07 under way.

@@ -687,3 +687,36 @@ file). The sheet `themes-final-r13-a.png` (`--review`) draws each file's wavefor
 `assets/music/` with the intro (grey), loop (blue) and fade tail (dark) and the loop points
 (amber), with the measured numbers.
 
+
+## boss-music-final-r25-a — tracks 18, 22 and 24 (production art)
+
+Not a proposal of new music: the production files of the Act 1 boss and act-end tracks, for the M4
+part G review (round 25). `python3 tools/art/themes.py boss warning actcomplete` renders the chosen
+`choir-descends-full-r08-a` (#18 "The Choir Descends"), `boss-warning-r08-a` (#22 "Red Alert") and
+`act-complete-r08-a` (#24 "Act Complete") again with their generator
+(`tools/concept/audio/music_r08.py`, unchanged: `render_loop` for the boss theme, `render_sting` for
+the two one-shot cues; same composition, seeds and master at −14 LUFS, OGG Vorbis q6, the boss
+theme with `LOOPSTART` / `LOOPLENGTH` in samples), remuxes each stream with a `SOURCE` comment into
+`assets/music/{choir-descends,boss-warning,act-complete}.ogg` and checks them. The decoded audio is
+identical to the chosen files; only the comment is new.
+
+- `choir-descends-final-r25-a.ogg`, `boss-warning-final-r25-a.ogg`, `act-complete-final-r25-a.ogg`:
+  byte copies of the three files in `assets/music/`, for the review board.
+- `boss-handoff-final-r25-a.ogg`: listening aid, the boss cue as the game mixes it
+  (`vanguard.game.audio.BossCue`): track 22 once, track 18 added from sample 211 680 (4.8 s, three
+  bars at 150 BPM, `Tracks.BOSS_WARNING_BARS_SECONDS`), both as 16-bit samples summed and clamped,
+  8 bars of track 18, 1 s fade-out.
+- `choir-descends-seam-final-r25-a.ogg`: listening aid, the last 8 s of track 18's loop followed by
+  the first 8 s after `LOOPSTART`, as the looping stream plays the seam (0.5 s fades at both ends).
+- `boss-music-final-r25-a.png` (`--review`): the waveforms of the three files and of the hand-off
+  mix, with the loop points and the hand-off marked, and the measured numbers.
+
+`--check` adds, for the warning, the hand-off the game makes: the hand-off sample is exactly three
+bars at 150 BPM, track 18 starts on its own downbeat (first sample above −60 dBFS at sample 8, the
+5 ms fade-in), the warning's tail under track 18 stays more than 30 dB below it, the summed stream
+never clips, and the loudness step from the warning's last bar (up to its silent beat) into track
+18's first bar stays within 4 LU. Measured: last bar −11.6 LUFS → first bar −14.9 LUFS (−3.3 LU:
+the warning's build drops into the boss theme's quieter choir-and-drone intro after the silent
+beat), silent beat 7 dB under the bar (the choir, string and timpani tails ring into it), tail
+−39 dB under the track, peak after the hand-off −2.1 dBFS, no clamped samples. Track 18's seam
+jump is 0.35 of the nearby sample-to-sample change; one-shot ends: −145 dBFS (22), −70 dBFS (24).

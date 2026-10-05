@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../campaign, ../world]
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Audio
@@ -48,6 +48,19 @@ lines and briefing pages, [voice](voice/README.md)). The menu and
 other interface sounds play on the sfx bus at the effects volume; there is no separate interface
 slider (user decision). Default mix: music −6 dB relative to sfx; the radio ducks music by 4 dB
 while a message is shown or its voice plays.
+
+### Master limiter
+
+The buses sum into one mix, and in a busy fight that sum passes full scale: an explosion on a
+boss's roar on the music reaches +3 to +4 dB over it (peaks of 1.37 in Level 07 and 1.59 in Level 05,
+about 0.003 % of the samples), which the sound card would clip. A **master limiter** on the final
+mix holds every peak at full scale (0 dBFS); there is no headroom on the buses, so the mix keeps
+its levels. The limiter looks 1 ms ahead and only acts at full scale: until a level's first over
+the mix passes sample for sample, 1 ms late. After an over it releases slowly instead of at
+once: about −0.35 dB half a second later, −0.15 dB after 2 s and under −0.05 dB after 4–5 s
+(at most about −1 dB just after a loud over), so the mix sits on average 0.1 dB lower through a
+fight, far below what the ear notices, and its peaks stay at full scale. How it is built:
+[architecture](../tech/architecture/README.md#presentation-game).
 
 ### Formats
 
@@ -130,6 +143,7 @@ spoken lines are designed in [voice](voice/README.md).
 ## Implementation
 
 - [x] Audio buses with volume settings and ducking
+- [x] Master limiter on the final mix: no peak over full scale, levels unchanged below it
 - [ ] Music playback with loop points and crossfades (see [music](music/README.md))
 - [ ] SFX playback with voice limits and priorities (see [sfx](sfx/README.md))
 
@@ -162,3 +176,11 @@ spoken lines are designed in [voice](voice/README.md).
 - 2026-10-03: Round 18 item 2 decided by the user: radio filter **b** (more static). Filter a's
   `radio-chatterbox-*-r18-a` files moved to `concept/rejected/`; the raw Chatterbox takes stay
   chosen, since only the filter changed.
+- 2026-10-05: Master limiter on the final mix (M4 part G): the Level 07 capture found the mix over
+  full scale (peaks 1.2–1.46, clipped by the sound card), in every busy level. Bus headroom was
+  rejected (it turns the quiet passages down too), and so was a tighter voice limit (it would cut
+  sounds and still not bound the sum). The audio library's own output limiter is used: on the same
+  recorded mixes of Levels 05 and 07 it brings the peaks from 1.59 and 1.37 to 1.00 and leaves the
+  mix sample for sample until the first over; after an over it costs 0.1 dB on average for a few
+  seconds. A limiter of our own that releases at once would need the whole mix rendered in
+  software and replayed, about 20 ms more latency on every sound: not worth it for that 0.1 dB.

@@ -1,0 +1,145 @@
+# Brood Carrier stat block and boss script at medium: the stat block is rendered into README.md.
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+# The Act 1 boss (Level 07; user decision D1 of M4 part G). Its parts are hit boxes around the hull's
+# centre in its own frame, sprite px at 1× (dx right, dy up: nose-down the head hangs at negative dy).
+# The part_list offsets and the hitbox are the arrival pose, nose-down (the sim's pose 0); `poses`
+# adds the broadside (pose 1), the head swinging right: (dx, dy) nose-down → (-dy, dx) broadside.
+# Offsets and sizes are read off the round-04 concept (../../concept/brood-carrier-r04-a.png, the
+# 288×626 sprite); tools/art/brood_carrier.py renders to them. part_list is written tail to head: the
+# chained death bursts the parts in this order (death_seconds).
+name: Brood Carrier
+faction: Vrell
+layer: high-air     # the layer it arrives on: only homing shots reach it there (BC, phase 1)
+tier: huge
+size: [288, 626]    # sprite px nose-down at 1×; 360×782 drawn on high-air (the 1.25 high-air scale)
+hitbox: [220, 560]  # the hull (armoured), nose-down, fins and tendrils left out
+parts: multi
+part_list:  # tail to head; bay N = the N-th pair from the head (the windows open them head to tail)
+  - {name: bay 4 left, offset: [-89, 108], hitbox: [40, 40], hp: 180, kind: destroyable, bounty: 25, multiplier: 1.5}
+  - {name: bay 4 right, offset: [89, 108], hitbox: [40, 40], hp: 180, kind: destroyable, bounty: 25, multiplier: 1.5}
+  - {name: bay 3 left, offset: [-95, 33], hitbox: [40, 40], hp: 180, kind: destroyable, bounty: 25, multiplier: 1.5}
+  - {name: bay 3 right, offset: [95, 33], hitbox: [40, 40], hp: 180, kind: destroyable, bounty: 25, multiplier: 1.5}
+  - {name: core, offset: [0, -4], hitbox: [60, 60], hp: 2400, kind: vital, bounty: 250, multiplier: 2}
+  - {name: bay 2 left, offset: [-93, -42], hitbox: [40, 40], hp: 180, kind: destroyable, bounty: 25, multiplier: 1.5}
+  - {name: bay 2 right, offset: [93, -42], hitbox: [40, 40], hp: 180, kind: destroyable, bounty: 25, multiplier: 1.5}
+  - {name: bay 1 left, offset: [-86, -117], hitbox: [40, 40], hp: 180, kind: destroyable, bounty: 25, multiplier: 1.5}
+  - {name: bay 1 right, offset: [86, -117], hitbox: [40, 40], hp: 180, kind: destroyable, bounty: 25, multiplier: 1.5}
+  - {name: mandibles, offset: [0, -285], hitbox: [32, 32], kind: armoured, attack: mandible-fan}   # the head's fire-only turret (the mandible pair)
+orientation: fixed       # never rotated: two pre-rendered poses (notes.orientation)
+hp: 3840            # the sacs and the core; the mandibles are fire-only
+armour: hull and mandibles armoured (sparks, no damage); a sac takes damage only while open; on `high-air` (phase 1) only `homing` reaches it, the missiles seeking the open sacs all round and passing beneath the hull (`beam` too, from L15); invulnerable during the turn
+speed: 40           # px/s, coming over nose-first
+movement:
+  straight: {speed: 40}     # over the top edge nose-first on high-air
+  hover: {y: 270}           # the hull's centre, px below the top edge: over the middle of the field, at about 16.5 s
+attacks:
+  - pattern: fan
+    name: mandible-fan
+    bullet: small
+    interval: 2.4       # s between volleys
+    speed: 150
+    count: 5
+    spread: 50
+    notes:
+      text: 'phase 2: the head mandibles fire a {count}-way `{pattern}` (spread {spread}°, {speed} px/s, `{bullet}` = {damage}) every {interval} s'
+  - pattern: spiral
+    name: core-spiral
+    bullet: small
+    arms: 3
+    interval: 0.375     # s between two bullets of an arm (8 bullets/s over 3 arms)
+    turn_rate: 90       # °/s the arms turn
+    speed: 120
+    notes:
+      text: 'phase 3: the core fires a {arms}-arm `{pattern}` (turning {turn_rate}°/s, {speed} px/s, a bullet per arm every {interval} s) for the whole phase'
+  - pattern: ring
+    name: core-ring
+    bullet: small
+    count: 16
+    interval: 4
+    speed: 110
+    notes:
+      text: 'and with it a {count}-bullet `{pattern}` every {interval} s ({speed} px/s)'
+formations:
+  - {name: carrier + escorts}
+weak_points:
+  - {name: lime bay sacs, multiplier: 1.5}
+  - {name: lime core, multiplier: 2}
+drops: []           # the first destroyed sac drops Level 07's overdrive (the level's dropped_by parts)
+traits: [piercing, spread, homing]
+bounty: 450         # the parts' sum
+first_level: 7
+difficulty:
+  easy:
+    spawns: {overhead-skitters: 3, overhead-needlers: 1}
+  hard:
+    attacks: {core-spiral: {arms: 4}}
+    spawns: {overhead-skitters: 5, broadside-skitters: 3, timeout-skitters: 3}   # every opening that spawns Skitters spawns 1 more
+boss:
+  kind: boss        # the act boss: the long bar
+  bar_name: BROOD CARRIER
+  par: 100          # s from the boss bar appearing to the kill: the Boss rush bonus
+  engages_on_arrival: true   # phase 1's 25 s run from the bar appearing; the entrance is part of the fight
+  death_seconds: 3           # the chain bursts the parts tail to head (part_list order); surviving sacs pay
+  poses:            # the further pose; the part_list offsets are the arrival pose (nose-down)
+    - name: broadside
+      hitbox: [560, 220]
+      offsets:
+        bay 4 left: [-108, -89]
+        bay 4 right: [-108, 89]
+        bay 3 left: [-33, -95]
+        bay 3 right: [-33, 95]
+        core: [4, 0]
+        bay 2 left: [42, -93]
+        bay 2 right: [42, 93]
+        bay 1 left: [117, -86]
+        bay 1 right: [117, 86]
+        mandibles: [285, 0]
+  phases:
+    - name: Overhead
+      until: {seconds: 25}
+      windows:      # a pair opens once it is on the field: the first about 6 s after the bar
+        groups: [[bay 1 left, bay 1 right], [bay 2 left, bay 2 right], [bay 3 left, bay 3 right], [bay 4 left, bay 4 right]]
+        every: 2.5
+        open: 2
+        offset: 6
+        spawns:     # in turn per opening: pairs 1 and 3 launch Skitters, pairs 2 and 4 Needlers
+          - {name: overhead-skitters, enemy: skitter, count: 4, speed: 150, arc: 90}
+          - {name: overhead-needlers, enemy: needler, count: 2, speed: 100, arc: 60, glide: 1}
+    - name: Broadside
+      until: {parts: [bay 1 left, bay 1 right, bay 2 left, bay 2 right, bay 3 left, bay 3 right, bay 4 left, bay 4 right], seconds: 70}
+      move: {to: [170, 150], layer: air, descend: 2, pose: broadside, turn: 2}   # 70 px left of centre, the head 25 px inside the right edge
+      attacks: [mandible-fan]
+      windows:      # one living pair at a time, between the volleys
+        groups: [[bay 1 left, bay 1 right], [bay 2 left, bay 2 right], [bay 3 left, bay 3 right], [bay 4 left, bay 4 right]]
+        every: 2.4
+        open: 2
+        offset: 0.2
+        spawns:
+          - {name: broadside-skitters, enemy: skitter, count: 2, speed: 150, arc: 40}   # 1 per open living sac
+    - name: Core
+      until: {parts: [core]}
+      exposes: [core]
+      delay: 1      # the plate iris opens
+      attacks: [core-spiral, core-ring]
+      windows:      # only after a timeout: every surviving pair together
+        groups: [[bay 1 left, bay 1 right], [bay 2 left, bay 2 right], [bay 3 left, bay 3 right], [bay 4 left, bay 4 right]]
+        every: 6
+        open: 2
+        offset: 3
+        all: true
+        spawns:
+          - {name: timeout-skitters, enemy: skitter, count: 2, speed: 150, arc: 40}
+notes:
+  layer: ' (phase 1) → `air` (the turn, phases 2–3)'
+  size: '(nose-down; broadside {boss.poses.0.hitbox.0}×{boss.poses.0.hitbox.1}); drawn 360×782 px on `high-air` (the 1.25 high-air scale)'
+  parts: 'hull (`armoured`), 8 bay sacs in 4 pairs (`destroyable`, open only in windows), core under a plate iris (`vital`, phase 3), the head mandible turret (`armoured`, fire only: no HP, not in the bar)'
+  orientation: '(never rotated at run time): two poses, nose-down (phase 1) and broadside (phases 2–3), with 6–8 pre-rendered turn frames between them; the mandible turret a small heading set'
+  hp: bay sac 180 each (1 440); core 2 400; total
+  speed: '(coming over nose-first); phases 2–3 hold their station'
+  movement: 'comes over the top edge nose-first on `high-air` at {movement.straight.speed} px/s and stops with its centre at y {movement.hover.y} (about 16.5 s); then the turn: descends to `air` while it glides to its broadside station (x 170, y 150) in 2 s, and turns 90° in place in 2 s, head to the right (invulnerable); see *Phases*'
+  attack_prefix: 'see *Phases*: '
+  formations: '(Skitters and Needlers launched from its bays)'
+  bounty: ' (bays 25 each, core 250; × L07''s `bounty_scale` 0.75 it pays 340, ≈ 32 % of the L07 budget, 1,051)'
+  death: '`huge`: chained explosions from tail to head over {boss.death_seconds} s (surviving sacs burst and pay in the chain), screen flash, credit shower'
+  used_in: echo version in the L49 boss rush
+  difficulty: 'easy: phase-1 openings spawn 3 Skitters or 1 Needler; hard: phase-3 spiral has 4 arms; every opening that spawns Skitters spawns 1 more'

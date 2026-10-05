@@ -5,23 +5,35 @@ import java.util.List;
 
 /**
  * The level's radio cues (design/campaign, radio chatter): each starts once per attempt, at its
- * time or on its event, as a {@link SimEvents.Type#RADIO} event at the ship. A cue that requires a
- * special never starts without one fitted, and a level-end cue only with the convoy units home in
- * its range.
+ * time or on its event, as a {@link SimEvents.Type#RADIO} event at the ship. A cue starts only
+ * with what it requires fitted and nothing it requires not (a special, a homing weapon), and a
+ * level-end cue only with the convoy units home in its range.
  */
 final class Radio {
     private final List<LevelScript.RadioCue> cues;
     private final boolean[] fired;
     private final SimEvents events;
     private final Ship ship;
-    private final boolean specialFitted;
+    /** What is fitted, as {@link LevelScript.RadioCue#FITTED_SPECIAL} and {@link LevelScript.RadioCue#FITTED_HOMING} bits. */
+    private final int fitted;
 
-    Radio(List<LevelScript.RadioCue> cues, SimEvents events, Ship ship, boolean specialFitted) {
+    Radio(List<LevelScript.RadioCue> cues, SimEvents events, Ship ship, int fitted) {
         this.cues = cues;
         this.fired = new boolean[cues.size()];
         this.events = events;
         this.ship = ship;
-        this.specialFitted = specialFitted;
+        this.fitted = fitted;
+    }
+
+    /** What {@code armament} and {@code special} fit, as the radio cues' requirement bits. */
+    static int fitted(Armament armament, SpecialSlot special) {
+        int fitted = special.fitted() ? LevelScript.RadioCue.FITTED_SPECIAL : 0;
+        for (int m = 0; m < armament.size(); m++) {
+            if (armament.mount(m).weapon().delivery() == WeaponSpec.Delivery.HOMING) {
+                fitted |= LevelScript.RadioCue.FITTED_HOMING;
+            }
+        }
+        return fitted;
     }
 
     /** Copies which cues have started into {@code into} (a boss checkpoint). */
@@ -82,7 +94,7 @@ final class Radio {
     }
 
     private boolean allowed(LevelScript.RadioCue cue) {
-        return specialFitted || !cue.requiresSpecial();
+        return cue.allowedWith(fitted);
     }
 
     private void start(int index) {

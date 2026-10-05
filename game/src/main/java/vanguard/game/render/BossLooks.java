@@ -24,6 +24,8 @@ import vanguard.sim.SetPiece;
  * wrecked one as its torn stump, a hit part flashing white; and the boss bar with its name at the
  * top of the play field (design/ui/hud: shorter for a mid-boss). At its death the wreck where it
  * died (crown open, core dark) until its {@link SetPieceDeath break-up} replaces it by the chunks.
+ * A boss without the bell (the Brood Carrier) is drawn by its {@link HullBossLooks}: its hull in its
+ * pose with the sacs, the iris and the turrets, its shadow off the plane.
  */
 final class BossLooks {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
@@ -63,24 +65,29 @@ final class BossLooks {
     private final int firstStep;
     /** The break-up at its death (tools/art/gorgon_frigate_death.py); null for none. */
     final SetPieceDeath death;
+    /** A boss with one turning hull instead of the bell and necks; null for the frigate's kind. */
+    final HullBossLooks hull;
     /** Level seconds when the core was first seen exposed; NaN while it is covered. */
     private double openedAt = Double.NaN;
 
     /**
-     * @param slug the level's boss, or null when it has none (only the bar is then drawable)
-     * @param pivots the boss's pivot file
+     * @param spec the level's boss, or null when it has none (only the bar is then drawable)
+     * @param pivots the boss's pivot file, or null
      */
-    BossLooks(Sprites sprites, FlashShader flash, String slug, JsonValue pivots) {
+    BossLooks(Sprites sprites, FlashShader flash, LevelScript.SetPieceSpec spec, JsonValue pivots) {
         this.pixel = sprites.pixel;
         this.flash = flash;
-        if (slug == null) {
+        String slug = spec == null ? null : spec.slug();
+        if (slug == null || !sprites.has(slug + "-bell")) {
             bells = heads = stumps = null;
             necks = null;
             coreGlow = null;
             originX = originY = steps = firstStep = 0;
-            death = null;
+            hull = slug == null ? null : new HullBossLooks(sprites, flash, spec, pivots);
+            death = slug == null ? null : SetPieceDeath.of(sprites, pivots);
             return;
         }
+        hull = null;
         bells = sprites.frames(slug + "-bell");
         List<Array<AtlasRegion>> pieces = new ArrayList<>();
         while (sprites.has(slug + "-neck-" + (pieces.size() + 1))) {
@@ -98,16 +105,43 @@ final class BossLooks {
         death = SetPieceDeath.of(sprites, pivots);
     }
 
-    /** The boss at its interpolated place: necks, bell with its crown, core glow, heads. */
-    void draw(SpriteBatch batch, SetPiece piece, float alpha, double seconds, float whiteFlash) {
+    /**
+     * The boss at its interpolated place: necks, bell with its crown, core glow, heads (a hull boss:
+     * its hull and parts, the turrets toward the ship at ({@code shipX}, {@code shipY})).
+     */
+    void draw(
+            SpriteBatch batch,
+            SetPiece piece,
+            float alpha,
+            double seconds,
+            float whiteFlash,
+            double shipX,
+            double shipY) {
+        if (hull != null) {
+            hull.draw(batch, piece, alpha, seconds, whiteFlash, shipX, shipY);
+            return;
+        }
         drawAt(batch, piece, piece.renderX(alpha), piece.renderY(alpha), seconds, whiteFlash, false);
+    }
+
+    /** A hull boss's shadow while it flies above the play plane; nothing for the frigate's kind. */
+    void drawShadow(SpriteBatch batch, SetPiece piece, float alpha) {
+        if (hull != null) {
+            hull.drawShadow(batch, piece, alpha);
+        }
     }
 
     /**
      * The destroyed boss where it died, until its break-up's swap: the necks as they were (gone
-     * limp), the bell with its crown open over the burst core (no glow), the stumps.
+     * limp), the bell with its crown open over the burst core (no glow), the stumps (a hull boss:
+     * its hull with the sacs burst, at {@code scale}).
      */
-    void drawWreck(SpriteBatch batch, SetPiece piece, double x, double y) {
+    void drawWreck(SpriteBatch batch, SetPiece piece, double x, double y, float scale) {
+        if (hull != null) {
+            Color tint = batch.getColor();
+            hull.drawWreck(batch, piece, x, y, scale, tint.r, tint.a);
+            return;
+        }
         drawAt(batch, piece, x, y, 0, 0, true);
     }
 

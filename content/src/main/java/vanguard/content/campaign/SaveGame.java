@@ -73,6 +73,31 @@ public record SaveGame(
      *
      * @param kills enemies destroyed in completed levels
      * @param deaths times the Stormhawk was destroyed
+     * @param levels what each won level brought, by level number, for the act summary of an act's
+     *     last debrief (format version 2; a version 1 save has none recorded)
      */
-    public record Stats(int kills, int deaths) {}
+    public record Stats(int kills, int deaths, Map<Integer, LevelStats> levels) {
+        public Stats {
+            levels = Map.copyOf(levels);
+        }
+
+        /** Statistics without any level recorded. */
+        public Stats(int kills, int deaths) {
+            this(kills, deaths, Map.of());
+        }
+    }
+
+    /**
+     * What a won level brought the campaign (design/ui/debrief, act summary).
+     *
+     * @param credits the credits banked: the level's earnings with the grade bonus
+     * @param kills the enemies destroyed
+     */
+    public record LevelStats(int credits, int kills) {
+        public LevelStats {
+            if (credits < 0 || kills < 0) {
+                throw new IllegalArgumentException("invalid level stats: credits " + credits + ", kills " + kills);
+            }
+        }
+    }
 }

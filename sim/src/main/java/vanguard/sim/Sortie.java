@@ -89,6 +89,12 @@ public final class Sortie {
     private final String[] secretNames;
     /** The level's darkness; null in a lit level. */
     private final LevelScript.Darkness darkness;
+    /** Part G: the tows (Level 07's lifeboat). */
+    private final Tow[] tows;
+    /** Part G: per part drop of the script, the index of its set piece; -1 when the level has none of that slug. */
+    private final int[] partDropPiece;
+    /** Part G: the set piece of a parts objective (Level 07's carrier); -1 without one. */
+    private final int partsPiece;
 
     /** The damage of the lobs that landed on the ship in this step. */
     private double directHits;
@@ -150,6 +156,9 @@ public final class Sortie {
         final boolean[] radioFired = new boolean[radio.size()];
         final int[] secretTriggersSpent = new int[Sortie.this.secretTriggersSpent.length];
         final boolean[] groupCalled = new boolean[Sortie.this.groupCalled.length];
+        final int[] towHits = new int[tows.length];
+        final int[] towCuts = new int[tows.length];
+        final boolean[] towCrates = new boolean[tows.length];
         double shield;
         double armour;
         double armourLost;
@@ -214,6 +223,12 @@ public final class Sortie {
             }
         }
         darkness = script.darkness().orElse(null);
+        tows = script.tows().stream().map(Tow::new).toArray(Tow[]::new);
+        partDropPiece = new int[script.partDrops().size()];
+        for (int d = 0; d < partDropPiece.length; d++) {
+            partDropPiece[d] = pieceOf(script.partDrops().get(d).slug());
+        }
+        partsPiece = script.secondary().byParts() ? pieceOf(script.secondary().partsOf()) : -1;
         PlayerFire.Hits hits = new PlayerFire.Hits() {
             @Override
             public void enemyDestroyed(int index) {
@@ -243,8 +258,14 @@ public final class Sortie {
         this.hits = hits;
         fire = new PlayerFire(ship, loadout.armament(), events, hits, setPieces);
         special = new SpecialSlot(loadout.special(), events, ship.defences());
-        List<EnemySpec> streamKinds =
-                bossStreams.stream().map(BossSpec.Stream::enemy).toList();
+        // The boss streams' units and (part G) the units its windows launch are enemy kinds of the level.
+        List<EnemySpec> streamKinds = java.util.stream.Stream.concat(
+                        bossStreams.stream().map(BossSpec.Stream::enemy),
+                        script.setPieces().stream()
+                                .flatMap(piece -> piece.boss().stream())
+                                .flatMap(boss -> boss.spawnKinds().stream()))
+                .distinct()
+                .toList();
         force = new EnemyForce(
                 script.waves(), script.groundUnits(), streamKinds, rng, rules, events, new EnemyForce.Escapes() {
                     @Override
@@ -296,6 +317,14 @@ public final class Sortie {
             public void phase(int phase) {
                 bossPhase = phase;
             }
+
+            @Override
+            public void launch(BossSpec.Spawn spawn, double x, double y, double angle) {
+                // A window's unit counts among the level's enemies, as a stream's does.
+                force.launch(spawn.enemy(), x, y, angle, spawn.speed(), spawn.glideSeconds());
+                streamReleased++;
+                events.add(SimEvents.Type.BOSS_LAUNCHED, x, y, force.kinds().indexOf(spawn.enemy()));
+            }
         };
         tally = new Tally(rules.scoring());
         int escapers = force.unitsOf(script.secondary().escapes());
@@ -305,6 +334,7 @@ public final class Sortie {
         for (SetPiece piece : setPieces) {
             escapers += script.secondary().counts(piece.slug()) ? 1 : 0;
         }
+        escapers += partsPiece >= 0 ? script.secondary().parts().size() : 0;
         objectives = new Objectives(
                 script.secondary(),
                 script.groups().size(),
@@ -317,7 +347,7 @@ public final class Sortie {
         sledView = java.util.Optional.ofNullable(sled);
         rock = script.rocks().map(LevelScript.RockSpec::chunk).orElse(null);
         groupCalled = new boolean[script.groups().size()];
-        radio = new Radio(script.radio(), events, ship, special.fitted());
+        radio = new Radio(script.radio(), events, ship, Radio.fitted(loadout.armament(), special));
         convoy = script.escort()
                 .map(escort -> new Convoy(escort, script.road().orElseThrow()))
                 .orElse(null);
@@ -329,6 +359,16 @@ public final class Sortie {
         endTicks = SimStep.ticks(script.seconds());
         pickupTicks = SimStep.ticks(rules.pickups().seconds());
         startAttempt(armour);
+    }
+
+    /** The index of the set piece {@code slug} among the level's; -1 for none. */
+    private int pieceOf(String slug) {
+        for (int k = 0; k < setPieces.length; k++) {
+            if (setPieces[k].slug().equals(slug)) {
+                return k;
+            }
+        }
+        return -1;
     }
 
     /** Advances the sortie by one step with the given {@link Command} set. */
@@ -381,6 +421,12 @@ public final class Sortie {
         }
         for (Crane crane : cranes) {
             crane.update(levelTick);
+        }
+        for (Tow tow : tows) {
+            tow.update(levelTick);
+            if (tow.releaseCrate()) {
+                dropTowCrate(tow);
+            }
         }
         if (sled != null) {
             updateSled();
@@ -500,6 +546,11 @@ public final class Sortie {
         radio.saveFired(c.radioFired);
         System.arraycopy(secretTriggersSpent, 0, c.secretTriggersSpent, 0, secretTriggersSpent.length);
         System.arraycopy(groupCalled, 0, c.groupCalled, 0, groupCalled.length);
+        for (int i = 0; i < tows.length; i++) {
+            c.towHits[i] = tows[i].hitsLeft();
+            c.towCuts[i] = tows[i].cutTick();
+            c.towCrates[i] = tows[i].crateDue();
+        }
         Defences defences = ship.defences();
         c.shield = defences.shield();
         c.armour = defences.armour();
@@ -540,6 +591,9 @@ public final class Sortie {
         }
         System.arraycopy(c.groupCalled, 0, groupCalled, 0, groupCalled.length);
         levelTick = c.levelTick;
+        for (int i = 0; i < tows.length; i++) {
+            tows[i].restore(c.towHits[i], c.towCuts[i], c.towCrates[i], levelTick);
+        }
         groundScroll = c.groundScroll;
         nextGroundObject = c.nextGroundObject;
         nextDebris = c.nextDebris;
@@ -613,6 +667,9 @@ public final class Sortie {
         }
         if (sled != null) {
             sled.reset();
+        }
+        for (Tow tow : tows) {
+            tow.reset();
         }
         rocksThrown = 0;
         Arrays.fill(groupCalled, false);
@@ -730,15 +787,13 @@ public final class Sortie {
 
     /** The set pieces' living parts fire their guns while on the player's layer. */
     private void fireSetPieces(boolean firing) {
-        for (SetPiece piece : setPieces) {
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
             if (piece.boss().isPresent()) {
                 bossPhase = -1;
                 piece.act(ship.x(), ship.y(), bossActions, firing);
                 if (bossPhase > 0) {
-                    events.add(SimEvents.Type.BOSS_PHASE, piece.x(), piece.y(), bossPhase);
-                    radio.cue(
-                            LevelScript.CueTrigger.BOSS_PHASE,
-                            piece.boss().get().phases().get(bossPhase).name());
+                    phaseEntered(k, piece);
                 }
                 continue;
             }
@@ -750,6 +805,34 @@ public final class Sortie {
                 }
             }
         }
+    }
+
+    /**
+     * Boss {@code k} entered phase {@link #bossPhase}: its event and line, the timeout line first
+     * when the phase before ran out of time with parts it waited for alive (Level 07's "Forget the
+     * sacs"), and a parts objective whose phase is over fails with one of its parts alive.
+     */
+    private void phaseEntered(int k, SetPiece piece) {
+        BossSpec boss = piece.boss().orElseThrow();
+        String name = boss.phases().get(bossPhase).name();
+        events.add(SimEvents.Type.BOSS_PHASE, piece.x(), piece.y(), bossPhase);
+        if (timedOut(piece, boss, bossPhase - 1)) {
+            radio.cue(LevelScript.CueTrigger.BOSS_TIMEOUT, name);
+        }
+        radio.cue(LevelScript.CueTrigger.BOSS_PHASE, name);
+        if (k == partsPiece && bossPhase > script.secondary().beforePhase() && objectives.partsSurvived()) {
+            events.add(SimEvents.Type.OBJECTIVE_FAILED, piece.x(), piece.y());
+        }
+    }
+
+    /**
+     * Whether phase {@code phase} timed out: it ended on its timer while it also waited for parts
+     * (Level 07's broadside phase with sacs alive). A purely timed phase (the overhead pass) never
+     * times out in this sense.
+     */
+    private static boolean timedOut(SetPiece piece, BossSpec boss, int phase) {
+        return piece.endedOnTimeout(phase)
+                && !boss.phases().get(phase).untilParts().isEmpty();
     }
 
     private void scrollGround(double distance) {
@@ -955,6 +1038,7 @@ public final class Sortie {
     private void wreck(int k, int part) {
         SetPiece piece = setPieces[k];
         payPart(piece, part);
+        shotOff(k, piece, part);
         if (!piece.spec().parts().get(part).vital()) {
             return;
         }
@@ -985,6 +1069,49 @@ public final class Sortie {
         if (objectives.escapeDestroyed(spec.slug())) {
             paySecondary();
         }
+        if (k == partsPiece && objectives.partsSurvived()) {
+            events.add(SimEvents.Type.OBJECTIVE_FAILED, piece.x(), piece.y());
+        }
+    }
+
+    /**
+     * Part {@code part} of set piece {@code k} was shot off (not lost in the unit's death): the
+     * pickup of a part drop whose turn it is falls where it broke (Level 07's first bay sac), and a
+     * parts objective counts it.
+     */
+    private void shotOff(int k, SetPiece piece, int part) {
+        List<LevelScript.PartDrop> drops = script.partDrops();
+        for (int d = 0; d < drops.size(); d++) {
+            LevelScript.PartDrop drop = drops.get(d);
+            if (partDropPiece[d] == k && among(drop.parts(), part) && wrecked(piece, drop.parts()) == drop.dropsAt()) {
+                double half = EnemyGun.BULLET.width();
+                drop(
+                        drop.pickup(),
+                        Math.clamp(piece.partX(part), half, PlayField.WIDTH - half),
+                        Math.clamp(piece.partY(part), half, PlayField.HEIGHT - half));
+            }
+        }
+        if (k == partsPiece && among(script.secondary().parts(), part) && objectives.partShotOff()) {
+            paySecondary();
+        }
+    }
+
+    private static boolean among(List<Integer> parts, int part) {
+        for (int i = 0; i < parts.size(); i++) {
+            if (parts.get(i) == part) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** How many of {@code parts} of {@code piece} are wrecked. */
+    private static int wrecked(SetPiece piece, List<Integer> parts) {
+        int wrecked = 0;
+        for (int i = 0; i < parts.size(); i++) {
+            wrecked += piece.partWrecked(parts.get(i)) ? 1 : 0;
+        }
+        return wrecked;
     }
 
     /** What a boss's parts paid together, after the credit factor: the credit shower's number. */
@@ -1165,7 +1292,66 @@ public final class Sortie {
                 }
             }
         }
+        hitTows(shots);
         blockByDebris(shots, bullets);
+    }
+
+    /**
+     * Part G: the tows' cables take the player's shots that touch them while they hold their pods;
+     * the last hit cuts one and its pod falls loose with its secret's crate. Every other shot and
+     * bullet passes the boats and the pods.
+     */
+    private void hitTows(Pool<Shot> shots) {
+        for (Tow tow : tows) {
+            if (!tow.present() || !tow.holding()) {
+                continue;
+            }
+            for (int i = shots.size() - 1; i >= 0; i--) {
+                Shot shot = shots.get(i);
+                if (shot.weapon().delivery().landing()
+                        || !tow.cableHit(shot.x(), shot.y(), shot.weapon().size())) {
+                    continue;
+                }
+                events.add(SimEvents.Type.CLAMP_HIT, shot.x(), shot.y(), shot.mount());
+                shots.free(i);
+                if (tow.countHit(levelTick)) {
+                    cutTow(tow);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * A tow's cable was cut: the secret is found and its pod falls loose ({@link Tow}); the crate
+     * falls out of it at once if the pod is already down at the ship.
+     */
+    private void cutTow(Tow tow) {
+        objectives.secretFound();
+        events.add(SimEvents.Type.SECRET_FOUND, towPodX(tow), towPodY(tow));
+        radio.cue(LevelScript.CueTrigger.SECRET, tow.spec().secret());
+        if (tow.releaseCrate()) {
+            dropTowCrate(tow);
+        }
+    }
+
+    /** The crate falls out of a tow's loose pod, an ordinary hidden crate from here on. */
+    private void dropTowCrate(Tow tow) {
+        Pickup crate = pickups.obtain();
+        if (crate != null) {
+            crate.drop(PickupType.HIDDEN_CRATE, tow.spec().crateCredits(), towPodX(tow), towPodY(tow), pickupTicks);
+        }
+    }
+
+    /** A tow's pod's centre kept a bullet's width inside the play field. */
+    private static double towPodX(Tow tow) {
+        double half = EnemyGun.BULLET.width();
+        return Math.clamp(tow.podX(), half, PlayField.WIDTH - half);
+    }
+
+    private static double towPodY(Tow tow) {
+        double half = EnemyGun.BULLET.width();
+        return Math.clamp(tow.podY(), half, PlayField.HEIGHT - half);
     }
 
     /**
@@ -1237,7 +1423,7 @@ public final class Sortie {
             LevelScript.SetPieceSpec spec = piece.spec();
             if (piece.present()
                     && piece.onPlane()
-                    && hull.overlaps(ship.x(), ship.y(), spec.body(), piece.x(), piece.y())
+                    && hull.overlaps(ship.x(), ship.y(), piece.body(), piece.x(), piece.y())
                     && piece.strike()) {
                 double lost = ship.defences().armourLost();
                 if (damaged(lost, ship.defences().takeCollision(spec.contactDamage(), events, ship.x(), ship.y()))) {
@@ -1565,6 +1751,9 @@ public final class Sortie {
         for (Crane crane : cranes) {
             crane.addTo(hash);
         }
+        for (Tow tow : tows) {
+            tow.addTo(hash);
+        }
         for (SetPiece piece : setPieces) {
             piece.addTo(hash);
         }
@@ -1789,6 +1978,15 @@ public final class Sortie {
         return cranes.length;
     }
 
+    /** Part G: the tows of the level (Level 07's lifeboat), present or not. */
+    public int towCount() {
+        return tows.length;
+    }
+
+    public Tow tow(int index) {
+        return tows[index];
+    }
+
     public Crane crane(int index) {
         return cranes[index];
     }
@@ -1954,17 +2152,21 @@ public final class Sortie {
         return objectives.secondaryMet();
     }
 
-    /** Whether the secondary objective is that none of an enemy gets through (Level 03's Spore Bombers). */
+    /**
+     * Whether the secondary objective counts units (parts) destroyed of all: none of an enemy gets
+     * through (Level 03's Spore Bombers), every unit of some enemies (Level 05), or every one of a
+     * boss's parts shot off in time (Level 07's bay sacs).
+     */
     public boolean secondaryByEscapes() {
         return script.secondary().byEscapes();
     }
 
-    /** The units of an escapes objective's enemy destroyed so far in this attempt. */
+    /** The units of an escapes objective's enemy (the parts of a parts objective) destroyed so far in this attempt. */
     public int escapesDestroyed() {
         return objectives.escapesDestroyed();
     }
 
-    /** The units of an escapes objective's enemy the level sends. */
+    /** The units of an escapes objective's enemy the level sends (the parts of a parts objective). */
     public int escapesTotal() {
         return objectives.escapesTotal();
     }

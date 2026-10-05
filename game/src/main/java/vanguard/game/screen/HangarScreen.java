@@ -75,12 +75,29 @@ public final class HangarScreen implements GameScreen {
                 services.audio, services.files.internal("music/hangar-theme.ogg"), MUSIC_VOLUME, services.mixer);
     }
 
-    /** After a won level: the next level's briefing and then the hangar, or the hangar while that level is not built. */
+    /**
+     * After a new game's difficulty select and after the act outro: the next level's briefing and
+     * then the hangar, or the hangar while that level is not built.
+     */
     public static GameScreen beforeNextLevel(GameServices services, Campaign campaign) {
-        return switch (CampaignRoute.beforeNextLevel(services.content, campaign)) {
+        return screen(services, campaign, CampaignRoute.beforeNextLevel(services.content, campaign));
+    }
+
+    /**
+     * After a won level's debrief: the act outro first when the level ended its act (design/campaign,
+     * Act intro and outro), then as {@link #beforeNextLevel}.
+     */
+    public static GameScreen afterLevel(GameServices services, Campaign campaign) {
+        return screen(services, campaign, CampaignRoute.afterLevel(services.content, campaign));
+    }
+
+    private static GameScreen screen(GameServices services, Campaign campaign, CampaignRoute.Step step) {
+        return switch (step) {
             case CampaignRoute.Step.Briefing briefing ->
                 new BriefingScreen(
                         services, campaign, briefing.script(), () -> new HangarScreen(services, campaign, true));
+            case CampaignRoute.Step.Outro outro ->
+                BriefingScreen.outro(services, campaign, outro.script(), () -> beforeNextLevel(services, campaign));
             case CampaignRoute.Step.Hangar hangar -> new HangarScreen(services, campaign, true);
         };
     }

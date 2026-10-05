@@ -32,7 +32,8 @@ public final class RadioSchedule {
     public RadioQueue.Priority priority(int index) {
         return switch (script.radio().get(index).trigger()) {
             case TIME -> RadioQueue.Priority.TIMED;
-            case LEVEL_END, SECONDARY_OBJECTIVE -> RadioQueue.Priority.CLOSING;
+            // A boss's closing lines (Level 07's four after the kill) queue together and must not go stale.
+            case LEVEL_END, SECONDARY_OBJECTIVE, BOSS_DESTROYED -> RadioQueue.Priority.CLOSING;
             default -> RadioQueue.Priority.EVENT;
         };
     }

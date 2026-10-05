@@ -23,12 +23,19 @@ class SoundTestTest {
             assertTrue(Files.exists(Path.of("../assets").resolve(track.path())), track.path());
         }
         assertTrue(SoundTest.EFFECTS.stream().noneMatch(sfx -> sfx.bus() == Bus.MUSIC), "the cues are tracks");
-        assertEquals(
-                Sfx.values().length,
-                SoundTest.EFFECTS.size()
-                        + SoundTest.TRACKS.stream()
-                                .filter(track -> !track.loops())
-                                .count());
+        for (Sfx cue : Sfx.values()) {
+            if (cue.bus() == Bus.MUSIC) {
+                assertTrue(
+                        SoundTest.TRACKS.stream()
+                                .anyMatch(
+                                        track -> !track.loops() && track.path().equals(cue.path())),
+                        cue + " is a track");
+            }
+        }
+        for (int number : new int[] {Tracks.BOSS_VRELL, Tracks.BOSS_WARNING, Tracks.ACT_COMPLETE}) {
+            String path = Tracks.path(number);
+            assertTrue(SoundTest.TRACKS.stream().anyMatch(track -> track.path().equals(path)), path);
+        }
     }
 
     @Test

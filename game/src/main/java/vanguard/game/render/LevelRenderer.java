@@ -13,15 +13,18 @@ import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import vanguard.content.LevelData;
 import vanguard.sim.AirstrikeBomb;
+import vanguard.sim.BossSpec;
 import vanguard.sim.Chain;
 import vanguard.sim.Crane;
 import vanguard.sim.Debris;
 import vanguard.sim.Enemy;
 import vanguard.sim.EnemyBullet;
+import vanguard.sim.EnemySpec;
 import vanguard.sim.GroundObject;
 import vanguard.sim.Layer;
 import vanguard.sim.LevelScript;
@@ -42,12 +45,14 @@ import vanguard.sim.WeaponSpec;
  * steps: the backdrop down to the ground layer, the ground objects and the convoy, the overhead
  * ground pieces (a bridge's arches, a gate's roof: the convoy passes under them), the debris and
  * the ground units (a turret stands on an arch) with their glints,
- * the low-air flyers, the low-air layer's banks (so a low flyer can sit inside them), the flyers
+ * the low-air flyers, the low-air layer's banks (so a low flyer can sit inside them), a hull
+ * boss's shadow while it flies above the play plane, a lifeboat tow (friendly, under the flyers), the flyers
  * and a set piece on the play plane, a set piece breaking up at its death, the solid death pieces of air units (tatters, husks), the debris chunks, the cranes, the pickups, the solid rounds
  * (missiles, bombs, shells), the ship with its wing pods, the glowing shots, muzzle flashes and
- * effects, a set piece on high-air (above the ship, at the high-air scale), the high-air layer,
+ * effects, a set piece on high-air (above the ship, at the high-air scale), the units a boss off the
+ * play plane has launched (they leave its sacs downward, so they show over its hull), the high-air layer,
  * then the spore mines and the enemy bullets above every layer (design/enemies, bullet readability
- * rules), the edge warnings and the credit numbers.
+ * rules), an act boss's death flash, the edge warnings and the credit numbers.
  */
 public final class LevelRenderer {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
@@ -137,6 +142,8 @@ public final class LevelRenderer {
     private final SetPieceLooks[] setPieceLooks;
 
     private final BossLooks bossLooks;
+    /** The units the level's boss launches from its windows (the Brood Carrier's sacs); empty without. */
+    private final List<EnemySpec> launches;
     /**
      * The destructible ground objects' frames (intact, damaged, wrecked) and the frames of the
      * triggers with a look of their own (Level 06's survey cache: closed, hit, opened; its terminal:
@@ -174,6 +181,9 @@ public final class LevelRenderer {
     /** Level 06's darkness, glows, sweeps and the Smart Bomb's flash and ring. */
     private final FarsideLooks farside;
 
+    /** Level 07's lifeboat tow. */
+    private final TowLooks tows;
+
     private final BitmapFont font;
     private float whiteFlash = 1;
 
@@ -202,12 +212,13 @@ public final class LevelRenderer {
         setPieceLooks = script.setPieces().stream()
                 .map(spec -> spec.isBoss() ? null : new SetPieceLooks(sprites, spec, pivots(files, spec.slug())))
                 .toArray(SetPieceLooks[]::new);
-        String boss = script.setPieces().stream()
+        LevelScript.SetPieceSpec boss = script.setPieces().stream()
                 .filter(LevelScript.SetPieceSpec::isBoss)
-                .map(LevelScript.SetPieceSpec::slug)
                 .findFirst()
                 .orElse(null);
-        bossLooks = new BossLooks(sprites, flash, boss, boss == null ? null : pivots(files, boss));
+        bossLooks = new BossLooks(sprites, flash, boss, boss == null ? null : pivots(files, boss.slug()));
+        launches =
+                boss == null ? List.of() : boss.boss().map(BossSpec::spawnKinds).orElse(List.of());
         String light = Backdrop.folder(levelKey) + "lifeboat-light";
         triggerLight = sprites.hasBackdrop(light) ? sprites.backdrop(light, 1).first() : null;
         mine = sprites.has("spore-mine") ? sprites.frames("spore-mine") : null;
@@ -236,12 +247,23 @@ public final class LevelRenderer {
         this.convoy = new ConvoyLooks(sprites, flash, level, script, levelKey);
         this.flash = flash;
         this.farside = new FarsideLooks(sprites, script);
+        this.tows = new TowLooks(sprites);
         this.font = font;
     }
 
     /** Frees the light map and the generated textures. */
     public void dispose() {
         farside.dispose();
+        if (bossLooks.hull != null) {
+            bossLooks.hull.dispose();
+        }
+    }
+
+    /** The level restarts: the boss's parts forget their opening animations. */
+    public void restart() {
+        if (bossLooks.hull != null) {
+            bossLooks.hull.reset();
+        }
     }
 
     /** A unit's pivot file in assets/pivots/, or null when it has none. */
@@ -259,6 +281,7 @@ public final class LevelRenderer {
      * @param alpha interpolation between the previous and the current step
      * @param shieldShimmer 0..1, how strongly the ship shows its last shield hit
      * @param flashReduction tone the white hit and invulnerability flashes down (Gameplay tab)
+     * @param screenFlash an act boss's death flash over the play field
      */
     public void draw(
             SpriteBatch batch,
@@ -272,7 +295,8 @@ public final class LevelRenderer {
             EdgeWarnings warnings,
             float alpha,
             float shieldShimmer,
-            boolean flashReduction) {
+            boolean flashReduction,
+            ScreenFlash screenFlash) {
         whiteFlash = flashReduction ? REDUCED_FLASH : 1;
         double lag = SimStep.SECONDS * (1 - alpha);
         double scroll = sortie.groundScroll() - sortie.groundSpeed() * lag;
@@ -286,17 +310,20 @@ public final class LevelRenderer {
         convoy.drawConvoy(batch, sortie, alpha, whiteFlash);
         backdrop.drawOverhead(batch, scroll, seconds);
         debris.draw(batch, -scroll);
-        drawEnemies(batch, sortie, alpha, Depth.GROUND);
+        boolean overHull = bossOffPlane(sortie);
+        drawEnemies(batch, sortie, alpha, Depth.GROUND, Launched.ANY);
         drawGlints(batch, sortie, alpha);
         farside.darken(batch, sortie, alpha, scroll, seconds);
         farside.drawGlows(batch, sortie, looks, alpha, seconds);
         drawGroundGlows(batch, sortie, alpha);
         drawBomberShadows(batch, sortie, alpha);
-        drawEnemies(batch, sortie, alpha, Depth.LOW_AIR);
+        drawEnemies(batch, sortie, alpha, Depth.LOW_AIR, Launched.ANY);
         blasts.draw(batch, -scroll);
         backdrop.drawLowAir(batch, scroll, seconds);
+        drawBossShadows(batch, sortie, alpha);
         drawWalkerGlows(batch, sortie, alpha);
-        drawEnemies(batch, sortie, alpha, Depth.AIR);
+        tows.draw(batch, sortie, alpha);
+        drawEnemies(batch, sortie, alpha, Depth.AIR, overHull ? Launched.NOT : Launched.ANY);
         drawChains(batch, sortie, alpha);
         farside.drawSweeps(batch, sortie, alpha);
         luna.drawBlobs(batch, sortie, alpha);
@@ -323,12 +350,68 @@ public final class LevelRenderer {
         effects.draw(batch, 0);
         farside.drawSmartBomb(batch, sortie, alpha, whiteFlash);
         drawSetPieces(batch, sortie, alpha, seconds, true);
+        if (overHull) {
+            drawEnemies(batch, sortie, alpha, Depth.AIR, Launched.ONLY);
+        }
         backdrop.drawFront(batch, scroll, seconds);
         drawMines(batch, sortie, alpha);
         drawBullets(batch, sortie, alpha);
+        screenFlash.draw(batch, sprites.pixel, alpha, whiteFlash);
         warnings.draw(batch, sortie.tick(), alpha);
         credits.draw(batch, font);
         drawBossBar(batch, sortie);
+    }
+
+    /** A hull boss's shadow on the play plane while it flies above it (design/art-direction, high-air rule). */
+    private void drawBossShadows(SpriteBatch batch, Sortie sortie, float alpha) {
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPiece piece = sortie.setPiece(k);
+            if (piece.boss().isPresent() && piece.present()) {
+                bossLooks.drawShadow(batch, piece, alpha);
+            }
+        }
+    }
+
+    /**
+     * The steps of a boss's chained death (design/enemies/bosses): an act boss's from tail to head
+     * over its chain length, a mid-boss's {@value BossPose#LEGACY_CHAIN_STEP_TICKS} steps a part.
+     */
+    public static int chainTicks(SetPiece piece) {
+        double seconds = BossPose.chainSeconds(piece);
+        return Double.isNaN(seconds) ? piece.partCount() * BossPose.LEGACY_CHAIN_STEP_TICKS : SimStep.ticks(seconds);
+    }
+
+    /** Whether a boss's death is the act boss's chain from tail to head (else the frigate's per-part bursts). */
+    public static boolean tailToHead(SetPiece piece) {
+        return !Double.isNaN(BossPose.chainSeconds(piece));
+    }
+
+    /** Whether a boss's death flashes the screen: an act boss's (mid-bosses have none). */
+    public static boolean flashesAtDeath(SetPiece piece) {
+        return BossPose.actBoss(piece);
+    }
+
+    /**
+     * An act boss's chained death from tail to head in the pose it died in (its hull's length and
+     * width from its size), the bursts' offsets at the scale it was drawn at.
+     */
+    public static List<DeathChain.Burst> deathChain(SetPiece piece) {
+        double angle = BossPose.angle(piece, BossPose.turn(piece, 1));
+        double[] xs = new double[piece.partCount()];
+        double[] ys = new double[piece.partCount()];
+        for (int p = 0; p < xs.length; p++) {
+            xs[p] = piece.partOffsetX(p);
+            ys[p] = piece.partOffsetY(p);
+        }
+        return DeathChain.plan(
+                xs, ys, angle, piece.spec().size().height(), piece.spec().size().width(), chainTicks(piece));
+    }
+
+    /** The head end of a boss's hull in the pose it died in, px from its centre (x right, y up). */
+    public static double[] deathHead(SetPiece piece) {
+        double angle = BossPose.angle(piece, BossPose.turn(piece, 1));
+        double length = piece.spec().size().height();
+        return new double[] {DeathChain.headX(angle, length), DeathChain.headY(angle, length)};
     }
 
     /** The boss bar at the top of the play field while a boss is on the screen (design/ui/hud). */
@@ -477,11 +560,47 @@ public final class LevelRenderer {
         }
     }
 
-    /** The enemies at one depth; a diver flares in its pause. */
-    private void drawEnemies(SpriteBatch batch, Sortie sortie, float alpha, Depth depth) {
+    /** Which of a depth's enemies a pass draws: all, all but a boss's launched units, or only those. */
+    private enum Launched {
+        ANY,
+        NOT,
+        ONLY
+    }
+
+    /**
+     * Whether a boss is off the play plane (on high-air, descending or rising): its launched units
+     * are then drawn over its hull, which is drawn over the ship.
+     */
+    private boolean bossOffPlane(Sortie sortie) {
+        if (launches.isEmpty()) {
+            return false;
+        }
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPiece piece = sortie.setPiece(k);
+            if (piece.boss().isPresent() && piece.present() && !piece.onPlane()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether an enemy is of a kind the boss launches (the same spec its windows hatch it from). */
+    private boolean launched(Enemy enemy) {
+        for (EnemySpec kind : launches) {
+            if (enemy.spec() == kind) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The enemies at one depth ({@code which} of them); a diver flares in its pause. */
+    private void drawEnemies(SpriteBatch batch, Sortie sortie, float alpha, Depth depth, Launched which) {
         for (int i = 0; i < sortie.enemyCount(); i++) {
             Enemy enemy = sortie.enemy(i);
-            if (Depth.of(enemy) != depth || enemy.chain() != null) {
+            if (Depth.of(enemy) != depth
+                    || enemy.chain() != null
+                    || (which != Launched.ANY && launched(enemy) != (which == Launched.ONLY))) {
                 continue;
             }
             EnemyLooks look = looks[enemy.kind()];
@@ -589,7 +708,8 @@ public final class LevelRenderer {
                 continue;
             }
             if (piece.boss().isPresent()) {
-                bossLooks.draw(batch, piece, alpha, seconds, whiteFlash);
+                Ship ship = sortie.ship();
+                bossLooks.draw(batch, piece, alpha, seconds, whiteFlash, ship.renderX(alpha), ship.renderY(alpha));
                 continue;
             }
             SetPieceLooks look = setPieceLooks[k];
@@ -664,11 +784,17 @@ public final class LevelRenderer {
     private void drawWrecks(SpriteBatch batch, Sortie sortie, SetPieceWrecks wrecks, float alpha, double seconds) {
         for (int k = 0; k < sortie.setPieceCount(); k++) {
             SetPieceDeath death = death(k);
-            if (death == null || !wrecks.active(k)) {
-                continue;
-            }
             SetPieceLooks look = setPieceLooks[k];
             boolean boss = look == null;
+            if (!wrecks.active(k)) {
+                continue;
+            }
+            if (death == null) {
+                if (boss && bossLooks.hull != null) {
+                    drawCarcass(batch, sortie.setPiece(k), wrecks, k, alpha);
+                }
+                continue;
+            }
             float age = wrecks.age(k) + alpha;
             float x = wrecks.x(k);
             float y = wrecks.y(k);
@@ -677,7 +803,7 @@ public final class LevelRenderer {
                 batch.setColor(1, 1, 1, wrecks.opacity(k));
                 int sway = SetPieceLooks.sway(seconds);
                 if (boss) {
-                    bossLooks.drawWreck(batch, sortie.setPiece(k), x, y);
+                    bossLooks.drawWreck(batch, sortie.setPiece(k), x, y, scale);
                 } else if (wrecks.crossing(k)) {
                     drawCentred(batch, look.cross.get(sway % look.cross.size), x, y);
                 } else {
@@ -703,6 +829,32 @@ public final class LevelRenderer {
             }
             batch.setColor(Color.WHITE);
         }
+    }
+
+    /** A hull boss's carcass darkens over its chained death to this shade, and drifts after it, px/s. */
+    private static final float CARCASS_SHADE = 0.45f;
+
+    private static final double CARCASS_DRIFT_X = 5;
+    private static final double CARCASS_DRIFT_Y = -12;
+
+    /**
+     * A hull boss without a break-up (its placeholder): the body where it died, darkening under its
+     * chained death, then the dark carcass drifting slowly away (the Level 07 aftermath).
+     */
+    private void drawCarcass(SpriteBatch batch, SetPiece piece, SetPieceWrecks wrecks, int k, float alpha) {
+        float age = wrecks.age(k) + alpha;
+        int chain = chainTicks(piece);
+        float t = Math.min(1, age / Math.max(1, chain));
+        float shade = 1 - (1 - CARCASS_SHADE) * t;
+        double drift = Math.max(0, age - chain) * SimStep.SECONDS;
+        batch.setColor(shade, shade, shade, wrecks.opacity(k));
+        bossLooks.drawWreck(
+                batch,
+                piece,
+                wrecks.x(k) + CARCASS_DRIFT_X * drift,
+                wrecks.y(k) + CARCASS_DRIFT_Y * drift,
+                wrecks.scale(k));
+        batch.setColor(Color.WHITE);
     }
 
     /** Set piece {@code k}'s break-up at its death, or null for none. */

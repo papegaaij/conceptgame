@@ -126,6 +126,9 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
   F. Smith, a): flat, even settings (`fixed`: exaggeration 0.3, cfg_weight 0.5, temperature 0.6)
   and the **public-address filter** (`filter: pa` in the speaker table) instead of the radio
   filter; the same rendered line feeds the ambience loop.
+  Level 07 adds **Lifeboat Seven** (a drifting CDF lifeboat's crew, one line at t=22), uncast until
+  its audition in round 25 (two public-domain LibriVox readers through radio filter b, the neutral
+  settings).
 
 ### Speakers and expression
 
@@ -207,7 +210,8 @@ level).
       the radio filter (filter b; none for briefing pages), OGG under
       `assets/voice/<speaker>/<hash>.ogg`; skips lines already rendered; deletes unused files
 - [ ] Act 1 lines rendered and committed; reviewed in a concept round (rendered, not yet
-      committed or reviewed; Level 05's 20 lines rendered 2026-10-03, Driver Control's after its casting on 2026-10-04)
+      committed or reviewed; Level 05's 20 lines rendered 2026-10-03, Driver Control's after its casting on 2026-10-04,
+      Level 07's 18 and the Act 1 outro's four pages on 2026-10-05; Lifeboat Seven's line waits for round 25)
 - [x] Playback with the radio message: voice on its own voice bus, music ducking while it plays,
       URGENT cuts and replays, a subtitle page held until its voice ends, pause and stop,
       text-only fallback; the mission failed screen speaks the level's line (the cut has no
@@ -245,6 +249,8 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
 | [concept/rejected/voice-driver-control-r21-b.ogg](concept/rejected/voice-driver-control-r21-b.ogg) | Driver Control (round 21 audition), reader Rebecca (`tools/concept/audio/tts_r21.py`) | rejected |
 | [concept/voice-perimeter-beacon-r23-a.ogg](concept/voice-perimeter-beacon-r23-a.ogg) | Daedalus perimeter beacon (round 23 audition, public-address filter), reader Mark F. Smith (`tools/concept/audio/tts_r23.py`) | chosen |
 | [concept/rejected/voice-perimeter-beacon-r23-b.ogg](concept/rejected/voice-perimeter-beacon-r23-b.ogg) | Daedalus perimeter beacon (round 23 audition, public-address filter), reader Lucy Burgoyne (`tools/concept/audio/tts_r23.py`) | rejected |
+| [concept/voice-lifeboat-seven-r25-a.ogg](concept/voice-lifeboat-seven-r25-a.ogg) | Lifeboat Seven (round 25 audition), reader Tadhg Hynes (`tools/concept/audio/tts_r25.py`) | proposed |
+| [concept/voice-lifeboat-seven-r25-b.ogg](concept/voice-lifeboat-seven-r25-b.ogg) | Lifeboat Seven (round 25 audition), reader Lizzie Driver (`tools/concept/audio/tts_r25.py`) | proposed |
 
 ## Open questions
 
@@ -308,3 +314,17 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
   1.5× an estimate that gave a sentence end only 0.12 s. The estimate now gives a sentence end
   0.4 s (an ellipsis counts once); re-rendered, the third seed passed (4.6 s; Whisper reads it
   back). Only missing lines are rendered, so no other file changed.
+- 2026-10-05: Lifeboat Seven audition (M4 part G, Level 07) opened in round 25: its t=22 line with
+  two public-domain LibriVox voices, Tadhg Hynes (a) and Lizzie Driver (b), neutral settings
+  (0.5 / 0.5 / 0.7) through radio filter b (`tools/concept/audio/tts_r25.py`). Until the choice the
+  speaker is uncast (an `uncast: true` row in the speaker table, written with Level 07's data) and
+  its line plays as text.
+- 2026-10-05: M4 part G: Level 07's lines (18: the two briefing pages, 15 radio lines and the lifeboat
+  tow secret; Okafor 6, Varga 8, Rook 4) and the Act 1 outro's four pages
+  (dry, Okafor 3, Varga 1) rendered by `tools/art/voice.py`; Lifeboat Seven's t=22 line stays text
+  until round 25 casts it. One take hit the length cap and passed on the next seed (Okafor's
+  "Every bay gutted…"); Rook's "Okay. Okay. That was big. We did big." repeated its last sentence
+  with the key's seed and was re-rolled on the next seed, 267639418 (to be pinned in the speaker
+  table so a rerun keeps it). Whisper reads every take back (names such as Aegis and Daedalus only
+  with a name prompt, as in the earlier levels). Outro page 1 is 14.3 s, under track 24's 16.3 s.
+  VoiceFilesTest now checks Level 07 and the outro; RadioTimelineTest no longer exempts Level 07.

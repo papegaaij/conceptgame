@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../campaign, ../../world]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Special abilities
@@ -22,7 +22,7 @@ no airstrikes under the Europa ice. This gives the hangar intel another thing to
 |---|---|---|---|---|---|---|
 | Airstrike | charges, max 4 (1 free at unlock) | Two CDF bombers sweep up the screen: heavy damage (300) to `ground` and `low-air`, 60 to `air` | 300 / charge | L04 (CDF bomber support assigned after L03) | Not under ice/water; not beyond the gate | draft |
 | Smart Bomb | max 3 charges (1 free at unlock) | Flash: clears all enemy bullets, 120 damage to everything on screen | 400 / charge | L06 | none | draft |
-| Decoy Flares | max 6 charges | Homing missiles and seekers retarget to flares for 4 s | 150 / charge | L07 | none | draft |
+| Decoy Flares | max 6 charges | Homing missiles and seekers retarget to flares for 4 s | 150 / charge | L27 (with the first homing projectiles) | none | draft |
 | EMP Burst | max 3 charges | Stuns machines 3 s and strips enemy shields; Vrell (biomechanical) stunned 1.5 s | 350 / charge | L15 | none | idea |
 | Sonar Pulse | max 4 charges | Reveals the `sub` layer and makes it hittable by all weapons for 6 s | 250 / charge | L22 | Water levels only | idea |
 | Orbital Lance | max 2 charges | 3 s vertical beam that follows the ship's X, 400 DPS on all layers except `sub` | 600 / charge | L17 | Needs satellite cover: not under ice, not beyond the gate | idea |
@@ -73,7 +73,13 @@ describes them.
 | Rewards | Kills pay their normal bounty and keep the chain multiplier going |
 | Audio / VFX | `huge` explosion rung layered with a whoosh; flash and ring on the round-09 specials sheet |
 
-#### Decoy Flares (L07)
+#### Decoy Flares (L27)
+
+Specified for Acts 1–2, but no enemy of Acts 1–3 fires a homing projectile: the first are the
+Depth Hunter's torpedoes ([naval](../../enemies/naval/README.md), L27) and the SAM Nest's missiles
+([ground](../../enemies/ground/README.md), L29). The unlock therefore moved from L07 to L27, the
+hangar visit before the first of them (user decision D4 of M4 part G), so the shop never sells a
+special with nothing to decoy.
 
 | Property | Value |
 |---|---|
@@ -128,7 +134,7 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   sound from the existing explosions and jet flyby; `--special smart-bomb:2` fits it for testing)
 - [x] One free Smart Bomb charge granted once, at the unlock before L06: fitted only into an empty
   special slot, with the hangar notice (`free_charges: 1` in data.yaml)
-- [ ] Decoy Flares — **later: M4** (part G)
+- [ ] Decoy Flares — **later: Act 4** (unlock at L27 with the first homing projectiles; user decision D4 of M4 part G)
 - [x] One free Airstrike charge granted once, at the unlock before L04
 - [ ] Setting restrictions read from the level data
 - [x] HUD special row: icon, name, charges; greyed while the strike flies or with no charge; flashes
@@ -188,3 +194,11 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   `free_charges: 1` moved into data.yaml.
 - 2026-10-04: M4 part F step 3 (main-agent fix): the ring pops the spore mines it passes as if
   they were shot (their burst, their credits), like the bullets it clears.
+- 2026-10-05: Decoy Flares (user decision D4 of M4 part G): the unlock moves from L07 to the act
+  of the first homing enemy, so they leave the L07 intel and part G. Main-agent reading: the first
+  homing projectiles are the Depth Hunter's (L27, Act 4), so the unlock is L27, the level itself
+  rather than the act's opener, since the flares are useless before it; whether the Lamprey's
+  chase at L12 counts was left open. Rejected: building them at L07 (a special that does
+  nothing for 20 levels) and giving the carrier homing seekers to decoy (changes an approved boss).
+- 2026-10-05: The user confirmed the Decoy Flares unlock at L27 (the first homing projectile);
+  the Lamprey's chase at L12 does not count, so the flares stay out of M5.

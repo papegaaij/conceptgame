@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../architecture, ../../campaign]
-updated: 2026-10-02
+updated: 2026-10-05
 ---
 
 # Implementation roadmap
@@ -95,3 +95,4 @@ production art is a concept round right after its part, so M4 ships no placehold
 - 2026-10-02: M4 plan (user decisions): parts A–H as under *M4 parts*; a production-art round per part; the wingman's escort slot moves to M5, since Rook joins at L08.
 - 2026-10-02: M4 part A built: the Act 1 arsenal on Level 01 (`--loadout` to fly it before its shop levels), overdrive and the spare-power bonus in flight, the HUD's weapon rows, the effects proposed as final in concept round 14. Deferred items of acts beyond M6 are tagged with their act (rule under *Rules*).
 - 2026-10-02: M4 part B built: Level 02 playable from Level 01 in the campaign (`--level 2` to start there), with its production art proposed in concept round 15.
+- 2026-10-05: M4 part G started (user decisions D1–D4, see [Level 07](../../campaign/act-1-first-contact/level-07-brood-carrier/README.md)): the Brood Carrier comes over, stops, descends and turns broadside through pre-rendered frames; a 35 s aftermath, then the debrief with the act summary, the act outro (four voiced pages with an image each) and the hangar before L08 (not built yet until M5; the Act 2 title card comes with Act 2's intro); the Decoy Flares leave part G (their unlock moves to L27, `later: Act 4`). The `space` layer and the Bomb Rack's NO GROUND items move from M4 to Act 5.

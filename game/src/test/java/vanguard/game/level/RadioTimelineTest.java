@@ -19,11 +19,13 @@ import vanguard.sim.LevelScript.CueTrigger;
 import vanguard.sim.SimStep;
 
 /**
- * The timed radio lines of Levels 01–06 play when the level scripts mean them to: the real queue,
+ * The timed radio lines of Levels 01–07 play when the level scripts mean them to: the real queue,
  * stepped at the simulation's rate at the default text speed, with the event lines a player can
  * set off in between (an escaped Spore Bomber before the Leviathan's first pass, the lifeboat
- * secret, a convoy's first hit and loss, …), starts none of them more than a second after its time. Event lines wait for a gap
- * and may be dropped as stale; they never push a timed line back.
+ * secret, a convoy's first hit and loss, the Brood Carrier's phases, …), starts none of them more
+ * than a second after its time. Event lines wait for a gap and may be dropped as stale; they never
+ * push a timed line back. Every run is played with each fit a cue can require (a special, a homing
+ * weapon, both, neither): a cue the fit does not allow is never queued, as in the game.
  */
 class RadioTimelineTest {
     private static final Content CONTENT = ContentLoader.fromClasspath();
@@ -38,6 +40,22 @@ class RadioTimelineTest {
     private static final String LEVEL_04 = "act-1-first-contact/level-04-tranquility-run";
     private static final String LEVEL_05 = "act-1-first-contact/level-05-crater-nest";
     private static final String LEVEL_06 = "act-1-first-contact/level-06-farside";
+    private static final String LEVEL_07 = "act-1-first-contact/level-07-brood-carrier";
+
+    /**
+     * Levels whose lines are not rendered yet (none: Level 07's were rendered in M4 part G): their
+     * voiced runs play the lines as text and list the late ones, without asking for the files. An
+     * uncast speaker's line (Lifeboat Seven's) is exempt on its own.
+     */
+    private static final Set<String> UNVOICED = Set.of();
+
+    /** The fits a cue can require: neither, a special, a homing weapon, both. */
+    private static final int[] FITS = {
+        0,
+        LevelScript.RadioCue.FITTED_SPECIAL,
+        LevelScript.RadioCue.FITTED_HOMING,
+        LevelScript.RadioCue.FITTED_SPECIAL | LevelScript.RadioCue.FITTED_HOMING
+    };
 
     /**
      * Timed lines written to follow the line before them rather than to start at their time, by
@@ -114,31 +132,57 @@ class RadioTimelineTest {
                     List.of(new Event(111, CueTrigger.SECRET, "survey cache")),
                     // the data core collected as the terminal passes, before and between the last lines
                     List.of(new Event(182, CueTrigger.SECRET, "settlement log")),
-                    List.of(new Event(178, CueTrigger.SECRET, "settlement log"))));
+                    List.of(new Event(178, CueTrigger.SECRET, "settlement log"))),
+            LEVEL_07,
+            List.of(
+                    List.of(),
+                    // the lifeboat's cable cut as the tow comes in, or late as it drifts out
+                    List.of(new Event(25, CueTrigger.SECRET, "lifeboat tow")),
+                    List.of(new Event(33, CueTrigger.SECRET, "lifeboat tow")),
+                    // the carrier as the autopilot fights it at medium (the broadside 25 s after the
+                    // bar, the core at about 69 s, the kill at about 90 s; the clock then jumps to the
+                    // arena's end), and a fast fight
+                    List.of(
+                            new Event(125, CueTrigger.BOSS_PHASE, "Broadside"),
+                            new Event(169, CueTrigger.BOSS_PHASE, "Core"),
+                            new Event(190, CueTrigger.BOSS_DESTROYED, "brood-carrier")),
+                    List.of(
+                            new Event(33, CueTrigger.SECRET, "lifeboat tow"),
+                            new Event(125, CueTrigger.BOSS_PHASE, "Broadside"),
+                            new Event(150, CueTrigger.BOSS_PHASE, "Core"),
+                            new Event(165, CueTrigger.BOSS_DESTROYED, "brood-carrier")),
+                    // the broadside times out: 70 s after its 4 s move
+                    List.of(
+                            new Event(125, CueTrigger.BOSS_PHASE, "Broadside"),
+                            new Event(199, CueTrigger.BOSS_TIMEOUT, "Core"),
+                            new Event(199, CueTrigger.BOSS_PHASE, "Core"),
+                            new Event(230, CueTrigger.BOSS_DESTROYED, "brood-carrier"))));
 
     @Test
-    void theTimedLinesOfLevels01To06StartAtMostASecondLate() {
+    void theTimedLinesOfLevels01To07StartAtMostASecondLate() {
         RUNS.forEach((level, runs) -> {
             for (Difficulty difficulty : Difficulty.values()) {
                 LevelScript script = SimSpecs.level(CONTENT, level, difficulty);
                 for (List<Event> events : runs) {
-                    String where = level + " on " + difficulty + " with " + events + ": ";
-                    List<Played> played = play(script, events);
-                    for (Played line : played) {
-                        LevelScript.RadioCue cue = line.cue();
-                        if (cue.trigger() != CueTrigger.TIME) {
-                            continue;
+                    for (int fitted : FITS) {
+                        String where = level + " on " + difficulty + " with " + events + " (fit " + fitted + "): ";
+                        List<Played> played = play(script, events, fitted, false);
+                        for (Played line : played) {
+                            LevelScript.RadioCue cue = line.cue();
+                            if (cue.trigger() != CueTrigger.TIME || !cue.allowedWith(fitted)) {
+                                continue;
+                            }
+                            assertTrue(line.opened().isPresent(), where + "the timed line at t=" + cue.t() + " plays");
+                            if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
+                                continue;
+                            }
+                            double late = line.opened().get() - cue.t();
+                            assertTrue(
+                                    late <= MAX_LATE_SECONDS,
+                                    String.format(
+                                            "%s%s's line at t=%s starts %.1f s late: %s",
+                                            where, cue.speaker(), cue.t(), late, cue.line()));
                         }
-                        assertTrue(line.opened().isPresent(), where + "the timed line at t=" + cue.t() + " plays");
-                        if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
-                            continue;
-                        }
-                        double late = line.opened().get() - cue.t();
-                        assertTrue(
-                                late <= MAX_LATE_SECONDS,
-                                String.format(
-                                        "%s%s's line at t=%s starts %.1f s late: %s",
-                                        where, cue.speaker(), cue.t(), late, cue.line()));
                     }
                 }
             }
@@ -157,26 +201,30 @@ class RadioTimelineTest {
             for (Difficulty difficulty : Difficulty.values()) {
                 LevelScript script = SimSpecs.level(CONTENT, level, difficulty);
                 for (List<Event> events : runs) {
-                    for (Played line : play(script, events, true)) {
-                        LevelScript.RadioCue cue = line.cue();
-                        if (cue.trigger() != CueTrigger.TIME) {
-                            continue;
-                        }
-                        assertTrue(line.opened().isPresent(), level + ": the timed line at t=" + cue.t() + " plays");
-                        assertTrue(
-                                VoiceLines.spoken(cue.line()).isEmpty()
-                                        || voiceSeconds(cue) > 0
-                                        || CONTENT.voices().uncast(cue.speaker()),
-                                level + ": the timed line at t=" + cue.t() + " has its voice");
-                        if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
-                            continue;
-                        }
-                        double late = line.opened().get() - cue.t();
-                        if (late > MAX_LATE_SECONDS) {
-                            worst.merge(
-                                    String.format("%s t=%s %s (%s)", level, cue.t(), cue.speaker(), difficulty),
-                                    late,
-                                    Math::max);
+                    for (int fitted : FITS) {
+                        for (Played line : play(script, events, fitted, true)) {
+                            LevelScript.RadioCue cue = line.cue();
+                            if (cue.trigger() != CueTrigger.TIME || !cue.allowedWith(fitted)) {
+                                continue;
+                            }
+                            assertTrue(
+                                    line.opened().isPresent(), level + ": the timed line at t=" + cue.t() + " plays");
+                            assertTrue(
+                                    VoiceLines.spoken(cue.line()).isEmpty()
+                                            || voiceSeconds(cue) > 0
+                                            || CONTENT.voices().uncast(cue.speaker())
+                                            || UNVOICED.contains(level),
+                                    level + ": the timed line at t=" + cue.t() + " has its voice");
+                            if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
+                                continue;
+                            }
+                            double late = line.opened().get() - cue.t();
+                            if (late > MAX_LATE_SECONDS) {
+                                worst.merge(
+                                        String.format("%s t=%s %s (%s)", level, cue.t(), cue.speaker(), difficulty),
+                                        late,
+                                        Math::max);
+                            }
                         }
                     }
                 }
@@ -229,10 +277,11 @@ class RadioTimelineTest {
      * until it is idle.
      */
     private static List<Played> play(LevelScript script, List<Event> events) {
-        return play(script, events, false);
+        return play(script, events, 0, false);
     }
 
-    private static List<Played> play(LevelScript script, List<Event> events, boolean voiced) {
+    /** As the game queues them with {@code fitted} on the ship: a cue it does not allow never starts. */
+    private static List<Played> play(LevelScript script, List<Event> events, int fitted, boolean voiced) {
         RadioSchedule schedule = new RadioSchedule(script);
         RadioQueue radio = new RadioQueue();
         List<LevelScript.RadioCue> cues = script.radio();
@@ -251,7 +300,7 @@ class RadioTimelineTest {
                             case SECONDARY_OBJECTIVE -> false;
                             default -> setOff(events, cue, tick);
                         };
-                if (due && !fired[i]) {
+                if (due && !fired[i] && cue.allowedWith(fitted)) {
                     fired[i] = true;
                     queued.add(i);
                     radio.add(

@@ -20,6 +20,8 @@ import vanguard.content.campaign.DebugFit;
  * @param debugFit debug options ({@code --loadout}, {@code --special}): weapons and a special with
  *     its charges fitted for the level start, see {@link DebugFit}
  * @param level a debug option ({@code --level}): the level the level start flies, 1 by default
+ * @param actEnd a debug option ({@code --act-end}): winning the level start's level ends its act
+ *     early, with the act summary in its debrief and the act outro
  */
 record LaunchOptions(
         double benchSeconds,
@@ -29,11 +31,12 @@ record LaunchOptions(
         boolean invulnerable,
         boolean startLevel,
         Optional<DebugFit> debugFit,
-        int level) {
+        int level,
+        boolean actEnd) {
     /**
      * Parses {@code [--bench <seconds>] [--settings <file>] [--difficulty easy|medium|hard] [--debug-speed <factor>]
      * [--invulnerable] [--start title|level] [--loadout <slot>=<weapon>[:<level>],...] [--special <special>[:<charges>]]
-     * [--level <n>]}.
+     * [--level <n>] [--act-end]}.
      */
     static LaunchOptions parse(String... args) {
         Boolean start = null;
@@ -45,6 +48,7 @@ record LaunchOptions(
         DebugFit debugFit = null;
         String special = null;
         int level = 1;
+        boolean actEnd = false;
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
                 case "--bench" -> benchSeconds = Double.parseDouble(value(args, ++i));
@@ -55,6 +59,7 @@ record LaunchOptions(
                 case "--loadout" -> debugFit = DebugFit.parse(value(args, ++i));
                 case "--special" -> special = value(args, ++i);
                 case "--level" -> level = Integer.parseInt(value(args, ++i));
+                case "--act-end" -> actEnd = true;
                 case "--start" ->
                     start = switch (value(args, ++i)) {
                         case "title" -> false;
@@ -70,10 +75,10 @@ record LaunchOptions(
         if (!(debugSpeed > 0)) {
             throw new IllegalArgumentException("--debug-speed must be > 0");
         }
-        boolean startLevel = start != null ? start : benchSeconds > 0 || debugFit != null || level != 1;
-        if ((debugFit != null || level != 1) && !startLevel) {
+        boolean startLevel = start != null ? start : benchSeconds > 0 || debugFit != null || level != 1 || actEnd;
+        if ((debugFit != null || level != 1 || actEnd) && !startLevel) {
             throw new IllegalArgumentException(
-                    "--loadout, --special and --level set the level start, they need --start level");
+                    "--loadout, --special, --level and --act-end set the level start, they need --start level");
         }
         if (level < 1) {
             throw new IllegalArgumentException("--level must be at least 1");
@@ -86,7 +91,8 @@ record LaunchOptions(
                 invulnerable,
                 startLevel,
                 Optional.ofNullable(debugFit),
-                level);
+                level,
+                actEnd);
     }
 
     private static String value(String[] args, int index) {

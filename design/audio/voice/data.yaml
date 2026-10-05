@@ -17,7 +17,7 @@ expressions:   # exaggeration 0.25-2, cfg_weight (lower: slower, more dramatic),
 speakers:
   okafor: {names: [Okafor], ref: ref-okafor}
   varga: {names: [Varga], ref: ref-varga}
-  rook: {names: [Rook], ref: ref-rook}
+  rook: {names: [Rook], ref: ref-rook, pins: {ff3da796bbb8: 267639418}}   # "Okay. Okay. That was big. We did big.": the key's seed repeated "We did big"
   choir:
     names: [The Choir]
     ref: ref-varga
@@ -36,3 +36,4 @@ speakers:
     ref: ref-perimeter-beacon
     fixed: {exaggeration: 0.3, cfg_weight: 0.5, temperature: 0.6}
     filter: pa
+  lifeboat-seven: {names: [Lifeboat Seven], uncast: true}   # Level 07; auditioned in round 25 (part G), text only until cast

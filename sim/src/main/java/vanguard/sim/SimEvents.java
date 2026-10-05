@@ -144,7 +144,12 @@ public final class SimEvents {
         /** A Smart Bomb went off (at the ship). */
         SMART_BOMB,
         /** A scripted flare was fired (at its start); value: its index. */
-        FLARE_FIRED;
+        FLARE_FIRED,
+        /**
+         * Part G: a boss's open window launched a unit (at the window part; the Brood Carrier's sacs);
+         * value: the unit's kind.
+         */
+        BOSS_LAUNCHED;
 
         private static final Type[] VALUES = values();
     }

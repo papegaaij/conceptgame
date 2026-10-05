@@ -198,6 +198,23 @@ class CampaignTest {
     }
 
     @Test
+    void aWonLevelRecordsItsBankedCreditsAndKillsAndAReplayDoesNot() {
+        Campaign campaign = Campaign.start(RULES, Difficulty.MEDIUM);
+        campaign.complete(won("A", 80, 1000), 60);
+
+        assertEquals(Optional.of(new SaveGame.LevelStats(480, 80)), campaign.levelStats(1));
+        assertEquals(Optional.empty(), campaign.levelStats(2));
+        SaveGame save = campaign.save(Instant.EPOCH);
+        assertEquals(
+                Optional.of(new SaveGame.LevelStats(480, 80)),
+                Campaign.load(RULES, save).levelStats(1));
+
+        Campaign replay = Campaign.replay(RULES, SaveSlots.Slot.AUTOSAVE, save, 1);
+        replay.complete(won("A+", 120, 1000), 60);
+        assertEquals(Optional.of(new SaveGame.LevelStats(480, 80)), replay.levelStats(1));
+    }
+
+    @Test
     void onlyABetterGradeIsANewBest() {
         Campaign campaign = Campaign.start(RULES, Difficulty.MEDIUM);
         campaign.complete(won("A", 80, 1000), 60);

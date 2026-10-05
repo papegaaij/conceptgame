@@ -39,6 +39,7 @@ public final class TerranVanguard extends ApplicationAdapter {
     private final boolean startLevel;
     private final Optional<DebugFit> debugFit;
     private final int level;
+    private final boolean actEnd;
     private final Optional<BenchRun> bench;
     private final SaveSlots saves;
     private final Screenshots screenshots;
@@ -57,6 +58,7 @@ public final class TerranVanguard extends ApplicationAdapter {
      * @param startLevel start in Level 01 rather than at the title screen
      * @param debugFit a debug option: the weapons the level start flies
      * @param level a debug option: the level the level start flies
+     * @param actEnd a debug option: winning the level start's level ends its act (act summary, outro)
      * @param benchSeconds exit after this many seconds and log the frame count; 0 runs until quit
      * @param saves the save slots
      * @param screenshots the directory the screenshot key writes into
@@ -71,6 +73,7 @@ public final class TerranVanguard extends ApplicationAdapter {
             boolean startLevel,
             Optional<DebugFit> debugFit,
             int level,
+            boolean actEnd,
             double benchSeconds,
             SaveSlots saves,
             Path screenshots) {
@@ -83,6 +86,7 @@ public final class TerranVanguard extends ApplicationAdapter {
         this.startLevel = startLevel;
         this.debugFit = debugFit;
         this.level = level;
+        this.actEnd = actEnd;
         this.bench = benchSeconds > 0 ? Optional.of(new BenchRun(benchSeconds)) : Optional.empty();
         this.saves = saves;
         this.screenshots = new Screenshots(screenshots);
@@ -102,6 +106,9 @@ public final class TerranVanguard extends ApplicationAdapter {
     private LevelScreen testLevel() {
         Campaign campaign = DebugFit.startAt(services.campaignRules, difficulty, level);
         debugFit.ifPresent(fit -> fit.applyTo(campaign, services.catalogue));
+        if (actEnd) {
+            campaign.debugActEnd();
+        }
         return new LevelScreen(
                 services,
                 campaign,

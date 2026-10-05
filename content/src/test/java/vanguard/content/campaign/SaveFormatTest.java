@@ -5,7 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 import vanguard.content.Difficulty;
 
 class SaveFormatTest {
@@ -22,8 +26,39 @@ class SaveFormatTest {
 
         String json = SaveFormat.write(save);
 
-        assertTrue(json.contains("\"version\" : 1"), json);
+        assertTrue(json.contains("\"version\" : 2"), json);
         assertEquals(save, SaveFormat.read(json));
+        assertEquals(
+                Map.of(1, new SaveGame.LevelStats(480, 80)),
+                SaveFormat.read(json).stats().levels());
+    }
+
+    /** Format version 1 (before M4 part G) had no level stats: such a save loads with none recorded. */
+    @Test
+    void aVersion1SaveLoadsWithoutLevelStats() throws SaveException {
+        SaveGame save = save();
+        String json = SaveFormat.write(save);
+        ObjectNode tree = (ObjectNode) JsonMapper.builder().build().readTree(json);
+        tree.put("version", 1);
+        ((ObjectNode) tree.get("stats")).remove("levels");
+        String old = tree.toString();
+        assertTrue(!old.contains("\"levels\""), old);
+
+        SaveGame loaded = SaveFormat.read(old);
+
+        assertEquals(SaveFormat.VERSION, loaded.version());
+        assertEquals(Map.of(), loaded.stats().levels());
+        assertEquals(save.stats().kills(), loaded.stats().kills());
+        assertEquals(save.credits(), loaded.credits());
+        Campaign campaign = Campaign.load(CampaignTest.RULES, loaded);
+        assertEquals(Optional.empty(), campaign.levelStats(1));
+    }
+
+    @Test
+    void aVersion1SaveWithLevelStatsIsRejected() {
+        String json = SaveFormat.write(save()).replace("\"version\" : 2", "\"version\" : 1");
+
+        assertThrows(SaveException.class, () -> SaveFormat.read(json));
     }
 
     @Test
@@ -37,7 +72,7 @@ class SaveFormatTest {
 
     @Test
     void aNewerFormatVersionIsRejected() {
-        String json = SaveFormat.write(save()).replace("\"version\" : 1", "\"version\" : 2");
+        String json = SaveFormat.write(save()).replace("\"version\" : 2", "\"version\" : 3");
 
         SaveException e = assertThrows(SaveException.class, () -> SaveFormat.read(json));
         assertTrue(e.getMessage().contains("newer version"), e.getMessage());
@@ -47,10 +82,10 @@ class SaveFormatTest {
     void anUnknownOrMissingVersionIsRejected() {
         String json = SaveFormat.write(save());
 
-        assertThrows(SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 1", "\"version\" : 0")));
-        assertThrows(SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 1,", "")));
+        assertThrows(SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 2", "\"version\" : 0")));
+        assertThrows(SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 2,", "")));
         assertThrows(
-                SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 1", "\"version\" : \"1\"")));
+                SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 2", "\"version\" : \"2\"")));
     }
 
     @Test

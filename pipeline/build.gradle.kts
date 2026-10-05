@@ -89,6 +89,14 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
         "enemy-coilwyrm-regrow-r23-b.ogg",
         "enemy-coilwyrm-burst-r24-b.ogg",
         "enemy-coilwyrm-head-burst-r24-c.ogg",
+        // Round 25 (Level 07), option a played provisionally until the round closes.
+        "enemy-carrier-roar-r25-a.ogg",
+        "enemy-carrier-sac-open-r25-a.ogg",
+        "enemy-carrier-sac-close-r25-a.ogg",
+        "enemy-carrier-launch-r25-a.ogg",
+        "enemy-carrier-sac-burst-r25-a.ogg",
+        "enemy-carrier-iris-r25-a.ogg",
+        "secret-cable-snap-r25-a.ogg",
     )
 }
 
@@ -115,6 +123,9 @@ val copyPlaceholderMusic = tasks.register<JavaExec>("copyPlaceholderMusic") {
         "mission-failed-r08-a.ogg=mission-failed.ogg",
         "miniboss-sting-r08-a.ogg=miniboss-sting.ogg",
         "mission-complete-r08-a.ogg=mission-complete.ogg",
+        "boss-warning-r08-a.ogg=boss-warning.ogg",
+        "choir-descends-full-r08-a.ogg=choir-descends.ogg",
+        "act-complete-r08-a.ogg=act-complete.ogg",
     )
 }
 

@@ -22,8 +22,8 @@ import vanguard.content.VoiceData;
 /**
  * The spoken lines (design/audio/voice, Offline pipeline): every radio cue of every level (with its
  * easy and hard variants and one line per convoy unit for {@code {ally}}), the secrets' lines, the
- * specials' calls and every page of the levels' and acts' briefings, each with the key its rendered
- * file is named by. The renderer (tools/art/voice.py, through {@code :pipeline:voiceLines}) and
+ * specials' calls and every page of the levels' and acts' briefings and of the acts' outros (spoken
+ * dry, as briefings), each with the key its rendered file is named by. The renderer (tools/art/voice.py, through {@code :pipeline:voiceLines}) and
  * the game share this list, so the game finds a line's file by the same key.
  */
 public final class VoiceLines {
@@ -185,6 +185,7 @@ public final class VoiceLines {
         add(lines, line(voices, call.speaker(), call.line(), Expression.NEUTRAL, false, Filter.RADIO, "specials"));
         for (Map.Entry<String, ActData> act : new TreeMap<>(content.acts()).entrySet()) {
             briefing(lines, voices, act.getValue().briefing(), act.getKey() + " briefing");
+            act.getValue().outro().ifPresent(outro -> briefing(lines, voices, outro.pages(), act.getKey() + " outro"));
         }
         for (Map.Entry<String, LevelData> level : new TreeMap<>(content.levels()).entrySet()) {
             LevelData data = level.getValue();

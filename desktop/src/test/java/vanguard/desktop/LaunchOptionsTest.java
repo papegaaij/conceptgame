@@ -15,7 +15,7 @@ class LaunchOptionsTest {
     @Test
     void runsUntilQuitWithTheDefaultSettingsFileWithoutOptions() {
         assertEquals(
-                new LaunchOptions(0, Optional.empty(), Difficulty.MEDIUM, 1, false, false, Optional.empty(), 1),
+                new LaunchOptions(0, Optional.empty(), Difficulty.MEDIUM, 1, false, false, Optional.empty(), 1, false),
                 LaunchOptions.parse());
     }
 
@@ -30,14 +30,15 @@ class LaunchOptionsTest {
                         false,
                         true,
                         Optional.empty(),
-                        1),
+                        1,
+                        false),
                 LaunchOptions.parse("--bench", "3", "--settings", "smoke.properties"));
     }
 
     @Test
     void parsesTheTestingOptions() {
         assertEquals(
-                new LaunchOptions(0, Optional.empty(), Difficulty.HARD, 4, true, false, Optional.empty(), 1),
+                new LaunchOptions(0, Optional.empty(), Difficulty.HARD, 4, true, false, Optional.empty(), 1, false),
                 LaunchOptions.parse("--difficulty", "hard", "--debug-speed", "4", "--invulnerable"));
         assertThrows(IllegalArgumentException.class, () -> LaunchOptions.parse("--difficulty", "nightmare"));
         assertThrows(IllegalArgumentException.class, () -> LaunchOptions.parse("--debug-speed", "0"));
@@ -76,6 +77,16 @@ class LaunchOptionsTest {
         assertEquals(2, LaunchOptions.parse("--level", "2").level());
         assertEquals(true, LaunchOptions.parse("--level", "2").startLevel());
         assertThrows(IllegalArgumentException.class, () -> LaunchOptions.parse("--level", "0"));
+    }
+
+    @Test
+    void theActEndOptionStartsInTheLevel() {
+        LaunchOptions options = LaunchOptions.parse("--level", "6", "--act-end");
+
+        assertEquals(true, options.actEnd());
+        assertEquals(true, options.startLevel());
+        assertEquals(false, LaunchOptions.parse("--level", "6").actEnd());
+        assertThrows(IllegalArgumentException.class, () -> LaunchOptions.parse("--act-end", "--start", "title"));
     }
 
     @Test

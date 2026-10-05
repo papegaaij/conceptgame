@@ -82,7 +82,7 @@ README), and the tables in the README are **rendered from the data**:
 | Ship and core parts | `design/player/{ship,shields,armor,generator,systems,specials}/data.yaml` | their tables (the specials table is still hand-written) |
 | Player-wide | `design/player/data.yaml` (shop availability, pickups) | the *In-level pickups* table |
 | Level | `design/campaign/<act>/<level>/data.yaml` (sections, scroll, waves, ground targets, secrets, cues, objectives, music, difficulty changes, backdrop) | the *Threat profile*, *Layout*, *Backdrop*, *Waves*, *Ground targets*, *Radio chatter* and *Credit budget* tables |
-| Act | `design/campaign/<act>/data.yaml` (the act's levels, title card and act briefing) | the act's *Act intro and outro* quotes |
+| Act | `design/campaign/<act>/data.yaml` (the act's levels, title card, act briefing and act-end outro) | the act's *Act intro and outro* quotes (the outro's still hand-kept, planned `act-outro` table) |
 | Allies | `design/allies/data.yaml` (one entry per ally) | the allies' spec tables (still hand-written) |
 | Economy, scoring, difficulty, retry | `design/systems/<part>/data.yaml` | the scoring bonus and grade tables and the difficulty levers (the economy's tables are still hand-written; retry has no table) |
 
@@ -213,6 +213,32 @@ first entry of a part's model list is the starter (price 0, `start`).
   of their own (`<slug>-segment`, `-tail`, `-regrown`) that pay their bounty but are not kills; a
   hard `attacks` change may set an attack's `interval` (authored, so the fire-rate lever does not
   apply on top); `hover` `seconds` may be one time instead of `[min, max]`.
+  Planned (part G), for the Brood Carrier (flown in Level 07): the stat block's `layer` is the
+  layer a boss arrives on (`high-air`: only `homing` shots reach it, drawn at the 1.25 high-air
+  scale, no contact); a boss part of `kind: armoured` fires its `attack` but is never damaged, has
+  no `hp` or `bounty` and is not in the bar (the head turrets); the pattern `fan` for a boss
+  attack; a `spiral` without `duration` runs for its whole phase (beside a `ring` in a
+  non-`alternate` phase, each with its own spiral state); the difficulty hook `attacks` gains
+  `arms`, and a hook `spawns` sets a window spawn's `count` by its `name`. In the `boss` block:
+  `engages_on_arrival: true` (the first phase starts when the boss arrives, its entrance part of
+  the fight, rather than when it settles); `death_seconds` (s the chained death runs, the parts
+  bursting in `part_list` order, tail to head; parts still alive then burst and pay); `poses`, the
+  further part layouts (the arrival pose is the `part_list` offsets with the stat block's
+  `hitbox`), each a `name`, the body's `hitbox` and `offsets` (part
+  name → `[dx, dy]` in this pose; parts left out keep their `part_list` offset), drawn from their
+  own pre-rendered sprites, never rotated. Per phase: `until` may give `seconds` (from when the
+  phase engages, after its move) beside or instead of `parts`/`left`: a phase with only `seconds` is
+  timed, one with both times out (a **timeout**) when the seconds run out first; `delay` (s after
+  the move before it fires and opens its windows; default 1 s in a later phase that
+  alternates, 0 otherwise: the frigate's crown opening, generalised); `move`, the invulnerable opening move: `to` `[x, y]`
+  (the centre's station, px from the left edge and px below the top edge, like `hover.y`), `layer` (the layer it descends or rises to), `descend` (s), `pose` (the
+  pose's name) and `turn` (s through the turn's pre-rendered frames); `windows`: `groups` (lists
+  of part names, in the order the windows cycle), `every` (s), `open` (s a group stays open),
+  `offset` (s before the first, after the delay), `all: true` (every group with a living part
+  opens at once), and `spawns` in turn, one per opening, each a `name`, `enemy`, `count` per
+  group (a group with parts destroyed releases its share rounded up, an empty group nothing),
+  `speed`, `arc` (°) and `glide` (s); a part in a window group takes damage only while its group
+  is open.
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`, optional
@@ -273,11 +299,16 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   its last pass) / `group-cleared` / `group-lost` (with `group`) / `first-group-lost` /
   `secondary-objective` / `level-end` / `first-ally-hit` / `first-ally-lost` (a convoy's first hit
   and first loss; `{ally}` in the line becomes the unit's number word, "Three") / `boss-phase`
-  (with `phase`, the phase's name) / `boss-destroyed` / `mission-failed`
+  (with `phase`, the phase's name) / `boss-destroyed` (the level's boss; planned (part G): the
+  loader gave such a cue an empty subject while the simulation cues the boss's slug, so it never
+  played, Level 05's "Frigate down" included; part G fixes it) / `mission-failed`
   (not played: the line and speaker on the mission failed screen after a failed primary objective;
   at most one; only with an `escort` or `destroy-targets` primary; `{group}` in it becomes the
   lost group's name); a `level-end` cue's `allies` `[min, max]` (the convoy units home, so each outcome
-  has its line), and `requires: special` (only with a special fitted; on any cue);
+  has its line), and `requires: special` (only with a special fitted; on any cue); planned (part
+  G): `requires: homing` (a weapon with homing delivery fitted) and `requires_not` (`special` or
+  `homing`: plays only without it), and a `boss-phase` cue's `timeout: true` (it plays only when
+  the phase before ended on its timeout with parts it waited for alive);
   `speaker`, `line`,
   `distorted`, the portrait's optional `expression` (`neutral`, `grim`, `fierce`; neutral if not
   given; a secret's `radio` line takes it too), `shout: true` (the voice shouts the line, with the
@@ -287,6 +318,9 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   which may leave the screen alive; a spawner's self-burst counts as an escape) or `kill_all`
   (enemies every unit of which must die, met and failed as `escapes`, with the tracker's `label`)
   and `credits`;
+  planned (part G): a fifth secondary kind, `parts` (names of the level boss's parts, every one
+  of which must be shot off) with `before` (the boss phase whose end, by timeout, fails it) and
+  the tracker's `label`;
   `primary` is `reach-end`, `destroy-targets` with its `targets` (the ground-target groups that
   must be cleared; it fails as soon as a unit of one leaves the screen alive, the groups pay no
   credits, and the secondary then cannot use `groups`) or `escort`, which adds an `escort` block: the `ally` slug, the
@@ -308,7 +342,10 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   (the level time from which only the ambience plays: the theme fades out as at a won level) and
   `voice_loop` (`speaker`, `section`, `db`: that speaker's first timed radio line loops at `db`
   on the voice bus while the section plays, silent without a voice file; Level 06's perimeter
-  beacon)); `sleds` (Level 05's
+  beacon); planned (part G): `boss_warning` (`boss-warning`: track 22 with the klaxon and the
+  warning banner when an act boss arrives, the theme crossfading out) and `boss_track`
+  (`choir-descends`: track 18, coming in on the downbeat after the warning and fading out at the
+  kill, leaving the ambience)); `sleds` (Level 05's
   mass-driver sleds: rail `x`, `width`, the `first` launch, `period`, `until`, `lights` (s of the
   telegraph), `run` (s on screen), contact `damage`, the `clamp` secret whose trigger only takes
   hits while the rail is dark, and `easy` / `hard` `period`); `rocks` (low-gravity debris a
@@ -316,6 +353,15 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   `damage`, `clearance` px from the ship, none on easy unless `on_easy`); `boss.notes.streams` (the
   boss streams the credit budget counts); `difficulty` (level-wide
   `easy` / `hard` enemy changes such as `burst` and a walker's `speed_factor`, and `extra_pickups` placed like `pickups`);
+  planned (part G): a wave `easy` / `hard` change's `hold`; a placed pickup's `skip` list of
+  difficulties; `dropped_by` `parts` (names of the level boss's parts) with `unit` `first`/
+  `second`/`last`: the n-th of them shot off drops it (parts lost in the death drop nothing);
+  `tows` (Level 07's lifeboat: a friendly craft on the air layer towing a secret's crate): `t` it
+  enters at the top edge, `x` of its centre, `drift` `[x, y]` px/s (y up, so negative: down the
+  screen), the `boat` and `pod` sizes, the pod's `tether` `[dx, dy]` from the boat's centre, the
+  `cable` size (its hit box midway between them, the only part shots hit; boat and pod let shots
+  and bullets through and never collide), `hits` to cut it and the secret it `reveals` (the pod
+  falls free as that secret's crate);
   `threat_profile` (the hangar intel: `setting`, `layers`, `density` 1–5, recommended `traits`,
   `hazards`, `boss`, optional `specials` limits, optional `objective` (the OBJECTIVE field
   shown from sensor L1, "ESCORT 5 CRAWLERS"), `varga` lines per sensor level `none`/`l1`/`l2`/
@@ -390,8 +436,12 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   (`count`, `step` in °, centred on straight up; rendered, not rotated) and `smoke_below` (share
   of its HP).
 - **Act** (`campaign/<act>/data.yaml`): `levels` `[first, last]` (global numbers), `title_card`
-  (`act`, `name`, `line`), `briefing` (pages as a level's); the loader checks that every
-  level's act exists and includes it.
+  (`act`, `name`, `line`), `briefing` (pages as a level's); planned (part G): `outro`, the act-end
+  outro after the last level's debrief: `music` (a music file's name, `act-complete`: track 24
+  under the first page, played once) and `pages` (as the briefing's: `speaker`, `line`, optional
+  `expression` and `image`); the loader checks that every level's act exists and includes it.
+  Saves (not a data file; see [saves](../../systems/saves/README.md)): format version 2 (part G)
+  adds `stats.levels`, per won level number its banked `credits` and `kills`.
 
 ### Presentation (`game`)
 
@@ -403,7 +453,19 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   parallax layers per the [art direction](../../art-direction/README.md); shaders stay
   GLES 2 compatible (the ANGLE fallback on macOS).
 - Audio: the streaming music player with intro and loop points, and the SFX bank with 64
-  sources.
+  sources. OpenAL Soft sums every source (the effects and the music stream's `AudioDevice`) into
+  the device's float mix; it has no limiter on float output by default, so the
+  [master limiter](../../audio/README.md#master-limiter) is OpenAL Soft's output limiter
+  (`ALC_SOFT_output_limiter`): `desktop`'s `LimitedAudio` (libGDX's `OpenALLwjgl3Audio`, returned by
+  the launcher's `createAudio`) resets the device with `ALC_OUTPUT_LIMITER_SOFT` on through
+  `alcResetDeviceSOFT` before anything plays, and `OutputLimiter.watch` turns it back on from the
+  render loop's `update()` once a second when libGDX's device observer turned it off: the observer
+  reopens the device without attributes (`alcReopenDeviceSOFT`) once just after the start and on
+  every change of the device list, so the limiter is off for up to a second then (it gives up after
+  three resets in a row that do not take). The limiter is fixed by OpenAL Soft: 0 dBFS, 1 ms look-ahead, 2 ms
+  hold, automatic attack and release, and an adaptive make-up gain that is the slow release after
+  an over. `OutputLimiterTest` checks it on a loopback device (`ALC_SOFT_loopback`), which renders
+  the mix into memory without a sound card.
 
 ### Assets
 
@@ -814,3 +876,22 @@ Screenshot tests are left out until there is a need.
   `FlightSounds` plays the round's Mantis, flare and regrowth sounds (`Sfx`), the flare's burn
   loop as back-to-back plays over the level's `flareSeconds`. No simulation change: the replay
   hashes stay.
+- 2026-10-05: Schema text for M4 part G (Level 07 and the act end), marked "planned (part G)" until
+  the loader reads it: the boss keys (`engages_on_arrival`, `death_seconds`, `poses`, a phase's
+  `until.seconds`, `delay`, `move` and `windows` with `spawns`; fire-only `armoured` parts; a
+  boss `fan`; a spiral without `duration`; the hooks `arms` and `spawns`), the level keys (`tows`,
+  a wave change's `hold`, a pickup's `skip`, `dropped_by.parts`, radio `requires: homing`,
+  `requires_not` and a boss-phase cue's `timeout`, the `parts`/`before` secondary, music
+  `boss_warning` and `boss_track`), the act's `outro` and the save's `stats.levels`. The level
+  and act names follow the code the part's mechanics agents wrote alongside; the boss block's
+  YAML names map onto `BossSpec`'s `Pose`, `Move`, `Windows` and `Spawn`. The `boss-destroyed`
+  cue's empty subject (`SimSpecs` against the boss slug the `Sortie` cues) is the bug part G
+  fixes.
+- 2026-10-05: Master limiter (M4 part G): the game's mix went over full scale (peaks 1.2–1.59 in
+  Levels 05 and 07). OpenAL Soft does the summing, so a limiter of our own would need the mix
+  rendered on a loopback device and replayed through a second device (about 20 ms more latency on
+  every sound, and libGDX's device handling replaced); OpenAL Soft's output limiter, off by default
+  for float output, is turned on instead (`LimitedAudio`, `OutputLimiter`). Measured by replaying
+  the recorded unlimited mixes through it on a loopback device: peaks 1.00, unchanged until the
+  first over (1 ms late), afterwards on average 0.1 dB lower for a few seconds (see
+  [audio](../../audio/README.md#master-limiter)).

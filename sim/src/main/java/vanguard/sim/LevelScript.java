@@ -29,6 +29,10 @@ import java.util.Optional;
  * @param sled the mass-driver sleds (Level 05)
  * @param rocks the rocks a destroyed ground unit throws in low gravity (Level 05)
  * @param groupDrops pickups dropped where a group's last unit dies when it is cleared
+ * @param darkness Level 06's darkness
+ * @param tows part G: friendly craft towing a secret's crate on a cable (Level 07's lifeboat tow)
+ * @param partDrops part G: pickups dropped by a set piece's parts when they are shot off (Level
+ *     07's first destroyed bay sac)
  */
 public record LevelScript(
         int number,
@@ -50,10 +54,14 @@ public record LevelScript(
         Optional<SledSpec> sled,
         Optional<RockSpec> rocks,
         List<GroupDrop> groupDrops,
-        Optional<Darkness> darkness) {
+        Optional<Darkness> darkness,
+        List<TowSpec> tows,
+        List<PartDrop> partDrops) {
     public LevelScript {
         targets = List.copyOf(targets);
         groupDrops = List.copyOf(groupDrops);
+        tows = List.copyOf(tows);
+        partDrops = List.copyOf(partDrops);
         if (!targets.isEmpty() && secondary.byGroups()) {
             throw new IllegalArgumentException("groups belong to the primary or to the secondary objective");
         }
@@ -71,6 +79,53 @@ public record LevelScript(
         if (escort.isPresent() && road.isEmpty()) {
             throw new IllegalArgumentException("a convoy follows the level's road");
         }
+    }
+
+    /** A level without part G's tows and part drops. */
+    public LevelScript(
+            int number,
+            int act,
+            double launchSeconds,
+            List<Section> sections,
+            List<WaveSpec> waves,
+            List<GroundObjectSpec> groundObjects,
+            List<GroundUnit> groundUnits,
+            int secrets,
+            List<RadioCue> radio,
+            Secondary secondary,
+            List<CraneSpec> cranes,
+            List<DebrisSpec> debris,
+            List<SetPieceSpec> setPieces,
+            Optional<Escort> escort,
+            Optional<Road> road,
+            List<String> targets,
+            Optional<SledSpec> sled,
+            Optional<RockSpec> rocks,
+            List<GroupDrop> groupDrops,
+            Optional<Darkness> darkness) {
+        this(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                List.of(),
+                List.of());
     }
 
     /** A level without Level 06's darkness. */
@@ -375,6 +430,65 @@ public record LevelScript(
     public record GroupDrop(int group, PickupType pickup) {}
 
     /**
+     * Part G: a pickup dropped where the {@code nth} (from 1) of the {@code parts} of the set piece
+     * {@code slug} to be shot off breaks (Level 07: the Brood Carrier's first destroyed bay sac).
+     * Parts lost with the vital part, in the unit's death, drop nothing.
+     *
+     * @param nth from 1; {@link Integer#MAX_VALUE} for the last of them
+     * @param parts indexes into the set piece's parts
+     */
+    public record PartDrop(String slug, List<Integer> parts, int nth, PickupType pickup) {
+        public PartDrop {
+            parts = List.copyOf(parts);
+            if (parts.isEmpty() || nth < 1) {
+                throw new IllegalArgumentException(slug + ": a part drop names its parts and which of them drops it");
+            }
+        }
+
+        /** The {@code nth} for the last of the parts. */
+        public static final int LAST = Integer.MAX_VALUE;
+
+        /** Which shot-off part drops it: from 1, the last one for {@link #LAST}. */
+        public int dropsAt() {
+            return nth == LAST ? parts.size() : nth;
+        }
+    }
+
+    /**
+     * Part G: a friendly craft drifting on the air layer that tows a secret's crate on a cable
+     * (Level 07's lifeboat tow). The {@code boat} enters at the top edge at {@code t} with its centre
+     * at {@code x} and drifts at ({@code vx}, {@code vy}) px/s, y up; the {@code pod} hangs at
+     * ({@code podDx}, {@code podDy}) from the boat's centre. Shots, bullets and the ship pass the boat
+     * and the pod; only the {@code cable}, a hit box midway between them, takes the player's shots,
+     * and {@code hits} of them cut it: the pod falls free as the hidden crate of {@code secret}.
+     *
+     * @param boat the boat's box (its sprite), px
+     * @param pod the pod's box, px
+     * @param cable the cable's hit box, px, centred midway between the boat's and the pod's centres
+     * @param crateCredits the crate's credits
+     * @param secret the secret's name, for its radio cue
+     */
+    public record TowSpec(
+            double t,
+            double x,
+            double vx,
+            double vy,
+            Hitbox boat,
+            Hitbox pod,
+            double podDx,
+            double podDy,
+            Hitbox cable,
+            int hits,
+            int crateCredits,
+            String secret) {
+        public TowSpec {
+            if (!(vy < 0) || hits < 1) {
+                throw new IllegalArgumentException(secret + ": a tow drifts down the screen and its cable takes hits");
+            }
+        }
+    }
+
+    /**
      * The {@code escort} primary objective (design/allies; design/campaign, Level 04): a convoy of
      * {@code ally} units, one per station, rolling in from the bottom edge one every
      * {@code enterInterval} seconds from {@code enterSeconds} at {@code enterSpeed} px/s up the
@@ -424,13 +538,41 @@ public record LevelScript(
      *     through", Level 03): met when all are destroyed, failed when one gets away; empty for none
      * @param killAll the enemies every unit of which must be destroyed (Level 05's "Scorched
      *     crater"), met and failed as {@code escapes}; empty for none
-     * @param label the tracker's label of a kill-all objective ("NEST")
+     * @param label the tracker's label of a kill-all or parts objective ("NEST")
+     * @param partsOf part G: the set piece ("brood-carrier") whose {@code parts} must all be shot off
+     *     before its boss phase {@code beforePhase} ends (Level 07's "Gut the bays"): met when the
+     *     last of them is shot off, failed when the boss enters a later phase, or dies, with one of
+     *     them alive; empty for none
+     * @param parts indexes into that set piece's parts
+     * @param beforePhase the index of the boss phase they must die in or before
      */
     public record Secondary(
-            double killRatio, int credits, List<String> groups, String escapes, List<String> killAll, String label) {
+            double killRatio,
+            int credits,
+            List<String> groups,
+            String escapes,
+            List<String> killAll,
+            String label,
+            String partsOf,
+            List<Integer> parts,
+            int beforePhase) {
         public Secondary {
             groups = List.copyOf(groups);
             killAll = List.copyOf(killAll);
+            parts = List.copyOf(parts);
+            if (parts.isEmpty() != partsOf.isEmpty()) {
+                throw new IllegalArgumentException("a parts objective names its set piece and its parts");
+            }
+        }
+
+        public Secondary(
+                double killRatio,
+                int credits,
+                List<String> groups,
+                String escapes,
+                List<String> killAll,
+                String label) {
+            this(killRatio, credits, groups, escapes, killAll, label, "", List.of(), -1);
         }
 
         public Secondary(double killRatio, int credits, List<String> groups, String escapes) {
@@ -451,11 +593,18 @@ public record LevelScript(
         }
 
         /**
-         * Whether the objective is that none of an enemy gets away, or that every unit of the
-         * {@code killAll} enemies is destroyed (Level 05's "Scorched crater").
+         * Whether the objective is that none of an enemy gets away, that every unit of the
+         * {@code killAll} enemies is destroyed (Level 05's "Scorched crater"), or that every one of
+         * a boss's {@code parts} is shot off in time (Level 07): a count of the units (parts)
+         * destroyed of all, met when the last is destroyed, failed when one gets away (survives).
          */
         public boolean byEscapes() {
-            return !escapes.isEmpty() || !killAll.isEmpty();
+            return !escapes.isEmpty() || !killAll.isEmpty() || byParts();
+        }
+
+        /** Whether the objective is to shoot off a boss's parts before a phase ends (Level 07's "Gut the bays"). */
+        public boolean byParts() {
+            return !parts.isEmpty();
         }
 
         /** Whether a unit of {@code slug} counts towards an escapes or kill-all objective. */
@@ -886,6 +1035,10 @@ public record LevelScript(
      * @param requiresSpecial it starts only with a special fitted
      * @param alliesMin a level-end cue starts only with at least this many convoy units home
      * @param alliesMax ... and at most this many
+     * @param requires part G: it starts only with all of these fitted, as {@link #FITTED_SPECIAL}
+     *     and {@link #FITTED_HOMING} bits (with {@code requiresSpecial}, {@link #FITTED_SPECIAL} is set)
+     * @param requiresNot part G: it starts only with none of these fitted (Level 07's line for a
+     *     ship without a homing weapon)
      */
     public record RadioCue(
             CueTrigger trigger,
@@ -898,7 +1051,56 @@ public record LevelScript(
             String portrait,
             boolean requiresSpecial,
             int alliesMin,
-            int alliesMax) {
+            int alliesMax,
+            int requires,
+            int requiresNot) {
+        /** What is fitted: a special. */
+        public static final int FITTED_SPECIAL = 1;
+        /** What is fitted: a weapon with homing delivery. */
+        public static final int FITTED_HOMING = 2;
+
+        public RadioCue {
+            requires |= requiresSpecial ? FITTED_SPECIAL : 0;
+            requiresSpecial = (requires & FITTED_SPECIAL) != 0;
+            if ((requires & requiresNot) != 0) {
+                throw new IllegalArgumentException("a radio cue cannot require what it requires not to be fitted");
+            }
+        }
+
+        /** Without part G's requirements beyond a special. */
+        public RadioCue(
+                CueTrigger trigger,
+                double t,
+                String subject,
+                String speaker,
+                String line,
+                boolean distorted,
+                String expression,
+                String portrait,
+                boolean requiresSpecial,
+                int alliesMin,
+                int alliesMax) {
+            this(
+                    trigger,
+                    t,
+                    subject,
+                    speaker,
+                    line,
+                    distorted,
+                    expression,
+                    portrait,
+                    requiresSpecial,
+                    alliesMin,
+                    alliesMax,
+                    0,
+                    0);
+        }
+
+        /** Whether it may start with {@code fitted} ({@link #FITTED_SPECIAL}, {@link #FITTED_HOMING} bits) on the ship. */
+        public boolean allowedWith(int fitted) {
+            return (fitted & requires) == requires && (fitted & requiresNot) == 0;
+        }
+
         public RadioCue(
                 CueTrigger trigger,
                 double t,
@@ -946,6 +1148,12 @@ public record LevelScript(
         /** A boss entered a phase after its first; the subject is the phase's name. */
         BOSS_PHASE,
         /** A boss was destroyed; the subject is its slug. */
-        BOSS_DESTROYED
+        BOSS_DESTROYED,
+        /**
+         * Part G: a boss entered a phase because the phase before it ran out of time with parts it
+         * waited for still alive (Level 07's broadside phase timing out); the subject is the name of
+         * the phase it entered. Its {@link #BOSS_PHASE} cues start as well.
+         */
+        BOSS_TIMEOUT
     }
 }

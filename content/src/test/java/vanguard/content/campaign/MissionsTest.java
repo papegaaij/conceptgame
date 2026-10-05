@@ -65,6 +65,22 @@ class MissionsTest {
                 first.subList(3, 7).stream().allMatch(mission -> mission.name().isEmpty()));
     }
 
+    /** After Level 07 and the act outro the campaign waits before Level 08: every Act I level can be replayed. */
+    @Test
+    void afterTheActEndEveryLevelOfTheActIsOpen() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 7; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
+        SaveGame save = campaign.save(Instant.EPOCH);
+
+        List<Missions.Act> acts = Missions.of(List.of(ACTS.getFirst()), MissionsTest::name, save);
+
+        assertTrue(acts.getFirst().missions().stream().allMatch(Missions.Mission::open));
+        SaveGame better = Missions.withGrade(save, 7, "A+", CampaignTest.RULES.grades());
+        assertEquals(save.stats(), better.stats(), "a replay's grade keeps the level stats");
+    }
+
     @Test
     void anActNotReachedHidesItsName() {
         List<Missions.Act> acts = Missions.of(ACTS, MissionsTest::name, flownThree());

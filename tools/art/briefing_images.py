@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Production art: the briefings' tactical maps and mission images (design/ui/briefing), one per
-briefing page of the Act 1 intro and Levels 01-04, in the chosen briefing-r08-a look: a dark
+briefing page of the Act 1 intro, Levels 01-07 and the Act 1 outro, in the chosen briefing-r08-a look: a dark
 tactical display with its grid, scan rows and edge ticks, holographic planets, cyan routes and
 labels, red and violet for the Vrell, amber for objectives.
 
@@ -32,22 +32,41 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
                           production telegraph wedge and charged-lance beam), side-firing guns
                           reaching it; the Coilwyrm at the data's spacing coming round behind the
                           ship (its path history dashed beyond the tail), its open rear
+  level-07-l1-carrier     L07 p1: the Brood Carrier (broadside) holding at Earth-Moon L1, the pods
+                          that hit Luna traced back to it, its escort screen, the overrun L1 picket,
+                          Aegis's way through; its weak points named
+  level-07-overhead-scan  L07 p2: the carrier's three stages (part G's D1): nose-down on high air with
+                          its shadow, a bay pair open, only missiles reaching up; the turn in place
+                          (a turn frame as a hologram); broadside at the ship's level, a pair open,
+                          a pair burst, the plate iris open over the lime core
+  act-1-outro-carcass     Act 1 outro p1: the carcass at L1 (the break-up chunks, burnt dark, drifting,
+                          ichor clouds), Earth beyond, what the act saved
+  act-1-outro-daedalus-rim  outro p2: Daedalus Rim still empty (Level 06's gate and domes, lights on),
+                          the search's tally, the file kept open
+  act-1-outro-second-fleet  outro p3: the long-range plot: the second fleet beyond the Moon, ten times
+                          the destroyed carrier group, its track ending in Earth's atmosphere
+  act-1-outro-rook        outro p4: Aegis Wing reassigned to Earth defence, Rook's craft (Ember) in the
+                          wing slot beside Lancer's Stormhawk, his radio portrait
   design/ui/briefing/concept/briefing-images-final-r13-a.png   review sheet, Act 1 intro + L01-02
   design/ui/briefing/concept/briefing-images-final-r20-a.png   review sheet, L03-04 (M4 batch)
   design/ui/briefing/concept/briefing-images-final-r21-a.png   review sheet, L05 (M4 part E)
   design/ui/briefing/concept/briefing-images-final-r23-a.png   review sheet, L06 (M4 part F)
+  design/ui/briefing/concept/briefing-images-final-r25-a.png   review sheet, L07 + Act 1 outro (part G)
  Every image is composed
 in layers like the hangar map (tools/art/ui_scenes.py): the display and planets posterized to 24
 colours with ordered dither, the lines, markers and labels to 16 of their own, then the sprites
-from assets/ (the Stormhawk, Skitter, Needler and the intel portraits) with their own palettes;
+from assets/ (the Stormhawk, Skitter, Needler, the Brood Carrier's composed poses, chunks and glows,
+backdrop pieces, the portraits) with their own palettes; Rook's craft from vfx_r08's chosen
+round-09 render (no production sprite yet);
 additive light (the Mantis's beam parts from assets/, its wedge from mantis_beam.py's generator
-code) added as the game blends it, its pixels to 32 colours of their own.
+code; the carrier's core glow, also on its open sacs) added as the game blends it, its pixels to 32 colours of their own.
 The labels use the concept pixel font (render/raster.py), as the chosen mockup does.
 
-Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23] [--review]   (~10 s; after
+Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23|r25] [--review]   (~10 s; after
 stormhawk.py, vrell_air.py, intel.py, vrell_l03.py, leviathan.py, vrell_l04.py, civilian_crawler.py
-airstrike_bomber.py, l05_hazards.py, mantis.py, mantis_beam.py, coilwyrm.py, l06_darkness.py and
-backdrop_l06.py, whose sprites it shows); the review sheet written is the open round's (r23) unless
+airstrike_bomber.py, l05_hazards.py, mantis.py, mantis_beam.py, coilwyrm.py, l06_darkness.py,
+backdrop_l06.py, brood_carrier.py, brood_carrier_death.py, backdrop_l07.py and portraits.py, whose
+sprites it shows); the review sheet written is the open round's (r25) unless
 a round is named.
 """
 import json
@@ -58,8 +77,10 @@ import yaml
 from PIL import Image, ImageDraw
 
 import artkit
+import brood_carrier as bc
 import mantis_beam
 import ui_scenes
+import vfx_r08 as v8  # noqa: E402  (concept script, imported unchanged: Rook's craft, as stormhawk.py's ship)
 from artkit import DESIGN, ROOT, SPRITES, sprite
 
 from render import raster, terrain  # noqa: E402
@@ -67,7 +88,7 @@ from render import raster, terrain  # noqa: E402
 SCRIPT = "briefing_images.py"
 SOURCE = artkit.source_note(SCRIPT, "UI batch")
 SOURCE_M4 = artkit.source_note(SCRIPT, "M4 briefing images")
-ROUND = "r23"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21)
+ROUND = "r25"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23)
 OUT = ROOT / "assets" / "ui" / "briefing"
 CONCEPT = DESIGN / "ui" / "briefing" / "concept"
 W, H = 672, 240
@@ -81,6 +102,7 @@ AMBER = (255, 190, 60)
 RED = (255, 70, 50)
 VIOLET = (190, 120, 255)
 GREEN = (120, 255, 160)
+LIME = (180, 255, 70)   # the Brood Carrier's weak points
 GREY = (110, 130, 150)
 GRID = 32
 
@@ -882,6 +904,332 @@ def edge_scan():
     return b
 
 
+# --------------------------------------------------------------------------- Level 07 and the Act 1 outro
+
+_CARRIER = {}
+
+
+def carrier_art():
+    """The Brood Carrier's production sprites (brood_carrier.py's set), loaded once."""
+    if not _CARRIER:
+        _CARRIER.update(bc.load_art())
+    return _CARRIER
+
+
+def scaled(img, scale, colours=48):
+    """A sprite reduced for the display: smooth, its edge cut at half alpha, on a palette of its own."""
+    small = np.array(img.resize((max(1, round(img.width * scale)), max(1, round(img.height * scale))),
+                                Image.LANCZOS))
+    small[..., 3] = np.where(small[..., 3] > 128, 255, 0)
+    return artkit.quantize_set([Image.fromarray(small)], colours)[0]
+
+
+def carrier(frame, scale, sacs=None, iris=0, turret_to=-np.pi / 2):
+    """The carrier as the game composes it (brood_carrier.compose, on a clear canvas): hull ``frame``
+    (0 nose-down, 8 broadside) and at the two poses the sac sprites (``sacs``: a stage per bay in
+    BAYS order, 0 closed, 3 open, 4 burst), the iris stage and the mandible turret aimed at
+    ``turret_to`` (radians counter-clockwise, y up); reduced by ``scale``. Returns the sprite and the
+    pose's part offsets at that scale in image coordinates (dx right, dy down)."""
+    art = carrier_art()
+    hull = art["hull"][frame]
+    img = Image.new("RGBA", hull.size, (0, 0, 0, 0))
+    img.alpha_composite(hull)
+    cx, cy = hull.width // 2, hull.height // 2
+    offs = bc.offsets(0 if frame == 0 else 1)
+    if frame in (0, len(art["hull"]) - 1):
+        sac = art["sac-down" if frame == 0 else "sac-side"]
+        parts = [(sac[0 if sacs is None else sacs[i]], offs[name]) for i, name in enumerate(bc.BAYS)]
+        parts += [(art["iris"][iris], offs["core"]), (art["turret"][bc.heading_frame(turret_to)], offs["mandibles"])]
+        for f, (dx, dy) in parts:
+            img.alpha_composite(f, (cx + dx - f.width // 2, cy - dy - f.height // 2))
+    return scaled(img, scale), {k: (dx * scale, -dy * scale) for k, (dx, dy) in offs.items()}
+
+
+def shadow(b, img, x, y, dx, dy, strength=0.55):
+    """A high-air unit's shadow on the display: ``img``'s alpha (centred at x, y) offset by dx, dy."""
+    a = np.array(img)[..., 3] / 255
+    x0, y0 = int(x - img.width / 2 + dx), int(y - img.height / 2 + dy)
+    ys, xs = slice(max(0, y0), min(H, y0 + a.shape[0])), slice(max(0, x0), min(W, x0 + a.shape[1]))
+    b.base[ys, xs] *= (1 - strength * a[ys.start - y0:ys.stop - y0, xs.start - x0:xs.stop - x0])[..., None]
+
+
+def core_glow(b, x, y, scale, strength=1.0):
+    """The core's additive lime glow (brood-carrier-core-glow) over the sprites at (x, y); smaller,
+    the glow the display puts on an open sac."""
+    g = carrier_art()["glow"]
+    g = np.array(g.resize((round(g.width * scale * 1.6), round(g.height * scale * 1.6)), Image.LANCZOS)).astype(float)
+    rgb = g[..., :3] * g[..., 3:4] / 255 * strength
+    b.add_light(rgb, x - rgb.shape[1] / 2, y - rgb.shape[0] / 2, "over")
+
+
+def backdrop(level, name, scale, colours=32):
+    """A backdrop piece of a level (assets/backdrop/<level>/), reduced for the display."""
+    return scaled(Image.open(ROOT / "assets" / "backdrop" / level / f"{name}.png").convert("RGBA"), scale, colours)
+
+
+def cloud(b, level, name, scale, x, y):
+    """A translucent backdrop piece (an ichor cloud) blended into the display layer, centred at x, y,
+    so it takes the display's palette."""
+    img = Image.open(ROOT / "assets" / "backdrop" / level / f"{name}.png").convert("RGBA")
+    a = np.array(img.resize((round(img.width * scale), round(img.height * scale)), Image.LANCZOS)).astype(float)
+    x0, y0 = int(x - a.shape[1] / 2), int(y - a.shape[0] / 2)
+    ys, xs = slice(max(0, y0), min(H, y0 + a.shape[0])), slice(max(0, x0), min(W, x0 + a.shape[1]))
+    a = a[ys.start - y0:ys.stop - y0, xs.start - x0:xs.stop - x0]
+    k = a[..., 3:4] / 255
+    b.base[ys, xs] = b.base[ys, xs] * (1 - k) + a[..., :3] * k
+
+
+def l1_carrier():
+    """L07 p1: the carrier holding at the Earth-Moon L1 point where this started, the pods that hit
+    Luna traced back to it, its escort screen, the overrun picket, Aegis's way through to it."""
+    b = Board()
+    b.planet(34, 150, 92, "earth", seed=19)
+    b.planet(626, 64, 22, "moon", seed=5)
+    b.title("EARTH-MOON L1 - WHERE THIS STARTED")
+    cx, cy = 480, 132
+    b.glow(cx, cy, 100, (16, 46, 34), 0.9)
+    ship, offs = carrier(8, 0.3, turret_to=np.pi)
+    for k, (dy0, bend) in enumerate(((-14, -26), (0, -12), (14, 4))):
+        tail = (cx + 64, cy + dy0 * 0.5)
+        pts = [(tail[0] + (604 - tail[0]) * t, tail[1] + (76 + dy0 * 0.4 - tail[1]) * t + bend * np.sin(np.pi * t))
+               for t in np.linspace(0, 1, 12)]
+        b.dashed(pts, VIOLET, 1, 3, 4)
+    b.label(596, 38, "EVERY POD ON LUNA", VIOLET, right=True)
+    b.label(596, 48, "TRACED BACK HERE", VIOLET, right=True)
+    b.label(W - 10, 92, "LUNA", CYAN_DIM, right=True)
+    b.sprite(ship, cx, cy)
+    b.bracket(cx - 102, cy - 50, cx + 102, cy + 50, RED)
+    b.label(cx - 84, cy - 68, "BROOD CARRIER", WHITE)
+    b.label(cx - 84, cy - 58, "THE SIZE OF A STATION", RED)
+    b.label(cx - 84, cy + 56, "WEAK POINTS:", LIME)
+    b.label(cx - 84, cy + 66, "LAUNCH SACS, CORE UNDER ARMOUR", LIME)
+    for k, a in enumerate(np.linspace(-50, 50, 9)):
+        t = np.radians(a)
+        x, y = cx - 150 * np.cos(t), cy + 96 * np.sin(t)
+        b.glow(x, y, 9, (60, 24, 40), 0.6)
+        b.marker(x, y, "chevron" if k % 3 else "dot", RED if k % 3 else VIOLET, 4 if k % 3 else 3)
+    b.arc(cx, cy, 150, 96, 130, 230, RED, 120)
+    b.label(300, 30, "ESCORT SCREEN", RED)
+    for y in (48, 92, 138, 184):
+        x = 206 + 8 * np.sin(y / 20)
+        b.marker(x, y, "square", GREY)
+        b.marker(x, y, "cross", RED, 6)
+    b.label(150, 206, "L1 PICKET - OVERRUN", GREY)
+    b.arrow(118, 150, 296, 136, CYAN)
+    b.label(110, 160, "AEGIS - PUNCH THROUGH", CYAN)
+    b.label(W - 10, 9, "WHEN IT DIES, THE PODS STOP", AMBER, right=True)
+    b.label(10, H - 16, "DESTROY THE CARRIER", AMBER)
+    return b
+
+
+def overhead_scan():
+    """L07 p2: Varga's scan of the carrier's three stages (user decision D1 of part G): it comes over
+    nose-down on high air (its shadow on the ship's level) and stops, the bays opening in pairs, only
+    missiles reaching up; it descends and turns 90 degrees in place; broadside at the ship's level
+    the sacs and the plate iris over the lime core."""
+    b = Board()
+    b.title("SENSOR SCAN - BROOD CARRIER")
+    x1, y1, s1 = 84, 120, 0.3
+    high, offs = carrier(0, s1, sacs=[3, 3] + [0] * 6)
+    shadow(b, high, x1, y1, 16, 22)
+    b.glow(x1, y1 + 30, 50, (30, 60, 10), 0.5)
+    b.sprite(high, x1, y1)
+    for name in ("bay 1 left", "bay 1 right"):
+        core_glow(b, x1 + offs[name][0], y1 + offs[name][1], s1 * 0.6, 0.8)
+    b.label(150, 24, "1 HIGH AIR", WHITE)
+    b.label(150, 34, "ABOVE YOU", WHITE)
+    b.label(150, 46, "NOSE FIRST, STOPS", CYAN_DIM)
+    b.label(150, 58, "BAYS OPEN IN PAIRS", LIME)
+    b.arrow(20, 34, 20, 100, CYAN_DIM)
+    sx, sy = 172, 204
+    b.sprite(asset("ship_2"), sx, sy)
+    tx, ty = x1 + offs["bay 1 right"][0] + 4, y1 + offs["bay 1 right"][1]
+    for bend in (60, -10):  # two homing missiles curving up to the open sac
+        pts = [(sx + (tx - sx) * t + (1 - t) * t * bend, sy - 20 + (ty - sy + 20) * t) for t in np.linspace(0, 1, 14)]
+        b.dashed(pts, GREEN, 1, 4, 3)
+    b.label(150, 84, "ONLY MISSILES", GREEN)
+    b.label(150, 94, "REACH THAT HIGH", GREEN)
+    b.dashed([(sx + 12, sy - 24), (sx + 12, sy - 60)], GREY, 1, 3, 3)
+    b.marker(sx + 12, sy - 64, "cross", GREY, 3)
+    b.label(sx + 20, sy - 70, "GUNS: NO", GREY)
+    b.line([(266, 30), (266, H - 20)], CYAN_DIM, 1, 90)
+    b.line([(394, 30), (394, H - 20)], CYAN_DIM, 1, 90)
+    tx2, ty2 = 330, 128
+    b.sprite(holo(carrier(4, 0.15)[0], CYAN_DIM, 8), tx2, ty2)
+    b.arc(tx2, ty2, 54, 54, 200, 290, CYAN, 220)
+    b.arrow(tx2 + 54 * np.cos(np.radians(285)), ty2 + 54 * np.sin(np.radians(285)),
+            tx2 + 54 * np.cos(np.radians(300)), ty2 + 54 * np.sin(np.radians(300)), CYAN, 5, dashed=False)
+    b.label(274, 24, "2 COMES DOWN", WHITE)
+    b.label(274, 34, "TURNS 90 DEG", CYAN_DIM)
+    b.label(274, 44, "IN PLACE", CYAN_DIM)
+    b.label(274, 198, "NO DAMAGE", RED)
+    b.label(274, 208, "WHILE IT TURNS", RED)
+    x3, y3, s3 = 530, 110, 0.4
+    sx3, sy3 = 512, 210
+    tx, ty = x3 + 285 * s3, y3  # the mandibles, broadside
+    side, offs3 = carrier(8, s3, sacs=[4, 4, 3, 3, 0, 0, 0, 0], iris=4,
+                          turret_to=np.arctan2(-(sy3 - ty), sx3 - tx))
+    b.glow(x3, y3, 80, (16, 46, 34), 0.8)
+    b.sprite(side, x3, y3)
+    cxg, cyg = x3 + offs3["core"][0], y3 + offs3["core"][1]
+    core_glow(b, cxg, cyg, s3)
+    b.label(402, 24, "3 BROADSIDE, YOUR LEVEL", WHITE)
+    b.label(402, 34, "EVERY GUN REACHES IT", CYAN)
+    for name in ("bay 2 left", "bay 2 right"):
+        core_glow(b, x3 + offs3[name][0], y3 + offs3[name][1], s3 * 0.6, 0.8)
+    b.line([(x3 + offs3["bay 2 right"][0] + 8, y3 + offs3["bay 2 right"][1] + 8), (600, 184)], LIME, 1, 200)
+    b.label(W - 10, 188, "HIT THE LIME GLOW", LIME, right=True)
+    b.label(W - 10, 198, "SACS, THEN THE CORE", LIME, right=True)
+    b.line([(cxg - 8, cyg + 10), (440, 184)], VIOLET, 1, 200)
+    b.label(402, 188, "PLATE IRIS", VIOLET)
+    b.label(402, 198, "OVER THE CORE", VIOLET)
+    b.sprite(asset("ship_2"), sx3, sy3)
+    for dx in (-6, 6):
+        b.dashed([(sx3 + dx, sy3 - 24), (sx3 + dx, cyg + 50)], CYAN, 1, 4, 4)
+    b.label(W - 10, 9, "NO MISSILES? SURVIVE UNTIL IT COMES DOWN", AMBER, right=True)
+    return b
+
+
+def outro_carcass():
+    """Act 1 outro p1: the carrier's carcass drifting apart at L1 (its production break-up chunks,
+    burnt dark, and ichor clouds), Earth beyond; what the week saved."""
+    b = Board()
+    b.planet(500, 330, 230, "earth", seed=23)
+    b.planet(54, 58, 16, "moon", seed=5)
+    b.title("EARTH-MOON L1 - THE CARRIER, AFTER")
+    cx, cy, s = 250, 112, 0.34
+    death = json.loads((ROOT / "assets" / "pivots" / "brood-carrier.json").read_text())["death"]
+    darken = death["darken"]
+    b.glow(cx, cy, 120, (14, 30, 26), 0.8)
+    for k, name in enumerate(("ichor-c", "ichor-a", "ichor-b")):
+        cloud(b, "level-07", name, 0.6, cx - 120 + 120 * k, cy + (30, -40, 44)[k])
+    rng = np.random.default_rng(71)
+    for chunk in death["chunks"]:
+        (ox, oy), (dx, dy) = chunk["offsets"][2], chunk["drift"]
+        f = artkit.load_frames(chunk["sprite"])[rng.integers(0, 3)]
+        a = np.array(f).astype(float)
+        a[..., :3] *= darken
+        piece = scaled(Image.fromarray(a.astype(np.uint8)), s, 24)
+        b.sprite(piece, cx + (ox + dx * 0.8) * s, cy + (oy + dy * 0.8) * s)
+    for x, y in rng.uniform((cx - 150, cy - 70), (cx + 150, cy + 70), (14, 2)):
+        b.marker(x, y, "dot", GREY, 1)
+    b.bracket(cx - 160, cy - 76, cx + 160, cy + 82, GREY)
+    b.label(cx - 160, cy + 88, "BROOD CARRIER - DEAD, DRIFTING", GREY)
+    b.label(cx - 160, cy + 98, "NO LAUNCHES SINCE THE KILL", GREEN)
+    b.label(W - 10, 9, "A WEEK AGO, NONE OF THIS WAS CERTAIN", AMBER, right=True)
+    for i, (text, colour) in enumerate((("GAGARIN YARDS - SCARRED, STANDING", GREEN),
+                                        ("TRANQUILITY CONVOY - HOME", GREEN),
+                                        ("LUNA - NOTHING FALLING", GREEN))):
+        b.label(W - 10, 30 + 10 * i, text, colour, right=True)
+    b.label(40, 80, "LUNA", CYAN_DIM)
+    b.label(W - 10, H - 16, "EARTH", CYAN_DIM, right=True)
+    b.label(10, H - 16, "WELL FLOWN, AEGIS", AMBER)
+    return b
+
+
+def outro_daedalus():
+    """Act 1 outro p2: Daedalus Rim on the far side, still empty: the main airlock open and lit, the
+    domes' lights on (Level 06's backdrop pieces), the file on the missing kept open."""
+    b = Board()
+    b.base *= 0.6
+    b.title("LUNA FAR SIDE - DAEDALUS RIM, SEARCHED")
+    gx, gy, s = 214, 118, 0.6
+    for x, y, r in ((gx, gy - 28, 60), (gx - 92, gy - 62, 40), (gx + 92, gy - 62, 40), (gx, gy + 54, 46)):
+        b.glow(x, y, r, (80, 62, 24), 0.8)
+    rng = np.random.default_rng(67)
+    for x, y in zip(rng.uniform(20, 420, 12), rng.uniform(40, 220, 12)):
+        r = rng.uniform(5, 13)
+        b.ring(x, y, r, r * 0.8, GREY, 60)
+    b.sprite(backdrop("level-06", "daedalus-gate", s), gx, gy)
+    for name, x, y in (("dome-a", 52, 178), ("dome-b", 382, 170), ("dome-c", 380, 62)):
+        b.glow(x, y, 30, (80, 62, 24), 0.8)
+        b.sprite(backdrop("level-06", name, 0.5), x, y)
+    b.line([(gx + 14, gy - 14), (gx + 60, gy - 96)], AMBER, 1, 200)
+    b.label(gx + 64, gy - 102, "MAIN AIRLOCK - OPEN", AMBER)
+    b.line([(gx - 30, gy + 50), (gx - 92, gy + 92)], AMBER, 1, 200)
+    b.label(gx - 196, gy + 94, "LIGHTS ON - NOBODY HOME", AMBER)
+    px = 470
+    b.line([(px - 16, 30), (px - 16, H - 20)], CYAN_DIM, 1, 90)
+    b.label(px, 30, "SEARCH - FAR SIDE", WHITE)
+    for i, (text, colour) in enumerate((("DAEDALUS RIM", CYAN), ("2000 PEOPLE - NOT FOUND", RED),
+                                        ("SETTLEMENTS 2 AND 3", CYAN), ("2000 PEOPLE - NOT FOUND", RED))):
+        b.label(px, 50 + 12 * i + 6 * (i > 1), text, colour)
+    b.label(px, 118, "NO BODIES - NO WRECKAGE", WHITE)
+    b.line([(px, 140), (W - 14, 140)], RED, 1, 160)
+    b.label(px, 148, "MISSING: 4000", RED)
+    b.draw.rectangle([px - 4, 178, px + 120, 198], outline=AMBER + (230,))
+    b.label(px + 4, 184, "FILE: OPEN", AMBER)
+    return b
+
+
+def outro_second_fleet():
+    """Act 1 outro p3: Varga's long-range plot: the second fleet beyond the Moon, ten times the
+    destroyed carrier group, its track ending in Earth's atmosphere."""
+    b = Board()
+    b.planet(60, 146, 74, "earth", seed=19)
+    b.ring(60, 146, 84, colour=CYAN, alpha=120)
+    b.planet(400, 58, 16, "moon", seed=5)
+    b.title("LONG RANGE - SECOND FLEET")
+    lx, ly = 350, 84
+    b.ring(lx, ly, 20, colour=GREY, alpha=180)
+    b.marker(lx, ly, "cross", GREY, 5)
+    b.label(lx - 60, ly - 36, "CARRIER GROUP", GREY)
+    b.label(lx - 60, ly - 26, "DESTROYED", GREEN)
+    fx, fy, rx, ry = 584, 134, 60, 66
+    b.glow(fx, fy, 70, (60, 24, 90), 0.9)
+    rng = np.random.default_rng(24)
+    a, r = rng.uniform(0, 2 * np.pi, 70), np.sqrt(rng.uniform(0.02, 1, 70))
+    for x, y in zip(fx + rx * r * np.cos(a), fy + ry * r * np.sin(a)):
+        b.marker(x, y, "dot", VIOLET, 1)
+    b.ring(fx, fy, rx + 6, ry + 6, RED, 200, 1)
+    b.label(fx - rx - 4, fy + ry + 12, "SECOND FLEET", RED)
+    b.label(fx - rx - 4, fy + ry + 22, "10X THE CARRIER GROUP", WHITE)
+    b.label(W - 10, 9, "COURSE: EARTH'S ATMOSPHERE", RED, right=True)
+    ex, ey = 60 + 84 * np.cos(np.radians(-10)), 146 + 84 * np.sin(np.radians(-10))
+    p0, p1, p2 = np.array([fx - rx - 8, fy + 10.0]), np.array([330, 230.0]), np.array([ex + 4, ey + 6])
+    track = [tuple((1 - t) ** 2 * p0 + 2 * (1 - t) * t * p1 + t ** 2 * p2) for t in np.linspace(0, 1, 11)]
+    b.dashed(track[:-1], RED, 2)
+    b.arrow(*track[-2], *track[-1], RED, dashed=False)
+    b.marker(ex, ey, "diamond", AMBER, 5)
+    b.label(ex + 16, ey - 30, "IT ENDS IN THE AIR", AMBER)
+    b.label(ex + 16, ey - 20, "NOT IN ORBIT", AMBER)
+    b.label(10, H - 16, "EARTH", CYAN_DIM)
+    b.label(424, 54, "LUNA", CYAN_DIM)
+    b.label(100, 222, "ATMOSPHERE", CYAN_DIM)
+    b.label(260, H - 16, "THEY'RE COMING TO LAND", RED)
+    return b
+
+
+def outro_rook():
+    """Act 1 outro p4: Aegis Wing reassigned to Earth defence; Rook's craft (Ember, the chosen round-09
+    sprite from vfx_r08) in the wing slot beside and behind Lancer's Stormhawk, his radio portrait."""
+    b = Board()
+    b.planet(336, 520, 330, "earth", seed=23)
+    b.title("AEGIS WING - REASSIGNED: EARTH DEFENCE")
+    lx, ly = 250, 102
+    rx, ry = 352, 136
+    b.glow(lx, ly, 60, (10, 40, 60), 0.6)
+    b.ring(rx, ry, 34, colour=CYAN_DIM, alpha=160)
+    b.dashed([(lx + 30, ly + 14), (rx - 28, ry - 10)], CYAN_DIM, 1, 3, 3)
+    b.sprite(asset("ship_2", 2), lx, ly)
+    b.sprite(sprite.enlarge(v8.rook_sprite(0)[1], 2), rx, ry)
+    b.label(lx - 18, ly + 52, "LANCER", CYAN)
+    b.label(rx + 44, ry - 4, "ROOK - YOUR WING", AMBER)
+    b.label(rx + 44, ry + 6, "FROM TOMORROW", AMBER)
+    px, py = 584, 92
+    b.sprite(Image.open(SPRITES / "portraits" / "radio-rook-neutral.png").convert("RGBA"), px, py)
+    b.bracket(px - 42, py - 42, px + 42, py + 42)
+    b.label(px - 42, py + 50, "LT. K. TANAKA", WHITE)
+    b.label(px - 42, py + 60, "'ROOK'", CYAN)
+    b.label(10, 30, "AEGIS WING", WHITE)
+    b.label(10, 40, "OUT OF CISLUNAR SPACE", CYAN_DIM)
+    b.label(10, 50, "EFFECTIVE NOW", AMBER)
+    b.arrow(60, 66, 150, 186, CYAN)
+    b.label(10, 210, "WE MEET THEM ON THE GROUND", RED)
+    b.label(W - 10, 9, "KEEP HIM OUT OF TROUBLE", AMBER, right=True)
+    return b
+
+
 IMAGES = {
     "act-1-tether-gate": tether_gate,
     "act-1-outer-stations": outer_stations,
@@ -900,6 +1248,12 @@ IMAGES = {
     "level-05-mortar-scan": mortar_scan,
     "level-06-daedalus-rim": daedalus_rim,
     "level-06-edge-scan": edge_scan,
+    "level-07-l1-carrier": l1_carrier,
+    "level-07-overhead-scan": overhead_scan,
+    "act-1-outro-carcass": outro_carcass,
+    "act-1-outro-daedalus-rim": outro_daedalus,
+    "act-1-outro-second-fleet": outro_second_fleet,
+    "act-1-outro-rook": outro_rook,
 }
 
 # Review sheets per batch: round, the images on it, the batch name.
@@ -907,7 +1261,8 @@ BATCHES = {
     "r13": (list(IMAGES)[:9], "UI BATCH"),
     "r20": (list(IMAGES)[9:13], "M4 BRIEFING IMAGES"),
     "r21": (list(IMAGES)[13:15], "M4 PART E"),
-    "r23": (list(IMAGES)[15:], "M4 PART F"),
+    "r23": (list(IMAGES)[15:17], "M4 PART F"),
+    "r25": (list(IMAGES)[17:], "M4 PART G"),
 }
 
 

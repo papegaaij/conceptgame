@@ -18,6 +18,12 @@ import java.util.function.IntPredicate;
  * message is shown the music ducks by 4 dB (design/audio, Mix groups). A level may end on its
  * ambience alone: from its {@code ambience_from} time the theme fades out as at a won level
  * (Level 06), and loop a radio line faintly under one section (Level 06's perimeter beacon).
+ *
+ * <p>An act boss (Level 07) has its own music: at its arrival the theme crossfades out over 0.5 s
+ * while the boss warning (track 22) starts, and the boss track (track 18) comes in on the downbeat
+ * after the warning's bars ({@link BossCue}); at the kill it fades out in a second, leaving the
+ * ambience, and the theme does not come back. A Retry from boss holds the theme until the boss
+ * arrives again. A level without boss music keeps the mid-boss sting ({@link #sting}).
  */
 public final class LevelMusic implements Disposable {
     private static final float MUSIC_VOLUME = 0.6f;
@@ -57,6 +63,41 @@ public final class LevelMusic implements Disposable {
     /** A radio line looping under a section: its file, the section and its gain below full. */
     public record VoiceLoop(FileHandle file, int section, float gain) {}
 
+    /**
+     * An act boss's music: the warning played once at its arrival (track 22), the boss track looping
+     * from {@code trackFromSeconds} into it (track 18); either may be missing.
+     */
+    public record Boss(Optional<FileHandle> warning, Optional<FileHandle> track, double trackFromSeconds) {
+        public Boss {
+            if (warning.isEmpty() && track.isEmpty()) {
+                throw new IllegalArgumentException("boss music has a warning or a track");
+            }
+        }
+    }
+
+    /** Where the boss music stands. */
+    enum BossState {
+        /** Before the boss: the theme plays as its sections ask. */
+        WAITING,
+        /** A Retry from boss restarted the level just before the boss: the theme waits for it. */
+        HELD,
+        /** The boss's warning and track play; the theme is out. */
+        FIGHT,
+        /** The boss is down: its track has faded, only the ambience plays. */
+        DOWN
+    }
+
+    /** The theme crossfades out under the boss warning over this long (design/audio/music). */
+    private static final float BOSS_CROSSFADE = 0.5f;
+
+    private final Optional<Boss> boss;
+    private BossState bossState = BossState.WAITING;
+    private Optional<MusicStreamer> bossMusic = Optional.empty();
+    /** Seconds left of the theme's crossfade out under the warning; negative when not fading. */
+    private float themeOut = -1;
+    /** Seconds left of the boss music's fade at the kill; negative when not fading. */
+    private float bossOut = -1;
+
     private final double ambienceFrom;
     private final Optional<VoiceLoop> voiceLoop;
     private Sound loopSound;
@@ -81,6 +122,36 @@ public final class LevelMusic implements Disposable {
             IntPredicate fullMix,
             double ambienceFrom,
             Optional<VoiceLoop> voiceLoop) {
+        this(
+                audio,
+                mixer,
+                base,
+                full,
+                sfx,
+                ambience,
+                startSection,
+                startDb,
+                fullMix,
+                ambienceFrom,
+                voiceLoop,
+                Optional.empty());
+    }
+
+    /** @param boss an act boss's music, empty for none (a mid-boss's sting plays through {@link #sting}) */
+    public LevelMusic(
+            Audio audio,
+            Mixer mixer,
+            FileHandle base,
+            FileHandle full,
+            SfxBank sfx,
+            Sfx ambience,
+            int startSection,
+            double startDb,
+            IntPredicate fullMix,
+            double ambienceFrom,
+            Optional<VoiceLoop> voiceLoop,
+            Optional<Boss> boss) {
+        this.boss = boss;
         this.audio = audio;
         this.mixer = mixer;
         this.base = base;
@@ -112,6 +183,7 @@ public final class LevelMusic implements Disposable {
         if (music.isEmpty()
                 && !cut
                 && fade < 0
+                && bossState == BossState.WAITING
                 && levelSeconds < ambienceFrom
                 && section >= startSection
                 && MusicStreamer.available(audio)) {
@@ -131,17 +203,104 @@ public final class LevelMusic implements Disposable {
         }
         float target = radio ? DUCKED : 1;
         duck += (target - duck) * Math.min(1, DUCK_RATE * seconds);
-        float level = rise * (fade >= 0 ? fade / FADE_SECONDS : 1) * stingDip();
+        float faded = fade >= 0 ? fade / FADE_SECONDS : 1;
+        float level = rise * faded * stingDip() * (themeOut >= 0 ? themeOut / BOSS_CROSSFADE : 1);
         if (sting >= 0) {
             sting -= seconds;
         }
         music.ifPresent(streamer -> streamer.setVolume(MUSIC_VOLUME * duck * level));
+        float bossLevel = faded * (bossOut >= 0 ? bossOut / FADE_SECONDS : 1);
+        bossMusic.ifPresent(streamer -> streamer.setVolume(MUSIC_VOLUME * duck * bossLevel));
+        if (themeOut >= 0) {
+            themeOut = Math.max(0, themeOut - seconds);
+            if (themeOut == 0) {
+                themeOut = -1;
+                stopTheme();
+            }
+        }
+        if (bossOut >= 0) {
+            bossOut = Math.max(0, bossOut - seconds);
+            if (bossOut == 0) {
+                bossOut = -1;
+                stopBoss();
+            }
+        }
         if (fade >= 0) {
             fade = Math.max(0, fade - seconds);
             if (fade == 0) {
                 stopTheme();
+                stopBoss();
             }
         }
+    }
+
+    /**
+     * An act boss arrived: the theme crossfades out over 0.5 s while the boss warning starts, the
+     * boss track coming in after the warning's bars. Returns false, doing nothing, for a level without
+     * boss music (its mid-boss plays the sting instead).
+     */
+    public boolean bossArrived() {
+        if (boss.isEmpty()) {
+            return false;
+        }
+        if (bossState == BossState.FIGHT || cut) {
+            return true;
+        }
+        bossState = BossState.FIGHT;
+        if (music.isPresent()) {
+            themeOut = BOSS_CROSSFADE;
+        }
+        sting = -1;
+        stopBoss();
+        bossOut = -1;
+        if (MusicStreamer.available(audio)) {
+            BossCue cue = cue(boss.get());
+            if (cue != null) {
+                bossMusic = Optional.of(MusicStreamer.play(audio, cue, MUSIC_VOLUME * duck, mixer));
+            }
+        }
+        return true;
+    }
+
+    /** The boss's warning and track as one stream, from the files that exist; null when none does. */
+    private static BossCue cue(Boss boss) {
+        VorbisFile warning = boss.warning()
+                .filter(FileHandle::exists)
+                .map(file -> new VorbisFile(file.readBytes()))
+                .orElse(null);
+        LoopingStream track = boss.track()
+                .filter(FileHandle::exists)
+                .map(file -> LoopingStream.of(new VorbisFile(file.readBytes())))
+                .orElse(null);
+        if (warning == null && track == null) {
+            return null;
+        }
+        int rate = warning != null ? warning.sampleRate() : track.sampleRate();
+        return new BossCue(warning, track, Math.round(boss.trackFromSeconds() * rate));
+    }
+
+    /** The act boss is down: its music fades out in a second; the ambience plays on and the theme stays out. */
+    public void bossDown() {
+        if (boss.isEmpty() || bossState != BossState.FIGHT) {
+            return;
+        }
+        bossState = BossState.DOWN;
+        if (bossMusic.isPresent()) {
+            bossOut = FADE_SECONDS;
+        }
+    }
+
+    /** A Retry from boss restarts the level at the boss checkpoint: the theme waits for the boss's arrival. */
+    public void bossRetry() {
+        if (boss.isPresent()) {
+            bossState = BossState.HELD;
+            stopTheme();
+        }
+    }
+
+    /** Where the boss music stands, for the tests. */
+    BossState bossState() {
+        return bossState;
     }
 
     /**
@@ -194,6 +353,7 @@ public final class LevelMusic implements Disposable {
     public void cut() {
         cut = true;
         stopTheme();
+        stopBoss();
         stopLoop();
     }
 
@@ -203,11 +363,15 @@ public final class LevelMusic implements Disposable {
         sting = -1;
         rise = startLevel;
         fade = -1;
+        themeOut = -1;
+        bossOut = -1;
+        bossState = BossState.WAITING;
         stopTheme();
+        stopBoss();
         stopLoop();
     }
 
-    /** The level is won: the theme fades out. */
+    /** The level is won: the theme (or the boss music) fades out. */
     public void fadeOut() {
         fade = FADE_SECONDS;
     }
@@ -218,9 +382,15 @@ public final class LevelMusic implements Disposable {
         stems = Optional.empty();
     }
 
+    private void stopBoss() {
+        bossMusic.ifPresent(MusicStreamer::close);
+        bossMusic = Optional.empty();
+    }
+
     @Override
     public void dispose() {
         stopTheme();
+        stopBoss();
         stopLoop();
         sfx.stop(ambience);
     }

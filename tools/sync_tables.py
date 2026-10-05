@@ -232,7 +232,7 @@ def stat_block(d):
         ["Faction", e["faction"]],
         ["Layer", f"`{e['layer']}`" + fill(notes.get("layer", ""), values)],
         ["Size tier", f"`{e['tier']}`"],
-        ["Size", f"{e['size'][0]}×{e['size'][1]} px, hitbox {e['hitbox'][0]}×{e['hitbox'][1]}"],
+        ["Size", f"{e['size'][0]}×{e['size'][1]} px, hitbox {e['hitbox'][0]}×{e['hitbox'][1]}" + suffix("size")],
         ["Parts", parts],
         ["Orientation", f"`{e['orientation']}`" + suffix("orientation")],
         ["HP", f"{hp_text} (easy {hp('easy')} / hard {hp('hard')}, from the global multipliers)"],
@@ -457,8 +457,9 @@ def waves(d):
     boss = level.get("boss")
     if boss:
         notes = boss.get("notes", {}).get("waves", "")
+        enter = boss.get("notes", {}).get("from", "front (descends from above)")
         rows.append((boss["t"], [num(boss["t"]), str(boss["section"]), boss_kind(boss["enemy"]),
-                                 enemy_link(d, boss["enemy"]), "1", "front (descends from above)", notes]))
+                                 enemy_link(d, boss["enemy"]), "1", enter, notes]))
     rows = [cells for _, cells in sorted(rows, key=lambda r: r[0])]
     totals = " · ".join(f"{enemy_name(slug)} {n}"
                         for slug, n in (enemy_totals(level) | set_piece_totals(level) | boss_totals(level)).items())
@@ -560,6 +561,10 @@ def act_briefing(d):
     return quote(data(d)["briefing"])
 
 
+def act_outro(d):
+    return quote(data(d)["outro"]["pages"])
+
+
 def level_number(d):
     return int(re.match(r"level-(\d+)-", os.path.basename(d)).group(1))
 
@@ -571,6 +576,18 @@ def stat_bounty(slug):
 def spawns(slug):
     """An enemy's spawn attacks' `spawn` blocks (the Brood Pod's Skitters)."""
     return [a["spawn"] for a in load(f"{enemy_dir(slug)}/data.yaml").get("attacks", []) if a.get("spawn")]
+
+
+def part_names(parts):
+    """Boss parts as the credit table names them: equal names but a side ("bay 1 left", "bay 1
+    right", …) and equal bounties grouped ("bays 8 × 25"), the others "core 250"."""
+    out, groups = [], {}
+    for p in parts:
+        base = re.sub(r" \d+( left| right)?$| (left|right)$", "", p["name"])
+        groups.setdefault((base, p["bounty"]), []).append(p)
+    for (base, credits), members in groups.items():
+        out.append(f"{base}s {len(members)} × {credits}" if len(members) > 1 else f"{members[0]['name']} {credits}")
+    return out
 
 
 def credit_budget(d):
@@ -647,15 +664,23 @@ def credit_budget(d):
     boss = level.get("boss")
     if boss:
         e = load(f"{enemy_dir(boss['enemy'])}/data.yaml")
-        names = " + ".join(f"{p['name']} {p['bounty']}" for p in e["part_list"])
+        paying = [p for p in e["part_list"] if p.get("bounty")]  # fire-only parts pay nothing
+        names = " + ".join(part_names(paying))
         add(f"{boss_kind(boss['enemy']).capitalize()}: {e['name']} ({names})",
-            [(1, bounty(p["bounty"]), 1) for p in e["part_list"]])
+            [(1, bounty(p["bounty"]), 1) for p in paying])
         streams = boss.get("notes", {}).get("streams", 0)
         for enemy, count in boss_streams(boss["enemy"]):
             if streams:
                 add(f"{boss_kind(boss['enemy']).capitalize()} streams: {streams} × {count} "
                     f"{enemy_name(enemy)} × {stat_bounty(enemy)} (a fight at par)",
                     [(streams * count, bounty(stat_bounty(enemy)), layer_rate(enemy))])
+        # part G: the units its windows launch in a typical fight (Level 07's carrier)
+        launched = boss.get("notes", {}).get("spawns", {})
+        if launched:
+            add(f"{boss_kind(boss['enemy']).capitalize()} spawns: "
+                + " + ".join(f"{enemy_name(slug)} {n} × {stat_bounty(slug)}" for slug, n in launched.items())
+                + " (a typical fight)",
+                [(n, bounty(stat_bounty(slug)), layer_rate(slug)) for slug, n in launched.items()])
     escort = level["objectives"].get("escort")
     if escort:
         units = len(escort["y"])
@@ -677,6 +702,9 @@ def credit_budget(d):
         source = f"Secondary: every {enemy_name(secondary['escapes'])} killed before it bursts"
     elif "escapes" in secondary:
         source = f"Secondary: no {enemy_name(secondary['escapes'])} gets through"
+    elif "parts" in secondary:
+        source = (f"Secondary: all {len(secondary['parts'])} {secondary['label'].lower()} destroyed "
+                  f"before the {secondary['before'].lower()} phase ends")
     elif "kill_all" in secondary:
         names = " and ".join(enemy_name(slug) for slug in secondary["kill_all"])
         source = f"Secondary: every {names} destroyed"
@@ -762,7 +790,7 @@ RENDERERS = {
     "reference-dps": reference_dps, "player-damage": player_damage, "formations": formations,
     "level-sections": level_sections, "backdrop": backdrop_table, "threat-profile": threat_profile, "waves": waves, "ground-targets": ground_targets, "radio": radio,
     "credit-budget": credit_budget, "briefing": briefing, "teaser": teaser,
-    "act-title-card": act_title_card, "act-briefing": act_briefing, "score-bonuses": score_bonuses, "grades": grades, "difficulty": difficulty,
+    "act-title-card": act_title_card, "act-briefing": act_briefing, "act-outro": act_outro, "score-bonuses": score_bonuses, "grades": grades, "difficulty": difficulty,
 }
 
 

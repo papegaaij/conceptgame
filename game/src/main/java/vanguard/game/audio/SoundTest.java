@@ -27,7 +27,10 @@ public final class SoundTest implements AutoCloseable {
      */
     record Track(String title, String where, String path, boolean loops, float volume) {}
 
-    /** The screens' music level, and the debrief's and game over's for their cues. */
+    /**
+     * The screens' music level (the level's boss cue too), and the debrief's, game over's and the
+     * act outro's for their cues.
+     */
     private static final float THEME_VOLUME = 0.6f;
 
     private static final float CUE_VOLUME = 0.8f;
@@ -44,9 +47,17 @@ public final class SoundTest implements AutoCloseable {
             new Track("SITUATION ROOM", "BRIEFING THEME", "music/briefing-theme.ogg", true, THEME_VOLUME),
             new Track("DRY DOCK", "HANGAR THEME", "music/hangar-theme.ogg", true, THEME_VOLUME),
             new Track("COALITION RISING", "LEVEL THEME: ACT 1", "music/coalition-rising.ogg", true, THEME_VOLUME),
+            new Track("RED ALERT", "CUE: BOSS WARNING", "music/boss-warning.ogg", false, THEME_VOLUME),
+            new Track(
+                    "THE CHOIR DESCENDS",
+                    "BOSS THEME: THE VRELL ACT BOSSES",
+                    "music/choir-descends.ogg",
+                    true,
+                    THEME_VOLUME),
             new Track("MISSION COMPLETE", "JINGLE: DEBRIEF", "music/mission-complete.ogg", false, CUE_VOLUME),
             new Track("MISSION FAILED", "STING: MISSION FAILED", "music/mission-failed.ogg", false, CUE_VOLUME),
             new Track("CONTACT HEAVY", "STING: MINI-BOSS", "music/miniboss-sting.ogg", false, CUE_VOLUME),
+            new Track("ACT COMPLETE", "FANFARE: ACT OUTRO", "music/act-complete.ogg", false, CUE_VOLUME),
             new Track("GAME OVER", "CUE: GAME OVER", "music/game-over.ogg", false, CUE_VOLUME));
 
     /** Every sound effect but the music cues, which are tracks here. */

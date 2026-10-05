@@ -114,7 +114,7 @@ final class MissionPanel {
         if (groupsLabel == null) {
             groupsLabel = groupsLabel(sortie.script().groups());
             LevelScript.Secondary secondary = sortie.script().secondary();
-            escapesLabel = secondary.killAll().isEmpty() ? escapesLabel(secondary.escapes()) : secondary.label();
+            escapesLabel = secondary.label().isEmpty() ? escapesLabel(secondary.escapes()) : secondary.label();
             sortie.script().escort().ifPresent(escort -> {
                 alliesLabel = escapesLabel(escort.ally().slug());
                 String pip = escort.ally().slug() + "-pip";

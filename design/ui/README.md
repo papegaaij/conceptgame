@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../art-direction, ../systems]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # User interface
@@ -27,7 +27,7 @@ frames and chunky bitmap fonts.
 | [hangar](hangar/README.md) | Ship configurator: intel, shop, loadout, repair, save, launch | approved | done | chosen |
 | [hud](hud/README.md) | In-level side panels: status, weapons, special, radio chatter, progress | approved | in-progress | final |
 | [pause](pause/README.md) | Pause menu during a level | approved | done | final |
-| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | done | final |
+| [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | in-progress | final |
 | [mission-select](mission-select/README.md) | Replay a flown mission: the act-by-act list with best grades, later missions locked | review | done | n/a |
 | [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | approved | in-progress | n/a |
 | [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | done | final |
@@ -46,10 +46,19 @@ Title ─► Main menu ─┬─ Continue ────────────�
                     ├─ Credits
                     └─ Quit
 Hangar ─► Launch ─► Level ─► Debrief ─► Briefing ─► Hangar ─► …
+Act's last level ─► Debrief + act summary ─► Act outro ─► Next act's intro (title card, act briefing) ─► Briefing ─► Hangar
+                                         (Act 1 until Act 2 exists: Act outro ─► Hangar before L08, "not built yet")
 Briefing ─► Back ─► Quit to main menu? ─► Main menu                 (the campaign kept)
 Level ─► Pause ─► Resume / Restart / Options / Abort to hangar / Quit
 Level ─► Mission failed ─► Retry / Back to hangar / Quit      (hard, no retry left: Game over ─► Main menu)
 ```
+
+**Act end** (M4 part G, user decision D2): after an act's last level the debrief adds the act
+summary ([debrief](debrief/README.md)), then the act-end outro plays on the briefing screen
+(its pages as in the act document, e.g. [Act 1](../campaign/act-1-first-contact/README.md#act-intro-and-outro)),
+then the next act's intro opens it as at a new game (its title card and act briefing), then that
+level's mission briefing and the hangar. The autosave happens when the hangar opens, as always.
+A replay from mission select shows neither the act summary nor the outro.
 
 ### Shared UI rules
 
@@ -161,3 +170,7 @@ Production art, UI batch part U3 (concept round 13): the bitmap fonts rendered b
   character without a glyph or a capital, digit or lower-case letter off the shared rows. Review
   sheet proposed for round 13; `art` stays `chosen`.
 - 2026-10-02: Concept round 13 closed (user decision): the glass UI kit (`tools/art/ui_kit.py`) and the three bitmap fonts (`tools/art/fonts.py`) approved as **final**; this doc's `art` stays `chosen`, since not every screen under it is final (hangar, briefing, credits).
+- 2026-10-05: M4 part G (user decision D2): the act-end branch of the screen flow: the act's last
+  debrief with the act summary, the act outro, then the next act's intro; until Act 2 is built the
+  outro leads to the hangar before L08, which shows it as not built yet. No act summary and no
+  outro on a replay from mission select (the summary's part of that is a main-agent default).

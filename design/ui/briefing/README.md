@@ -82,6 +82,7 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 | [concept/briefing-images-final-r20-a.png](concept/briefing-images-final-r20-a.png) | Review sheet, batch "M4 briefing images" ([round 20](../../concept-rounds/round-20/README.md)): the four 672×240 images of Level 03 (the high lanes over the battle site's debris field with the spore carriers seeding Earth; the Spore Bomber, its rising spores and a wide spread, the long-range echo) and Level 04 (the convoy road from Tranquility Base across the rille to the mass-driver terminal, brood pods, walkers in the craters, Hammer flight; the Scuttler's claws and glowing back) | chosen |
 | [concept/briefing-images-final-r21-a.png](concept/briefing-images-final-r21-a.png) | Review sheet, M4 part E ([round 21](../../concept-rounds/round-21/README.md)): the two 672×240 images of Level 05 (the nest crater beside the mass-driver line with batteries A–D, Lancer's run over the rim, the sleds; the Polyp Mortar's lob to its marker a second ahead, the ship moving out, an unknown contact in orbit) | chosen |
 | [concept/briefing-images-final-r23-a.png](concept/briefing-images-final-r23-a.png) | Review sheet, M4 part F ([round 23](../../concept-rounds/round-23/README.md)): the two 672×240 images of Level 06 (the far side across the terminator, the silent settlements, Daedalus Rim's lit domes, Lancer's run into the dark by headlight; the Mantis at the screen edge sweeping its beam, side-firing guns reaching it, the Coilwyrm coming round behind the ship) | chosen |
+| [concept/briefing-images-final-r25-a.png](concept/briefing-images-final-r25-a.png) | Review sheet, M4 part G (round 25): the two 672×240 images of Level 07 (the Brood Carrier holding at L1 with its escort screen, the overrun picket and the pods on Luna traced back to it; the overhead scan: nose-down on high air over the ship with its shadow and a bay pair open, only missiles reaching up, the turn in place, broadside at the ship's level with a pair open and the plate iris open over the lime core) and the four of the Act 1 outro, one per page (the carcass drifting apart at L1 with Earth beyond; Daedalus Rim still empty, lights on, the file open; the second fleet's track from beyond the Moon into Earth's atmosphere; Aegis Wing reassigned to Earth defence, Rook's craft on Lancer's wing) | proposed |
 
 ## Implementation
 
@@ -95,6 +96,9 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 - [x] Portrait expressions (neutral, grim, fierce): `expression` in the data, neutral by default
 - [x] Level 06's two images rendered again for round 23's outcomes: the Coilwyrm at spacing 0.5
       (overlapping) and the Mantis's beam and telegraph from its head
+- [x] Level 07's two images and the Act 1 outro's four (one per page, part G's D3), named in the
+      level's and the act's data; `BriefingLayoutTest` checks every level page's and outro page's
+      image at the screen's size
 
 ## Decisions
 
@@ -183,3 +187,14 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
   lines layer, so that layer's 16 colours are no longer pulled toward its red: the labels and arrows
   show their intended red, violet, green and cyan. `level-06-daedalus-rim` shows neither unit and
   came out pixel-identical. `art` stays `chosen`.
+- 2026-10-05: Briefing images of Level 07 and the Act 1 outro (M4 part G step A4, straight to
+  production as part F's D8, `tools/art/briefing_images.py`), one per page (D3 for the outro), named
+  in the level's and the act's data: `level-07-l1-carrier`, `level-07-overhead-scan`,
+  `act-1-outro-carcass`, `act-1-outro-daedalus-rim`, `act-1-outro-second-fleet`,
+  `act-1-outro-rook`. They show the production Brood Carrier (`brood_carrier.py`: composed as the
+  game draws it, nose-down and broadside, a turn frame; part G's D1 for the three stages), its
+  break-up chunks and Level 07's ichor clouds (`brood_carrier_death.py`, `backdrop_l07.py`),
+  Level 06's Daedalus gate and domes, Rook's radio portrait (`portraits.py`) and his craft from the
+  chosen round-09 render (`vfx_r08.py`; no production wingman sprite until the escort slot is built).
+  The earlier seventeen images and sheets re-render byte-identical. Review sheet
+  `briefing-images-final-r25-a` proposed for round 25. `art` stays `chosen`.

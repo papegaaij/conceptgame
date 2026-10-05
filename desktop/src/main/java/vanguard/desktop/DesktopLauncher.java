@@ -3,6 +3,7 @@ package vanguard.desktop;
 import com.badlogic.gdx.Graphics.Monitor;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.audio.Lwjgl3Audio;
 import vanguard.content.campaign.SaveSlots;
 import vanguard.game.TerranVanguard;
 import vanguard.game.display.Bounds;
@@ -46,10 +47,17 @@ public final class DesktopLauncher {
                 options.startLevel(),
                 options.debugFit(),
                 options.level(),
+                options.actEnd(),
                 options.benchSeconds(),
                 saves,
                 screenshots);
-        new Lwjgl3Application(game, configuration(settings, System.getProperty("os.name")));
+        new Lwjgl3Application(game, configuration(settings, System.getProperty("os.name"))) {
+            /** libGDX's OpenAL audio with the master limiter on the final mix (design/audio, Master limiter). */
+            @Override
+            public Lwjgl3Audio createAudio(Lwjgl3ApplicationConfiguration config) {
+                return new LimitedAudio(AUDIO_SOURCES, AUDIO_BUFFER_COUNT, AUDIO_BUFFER_BYTES);
+            }
+        };
     }
 
     private static Lwjgl3ApplicationConfiguration configuration(DisplaySettings settings, String osName) {

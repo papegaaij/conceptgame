@@ -1,0 +1,268 @@
+# Level 07 – Brood Carrier: the level script, rendered into README.md (briefing, threat profile,
+# layout, waves, radio, credit budget). Times are seconds from the level start; after t = 100 they
+# run on the arena's pausable clock (the clock halts at the arena's end while the carrier lives and
+# jumps there at an earlier kill, so the aftermath always runs its 35 s after the kill).
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+scroll_speed: 170     # the approach, pressing forward; the arena 20 px/s, the aftermath 40 px/s
+launch_seconds: 5     # flying in from the bottom edge, as in Levels 01-06
+bounty_scale: 0.75    # every bounty × 0.75: the typical haul on budget(7) (part G; the boss's parts at 100 %, its typical spawns counted)
+control_prompts: []
+prompts: []
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Earth orbit
+  layers: [air, high-air, low-air]
+  density: 3
+  traits: [forward, piercing]
+  hazards: []
+  boss: Brood Carrier
+  objective: DESTROY THE CARRIER   # the OBJECTIVE field from sensor L1 (the full name runs past the intel panel's edge)
+  varga:
+    none: One ship at L1. Station-sized.
+  notes:
+    Dominant layers: '`air`, `high-air` (the carrier''s first phase), `low-air` (Spore Bombers in the escort screen)'
+    Attack directions: '{directions}'
+    Density: '{density}'
+    Recommended traits: '{traits} (`homing` for the overhead phase)'
+    Hazards: none (spore haze is visual only)
+    Boss / mid-boss: 'Boss: {boss}'
+    Objective (intel, from sensor L1): '{objective}'
+    Sensor-suite detail: 'none: L1 point, `air` + `high-air`, front · L1: + directions, density {density}, "act boss", OBJECTIVE `{objective}` · L2: + Needler, Stinger, Skitter, Brood Pod, Spore Bomber, Mantis portraits; boss name and silhouette · L3: + `piercing` and `homing` highlighted, wave strip, 1 secret'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets; peak: a heavier atmosphere inside the section
+  - name: Picket Line
+    end: 30
+    atmosphere: light
+    tiles: [stars, ice-streaks]
+    notes:
+      layers:
+        deep: Earth's disc behind, smaller than in L01–L03, the Moon ahead, stars.
+        far: a sister sensor station breaking up.
+        ground: overrun CDF picket platforms, gun mounts torn open, teal growth.
+        high-air: ice streaks.
+      purpose: A fast start through the wreckage; the lifeboat secret.
+  - name: Escort Screen
+    end: 70
+    atmosphere: medium
+    tiles: [stars]
+    notes:
+      layers:
+        ground: the last picket platform, then open space.
+        low-air: olive-grey spore haze left by the escort's bombers.
+        far: the carrier's glow on the horizon.
+      purpose: Pods with escorts, bombers on `low-air`.
+  - name: Shadow of the Carrier
+    end: 100
+    atmosphere: medium
+    peak: {atmosphere: heavy, from: 88, to: 94}   # the carrier's spore wake
+    tiles: [stars]
+    notes:
+      layers:
+        far: the carrier's silhouette growing.
+        low-air: the carrier's spore wake (the heavy peak).
+        ground: none.
+      purpose: Mantis pincer and the last escorts; the haze clears for the boss.
+  - name: Brood Carrier
+    end: 235
+    speed: 20
+    arena: true
+    atmosphere: clear
+    tiles: [stars]
+    notes:
+      layers:
+        air: the carrier (one screen long), on `high-air` in phase 1.
+        deep: Earth and the Moon.
+      purpose: The act boss, three phases (≈ 135 s at medium); the scroll halts at the section's end while the carrier lives.
+  - name: Aftermath
+    end: 270
+    speed: 40
+    atmosphere: light
+    tiles: [stars]
+    notes:
+      layers:
+        ground: the carrier's burnt-out carcass drifting away (the boss's own sprite, drawn on the play plane after the chained death; no backdrop piece).
+        low-air: drifting ichor clouds from the carcass.
+        far: long-range contacts appear as a glittering line beyond the Moon (the second fleet; on far, since deep moves only 21 px in the aftermath).
+      purpose: Credit shower, the closing radio lines in flight (35 s after the kill); the Choir, the second fleet.
+
+# The draft's beats (part G step 0) with Skitter streams and snakes, Needler and Stinger groups of
+# the act's roster between them (as Level 06's D1: no generic filler). The lifeboat tow drifts down
+# the left half from t = 22, so the waves of 21-34 keep to the right.
+waves:
+  - {t: 5.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5, notes: Over the first platforms}
+  - {t: 8, formation: V-wing, enemy: needler, count: 5, from: front, notes: Among the platforms}
+  - {t: 12, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25}
+  - {t: 16, formation: column, enemy: stinger, count: 3, from: front}
+  - {t: 18.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - {t: 23, formation: snake, enemy: skitter, count: 6, from: front, edge: right, notes: Right of the lifeboat}
+  - {t: 26, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.5}
+  - {t: 31, formation: V-wing, enemy: needler, count: 4, from: front}
+  - t: 34
+    groups:
+      - {formation: carrier + escorts, enemy: brood-pod, count: 1}
+      - {formation: carrier + escorts, enemy: needler, count: 3}
+    from: front
+  - {t: 38.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - {t: 42, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.5}
+  - {t: 44, formation: line abreast, enemy: spore-bomber, count: 2, from: front, notes: '`low-air`'}
+  - {t: 47, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25}
+  - {t: 50, formation: V-wing, enemy: stinger, count: 4, from: front, notes: Over the spore mines}
+  - {t: 53.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.5}
+  - t: 58
+    groups:
+      - {formation: carrier + escorts, enemy: brood-pod, count: 1}
+      - {formation: carrier + escorts, enemy: needler, count: 3}
+    from: front
+    notes: The pod drops the overdrive
+  - {t: 61.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25}
+  - {t: 64, formation: line abreast, enemy: spore-bomber, count: 2, from: front, notes: The last bomber drops the special charge}
+  - {t: 67, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25}
+  - {t: 70.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25, notes: Into the carrier's shadow}
+  - {t: 74, formation: pincer, enemy: mantis, count: 2, from: sides, hold: 6, easy: {hold: 4}, notes: 'Edge warnings; hold {hold} s (easy 4 s); the second drops an armour patch'}
+  - {t: 76, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: Between the two Mantis}
+  - {t: 80, formation: line abreast, enemy: brood-pod, count: 2, from: front, hard: {count: 3}, notes: 'While the Mantis hold; 3 on hard'}
+  - {t: 83, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25}
+  - {t: 86, formation: column, enemy: stinger, count: 3, from: front, notes: Inside the heavy peak}
+  - {t: 89, formation: V-wing, enemy: needler, count: 4, from: front}
+  - {t: 92, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 0.75}
+  - {t: 96, formation: line abreast, enemy: needler, count: 4, from: front, notes: 'Last escorts; the last drops an armour patch'}
+
+ground_targets: []   # no hostile ground targets: the picket platforms are wreckage (scenery)
+
+boss:  # the carrier arrives at the arena's start; the boss warning with it
+  enemy: brood-carrier
+  t: 100
+  x: 240
+  section: 4
+  notes:
+    from: front (nose-first over the top edge, on `high-air`)
+    waves: 'Nose-first over the top edge; phase 1: 8 bay-pair openings, pairs 1 and 3 launching 4 Skitters, 2 and 4 2 Needlers (16 + 8); phase 2: 1 Skitter per open sac per window; after a phase-2 timeout 2 Skitters per surviving pair every 6 s'
+    spawns: {skitter: 41, needler: 8}   # the window launches of a typical fight (the autopilot with the plan's fit at medium: phase 1 16 + 8, phase 2 25), which the credit budget counts
+
+tows:  # the lifeboat secret (user decision D1 of part G's step 0: a friendly craft, shots pass it)
+  - {t: 22, x: 130, drift: [12, -45], boat: [72, 36], pod: [32, 32], tether: [0, 70], cable: [16, 40], hits: 3, reveals: lifeboat tow}
+
+secrets:
+  - name: lifeboat tow
+    crate: 75
+    radio: {speaker: Rook, line: "Pod's loose. Lifeboat Seven says it's yours, Lancer. Finders keepers."}
+
+pickups:
+  - {pickup: armour patch, dropped_by: {wave: 74, unit: second}, skip: [hard]}   # the second Mantis of the pincer
+  - {pickup: armour patch, dropped_by: {wave: 96, unit: last}, skip: [hard]}     # the last Needler before the boss
+  - {pickup: overdrive, dropped_by: {wave: 58, unit: first}}                     # the Brood Pod of the t=58 group
+  - {pickup: overdrive, dropped_by: {parts: [bay 1 left, bay 1 right, bay 2 left, bay 2 right, bay 3 left, bay 3 right, bay 4 left, bay 4 right], unit: first}}   # the first sac destroyed, in any phase
+  - {pickup: special charge, dropped_by: {wave: 64, unit: last}}                 # the last Spore Bomber
+
+radio:  # trigger: t or event; requires / requires_not: homing = a homing weapon fitted or not
+  - {t: 1, speaker: Okafor, line: "This is it, Aegis. Kill the carrier and the pods stop coming."}
+  - {t: 8, speaker: Rook, line: "Aegis Two and the rest of the wing are on its far flank, keeping the other escorts busy. Save us some, Lancer."}
+  - {t: 22, speaker: Lifeboat Seven, portrait: generic-cdf, line: "Lifeboat Seven, crew of four, drifting. Aegis, that pod we're towing is yours if you cut it loose."}
+  - {t: 44, speaker: Varga, line: "Spore bombers screening the carrier. Same rules as the high lanes."}
+  - {t: 72, speaker: Rook, expression: fierce, shout: true, line: "Edges, Lancer! Snipers, both sides!", notes: {trigger: the pincer's warning}}
+  - {t: 82.5, speaker: Varga, line: "Carrier in visual range. Everything it launches comes through those sacs. Hit the lime glow."}
+  - {t: 94, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
+  - {t: 100, speaker: Okafor, line: "Brood Carrier, dead ahead. She's all yours, Lancer.", notes: {trigger: boss warning}}
+  - {t: 107, requires: homing, speaker: Varga, line: "It's right over you. Your missiles can reach the open sacs. Everything else, clear the spawns.", notes: {trigger: homing fitted}}
+  - {t: 107, requires_not: homing, speaker: Varga, line: "It's above you. You can't touch it up there. Clear the spawns and wait for it to come down.", notes: {trigger: no homing}}
+  - {event: boss-phase, phase: Broadside, speaker: Varga, expression: fierce, line: "It's coming down and turning broadside! The sacs open between volleys. That's your window.", notes: {trigger: Phase 2 starts}}
+  - {event: boss-phase, phase: Core, timeout: true, speaker: Okafor, expression: grim, line: "Forget the sacs. Go for the core.", notes: {trigger: Phase 2 timeout}}
+  - {event: boss-phase, phase: Core, speaker: Varga, expression: fierce, line: "The iris is open. That's the core. Everything you've got!", notes: {trigger: Phase 3 starts}}
+  - {event: boss-destroyed, speaker: Rook, line: "Okay. Okay. That was big. We did big.", notes: {trigger: Carrier destroyed (1)}}
+  - {event: boss-destroyed, speaker: The Choir, distorted: true, line: "[the Choir sings]", notes: {trigger: Carrier destroyed (2)}}
+  - {event: boss-destroyed, speaker: Varga, line: "Same pattern as at the shipyards, and a new one. If I'm reading it right: *many*. And *late*.", notes: {trigger: Carrier destroyed (3)}}
+  - {event: boss-destroyed, speaker: Okafor, line: "Long range just lit up. A second fleet, much bigger, heading for Earth. Aegis, come home. We have work to do.", notes: {trigger: Carrier destroyed (4)}}
+  - {event: secondary-objective, speaker: Okafor, line: "Every bay gutted. That carrier launches nothing more. Textbook, Lancer.", notes: {trigger: Secondary met}}
+
+objectives:
+  primary: reach-end   # the arena makes the kill a condition of the level's end
+  secondary: {parts: [bay 1 left, bay 1 right, bay 2 left, bay 2 right, bay 3 left, bay 3 right, bay 4 left, bay 4 right], before: Broadside, label: BAYS, credits: 50}   # "Gut the bays": all 8 before the broadside's timeout
+
+music:
+  track: 5            # Act 1 B "Coalition Rising" (audio/music track list)
+  start_section: 1
+  full_section: 2     # the intensity stem from the escort screen
+  ambience: earth-orbit
+  end_jingle: mission-complete
+  boss_warning: boss-warning      # track 22 with the klaxon and the banner at the carrier's arrival
+  boss_track: choir-descends      # track 18 after the warning, fading out at the kill
+
+difficulty: {}   # the Mantis hold, the t=80 pods and the armour patches are in their entries; the stat blocks' hooks apply
+
+briefing:
+  pages:
+    - {speaker: Okafor, image: level-07-l1-carrier, line: "Aegis, Varga has traced every pod that hit Luna back to one ship: a brood carrier holding at L1, where this started. It's the size of a station, it launches everything we've fought for a week, and it is guarded. You'll punch through its escort screen, then take it apart. Varga says its weak points are the launch sacs and a core under armour. When the carrier dies, the pods stop coming. Bring it down. Aegis Actual out."}
+    - {speaker: Varga, image: level-07-overhead-scan, line: "On its first pass it flies above you, and only missiles reach that high. If you have them, use them. If not, survive until it comes down to your level, then hit the lime glow."}
+  teaser: {speaker: Varga, line: "One big target, armoured sacs in a row. Something that punches through them all, and missiles, if you can afford them."}
+
+backdrop:
+  # Presentation only. As Level 01's (see its data file): Earth-Moon L1 beyond the overrun picket.
+  # Art: tools/art/backdrop_l07.py. The deep layer scrolls at 0.015 (art direction: 0.05-0.2): at L1
+  # Earth and the Moon are far enough that both stay on screen from the start to the aftermath, and
+  # an early kill's jump to the arena's end moves them at most ~20 px. Motion budget: the low-air
+  # banks' drift and the carrier's path in sections 2-3, the fleet's glitter in the aftermath.
+  scroll_factors: {deep: 0.015, far: 0.45, ground: 1.0, low-air: 1.4, high-air: 2.4}
+  ramp: 4
+  haze_colour: 464c3a  # olive grey: the escort's spores
+  atmosphere:
+    clear: {haze: 0.02}   # the carrier alone
+    light: {haze: 0.05}   # section 1 and the aftermath: no banks (no air at L1)
+    medium: {banks: spore-haze, wisps: spore-streaks, haze: 0.12}   # the escort's spore haze
+    heavy: {banks: spore-banks, wisps: spore-streaks, haze: 0.24}   # the carrier's spore wake
+  tile_sets:
+    stars: {layer: deep, height: 960}   # open space at L1, every section
+    spore-haze: {layer: low-air, height: 1120, drift: 10}   # Level 03's: the escort's olive-grey haze, ~24 % cover, translucent
+    spore-banks: {layer: low-air, height: 1120, drift: 12}   # Level 03's: the carrier's dense spore wake, ~50 % cover
+    ice-streaks: {layer: high-air, height: 960}   # Level 02's frost streaks: section 1
+    spore-streaks: {layer: high-air, height: 960}   # Level 03's
+  pieces:
+    earth: {layer: deep, size: [360, 360]}   # Earth's whole disc behind, smaller than in Levels 01-03; its limb stays at the bottom through the arena
+    moon: {layer: deep, size: [96, 96]}   # the Moon ahead
+    sensor-station: {layer: far, size: [200, 300], mid_size: true}   # a sister sensor station breaking up
+    picket-ring: {layer: far, size: [480, 240], mid_size: true}   # the overrun picket's ring segment, torn, its platforms overgrown
+    carrier-far: {layer: far, size: [200, 360], headings: 2, mid_size: true}   # the carrier ahead in its glow: 0 nose up (flying ahead of Lancer), 1 nose down
+    fleet-line: {layer: far, size: [320, 120], frames: 4, fps: 3}   # the second fleet's contacts, a glittering line out from beyond the Moon
+    picket-platform: {layer: ground, size: [150, 150], mid_size: true}   # an overrun CDF platform: gun dome torn open, teal growth
+    picket-half: {layer: ground, size: [120, 120], mid_size: true}   # half a picket platform, overgrown
+    gun-mount: {layer: ground, size: [72, 72]}   # a gun mount torn open, its barrels bent
+    picket-truss: {layer: ground, size: [480, 44]}   # the picket's truss, torn through
+    wreck-a: {layer: ground, size: [64, 52]}
+    wreck-b: {layer: ground, size: [84, 60]}
+    wreck-c: {layer: ground, size: [56, 76]}
+    ichor-a: {layer: low-air, size: [200, 140]}   # ichor drifting from the carcass
+    ichor-b: {layer: low-air, size: [150, 110]}
+    ichor-c: {layer: low-air, size: [230, 150]}
+  placed:
+    # deep: Earth's centre 232 px up the deep layer, the Moon's 486 (0.015 px of deep per px of ground)
+    - {piece: earth, t: -14.9, x: 120}
+    - {piece: moon, t: 84.71, x: 372}
+    # 1. Picket Line: the overrun picket, a sister sensor station breaking up on far
+    - {piece: sensor-station, t: 11, x: 340}
+    - {piece: picket-platform, t: 2.5, x: 360}
+    - {piece: wreck-a, t: 5, x: 90}
+    - {piece: picket-truss, t: 8.5, x: 240}
+    # on the truss
+    - {piece: gun-mount, t: 8.5, x: 150}
+    - {piece: picket-half, t: 11.5, x: 100}
+    - {piece: wreck-b, t: 14.5, x: 410}
+    - {piece: picket-platform, t: 17.5, x: 120}
+    - {piece: gun-mount, t: 20, x: 390}
+    # the lifeboat tow drifts down the left half from t = 22: the right side only
+    - {piece: wreck-c, t: 23.5, x: 340}
+    - {piece: picket-ring, t: 24.5, x: 240}
+    - {piece: picket-half, t: 27, x: 390}
+    - {piece: picket-truss, t: 29.5, x: 240}
+    # 2. Escort Screen: the last picket platform, then open space
+    - {piece: gun-mount, t: 33, x: 380}
+    - {piece: picket-platform, t: 37, x: 350}
+    - {piece: wreck-b, t: 42, x: 120}
+    - {piece: wreck-c, t: 48, x: 400}
+    # 2-3: the carrier ahead (its path: the glow peeks over the top edge from about t = 40, more of it shows as Lancer closes in, it pulls away over the top in the heavy peak)
+    - {piece: carrier-far, t: 70, x: 250, path: [[36, 0, -2147], [44, 0, -1609], [70, 0, 290], [87, 0, 1500.5], [93.4, 0, 2246.1], [100, 0, 2751], [235, 0, 3966], [290, 0, 4956]]}
+    # 5. Aftermath: the second fleet's contacts enter at the top at about t = 236, mid-screen at 254, the line streaming up and left from the Moon's left limb (x 328)
+    - {piece: fleet-line, t: 254, x: 166}
+    # ichor clouds from the carcass, all entering at the top after the arena's end (no pop at an early kill)
+    - {piece: ichor-a, t: 241.5, x: 300}
+    - {piece: ichor-b, t: 247, x: 110}
+    - {piece: ichor-c, t: 253, x: 360}
+    - {piece: ichor-a, t: 259, x: 150}
+    - {piece: ichor-b, t: 265, x: 330}

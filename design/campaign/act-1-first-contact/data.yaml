@@ -1,5 +1,5 @@
-# Act 1 – First Contact: its levels and the act intro (title card and act briefing), rendered into
-# README.md (Act intro and outro). Schema: ../../tech/architecture/README.md#data-file-schemas
+# Act 1 – First Contact: its levels, the act intro (title card and act briefing) and the act-end
+# outro, rendered into README.md (Act intro and outro). Schema: ../../tech/architecture/README.md#data-file-schemas
 levels: [1, 7]
 
 title_card:  # over a still of the Gagarin shipyards at dawn, Earth's terminator behind
@@ -13,3 +13,11 @@ briefing:  # Commander Okafor, full screen; one page per paragraph, each with it
   - {speaker: Okafor, image: act-1-l1-strike, line: "This morning a Vrell strike group came out of nowhere at the Earth–Moon L1 point. It is heading for the Gagarin shipyards, where half the Coalition's new fleet is still in dock."}
   - {speaker: Okafor, expression: fierce, image: act-1-aegis-wing, line: "The Defence Force was built to chase pirates. Aegis Wing is the only squadron in Earth orbit with ships fast enough and pilots ready enough to fly today. That makes us the line."}
   - {speaker: Okafor, image: act-1-stormhawk, line: "Lancer, you've had the Stormhawk for nine days. Nobody has flown it longer. Suit up."}
+
+outro:  # after the Level 07 debrief (user decision D2 of part G); one page per paragraph, each with its image (D3)
+  music: act-complete  # track 24 under the first page, played once
+  pages:
+    - {speaker: Okafor, image: act-1-outro-carcass, line: "The carrier is dead. The yards are scarred but standing, the Tranquility convoy made it home, and nothing is falling on Luna any more. A week ago, none of that was certain. Well flown, Aegis."}
+    - {speaker: Okafor, expression: grim, image: act-1-outro-daedalus-rim, line: "The farside settlements are still empty. Daedalus Rim and two others: four thousand people we could not find. I am not closing that file."}
+    - {speaker: Varga, expression: grim, image: act-1-outro-second-fleet, line: "The fleet on long range is ten times the size of the carrier's group, and its course ends in Earth's atmosphere. They aren't coming to fight us in orbit, Commander. They're coming to land."}
+    - {speaker: Okafor, expression: fierce, image: act-1-outro-rook, line: "Then we meet them on the ground. Aegis is reassigned to Earth defence, effective now. And Lancer, from tomorrow Rook flies on your wing. Try to keep him out of trouble."}

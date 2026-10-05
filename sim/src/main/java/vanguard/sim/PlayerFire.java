@@ -10,8 +10,11 @@ import java.util.List;
  * below; bombs and shells burst on the ground only. Hardened ground targets take damage from
  * {@code anti-ground} weapons only; other shots glance off. Armed spore mines on the player's
  * layer are shot like enemies; a set piece's parts take the hits on their layer and its armoured
- * body makes the rest glance; homing missiles lock onto parts too. What a hit destroys is handed
- * to {@link Hits}, which the {@link Sortie} implements.
+ * body makes the rest glance; homing missiles lock onto parts too. A boss on {@code high-air} is
+ * above the play field: a missile seeks its open parts all round (not only in its cone), climbs to
+ * the one it locks onto, turning at {@link #CLIMB_TURN} times its rate, and passes beneath the hull
+ * and every other part. What a hit destroys is handed to {@link Hits}, which the {@link Sortie}
+ * implements.
  */
 final class PlayerFire {
     private static final int SHOT_CAPACITY = 256;
@@ -36,6 +39,13 @@ final class PlayerFire {
 
     /** Homing locks on a set piece's part use serials from here: unit serials stay far below it. */
     private static final int PART_SERIAL = 1 << 24;
+
+    /**
+     * How many times faster than its rate a missile turns while it climbs to a high-air boss's part:
+     * an open sac beside the ship (the Brood Carrier's first pair over a ship under it) lies inside
+     * the turning circle of the weapon's own rate.
+     */
+    static final double CLIMB_TURN = 2;
 
     private final Ship ship;
     private final Armament armament;
@@ -203,8 +213,25 @@ final class PlayerFire {
             found = target >= 0;
         }
         if (found) {
-            shot.steer(targetX, targetY);
+            shot.steer(targetX, targetY, overhead(shot.target()) >= 0 ? CLIMB_TURN : 1);
         }
+    }
+
+    /**
+     * The index of the set piece whose part {@code target} (a lock's serial) is, if that set piece
+     * is a boss on high air (the missile climbs to it); -1 otherwise.
+     */
+    private int overhead(int target) {
+        if (target < PART_SERIAL) {
+            return -1;
+        }
+        int piece = (target - PART_SERIAL) / LevelScript.SetPieceSpec.MAX_PARTS;
+        return piece < setPieces.length && overhead(setPieces[piece]) ? piece : -1;
+    }
+
+    /** Whether {@code piece} is a boss above the play field: missiles climb to the part they lock onto. */
+    private static boolean overhead(SetPiece piece) {
+        return piece.layer() == Layer.HIGH_AIR && piece.boss().isPresent();
     }
 
     /** Whether the shot's locked target is still on the field; it is then at the target position. */
@@ -247,7 +274,10 @@ final class PlayerFire {
         return true;
     }
 
-    /** The serial of the nearest target in range and in the cone, -1 for none; the target position is set. */
+    /**
+     * The serial of the nearest target in range and in the cone (a high-air boss's parts in range
+     * all round), -1 for none; the target position is set.
+     */
     private int nearestInCone(Shot shot, Pool<Enemy> enemies) {
         WeaponSpec weapon = shot.weapon();
         double best = weapon.range() * weapon.range();
@@ -266,7 +296,11 @@ final class PlayerFire {
         for (int k = 0; k < setPieces.length; k++) {
             SetPiece piece = setPieces[k];
             for (int p = 0; p < piece.partCount(); p++) {
-                if (partTarget(piece, p) && inCone(shot, targetX, targetY, best)) {
+                // A high-air boss's open parts are sought all round: the missile climbs to them.
+                if (partTarget(piece, p)
+                        && (overhead(piece)
+                                ? distanceSquared(shot.x(), shot.y(), targetX, targetY) <= best
+                                : inCone(shot, targetX, targetY, best))) {
                     best = distanceSquared(shot.x(), shot.y(), targetX, targetY);
                     nearest = PART_SERIAL + k * LevelScript.SetPieceSpec.MAX_PARTS + p;
                     nearestX = targetX;
@@ -356,7 +390,9 @@ final class PlayerFire {
 
     /**
      * Bolts and missiles that reach a set piece's layer hit its living parts; what touches its
-     * armoured body instead glances off.
+     * armoured body (a boss's in its current pose) instead glances off, as does a shot on a part
+     * that takes no damage now (a boss's fire-only turrets, a shut window). A boss on high air is
+     * hit only by a missile on the part it is locked onto; it passes beneath the rest.
      */
     void hitSetPieces() {
         for (int k = 0; k < setPieces.length; k++) {
@@ -365,14 +401,21 @@ final class PlayerFire {
                 continue;
             }
             List<LevelScript.PartSpec> parts = piece.spec().parts();
+            boolean overhead = overhead(piece);
             for (int i = shots.size() - 1; i >= 0; i--) {
                 Shot shot = shots.get(i);
                 WeaponSpec weapon = shot.weapon();
-                if (weapon.delivery().landing() || !weapon.delivery().reaches(piece.layer())) {
+                if (weapon.delivery().landing()
+                        || !weapon.delivery().reaches(piece.layer())
+                        || (overhead && overhead(shot.target()) != k)) {
                     continue;
                 }
+                int lockedPart = overhead ? (shot.target() - PART_SERIAL) % LevelScript.SetPieceSpec.MAX_PARTS : -1;
                 boolean gone = false;
                 for (int p = 0; p < parts.size() && piece.present(); p++) {
+                    if (overhead && p != lockedPart) {
+                        continue;
+                    }
                     double px = piece.partX(p);
                     double py = piece.partY(p);
                     if (piece.partWrecked(p)
@@ -401,14 +444,9 @@ final class PlayerFire {
                     }
                 }
                 if (!gone
+                        && !overhead
                         && piece.present()
-                        && ((weapon.size()
-                                                .overlaps(
-                                                        shot.x(),
-                                                        shot.y(),
-                                                        piece.spec().body(),
-                                                        piece.x(),
-                                                        piece.y())
+                        && ((weapon.size().overlaps(shot.x(), shot.y(), piece.body(), piece.x(), piece.y())
                                         && !partAhead(piece, shot))
                                 || piece.neckTouches(weapon.size(), shot.x(), shot.y()))) {
                     events.add(SimEvents.Type.SHOT_GLANCED, shot.x(), shot.y(), shot.mount());

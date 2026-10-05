@@ -428,6 +428,23 @@ final class EnemyForce {
         carrierEnded(pod);
     }
 
+    /**
+     * One unit of {@code enemy} launched by a boss's window from (x, y) at {@code angle} radians
+     * (0 = right, y up) and {@code speed} px/s, gliding {@code glideSeconds} before it holds (see
+     * {@link Enemy#launch}); {@code enemy} is one of {@link #kinds()}.
+     */
+    void launch(EnemySpec enemy, double x, double y, double angle, double speed, double glideSeconds) {
+        int kind = kinds.indexOf(enemy);
+        if (kind < 0) {
+            throw new IllegalArgumentException(enemy.slug() + " is not among the level's enemy kinds");
+        }
+        Enemy unit = enemies.obtain();
+        if (unit != null) {
+            unit.launch(enemy, kind, x, y, Trig.cos(angle) * speed, Trig.sin(angle) * speed, glideSeconds, spawned);
+        }
+        spawned++;
+    }
+
     /** The escorts circling {@code carrier} break off: it is gone. */
     private void carrierEnded(Enemy carrier) {
         for (int i = 0; i < enemies.size(); i++) {

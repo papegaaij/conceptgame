@@ -835,3 +835,93 @@ Edit: leading silence trimmed, cut to 0.22 s, 90 Hz high-pass, 0.14 s fade-out; 
 ### enemy-coilwyrm-burst-r24-d — synthesized pressurised pop (rejected)
 Source: `tools/concept/audio/sfx_r24.py` (`splat`), seeds 2401 (segment) and 2402 (head). Use: Coilwyrm segment and tail burst d (and its head burst).
 Why: A burst made for the ripple: a band-noise snap (the membrane rupturing), ten hard chitin clicks in the first 50 ms, a saturated gas "bloop" falling 230 → 70 Hz with a low thud, twelve wet bubble chirps (0.9–2.6 kHz, rising) scattered over 200 ms and a splash hiss; 90 Hz high-pass, 0.26 s. The head: a lower bloop (170 → 45 Hz), twenty drops over 350 ms, 0.6 s, slowed, with the thump.
+
+## Round 25 — Level 07's Brood Carrier and lifeboat tow (M4 part G)
+
+Brief: the Act 1 boss is a teal-black living carrier about one screen long (design/enemies/bosses/
+brood-carrier): it roars as it comes in over the ship and as it turns broadside; its eight lime bay
+sacs open in windows (wet membranes parting, then sucking shut) and spit out Skitters and Needlers;
+a destroyed sac bursts with ichor; its core is under a plate iris of chitin that opens over a second
+in the last phase. Organic and wet, Vrell family (the round-08 screeches and spawns), never
+mechanical gunfire. The lifeboat tow (Level 07's secret) needs a cable snapping as the pod falls
+free: a taut tow line, metallic, a reward cue. Recorded only (CC0 / CC-BY, Freesound), one a/b pair
+per sound, found with the Freesound API's text search filtered to CC0 and CC-BY. All files come from
+`tools/concept/audio/sfx_r25.py`, deterministic, cut from the **Freesound originals** cached by
+`tools/concept/audio/freesound_fetch.py --download` (clipped at full scale first where an original
+decodes beyond it, as `tools/art/sfx_originals.py` does), so a chosen file is already the production
+file. Levels on the loudest 100 ms of the 200 Hz–5 kHz band (sfx_r24.py's `level`): roar -19 dB
+(the Vrell screeches and the Leviathan's cry -24 to -27, the klaxon -23), sac opening -24 dB
+(the Vrell spawns -23 / -27), closing -28 dB, launch -24 dB, sac burst -15 dB (explosion-r02-a
+-15.2), iris -20 dB, cable snap -17 dB (the large salvage -17.7). A sharp transient meets its
+ceiling first: sac opening a reaches -25.6, the sac bursts -16.3 and -17.3, the cable snaps -20.0.
+Not listened to.
+
+### enemy-carrier-roar-r25-a — "Deep Roar Echo 2.wav" by noahpardo
+Source: <https://freesound.org/people/noahpardo/sounds/345735/> — CC0 1.0. Use: the Brood Carrier's roar as it arrives (with the klaxon) and, at 0.85 pitch, as it turns broadside.
+Why: A huge creature's roar with a long echo: the swell, the roar and its tail make the carrier sound a screen long. Darker and more animal than b.
+Edit: leading silence trimmed, cut to 4.00 s, 30 Hz high-pass, 1.40 s fade-out, levelled to -19 dB, ceiling -3.0 dBFS.
+
+### enemy-carrier-roar-r25-b — "Didgeridoo Monster Roar" by Noxdl
+Source: <https://freesound.org/people/Noxdl/sounds/204912/> — CC0 1.0. Use: the Brood Carrier's roar as it arrives (with the klaxon) and, at 0.85 pitch, as it turns broadside.
+Why: A bear's roar mixed with a didgeridoo (made for a giant kaiju): a buzzing drone body that reads as a living ship, more whale than beast.
+Edit: leading silence trimmed, cut to 3.00 s, 30 Hz high-pass, 0.80 s fade-out, levelled to -19 dB, ceiling -3.0 dBFS.
+
+### enemy-carrier-sac-open-r25-a — "GOREFlsh_Flesh Manipulation 01_KVV AUDIO_FREE" by KVV_Audio
+Source: <https://freesound.org/people/KVV_Audio/sounds/796506/> — CC-BY 4.0. Use: a bay sac's membrane parting as its window opens (one sound for a pair).
+Why: Flesh pulled apart close to the mic: a wet, layered parting with small tears, the first of the recording's three gestures.
+Edit: leading silence trimmed, cut to 0.85 s, 80 Hz high-pass, 0.25 s fade-out, levelled to -24 dB, ceiling -4.0 dBFS.
+
+### enemy-carrier-sac-open-r25-b — "Squelch.mp3" by LucasDuff
+Source: <https://freesound.org/people/LucasDuff/sounds/516643/> — CC0 1.0. Use: a bay sac's membrane parting as its window opens (one sound for a pair).
+Why: Something ripped out of a sucking mud: a longer, smoother wet tear; its spectrum has a few narrow squeaky tones.
+Edit: leading silence trimmed, cut from 0.25 s, cut to 0.90 s, 80 Hz high-pass, 0.05 s fade-in, 0.30 s fade-out, levelled to -24 dB, ceiling -4.0 dBFS.
+
+### enemy-carrier-sac-close-r25-a — "GOREFlsh_Flesh Manipulation 01_KVV AUDIO_FREE" by KVV_Audio
+Source: <https://freesound.org/people/KVV_Audio/sounds/796506/> — CC-BY 4.0. Use: a bay sac sucking shut as its window closes.
+Why: The same recording's third gesture, shorter and 4 dB under the opening: the membrane folding back.
+Edit: leading silence trimmed, cut from 4.40 s, cut to 0.60 s, 80 Hz high-pass, 0.03 s fade-in, 0.25 s fade-out, levelled to -28 dB, ceiling -8.0 dBFS.
+
+### enemy-carrier-sac-close-r25-b — "Squelch.mp3" by LucasDuff
+Source: <https://freesound.org/people/LucasDuff/sounds/516643/> — CC0 1.0. Use: a bay sac sucking shut as its window closes.
+Why: Opening b's tear played backwards: a wet suck that ends shut.
+Edit: leading silence trimmed, cut from 0.45 s, cut to 0.60 s, 80 Hz high-pass, 0.20 s fade-in, 0.05 s fade-out, reversed, levelled to -28 dB, ceiling -8.0 dBFS.
+
+### enemy-carrier-launch-r25-a — "Spit 1 - The Ridge - Spanker" by bananplyte
+Source: <https://freesound.org/people/bananplyte/sounds/452169/> — CC0 1.0. Use: a Skitter or Needler spat out of an open sac (up to three after an opening).
+Why: A throaty creature spit made with a voice and a glass of water for a student game's boss: a short, mid-heavy 'ptoo' with a tonal throat.
+Edit: leading silence trimmed, cut to 0.50 s, 80 Hz high-pass, 0.25 s fade-out, levelled to -24 dB, ceiling -6.0 dBFS.
+
+### enemy-carrier-launch-r25-b — "Slime Attack 1" by qubodup
+Source: <https://freesound.org/people/qubodup/sounds/751338/> — CC0 1.0. Use: a Skitter or Needler spat out of an open sac (up to three after an opening).
+Why: A slime monster's lunge (a layered slime and meat slap): brighter and shorter, more splat than spit.
+Edit: leading silence trimmed, cut to 0.40 s, 80 Hz high-pass, 0.20 s fade-out, levelled to -24 dB, ceiling -6.0 dBFS.
+
+### enemy-carrier-sac-burst-r25-a — "Headshot 2" by SilverIllusionist
+Source: <https://freesound.org/people/SilverIllusionist/sounds/470586/> — CC-BY 4.0. Use: a bay sac destroyed, and each sac in the tail-to-head death chain.
+Why: "An exceptionally wet and fleshy explosion": a big burst with a splattering tail, played 10 % slower for a boss-size sac.
+Edit: leading silence trimmed, cut to 1.40 s, 50 Hz high-pass, 0.60 s fade-out, played 10 % slower, levelled to -15 dB, ceiling -1.5 dBFS.
+
+### enemy-carrier-sac-burst-r25-b — "Gutsy Spillage 1" by magnuswaker
+Source: <https://freesound.org/people/magnuswaker/sounds/522159/> — CC0 1.0. Use: a bay sac destroyed, and each sac in the tail-to-head death chain.
+Why: Ripped cardboard and poured water: a visceral tear with a wet tail, a little lower in the body than a, also 10 % slower.
+Edit: leading silence trimmed, cut to 1.10 s, 50 Hz high-pass, 0.50 s fade-out, played 10 % slower, levelled to -15 dB, ceiling -1.5 dBFS.
+
+### enemy-carrier-iris-r25-a — "SFX Door Open.wav" by Paul368
+Source: <https://freesound.org/people/Paul368/sounds/264061/> — CC0 1.0. Use: the plate iris opening over the core (1 s) as phase 3 starts.
+Why: An alien hatch morphing open with a pressure release up front: the plates sliding apart, mechanical-organic. Much of its energy is below 200 Hz (high-passed at 80 Hz).
+Edit: leading silence trimmed, cut to 1.60 s, 80 Hz high-pass, 0.60 s fade-out, levelled to -20 dB, ceiling -3.0 dBFS.
+
+### enemy-carrier-iris-r25-b — "Simple Mutate (Monster)" by Division4884
+Source: <https://freesound.org/people/Division4884/sounds/342336/> — CC0 1.0. Use: the plate iris opening over the core (1 s) as phase 3 starts.
+Why: A monster's body morphing: a grinding, churning organic texture, steadier than a, without a hatch's clunk.
+Edit: leading silence trimmed, cut from 0.10 s, cut to 1.30 s, 40 Hz high-pass, 0.05 s fade-in, 0.40 s fade-out, levelled to -20 dB, ceiling -3.0 dBFS.
+
+### secret-cable-snap-r25-a — "snapping-chain" by CosmicEmbers
+Source: <https://freesound.org/people/CosmicEmbers/sounds/161650/> — CC-BY 3.0. Use: the lifeboat's amber tow cable snapping on its third hit, the cargo pod falling free.
+Why: A chain snapping: a sharp crack and the loose chain rattling after it; very bright (most of its energy above 5 kHz), so it meets its ceiling 3 dB under the level.
+Edit: leading silence trimmed, cut to 1.20 s, 60 Hz high-pass, 0.50 s fade-out, levelled to -17 dB, ceiling -1.5 dBFS.
+
+### secret-cable-snap-r25-b — "Guitar string snaps.wav" by juskiddink
+Source: <https://freesound.org/people/juskiddink/sounds/58491/> — CC-BY 4.0. Use: the lifeboat's amber tow cable snapping on its third hit, the cargo pod falling free.
+Why: A guitar's E string snapping, 25 % slower: a heavy steel cable's twang with a ringing tail; the guitar body's boom is high-passed out.
+Edit: leading silence trimmed, cut from 0.48 s, cut to 1.20 s, 200 Hz high-pass, 0.02 s fade-in, 0.70 s fade-out, played 25 % slower, levelled to -17 dB, ceiling -1.5 dBFS.

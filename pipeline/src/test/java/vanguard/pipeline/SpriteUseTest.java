@@ -38,6 +38,17 @@ class SpriteUseTest {
     }
 
     @Test
+    void aLevelsTowsClaimTheLifeboatSprites() {
+        Map<String, String> atlases =
+                SpriteUse.atlases(content, List.of("lifeboat", "lifeboat-pod", "lifeboat-cable", "brood-carrier-hull"));
+
+        assertEquals("level-07", atlases.get("lifeboat"));
+        assertEquals("level-07", atlases.get("lifeboat-pod"));
+        assertEquals("level-07", atlases.get("lifeboat-cable"));
+        assertEquals("level-07", atlases.get("brood-carrier-hull"));
+    }
+
+    @Test
     void sharedSpritesAreTheGameWideOnesAndThoseOfSeveralLevels() {
         Map<String, String> atlases = SpriteUse.atlases(
                 content,

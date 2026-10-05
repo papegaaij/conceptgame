@@ -50,6 +50,11 @@ public enum Sfx {
     /** The contact ping with an edge warning (round 11 b); one at a time, so overlapping warnings do not stack. */
     EDGE_WARNING("sfx/ui-edge-warning-r11-b.ogg", 1, Bus.EFFECTS),
     /**
+     * The warning klaxon (round 08 a, a 4.76 s loop played once): under an act boss's warning banner
+     * and the boss warning track (design/campaign, Level 07 music).
+     */
+    KLAXON("sfx/ui-klaxon-r08-a.ogg", 1, Bus.EFFECTS),
+    /**
      * The Leviathan's whale-song cry under its death's explosion (round 16 a, synthesized): a
      * placeholder until the recorded enemy sounds replace it.
      */
@@ -81,6 +86,23 @@ public enum Sfx {
     COILWYRM_BURST("sfx/enemy-coilwyrm-burst-r24-b.ogg", 6, Bus.EFFECTS),
     /** A Coilwyrm head's (or regrown head's) burst that starts the chained death (round 24 c, the slowed splatter). */
     COILWYRM_HEAD_BURST("sfx/enemy-coilwyrm-head-burst-r24-c.ogg", 2, Bus.EFFECTS),
+    /**
+     * The Brood Carrier's roar as it arrives and, lower, as it turns broadside (round 25 a, a deep
+     * roar with its echo; provisional until the round closes).
+     */
+    CARRIER_ROAR("sfx/enemy-carrier-roar-r25-a.ogg", 1, Bus.EFFECTS),
+    /** A bay sac's membrane parting as its window opens (round 25 a, provisional). */
+    CARRIER_SAC_OPEN("sfx/enemy-carrier-sac-open-r25-a.ogg", 2, Bus.EFFECTS),
+    /** A bay sac sucking shut as its window closes (round 25 a, provisional). */
+    CARRIER_SAC_CLOSE("sfx/enemy-carrier-sac-close-r25-a.ogg", 2, Bus.EFFECTS),
+    /** A unit spat out of an open sac (round 25 a, provisional). */
+    CARRIER_LAUNCH("sfx/enemy-carrier-launch-r25-a.ogg", 3, Bus.EFFECTS),
+    /** A bay sac bursting, shot or in the death chain (round 25 a, provisional). */
+    CARRIER_SAC_BURST("sfx/enemy-carrier-sac-burst-r25-a.ogg", 3, Bus.EFFECTS),
+    /** The plate iris opening over the core (round 25 a, provisional). */
+    CARRIER_IRIS("sfx/enemy-carrier-iris-r25-a.ogg", 1, Bus.EFFECTS),
+    /** A tow's cable snapping as its pod falls free: Level 07's lifeboat (round 25 a, provisional). */
+    CABLE_SNAP("sfx/secret-cable-snap-r25-a.ogg", 1, Bus.EFFECTS),
     /** The Airstrike's jets flyby (round 08 a), as the bombers enter. */
     AIRSTRIKE_JETS("sfx/special-airstrike-jets-r08-a.ogg", 1, Bus.EFFECTS),
     /** The Airstrike's bomb carpet (round 08 a), from its first blast. */

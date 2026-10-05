@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../campaign]
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Music
@@ -176,6 +176,21 @@ unchanged, OGG Vorbis q6, −14 LUFS, loop comments, `SOURCE` comment). Prompts:
 |---|---|---|
 | [concept/themes-final-r13-a.png](concept/themes-final-r13-a.png) | Review sheet: the three final files' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam and size | chosen |
 
+Production art, M4 part G (for concept round 25): tracks 18, 22 and 24, the Act 1 boss and act-end
+music, rendered into `assets/music/` by [tools/art/themes.py](../../../tools/art/README.md) the same
+way (the chosen generator `music_r08.py` unchanged, OGG Vorbis q6, −14 LUFS, the boss theme with
+loop comments, `SOURCE` comment; audio identical to the chosen files). Prompts:
+[concept/prompts.md](concept/prompts.md#boss-music-final-r25-a--tracks-18-22-and-24-production-art).
+
+| File | What | Status |
+|---|---|---|
+| [concept/choir-descends-final-r25-a.ogg](concept/choir-descends-final-r25-a.ogg) | #18 "The Choir Descends" final, `assets/music/choir-descends.ogg` byte for byte: 125.2 s, loop 299880 + 5080320 samples (6.80 s + 115.20 s), −14.0 LUFS, −1.2 dBTP, seam 0.35 | proposed |
+| [concept/boss-warning-final-r25-a.ogg](concept/boss-warning-final-r25-a.ogg) | #22 "Red Alert" final, `assets/music/boss-warning.ogg` byte for byte: 5.30 s, played once, track 18 comes in at sample 211680 (4.8 s, three bars at 150 BPM), −14.0 LUFS, −2.2 dBTP | proposed |
+| [concept/act-complete-final-r25-a.ogg](concept/act-complete-final-r25-a.ogg) | #24 "Act Complete" final, `assets/music/act-complete.ogg` byte for byte: 16.33 s, played once, −14.0 LUFS, −2.1 dBTP | proposed |
+| [concept/boss-handoff-final-r25-a.ogg](concept/boss-handoff-final-r25-a.ogg) | Listening aid: the boss cue as the game mixes it (track 22, then track 18 from 4.8 s, 8 bars); last bar of 22 −11.6 LUFS → first bar of 18 −14.9 LUFS, no clipping | proposed |
+| [concept/choir-descends-seam-final-r25-a.ogg](concept/choir-descends-seam-final-r25-a.ogg) | Listening aid: track 18 across its loop seam, 8 s each side | proposed |
+| [concept/boss-music-final-r25-a.png](concept/boss-music-final-r25-a.png) | Review sheet: the three finals' waveforms and the hand-off mix, with the loop points and the hand-off marked and the measured numbers | proposed |
+
 ## Implementation
 
 - [x] Music player with intro + loop points
@@ -249,3 +264,15 @@ unchanged, OGG Vorbis q6, −14 LUFS, loop comments, `SOURCE` comment). Prompts:
 - 2026-10-03: M4 part E: track 21, the mini-boss sting, is imported (`assets/music/miniboss-sting.ogg`)
   and plays when Level 05's frigate arrives (`music.boss_sting`): the level theme dips out over
   0.5 s, the sting plays, the theme comes back over 0.5 s with the intensity stem on.
+- 2026-10-05: Production art, M4 part G: tracks 18 ("The Choir Descends" full length), 22 ("Red
+  Alert") and 24 ("Act Complete") are rendered into `assets/music/` by `tools/art/themes.py` from
+  the chosen generator (`music_r08.py`, `render_loop` / `render_sting`, unchanged) and remuxed with
+  a `SOURCE` comment, as round 13 did for the title, hangar and briefing themes; the audio is
+  identical to the chosen files, so their character is kept as it is. No stems for the boss theme.
+  `copyPlaceholderMusic` keeps its lines (concept name `=` game name): `PlaceholderSounds` leaves the
+  final files alone. `themes.py --check` now also covers one-shot cues (no loop comments, silent
+  end) and the boss cue's hand-off as `BossCue` mixes it (track 18 from the sample at
+  `Tracks.BOSS_WARNING_BARS_SECONDS`, exactly three bars at 150 BPM; no clipping; tail more than
+  30 dB under the track; loudness step within 4 LU: measured −3.3 LU). Measured only, not listened
+  to. The Options sound test lists the three tracks. Review files and the sheet proposed for round
+  25; `art` stays `chosen`.

@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import vanguard.content.BriefingPage;
 import vanguard.content.Content;
 import vanguard.content.ContentLoader;
 import vanguard.content.Expression;
@@ -33,7 +35,9 @@ class VoiceFilesTest {
             "act-1-first-contact/level-04-tranquility-run",
             "act-1-first-contact/level-05-crater-nest",
             "act-1-first-contact/level-06-farside",
+            "act-1-first-contact/level-07-brood-carrier",
             "act-1-first-contact briefing",
+            "act-1-first-contact outro",
             "specials");
 
     private static boolean rendered(VoiceLines.VoiceLine line) {
@@ -85,6 +89,25 @@ class VoiceFilesTest {
                     .pages()
                     .forEach(page -> assertTrue(
                             CONTENT.voices().voiceOf(page.speaker()).isPresent(), "no voice for " + page.speaker()));
+        }
+    }
+
+    /** The acts' briefings and outros are spoken too: every page's speaker has a voice and a line. */
+    @Test
+    void everyPageOfAnActBriefingOrOutroIsALine() {
+        for (var act : CONTENT.acts().entrySet()) {
+            List<BriefingPage> pages = new ArrayList<>(act.getValue().briefing());
+            act.getValue().outro().ifPresent(outro -> pages.addAll(outro.pages()));
+            for (var page : pages) {
+                assertTrue(CONTENT.voices().voiceOf(page.speaker()).isPresent(), "no voice for " + page.speaker());
+            }
+            act.getValue().outro().ifPresent(outro -> {
+                List<String> sources = VoiceLines.all(CONTENT).stream()
+                        .map(VoiceLines.VoiceLine::source)
+                        .filter(source -> source.startsWith(act.getKey() + " outro page "))
+                        .toList();
+                assertEquals(outro.pages().size(), sources.size(), "the outro's pages are lines: " + sources);
+            });
         }
     }
 

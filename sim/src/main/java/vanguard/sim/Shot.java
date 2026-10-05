@@ -88,11 +88,11 @@ public final class Shot implements Hashed {
         return vy;
     }
 
-    /** Turns towards (tx, ty) by at most the weapon's turn rate for one step. */
-    void steer(double tx, double ty) {
+    /** Turns towards (tx, ty) by at most the weapon's turn rate times {@code turnFactor} for one step. */
+    void steer(double tx, double ty, double turnFactor) {
         double wanted = StrictMath.atan2(tx - x, ty - y);
         double delta = Math.IEEEremainder(wanted - heading, 2 * StrictMath.PI);
-        double most = weapon.turnRate() * SimStep.SECONDS;
+        double most = weapon.turnRate() * turnFactor * SimStep.SECONDS;
         heading = Math.IEEEremainder(heading + Math.clamp(delta, -most, most), 2 * StrictMath.PI);
         vx = weapon.speed() * Trig.sin(heading);
         vy = weapon.speed() * Trig.cos(heading);

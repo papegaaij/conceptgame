@@ -25,7 +25,7 @@ import vanguard.sim.Sortie;
  */
 class BossLevelTest {
     private static final String LEVEL_01 = "campaign/act-1-first-contact/level-01-break-at-dawn/data.yaml";
-    private static final String PATH = "campaign/act-1-first-contact/level-05-crater-nest/data.yaml";
+    static final String PATH = "campaign/act-1-first-contact/level-05-crater-nest/data.yaml";
     static final String KEY = "act-1-first-contact/level-05-crater-nest";
     private static final int MAX_STEPS = 60 * 60 * 10;
 
@@ -120,6 +120,8 @@ class BossLevelTest {
         double killedAt = -1;
         double sectionSixAt = -1;
         List<Integer> phases = new ArrayList<>();
+        int frigateDown = cueIndex(sortie.script(), LevelScript.CueTrigger.BOSS_DESTROYED);
+        boolean frigateDownPlayed = false;
         while (!sortie.complete() && steps++ < MAX_STEPS) {
             if (!sortie.flying()) {
                 if (sortie.bossCheckpoint()) {
@@ -135,6 +137,7 @@ class BossLevelTest {
                     case BOSS_ARRIVED -> arrived = sortie.levelSeconds();
                     case BOSS_PHASE -> phases.add(events.value(i));
                     case BOSS_DESTROYED -> killedAt = sortie.setPiece(0).killSeconds();
+                    case RADIO -> frigateDownPlayed |= events.value(i) == frigateDown;
                     default -> {}
                 }
             }
@@ -151,9 +154,32 @@ class BossLevelTest {
         assertTrue(sortie.complete());
         assertTrue(killedAt > 0, "the frigate is destroyed");
         assertTrue(phases.containsAll(List.of(1, 2)), "it went through its phases");
+        assertTrue(frigateDownPlayed, "the boss-destroyed line starts when the frigate dies");
         assertEquals(killedAt, result.bossTime().killSeconds(), 1e-9);
         assertEquals(result.bossTime().underPar(), result.bonuses().stream().anyMatch(bonus -> bonus.name()
                 .equals("Boss rush")));
+    }
+
+    /**
+     * Part G's fix (M12): a boss-destroyed cue's subject is the level's boss, which the simulation
+     * cues it with, so Level 05's own "Frigate down" line can play.
+     */
+    @Test
+    void levelFivesBossDestroyedLineIsAboutTheFrigate() {
+        LevelScript level = SimSpecs.level(ContentLoader.fromClasspath(), KEY, Difficulty.MEDIUM);
+        LevelScript.RadioCue cue = level.radio().get(cueIndex(level, LevelScript.CueTrigger.BOSS_DESTROYED));
+        assertEquals("gorgon-frigate", cue.subject());
+        assertTrue(cue.line().startsWith("Frigate down."));
+    }
+
+    /** The index of the level's first radio cue on {@code trigger}. */
+    static int cueIndex(LevelScript level, LevelScript.CueTrigger trigger) {
+        for (int i = 0; i < level.radio().size(); i++) {
+            if (level.radio().get(i).trigger() == trigger) {
+                return i;
+            }
+        }
+        throw new AssertionError("no " + trigger + " cue");
     }
 
     @Test

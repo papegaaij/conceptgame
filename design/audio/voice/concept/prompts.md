@@ -111,3 +111,18 @@ residents report…" (the leading ellipsis is not spoken).
 
 Outcome (user, 2026-10-05): **a** cast (`refs/ref-perimeter-beacon.wav`; the production line by
 `tools/art/voice.py` with `filter: pa`); b moved to `concept/rejected/`, its clip deleted.
+
+## voice-lifeboat-seven
+
+Round 25 (the Level 07 audition, M4 part G), generated with `tools/concept/audio/tts_r25.py` the
+same way as round 21 (seed 25 + the take's index), through radio filter b. Lifeboat Seven (L07,
+t 22, a drifting CDF lifeboat's crew calling in: tired, not panicking), neutral (0.5 / 0.5 / 0.7):
+"Lifeboat Seven, crew of four, drifting. Aegis, that pod we're towing is yours if you cut it loose."
+Whisper (faster-whisper base.en) reads both takes back whole; it hears "Aegis" as "eegis" (a) and
+"ages" (b), and b's filtered take once as "telling" for "towing" (the raw take reads "towing").
+
+| Variant | Reader | Source | Licence | Clip pitch |
+|---|---|---|---|---|
+| a | Tadhg Hynes | [Far From the Madding Crowd, ch. 1 (Hardy)](https://archive.org/details/far_from_the_madding_crowd_th_librivox), cut at 60 s | public domain | 105 Hz (a warm Irish male narrator) |
+| b | Lizzie Driver | [Gulliver's Travels, part 1 ch. 1 (Swift)](https://archive.org/details/gulliver_ld_librivox), cut at 60 s | public domain | 190 Hz (a clear female narrator) |
+

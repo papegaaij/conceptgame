@@ -1,6 +1,7 @@
 package vanguard.content.campaign;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 import java.util.Optional;
@@ -79,14 +80,68 @@ class CampaignRouteTest {
     }
 
     @Test
-    void afterLevel06TheCampaignWaitsInTheHangarUntilLevel07IsBuilt() {
+    void afterLevel06TheBriefingOfLevel07Comes() {
         Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
         for (int i = 0; i < 6; i++) {
             campaign.complete(CampaignTest.won("A", 80, 1000), 60);
         }
 
+        assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.beforeNextLevel(content, campaign));
+        assertEquals(
+                Optional.of("act-1-first-contact/level-07-brood-carrier"), CampaignRoute.launch(content, campaign));
+    }
+
+    @Test
+    void afterLevel07TheActOutroComesThenTheHangarBeforeLevel08() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 7; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
+
+        var outro = assertInstanceOf(CampaignRoute.Step.Outro.class, CampaignRoute.afterLevel(content, campaign));
+        assertEquals("act-1-first-contact", outro.script().actDirectory());
+        assertEquals(7, outro.script().last());
+        assertEquals(8, outro.script().nextLevel());
+        assertEquals(4, outro.script().pages().size());
+        // After the outro: Act 2 has no data yet, so the hangar before Level 08, which cannot launch.
         assertInstanceOf(CampaignRoute.Step.Hangar.class, CampaignRoute.beforeNextLevel(content, campaign));
         assertEquals(Optional.empty(), CampaignRoute.launch(content, campaign));
+    }
+
+    @Test
+    void aLevelInsideTheActEndsNoAct() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 6; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
+
+        assertEquals(Optional.empty(), CampaignRoute.actEnd(content, campaign));
+        assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.afterLevel(content, campaign), "Level 07's");
+    }
+
+    @Test
+    void aReplayOfTheActsLastLevelHasNoOutro() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 7; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
+        Campaign replay =
+                Campaign.replay(CampaignTest.RULES, SaveSlots.Slot.AUTOSAVE, campaign.save(java.time.Instant.EPOCH), 7);
+        replay.complete(CampaignTest.won("A+", 80, 1000), 60);
+
+        assertEquals(Optional.empty(), CampaignRoute.actEnd(content, replay));
+        assertFalse(CampaignRoute.afterLevel(content, replay) instanceof CampaignRoute.Step.Outro);
+    }
+
+    @Test
+    void theActEndDebugOptionEndsTheActAfterTheLevelStart() {
+        Campaign campaign = DebugFit.startAt(CampaignTest.RULES, Difficulty.MEDIUM, 6);
+        campaign.debugActEnd();
+        campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+
+        var outro = assertInstanceOf(CampaignRoute.Step.Outro.class, CampaignRoute.afterLevel(content, campaign));
+        assertEquals(6, outro.script().last());
+        assertEquals(7, outro.script().nextLevel());
     }
 
     @Test

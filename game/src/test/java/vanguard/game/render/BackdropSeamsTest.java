@@ -2,6 +2,7 @@ package vanguard.game.render;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -19,14 +20,20 @@ import vanguard.content.BackdropLayer;
 import vanguard.content.Content;
 import vanguard.content.ContentLoader;
 import vanguard.content.LevelData;
+import vanguard.sim.PlayField;
+import vanguard.sim.SimStep;
 
 /**
  * A level without a deep layer (Luna) shows its terrain on the ground and far layers: there a tile
  * set repeats without a seam, and where a section's tile set changes the terrain runs on. Level 04's
  * mare showed a 1 px line where its tiles repeated (a noise octave whose lattice did not divide the
- * tile's height).
+ * tile's height). Over open space (a level with a deep layer, Level 07's L1 point) every tile set
+ * repeats without a line too, the translucent banks and streaks included, Level 07's set pieces keep
+ * clear of their image borders on every layer, and nothing but the deep layer is on screen in the
+ * boss arena, where an early kill makes the clock (and the scroll) jump to the arena's end.
  */
 class BackdropSeamsTest {
+    private static final String LEVEL_07 = "act-1-first-contact/level-07-brood-carrier";
     private static final Path BACKDROP = Path.of(System.getProperty("vanguard.assetsDir", "../assets"), "backdrop");
     private static final BackdropLayer[] TERRAIN = {BackdropLayer.GROUND, BackdropLayer.FAR};
     /** How much more the rows around the wrap may change than the rows around them (the old line: 3.2 to 3.7). */
@@ -95,6 +102,173 @@ class BackdropSeamsTest {
     }
 
     @Test
+    void tileSetsOverSpaceWrapWithoutALine() throws IOException {
+        List<String> seams = new ArrayList<>();
+        for (Map.Entry<String, LevelData> entry :
+                ContentLoader.fromClasspath().levels().entrySet()) {
+            LevelData level = entry.getValue();
+            if (!level.backdrop().hasDeep()) {
+                continue;
+            }
+            Path folder = BACKDROP.resolve(Backdrop.folder(entry.getKey(), level));
+            for (Map.Entry<String, BackdropData.TileSet> tileSet :
+                    level.backdrop().tileSets().entrySet()) {
+                BufferedImage image = image(folder.resolve(tileSet.getKey() + ".png"));
+                double rows = translucentWrapScore(image, false);
+                double columns = tileSet.getValue().drifts() ? translucentWrapScore(image, true) : 0;
+                if (Math.max(rows, columns) > WRAP_LIMIT) {
+                    seams.add(String.format(
+                            Locale.ROOT,
+                            "%s/%s: rows %.2f, columns %.2f",
+                            folder.getFileName(),
+                            tileSet.getKey(),
+                            rows,
+                            columns));
+                }
+            }
+        }
+        assertEquals(List.of(), seams, "tile sets with a line where they repeat (a drifting one also sideways)");
+    }
+
+    @Test
+    void levelSevensSetPiecesShowNoEdgeOnAnyLayer() throws IOException {
+        LevelData level = ContentLoader.fromClasspath().level(LEVEL_07);
+        String folder = Backdrop.folder(LEVEL_07, level);
+        assumeTrue(folder.equals("level-07/"), "Level 07 still takes another level's backdrop images");
+        BackdropData backdrop = level.backdrop();
+        List<String> cut = new ArrayList<>();
+        for (BackdropData.PlacedPiece placed : backdrop.placed()) {
+            BackdropData.Piece spec = backdrop.pieces().get(placed.piece());
+            int count = spec.imageCount();
+            double minDx = 0;
+            double maxDx = 0;
+            for (BackdropData.Waypoint point : placed.path().orElse(List.of())) {
+                minDx = Math.min(minDx, point.dx());
+                maxDx = Math.max(maxDx, point.dx());
+            }
+            for (int i = 0; i < count; i++) {
+                BufferedImage image = image(
+                        BACKDROP.resolve(folder + (count == 1 ? placed.piece() : placed.piece() + "_" + i) + ".png"));
+                int w = image.getWidth();
+                long left = Math.round(placed.x() + minDx - w / 2.0);
+                long right = Math.round(placed.x() + maxDx + w / 2.0);
+                boolean topOrBottom = false;
+                for (int x = 0; x < w; x++) {
+                    // the column sweeps [left + x, right - w + x] along the path
+                    boolean onScreen = left + x < PlayField.WIDTH && right - w + x >= 0;
+                    topOrBottom |= onScreen && (alpha(image, x, 0) || alpha(image, x, image.getHeight() - 1));
+                }
+                boolean sides = false;
+                for (int y = 0; y < image.getHeight(); y++) {
+                    sides |= left > 0 && left < PlayField.WIDTH && alpha(image, 0, y);
+                    sides |= right > 0 && right < PlayField.WIDTH && alpha(image, w - 1, y);
+                }
+                if (topOrBottom || sides) {
+                    cut.add(placed.piece() + " (image " + i + ") at t " + placed.t());
+                }
+            }
+        }
+        assertEquals(List.of(), cut, "pieces cut at an image border that crosses the screen");
+    }
+
+    @Test
+    void overOpenSpaceOnlyTheDeepLayerShowsAnythingInTheArena() {
+        List<String> seen = new ArrayList<>();
+        for (Map.Entry<String, LevelData> entry :
+                ContentLoader.fromClasspath().levels().entrySet()) {
+            LevelData level = entry.getValue();
+            BackdropData backdrop = level.backdrop();
+            if (!backdrop.hasDeep()) {
+                continue;
+            }
+            for (int s = 0; s < level.sections().size(); s++) {
+                if (!level.sections().get(s).isArena()) {
+                    continue;
+                }
+                double start = level.sectionStart(s);
+                double end = level.sections().get(s).end();
+                for (BackdropData.PlacedPiece placed : backdrop.placed()) {
+                    BackdropData.Piece spec = backdrop.pieces().get(placed.piece());
+                    if (spec.layer() == BackdropLayer.DEEP) {
+                        continue;
+                    }
+                    for (double t = start; t <= end; t += SimStep.SECONDS) {
+                        if (onScreen(level, placed, spec, t)) {
+                            seen.add(String.format(Locale.ROOT, "%s: %s at t=%.2f", entry.getKey(), placed.piece(), t));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        assertEquals(List.of(), seen, "pieces that an early kill's jump to the arena's end would pop in or out");
+    }
+
+    private static boolean onScreen(
+            LevelData level, BackdropData.PlacedPiece placed, BackdropData.Piece spec, double t) {
+        double y = level.pieceCentre(placed)
+                - level.scrollAt(t) * level.backdrop().factor(spec.layer())
+                + placed.offsetY(t);
+        double x = placed.x() + placed.offsetX(t);
+        double halfWidth = spec.size().width() / 2;
+        double halfHeight = spec.size().height() / 2;
+        return x + halfWidth > 0
+                && x - halfWidth < PlayField.WIDTH
+                && y + halfHeight > 0
+                && y - halfHeight < PlayField.HEIGHT;
+    }
+
+    private static boolean alpha(BufferedImage image, int x, int y) {
+        return image.getRGB(x, y) >>> 24 != 0;
+    }
+
+    /**
+     * {@link #wrapScore} for a tile set that may be translucent (banks, streaks): the luminance
+     * premultiplied by alpha over every pixel, and each wrap pair against the pairs of the same
+     * 4-row phase within 16 rows of it (an ordered dither's rows change by different amounts, and a
+     * bank's texture varies over a few dozen rows); with {@code columns} the left-right wrap.
+     */
+    static double translucentWrapScore(BufferedImage image, boolean columns) {
+        int n = columns ? image.getWidth() : image.getHeight();
+        int across = columns ? image.getHeight() : image.getWidth();
+        double[][] lum = new double[n][across];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < across; j++) {
+                int argb = columns ? image.getRGB(i, j) : image.getRGB(j, i);
+                lum[i][j] = luminance(argb) * (argb >>> 24) / 255.0;
+            }
+        }
+        double worst = 0;
+        for (int k = n - 2; k <= n; k++) {
+            List<Double> reference = new ArrayList<>();
+            for (int r = k - 16; r <= k + 16; r += 4) {
+                if (r != k) {
+                    reference.add(trimmedChange(lum, Math.floorMod(r, n), Math.floorMod(r + 1, n)));
+                }
+            }
+            reference.sort(null);
+            double median = reference.get(reference.size() / 2);
+            worst = Math.max(
+                    worst, trimmedChange(lum, Math.floorMod(k, n), Math.floorMod(k + 1, n)) / Math.max(median, 0.5));
+        }
+        return worst;
+    }
+
+    private static double trimmedChange(double[][] lum, int a, int b) {
+        double[] diffs = new double[lum[a].length];
+        for (int j = 0; j < diffs.length; j++) {
+            diffs[j] = Math.abs(lum[a][j] - lum[b][j]);
+        }
+        Arrays.sort(diffs);
+        int kept = (int) (diffs.length * 0.9);
+        double sum = 0;
+        for (int j = 0; j < kept; j++) {
+            sum += diffs[j];
+        }
+        return kept == 0 ? 0 : sum / kept;
+    }
+
+    @Test
     void aLineWhereTheTilesRepeatIsFound() {
         BufferedImage tile = new BufferedImage(64, 120, BufferedImage.TYPE_INT_ARGB);
         for (int y = 0; y < tile.getHeight(); y++) {
@@ -109,6 +283,7 @@ class BackdropSeamsTest {
             tile.setRGB(x, tile.getHeight() - 1, 0xff808898);
         }
         assertTrue(wrapScore(tile) > WRAP_LIMIT, "a line in its bottom row fails");
+        assertTrue(translucentWrapScore(tile, false) > WRAP_LIMIT, "and fails the translucent score");
     }
 
     /**

@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
-updated: 2026-10-02
+updated: 2026-10-05
 ---
 
 # Micro-missile Pod
@@ -51,6 +51,9 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
   radius, `lifetime` and `cone` the other two numbers. Missiles seek enemies only, never loot
   containers or a secret's beacon, but like every shot they hit a ground object they fly over.
 - Turn rate as listed (+20 % with the targeting computer).
+- Against a boss on `high-air` (the Brood Carrier's overhead pass) a missile seeks its open parts
+  all round within its seek radius, climbs to the one it locks onto at twice its turn rate, and
+  passes beneath the hull and the other parts.
 
 ## Implementation
 
@@ -70,3 +73,6 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - 2026-10-02: M4 part A (user decision): `range` 350 is the seek radius and the missile lives 1.2 s (about 600 px), not a 350 px flight; missiles seek enemies only, not loot containers or secret beacons. `lifetime` and `cone` added to the data.
 - 2026-10-02: M4 part A: flies in the simulation (`vanguard.sim.WeaponSpec` built by `SimSpecs.weapon`), with its effects from `tools/art/weapon_fx.py` and its family's sound; the effects are proposed as final in [concept round 14](../../../concept-rounds/round-14/README.md).
 - 2026-10-02: Concept round 14 closed (user decision): its effects (`tools/art/weapon_fx.py`) approved as **final**, `art: final`.
+- 2026-10-05: M4 part G: against a high-air boss, missiles seek its open parts all round, turn at
+  twice the rate while locked on and pass beneath the hull (from under the Brood Carrier the sacs
+  sat inside the turning circle and the hull caught the missiles, so no sac was hit).

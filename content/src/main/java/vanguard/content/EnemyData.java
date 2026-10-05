@@ -190,7 +190,10 @@ public record EnemyData(
      * A part of a multi-part unit ({@code parts: multi}): a hit box around the unit's centre in its
      * own frame (facing down the screen: dx right, dy up towards its tail).
      *
-     * @param kind {@code armoured}, {@code destroyable} or {@code vital} (destroying it destroys the rest)
+     * @param kind {@code armoured}, {@code destroyable} or {@code vital} (destroying it destroys the
+     *     rest); part G: a boss's {@code armoured} part is fire-only (it fires its attack, never
+     *     takes damage, is not in the bar and pays nothing), written without {@code hp} and
+     *     {@code bounty} (0 here)
      * @param attack the name of the unit's attack it fires
      * @param multiplier the damage it takes is multiplied by this (a weak point); 1 when not given
      */
@@ -206,11 +209,54 @@ public record EnemyData(
             Optional<Integer> firstBonus) {
         public PartData {
             firstBonus.ifPresent(b -> Check.notNegative("first_bonus", b));
-            Check.positive("hp", hp);
-            multiplier.ifPresent(m -> Check.positive("multiplier", m));
             Check.that(
                     kind.equals("destroyable") || kind.equals("vital") || kind.equals("armoured"),
                     "kind must be armoured, destroyable or vital, was '" + kind + "'");
+            if (kind.equals("armoured")) {
+                Check.that(hp == 0 && bounty == 0, "an armoured part has no hp and no bounty");
+            } else {
+                Check.positive("hp", hp);
+            }
+            multiplier.ifPresent(m -> Check.positive("multiplier", m));
+        }
+
+        /** A part as written: an {@code armoured} one without {@code hp} and {@code bounty}. */
+        @JsonCreator
+        static PartData of(
+                @com.fasterxml.jackson.annotation.JsonProperty("name") String name,
+                @com.fasterxml.jackson.annotation.JsonProperty("offset") Point offset,
+                @com.fasterxml.jackson.annotation.JsonProperty("hitbox") Size hitbox,
+                @com.fasterxml.jackson.annotation.JsonProperty("hp") Optional<Double> hp,
+                @com.fasterxml.jackson.annotation.JsonProperty("kind") String kind,
+                @com.fasterxml.jackson.annotation.JsonProperty("bounty") Optional<Integer> bounty,
+                @com.fasterxml.jackson.annotation.JsonProperty("attack") Optional<String> attack,
+                @com.fasterxml.jackson.annotation.JsonProperty("multiplier") Optional<Double> multiplier,
+                @com.fasterxml.jackson.annotation.JsonProperty("first_bonus") Optional<Integer> firstBonus) {
+            Check.that(
+                    name != null && offset != null && hitbox != null && kind != null,
+                    "a part has a name, an offset, a hit box and a kind");
+            boolean armoured = kind.equals("armoured");
+            Optional<Double> hpValue = hp == null ? Optional.empty() : hp;
+            Optional<Integer> bountyValue = bounty == null ? Optional.empty() : bounty;
+            Check.that(armoured || (hpValue.isPresent() && bountyValue.isPresent()), "a part has hp and a bounty");
+            Check.that(
+                    !armoured || (hpValue.isEmpty() && bountyValue.isEmpty()),
+                    "an armoured part has no hp and no bounty");
+            return new PartData(
+                    name,
+                    offset,
+                    hitbox,
+                    hpValue.orElse(0.0),
+                    kind,
+                    bountyValue.orElse(0),
+                    attack == null ? Optional.empty() : attack,
+                    multiplier == null ? Optional.empty() : multiplier,
+                    firstBonus == null ? Optional.empty() : firstBonus);
+        }
+
+        /** Whether it is a fire-only part. */
+        public boolean armoured() {
+            return kind.equals("armoured");
         }
     }
 
@@ -321,7 +367,8 @@ public record EnemyData(
      * @param burstGap seconds between the shots of a burst
      * @param rotate the parts sharing the attack take turns, one volley every interval among the living ones
      * @param arms a {@code spiral}'s arms; its {@code interval} is between two bullets of an arm
-     * @param duration seconds a {@code spiral} runs before it hands over
+     * @param duration seconds a {@code spiral} runs before it hands over in an alternation; part G:
+     *     without it a spiral fires for as long as its phase lasts (it cannot alternate)
      */
     public record Attack(
             String pattern,
@@ -370,9 +417,8 @@ public record EnemyData(
                     "only an aimed attack has a burst, a burst gap or rotates");
             burst.ifPresent(b -> Check.positive("burst", b));
             burstGap.ifPresent(g -> Check.positive("burst_gap", g));
-            Check.that(
-                    pattern.equals("spiral") == (arms.isPresent() && duration.isPresent()),
-                    "a spiral has its arms and a duration, the others neither");
+            Check.that(pattern.equals("spiral") == arms.isPresent(), "a spiral has its arms, the others none");
+            Check.that(pattern.equals("spiral") || duration.isEmpty(), "only a spiral has a duration");
             arms.ifPresent(a -> Check.positive("arms", a));
             duration.ifPresent(d -> Check.positive("duration", d));
             Check.that(!pattern.equals("spiral") || turnRate.isPresent(), "a spiral has a turn rate");
@@ -482,14 +528,46 @@ public record EnemyData(
     /**
      * A boss's script: {@code kind} {@code boss} or {@code mid-boss} (the short bar), its bar's
      * name, the par time in s (the Boss rush bonus) and its phases in order.
+     *
+     * @param engagesOnArrival part G: its first phase starts when it arrives (the bar appearing),
+     *     its entrance part of the fight; otherwise when it settles at its hover height
+     * @param deathSeconds part G: how long its chained death runs, s (the act boss's 3 s, tail to
+     *     head); left out, the mid-boss's quick chain
+     * @param poses part G: its further part layouts (the {@code part_list} offsets and the
+     *     {@code hitbox} are the arrival pose), which a phase's {@code move} turns it into
      */
-    public record BossData(String kind, String barName, double par, List<PhaseData> phases) {
+    public record BossData(
+            String kind,
+            String barName,
+            double par,
+            List<PhaseData> phases,
+            Optional<Boolean> engagesOnArrival,
+            Optional<Double> deathSeconds,
+            Optional<List<PoseData>> poses) {
         public BossData {
             Check.that(
                     kind.equals("boss") || kind.equals("mid-boss"),
                     "kind must be boss or mid-boss, was '" + kind + "'");
             Check.positive("par", par);
             Check.notEmpty("phases", phases);
+            deathSeconds.ifPresent(d -> Check.notNegative("death_seconds", d));
+            poses.ifPresent(list -> list.forEach(pose -> Check.that(
+                    list.stream()
+                                    .filter(other -> other.name().equals(pose.name()))
+                                    .count()
+                            == 1,
+                    "pose names are unique, '" + pose.name() + "' is not")));
+        }
+
+        /** The index of pose {@code name} in the boss's poses (0 the arrival pose, the further ones from 1); -1 without one. */
+        public int poseIndex(String name) {
+            List<PoseData> list = poses.orElse(List.of());
+            for (int i = 0; i < list.size(); i++) {
+                if (list.get(i).name().equals(name)) {
+                    return i + 1;
+                }
+            }
+            return -1;
         }
 
         /** Whether it is a mid-boss, with the short bar. */
@@ -499,10 +577,18 @@ public record EnemyData(
     }
 
     /**
-     * A boss phase: it ends when at most {@code until.left} of {@code until.parts} are alive; it
-     * fires its {@code attacks} together or the {@code alternate} ones in turn, sends its
-     * {@code streams}, {@code exposes} parts that took no damage before it and bends the chains
-     * {@code bend} degrees.
+     * A boss phase: it ends when at most {@code until.left} of {@code until.parts} are alive or
+     * {@code until.seconds} after it engaged; it fires its {@code attacks} together or the
+     * {@code alternate} ones in turn, sends its {@code streams}, {@code exposes} parts that took no
+     * damage before it and bends the chains {@code bend} degrees.
+     *
+     * @param delay part G: s from the phase engaging to its first attack and window (a concurrent
+     *     attack's first volley one interval after that); left out, 1 s for a later phase that
+     *     alternates (the frigate's crown opening), else 0
+     * @param move part G: its opening move, invulnerable: the glide to a station and a layer, then a
+     *     turn into a pose
+     * @param windows part G: the parts that open and shut in turn (vulnerable only while open), and
+     *     what each opening releases
      */
     public record PhaseData(
             String name,
@@ -511,18 +597,96 @@ public record EnemyData(
             Optional<List<String>> alternate,
             Optional<StreamData> streams,
             Optional<List<String>> exposes,
-            Optional<Double> bend) {
+            Optional<Double> bend,
+            Optional<Double> delay,
+            Optional<MoveData> move,
+            Optional<WindowData> windows) {
         public PhaseData {
             Check.that(attacks.isEmpty() || alternate.isEmpty(), "a phase has attacks or an alternate list, not both");
             bend.ifPresent(b -> Check.notNegative("bend", b));
+            delay.ifPresent(d -> Check.notNegative("delay", d));
         }
     }
 
-    /** The end of a phase: at most {@code left} of {@code parts} alive. */
-    public record Until(List<String> parts, int left) {
+    /**
+     * The end of a phase: at most {@code left} (0 when left out) of {@code parts} alive, or part G
+     * {@code seconds} after the phase engaged (after its move), whichever comes first; at least one
+     * of the two.
+     */
+    public record Until(Optional<List<String>> parts, Optional<Integer> left, Optional<Double> seconds) {
         public Until {
-            Check.notEmpty("parts", parts);
-            Check.notNegative("left", left);
+            Check.that(parts.isPresent() || seconds.isPresent(), "until has parts or seconds");
+            parts.ifPresent(list -> Check.notEmpty("parts", list));
+            left.ifPresent(l -> Check.notNegative("left", l));
+            Check.that(left.isEmpty() || parts.isPresent(), "until has a left only with its parts");
+            seconds.ifPresent(s -> Check.positive("seconds", s));
+        }
+    }
+
+    /**
+     * Part G: a further part layout of a boss: its {@code name}, its armoured body's {@code hitbox}
+     * (the stat block's when left out) and its parts' {@code offsets} by part name ({@code [dx, dy]}
+     * px from the centre, dx right, dy up; a part left out keeps its {@code part_list} offset).
+     */
+    public record PoseData(String name, Optional<Size> hitbox, java.util.Map<String, Point> offsets) {}
+
+    /**
+     * Part G: a phase's opening move: over {@code descend} s the boss glides to {@code to}
+     * ({@code [x, y]}: px from the left edge, px below the top edge, as {@code hover.y}) and sinks or
+     * rises to {@code layer}, then over {@code turn} s it turns in place into {@code pose}; each
+     * left out keeps what it has (0 s for the times). It takes no damage and holds its fire until the
+     * move ends.
+     */
+    public record MoveData(
+            Optional<Point> to,
+            Optional<String> layer,
+            Optional<Double> descend,
+            Optional<String> pose,
+            Optional<Double> turn) {
+        public MoveData {
+            layer.ifPresent(Layers::of);
+            descend.ifPresent(d -> Check.notNegative("descend", d));
+            turn.ifPresent(t -> Check.notNegative("turn", t));
+        }
+    }
+
+    /**
+     * Part G: a phase's windows: every {@code every} s the next of the {@code groups} (part names, in
+     * the order the windows cycle) with a living part on the field opens for {@code open} s (every
+     * such group at once when {@code all}), the first {@code offset} s after the phase's delay. A
+     * part in a group takes damage only while open. Each opening releases the next of the
+     * {@code spawns} in turn from every group it opened.
+     */
+    public record WindowData(
+            List<List<String>> groups,
+            double every,
+            double open,
+            Optional<Double> offset,
+            Optional<Boolean> all,
+            Optional<List<SpawnData>> spawns) {
+        public WindowData {
+            Check.notEmpty("groups", groups);
+            groups.forEach(group -> Check.notEmpty("groups[]", group));
+            Check.positive("every", every);
+            Check.positive("open", open);
+            offset.ifPresent(o -> Check.notNegative("offset", o));
+        }
+    }
+
+    /**
+     * Part G: what an opened window group releases: {@code count} units of {@code enemy} (a group
+     * with parts destroyed its share, rounded up) from its open parts, spread over {@code arc} °
+     * centred on the ship, flying out at {@code speed} px/s; with a {@code glide} of s they then
+     * hold for their hover time, firing, and leave down the screen. The difficulty hook
+     * {@code spawns} changes the count by {@code name}.
+     */
+    public record SpawnData(
+            String name, String enemy, int count, double speed, Optional<Double> arc, Optional<Double> glide) {
+        public SpawnData {
+            Check.notNegative("count", count);
+            Check.positive("speed", speed);
+            arc.ifPresent(a -> Check.notNegative("arc", a));
+            glide.ifPresent(g -> Check.notNegative("glide", g));
         }
     }
 
@@ -543,7 +707,12 @@ public record EnemyData(
     }
 
     /** A difficulty's change to one named attack. */
-    public record AttackChange(Optional<Integer> burst, Optional<Integer> count, Optional<Double> interval) {}
+    public record AttackChange(
+            Optional<Integer> burst, Optional<Integer> count, Optional<Double> interval, Optional<Integer> arms) {
+        public AttackChange {
+            arms.ifPresent(a -> Check.positive("arms", a));
+        }
+    }
 
     /** Overrides of the global difficulty levers. */
     public record Hooks(Optional<Hook> easy, Optional<Hook> hard) {}
@@ -558,10 +727,11 @@ public record EnemyData(
      * @param ring a mine's ring bullets instead
      * @param mineBursts false: mines never burst on their own
      * @param deathBurst the puff of bullets it pops into when destroyed
-     * @param attacks changes per attack name (a boss's {@code burst} or {@code count}, an {@code interval})
+     * @param attacks changes per attack name (a boss's {@code burst} or {@code count}, an {@code interval}, a spiral's {@code arms})
      * @param sweepArc a laser sweep's arc instead, °
      * @param segments a segment chain's segments instead
      * @param regrownFanCount a regrown head's fan bullets instead
+     * @param spawns part G: a boss's window spawns' counts instead, by spawn name
      */
     public record Hook(
             Optional<List<String>> leadsTargetIn,
@@ -576,7 +746,8 @@ public record EnemyData(
             Optional<java.util.Map<String, AttackChange>> attacks,
             Optional<Double> sweepArc,
             Optional<Integer> segments,
-            Optional<Integer> regrownFanCount) {}
+            Optional<Integer> regrownFanCount,
+            Optional<java.util.Map<String, Integer>> spawns) {}
 
     /** {@code count} bullets of class {@code bullet} in a ring at {@code speed} px/s. */
     public record DeathBurst(int count, double speed, String bullet) {

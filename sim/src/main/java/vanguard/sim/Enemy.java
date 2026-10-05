@@ -99,6 +99,10 @@ public final class Enemy implements Hashed {
 
     /** A spawner's steps since its centre crossed the top edge; -1 before. */
     private int broodTicks;
+    /** A boss's launched unit (part G): steps it glides out before it holds, and how long it then holds; 0 for none. */
+    private int glideTicks;
+
+    private int glideHoldTicks;
 
     /** Whether it entered as an escort; the escort's fields are in the state hash only then. */
     private boolean escort;
@@ -217,6 +221,8 @@ public final class Enemy implements Hashed {
         walked = 0;
         entered = false;
         spitTicks = 0;
+        glideTicks = 0;
+        glideHoldTicks = 0;
     }
 
     /**
@@ -277,6 +283,29 @@ public final class Enemy implements Hashed {
         vx = velX;
         vy = velY;
         facing = heading(velX, velY);
+    }
+
+    /**
+     * A unit a boss's window launches at (atX, atY) (design/enemies/bosses, part G): it flies
+     * straight out at (velX, velY) px/s; with a glide it holds after {@code glideSeconds} for its
+     * hover time (the middle of its range), its gun firing, and then leaves down the screen at that
+     * speed; without one it flies on until it leaves the play field.
+     */
+    void launch(
+            EnemySpec enemySpec,
+            int enemyKind,
+            double atX,
+            double atY,
+            double velX,
+            double velY,
+            double glideSeconds,
+            int unitSerial) {
+        hatch(enemySpec, enemyKind, atX, atY, velX, velY, unitSerial);
+        if (glideSeconds > 0 && enemySpec.hover().isPresent()) {
+            Range hover = enemySpec.hover().get().seconds();
+            glideTicks = Math.max(1, SimStep.ticks(glideSeconds));
+            glideHoldTicks = Math.max(1, SimStep.ticks((hover.min() + hover.max()) / 2));
+        }
     }
 
     /**
@@ -388,6 +417,12 @@ public final class Enemy implements Hashed {
                 y += vy * SimStep.SECONDS;
                 ricochet();
                 turn();
+                if (glideTicks > 0 && --glideTicks == 0) {
+                    // A launched unit's glide is over: it holds, its gun firing, then leaves down.
+                    holdTicks = glideHoldTicks;
+                    hold();
+                    return true;
+                }
                 if (spec.dive().isPresent() && !diveFired) {
                     EnemySpec.Dive dive = spec.dive().get();
                     boolean passed = prevY > shipY && y <= shipY;
@@ -725,6 +760,9 @@ public final class Enemy implements Hashed {
         // Level 04's units add their state; the units of Levels 01-03 hash as before.
         if (spec.brood().isPresent()) {
             hash.add(broodTicks);
+        }
+        if (glideHoldTicks > 0) {
+            hash.add(glideTicks);
         }
         if (escort) {
             hash.add(breakTicks).add(centreX).add(centreY).add(carrier == null ? -1 : carrier.serial);

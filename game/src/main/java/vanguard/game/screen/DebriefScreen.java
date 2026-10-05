@@ -7,7 +7,10 @@ import com.badlogic.gdx.utils.Align;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import vanguard.content.campaign.ActSummary;
 import vanguard.content.campaign.Campaign;
+import vanguard.content.campaign.CampaignRoute;
 import vanguard.game.GameServices;
 import vanguard.game.audio.Sfx;
 import vanguard.game.input.MenuInput;
@@ -26,6 +29,12 @@ import vanguard.sim.LevelResult;
  * animation, and once it is done the campaign goes on with the next level's briefing, or the
  * hangar while that level is not built yet. A replay's debrief shows no credits, since a replay
  * banks none, and goes back to the mission select (design/ui/mission-select).
+ *
+ * <p>The tally has a BOSS TIME row in a level with a boss (the kill time against its par, with the
+ * Boss rush bonus) and a DATA CORE row with the lore title of each data core found. The debrief of
+ * an act's last level adds a second page, the act summary: every level of the act with its kills,
+ * grade and banked credits, the act's totals and the data cores found in the act; then the act
+ * outro follows (design/campaign, Act intro and outro).
  */
 public final class DebriefScreen implements GameScreen {
     private static final float LINE_SECONDS = 0.3f;
@@ -46,13 +55,15 @@ public final class DebriefScreen implements GameScreen {
     private static final Color GAIN = Color.valueOf("40FF80");
     private static final Color CREDITS = Color.valueOf("FFE04A");
     private static final Color HEADING = Color.valueOf("FFE04A");
+    /** The act summary's total row. */
+    private static final String ACT_TOTAL = "ACT TOTAL";
 
     /**
      * One debrief line: a label, a middle column and a number that counts up on the right.
      *
      * @param amount the number; negative for none
      */
-    private record Row(String label, String middle, long amount, String prefix, String suffix, Color colour) {
+    record Row(String label, String middle, long amount, String prefix, String suffix, Color colour) {
         static Row heading(String text) {
             return new Row(text, "", -1, "", "", HEADING);
         }
@@ -65,9 +76,14 @@ public final class DebriefScreen implements GameScreen {
     private final GameServices services;
     private final Campaign campaign;
     private final boolean newBest;
-    private final String title;
-    private final String subtitle;
+    private String title;
+    private String subtitle;
     private final List<Row> rows = new ArrayList<>();
+    /** The act summary's page, when the level ended its act. */
+    private final Optional<ActSummary> summary;
+    /** Whether the act summary's page is shown. */
+    private boolean summaryShown;
+
     private final String grade;
     private final LevelResult.Rating rating;
     private float elapsed;
@@ -101,6 +117,8 @@ public final class DebriefScreen implements GameScreen {
         } else {
             addCredits(result, launchBalance);
         }
+        summary = CampaignRoute.actEnd(services.content, campaign)
+                .map(end -> ActSummary.of(services.content, campaign, end));
         services.sfx.play(Sfx.MISSION_COMPLETE, JINGLE_VOLUME, 1, 0);
     }
 
@@ -127,6 +145,9 @@ public final class DebriefScreen implements GameScreen {
                 "+ ",
                 "",
                 GAIN));
+        for (LevelResult.DataCore core : result.dataCores()) {
+            rows.add(new Row("DATA CORE", core.name().toUpperCase(Locale.ROOT), -1, "", "", VALUE));
+        }
         rows.add(new Row(
                 "MAX CHAIN",
                 result.maxChain() + "   x" + String.format(Locale.ROOT, "%.1f", result.maxMultiplier()),
@@ -134,6 +155,12 @@ public final class DebriefScreen implements GameScreen {
                 "",
                 "",
                 VALUE));
+        LevelResult.BossTime boss = result.bossTime();
+        if (boss.present()) {
+            // "BOSS TIME 1:42 (PAR 2:00) RUSH +2 000" (design/ui/debrief; design/systems/scoring, Boss rush):
+            // "RUSH + 2 000" with its space would run into the times in the 10 px body font.
+            rows.add(new Row("BOSS TIME", bossTime(boss), bonus(result, "Boss rush"), "RUSH +", "", GAIN));
+        }
         LevelResult.Escort escort = result.escort();
         if (escort.present()) {
             // The escort objective's own row: "CRAWLERS HOME 4 / 5 + 120 CR" (design/campaign, Level 04).
@@ -152,6 +179,58 @@ public final class DebriefScreen implements GameScreen {
                 "+ ",
                 " CR",
                 CREDITS));
+    }
+
+    /** The boss's kill time against its par, "1:42 (PAR 2:00)"; "NOT KILLED (PAR 1:00)" when it got away. */
+    static String bossTime(LevelResult.BossTime boss) {
+        String par = "(PAR " + minutes(boss.parSeconds()) + ")";
+        return (boss.killSeconds() < 0 ? "NOT KILLED" : minutes(boss.killSeconds())) + " " + par;
+    }
+
+    /** Seconds as "1:42", rounded down. */
+    static String minutes(double seconds) {
+        int whole = (int) Math.floor(seconds + 1e-9);
+        return String.format(Locale.ROOT, "%d:%02d", whole / 60, whole % 60);
+    }
+
+    /** The act summary's rows: the levels, the totals and the data cores. */
+    static List<Row> summaryRows(ActSummary summary) {
+        List<Row> rows = new ArrayList<>();
+        rows.add(Row.heading("MISSIONS"));
+        for (ActSummary.Mission mission : summary.missions()) {
+            String label = String.format(Locale.ROOT, "%02d %s", mission.number(), mission.name());
+            String grade = mission.grade().map(letter -> "  " + letter).orElse("");
+            rows.add(mission.stats()
+                    .map(stats -> new Row(label, stats.kills() + " KILLS" + grade, stats.credits(), "", " CR", CREDITS))
+                    // not recorded (a save from before format version 2): dashes, left out of the totals
+                    .orElseGet(() -> new Row(label, "--" + grade, -1, "", "", LABEL)));
+        }
+        rows.add(new Row(ACT_TOTAL, summary.kills() + " KILLS", summary.credits(), "", " CR", CREDITS));
+        long recorded = summary.missions().stream()
+                .filter(mission -> mission.stats().isPresent())
+                .count();
+        if (recorded < summary.missions().size()) {
+            String note = String.format(
+                    Locale.ROOT,
+                    "%d OF %d MISSIONS RECORDED",
+                    recorded,
+                    summary.missions().size());
+            rows.add(new Row(note, "", -1, "", "", LABEL));
+        }
+        rows.add(Row.heading("DATA CORES"));
+        if (summary.dataCores().isEmpty()) {
+            rows.add(new Row("NONE FOUND", "", -1, "", "", LABEL));
+        }
+        for (ActSummary.DataCore core : summary.dataCores()) {
+            rows.add(new Row(
+                    core.title(),
+                    String.format(Locale.ROOT, "L%02d %s", core.level(), core.levelName()),
+                    -1,
+                    "",
+                    "",
+                    VALUE));
+        }
+        return rows;
     }
 
     /** {@code civilian-crawler} reads "CRAWLERS". */
@@ -203,29 +282,45 @@ public final class DebriefScreen implements GameScreen {
     @Override
     public Transition update(float seconds) {
         campaign.play(seconds);
-        boolean done = stamped;
+        boolean done = summaryShown ? elapsed >= rows.size() * LINE_SECONDS : stamped;
         if (goesOn(services.menu)) {
+            if (done && !summaryShown && summary.isPresent()) {
+                showSummary(summary.get());
+                return Transition.STAY;
+            }
             if (done) {
                 return Transition.replace(
                         campaign.replay().isPresent()
                                 ? MissionSelectScreen.afterReplay(services)
-                                : HangarScreen.beforeNextLevel(services, campaign));
+                                : HangarScreen.afterLevel(services, campaign));
             }
-            elapsed = rows.size() * LINE_SECONDS + STAMP_DELAY_SECONDS;
+            elapsed = rows.size() * LINE_SECONDS + (summaryShown ? 0 : STAMP_DELAY_SECONDS);
         } else {
             elapsed += seconds;
         }
         int lines = Math.min(rows.size(), (int) (elapsed / LINE_SECONDS) + 1);
         if (lines > shownLines) {
             shownLines = lines;
-            boolean total = rows.get(lines - 1).label().equals("TOTAL CREDITS");
+            String label = rows.get(lines - 1).label();
+            boolean total = label.equals("TOTAL CREDITS") || label.equals(ACT_TOTAL);
             services.sfx.play(total ? Sfx.TALLY_TOTAL : Sfx.TALLY_TICK, TICK_VOLUME, 1, 0);
         }
-        if (!stamped && elapsed >= rows.size() * LINE_SECONDS + STAMP_DELAY_SECONDS) {
+        if (!summaryShown && !stamped && elapsed >= rows.size() * LINE_SECONDS + STAMP_DELAY_SECONDS) {
             stamped = true;
             services.sfx.play(Sfx.GRADE_STAMP, 1, 1, 0);
         }
         return Transition.STAY;
+    }
+
+    /** The act summary's page: "ACT I COMPLETE", its rows appearing as the tally's did. */
+    private void showSummary(ActSummary act) {
+        summaryShown = true;
+        title = act.act() + " COMPLETE";
+        subtitle = act.name();
+        rows.clear();
+        rows.addAll(summaryRows(act));
+        elapsed = 0;
+        shownLines = 0;
     }
 
     @Override
@@ -243,17 +338,24 @@ public final class DebriefScreen implements GameScreen {
             double progress = Math.clamp((elapsed - i * LINE_SECONDS) / LINE_SECONDS, 0, 1);
             if (row.colour() == HEADING) {
                 text(font, batch, row.label(), HEADING, LEFT, y, 200, Align.left);
-                glass.rule(batch, LEFT + 80, RIGHT, PixelScreen.HEIGHT - y + 6);
+                // The rule starts after the heading (10 px a character), at 80 px for the short ones.
+                int start = Math.max(80, row.label().length() * 10 + 10);
+                glass.rule(batch, LEFT + start, RIGHT, PixelScreen.HEIGHT - y + 6);
                 continue;
             }
             text(font, batch, row.label(), LABEL, LEFT, y, 220, Align.left);
             text(font, batch, row.middle(), VALUE, LEFT + 230, y, 200, Align.left);
             text(font, batch, row.right(progress), row.colour(), RIGHT - 200, y, 200, Align.right);
         }
-        if (stamped) {
+        if (summaryShown) {
+            if (elapsed >= rows.size() * LINE_SECONDS) {
+                text(font, batch, "[ENTER] CONTINUE", TITLE, 560, 60, 260, Align.right);
+            }
+        } else if (stamped) {
             drawRating(batch, fonts);
             drawStamp(batch, fonts);
-            text(font, batch, "[ENTER] CONTINUE", TITLE, 560, 60, 260, Align.right);
+            String next = summary.isPresent() ? "[ENTER] ACT SUMMARY" : "[ENTER] CONTINUE";
+            text(font, batch, next, TITLE, 520, 60, 300, Align.right);
         }
     }
 

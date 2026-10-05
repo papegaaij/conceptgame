@@ -62,7 +62,8 @@ record TypicalHaul(int perfect, double typical, double budget) {
             sum.bounty(1, object.bounty(), rate.groundTargets());
             sum.pay(1, credits(salvage, object.drop()), rate.groundTargets() * rate.pickups());
         }
-        int streams = parStreams(key);
+        JsonNode bossNotes = bossNotes(key);
+        int streams = bossNotes.path("streams").asInt(0);
         for (var piece : level.setPieces()) {
             // a boss dies in every won run; another set piece's parts are ground-target-like
             double share = piece.boss().isPresent() ? 1 : rate.groundTargets();
@@ -74,6 +75,11 @@ record TypicalHaul(int perfect, double typical, double budget) {
                 phase.stream()
                         .ifPresent(stream -> sum.bounty(
                                 streams * stream.count(), stream.enemy().bounty(), rate(rate, stream.enemy())));
+            }
+            // part G: the units a boss's windows launch in a typical fight (Level 07's Skitters and Needlers)
+            for (EnemySpec kind : piece.boss().map(BossSpec::spawnKinds).orElse(List.of())) {
+                int launched = bossNotes.path("spawns").path(kind.slug()).asInt(0);
+                sum.bounty(launched, kind.bounty(), rate(rate, kind));
             }
         }
         level.escort().ifPresent(escort -> sum.pay(escort.stations().size(), escort.credits(), rate.primary()));
@@ -100,17 +106,18 @@ record TypicalHaul(int perfect, double typical, double budget) {
         };
     }
 
-    /** The boss streams a fight at par sends, as its data's {@code boss.notes.streams} says. */
-    private static int parStreams(String key) {
+    /**
+     * The level data's {@code boss.notes}: {@code streams}, the boss streams a fight at par sends, and
+     * {@code spawns}, the units its windows launch in a typical fight by enemy slug.
+     */
+    private static JsonNode bossNotes(String key) {
         Path file = DesignTree.ROOT.resolve("campaign").resolve(key).resolve("data.yaml");
         try {
-            JsonNode streams = YAMLMapper.builder()
+            return YAMLMapper.builder()
                     .build()
                     .readTree(Files.readString(file))
                     .path("boss")
-                    .path("notes")
-                    .path("streams");
-            return streams.isMissingNode() ? 0 : streams.asInt();
+                    .path("notes");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

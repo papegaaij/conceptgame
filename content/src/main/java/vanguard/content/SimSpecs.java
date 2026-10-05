@@ -376,6 +376,8 @@ public final class SimSpecs {
                 };
         List<LevelData.PlacedPickup> carried = new ArrayList<>(level.pickups());
         variant.flatMap(LevelData.Variant::extraPickups).ifPresent(carried::addAll);
+        // Part G (LevelRules): a placed pickup may be left out on a difficulty.
+        carried.removeIf(placed -> !placed.dropsOn(difficulty));
         Map<String, LevelData.EnemyChange> enemyChanges =
                 variant.flatMap(LevelData.Variant::enemies).orElse(Map.of());
         List<WaveSpec> waves = new ArrayList<>();
@@ -398,13 +400,7 @@ public final class SimSpecs {
                 groundUnits(content, level, difficulty, secondary),
                 level.secrets().size(),
                 radio(level, difficulty),
-                new LevelScript.Secondary(
-                        secondary.killRatio().orElse(0.0),
-                        secondary.credits(),
-                        secondary.groups().orElse(List.of()),
-                        secondary.escapes().orElse(""),
-                        secondary.killAll().orElse(List.of()),
-                        secondary.label().orElse("")),
+                LevelRules.secondary(content, level, secondary),
                 cranes(level, difficulty),
                 debris(level, difficulty),
                 java.util.stream.Stream.concat(
@@ -421,7 +417,9 @@ public final class SimSpecs {
                                 difficulty != Difficulty.EASY || rocks.onEasy().orElse(false))
                         .map(SimSpecs::rocks),
                 groupDrops(level, carried),
-                level.darkness().map(darkness -> darkness(darkness, difficulty)));
+                level.darkness().map(darkness -> darkness(darkness, difficulty)),
+                LevelRules.tows(level),
+                LevelRules.partDrops(content, level, carried, SimSpecs::pickup));
     }
 
     /** A dark level's light at {@code difficulty} (Level 06): easy's longer headlight and flares, the flares it fires. */
@@ -646,13 +644,19 @@ public final class SimSpecs {
         List<EnemyData.PartData> partList =
                 enemy.partList().orElseThrow(() -> new IllegalArgumentException(slug + ": a boss has a part_list"));
         List<LevelScript.PartSpec> parts = new ArrayList<>();
-        for (EnemyData.PartData part : partList) {
+        List<Integer> armoured = new ArrayList<>();
+        for (int p = 0; p < partList.size(); p++) {
+            EnemyData.PartData part = partList.get(p);
+            if (part.armoured()) {
+                // A fire-only part (part G): it never takes damage, so its HP only keeps it alive.
+                armoured.add(p);
+            }
             parts.add(new LevelScript.PartSpec(
                     part.name(),
                     part.offset().x(),
                     part.offset().y(),
                     hitbox(part.hitbox()),
-                    content.difficulty().enemyHp(part.hp(), difficulty),
+                    part.armoured() ? 1 : content.difficulty().enemyHp(part.hp(), difficulty),
                     part.kind().equals("vital"),
                     part.bounty(),
                     Optional.empty(),
@@ -674,8 +678,9 @@ public final class SimSpecs {
         List<String> attackNames = new ArrayList<>();
         List<BossSpec.Attack> attacks = new ArrayList<>();
         DifficultyData levers = content.difficulty();
+        Optional<EnemyData.Hook> hook = hook(enemy, difficulty);
         Map<String, EnemyData.AttackChange> changes =
-                hook(enemy, difficulty).flatMap(EnemyData.Hook::attacks).orElse(Map.of());
+                hook.flatMap(EnemyData.Hook::attacks).orElse(Map.of());
         for (EnemyData.Attack attack : enemy.attacks()) {
             String name =
                     attack.name().orElseThrow(() -> new IllegalArgumentException(slug + ": a boss names its attacks"));
@@ -685,9 +690,10 @@ public final class SimSpecs {
                         case "aimed" -> BossSpec.Pattern.AIMED;
                         case "ring" -> BossSpec.Pattern.RING;
                         case "spiral" -> BossSpec.Pattern.SPIRAL;
+                        case "fan" -> BossSpec.Pattern.FAN;
                         default ->
-                            throw new IllegalArgumentException(
-                                    slug + ": a boss fires aimed, ring or spiral attacks, not " + attack.pattern());
+                            throw new IllegalArgumentException(slug
+                                    + ": a boss fires aimed, fan, ring or spiral attacks, not " + attack.pattern());
                     };
             int burst = change.flatMap(EnemyData.AttackChange::burst)
                     .or(attack::burst)
@@ -701,45 +707,72 @@ public final class SimSpecs {
                     firing.add(p);
                 }
             }
+            double interval =
+                    attack.interval().orElseThrow() / levers.enemyFireRate().of(difficulty);
+            double speed =
+                    attack.speed().orElseThrow() * levers.enemyBulletSpeed().of(difficulty);
+            double damage = bulletDamage(content, attack.bullet().orElseThrow());
+            EnemyGun gun = pattern == BossSpec.Pattern.FAN
+                    ? new EnemyGun(
+                            interval,
+                            0,
+                            1,
+                            speed,
+                            damage,
+                            false,
+                            count,
+                            Math.toRadians(attack.spread().orElseThrow()),
+                            Double.POSITIVE_INFINITY,
+                            Double.POSITIVE_INFINITY)
+                    : EnemyGun.aimed(interval, 0, burst, speed, damage, false);
             attackNames.add(name);
             attacks.add(new BossSpec.Attack(
                     name,
                     pattern,
-                    EnemyGun.aimed(
-                            attack.interval().orElseThrow()
-                                    / levers.enemyFireRate().of(difficulty),
-                            0,
-                            burst,
-                            attack.speed().orElseThrow()
-                                    * levers.enemyBulletSpeed().of(difficulty),
-                            bulletDamage(content, attack.bullet().orElseThrow()),
-                            false),
+                    gun,
                     attack.burstGap().orElse(EnemyGun.BURST_GAP_SECONDS),
                     attack.rotate().orElse(false),
                     count,
-                    attack.arms().orElse(0),
+                    change.flatMap(EnemyData.AttackChange::arms)
+                            .or(attack::arms)
+                            .orElse(0),
                     Math.toRadians(attack.turnRate().orElse(0.0)),
                     attack.duration().orElse(0.0),
                     firing));
         }
+        Map<String, Integer> spawnCounts = hook.flatMap(EnemyData.Hook::spawns).orElse(Map.of());
         List<BossSpec.Phase> phases = new ArrayList<>();
-        for (EnemyData.PhaseData phase : script.phases()) {
+        for (int f = 0; f < script.phases().size(); f++) {
+            EnemyData.PhaseData phase = script.phases().get(f);
             List<String> fired = phase.alternate().or(phase::attacks).orElse(List.of());
+            List<Integer> firedIndexes = fired.stream()
+                    .map(name -> {
+                        int index = attackNames.indexOf(name);
+                        if (index < 0) {
+                            throw new IllegalArgumentException(slug + ": no attack '" + name + "'");
+                        }
+                        return index;
+                    })
+                    .toList();
+            if (phase.alternate().isPresent()) {
+                for (int a : firedIndexes) {
+                    if (attacks.get(a).pattern() == BossSpec.Pattern.SPIRAL
+                            && !(attacks.get(a).durationSeconds() > 0)) {
+                        throw new IllegalArgumentException(
+                                slug + ": spiral " + attacks.get(a).name() + " alternates without a duration");
+                    }
+                }
+            }
+            // A later phase that alternates holds its fire a beat by default (the frigate's crown).
+            double delay =
+                    phase.delay().orElse(f > 0 && phase.alternate().isPresent() ? BossSpec.PHASE_DELAY_SECONDS : 0.0);
             phases.add(new BossSpec.Phase(
                     phase.name(),
-                    phase.until().parts().stream()
+                    phase.until().parts().orElse(List.of()).stream()
                             .map(part -> partIndex(enemy, part))
                             .toList(),
-                    phase.until().left(),
-                    fired.stream()
-                            .map(name -> {
-                                int index = attackNames.indexOf(name);
-                                if (index < 0) {
-                                    throw new IllegalArgumentException(slug + ": no attack '" + name + "'");
-                                }
-                                return index;
-                            })
-                            .toList(),
+                    phase.until().left().orElse(0),
+                    firedIndexes,
                     phase.alternate().isPresent(),
                     phase.streams()
                             .map(stream -> new BossSpec.Stream(
@@ -755,11 +788,85 @@ public final class SimSpecs {
                     phase.exposes().orElse(List.of()).stream()
                             .map(part -> partIndex(enemy, part))
                             .toList(),
-                    phase.bend().map(Math::toRadians).orElse(Double.NaN)));
+                    phase.bend().map(Math::toRadians).orElse(Double.NaN),
+                    phase.until().seconds().orElse(Double.POSITIVE_INFINITY),
+                    delay,
+                    Optional.empty(),
+                    phase.windows().map(windows -> bossWindows(content, enemy, windows, spawnCounts, difficulty))));
         }
         EnemyData.Movement movement = enemy.movement();
         EnemyData.Hover hover =
                 movement.hover().orElseThrow(() -> new IllegalArgumentException(slug + ": a boss hovers"));
+        // The moves need the station before them: walk the phases with the place, layer and pose so far.
+        double stationX = placement.x();
+        double stationY = PlayField.HEIGHT - hover.y().min();
+        Layer stationLayer = Layers.of(enemy.layer());
+        int stationPose = 0;
+        for (int f = 0; f < phases.size(); f++) {
+            Optional<EnemyData.MoveData> data = script.phases().get(f).move();
+            if (data.isEmpty()) {
+                continue;
+            }
+            EnemyData.MoveData move = data.get();
+            if (move.to().isPresent()) {
+                stationX = move.to().get().x();
+                stationY = PlayField.HEIGHT - move.to().get().y();
+            }
+            stationLayer = move.layer().map(Layers::of).orElse(stationLayer);
+            if (move.pose().isPresent()) {
+                stationPose = script.poseIndex(move.pose().get());
+                if (stationPose < 0) {
+                    throw new IllegalArgumentException(
+                            slug + ": no pose '" + move.pose().get() + "'");
+                }
+            }
+            BossSpec.Phase plain = phases.get(f);
+            phases.set(
+                    f,
+                    new BossSpec.Phase(
+                            plain.name(),
+                            plain.untilParts(),
+                            plain.left(),
+                            plain.attacks(),
+                            plain.alternate(),
+                            plain.stream(),
+                            plain.exposes(),
+                            plain.bendRadians(),
+                            plain.seconds(),
+                            plain.delaySeconds(),
+                            Optional.of(new BossSpec.Move(
+                                    stationX,
+                                    stationY,
+                                    stationLayer,
+                                    move.descend().orElse(0.0),
+                                    stationPose,
+                                    move.turn().orElse(0.0))),
+                            plain.windows()));
+        }
+        List<BossSpec.Pose> poses = new ArrayList<>();
+        if (script.poses().isPresent()) {
+            poses.add(new BossSpec.Pose(
+                    "arrival",
+                    hitbox(enemy.hitbox()),
+                    partList.stream()
+                            .map(part -> new BossSpec.Offset(
+                                    part.offset().x(), part.offset().y()))
+                            .toList()));
+            for (EnemyData.PoseData pose : script.poses().get()) {
+                for (String name : pose.offsets().keySet()) {
+                    partIndex(enemy, name);
+                }
+                poses.add(new BossSpec.Pose(
+                        pose.name(),
+                        hitbox(pose.hitbox().orElse(enemy.hitbox())),
+                        partList.stream()
+                                .map(part -> {
+                                    Point at = pose.offsets().getOrDefault(part.name(), part.offset());
+                                    return new BossSpec.Offset(at.x(), at.y());
+                                })
+                                .toList()));
+            }
+        }
         return new LevelScript.SetPieceSpec(
                 slug,
                 hitbox(enemy.size()),
@@ -781,7 +888,42 @@ public final class SimSpecs {
                         script.par(),
                         chains,
                         attacks,
-                        phases)));
+                        phases,
+                        script.engagesOnArrival().orElse(false),
+                        armoured,
+                        poses,
+                        script.deathSeconds().orElse(0.0))));
+    }
+
+    /**
+     * A boss phase's windows at {@code difficulty} (part G): the groups by part index, the spawns'
+     * units at the difficulty and their counts after the hook's {@code spawns}.
+     */
+    private static BossSpec.Windows bossWindows(
+            Content content,
+            EnemyData enemy,
+            EnemyData.WindowData windows,
+            Map<String, Integer> spawnCounts,
+            Difficulty difficulty) {
+        return new BossSpec.Windows(
+                windows.groups().stream()
+                        .map(group -> group.stream()
+                                .map(part -> partIndex(enemy, part))
+                                .toList())
+                        .toList(),
+                windows.every(),
+                windows.open(),
+                windows.offset().orElse(0.0),
+                windows.all().orElse(false),
+                windows.spawns().orElse(List.of()).stream()
+                        .map(spawn -> new BossSpec.Spawn(
+                                spawn.name(),
+                                enemy(content, spawn.enemy(), difficulty, Optional.empty()),
+                                spawnCounts.getOrDefault(spawn.name(), spawn.count()),
+                                spawn.speed(),
+                                Math.toRadians(spawn.arc().orElse(0.0)),
+                                spawn.glide().orElse(0.0)))
+                        .toList());
     }
 
     private static int partIndex(EnemyData enemy, String part) {
@@ -906,7 +1048,7 @@ public final class SimSpecs {
                         case REAR -> WaveSpec.Entry.REAR;
                     },
                     edge.map(SimSpecs::edge).orElse(WaveSpec.Edge.NONE),
-                    wave.hold(),
+                    change.flatMap(LevelData.Change::hold).or(wave::hold),
                     warning,
                     breakGroup,
                     wave.speed(),
@@ -1425,18 +1567,22 @@ public final class SimSpecs {
                         case BOSS_DESTROYED -> LevelScript.CueTrigger.BOSS_DESTROYED;
                     })
                     .orElse(LevelScript.CueTrigger.TIME);
+            // Part G (LevelRules): a boss-destroyed cue's subject is the boss, a timeout cue its own
+            // trigger, and the requirements bits (a special, a homing weapon; or none of them).
             cues.add(new LevelScript.RadioCue(
-                    trigger,
+                    LevelRules.trigger(cue, trigger),
                     cue.t().orElse(0.0),
-                    cue.enemy().or(cue::group).or(cue::phase).orElse(""),
+                    LevelRules.subject(level, cue),
                     cue.speaker(),
                     change.map(LevelData.RadioChange::line).orElse(cue.line()),
                     cue.distorted().orElse(false),
                     cue.expression().orElse(Expression.NEUTRAL).slug(),
                     cue.portrait().orElse(cue.speaker()),
-                    cue.requires().isPresent(),
+                    false,
                     cue.allies().map(LevelData.Count::min).orElse(0),
-                    cue.allies().map(LevelData.Count::max).orElse(Integer.MAX_VALUE)));
+                    cue.allies().map(LevelData.Count::max).orElse(Integer.MAX_VALUE),
+                    LevelRules.requirement(cue.requires()),
+                    LevelRules.requirement(cue.requiresNot())));
         }
         for (LevelData.Secret secret : level.secrets()) {
             LevelData.RadioLine line = secret.radio();

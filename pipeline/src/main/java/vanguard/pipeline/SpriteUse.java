@@ -18,9 +18,10 @@ import vanguard.content.LevelData;
  * ({@code sprites}), which the game keeps loaded. The levels' use is derived from their data: the
  * enemies of their waves, ground targets, set pieces and boss (and the enemies those spawn), the
  * ground targets' looks, the escorted ally and the level's features the game draws with sprites of
- * its own. A sprite belongs to a root when its name is the root or starts with the root and a
- * hyphen ({@code leviathan} owns {@code leviathan-fin-left}). The shared roots are the weapons, the
- * specials and the game's own effects ({@link #GAME_WIDE}); a sprite no root claims fails the build.
+ * its own (cranes, debris, sleds, rocks, the darkness's flares, the tows' lifeboat, pod and cable). A
+ * sprite belongs to a root when its name is the root or starts with the root and a hyphen
+ * ({@code leviathan} owns {@code leviathan-fin-left}). The shared roots are the weapons, the specials
+ * and the game's own effects ({@link #GAME_WIDE}); a sprite no root claims fails the build.
  */
 final class SpriteUse {
     /** The shared atlas, always loaded. */
@@ -48,6 +49,9 @@ final class SpriteUse {
 
     /** The sprites an enemy's attack pattern draws besides the enemy (the game's names). */
     private static final Map<String, String> PATTERN_ROOTS = Map.of("mortar", "mortar", "mine", "spore-mine");
+
+    /** The sprites of a level's tows: {@code lifeboat}, {@code lifeboat-pod}, {@code lifeboat-cable}. */
+    static final String TOW_ROOT = "lifeboat";
 
     /** The look of a destructible ground target that names none (Level 01's cargo container). */
     private static final String DEFAULT_LOOK = "cargo-container";
@@ -131,6 +135,8 @@ final class SpriteUse {
             roots.add("flare");
             roots.add("headlight");
         });
+        // A tow is drawn as the lifeboat, its cargo pod and the cable (TowLooks), whatever its data.
+        level.tows().filter(tows -> !tows.isEmpty()).ifPresent(tows -> roots.add(TOW_ROOT));
         return roots;
     }
 

@@ -77,7 +77,18 @@ class BossTest {
                 new BossSpec.Phase(
                         "Last head", heads, 0, List.of(0), false, Optional.empty(), List.of(), Math.toRadians(55)),
                 new BossSpec.Phase(
-                        "Core", List.of(CORE), 0, List.of(1, 2), true, Optional.empty(), List.of(CORE), Double.NaN));
+                        "Core",
+                        List.of(CORE),
+                        0,
+                        List.of(1, 2),
+                        true,
+                        Optional.empty(),
+                        List.of(CORE),
+                        Double.NaN,
+                        Double.POSITIVE_INFINITY,
+                        BossSpec.PHASE_DELAY_SECONDS,
+                        Optional.empty(),
+                        Optional.empty()));
         var chains = List.of(
                 new BossSpec.Chain("left neck", -60, -50, LEFT_HEAD, 5, new Hitbox(22, 22), 0.12, BEND),
                 new BossSpec.Chain("right neck", 60, -50, RIGHT_HEAD, 5, new Hitbox(22, 22), 0.12, BEND));
@@ -244,12 +255,12 @@ class BossTest {
         assertEquals(2, boss.phase());
         assertFalse(boss.partShielded(CORE));
         int ring = 0;
-        for (int i = 0; i <= SimStep.ticks(SetPiece.CROWN_OPEN_SECONDS); i++) {
+        for (int i = 0; i <= SimStep.ticks(BossSpec.PHASE_DELAY_SECONDS); i++) {
             int bullets = sortie.bulletCount();
             sortie.step(0);
             ring = Math.max(ring, sortie.bulletCount() - bullets);
         }
-        assertEquals(12, ring, "the core opens with its ring once the crown is open");
+        assertEquals(12, ring, "the core opens with its ring once the crown is open (the phase's delay)");
 
         sortie.destroyPart(0, CORE);
         assertTrue(boss.destroyed());

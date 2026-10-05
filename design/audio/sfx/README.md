@@ -150,8 +150,9 @@ reused round 02 files marked (r02).
 | Vrell screech (spawn/attack cue), 2 variants: [c](concept/enemy-screech-r08-c.ogg), [d](concept/enemy-screech-r08-d.ogg) | P2 |
 | Turret rotate / lock-on beep — [a](concept/enemy-lock-r08-a.ogg) | P2 |
 | Portal / warp-in; Vrell spawn (Brood Pod bursting, Hive Node and Brood Carrier spawns) — [a](concept/enemy-spawn-r08-a.ogg) (wet creature swell), [b](concept/enemy-spawn-r08-b.ogg) (fleshy burst) | P2 |
-| Carrier launching drones | P3 |
-| Boss roars and phase-change cues (per boss) | P3 |
+| Carrier launching drones — the Brood Carrier's units leaving its sacs: [a](concept/enemy-carrier-launch-r25-a.ogg) (creature spit), [b](concept/enemy-carrier-launch-r25-b.ogg) (slime lunge), proposed in [round 25](../../concept-rounds/README.md) | P2 |
+| Boss roars and phase-change cues (per boss) — the Brood Carrier (Level 07): roar as it arrives and, lower, as it turns broadside [a](concept/enemy-carrier-roar-r25-a.ogg) (deep roar with echo), [b](concept/enemy-carrier-roar-r25-b.ogg) (bear and didgeridoo); a bay sac opening [a](concept/enemy-carrier-sac-open-r25-a.ogg), [b](concept/enemy-carrier-sac-open-r25-b.ogg) and closing [a](concept/enemy-carrier-sac-close-r25-a.ogg), [b](concept/enemy-carrier-sac-close-r25-b.ogg); a sac bursting [a](concept/enemy-carrier-sac-burst-r25-a.ogg), [b](concept/enemy-carrier-sac-burst-r25-b.ogg); the plate iris opening [a](concept/enemy-carrier-iris-r25-a.ogg) (alien hatch), [b](concept/enemy-carrier-iris-r25-b.ogg) (organic morph), proposed in round 25; other bosses P3 | P2 |
+| Lifeboat tow (Level 07 secret): the amber cable snapping on its third hit — [a](concept/secret-cable-snap-r25-a.ogg) (chain snap, CC-BY), [b](concept/secret-cable-snap-r25-b.ogg) (string twang, slowed, CC-BY), proposed in round 25; the hits play the metal hit, the crate the large salvage | P2 |
 | Leviathan whale-song cry (its death, under the large burst) — [a](concept/enemy-leviathan-cry-r16-a.ogg) (synthesized, round 16) | P2 |
 | Polyp Mortar lob — chosen [a](concept/enemy-mortar-lob-r21-a.ogg) (mortar thump; an organic spit was rejected); impact — chosen [a](concept/enemy-mortar-impact-r21-a.ogg) (wet splat; an acid sizzle was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
 | Mass-driver sled (Level 05 hazard): whine while the rail lights chase — chosen [a](concept/hazard-sled-whine-r21-a.ogg) (charge hum loop, played twice over the 1.5 s chase; a rising charge was rejected); pass — chosen [b](concept/hazard-sled-pass-r21-b.ogg) (rushing flyby; a rail-gun crack was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
@@ -425,6 +426,31 @@ d synthesized). Closed 2026-10-05: segment burst **b**, head burst **c**, the ri
 | [concept/rejected/enemy-coilwyrm-death-r24-d.ogg](concept/rejected/enemy-coilwyrm-death-r24-d.ogg) | Preview d (review only): the whole chained death at 0.05 s | rejected |
 | [concept/enemy-coilwyrm-death-final-r24-a.ogg](concept/enemy-coilwyrm-death-final-r24-a.ogg) | Preview of the chosen pair at the game's rhythm (review only, from the Freesound originals): the head burst c, then 13 bursts b 0.25 s apart, each at the explosion level, pitched up as the members narrow down the taper | chosen |
 
+Concept round 25 (M4 part G, Level 07) — recorded (CC0 / CC-BY), an a/b pair for each of the
+Brood Carrier's roar, a bay sac opening, closing and bursting, a unit launched from a sac, the
+plate iris opening, and the lifeboat tow's cable snap (`tools/concept/audio/sfx_r25.py`, cut from
+the cached Freesound **originals**, levelled on the loudest 100 ms of the 200 Hz–5 kHz band).
+Option a plays in the game for now (`Sfx`, `FlightSounds`). The klaxon keeps its chosen
+`ui-klaxon-r08-a` (already rebuilt from its original), so it is not in the round. Briefs and
+sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carrier-and-lifeboat-tow-m4-part-g), [CREDITS.md](../../../CREDITS.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/enemy-carrier-roar-r25-a.ogg](concept/enemy-carrier-roar-r25-a.ogg) | "Deep Roar Echo 2.wav" by noahpardo (CC0 1.0) — carrier roar a: a 0.6 s swell, 2.5 s of deep roar, its echo (4.0 s) | proposed |
+| [concept/enemy-carrier-roar-r25-b.ogg](concept/enemy-carrier-roar-r25-b.ogg) | "Didgeridoo Monster Roar" by Noxdl (CC0 1.0) — carrier roar b: a bear's roar over a didgeridoo drone, a buzzing, whale-like body (3.0 s) | proposed |
+| [concept/enemy-carrier-sac-open-r25-a.ogg](concept/enemy-carrier-sac-open-r25-a.ogg) | "GOREFlsh_Flesh Manipulation 01_KVV AUDIO_FREE" by KVV_Audio (CC-BY 4.0) — sac opening a: flesh pulled apart close up (0.85 s) | proposed |
+| [concept/enemy-carrier-sac-open-r25-b.ogg](concept/enemy-carrier-sac-open-r25-b.ogg) | "Squelch.mp3" by LucasDuff (CC0 1.0) — sac opening b: something torn out of a sucking mud (0.9 s) | proposed |
+| [concept/enemy-carrier-sac-close-r25-a.ogg](concept/enemy-carrier-sac-close-r25-a.ogg) | "GOREFlsh_Flesh Manipulation 01_KVV AUDIO_FREE" by KVV_Audio (CC-BY 4.0) — sac closing a: the same recording's third gesture, quieter (0.6 s) | proposed |
+| [concept/enemy-carrier-sac-close-r25-b.ogg](concept/enemy-carrier-sac-close-r25-b.ogg) | "Squelch.mp3" by LucasDuff (CC0 1.0) — sac closing b: opening b's tear reversed, a wet suck that ends shut (0.6 s) | proposed |
+| [concept/enemy-carrier-launch-r25-a.ogg](concept/enemy-carrier-launch-r25-a.ogg) | "Spit 1 - The Ridge - Spanker" by bananplyte (CC0 1.0) — launch a: a creature's throaty spit (0.5 s) | proposed |
+| [concept/enemy-carrier-launch-r25-b.ogg](concept/enemy-carrier-launch-r25-b.ogg) | "Slime Attack 1" by qubodup (CC0 1.0) — launch b: a slime monster's wet lunge, brighter (0.4 s) | proposed |
+| [concept/enemy-carrier-sac-burst-r25-a.ogg](concept/enemy-carrier-sac-burst-r25-a.ogg) | "Headshot 2" by SilverIllusionist (CC-BY 4.0) — sac burst a: a very wet, fleshy explosion, 10 % slower (1.56 s) | proposed |
+| [concept/enemy-carrier-sac-burst-r25-b.ogg](concept/enemy-carrier-sac-burst-r25-b.ogg) | "Gutsy Spillage 1" by magnuswaker (CC0 1.0) — sac burst b: a visceral tear with a wet tail, 10 % slower (1.22 s) | proposed |
+| [concept/enemy-carrier-iris-r25-a.ogg](concept/enemy-carrier-iris-r25-a.ogg) | "SFX Door Open.wav" by Paul368 (CC0 1.0) — iris a: an alien hatch morphing open, a pressure release up front (1.6 s) | proposed |
+| [concept/enemy-carrier-iris-r25-b.ogg](concept/enemy-carrier-iris-r25-b.ogg) | "Simple Mutate (Monster)" by Division4884 (CC0 1.0) — iris b: a grinding, organic morph (1.3 s) | proposed |
+| [concept/secret-cable-snap-r25-a.ogg](concept/secret-cable-snap-r25-a.ogg) | "snapping-chain" by CosmicEmbers (CC-BY 3.0) — cable snap a: a sharp crack, the loose chain rattling after it (1.2 s) | proposed |
+| [concept/secret-cable-snap-r25-b.ogg](concept/secret-cable-snap-r25-b.ogg) | "Guitar string snaps.wav" by juskiddink (CC-BY 4.0) — cable snap b: a string snapping, 25 % slower, a heavy cable's twang and ring (1.6 s) | proposed |
+
 ## Implementation
 
 - [ ] SFX playback with instance limits, stealing by priority, pitch variation
@@ -535,3 +561,16 @@ d synthesized). Closed 2026-10-05: segment burst **b**, head burst **c**, the ri
   concept names; within 0.4 dB of the concept files on peak and band. The chained death plays one
   burst every 0.25 s at the explosion level (they no longer overlap), each pitched by the member's
   width down the taper; `enemy-coilwyrm-death-final-r24-a` previews it.
+- 2026-10-05: Round 25 opened (M4 part G, Level 07): recorded a/b pairs for the Brood Carrier's
+  roar (its arrival and its turn), a bay sac opening, closing and bursting, a unit launched from a
+  sac, the plate iris opening and the lifeboat tow's cable snap (`tools/concept/audio/sfx_r25.py`,
+  the first round cut from the Freesound originals, so the chosen files need no rebuild). Option a
+  plays in Level 07 for now, through new `Sfx` entries and `FlightSounds`: the roar 0.75 s after
+  the klaxon starts and again at 0.85 pitch as the turn begins; one sac-opening sound for the sacs
+  that open together, a quieter closing as they shut; up to three launch spits 0.1 s apart after
+  an opening (an opening's units all leave in one step); a sac shot off bursts with the generic
+  part explosion under it, and the death chain bursts every sac with it in its tail-to-head order;
+  the iris as the core is exposed; the cable snap as the pod falls free (the cable's hits keep the
+  metal hit). The carrier plays no generic phase blast. All at the explosions' level. The klaxon
+  keeps the chosen, already final `ui-klaxon-r08-a`. Not listened to: picked by description,
+  rating, envelope, band balance and level.

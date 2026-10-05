@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Optional;
 import vanguard.content.Content;
 import vanguard.content.Difficulty;
+import vanguard.content.DifficultyData;
 import vanguard.content.Expression;
 import vanguard.content.LevelData;
 import vanguard.content.SimSpecs;
@@ -18,9 +19,11 @@ import vanguard.content.campaign.Campaign;
 import vanguard.content.campaign.Flight;
 import vanguard.content.campaign.SaveSlots;
 import vanguard.game.GameServices;
+import vanguard.game.audio.DelayedSounds;
 import vanguard.game.audio.FlightSounds;
 import vanguard.game.audio.LevelMusic;
 import vanguard.game.audio.Sfx;
+import vanguard.game.audio.Tracks;
 import vanguard.game.audio.Voices;
 import vanguard.game.input.Action;
 import vanguard.game.input.FlightCommands;
@@ -29,6 +32,7 @@ import vanguard.game.level.Outro;
 import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
 import vanguard.game.level.RadioSchedule;
+import vanguard.game.render.BossBanner;
 import vanguard.game.render.CreditNumbers;
 import vanguard.game.render.EdgeWarnings;
 import vanguard.game.render.Effects;
@@ -36,6 +40,7 @@ import vanguard.game.render.EnemyLooks;
 import vanguard.game.render.Hud;
 import vanguard.game.render.LevelRenderer;
 import vanguard.game.render.PodPivots;
+import vanguard.game.render.ScreenFlash;
 import vanguard.game.render.SetPieceDeath;
 import vanguard.game.render.SetPieceWrecks;
 import vanguard.game.render.WeaponLooks;
@@ -44,6 +49,7 @@ import vanguard.sim.FixedStepClock;
 import vanguard.sim.Layer;
 import vanguard.sim.LevelResult;
 import vanguard.sim.LevelScript;
+import vanguard.sim.PlayField;
 import vanguard.sim.Rules;
 import vanguard.sim.SetPiece;
 import vanguard.sim.SimEvents;
@@ -137,6 +143,14 @@ public final class LevelScreen implements GameScreen {
 
     private final CreditNumbers creditNumbers = new CreditNumbers();
     private final EdgeWarnings warnings;
+    /** An act boss's warning banner, its death's screen flash and the chain's bursts' sounds. */
+    private final BossBanner banner;
+
+    private final ScreenFlash screenFlash = new ScreenFlash();
+    private final DelayedSounds chainSounds;
+    /** The steps from a boss's death to its credit shower: the end of its chained bursts. */
+    private int showerDelay = SHOWER_DELAY_TICKS;
+
     private final RadioQueue radio = new RadioQueue();
     private final RadioSchedule radioSchedule;
     private final ControlPrompts prompts;
@@ -224,6 +238,8 @@ public final class LevelScreen implements GameScreen {
                 sortie.script(),
                 levelKey);
         warnings = new EdgeWarnings(services.sprites.pixel, services.fonts.body);
+        banner = new BossBanner(services.sprites.pixel, services.fonts.heading, services.fonts.body);
+        chainSounds = new DelayedSounds(services.sfx);
         name = Content.levelName(levelKey);
         hud = new Hud(
                 services.sprites,
@@ -239,18 +255,39 @@ public final class LevelScreen implements GameScreen {
         promptTexts = new PromptTexts(services.input.bindings());
         // The level's theme (design/audio/music, track list) as its two stems, over its setting's ambience.
         String theme = theme(level.music().track());
+        var full = services.files.internal(Tracks.path(theme));
+        var base = services.files.internal(Tracks.basePath(theme));
         music = new LevelMusic(
                 services.audio,
                 services.mixer,
-                services.files.internal("music/" + theme + "-base.ogg"),
-                services.files.internal("music/" + theme + ".ogg"),
+                // A theme without stems plays its full mix as both (the intensity layer always on).
+                base.exists() ? base : full,
+                full,
                 services.sfx,
                 ambience(level.music().ambience()),
                 level.music().startSection(),
                 level.music().startDb().orElse(0.0),
                 level.music()::full,
                 level.music().ambienceFrom().orElse(Double.POSITIVE_INFINITY),
-                level.music().voiceLoop().flatMap(loop -> voiceLoop(level, loop)));
+                level.music().voiceLoop().flatMap(loop -> voiceLoop(level, loop)),
+                bossMusic(level.music())
+                        .map(names -> new LevelMusic.Boss(
+                                names.warning().map(name -> services.files.internal(Tracks.path(name))),
+                                names.track().map(name -> services.files.internal(Tracks.path(name))),
+                                Tracks.BOSS_WARNING_BARS_SECONDS)));
+    }
+
+    /** A level's act boss music by file name: the warning (track 22) and the boss track (track 18). */
+    record BossMusic(Optional<String> warning, Optional<String> track) {}
+
+    /**
+     * The level's {@code music.boss_warning} and {@code boss_track} (design/tech/architecture, the
+     * level music block); empty without either.
+     */
+    static Optional<BossMusic> bossMusic(LevelData.Music music) {
+        Optional<String> warning = music.bossWarning();
+        Optional<String> track = music.bossTrack();
+        return warning.isEmpty() && track.isEmpty() ? Optional.empty() : Optional.of(new BossMusic(warning, track));
     }
 
     /** A music block's voice loop: its speaker's first timed radio line, if it has a voice file. */
@@ -266,13 +303,10 @@ public final class LevelScreen implements GameScreen {
                         services.files.internal(voice.path()), loop.section(), (float) Math.pow(10, loop.db() / 20)));
     }
 
-    /** The file name of a level theme's stems by its track number (design/audio/music, track list). */
-    private static String theme(int track) {
-        return switch (track) {
-            case 4 -> "afterburner";
-            case 5 -> "coalition-rising";
-            default -> throw new IllegalArgumentException("no stems for track " + track + " yet");
-        };
+    /** The file name of a level theme by its track number (design/audio/music, track list). */
+    static String theme(int track) {
+        return Tracks.name(track)
+                .orElseThrow(() -> new IllegalArgumentException("no music file for track " + track + " yet"));
     }
 
     /** A setting's ambience loop (design/audio/sfx, ambience per setting). */
@@ -336,10 +370,16 @@ public final class LevelScreen implements GameScreen {
 
     /**
      * Whether the mission failed screen offers Retry from boss (design/systems/retry): the attempt
-     * reached the boss checkpoint, on easy or medium (hard has no boss checkpoints).
+     * reached the boss checkpoint, on a difficulty with boss checkpoints ({@code boss_checkpoint} of
+     * design/systems/difficulty: easy and medium).
      */
     boolean bossCheckpoint() {
-        return campaign.difficulty() != Difficulty.HARD && sortie.bossCheckpoint();
+        return checkpointOffered(services.content.difficulty(), campaign.difficulty(), sortie.bossCheckpoint());
+    }
+
+    /** Whether Retry from boss is offered: the checkpoint was reached and the difficulty has them. */
+    static boolean checkpointOffered(DifficultyData data, Difficulty difficulty, boolean reached) {
+        return reached && data.bossCheckpoint().of(difficulty);
     }
 
     /** Restarts at the boss checkpoint: the boss's arrival on an empty field, with the defences and tallies of then. */
@@ -402,10 +442,13 @@ public final class LevelScreen implements GameScreen {
             wrecks.step();
             sounds.step();
             creditNumbers.step();
+            screenFlash.step();
+            chainSounds.step();
             if (shimmer > 0) {
                 shimmer--;
             }
             react(sortie.events());
+            sounds.watch(sortie);
             sounds.edgeWarnings(warnings.step(sortie.edgeWarnings(), sortie.tick()));
         }
         if (launchPending && sortie.launching()) {
@@ -475,12 +518,22 @@ public final class LevelScreen implements GameScreen {
                     effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
                 }
                 case CREDITS_PICKED_UP -> creditNumbers.show(events.value(i), x, y);
-                case BOSS_DESTROYED -> creditShower(events.value(i), x, y);
+                case BOSS_DESTROYED -> {
+                    creditShower(events.value(i), x, y);
+                    music.bossDown();
+                }
                 case BOSS_ARRIVED -> {
-                    if (level.music().bossSting().isPresent()) {
+                    if (music.bossArrived()) {
+                        // An act boss: the warning track with the klaxon and the banner (design/ui/hud).
+                        services.sfx.play(Sfx.KLAXON, KLAXON_VOLUME, 1, 0);
+                        sortie.setPiece(events.value(i))
+                                .boss()
+                                .ifPresent(boss -> banner.show(boss.barName(), sortie.tick()));
+                    } else if (level.music().bossSting().isPresent()) {
                         music.sting(Sfx.MINIBOSS_STING);
                     }
                 }
+                case BOSS_RETRY -> music.bossRetry();
                 case SPECIAL_CALLED -> {
                     // The Airstrike's call answers the player at once: an urgent line that interrupts
                     // whatever is on the radio, which plays again after it (design/ui/hud, priority
@@ -564,6 +617,10 @@ public final class LevelScreen implements GameScreen {
                     radio.clear();
                     services.voices.stop();
                     warnings.clear();
+                    banner.clear();
+                    screenFlash.clear();
+                    chainSounds.clear();
+                    renderer.restart();
                     music.restart();
                     launchPending = true;
                 }
@@ -607,6 +664,13 @@ public final class LevelScreen implements GameScreen {
      */
     private void chainedDeath(int k, Array<AtlasRegion> cloud, double x, double y) {
         SetPiece piece = sortie.setPiece(k);
+        if (piece.boss().isPresent()) {
+            showerDelay = LevelRenderer.chainTicks(piece);
+            if (LevelRenderer.tailToHead(piece)) {
+                tailToHeadDeath(k, piece, cloud, x, y);
+                return;
+            }
+        }
         double altitude = piece.onPlane() ? 0 : piece.altitude(1);
         float scale = LevelRenderer.highAirScale(altitude);
         float opacity = LevelRenderer.highAirOpacity(altitude);
@@ -659,13 +723,89 @@ public final class LevelScreen implements GameScreen {
         sounds.breakUp(x, death.swap);
     }
 
+    /**
+     * An act boss's chained death (design/enemies/bosses/brood-carrier, Death): {@code medium}
+     * bursts at every part and along the hull from tail to head over its chain, each with its ichor
+     * cloud and a burst's sound; at the chain's end {@code large} blasts at the head and the centre,
+     * the screen flash and then the credit shower; its break-up's blasts on top when it has one. The
+     * body stays under the chain ({@link SetPieceWrecks}).
+     */
+    private void tailToHeadDeath(int k, SetPiece piece, Array<AtlasRegion> cloud, double x, double y) {
+        double altitude = piece.onPlane() ? 0 : piece.altitude(1);
+        float scale = LevelRenderer.highAirScale(altitude);
+        SetPieceDeath death = renderer.death(k);
+        wrecks.start(k, x, y, scale, 1, false);
+        int chain = LevelRenderer.chainTicks(piece);
+        // A boss with its own sac burst (round 25, the Brood Carrier) bursts each sac with it.
+        Sfx sacBurst = sounds.sacBurst(k);
+        int n = 0;
+        for (var burst : LevelRenderer.deathChain(piece)) {
+            double px = x + burst.dx();
+            double py = y + burst.dy();
+            effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, px, py, burst.at(), scale, 1);
+            if (!cloud.isEmpty() && burst.part() >= 0) {
+                effects.start(cloud, DEATH_CLOUD_FRAME_TICKS, px, py, burst.at(), scale, 1);
+            }
+            if (sacBurst != null && burst.part() >= 0 && sac(piece, burst.part())) {
+                chainSounds.play(sacBurst, CHAIN_SOUND_VOLUME, 0.85f + 0.05f * (burst.part() % 3), pan(px), burst.at());
+            } else if (n++ % 2 == 0) {
+                chainSounds.play(
+                        n % 4 == 1 ? Sfx.EXPLOSION_SMALL_A : Sfx.EXPLOSION_SMALL_B,
+                        CHAIN_SOUND_VOLUME,
+                        0.8f + 0.1f * (n % 3),
+                        pan(px),
+                        burst.at());
+            }
+        }
+        double[] head = LevelRenderer.deathHead(piece);
+        effects.start(
+                services.sprites.explosionLarge,
+                LARGE_EXPLOSION_FRAME_TICKS,
+                x + head[0],
+                y + head[1],
+                chain,
+                scale,
+                1);
+        effects.start(services.sprites.explosionLarge, LARGE_EXPLOSION_FRAME_TICKS, x, y, chain, scale, 1);
+        if (!cloud.isEmpty()) {
+            effects.start(cloud, DEATH_CLOUD_FRAME_TICKS, x, y, chain, scale, 1);
+        }
+        chainSounds.play(Sfx.EXPLOSION_SMALL_B, 1, 0.6f, pan(x), chain);
+        chainSounds.play(Sfx.EXPLOSION_SMALL_A, 1, 0.5f, pan(x), chain + 3);
+        if (LevelRenderer.flashesAtDeath(piece)) {
+            screenFlash.start(chain);
+        }
+        if (death != null) {
+            for (SetPieceDeath.Blast blast : death.blasts) {
+                effects.start(
+                        blast.frames(), blast.ticksPerFrame(), x + blast.dx(), y + blast.dy(), blast.at(), scale, 1);
+            }
+            sounds.breakUp(x, death.swap);
+        }
+    }
+
+    /** Whether part {@code p} of a boss is a bay sac: neither its vital core nor a fire-only turret. */
+    private static boolean sac(SetPiece piece, int p) {
+        return !piece.spec().parts().get(p).vital() && !piece.partArmoured(p);
+    }
+
+    /** A sound's pan for a play-field x: the play field's width spans 1.2 of the stereo field. */
+    private static float pan(double x) {
+        return (float) Math.clamp((x / PlayField.WIDTH - 0.5) * 1.2, -0.6, 0.6);
+    }
+
+    /** The chain's bursts' and the klaxon's levels. */
+    private static final float CHAIN_SOUND_VOLUME = 0.7f;
+
+    private static final float KLAXON_VOLUME = 0.8f;
+
     /** The coins of a boss's credit shower fly out this many steps apart, in a ring of this many. */
     private static final int SHOWER_STEP_TICKS = 3;
 
     private static final int SHOWER_COINS = 16;
     /** A coin's spin: the pickups' 10 fps. */
     private static final int SHOWER_FRAME_TICKS = 6;
-    /** The shower starts after the chained bursts over the frigate's four parts. */
+    /** The shower starts after the chained bursts over the frigate's four parts (an act boss's: after its chain). */
     private static final int SHOWER_DELAY_TICKS = 4 * CHAIN_STEP_TICKS;
 
     /**
@@ -673,7 +813,7 @@ public final class LevelScreen implements GameScreen {
      * over the bell and a ring of salvage coins spinning out after the chained bursts.
      */
     private void creditShower(int credits, double x, double y) {
-        int delay = SHOWER_DELAY_TICKS;
+        int delay = showerDelay;
         creditNumbers.show(credits, x, y);
         for (int c = 0; c < SHOWER_COINS; c++) {
             double angle = 2 * Math.PI * c / SHOWER_COINS;
@@ -751,7 +891,9 @@ public final class LevelScreen implements GameScreen {
                 warnings,
                 clock.alpha(),
                 (float) shimmer / SHIMMER_TICKS,
-                services.settings().gameplay().flashReduction());
+                services.settings().gameplay().flashReduction(),
+                screenFlash);
+        banner.draw(batch, sortie.tick(), clock.alpha());
         hud.draw(batch, sortie, radio, visiblePrompts());
     }
 
@@ -802,6 +944,7 @@ public final class LevelScreen implements GameScreen {
         renderer.dispose();
         music.dispose();
         warnings.dispose();
+        banner.dispose();
         services.sprites.leaveLevel(levelNumber);
     }
 }

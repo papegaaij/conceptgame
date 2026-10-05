@@ -3,7 +3,7 @@ title: Enemies
 design: approved
 implementation: in-progress
 art: chosen
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Enemies
@@ -465,7 +465,7 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - [ ] Attack patterns from the vocabulary implemented as reusable emitters.
 - [ ] Formation spawner that places enemies by formation name and entry edge.
 - [x] Layer rules for hit detection and collision on `ground`, `low-air`, `air` and `high-air`: what each weapon delivery reaches, hardened ground targets, contact on the player's layer.
-- [ ] The `space`, `sub` and `deep` layers — **later: M4** (`space`, the first space level) and **later: M5** (`sub`, the naval levels).
+- [ ] The `space`, `sub` and `deep` layers — **later: M5** (`sub`, the naval levels) and **later: Act 5** (`space`, the belt's open-space levels from L31; Level 07 flies on `air` like L01–L03).
 - [ ] Bullet rendering order, telegraphs, edge warnings and the bullet budget.
 - [ ] Global difficulty multipliers with per-enemy overrides.
 - [ ] Target-the-objective hook: per-level unit/wave configuration with the four modes.
@@ -543,3 +543,7 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   (Brood Pod), a fan along the facing and an aimed attack only while facing away (Scuttler),
   directional frontal armour, the `carrier + escorts` formation and the walker `single`, `pincer` and
   `convoy`, and the target-the-objective hook in mode `nearest`. The broader items above stay open.
+- 2026-10-05: M4 part G (main-agent default, stated to the user): the `space` layer item was
+  tagged for "the first space level" in M4, but Level 07 at the L1 point flies on `air` like
+  Levels 01–03 (Earth orbit); retagged to Act 5, whose open-belt levels (from L31's Mining Rig
+  Escort) are the first on `space`.

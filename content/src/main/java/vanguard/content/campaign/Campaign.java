@@ -50,6 +50,10 @@ public final class Campaign {
     private final List<String> storyFlags;
     private int kills;
     private int deaths;
+    /** What each won level brought, by level number (the act summary). */
+    private final Map<Integer, SaveGame.LevelStats> levelStats;
+    /** A debug option: the level whose win ends its act early ({@code --act-end}); never saved. */
+    private Optional<Integer> debugActEnd = Optional.empty();
     /** The replay this campaign flies, if it is one: a throwaway copy of a save. */
     private Optional<Replay> replay = Optional.empty();
 
@@ -77,6 +81,7 @@ public final class Campaign {
         storyFlags = new ArrayList<>(save.storyFlags());
         kills = save.stats().kills();
         deaths = save.stats().deaths();
+        levelStats = new TreeMap<>(save.stats().levels());
     }
 
     /** A new campaign: Level 01 next, the starting credits, the starter loadout at full armour. */
@@ -153,7 +158,7 @@ public final class Campaign {
                 grades,
                 dataCores,
                 storyFlags,
-                new SaveGame.Stats(kills, deaths));
+                new SaveGame.Stats(kills, deaths, levelStats));
     }
 
     /** The story flag that records a special's free charges as given (a save flag). */
@@ -305,6 +310,8 @@ public final class Campaign {
         }
         score += result.score();
         kills += result.kills();
+        levelStats.put(
+                nextLevel, new SaveGame.LevelStats(result.credits().total() + result.gradeBonus(), result.kills()));
         boolean newBest = recordGrade(result.grade().letter());
         nextLevel++;
         retriesLeft = rules.retries(difficulty);
@@ -370,6 +377,11 @@ public final class Campaign {
         return List.copyOf(storyFlags);
     }
 
+    /** The data cores found, by name, in the order they were found. */
+    public List<String> dataCores() {
+        return List.copyOf(dataCores);
+    }
+
     /** Shop items unlocked ahead of their normal unlock (data cores, story), by id. */
     public List<String> unlocks() {
         return List.copyOf(unlocks);
@@ -404,5 +416,23 @@ public final class Campaign {
 
     public int kills() {
         return kills;
+    }
+
+    /** What a won level brought the campaign, if it was recorded (saves of format version 1 have none). */
+    public Optional<SaveGame.LevelStats> levelStats(int level) {
+        return Optional.ofNullable(levelStats.get(level));
+    }
+
+    /**
+     * A debug option for testing ({@code --act-end}): winning the next level ends its act as the
+     * act's last level would, with the act summary and the outro. It is not saved.
+     */
+    public void debugActEnd() {
+        debugActEnd = Optional.of(nextLevel);
+    }
+
+    /** The level whose win ends its act early, see {@link #debugActEnd()}. */
+    Optional<Integer> debugActEndLevel() {
+        return debugActEnd;
     }
 }

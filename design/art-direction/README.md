@@ -3,7 +3,7 @@ title: Art direction
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-02
+updated: 2026-10-05
 ---
 
 # Art direction
@@ -193,7 +193,7 @@ faster.
 | `sub` | under water: sea floor and submerged craft seen through the surface | 0.8–0.9 | submarines, mines, sea creatures (surface to attack) | blue-green tint, caustics, reduced contrast |
 | `low-air` | low flyers, traffic, drifting wreckage, dust plumes, low clouds and smoke | 1.3–1.5 (default 1.35) | low flyers | slightly larger than ground scale; shadow offset (9, 13) |
 | `air` | the **play plane**: player, wingman, most enemies, all bullets, pickups | screen space | most enemies | shadow offset (21, 30) onto the ground layer |
-| `high-air` | clouds, smoke, debris and ice streaks in front of the player; rare huge overhead passes (Leviathan, Brood Carrier) | 2.0–2.5 (default 2.2) | rare huge set-piece enemies only | weather and decoration: larger, blurred or drawn as motion streaks, **at most ~40 % opacity** over the play plane, never hides bullets; enemies: fully opaque, scaled per the perspective rule, cast shadows |
+| `high-air` | clouds, smoke, debris and ice streaks in front of the player; rare huge overhead passes (Leviathan, Brood Carrier) | 2.0–2.5 (default 2.2) | rare huge set-piece enemies only | weather and decoration: larger, blurred or drawn as motion streaks, **at most ~40 % opacity** over the play plane, never hides bullets; enemies: 75 % opacity (so the ship shows under them), scaled per the perspective rule, cast shadows |
 
 **Deep layer coverage**: `deep` is the back of the stack and covers the whole screen from the
 level start until the debrief (the outro after the level end included): every section has a tile
@@ -294,7 +294,8 @@ every scene gets a clearly visible **atmosphere layer** and, where the setting a
    dark enemy over a dark background is still found at a glance.
 5. **High-air weather and decoration** stay below ~40 % opacity where they overlap the play
    plane. Enemies on `high-air` (the Leviathan's overhead pass, the Brood Carrier's pass) are
-   the exception: fully opaque, scaled per the perspective rule, and they cast shadows.
+   the exception: drawn at 75 % opacity, reaching full opacity as they descend to the play
+   plane, scaled per the perspective rule, and they cast shadows.
 6. **Pickups** pulse and have a light outline. The player's hit box follows the hull's
    silhouette, so what visibly touches the ship hits it (a gameplay rule in the
    [ship](../player/ship/README.md) doc); bullets must therefore read clearly against the hull.
@@ -434,7 +435,7 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - [ ] Runtime drop shadows from sprite alpha, offset per layer, masked to shadow-catching layers.
 - [ ] Perspective roof projection for tall ground structures.
 - [ ] High-air weather and decoration opacity capped where it overlaps the play plane; high-air
-  enemies drawn opaque, perspective-scaled, with shadows.
+  enemies drawn at 75 % opacity, perspective-scaled, with shadows.
 - [ ] Bullet sprites follow the readability rules (core, ring, dark rim, reserved hues).
 - [ ] Hit flash and explosion sequences as described under Animation rules.
 - [x] Loot targets follow readability rule 7 (Level 01's cargo containers and beacon, placeholder
@@ -503,3 +504,6 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - 2026-10-02: Production art plan drafted ([production](production/README.md)), for review.
 - 2026-10-02: Production art (Level 01 batch, `tools/art/explosions.py`): every frame of the chosen round-09 fireball for tiny, small, medium and large (the large placeholder had 11 of its 14 frames and the frame numbers of the sheet masked out), premultiplied on black with one palette per rung. The game's ship death now plays 14 frames (the ship doc's 12 is the old count). Review files proposed for round 12.
 - 2026-10-02: Concept round 12 closed (user decision): the explosion ladder up to large approved as **final**; this doc's `art` stays `chosen`, since the rest of its art (huge rung, other effects, palette sheets) is concept art.
+- 2026-10-05: High-air enemies are drawn at 75 % opacity, not fully opaque (user decision in M4 part G,
+  after the Brood Carrier hid the ship for about 10 s; as the Leviathan already was), coming to full
+  opacity as they descend to the play plane.
