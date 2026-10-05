@@ -104,9 +104,9 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
 
 | File | What | Status |
 |---|---|---|
-| [concept/ship-damage-final-r26-a.png](concept/ship-damage-final-r26-a.png) | Final damage sprites: the smoke puff (`ship-smoke_0..5`, 16×16, a dark violet-shadowed grey, growing and thinning) and the spark burst (`ship-sparks_0..5`, 24×24, additive, white with a pale blue glow, no reserved hue), and the ship in flight with its trail, sparks and a shield hit | proposed |
-| [concept/ship-damage-final-r26-a.gif](concept/ship-damage-final-r26-a.gif) | The ship flying with the engine flames, the smoke trail, spark bursts and a shield hit every 16 frames | proposed |
-| [concept/ship-visuals-capture-r26-a.png](concept/ship-visuals-capture-r26-a.png) | Game capture: the flyers' and the ship's runtime shadows on Level 04's regolith, on Level 03's wrecks only (none on open space) and on Level 01's girders; the smoke trail and sparks below 15 % armour, the shield ring, the engine flames, and the Leviathan's large orb next to small orbs | proposed |
+| [concept/ship-damage-final-r26-a.png](concept/ship-damage-final-r26-a.png) | Final damage sprites: the smoke puff (`ship-smoke_0..5`, 16×16, a dark violet-shadowed grey, growing and thinning) and the spark burst (`ship-sparks_0..5`, 24×24, additive, white with a pale blue glow, no reserved hue), and the ship in flight with its trail, sparks and a shield hit | chosen |
+| [concept/ship-damage-final-r26-a.gif](concept/ship-damage-final-r26-a.gif) | The ship flying with the engine flames, the smoke trail, spark bursts and a shield hit every 16 frames | chosen |
+| [concept/ship-visuals-capture-r26-a.png](concept/ship-visuals-capture-r26-a.png) | Game capture: the flyers' and the ship's runtime shadows on Level 04's regolith, on Level 03's wrecks only (none on open space) and on Level 01's girders; the smoke trail and sparks below 15 % armour, the shield ring, the engine flames, and the Leviathan's large orb next to small orbs | chosen |
 
 ## Implementation
 
@@ -150,5 +150,6 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
   4 steps (every 3 below 15 %) and falls behind at 96 px/s, drifting a little outward, in 6 frames
   of 6 steps; below 15 % a spark burst flies off one of six hull points every 18–41 steps. The
   shield ring plays its 4 frames over the 8-step shimmer. New sprites by `tools/art/ship_fx.py`,
-  proposed for round 26. `implementation: done`.
+  proposed for round 26 (approved there). `implementation: done`.
 - 2026-10-02: M4 part A: the weapons fire from the mount points of the data (front muzzle, wing mounts, the new wing roots for the side guns, rear muzzle), and the fitted wing pods are drawn over the hull at their `pods.json` offsets per banking frame.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the engine flames as drawn, the smoke puff and spark burst (`tools/art/ship_fx.py`) approved as **final** and the capture accepted, with the regular smoke rhythm as it is; the part's art stays `final`.

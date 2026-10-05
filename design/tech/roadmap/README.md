@@ -66,7 +66,9 @@ production art is a concept round right after its part, so M4 ships no placehold
 - [x] M1 First flight
 - [x] M2 Level 01
 - [x] M3 The campaign loop
-- [ ] M4 Act 1
+- [ ] M4 Act 1 (built, parts A–H; concept round 26 closed and every M4 part's art final; the
+      balance tests pass in part H's builds; open: the user's playthrough of the build and CI green
+      on the branch)
 - [ ] M5 Act 2
 - [ ] M6 Acts 1–2 release
 
@@ -105,3 +107,12 @@ production art is a concept round right after its part, so M4 ships no placehold
   high-score table moves to M6 (row above). **D6** the music files are checked against the final
   spec and offered as they are in concept round 26. The docs are reconciled with the build: built
   items ticked, half-built ones split, later ones tagged with their milestone or act.
+- 2026-10-05: Concept round 26 closed (user: accepted as proposed): M4 part H's art is final, so
+  every M4 part's production art is final and Act 1's `art` is `final` (no placeholders). M4's
+  done-criteria now: the Act 1 documents are `done` (every item ticked or tagged later), except the
+  [Skitter](../../enemies/air/skitter/README.md)'s "entry paths authored as data" item (the snakes
+  and streams are still laid out in code by `Formations`, open since M2) and the hangar's open
+  point on the third utility bay (part H's default data entry with `available: act 3` is not made
+  yet); the balance tests (`BalanceTest`, `ActPlaythroughTest`) pass in part H's builds; CI
+  on the branch was red on macOS until part H's fix, and the run for the part H commit had not
+  finished at the close; **the user has not played the M4 build yet**. M4 stays open until then.

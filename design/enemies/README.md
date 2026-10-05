@@ -26,7 +26,7 @@ directories hold the rosters.
 | [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | approved | not-started | chosen |
 | [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | approved | not-started | chosen |
 | [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | approved | not-started | chosen |
-| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | approved | in-progress | chosen |
+| [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | approved | done | chosen |
 
 ## Design
 
@@ -466,8 +466,8 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
 
 | File | What | Status |
 |---|---|---|
-| [concept/enemy-bullet-medium-final-r26-a.png](concept/enemy-bullet-medium-final-r26-a.png) | Final Vrell `medium` bullet: the large pulsing orb (`orb-medium_0..5`, 23×23, 13 px body, 6-frame pulse; round 09's large orb in the small orb's colours) next to the small orb | proposed |
-| [concept/enemy-bullet-medium-final-r26-a.gif](concept/enemy-bullet-medium-final-r26-a.gif) | Large and small orbs drifting over a dark blue field, the large ones slower | proposed |
+| [concept/enemy-bullet-medium-final-r26-a.png](concept/enemy-bullet-medium-final-r26-a.png) | Final Vrell `medium` bullet: the large pulsing orb (`orb-medium_0..5`, 23×23, 13 px body, 6-frame pulse; round 09's large orb in the small orb's colours) next to the small orb | chosen |
+| [concept/enemy-bullet-medium-final-r26-a.gif](concept/enemy-bullet-medium-final-r26-a.gif) | Large and small orbs drifting over a dark blue field, the large ones slower | chosen |
 
 ## Implementation
 
@@ -588,3 +588,4 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
 - 2026-10-05: M4 part H (user decision D3 = A): the overrides' first bullet (per-bullet `medium+` /
   `hard-only` tags) is reworded to the per-difficulty pattern changes in the stat blocks and the
   waves' `skip`, which cover every Act 1 case; see [difficulty](../systems/difficulty/README.md).
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the `medium` bullet's large pulsing orb approved as **final**, drawn for the Leviathan's and the Scuttler's aimed shots with the heavy shot sound. The part's `art` stays `chosen`: the other types of the round-09 bullet set (among them the Ascendancy colours) have no production art yet; they come with their first enemies (M5 and later).

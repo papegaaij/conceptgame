@@ -118,8 +118,8 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
 | [concept/specials-r09-a.gif](concept/specials-r09-a.gif) | Airstrike (CDF bombers, bomb carpet), Smart Bomb (flash, ring, bullets popping), Decoy Flares (homing shots retarget) (motion) | chosen |
 | [concept/airstrike-bomber-final-r17-a.png](concept/airstrike-bomber-final-r17-a.png) | Production art, round 17 (`tools/art/airstrike_bomber.py`): the Airstrike's CDF bomber, 56×64 facing up, 4 engine-flame frames, and its soft ground shadow (sheet) | chosen |
 | [concept/airstrike-bomber-final-r17-a.gif](concept/airstrike-bomber-final-r17-a.gif) | Production art, round 17: three bombers crossing a Luna road with their shadows (motion) | chosen |
-| [concept/smart-bomb-final-r26-a.png](concept/smart-bomb-final-r26-a.png) | Production art, round 26 (`tools/art/smart_bomb.py`): the Smart Bomb's ring profile (`smart-bomb-ring`, 72×8, additive, drawn as a band of quads round the circle) and the burst at the bomb point (`smart-bomb-burst_0..11`, 128×128, additive, 30 fps), and the whole effect over a dimmed Level 01 field every 4th step (sheet) | proposed |
-| [concept/smart-bomb-final-r26-a.gif](concept/smart-bomb-final-r26-a.gif) | Production art, round 26: the flash, burst and ring clearing a field of Needlers and bullets (motion) | proposed |
+| [concept/smart-bomb-final-r26-a.png](concept/smart-bomb-final-r26-a.png) | Production art, round 26 (`tools/art/smart_bomb.py`): the Smart Bomb's ring profile (`smart-bomb-ring`, 72×8, additive, drawn as a band of quads round the circle) and the burst at the bomb point (`smart-bomb-burst_0..11`, 128×128, additive, 30 fps), and the whole effect over a dimmed Level 01 field every 4th step (sheet) | chosen |
+| [concept/smart-bomb-final-r26-a.gif](concept/smart-bomb-final-r26-a.gif) | Production art, round 26: the flash, burst and ring clearing a field of Needlers and bullets (motion) | chosen |
 
 ## Implementation
 
@@ -133,8 +133,8 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   `explosion-medium`; the boss-part cap applies once bosses exist)
 - [x] Smart Bomb as specified in *Acts 1–2 specials in detail* (M4 part F: its numbers in the
   `smart_bomb` block of data.yaml; `--special smart-bomb:2` fits it for testing; M4 part H: the
-  production ring and burst of `tools/art/smart_bomb.py` over the spec's white field flash, proposed
-  in round 26; its chosen sound by the SFX pass)
+  production ring and burst of `tools/art/smart_bomb.py` over the spec's white field flash, approved
+  as final in round 26; its chosen sound by the SFX pass)
 - [x] One free Smart Bomb charge granted once, at the unlock before L06: fitted only into an empty
   special slot, with the hangar notice (`free_charges: 1` in data.yaml)
 - [ ] Decoy Flares — **later: Act 4** (unlock at L27 with the first homing projectiles; user decision D4 of M4 part G)
@@ -216,3 +216,4 @@ Concept [round 09](../../concept-rounds/round-09/README.md) — generator `tools
   field flash stays the spec's fill. The strokes remain the fallback without the files. Review
   files proposed for round 26; not drawn yet (kept for later): the bullets popping with a sparkle
   as the ring passes them, which the round-09 sheet shows.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the Smart Bomb's production ring and burst approved as **final**, with its chosen sound as wired; the bullets' sparkle as the ring passes them stays for later. The part's `art` stays `chosen`: the Decoy Flares (Act 4) have no production art yet.

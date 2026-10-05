@@ -5,6 +5,10 @@ engines:
   - {name: Mk II, speed: 290, draw: 1, price: 1200, available: act 1}
   - {name: Mk III, speed: 315, draw: 1, price: 3500, available: act 3}
   - {name: Mk IV, speed: 345, draw: 2, price: 8000, available: act 5}
+bays:  # utility bays: `start` are fitted from the start; each `extra` bay is bought once (price cr, available)
+  start: 2
+  extra:
+    - {price: 5000, available: act 3}
 utility:
   # draw MW, one price per level (cr), available; notes.effect is the README's Effect cell
   - name: Sensor suite
@@ -17,7 +21,7 @@ utility:
     draw: 1
     prices: [600, 1500, 3000]
     available: act 1
-    design: draft
+    design: approved
     magnet:  # one value per level: pickups within radius (px from the ship's centre) fly at the ship at pull (px/s)
       radius: [72, 108, 144]
       pull: [240, 300, 360]

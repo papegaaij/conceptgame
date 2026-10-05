@@ -3,7 +3,7 @@ title: Game design
 design: approved
 implementation: not-started
 art: chosen
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Game design
@@ -29,7 +29,7 @@ guided by intel about the next level.
 | [player](player/README.md) | The player ship, its loadout slots and all equipment | approved | done | chosen |
 | [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | approved | not-started | n/a |
 | [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | approved | done | chosen |
-| [audio](audio/README.md) | Music and sound effects | approved | in-progress | chosen |
+| [audio](audio/README.md) | Music and sound effects | approved | done | chosen |
 | [tech](tech/README.md) | Tech stack: libGDX on Java, Gradle, desktop only, Apache-2.0 | approved | done | n/a |
 | [concept-rounds](concept-rounds/README.md) | Batches of concept proposals awaiting the user's choice | review | n/a | chosen |
 | [reviews](reviews/README.md) | Formal approval rounds for sets of design documents | approved | n/a | n/a |

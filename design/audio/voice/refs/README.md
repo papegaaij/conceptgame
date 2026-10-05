@@ -1,7 +1,7 @@
 ---
 title: Reference voices
 design: draft
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [..]
 updated: 2026-10-05
@@ -74,3 +74,4 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
 - 2026-10-05: Round 25 decided (user): Lifeboat Seven is Tadhg Hynes (a), renamed
   `ref-lifeboat-seven.wav`; Lizzie Driver's candidate (b) deleted with its CREDITS.md row (its
   source and cut stay in `tools/concept/audio/tts_r25.py`).
+- 2026-10-05: Every item is ticked (Act 1's speakers all cast, the last in round 25), so the implementation is `done`.

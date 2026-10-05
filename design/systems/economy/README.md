@@ -268,3 +268,4 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   8 349 / 7 108 / 6 525 credits on easy / medium / hard, every level won at the first attempt. Hard's
   economy is accepted as tighter (see *Sinks*): `BalanceTest` prints the hard sheet and its credit
   shortfall (today the L13 visit's Composite II, 425 short) as accepted.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the part H balance pass accepted: Act 1 won at the first attempt on every difficulty by `ActPlaythroughTest` (8,349 / 7,108 / 6,525 credits at the act's end on easy / medium / hard), the Leviathan's bounty 113 with Level 03's `bounty_scale` 1.07, the Coilwyrm's bounty as an accepted exception, hard's tighter economy with the L13 visit's Composite II plating 425 credits short, and `tools/balance.py` as the printed balancing sheet (exit 0).

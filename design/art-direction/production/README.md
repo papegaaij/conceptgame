@@ -1,7 +1,7 @@
 ---
 title: Production art plan
 design: draft
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [.., ../../tech/roadmap, ../../tech/architecture, ../../audio/music, ../../audio/sfx]
 updated: 2026-10-05
@@ -127,7 +127,7 @@ Game captures of the production batches that span several parts; prompts:
 
 | File | What | Status |
 |---|---|---|
-| [concept/art-batch-capture-r26-a.png](concept/art-batch-capture-r26-a.png) | Round 26 (M4 part H batch): the Skitter, Needler and Scuttler deaths, the Smart Bomb and the Act 1 title card over its still, captured from `--bench` runs on Xvfb | proposed |
+| [concept/art-batch-capture-r26-a.png](concept/art-batch-capture-r26-a.png) | Round 26 (M4 part H batch): the Skitter, Needler and Scuttler deaths, the Smart Bomb and the Act 1 title card over its still, captured from `--bench` runs on Xvfb | chosen |
 
 ## Implementation
 
@@ -151,7 +151,7 @@ Game captures of the production batches that span several parts; prompts:
 - [x] M4 part E (Level 05, M4 part E batch): the Gorgon Frigate (`tools/art/gorgon_frigate.py`) and its break-up at its death (`tools/art/gorgon_frigate_death.py`), the Polyp Mortar with its acid blob, marker and death and the mass-driver sled (`tools/art/l05_hazards.py`), the props from the chosen concepts (rocks, ore canister, acid splash decal; `tools/art/l05_props.py`) and Level 05's briefing images (`tools/art/briefing_images.py`) rendered, review files for round 21; approved as final there (the frigate's death as the redo, item 11); Level 05's own backdrop (`tools/art/backdrop_l05.py`) approved as final in round 22
 - [x] M4 part F (Level 06, M4 part F batch): the Mantis (`tools/art/mantis.py`) and its beam b (`tools/art/mantis_beam.py`), the Coilwyrm at 48 headings (`tools/art/coilwyrm.py`), the darkness's glow frames, flare shell and light shapes (`tools/art/l06_darkness.py`), the Level 06 backdrop (`tools/art/backdrop_l06.py`), the Mantis's and Coilwyrm's intel portraits (`tools/art/intel.py`) and the props from the chosen concepts (ore cart b, survey cache a, data core terminal b and the data core pickup; `tools/art/l06_props.py`) rendered; approved as final in round 23 (the Level 06 briefing images accepted, to be re-rendered for the Coilwyrm's 0.5 spacing and the beam from the Mantis's head)
 - [x] M4 part G (Level 07 and the act end): the Brood Carrier with its turn (`tools/art/brood_carrier.py`), its death and drifting carcass (`tools/art/brood_carrier_death.py`), the Level 07 backdrop (`tools/art/backdrop_l07.py`), the Level 07 briefing and Act 1 outro images; approved as final in round 25 (the lifeboat tow's production sprites from the chosen b, `tools/art/lifeboat.py`, made at the close)
-- [ ] M4 part H's batch final (concept round 26: the Act 1 title-card still, the remaining death effects, the Smart Bomb's flash and ring, the boss bar, the wave banners, the ship's shadow and damage frames); then every M4 part is final (a round per M4 part, user decision)
+- [x] M4 part H's batch final (concept round 26: the Act 1 title-card still (`tools/art/act_stills.py`), the Skitter's, Needler's and Scuttler's deaths (`tools/art/vrell_deaths.py`), the Smart Bomb's burst and ring (`tools/art/smart_bomb.py`), the boss bar's plate (`tools/art/boss_bar.py`), the ship's damage frames and the shield ring (`tools/art/ship_fx.py`), the `medium` bullet (`tools/art/bullet_medium.py`), the music finals (`tools/art/themes.py`); the wave banners and the drop shadows drawn in code); approved as final there, so every M4 part is final (a round per M4 part, user decision)
 - [ ] M5 parts final — **later: M5** (a round per level, as in M4)
 
 ## Open questions
@@ -322,3 +322,8 @@ Game captures of the production batches that span several parts; prompts:
   shared page 79 % of 2048×1024, Level 06's unit page 64 % of 2048², the level at 3 of 6 pages.
 - 2026-10-05: M4 part H docs reconciliation: the "M4 and M5 parts final" item is split: part G's
   round 25 is ticked, part H's batch (round 26) stays open in M4, the M5 parts are tagged M5.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): M4 part H's batch
+  approved as final, the wave banners' code-drawn look and the runtime shadows accepted as built;
+  with it every M4 part's art is final and all of Act 1's art is final. The part-H item is ticked;
+  only the M5 parts' item (tagged `later: M5`) is open, so the plan's implementation is `done` for
+  M4.

@@ -19,7 +19,8 @@ import vanguard.sim.Magnet;
 /**
  * The utility modules of M4 (design/player/systems; user decision D2 = A of M4 part H): the Pickup
  * magnet flies at its fitted level, and the Targeting computer stays out of the shop until M5 while
- * the L06 data core's unlock of it stays in the campaign.
+ * the L06 data core's unlock of it stays in the campaign. The third utility bay is data only until
+ * Act 3: for sale from the L15 visit, never before.
  */
 class UtilityModulesTest {
     private static final Content CONTENT = ContentLoader.fromClasspath();
@@ -73,6 +74,24 @@ class UtilityModulesTest {
             assertEquals(List.of(TARGETING), campaign.unlocks());
             assertEquals(List.of(TARGETING), campaign.save(Instant.EPOCH).unlocks(), "the save keeps the unlock");
         }
+    }
+
+    @Test
+    void theThirdUtilityBayIsForSaleFromActThreeAndNotBefore() {
+        Catalogue.Bay third = new Catalogue.Bay(LoadoutSlot.UTILITY_3, 5000, 15);
+        assertEquals(List.of(third), HangarTest.CATALOGUE.bays(), "one bought bay: the third, 5 000 cr, from L15");
+
+        // Every hangar visit of Acts 1 and 2 (before L01 to before L14): not for sale, the save untouched.
+        for (int level = 1; level <= 14; level++) {
+            Campaign campaign = HangarTest.campaign(Difficulty.MEDIUM, level, 20_000, 60);
+            assertFalse(new Hangar(HangarTest.CATALOGUE, campaign).available(third), "not before Act 3: L" + level);
+            SaveGame save = campaign.save(Instant.EPOCH);
+            assertEquals(CampaignTest.RULES.starterLoadout(), save.loadout(), "no third bay in the save");
+            assertFalse(save.loadout().containsKey(LoadoutSlot.UTILITY_3));
+            assertEquals(save, Campaign.load(CampaignTest.RULES, save).save(Instant.EPOCH));
+        }
+        Campaign actThree = HangarTest.campaign(Difficulty.MEDIUM, 15, 20_000, 60);
+        assertTrue(new Hangar(HangarTest.CATALOGUE, actThree).available(third), "the hangar visit before L15");
     }
 
     /** A campaign before {@code level} whose save holds the L06 data core and its unlock. */

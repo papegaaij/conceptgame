@@ -1,7 +1,7 @@
 ---
 title: Ship systems
 design: approved
-implementation: in-progress
+implementation: done
 art: none
 depends-on: [../generator, ../../ui/hangar]
 updated: 2026-10-05
@@ -34,7 +34,7 @@ are the "nice extra options": they make the ship better at a job without adding 
 | Module | Effect | Levels | Draw | Price | Unlock | Design |
 |---|---|---|---|---|---|---|
 | Sensor suite | Improves hangar intel detail (see below) and shows off-screen threat arrows at L2+ | L1–L3 | 1 | 800 / 2 000 / 4 500 | start | idea |
-| Pickup magnet | Pickups within 72 / 108 / 144 px of the ship fly to it at 240 / 300 / 360 px/s (see below) | L1–L3 | 1 | 600 / 1 500 / 3 000 | act 1 | draft |
+| Pickup magnet | Pickups within 72 / 108 / 144 px of the ship fly to it at 240 / 300 / 360 px/s (see below) | L1–L3 | 1 | 600 / 1 500 / 3 000 | act 1 | approved |
 | Salvage scanner | +10 / +20 % credits from drops; reveals hidden crates | L1–L2 | 1 | 2 500 / 6 000 | act 2 | idea |
 | Targeting computer | Homing turn rate +20 %, enemy HP bars, boss weak-point markers | L1 | 1 | 3 000 | act 2 (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores)); not in the shop until M5 | idea |
 | Evasive thrusters | Double-tap direction: 72 px dash, 0.25 s invulnerable, 3 s cooldown | L1 | 2 | 4 000 | act 3 | idea |
@@ -80,7 +80,15 @@ the fields that level shows (see [hangar](../../ui/hangar/README.md)).
 ### Utility bays (confirmed)
 
 The ship has **two utility bays**; a **third** can be bought (from Act 3, see
-[player](../README.md)). Every system on this page occupies one bay.
+[player](../README.md)). Every system on this page occupies one bay. The third bay is bought once
+and opens the loadout's third utility slot; it is sold from the hangar visit before Level 15.
+
+<!-- data: bays -->
+| Bay | Price | Available |
+|---|---|---|
+| 1–2 | starter | start |
+| 3 | 5 000 | act 3 |
+<!-- /data -->
 
 ## Implementation
 
@@ -93,9 +101,15 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
   the save (M4 part H, `for_sale: false` in [data.yaml](data.yaml))
 - [x] Sensor suite: off-screen threat arrows at L2+ (M4 part H, `vanguard.game.render.ThreatArrows`;
   the sensor level in `Flight.sensor()`)
-- [ ] The third utility bay (Act 3) and the other modules' effects — later: M5
+- [x] The third utility bay as data (5 000 cr, `available: act 3`): loaded and validated, for sale
+  from the L15 visit and never in Acts 1–2, the save unchanged (M4 close-out; `Catalogue.bays()`,
+  `Hangar.available(Bay)`, test `UtilityModulesTest`)
+- [ ] Buying the third bay in the hangar and fitting its slot (`UTILITY_3`) — **later: Act 3** (it
+  is first for sale at the L15 visit; the save then records the bought bay)
+- [ ] The other modules' effects — later: M5
 - [x] Sensor level controls the intel panel detail
-- [ ] Underwater penalties and the pressure hull
+- [ ] Underwater penalties and the pressure hull — **later: Act 4** (the pressure hull is an L22
+  module; the penalties are Europa's under-water rules)
 
 ## Open questions
 
@@ -140,3 +154,9 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
   none); the suite counts as flown, so the HUD no longer lists it as not available. The arrows
   point at every air enemy off the screen and coming in; the look, rules and limits are in the
   [HUD](../../ui/hud/README.md#decisions).
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the Pickup magnet's pull speeds 240 / 300 / 360 px/s at L1 / L2 / L3 approved with the radius 72 / 108 / 144 px, so its row leaves `draft` for `approved` (it was `idea` before part H, when it had no effect yet).
+- 2026-10-05: M4 close-out: the third utility bay is data (`bays` in [data.yaml](data.yaml): two
+  starting bays and one bought bay at 5 000 cr, `available: act 3`, rendered in the *Utility bays*
+  table) and the loader and validator accept it; the hangar sells it from the L15 visit, so no Act
+  1–2 visit offers it and the save is unchanged. Buying it and fitting the third slot are built
+  with Act 3. This closes the [hangar](../../ui/hangar/README.md)'s open question on its data entry.

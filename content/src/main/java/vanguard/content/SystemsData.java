@@ -3,10 +3,27 @@ package vanguard.content;
 import java.util.List;
 import java.util.Optional;
 
-/** design/player/systems/data.yaml: engines and utility modules. */
-public record SystemsData(List<Engine> engines, List<Utility> utility) {
+/** design/player/systems/data.yaml: engines, utility bays and utility modules. */
+public record SystemsData(List<Engine> engines, Bays bays, List<Utility> utility) {
     public SystemsData {
         Check.notEmpty("engines", engines);
+    }
+
+    /**
+     * The utility bays: {@code start} are fitted from the start, each of {@code extra} is bought once
+     * (the third bay, from Act 3).
+     */
+    public record Bays(int start, List<Bay> extra) {
+        public Bays {
+            Check.positive("start", start);
+        }
+    }
+
+    /** A utility bay bought in the hangar; {@code price} in credits. */
+    public record Bay(int price, String available) {
+        public Bay {
+            Check.positive("price", price);
+        }
     }
 
     /** One engine; {@code speed} in px/s, {@code draw} in MW. */

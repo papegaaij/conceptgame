@@ -1,6 +1,7 @@
 package vanguard.content.campaign;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -120,17 +121,30 @@ public final class Catalogue {
         }
     }
 
+    /**
+     * A utility bay bought in the hangar (design/player/systems, Utility bays): the third, from Act 3.
+     * Buying and fitting it comes with Act 3; until then no hangar visit offers it.
+     *
+     * @param slot the loadout slot the bay opens
+     * @param price its price, credits
+     * @param unlock the level from whose hangar visit it is for sale
+     */
+    public record Bay(LoadoutSlot slot, int price, int unlock) {}
+
     private final Map<ItemKind, List<Item>> items;
+    private final List<Bay> bays;
     private final double sellBack;
     private final Map<Difficulty, Integer> repairCost;
     private final Map<Difficulty, Integer> sensorBonus;
 
     private Catalogue(
             Map<ItemKind, List<Item>> items,
+            List<Bay> bays,
             double sellBack,
             Map<Difficulty, Integer> repairCost,
             Map<Difficulty, Integer> sensorBonus) {
         this.items = items;
+        this.bays = bays;
         this.sellBack = sellBack;
         this.repairCost = repairCost;
         this.sensorBonus = sensorBonus;
@@ -230,7 +244,25 @@ public final class Catalogue {
             repair.put(level, difficulty.repairCost().of(level));
             sensors.put(level, difficulty.sensorBonus().of(level));
         }
-        return new Catalogue(items, content.economy().sellBack(), repair, sensors);
+        return new Catalogue(items, bays(content), content.economy().sellBack(), repair, sensors);
+    }
+
+    /** The bought bays, each opening the utility slot after the starting ones; one slot per bay. */
+    private static List<Bay> bays(Content content) {
+        var data = content.systems().bays();
+        List<LoadoutSlot> slots = Arrays.stream(LoadoutSlot.values())
+                .filter(slot -> slot.kind() == ItemKind.UTILITY)
+                .toList();
+        if (data.start() + data.extra().size() != slots.size()) {
+            throw new IllegalArgumentException("player/systems bays: " + data.start() + " starting and "
+                    + data.extra().size() + " bought bays, but " + slots.size() + " utility slots");
+        }
+        return IntStream.range(0, data.extra().size())
+                .mapToObj(i -> new Bay(
+                        slots.get(data.start() + i),
+                        data.extra().get(i).price(),
+                        content.player().firstLevel(data.extra().get(i).available())))
+                .toList();
     }
 
     private static Item weapon(String slug, WeaponData weapon, WeaponRulesData rules) {
@@ -265,6 +297,11 @@ public final class Catalogue {
 
     private static Item part(ItemKind kind, String name, int price, double draw, int unlock, Map<Stat, Double> stats) {
         return new Item(kind, name, name, price, List.of(), List.of(draw), unlock, List.of(), List.of(stats));
+    }
+
+    /** The utility bays bought in the hangar, after the starting ones. */
+    public List<Bay> bays() {
+        return bays;
     }
 
     /** The items of a kind, in the order of their data files (weapons by slug). */

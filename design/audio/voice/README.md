@@ -1,7 +1,7 @@
 ---
 title: Voice
 design: draft
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [.., ../../story/characters, ../../ui/hud, ../../ui/options, ../../tech/architecture]
 updated: 2026-10-05
@@ -22,7 +22,7 @@ voiced by the same pipeline. The engine and the radio filter were chosen in conc
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [refs](refs/README.md) | Reference clips the voices are cloned from: LibriVox readings, public domain or CC0 | draft | in-progress | chosen |
+| [refs](refs/README.md) | Reference clips the voices are cloned from: LibriVox readings, public domain or CC0 | draft | done | chosen |
 
 ## Design
 
@@ -211,11 +211,10 @@ level).
 - [x] Offline renderer: Chatterbox in its venv, several takes, length check, the Choir's layering,
       the radio filter (filter b; none for briefing pages), OGG under
       `assets/voice/<speaker>/<hash>.ogg`; skips lines already rendered; deletes unused files
-- [ ] Act 1 lines rendered and committed; reviewed in a concept round (rendered, not yet
-      committed or reviewed; Level 05's 20 lines rendered 2026-10-03, Driver Control's after its casting on 2026-10-04,
-      Level 07's 18 and the Act 1 outro's four pages on 2026-10-05, Lifeboat Seven's after its casting
-      in round 25; Level 07's and the outro's reviewed and accepted in round 25; the low-armour
-      line on 2026-10-05, for round 26)
+- [x] Act 1 lines rendered and committed; reviewed in a concept round (all 151 of the line list
+      in `assets/voice/`: Level 07's 18 lines and the Act 1 outro's four pages accepted in round 25;
+      the act briefing, Levels 01–06's briefing pages and radio lines and Hammer Lead's Airstrike
+      call, 128 lines, and the low-armour line accepted as rendered in round 26)
 - [x] Playback with the radio message: voice on its own voice bus, music ducking while it plays,
       URGENT cuts and replays, a subtitle page held until its voice ends, pause and stop,
       text-only fallback; the mission failed screen speaks the level's line (the cut has no
@@ -348,3 +347,9 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
   radio filter b it hears "howl" for "hull", a short word in the band-pass, so the user's ear
   decides in round 26. VoiceFilesTest requires its file; RadioTimelineTest plays it urgent in every
   level.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the 128 voiced lines
+  no round had reviewed (the act briefing's 5 pages, Levels 01–06's 12 briefing pages and 110 radio
+  lines, Hammer Lead's Airstrike call) and Okafor's low-armour line accepted as rendered, none to
+  re-render; with round 25's Level 07 and outro, all 151 Act 1 lines are reviewed, so the item is
+  ticked and the implementation is `done`. `art` stays `chosen`: the later acts' lines are not
+  rendered yet. The document's `design` stays `draft` (not part of this round's approval).

@@ -177,6 +177,13 @@ def engines(d):
     return table(["Model", "Speed", "Draw", "Price (first draft)", "Available"], rows)
 
 
+def bays(d):
+    b = data(d)["bays"]
+    rows = [[f"1–{b['start']}" if b["start"] > 1 else "1", "starter", "start"]]
+    rows += [[str(b["start"] + i + 1), price(e["price"]), available(e)] for i, e in enumerate(b["extra"])]
+    return table(["Bay", "Price", "Available"], rows)
+
+
 def utility(d):
     rows = []
     for m in data(d)["utility"]:
@@ -785,7 +792,7 @@ def difficulty(d):
 
 RENDERERS = {
     "weapon-levels": weapon_levels, "weapon-properties": weapon_properties, "shields": shields,
-    "plating": plating, "generators": generators, "engines": engines, "utility": utility,
+    "plating": plating, "generators": generators, "engines": engines, "bays": bays, "utility": utility,
     "pickups": player_pickups, "ship-movement": ship_movement, "stat-block": stat_block,
     "reference-dps": reference_dps, "player-damage": player_damage, "formations": formations,
     "level-sections": level_sections, "backdrop": backdrop_table, "threat-profile": threat_profile, "waves": waves, "ground-targets": ground_targets, "radio": radio,

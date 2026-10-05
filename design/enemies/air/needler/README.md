@@ -1,7 +1,7 @@
 ---
 title: Needler
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-05
@@ -60,8 +60,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 |---|---|---|
 | [concept/needler-final-r12-a.png](concept/needler-final-r12-a.png) | Final sprites: the 6-frame claw snap (36×36, 32 colours; opens over three frames, snaps shut in one), at 5× and 1× | chosen |
 | [concept/needler-final-r12-a.gif](concept/needler-final-r12-a.gif) | The cycle at 10 fps, three units at their own phase as in a formation | chosen |
-| [concept/needler-death-final-r26-a.png](concept/needler-death-final-r26-a.png) | Round 26 (M4 part H, `tools/art/vrell_deaths.py`): the death effect, `needler-tatters_0..9` (48×48, solid: ivory shards, five carapace plates, the claws, the thorn launcher, leg bits) and `needler-death_0..9` (48×48, additive violet flash and sparks), with the small burst and at 1× | proposed |
-| [concept/needler-death-final-r26-a.gif](concept/needler-death-final-r26-a.gif) | Round 26: three Needlers dying one after the other | proposed |
+| [concept/needler-death-final-r26-a.png](concept/needler-death-final-r26-a.png) | Round 26 (M4 part H, `tools/art/vrell_deaths.py`): the death effect, `needler-tatters_0..9` (48×48, solid: ivory shards, five carapace plates, the claws, the thorn launcher, leg bits) and `needler-death_0..9` (48×48, additive violet flash and sparks), with the small burst and at 1× | chosen |
+| [concept/needler-death-final-r26-a.gif](concept/needler-death-final-r26-a.gif) | Round 26: three Needlers dying one after the other | chosen |
 
 ## Implementation
 
@@ -69,7 +69,7 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - [x] Circle formation orbiting and breaking off
 - [x] Thorn bullet: standard orb, 150 px/s
 - [x] Stat block values loaded from data; global difficulty multipliers applied
-- [x] Death effect, bounty and score per this spec (the death's production frames proposed in round 26)
+- [x] Death effect, bounty and score per this spec (the death's production frames approved as final in round 26)
 
 ## Decisions
 
@@ -99,3 +99,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - 2026-10-02: Concept round 12 closed (user decision): the 6-frame claw-snap production sprites approved as **final**, `art: final`.
 - 2026-10-03: `carrier + escorts` (3) added to the formations (main-agent choice, part D doc gaps): Level 04's Needlers orbit a moving Brood Pod at their orbit numbers and break off like a circle when it ends (see the [Brood Pod](../brood-pod/README.md#behaviour)).
 - 2026-10-05: M4 part H (round 26 batch): the death effect of its own, the small burst's ivory shards and a violet flash, rendered by `tools/art/vrell_deaths.py` and played by the game with the ladder burst (EnemyLooks picks up a slug's `-death` glow and `-tatters` pieces by name; no code change needed); review files proposed for [round 26](../../../concept-rounds/README.md); the part's `art` stays as it is until the user approves them there.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the death effect's production frames (the ivory shards and violet flash) approved as **final**; the part's art stays `final`.

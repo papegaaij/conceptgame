@@ -123,7 +123,7 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
 
 | File | What | Status |
 |---|---|---|
-| [concept/test-fire-capture-r26-a.png](concept/test-fire-capture-r26-a.png) | Game capture before Level 01: the hangar with the Side Splitter selected and its loop in the shop's test-fire box, and below it the box at 2× for the Pulse Cannon (L1>L2, upgrade highlighted), Scatter Vulcan, Autocannon Pod (left wing), Bomb Rack and Micro-missile Pod (right wing) and Side Splitter (rear) | proposed |
+| [concept/test-fire-capture-r26-a.png](concept/test-fire-capture-r26-a.png) | Game capture before Level 01: the hangar with the Side Splitter selected and its loop in the shop's test-fire box, and below it the box at 2× for the Pulse Cannon (L1>L2, upgrade highlighted), Scatter Vulcan, Autocannon Pod (left wing), Bomb Rack and Micro-missile Pod (right wing) and Side Splitter (rear) | chosen |
 
 ## Implementation
 
@@ -148,11 +148,7 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
 
 ## Open questions
 
-Raised by the M3 part B2 build and deferred (user decision, 2026-10-02); each stays as built
-until it is handled where stated.
-
-- **Third utility bay** (M4 data): 5 000 in the economy text, from Act 3; it has no data entry and
-  is not offered yet. Its data entry comes with M4.
+- None open.
 
 ## Decisions
 
@@ -294,3 +290,9 @@ until it is handled where stated.
   should, the loop is deterministic, starts over and allocates nothing), `TestFirePanelLayoutTest`
   (the box fits the drawer below the message, the hull and every lane fit across it, nearly the
   whole field along it, the labels fit). Capture for round 26: test-fire-capture-r26-a.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the test fire accepted as built, with the three proposals of its questions: (a) the box shows the play field **turned a quarter clockwise** at half size (ahead is right, the ship's left up); (b) **locked weapons** loop at L1; (c) with the UPGRADE choice highlighted the box shows **the next level** ("TEST FIRE L1>L2"), the purchase's result. The capture is accepted. Varga's 28 intel lines (one per sensor level per level, D4 = A, not voiced) accepted as written, Level 07's short L2 and L3 lines included. `art` stays `chosen` (the later acts' tactical maps and intel pictures do not exist yet).
+- 2026-10-05: M4 close-out: the open question on the **third utility bay** is closed. Its data
+  entry is made in [ship systems](../../player/systems/README.md#utility-bays-confirmed) (5 000 cr,
+  `available: act 3`); the hangar sells it from the visit before Level 15 (`Hangar.available(Bay)`),
+  so no Act 1–2 visit offers it and the save is unchanged. The shop keeps its two UTL slots; buying
+  the bay and the third UTL slot come with Act 3 (tracked in ship systems).

@@ -201,19 +201,19 @@ of the Decisions log (2026-10-05). Prompts:
 
 | File | What | Status |
 |---|---|---|
-| [concept/afterburner-final-r26-a.ogg](concept/afterburner-final-r26-a.ogg) | #4 "Afterburner" final, `assets/music/afterburner.ogg` byte for byte: 154.7 s, loop 623700 + 6048000 samples (14.14 s + 137.14 s), −14.0 LUFS, −1.2 dBTP (chosen file −0.5), seam 0.47 | proposed |
-| [concept/afterburner-base-final-r26-a.ogg](concept/afterburner-base-final-r26-a.ogg) | #4 base stem final, `assets/music/afterburner-base.ogg` byte for byte: same length and loop points, the full mix's gain (−15.4 LUFS, −1.4 LU), −1.2 dBTP (chosen file −0.8), seam 0.28 | proposed |
-| [concept/coalition-rising-final-r26-a.ogg](concept/coalition-rising-final-r26-a.ogg) | #5 "Coalition Rising" final, `assets/music/coalition-rising.ogg` byte for byte: 142.3 s, loop 340772 + 5773091 samples (7.73 s + 130.91 s), −14.0 LUFS, −1.7 dBTP, seam 0.52; audio identical to the chosen file | proposed |
-| [concept/coalition-rising-base-final-r26-a.ogg](concept/coalition-rising-base-final-r26-a.ogg) | #5 base stem final, `assets/music/coalition-rising-base.ogg` byte for byte: same length and loop points, the full mix's gain (−20.5 LUFS, −6.5 LU), −6.0 dBTP, seam 0.26; audio identical to the chosen file | proposed |
-| [concept/miniboss-sting-final-r26-a.ogg](concept/miniboss-sting-final-r26-a.ogg) | #21 "Contact Heavy" final, `assets/music/miniboss-sting.ogg` byte for byte: 4.60 s, played once, −14.0 LUFS, −2.0 dBTP, end −68 dBFS; audio identical to the chosen file | proposed |
-| [concept/mission-complete-final-r26-a.ogg](concept/mission-complete-final-r26-a.ogg) | #23 "Mission Complete" final, `assets/music/mission-complete.ogg` byte for byte: 6.41 s, −14.0 LUFS, −2.0 dBTP, end −65 dBFS; audio identical to the chosen file | proposed |
-| [concept/mission-failed-final-r26-a.ogg](concept/mission-failed-final-r26-a.ogg) | #25 "Mission Failed" final, `assets/music/mission-failed.ogg` byte for byte: 5.80 s, −14.0 LUFS, −2.1 dBTP, end −64 dBFS; audio identical to the chosen file | proposed |
-| [concept/game-over-final-r26-a.ogg](concept/game-over-final-r26-a.ogg) | #26 "Game Over" final, `assets/music/game-over.ogg` byte for byte: 20.67 s, −13.9 LUFS, −2.3 dBTP, end −67 dBFS; audio identical to the chosen file | proposed |
-| [concept/afterburner-seam-final-r26-a.ogg](concept/afterburner-seam-final-r26-a.ogg) | Listening aid: track 4 across its loop seam, 8 s each side | proposed |
-| [concept/afterburner-base-seam-final-r26-a.ogg](concept/afterburner-base-seam-final-r26-a.ogg) | Listening aid: track 4's base stem across its loop seam, 8 s each side | proposed |
-| [concept/coalition-rising-seam-final-r26-a.ogg](concept/coalition-rising-seam-final-r26-a.ogg) | Listening aid: track 5 across its loop seam, 8 s each side | proposed |
-| [concept/coalition-rising-base-seam-final-r26-a.ogg](concept/coalition-rising-base-seam-final-r26-a.ogg) | Listening aid: track 5's base stem across its loop seam, 8 s each side | proposed |
-| [concept/music-final-r26-a.png](concept/music-final-r26-a.png) | Review sheet: the eight finals' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam, end level and size | proposed |
+| [concept/afterburner-final-r26-a.ogg](concept/afterburner-final-r26-a.ogg) | #4 "Afterburner" final, `assets/music/afterburner.ogg` byte for byte: 154.7 s, loop 623700 + 6048000 samples (14.14 s + 137.14 s), −14.0 LUFS, −1.2 dBTP (chosen file −0.5), seam 0.47 | chosen |
+| [concept/afterburner-base-final-r26-a.ogg](concept/afterburner-base-final-r26-a.ogg) | #4 base stem final, `assets/music/afterburner-base.ogg` byte for byte: same length and loop points, the full mix's gain (−15.4 LUFS, −1.4 LU), −1.2 dBTP (chosen file −0.8), seam 0.28 | chosen |
+| [concept/coalition-rising-final-r26-a.ogg](concept/coalition-rising-final-r26-a.ogg) | #5 "Coalition Rising" final, `assets/music/coalition-rising.ogg` byte for byte: 142.3 s, loop 340772 + 5773091 samples (7.73 s + 130.91 s), −14.0 LUFS, −1.7 dBTP, seam 0.52; audio identical to the chosen file | chosen |
+| [concept/coalition-rising-base-final-r26-a.ogg](concept/coalition-rising-base-final-r26-a.ogg) | #5 base stem final, `assets/music/coalition-rising-base.ogg` byte for byte: same length and loop points, the full mix's gain (−20.5 LUFS, −6.5 LU), −6.0 dBTP, seam 0.26; audio identical to the chosen file | chosen |
+| [concept/miniboss-sting-final-r26-a.ogg](concept/miniboss-sting-final-r26-a.ogg) | #21 "Contact Heavy" final, `assets/music/miniboss-sting.ogg` byte for byte: 4.60 s, played once, −14.0 LUFS, −2.0 dBTP, end −68 dBFS; audio identical to the chosen file | chosen |
+| [concept/mission-complete-final-r26-a.ogg](concept/mission-complete-final-r26-a.ogg) | #23 "Mission Complete" final, `assets/music/mission-complete.ogg` byte for byte: 6.41 s, −14.0 LUFS, −2.0 dBTP, end −65 dBFS; audio identical to the chosen file | chosen |
+| [concept/mission-failed-final-r26-a.ogg](concept/mission-failed-final-r26-a.ogg) | #25 "Mission Failed" final, `assets/music/mission-failed.ogg` byte for byte: 5.80 s, −14.0 LUFS, −2.1 dBTP, end −64 dBFS; audio identical to the chosen file | chosen |
+| [concept/game-over-final-r26-a.ogg](concept/game-over-final-r26-a.ogg) | #26 "Game Over" final, `assets/music/game-over.ogg` byte for byte: 20.67 s, −13.9 LUFS, −2.3 dBTP, end −67 dBFS; audio identical to the chosen file | chosen |
+| [concept/afterburner-seam-final-r26-a.ogg](concept/afterburner-seam-final-r26-a.ogg) | Listening aid: track 4 across its loop seam, 8 s each side | chosen |
+| [concept/afterburner-base-seam-final-r26-a.ogg](concept/afterburner-base-seam-final-r26-a.ogg) | Listening aid: track 4's base stem across its loop seam, 8 s each side | chosen |
+| [concept/coalition-rising-seam-final-r26-a.ogg](concept/coalition-rising-seam-final-r26-a.ogg) | Listening aid: track 5 across its loop seam, 8 s each side | chosen |
+| [concept/coalition-rising-base-seam-final-r26-a.ogg](concept/coalition-rising-base-seam-final-r26-a.ogg) | Listening aid: track 5's base stem across its loop seam, 8 s each side | chosen |
+| [concept/music-final-r26-a.png](concept/music-final-r26-a.png) | Review sheet: the eight finals' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam, end level and size | chosen |
 
 ## Implementation
 
@@ -328,3 +328,4 @@ of the Decisions log (2026-10-05). Prompts:
   six files are identical to the chosen ones. Measured only, not listened to. `copyPlaceholderMusic`
   reports all 14 music files kept as final. Review files, four loop-seam aids and the sheet
   `music-final-r26-a.png` proposed for round 26; `art` stays `chosen` until the user approves them.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed, D6 = A): #4 "Afterburner" and #5 "Coalition Rising" with their base stems, #21 "Contact Heavy", #23 "Mission Complete", #25 "Mission Failed" and #26 "Game Over" approved as **final**, Afterburner's and its stem's true-peak gain dips included; with them every file in `assets/music/` (the 14 tracks and stems Acts 1 uses) is final. `art` stays `chosen`, since the other tracks of the 28 (Acts 2–7, the Ascendancy and final bosses, the ending and credits) are not final yet.

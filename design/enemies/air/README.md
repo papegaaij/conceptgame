@@ -3,7 +3,7 @@ title: Air enemies
 design: approved
 implementation: not-started
 art: chosen
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Air enemies
@@ -21,8 +21,8 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [skitter](skitter/README.md) | Tiny swarm fodder that rams; teaches shooting (L01) | approved | in-progress | final |
-| [needler](needler/README.md) | Basic gunner, hovers and fires aimed thorns (L01) | approved | in-progress | final |
+| [skitter](skitter/README.md) | Tiny swarm fodder that rams; teaches shooting (L01) | approved | done | final |
+| [needler](needler/README.md) | Basic gunner, hovers and fires aimed thorns (L01) | approved | done | final |
 | [stinger](stinger/README.md) | Diver that fires a fan at the bottom of its dive (L02) | approved | done | final |
 | [spore-bomber](spore-bomber/README.md) | Low-air bomber dropping rising spore mines (L03) | approved | done | final |
 | [whirl-seed](whirl-seed/README.md) | Tiny radial spinner released in clusters (L03) | approved | done | final |

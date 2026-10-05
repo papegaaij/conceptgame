@@ -1,7 +1,7 @@
 ---
 title: Bosses
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 updated: 2026-10-05
 ---
@@ -100,8 +100,11 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — Kraken redone as
 
 ## Implementation
 
-- [ ] Each boss promoted to its own directory with phases, attack scripts and weak-point
-      layout before it is implemented.
+- [x] Each boss promoted to its own directory with phases, attack scripts and weak-point
+      layout before it is implemented: the Acts 1–2 bosses (Gorgon Frigate and Brood Carrier,
+      built in M4; Harbour Kraken and Siege Spire for M5).
+- [ ] The same for the roster's bosses of Acts 3–7 — **later: Act 3** (the Revenant Walker, L19,
+      and the Dust Colossus, L21, first) to Act 7.
 - [x] Shared boss framework: multi-part hitboxes, neck chains, phase transitions, HUD boss bar,
       the intro descent, the chained death and the credit shower (M4 part E, with the Gorgon
       Frigate; drawn in plain shapes until its production sprites).
@@ -129,3 +132,4 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — Kraken redone as
 - 2026-10-03: M4 part E: the shared boss framework is built with the Gorgon Frigate (a set piece
   with a boss script, see the [architecture](../../tech/architecture/README.md) log); the sting
   comes with Level 05's data, the screen flash and the sprites with the production art.
+- 2026-10-05: M4 close-out bookkeeping (round 26): the promotion item is split into the Acts 1–2 bosses, all promoted (two built in M4), and the roster's Acts 3–7 bosses, tagged with their acts; every other item is ticked, so the document is `done` for M4.

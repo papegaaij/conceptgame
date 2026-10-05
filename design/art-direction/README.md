@@ -20,7 +20,7 @@ and every level must follow.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [production](production/README.md) | Production art plan: what final means, pipeline to `assets/`, order of work, budgets | draft | in-progress | n/a |
+| [production](production/README.md) | Production art plan: what final means, pipeline to `assets/`, order of work, budgets | draft | done | n/a |
 
 ## Design
 
@@ -448,7 +448,7 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
       `small` orb (final in round 12) and the player
       shots (round 14); the fast class's needle is final too, ready for the first fast shot.
 - [x] The large pulsing orb for `medium` bullets (`BulletLooks`, frames by
-      `tools/art/bullet_medium.py`, proposed in round 26): the Leviathan's and the Scuttler's aimed
+      `tools/art/bullet_medium.py`, approved as final in round 26): the Leviathan's and the Scuttler's aimed
       shots; the Spore Bomber's `medium` is its spore, drawn as the mine.
 - [ ] The homing diamond — **later: Act 4** (the first homing enemy projectiles, L27).
 - [x] Hit flash and explosion sequences as described under Animation rules (`FlashShader`'s white
@@ -549,3 +549,8 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
   the Vrell colours, 23×23 with a 13 px body, 6 frames at 10 fps; `tools/art/bullet_medium.py`),
   chosen by the damage of the `medium` class. The yellow needle stays unused: no Act 1 attack is in
   the fast speed class, and a bullet does not carry its speed class yet.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the runtime drop
+  shadows accepted as built (`Shadows`: dark at 50 %, 85 % scale, offset (21, 30) for air and
+  (9, 13) for low-air, masked by the stencil to the shadow-catching ground layer), without the
+  1–1.5 px blur and the second shadow on low-air bank tops; the `medium` bullet's large orb approved
+  as final. This document's `art` stays `chosen` (it covers the later acts' art too).

@@ -1,7 +1,7 @@
 ---
 title: Sound effects
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
 updated: 2026-10-05
@@ -222,8 +222,8 @@ Every other chosen sound in the Concept art tables below is played by the game (
 | [enemy-lock-r08-a.ogg](concept/enemy-lock-r08-a.ogg) | No Act 1 turret locks on (the SAM Nest, L29, is the first) |
 | [enemy-laser-warning-r08-a.ogg](concept/enemy-laser-warning-r08-a.ogg) | Act 1's only laser, the Mantis, has its own telegraph (round 23) |
 | [enemy-spawn-r08-a.ogg](concept/enemy-spawn-r08-a.ogg) | Vrell spawn a: the Brood Carrier's launches have their own sound (round 25); the Hive Node is not in Act 1 |
-| [enemy-screech-r08-c.ogg](concept/enemy-screech-r08-c.ogg) | Vrell screech: no Act 1 event is its cue yet (concept round 26 asks which) |
-| [enemy-screech-r08-d.ogg](concept/enemy-screech-r08-d.ogg) | Vrell screech: no Act 1 event is its cue yet (concept round 26 asks which) |
+| [enemy-screech-r08-c.ogg](concept/enemy-screech-r08-c.ogg) | Vrell screech: no Act 1 event is its cue yet — **later: M5** (raised in concept round 26; the user has not been asked to decide it yet) |
+| [enemy-screech-r08-d.ogg](concept/enemy-screech-r08-d.ogg) | Vrell screech: no Act 1 event is its cue yet — **later: M5** (raised in concept round 26; the user has not been asked to decide it yet) |
 | [enemy-coilwyrm-death-final-r24-a.ogg](concept/enemy-coilwyrm-death-final-r24-a.ogg) | A review preview of the Coilwyrm's chained death; the game plays its two bursts |
 
 ### Mixing rules
@@ -513,7 +513,8 @@ sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carri
   own, a paid repair the purchase, an undo and a confirmed sale the refund, a refusal the denial
   (`HangarScreen.doneSound`; `HangarSoundsTest`)
 - [ ] Save done (P2) and a Coilwyrm chain-cut tear: no sound chosen yet (the cut plays a lower
-  Brood Pod burst) — concept round 26
+  Brood Pod burst) — **later: M5** (raised in concept round 26 without a proposal; whether to make
+  concepts for them is not decided by the user yet, see the open questions)
 - [ ] The Act 2 sounds: Tail Gun, proximity mine drop and arm, torpedo launch, Hornet missile,
   water explosion, the Act 2 ambiences — **later: M5**
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
@@ -523,7 +524,11 @@ sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carri
 
 ## Open questions
 
-- None open.
+Raised in concept round 26 without a proposal and not decided by the user yet (later: M5):
+
+- Which event should cue the Vrell screech (chosen c and d)? No Act 1 event plays it yet.
+- Should a later round make concepts for a save-done sound (P2) and the Coilwyrm's chain-cut tear
+  (today the cut plays a lower Brood Pod burst)?
 
 ## Decisions
 
@@ -669,3 +674,12 @@ sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carri
   The nine synthesized sounds are copied by `copyPlaceholderSounds`. Not played, with the reason:
   the table *Chosen sounds the game does not play*. Gaps for concept round 26: a save-done sound, the
   Coilwyrm's chain-cut tear, the Vrell screech's cue. Not listened to: levels set by rule.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the SFX pass accepted
+  as built: the 32-voice limit with priority stealing and the newly wired chosen sounds (the shop,
+  the pickups by type, the explosions by size, the ground targets' crumble, the Smart Bomb, the
+  shield's restore chime, the low-armour beeps, the heavy enemy shot), at the levels set by rule.
+  The row's two questions had no proposal and were not answered: the Vrell screech's cue and
+  whether to make concepts for a save-done sound and the Coilwyrm's chain-cut tear stay open
+  questions, tagged `later: M5`. Every item is ticked or tagged later, so the document is `done`;
+  `art` stays `chosen`, since the synthesized sounds are still concept copies and the save-done and
+  chain-cut sounds have none.

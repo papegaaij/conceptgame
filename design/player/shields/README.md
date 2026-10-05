@@ -1,8 +1,8 @@
 ---
 title: Shields
 design: approved
-implementation: in-progress
-art: proposed
+implementation: done
+art: final
 depends-on: [../generator, ../armor, ../../systems/retry]
 updated: 2026-10-05
 ---
@@ -46,8 +46,8 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
 
 | File | What | Status |
 |---|---|---|
-| [concept/shield-ring-final-r26-a.png](concept/shield-ring-final-r26-a.png) | Final shield-hit ring (`ship-shield_0..3`, 60×60, additive): round 08's hex shimmer on a round bubble, the cells lighting up around a hit at the front and a ripple running back, fading over 4 frames; alone and over the hull | proposed |
-| [concept/shield-ring-final-r26-a.gif](concept/shield-ring-final-r26-a.gif) | The ring over the hull at the game's 2 steps a frame | proposed |
+| [concept/shield-ring-final-r26-a.png](concept/shield-ring-final-r26-a.png) | Final shield-hit ring (`ship-shield_0..3`, 60×60, additive): round 08's hex shimmer on a round bubble, the cells lighting up around a hit at the front and a ripple running back, fading over 4 frames; alone and over the hull | chosen |
+| [concept/shield-ring-final-r26-a.gif](concept/shield-ring-final-r26-a.gif) | The ring over the hull at the game's 2 steps a frame | chosen |
 
 ## Implementation
 
@@ -58,7 +58,8 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
   it is down after a break (`ShipPanel`)
 - [x] The 60×60 4-frame hex-shimmer ring sprite on shield hits (the [ship](../ship/README.md)'s
   asset table; `ShipLooks`, frames by `tools/art/ship_fx.py`)
-- [ ] The shield-restore chime ([sfx](../../audio/sfx/README.md), part H's SFX pass)
+- [x] The shield-restore chime ([sfx](../../audio/sfx/README.md), part H's SFX pass: once the
+  shield is full again after a break, `FlightSounds`)
 
 ## Decisions
 
@@ -73,4 +74,5 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
 - 2026-10-05: M4 part H: the hex-shimmer ring is drawn additively over the ship on every shield
   hit, its 4 frames over the 8-step shimmer (2 steps each), with the hull's blue shimmer under it.
   The hit point is fixed at the front of the bubble (most bullets come from ahead) rather than at
-  the bullet's side. Frames by `tools/art/ship_fx.py`, proposed for round 26 (`art: proposed`).
+  the bullet's side. Frames by `tools/art/ship_fx.py`, proposed for round 26 (`art: final`).
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the hex-shimmer ring approved as **final** (`art: final`), with the hit point at the front of the bubble and the 4-frame fade as they are; the restore chime is played by part H's SFX pass, so every item is ticked and the document is `done`.

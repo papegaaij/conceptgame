@@ -1,7 +1,7 @@
 ---
 title: Skitter
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-05
@@ -60,16 +60,20 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 |---|---|---|
 | [concept/skitter-final-r12-a.png](concept/skitter-final-r12-a.png) | Final sprites: 16 headings × the 6-frame wing beat (96 frames, 24×24, 24 colours): the beat at two headings at 6×, every heading with the wings raised and spread at 3× and at 1× | chosen |
 | [concept/skitter-final-r12-a.gif](concept/skitter-final-r12-a.gif) | A snake of five on a figure-eight, each showing the heading nearest its direction of flight, beating at 10 fps | chosen |
-| [concept/skitter-death-final-r26-a.png](concept/skitter-death-final-r26-a.png) | Round 26 (M4 part H, `tools/art/vrell_deaths.py`): the death effect, `skitter-tatters_0..9` (32×32, solid: the wings torn off, the body cracked into two chitin flakes, the tail spikes) and `skitter-death_0..7` (32×32, additive teal glow flash, 4 steps after the tiny pop), with the pop and at 1× | proposed |
-| [concept/skitter-death-final-r26-a.gif](concept/skitter-death-final-r26-a.gif) | Round 26: three Skitters dying one after the other, the pop, flakes and flash as the game layers them | proposed |
+| [concept/skitter-death-final-r26-a.png](concept/skitter-death-final-r26-a.png) | Round 26 (M4 part H, `tools/art/vrell_deaths.py`): the death effect, `skitter-tatters_0..9` (32×32, solid: the wings torn off, the body cracked into two chitin flakes, the tail spikes) and `skitter-death_0..7` (32×32, additive teal glow flash, 4 steps after the tiny pop), with the pop and at 1× | chosen |
+| [concept/skitter-death-final-r26-a.gif](concept/skitter-death-final-r26-a.gif) | Round 26: three Skitters dying one after the other, the pop, flakes and flash as the game layers them | chosen |
 
 ## Implementation
 
-- [ ] Snake, stream and swarm entry paths authored as data
+- [ ] Snake, stream and swarm entry paths authored as data — **later: M5** (Act 1's snakes, streams
+  and lines fly as planned on the shapes `vanguard.sim.Formations` lays out, and no Act 1 level has
+  a Skitter swarm; Act 2's weaves, e.g. Level 14's snake between the cathedral towers, and the
+  `swarm` formation M5 builds for the Lamprey and the Mote Swarm are the first that need authored
+  paths)
 - [x] Contact damage 6, split shield/armour per the collision rule
 - [x] Pays 5 credits; counts toward chains
 - [x] Stat block values loaded from data; global difficulty multipliers applied
-- [x] Death effect, bounty and score per this spec (the death's production frames proposed in round 26)
+- [x] Death effect, bounty and score per this spec (the death's production frames approved as final in round 26)
 - [x] Turns to face its direction of flight: the nearest of 16 headings, turning at most one heading per game frame
 
 ## Decisions
@@ -97,3 +101,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   `orientation` field is typed (`vanguard.content.Orientation`).
 - 2026-10-02: Concept round 12 closed (user decision): the 16-heading × 6-frame production sprites (`tools/art/skitter.py`) approved as **final**, `art: final`.
 - 2026-10-05: M4 part H (round 26 batch): the death effect of its own, the tiny pop's chitin flakes (the wings and two body flakes) and a teal glow flash, rendered by `tools/art/vrell_deaths.py` and played by the game with the ladder burst (EnemyLooks picks up a slug's `-death` glow and `-tatters` pieces by name; no code change needed); review files proposed for [round 26](../../../concept-rounds/README.md); the part's `art` stays as it is until the user approves them there.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the death effect's production frames (the chitin flakes and teal flash) approved as **final**; the part's art stays `final`.
+- 2026-10-05: M4 close-out: the item "entry paths authored as data" is tagged **later: M5**, the
+  rest of the checklist is done, so the Skitter is `done` for M4. Act 1 has no Skitter swarm and
+  its snakes and streams fly as planned on the shapes `Formations` lays out; the authored paths come
+  with the first levels that need them (Act 2's weaves and the `swarm` formation of M5).

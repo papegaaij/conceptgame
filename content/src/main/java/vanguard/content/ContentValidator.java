@@ -67,6 +67,12 @@ final class ContentValidator {
             SystemsData.Engine e = systems.engines().get(i);
             checkItem(systems, "engines[" + i + "]", i, e.price(), e.available());
         }
+        for (int i = 0; i < systems.bays().extra().size(); i++) {
+            checkAvailable(
+                    systems,
+                    "bays.extra[" + i + "].available",
+                    systems.bays().extra().get(i).available());
+        }
         for (int i = 0; i < systems.utility().size(); i++) {
             checkAvailable(
                     systems,

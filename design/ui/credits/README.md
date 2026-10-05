@@ -1,8 +1,8 @@
 ---
 title: Credits
 design: approved
-implementation: in-progress
-art: chosen
+implementation: done
+art: final
 depends-on: [../../../CREDITS.md]
 updated: 2026-10-05
 ---
@@ -57,24 +57,19 @@ Scrolling credits screen from the main menu (and after the campaign ends). Carri
 ## Concept art
 
 Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; generator
-`tools/concept/ui_r08.py`. The capture of the built screen is up for review in concept round 26. Prompts: [concept/prompts.md](concept/prompts.md).
+`tools/concept/ui_r08.py`. The capture of the built screen was accepted in concept round 26. Prompts: [concept/prompts.md](concept/prompts.md).
 
 | File | What | Status |
 |---|---|---|
 | [concept/credits-r08-a.png](concept/credits-r08-a.png) | Credits — scrolling glass column with placeholder roles, the CC-BY sound attributions from CREDITS.md and thanks to CC0 authors | chosen |
-| [concept/credits-screen-capture-r26-a.png](concept/credits-screen-capture-r26-a.png) | Capture of the built credits screen (xvfb, `--bench`): the roll with the generated CC-BY attributions | proposed |
+| [concept/credits-screen-capture-r26-a.png](concept/credits-screen-capture-r26-a.png) | Capture of the built credits screen (xvfb, `--bench`): the roll with the generated CC-BY attributions | chosen |
 
 ## Implementation
 
 - [x] Scrolling credits with skip
 - [x] CC-BY attributions generated from CREDITS.md for every shipped CC-BY asset
 - [x] Reachable from the main menu
-- [ ] Reachable after the final level (the campaign end; later: Act 7)
-
-## Open questions
-
-- The own credits' texts are a proposal: "a game by Emond Papegaaij" and the tools line "written
-  with Claude Code by Anthropic" (the roles were placeholders in round 08). Keep, change or drop?
+- [ ] Reachable after the final level — **later: Act 7** (the campaign end)
 
 ## Decisions
 
@@ -87,3 +82,9 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — glass style; gen
   and checked against it by a test; a row counts as shipped by its path, rejected files never.
   The roll stops at its end instead of returning by itself; Esc leaves at any time. Reaching it
   after the final level waits for the campaign end (Act 7).
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the roll accepted as
+  built and its capture approved; the own credit lines are kept as proposed, **"A GAME BY Emond
+  Papegaaij"** and the tools line **"Written with Claude Code by Anthropic"**, with the art and
+  music lines ("made by the game's own generators"); this closes the open question. The screen is
+  drawn in the final UI kit over the final title scene, so `art: final`; the roll after the final
+  level stays tagged for Act 7, so the document is `done`.

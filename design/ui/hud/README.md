@@ -1,7 +1,7 @@
 ---
 title: HUD
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
 updated: 2026-10-05
@@ -170,7 +170,7 @@ Prompts: [concept/prompts.md](concept/prompts.md#hud-warnings-capture-r26-a).
 
 | File | What | Status |
 |---|---|---|
-| [concept/hud-warnings-capture-r26-a.png](concept/hud-warnings-capture-r26-a.png) | Game captures: Level 02's side wave with its banner, Level 06's rear loop-back banner (the left-and-right one waiting for it), the sensor L2 arrows at a Coilwyrm's body below the screen and at a Skitter above it; the armour gauge's low-armour flash off and on; the Gameplay tab's `CREDIT NUMBERS` row | proposed |
+| [concept/hud-warnings-capture-r26-a.png](concept/hud-warnings-capture-r26-a.png) | Game captures: Level 02's side wave with its banner, Level 06's rear loop-back banner (the left-and-right one waiting for it), the sensor L2 arrows at a Coilwyrm's body below the screen and at a Skitter above it; the armour gauge's low-armour flash off and on; the Gameplay tab's `CREDIT NUMBERS` row | chosen |
 
 Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker and the layer-skip prompt in the game (no new art: the round-13 kit). Prompts: [concept/prompts.md](concept/prompts.md#escapes-tracker-capture-r16-a).
 
@@ -183,7 +183,7 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
 
 | File | What | Status |
 |---|---|---|
-| [concept/boss-bar-plate-final-r26-a.png](concept/boss-bar-plate-final-r26-a.png) | `hud/boss-bar-plate.9.png`: a 64×20 nine-patch steel strip with riveted end caps and a recessed trough (splits L14 R14 T7 B7, content box L11 R11 T7 B7 = the 6 px fill), at 8× with its splits, and round the 400 px and 240 px bars as drawn | proposed |
+| [concept/boss-bar-plate-final-r26-a.png](concept/boss-bar-plate-final-r26-a.png) | `hud/boss-bar-plate.9.png`: a 64×20 nine-patch steel strip with riveted end caps and a recessed trough (splits L14 R14 T7 B7, content box L11 R11 T7 B7 = the 6 px fill), at 8× with its splits, and round the 400 px and 240 px bars as drawn | chosen |
 
 ## Implementation
 
@@ -191,7 +191,7 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
 - [x] Left panel: mission, score, credits, chain, radio, progress
 - [x] Left panel layout: fixed regions without overlap; texts cut off at their well; a test checks the regions and that every prompt and radio line of the content fits, measured with the font's metrics
 - [x] Two-objective levels (L04, L05, L13): the two-line tracker and the two-line control prompts' well (shown with a convoy: Level 04's `CRAWLERS` line; Level 05's and Level 13's first lines come with them)
-- [ ] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Level 01's kill counter, Level 02's dock pips, Level 03's bomber counter, Level 04's crawler pips and Level 05's `BATTERIES A B C D` over `NEST n / 30` done; the other levels' trackers come with them in M4 and M5)
+- [x] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Act 1's done: Level 01's kill counter, Level 02's dock pips, Level 03's bomber counter, Level 04's crawler pips, Level 05's `BATTERIES A B C D` over `NEST n / 30`, Level 06's `MANTISES` escapes and Level 07's bay count; the later levels' trackers are part of those levels' own tickets)
 - [x] Right panel: armour, shield, power (spare-power bar and the regen bonus, glowing in an overdrive), weapons (front, rear, left, right with level pips), overdrive timer
 - [x] Right panel: special (M4 part D): a row under the weapons box in their style, `SPECIAL`, the special's 16 px hangar icon, its name and `×` charges; greyed while its strike flies or with no charge left, flashing red when the button is denied
 - [ ] Right panel: escort — **later: M5** (Rook's escort slot)
@@ -397,3 +397,4 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
   level: it opens at once and every timed line still plays; it lists the lines pushed back, by up
   to 18 s when it cuts a long line near its end in a dense run of timed lines (Level 03 from
   t=36.5), mostly 2–13 s, once per attempt and only when the ship is nearly lost.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the boss bar's plate approved as **final**; the wave banners, the sensor suite's threat arrows, the low-armour flash and the credit-numbers option accepted as built, the banners' **code-drawn look as final** (no rendered banner art), with the arrows' short lead (about 0.3 s before a wave enters) as it is. The objective tracker item is ticked for Act 1 (Levels 06 and 07 use the generic tracker; the later levels' trackers belong to those levels), so every item is ticked or tagged later and the document is `done`.

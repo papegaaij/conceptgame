@@ -2,7 +2,7 @@
 title: Act 1 – First Contact
 design: approved
 implementation: done
-art: chosen
+art: final
 updated: 2026-10-05
 ---
 
@@ -198,7 +198,7 @@ rendered by `tools/art/act_stills.py` from Level 01's final backdrop pieces; pro
 
 | File | What | Status |
 |---|---|---|
-| [concept/act-1-still-final-r26-a.png](concept/act-1-still-final-r26-a.png) | `ui/act-1-first-contact-still.png` (960×540): the Gagarin yards from above at dawn, Earth's terminator running behind them, Lancer on the south launch rail, Aegis Two launching from the north arm; and the title card over it as the game draws it (darkened to 55 %, letterboxed, chrome lettering) | proposed |
+| [concept/act-1-still-final-r26-a.png](concept/act-1-still-final-r26-a.png) | `ui/act-1-first-contact-still.png` (960×540): the Gagarin yards from above at dawn, Earth's terminator running behind them, Lancer on the south launch rail, Aegis Two launching from the north arm; and the title card over it as the game draws it (darkened to 55 %, letterboxed, chrome lettering) | chosen |
 
 ## Implementation
 
@@ -207,7 +207,7 @@ rendered by `tools/art/act_stills.py` from Level 01's final backdrop pieces; pro
 - [x] Act 1 title card, opening briefing and act-end outro as in *Act intro and outro* (the
       outro's four voiced pages with their images and the act-end flow built in M4 part G; the
       title card over its still of the Gagarin yards at dawn, `tools/art/act_stills.py`, M4 part H,
-      proposed in round 26).
+      approved as final in round 26).
 - [x] Shop unlocks for L02–L07 as listed in the campaign loadout-pressure table (data-driven: each
       weapon's and special's `unlock`, each part's `available` through
       [player/data.yaml](../../player/data.yaml); `Hangar.available`, `Catalogue`): `spread` L02
@@ -263,3 +263,4 @@ rendered by `tools/art/act_stills.py` from Level 01's final backdrop pieces; pro
   approved backdrop pieces over Earth with the sunrise terminator); the briefing draws an act's
   `ui/<act>-still.png` darkened to 55 % behind its title card and falls back to the title scene
   without one. Proposed in round 26; the act's `art` stays `chosen` until the user approves it.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the title card's still of the Gagarin yards at dawn approved as **final**, its busy right side as it is. With it, and every Act 1 art row of the round approved, all of Act 1's art is final: `art: final`.

@@ -405,7 +405,9 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   `mounts`: `front`, `wings`, `roots` (the side guns' muzzles), `rear`, `engines`; its speed is the fitted engine's); shields (`break_seconds`, `models` with
   `capacity`, `regen`, `delay`, `draw`); armour (`plating` with `max`, and the low-armour `radio`
   line: `speaker`, optional `expression` and `distorted`, `line`); generator
-  (`spare_power`, `models` with `output`); systems (`engines` with `speed`, `draw`; `utility`
+  (`spare_power`, `models` with `output`); systems (`engines` with `speed`, `draw`; `bays` with `start` (the starting utility bays) and
+  `extra` (each bought bay's `price` and `available`; their count and `start` add up to the loadout's
+  utility slots); `utility`
   with `draw`, one price per level, `design` status, the Pickup magnet's `magnet` (`radius`, `pull`, one
   per level) and an optional `for_sale` (false keeps an unlocked module out of the shop)); specials (`input_buffer` (s a press waits
   while the special is busy), `specials` with `name`, `charge_price`, `max_charges`, `unlock` and

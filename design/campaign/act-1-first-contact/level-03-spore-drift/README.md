@@ -355,3 +355,4 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), review file
   805 → 783 (−2 %), perfect 1,288 → 1,272 (1.61 → 1.59 × budget). A Skitter's 5 rounds to 5 up to
   a scale of 1.09 and to 6 from 1.1, so the haul steps from 784 (−2 %) to 822 (+3 %) there; 1.07
   is the closer of the two.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the Leviathan's bounty 113 and the level's `bounty_scale` 1.07 accepted (typical haul 783 of the budget's 801).

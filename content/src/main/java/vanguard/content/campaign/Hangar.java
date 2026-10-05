@@ -185,6 +185,14 @@ public final class Hangar {
     }
 
     /**
+     * Whether a bought utility bay is for sale at this visit: from its unlock level (the third bay from
+     * Act 3). Buying and fitting it comes with Act 3, so no visit offers it in the shop yet.
+     */
+    public boolean available(Catalogue.Bay bay) {
+        return bay.unlock() <= campaign.nextLevel();
+    }
+
+    /**
      * The shop rows for a slot: the fitted item, the owned ones, the buyable ones by price, the locked
      * ones by unlock. An item that is not for sale is not listed unless it is owned.
      */

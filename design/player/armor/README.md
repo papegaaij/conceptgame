@@ -57,7 +57,7 @@ auto-repair or armour patches). When it reaches zero the ship is destroyed and t
   same `LowArmour` stages as the HUD's flashing readout (M4 part H, `vanguard.game.audio.FlightSounds`)
 - [x] The radio line at 15 %, voiced, once per attempt (M4 part H: `Defences.CRITICAL_SHARE`,
   `SimEvents.Type.ARMOUR_CRITICAL`, queued urgent by the level screen; `DefencesTest`,
-  `LowArmourLineTest`, `RadioTimelineTest`, `VoiceFilesTest`); for the user's ear in round 26
+  `LowArmourLineTest`, `RadioTimelineTest`, `VoiceFilesTest`); accepted in round 26
 
 ## Decisions
 
@@ -89,3 +89,4 @@ auto-repair or armour patches). When it reaches zero the ship is destroyed and t
   while the warning matters only now. Voiced by `tools/art/voice.py`
   (`assets/voice/okafor/14b14dfe36a3.ogg`, 4.5 s of speech on the key's seed), for the user's ear
   in round 26.
+- 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): Okafor's low-armour line accepted as rendered (`assets/voice/okafor/14b14dfe36a3.ogg`, "hull" as heard), with its **urgent** queueing as built: it interrupts the line on the radio, the cut line replays after it, and the timed lines behind it start late (typically 2–13 s, at worst 18 s in Level 03 from t=36.5). Rejected: dropping the cut line instead of replaying it (not chosen).
