@@ -39,7 +39,8 @@ header of `tools/concept/audio/tts_r18.py`; the production renderer reuses it.
 
 1. **Line list.** `vanguard.content.voice.VoiceLines` (shared by the game) lists every `radio`
    cue of every level's `data.yaml` (timed and event cues, a secret's line, the `mission-failed`
-   line, the `easy` / `hard` line variants, a special's call such as Hammer Lead's), and every
+   line, the `easy` / `hard` line variants, a special's call such as Hammer Lead's, Okafor's
+   low-armour line from the [armour](../../player/armor/README.md) data), and every
    page of the levels' and acts' briefings (not the hangar teaser); `./gradlew
    :pipeline:voiceLines` writes it with the keys and settings to
    `pipeline/build/voice/lines.json` for the renderer. A line with `{ally}` expands to one line
@@ -213,7 +214,8 @@ level).
 - [ ] Act 1 lines rendered and committed; reviewed in a concept round (rendered, not yet
       committed or reviewed; Level 05's 20 lines rendered 2026-10-03, Driver Control's after its casting on 2026-10-04,
       Level 07's 18 and the Act 1 outro's four pages on 2026-10-05, Lifeboat Seven's after its casting
-      in round 25; Level 07's and the outro's reviewed and accepted in round 25)
+      in round 25; Level 07's and the outro's reviewed and accepted in round 25; the low-armour
+      line on 2026-10-05, for round 26)
 - [x] Playback with the radio message: voice on its own voice bus, music ducking while it plays,
       URGENT cuts and replays, a subtitle page held until its voice ends, pause and stop,
       text-only fallback; the mission failed screen speaks the level's line (the cut has no
@@ -338,3 +340,11 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
   name prompt. VoiceFilesTest now requires every speaker of a rendered level to be cast, and
   RadioTimelineTest no longer exempts an uncast speaker's line. Level 07's other lines and the four
   outro pages were accepted as rendered (round 25, choice 10).
+- 2026-10-05: M4 part H: Okafor's low-armour line ("Lancer, your hull won't take much more. Fly
+  careful.", grim, from the [armour](../../player/armor/README.md) data; source `armour` in the line
+  list) rendered by `tools/art/voice.py`'s pipeline, only that line (one GPU job): the key's seed
+  passed at once, 4.5 s of speech under the 7.0 s cap (`assets/voice/okafor/14b14dfe36a3.ogg`,
+  4.8 s with the filter's pad). Whisper (base.en) reads the dry take back word for word; through
+  radio filter b it hears "howl" for "hull", a short word in the band-pass, so the user's ear
+  decides in round 26. VoiceFilesTest requires its file; RadioTimelineTest plays it urgent in every
+  level.

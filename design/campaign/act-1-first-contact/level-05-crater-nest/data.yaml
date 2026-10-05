@@ -18,6 +18,9 @@ threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Th
   objective: DESTROY 4 BATTERIES   # the OBJECTIVE field from sensor L1
   varga:
     none: Acid mortars and turrets on a crater floor, Lancer. Something in orbit is watching.
+    l1: All four batteries, or the nest survives. Sleds run the rail when its lights are on. And wreckage floats down there.
+    l2: A Gorgon Frigate drops in last. Take the heads one at a time, then the core.
+    l3: "Anti-ground for the batteries. Cache: a canister jammed on the rail. Hit it between sleds."
   notes:
     Dominant layers: '`ground` (mortars, turrets, the batteries), `air`'
     Attack directions: '{directions}'

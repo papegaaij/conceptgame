@@ -43,6 +43,8 @@ import vanguard.game.render.PodPivots;
 import vanguard.game.render.ScreenFlash;
 import vanguard.game.render.SetPieceDeath;
 import vanguard.game.render.SetPieceWrecks;
+import vanguard.game.render.ThreatArrows;
+import vanguard.game.render.WaveBanners;
 import vanguard.game.render.WeaponLooks;
 import vanguard.game.settings.Settings;
 import vanguard.sim.FixedStepClock;
@@ -75,6 +77,8 @@ public final class LevelScreen implements GameScreen {
     private static final long SEED = 2185;
 
     private static final int MAX_STEPS_PER_FRAME = 8;
+    /** The sensor suite's level from which it shows the threat arrows (design/player/systems). */
+    private static final int THREAT_ARROW_SENSOR = 2;
     /** Death plays in slow motion for a second (design/systems/retry). */
     private static final float SLOW_MOTION_SECONDS = 1;
 
@@ -134,9 +138,9 @@ public final class LevelScreen implements GameScreen {
     private final Hud hud;
     private final Effects effects = Effects.glowing();
     private final Effects debris = Effects.solid();
-    /** The solid death pieces of air units, at play-field positions (no ground scroll). */
+    /** The solid death pieces of units: a flyer's at its play-field position, a ground unit's on the ground. */
     private final Effects pieces = Effects.solid();
-    /** The Airstrike's blasts, at ground positions (y plus the scroll), so they stay where the bombs landed. */
+    /** The Airstrike's blasts on the ground, so they stay where the bombs landed. */
     private final Effects blasts = Effects.glowing();
     /** The set pieces breaking up at their death. */
     private final SetPieceWrecks wrecks;
@@ -145,6 +149,10 @@ public final class LevelScreen implements GameScreen {
     private final EdgeWarnings warnings;
     /** An act boss's warning banner, its death's screen flash and the chain's bursts' sounds. */
     private final BossBanner banner;
+    /** The wave warning banner of a side or rear wave's edge warning (design/ui/hud). */
+    private final WaveBanners waveBanners;
+    /** The sensor suite's threat arrows, with a sensor suite at L2+ (design/player/systems); null without. */
+    private final ThreatArrows threatArrows;
 
     private final ScreenFlash screenFlash = new ScreenFlash();
     private final DelayedSounds chainSounds;
@@ -239,6 +247,8 @@ public final class LevelScreen implements GameScreen {
                 levelKey);
         warnings = new EdgeWarnings(services.sprites.pixel, services.fonts.body);
         banner = new BossBanner(services.sprites.pixel, services.fonts.heading, services.fonts.body);
+        waveBanners = new WaveBanners(services.sprites.pixel, services.fonts.body);
+        threatArrows = flight.sensor() >= THREAT_ARROW_SENSOR ? new ThreatArrows() : null;
         chainSounds = new DelayedSounds(services.sfx);
         name = Content.levelName(levelKey);
         hud = new Hud(
@@ -423,6 +433,7 @@ public final class LevelScreen implements GameScreen {
         }
         Settings settings = services.settings();
         radio.charsPerSecond(settings.gameplay().textSpeed());
+        creditNumbers.visible(settings.gameplay().creditNumbers());
         float simSeconds = seconds;
         if (slowMotion > 0) {
             slowMotion -= seconds;
@@ -449,7 +460,9 @@ public final class LevelScreen implements GameScreen {
             }
             react(sortie.events());
             sounds.watch(sortie);
-            sounds.edgeWarnings(warnings.step(sortie.edgeWarnings(), sortie.tick()));
+            int started = warnings.step(sortie.edgeWarnings(), sortie.tick());
+            sounds.edgeWarnings(started);
+            waveBanners.step(sortie.edgeWarnings(), started, sortie.tick());
         }
         if (launchPending && sortie.launching()) {
             sounds.launch();
@@ -472,35 +485,37 @@ public final class LevelScreen implements GameScreen {
             double x = events.x(i);
             double y = events.y(i);
             switch (events.type(i)) {
-                case ENEMY_HIT, GROUND_HIT ->
-                    effects.start(weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y);
+                case ENEMY_HIT -> effects.start(weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y);
+                case GROUND_HIT ->
+                    effects.startOnGround(
+                            weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y, 0, sortie.groundScroll());
                 case SHOT_GLANCED -> effects.start(glance, IMPACT_FRAME_TICKS, x, y);
                 case BLAST -> effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
                 case ENEMY_DESTROYED -> {
                     EnemyLooks look = looks[events.value(i)];
                     layersHit.add(sortie.enemyKinds().get(events.value(i)).layer());
-                    // The solid pieces first, so the glows of the same death draw over them.
-                    start(pieces, look.deathPieces(), x, y);
-                    effects.start(look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
-                    start(effects, look.deathGlow(), x, y);
+                    death(events.value(i), x, y);
                     if (!look.remains().isEmpty()) {
-                        debris.start(look.remains(), REMAINS_TICKS / look.remains().size, x, y + sortie.groundScroll());
+                        debris.startOnGround(
+                                look.remains(), REMAINS_TICKS / look.remains().size, x, y, 0, sortie.groundScroll());
                     }
                 }
                 case BROOD_BURST -> {
                     // A self-burst: the pod's death animation without a kill.
-                    EnemyLooks look = looks[events.value(i)];
-                    start(pieces, look.deathPieces(), x, y);
-                    effects.start(look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
-                    start(effects, look.deathGlow(), x, y);
+                    death(events.value(i), x, y);
                 }
                 case WALKER_DOWN -> {
                     // The legless husk at its last heading, left on the ground like a turret's stump.
                     int value = events.value(i);
                     EnemyLooks look = looks[SimEvents.walkerKind(value)];
                     if (!look.husks().isEmpty()) {
-                        debris.start(
-                                look.husk(SimEvents.walkerFacing(value)), REMAINS_TICKS, x, y + sortie.groundScroll());
+                        debris.startOnGround(
+                                look.husk(SimEvents.walkerFacing(value)),
+                                REMAINS_TICKS,
+                                x,
+                                y,
+                                0,
+                                sortie.groundScroll());
                     }
                 }
                 case CLAMP_HIT -> effects.start(glance, IMPACT_FRAME_TICKS, x, y);
@@ -512,10 +527,16 @@ public final class LevelScreen implements GameScreen {
                 case GROUND_DESTROYED -> {
                     int object = events.value(i);
                     if (!groundWrecks.get(object).isEmpty()) {
-                        debris.start(groundWrecks.get(object), REMAINS_TICKS, x, y + sortie.groundScroll());
+                        debris.startOnGround(groundWrecks.get(object), REMAINS_TICKS, x, y, 0, sortie.groundScroll());
                     }
-                    debris.start(groundBreaks.get(object), DEBRIS_FRAME_TICKS, x, y + sortie.groundScroll());
-                    effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
+                    debris.startOnGround(groundBreaks.get(object), DEBRIS_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+                    effects.startOnGround(
+                            services.sprites.explosionSmall,
+                            TINY_EXPLOSION_FRAME_TICKS,
+                            x,
+                            y,
+                            0,
+                            sortie.groundScroll());
                 }
                 case CREDITS_PICKED_UP -> creditNumbers.show(events.value(i), x, y);
                 case BOSS_DESTROYED -> {
@@ -553,16 +574,25 @@ public final class LevelScreen implements GameScreen {
                 case CHAIN_POP -> {
                     // A chained death's burst: the member's own death, as when it is shot (no kill), in
                     // the same step as its sound; until then the member was drawn intact.
-                    EnemyLooks look = looks[SimEvents.chainPopKind(events.value(i))];
-                    start(pieces, look.deathPieces(), x, y);
-                    effects.start(look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y);
-                    start(effects, look.deathGlow(), x, y);
+                    death(SimEvents.chainPopKind(events.value(i)), x, y);
                 }
                 case CHAIN_CUT, CHAIN_REGROWN ->
                     effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
                 case SPECIAL_DENIED -> hud.specialDenied();
+                case ARMOUR_CRITICAL -> {
+                    // Okafor's low-armour warning (design/player/armor), once per attempt: urgent, so it
+                    // plays at once, interrupting whatever is on the radio, and is never dropped as stale.
+                    LevelData.RadioLine warning = services.content.armour().radio();
+                    queue(
+                            warning.speaker(),
+                            warning.speaker(),
+                            warning.expression().orElse(Expression.NEUTRAL).slug(),
+                            warning.line(),
+                            warning.distorted().orElse(false),
+                            RadioQueue.Priority.URGENT);
+                }
                 case AIRSTRIKE_BLAST ->
-                    blasts.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y + sortie.groundScroll());
+                    blasts.startOnGround(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y, 0, sortie.groundScroll());
                 case SHIELD_HIT -> shimmer = SHIMMER_TICKS;
                 case RADIO -> {
                     LevelScript.RadioCue cue = sortie.script().radio().get(events.value(i));
@@ -586,7 +616,7 @@ public final class LevelScreen implements GameScreen {
                 }
                 case ALLY_LOST -> {
                     // It burns on the road: the blast stays where it was, scrolling with the ground.
-                    blasts.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y + sortie.groundScroll());
+                    blasts.startOnGround(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y, 0, sortie.groundScroll());
                 }
                 case PRIMARY_FAILED -> {
                     // As a wreck, without the explosion and the slow motion (design/systems/retry).
@@ -618,6 +648,7 @@ public final class LevelScreen implements GameScreen {
                     services.voices.stop();
                     warnings.clear();
                     banner.clear();
+                    waveBanners.clear();
                     screenFlash.clear();
                     chainSounds.clear();
                     renderer.restart();
@@ -648,10 +679,37 @@ public final class LevelScreen implements GameScreen {
         }
     }
 
-    /** Starts a unit's death animation, if it has one, centred on it. */
-    private static void start(Effects into, EnemyLooks.DeathEffect death, double x, double y) {
-        if (!death.frames().isEmpty()) {
-            into.start(death.frames(), death.ticksPerFrame(), x, y, death.delayTicks());
+    /**
+     * A unit's death at its position: its solid pieces, its explosion and its glow (the pieces first,
+     * so the glows of the same death draw over them). A ground unit's stay on the ground, scrolling
+     * with it and with its husk; a flyer's stay where it died on the play field.
+     */
+    private void death(int kind, double x, double y) {
+        EnemyLooks look = looks[kind];
+        boolean onGround = sortie.enemyKinds().get(kind).layer() == Layer.GROUND;
+        EnemyLooks.DeathEffect deathPieces = look.deathPieces();
+        start(pieces, deathPieces.frames(), deathPieces.ticksPerFrame(), x, y, deathPieces.delayTicks(), onGround);
+        start(effects, look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y, 0, onGround);
+        EnemyLooks.DeathEffect glow = look.deathGlow();
+        start(effects, glow.frames(), glow.ticksPerFrame(), x, y, glow.delayTicks(), onGround);
+    }
+
+    /** Starts an animation, if there is one, centred on the position: on the ground or on the play field. */
+    private void start(
+            Effects into,
+            Array<AtlasRegion> frames,
+            int ticksPerFrame,
+            double x,
+            double y,
+            int delayTicks,
+            boolean onGround) {
+        if (frames.isEmpty()) {
+            return;
+        }
+        if (onGround) {
+            into.startOnGround(frames, ticksPerFrame, x, y, delayTicks, sortie.groundScroll());
+        } else {
+            into.start(frames, ticksPerFrame, x, y, delayTicks);
         }
     }
 
@@ -750,7 +808,7 @@ public final class LevelScreen implements GameScreen {
                 chainSounds.play(sacBurst, CHAIN_SOUND_VOLUME, 0.85f + 0.05f * (burst.part() % 3), pan(px), burst.at());
             } else if (n++ % 2 == 0) {
                 chainSounds.play(
-                        n % 4 == 1 ? Sfx.EXPLOSION_SMALL_A : Sfx.EXPLOSION_SMALL_B,
+                        n % 4 == 1 ? Sfx.EXPLOSION_MEDIUM_A : Sfx.EXPLOSION_MEDIUM_B,
                         CHAIN_SOUND_VOLUME,
                         0.8f + 0.1f * (n % 3),
                         pan(px),
@@ -770,8 +828,8 @@ public final class LevelScreen implements GameScreen {
         if (!cloud.isEmpty()) {
             effects.start(cloud, DEATH_CLOUD_FRAME_TICKS, x, y, chain, scale, 1);
         }
-        chainSounds.play(Sfx.EXPLOSION_SMALL_B, 1, 0.6f, pan(x), chain);
-        chainSounds.play(Sfx.EXPLOSION_SMALL_A, 1, 0.5f, pan(x), chain + 3);
+        chainSounds.play(sounds.deathBlast(k), 1, 1, pan(x), chain);
+        chainSounds.play(Sfx.EXPLOSION_LARGE_C, 1, 0.9f, pan(x), chain + 3);
         if (LevelRenderer.flashesAtDeath(piece)) {
             screenFlash.start(chain);
         }
@@ -893,6 +951,10 @@ public final class LevelScreen implements GameScreen {
                 (float) shimmer / SHIMMER_TICKS,
                 services.settings().gameplay().flashReduction(),
                 screenFlash);
+        if (threatArrows != null && sortie.flying()) {
+            threatArrows.draw(batch, sortie, clock.alpha());
+        }
+        waveBanners.draw(batch, sortie.tick(), clock.alpha());
         banner.draw(batch, sortie.tick(), clock.alpha());
         hud.draw(batch, sortie, radio, visiblePrompts());
     }
@@ -945,6 +1007,9 @@ public final class LevelScreen implements GameScreen {
         music.dispose();
         warnings.dispose();
         banner.dispose();
+        if (threatArrows != null) {
+            threatArrows.dispose();
+        }
         services.sprites.leaveLevel(levelNumber);
     }
 }

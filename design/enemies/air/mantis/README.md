@@ -1,8 +1,8 @@
 ---
 title: Mantis
 design: approved
-implementation: in-progress
-art: chosen
+implementation: done
+art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
 updated: 2026-10-05
 ---
@@ -67,15 +67,15 @@ The numbers are in [data.yaml](data.yaml); the table is rendered from it. Values
 
 ## Concept art
 
-Chosen concept: [mantis-r04-a.png](../concept/mantis-r04-a.png) (listed in the [air](../README.md#concept-art) Concept art table). Production review files, the beam concepts and their briefs: [concept/prompts.md](concept/prompts.md); reviewed in [round 23](../../../concept-rounds/round-23/README.md).
+Chosen concept: [mantis-r04-a.png](../concept/mantis-r04-a.png) (listed in the [air](../README.md#concept-art) Concept art table). Production review files, the beam concepts and their briefs: [concept/prompts.md](concept/prompts.md); approved as final in [round 23](../../../concept-rounds/round-23/README.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/mantis-final-r23-a.png](concept/mantis-final-r23-a.png) | Final sprites (`tools/art/mantis.py`): 80×80, the round-04 model nose down leaning into the field, its own render per edge (left and right, nothing mirrored): hover wing beat (4), telegraph with the arms opening and the eye charging (4), sweep (2), exit leaning out (4); the death's crimson flash (additive) and bone shards, wings and arms (solid), 12 frames each; 40 colours | proposed |
-| [concept/mantis-final-r23-a.gif](concept/mantis-final-r23-a.gif) | A pincer: entering, hovering, two telegraphs and sweeps (the beam as the game draws it today), leaving; then the death | proposed |
+| [concept/mantis-final-r23-a.png](concept/mantis-final-r23-a.png) | Final sprites (`tools/art/mantis.py`): 80×80, the round-04 model nose down leaning into the field, its own render per edge (left and right, nothing mirrored): hover wing beat (4), telegraph with the arms opening and the eye charging (4), sweep (2), exit leaning out (4); the death's crimson flash (additive) and bone shards, wings and arms (solid), 12 frames each; 40 colours | chosen |
+| [concept/mantis-final-r23-a.gif](concept/mantis-final-r23-a.gif) | A pincer: entering, hovering, two telegraphs and sweeps (the beam as the game draws it today), leaving; then the death | chosen |
 | [concept/mantis-beam-r23-b.png](concept/mantis-beam-r23-b.png), [.gif](concept/mantis-beam-r23-b.gif) | Beam and telegraph B: charged lance, filled wedge telegraph (`tools/concept/props_r23.py`) | chosen |
-| [concept/mantis-beam-final-r23-a.png](concept/mantis-beam-final-r23-a.png), [.gif](concept/mantis-beam-final-r23-a.gif) | Final beam and telegraph from the chosen B (`tools/art/mantis_beam.py`): beam strip 32×10 (4 frames, knots running out), tip spark 16×16 (4), eye ring 16×16, telegraph wedges 302×349 (70°) and 302×429 (90°), all additive; in play with the production sprites of both edges, from the eye | proposed |
-| [concept/mantis-beam-capture-r23-b.png](concept/mantis-beam-capture-r23-b.png) | Game capture, Level 06's pincer: the telegraph wedges and the sweeps from the eye on both edges | proposed |
+| [concept/mantis-beam-final-r23-a.png](concept/mantis-beam-final-r23-a.png), [.gif](concept/mantis-beam-final-r23-a.gif) | Final beam and telegraph from the chosen B (`tools/art/mantis_beam.py`): beam strip 32×10 (4 frames, knots running out), tip spark 16×16 (4), eye ring 16×16, telegraph wedges 302×349 (70°) and 302×429 (90°), all additive; in play with the production sprites of both edges, from the eye | chosen |
+| [concept/mantis-beam-capture-r23-b.png](concept/mantis-beam-capture-r23-b.png) | Game capture, Level 06's pincer: the telegraph wedges and the sweeps from the eye on both edges | chosen |
 | [concept/rejected/mantis-beam-r23-a.png](concept/rejected/mantis-beam-r23-a.png), [.gif](concept/rejected/mantis-beam-r23-a.gif) | Beam and telegraph A: hot wire, dotted arc and dashed edges | rejected — user picked b |
 
 ## Implementation
@@ -122,3 +122,6 @@ Chosen concept: [mantis-r04-a.png](../concept/mantis-r04-a.png) (listed in the [
   telegraph start there. The beam's look is variant B, the charged lance with the filled wedge
   telegraph, made final by `tools/art/mantis_beam.py`; rejected: variant A, the hot wire with the
   dotted arc (user picked b).
+- 2026-10-05: M4 part H docs reconciliation: round 23 approved the Mantis and its beam b as
+  **final** (choices 1 and 6), so the final sprites, the final beam and the beam capture are
+  `chosen` here, `art` is `final`, and with every item ticked the document is `done`.

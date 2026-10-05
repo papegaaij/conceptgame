@@ -31,8 +31,9 @@ import vanguard.game.ui.Glass;
  * bar, the intel on the next level, and the command bar with undo, repair, save and launch. Keys:
  * previous / next tab select the slot, up / down the shop row (and the command bar above it),
  * left / right the row's choice or the command, confirm makes it; selling, launching with a
- * warning and quitting ask first. It autosaves when it opens (design/systems/saves), except right
- * after a save was loaded, and when the player quits from it, and plays the hangar theme.
+ * warning and quitting ask first; the selected weapon's test fire loops in the shop's box. It
+ * autosaves when it opens (design/systems/saves), except right after a save was loaded, and when
+ * the player quits from it, and plays the hangar theme.
  */
 public final class HangarScreen implements GameScreen {
     private static final float MUSIC_VOLUME = 0.6f;
@@ -112,6 +113,13 @@ public final class HangarScreen implements GameScreen {
     public Transition update(float seconds) {
         campaign.play(seconds);
         MenuInput input = services.menu;
+        Transition next = input(input);
+        // The test fire follows what the input selected.
+        view.update(seconds, state);
+        return next;
+    }
+
+    private Transition input(MenuInput input) {
         if (dialog.isPresent()) {
             return answer(dialog.get().update(input));
         }
@@ -143,17 +151,43 @@ public final class HangarScreen implements GameScreen {
         } else if (input.right()) {
             outcome = state.right();
         } else if (input.confirm()) {
-            outcome = state.confirm();
+            // What the confirmation makes, read before it changes the selection.
+            Sfx done = doneSound(
+                    state.focus() == Focus.SHOP ? state.choice().map(Hangar.Choice::action) : Optional.empty(),
+                    state.focus(),
+                    state.command());
+            return react(state.confirm(), done);
         }
-        return react(outcome);
+        return react(outcome, Sfx.MENU_CONFIRM);
     }
 
-    private Transition react(Outcome outcome) {
+    /**
+     * The sound of a confirmation that was made (design/audio/sfx, UI and radio): a shop action's
+     * own ({@link Sfx#shop}), a paid repair's purchase, an undo's refund, else the menu's confirm.
+     *
+     * @param made the highlighted shop choice's action, when the shop had the focus
+     * @param focus where the focus was
+     * @param command the highlighted command
+     */
+    static Sfx doneSound(Optional<Hangar.Action> made, Focus focus, Command command) {
+        if (made.isPresent()) {
+            return Sfx.shop(made.get());
+        }
+        if (focus == Focus.REPAIR) {
+            return Sfx.SHOP_BUY;
+        }
+        if (focus == Focus.COMMANDS && command == Command.UNDO) {
+            return Sfx.SHOP_SELL;
+        }
+        return Sfx.MENU_CONFIRM;
+    }
+
+    private Transition react(Outcome outcome, Sfx done) {
         switch (outcome) {
             case NONE -> {}
             case MOVED -> services.play(Sfx.MENU_MOVE);
-            case DONE -> services.play(Sfx.MENU_CONFIRM);
-            case REFUSED -> services.play(Sfx.MENU_BACK);
+            case DONE -> services.play(done);
+            case REFUSED -> services.play(Sfx.SHOP_DENIED);
             case SELL -> {
                 services.play(Sfx.MENU_CONFIRM);
                 var offer = state.selected().orElseThrow();
@@ -206,7 +240,7 @@ public final class HangarScreen implements GameScreen {
             services.play(Sfx.MENU_BACK);
             return Transition.STAY;
         }
-        services.play(Sfx.MENU_CONFIRM);
+        services.play(what == Pending.SELL ? Sfx.SHOP_SELL : Sfx.MENU_CONFIRM);
         return switch (what) {
             case SELL -> {
                 state.sell();

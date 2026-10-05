@@ -26,8 +26,8 @@ import vanguard.sim.SimStep;
  * @param remains left on the ground where a ground unit was destroyed, its frames spread over the
  *     remains' time (a stump, an acid splash decal); empty for none
  * @param deathGlow drawn additively with its explosion (a Vrell's spore cloud or glint); no frames for none
- * @param deathPieces solid pieces scattering where an air unit was destroyed (membrane tatters, a
- *     split husk), drawn under the glows; no frames for none
+ * @param deathPieces solid pieces scattering where a unit was destroyed (membrane tatters, a split
+ *     husk; a ground unit's scroll with the ground), drawn under the glows; no frames for none
  * @param glow a walker's emissive back, drawn additively over its frame above the low-air layer
  *     (the Scuttler's lime back through the dust), indexed like {@code frames}; empty for none
  * @param husks a walker's remains, one frame per heading (the Scuttler's legless husk, left at its
@@ -157,8 +157,8 @@ public record EnemyLooks(
                     case SMALL -> sprites.explosionSmall;
                     default -> sprites.frames("explosion-medium");
                 },
-                chain ? chainBurst : tier == Tier.TINY ? Sfx.EXPLOSION_TINY_A : Sfx.EXPLOSION_SMALL_A,
-                chain ? chainBurst : tier == Tier.TINY ? Sfx.EXPLOSION_TINY_B : Sfx.EXPLOSION_SMALL_B,
+                chain ? chainBurst : Sfx.explosion(tier, false),
+                chain ? chainBurst : Sfx.explosion(tier, true),
                 sprites.has(slug + "-flare") ? sprites.frames(slug + "-flare") : none,
                 remains(sprites, slug, none),
                 death(sprites, slug, DEATH_GLOW, tier, true, walker),

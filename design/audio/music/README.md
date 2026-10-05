@@ -191,6 +191,30 @@ loop comments, `SOURCE` comment; audio identical to the chosen files). Prompts:
 | [concept/choir-descends-seam-final-r25-a.ogg](concept/choir-descends-seam-final-r25-a.ogg) | Listening aid: track 18 across its loop seam, 8 s each side | chosen |
 | [concept/boss-music-final-r25-a.png](concept/boss-music-final-r25-a.png) | Review sheet: the three finals' waveforms and the hand-off mix, with the loop points and the hand-off marked and the measured numbers | chosen |
 
+Production art, M4 part H (for concept round 26): the rest of the music the game plays, tracks 4 and
+5 with their base stems, the mini-boss sting (21) and the jingles 23, 25 and 26, rendered into
+`assets/music/` by [tools/art/themes.py](../../../tools/art/README.md) the same way (the chosen
+generators unchanged: `music_r08.py`, the stems `music_r15.py` / `music_r11.py`; `SOURCE` comment).
+Seven files are identical to the chosen ones; "Afterburner" and its base stem got the true-peak fix
+of the Decisions log (2026-10-05). Prompts:
+[concept/prompts.md](concept/prompts.md#music-final-r26-a--tracks-4-5-21-23-25-and-26-production-art).
+
+| File | What | Status |
+|---|---|---|
+| [concept/afterburner-final-r26-a.ogg](concept/afterburner-final-r26-a.ogg) | #4 "Afterburner" final, `assets/music/afterburner.ogg` byte for byte: 154.7 s, loop 623700 + 6048000 samples (14.14 s + 137.14 s), −14.0 LUFS, −1.2 dBTP (chosen file −0.5), seam 0.47 | proposed |
+| [concept/afterburner-base-final-r26-a.ogg](concept/afterburner-base-final-r26-a.ogg) | #4 base stem final, `assets/music/afterburner-base.ogg` byte for byte: same length and loop points, the full mix's gain (−15.4 LUFS, −1.4 LU), −1.2 dBTP (chosen file −0.8), seam 0.28 | proposed |
+| [concept/coalition-rising-final-r26-a.ogg](concept/coalition-rising-final-r26-a.ogg) | #5 "Coalition Rising" final, `assets/music/coalition-rising.ogg` byte for byte: 142.3 s, loop 340772 + 5773091 samples (7.73 s + 130.91 s), −14.0 LUFS, −1.7 dBTP, seam 0.52; audio identical to the chosen file | proposed |
+| [concept/coalition-rising-base-final-r26-a.ogg](concept/coalition-rising-base-final-r26-a.ogg) | #5 base stem final, `assets/music/coalition-rising-base.ogg` byte for byte: same length and loop points, the full mix's gain (−20.5 LUFS, −6.5 LU), −6.0 dBTP, seam 0.26; audio identical to the chosen file | proposed |
+| [concept/miniboss-sting-final-r26-a.ogg](concept/miniboss-sting-final-r26-a.ogg) | #21 "Contact Heavy" final, `assets/music/miniboss-sting.ogg` byte for byte: 4.60 s, played once, −14.0 LUFS, −2.0 dBTP, end −68 dBFS; audio identical to the chosen file | proposed |
+| [concept/mission-complete-final-r26-a.ogg](concept/mission-complete-final-r26-a.ogg) | #23 "Mission Complete" final, `assets/music/mission-complete.ogg` byte for byte: 6.41 s, −14.0 LUFS, −2.0 dBTP, end −65 dBFS; audio identical to the chosen file | proposed |
+| [concept/mission-failed-final-r26-a.ogg](concept/mission-failed-final-r26-a.ogg) | #25 "Mission Failed" final, `assets/music/mission-failed.ogg` byte for byte: 5.80 s, −14.0 LUFS, −2.1 dBTP, end −64 dBFS; audio identical to the chosen file | proposed |
+| [concept/game-over-final-r26-a.ogg](concept/game-over-final-r26-a.ogg) | #26 "Game Over" final, `assets/music/game-over.ogg` byte for byte: 20.67 s, −13.9 LUFS, −2.3 dBTP, end −67 dBFS; audio identical to the chosen file | proposed |
+| [concept/afterburner-seam-final-r26-a.ogg](concept/afterburner-seam-final-r26-a.ogg) | Listening aid: track 4 across its loop seam, 8 s each side | proposed |
+| [concept/afterburner-base-seam-final-r26-a.ogg](concept/afterburner-base-seam-final-r26-a.ogg) | Listening aid: track 4's base stem across its loop seam, 8 s each side | proposed |
+| [concept/coalition-rising-seam-final-r26-a.ogg](concept/coalition-rising-seam-final-r26-a.ogg) | Listening aid: track 5 across its loop seam, 8 s each side | proposed |
+| [concept/coalition-rising-base-seam-final-r26-a.ogg](concept/coalition-rising-base-seam-final-r26-a.ogg) | Listening aid: track 5's base stem across its loop seam, 8 s each side | proposed |
+| [concept/music-final-r26-a.png](concept/music-final-r26-a.png) | Review sheet: the eight finals' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam, end level and size | proposed |
+
 ## Implementation
 
 - [x] Music player with intro + loop points
@@ -203,8 +227,6 @@ loop comments, `SOURCE` comment; audio identical to the chosen files). Prompts:
 
 - 28 tracks is a lot of production. If needed, drop the B variants of acts (−7 tracks) or reuse
   the Vrell boss theme for all bosses.
-- Should music be composed as real tracker modules (.xm/.it), which is authentic, small and
-  loops for free, or rendered audio? This depends on the engine choice.
 
 ## Decisions
 
@@ -282,3 +304,27 @@ loop comments, `SOURCE` comment; audio identical to the chosen files). Prompts:
   hand-off into track 18 are built (`BossCue`), so the crossfade item is done. The document's `art`
   stays `chosen`: the level themes, the jingles and the mini-boss sting in `assets/music/` are still
   the chosen concept files.
+- 2026-10-05: The open question "tracker modules (.xm/.it) or rendered audio?" is settled by what
+  was built: rendered audio, OGG Vorbis q6 with the intro and loop in one file and the loop points
+  as `LOOPSTART` / `LOOPLENGTH` comments (*Design*), generated by `tools/art/themes.py` and played
+  by the game's music player. Closed in the M4 part H docs reconciliation.
+- 2026-10-05: Production art, M4 part H (user decision D6 = A: check the remaining concept copies
+  against the final spec, fix only what fails, offer them as they are): tracks 4 and 5 with their
+  base stems, the mini-boss sting and the jingles 23, 25 and 26 are rendered into `assets/music/` by
+  `tools/art/themes.py` (keys `afterburner`, `afterburner-base`, `coalition`, `coalition-base`,
+  `miniboss`, `complete`, `failed`, `gameover`) from their chosen generators unchanged and remuxed
+  with a `SOURCE` comment. `--check` now covers the stems too: instead of −14 LUFS a stem must sit
+  under its full mix (it carries the full mix's gain for the crossfade) with the same length and
+  loop comments. Before the pass all eight files failed only for the missing `SOURCE` comment,
+  except **"Afterburner" (true peak −0.5 dBTP) and its base stem (−0.8 dBTP)**: the limit is −1
+  dBTP, the overs were inter-sample peaks on single kick transients (31 and 19 places) that the
+  Vorbis encoder makes from a PCM limited at −2 dBFS. A plain gain cut would have needed 0.5 dB and
+  taken the full mix to −14.5 LUFS, outside the ±0.5 LU tolerance, so the pair gets one shared gain
+  envelope that dips only around those transients (57 dips, at most −1.1 dB, on average −0.24 dB,
+  3.1 s of 154.7 s in total; 2 ms attack, 50 ms release), applied to both files so the base → full
+  crossfade stays exact, then re-encoded at q6 (`TRUE_PEAK_FIX`). Measured after: −1.2 dBTP both,
+  loudness unchanged (−14.0 and −15.4 LUFS), loop seam unchanged (0.47, 0.28), the intended change
+  55 dB under full scale (RMS), 16 dB under the encoder's own noise in the chosen file. The other
+  six files are identical to the chosen ones. Measured only, not listened to. `copyPlaceholderMusic`
+  reports all 14 music files kept as final. Review files, four loop-seam aids and the sheet
+  `music-final-r26-a.png` proposed for round 26; `art` stays `chosen` until the user approves them.

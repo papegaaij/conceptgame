@@ -1,7 +1,7 @@
 ---
 title: Coilwyrm
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy, ../../../audio/sfx]
 updated: 2026-10-05
@@ -158,3 +158,9 @@ Chosen concept: [coilwyrm-r08-a.png](../concept/coilwyrm-r08-a.png), [coilwyrm-r
   rising series. A Smart Bomb's ring reaches the head first (nearest the ship), so the body then
   bursts in the ripple and pays nothing, as any head-first kill. The capture (round 24's close)
   shows the sound and the look of each burst within a frame (33 ms).
+- 2026-10-05: M4 part H docs reconciliation: implementation `done`; every item is ticked.
+- 2026-10-05: M4 part H balance pass (user decision): the bounty stays as it is, an **accepted
+  exception** to the balancing basis: its parts total 86 (head 40, 12 segments × 3, tail 10)
+  against the `large` class's 40–60, but it is a multi-part enemy and cutting it up segment by
+  segment is extra work the player is paid for; a head-first kill pays the class's 40.
+  `BalanceTest` lists it under `ACCEPTED` instead of pending a decision.

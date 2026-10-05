@@ -1,10 +1,10 @@
 ---
 title: Gorgon Frigate
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Gorgon Frigate
@@ -127,3 +127,4 @@ Chosen concept: [gorgon-frigate-r06-a.png](../concept/gorgon-frigate-r06-a.png),
   sounds are layered as for the Leviathan.
 - 2026-10-04: Round 21 closed (user): the death redo (`gorgon-frigate-death-final-r21-b`, item 11)
   accepted; with the sprites (`gorgon-frigate-final-r21-a`) the frigate's art is **final**.
+- 2026-10-05: M4 part H docs reconciliation: implementation `done`; every item is ticked.

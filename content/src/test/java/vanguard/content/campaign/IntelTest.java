@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import vanguard.content.Content;
 import vanguard.content.ContentLoader;
@@ -28,7 +27,7 @@ class IntelTest {
         assertEquals(Entry.FRONT, intel.mainDirection());
         assertTrue(intel.shows(Field.MAIN_DIRECTION));
         assertFalse(intel.shows(Field.DENSITY));
-        assertEquals(Optional.of("Our scans are patchy, Lancer. Small, fast, lots of them."), intel.varga());
+        assertEquals("Our scans are patchy, Lancer. Small, fast, lots of them.", intel.varga());
         assertEquals(List.of(), intel.markedTraits(), "the shop marks traits from sensor L3 on");
     }
 
@@ -49,9 +48,9 @@ class IntelTest {
         assertEquals(List.of("forward"), intel.markedTraits());
         assertEquals(1, intel.secrets());
         assertEquals(
-                Optional.of("Our scans are patchy, Lancer. Small, fast, lots of them."),
+                "Your cannon is enough; keep it forward. One cache: a crane beacon blinking mid-run. Three hits.",
                 intel.varga(),
-                "the line of the highest level at or below the sensor's");
+                "Varga's line for sensor L3");
     }
 
     @Test

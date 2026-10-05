@@ -1,10 +1,10 @@
 ---
 title: Player
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../systems, ../ui/hangar]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Player
@@ -20,14 +20,14 @@ generator limits what can be fitted at the same time.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | approved | in-progress | final |
+| [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | approved | done | final |
 | [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | approved | done | chosen |
-| [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | approved | in-progress | none |
-| [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | approved | in-progress | none |
-| [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | approved | in-progress | none |
+| [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | approved | done | none |
+| [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | approved | in-progress | proposed |
+| [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | approved | done | none |
 | [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | approved | not-started | chosen |
-| [specials](specials/README.md) | Special abilities: airstrike, smart bomb, EMP, orbital lance, … | approved | in-progress | chosen |
-| [systems](systems/README.md) | Engines and utility-bay modules: magnet, sensors, auto-repair, … | approved | not-started | none |
+| [specials](specials/README.md) | Special abilities: airstrike, smart bomb, EMP, orbital lance, … | approved | done | chosen |
+| [systems](systems/README.md) | Engines and utility-bay modules: magnet, sensors, auto-repair, … | approved | in-progress | none |
 
 ## Design
 
@@ -110,7 +110,7 @@ loadout stays the main source of strength:
 | Data core | Hidden / secret areas | Lore entry; unlocks one specific shop item one act early (list in [economy](../systems/economy/README.md#data-cores)); counts for the grade |
 <!-- /data -->
 
-A [pickup magnet](systems/README.md) widens the collection radius. Uncollected pickups drift
+A [pickup magnet](systems/README.md) pulls the pickups within its reach to the ship. Uncollected pickups drift
 down and leave the screen after 6 s.
 
 ### Damage scale
@@ -156,11 +156,11 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), by `tools/a
 - [x] Power load calculation and over-budget refusal
 - [x] Spare-power shield regen bonus
 - [x] Single fire button fires all weapons
-- [ ] Special on a separate button — **later: M4** (the specials, part D)
+- [x] Special on a separate button (`Action.SPECIAL`, bound in `Bindings`, sent as `Command.SPECIAL`; M4 part D)
 - [x] Pickup types, drop tables and 6 s despawn: salvage S and M, overdrive, shield cell, armour patch, the hidden crate
-- [ ] Salvage L, special charge and data core — **later: M4** (Levels 03, 04 and 06; the data core
-  in part F: the pickup, its lore title in the debrief list and the save entry, see
-  [economy](../systems/economy/README.md#data-cores))
+- [x] Salvage L, special charge and data core (`PickupType.LARGE_SALVAGE`, `SPECIAL_CHARGE`,
+  `DATA_CORE`; Levels 03, 04 and 06; the data core in part F: the pickup, its lore title in the
+  debrief list and the save entry, see [economy](../systems/economy/README.md#data-cores))
 - [x] Overdrive: temporary +1 weapon level with HUD timer (the overdrive pickup itself: *Pickup types* above)
 
 ## Open questions
@@ -207,3 +207,6 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), by `tools/a
 - 2026-10-04: M4 part F builds the data core pickup: it records the lore entry and the unlock in
   the save; an unlocked item that does not exist yet (Level 06's Targeting computer) takes effect
   when it is built (user decision D6 of M4 part F).
+- 2026-10-05: M4 part H docs reconciliation: the special button (part D) and the salvage L,
+  special charge and data core pickups (parts C, D and F) were built with their parts; both items
+  ticked, the document is `done`.

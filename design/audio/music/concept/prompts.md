@@ -720,3 +720,40 @@ the warning's build drops into the boss theme's quieter choir-and-drone intro af
 beat), silent beat 7 dB under the bar (the choir, string and timpani tails ring into it), tail
 −39 dB under the track, peak after the hand-off −2.1 dBFS, no clamped samples. Track 18's seam
 jump is 0.35 of the nearby sample-to-sample change; one-shot ends: −145 dBFS (22), −70 dBFS (24).
+
+## music-final-r26-a — tracks 4, 5, 21, 23, 25 and 26 (production art)
+
+Not a proposal of new music: the production files of the rest of the music the game plays, for the
+M4 part H review (round 26; user decision D6 = A, "as they are"). `python3 tools/art/themes.py
+afterburner afterburner-base coalition coalition-base miniboss complete failed gameover` renders the
+chosen `afterburner-full-r08-a` (#4 "Afterburner"), `coalition-rising-full-r08-a` (#5 "Coalition
+Rising"), `miniboss-sting-r08-a` (#21 "Contact Heavy"), `mission-complete-r08-a` (#23),
+`mission-failed-r08-a` (#25) and `game-over-r08-a` (#26) again with their generator
+(`tools/concept/audio/music_r08.py`, unchanged), and the base stems `afterburner-base-r15-a` and
+`coalition-rising-base-r11-a` with theirs (`music_r15.py`, `music_r11.py`, unchanged; they stop
+unless their full mix is the chosen one byte for byte), remuxes each stream with a `SOURCE` comment
+into `assets/music/` and checks them. A base stem is checked against its full mix instead of
+−14 LUFS: quieter than it (it carries the full mix's gain), same length, same `LOOPSTART` /
+`LOOPLENGTH`.
+
+The check failed only on the true peak of "Afterburner" (−0.5 dBTP) and its base stem (−0.8 dBTP),
+limit −1 dBTP: inter-sample overs at single kick transients made by the Vorbis encoder. The pair is
+rendered as `music_r15.py` renders it (both encodes proven identical to the chosen files), then one
+gain envelope for both files dips only around the transients whose decoded 4x peak is above
+−1.2 dB (aimed at −1.3 dB; raised-cosine 2 ms attack, 1 ms hold, 50 ms release; repeated until no
+over is left) and both are encoded again at q6. Result: 57 dips, at most −1.1 dB, 3.1 s of 154.7 s;
+−1.2 dBTP both, loudness and seams unchanged; the intended change is 55 dB under full scale (RMS),
+16 dB under the encoder's own noise in the chosen file. The other six files are identical to the
+chosen ones; only the comment is new.
+
+- `afterburner-final-r26-a.ogg`, `afterburner-base-final-r26-a.ogg`, `coalition-rising-final-r26-a.ogg`,
+  `coalition-rising-base-final-r26-a.ogg`, `miniboss-sting-final-r26-a.ogg`,
+  `mission-complete-final-r26-a.ogg`, `mission-failed-final-r26-a.ogg`, `game-over-final-r26-a.ogg`:
+  byte copies of the eight files in `assets/music/`, for the review board.
+- `afterburner-seam-final-r26-a.ogg`, `afterburner-base-seam-final-r26-a.ogg`,
+  `coalition-rising-seam-final-r26-a.ogg`, `coalition-rising-base-seam-final-r26-a.ogg`: listening
+  aids, the last 8 s of each loop followed by the first 8 s after `LOOPSTART`, as the looping stream
+  plays the seam (0.5 s fades at both ends).
+- `music-final-r26-a.png` (`--review`): the eight files' waveforms with the intro (grey), loop
+  (blue), fade tail (dark), the loop points (amber) and the one-shots (green), with the measured
+  numbers.

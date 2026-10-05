@@ -134,7 +134,8 @@ public final class Backdrop {
     }
 
     /**
-     * The layers below the ground objects: deep (if the level has one), far, the haze and ground.
+     * The layers below the ground: deep (if the level has one), far and the haze; then
+     * {@link #drawGroundTiles}.
      *
      * @param groundScroll the ground layer's distance in px
      * @param seconds the time since the level start
@@ -152,6 +153,10 @@ public final class Backdrop {
             batch.draw(pixel, X0, 0, WIDTH, HEIGHT);
             batch.setColor(Color.WHITE);
         }
+    }
+
+    /** The ground layer's tiles, over the haze (they catch the flyers' shadows, see {@link Shadows}). */
+    public void drawGroundTiles(SpriteBatch batch, double groundScroll, double seconds) {
         drawSectionTiles(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), seconds);
     }
 

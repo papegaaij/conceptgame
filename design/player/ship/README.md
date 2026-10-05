@@ -1,10 +1,10 @@
 ---
 title: AF-12 Stormhawk
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../art-direction]
-updated: 2026-10-02
+updated: 2026-10-05
 ---
 
 # AF-12 Stormhawk
@@ -53,9 +53,9 @@ top-down camera, light from the top left.
 |---|---|---|
 | Hull, banking | 48×48 | 5: hard left, left, level, right, hard right (banking follows horizontal speed) |
 | Engine flame | 12×18 each (×2) | 3-frame loop; longer flame at speed, shorter when moving back |
-| Shadow | 48×48, dark translucent | 1, drawn on the ground layer, offset down-right by layer depth |
+| Shadow | 48×48, dark translucent | none: drawn at runtime from the hull frame's alpha (50 %, 85 % scale) on the ground layer, offset down-right by layer depth (21, 30) |
 | Shield hit | 60×60 | 4-frame hex-shimmer ring |
-| Damage | overlay | Smoke trail below 30 % armour, sparks below 15 % |
+| Damage | overlay | Smoke trail below 30 % armour (a 16×16 puff, 6 frames), denser below 15 % with sparks (24×24 burst, 6 frames, additive) |
 | Wing-mount pods | 12×18 per pod type | 1 (+ muzzle flash); attached at fixed mount points |
 | Explosion (death) | 96×96 | 12 frames |
 
@@ -100,14 +100,25 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 | [concept/player-ship-final-r12-a.png](concept/player-ship-final-r12-a.png) | Final sprites: the 5 banking frames (±15° and ±30° of roll through a mild perspective camera, one 32-colour palette), each wing-pod type (lighter, shaded pod metal) on every banking frame drawn from its pod sprites at the offsets of `assets/pivots/pods.json`, the engine flame (cruise, at speed, moving back; 3 frames each, additive) | chosen |
 | [concept/player-ship-final-r12-a.gif](concept/player-ship-final-r12-a.gif) | Banking sweep with the engine flames, then the five pod types in turn | chosen |
 
+Production art for concept round 26 (the M4 part H batch), review files built from the final frames in `assets/` by `tools/art/ship_fx.py` (`--review` rebuilds only them; the shield ring's sheet is in [shields](../shields/README.md)), and a game capture; prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/ship-damage-final-r26-a.png](concept/ship-damage-final-r26-a.png) | Final damage sprites: the smoke puff (`ship-smoke_0..5`, 16×16, a dark violet-shadowed grey, growing and thinning) and the spark burst (`ship-sparks_0..5`, 24×24, additive, white with a pale blue glow, no reserved hue), and the ship in flight with its trail, sparks and a shield hit | proposed |
+| [concept/ship-damage-final-r26-a.gif](concept/ship-damage-final-r26-a.gif) | The ship flying with the engine flames, the smoke trail, spark bursts and a shield hit every 16 frames | proposed |
+| [concept/ship-visuals-capture-r26-a.png](concept/ship-visuals-capture-r26-a.png) | Game capture: the flyers' and the ship's runtime shadows on Level 04's regolith, on Level 03's wrecks only (none on open space) and on Level 01's girders; the smoke trail and sparks below 15 % armour, the shield ring, the engine flames, and the Leviathan's large orb next to small orbs | proposed |
+
 ## Implementation
 
 - [x] Movement with acceleration, precision mode and play field bounds
 - [x] Hull-shaped hitbox (boxes from the data) separate from the sprite and pickup radius
 - [x] Mercy invulnerability after armour damage
 - [x] Banking frames driven by horizontal velocity
-- [ ] Engine flame and shadow sprites
-- [ ] Shield-hit and armour-hit feedback, damage smoke
+- [x] Engine flame and shadow sprites (`ShipLooks`: the flame length by vertical speed at the
+  engine mounts of each banking frame; the shadow from the hull's alpha by `Shadows`)
+- [x] Shield-hit and armour-hit feedback, damage smoke (the white mercy blink and the blue
+  shimmer, the hex-shimmer ring on shield hits, the smoke trail below 30 % armour and the sparks
+  below 15 %; `ShipLooks`)
 - [x] Mount points for weapons and pods
 
 ## Open questions
@@ -130,4 +141,14 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 - 2026-10-02: Hitbox changed from 9×9 around the cockpit to the hull's shape (user decision after playing M2: thorns visibly crossing the wings passed through). Six boxes from the hard-banked silhouette (`hull` in data.yaml, `vanguard.sim.Hull`); the optional hitbox-dot setting is dropped. Enemy bullet density in later levels must be designed for the larger target.
 - 2026-10-02: Production art (Level 01 batch, `tools/art/stormhawk.py`): the 5 banking frames rendered at 8× with one shared 32-colour palette; the wing pods as separate sprites per type, side and banking frame (`pod-<type>-<left|right>_<bank>`), cut from a render of the hull with the pods so their shadow on the wing is included, with their offsets in `assets/pivots/pods.json`; the engine flame (12×18, 3 lengths × 3 frames); the mount points rolled with every banking frame in `assets/pivots/ship.json`. No shadow asset: the art direction draws shadows at runtime from the hull's alpha (render pipeline step 6), so the *Shadow* row is met by the renderer. The game does not draw pods and flames yet (*Mount points* and *Engine flame* items stay open). Review files proposed for round 12.
 - 2026-10-02: Concept round 12 closed (user decision): the production sprites (5 banking frames, the wing-pod sprites, the engine flame; `tools/art/stormhawk.py`) approved as **final**, `art: final`. The hull's hit boxes stay unchanged: in the hard-bank frames they cover about 1 px of empty space at the lowered wingtip, which is negligible.
+- 2026-10-05: M4 part H (`ShipLooks`, `Shadows`): the engine flames are drawn additively under
+  the hull at the engine mounts of each banking frame (`pivots/ship.json`, attach point from
+  `pods.json`), cruise length, the long flame while climbing faster than 60 px/s and the short one
+  while falling back, 3-frame loop at 20 fps, the two engines a frame apart. The shadow is the
+  hull frame drawn dark at 50 % and 85 % scale, offset (21, 30), only on the ground layer (the
+  art direction's runtime shadows). Below 30 % armour a puff leaves from between the engines every
+  4 steps (every 3 below 15 %) and falls behind at 96 px/s, drifting a little outward, in 6 frames
+  of 6 steps; below 15 % a spark burst flies off one of six hull points every 18–41 steps. The
+  shield ring plays its 4 frames over the 8-step shimmer. New sprites by `tools/art/ship_fx.py`,
+  proposed for round 26. `implementation: done`.
 - 2026-10-02: M4 part A: the weapons fire from the mount points of the data (front muzzle, wing mounts, the new wing roots for the side guns, rear muzzle), and the fitted wing pods are drawn over the hull at their `pods.json` offsets per banking frame.

@@ -1,7 +1,7 @@
 ---
 title: Architecture
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
 updated: 2026-10-05
@@ -96,7 +96,8 @@ README), and the tables in the README are **rendered from the data**:
   (Python format fields; `{a.b}` reaches into a nested value, a `[min, max]` pair prints as
   `min–max`), so a number inside a sentence still has one source. The game ignores `notes`.
 - **The expected purchases** of a typical player per hangar visit are not a rule: they live in
-  `design/player/balance-plan.yaml`, read only by `tools/balance.py`.
+  `design/player/balance-plan.yaml`, read by the content tests `BalanceTest` and
+  `ActPlaythroughTest` and printed by `tools/balance.py`.
 - **Loading.** `content` reads the files with Jackson 3 (YAML) into Java records, one per file
   (`ShipData`, `EnemyData`, `LevelData`, …), gathered in `Content` by `ContentLoader`. Every
   record component is required unless its type is `Optional`; unknown keys are rejected; ranges
@@ -113,8 +114,9 @@ README), and the tables in the README are **rendered from the data**:
   about data files; `content`'s `SimSpecs` builds them from the loaded records at a difficulty,
   with the difficulty levers applied. The dependency stays
   `content → sim`, so the simulation keeps no YAML, Jackson or file access.
-- Balance checks (budget per level, DPS against the reference, time to kill, bounty) become
-  JUnit tests over the loaded content, replacing `tools/balance.py`'s checks.
+- Balance checks (budget per level, DPS against the reference, time to kill, bounty) are
+  JUnit tests over the loaded content (`BalanceTest`, with the chained Act 1 playthrough
+  `ActPlaythroughTest`); `tools/balance.py` prints the same plan and checks as the balancing sheet.
 
 ### Data file schemas
 
@@ -364,9 +366,9 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   falls free as that secret's crate);
   `threat_profile` (the hangar intel: `setting`, `layers`, `density` 1–5, recommended `traits`,
   `hazards`, `boss`, optional `specials` limits, optional `objective` (the OBJECTIVE field
-  shown from sensor L1, "ESCORT 5 CRAWLERS"), `varga` lines per sensor level `none`/`l1`/`l2`/
-  `l3`, and `notes` with the *Threat profile* rows, where `{directions}` is derived and the other
-  `{fields}` come from the profile); `briefing`
+  shown from sensor L1, "ESCORT 5 CRAWLERS"), `varga`, Dr. Varga's line for each sensor level
+  (`none`, `l1`, `l2`, `l3`, all four required), and `notes` with the *Threat profile* rows,
+  where `{directions}` is derived and the other `{fields}` come from the profile); `briefing`
   (`pages` of `speaker` and `line` with the optional portrait `expression` and `image`, the name of
   a tactical map or mission image in `assets/ui/briefing/`, and the hangar `teaser`, rendered into
   *Briefing*); `backdrop`
@@ -401,9 +403,11 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
 - **Ship and core parts**: ship (`acceleration_seconds`, `stop_seconds`, `precision_factor`,
   `size`, `edge_gap`, `hull` (hit boxes `[x, y, width, height]` from the sprite's top left), `collection_radius`, `mercy_seconds`, `bank_change_steps`,
   `mounts`: `front`, `wings`, `roots` (the side guns' muzzles), `rear`, `engines`; its speed is the fitted engine's); shields (`break_seconds`, `models` with
-  `capacity`, `regen`, `delay`, `draw`); armour (`plating` with `max`); generator
+  `capacity`, `regen`, `delay`, `draw`); armour (`plating` with `max`, and the low-armour `radio`
+  line: `speaker`, optional `expression` and `distorted`, `line`); generator
   (`spare_power`, `models` with `output`); systems (`engines` with `speed`, `draw`; `utility`
-  with `draw`, one price per level, `design` status); specials (`input_buffer` (s a press waits
+  with `draw`, one price per level, `design` status, the Pickup magnet's `magnet` (`radius`, `pull`, one
+  per level) and an optional `for_sale` (false keeps an unlocked module out of the shop)); specials (`input_buffer` (s a press waits
   while the special is busy), `specials` with `name`, `charge_price`, `max_charges`, `unlock` and
   optional `free_charges` (given once at the unlock), and the `airstrike` block: `delay`, `offset`,
   `speed`, `bomber_size`, `bomb_spacing`, `fall`, `blast_radius`, `damage` (`ground`, `air` per
@@ -529,8 +533,8 @@ Screenshot tests are left out until there is a need.
 - [x] Spike foundations carried over as listed, with their tests (`SfxBank` follows with the first sound effects in M1)
 - [x] Data-file loader with validation; `sync_tables.py`; `check_docs.py` compares rendered tables
 - [x] `balance-data.json` migrated to per-part `data.yaml`
-- [ ] Balance checks ported to JUnit
-- [ ] Asset pipeline: placeholder import from chosen concept art, angle sets, atlases
+- [x] Balance checks ported to JUnit (`BalanceTest`, `ActPlaythroughTest` in `content`; `tools/balance.py` prints the balancing sheet)
+- [x] Asset pipeline: placeholder import from chosen concept art, angle sets, atlases (`:pipeline:importPlaceholders` with `PlaceholderSprites`, `AngleSetGenerator`, `FinalArt`; `packAtlases` with `AtlasPacker` and `AtlasBudget`; see [production](../../art-direction/production/README.md#implementation))
 - [x] CI: build, format check, tests on three OSes; release bundles on tags
 - [x] Smoke test of the desktop build in CI
 
@@ -895,3 +899,21 @@ Screenshot tests are left out until there is a need.
   the recorded unlimited mixes through it on a loopback device: peaks 1.00, unchanged until the
   first over (1 ms late), afterwards on average 0.1 dB lower for a few seconds (see
   [audio](../../audio/README.md#master-limiter)).
+- 2026-10-05: M4 part H docs reconciliation: the asset pipeline (placeholder import, angle sets,
+  atlases with the per-level budget) is built; ticked.
+- 2026-10-05: M4 part H balance tests: `BalanceTest` (content) buys the balance plan visit by visit
+  through the shop's own rules (`Hangar`, the test helper `BalancePlan`) with each level's typical
+  haul as income and checks the purchases are in the shop, affordable and within the generator's
+  output, the plan's fit against the reference DPS (0.75–1.33 ×, Levels 01–03 up to 1.75 × as the
+  accepted onboarding exception), and every enemy's time to kill at its first level and bounty
+  against the balancing basis (bosses and `huge` set pieces at the effective 0.6 × DPS; a list of
+  deviations pending a decision). `ActPlaythroughTest` flies Act 1 as one campaign per difficulty
+  with the test autopilot (now public): the plan bought at each visit, repairs, retries as the
+  mission failed screen offers them, a save round trip around every visit, and the act's outro
+  after Level 07; about 2 s for all three. `tools/balance.py` lost its `balance-data.json` hook,
+  reads the enemy and level data and exits 0.
+- 2026-10-05: M4 part H: the armour data gained the low-armour `radio` line (`ArmourData.radio`, a
+  `LevelData.RadioLine`); `Defences` sets off `SimEvents.Type.ARMOUR_CRITICAL` once per attempt
+  at `Defences.CRITICAL_SHARE` (15 %, shared by the game's `LowArmour`) and hashes its flag only
+  once set, so replays that never get that low keep their hashes; the level screen queues the line
+  urgent and `VoiceLines` lists it (source `armour`).

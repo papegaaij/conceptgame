@@ -13,3 +13,10 @@ Scrolling credits column with placeholder roles, the CC-BY sound attributions an
 Prompt: `late 1990s game end credits, 16:9, a tall translucent glass column scrolling upwards over a dimmed space scene with Earth, the chrome 'TERRAN VANGUARD' logo leaving the top, amber role headers and white names in a chunky pixel font, a section 'SOUND EFFECTS - CC-BY' with title, author and licence per line in cyan, faded top and bottom edges`
 
 Negative prompt: the common negative prompt above.
+
+## credits-screen-capture-r26-a
+
+Capture of the built credits screen, not a generated mockup: the game on its own xvfb display
+(`--bench`, a temporary `--settings` file), main menu → CREDITS, the roll run on to the sound-effect
+attributions, saved with F12. The roll is `assets/ui/credits.txt`, written from
+[CREDITS.md](../../../../CREDITS.md) by `./gradlew :pipeline:credits`.

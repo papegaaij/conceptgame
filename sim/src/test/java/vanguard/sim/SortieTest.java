@@ -18,7 +18,6 @@ import static vanguard.sim.WaveSpec.Entry.SIDES;
 import static vanguard.sim.WaveSpec.Formation.LINE_ABREAST;
 import static vanguard.sim.WaveSpec.Formation.SNAKE;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -338,6 +337,29 @@ class SortieTest {
     }
 
     @Test
+    void anEnemyShotTellsItsBulletsDamageSoAMediumBulletSoundsHeavy() {
+        assertEquals(List.of(6), firedValues(6));
+        assertEquals(List.of(2), firedValues(2.5));
+    }
+
+    /** The distinct values of the ENEMY_FIRED events of a Needler whose thorns deal {@code damage}. */
+    private static List<Integer> firedValues(double damage) {
+        var needler = TestSpecs.needler(EnemyGun.aimed(0.5, 0, 1, 150, damage, false));
+        var sortie = sortie(level(20, List.of(wave(0, LINE_ABREAST, needler, 1, FRONT, NONE))));
+        List<Integer> values = new ArrayList<>();
+        for (int i = 0; i < 6 * SimStep.PER_SECOND; i++) {
+            sortie.step(Command.NONE);
+            SimEvents events = sortie.events();
+            for (int e = 0; e < events.size(); e++) {
+                if (events.type(e) == SimEvents.Type.ENEMY_FIRED && !values.contains(events.value(e))) {
+                    values.add(events.value(e));
+                }
+            }
+        }
+        return values;
+    }
+
+    @Test
     void thornsHitTheShield() {
         var sortie = sortie(level(20, List.of(needlerAt(0))));
 
@@ -577,22 +599,25 @@ class SortieTest {
 
     @Test
     void steppingDoesNotAllocate() {
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        var sortie = new Sortie(3, TestSpecs.LOADOUT, mixedLevel(), TestSpecs.RULES, TestSpecs.FULL_ARMOUR);
-        for (int i = 0; i < 600; i++) {
-            sortie.step(Pilot.commands(i));
-        }
-        long before = threads.getCurrentThreadAllocatedBytes();
-        for (int i = 600; i < 600 + 3600; i++) {
-            sortie.step(Pilot.commands(i));
-        }
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
+        long allocated = Allocations.least(
+                () -> {
+                    var sortie = new Sortie(3, TestSpecs.LOADOUT, mixedLevel(), TestSpecs.RULES, TestSpecs.FULL_ARMOUR);
+                    for (int i = 0; i < 600; i++) {
+                        sortie.step(Pilot.commands(i));
+                    }
+                    return sortie;
+                },
+                sortie -> {
+                    for (int i = 600; i < 600 + 3600; i++) {
+                        sortie.step(Pilot.commands(i));
+                    }
+                });
 
-        assertTrue(allocated < 1024, "3600 steps allocated " + allocated + " bytes");
+        assertEquals(0, allocated, "3600 steps allocated " + allocated + " bytes");
     }
 
     /** Snakes, a V of Needlers that hover and fire, and a circle, repeating every 10 s. */
-    private static LevelScript mixedLevel() {
+    static LevelScript mixedLevel() {
         List<WaveSpec> waves = new ArrayList<>();
         for (int t = 0; t < 70; t += 10) {
             waves.add(wave(t + 1, SNAKE, SKITTER, 6, FRONT, LEFT));

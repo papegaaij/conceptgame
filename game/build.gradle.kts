@@ -26,6 +26,8 @@ tasks.test {
     inputs.dir(rootProject.layout.projectDirectory.dir("assets/sprites/portraits")).withPropertyName("portraits")
     inputs.dir(rootProject.layout.projectDirectory.dir("assets/sprites/intel")).withPropertyName("intel")
     inputs.dir(rootProject.layout.projectDirectory.dir("assets/ui/briefing")).withPropertyName("briefingImages")
+    // CreditsLayoutTest lays out the credits roll.
+    inputs.file(rootProject.layout.projectDirectory.file("assets/ui/credits.txt")).withPropertyName("creditsRoll")
     // RadioTimelineTest's voiced run reads the voice lengths.
     inputs.files(rootProject.fileTree("assets/voice")).withPropertyName("voice")
 }

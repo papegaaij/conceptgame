@@ -42,6 +42,8 @@ class PortraitsTest {
                         secret.radio().speaker(), secret.radio().expression().orElse(Expression.NEUTRAL));
             }
         }
+        LevelData.RadioLine lowArmour = content.armour().radio();
+        assertRadio(lowArmour.speaker(), lowArmour.expression().orElse(Expression.NEUTRAL));
     }
 
     @Test

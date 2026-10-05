@@ -1,10 +1,10 @@
 ---
 title: Retry
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../player/armor, ../../player/shields, ../difficulty, ../saves]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Retry
@@ -165,3 +165,4 @@ new input recording starts there. Retrying from the boss does not count as a har
 - 2026-10-04: Back on the mission failed screen (user decision): Esc and the gamepad's back
   button open the Quit to main menu question from any item, as choosing Quit does; Back again or
   No stays on the screen. Test: `MissionFailedExitTest`.
+- 2026-10-05: M4 part H docs reconciliation: implementation `done`; every item is ticked (the boss checkpoint since M4 part E).

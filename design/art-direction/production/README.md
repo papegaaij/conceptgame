@@ -120,6 +120,15 @@ runtime, since that would move the top-left key light. The same holds for set pi
 that would be drawn mirrored uses its own `-mirrored` piece, rendered with the layout mirrored and
 the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning platform).
 
+## Concept art
+
+Game captures of the production batches that span several parts; prompts:
+[concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/art-batch-capture-r26-a.png](concept/art-batch-capture-r26-a.png) | Round 26 (M4 part H batch): the Skitter, Needler and Scuttler deaths, the Smart Bomb and the Act 1 title card over its still, captured from `--bench` runs on Xvfb | proposed |
+
 ## Implementation
 
 - [x] `tools/art/` with the production render path (angle-set renderer, pivot files, `Source` chunk)
@@ -141,12 +150,14 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
 - [x] M4 briefing images: the four images of Levels 03 and 04 (`tools/art/briefing_images.py`), review sheet for round 20; approved as final there
 - [x] M4 part E (Level 05, M4 part E batch): the Gorgon Frigate (`tools/art/gorgon_frigate.py`) and its break-up at its death (`tools/art/gorgon_frigate_death.py`), the Polyp Mortar with its acid blob, marker and death and the mass-driver sled (`tools/art/l05_hazards.py`), the props from the chosen concepts (rocks, ore canister, acid splash decal; `tools/art/l05_props.py`) and Level 05's briefing images (`tools/art/briefing_images.py`) rendered, review files for round 21; approved as final there (the frigate's death as the redo, item 11); Level 05's own backdrop (`tools/art/backdrop_l05.py`) approved as final in round 22
 - [x] M4 part F (Level 06, M4 part F batch): the Mantis (`tools/art/mantis.py`) and its beam b (`tools/art/mantis_beam.py`), the Coilwyrm at 48 headings (`tools/art/coilwyrm.py`), the darkness's glow frames, flare shell and light shapes (`tools/art/l06_darkness.py`), the Level 06 backdrop (`tools/art/backdrop_l06.py`), the Mantis's and Coilwyrm's intel portraits (`tools/art/intel.py`) and the props from the chosen concepts (ore cart b, survey cache a, data core terminal b and the data core pickup; `tools/art/l06_props.py`) rendered; approved as final in round 23 (the Level 06 briefing images accepted, to be re-rendered for the Coilwyrm's 0.5 spacing and the beam from the Mantis's head)
-- [ ] M4 and M5 parts final, each with its milestone (a round per M4 part, user decision)
+- [x] M4 part G (Level 07 and the act end): the Brood Carrier with its turn (`tools/art/brood_carrier.py`), its death and drifting carcass (`tools/art/brood_carrier_death.py`), the Level 07 backdrop (`tools/art/backdrop_l07.py`), the Level 07 briefing and Act 1 outro images; approved as final in round 25 (the lifeboat tow's production sprites from the chosen b, `tools/art/lifeboat.py`, made at the close)
+- [ ] M4 part H's batch final (concept round 26: the Act 1 title-card still, the remaining death effects, the Smart Bomb's flash and ring, the boss bar, the wave banners, the ship's shadow and damage frames); then every M4 part is final (a round per M4 part, user decision)
+- [ ] M5 parts final — **later: M5** (a round per level, as in M4)
 
 ## Open questions
 
 - Already open elsewhere, they shape this plan: [perspective towers](../README.md#open-questions),
-  [tracker modules vs rendered audio and the 28-track scope](../../audio/music/README.md#open-questions).
+  [the 28-track scope](../../audio/music/README.md#open-questions).
 
 ## Decisions
 
@@ -309,3 +320,5 @@ the key light fixed (Level 01: dock frame, bridge crane, crane jib, burning plat
   (`tools/art/l06_props.py`: `ore-cart`, `survey-cache` with its `-glint`, `data-core-terminal`
   with its `-glow`, `pickup-data-core`), as Level 05's props in round 21. Atlases after it: the
   shared page 79 % of 2048×1024, Level 06's unit page 64 % of 2048², the level at 3 of 6 pages.
+- 2026-10-05: M4 part H docs reconciliation: the "M4 and M5 parts final" item is split: part G's
+  round 25 is ticked, part H's batch (round 26) stays open in M4, the M5 parts are tagged M5.

@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import vanguard.content.Content;
 import vanguard.content.ContentLoader;
 import vanguard.content.Difficulty;
+import vanguard.content.Expression;
+import vanguard.content.LevelData;
 import vanguard.content.SimSpecs;
 import vanguard.content.voice.VoiceLines;
 import vanguard.game.audio.VorbisFile;
@@ -25,7 +27,9 @@ import vanguard.sim.SimStep;
  * secret, a convoy's first hit and loss, the Brood Carrier's phases, …), starts none of them more
  * than a second after its time. Event lines wait for a gap and may be dropped as stale; they never
  * push a timed line back. Every run is played with each fit a cue can require (a special, a homing
- * weapon, both, neither): a cue the fit does not allow is never queued, as in the game.
+ * weapon, both, neither): a cue the fit does not allow is never queued, as in the game. Okafor's
+ * low-armour line (design/player/armor), which the game queues as urgent, plays at once wherever it
+ * falls and every timed line still plays after it.
  */
 class RadioTimelineTest {
     private static final Content CONTENT = ContentLoader.fromClasspath();
@@ -64,6 +68,12 @@ class RadioTimelineTest {
      * once the Choir's line has closed.
      */
     private static final Map<String, Set<Double>> FOLLOWING = Map.of(LEVEL_01, Set.of(161.0));
+
+    /** Okafor's low-armour line, queued urgent by the game at the first armour hit to 15 % or below. */
+    private static final LevelData.RadioLine LOW_ARMOUR = CONTENT.armour().radio();
+
+    private static final String LOW_ARMOUR_EXPRESSION =
+            LOW_ARMOUR.expression().orElse(Expression.NEUTRAL).slug();
 
     /** An event a player sets off at {@code t}. */
     private record Event(double t, CueTrigger trigger, String subject) {}
@@ -233,10 +243,54 @@ class RadioTimelineTest {
         worst.forEach((line, late) -> System.out.printf("voiced line late by %.1f s: %s%n", late, line));
     }
 
+    /**
+     * The low-armour line, every 10 s of each level with each fit and its voice: it opens in the step
+     * it is queued (urgent: it interrupts), and every timed line still plays; the timed lines it
+     * pushes back by more than a second are printed (an urgent line may delay them, by design).
+     */
+    @Test
+    void theLowArmourLineInterruptsAtOnceAndEveryTimedLineStillPlays() {
+        assertTrue(
+                voiceSeconds(LOW_ARMOUR.speaker(), LOW_ARMOUR.line(), LOW_ARMOUR_EXPRESSION) > 0,
+                "the low-armour line has its voice");
+        Map<String, Double> worst = new java.util.TreeMap<>();
+        RUNS.keySet().forEach(level -> {
+            LevelScript script = SimSpecs.level(CONTENT, level, Difficulty.MEDIUM);
+            for (double at = 5; at < script.seconds(); at += 10) {
+                for (int fitted : FITS) {
+                    double[] opened = {Double.NaN};
+                    List<Played> played = play(script, List.of(), fitted, true, at, opened);
+                    String where = level + " with the line at t=" + at + " (fit " + fitted + "): ";
+                    assertTrue(
+                            opened[0] - at <= 2 * SimStep.SECONDS,
+                            where + "the line opens at once, not at " + opened[0]);
+                    for (Played line : played) {
+                        LevelScript.RadioCue cue = line.cue();
+                        if (cue.trigger() != CueTrigger.TIME || !cue.allowedWith(fitted)) {
+                            continue;
+                        }
+                        assertTrue(line.opened().isPresent(), where + "the timed line at t=" + cue.t() + " plays");
+                        double late = line.opened().get() - cue.t();
+                        if (late > MAX_LATE_SECONDS
+                                && !FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
+                            worst.merge(level + " t=" + cue.t() + " " + cue.speaker(), late, Math::max);
+                        }
+                    }
+                }
+            }
+        });
+        worst.forEach(
+                (line, late) -> System.out.printf("pushed back by the low-armour line: %.1f s: %s%n", late, line));
+    }
+
     /** The voice length of a radio line from its rendered file, 0 without one. */
     private static float voiceSeconds(LevelScript.RadioCue cue) {
-        VoiceLines.VoiceLine line =
-                VOICES.get(VoiceLines.indexKey(cue.speaker(), VoiceLines.allyLine(cue.line(), 2), cue.expression()));
+        return voiceSeconds(cue.speaker(), VoiceLines.allyLine(cue.line(), 2), cue.expression());
+    }
+
+    /** The voice length of {@code speaker}'s {@code text} in {@code expression} from its rendered file, 0 without one. */
+    private static float voiceSeconds(String speaker, String text, String expression) {
+        VoiceLines.VoiceLine line = VOICES.get(VoiceLines.indexKey(speaker, text, expression));
         if (line == null) {
             return 0;
         }
@@ -282,6 +336,22 @@ class RadioTimelineTest {
 
     /** As the game queues them with {@code fitted} on the ship: a cue it does not allow never starts. */
     private static List<Played> play(LevelScript script, List<Event> events, int fitted, boolean voiced) {
+        return play(script, events, fitted, voiced, Double.NaN, new double[1]);
+    }
+
+    /**
+     * As above, with the low-armour line queued urgent at {@code lowArmourAt} (NaN for never);
+     * {@code lowArmourOpened[0]} gets the time its message opened.
+     */
+    private static List<Played> play(
+            LevelScript script,
+            List<Event> events,
+            int fitted,
+            boolean voiced,
+            double lowArmourAt,
+            double[] lowArmourOpened) {
+        int lowArmourTick = Double.isNaN(lowArmourAt) ? -1 : SimStep.ticks(lowArmourAt);
+        List<String> lowArmourLines = RadioQueue.wrap(LOW_ARMOUR.line());
         RadioSchedule schedule = new RadioSchedule(script);
         RadioQueue radio = new RadioQueue();
         List<LevelScript.RadioCue> cues = script.radio();
@@ -314,9 +384,25 @@ class RadioTimelineTest {
                             voiced ? voiceSeconds(cue) : 0);
                 }
             }
+            if (tick == lowArmourTick) {
+                radio.add(
+                        LOW_ARMOUR.speaker(),
+                        LOW_ARMOUR.speaker(),
+                        LOW_ARMOUR_EXPRESSION,
+                        LOW_ARMOUR.line(),
+                        LOW_ARMOUR.distorted().orElse(false),
+                        RadioQueue.Priority.URGENT,
+                        Optional.empty(),
+                        voiced ? voiceSeconds(LOW_ARMOUR.speaker(), LOW_ARMOUR.line(), LOW_ARMOUR_EXPRESSION) : 0);
+            }
             float untilTimed = tick < end ? schedule.untilTimed(seconds) : Float.POSITIVE_INFINITY;
             if (radio.update((float) SimStep.SECONDS, untilTimed) == RadioQueue.Change.OPENED) {
                 RadioQueue.Message message = radio.current().orElseThrow();
+                if (Double.isNaN(lowArmourOpened[0])
+                        && message.speaker().equals(LOW_ARMOUR.speaker())
+                        && message.lines().equals(lowArmourLines)) {
+                    lowArmourOpened[0] = seconds;
+                }
                 for (int i : queued) {
                     if (opened[i] == null
                             && cues.get(i).speaker().equals(message.speaker())

@@ -6,13 +6,15 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import java.util.List;
 import java.util.Locale;
 import vanguard.content.campaign.Flight;
+import vanguard.game.level.LowArmour;
 import vanguard.sim.Defences;
 import vanguard.sim.Sortie;
 import vanguard.sim.SpecialSlot;
 
 /**
- * The right HUD panel (design/ui/hud, ship): armour and shield bars with their numbers (the shield
- * bar flickers while it is down after a break), the spare power with its shield regen bonus (lit
+ * The right HUD panel (design/ui/hud, ship): armour and shield bars with their numbers (the armour
+ * gauge flashes red at 30 % and faster at 15 %, {@link LowArmour}; the shield bar flickers while it
+ * is down after a break), the spare power with its shield regen bonus (lit
  * up during an overdrive), the four weapon slots with their level pips and the overdrive timer,
  * and the special's row in the same style: its 16 px hangar icon, name and charges, greyed while
  * its strike flies or with no charge left, flashing red when the special button is denied. Under
@@ -36,10 +38,20 @@ final class ShipPanel {
     private static final int DENIED_FRAMES = 30;
 
     private static final int DENIED_PHASE_FRAMES = 5;
+    /**
+     * The armour gauge's red flash: lit for this many simulation steps, then dark as long, at 30 %
+     * and at 15 %: half the low-armour beep's period (1.2 s and 0.6 s, FlightSounds), one flash a beep.
+     */
+    static final int LOW_ARMOUR_PHASE_TICKS = 36;
+
+    static final int CRITICAL_ARMOUR_PHASE_TICKS = 18;
     private static final float GREYED = 0.35f;
 
     private static final Color ARMOUR = Color.valueOf("FF4400");
     private static final Color ARMOUR_EMPTY = Color.valueOf("2A0B00");
+    /** The low-armour flash laid over the armour gauge: the HUD's alert red, see-through. */
+    private static final Color ALARM = new Color(HudKit.ALERT.r, HudKit.ALERT.g, HudKit.ALERT.b, 0.45f);
+
     private static final Color SHIELD = Color.valueOf("00FFFF");
     private static final Color SHIELD_EMPTY = Color.valueOf("002A2A");
     private static final Color POWER = Color.valueOf("40FF80");
@@ -89,9 +101,20 @@ final class ShipPanel {
         kit.rightPanel(batch);
         int x = X + HudKit.INSET;
         int y = HudKit.TOP - HudKit.INSET;
-        gauge(batch, "ARMOUR", defences.armour(), defences.maxArmour(), ARMOUR, ARMOUR_EMPTY, x, y, true);
+        boolean alarm = armourFlash(LowArmour.of(defences), sortie.tick());
+        gauge(batch, "ARMOUR", defences.armour(), defences.maxArmour(), ARMOUR, ARMOUR_EMPTY, x, y, true, alarm);
         boolean flicker = defences.broken() && frame / FLICKER_FRAMES % 2 == 0;
-        gauge(batch, "SHIELD", defences.shield(), defences.maxShield(), SHIELD, SHIELD_EMPTY, x, y - 52, !flicker);
+        gauge(
+                batch,
+                "SHIELD",
+                defences.shield(),
+                defences.maxShield(),
+                SHIELD,
+                SHIELD_EMPTY,
+                x,
+                y - 52,
+                !flicker,
+                false);
         power(batch, sparePower, regenBonus, sortie.overdriveSeconds() > 0, x, y - 104);
         weapons(batch, weapons, sortie.overdriveSeconds(), x, y - 148);
         special(batch, sortie.special(), x, y - 258);
@@ -188,6 +211,18 @@ final class ShipPanel {
         }
     }
 
+    /**
+     * Whether the armour gauge shows its red flash at {@code tick}: never above 30 %, then lit and
+     * dark in turns, faster at 15 % (design/ui/hud, right panel), lit from the stage's first step.
+     */
+    static boolean armourFlash(LowArmour stage, long tick) {
+        return switch (stage) {
+            case NONE -> false;
+            case LOW -> tick / LOW_ARMOUR_PHASE_TICKS % 2 == 0;
+            case CRITICAL -> tick / CRITICAL_ARMOUR_PHASE_TICKS % 2 == 0;
+        };
+    }
+
     /** The HUD's short weapon names: a pod is named by what it fires ("Micro-missile"). */
     static String hudName(String name) {
         String shortName = name.endsWith(" Pod") ? name.substring(0, name.length() - 4) : name;
@@ -203,10 +238,21 @@ final class ShipPanel {
             Color empty,
             int x,
             int y,
-            boolean lit) {
+            boolean lit,
+            boolean alarm) {
         kit.label(batch, name, x, y);
         kit.textRight(
-                batch, kit.body, Integer.toString((int) Math.ceil(value)), HudKit.LABEL, x, y, HudKit.INNER_WIDTH);
+                batch,
+                kit.body,
+                Integer.toString((int) Math.ceil(value)),
+                alarm ? HudKit.ALERT : HudKit.LABEL,
+                x,
+                y,
+                HudKit.INNER_WIDTH);
         kit.segments(batch, full, empty, x, y - 34, HudKit.INNER_WIDTH, BAR_HEIGHT, lit ? value / max : 0);
+        if (alarm) {
+            kit.fill(batch, ALARM, x, y - 34, HudKit.INNER_WIDTH, BAR_HEIGHT);
+            kit.glow(batch, HudKit.ALERT, x - 4, y - 38, HudKit.INNER_WIDTH + 8, BAR_HEIGHT + 8);
+        }
     }
 }

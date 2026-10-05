@@ -22,7 +22,7 @@ import vanguard.content.VoiceData;
 /**
  * The spoken lines (design/audio/voice, Offline pipeline): every radio cue of every level (with its
  * easy and hard variants and one line per convoy unit for {@code {ally}}), the secrets' lines, the
- * specials' calls and every page of the levels' and acts' briefings and of the acts' outros (spoken
+ * specials' calls, the low-armour line (source {@code armour}) and every page of the levels' and acts' briefings and of the acts' outros (spoken
  * dry, as briefings), each with the key its rendered file is named by. The renderer (tools/art/voice.py, through {@code :pipeline:voiceLines}) and
  * the game share this list, so the game finds a line's file by the same key.
  */
@@ -183,6 +183,17 @@ public final class VoiceLines {
         VoiceData voices = content.voices();
         SpecialsData.Radio call = content.specials().airstrike().radio();
         add(lines, line(voices, call.speaker(), call.line(), Expression.NEUTRAL, false, Filter.RADIO, "specials"));
+        LevelData.RadioLine lowArmour = content.armour().radio();
+        add(
+                lines,
+                line(
+                        voices,
+                        lowArmour.speaker(),
+                        lowArmour.line(),
+                        lowArmour.expression().orElse(Expression.NEUTRAL),
+                        false,
+                        lowArmour.distorted().orElse(false) ? Filter.DISTORTED : Filter.RADIO,
+                        "armour"));
         for (Map.Entry<String, ActData> act : new TreeMap<>(content.acts()).entrySet()) {
             briefing(lines, voices, act.getValue().briefing(), act.getKey() + " briefing");
             act.getValue().outro().ifPresent(outro -> briefing(lines, voices, outro.pages(), act.getKey() + " outro"));

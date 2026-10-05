@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +11,7 @@ import java.util.TreeMap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import vanguard.sim.Allocations;
 import vanguard.sim.Armament;
 import vanguard.sim.BossSpec;
 import vanguard.sim.Layer;
@@ -456,15 +456,10 @@ class Level07Test {
 
     @Test
     void steppingAWholeLevelDoesNotAllocate() {
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        run(sortie(content, 2185, Difficulty.HARD, planLoadout(content, Difficulty.HARD)));
-        Sortie sortie = sortie(content, 2185, Difficulty.HARD, planLoadout(content, Difficulty.HARD));
+        long allocated = Allocations.least(
+                () -> sortie(content, 2185, Difficulty.HARD, planLoadout(content, Difficulty.HARD)), Level07Test::run);
 
-        long before = threads.getCurrentThreadAllocatedBytes();
-        run(sortie);
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
-
-        assertTrue(allocated < 1024, "the level allocated " + allocated + " bytes");
+        assertEquals(0, allocated, "the level allocated " + allocated + " bytes");
     }
 
     @Test

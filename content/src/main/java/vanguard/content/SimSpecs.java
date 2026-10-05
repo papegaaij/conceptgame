@@ -21,6 +21,7 @@ import vanguard.sim.Layer;
 import vanguard.sim.LevelResult;
 import vanguard.sim.LevelScript;
 import vanguard.sim.Loadout;
+import vanguard.sim.Magnet;
 import vanguard.sim.PickupRules;
 import vanguard.sim.PickupType;
 import vanguard.sim.Plating;
@@ -136,6 +137,22 @@ public final class SimSpecs {
      */
     public static boolean flies(Content content, String weapon) {
         return delivery(content.weapon(weapon)).isPresent();
+    }
+
+    /** The utility module the simulation flies so far (design/player/systems): the Pickup magnet. */
+    public static final String PICKUP_MAGNET = "Pickup magnet";
+
+    /** Whether the simulation flies the utility module of this name; the others follow in M5. */
+    public static boolean fliesUtility(String name) {
+        return name.equals(PICKUP_MAGNET);
+    }
+
+    /** The Pickup magnet at {@code level} (1–3) from design/player/systems/data.yaml. */
+    public static Magnet magnet(Content content, int level) {
+        SystemsData.Magnet numbers = named(content.systems().utility(), SystemsData.Utility::name, PICKUP_MAGNET)
+                .magnet()
+                .orElseThrow(() -> new IllegalArgumentException(PICKUP_MAGNET + " has no magnet numbers"));
+        return new Magnet(numbers.radius().get(level - 1), numbers.pull().get(level - 1));
     }
 
     /** The specials the simulation flies so far (design/player/specials): the Airstrike and the Smart Bomb. */

@@ -149,7 +149,15 @@ final class OptionTabs {
                                 (target, chip) -> target.change(gameplay(
                                         target.settings(),
                                         target.settings().gameplay().withFlashReduction(chip == 1))),
-                                List.of("", "TONES DOWN THE WHITE HIT AND INVULNERABILITY FLASHES."))),
+                                List.of("", "TONES DOWN THE WHITE HIT AND INVULNERABILITY FLASHES.")),
+                        new OptionRow.Choice(
+                                "CREDIT NUMBERS",
+                                OFF_ON,
+                                target -> target.settings().gameplay().creditNumbers() ? 1 : 0,
+                                (target, chip) -> target.change(gameplay(
+                                        target.settings(),
+                                        target.settings().gameplay().withCreditNumbers(chip == 1))),
+                                List.of("", "SHOWS THE CREDITS OF EVERY PICKUP WHERE IT WAS TAKEN."))),
                 "EDGE WARNINGS FOR SIDE AND REAR WAVES ARE ALWAYS ON (READABILITY RULE). DIFFICULTY IS CHOSEN PER"
                         + " CAMPAIGN WHEN STARTING A NEW GAME.");
     }

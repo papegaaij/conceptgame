@@ -1,11 +1,21 @@
 # The expected purchases of a typical medium player at each hangar visit, for Acts 1-2.
-# Used only by tools/balance.py to check affordability, power load and DPS; not a rule, and not
-# read by the game. Every other number comes from the parts' data.yaml files.
+# Read by the content tests BalanceTest (affordability, power load and DPS per visit) and
+# ActPlaythroughTest (Act 1 flown with these purchases on every difficulty), and printed by
+# tools/balance.py as the balancing sheet; not a rule, and not read by the game. Every other number
+# comes from the parts' data.yaml files. The free charges a special gives at its unlock (the
+# Airstrike's first, at L04) come on top of the charges bought here.
 #
 # Key = the level that follows the visit. Actions:
 #   start: the starting loadout (front weapon and level; core = index into the part's model list)
 #   buy: [slot, weapon]   upgrade: [slot, level]   sell: [slot]   core: [kind, index into its list]
 #   utility: [module, level]   charges: [special, count]
+# An optional `difficulties: {hard: {"NN": {...}}}` adds purchases to a visit on another
+# difficulty (ActPlaythroughTest); none are needed today: Act 1 is flown on every difficulty with the
+# medium plan.
+# Hard (BalanceTest prints the sheet on hard too: income × 0.9, repairs 10 cr a point): after the
+# plan's purchases the credits do not always pay the repairs of repair_points_per_level; accepted,
+# hard is meant to be tighter: a typical player there takes less damage or skips some repairs
+# (user decision 2026-10-05, ../systems/economy/README.md).
 difficulty: medium        # repair costs come from ../systems/difficulty/data.yaml
 repair_points_per_level: 15
 plan:
@@ -24,4 +34,4 @@ plan:
   "11": {upgrade: [[front, 4]]}
   "12": {sell: [wing_l, wing_r], buy: [[wing_l, micro-missile-pod], [wing_r, micro-missile-pod]]}
   "13": {core: [[armor, 2]], upgrade: [[wing_l, 2], [wing_r, 2]]}
-  "14": {charges: [[Airstrike, 2]]}
+  "14": {charges: [[Airstrike, 1]]}  # with the free charge at L04 it carries its most, 4

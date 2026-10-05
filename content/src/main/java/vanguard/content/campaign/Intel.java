@@ -5,7 +5,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import vanguard.content.Content;
 import vanguard.content.LevelData;
@@ -128,8 +127,11 @@ public record Intel(
                 .getKey();
     }
 
-    /** Varga's line for the sensor level. */
-    public Optional<String> varga() {
+    /**
+     * Varga's line for the sensor level: what her sensors reveal at that level, from the no-sensor
+     * teaser to the L3 tip (design/ui/hangar, Intel).
+     */
+    public String varga() {
         return profile.vargaLine(sensor);
     }
 

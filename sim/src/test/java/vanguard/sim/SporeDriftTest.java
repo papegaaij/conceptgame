@@ -13,7 +13,6 @@ import static vanguard.sim.TestSpecs.wave;
 import static vanguard.sim.WaveSpec.Edge.NONE;
 import static vanguard.sim.WaveSpec.Entry.FRONT;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -629,7 +628,6 @@ class SporeDriftTest {
 
     @Test
     void steppingThroughTheNewMechanicsDoesNotAllocate() {
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
         LevelScript script = level(
                 30,
                 List.of(
@@ -656,19 +654,12 @@ class SporeDriftTest {
                         chunk(1, 360, new Hitbox(32, 28), -30, 6, 0)),
                 List.of(piece(new Hitbox(100, 200), 12, Optional.of(EnemyGun.aimed(1, 0, 2, 130, 6, false)))),
                 0);
-        // A first run loads and initialises every class the mechanics touch.
-        Sortie warmUp = sortie(script);
-        for (int i = 0; i < SimStep.ticks(20); i++) {
-            warmUp.step(SortieTest.Pilot.commands(i));
-        }
-        var sortie = sortie(script);
+        long allocated = Allocations.least(() -> sortie(script), sortie -> {
+            for (int i = 0; i < SimStep.ticks(20); i++) {
+                sortie.step(SortieTest.Pilot.commands(i));
+            }
+        });
 
-        long before = threads.getCurrentThreadAllocatedBytes();
-        for (int i = 0; i < SimStep.ticks(20); i++) {
-            sortie.step(SortieTest.Pilot.commands(i));
-        }
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
-
-        assertTrue(allocated < 1024, "20 s allocated " + allocated + " bytes");
+        assertEquals(0, allocated, "20 s allocated " + allocated + " bytes");
     }
 }

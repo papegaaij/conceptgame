@@ -15,6 +15,9 @@ threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Th
   boss: none
   varga:
     none: The far side is dark, Lancer. Snipers at the edges, and something long that comes round behind you.
+    l1: Most come from ahead. The dangerous ones hold the edges or come up behind you. You can't shoot backwards yet.
+    l2: Mantis snipers sweep beams from the edges. Cut a Coilwyrm and the tail grows a head. Aim for the head.
+    l3: Fire sideways. A cache in a dark crater, hit only while lit, and a terminal at the gate.
   notes:
     Dominant layers: '`air`, `ground` (turrets and mortars, seen only by their glow)'
     Attack directions: '{directions} by enemy count (the Skitter streams come from the front); by threat **the sides and rear**: 8 Mantis at the edges, and every Coilwyrm but the first strikes from the bottom edge (two loop-backs, one rear entry)'

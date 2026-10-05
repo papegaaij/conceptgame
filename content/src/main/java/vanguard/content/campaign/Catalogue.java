@@ -56,6 +56,8 @@ public final class Catalogue {
      * @param draws the power draw at each level from L1, MW
      * @param unlock the level from whose hangar visit the item is in the shop
      * @param stats the shown numbers at each level from L1
+     * @param forSale false keeps it out of the shop although it is unlocked: a module whose effects
+     *     come later (the Targeting computer until M5, design/systems/economy)
      */
     public record Item(
             ItemKind kind,
@@ -66,7 +68,22 @@ public final class Catalogue {
             List<Double> draws,
             int unlock,
             List<String> traits,
-            List<Map<Stat, Double>> stats) {
+            List<Map<Stat, Double>> stats,
+            boolean forSale) {
+        /** An item the shop sells once it is unlocked. */
+        public Item(
+                ItemKind kind,
+                String id,
+                String name,
+                int price,
+                List<Integer> upgrades,
+                List<Double> draws,
+                int unlock,
+                List<String> traits,
+                List<Map<Stat, Double>> stats) {
+            this(kind, id, name, price, upgrades, draws, unlock, traits, stats, true);
+        }
+
         public Item {
             upgrades = List.copyOf(upgrades);
             draws = List.copyOf(draws);
@@ -192,7 +209,8 @@ public final class Catalogue {
                             List.of(),
                             IntStream.range(0, levels)
                                     .mapToObj(i -> Map.<Stat, Double>of())
-                                    .toList()));
+                                    .toList(),
+                            module.sold()));
         }
         for (var special : content.specials().specials()) {
             items.get(ItemKind.SPECIAL)

@@ -3,13 +3,13 @@ package vanguard.content;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import vanguard.sim.Allocations;
 import vanguard.sim.LevelResult;
 import vanguard.sim.LevelScript;
 import vanguard.sim.Loadout;
@@ -61,9 +61,9 @@ class Level03Test {
         int total = kills + setPieces + drops + crates + level.secondary().credits();
 
         assertEquals(790, kills);
-        assertEquals(190, setPieces);
+        assertEquals(113, setPieces);
         // The budget is the typical haul now (TypicalHaulTest); a perfect run earns well above it.
-        assertEquals(1_305, total, "kills " + kills + ", Leviathan " + setPieces + ", drops " + drops);
+        assertEquals(1_228, total, "kills " + kills + ", Leviathan " + setPieces + ", drops " + drops);
     }
 
     @Test
@@ -118,7 +118,7 @@ class Level03Test {
                     case HARD -> 663;
                 },
                 hp);
-        assertEquals(190, leviathan.bounty());
+        assertEquals(113, leviathan.bounty());
         assertEquals(25, leviathan.contactDamage());
         assertEquals(java.util.Optional.of(PickupType.LARGE_SALVAGE), leviathan.drop());
     }
@@ -226,16 +226,9 @@ class Level03Test {
 
     @Test
     void steppingAWholeLevelDoesNotAllocate() {
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        // A first run loads and initialises every class the level touches.
-        fly(sortie(content, 2185, Difficulty.HARD));
-        Sortie sortie = sortie(content, 2185, Difficulty.HARD);
+        long allocated = Allocations.least(() -> sortie(content, 2185, Difficulty.HARD), Level03Test::fly);
 
-        long before = threads.getCurrentThreadAllocatedBytes();
-        fly(sortie);
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
-
-        assertTrue(allocated < 1024, "the level allocated " + allocated + " bytes");
+        assertEquals(0, allocated, "the level allocated " + allocated + " bytes");
     }
 
     @Test

@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import vanguard.sim.BossSpec;
 import vanguard.sim.LevelScript;
-import vanguard.sim.PlayField;
 import vanguard.sim.SetPiece;
 
 /**
@@ -29,24 +28,16 @@ import vanguard.sim.SetPiece;
  */
 final class BossLooks {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
-    private static final Color BAR_FRAME = Color.valueOf("0A0C1A");
-    private static final Color BAR_EMPTY = Color.valueOf("3A1414");
-    private static final Color BAR_FILL = Color.valueOf("E03C28");
     /** A part flashes white this many steps after a hit (as the set pieces). */
     private static final int HIT_FLASH_TICKS = 2;
     /** The crown opens over this long when the core is exposed (the simulation's crown opening). */
     private static final double CROWN_OPEN_SECONDS = 1;
     /** The core glow's pulse period, s. */
     private static final double PULSE_SECONDS = 0.8;
-    /** The bar's width for a boss and a mid-boss, its height, its distance from the top edge. */
-    private static final float BAR_WIDTH = 400;
 
-    private static final float MID_BAR_WIDTH = 240;
-    private static final float BAR_HEIGHT = 6;
-    private static final float BAR_TOP = 22;
-
-    private final TextureRegion pixel;
     private final FlashShader flash;
+    /** The boss bar, on its production plate once it exists. */
+    private final BossBar bar;
     /** The bell per crown stage, closed first; null without a boss in the level. */
     private final Array<AtlasRegion> bells;
     /** The neck pieces' heading sets, from the bell to the head. */
@@ -75,8 +66,8 @@ final class BossLooks {
      * @param pivots the boss's pivot file, or null
      */
     BossLooks(Sprites sprites, FlashShader flash, LevelScript.SetPieceSpec spec, JsonValue pivots) {
-        this.pixel = sprites.pixel;
         this.flash = flash;
+        this.bar = new BossBar(sprites);
         String slug = spec == null ? null : spec.slug();
         if (slug == null || !sprites.has(slug + "-bell")) {
             bells = heads = stumps = null;
@@ -249,18 +240,7 @@ final class BossLooks {
      */
     void drawBar(SpriteBatch batch, BitmapFont font, SetPiece piece) {
         var boss = piece.boss().orElseThrow();
-        float width = boss.midBoss() ? MID_BAR_WIDTH : BAR_WIDTH;
-        float left = X0 + (PlayField.WIDTH - width) / 2;
-        float top = PlayField.HEIGHT - BAR_TOP;
-        batch.setColor(BAR_FRAME);
-        batch.draw(pixel, left - 2, top - BAR_HEIGHT - 2, width + 4, BAR_HEIGHT + 4);
-        batch.setColor(BAR_EMPTY);
-        batch.draw(pixel, left, top - BAR_HEIGHT, width, BAR_HEIGHT);
-        batch.setColor(BAR_FILL);
-        batch.draw(pixel, left, top - BAR_HEIGHT, (float) (width * piece.barShare()), BAR_HEIGHT);
-        batch.setColor(Color.WHITE);
-        font.setColor(Color.WHITE);
-        font.draw(batch, boss.barName(), left, top + 12);
+        bar.draw(batch, font, boss.barName(), boss.midBoss(), piece.barShare());
     }
 
     private static void drawCentred(SpriteBatch batch, TextureRegion region, double x, double y) {

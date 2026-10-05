@@ -18,6 +18,7 @@ import static vanguard.sim.WaveSpec.Formation.LINE_ABREAST;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
 /** The Act 1 arsenal's rules (design/player/weapons and the layer rules of design/enemies), with the data's numbers. */
@@ -363,8 +364,7 @@ class WeaponsTest {
 
     @Test
     void steppingWithEveryKindOfWeaponDoesNotAllocate() {
-        var threads = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
-        var sortie = new Sortie(
+        Supplier<Sortie> prepare = () -> new Sortie(
                 3,
                 loadout(
                         front(MORTAR),
@@ -380,13 +380,17 @@ class WeaponsTest {
                         List.of()),
                 TestSpecs.RULES,
                 TestSpecs.FULL_ARMOUR);
-        // Past the first kill and the first container destroyed: those load classes once.
-        run(sortie, 900, FIRE);
-        long before = threads.getCurrentThreadAllocatedBytes();
-        run(sortie, 1200, FIRE | Command.LEFT.bit());
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
 
-        assertTrue(allocated < 1024, "1200 steps allocated " + allocated + " bytes");
+        long allocated = Allocations.least(
+                () -> {
+                    // Past the first kill and the first container destroyed.
+                    Sortie sortie = prepare.get();
+                    run(sortie, 900, FIRE);
+                    return sortie;
+                },
+                sortie -> run(sortie, 1200, FIRE | Command.LEFT.bit()));
+
+        assertEquals(0, allocated, "1200 steps allocated " + allocated + " bytes");
     }
 
     private static EnemySpec highAir(EnemySpec spec) {

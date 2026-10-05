@@ -145,7 +145,8 @@ spoken lines are designed in [voice](voice/README.md).
 - [x] Audio buses with volume settings and ducking
 - [x] Master limiter on the final mix: no peak over full scale, levels unchanged below it
 - [x] Music playback with loop points and crossfades (see [music](music/README.md))
-- [ ] SFX playback with voice limits and priorities (see [sfx](sfx/README.md))
+- [x] SFX playback with voice limits and priorities (see [sfx](sfx/README.md)): 32 voices, the
+  lowest-priority oldest voice stolen first, per-sound instance limits
 
 ## Open questions
 
@@ -187,3 +188,6 @@ spoken lines are designed in [voice](voice/README.md).
 - 2026-10-05: Round 25 closed (user): the master limiter approved as built (measured, not judged by
   ear: a slow make-up release after an over, on average 0.1 dB lower through a fight); the music's
   crossfades into the boss cue are done, so the music playback item is ticked.
+- 2026-10-05: M4 part H's SFX pass: the 32-voice limit with priority stealing is built (the
+  effects' own limits and priorities in [sfx](sfx/README.md#mixing-rules)); it bounds how many
+  effects play, not their sum, which stays the master limiter's job. The SFX playback item is ticked.

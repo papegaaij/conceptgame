@@ -67,7 +67,9 @@ public final class PixelScreen implements Disposable {
             }
             """;
 
-    private final FrameBuffer frameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, WIDTH, HEIGHT, false);
+    /** With a stencil buffer (and depth, for the packed depth-stencil fallback): the level's shadow mask. */
+    private final FrameBuffer frameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, WIDTH, HEIGHT, true, true);
+
     private final OrthographicCamera internalCamera = new OrthographicCamera();
     private final OrthographicCamera windowCamera = new OrthographicCamera();
     private final ShaderProgram sharpBilinear = new ShaderProgram(VERTEX, SHARP_BILINEAR);

@@ -110,7 +110,8 @@ control prompts 384–430 (a two-line well, 42 px), objective tracker 436–482 
   [enemies](../../enemies/README.md#bullet-readability-rules)).
 - With a sensor suite at L2+, extra arrows also track individual off-screen threats (single
   enemies, homing missiles) between waves.
-- Small floating numbers for credits picked up. Can be disabled in options.
+- Small floating numbers for credits picked up. Can be disabled in options (Gameplay tab,
+  `CREDIT NUMBERS`).
 
 ## Concept art
 
@@ -163,11 +164,26 @@ Concept [round 14](../../concept-rounds/round-14/README.md) — the right panel 
 |---|---|---|
 | [concept/hud-capture-final-r14-a.png](concept/hud-capture-final-r14-a.png) | Game capture of Level 01 with `--loadout` (Hammer Mortar, Bomb Rack, Autocannon Pod, Side Splitter): the power row and the four weapon rows with pips and the overdrive timer | chosen |
 
+Concept round 26 (M4 part H): the wave banners, the sensor suite's threat arrows, the low-armour
+flash and the credit-numbers option in the game (no new art: drawn in code in the round-09 look).
+Prompts: [concept/prompts.md](concept/prompts.md#hud-warnings-capture-r26-a).
+
+| File | What | Status |
+|---|---|---|
+| [concept/hud-warnings-capture-r26-a.png](concept/hud-warnings-capture-r26-a.png) | Game captures: Level 02's side wave with its banner, Level 06's rear loop-back banner (the left-and-right one waiting for it), the sensor L2 arrows at a Coilwyrm's body below the screen and at a Skitter above it; the armour gauge's low-armour flash off and on; the Gameplay tab's `CREDIT NUMBERS` row | proposed |
+
 Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker and the layer-skip prompt in the game (no new art: the round-13 kit). Prompts: [concept/prompts.md](concept/prompts.md#escapes-tracker-capture-r16-a).
 
 | File | What | Status |
 |---|---|---|
 | [concept/escapes-tracker-capture-r16-a.gif](concept/escapes-tracker-capture-r16-a.gif) | Game capture of Level 03 (left panel and play field at 1×, 12 fps, two cuts, 6.5 s): the `LOW-AIR` prompt leaving as the first Spore Bomber dies and `BOMBERS 0 / 10` turning `1 / 10`; then `2 / 10` turning `FAILED` in red with the box's red flash as a bomber of the 42 s line escapes | chosen |
+
+Production art for concept round 26 (M4 part H batch): the boss bar's plate, rendered by
+`tools/art/boss_bar.py` in the HUD's metal look; prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/boss-bar-plate-final-r26-a.png](concept/boss-bar-plate-final-r26-a.png) | `hud/boss-bar-plate.9.png`: a 64×20 nine-patch steel strip with riveted end caps and a recessed trough (splits L14 R14 T7 B7, content box L11 R11 T7 B7 = the 6 px fill), at 8× with its splits, and round the 400 px and 240 px bars as drawn | proposed |
 
 ## Implementation
 
@@ -180,11 +196,14 @@ Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker
 - [x] Right panel: special (M4 part D): a row under the weapons box in their style, `SPECIAL`, the special's 16 px hangar icon, its name and `×` charges; greyed while its strike flies or with no charge left, flashing red when the button is denied
 - [ ] Right panel: escort — **later: M5** (Rook's escort slot)
 - [x] Radio message queue with portraits, priority interrupts
-- [x] Boss bar and name at the top of the play field, shorter for a mid-boss (M4 part E; drawn plainly until its production art)
+- [x] Boss bar and name at the top of the play field, shorter for a mid-boss (M4 part E); drawn on
+      its production plate `hud/boss-bar-plate` (a nine-patch) once that exists, plainly until then
+      (M4 part H)
 - [x] Edge-warning arrows and floating credit numbers (M3) and the boss warning banner (M4 part G,
       with track 22 and the klaxon)
-- [ ] Wave warning banners ("WARNING — HOSTILES FROM THE REAR"), the sensor suite's threat
-      arrows, the option to hide the credit numbers
+- [x] Wave warning banners ("WARNING — HOSTILES FROM THE REAR"), the sensor suite's threat
+      arrows, the option to hide the credit numbers (M4 part H)
+- [x] Low-armour flash: the armour readout and gauge flash red at 30 % and faster at 15 % (M4 part H)
 
 ## Open questions
 
@@ -334,3 +353,47 @@ Concept [round 16](../../concept-rounds/round-16/README.md): the escapes tracker
 - 2026-10-05: Round 25 closed (user): the boss warning banner accepted as built (Level 07's
   capture); the warnings item split into what is built (edge arrows, credit numbers, the boss
   banner) and what is not (wave banners, the sensor's threat arrows, the numbers' option).
+- 2026-10-05: M4 part H (defaults of the part's plan; choices for review in round 26):
+  - **Wave banners** (`vanguard.game.render.WaveBanners`): no data of their own; an edge warning that
+    starts opens "WARNING — HOSTILES FROM THE REAR / LEFT / RIGHT" (both sides "LEFT AND RIGHT",
+    a side with the rear "REAR AND LEFT", all three "ON ALL SIDES") with its tone, in the round-09
+    look: a 440×30 dark band with an amber frame (pulsing with the edge warnings) and a light top
+    line, the 10×20 font in amber, its middle 376 px above the bottom edge (above the boss banner's
+    band). It opens over 0.15 s, shows 2.5 s and fades out over its last 0.3 s. One banner at a
+    time: a warning that starts while one shows waits and gets its banner after it if its edge is
+    still warned, else it is dropped. Drawn in code until production art.
+  - **Threat arrows** (`vanguard.game.render.ThreatArrows`, user decision D2 = A): with the fitted
+    sensor suite at L2+ (the easy difficulty's +1 is the intel's only), an amber arrowhead with a
+    dark outline (10–18 px, 59–100 % opaque as the enemy closes in from 240 px out) sits 14 px
+    inside the edge at the enemy's place along it, pointing out at it; for every air enemy off the
+    screen that is coming in (not moving away; ground units scroll in, in sight). Enemies within
+    28 px along an edge share one arrow, at most eight show, and arrows also show under an edge
+    warning (the warning names the edge, the arrow where along it). The simulation knows a unit only
+    once it spawns 40 px outside its edge, so a wave's units show their arrows for about 0.3 s
+    before they enter; a Coilwyrm's body coming up from the rear shows them for 1–2 s. Its dive out
+    on the loop is not tracked (it moves away). No homing enemy missiles exist in Act 1, so the
+    concept's ringed missile arrow is not built. The sensor suite is no longer listed under "NOT
+    YET AVAILABLE".
+  - **Credit numbers option**: the Gameplay tab's `CREDIT NUMBERS` (OFF / ON, default on,
+    `gameplay.credit-numbers`) hides the floating numbers; they are still followed while hidden.
+  - **Low-armour flash** (`vanguard.game.level.LowArmour`, `ShipPanel`): at or below 30 % of the
+    max armour the armour number turns red and a red wash with a glow lies over the gauge, lit
+    0.6 s and dark 0.6 s; at or below 15 % 0.3 s each, one flash per low-armour beep (the beeps'
+    1.2 s and 0.6 s periods and thresholds); on simulation steps, so it stops in the pause.
+  - **Boss bar plate**: `vanguard.game.render.BossBar` draws the bar on `hud/boss-bar-plate`
+    (`assets/sprites/hud/boss-bar-plate.9.png`, a nine-patch stretched to the bar's 400 px or a
+    mid-boss's 240 px, the fill in the nine-patch's content box, at the plate's own height) once it
+    exists, and the plain bar until then.
+- 2026-10-05: M4 part H (round 26 batch): the boss bar's production plate `hud/boss-bar-plate`
+  (`assets/sprites/hud/boss-bar-plate.9.png`, `tools/art/boss_bar.py`): 64×20 nine-patch, splits
+  left/right 14 and top/bottom 7, padding left/right 11 and top/bottom 7, so the content box is
+  the trough's 6 px glass the fill goes in; it stretches to 422 px round the act-boss bar and 262 px
+  round the mid-boss bar and is drawn at its own 20 px height. Review sheet proposed for round 26.
+- 2026-10-05: M4 part H: Okafor's low-armour line ([armour](../../player/armor/README.md), once per
+  attempt at 15 %) queues as an **urgent** line (`RadioQueue.Priority.URGENT`, like the Airstrike's
+  call): it is a warning that matters only now, so it neither waits for a gap nor goes stale; the
+  interrupted line replays after it, and the timed lines it pushes back may start late (urgent
+  lines are outside the one-second rule). `RadioTimelineTest` plays it every 10 s of each Act 1
+  level: it opens at once and every timed line still plays; it lists the lines pushed back, by up
+  to 18 s when it cuts a long line near its end in a dense run of timed lines (Level 03 from
+  t=36.5), mostly 2–13 s, once per attempt and only when the ship is nearly lost.

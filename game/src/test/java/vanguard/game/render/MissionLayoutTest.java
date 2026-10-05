@@ -149,6 +149,7 @@ class MissionLayoutTest {
                             new LevelData.RadioLine(cue.speaker(), cue.line(), cue.distorted(), cue.expression())));
             level.secrets().forEach(secret -> lines.add(secret.radio()));
         }
+        lines.add(CONTENT.armour().radio());
         for (LevelData.RadioLine line : lines) {
             for (String typed : RadioQueue.wrap(line.line())) {
                 assertFits(SMALL, typed, MissionLayout.TEXT_WIDTH);

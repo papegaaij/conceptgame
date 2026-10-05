@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -306,20 +305,20 @@ class AirstrikeTest {
 
     @Test
     void strikesDoNotAllocate() {
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        Sortie warmUp = sortie(layers(), 4);
-        for (int i = 0; i < SimStep.ticks(10); i++) {
-            warmUp.step(SortieTest.Pilot.commands(i) | (i % 120 == 0 ? SPECIAL : 0));
-        }
-        var sortie = sortie(layers(), 4);
+        List<Sortie> flown = new ArrayList<>();
+        long allocated = Allocations.least(
+                () -> {
+                    Sortie sortie = sortie(layers(), 4);
+                    flown.add(sortie);
+                    return sortie;
+                },
+                sortie -> {
+                    for (int i = 0; i < SimStep.ticks(10); i++) {
+                        sortie.step(SortieTest.Pilot.commands(i) | (i % 120 == 0 ? SPECIAL : 0));
+                    }
+                });
 
-        long before = threads.getCurrentThreadAllocatedBytes();
-        for (int i = 0; i < SimStep.ticks(10); i++) {
-            sortie.step(SortieTest.Pilot.commands(i) | (i % 120 == 0 ? SPECIAL : 0));
-        }
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
-
-        assertEquals(0, sortie.special().charges());
-        assertTrue(allocated < 1024, "10 s allocated " + allocated + " bytes");
+        assertEquals(0, flown.getLast().special().charges());
+        assertEquals(0, allocated, "10 s allocated " + allocated + " bytes");
     }
 }

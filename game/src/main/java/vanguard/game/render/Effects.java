@@ -11,6 +11,8 @@ import com.badlogic.gdx.utils.Array;
  * the simulation steps, so they slow down with it: glowing ones drawn additively (explosions,
  * impact sparks, a Vrell's spore cloud) or solid ones (debris of a destroyed ground target, a flyer's
  * membrane tatters); an animation can be drawn scaled and faded, as a set piece off the play plane.
+ * An animation started on the ground (a ground unit's death, a bomb's blast, a wreck's debris) moves
+ * with the ground's scroll, so it stays on what it marks; the others keep their play-field position.
  * Pure presentation: they are not part of the game state. All instances exist up front.
  */
 public final class Effects {
@@ -21,7 +23,10 @@ public final class Effects {
         int ticksPerFrame;
         int age;
         float x;
+        /** The play-field y, or for an animation on the ground the y plus the ground's scroll at its start. */
         double y;
+
+        boolean onGround;
         float scale;
         float opacity;
     }
@@ -66,6 +71,29 @@ public final class Effects {
             int delayTicks,
             float scale,
             float opacity) {
+        start(frames, ticksPerFrame, x, y, delayTicks, scale, opacity, false);
+    }
+
+    /**
+     * Starts an animation on the ground at the play-field position: it moves with the ground's scroll
+     * from here on, also when the scroll slows down or jumps.
+     *
+     * @param groundScroll the ground's scroll now (the simulation's, as when the event happened)
+     */
+    public void startOnGround(
+            Array<AtlasRegion> frames, int ticksPerFrame, double x, double y, int delayTicks, double groundScroll) {
+        start(frames, ticksPerFrame, x, y + groundScroll, delayTicks, 1, 1, true);
+    }
+
+    private void start(
+            Array<AtlasRegion> frames,
+            int ticksPerFrame,
+            double x,
+            double y,
+            int delayTicks,
+            float scale,
+            float opacity,
+            boolean onGround) {
         if (size < CAPACITY) {
             Effect effect = effects[size++];
             effect.frames = frames;
@@ -75,6 +103,7 @@ public final class Effects {
             effect.y = y;
             effect.scale = scale;
             effect.opacity = opacity;
+            effect.onGround = onGround;
         }
     }
 
@@ -93,11 +122,22 @@ public final class Effects {
         size = 0;
     }
 
+    /** The number of running animations (those still waiting for their delay too). */
+    int size() {
+        return size;
+    }
+
+    /** Where the {@code i}th running animation's centre is drawn, in play-field y, at that ground scroll. */
+    double y(int i, double groundScroll) {
+        Effect effect = effects[i];
+        return effect.onGround ? effect.y - groundScroll : effect.y;
+    }
+
     /**
-     * @param offsetY added to every animation's y: 0 for play-field positions, minus the ground's
-     *     scroll for animations started at ground positions (y plus the scroll at their start)
+     * @param groundScroll the ground's scroll at the drawn moment (interpolated): the animations on
+     *     the ground are moved by how far it scrolled since their start
      */
-    public void draw(SpriteBatch batch, double offsetY) {
+    public void draw(SpriteBatch batch, double groundScroll) {
         if (additive) {
             batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         }
@@ -110,7 +150,7 @@ public final class Effects {
             float width = frame.getRegionWidth();
             float height = frame.getRegionHeight();
             float left = Math.round(PixelScreen.PLAY_FIELD_X + effect.x - width / 2);
-            float bottom = Math.round(effect.y + offsetY - height / 2);
+            float bottom = Math.round(y(i, groundScroll) - height / 2);
             if (effect.scale == 1 && effect.opacity == 1) {
                 batch.draw(frame, left, bottom);
             } else {

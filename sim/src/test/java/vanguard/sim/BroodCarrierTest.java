@@ -14,7 +14,6 @@ import static vanguard.sim.TestSpecs.SAC_B_RIGHT;
 import static vanguard.sim.TestSpecs.STATION_X;
 import static vanguard.sim.TestSpecs.STATION_Y;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -425,12 +424,8 @@ class BroodCarrierTest {
         }
         assertEquals(hashes[0], hashes[1]);
 
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        Sortie sortie = carrierSortie();
-        long before = threads.getCurrentThreadAllocatedBytes();
-        fight(sortie);
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
-        assertTrue(allocated < 1024, "the fight allocated " + allocated + " bytes");
+        long allocated = Allocations.least(BroodCarrierTest::carrierSortie, BroodCarrierTest::fight);
+        assertEquals(0, allocated, "the fight allocated " + allocated + " bytes");
     }
 
     private static Sortie carrierSortie() {

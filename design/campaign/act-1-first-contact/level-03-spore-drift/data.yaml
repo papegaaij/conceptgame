@@ -3,7 +3,7 @@
 # The `backdrop` block is merged in from backdrop-proposal.yaml (the sections' tiles are its).
 scroll_speed: 140     # px/s; the second pass slows it to 90 (section 5)
 launch_seconds: 5     # the launch, as in Levels 01 and 02
-bounty_scale: 0.97         # every bounty × 0.97: the typical haul on budget (density rework)
+bounty_scale: 1.07         # every bounty × 1.07: the typical haul on budget (density rework; 0.97 until the Leviathan's bounty fell, 2026-10-05)
 control_prompts: []
 prompts:  # contextual prompts in the HUD's prompt well: from t for seconds, the action and its keys; skip: leaves once an enemy on that layer is destroyed
   - {t: 12, action: LOW-AIR, keys: "BELOW YOU: FIRE", seconds: 12, skip: low-air}
@@ -17,6 +17,9 @@ threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Th
   boss: none
   varga:
     none: Slow carriers in the high lanes and a lot of wreckage, Lancer. And something big on long range.
+    l1: All of it from ahead, through a debris field. The big chunks stop your shots and hurt to touch. Drifting mines too.
+    l2: Spore Bombers fly below you; their spores rise a second later. The big contact matches nothing on file. Out-fly it.
+    l3: "Bring a spread. The big one is out of reach until it comes down. Cache: four amber lights on the Kestrel wreck."
   notes:
     Dominant layers: '`air`, `low-air` (Spore Bombers), `high-air` (the Leviathan''s first pass)'
     Attack directions: '{directions}'

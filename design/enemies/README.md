@@ -1,7 +1,7 @@
 ---
 title: Enemies
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 updated: 2026-10-05
 ---
@@ -374,9 +374,11 @@ play field is 540 px tall).
 [economy](../systems/economy/README.md)): `tiny` 2–5 · `small` 10–15 · `medium` 18–30 ·
 hardened and `large` 40–60 · `huge` set pieces ≈ 15 % of their level's budget (sum of part
 bounties). Mid-bosses and act bosses are given as **absolute** medium credits in their level
-(15 % / 30 % of that level's budget) and are not act-scaled again. Check: level 01's worked
-budget (Skitter 5, Needler 12) is unchanged; a typical Act 1 level of 90–120 kills earns
-600–900 credits from kills plus ground targets and caches, inside the 1 000–1 500 budget.
+(15 % / 30 % of that level's budget) and are not act-scaled again. Accepted exception (user
+decision 2026-10-05): the [Coilwyrm](air/coilwyrm/README.md)'s parts total 86, above the `large`
+class, as cutting a multi-part enemy up is extra work (a head-first kill pays 40). Check: level
+01's worked budget (Skitter 5, Needler 12) is unchanged; a typical Act 1 level of 90–120 kills
+earns 600–900 credits from kills plus ground targets and caches, inside the 1 000–1 500 budget.
 
 ### Difficulty scaling hooks
 
@@ -386,8 +388,11 @@ formation size, bullet budget, credits) are defined once in
 even, at least 1). What an enemy's stat block
 adds are **overrides**:
 
-- `medium+` / `hard-only` tags on individual bullets, attack phases or formation members
-  (authored variants rather than multipliers).
+- Authored variants rather than multipliers: per-difficulty changes to the unit's patterns in its
+  `difficulty:` block (a fan's bullets, a burst's shots, a boss attack's `count`, `burst`,
+  `interval` or spiral `arms`); a level leaves a wave out on a difficulty with `skip` (see
+  [difficulty](../systems/difficulty/README.md); per-bullet `medium+` / `hard-only` tags were
+  dropped for these, user decision D3 of M4 part H).
 - Hard-only elements: extra attack phases, `death-burst` on selected enemies.
 - Opting out of a multiplier where it would break the enemy (e.g. a boss phase with a fixed
   bullet count).
@@ -457,22 +462,50 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 | [concept/enemy-bullets-final-r12-a.png](concept/enemy-bullets-final-r12-a.png) | Final Vrell `small` bullets: the orb (15×15, 4-frame core pulse) and the needle (23×23, 16 headings clockwise from straight down; a gold deep band and a tight 2/3 halo instead of the faint olive one) | chosen |
 | [concept/enemy-bullets-final-r12-a.gif](concept/enemy-bullets-final-r12-a.gif) | Orbs and needles drifting over a dark blue field | chosen |
 
+Production art for concept round 26 (the M4 part H batch), review files built from the final frames in `assets/` by `tools/art/bullet_medium.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/enemy-bullet-medium-final-r26-a.png](concept/enemy-bullet-medium-final-r26-a.png) | Final Vrell `medium` bullet: the large pulsing orb (`orb-medium_0..5`, 23×23, 13 px body, 6-frame pulse; round 09's large orb in the small orb's colours) next to the small orb | proposed |
+| [concept/enemy-bullet-medium-final-r26-a.gif](concept/enemy-bullet-medium-final-r26-a.gif) | Large and small orbs drifting over a dark blue field, the large ones slower | proposed |
+
 ## Implementation
 
 - [x] Rescale the Act 2 unit and boss HP to the lowered reference DPS for L08–L14 (balancing basis)
 - [x] Data-driven enemy definitions using the stat block fields.
-- [ ] Movement patterns from the vocabulary implemented as reusable behaviours.
-- [ ] Attack patterns from the vocabulary implemented as reusable emitters.
-- [ ] Formation spawner that places enemies by formation name and entry edge.
+- [x] Movement patterns from the vocabulary implemented as reusable behaviours: those the Act 1
+      units fly (their stat blocks and Levels 01–07; `EnemySpec`, `FlightPath`, `Formations`).
+- [ ] The other movement patterns with the first unit that flies each — **later: M5** (the Act 2
+      units) and **later: Act 3** to Act 7 (e.g. `burrow`, `latch`, `teleport`, `mirror`).
+- [x] Attack patterns from the vocabulary implemented as reusable emitters: those the Act 1 units
+      and bosses use (`aimed`, `burst`, `fan`, `ring`, `spiral`, `laser-sweep`, `mine`, `mortar`,
+      `spawn`, `death-burst`, `none`; `EnemyGun`, `Lob`, `Mine`).
+- [ ] The other attack patterns with the first unit that uses each — **later: M5** (the Act 2
+      units) and **later: Act 3** to Act 7 (e.g. `laser-line`, `link`, `aura`, `drain`, `reflect`).
+- [x] Formation spawner that places enemies by formation name and entry edge (`Formations`): the
+      Act 1 formations (single, V-wing, line abreast, column, snake, stream, pincer, circle,
+      whirl cluster, carrier + escorts, convoy, the walkers' paths and the chains' paths).
+- [ ] The other formations with the first level that uses each — **later: M5** (e.g. `swarm`,
+      `submerged ambush`) and the acts after it.
 - [x] Layer rules for hit detection and collision on `ground`, `low-air`, `air` and `high-air`: what each weapon delivery reaches, hardened ground targets, contact on the player's layer.
 - [ ] The `space`, `sub` and `deep` layers — **later: M5** (`sub`, the naval levels) and **later: Act 5** (`space`, the belt's open-space levels from L31; Level 07 flies on `air` like L01–L03).
-- [ ] Bullet rendering order, telegraphs, edge warnings and the bullet budget.
-- [ ] Global difficulty multipliers with per-enemy overrides.
-- [ ] Target-the-objective hook: per-level unit/wave configuration with the four modes.
-- [ ] Multi-part enemies: segment chains following the head's path history, articulated parts,
-      per-part HP and destroyable/armoured/vital parts, chain splitting.
-- [ ] Angle-set sprites (16/32 angles, nearest frame) and radial spinners.
-- [ ] Every act passes the variety checklist.
+- [x] Bullet rendering order, telegraphs, edge warnings and the bullet budget (bullets above every
+      layer, the `laser-sweep` wedge and the `mortar` marker, `EdgeWarnings`, `Rules.bulletBudget`).
+- [x] Global difficulty multipliers with per-enemy overrides (the stat blocks' `difficulty:` hooks,
+      `EnemyData.Hook`).
+- [x] Target-the-objective hook: per-level unit/wave configuration, mode `nearest` (Level 04's
+      convoy; `LevelScript`, `EnemyBullet`).
+- [ ] The modes `alternate`, `in-arc` and `always` — **later: M5** (Level 13, the first level that
+      uses them).
+- [x] Multi-part enemies: segment chains following the head's path history, articulated parts,
+      per-part HP and destroyable/armoured/vital parts, chain splitting (the Coilwyrm's `Chain`, the
+      Gorgon Frigate's necks, the Leviathan's and the Brood Carrier's parts).
+- [ ] A machine chain's split (the rear half stops, drifts and explodes) — **later: Act 5** (the
+      Rail Serpent).
+- [x] Angle-set sprites (16/32 angles, nearest frame) and radial spinners (16 for the Skitter and
+      the needle, 32 for turrets, 48 for the Coilwyrm; the Whirl Seed spinning; `EnemyLooks`).
+- [x] Act 1 passes the variety checklist (as built: [act 1](../campaign/act-1-first-contact/README.md#enemy-use-per-level)).
+- [ ] Acts 2–7 pass it as built — **later: M5** (Act 2) and **later: Act 3** to Act 7.
 
 ## Open questions
 
@@ -547,3 +580,11 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   tagged for "the first space level" in M4, but Level 07 at the L1 point flies on `air` like
   Levels 01–03 (Earth orbit); retagged to Act 5, whose open-belt levels (from L31's Mining Rig
   Escort) are the first on `space`.
+- 2026-10-05: M4 part H docs reconciliation: the cross-cutting items are built for Act 1, so each
+  is ticked for what Act 1 uses and the rest is split off with the milestone or act of its first
+  user (the movement, attack and formation vocabulary, the hook's other modes, the machine chain,
+  the variety check of the later acts), so the document is `done` for M4. Render order,
+  telegraphs, warnings, the budget, the difficulty overrides and the angle sets are ticked whole.
+- 2026-10-05: M4 part H (user decision D3 = A): the overrides' first bullet (per-bullet `medium+` /
+  `hard-only` tags) is reworded to the per-difficulty pattern changes in the stat blocks and the
+  waves' `skip`, which cover every Act 1 case; see [difficulty](../systems/difficulty/README.md).

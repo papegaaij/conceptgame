@@ -5,8 +5,16 @@ package vanguard.sim;
  * design/player/armor): damage goes to the shield first and its overflow to armour; collisions
  * deal half to the shield and half straight to armour. After armour damage the ship ignores all
  * damage for a short mercy time (design/player/ship, Hitbox); shield hits give none.
+ *
+ * <p>The first armour hit of an attempt that leaves the armour at or below {@link #CRITICAL_SHARE}
+ * of its maximum (and above zero) sets off {@link SimEvents.Type#ARMOUR_CRITICAL}, Okafor's
+ * low-armour radio line (design/player/armor); repairs do not set it off again until the next
+ * attempt.
  */
 public final class Defences {
+    /** The share of the max armour at or below which the armour is critical: sparks, the fast beep, the radio line. */
+    public static final double CRITICAL_SHARE = 0.15;
+
     private final ShieldModel model;
     private final Plating plating;
     private final int mercyTicks;
@@ -19,6 +27,8 @@ public final class Defences {
     private int regenWait;
     private int mercy;
     private boolean broken;
+    /** Whether this attempt's armour has been critical: the low-armour radio line has been set off. */
+    private boolean critical;
 
     Defences(ShieldModel model, Plating plating, double mercySeconds) {
         this.model = model;
@@ -41,6 +51,7 @@ public final class Defences {
         regenWait = 0;
         mercy = 0;
         broken = false;
+        critical = false;
     }
 
     /** Back to a boss checkpoint's shield and armour, with the armour lost in the level until then. */
@@ -95,6 +106,10 @@ public final class Defences {
             armour = Math.max(0, armour - toArmour);
             mercy = mercyTicks;
             events.add(SimEvents.Type.ARMOUR_HIT, x, y);
+            if (!critical && armour > 0 && critical(armour, plating.maxArmour())) {
+                critical = true;
+                events.add(SimEvents.Type.ARMOUR_CRITICAL, x, y);
+            }
         }
         return armour <= 0;
     }
@@ -111,6 +126,20 @@ public final class Defences {
 
     void addTo(StateHash hash) {
         hash.add(shield).add(armour).add(armourLost).add(regenWait).add(mercy).add(broken ? 1 : 0);
+        if (critical) {
+            // Only once set, so the hash of a run whose armour never gets this low stays as it was.
+            hash.add(1);
+        }
+    }
+
+    /** Whether {@code armour} of {@code maxArmour} is at or below {@link #CRITICAL_SHARE}. */
+    public static boolean critical(double armour, double maxArmour) {
+        return armour / maxArmour <= CRITICAL_SHARE;
+    }
+
+    /** Whether this attempt's armour has dropped to the critical share (the low-armour radio line was set off). */
+    public boolean wasCritical() {
+        return critical;
     }
 
     /** Armour points lost since the defences were last restored (repairs do not undo it). */

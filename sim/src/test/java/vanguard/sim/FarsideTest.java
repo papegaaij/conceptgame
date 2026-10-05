@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -677,19 +676,17 @@ class FarsideTest {
 
     @Test
     void flyingTheChainsTheSweepsTheDarkAndTheBombAllocatesNothing() {
-        // A first flight loads the classes its events need once.
-        Sortie warm = bomber(everything(), 3);
-        for (int i = 0; i < SimStep.ticks(20); i++) {
-            warm.step(commands(i));
-        }
-        Sortie sortie = bomber(everything(), 3);
-        sortie.step(Command.NONE);
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        long before = threads.getCurrentThreadAllocatedBytes();
-        for (int i = 1; i < SimStep.ticks(20); i++) {
-            sortie.step(commands(i));
-        }
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
-        assertTrue(allocated < 1024, SimStep.ticks(20) + " steps allocated " + allocated + " bytes");
+        long allocated = Allocations.least(
+                () -> {
+                    Sortie sortie = bomber(everything(), 3);
+                    sortie.step(Command.NONE);
+                    return sortie;
+                },
+                sortie -> {
+                    for (int i = 1; i < SimStep.ticks(20); i++) {
+                        sortie.step(commands(i));
+                    }
+                });
+        assertEquals(0, allocated, SimStep.ticks(20) + " steps allocated " + allocated + " bytes");
     }
 }

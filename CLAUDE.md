@@ -120,7 +120,8 @@ design tree; this list is only a reminder.
   README's directory (`--check` only lists the tables that differ). Needs PyYAML.
 - `python3 tools/balance.py` – balancing report for levels 01–14 from the data files and the
   expected purchases in `design/player/balance-plan.yaml` (`--weapons` prints every weapon's
-  per-level numbers). It exits 1 today because of the accepted L01–L03 DPS gap.
+  per-level numbers); the same checks run as JUnit tests (`BalanceTest`, `ActPlaythroughTest`).
+  It exits 0; the L01–L03 DPS gap and the Coilwyrm's bounty are printed as accepted exceptions.
 - `tools/concept/` – reproducible generators for concept mockups (Python 3 + PIL + numpy,
   ffmpeg for audio/GIF encoding). Each script documents its outputs at the top.
 - `tools/art/` – production generators for final assets (see
@@ -158,7 +159,9 @@ versions in `gradle/libs.versions.toml`.
   before an act's last level exists; all six are for testing only.
 - `./gradlew :desktop:installDist` – the start script in `desktop/build/install/terran-vanguard/`.
 - `./gradlew :desktop:packageLinuxX64` (also `packageWinX64`, `packageMacX64`, `packageMacM1`) –
-  Construo bundles with a trimmed JRE in `desktop/build/construo/dist/`.
+  Construo bundles with a trimmed JRE in `desktop/build/construo/dist/`. Run Gradle on JDK 21 for
+  these (`JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`): with a newer JDK, jlink refuses the
+  Java 21 runtime image.
 - `./gradlew :pipeline:importPlaceholders` – copies the chosen concept art and music the game
   uses into `assets/` (commit the result); the build only reads `assets/`.
 - CI: `.github/workflows/ci.yml` (check on three OSes, smoke test under xvfb, release bundles on

@@ -1,0 +1,7 @@
+# Act 1 – generator notes and prompts
+
+## act-1-still-final-r26-a
+
+Round 26, production art (M4 part H batch). Review sheet made from `assets/ui/act-1-first-contact-still.png` by `tools/art/act_stills.py --review`; the still is rendered by `tools/art/act_stills.py`. The still behind the Act 1 title card ("over a still of the Gagarin shipyards at dawn, Earth's terminator behind"): 960×540, the yards from above as Level 01 shows them, its approved final backdrop pieces (launch rail with Lancer's Stormhawk, the north arm with Aegis Two launching beyond it, a bridge crane over the top, open dock frames, a burning platform and a crossbeam along the bottom, the cruiser hull on the right, a crane jib on low air) over Earth's day side with the sunrise terminator running across behind them (night side and city lights bottom left, the dawn band warm along the line), the middle kept open for the lettering. The sheet shows the still at 1× and the title card over it as the game draws it (darkened to 55 %, letterboxed, the chrome lettering). No GIF: a still.
+
+Artist brief (if it is ever painted instead): top-down pre-rendered CGI, late 90s; orbital shipyard trusses, rails and dock frames in UTC violet-blue steel, lit from the top left; Earth far below at dawn, the terminator a soft diagonal with an amber band, city lights on the night side; a single fighter on the launch rail, two more banking away from a far arm; the centre left calm for title lettering.

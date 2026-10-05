@@ -1,10 +1,10 @@
 ---
 title: Controls
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../player/ship, ../../player/specials]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Controls
@@ -56,7 +56,7 @@ gamepad are both first-class; everything can be remapped in Options.
 - [x] Remapping screen in Options with conflict detection
 - [x] Alt+Enter / F11 toggle full screen on every screen
 - [x] F12 screenshot on every screen, into `screenshots/` next to the settings file
-- [ ] Double-tap dash detection (only when the evasive thrusters module is fitted)
+- [ ] Double-tap dash detection (only when the evasive thrusters module is fitted) — **later: Act 3** (the [evasive thrusters](../../player/systems/README.md) are `available: act 3`)
 
 ## Open questions
 
@@ -94,3 +94,5 @@ gamepad are both first-class; everything can be remapped in Options.
   Built as `vanguard.game.display.Screenshots` (the PNG is encoded on a background thread, so a
   level does not stutter); F12 joins `Bindings.systemKey`, so a capture never takes it and the
   settings file cannot bind it. Tests: `ScreenshotsTest`, `BindingsTest`.
+- 2026-10-05: M4 part H docs reconciliation: the double-tap dash waits for the evasive thrusters
+  (Act 3) and is tagged so; the document is `done`.

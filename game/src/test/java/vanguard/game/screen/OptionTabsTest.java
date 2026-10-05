@@ -150,4 +150,13 @@ class OptionTabsTest {
         assertEquals(0.9, target.settings.gameplay().screenShake());
         assertTrue(target.settings.gameplay().flashReduction());
     }
+
+    @Test
+    void theGameplayTabTurnsTheCreditNumbersOff() {
+        assertTrue(target.settings.gameplay().creditNumbers());
+
+        row("GAMEPLAY", "CREDIT NUMBERS").change(target, -1);
+
+        assertFalse(target.settings.gameplay().creditNumbers());
+    }
 }

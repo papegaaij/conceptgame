@@ -90,6 +90,14 @@ public final class BriefingScreen implements GameScreen {
     private static final int TEASER_X = 492;
     /** Letterbox bars of the title card. */
     private static final int BAR = 58;
+    /**
+     * The act's still behind its title card (tools/art/act_stills.py, {@code ui/<act>-still.png}) is
+     * drawn darkened to this, so the chrome lettering reads over it; the title scene stands in, at
+     * its own darkening, for an act without a still.
+     */
+    private static final float STILL_BRIGHTNESS = 0.55f;
+
+    private static final float SCENE_BRIGHTNESS = 0.45f;
 
     private final GameServices services;
     private final Campaign campaign;
@@ -103,6 +111,7 @@ public final class BriefingScreen implements GameScreen {
     private float fade = 1;
 
     private final Optional<Texture> titleLettering;
+    private final Optional<Texture> titleStill;
     private final List<Screen> screens = new ArrayList<>();
     private final Map<String, Optional<Texture>> images = new HashMap<>();
     private final BriefingPager pager;
@@ -221,6 +230,10 @@ public final class BriefingScreen implements GameScreen {
             var texture = new Texture(services.files.internal("ui/" + script.actDirectory() + "-title.png"));
             texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
             return texture;
+        });
+        titleStill = script.titleCard().flatMap(card -> {
+            var file = services.files.internal("ui/" + script.actDirectory() + "-still.png");
+            return file.exists() ? Optional.of(new Texture(file)) : Optional.empty();
         });
         fanfare = script.fanfare()
                 .flatMap(name -> Fanfare.play(
@@ -435,10 +448,16 @@ public final class BriefingScreen implements GameScreen {
         glass.right(batch, glass.fonts.label, hints, Glass.DIM, LEFT_X + width - 12, BOTTOM_Y + 72);
     }
 
-    /** The act title card: the letterboxed scene, the chrome act number and name, the settings and the missions. */
+    /** The act title card: the letterboxed still of the act (or the title scene), the chrome act number and name, the settings and the missions. */
     private void drawTitleCard(SpriteBatch batch, Glass glass, ActData.TitleCard card) {
         glass.fill(batch, Color.BLACK, 0, 0, PixelScreen.WIDTH, PixelScreen.HEIGHT);
-        services.titleScene.draw(batch, 0.45f);
+        titleStill.ifPresentOrElse(
+                still -> {
+                    batch.setColor(STILL_BRIGHTNESS, STILL_BRIGHTNESS, STILL_BRIGHTNESS, 1);
+                    batch.draw(still, 0, 0);
+                    batch.setColor(Color.WHITE);
+                },
+                () -> services.titleScene.draw(batch, SCENE_BRIGHTNESS));
         glass.fill(batch, Color.BLACK, 0, 0, PixelScreen.WIDTH, BAR);
         glass.fill(batch, Color.BLACK, 0, PixelScreen.HEIGHT - BAR, PixelScreen.WIDTH, BAR);
         Texture lettering = titleLettering.orElseThrow();
@@ -502,6 +521,7 @@ public final class BriefingScreen implements GameScreen {
         music.ifPresent(MusicStreamer::close);
         fanfare.ifPresent(Fanfare::close);
         titleLettering.ifPresent(Texture::dispose);
+        titleStill.ifPresent(Texture::dispose);
         images.values().forEach(image -> image.ifPresent(Texture::dispose));
     }
 }

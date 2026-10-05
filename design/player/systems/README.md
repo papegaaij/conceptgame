@@ -1,10 +1,10 @@
 ---
 title: Ship systems
 design: approved
-implementation: not-started
+implementation: in-progress
 art: none
 depends-on: [../generator, ../../ui/hangar]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Ship systems
@@ -34,14 +34,26 @@ are the "nice extra options": they make the ship better at a job without adding 
 | Module | Effect | Levels | Draw | Price | Unlock | Design |
 |---|---|---|---|---|---|---|
 | Sensor suite | Improves hangar intel detail (see below) and shows off-screen threat arrows at L2+ | L1–L3 | 1 | 800 / 2 000 / 4 500 | start | idea |
-| Pickup magnet | Pickup radius 36 → 72 / 108 / 144 px | L1–L3 | 1 | 600 / 1 500 / 3 000 | act 1 | idea |
+| Pickup magnet | Pickups within 72 / 108 / 144 px of the ship fly to it at 240 / 300 / 360 px/s (see below) | L1–L3 | 1 | 600 / 1 500 / 3 000 | act 1 | draft |
 | Salvage scanner | +10 / +20 % credits from drops; reveals hidden crates | L1–L2 | 1 | 2 500 / 6 000 | act 2 | idea |
-| Targeting computer | Homing turn rate +20 %, enemy HP bars, boss weak-point markers | L1 | 1 | 3 000 | act 2 (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores)) | idea |
+| Targeting computer | Homing turn rate +20 %, enemy HP bars, boss weak-point markers | L1 | 1 | 3 000 | act 2 (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores)); not in the shop until M5 | idea |
 | Evasive thrusters | Double-tap direction: 72 px dash, 0.25 s invulnerable, 3 s cooldown | L1 | 2 | 4 000 | act 3 | idea |
 | Auto-repair nanites | Repairs 1 armour per 4 s, up to 50 % of max armour | L1–L2 (2 s at L2) | 3 | 6 000 / 12 000 | act 4 | idea |
 | Pressure hull | Removes the underwater top-speed and shield-regen penalties (see [europa](../../world/europa/README.md#under-water-rules)) | L1 | 1 | 2 000 | L22 | idea |
 | Ascendancy IFF spoofer | Ascendancy turrets hesitate 0.5 s before firing | L1 | 2 | 5 000 | act 6 (story) | idea |
 <!-- /data -->
+
+### Pickup magnet
+
+A fitted Pickup magnet reaches out to the radius of its level around the ship's centre. Every
+pickup inside that reach (salvage, overdrive, shield cell, armour patch, special charge, a secret's
+hidden crate once it has been released, a data core) stops drifting and flies straight at the ship
+at the magnet's pull speed, until the ship's normal collection radius (see
+[ship](../ship/README.md)) takes it; a pickup outside the reach drifts down as usual. Only
+pickups are pulled: the beacons, containers, cranes and tows that release them stay where they
+are. A pulled pickup keeps its 6 s lifetime, and nothing is pulled while the ship is wrecked. With
+a magnet in both bays the better level counts. The numbers are in the *Utility modules* table
+above: at L1 a pickup at the edge of the reach is taken about 0.15 s later, at L3 about 0.3 s.
 
 ### Hydro-kit (automatic)
 
@@ -61,8 +73,9 @@ sensor suite decides how much of it is visible:
 | L2 | + enemy types with portraits, boss name and silhouette, a set piece as an "unknown huge contact" with its silhouette, special availability |
 | L3 | + recommended weapon traits highlighted in the shop, wave timeline strip, secret count |
 
-Dr. Varga speaks one line per intel item. With low sensors, her lines are more uncertain
-("Our scans are patchy, Lancer…").
+Dr. Varga adds one line per sensor level (text only): with no sensor suite it is vague ("Our
+scans are patchy, Lancer…"), and each better level makes it more precise, never telling more than
+the fields that level shows (see [hangar](../../ui/hangar/README.md)).
 
 ### Utility bays (confirmed)
 
@@ -72,7 +85,15 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
 ## Implementation
 
 - [x] Engine speed per model
-- [ ] Utility bays (2, third purchasable) and module effects
+- [x] Two utility bays; the same module may be fitted in both (M3 part B2)
+- [x] Pickup magnet: pickups in its reach fly to the ship at its pull speed, per level from
+  [data.yaml](data.yaml) (M4 part H; `vanguard.sim.Magnet`, tests in `PickupMagnetTest` and
+  `UtilityModulesTest`)
+- [x] Targeting computer kept out of the shop until M5; the L06 data core's unlock of it stays in
+  the save (M4 part H, `for_sale: false` in [data.yaml](data.yaml))
+- [x] Sensor suite: off-screen threat arrows at L2+ (M4 part H, `vanguard.game.render.ThreatArrows`;
+  the sensor level in `Flight.sensor()`)
+- [ ] The third utility bay (Act 3) and the other modules' effects — later: M5
 - [x] Sensor level controls the intel panel detail
 - [ ] Underwater penalties and the pressure hull
 
@@ -104,3 +125,18 @@ The ship has **two utility bays**; a **third** can be bought (from Act 3, see
   M4 part F; the module itself comes with the utility modules in M5 and is in the shop from the
   first hangar visit after that for a save that holds the unlock (user decision D6 of M4 part F;
   see [economy](../../systems/economy/README.md#data-cores)).
+- 2026-10-05: M4 part H (user decision D2 = A): the Pickup magnet and the sensor suite's L2 threat
+  arrows are built in part H; the Targeting computer stays out of the shop until M5 (its data
+  file's `for_sale: false`), its L06 data-core unlock still recorded. Rejected: building the
+  Targeting computer in part H too (B, reverses part F's D6) and hiding every module without an
+  effect (C, the Act 1 shop would lose its only cheap utility item).
+- 2026-10-05: The Pickup magnet pulls (main-agent brief for D2 = A; the design only gave the radius):
+  pickups within 72 / 108 / 144 px fly to the ship at 240 / 300 / 360 px/s, proposed numbers (the
+  row is `draft` until the user reviews them); the ship still collects at its own radius. It pulls
+  every pickup, the hidden crate and the data core included, but no ground object. Without a
+  magnet nothing changes, so every replay hash stays.
+- 2026-10-05: M4 part H: the sensor suite's threat arrows fly from the best fitted sensor suite's
+  level 2 (the difficulty's sensor bonus is the hangar intel's only, so easy with an L1 suite shows
+  none); the suite counts as flown, so the HUD no longer lists it as not available. The arrows
+  point at every air enemy off the screen and coming in; the look, rules and limits are in the
+  [HUD](../../ui/hud/README.md#decisions).

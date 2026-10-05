@@ -1,7 +1,7 @@
 ---
 title: User interface
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../art-direction, ../systems]
 updated: 2026-10-05
@@ -29,9 +29,9 @@ frames and chunky bitmap fonts.
 | [pause](pause/README.md) | Pause menu during a level | approved | done | final |
 | [debrief](debrief/README.md) | Level complete: kills, credits, bonuses, grade | approved | done | final |
 | [mission-select](mission-select/README.md) | Replay a flown mission: the act-by-act list with best grades, later missions locked | review | done | n/a |
-| [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | approved | in-progress | n/a |
+| [controls](controls/README.md) | Keyboard and gamepad mapping, remapping, auto-fire | approved | done | n/a |
 | [options](options/README.md) | Video, audio, controls (remapping, auto-fire) and gameplay settings | approved | done | final |
-| [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | approved | not-started | chosen |
+| [credits](credits/README.md) | Scrolling credits including the CC-BY attributions | approved | in-progress | chosen |
 
 ## Design
 
@@ -101,7 +101,7 @@ Production art, UI batch part U3 (concept round 13): the bitmap fonts rendered b
 
 - [x] Screen/state machine for the flow above
 - [x] Shared UI kit: panels, buttons, lists, bars, portrait frame, bitmap fonts (glass pieces: `tools/art/ui_kit.py`; fonts: `tools/art/fonts.py`)
-- [ ] Keyboard and gamepad navigation on every screen
+- [x] Keyboard and gamepad navigation on every screen (every screen of `vanguard.game.screen` reads the shared menu input, `services.menu`: menus, briefing, hangar, options, pause, debrief with the act summary and outro, mission select, mission failed, game over, credits)
 - [ ] Mouse support on every out-of-game screen (hover selects, click confirms, wheel scrolls lists, right-click or a back button goes back), with the hangar's panels and the options sliders and remapping usable by mouse; the in-level game stays keyboard/gamepad only — **later: M6** (see the [roadmap](../tech/roadmap/README.md))
 
 ## Open questions
@@ -174,3 +174,5 @@ Production art, UI batch part U3 (concept round 13): the bitmap fonts rendered b
   debrief with the act summary, the act outro, then the next act's intro; until Act 2 is built the
   outro leads to the hangar before L08, which shows it as not built yet. No act summary and no
   outro on a replay from mission select (the summary's part of that is a main-agent default).
+- 2026-10-05: M4 part H docs reconciliation: keyboard and gamepad navigation reaches every screen
+  of the build; ticked. Only mouse support (M6) is open, so the document is `done` for M4.

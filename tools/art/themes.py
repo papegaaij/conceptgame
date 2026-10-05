@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Production music: the title, hangar and briefing themes (UI batch part U3, round 13) and the Act 1
-boss and act-end music (M4 part G, round 25).
+"""Production music: the title, hangar and briefing themes (UI batch part U3, round 13), the Act 1
+boss and act-end music (M4 part G, round 25) and the Act 1 level themes with their base stems, the
+three jingles and the mini-boss sting (M4 part H, round 26).
 
 Outputs:
   assets/music/title-theme.ogg     "Terran Vanguard", full length (chosen: title-theme-full-r08-a)
@@ -9,6 +10,14 @@ Outputs:
   assets/music/choir-descends.ogg  #18 "The Choir Descends", full length (chosen: choir-descends-full-r08-a)
   assets/music/boss-warning.ogg    #22 "Red Alert", played once (chosen: boss-warning-r08-a)
   assets/music/act-complete.ogg    #24 "Act Complete", played once (chosen: act-complete-r08-a)
+  assets/music/afterburner.ogg     #4 "Afterburner", full length (chosen: afterburner-full-r08-a)
+  assets/music/afterburner-base.ogg  its base stem (chosen: afterburner-base-r15-a, music_r15.py)
+  assets/music/coalition-rising.ogg  #5 "Coalition Rising", full length (chosen: coalition-rising-full-r08-a)
+  assets/music/coalition-rising-base.ogg  its base stem (chosen: coalition-rising-base-r11-a, music_r11.py)
+  assets/music/miniboss-sting.ogg  #21 "Contact Heavy", played once (chosen: miniboss-sting-r08-a)
+  assets/music/mission-complete.ogg  #23, played once (chosen: mission-complete-r08-a)
+  assets/music/mission-failed.ogg  #25, played once (chosen: mission-failed-r08-a)
+  assets/music/game-over.ogg       #26, played once (chosen: game-over-r08-a)
   design/audio/music/concept/themes-final-r13-a.png      review sheet of round 13
   design/audio/music/concept/boss-music-final-r25-a.png  review sheet of round 25
   design/audio/music/concept/{choir-descends,boss-warning,act-complete}-final-r25-a.ogg
@@ -17,34 +26,49 @@ Outputs:
                                    the boss cue as the game mixes it: track 22, track 18 from 4.8 s
   design/audio/music/concept/choir-descends-seam-final-r25-a.ogg
                                    track 18 across its loop seam, 8 s each side, as it loops
+  design/audio/music/concept/music-final-r26-a.png       review sheet of round 26
+  design/audio/music/concept/<asset>-final-r26-a.ogg     the eight round-26 files (byte copies)
+  design/audio/music/concept/<theme or stem>-seam-final-r26-a.ogg
+                                   tracks 4 and 5 and their base stems across the loop seam
 
 Each piece is rendered by the frozen concept generator that made the chosen file
 (tools/concept/audio/music_r08.py: ``render_loop`` for the themes, ``render_sting`` for the
-one-shot cues; same composition, seeds, mix EQ and master), which already used the final settings
-of the production plan: OGG Vorbis q6, -14 LUFS integrated; a theme as intro + loop + 2-bar fade
-tail with sample-exact ``LOOPSTART`` / ``LOOPLENGTH`` comments, a cue as one take with a short
-fade. The encoded stream is then remuxed (packets copied, nothing re-encoded) with a ``SOURCE``
+one-shot cues; music_r15.py / music_r11.py for the base stems, which fail unless their full mix
+is the chosen full mix byte for byte; same composition, seeds, mix EQ and master), which already
+used the final settings of the production plan: OGG Vorbis q6, -14 LUFS integrated; a theme as
+intro + loop + 2-bar fade tail with sample-exact ``LOOPSTART`` / ``LOOPLENGTH`` comments, a cue as
+one take with a short fade. The encoded stream is then remuxed (packets copied, nothing re-encoded) with a ``SOURCE``
 comment, which marks it as final: ``importPlaceholders`` (``vanguard.pipeline.PlaceholderSounds``)
-keeps it. The two round-25 listening aids are mixes of the decoded finals (re-encoded at q6, gain
-unchanged); the game never loads them.
+keeps it. One exception (TRUE_PEAK_FIX, round 26): the chosen "Afterburner" and its base stem
+failed the true-peak limit (-0.5 and -0.8 dBTP: inter-sample overs at kick transients made by the
+Vorbis encoder; a plain gain cut would have taken the full mix below -14.5 LUFS), so the pair is
+rendered as its stem generator renders it, proven identical to both chosen files, and then gets one
+gain envelope for both (the crossfade stays exact) that dips only around those transients, aimed at
+TP_FIX_AIM and re-encoded until no 4x peak is above TP_FIX_LIMIT. The listening aids are mixes
+of the decoded finals (re-encoded at q6, gain unchanged); the game never loads them.
 
 ``--check`` verifies the files in assets/music: SOURCE comment, nominal bitrate of q6 (192 kbit/s
 at 44.1 kHz stereo), integrated loudness within 0.5 LU of -14 LUFS, true peak below -1 dBTP; for a
 theme the loop comments and a click-free seam (the jump from the loop's last sample to its first no
 larger than the typical sample-to-sample change just before it), for a cue no loop comments and a
-silent end. For the boss warning it checks the hand-off the game makes (vanguard.game.audio.BossCue,
+silent end. A base stem is mastered with its full mix's gain (the crossfade needs it), so instead of
+-14 LUFS it must be quieter than the full mix, and its length and loop comments must equal the full
+mix's (sample-aligned stems). For the boss warning it checks the hand-off the game makes (vanguard.game.audio.BossCue,
 at Tracks.BOSS_WARNING_BARS_SECONDS read from the Java source): the hand-off is the downbeat after
 three bars at 150 BPM to the sample, track 18 starts on its own downbeat at sample 0, the warning's
 tail under it stays far below it, the summed 16-bit stream never clips, and the loudness step from
 the warning's last bar into the boss track's first stays within HANDOFF_STEP. It also reports
-whether the decoded audio is identical to the chosen concept file.
+whether the decoded audio is identical to the chosen concept file (if not, how far it differs).
 
 Usage: python3 tools/art/themes.py [title] [hangar] [briefing] [boss] [warning] [actcomplete]
+                                   [afterburner] [afterburner-base] [coalition] [coalition-base]
+                                   [miniboss] [complete] [failed] [gameover]
                                                        render (default all), then check and review
        python3 tools/art/themes.py --check [keys]      check only (default all)
-       python3 tools/art/themes.py --review [keys]     review sheets (and r25 aids) of the keys' rounds
-Run time ~4 min for the three round-13 themes, ~2 min for the round-25 pieces.
+       python3 tools/art/themes.py --review [keys]     review sheets (and r25/r26 aids) of the keys' rounds
+Run time ~4 min for the three round-13 themes, ~2 min for the round-25 pieces, ~5 min for round 26.
 """
+import importlib
 import re
 import shutil
 import subprocess
@@ -59,8 +83,10 @@ import artkit
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "concept" / "audio"))
 import music_r08  # noqa: E402
+import music_r11  # noqa: E402
+from music import ns  # noqa: E402
 from music_r02 import seam_ratio  # noqa: E402
-from synth import SR, db, decode, lufs, write_ogg, write_wav  # noqa: E402
+from synth import SR, db, decode, lufs, undb, write_ogg, write_wav  # noqa: E402
 from render import raster  # noqa: E402
 
 SCRIPT = "themes.py"
@@ -83,6 +109,8 @@ ROUNDS = {
          artkit.source_note(SCRIPT, "UI batch")),
     25: ("boss-music-final-r25-a.png", "BOSS AND ACT END MUSIC (FINAL)", "PRODUCTION ART, M4 PART G - R25",
          artkit.source_note(SCRIPT, "M4 part G")),
+    26: ("music-final-r26-a.png", "LEVEL THEMES, STEMS, JINGLES AND STING (FINAL)",
+         "PRODUCTION ART, M4 PART H - R26", artkit.source_note(SCRIPT, "M4 part H")),
 }
 # key: (asset name, music_r08 key, title shown on the sheet, round); loops first, then one-shots
 THEMES = {
@@ -90,19 +118,41 @@ THEMES = {
     "hangar": ("hangar-theme", "hangar", "DRY DOCK - HANGAR THEME", 13),
     "briefing": ("briefing-theme", "briefing", "SITUATION ROOM - BRIEFING THEME", 13),
     "boss": ("choir-descends", "choir", "THE CHOIR DESCENDS - TRACK 18, VRELL BOSS THEME", 25),
+    "afterburner": ("afterburner", "afterburner", "AFTERBURNER - TRACK 4, ACT 1 A", 26),
+    "coalition": ("coalition-rising", "coalition", "COALITION RISING - TRACK 5, ACT 1 B", 26),
+}
+# key: (asset name, key of its full mix in THEMES, title, round, stem generator, chosen file)
+STEMS = {
+    "afterburner-base": ("afterburner-base", "afterburner", "AFTERBURNER - TRACK 4, BASE STEM", 26,
+                         "music_r15", "afterburner-base-r15-a"),
+    "coalition-base": ("coalition-rising-base", "coalition", "COALITION RISING - TRACK 5, BASE STEM", 26,
+                       "music_r11", "coalition-rising-base-r11-a"),
 }
 CUES = {
     "warning": ("boss-warning", "warning", "RED ALERT - TRACK 22, BOSS WARNING", 25),
     "actcomplete": ("act-complete", "actcomplete", "ACT COMPLETE - TRACK 24, FANFARE", 25),
+    "miniboss": ("miniboss-sting", "miniboss", "CONTACT HEAVY - TRACK 21, MINI-BOSS STING", 26),
+    "complete": ("mission-complete", "complete", "MISSION COMPLETE - TRACK 23, VICTORY JINGLE", 26),
+    "failed": ("mission-failed", "failed", "MISSION FAILED - TRACK 25, STING", 26),
+    "gameover": ("game-over", "gameover", "GAME OVER - TRACK 26", 26),
 }
-PIECES = {**THEMES, **CUES}
+PIECES = {**THEMES, **STEMS, **CUES}
+LOOPED = {**THEMES, **STEMS}
 HANDOFF = CONCEPT / "boss-handoff-final-r25-a.ogg"
-SEAM = CONCEPT / "choir-descends-seam-final-r25-a.ogg"
+# Full mixes whose chosen encode overshoots the true-peak limit (round 26 check: "afterburner" -0.5 dBTP,
+# its base stem -0.8 dBTP, on isolated kick transients made by the Vorbis encoder): rendered as their
+# stem generator renders the pair, then one transient gain envelope for both files (TP_FIX_*).
+TRUE_PEAK_FIX = {"afterburner"}
+TP_FIX_LIMIT = -1.2  # dB, 4x oversampled peak of the decoded files above which a transient is dipped
+TP_FIX_AIM = -1.3  # dB, where the dip aims (below the limit: the encoder moves peaks by a few 0.01 dB)
+TP_FIX_ATTACK, TP_FIX_HOLD, TP_FIX_RELEASE = 0.002, 0.001, 0.05  # s, raised-cosine ramps around an over
 HANDOFF_BARS_AFTER = 8  # bars of the boss track in the hand-off aid
 SEAM_SECONDS = 8.0
 
 
 def concept_file(key):
+    if key in STEMS:
+        return CONCEPT / f"{STEMS[key][5]}.ogg"
     table = music_r08.LOOPS if key in THEMES else music_r08.STINGS
     return CONCEPT / f"{table[PIECES[key][1]][0]}.ogg"
 
@@ -112,28 +162,116 @@ def asset_file(key):
 
 
 def review_copy(key):
-    """The round-25 review file: the final asset as the game loads it, byte for byte."""
+    """The review file (rounds 25 and on): the final asset as the game loads it, byte for byte."""
     return CONCEPT / f"{PIECES[key][0]}-final-r{PIECES[key][3]}-a.ogg"
+
+
+def seam_file(key):
+    """Listening aid: a looped piece across its loop seam."""
+    return CONCEPT / f"{PIECES[key][0]}-seam-final-r{PIECES[key][3]}-a.ogg"
 
 
 def source(key):
     return ROUNDS[PIECES[key][3]][3]
 
 
-def render(key):
-    """Render with the chosen generator into a temporary file, then remux with the SOURCE comment."""
+def oversampled_peak(path):
+    """Per sample, the largest |value| of either channel at 4x (soxr), as a true-peak meter sees it."""
+    raw = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(path), "-af",
+         f"aresample={4 * SR}:resampler=soxr:precision=28", "-f", "f32le", "-ac", "2", "-"],
+        capture_output=True, check=True).stdout
+    up = np.abs(np.frombuffer(raw, dtype="<f4").reshape(-1, 2)).max(axis=1)
+    n = len(up) // 4
+    return up[:n * 4].reshape(n, 4).max(axis=1)
+
+
+def duck(env, at, gain):
+    """Lower ``env`` to ``gain`` at sample ``at``: raised-cosine attack, hold, raised-cosine release."""
+    a, h, r = ns(TP_FIX_ATTACK), ns(TP_FIX_HOLD), ns(TP_FIX_RELEASE)
+    ramp = lambda k: 0.5 + 0.5 * np.cos(np.linspace(0, np.pi, k))  # noqa: E731  1 -> 0
+    curve = np.concatenate([1 - (1 - gain) * (1 - ramp(a)), np.full(2 * h + 1, gain), 1 - (1 - gain) * ramp(r)])
+    lo = at - h - a
+    c0, c1 = max(0, -lo), min(len(curve), len(env) - lo)
+    env[lo + c0:lo + c1] = np.minimum(env[lo + c0:lo + c1], curve[c0:c1])
+
+
+def render_true_peak_fixed(key, tmp):
+    """The full mix ``key`` and its base stem as the stem generator renders them (checked byte for byte
+    against both chosen files), then one gain envelope, dipping only around the transients whose
+    encoded true peak is over the limit, applied to both before the final encode. Returns
+    {key: path} of the two encoded files and the envelope's numbers."""
+    stem = next(k for k, v in STEMS.items() if v[1] == key)
+    gen = importlib.import_module(STEMS[stem][4])
+    s, full, base = gen.render()  # music_r15.main() up to the encode, line for line
+    full, loop_start, loop_len = music_r11.prepare(s, full)
+    base, _, _ = music_r11.prepare(s, base)
+    full, base = music_r11.master_linked(full, base)
+    for a in (full, base):
+        a[:, :ns(0.005)] *= np.linspace(0, 1, ns(0.005))
+    tags = {"LOOPSTART": loop_start, "LOOPLENGTH": loop_len}
+    out = {key: Path(tmp) / f"{key}.ogg", stem: Path(tmp) / f"{stem}.ogg"}
+    for _ in range(4):
+        write_ogg(out[key], full, max_peak_db=None, tags=tags)
+        over = db(np.abs(decode(out[key])).max()) + 1.0
+        if over <= 0:
+            break
+        full, base = full * undb(-over - 0.1), base * undb(-over - 0.1)
+    write_ogg(out[stem], base, max_peak_db=None, tags=tags)
+    for k in out:
+        if out[k].read_bytes() != concept_file(k).read_bytes():
+            raise SystemExit(f"{k}: the generator no longer reproduces {concept_file(k).name}")
+    env = np.ones(full.shape[1])
+    for _ in range(8):
+        overs, encoded = 0, env.copy()  # the envelope the measured files were encoded with
+        for k in out:
+            peak = oversampled_peak(out[k])[:len(env)]
+            for at in np.nonzero(peak > undb(TP_FIX_LIMIT))[0]:
+                duck(env, int(at), encoded[at] * undb(TP_FIX_AIM) / peak[at])
+                overs += 1
+        if not overs:
+            break
+        write_ogg(out[key], full * env, max_peak_db=None, tags=tags)
+        write_ogg(out[stem], base * env, max_peak_db=None, tags=tags)
+    else:
+        raise SystemExit(f"{key}: true-peak envelope did not converge")
+    dipped = env < 1
+    print(f"{key} + {stem}: transient envelope down to {db(env.min()):.2f} dB, "
+          f"{dipped.sum() / SR * 1000:.0f} ms of {env.size / SR:.1f} s below unity, "
+          f"{len(np.nonzero(np.diff(dipped.astype(int)) == 1)[0])} dips", flush=True)
+    return out
+
+
+def fix_pair(key):
+    """The full mix in TRUE_PEAK_FIX that ``key`` (a full mix or its base stem) belongs to, or None."""
+    pair = STEMS[key][1] if key in STEMS else key
+    return pair if pair in TRUE_PEAK_FIX else None
+
+
+def render(key, rendered):
+    """Render with the chosen generator into a temporary file, then remux with the SOURCE comment.
+    ``rendered`` maps a TRUE_PEAK_FIX pair to the directory of its two files (rendered once)."""
     with tempfile.TemporaryDirectory() as tmp:
-        if key in THEMES:
-            music_r08.render_loop(PIECES[key][1], Path(tmp))
+        pair = fix_pair(key)
+        if pair:
+            if pair not in rendered:
+                rendered[pair] = tempfile.mkdtemp()
+                render_true_peak_fixed(pair, rendered[pair])
+            src = Path(rendered[pair]) / f"{key}.ogg"
         else:
-            music_r08.render_sting(PIECES[key][1], Path(tmp))
-        rendered = Path(tmp) / concept_file(key).name
+            if key in STEMS:  # writes the base stem; exits unless its full mix is the chosen one
+                importlib.import_module(STEMS[key][4]).main(["--out", tmp])
+            elif key in THEMES:
+                music_r08.render_loop(PIECES[key][1], Path(tmp))
+            else:
+                music_r08.render_sting(PIECES[key][1], Path(tmp))
+            src = Path(tmp) / concept_file(key).name
         MUSIC.mkdir(parents=True, exist_ok=True)
         subprocess.run(
-            ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(rendered), "-c:a", "copy",
+            ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src), "-c:a", "copy",
              "-metadata:s:a:0", f"SOURCE={source(key)}", "-fflags", "+bitexact", str(asset_file(key))],
             check=True)
-    if PIECES[key][3] == 25:
+    if PIECES[key][3] >= 25:
         shutil.copyfile(asset_file(key), review_copy(key))
 
 
@@ -218,13 +356,33 @@ def check(keys):
         m = measure(asset_file(key))
         chosen = decode(concept_file(key))
         same = chosen.shape == m["audio"].shape and np.array_equal(chosen, m["audio"])
+        if same:
+            relation = f"audio identical to {concept_file(key).name}"
+        elif chosen.shape == m["audio"].shape:
+            rms = lambda x: 20 * np.log10(np.sqrt((x ** 2).mean()) + 1e-12)  # noqa: E731
+            diff = m["audio"] - chosen
+            relation = (f"audio differs from {concept_file(key).name} (difference peak "
+                        f"{db(np.abs(diff).max()):.1f} dBFS, {rms(chosen) - rms(diff):.0f} dB under the signal)")
+        else:
+            relation = f"audio differs from {concept_file(key).name} (other length)"
         common = [
             (m["source"] != source(key), "no SOURCE comment"),
             (m["bitrate"] != Q6_NOMINAL, f"nominal bitrate {m['bitrate']}, not q6"),
-            (abs(m["lufs"] - TARGET_LUFS) > LOUDNESS_TOLERANCE, f"{m['lufs']:.1f} LUFS"),
             (m["tp"] > MAX_TRUE_PEAK, f"true peak {m['tp']:.1f} dBTP"),
         ]
-        if key in THEMES:
+        loudness = f"{m['lufs']:.1f} LUFS"
+        if key in STEMS:  # the full mix's gain: quieter than it, aligned with it
+            full = measure(asset_file(STEMS[key][1]))
+            common += [
+                (m["lufs"] >= full["lufs"], f"{m['lufs']:.1f} LUFS, not under the full mix"),
+                (m["audio"].shape != full["audio"].shape, "length differs from the full mix"),
+                ((m["start"], m["length"]) != (full["start"], full["length"]),
+                 "loop comments differ from the full mix"),
+            ]
+            loudness += f" ({m['lufs'] - full['lufs']:+.1f} LU vs the full mix, same length and loop)"
+        else:
+            common.append((abs(m["lufs"] - TARGET_LUFS) > LOUDNESS_TOLERANCE, f"{m['lufs']:.1f} LUFS"))
+        if key in LOOPED:
             looped = m["start"] is not None
             problems = common + [
                 (not looped, "no loop comments"),
@@ -239,15 +397,14 @@ def check(keys):
                 (m["end"] > SILENT_END, f"end at {m['end']:.0f} dBFS, not silent"),
             ]
             shape = f"one-shot, end {m['end']:.0f} dBFS"
-        if PIECES[key][3] == 25:
+        if PIECES[key][3] >= 25:
             problems.append((not review_copy(key).exists()
                              or review_copy(key).read_bytes() != asset_file(key).read_bytes(),
                              f"{review_copy(key).name} missing or not the asset"))
         problems = [text for bad, text in problems if bad]
         failed |= bool(problems)
-        print(f"{asset_file(key).name}: {m['seconds']:.2f} s, {shape}, {m['lufs']:.1f} LUFS, "
-              f"{m['tp']:.1f} dBTP, {m['size'] / 1e6:.2f} MB, "
-              f"{'audio identical to' if same else 'audio differs from'} {concept_file(key).name}"
+        print(f"{asset_file(key).name}: {m['seconds']:.2f} s, {shape}, {loudness}, "
+              f"{m['tp']:.1f} dBTP, {m['size'] / 1e6:.2f} MB, {relation}"
               + (f"  FAILED: {', '.join(problems)}" if problems else ""))
         if key == "warning" and asset_file("boss").exists():
             h = handoff(m["audio"], decode(asset_file("boss")))
@@ -289,18 +446,29 @@ def fade_out(audio, seconds):
     return audio
 
 
-def listening_aids():
-    """The boss cue as the game mixes it, and track 18 across its loop seam as the looping stream plays it."""
-    warning, boss = decode(asset_file("warning")), measure(asset_file("boss"))
-    at = int(round(handoff_seconds() * SR))
-    bar = int(round(16 * 15 * SR / WARNING_BPM))
-    cue, _ = boss_cue(warning, boss["audio"], at, at + HANDOFF_BARS_AFTER * bar)
-    write_ogg(HANDOFF, fade_out(cue, 1.0), max_peak_db=None)
-    end, n = boss["start"] + boss["length"], int(SEAM_SECONDS * SR)
-    track = boss["audio"]
-    seam = np.concatenate([track[:, end - n:end], track[:, boss["start"]:boss["start"] + n]], axis=1)
-    write_ogg(SEAM, fade_ends(seam), max_peak_db=None)
-    for path in (HANDOFF, SEAM):
+def seam_aid(key):
+    """A looped piece across its loop seam as the looping stream plays it: the loop's last 8 s, then
+    the first 8 s after LOOPSTART."""
+    m = measure(asset_file(key))
+    end, n, track = m["start"] + m["length"], int(SEAM_SECONDS * SR), m["audio"]
+    seam = np.concatenate([track[:, end - n:end], track[:, m["start"]:m["start"] + n]], axis=1)
+    write_ogg(seam_file(key), fade_ends(seam), max_peak_db=None)
+    return seam_file(key)
+
+
+def listening_aids(round_no):
+    """Round 25: the boss cue as the game mixes it and track 18's seam; later rounds: every looped
+    piece's seam."""
+    aids = []
+    if round_no == 25:
+        warning, boss = decode(asset_file("warning")), decode(asset_file("boss"))
+        at = int(round(handoff_seconds() * SR))
+        bar = int(round(16 * 15 * SR / WARNING_BPM))
+        cue, _ = boss_cue(warning, boss, at, at + HANDOFF_BARS_AFTER * bar)
+        write_ogg(HANDOFF, fade_out(cue, 1.0), max_peak_db=None)
+        aids.append(HANDOFF)
+    aids += [seam_aid(k) for k, v in LOOPED.items() if v[3] == round_no]
+    for path in aids:
         print(f"aid: {path.relative_to(artkit.ROOT)}")
 
 
@@ -335,13 +503,19 @@ def loop_colours(m):
 def rows(round_no):
     """(heading, numbers line, audio, colour function, marks) per sheet row."""
     out = []
-    for key, (asset, _, title, r) in PIECES.items():
+    # each theme followed by its stems, then the cues
+    order = [k for t in THEMES for k in (t, *[s for s in STEMS if STEMS[s][1] == t])] + list(CUES)
+    for key in order:
+        asset, _, title, r = PIECES[key][:4]
         if r != round_no:
             continue
         m = measure(asset_file(key))
         head = f"{title}   ASSETS/MUSIC/{asset.upper()}.OGG"
         tail = (f"{m['lufs']:.1f} LUFS   TRUE PEAK {m['tp']:.1f} DBTP   ")
-        if key in THEMES:
+        if key in STEMS:
+            tail = (f"{m['lufs']:.1f} LUFS ({m['lufs'] - measure(asset_file(STEMS[key][1]))['lufs']:+.1f} LU, "
+                    f"FULL MIX GAIN)   TRUE PEAK {m['tp']:.1f} DBTP   ")
+        if key in LOOPED:
             line = (f"{m['seconds']:.1f} S   INTRO {m['start'] / SR:.2f} S + LOOP {m['length'] / SR:.2f} S "
                     f"(SAMPLES {m['start']} + {m['length']})   {tail}SEAM {m['seam']:.2f}   "
                     f"Q6 ({m['bitrate'] // 1000} KBIT/S NOMINAL)   {m['size'] / 1e6:.2f} MB")
@@ -386,12 +560,14 @@ def review(round_no):
               "AMBER: LOOPSTART / LOOP END")
     if round_no == 25:
         legend += "   GREEN: ONE-SHOT CUE   PURPLE: TRACK 18 UNDER THE CUE   AMBER ON A CUE: THE HAND-OFF"
+    elif round_no > 25:
+        legend += "   GREEN: ONE-SHOT CUE"
     raster.draw_text(img, 20, y - 14, legend, raster.LABEL_DIM)
     path = CONCEPT / file
     img.convert("RGB").save(path, optimize=True)
     print(f"review: {path.relative_to(artkit.ROOT)}")
-    if round_no == 25:
-        listening_aids()
+    if round_no >= 25:
+        listening_aids(round_no)
 
 
 def pick(args):
@@ -413,8 +589,13 @@ def main(args):
             review(r)
         return
     music_r08.validate_patterns()
-    for key in keys:
-        render(key)
+    rendered = {}
+    try:
+        for key in keys:
+            render(key, rendered)
+    finally:
+        for tmp in rendered.values():
+            shutil.rmtree(tmp, ignore_errors=True)
     check(keys)
     for r in rounds:
         review(r)

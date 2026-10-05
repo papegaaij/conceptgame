@@ -589,7 +589,7 @@ final class EnemyForce {
                     gun.damage(),
                     target);
         }
-        events.add(SimEvents.Type.ENEMY_FIRED, x, y);
+        events.add(SimEvents.Type.ENEMY_FIRED, x, y, (int) gun.damage());
     }
 
     /** A mine layer drops a spore under it, drifting in a random direction. */

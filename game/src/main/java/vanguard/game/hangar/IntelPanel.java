@@ -25,8 +25,9 @@ import vanguard.game.ui.Words;
  * the sensor level, and the threat profile's fields; a field the sensor level does not show names
  * the level that would (design/player/systems, Sensor levels and hangar intel); from sensor L2 the
  * enemy types show their sensor portraits, a boss its silhouette and a set piece its silhouette as
- * an unknown contact of its size tier (tools/art/intel.py). Varga's line for the sensor level closes
- * the panel, its last line at the panel's foot. Without a built next level the panel says so.
+ * an unknown contact of its size tier (tools/art/intel.py). Varga's line for the sensor level (one
+ * per level, the vaguer the lower the sensor) closes the panel, its last line at the panel's foot.
+ * Without a built next level the panel says so.
  *
  * <p>The panel lays itself out on a {@link Canvas}: the screen, or a test's measure of where every
  * part lands.
@@ -51,6 +52,8 @@ final class IntelPanel {
     static final int QUOTE_FOOT = 10;
 
     private static final int VALUE_CHARS = (RIGHT - VALUE_X) / 8;
+    /** The characters of a line of Varga's quote, across the panel. */
+    private static final int QUOTE_CHARS = (RIGHT - INNER) / 8;
     /** The sensor L2 pictures (tools/art/intel.py): enemy portraits, and a boss's silhouette. */
     private static final int PORTRAIT = 30;
 
@@ -192,14 +195,17 @@ final class IntelPanel {
                 List.of(joined(level.profile().traits())),
                 y);
         waves(canvas, level, y);
-        level.varga().ifPresent(text -> {
-            List<String> lines = Words.wrap(Names.of("\"" + text + "\""), (RIGHT - INNER) / 8);
-            int quote = Y + HEIGHT - QUOTE_FOOT - LINE * (lines.size() - 1);
-            for (String part : lines) {
-                canvas.quote(part, INNER, quote);
-                quote += LINE;
-            }
-        });
+        List<String> lines = quote(level);
+        int quote = Y + HEIGHT - QUOTE_FOOT - LINE * (lines.size() - 1);
+        for (String part : lines) {
+            canvas.quote(part, INNER, quote);
+            quote += LINE;
+        }
+    }
+
+    /** Varga's line for the intel's sensor level, in quotes, wrapped to the panel's width. */
+    static List<String> quote(Intel intel) {
+        return Words.wrap(Names.of("\"" + intel.varga() + "\""), QUOTE_CHARS);
     }
 
     private static int field(Canvas canvas, Intel intel, Field field, String label, List<String> values, int y) {

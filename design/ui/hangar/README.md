@@ -59,9 +59,14 @@ illustrative and come from [player](../../player/README.md).)
   fitted item** (green/red deltas).
 - **Test fire**: a small looping preview box showing the weapon's pattern at the current level
   against dummy targets. Quick way to understand spread, rear and side weapons.
-- **Intel** (right): the next level's threat profile, voiced by Dr. Varga (her 72×72 radio portrait
-  with the hangar teaser beside it). How much is shown
+- **Intel** (right): the next level's threat profile, presented by Dr. Varga (her 72×72 radio
+  portrait with the hangar teaser beside it). How much is shown
   depends on the sensor suite level, see [ship systems](../../player/systems/README.md#sensor-levels-and-hangar-intel).
+  Her line closes the panel: one per sensor level (none, L1, L2, L3), text only, from a vague
+  no-sensor line to a precise tip that never tells more than the fields shown beside it (L1:
+  directions, density, hazards, the objective; L2: the enemy types by name, a boss's weak points;
+  L3: the recommended weapons and where the secrets hide). The lines are the level's
+  `threat_profile.varga` data.
   Fields come from the level's threat profile (see the
   [level template](../../campaign/README.md#level-document-template)): setting, dominant layers,
   attack directions with the share of waves per direction (e.g. "front 60 %, rear 40 %"),
@@ -113,6 +118,13 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 | [concept/intel-final-r17-a.png](concept/intel-final-r17-a.png) | Review sheet (M4 part D batch, `tools/art/intel.py`): the 30×30 intel portraits of Level 04's Brood Pod (between swells) and Scuttler (walking down), from the production models of `tools/art/vrell_l04.py`, at 1× and 3× | chosen |
 | [concept/intel-final-r23-a.png](concept/intel-final-r23-a.png) | Review sheet (M4 part F batch, `tools/art/intel.py`, [round 23](../../concept-rounds/round-23/README.md)): the 30×30 intel portraits of Level 06's Mantis (nose down) and Coilwyrm (the head with its first segment), from the production models of `tools/art/mantis.py` and `tools/art/coilwyrm.py`, at 1× and 3× | chosen |
 
+M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game capture, see
+[concept/prompts.md](concept/prompts.md#test-fire-capture-r26-a).
+
+| File | What | Status |
+|---|---|---|
+| [concept/test-fire-capture-r26-a.png](concept/test-fire-capture-r26-a.png) | Game capture before Level 01: the hangar with the Side Splitter selected and its loop in the shop's test-fire box, and below it the box at 2× for the Pulse Cannon (L1>L2, upgrade highlighted), Scatter Vulcan, Autocannon Pod (left wing), Bomb Rack and Micro-missile Pod (right wing) and Side Splitter (rear) | proposed |
+
 ## Implementation
 
 - [x] Tabs/panels as above with keyboard and gamepad navigation
@@ -120,9 +132,13 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 - [x] Slot selection filters the shop; owned/buyable/locked sorting
 - [x] Power bar with projected load and refusal
 - [x] Comparison deltas vs the fitted item
-- [ ] Test-fire preview box — **later: M4** (after the first build, see the 2026-10-01 decision; the layout keeps its space)
+- [x] Test-fire preview box: the selected weapon (at the detail's level, or the next one while
+      UPGRADE is highlighted) loops in the real simulation against three dummies in the shop's
+      box, turned a quarter so the ship faces right (`TestFire`, `TestFirePanel`, `TestFireView`;
+      `TestFireTest`, `TestFirePanelLayoutTest`)
 - [x] Intel panel from the level threat profile, gated by sensor level
-- [ ] Varga's line per intel item — **later: M4** (writing pass, see *Open questions*)
+- [x] Varga's line per sensor level (none, L1, L2, L3) for every Act 1 level, the one for the
+      fitted sensor level shown (`Intel.varga()`; `IntelPanelLayoutTest`)
 - [x] Equipment icons: one per shop item and the escort, in the shop rows, the selected item and the schematic's callouts (`tools/art/icons.py`)
 - [x] Sensor L2 enemy portraits and boss silhouette in the intel
 - [x] Sensor L2 set pieces as an "unknown huge contact" with their silhouette in the intel
@@ -135,9 +151,6 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 Raised by the M3 part B2 build and deferred (user decision, 2026-10-02); each stays as built
 until it is handled where stated.
 
-- **Varga's lines** (M4 writing pass): "one line per intel item" has no text yet; the data holds
-  one line per sensor level (Level 01: the no-sensor line) and the panel shows it with the hangar
-  teaser. The per-item lines and the data that holds them are decided in the M4 writing pass.
 - **Third utility bay** (M4 data): 5 000 in the economy text, from Act 3; it has no data entry and
   is not offered yet. Its data entry comes with M4.
 
@@ -249,3 +262,35 @@ until it is handled where stated.
 - 2026-10-03: Concept round 16 closed (user decision): the intel portraits of the Spore Bomber and the Whirl Seed and the Leviathan's "unknown huge contact" silhouette approved as **final**; this doc's `art` stays `chosen`.
 - 2026-10-03: Concept round 17 (user decision): the intel portraits of the Brood Pod and the Scuttler approved as **final** ([round 17](../../concept-rounds/round-17/README.md)).
 - 2026-10-05: Concept round 23 (user decision): the intel portraits of the Mantis and the Coilwyrm approved as **final** ([round 23](../../concept-rounds/round-23/README.md)).
+- 2026-10-05 (user decision D4 of M4 part H): Varga's intel lines are **one line per sensor level**
+  per level (none, L1, L2, L3), text only and not voiced, instead of one per intel item; the "one
+  line per intel item" item is closed by it. Part H wrote the 21 L1–L3 lines of Act 1 beside the
+  existing no-sensor lines (each level's `threat_profile.varga`): each tells what the better sensors
+  reveal at that level and stays within the fields the panel shows there. The data now needs all
+  four lines (`LevelData.ThreatProfile`), and `Intel.varga()` gives the fitted sensor level's line
+  instead of falling back to a lower one. Tests: `IntelPanelLayoutTest`
+  (`everyLevelHasVargasLineForEachSensorLevel`: four different lines, no word cut; every level at
+  every sensor level fits the panel, with and without an objective row). Level 07's boss silhouette
+  and two rows of enemy portraits leave its L2 and L3 lines one panel line (30 characters).
+- 2026-10-05: M4 part H, test fire: the shop's box (264×64 below the message lines) loops the
+  selected weapon in the real simulation (`vanguard.game.hangar.TestFire`): the ship, with only
+  that weapon fitted in the slot being shopped (the starter engine, shield and plating, nothing
+  hits it), climbs unseen to the middle of the field and holds fire while three dummies on the
+  ground drift down past it at 90 px/s, one on the weapon's line (a wing weapon's 12 px out
+  towards its pod) and one 36 px either side, so a forward gun meets them ahead, a side gun
+  beside the ship, a rear gun behind it, a bomb under its pod, a mortar shell on its snap and a
+  homing missile on its turn. A dummy takes two of the weapon's level-1 hits (one level-1 bomb or
+  shell blast), so a higher level kills sooner; when all three are gone (at most about 8 s) the
+  loop starts over with the sortie's own retry, the same every time. The box shows the play field
+  turned a quarter clockwise at half size (the wide box holds the field's length: ahead is right,
+  behind left, the ship's left up), drawn with the level's pieces (`vanguard.game.render.TestFireView`:
+  the ship with its pod, the weapon's shots, muzzle flashes, impacts and explosions) over a grid
+  moving with the scroll, the dummies as amber target boxes flashing white when hit. Level: the
+  detail's level, or the next one while the UPGRADE choice is highlighted (the purchase's result,
+  label "TEST FIRE L1>L2"); locked weapons loop at L1; the Act 2 mines and torpedo say "NOT YET IN
+  FLIGHT", other items "WEAPONS ONLY". The loop restarts whenever the weapon, slot or level
+  changes; stepping allocates nothing; silent until the shop sounds are wired. Tests:
+  `TestFireTest` (every flown weapon in every slot it fits at every level hits a dummy where it
+  should, the loop is deterministic, starts over and allocates nothing), `TestFirePanelLayoutTest`
+  (the box fits the drawer below the message, the hull and every lane fit across it, nearly the
+  whole field along it, the labels fit). Capture for round 26: test-fire-capture-r26-a.

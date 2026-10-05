@@ -44,14 +44,16 @@ import vanguard.sim.WeaponSpec;
  * Draws a level back to front, interpolating every position between the last two simulation
  * steps: the backdrop down to the ground layer, the ground objects and the convoy, the overhead
  * ground pieces (a bridge's arches, a gate's roof: the convoy passes under them), the debris and
- * the ground units (a turret stands on an arch) with their glints,
+ * the ground units (a turret stands on an arch) with their glints, the flyers' drop shadows on the
+ * ground layer (its tiles, road and pieces mark where they may fall, see {@link Shadows}),
  * the low-air flyers, the low-air layer's banks (so a low flyer can sit inside them), a hull
  * boss's shadow while it flies above the play plane, a lifeboat tow (friendly, under the flyers), the flyers
  * and a set piece on the play plane, a set piece breaking up at its death, the solid death pieces of air units (tatters, husks), the debris chunks, the cranes, the pickups, the solid rounds
- * (missiles, bombs, shells), the ship with its wing pods, the glowing shots, muzzle flashes and
+ * (missiles, bombs, shells), the ship with its engine flames, damage smoke and sparks, wing pods and
+ * shield ring ({@link ShipLooks}), the glowing shots, muzzle flashes and
  * effects, a set piece on high-air (above the ship, at the high-air scale), the units a boss off the
  * play plane has launched (they leave its sacs downward, so they show over its hull), the high-air layer,
- * then the spore mines and the enemy bullets above every layer (design/enemies, bullet readability
+ * then the spore mines and the enemy bullets (small or large orbs, {@link BulletLooks}) above every layer (design/enemies, bullet readability
  * rules), an act boss's death flash, the edge warnings and the credit numbers.
  */
 public final class LevelRenderer {
@@ -72,9 +74,6 @@ public final class LevelRenderer {
     private static final int ROCK_TUMBLE = 4;
 
     private static final int ROCK_TUMBLE_TICKS = 6;
-    /** Enemy bullets pulse their core at 15 fps, each at its own phase. */
-    private static final int BULLET_FRAME_TICKS = 4;
-
     private static final int BLINK_TICKS = SimStep.ticks(1.5);
     /**
      * Loot targets (design/art-direction, readability rule 7): a white hit flash for two steps, a
@@ -183,6 +182,12 @@ public final class LevelRenderer {
 
     /** Level 07's lifeboat tow. */
     private final TowLooks tows;
+    /** The ship's engine flames, damage smoke and sparks and its shield ring. */
+    private final ShipLooks shipLooks;
+    /** The flyers' drop shadows on the ground layer. */
+    private final Shadows shadows;
+    /** The enemy bullets' sprites by their class. */
+    private final BulletLooks bullets;
 
     private final BitmapFont font;
     private float whiteFlash = 1;
@@ -248,12 +253,16 @@ public final class LevelRenderer {
         this.flash = flash;
         this.farside = new FarsideLooks(sprites, script);
         this.tows = new TowLooks(sprites);
+        this.shipLooks = new ShipLooks(sprites, files);
+        this.shadows = new Shadows();
+        this.bullets = new BulletLooks(sprites);
         this.font = font;
     }
 
     /** Frees the light map and the generated textures. */
     public void dispose() {
         farside.dispose();
+        shadows.dispose();
         if (bossLooks.hull != null) {
             bossLooks.hull.dispose();
         }
@@ -261,6 +270,7 @@ public final class LevelRenderer {
 
     /** The level restarts: the boss's parts forget their opening animations. */
     public void restart() {
+        shipLooks.reset();
         if (bossLooks.hull != null) {
             bossLooks.hull.reset();
         }
@@ -273,10 +283,11 @@ public final class LevelRenderer {
     }
 
     /**
-     * @param debris animations started at ground positions (y plus the ground's scroll), see
-     *     {@link Effects#draw}
-     * @param pieces solid animations at play-field positions: the death pieces of air units
-     * @param blasts glowing animations at ground positions: the Airstrike's blasts
+     * @param effects glowing animations over the flyers: explosions, impacts, death glows (those of
+     *     ground units on the ground, see {@link Effects#startOnGround})
+     * @param debris solid animations on the ground: wrecks, debris, husks
+     * @param pieces solid death pieces over the flyers (those of ground units on the ground)
+     * @param blasts glowing animations on the ground below the flyers: the Airstrike's blasts
      * @param wrecks the set pieces whose death is playing, drawn breaking up
      * @param alpha interpolation between the previous and the current step
      * @param shieldShimmer 0..1, how strongly the ship shows its last shield hit
@@ -302,14 +313,21 @@ public final class LevelRenderer {
         double scroll = sortie.groundScroll() - sortie.groundSpeed() * lag;
         double seconds = sortie.levelSeconds() - lag;
         backdrop.drawBehind(batch, scroll, seconds);
+        // The ground layer marks where the flyers' shadows may fall (not on open space or the far layer).
+        shadows.clear(batch);
+        shadows.beginGround(batch);
+        backdrop.drawGroundTiles(batch, scroll, seconds);
         convoy.drawRoad(batch, Math.round(scroll));
         backdrop.drawGroundPieces(batch, scroll, seconds);
+        shadows.endGround(batch);
         luna.drawSled(batch, sortie, scroll, alpha);
         luna.drawMarkers(batch, sortie, alpha);
         drawGround(batch, sortie, alpha);
         convoy.drawConvoy(batch, sortie, alpha, whiteFlash);
+        shadows.beginGround(batch);
         backdrop.drawOverhead(batch, scroll, seconds);
-        debris.draw(batch, -scroll);
+        shadows.endGround(batch);
+        debris.draw(batch, scroll);
         boolean overHull = bossOffPlane(sortie);
         drawEnemies(batch, sortie, alpha, Depth.GROUND, Launched.ANY);
         drawGlints(batch, sortie, alpha);
@@ -317,8 +335,9 @@ public final class LevelRenderer {
         farside.drawGlows(batch, sortie, looks, alpha, seconds);
         drawGroundGlows(batch, sortie, alpha);
         drawBomberShadows(batch, sortie, alpha);
+        drawShadows(batch, sortie, alpha);
         drawEnemies(batch, sortie, alpha, Depth.LOW_AIR, Launched.ANY);
-        blasts.draw(batch, -scroll);
+        blasts.draw(batch, scroll);
         backdrop.drawLowAir(batch, scroll, seconds);
         drawBossShadows(batch, sortie, alpha);
         drawWalkerGlows(batch, sortie, alpha);
@@ -330,13 +349,13 @@ public final class LevelRenderer {
         drawAirstrike(batch, sortie, alpha);
         drawSetPieces(batch, sortie, alpha, seconds, false);
         drawWrecks(batch, sortie, wrecks, alpha, seconds);
-        pieces.draw(batch, 0);
+        pieces.draw(batch, scroll);
         drawDebris(batch, sortie, alpha);
         drawCranes(batch, sortie, alpha);
         drawPickups(batch, sortie, alpha);
         drawShots(batch, sortie, alpha, false);
         if (sortie.flying()) {
-            drawShip(batch, sortie.ship(), alpha, shieldShimmer);
+            drawShip(batch, sortie, alpha, shieldShimmer);
         }
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         drawShots(batch, sortie, alpha, true);
@@ -347,7 +366,7 @@ public final class LevelRenderer {
         if (sortie.flying()) {
             drawMuzzles(batch, sortie, alpha, false);
         }
-        effects.draw(batch, 0);
+        effects.draw(batch, scroll);
         farside.drawSmartBomb(batch, sortie, alpha, whiteFlash);
         drawSetPieces(batch, sortie, alpha, seconds, true);
         if (overHull) {
@@ -604,12 +623,7 @@ public final class LevelRenderer {
                 continue;
             }
             EnemyLooks look = looks[enemy.kind()];
-            AtlasRegion mantis = farside.mantisFrame(look, enemy, sortie.tick());
-            AtlasRegion frame = mantis != null
-                    ? mantis
-                    : enemy.walking()
-                            ? look.frames().get(look.walkFrame(enemy.facing(), enemy.walked()))
-                            : look.frame(enemy.facing(), look.step(sortie.tick(), i, enemy.burstSeconds()));
+            AtlasRegion frame = enemyFrame(sortie, enemy, i);
             if (LunaLooks.target(sortie, enemy)) {
                 luna.drawOutline(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
             }
@@ -623,6 +637,64 @@ public final class LevelRenderer {
         }
     }
 
+    /** Enemy {@code i}'s frame: its heading and animation step, its walk cycle or the Mantis's pose. */
+    private AtlasRegion enemyFrame(Sortie sortie, Enemy enemy, int i) {
+        EnemyLooks look = looks[enemy.kind()];
+        AtlasRegion mantis = farside.mantisFrame(look, enemy, sortie.tick());
+        if (mantis != null) {
+            return mantis;
+        }
+        return enemy.walking()
+                ? look.frames().get(look.walkFrame(enemy.facing(), enemy.walked()))
+                : look.frame(enemy.facing(), look.step(sortie.tick(), i, enemy.burstSeconds()));
+    }
+
+    /**
+     * The flyers' drop shadows on the ground layer, from their frames' alpha (design/art-direction,
+     * Shadows): the low flyers' at the low-air offset, the play plane's flyers' (the units, the
+     * chains' segments and the ship) at the air offset; under the low flyers and the low-air layer.
+     */
+    private void drawShadows(SpriteBatch batch, Sortie sortie, float alpha) {
+        shadows.begin(batch);
+        for (int i = 0; i < sortie.enemyCount(); i++) {
+            Enemy enemy = sortie.enemy(i);
+            Depth depth = Depth.of(enemy);
+            if (depth == Depth.GROUND || enemy.chain() != null) {
+                continue;
+            }
+            boolean low = depth == Depth.LOW_AIR;
+            Shadows.draw(
+                    batch,
+                    enemyFrame(sortie, enemy, i),
+                    (float) (X0 + enemy.renderX(alpha)),
+                    (float) enemy.renderY(alpha),
+                    low ? Shadows.LOW_AIR_DX : Shadows.AIR_DX,
+                    low ? Shadows.LOW_AIR_DY : Shadows.AIR_DY,
+                    1);
+        }
+        for (int c = 0; c < sortie.chainCount(); c++) {
+            Chain chain = sortie.chain(c);
+            for (int k = chain.size() - 1; k >= 0; k--) {
+                Enemy member = chain.member(k);
+                if (member != null) {
+                    drawChainMember(batch, sortie, chain, member, k, alpha, true);
+                }
+            }
+        }
+        if (sortie.flying()) {
+            Ship craft = sortie.ship();
+            Shadows.draw(
+                    batch,
+                    sprites.ship.get(craft.bank() + ShipSpec.HARD_BANK),
+                    Math.round(X0 + craft.renderX(alpha)),
+                    Math.round(craft.renderY(alpha)),
+                    Shadows.AIR_DX,
+                    Shadows.AIR_DY,
+                    1);
+        }
+        shadows.end(batch);
+    }
+
     /**
      * The segment chains (design/enemies/air/coilwyrm), each from its tail to its head so the head
      * lies on top, the segments drawn at their tapering sizes; a cut part's head grows at the cut.
@@ -630,31 +702,47 @@ public final class LevelRenderer {
     private void drawChains(SpriteBatch batch, Sortie sortie, float alpha) {
         for (int c = 0; c < sortie.chainCount(); c++) {
             Chain chain = sortie.chain(c);
-            double first = chain.spec().segmentBoxes().getFirst().width();
             for (int k = chain.size() - 1; k >= 0; k--) {
                 Enemy member = chain.member(k);
-                if (member == null) {
-                    continue;
+                if (member != null) {
+                    drawChainMember(batch, sortie, chain, member, k, alpha, false);
                 }
-                EnemyLooks look = looks[member.kind()];
-                boolean segment = k > 0
-                        && k < chain.spec().members() - 1
-                        && member.link() == k
-                        && member.spec() == chain.spec().segment();
-                // The production segments are one set per size of the taper (the frames' phases):
-                // the nearest size, unscaled; the placeholder is scaled to the member's size.
-                int sizes = look.frames().size / look.headings();
-                boolean sized = segment && sizes > 1;
-                long step = sized ? sizeIndex(chain, member, sizes) : look.step(sortie.tick(), k);
-                AtlasRegion frame = look.frame(member.facing(), step);
-                float scale = segment && !sized ? (float) (member.hitbox().width() / first) : 1;
-                drawScaled(batch, frame, member.renderX(alpha), member.renderY(alpha), scale);
             }
             if (chain.regrowing() && chain.alive()) {
                 EnemyLooks look = looks[chain.regrownKind()];
                 AtlasRegion frame = look.frame(chain.headFacing(), look.step(sortie.tick(), 0));
                 drawScaled(batch, frame, chain.headX(), chain.headY(), (float) Math.max(0.2, chain.regrowth()));
             }
+        }
+    }
+
+    /** A chain's member {@code k} at its tapering size, or its shadow. */
+    private void drawChainMember(
+            SpriteBatch batch, Sortie sortie, Chain chain, Enemy member, int k, float alpha, boolean shadow) {
+        double first = chain.spec().segmentBoxes().getFirst().width();
+        EnemyLooks look = looks[member.kind()];
+        boolean segment = k > 0
+                && k < chain.spec().members() - 1
+                && member.link() == k
+                && member.spec() == chain.spec().segment();
+        // The production segments are one set per size of the taper (the frames' phases):
+        // the nearest size, unscaled; the placeholder is scaled to the member's size.
+        int sizes = look.frames().size / look.headings();
+        boolean sized = segment && sizes > 1;
+        long step = sized ? sizeIndex(chain, member, sizes) : look.step(sortie.tick(), k);
+        AtlasRegion frame = look.frame(member.facing(), step);
+        float scale = segment && !sized ? (float) (member.hitbox().width() / first) : 1;
+        if (shadow) {
+            Shadows.draw(
+                    batch,
+                    frame,
+                    (float) (X0 + member.renderX(alpha)),
+                    (float) member.renderY(alpha),
+                    Shadows.AIR_DX,
+                    Shadows.AIR_DY,
+                    scale);
+        } else {
+            drawScaled(batch, frame, member.renderX(alpha), member.renderY(alpha), scale);
         }
     }
 
@@ -998,7 +1086,7 @@ public final class LevelRenderer {
             }
             Array<AtlasRegion> frames = pickupFrames(pickup.type());
             int frame = (int) ((sortie.tick() / PICKUP_FRAME_TICKS + i) % frames.size);
-            drawCentred(batch, frames.get(frame), pickup.renderX(), pickup.renderY(alpha));
+            drawCentred(batch, frames.get(frame), pickup.renderX(alpha), pickup.renderY(alpha));
         }
     }
 
@@ -1054,11 +1142,18 @@ public final class LevelRenderer {
         }
     }
 
-    private void drawShip(SpriteBatch batch, Ship ship, float alpha, float shieldShimmer) {
-        TextureRegion hull = sprites.ship.get(ship.bank() + ShipSpec.HARD_BANK);
-        float x = Math.round(X0 + ship.renderX(alpha));
-        float y = Math.round(ship.renderY(alpha));
-        int mercy = ship.defences().mercyTicks();
+    /**
+     * The ship: its smoke trail and engine flames below the hull, the hull (blinking white in its
+     * mercy time, shimmering blue after a shield hit) with its wing pods, then its sparks and the
+     * shield ring over it.
+     */
+    private void drawShip(SpriteBatch batch, Sortie sortie, float alpha, float shieldShimmer) {
+        Ship craft = sortie.ship();
+        TextureRegion hull = sprites.ship.get(craft.bank() + ShipSpec.HARD_BANK);
+        float x = Math.round(X0 + craft.renderX(alpha));
+        float y = Math.round(craft.renderY(alpha));
+        shipLooks.drawBelow(batch, craft, sortie.tick(), alpha, x, y);
+        int mercy = craft.defences().mercyTicks();
         // The hull blinks white in steps of three frames while the mercy invulnerability lasts.
         if (mercy > 0 && (mercy + 2) / 3 % 2 == 1) {
             flash.draw(batch, hull, x, y, HIT_WHITE, whiteFlash);
@@ -1069,9 +1164,10 @@ public final class LevelRenderer {
         }
         drawPods(
                 batch,
-                ship.bank() + ShipSpec.HARD_BANK,
+                craft.bank() + ShipSpec.HARD_BANK,
                 x - hull.getRegionWidth() / 2f,
                 y + hull.getRegionHeight() / 2f);
+        shipLooks.drawAbove(batch, sortie.tick(), alpha, x, y, shieldShimmer);
     }
 
     /** The fitted wing pods over the hull, whose top-left is at (left, top). */
@@ -1145,8 +1241,7 @@ public final class LevelRenderer {
     private void drawBullets(SpriteBatch batch, Sortie sortie, float alpha) {
         for (int i = 0; i < sortie.bulletCount(); i++) {
             EnemyBullet bullet = sortie.bullet(i);
-            int frame = (int) ((sortie.tick() / BULLET_FRAME_TICKS + i) % sprites.orb.size);
-            drawCentred(batch, sprites.orb.get(frame), bullet.renderX(alpha), bullet.renderY(alpha));
+            drawCentred(batch, bullets.frame(bullet, i, sortie.tick()), bullet.renderX(alpha), bullet.renderY(alpha));
         }
     }
 

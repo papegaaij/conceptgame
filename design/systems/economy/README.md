@@ -1,7 +1,7 @@
 ---
 title: Economy
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../player, ../difficulty]
 updated: 2026-10-05
@@ -122,6 +122,13 @@ A typical player can afford about 60–65 % of it, so choices matter.
 - Weapons, upgrades, core components, utility modules, the 3rd utility bay (5 000)
 - Special charges (consumed)
 - Armour repair (medium 5 cr/point, hard 10 cr/point, easy free)
+
+**Hard is tighter on purpose.** The shop plan in [balance-plan.yaml](../../player/balance-plan.yaml)
+is a medium player's; on hard (income ×0.9 of the hard levels' larger hauls, repairs 10 cr/point)
+the static estimate cannot always pay both the plan and the repairs of its 15 armour points per
+level: today the L13 visit falls 425 credits short of the Composite II plating. A typical hard
+player is expected to take less damage or skip some repairs (user decision 2026-10-05); the content
+test `BalanceTest` prints the hard sheet with such shortfalls as accepted notes.
 - Rook's upgrades and repairs
 
 ### Sell-back and undo
@@ -151,16 +158,24 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 - [x] Typical haul per level: the credit-budget tables (`tools/sync_tables.py`) and the content
   test `TypicalHaulTest` (within ±5 % of the budget for every level)
 - [x] Levels 01–05 reworked to the typical-haul budget (density and `bounty_scale`: 1.21, 1.05,
-  0.97, 0.79, 0.79; the minimum density in the content test `DensityTest`)
+  0.97, 0.79, 0.79; Level 03's is 1.07 since the Leviathan's bounty fell on 2026-10-05; the
+  minimum density in the content test `DensityTest`)
 - [x] Data cores: the core and its unlock recorded in the save (`dataCores`, `unlocks`) when
   collected in a won level (M4 part F: a secret's `data_core` in the level data)
-- [ ] The unlocked item in the shop once it exists (the Targeting computer: M5)
-- [ ] Balancing sheet (spreadsheet or script) that simulates per-level budgets vs prices — **later: M4** (needs the Act 1 levels; the roadmap's balance tests)
+- [ ] The unlocked item in the shop once it exists — **later: M5** (the Targeting computer, built with the utility modules' effects; until then it stays out of the shop, user decision D2 of M4 part H)
+- [x] Balancing sheet that simulates per-level budgets vs prices: `tools/balance.py` prints the
+  balance plan's purchases per hangar visit against each level's typical haul (budget(n) for a level
+  without data yet), with the power load, the DPS against the reference and the enemies' time to
+  kill and bounty; the checks are the content tests `BalanceTest` (the plan affordable and in the
+  shop at every visit, levels 01–14; the accepted exceptions to the
+  [balancing basis](../../enemies/README.md#balancing-basis), Levels 01–03's DPS gap and the
+  Coilwyrm's bounty, are listed there and in the sheet; on hard it prints the credit shortfall as
+  accepted) and `ActPlaythroughTest` (Act 1 flown by the test autopilot on every difficulty with
+  the plan's purchases, credits carried from level to level)
 
 ## Open questions
 
-- Do credits earned in a failed attempt really vanish? Yes: the user decided this. The
-  consequence is that grinding by dying is impossible, which is intended.
+- None open.
 
 ## Decisions
 
@@ -225,3 +240,31 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   haul 1,049 of the budget's 1,051, perfect 1,542; the Brood Carrier's 450 bounty, 340 at the
   scale; the boss spawns counted at their expected numbers), so every Act 1 enemy class and boss
   has its bounty.
+- 2026-10-05: The open question "do credits earned in a failed attempt really vanish?" was
+  answered by the user (yes; grinding by dying is impossible, which is intended) and is moved here.
+- 2026-10-05: M4 part H (user decision D2 = A): the Targeting computer stays out of the shop until
+  M5, when it is built with the utility modules' effects; the L06 data core's unlock stays recorded
+  in the save and makes it available from the first hangar visit after that. The Pickup magnet
+  (radius) and the sensor suite's L2 threat arrows are built in part H.
+- 2026-10-05: M4 part H balance tests: the balancing sheet is `tools/balance.py` (now exiting 0,
+  the Levels 01–03 DPS gap printed as the accepted exception) with the content tests `BalanceTest`
+  and `ActPlaythroughTest` as the checks; the sheet's income is each level's typical haul. The
+  balance plan's L14 visit buys one Airstrike charge instead of two (with the free charge at L04 it
+  would carry five, over the four it holds). Played by the autopilot, Act 1 ends with
+  8 300 / 7 135 / 5 870 credits on easy / medium / hard: it earns about 1.6–2.1 × the typical haul
+  per level (it kills 90–99 % and grades A or A+).
+- 2026-10-05: M4 part H balance pass (user decision): the Leviathan's bounty falls from 190 to 113,
+  ≈ 15 % of Level 03's budget at the level's scale (it was 23 % of 801, set when the budget was
+  1,145), and Level 03's `bounty_scale` rises from 0.97 to 1.07: typical haul 805 → 783 of 801
+  (−2 %), perfect 1,288 → 1,272. The Coilwyrm's bounty (86 for its parts against the `large`
+  class's 40–60) stays as an accepted exception: a multi-part enemy, cutting it up is extra work.
+- 2026-10-05: Hard Level 05 (user decisions after the M4 part H playthrough): the test autopilot is
+  fixed rather than the game (option e). It flies low (y 45) while a battery unit is its target, so
+  the far mortar no longer scrolls off with HP left, and in a boss fight it picks each move by a
+  0.6 s look-ahead over the bullets and air enemies, keeping to the field's centre band instead of
+  drifting into an edge. The plan's hard-only Pulse Cannon L3 at the L05 visit is removed (Level 05's
+  hard test fit is L2 again): with L2 the autopilot wins hard Level 05 at the first attempt on 20 of
+  20 seeds (0 before; 2 with only the low flight). Act 1 played on the plan ends with
+  8 349 / 7 108 / 6 525 credits on easy / medium / hard, every level won at the first attempt. Hard's
+  economy is accepted as tighter (see *Sinks*): `BalanceTest` prints the hard sheet and its credit
+  shortfall (today the L13 visit's Composite II, 425 short) as accepted.

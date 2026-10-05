@@ -13,7 +13,6 @@ import static vanguard.sim.TestSpecs.wave;
 import static vanguard.sim.WaveSpec.Edge.NONE;
 import static vanguard.sim.WaveSpec.Entry.FRONT;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -364,26 +363,27 @@ class BroodAndWalkerTest {
 
     @Test
     void theNewUnitsStepDeterministicallyWithoutAllocating() {
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
         List<WaveSpec> waves = List.of(
                 wave(0, WaveSpec.Formation.CARRIER_ESCORTS, POD, 1, FRONT, NONE),
                 wave(0, WaveSpec.Formation.CARRIER_ESCORTS, NEEDLER, 3, FRONT, NONE),
                 walkers(1, WaveSpec.Formation.PINCER, 2, List.of(new WaveSpec.At(-40, 0), new WaveSpec.At(200, -60))),
                 walkers(4, WaveSpec.Formation.CONVOY, 2, List.of(new WaveSpec.At(240, -40), new WaveSpec.At(240, 600))),
                 wave(6, WaveSpec.Formation.LINE_ABREAST, POD, 2, FRONT, NONE));
-        Sortie warmUp = sortie(30, waves);
-        for (int i = 0; i < SimStep.ticks(20); i++) {
-            warmUp.step(SortieTest.Pilot.commands(i));
-        }
-        Sortie sortie = sortie(30, waves);
+        List<Sortie> flown = new ArrayList<>();
+        long allocated = Allocations.least(
+                () -> {
+                    Sortie sortie = sortie(30, waves);
+                    flown.add(sortie);
+                    return sortie;
+                },
+                sortie -> {
+                    for (int i = 0; i < SimStep.ticks(20); i++) {
+                        sortie.step(SortieTest.Pilot.commands(i));
+                    }
+                });
 
-        long before = threads.getCurrentThreadAllocatedBytes();
-        for (int i = 0; i < SimStep.ticks(20); i++) {
-            sortie.step(SortieTest.Pilot.commands(i));
-        }
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
-
-        assertTrue(allocated < 1024, "20 s allocated " + allocated + " bytes");
-        assertEquals(warmUp.stateHash(), sortie.stateHash(), "the same commands give the same state");
+        assertEquals(0, allocated, "20 s allocated " + allocated + " bytes");
+        assertEquals(
+                flown.getFirst().stateHash(), flown.getLast().stateHash(), "the same commands give the same state");
     }
 }

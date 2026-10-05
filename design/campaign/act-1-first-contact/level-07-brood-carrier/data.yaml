@@ -18,6 +18,9 @@ threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Th
   objective: DESTROY THE CARRIER   # the OBJECTIVE field from sensor L1 (the full name runs past the intel panel's edge)
   varga:
     none: One ship at L1. Station-sized.
+    l1: Its escort comes head-on, with snipers at the edges. Then the carrier. Nothing else counts.
+    l2: Sacs first, then the core.
+    l3: Cut the lifeboat's tow cable.
   notes:
     Dominant layers: '`air`, `high-air` (the carrier''s first phase), `low-air` (Spore Bombers in the escort screen)'
     Attack directions: '{directions}'

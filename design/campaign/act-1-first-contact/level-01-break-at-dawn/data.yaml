@@ -14,6 +14,9 @@ threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Th
   boss: none
   varga:                           # Dr. Varga's intel line per sensor level (none, l1, l2, l3)
     none: Our scans are patchy, Lancer. Small, fast, lots of them.
+    l1: Mostly head-on, some from the flanks, and one group may come up behind you. Light traffic. For now.
+    l2: Skitters ram, Needlers shoot. Needlers first. The last eight circle above you, then break at you one by one.
+    l3: "Your cannon is enough; keep it forward. One cache: a crane beacon blinking mid-run. Three hits."
   notes:  # the table's rows; {directions} is derived from the waves, {fields} come from above
     Dominant layers: '`air` (all enemies), `deep` (Earth, the yards'' far structures)'
     Attack directions: '{directions} (one warned wave)'

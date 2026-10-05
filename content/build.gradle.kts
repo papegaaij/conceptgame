@@ -10,6 +10,7 @@ dependencies {
     // The data records carry Jackson's annotations, so their users compile against them too.
     api(libs.jackson.annotations)
     implementation(libs.jackson.yaml)
+    testImplementation(testFixtures(project(":sim")))
 }
 
 /**

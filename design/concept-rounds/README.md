@@ -44,6 +44,7 @@ they belong to; a round only collects them.
 | [round-23](round-23/README.md) | M4 part F: Level 06's Mantis, Coilwyrm, darkness glows and light shapes, backdrop, intel portraits, beam, prop and sound concepts, perimeter beacon audition, capture and part F numbers | approved | n/a | chosen |
 | [round-24](round-24/README.md) | The Coilwyrm's death: a ripple of wet bursts head to tail, 0.25 s apart; head burst c and segment burst b chosen | approved | n/a | chosen |
 | [round-25](round-25/README.md) | M4 part G: Level 07's Brood Carrier, its turn, death and carcass, backdrop, lifeboat tow and sound concepts, Lifeboat Seven audition, tracks 18/22/24, briefing and outro images, voiced lines, master limiter, capture and part G numbers | approved | n/a | chosen |
+| [round-26](round-26/README.md) | M4 part H, the Act 1 close-out: Vrell deaths, Smart Bomb, boss bar, title-card still, ship flames and damage, shield ring, shadows, medium bullet, HUD warnings, test fire, credits roll, music finals, wired SFX, low-armour line, Varga's intel lines, part H numbers and the L01–L06 voice listen-through | review | n/a | proposed |
 
 ## Design
 
@@ -89,3 +90,4 @@ How a round works:
 | 23 | 2026-10-04 | closed | M4 part F: Level 06 production art, beam, prop and sound concepts, perimeter beacon audition |
 | 24 | 2026-10-05 | closed | The Coilwyrm's death bursts (four sound options, the ripple timing) |
 | 25 | 2026-10-05 | closed | M4 part G: Level 07 and the act end (final art review, lifeboat and sound concepts, Lifeboat Seven audition, part G numbers) |
+| 26 | 2026-10-05 | open | M4 part H: the Act 1 close-out (final art review, captures, music finals, SFX, low-armour line, intel lines, part H numbers, voice listen-through) |

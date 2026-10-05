@@ -93,7 +93,7 @@ class SettingsFileTest {
                 new VideoSettings(Scaling.SHARP_BILINEAR, true),
                 new AudioSettings(0.8, 0.55, 0.3, 0.05, 0.65),
                 new ControlSettings(true, 0.35, bindings),
-                new GameplaySettings(60, 0.4, true));
+                new GameplaySettings(60, 0.4, true, false));
 
         file.save(settings);
 
@@ -123,6 +123,7 @@ class SettingsFileTest {
                 controls.fire.gamepad=A,LEFT_STICK_UP
                 controls.special.alternative=Q
                 gameplay.text-speed=1000
+                gameplay.credit-numbers=maybe
                 video.scaling=blurry
                 """);
 
@@ -135,6 +136,7 @@ class SettingsFileTest {
         assertEquals(defaults.get(Action.FIRE), settings.controls().bindings().get(Action.FIRE));
         assertEquals(Keys.Q, settings.controls().bindings().get(Action.SPECIAL).alternativeKey());
         assertEquals(GameplaySettings.DEFAULT_TEXT_SPEED, settings.gameplay().textSpeed());
+        assertTrue(settings.gameplay().creditNumbers());
         assertEquals(Scaling.INTEGER, settings.video().scaling());
     }
 

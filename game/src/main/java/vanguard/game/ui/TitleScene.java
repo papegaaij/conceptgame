@@ -29,9 +29,14 @@ public final class TitleScene implements Disposable {
         batch.setColor(1, 1, 1, 1);
     }
 
+    /** The logo's height at {@code width} px wide. */
+    public float logoHeight(float width) {
+        return logo.getHeight() * width / logo.getWidth();
+    }
+
     /** The logo, {@code width} px wide, centred, its top {@code y} px below the top of the screen. */
     public void logo(SpriteBatch batch, float y, float width) {
-        float height = logo.getHeight() * width / logo.getWidth();
+        float height = logoHeight(width);
         batch.draw(logo, Math.round((PixelScreen.WIDTH - width) / 2), PixelScreen.HEIGHT - y - height, width, height);
     }
 

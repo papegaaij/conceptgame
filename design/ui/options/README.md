@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../controls, ../../art-direction, ../../audio/voice]
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Options
@@ -35,7 +35,8 @@ Settings screen reachable from the main menu and the pause menu, in the glass st
 - **Controls:** keyboard and gamepad bindings with remapping (press-a-key capture, conflicts
   swap), **auto-fire toggle (off = hold to fire, the default)**, gamepad dead zone. Mapping
   rules live in [controls](../controls/README.md).
-- **Gameplay:** text speed for briefings and radio, screen shake, flash reduction.
+- **Gameplay:** text speed for briefings and radio, screen shake, flash reduction, floating credit
+  numbers on or off (see [HUD](../hud/README.md)).
 - Changes apply immediately and persist with the settings file, not with save slots.
 
 ## Concept art
@@ -62,6 +63,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 - [x] Display mode: borderless full screen and resizable window, toggled at runtime (Alt+Enter, F11) without losing state; mode, window size/position and monitor persisted
 - [x] Display mode switch in the Video tab
 - [x] Sound test in the Audio tab
+- [x] Gameplay: the floating credit numbers on or off (M4 part H)
 
 ## Decisions
 
@@ -123,3 +125,8 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): no a
 - 2026-10-03: A separate **voice** volume slider after the radio blips (user decision in
   [voice](../../audio/voice/README.md#decisions)), times the master volume, stored as
   `audio.voice`; it applies to the spoken radio and the briefings.
+- 2026-10-05: M4 part H: the Gameplay tab's fourth row `CREDIT NUMBERS` (OFF / ON, default on;
+  note "SHOWS THE CREDITS OF EVERY PICKUP WHERE IT WAS TAKEN."), settings key
+  `gameplay.credit-numbers` (`true`/`false`; missing or unreadable reads as on), from the
+  [HUD](../hud/README.md)'s "can be disabled in options" (default of the part's plan). Capture in
+  [hud-warnings-capture-r26-a](../hud/concept/hud-warnings-capture-r26-a.png).

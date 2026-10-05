@@ -19,6 +19,9 @@ threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Th
   objective: ESCORT 5 CRAWLERS   # the OBJECTIVE field from sensor L1
   varga:
     none: Walkers in the craters and egg sacs coming down, Lancer. And five crawlers that can't dodge.
+    l1: Nearly all from ahead, but walkers come over both crater rims. The ground fire goes for the crawlers, not you.
+    l2: Brood Pods hatch in eight seconds; kill them first. Scuttler claws are armour; hit the back. Airstrike is cleared.
+    l3: "Bring something that hits the ground. Cache: a dugout in a crater rim, late on. Bombs or an Airstrike open it."
   notes:
     Dominant layers: '`ground` (turrets, walkers, the convoy), `air`'
     Attack directions: '{directions} (walker pincers over the crater rims)'

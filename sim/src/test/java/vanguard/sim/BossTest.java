@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -462,13 +461,8 @@ class BossTest {
 
     @Test
     void fightingTheBossDoesNotAllocate() {
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        fight(sortie());
-        Sortie sortie = sortie();
-        long before = threads.getCurrentThreadAllocatedBytes();
-        fight(sortie);
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
-        assertTrue(allocated < 1024, "the fight allocated " + allocated + " bytes");
+        long allocated = Allocations.least(BossTest::sortie, BossTest::fight);
+        assertEquals(0, allocated, "the fight allocated " + allocated + " bytes");
     }
 
     /** All three phases, the halt and the retry, with the guns firing. */

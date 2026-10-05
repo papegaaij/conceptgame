@@ -77,14 +77,14 @@ reused round 02 files marked (r02).
 |---|---|---|
 | Pulse Cannon shot | Short, bright "pew"; very frequent, so quiet and varied (3 pitch variants) | P1 |
 | Scatter Vulcan shot | Rapid chatter | P1 |
-| Hornet / micro-missile launch | Whoosh with a small ignition pop | P1 |
+| Hornet / micro-missile launch | Whoosh with a small ignition pop; the Hornet Launcher (L10) — **later: M5** | P1 |
 | Hammer Mortar / bomb drop | Hollow thunk, whistle down | P2 |
 | Lance Laser | Sustained zap with tail | P2 |
 | Ion Beam loop | Humming loop with start/stop | P2 |
-| Harpoon torpedo / depth charge | Muffled launch, bubbles; underwater boom | P2 |
+| Harpoon torpedo / depth charge | Muffled launch, bubbles; underwater boom; the Torpedo Pod (L11) — **later: M5**, Harpoon Torpedoes and Depth Charges Act 4 | P2 |
 | Plasma Arc | Crackle | P3 |
-| Tail Gun / Fan Blaster | Like the front guns, a little lower | P1 |
-| Proximity mine drop / arm | Click + beep | P2 |
+| Tail Gun / Fan Blaster | Like the front guns, a little lower (rear guns play their family 10 % lower, built with the Side Splitter); Tail Gun (L08) and Fan Blaster (L10) — **later: M5** | P1 |
+| Proximity mine drop / arm | Click + beep; Proximity Mines (L12) — **later: M5** | P2 |
 | Choir Resonator | Alien chord shot | P3 |
 | Overdrive start / end | Power-up surge / power-down | P1 |
 
@@ -189,12 +189,55 @@ gate. P2–P3, one loop per setting in the [world](../../world/README.md).
 | Earth ocean storm | [a](concept/ambience-storm-r08-a.ogg) — rain and thunder, 24 s |
 | Earth arctic | [a](concept/ambience-arctic-r08-a.ogg) — cold wind, 16 s |
 
+### Chosen sounds the game does not play
+
+Every other chosen sound in the Concept art tables below is played by the game (an entry of
+`vanguard.game.audio.Sfx`; `SfxFilesTest` checks both lists against this README).
+
+| File | Why not |
+|---|---|
+| [player-shot-r02-b.ogg](concept/player-shot-r02-b.ogg) | `pulse` family b ("heavy"): the family plays a, levels differ by pitch; kept for layering a heavy level |
+| [player-shot-r02-c.ogg](concept/player-shot-r02-c.ogg) | `laser` family a: the Lance Laser plays b (r03) |
+| [player-shot-r02-e.ogg](concept/player-shot-r02-e.ogg) | `vulcan` family a: the Scatter Vulcan plays b (r03) |
+| [shot-missile-r03-a.ogg](concept/shot-missile-r03-a.ogg) | Hornet Launcher, an Act 2 weapon (L10) — later: M5 |
+| [shot-torpedo-r03-a.ogg](concept/shot-torpedo-r03-a.ogg) | Torpedo Pod, an Act 2 weapon (L11) — later: M5 |
+| [shot-mine-r03-a.ogg](concept/shot-mine-r03-a.ogg) | Proximity Mines, an Act 2 weapon (L12) — later: M5 |
+| [shot-tesla-r03-a.ogg](concept/shot-tesla-r03-a.ogg) | Tesla Coil Pod, Plasma Arc, EMP Burst: later acts |
+| [shot-resonator-r03-a.ogg](concept/shot-resonator-r03-a.ogg) | Choir Resonator: a later act |
+| [shot-beam-r04-a.ogg](concept/shot-beam-r04-a.ogg) | Ion Beam loop: a later act |
+| [shot-beam-r04-b.ogg](concept/shot-beam-r04-b.ogg) | Alternative beam loop: a later act |
+| [shot-beam-r04-c.ogg](concept/shot-beam-r04-c.ogg) | Orbital Lance loop (L17): a later act |
+| [shot-beam-start-r04-a.ogg](concept/shot-beam-start-r04-a.ogg) | Beam start: a later act |
+| [shot-beam-stop-r04-a.ogg](concept/shot-beam-stop-r04-a.ogg) | Beam stop: a later act |
+| [special-sonar-r04-a.ogg](concept/special-sonar-r04-a.ogg) | Sonar Pulse (L22): Act 4 |
+| [special-flares-r08-a.ogg](concept/special-flares-r08-a.ogg) | Decoy Flares (L27): Act 4 |
+| [explosion-underwater-r03-a.ogg](concept/explosion-underwater-r03-a.ogg) | Under-water kills: Act 4 |
+| [explosion-underwater-r04-a.ogg](concept/explosion-underwater-r04-a.ogg) | Under-water kills: Act 4 |
+| [explosion-water-r03-a.ogg](concept/explosion-water-r03-a.ogg) | Surface naval kills: Act 2's ocean — later: M5 |
+| [ambience-city-r08-a.ogg](concept/ambience-city-r08-a.ogg) | Megacity setting: Act 2 — later: M5 |
+| [ambience-ocean-r08-a.ogg](concept/ambience-ocean-r08-a.ogg) | Ocean setting: Act 2 — later: M5 |
+| [ambience-storm-r08-a.ogg](concept/ambience-storm-r08-a.ogg) | Ocean storm setting: Act 2 — later: M5 |
+| [ambience-arctic-r08-a.ogg](concept/ambience-arctic-r08-a.ogg) | Arctic setting: Act 2 — later: M5 |
+| [enemy-missile-r08-a.ogg](concept/enemy-missile-r08-a.ogg) | No Act 1 enemy fires missiles (the SAM Nest, L29, and the Hornet, L31, are the first) |
+| [enemy-lock-r08-a.ogg](concept/enemy-lock-r08-a.ogg) | No Act 1 turret locks on (the SAM Nest, L29, is the first) |
+| [enemy-laser-warning-r08-a.ogg](concept/enemy-laser-warning-r08-a.ogg) | Act 1's only laser, the Mantis, has its own telegraph (round 23) |
+| [enemy-spawn-r08-a.ogg](concept/enemy-spawn-r08-a.ogg) | Vrell spawn a: the Brood Carrier's launches have their own sound (round 25); the Hive Node is not in Act 1 |
+| [enemy-screech-r08-c.ogg](concept/enemy-screech-r08-c.ogg) | Vrell screech: no Act 1 event is its cue yet (concept round 26 asks which) |
+| [enemy-screech-r08-d.ogg](concept/enemy-screech-r08-d.ogg) | Vrell screech: no Act 1 event is its cue yet (concept round 26 asks which) |
+| [enemy-coilwyrm-death-final-r24-a.ogg](concept/enemy-coilwyrm-death-final-r24-a.ogg) | A review preview of the Coilwyrm's chained death; the game plays its two bursts |
+
 ### Mixing rules
 
 - **Voice limit**: 32 simultaneous voices. Per-sound instance limits: player fire 2, small
   explosions 6, hits 4. Beyond the limit, the oldest instance is stolen.
 - **Priority** when stealing voices: warnings and player damage > boss sounds > explosions > enemy
-  fire > player fire > pickups > ambience.
+  fire > player fire > pickups > ambience. A sound past the 32 voices steals the oldest voice of
+  the lowest priority at or below its own, and is dropped when every voice ranks above it. The
+  groups not named above: the interface (menus, radio blips, the hangar, the debrief, the music's
+  cues) ranks with the warnings, the specials' sounds with the boss sounds, enemy hazards (mortar,
+  sled, flares, the Mantis's beam) with enemy fire, hits with the player fire that lands them. A
+  running loop (an ambience) is never stolen, since it would not come back, and always gets a
+  voice.
 - **Levels** (relative, first draft): player fire −12 dB, enemy fire −9 dB, explosions 0 dB,
   player damage and warnings +2 dB, pickups −6 dB, enemy hits −6 dB (8 dB below player damage).
 - **Variation**: every frequent sound gets ±5 % random pitch and 2–3 variants.
@@ -455,10 +498,24 @@ sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carri
 
 ## Implementation
 
-- [ ] SFX playback with instance limits, stealing by priority, pitch variation
+- [x] SFX playback with instance limits, stealing by priority, pitch variation: the 32-voice
+  limit with priority stealing (`VoiceLimit`, `Sfx.Priority`), the per-sound instance limits, ±pitch
 - [x] Stereo panning by play-field X
-- [ ] Underwater low-pass on the sfx bus
-- [ ] All P1 sounds
+- [ ] Underwater low-pass on the sfx bus — **later: Act 4** (the Europa levels)
+- [x] The Act 1 sounds: every chosen sound an Act 1 event uses is played (the list of the ones
+  that are not, with the reason, is above); the explosion ladder by size, the Smart Bomb, the
+  shield's restore chime, the low-armour beeps, the pickups by type, the ground targets' crumble
+- [x] Heavy enemy shots: `Sfx.ENEMY_HEAVY_SHOT_A`/`_B` play when an `ENEMY_FIRED` event's value
+  (the gun's damage, sent by the simulation) is at least the medium bullet class's damage
+  (`FlightSounds.heavyShot`, `BulletLooks.MEDIUM_DAMAGE`): the Leviathan's and Scuttler's `medium` shots
+- [x] The hangar's shop sounds (`Sfx.SHOP_BUY`, `SHOP_SELL`, `SHOP_DENIED`, `EQUIP`, `UPGRADE`,
+  chosen by `Sfx.shop`) played by the hangar screen instead of the menu blips: a shop action its
+  own, a paid repair the purchase, an undo and a confirmed sale the refund, a refusal the denial
+  (`HangarScreen.doneSound`; `HangarSoundsTest`)
+- [ ] Save done (P2) and a Coilwyrm chain-cut tear: no sound chosen yet (the cut plays a lower
+  Brood Pod burst) — concept round 26
+- [ ] The Act 2 sounds: Tail Gun, proximity mine drop and arm, torpedo launch, Hornet missile,
+  water explosion, the Act 2 ambiences — **later: M5**
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
   from rounds 02–08, round 21's four, round 23's five, round 24's two and round 25's seven) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
   [`tools/art/sfx_originals.py`](../../../tools/art/README.md); `importPlaceholders` keeps them
@@ -585,3 +642,30 @@ sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carri
   levelling), into `assets/sfx/` under their concept names with a `SOURCE` comment; `Sfx` and
   `copyPlaceholderSounds` play the chosen ones, the provisional option-a files that are no longer
   used were removed from `assets/sfx/`. The two CC-BY sounds join the credits screen's list.
+- 2026-10-05: M4 part H, the SFX pass. **Voice limit**: at most 32 effects at once (`VoiceLimit`
+  in `SfxBank`); a play past an effect's own instance limit stops its oldest instance, a play past
+  32 steals the oldest voice of the lowest priority at or below its own or is dropped. Libgdx does
+  not report a sound's end, so a voice counts for its file's length (read from the Ogg file's last
+  page, divided by the pitch). Priorities as in the mixing rules; the groups they do not name were
+  placed by the main-agent brief and this pass: the interface with the warnings, the specials with
+  the boss sounds, hazards with enemy fire, hits with player fire; loops are never stolen.
+  **Wired** (chosen sounds already in `assets/sfx/`): enemies explode on their size rung (`medium`
+  for the Brood Pod, Mantis, Scuttler and Spore Bomber; two files a rung, alternated); a set
+  piece's part blows with the `medium` rung, a boss's phase end with the `large` one; a set piece's
+  death with the `huge` rung (an act boss, and a set piece that is no boss, the Leviathan) or the
+  `large` one (a mid-boss, the Gorgon Frigate); an act boss's tail-to-head chain starts on the
+  `large` rung, bursts on the `medium` one and ends on the `huge` blast with the `large` rung's boss
+  blast (r02-e) 0.05 s later; the Leviathan's break-up layers the `large` and `medium` rungs instead
+  of slowed small explosions. A destroyed ground target bursts with the small ladder's r02-b or a and
+  crumbles under it: collapse a for a target of at least 1 000 px², rubble b below. The Smart Bomb
+  plays its chosen energy blast with the `huge` rung's sub-heavy boom under it at −3 dB (the blast
+  swells over 0.5 s; the boom gives the instant flash its punch). The shield's restore chime plays
+  once the shield is full again after a break (not after every hit's regeneration). The low-armour
+  beep repeats every 1.2 s at or below 30 % armour and every 0.6 s at or below 15 %, while the ship
+  flies, 6 dB under the warnings' level, since armour does not regenerate and the beeping can last
+  the rest of the level. Pickups by type: salvage medium r01-c, the special charge's own chime, the
+  data core r01-b, the overdrive pickup r01-a with the overdrive's start cue. Heavy enemy shots and
+  the hangar's shop sounds have their `Sfx` entries but are not played yet (see Implementation).
+  The nine synthesized sounds are copied by `copyPlaceholderSounds`. Not played, with the reason:
+  the table *Chosen sounds the game does not play*. Gaps for concept round 26: a save-done sound, the
+  Coilwyrm's chain-cut tear, the Vrell screech's cue. Not listened to: levels set by rule.

@@ -2,9 +2,9 @@
 title: Shields
 design: approved
 implementation: in-progress
-art: none
+art: proposed
 depends-on: [../generator, ../armor, ../../systems/retry]
-updated: 2026-10-02
+updated: 2026-10-05
 ---
 
 # Shields
@@ -40,11 +40,25 @@ Rules:
 - Spare generator power boosts the regen rate (see [generator](../generator/README.md)).
 - Collisions deal half damage to shields and half directly to armour, so ramming stays risky.
 
+## Concept art
+
+Production art for concept round 26 (the M4 part H batch), review files built from the final frames in `assets/` by `tools/art/ship_fx.py` (`--review` rebuilds only them); prompts: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/shield-ring-final-r26-a.png](concept/shield-ring-final-r26-a.png) | Final shield-hit ring (`ship-shield_0..3`, 60×60, additive): round 08's hex shimmer on a round bubble, the cells lighting up around a hit at the front and a ripple running back, fading over 4 frames; alone and over the hull | proposed |
+| [concept/shield-ring-final-r26-a.gif](concept/shield-ring-final-r26-a.gif) | The ring over the hull at the game's 2 steps a frame | proposed |
+
 ## Implementation
 
 - [x] Shield capacity, regen, delay and break behaviour
 - [x] Damage routing shield → armour, collision split
-- [ ] Shield hit/break feedback (sprite shimmer, SFX, HUD flash)
+- [x] Shield hit/break feedback: the blue shimmer on the hull (`FlashShader`, `LevelRenderer`),
+  the hit and break sounds (`Sfx.SHIELD_HIT`, `SHIELD_BREAK`), the HUD shield bar flickering while
+  it is down after a break (`ShipPanel`)
+- [x] The 60×60 4-frame hex-shimmer ring sprite on shield hits (the [ship](../ship/README.md)'s
+  asset table; `ShipLooks`, frames by `tools/art/ship_fx.py`)
+- [ ] The shield-restore chime ([sfx](../../audio/sfx/README.md), part H's SFX pass)
 
 ## Decisions
 
@@ -52,3 +66,11 @@ Rules:
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
 - 2026-10-01: M1 implementation (`vanguard.sim.Defences`, Mk I numbers in `ShieldModel`): every hit that lands (shield or armour) restarts the 2.0 s delay; a break holds the shield at 0 for 1.0 s + the delay; in a collision the shield's half overflows to armour like a bullet's. Feedback so far: shield-hit and break sounds, a blue shimmer on the hull, the HUD shield bar flickering while down after a break; the hex-ring shimmer sprite is still to come.
 - 2026-10-02: The shield models and the break time moved into [data.yaml](data.yaml) (M2 data files); the model table is rendered from it and `vanguard.sim.ShieldModel` is built from it.
+- 2026-10-05: M4 part H docs reconciliation: the feedback item is split into the built part (hull
+  shimmer, hit and break sounds, the HUD bar's flicker) and what is still missing: the hex-ring
+  sprite of the ship's asset table and the shield-restore chime. The document stays
+  `in-progress`.
+- 2026-10-05: M4 part H: the hex-shimmer ring is drawn additively over the ship on every shield
+  hit, its 4 frames over the 8-step shimmer (2 steps each), with the hull's blue shimmer under it.
+  The hit point is fixed at the front of the bubble (most bullets come from ahead) rather than at
+  the bullet's side. Frames by `tools/art/ship_fx.py`, proposed for round 26 (`art: proposed`).

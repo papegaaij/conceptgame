@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: n/a
 depends-on: [../economy, ../retry]
-updated: 2026-10-02
+updated: 2026-10-05
 ---
 
 # Difficulty
@@ -50,15 +50,18 @@ unless the level authors the count for that difficulty (Level 01's hard rear wav
 the lever). Likewise an authored `burst` for a difficulty is final and is not raised again by the
 bullets-per-burst lever.
 
-Density scaling uses **authored variants** where it matters: a pattern designer can mark
-bullets as `medium+` or `hard-only`, rather than relying on a multiplier alone. This table is
-the single source of the global levers; enemy stat blocks only add overrides (see
+Density scaling uses **authored variants** where it matters, rather than relying on a multiplier
+alone: an enemy's stat block overrides its patterns per difficulty in its `difficulty:` block (a
+fan's bullet count, a burst's shots, a mine's ring, a boss attack's `burst`, `count`, `interval` or
+spiral `arms`; e.g. the Gorgon Frigate's 5-shot bursts and 16-bullet rings on hard), and a level
+can author a wave's count per difficulty or leave the wave out on a difficulty (`skip`). This table
+is the single source of the global levers; enemy stat blocks only add overrides (see
 [enemies](../../enemies/README.md#difficulty-scaling-hooks)).
 
 ## Implementation
 
 - [x] Difficulty stored in the save and applied through a single table
-- [ ] Per-bullet difficulty tags in pattern data — **later: M4** (the Act 1 enemies' and bosses' patterns)
+- [x] Authored difficulty variants in pattern data: the stat blocks' per-difficulty overrides (`difficulty:`, `EnemyData.Hook` and `AttackChange`) and a wave's per-difficulty count and `skip` (`LevelData.Wave`); this replaces the per-bullet `medium+` / `hard-only` tags (user decision D3 of M4 part H)
 - [x] Easy-mode intel bonus
 
 ## Open questions
@@ -100,3 +103,8 @@ the single source of the global levers; enemy stat blocks only add overrides (se
   before the level was launched, with a fresh set of retries (user decision): Continue opens the
   hangar before the level; see [retry](../retry/README.md).
 - 2026-10-02: M3 close-out (user decision): the per-bullet difficulty tags move to M4 with the Act 1 patterns; the document is done for M3.
+- 2026-10-05: M4 part H (user decision D3 = A): the per-bullet difficulty tags (`medium+` /
+  `hard-only`) are not built; the item is closed as met by the per-enemy `difficulty:` overrides
+  and the waves' per-difficulty counts and `skip`, which reach every Act 1 enemy's and boss's
+  per-difficulty pattern. The design line under *Formation size* is reworded to match. Rejected:
+  building the tags now with no data using them (B), or deferring them to M5 (C).

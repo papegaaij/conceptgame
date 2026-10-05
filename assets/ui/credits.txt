@@ -1,0 +1,89 @@
+# The credits roll (design/ui/credits), generated from CREDITS.md by
+# ./gradlew :pipeline:credits (vanguard.pipeline.CreditsList); do not edit.
+# One entry per line: kind|text. Kinds: logo, gap, title, role, name, item, detail, text.
+logo|
+gap|
+role|A GAME BY
+name|Emond Papegaaij
+gap|
+role|ART
+text|Pre-rendered sprites, scenes and the logo made by the game's own generators
+gap|
+role|MUSIC
+text|Original score, synthesised by the game's own generators
+gap|
+title|SOUND EFFECTS
+item|“laser3” by nsstudios
+detail|CC-BY 4.0 · freesound.org/people/nsstudios/sounds/344276
+item|“Nearby explosion with debris” by juskiddink
+detail|CC-BY 4.0 · freesound.org/people/juskiddink/sounds/108641
+item|“Rocket Shots” by Audionautics
+detail|CC-BY 3.0 · freesound.org/people/Audionautics/sounds/171655
+item|“Torpedo launch underwater.wav” by jobro
+detail|CC-BY 3.0 · freesound.org/people/jobro/sounds/35530
+item|“sci-fi cannon” by humanoide9000
+detail|CC-BY 4.0 · freesound.org/people/humanoide9000/sounds/422440
+item|“SonicDeathRay_1.2KHzNoCrackle.wav” by zimbot
+detail|CC-BY 4.0 · freesound.org/people/zimbot/sounds/177100
+item|“underwater explosion” by mokasza
+detail|CC-BY 4.0 · freesound.org/people/mokasza/sounds/810765
+item|“cracking.wav” by smidoid
+detail|CC-BY 4.0 · freesound.org/people/smidoid/sounds/49139
+item|“building_collapse02_close.wav” by onteca
+detail|CC-BY 3.0 · freesound.org/people/onteca/sounds/197772
+item|“Synthesized_Pitch-Down_Zap” by joe_bou_khalil
+detail|CC-BY 4.0 · freesound.org/people/joe_bou_khalil/sounds/861848
+item|“spaceship explosion9.WAV” by phantastonia
+detail|CC-BY 4.0 · freesound.org/people/phantastonia/sounds/270616
+item|“retro shot blaster” by JavierZumer
+detail|CC-BY 4.0 · freesound.org/people/JavierZumer/sounds/257232
+item|“alien4.wav” by AlienXXX
+detail|CC-BY 4.0 · freesound.org/people/AlienXXX/sounds/78539
+item|“Guns & Explosions Album - Flare gun 5-2.wav” by OGsoundFX
+detail|CC-BY 4.0 · freesound.org/people/OGsoundFX/sounds/423109
+item|“Power On.wav” by JustinBW
+detail|CC-BY 4.0 · freesound.org/people/JustinBW/sounds/70107
+item|“drone Space wind scifi.wav” by ztitchez
+detail|CC-BY 4.0 · freesound.org/people/ztitchez/sounds/370754
+item|“Ocean waves hitting bow of moving boat.” by byjoshberry
+detail|CC-BY 4.0 · freesound.org/people/byjoshberry/sounds/435668
+item|“Wet Splat” by JustInvoke
+detail|CC-BY 4.0 · freesound.org/people/JustInvoke/sounds/446115
+item|“SonicDeathRay_1.2KHzWithCrackle.wav” by zimbot
+detail|CC-BY 4.0 · freesound.org/people/zimbot/sounds/177099
+item|“FlareGun_Shot01.wav” by marb7e
+detail|CC-BY 4.0 · freesound.org/people/marb7e/sounds/674375
+item|“Messy Splat 3” by FoolBoyMedia
+detail|CC-BY 4.0 · freesound.org/people/FoolBoyMedia/sounds/237927
+item|“Headshot 2” by SilverIllusionist
+detail|CC-BY 4.0 · freesound.org/people/SilverIllusionist/sounds/470586
+item|“snapping-chain” by CosmicEmbers
+detail|CC-BY 3.0 · freesound.org/people/CosmicEmbers/sounds/161650
+gap|
+role|WITH THANKS TO (CC0)
+text|BaggoNotes, bevibeldesign, Bird_man, cobratronik, coolguy244e, craigsmith, cubix, Cyberios, Daleonfire, darcyadam, derplayer, dinodilopho, Division4884, Elektrocell, FlatHill, frankelmedico, GameAudio, Glitchedtones, gprosser, humanoide9000, iwanPlays, Jacco18, Jarusca, Jerimee, JoelAudio, JoMungus, JovianSounds, jvmyka@gmail.com, Kinoton, lorenzgillner, LucasDuff, magnuswaker, mattpavone, michael_grinnell, mitchelk, Mozfoo, NHMWretched, nicktermer, noirenex, Noxdl, peepholecircus, pgi, plasterbrain, qubodup, SamsterBirdies, SecureSubset, Sheyvan, sidohzen, SuperPhat, ThefitzyG, TRP, unfa, wilhellboy, xkeril
+gap|
+title|VOICES
+text|Spoken by the Chatterbox text-to-speech engine (Resemble AI, MIT licence) in voices cloned from LibriVox recordings
+gap|
+role|READ BY (PUBLIC DOMAIN AND CC0)
+text|Adrian Praetzellis, Alex Foster, Betsie Bush, Cori Samuel, Gord Mackenzie, Kara Shallenberg, Karen Savage, Kristin Hughes, Mark F. Smith, Mark Nelson, Rick Rodstrom, Ruth Golding, Tadhg Hynes
+gap|
+title|FONTS
+item|“DejaVu Sans Mono Bold” by DejaVu fonts team, after Bitstream Vera (Bitstream)
+detail|Bitstream Vera Fonts licence · dejavu-fonts.github.io
+gap|
+title|TOOLS
+text|libGDX and LWJGL, Java 21, Gradle and Construo
+text|Python with NumPy and Pillow, FFmpeg
+text|Chatterbox text-to-speech by Resemble AI
+text|Written with Claude Code by Anthropic
+gap|
+title|LICENCE
+text|Terran Vanguard is open source under the Apache License 2.0
+text|Third-party assets keep their own licences, listed in CREDITS.md
+gap|
+role|MADE WITH LIBGDX
+gap|
+gap|
+name|THANK YOU FOR PLAYING

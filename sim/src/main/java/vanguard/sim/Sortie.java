@@ -106,6 +106,11 @@ public final class Sortie {
     private final int launchTicks;
     private final int endTicks;
     private final int pickupTicks;
+    /** The fitted Pickup magnet's reach, px; 0 without one. */
+    private final double magnetRadius;
+    /** How far a pickup in the magnet's reach flies per step, px; 0 without a magnet. */
+    private final double magnetStep;
+
     private long tick;
     private int levelTick;
     private int attempt = 1;
@@ -294,7 +299,7 @@ public final class Sortie {
             @Override
             public void ring(double x, double y, int count, double speed, double damage) {
                 force.burst(x, y, count, speed, damage, ship);
-                events.add(SimEvents.Type.ENEMY_FIRED, x, y);
+                events.add(SimEvents.Type.ENEMY_FIRED, x, y, (int) damage);
             }
 
             @Override
@@ -358,6 +363,8 @@ public final class Sortie {
         launchTicks = SimStep.ticks(script.launchSeconds());
         endTicks = SimStep.ticks(script.seconds());
         pickupTicks = SimStep.ticks(rules.pickups().seconds());
+        magnetRadius = loadout.magnet().map(Magnet::radius).orElse(0.0);
+        magnetStep = loadout.magnet().map(Magnet::pullSpeed).orElse(0.0) * SimStep.SECONDS;
         startAttempt(armour);
     }
 
@@ -843,10 +850,20 @@ public final class Sortie {
         }
     }
 
+    /**
+     * Pickups drift down; with a Pickup magnet fitted, those within its reach of the flying ship fly
+     * at it instead (design/player/systems). Every pickup is pulled, the hidden crates and data cores
+     * too; the beacons, containers and other ground objects that release them are not pickups.
+     */
     private void driftPickups() {
         double distance = rules.pickups().driftSpeed() * SimStep.SECONDS;
+        boolean pulling = magnetStep > 0 && flying();
         for (int i = pickups.size() - 1; i >= 0; i--) {
-            if (!pickups.get(i).drift(distance)) {
+            Pickup pickup = pickups.get(i);
+            boolean stays = pulling && pickup.within(ship.x(), ship.y(), magnetRadius)
+                    ? pickup.pull(ship.x(), ship.y(), magnetStep)
+                    : pickup.drift(distance);
+            if (!stays) {
                 pickups.free(i);
             }
         }
@@ -1116,9 +1133,11 @@ public final class Sortie {
 
     /** What a boss's parts paid together, after the credit factor: the credit shower's number. */
     private int bossCredits(LevelScript.SetPieceSpec spec) {
+        // Indexed: a for-each would allocate an iterator whenever a boss is wrecked.
+        List<LevelScript.PartSpec> parts = spec.parts();
         int credits = 0;
-        for (LevelScript.PartSpec part : spec.parts()) {
-            credits += (int) Math.rint(part.bounty() * rules.scoring().creditFactor());
+        for (int i = 0; i < parts.size(); i++) {
+            credits += (int) Math.rint(parts.get(i).bounty() * rules.scoring().creditFactor());
         }
         return credits;
     }
@@ -1184,7 +1203,10 @@ public final class Sortie {
                 tally.earn(CreditSource.OBJECTIVES, credits);
                 tally.scoreValue(credits);
             }
-            for (LevelScript.GroupDrop drop : script.groupDrops()) {
+            // Indexed: a for-each would allocate an iterator whenever a group is cleared.
+            List<LevelScript.GroupDrop> drops = script.groupDrops();
+            for (int i = 0; i < drops.size(); i++) {
+                LevelScript.GroupDrop drop = drops.get(i);
                 if (drop.group() == group) {
                     drop(drop.pickup(), x, y);
                 }
@@ -1226,7 +1248,8 @@ public final class Sortie {
         radio.cue(LevelScript.CueTrigger.MISSION_FAILED, "");
     }
 
-    private void drop(PickupType type, double x, double y) {
+    /** Drops a pickup of {@code type} at ({@code x}, {@code y}), as a kill or a destroyed object does; package-private for the tests. */
+    void drop(PickupType type, double x, double y) {
         if (type == PickupType.SPECIAL_CHARGE && !special.fitted()) {
             return;
         }

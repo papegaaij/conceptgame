@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../../enemies/air/skitter, ../../../enemies/air/needler]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Level 01 – Break at Dawn
@@ -267,12 +267,7 @@ Rework after round 12 (user decision), for concept round 13: the north arm re-re
 
 ## Open questions
 
-- The haze strength per atmosphere intensity, the cloud banks' drift speed and the length of an
-  atmosphere ramp are first values in [data.yaml](data.yaml) (`backdrop.atmosphere`, `drift`,
-  `ramp`): the art direction gives bank coverage per intensity, but no haze strength, drift speed
-  or ramp length beyond "several seconds".
-- Motion budget: the two launching Stormhawks (section 1) are counted as one animated element,
-  like the cloud decks and the burning platforms; *Layout* names only the last two.
+- None open.
 
 ## Decisions
 
@@ -398,3 +393,8 @@ Rework after round 12 (user decision), for concept round 13: the north arm re-re
   enemies per minute (32.6) and stay as they are; `bounty_scale` 1.21 puts the typical haul on the
   budget (708 of 700; a perfect run 1,175); the kill-ratio secondary drops from 80 % to the
   campaign's 65 % rule of thumb (62 of 95 enemies).
+- 2026-10-05: Two open questions closed as played (M4 part H docs reconciliation): the haze
+  strength per atmosphere intensity, the cloud banks' drift speed and the ramp length stay the
+  first values in [data.yaml](data.yaml) (`backdrop.atmosphere`, `drift`, `ramp`), and the two
+  launching Stormhawks count as one animated element of the motion budget, like the cloud decks
+  and the burning platforms; the user has played Level 01 with them since M2.

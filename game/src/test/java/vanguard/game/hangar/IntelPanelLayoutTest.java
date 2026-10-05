@@ -1,12 +1,15 @@
 package vanguard.game.hangar;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.badlogic.gdx.graphics.Color;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import vanguard.content.BriefingPage;
 import vanguard.content.Content;
@@ -97,6 +100,28 @@ class IntelPanelLayoutTest {
     }
 
     /**
+     * Varga has a line of her own for each sensor level of every level (design/ui/hangar, Intel; user
+     * decision D4 of M4 part H): four different lines, each the one the panel quotes at that level.
+     * That each fits the panel beside the fields it shows is checked above.
+     */
+    @Test
+    void everyLevelHasVargasLineForEachSensorLevel() {
+        for (String level : CONTENT.levels().keySet()) {
+            Set<String> lines = new HashSet<>();
+            for (int sensor = 0; sensor <= 3; sensor++) {
+                Intel intel = Intel.of(CONTENT, level, sensor);
+                String line = intel.varga();
+                assertFalse(line == null || line.isBlank(), level + " has Varga's line for sensor L" + sensor);
+                assertTrue(lines.add(line), level + " at sensor L" + sensor + " repeats a line: " + line);
+                assertEquals(
+                        String.join(" ", IntelPanel.quote(intel)),
+                        Names.of("\"" + line + "\""),
+                        level + " at sensor L" + sensor + ": the quote is the whole line, no word cut");
+            }
+        }
+    }
+
+    /**
      * An escort level's OBJECTIVE row (Level 04, from sensor L1) fits beside the other fields of every
      * level like it: one without set-piece contacts, whose row the escort levels do not have (Level 03
      * with both would run 2 px into Varga's quote). Level 04's own intel is checked above.
@@ -154,11 +179,10 @@ class IntelPanelLayoutTest {
                 assertFalse(all.get(i).overlaps(all.get(j)), where + all.get(i) + " overlaps " + all.get(j));
             }
         }
-        if (!measure.quote.isEmpty()) {
-            int quoteTop = measure.quote.getFirst().top();
-            for (Box box : measure.parts) {
-                assertTrue(box.bottom() <= quoteTop, where + box + " runs into Varga's quote");
-            }
+        assertFalse(measure.quote.isEmpty(), where + "Varga's line is shown");
+        int quoteTop = measure.quote.getFirst().top();
+        for (Box box : measure.parts) {
+            assertTrue(box.bottom() <= quoteTop, where + box + " runs into Varga's quote");
         }
         return measure;
     }

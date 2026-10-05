@@ -9,14 +9,14 @@ size: [300, 480]    # sprite px, facing down: 300 across the fins, 480 long
 hitbox: [110, 400]  # the armoured body
 parts: multi
 part_list:  # offset [dx, dy] px from the centre, in its own frame
-  - {name: blowhole, offset: [0, 60], hitbox: [40, 40], hp: 150, kind: vital, bounty: 60}
-  - {name: vent 1, offset: [-34, 20], hitbox: [26, 26], hp: 40, kind: destroyable, bounty: 20, attack: vents}
-  - {name: vent 2, offset: [34, 20], hitbox: [26, 26], hp: 40, kind: destroyable, bounty: 20, attack: vents}
-  - {name: vent 3, offset: [-30, 110], hitbox: [26, 26], hp: 40, kind: destroyable, bounty: 20, attack: vents}
-  - {name: vent 4, offset: [30, 110], hitbox: [26, 26], hp: 40, kind: destroyable, bounty: 20, attack: vents}
-  - {name: left fin, offset: [-105, -10], hitbox: [80, 60], hp: 60, kind: destroyable, bounty: 15, attack: fins}
-  - {name: right fin, offset: [105, -10], hitbox: [80, 60], hp: 60, kind: destroyable, bounty: 15, attack: fins}
-  - {name: fluke, offset: [0, 205], hitbox: [120, 50], hp: 80, kind: destroyable, bounty: 20}
+  - {name: blowhole, offset: [0, 60], hitbox: [40, 40], hp: 150, kind: vital, bounty: 35}
+  - {name: vent 1, offset: [-34, 20], hitbox: [26, 26], hp: 40, kind: destroyable, bounty: 12, attack: vents}
+  - {name: vent 2, offset: [34, 20], hitbox: [26, 26], hp: 40, kind: destroyable, bounty: 12, attack: vents}
+  - {name: vent 3, offset: [-30, 110], hitbox: [26, 26], hp: 40, kind: destroyable, bounty: 12, attack: vents}
+  - {name: vent 4, offset: [30, 110], hitbox: [26, 26], hp: 40, kind: destroyable, bounty: 12, attack: vents}
+  - {name: left fin, offset: [-105, -10], hitbox: [80, 60], hp: 60, kind: destroyable, bounty: 9, attack: fins}
+  - {name: right fin, offset: [105, -10], hitbox: [80, 60], hp: 60, kind: destroyable, bounty: 9, attack: fins}
+  - {name: fluke, offset: [0, 205], hitbox: [120, 50], hp: 80, kind: destroyable, bounty: 12}
 orientation: fixed
 hp: 510             # the parts' sum
 armour: 'body armoured (sparks); high-air pass: only `homing` and `beam` hit'
@@ -47,7 +47,7 @@ weak_points:
 drops:
   - {pickup: large salvage, every: 1}
 traits: [piercing, homing, forward]
-bounty: 190         # the parts' sum
+bounty: 113         # the parts' sum: ≈ 15 % of L03's budget at its bounty scale
 first_level: 3
 difficulty:
   hard: {burst: 2}  # vents fire 2-orb bursts; clusters of 8 seeds are the level's
@@ -59,7 +59,7 @@ notes:
   speed: drift; turns 10°/s
   movement: 'first pass: crosses diagonally on `high-air` in ≈ 12 s; second pass: descends (scale and shadow shrink to the air layer over 2 s) and drifts across the upper half for up to 30 s, then leaves'
   attack_prefix: 'first pass: blowhole releases a whirl cluster of 6 Whirl Seeds every 3 s; '
-  bounty: ' (turret vent 20 each, fin 15 each, fluke 20, blowhole 60); killing the blowhole first destroys the rest for the full 190'
+  bounty: ' (turret vent 12 each, fin 9 each, fluke 12, blowhole 35); killing the blowhole first destroys the rest for the full 113'
   death: '`huge`: chained `medium` bursts along the body, ichor cloud, whale-song cry; drops a large salvage pickup'
   used_in: Earth orbit; returns in Act 7 (L46) as a variant specified with that act
   difficulty: 'hard: clusters of 8 seeds; vents fire 2-orb bursts'

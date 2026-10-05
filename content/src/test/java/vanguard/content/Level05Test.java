@@ -3,7 +3,6 @@ package vanguard.content;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -11,6 +10,7 @@ import java.util.TreeMap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import vanguard.sim.Allocations;
 import vanguard.sim.Armament;
 import vanguard.sim.EnemySpec;
 import vanguard.sim.LevelResult;
@@ -34,18 +34,16 @@ class Level05Test {
     private final Content content = ContentLoader.fromClasspath();
 
     /**
-     * The fit the balance plan expects at Level 05 (design/player/balance-plan.yaml): the Pulse
-     * Cannon at L2, an Autocannon Pod on each wing and the second shield; on hard the Pulse Cannon
-     * one level up (the plan is written for medium; the autopilot cannot dodge the hard frigate for
-     * as long as the L2 fit needs). PacingTest flies it too.
+     * The fit the balance plan expects at Level 05 (design/player/balance-plan.yaml), on every
+     * difficulty: the Pulse Cannon at L2, an Autocannon Pod on each wing and the second shield.
+     * PacingTest flies it too.
      */
     static Loadout planLoadout(Content content, Difficulty difficulty) {
         return SimSpecs.loadout(
                 content,
                 content.systems().engines().getFirst().name(),
                 List.of(
-                        new SimSpecs.FittedWeapon(
-                                Armament.Slot.FRONT, SimSpecs.PULSE_CANNON, difficulty == Difficulty.HARD ? 3 : 2),
+                        new SimSpecs.FittedWeapon(Armament.Slot.FRONT, SimSpecs.PULSE_CANNON, 2),
                         new SimSpecs.FittedWeapon(Armament.Slot.LEFT_WING, "autocannon-pod", 1),
                         new SimSpecs.FittedWeapon(Armament.Slot.RIGHT_WING, "autocannon-pod", 1)),
                 content.shields().models().get(1).name(),
@@ -276,15 +274,9 @@ class Level05Test {
 
     @Test
     void steppingAWholeLevelDoesNotAllocate() {
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        fly(sortie(content, 2185, Difficulty.HARD));
-        Sortie sortie = sortie(content, 2185, Difficulty.HARD);
+        long allocated = Allocations.least(() -> sortie(content, 2185, Difficulty.HARD), Level05Test::fly);
 
-        long before = threads.getCurrentThreadAllocatedBytes();
-        fly(sortie);
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
-
-        assertTrue(allocated < 1024, "the level allocated " + allocated + " bytes");
+        assertEquals(0, allocated, "the level allocated " + allocated + " bytes");
     }
 
     @Test

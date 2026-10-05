@@ -7,3 +7,7 @@ plating:
   - {name: Composite III, max: 120, price: 3000, available: act 3}
   - {name: Composite IV, max: 140, price: 6000, available: act 5}
   - {name: Composite V, max: 160, price: 11000, available: act 6}
+
+# The low-armour radio line (design/player/armor, Low-armour warnings): spoken once per attempt, as
+# an urgent line, by the first armour hit that leaves the armour at or below 15 % of its maximum.
+radio: {speaker: Okafor, expression: grim, line: "Lancer, your hull won't take much more. Fly careful."}

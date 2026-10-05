@@ -1,10 +1,10 @@
 ---
 title: Polyp Mortar
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Polyp Mortar
@@ -74,7 +74,7 @@ Chosen concept: [polyp-mortar-r04-a.png](../concept/polyp-mortar-r04-a.png) (lis
 - [x] Death effect, bounty and score per this spec (the small burst with its `-death` glow and
       `-tatters` pieces, the rocks, and the acid splash decal `polyp-mortar-splash` left on the
       ground for 10 s: fresh 1 s, 7 s, fading 2 s; all final in round 21)
-- [ ] Glow frames (the lime mouth) for Level 06's darkness — M4 part F
+- [x] Glow frames (the lime mouth) for Level 06's darkness — M4 part F (`polyp-mortar-glow_*`, drawn additively by `EnemyLooks`; final in round 23)
 
 ## Decisions
 
@@ -110,3 +110,5 @@ Chosen concept: [polyp-mortar-r04-a.png](../concept/polyp-mortar-r04-a.png) (lis
   `polyp-mortar-glow_0..7 (44×44, one per pulse frame)`, the final model with only its emission left plus a stepped halo, additive,
   indexed like the unit's frames; reviewed in [round 23](../../../concept-rounds/round-23/README.md)
   (`darkness-final-r23-a` in Level 06's concept directory).
+- 2026-10-05: M4 part H docs reconciliation: the glow frames were built in part F and approved in
+  round 23; ticked, the document is `done`.

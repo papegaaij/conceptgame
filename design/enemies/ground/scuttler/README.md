@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Scuttler
@@ -71,6 +71,8 @@ Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pen
 |---|---|---|
 | [concept/scuttler-final-r16-a.png](concept/scuttler-final-r16-a.png) | Final sprites: 16 headings × 6 walk frames (`scuttler_0..95`, 64×64, 32 colours, 24 px per cycle), the walk cycle at three headings, the legless husks (`scuttler-husk_0..15`) and the additive lime-back glow masks (`scuttler-glow_0..95`) | chosen |
 | [concept/scuttler-final-r16-a.gif](concept/scuttler-final-r16-a.gif) | A Scuttler walking a circle under a dust bank, its back glow added on top | chosen |
+| [concept/scuttler-death-final-r26-a.png](concept/scuttler-death-final-r26-a.png) | Round 26 (M4 part H, `tools/art/vrell_deaths.py`): the 16-frame organic burst, `scuttler-tatters_0..15` (96×96, solid: the six legs and the claws torn off, shell fragments off the back, settling on the ground) and `scuttler-death_0..15` (96×96, additive lime flash, ichor spray and olive mist), with the medium burst, over its husk and at 1× | proposed |
+| [concept/scuttler-death-final-r26-a.gif](concept/scuttler-death-final-r26-a.gif) | Round 26: three Scuttlers dying and leaving their husks on Luna grey | proposed |
 
 ## Implementation
 
@@ -80,7 +82,7 @@ Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pen
 - [x] Facing fan
 - [x] Stat block values loaded from data; global difficulty multipliers applied
 - [x] Bounty and score per this spec; the husk at its last heading
-- [ ] Death effect: the 16-frame organic burst — **later:** it has no art yet (the medium explosion plays)
+- [x] Death effect: the 16-frame organic burst (production frames proposed in round 26), with the medium explosion
 
 ## Decisions
 
@@ -109,3 +111,4 @@ Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pen
   claws as any walking ground unit. Drawn: 16 headings × 6 walk frames, one cycle per 24 px walked,
   the lime back glow additive above the low-air layer, the husk at its last heading left on the
   ground (the `-husk` frames are its remains for a walker, not death pieces).
+- 2026-10-05: M4 part H (round 26 batch): the 16-frame organic burst rendered by `tools/art/vrell_deaths.py` (legs and claws torn off and shell fragments scattering, a lime flash, ichor spray and olive mist; 4 steps a frame with the medium burst) and played by the game by name (`scuttler-death`, `scuttler-tatters`; the husk stays the remains); review files proposed for [round 26](../../../concept-rounds/README.md), `art` unchanged until the user approves them. Seen in play: the burst and pieces are drawn in screen space while the husk scrolls with the ground (120 px/s in Level 04), so the pieces drift up off the husk over the burst's second; drawing a ground unit's death in the ground's scroll is a LevelScreen hook.

@@ -1,7 +1,7 @@
 ---
 title: Saves
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../ui/main-menu, ../../ui/hangar]
 updated: 2026-10-05
@@ -75,7 +75,7 @@ the act.
 - [x] Continue = most recent save
 - [x] Slot list UI in load/save screens
 - [ ] `escort` field, with Rook — **later: M5** (the escort slot opens in Act 2)
-- [ ] Per-level records in `stats.levels` (format version 2, migrated from version 1) for the act summary (M4 part G)
+- [x] Per-level records in `stats.levels` (format version 2, migrated from version 1) for the act summary (M4 part G; `SaveFormat.VERSION` 2, `migrateFrom1`)
 
 ## Decisions
 
@@ -107,3 +107,5 @@ the act.
   banked credits and kills are recorded under `stats.levels` by level number; format version 2,
   with a migration from version 1 that records none, so old saves stay readable and the summary
   shows what is recorded. A new win of a level replaces its record.
+- 2026-10-05: M4 part H docs reconciliation: `stats.levels` and the version 1 → 2 migration were
+  built in part G; ticked. Only the `escort` field (M5) is open, so the document is `done` for M4.

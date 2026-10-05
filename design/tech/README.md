@@ -1,10 +1,10 @@
 ---
 title: Tech stack
 design: approved
-implementation: not-started
+implementation: done
 art: n/a
 depends-on: [../art-direction, ../audio, ../ui/controls]
-updated: 2026-10-02
+updated: 2026-10-05
 ---
 
 # Tech stack
@@ -20,7 +20,7 @@ engine-agnostic; this section is the only place that names engine APIs.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [architecture](architecture/README.md) | Module layout, simulation, data files next to the documents, testing, conventions, CI | approved | in-progress | n/a |
+| [architecture](architecture/README.md) | Module layout, simulation, data files next to the documents, testing, conventions, CI | approved | done | n/a |
 | [roadmap](roadmap/README.md) | Seven milestones from skeleton to the Acts 1–2 release | approved | in-progress | n/a |
 
 ## Design
@@ -151,7 +151,7 @@ non-thread-safe source pool; `Sound.play` allocates.
 - [x] Desk research on libGDX (versions, Java 25, Maven, macOS, packaging, audio, input)
 - [x] Spike built, gates 1–10 measured and reported here
 - [x] Decision approved by the user
-- [ ] Project skeleton planned in [architecture](architecture/README.md) and [roadmap](roadmap/README.md)
+- [x] Project skeleton planned in [architecture](architecture/README.md) and [roadmap](roadmap/README.md) (built in M0; M0–M3 done)
 
 ## Open questions
 
@@ -171,3 +171,5 @@ non-thread-safe source pool; `Sound.play` allocates.
   stack (Java 25 once libGDX 1.14.3 is released). Second CI run green on all three OSes.
 - 2026-10-01: Licence **Apache-2.0** (user decision), matching the repository's `LICENSE`.
 - 2026-10-02: The `spike/libgdx` branch was deleted (user decision); the spike is kept as the signed tag `spike-libgdx` on its last commit.
+- 2026-10-05: M4 part H docs reconciliation: the skeleton is planned (architecture, roadmap) and
+  built (M0–M3 done); ticked, the document is `done`.

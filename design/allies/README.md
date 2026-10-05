@@ -1,10 +1,10 @@
 ---
 title: Allies
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../enemies, ../art-direction, ../ui/hud]
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Allies
@@ -168,3 +168,4 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
   and a fire effect exist, the wreck's fire is the engine flame drawn additively and the smoke a
   darkened small explosion.
 - 2026-10-03: Concept round 17 (user decision): the civilian crawler's production art approved as **final** ([round 17](../concept-rounds/round-17/README.md)).
+- 2026-10-05: M4 part H docs reconciliation: implementation `done`; every item is ticked (the Act 1 ally, the civilian crawler; the Act 2 allies come with their levels in M5).

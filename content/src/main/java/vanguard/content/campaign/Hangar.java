@@ -175,12 +175,19 @@ public final class Hangar {
         return traits;
     }
 
-    /** Whether an item is in the shop at this visit: from its unlock level on, or unlocked early. */
+    /**
+     * Whether an item is in the shop at this visit: from its unlock level on, or unlocked early; never
+     * an item that is not for sale yet (its early unlock stays in the campaign for later).
+     */
     public boolean available(Item item) {
-        return item.unlock() <= campaign.nextLevel() || campaign.unlocks().contains(item.id());
+        return item.forSale()
+                && (item.unlock() <= campaign.nextLevel() || campaign.unlocks().contains(item.id()));
     }
 
-    /** The shop rows for a slot: the fitted item, the owned ones, the buyable ones by price, the locked ones by unlock. */
+    /**
+     * The shop rows for a slot: the fitted item, the owned ones, the buyable ones by price, the locked
+     * ones by unlock. An item that is not for sale is not listed unless it is owned.
+     */
     public List<Offer> shop(LoadoutSlot slot) {
         ItemKind kind = slot.kind();
         Gear gear = campaign.gear();
@@ -232,7 +239,7 @@ public final class Hangar {
                         item.unlock() == campaign.nextLevel() && campaign.nextLevel() > 1,
                         List.of(kind == ItemKind.SPECIAL ? chargeChoice(item) : buyChoice(slot, item)))));
         catalogue.items(kind).stream()
-                .filter(item -> !available(item))
+                .filter(item -> item.forSale() && !available(item))
                 .sorted(Comparator.comparingInt(Item::unlock).thenComparingInt(Item::price))
                 .forEach(item ->
                         offers.add(new Offer(item, State.LOCKED, 1, Optional.empty(), false, false, List.of())));

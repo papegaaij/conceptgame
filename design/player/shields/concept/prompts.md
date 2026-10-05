@@ -1,0 +1,5 @@
+# Shields — concept prompts
+
+## shield-ring-final-r26-a
+
+Round 26, production art (M4 part H batch). Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by `tools/art/ship_fx.py --review`; the frames themselves are rendered by `tools/art/ship_fx.py` (see `tools/art/README.md`). The look is the chosen round-08 shield-hit shimmer (`tools/concept/vfx_r08.py`, `shield_frames`: a hex grid on the bubble, a ripple running from the hit point and a white flare there, in the player shot blues `00C0FF` and white), drawn without the hull on the asset table's 60×60 round bubble with slightly larger cells (5.5 across the radius) so they survive at 1×. Check that it reads as a shield and not as a bullet, that it never hides incoming bullets (it is additive and dim apart from the flare), and that the fade over 4 frames is not too abrupt. Not an image-generator prompt; for an artist: "a 60 px round energy bubble of faint hexagonal cells around a top-down fighter, lighting up in pale cyan around an impact at the front, a ripple running back over it and fading, additive, 4 frames, late-90s pre-rendered game effect".

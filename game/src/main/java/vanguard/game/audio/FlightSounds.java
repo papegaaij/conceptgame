@@ -3,8 +3,12 @@ package vanguard.game.audio;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import vanguard.game.level.LowArmour;
+import vanguard.game.render.BulletLooks;
 import vanguard.game.render.EnemyLooks;
+import vanguard.game.render.LevelRenderer;
 import vanguard.sim.Armament;
+import vanguard.sim.Defences;
 import vanguard.sim.PickupType;
 import vanguard.sim.PlayField;
 import vanguard.sim.SetPiece;
@@ -18,11 +22,13 @@ import vanguard.sim.WarningEdge;
 /**
  * Turns the simulation's events into sound effects, mixed per design/audio/sfx (Mixing rules):
  * relative levels, a few percent of random pitch, two variants alternating so no file repeats
- * twice in a row, and a subtle pan by the position in the play field. Level 03's events reuse the
- * sounds there are until they get their own: a spore drops with a soft low organic plop, bursts or
- * is shot with the tiny explosion, debris rings like metal and breaks with a low tiny explosion, a
- * set piece's part blows with a lower small explosion and the whole unit with both small
- * explosions pitched down.
+ * twice in a row, and a subtle pan by the position in the play field. Explosions follow the size
+ * ladder: a set piece's part blows with the {@code medium} rung, a mid-boss and a boss's phase end
+ * with the {@code large} one, an act boss or a huge set piece with the {@code huge} one. Level
+ * 03's events reuse the sounds there are until they get their own: a spore drops with a soft low
+ * organic plop, bursts or is shot with the tiny explosion, debris rings like metal and breaks with
+ * a low tiny explosion. Besides the events it follows the ship's state ({@link #watch}): the
+ * low-armour beeps and the shield's restore chime.
  */
 public final class FlightSounds {
     /** The levels relative to player damage, the loudest group (+2 dB in the mixing rules). */
@@ -95,6 +101,29 @@ public final class FlightSounds {
     private static final int LAUNCH_SOUNDS = 3;
 
     private static final int LAUNCH_STEPS = 6;
+
+    /**
+     * The low-armour warning (design/player/armor): a beep every {@value #SLOW_BEEP_SECONDS} s at or
+     * below 30 % armour, every {@value #FAST_BEEP_SECONDS} s at or below 15 %, while the ship flies:
+     * the {@link LowArmour} stages, the same as the HUD's flashing readout. It repeats for as long as
+     * the armour stays low (armour does not regenerate), so it plays 6 dB under the warnings' level.
+     */
+    static final double SLOW_BEEP_SECONDS = 1.2;
+
+    static final double FAST_BEEP_SECONDS = 0.6;
+    private static final float LOW_ARMOUR_LEVEL = decibels(-6);
+    /** Steps until the next low-armour beep; 0 while the armour is not low. */
+    private int beepIn;
+    /** Whether the shield broke and has not been full since: its restore chime is due. */
+    private boolean shieldDown;
+    /** A destroyed ground target at least this large (px²) crumbles like a structure, a smaller one bursts into rubble. */
+    private static final double LARGE_GROUND_AREA = 1000;
+    /** Which ground objects of the script are large, from the first {@link #watch}; null before. */
+    private boolean[] largeGround;
+    /** Whether each set piece's death is huge: an act boss, or a set piece that is no boss. */
+    private boolean[] hugeDeath;
+    /** Whether each set piece's death is an act boss's tail-to-head chain. */
+    private boolean[] finale;
 
     /** Each set piece's own sounds, by index in the script; null for the generic ones. */
     private final BossSounds[] bossSounds;
@@ -198,18 +227,34 @@ public final class FlightSounds {
     }
 
     /**
-     * A set piece's break-up after its death cry (design/enemies/space/leviathan): deep, slowed
-     * explosions layered under the blasts, one as the cluster builds, two together at the swap
+     * A set piece's break-up after its death cry (design/enemies/space/leviathan): the {@code
+     * large} rung layered under the blasts, one as the cluster builds, two together at the swap
      * where the body comes apart, and one under the trailing blasts.
      *
      * @param swap the step after the death at which the body is replaced by its chunks
      */
     public void breakUp(double x, int swap) {
         float pan = pan(x);
-        later(Sfx.EXPLOSION_SMALL_A, EXPLOSIONS, 0.6f, pan, swap - 24);
-        later(Sfx.EXPLOSION_SMALL_B, PLAYER_DAMAGE, 0.5f, pan, swap);
-        later(Sfx.EXPLOSION_SMALL_A, EXPLOSIONS, 0.55f, -pan, swap + 3);
-        later(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.65f, pan, swap + 40);
+        later(Sfx.EXPLOSION_MEDIUM_A, EXPLOSIONS, 0.8f, pan, swap - 24);
+        later(Sfx.EXPLOSION_LARGE_A, PLAYER_DAMAGE, 0.85f, pan, swap);
+        later(Sfx.EXPLOSION_LARGE_B, EXPLOSIONS, 0.8f, -pan, swap + 3);
+        later(Sfx.EXPLOSION_MEDIUM_B, EXPLOSIONS, 0.75f, pan, swap + 40);
+    }
+
+    /**
+     * Set piece {@code k}'s death blast on the explosion ladder: the {@code huge} rung for an act
+     * boss and for a set piece that is no boss (a huge regular enemy, design/enemies: Size tiers),
+     * the {@code large} one for a mid-boss. An act boss's chained death plays it at the chain's end.
+     */
+    public Sfx deathBlast(int k) {
+        return hugeDeath == null || k >= hugeDeath.length || hugeDeath[k]
+                ? Sfx.EXPLOSION_HUGE_A
+                : Sfx.EXPLOSION_LARGE_B;
+    }
+
+    /** Whether set piece {@code k}'s death is an act boss's tail-to-head chain, which ends in its {@link #deathBlast}. */
+    private boolean finale(int k) {
+        return finale != null && k < finale.length && finale[k];
     }
 
     private void later(Sfx sfx, float volume, float pitch, float pan, int steps) {
@@ -260,10 +305,25 @@ public final class FlightSounds {
                     EnemyLooks kind = looks[events.value(i)];
                     bank.play(alternate(kind.explosionA(), kind.explosionB()), EXPLOSIONS, pitch(0.04), pan);
                 }
+                // A heavy shot for a medium bullet: the event's value is the bullet's damage, the same
+                // class boundary as its large orb.
                 case ENEMY_FIRED ->
-                    bank.play(alternate(Sfx.ENEMY_SHOT_A, Sfx.ENEMY_SHOT_B), ENEMY_FIRE, pitch(0.05), pan);
+                    bank.play(
+                            heavyShot(events.value(i))
+                                    ? alternate(Sfx.ENEMY_HEAVY_SHOT_A, Sfx.ENEMY_HEAVY_SHOT_B)
+                                    : alternate(Sfx.ENEMY_SHOT_A, Sfx.ENEMY_SHOT_B),
+                            ENEMY_FIRE,
+                            pitch(0.05),
+                            pan);
                 case GROUND_HIT -> bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, pitch(0.05), pan);
-                case GROUND_DESTROYED -> bank.play(Sfx.EXPLOSION_SMALL_A, EXPLOSIONS, pitch(0.04), pan);
+                // A ground target's blast with its crumble (round 08): a structure's collapse or a
+                // small target's rubble burst, under the blast.
+                case GROUND_DESTROYED -> {
+                    bank.play(alternate(Sfx.EXPLOSION_SMALL_C, Sfx.EXPLOSION_SMALL_A), EXPLOSIONS, pitch(0.04), pan);
+                    int index = events.value(i);
+                    boolean large = largeGround != null && index < largeGround.length && largeGround[index];
+                    bank.play(large ? Sfx.CRUMBLE_LARGE : Sfx.CRUMBLE_SMALL, 0.7f * EXPLOSIONS, pitch(0.05), pan);
+                }
                 case MINE_DROPPED ->
                     bank.play(alternate(Sfx.HIT_ORGANIC_A, Sfx.HIT_ORGANIC_B), ENEMY_FIRE, 0.6f * pitch(0.05), pan);
                 case MINE_BURST, MINE_DESTROYED ->
@@ -273,21 +333,25 @@ public final class FlightSounds {
                     bank.play(
                             alternate(Sfx.EXPLOSION_TINY_A, Sfx.EXPLOSION_TINY_B), EXPLOSIONS, 0.8f * pitch(0.04), pan);
                 case PART_DESTROYED ->
-                    bank.play(
-                            alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B),
-                            EXPLOSIONS,
-                            0.85f * pitch(0.04),
-                            pan);
+                    bank.play(alternate(Sfx.EXPLOSION_MEDIUM_A, Sfx.EXPLOSION_MEDIUM_B), EXPLOSIONS, pitch(0.04), pan);
+                // The whole unit: its rung at once, or, for an act boss's tail-to-head chain, the large
+                // rung as the chain starts (its huge blast ends the chain, deathBlast).
                 case SET_PIECE_DESTROYED -> {
-                    bank.play(Sfx.EXPLOSION_SMALL_A, PLAYER_DAMAGE, 0.6f, pan);
-                    bank.play(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.7f, pan);
+                    int k = events.value(i);
+                    bank.play(finale(k) ? Sfx.EXPLOSION_LARGE_A : deathBlast(k), PLAYER_DAMAGE, pitch(0.03), pan);
                     // Levelled like the enemy sounds, so it sits under the burst (design/audio/sfx).
-                    Sfx cry = cries[events.value(i)];
+                    Sfx cry = cries[k];
                     if (cry != null) {
                         bank.play(cry, EXPLOSIONS, 1, pan);
                     }
                 }
-                case PICKUP_COLLECTED -> bank.play(pickupSound(PICKUP_TYPES[events.value(i)]), PICKUPS, 1, pan);
+                case PICKUP_COLLECTED -> {
+                    PickupType type = PICKUP_TYPES[events.value(i)];
+                    bank.play(pickupSound(type), PICKUPS, 1, pan);
+                    if (type == PickupType.OVERDRIVE) {
+                        bank.play(Sfx.OVERDRIVE_START, PICKUPS, 1, 0);
+                    }
+                }
                 case SHIELD_HIT -> bank.play(Sfx.SHIELD_HIT, PLAYER_DAMAGE, pitch(0.05), pan);
                 case SHIELD_BROKEN -> bank.play(Sfx.SHIELD_BREAK, PLAYER_DAMAGE, 1, pan);
                 case ARMOUR_HIT -> bank.play(Sfx.ARMOUR_HIT, PLAYER_DAMAGE, pitch(0.05), pan);
@@ -325,7 +389,7 @@ public final class FlightSounds {
                 }
                 case BOSS_PHASE -> {
                     if (!ownPhaseSounds) {
-                        bank.play(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.8f, pan);
+                        bank.play(alternate(Sfx.EXPLOSION_LARGE_A, Sfx.EXPLOSION_LARGE_B), EXPLOSIONS, 0.9f, pan);
                     }
                 }
                 // A unit leaving an open window (the carrier's sacs): counted, played after the loop.
@@ -346,8 +410,8 @@ public final class FlightSounds {
                 // A Brood Pod's fleshy burst, shot or on its own (round 08 b), as its Skitters fly out.
                 case BROOD_HATCHED -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, pitch(0.04), pan);
                 // Level 06: a cut chain's wet tear (a placeholder from the existing sounds), its
-                // regrowth, the chained pops, the Mantis's telegraph and beam, the Smart Bomb's huge
-                // blast with a whoosh (placeholders), the flare's launch and burn.
+                // regrowth, the chained pops, the Mantis's telegraph and beam, the Smart Bomb, the
+                // flare's launch and burn.
                 case CHAIN_CUT -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, 0.8f * pitch(0.04), pan);
                 // The new head growing (round 23 b, an insect growl and chitter).
                 case CHAIN_REGROWN -> bank.play(Sfx.COILWYRM_REGROW, EXPLOSIONS, pitch(0.04), pan);
@@ -365,10 +429,11 @@ public final class FlightSounds {
                 // little above the enemy fire, one long sound.
                 case SWEEP_TELEGRAPH -> bank.play(Sfx.MANTIS_TELEGRAPH, PLAYER_DAMAGE, pitch(0.03), pan);
                 case SWEEP_FIRED -> bank.play(Sfx.MANTIS_SWEEP, HITS, pitch(0.03), pan);
+                // The Smart Bomb (round 08 a): its energy blast, swelling over 0.5 s, on the huge rung's
+                // sub-heavy boom, which gives the instant flash its punch.
                 case SMART_BOMB -> {
-                    bank.play(Sfx.EXPLOSION_SMALL_A, PLAYER_DAMAGE, 0.55f, pan);
-                    bank.play(Sfx.EXPLOSION_SMALL_B, EXPLOSIONS, 0.7f, pan);
-                    bank.play(Sfx.AIRSTRIKE_JETS, EXPLOSIONS, 1.5f, 0);
+                    bank.play(Sfx.SMART_BOMB, PLAYER_DAMAGE, 1, 0);
+                    bank.play(Sfx.EXPLOSION_HUGE_B, 0.7f * EXPLOSIONS, 1, pan);
                 }
                 // The perimeter beacon's flare (round 23 a): the flare-gun shot, then the road flare's
                 // 3 s loop back to back while it burns, the last play quieter as the pool fades.
@@ -418,6 +483,23 @@ public final class FlightSounds {
      */
     public void watch(Sortie sortie) {
         int pieces = Math.min(bossSounds.length, sortie.setPieceCount());
+        if (largeGround == null) {
+            var objects = sortie.script().groundObjects();
+            largeGround = new boolean[objects.size()];
+            for (int g = 0; g < largeGround.length; g++) {
+                var size = objects.get(g).size();
+                largeGround[g] = size.width() * size.height() >= LARGE_GROUND_AREA;
+            }
+            hugeDeath = new boolean[sortie.setPieceCount()];
+            finale = new boolean[sortie.setPieceCount()];
+            for (int k = 0; k < hugeDeath.length; k++) {
+                SetPiece piece = sortie.setPiece(k);
+                boolean boss = piece.boss().isPresent();
+                hugeDeath[k] = !boss || LevelRenderer.flashesAtDeath(piece);
+                finale[k] = boss && LevelRenderer.tailToHead(piece);
+            }
+        }
+        watchShip(sortie);
         if (wasOpen == null) {
             wasOpen = new boolean[pieces][];
             wasWrecked = new boolean[pieces][];
@@ -444,6 +526,49 @@ public final class FlightSounds {
             wasHolding[i] = holding;
         }
         resync = false;
+    }
+
+    /**
+     * The ship's warnings: the low-armour beeps while it flies, and the shield's restore chime once
+     * it is full again after a break (not after every hit: it regenerates after each).
+     */
+    private void watchShip(Sortie sortie) {
+        Defences defences = sortie.ship().defences();
+        boolean flying = sortie.flying() && !sortie.complete();
+        int period = flying ? beepPeriod(defences.armour(), defences.maxArmour()) : 0;
+        if (period == 0) {
+            beepIn = 0;
+        } else if (--beepIn <= 0) {
+            bank.play(Sfx.LOW_ARMOUR, LOW_ARMOUR_LEVEL, 1, 0);
+            beepIn = period;
+        } else {
+            beepIn = Math.min(beepIn, period);
+        }
+        if (resync || !flying) {
+            shieldDown = false;
+        } else if (defences.broken()) {
+            shieldDown = true;
+        } else if (shieldDown && defences.shield() >= defences.maxShield()) {
+            bank.play(Sfx.SHIELD_RESTORE, PICKUPS, 1, 0);
+            shieldDown = false;
+        }
+    }
+
+    /** Whether an enemy shot of that damage ({@code ENEMY_FIRED}'s value) fires a medium bullet: a heavy shot. */
+    static boolean heavyShot(int damage) {
+        return damage >= BulletLooks.MEDIUM_DAMAGE;
+    }
+
+    /** The steps between low-armour beeps at {@code armour} of {@code maxArmour}; 0 for none (a wreck neither). */
+    static int beepPeriod(double armour, double maxArmour) {
+        if (armour <= 0) {
+            return 0;
+        }
+        return switch (LowArmour.of(armour, maxArmour)) {
+            case NONE -> 0;
+            case LOW -> SimStep.ticks(SLOW_BEEP_SECONDS);
+            case CRITICAL -> SimStep.ticks(FAST_BEEP_SECONDS);
+        };
     }
 
     private void watchBoss(BossSounds own, SetPiece piece, int k) {
@@ -502,12 +627,15 @@ public final class FlightSounds {
         return (float) Math.min(RIPPLE_PITCH_MAX, RIPPLE_PITCH_START * Math.pow(ratio, RIPPLE_PITCH_EXPONENT));
     }
 
-    private static Sfx pickupSound(PickupType type) {
+    /** A pickup's sound (design/audio/sfx, Pickups); the overdrive's start cue plays with its pickup. */
+    static Sfx pickupSound(PickupType type) {
         return switch (type) {
-            // A special charge plays the small salvage until its own sound is imported.
-            case SMALL_SALVAGE, MEDIUM_SALVAGE, SPECIAL_CHARGE -> Sfx.SALVAGE_SMALL;
-            case OVERDRIVE -> Sfx.OVERDRIVE_START;
-            case HIDDEN_CRATE, LARGE_SALVAGE, DATA_CORE -> Sfx.SALVAGE_LARGE;
+            case SMALL_SALVAGE -> Sfx.SALVAGE_SMALL;
+            case MEDIUM_SALVAGE -> Sfx.SALVAGE_MEDIUM;
+            case HIDDEN_CRATE, LARGE_SALVAGE -> Sfx.SALVAGE_LARGE;
+            case SPECIAL_CHARGE -> Sfx.SPECIAL_CHARGE;
+            case OVERDRIVE -> Sfx.POWER_UP;
+            case DATA_CORE -> Sfx.DATA_CORE;
             case SHIELD_CELL -> Sfx.SHIELD_CELL;
             case ARMOUR_PATCH -> Sfx.ARMOUR_PATCH;
         };

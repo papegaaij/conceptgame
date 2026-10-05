@@ -1205,7 +1205,8 @@ public record LevelData(
      * @param boss the boss or mid-boss, {@code none} without one
      * @param specials the special availability, where the level limits it ("No air support under the ice")
      * @param objective the OBJECTIVE field shown from sensor L1 ("ESCORT 5 CRAWLERS"); none without
-     * @param varga Dr. Varga's intel line per sensor level: {@code none}, {@code l1}, {@code l2}, {@code l3}
+     * @param varga Dr. Varga's intel line for each sensor level, all four: {@code none}, {@code l1},
+     *     {@code l2}, {@code l3}
      */
     public record ThreatProfile(
             String setting,
@@ -1223,23 +1224,17 @@ public record LevelData(
         public ThreatProfile {
             Check.that(density >= 1 && density <= 5, "density: 1–5, was " + density);
             Check.that(
-                    SENSOR_KEYS.containsAll(varga.keySet()),
-                    "varga: keys are " + SENSOR_KEYS + ", found " + varga.keySet());
+                    varga.size() == SENSOR_KEYS.size() && SENSOR_KEYS.containsAll(varga.keySet()),
+                    "varga: a line for each of " + SENSOR_KEYS + ", found " + varga.keySet());
             layers = List.copyOf(layers);
             traits = List.copyOf(traits);
             hazards = List.copyOf(hazards);
             varga = Map.copyOf(varga);
         }
 
-        /** Varga's line for a sensor level (0–3): the one of the highest level at or below it. */
-        public Optional<String> vargaLine(int sensor) {
-            for (int level = sensor; level >= 0; level--) {
-                String line = varga.get(SENSOR_KEYS.get(level));
-                if (line != null) {
-                    return Optional.of(line);
-                }
-            }
-            return Optional.empty();
+        /** Varga's line for a sensor level, 0 (no sensor suite) to 3. */
+        public String vargaLine(int sensor) {
+            return varga.get(SENSOR_KEYS.get(sensor));
         }
     }
 

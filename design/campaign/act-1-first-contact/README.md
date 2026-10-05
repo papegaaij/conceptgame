@@ -1,7 +1,7 @@
 ---
 title: Act 1 – First Contact
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 updated: 2026-10-05
 ---
@@ -190,13 +190,29 @@ Act 1 uses tracks 4 *Act 1 A* ("Afterburner") and 5 *Act 1 B* ("Coalition Rising
 motif), A in L02, L04 and L05. L05 adds the mini-boss sting; L07 the boss warning, *Boss: Vrell*
 and *Act complete*.
 
+## Concept art
+
+Production art for concept round 26 (M4 part H batch): the still behind the act's title card,
+rendered by `tools/art/act_stills.py` from Level 01's final backdrop pieces; prompts:
+[concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/act-1-still-final-r26-a.png](concept/act-1-still-final-r26-a.png) | `ui/act-1-first-contact-still.png` (960×540): the Gagarin yards from above at dawn, Earth's terminator running behind them, Lancer on the south launch rail, Aegis Two launching from the north arm; and the title card over it as the game draws it (darkened to 55 %, letterboxed, chrome lettering) | proposed |
+
 ## Implementation
 
-- [ ] All 7 levels promoted to draft level documents and implemented.
+- [x] All 7 levels promoted to draft level documents and implemented (every level document
+      `done`).
 - [x] Act 1 title card, opening briefing and act-end outro as in *Act intro and outro* (the
       outro's four voiced pages with their images and the act-end flow built in M4 part G; the
-      title card still stands over the title scene until a still of the yards exists).
-- [ ] Shop unlocks for L02–L07 as listed in the campaign loadout-pressure table.
+      title card over its still of the Gagarin yards at dawn, `tools/art/act_stills.py`, M4 part H,
+      proposed in round 26).
+- [x] Shop unlocks for L02–L07 as listed in the campaign loadout-pressure table (data-driven: each
+      weapon's and special's `unlock`, each part's `available` through
+      [player/data.yaml](../../player/data.yaml); `Hangar.available`, `Catalogue`): `spread` L02
+      (Scatter Vulcan), `anti-ground` L03 (Bomb Rack), `piercing` and `side` L05 (Lance Laser,
+      Side-Splitter), `homing` L06 (Micro-missile Pod), `area` L07 (Hammer Mortar).
 
 ## Open questions
 
@@ -238,3 +254,12 @@ and *Act complete*.
   approved; Level 07 is done and final. The act stays `in-progress`: Levels 05 and 06 are still
   marked `in-progress` and the shop-unlock item is open; its art stays `chosen` (the title card
   has no still of the yards yet).
+- 2026-10-05: M4 part H docs reconciliation: every level document is `done` and the shop unlocks
+  are data-driven and match the loadout-pressure table, so both items are ticked and the act's
+  implementation is `done` (the round-25 entry's "Levels 05 and 06 still `in-progress`" no longer
+  holds). Its `art` stays `chosen` until the title card's still of the yards (concept round 26).
+- 2026-10-05: M4 part H (round 26 batch): the title card's still of the Gagarin yards at dawn
+  (`assets/ui/act-1-first-contact-still.png`, `tools/art/act_stills.py`, composed from Level 01's
+  approved backdrop pieces over Earth with the sunrise terminator); the briefing draws an act's
+  `ui/<act>-still.png` darkened to 55 % behind its title card and falls back to the title scene
+  without one. Proposed in round 26; the act's `art` stays `chosen` until the user approves it.

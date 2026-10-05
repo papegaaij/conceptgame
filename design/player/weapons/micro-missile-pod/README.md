@@ -62,7 +62,7 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - [x] Layer hit rules for its traits (see Layers hit)
 - [x] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
 - [x] Behaviour as described above, except:
-- [ ] +20 % turn rate with the targeting computer — **later: M4** (the utility modules' effects)
+- [ ] +20 % turn rate with the targeting computer — **later: M5** (the Targeting computer is built with the utility modules in M5 and kept out of the shop until then: user decision D2 of M4 part H)
 - [x] Power draw per level counted in the loadout; upgrades priced as listed
 
 ## Decisions
@@ -76,3 +76,5 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - 2026-10-05: M4 part G: against a high-air boss, missiles seek its open parts all round, turn at
   twice the rate while locked on and pass beneath the hull (from under the Brood Carrier the sacs
   sat inside the turning circle and the hull caught the missiles, so no sac was hit).
+- 2026-10-05: M4 part H (user decision D2 = A): the Targeting computer stays out of the shop until
+  M5, so its +20 % turn-rate bonus is retagged from M4 to M5.

@@ -15,7 +15,10 @@ public final class SimEvents {
         ENEMY_HIT,
         /** An enemy was destroyed (at the enemy); value: its kind, an index into {@link Sortie#enemyKinds()}. */
         ENEMY_DESTROYED,
-        /** An enemy fired a shot (at the enemy). */
+        /**
+         * An enemy fired a shot (at the enemy); value: its bullets' damage in whole points, which tells
+         * the bullet class (a {@code medium} bullet deals 6, a {@code small} one less).
+         */
         ENEMY_FIRED,
         /** A shot hit a ground object (at the shot); value: the mount that fired it. */
         GROUND_HIT,
@@ -63,6 +66,11 @@ public final class SimEvents {
         SHIELD_BROKEN,
         /** The armour took damage (at the ship). */
         ARMOUR_HIT,
+        /**
+         * An armour hit left the armour at or below {@link Defences#CRITICAL_SHARE} of its maximum for
+         * the first time in the attempt (at the ship): Okafor's low-armour radio line.
+         */
+        ARMOUR_CRITICAL,
         /** Armour reached zero (at the ship). */
         SHIP_DESTROYED,
         /** A radio cue starts; value: its index in the level script's radio list. */

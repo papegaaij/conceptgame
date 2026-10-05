@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Leviathan
@@ -36,7 +36,7 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
 | Formations | solo set piece |
 | Weak points | blowhole (violet glow; a regular enemy, so not lime) (×2) |
 | Effective traits | `piercing`, `homing`, `forward` |
-| Credits | 190 (score 1900 × chain) (turret vent 20 each, fin 15 each, fluke 20, blowhole 60); killing the blowhole first destroys the rest for the full 190 |
+| Credits | 113 (score 1130 × chain) (turret vent 12 each, fin 9 each, fluke 12, blowhole 35); killing the blowhole first destroys the rest for the full 113 |
 | Death | `huge`: chained `medium` bursts along the body, ichor cloud, whale-song cry; drops a large salvage pickup |
 | First level / used in | L03; Earth orbit; returns in Act 7 (L46) as a variant specified with that act |
 | Difficulty hooks | hard: clusters of 8 seeds; vents fire 2-orb bursts |
@@ -107,3 +107,9 @@ The ichor cloud of its death (round 16 too) is rendered by `tools/art/vrell_fx.p
   without turning a sprite; the whale-song cry is synthesized (`tools/concept/audio/sfx_r16.py`).
 - 2026-10-03: Concept round 16 closed (user decision): the production sprites (the second pass with its parts intact and wrecked and the blowhole glow, the first pass at 1.25×) approved as **final**. The death effect is to be redone (user: "The body vanishing looks strange like this. We either need the body to come apart or we need several more, larger explosions all over its body to cover it up while it vanishes. We probably need both."); the redo comes back into round 16 as variant b (choice 19), the variant-a ichor files moved to `concept/rejected/`. The synthesized whale-song cry is accepted as final (see the [SFX](../../../audio/sfx/README.md#decisions)). `art` stays `chosen` until the death is approved.
 - 2026-10-03: Concept round 16 closed again (user decision, choice 19): the death redo, variant b, approved as **final**: the body cut into five chunks that drift apart, tumble, darken and fade under a cluster of large blasts and trailing ones, with the ichor (`tools/art/leviathan_death.py`). With the production sprites and the cry approved earlier today all of its art is final, `art: final`.
+- 2026-10-05: M4 part H balance pass (user decision): the bounty falls from 190 to 113 (blowhole
+  60 → 35, turret vent 20 → 12, fin 15 → 9, fluke 20 → 12, the same proportions) so that, at Level
+  03's `bounty_scale` (1.07), it pays 121, ≈ 15 % of the level's budget of 801 as the balancing
+  basis sets for a `huge` set piece. The 190 dated from when the budget was 1,145 and paid 23 % of
+  801; [Level 03](../../../campaign/act-1-first-contact/level-03-spore-drift/README.md) raised its
+  scale from 0.97 to keep its typical haul on budget. The score follows the bounty (1,130).

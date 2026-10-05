@@ -164,3 +164,27 @@ first Spore Bomber at about t=15.3 and then sits at the right edge, letting the 
 Crop: the left panel and the play field (720×540, 1×), 12 fps; two cuts joined: t≈14–17 (the
 `LOW-AIR` prompt leaving at the first kill, `0 / 10` → `1 / 10`) and t≈54–57.5 (`2 / 10` →
 `FAILED` with the red flash). The `DONE` case is not shown: it needs all ten bombers killed.
+
+## hud-warnings-capture-r26-a
+
+A capture of the game, not generated art (M4 part H, round 26). `desktop:installDist`'s start script on an own
+`Xvfb :75 -screen 0 960x540x24` display, frames grabbed with `ffmpeg -f x11grab` at 2–8 fps and assembled
+with PIL (play-field crops 480×540 at 1×, the armour row 240×60 at 2×, the Options panel at 1×):
+
+- Level 02: `--bench 75 --level 2 --debug-speed 2 --invulnerable` with a fresh settings file; the frame at
+  t≈105 (the Stinger column from the right: edge warning, tone and banner).
+- Level 06: a save with the next level 06, the Pulse Cannon L4 and a **Sensor suite L2** in utility bay 1
+  (the `--loadout` debug option fits weapons only), loaded from the title (`--start title --debug-speed 2`,
+  Return, Continue, Up, Return to launch, keys sent with XTEST to the Xvfb display only): with
+  `--invulnerable` the frames at t≈112 (the Coilwyrm loop-back's rear warning and banner, the left-and-right
+  one waiting) and t≈116 (that banner; the sensor arrows at the Coilwyrm's body still below the screen);
+  without it, the frame with an arrow at the top edge (a Skitter about to enter) and the armour row at 15
+  and 10 of 60 (the flash off and on).
+- The Options screen's Gameplay tab from the main menu with the new `CREDIT NUMBERS` row.
+
+The banners, arrows and flash are drawn in code in the round-09 look (edge-warnings-r09-a, panels B and D);
+no generator.
+
+## boss-bar-plate-final-r26-a
+
+Round 26, production art (M4 part H batch). Review sheet made from `assets/sprites/hud/boss-bar-plate.9.png` by `tools/art/boss_bar.py --review`; the plate is rendered by `tools/art/boss_bar.py` in the HUD's metal look (`tools/art/hud.py`). A 64×20 nine-patch: a steel strip with a 2 px chamfer, an end cap at each end with a domed rivet in a recessed washer and a recessed trough whose glass is the bar's well; splits left 14, right 14, top 7, bottom 7, the content box (padding) left 11, right 11, top 7, bottom 7, which is the 6 px trough the red fill goes in; every stretched column is the same, so it stretches cleanly round the 400 px act-boss bar (422 px plate) and the 240 px mid-boss bar (262 px). The sheet shows the piece at 8× with its splits and content box, the raw `.9.png` and both bars as the game draws them. No GIF: nothing moves. Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.

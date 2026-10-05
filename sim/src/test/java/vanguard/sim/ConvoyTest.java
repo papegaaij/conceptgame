@@ -8,7 +8,6 @@ import static vanguard.sim.TestSpecs.FULL_ARMOUR;
 import static vanguard.sim.TestSpecs.LOADOUT;
 import static vanguard.sim.TestSpecs.RULES;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -352,25 +351,25 @@ class ConvoyTest {
 
     @Test
     void theConvoyDoesNotAllocate() {
-        var threads = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
         var units = List.of(
                 new LevelScript.GroundUnit(6, 150, GroundAndDiveTest.TURRET, -1),
                 new LevelScript.GroundUnit(9, 330, GroundAndDiveTest.TURRET, -1));
         var walker = TestSpecs.wave(12, WaveSpec.Formation.SINGLE, WALKER, 1, WaveSpec.Entry.FRONT, WaveSpec.Edge.NONE);
         LevelScript script = level(30, escort(60, List.of("spine-turret")), ROAD, List.of(walker), units, List.of());
-        Sortie warmUp = sortie(script);
-        for (int i = 0; i < SimStep.ticks(20); i++) {
-            warmUp.step(SortieTest.Pilot.commands(i));
-        }
-        Sortie sortie = sortie(script);
+        List<Sortie> flown = new ArrayList<>();
+        long allocated = Allocations.least(
+                () -> {
+                    Sortie sortie = sortie(script);
+                    flown.add(sortie);
+                    return sortie;
+                },
+                sortie -> {
+                    for (int i = 0; i < SimStep.ticks(20); i++) {
+                        sortie.step(SortieTest.Pilot.commands(i));
+                    }
+                });
 
-        long before = threads.getCurrentThreadAllocatedBytes();
-        for (int i = 0; i < SimStep.ticks(20); i++) {
-            sortie.step(SortieTest.Pilot.commands(i));
-        }
-        long allocated = threads.getCurrentThreadAllocatedBytes() - before;
-
-        assertTrue(lowest(sortie) < 1, "the convoy was hit");
-        assertTrue(allocated < 1024, "20 s allocated " + allocated + " bytes");
+        assertTrue(lowest(flown.getLast()) < 1, "the convoy was hit");
+        assertEquals(0, allocated, "20 s allocated " + allocated + " bytes");
     }
 }

@@ -28,13 +28,15 @@ import vanguard.game.ui.Words;
  * buyable with price and ◆ trait matches and the NEW tag, locked with their unlock level), each
  * with its icon on a glass row band, the scroll markers, the selected item with its large icon,
  * traits, numbers and the deltas against the fitted item, its choices, the last transaction's
- * message and the test-fire box, kept empty until test fire is built.
+ * message; the test-fire box below them is the {@link TestFirePanel}'s.
  */
 final class ShopPanel {
-    private static final int X = 16;
-    private static final int Y = 52;
-    private static final int WIDTH = 284;
-    private static final int HEIGHT = 444;
+    static final int X = 16;
+    static final int Y = 52;
+    static final int WIDTH = 284;
+    static final int HEIGHT = 444;
+    /** The last transaction's message: two lines from here, 12 px apart, above the test-fire box. */
+    static final int MESSAGE_Y = Y + HEIGHT - 100;
 
     private static final int INNER = X + 10;
     private static final int RIGHT = X + WIDTH - 10;
@@ -84,12 +86,8 @@ final class ShopPanel {
         List<String> lines = Words.wrap(message, (WIDTH - 20) / Fonts.advance(glass.fonts.label));
         for (int i = 0; i < Math.min(2, lines.size()); i++) {
             Color colour = refused.isPresent() ? Glass.ALERT : Glass.CYAN;
-            glass.shadowed(batch, glass.fonts.label, lines.get(i), colour, INNER, Y + HEIGHT - 100 + i * 12);
+            glass.shadowed(batch, glass.fonts.label, lines.get(i), colour, INNER, MESSAGE_Y + i * 12);
         }
-        int box = Y + HEIGHT - 74;
-        glass.inset(batch, INNER, box, WIDTH - 20, 64);
-        glass.shadowed(batch, glass.fonts.label, "TEST FIRE LOOP", Glass.AMBER, INNER + 6, box + 6);
-        glass.shadowed(batch, glass.fonts.label, "FOLLOWS IN A LATER BUILD", Glass.DIM, INNER + 6, box + 30);
     }
 
     private void drawRow(SpriteBatch batch, Offer offer, int y, boolean selected, List<String> markedTraits) {

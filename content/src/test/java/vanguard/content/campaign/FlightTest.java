@@ -93,4 +93,29 @@ class FlightTest {
                 Armament.Slot.RIGHT_WING, flight.loadout().armament().mount(1).slot());
         assertEquals(List.of(), flight.notFlown());
     }
+
+    @Test
+    void theSensorSuiteFliesAtItsBestLevelBesideTheMagnet() {
+        Campaign campaign = HangarTest.campaign(Difficulty.EASY, 2, 20_000, 60);
+        Hangar hangar = new Hangar(HangarTest.CATALOGUE, campaign);
+        assertEquals(0, Flight.of(CONTENT, HangarTest.CATALOGUE, campaign).sensor());
+
+        hangar.apply(
+                LoadoutSlot.UTILITY_1,
+                HangarTest.row(hangar, LoadoutSlot.UTILITY_1, Hangar.SENSOR_SUITE, State.BUYABLE),
+                Action.BUY);
+        hangar.apply(
+                LoadoutSlot.UTILITY_1,
+                HangarTest.row(hangar, LoadoutSlot.UTILITY_1, Hangar.SENSOR_SUITE, State.FITTED),
+                Action.UPGRADE);
+        hangar.apply(
+                LoadoutSlot.UTILITY_2,
+                HangarTest.row(hangar, LoadoutSlot.UTILITY_2, "Pickup magnet", State.BUYABLE),
+                Action.BUY);
+        Flight flight = Flight.of(CONTENT, HangarTest.CATALOGUE, campaign);
+
+        assertEquals(2, flight.sensor(), "the fitted level, without easy's intel bonus");
+        assertEquals(List.of(), flight.notFlown());
+        assertEquals(72.0, flight.loadout().magnet().orElseThrow().radius());
+    }
 }

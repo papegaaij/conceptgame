@@ -32,8 +32,16 @@ record TypicalHaul(int perfect, double typical, double budget) {
     }
 
     static TypicalHaul of(Content content, String key) {
+        return of(content, key, Difficulty.MEDIUM);
+    }
+
+    /**
+     * The same from the level as {@code difficulty} builds it (its formation sizes), before that
+     * difficulty's credit income; BalanceTest's hard sheet.
+     */
+    static TypicalHaul of(Content content, String key, Difficulty difficulty) {
         LevelData data = content.level(key);
-        LevelScript level = SimSpecs.level(content, key, Difficulty.MEDIUM);
+        LevelScript level = SimSpecs.level(content, key, difficulty);
         EconomyData economy = content.economy();
         EconomyData.TypicalPlayer rate = economy.typicalPlayer();
         double factor = Math.pow(economy.actFactor(), level.act() - 1);

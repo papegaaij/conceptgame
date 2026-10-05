@@ -38,7 +38,8 @@ class VoiceFilesTest {
             "act-1-first-contact/level-07-brood-carrier",
             "act-1-first-contact briefing",
             "act-1-first-contact outro",
-            "specials");
+            "specials",
+            "armour");
 
     private static boolean rendered(VoiceLines.VoiceLine line) {
         return RENDERED.stream().anyMatch(where -> line.source().startsWith(where));

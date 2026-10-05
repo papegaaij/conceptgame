@@ -139,6 +139,98 @@ class DefencesTest {
         assertEquals(10, defences.armourLost(), "repairs do not undo the damage taken");
     }
 
+    /** Okafor's low-armour line (design/player/armor): the first armour hit to 15 % (9 of 60) or below. */
+    @Test
+    void theFirstHitToFifteenPercentSetsOffTheLowArmourLineOnce() {
+        defences.restore(15);
+        defences.takeCollision(10, events, 0, 0);
+        assertEquals(10, defences.armour());
+        assertEquals(0, events.count(SimEvents.Type.ARMOUR_CRITICAL), "10 of 60 is above 15 %");
+        assertFalse(defences.wasCritical());
+
+        step(15);
+        defences.takeCollision(2, events, 0, 0);
+
+        assertEquals(9, defences.armour());
+        assertEquals(1, events.count(SimEvents.Type.ARMOUR_CRITICAL), "9 of 60 is 15 %");
+        assertTrue(defences.wasCritical());
+        step(15);
+        defences.takeCollision(2, events, 0, 0);
+        assertEquals(1, events.count(SimEvents.Type.ARMOUR_CRITICAL), "once per attempt");
+    }
+
+    @Test
+    void aRepairDoesNotSetOffTheLineAgainInTheSameAttempt() {
+        defences.restore(10);
+        defences.takeCollision(4, events, 0, 0);
+        assertEquals(1, events.count(SimEvents.Type.ARMOUR_CRITICAL));
+
+        defences.repair(10);
+        step(15);
+        defences.takeCollision(4, events, 0, 0);
+
+        assertEquals(16, defences.armour());
+        assertEquals(1, events.count(SimEvents.Type.ARMOUR_CRITICAL), "repaired and hit again: still once");
+        assertTrue(defences.wasCritical());
+    }
+
+    @Test
+    void theNextAttemptCanSetOffTheLineAgain() {
+        defences.restore(10);
+        defences.takeCollision(4, events, 0, 0);
+
+        defences.restore(10);
+        assertFalse(defences.wasCritical(), "a retry starts a new attempt");
+        defences.takeCollision(4, events, 0, 0);
+
+        assertEquals(2, events.count(SimEvents.Type.ARMOUR_CRITICAL));
+    }
+
+    @Test
+    void aHitThatDestroysTheShipOrHitsOnlyTheShieldSaysNothing() {
+        defences.restore(10);
+        defences.takeShot(5, events, 0, 0);
+        assertEquals(0, events.count(SimEvents.Type.ARMOUR_CRITICAL), "the shield took it");
+
+        assertTrue(defences.takeShot(40, events, 0, 0));
+
+        assertEquals(0, events.count(SimEvents.Type.ARMOUR_CRITICAL), "the wreck gets the failure line instead");
+    }
+
+    @Test
+    void aShipThatStartsAtFifteenPercentHearsItOnItsFirstArmourHit() {
+        defences.restore(8);
+        assertEquals(0, events.count(SimEvents.Type.ARMOUR_CRITICAL), "not at the start");
+
+        defences.takeCollision(2, events, 0, 0);
+
+        assertEquals(1, events.count(SimEvents.Type.ARMOUR_CRITICAL));
+    }
+
+    /** The flag enters the hash only once set, so the replays whose armour never gets that low keep their hashes. */
+    @Test
+    void theLineEntersTheHashOnlyOnceSetOff() {
+        StateHash plain =
+                new StateHash().add(20.0).add(60.0).add(0.0).add(0L).add(0L).add(0L);
+        StateHash hash = new StateHash();
+        defences.addTo(hash);
+        assertEquals(plain.value(), hash.value(), "not set: the six values as before");
+
+        defences.restore(10);
+        defences.takeCollision(4, events, 0, 0);
+        StateHash set = new StateHash();
+        defences.addTo(set);
+        StateHash without = new StateHash()
+                .add(defences.shield())
+                .add(defences.armour())
+                .add(defences.armourLost())
+                .add((long) SimStep.ticks(2.0))
+                .add((long) defences.mercyTicks())
+                .add(0L);
+        assertFalse(without.value() == set.value(), "set: one more value");
+        assertEquals(without.add(1L).value(), set.value());
+    }
+
     private void step(int steps) {
         for (int i = 0; i < steps; i++) {
             defences.step();

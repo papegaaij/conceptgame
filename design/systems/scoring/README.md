@@ -1,7 +1,7 @@
 ---
 title: Scoring
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../economy]
 updated: 2026-10-05
@@ -96,8 +96,8 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
 
 - [x] Score counter with chain multiplier and HUD display
 - [x] Level-end bonus calculation and grade rating
-- [ ] Grade credit bonus fed into the economy
-- [ ] High-score table per difficulty
+- [x] Grade credit bonus fed into the economy (`Campaign.complete` banks `LevelResult.gradeBonus` with a won level's credits)
+- [ ] High-score table per difficulty, with the name entry at game over and at the campaign's end — **later: M6** (user decision D5 of M4 part H; see the [roadmap](../../tech/roadmap/README.md))
 
 ## Open questions
 
@@ -151,3 +151,6 @@ It is filled in at game over (quitting a campaign) and at the campaign's end.
   `ChainPauseTest`, `TallyTest`). The autopilot's longest chain on medium (L01–L06) goes from
   20 · 18 · 12 · 15 · 25 · 44 to 36 · 32 · 17 · 30 · 87 · 124; the Level 01 replay hash changed
   (kills and credits unchanged).
+- 2026-10-05: M4 part H (user decision D5 = B): the high-score table goes to M6 (added to the
+  roadmap's M6 row), the credits screen is built in part H. The grade credit bonus has been banked
+  since M3 (`Campaign.complete`), so that item is ticked and the document is `done` for M4.

@@ -1,10 +1,10 @@
 ---
 title: Spine Turret
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Spine Turret
@@ -70,7 +70,7 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
 - [x] Stump decal on death
 - [x] Stat block values loaded from data; global difficulty multipliers applied
 - [x] Death effect, bounty and score per this spec
-- [ ] Glow frames (the violet barrel root) for Level 06's darkness — M4 part F
+- [x] Glow frames (the violet barrel root) for Level 06's darkness — M4 part F (`spine-turret-glow_*`, drawn additively by `EnemyLooks`; final in round 23)
 
 ## Decisions
 
@@ -88,3 +88,5 @@ Production art for concept round 15 (M4 part B, the Level 02 batch), review file
   `spine-turret-glow_0..31 (40×40, one per barrel heading)`, the final model with only its emission left plus a stepped halo, additive,
   indexed like the unit's frames; reviewed in [round 23](../../../concept-rounds/round-23/README.md)
   (`darkness-final-r23-a` in Level 06's concept directory).
+- 2026-10-05: M4 part H docs reconciliation: the glow frames were built in part F and approved in
+  round 23; ticked, the document is `done`.

@@ -31,7 +31,8 @@ import vanguard.sim.SpecialSlot;
  * the Smart Bomb's flash and ring. The headlight cone, the flare's pool and shell and the glows are
  * the production art of tools/art/l06_darkness.py where it exists, shapes drawn in code otherwise;
  * the Mantis's telegraph wedge, beam, tip spark and eye ring are tools/art/mantis_beam.py's (strokes
- * until they exist), from its eye; the lamp pools and the Smart Bomb are still drawn in code.
+ * until they exist), from its eye; the lamp pools are still drawn in code. The Smart Bomb's ring and
+ * burst are tools/art/smart_bomb.py's (strokes until they exist).
  */
 public final class FarsideLooks implements Disposable {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
@@ -51,8 +52,19 @@ public final class FarsideLooks implements Disposable {
     private static final Color TURRET_GLOW = Color.valueOf("9A5CFF");
     private static final Color MORTAR_GLOW = Color.valueOf("A8FF3A");
     private static final Color RING = Color.valueOf("CFE8FF");
-    /** The Smart Bomb's ring is drawn as this many short strokes. */
+    /** The Smart Bomb's ring is drawn as this many short strokes (or quads of its profile). */
     private static final int RING_STROKES = 72;
+    /**
+     * The ring's production profile (tools/art/smart_bomb.py) runs across the ring from this many px
+     * inside its leading edge to the profile's width minus it outside.
+     */
+    private static final float RING_INSIDE = 52;
+    /** The ring fades over the last share of its run to the field's corners, to this much of its light. */
+    private static final double RING_FADE_FROM = 0.7;
+
+    private static final double RING_FADE_TO = 0.4;
+    /** The burst at the bomb point shows a frame every 2 steps (30 fps). */
+    private static final int BURST_FRAME_TICKS = 2;
 
     private static final int ARC_DOTS = 18;
     /** The flare shell's flicker: a frame every 4 steps (15 fps). */
@@ -102,6 +114,12 @@ public final class FarsideLooks implements Disposable {
     private final TextureRegion beamEye;
     /** The telegraph wedges by their arc in whole degrees (the index), for the arcs the level's sweeps use. */
     private final TextureRegion[] telegraphs = new TextureRegion[181];
+    /** The Smart Bomb's ring profile and its burst at the bomb point; null or empty until they exist. */
+    private final TextureRegion ringProfile;
+
+    private final Array<AtlasRegion> bombBurst;
+    /** One quad of the ring's band: x, y, colour, u, v for each of its four corners. */
+    private final float[] quad = new float[20];
 
     public FarsideLooks(Sprites sprites, LevelScript script) {
         pixel = sprites.pixel;
@@ -109,6 +127,10 @@ public final class FarsideLooks implements Disposable {
         headlightCone =
                 sprites.has("headlight-cone") ? sprites.frames("headlight-cone").first() : null;
         flareShell = sprites.has("flare-shell") ? sprites.frames("flare-shell") : new Array<>();
+        ringProfile = sprites.has("smart-bomb-ring")
+                ? sprites.frames("smart-bomb-ring").first()
+                : null;
+        bombBurst = sprites.has("smart-bomb-burst") ? sprites.frames("smart-bomb-burst") : new Array<>();
         beamStrip = sprites.has("mantis-beam") ? sprites.frames("mantis-beam") : new Array<>();
         beamTip = sprites.has("mantis-beam-tip") ? sprites.frames("mantis-beam-tip") : new Array<>();
         beamEye = sprites.has("mantis-beam-eye")
@@ -534,7 +556,8 @@ public final class FarsideLooks implements Disposable {
 
     /**
      * The Smart Bomb: the white flash over the play field (its hold at its opacity, then its fade;
-     * toned down by the flash reduction) and the ring expanding from where it went off.
+     * toned down by the flash reduction), the burst where it went off and the ring expanding from
+     * there (design/player/specials; the burst and the ring's profile are additive).
      */
     public void drawSmartBomb(SpriteBatch batch, Sortie sortie, float alpha, float flashStrength) {
         SpecialSlot special = sortie.special();
@@ -553,7 +576,25 @@ public final class FarsideLooks implements Disposable {
             batch.setColor(1, 1, 1, (float) flash * flashStrength);
             batch.draw(pixel, X0, 0, PlayField.WIDTH, PlayField.HEIGHT);
         }
+        int frame = (int) Math.floor(seconds * SimStep.PER_SECOND / BURST_FRAME_TICKS);
         double radius = special.ringRadius(alpha);
+        if (frame < bombBurst.size || (radius > 0 && ringProfile != null)) {
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+            batch.setColor(Color.WHITE);
+            if (frame < bombBurst.size) {
+                AtlasRegion burst = bombBurst.get(frame);
+                batch.draw(
+                        burst,
+                        Math.round(X0 + special.bombX() - burst.getRegionWidth() / 2.0),
+                        Math.round(special.bombY() - burst.getRegionHeight() / 2.0));
+            }
+            if (radius > 0 && ringProfile != null) {
+                drawRing(batch, special, radius);
+            }
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            batch.setColor(Color.WHITE);
+            return;
+        }
         if (radius > 0) {
             batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
             batch.setColor(RING.r, RING.g, RING.b, 0.85f);
@@ -581,6 +622,50 @@ public final class FarsideLooks implements Disposable {
             batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         }
         batch.setColor(Color.WHITE);
+    }
+
+    /**
+     * The ring as a band of quads round the circle, each with the profile across it (inside to
+     * outside), so it stays a crisp profile at every radius; it dims over the last of its run.
+     */
+    private void drawRing(SpriteBatch batch, SpecialSlot special, double radius) {
+        double share = Math.min(1, radius / ringReach(special));
+        float light = (float) (1 - Math.max(0, (share - RING_FADE_FROM) / (1 - RING_FADE_FROM)) * (1 - RING_FADE_TO));
+        float colour = new Color(light, light, light, 1).toFloatBits();
+        double inner = Math.max(0, radius - RING_INSIDE);
+        double outer = radius - RING_INSIDE + ringProfile.getRegionWidth();
+        // A profile clipped at the centre starts that far into its texture.
+        float u0 = ringProfile.getU()
+                + (ringProfile.getU2() - ringProfile.getU())
+                        * (float) ((inner - (radius - RING_INSIDE)) / ringProfile.getRegionWidth());
+        float u1 = ringProfile.getU2();
+        float v = (ringProfile.getV() + ringProfile.getV2()) / 2;
+        double cx = X0 + special.bombX();
+        double cy = special.bombY();
+        for (int k = 0; k < RING_STROKES; k++) {
+            double a0 = 2 * Math.PI * k / RING_STROKES;
+            double a1 = 2 * Math.PI * (k + 1) / RING_STROKES;
+            corner(0, cx + Math.cos(a0) * inner, cy + Math.sin(a0) * inner, colour, u0, v);
+            corner(1, cx + Math.cos(a0) * outer, cy + Math.sin(a0) * outer, colour, u1, v);
+            corner(2, cx + Math.cos(a1) * outer, cy + Math.sin(a1) * outer, colour, u1, v);
+            corner(3, cx + Math.cos(a1) * inner, cy + Math.sin(a1) * inner, colour, u0, v);
+            batch.draw(ringProfile.getTexture(), quad, 0, quad.length);
+        }
+    }
+
+    private void corner(int i, double x, double y, float colour, float u, float v) {
+        quad[i * 5] = (float) x;
+        quad[i * 5 + 1] = (float) y;
+        quad[i * 5 + 2] = colour;
+        quad[i * 5 + 3] = u;
+        quad[i * 5 + 4] = v;
+    }
+
+    /** The ring's radius when it covers the field: where it is at the end of its run. */
+    private static double ringReach(SpecialSlot special) {
+        double dx = Math.max(special.bombX(), PlayField.WIDTH - special.bombX());
+        double dy = Math.max(special.bombY(), PlayField.HEIGHT - special.bombY());
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
     @Override

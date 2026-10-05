@@ -65,6 +65,7 @@ final class SettingsFile implements SettingsStore {
     private static final String TEXT_SPEED = "gameplay.text-speed";
     private static final String SCREEN_SHAKE = "gameplay.screen-shake";
     private static final String FLASH_REDUCTION = "gameplay.flash-reduction";
+    private static final String CREDIT_NUMBERS = "gameplay.credit-numbers";
     private static final String NO_KEY = "none";
 
     private final Path path;
@@ -112,8 +113,18 @@ final class SettingsFile implements SettingsStore {
         var readGameplay = new GameplaySettings(
                 (int) share(properties, TEXT_SPEED, gameplay.textSpeed(), 10, 90),
                 share(properties, SCREEN_SHAKE, gameplay.screenShake(), 0, 1),
-                Boolean.parseBoolean(properties.getProperty(FLASH_REDUCTION)));
+                Boolean.parseBoolean(properties.getProperty(FLASH_REDUCTION)),
+                flag(properties, CREDIT_NUMBERS, gameplay.creditNumbers()));
         return new Settings(video, readAudio, controls, readGameplay);
+    }
+
+    /** {@code true} or {@code false}, or the default when it is missing or unreadable. */
+    private static boolean flag(Properties properties, String key, boolean fallback) {
+        String value = properties.getProperty(key, "").trim();
+        if (value.equalsIgnoreCase("true")) {
+            return true;
+        }
+        return value.equalsIgnoreCase("false") ? false : fallback;
     }
 
     /** A number in {@code [min, max]}, or the default when it is missing, unreadable or outside. */
@@ -263,6 +274,7 @@ final class SettingsFile implements SettingsStore {
             properties.setProperty(TEXT_SPEED, Integer.toString(gameplay.textSpeed()));
             properties.setProperty(SCREEN_SHAKE, Double.toString(gameplay.screenShake()));
             properties.setProperty(FLASH_REDUCTION, Boolean.toString(gameplay.flashReduction()));
+            properties.setProperty(CREDIT_NUMBERS, Boolean.toString(gameplay.creditNumbers()));
         });
     }
 

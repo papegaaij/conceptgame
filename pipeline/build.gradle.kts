@@ -96,6 +96,16 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
         "enemy-carrier-sac-burst-r25-a.ogg",
         "enemy-carrier-iris-r25-b.ogg",
         "secret-cable-snap-r25-a.ogg",
+        // M4 part H's SFX pass: the synthesized pickups and hangar sounds.
+        "pickup-r01-a.ogg",
+        "pickup-r01-b.ogg",
+        "pickup-r01-c.ogg",
+        "pickup-special-charge-r08-a.ogg",
+        "ui-shop-buy-r08-a.ogg",
+        "ui-shop-sell-r08-a.ogg",
+        "ui-shop-denied-r08-a.ogg",
+        "ui-equip-r08-a.ogg",
+        "ui-upgrade-r08-a.ogg",
     )
 }
 
@@ -129,16 +139,40 @@ val copyPlaceholderMusic = tasks.register<JavaExec>("copyPlaceholderMusic") {
 }
 
 /**
+ * Writes the credits roll (design/ui/credits) from CREDITS.md into assets/ui/credits.txt: the
+ * attributions of every shipped CC-BY asset and font, the CC0 authors' thanks. Run it after
+ * CREDITS.md or the shipped assets change and commit the result; CreditsListTest fails while the
+ * committed roll differs from what CREDITS.md gives.
+ */
+val credits = tasks.register<JavaExec>("credits") {
+    description = "Writes the credits roll from CREDITS.md into assets/ui/credits.txt."
+    group = "assets"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "vanguard.pipeline.CreditsList"
+    mustRunAfter(cutPlaceholderSprites, copyPlaceholderSounds, copyPlaceholderMusic)
+    args(rootProject.projectDir.absolutePath, assets.file("ui/credits.txt").asFile.absolutePath)
+}
+
+tasks.test {
+    // CreditsListTest compares the committed roll with CREDITS.md and the shipped assets.
+    systemProperty("vanguard.rootDir", rootProject.projectDir.absolutePath)
+    inputs.file(rootProject.layout.projectDirectory.file("CREDITS.md")).withPropertyName("credits")
+    inputs.file(assets.file("ui/credits.txt")).withPropertyName("creditsRoll")
+    inputs.files(assets.dir("sfx"), assets.dir("music"), assets.dir("voice"), assets.dir("fonts"))
+        .withPropertyName("creditedAssets")
+}
+
+/**
  * Copies the chosen concept art and audio that stand in for production assets into assets/ and
  * cuts the sprite frames. Run it after a concept choice changes; its output is committed (Git
  * LFS), the build only reads assets/. The title scene, the logo and the bitmap fonts are production
  * art (tools/art/ui_scenes.py, tools/art/fonts.py), the act titles' lettering is rendered by
- * tools/concept/ui_assets.py.
+ * tools/concept/ui_assets.py. It rewrites the credits roll last.
  */
 tasks.register("importPlaceholders") {
     description = "Copies chosen concept art and audio into assets/ as placeholders."
     group = "assets"
-    dependsOn(cutPlaceholderSprites, copyPlaceholderSounds, copyPlaceholderMusic)
+    dependsOn(cutPlaceholderSprites, copyPlaceholderSounds, copyPlaceholderMusic, credits)
 }
 
 /** Packs assets/sprites and assets/backdrop into texture atlases; build output, never committed. */

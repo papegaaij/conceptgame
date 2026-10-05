@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../../enemies/air/spore-bomber, ../../../enemies/air/whirl-seed, ../../../enemies/space/leviathan]
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Level 03 – Spore Drift
@@ -193,7 +193,7 @@ No boss. The [Leviathan](../../../enemies/space/leviathan/README.md) is a `huge`
 - **Second pass** (t=128–158): descends to `air` near the top centre and drifts across the upper
   half. The scroll slows to 90 px/s; no other waves enter while it is on screen. At the
   reference DPS for L03 (32) its 510 HP take about 16–24 s, inside the 30-s window.
-- Killing the blowhole first destroys the rest for the full 190 (spec rule).
+- Killing the blowhole first destroys the rest for the full 113 (spec rule).
 
 ## Music & ambience
 
@@ -205,20 +205,20 @@ forced on for the second pass. Ambience: Earth orbit
 
 ## Credit budget
 
-Budget(3) = 700 × 1.07² ≈ **801**, the typical haul's target ([economy](../../../systems/economy/README.md#per-level-budget)); the level's `bounty_scale` of 0.97 puts the typical haul on it (`TypicalHaulTest`).
+Budget(3) = 700 × 1.07² ≈ **801**, the typical haul's target ([economy](../../../systems/economy/README.md#per-level-budget)); the level's `bounty_scale` of 1.07 puts the typical haul on it (`TypicalHaulTest`).
 Bounties from the stat blocks: Spore Bomber 25, Whirl Seed 3, Skitter 5, Needler 12, Stinger 15,
-Leviathan 190 (part bounties, ≈ 17% of the budget, close to the 15% set-piece share).
+Leviathan 113 (part bounties; 121 at the scale, ≈ 15 % of the budget, the set-piece share).
 
 <!-- data: credit-budget -->
 | Source | Perfect run | Typical haul |
 |---|---|---|
-| Kills: Skitter 54 × 5 + Spore Bomber 10 × 25 + Stinger 6 × 15 + Needler 9 × 12 + Whirl Seed 24 × 3 | 780 | 468 |
-| Set piece: Leviathan parts | 183 | 146 |
+| Kills: Skitter 54 × 5 + Spore Bomber 10 × 25 + Stinger 6 × 15 + Needler 9 × 12 + Whirl Seed 24 × 3 | 825 | 495 |
+| Set piece: Leviathan parts | 122 | 98 |
 | Pickup: Leviathan large salvage | 200 | 128 |
 | Secret: lifeboat rack (hidden crate, 9% of budget) | 75 | 38 |
 | Secondary: no Spore Bomber gets through | 50 | 25 |
-| **Total** (bounty scale 0.97) | **1,288** | **805** |
-| Budget(n) = the typical haul's target; typical +0 %, perfect 1.61 × budget | | 801 |
+| **Total** (bounty scale 1.07) | **1,272** | **783** |
+| Budget(n) = the typical haul's target; typical -2 %, perfect 1.59 × budget | | 801 |
 <!-- /data -->
 
 Spore mines pay 1 each but their number depends on how long each bomber lives (up to ~7 per
@@ -268,7 +268,7 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), review file
       (`RadioTimelineTest`).
 - [x] Hangar intel before the level: from sensor L2 the Leviathan shows as an "unknown huge
       contact" with its silhouette, not by name (the level's set pieces, `Intel.contacts()`).
-- [x] Typical haul at medium within ±5 % of budget(3) = 801 with `bounty_scale` 0.97 (`TypicalHaulTest`); a perfect run earns 1,288.
+- [x] Typical haul at medium within ±5 % of budget(3) = 801 with `bounty_scale` 1.07 (`TypicalHaulTest`); a perfect run earns 1,272.
 - [x] At least 32 enemies per minute of scroll at medium (34.3; `DensityTest`).
 - [x] Easy/hard variations as in *Difficulty notes*.
 
@@ -349,3 +349,9 @@ Production art for concept round 16 (M4 part C, the Level 03 batch), review file
   Stingers are thinned instead (t=34 V-wing and t=56 column 3 → 2). Damage per run (mean over the
   Skitter waves' timings jittered): easy 19.8 → 20.8, medium 49.4 → 53.1, hard 124.7 → 112.5.
   `bounty_scale` 0.97 puts the typical haul on the budget (805 of 801; a perfect run 1,288).
+- 2026-10-05: M4 part H balance pass (user decision): the Leviathan's bounty falls from 190 to 113
+  (≈ 15 % of the budget at the scale; it was set when the budget was 1,145, and was 23 % of 801),
+  and `bounty_scale` rises from 0.97 to 1.07 so the typical haul stays on the budget: typical
+  805 → 783 (−2 %), perfect 1,288 → 1,272 (1.61 → 1.59 × budget). A Skitter's 5 rounds to 5 up to
+  a scale of 1.09 and to 6 from 1.1, so the haul steps from 784 (−2 %) to 822 (+3 %) there; 1.07
+  is the closer of the two.

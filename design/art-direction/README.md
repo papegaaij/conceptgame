@@ -429,16 +429,30 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 
 - [x] Renderer draws the screen at 960×540 and scales by integer factors with letterboxing
       (sharp-bilinear for 1440p and 720p).
-- [ ] Layer stack (deep, far, ground, sub, low-air, air, high-air) with per-layer scroll
-      factors as in the table and a ground scroll speed, configurable per level.
-- [ ] Perspective geometry between layers (canyon walls, cliffs) as well as tall structures.
-- [ ] Runtime drop shadows from sprite alpha, offset per layer, masked to shadow-catching layers.
-- [ ] Perspective roof projection for tall ground structures.
+- [x] Layer stack (deep, far, ground, low-air, air, high-air) with per-layer scroll factors as in
+      the table and a ground scroll speed, configurable per level (each level's `backdrop`:
+      `scroll_factors`, `BackdropLayer`, `BackdropCheck`).
+- [ ] The `sub` layer — **later: M5** (the naval levels; see [enemies](../enemies/README.md#implementation)).
+- [ ] Perspective geometry between layers (canyon walls, cliffs) as well as tall structures —
+      **later: M5** (Level 08's tower district) and **later: Act 3** (the canyon walls, L16).
+- [x] Runtime drop shadows from sprite alpha, offset per layer, masked to shadow-catching layers
+      (`Shadows`: the flyers, the Coilwyrm's segments and the ship; the ground layer's tiles, road
+      and pieces mark the stencil buffer). The flyers' second shadow on low-air bank tops (12, 17)
+      and the 1–1.5 px blur are not drawn.
+- [ ] Perspective roof projection for tall ground structures — **later: M5** (Level 08's towers;
+      the open question below decides whether it is built at all).
 - [x] High-air weather and decoration opacity capped where it overlaps the play plane; high-air
   enemies drawn at 75 % opacity, perspective-scaled, with shadows (the weather at 40 %; the
   Leviathan from M4 part C, the Brood Carrier with its shadow in part G, approved in round 25).
-- [ ] Bullet sprites follow the readability rules (core, ring, dark rim, reserved hues).
-- [ ] Hit flash and explosion sequences as described under Animation rules.
+- [x] Bullet sprites follow the readability rules (core, ring, dark rim, reserved hues): the
+      `small` orb (final in round 12) and the player
+      shots (round 14); the fast class's needle is final too, ready for the first fast shot.
+- [x] The large pulsing orb for `medium` bullets (`BulletLooks`, frames by
+      `tools/art/bullet_medium.py`, proposed in round 26): the Leviathan's and the Scuttler's aimed
+      shots; the Spore Bomber's `medium` is its spore, drawn as the mine.
+- [ ] The homing diamond — **later: Act 4** (the first homing enemy projectiles, L27).
+- [x] Hit flash and explosion sequences as described under Animation rules (`FlashShader`'s white
+      flash; `explosion-tiny` to `-large`, the debris chunks and each unit's own death).
 - [x] Loot targets follow readability rule 7 (Level 01's cargo containers and beacon, placeholder
       sprites from `tools/concept/ground_targets.py`).
 - [x] Production sprite pipeline (render → downsample → 1-bit alpha → sharpen → palette) is
@@ -511,3 +525,27 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 - 2026-10-05: Round 25 closed (user): the 75 % high-air opacity kept as it is for the Brood
   Carrier (the ship under the hull reads at about 25 % contrast; the shared set-piece value, so
   the Leviathan keeps it too).
+- 2026-10-05: M4 part H docs reconciliation: the runtime items are ticked for what Act 1 builds
+  (the layer stack without `sub`, the bullet sprites in use, hit flashes and explosions) and the
+  rest is tagged with its first user: `sub` and the towers' perspective in M5, the canyon walls in
+  Act 3, the homing diamond in Act 4. Still open in M4: runtime drop shadows (only the Airstrike
+  bombers and the hull bosses cast shadows, as sprites; the ship's shadow is part H's work) and
+  the large orb for `medium` bullets.
+- 2026-10-05: M4 part H, runtime drop shadows (`Shadows`): every flyer on `air` or `low-air` (the
+  units, the Coilwyrm's segments, the ship) is drawn a second time as a dark silhouette from its
+  frame's alpha (texels at least half opaque), at 50 % opacity and 85 % scale, offset (21, 30) for
+  `air` and (9, 13) for `low-air`, after the ground units and before the low flyers and the
+  low-air layer. Masking: while the ground layer's tiles, road and pieces (and the overhead pieces)
+  are drawn they mark the stencil buffer wherever they cover a pixel, and the shadows draw only on
+  marked pixels, each pixel once (overlapping shadows do not darken twice). So shadows fall on
+  terrain, stations, wrecks and capital-ship hulls but not on open space, the far layer or the
+  deep Earth (Levels 01–03 and 07 show them only on structures). The internal screen got a
+  depth-stencil buffer for it. Cost per frame: one stencil clear, two shader switches and one
+  extra draw per flyer (bench on llvmpipe unchanged in feel). Not drawn: the second shadow on bank
+  tops at (12, 17), the 1–1.5 px blur, and shadows of the non-boss set pieces (the Leviathan) and
+  the lifeboat tow; the bombers and hull bosses keep their sprite shadows. Bullets stay readable:
+  they are drawn above every layer, and the shadow only darkens the ground under them.
+- 2026-10-05: M4 part H: `medium` bullets are drawn as the large pulsing orb (round 09's large orb in
+  the Vrell colours, 23×23 with a 13 px body, 6 frames at 10 fps; `tools/art/bullet_medium.py`),
+  chosen by the damage of the `medium` class. The yellow needle stays unused: no Act 1 attack is in
+  the fast speed class, and a bullet does not carry its speed class yet.

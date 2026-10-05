@@ -12,16 +12,20 @@ import vanguard.sim.Loadout;
  * What a sortie flies of the campaign's loadout: the fitted weapons the simulation flies (the Act 1
  * arsenal, see {@link SimSpecs#flies}), the shield with the spare-power bonus, the plating and
  * the engine (the generator's output gives the spare power), and the fitted special with the
- * charges carried when the simulation flies it (the Airstrike, {@link SimSpecs#fliesSpecial}). The
- * other specials and the utility modules are bought, fitted and saved but fly later in M4; they and
- * any weapon that does not fly yet are listed for the HUD.
+ * charges carried when the simulation flies it (the Airstrike, {@link SimSpecs#fliesSpecial}), and
+ * the Pickup magnet at the best level fitted in a utility bay ({@link SimSpecs#fliesUtility}), and the
+ * sensor suite's best level for the HUD's threat arrows (L2+; it always gave the hangar intel). The
+ * other specials and utility modules are bought, fitted and saved but fly later; they and any weapon
+ * that does not fly yet are listed for the HUD.
  *
  * @param weapons the flown weapons, in the order of the loadout's {@link Armament} mounts
  * @param sparePower the generator's output minus the fitted items' draw, MW (negative when a debug
  *     fit exceeds it)
  * @param notFlown the names of the fitted items the sortie leaves out, in slot order
+ * @param sensor the best fitted sensor suite's level, 0 without one (the difficulty's intel bonus not
+ *     counted: it is the hangar intel's)
  */
-public record Flight(Loadout loadout, List<Weapon> weapons, double sparePower, List<String> notFlown) {
+public record Flight(Loadout loadout, List<Weapon> weapons, double sparePower, List<String> notFlown, int sensor) {
     /** The Pulse Cannon's slug. */
     public static final String PULSE_CANNON = SimSpecs.PULSE_CANNON;
 
@@ -39,6 +43,8 @@ public record Flight(Loadout loadout, List<Weapon> weapons, double sparePower, L
         List<Weapon> weapons = new ArrayList<>();
         List<String> notFlown = new ArrayList<>();
         double load = 0;
+        int magnet = 0;
+        int sensor = 0;
         for (var entry : loadout.entrySet()) {
             LoadoutSlot slot = entry.getKey();
             Fitted item = entry.getValue();
@@ -46,6 +52,10 @@ public record Flight(Loadout loadout, List<Weapon> weapons, double sparePower, L
             load += info.draw(item.level());
             if (!flies(content, slot, item)) {
                 notFlown.add(info.name());
+            } else if (slot.kind() == ItemKind.UTILITY && item.item().equals(Hangar.SENSOR_SUITE)) {
+                sensor = Math.max(sensor, item.level());
+            } else if (slot.kind() == ItemKind.UTILITY) {
+                magnet = Math.max(magnet, item.level());
             } else if (weaponSlot(slot) != null) {
                 fitted.add(new SimSpecs.FittedWeapon(weaponSlot(slot), item.item(), item.level()));
                 weapons.add(new Weapon(weaponSlot(slot), info.name(), item.level()));
@@ -69,7 +79,10 @@ public record Flight(Loadout loadout, List<Weapon> weapons, double sparePower, L
             flown = flown.withSpecial(
                     SimSpecs.special(content, special.item(), campaign.gear().charges(special.item())));
         }
-        return new Flight(flown, weapons, spare, notFlown);
+        if (magnet > 0) {
+            flown = flown.withMagnet(SimSpecs.magnet(content, magnet));
+        }
+        return new Flight(flown, weapons, spare, notFlown, sensor);
     }
 
     /** Whether the simulation flies the item in this slot. */
@@ -78,7 +91,8 @@ public record Flight(Loadout loadout, List<Weapon> weapons, double sparePower, L
             case FRONT, REAR, WING -> SimSpecs.flies(content, fitted.item());
             case GENERATOR, SHIELD, PLATING, ENGINE -> true;
             case SPECIAL -> SimSpecs.fliesSpecial(fitted.item());
-            case UTILITY -> false;
+            case UTILITY ->
+                SimSpecs.fliesUtility(fitted.item()) || fitted.item().equals(Hangar.SENSOR_SUITE);
         };
     }
 

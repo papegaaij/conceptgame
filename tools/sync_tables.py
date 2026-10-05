@@ -182,7 +182,7 @@ def utility(d):
     for m in data(d)["utility"]:
         levels = "L1" if len(m["prices"]) == 1 else f"L1–L{len(m['prices'])}"
         note = m["notes"].get("levels")
-        rows.append([m["name"], m["notes"]["effect"], levels + (f" {note}" if note else ""), num(m["draw"]),
+        rows.append([m["name"], fill(m["notes"]["effect"], m), levels + (f" {note}" if note else ""), num(m["draw"]),
                      " / ".join(grouped(p) for p in m["prices"]), available(m), m["design"]])
     return table(["Module", "Effect", "Levels", "Draw", "Price", "Unlock", "Design"], rows)
 

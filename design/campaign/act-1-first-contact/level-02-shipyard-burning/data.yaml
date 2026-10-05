@@ -16,6 +16,9 @@ threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Th
   boss: none
   varga:
     none: The growths on the hulls shoot back, Lancer. Once you're past them, they can't track you.
+    l1: A third of them come in from the sides. And Crane Four is still on automatic. Mind the arm when it sweeps.
+    l2: "New one: the Stinger. It stops, glows red, then dives. Sidestep on the red. The growths are turrets, rooted on the hulls."
+    l3: "Something wide for the flanks. One cache: a canister on Crane Four's hook. Hit the clamp while the arm sweeps."
   notes:
     Dominant layers: '`air`, `ground` (turrets rooted on station hulls)'
     Attack directions: '{directions} (10 of 14 waves from the top edge)'

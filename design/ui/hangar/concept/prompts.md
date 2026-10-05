@@ -118,3 +118,7 @@ Production art, M4 part C batch (round 16). The sheet of Level 03's sensor-L2 pi
 ## intel-final-r17-a
 
 Production art, M4 part D batch (round 17). The sheet of Level 04's sensor-L2 pictures, rendered by [tools/art/intel.py](../../../../tools/art/intel.py) (`python3 tools/art/intel.py brood-pod scuttler`): the 30×30 portraits of its new enemy types from their production models in [tools/art/vrell_l04.py](../../../../tools/art/vrell_l04.py), the Brood Pod between swells (`pod_model(0, 1)`) and the Scuttler walking down the screen (heading 0, walk frame 0, its materials turned with the body). Brief as for intel-final-r13-a.
+
+## test-fire-capture-r26-a
+
+A capture of the game, not generated art (M4 part H, round 26): `build/.../install/terran-vanguard/bin/terran-vanguard --bench <s> --settings <file>` on a private 1920×1080 Xvfb display (settings and saves in a temporary directory), the keys sent into the game window with XTest (Esc, Abort to hangar, then Down and E through the front, wing and rear slots) and the screen taken with the game's own screenshot key (F12, the 960×540 internal screen). The sheet: one uncropped screenshot (the Side Splitter selected) and below it the test-fire box (26, 422, 264×64) cropped from six screenshots and scaled 2× (nearest neighbour) with a caption each, composed with PIL. Brief: `the selected weapon's pattern at the shown level against three dummy targets, looping in the shop's preview box; a quick way to understand spread, rear and side weapons`.

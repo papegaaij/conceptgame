@@ -1,9 +1,9 @@
 ---
 title: Campaign
 design: approved
-implementation: not-started
+implementation: done
 art: none
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Campaign
@@ -20,7 +20,7 @@ consecutive levels.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [act-1-first-contact](act-1-first-contact/README.md) | Levels 01–07 · Earth orbit & Luna · the Vrell strike · boss Brood Carrier | approved | in-progress | chosen |
+| [act-1-first-contact](act-1-first-contact/README.md) | Levels 01–07 · Earth orbit & Luna · the Vrell strike · boss Brood Carrier | approved | done | chosen |
 | [act-2-homefront](act-2-homefront/README.md) | Levels 08–14 · Earth surface: megacities, oceans, arctic · boss Siege Spire | approved | not-started | chosen |
 | [act-3-red-dust](act-3-red-dust/README.md) | Levels 15–21 · Mars · first hints of human involvement · boss Dust Colossus | draft | not-started | none |
 | [act-4-deep-water](act-4-deep-water/README.md) | Levels 22–28 · Europa ice & under-ice ocean · underwater play · boss Abyssal Maw | draft | not-started | none |
@@ -199,10 +199,20 @@ criteria), Open questions, Decisions. The worked example is
 
 ## Implementation
 
-- [ ] Campaign sequence 01→50 plays in order; the hangar opens between levels.
+- [x] Campaign sequence 01→07 plays in order; the hangar opens between levels (Act 1, M4)
+- [ ] Campaign sequence 08→50 in order — **later: M5** (Levels 08–14) and **later: Act 3** to
+      Act 7 (Levels 15–50), each level with its milestone or act
 - [x] Act transitions show an act title card and the act's opening briefing.
-- [ ] Each level's threat profile is available as data for the hangar intel panel.
-- [ ] Shop unlocks follow the *Loadout pressure* table (data-driven, per level).
+- [x] Each level's threat profile is available as data for the hangar intel panel: Levels 01–07
+      (`threat_profile` in each level's data.yaml, read by `LevelData` and `Intel`)
+- [ ] The threat profiles of Levels 08–50 — **later: M5** (Act 2) and **later: Act 3** to Act 7,
+      in each level's data file as it is written
+- [x] Shop unlocks follow the *Loadout pressure* table (data-driven, per level): each item's
+      `unlock` or `available` in its data (`Hangar.available`, `Catalogue`); the Act 1 rows
+      (`forward` to `area`) checked against the weapons' data
+- [ ] The Act 2 rows (`rear` L08, `anti-sub` L11) checked with their weapons in play — **later:
+      M5**; `beam` (L15) and `shield-breaker` (L29) with their weapons — **later: Act 3** and
+      **later: Act 5**
 - [x] Campaign progress (current level, unlocks) is stored in the save game
       ([systems](../systems/README.md)).
 
@@ -249,3 +259,6 @@ criteria), Open questions, Decisions. The worked example is
   and the denser waves put Level 01's "Clean sweep" line about 45 s before the end (at 136 s of
   180 on medium). It now comes on completion, before the level-end line. The other event lines of
   Levels 01–05 were checked on the autopilot's runs and fire at the right moments.
+- 2026-10-05: M4 part H docs reconciliation: the sequence, threat-profile and shop-unlock items
+  are split into the built Act 1 part (ticked) and the later levels (tagged with their milestone
+  or act), so the document is `done` for M4 under the roadmap's rule for deferred items.
