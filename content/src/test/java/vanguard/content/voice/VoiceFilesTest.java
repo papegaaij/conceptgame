@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,8 +62,10 @@ class VoiceFilesTest {
 
     @Test
     void everyVoiceFileBelongsToALine() throws IOException {
-        Set<String> used =
-                VoiceLines.all(CONTENT).stream().map(VoiceLines.VoiceLine::path).collect(Collectors.toSet());
+        Set<String> used = VoiceLines.all(CONTENT).stream()
+                .map(VoiceLines.VoiceLine::path)
+                .collect(Collectors.toCollection(HashSet::new));
+        used.addAll(VoiceLines.stageSounds(CONTENT.voices()));
         Path voice = ASSETS.resolve("voice");
         if (!Files.isDirectory(voice)) {
             return;
@@ -146,6 +149,43 @@ class VoiceFilesTest {
                         VoiceLines.Filter.DISTORTED,
                         "test")
                 .isEmpty());
+    }
+
+    /**
+     * A radio line that is only a stage direction plays its speaker's stage sound (the Choir sings,
+     * round 29), which is in the assets; a spoken line, or a stage direction of a speaker without
+     * one, does not. Every Choir cue of the levels finds it through the radio index, as the game does.
+     */
+    @Test
+    void theChoirsStageDirectionPlaysItsStageSound() {
+        var voices = CONTENT.voices();
+        String sings =
+                VoiceLines.stageSound(voices, "The Choir", "[the Choir sings]").orElseThrow();
+        assertTrue(sings.matches("voice/choir/voice-choir-sings-r29-[a-d]\\.ogg"), sings);
+        assertTrue(VoiceLines.stageDirection("[the Choir sings]"));
+        assertTrue(!VoiceLines.stageDirection("…many… we are many…"));
+        assertTrue(VoiceLines.stageSound(voices, "The Choir", "…many… we are many…")
+                .isEmpty());
+        assertTrue(VoiceLines.stageSound(voices, "Rook", "[static]").isEmpty());
+        for (String sound : VoiceLines.stageSounds(voices)) {
+            assertTrue(Files.isRegularFile(ASSETS.resolve(sound)), sound + " is not in the assets");
+        }
+        var index = VoiceLines.radioIndex(CONTENT);
+        int cues = 0;
+        for (LevelData level : CONTENT.levels().values()) {
+            for (LevelData.RadioCue cue : level.radio()) {
+                if (cue.speaker().equals("The Choir") && VoiceLines.stageDirection(cue.line())) {
+                    String expression =
+                            cue.expression().orElse(Expression.NEUTRAL).slug();
+                    assertEquals(
+                            sings,
+                            VoiceLines.radioVoice(index, voices, cue.speaker(), cue.line(), expression)
+                                    .orElse(null));
+                    cues++;
+                }
+            }
+        }
+        assertTrue(cues >= 5, "Act 1's five Choir cues, found " + cues);
     }
 
     /** Level 06's perimeter beacon (round 23): its radio lines go through the public-address filter. */

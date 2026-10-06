@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Architecture
@@ -433,8 +433,10 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   slug: `names` (the speakers as the level data writes them), `ref` (the clip in
   `design/audio/voice/refs/`), optional `shift` (added to the expression's row), `fixed` (settings
   for every line instead), `layering` (`choir`), `pins` (a line's seed by its key) and `filter`
-  (`pa`: the public-address filter instead of the radio filter, part of the key). The line
-  list and keys: `vanguard.content.voice.VoiceLines`; the files `assets/voice/<voice>/<key>.ogg`.
+  (`pa`: the public-address filter instead of the radio filter, part of the key) and `stage` (the
+  sound file in `assets/voice/<voice>/` a radio line plays when it is only a stage direction,
+  `[the Choir sings]`). The line list and keys: `vanguard.content.voice.VoiceLines`; the files
+  `assets/voice/<voice>/<key>.ogg`.
 - **Allies** (`allies/data.yaml`): one entry per ally
   slug with `name`, `layer`, `size`, `hitbox`, `hp` (medium; the level sets difficulty variants),
   `damaged_by` (`objective_aimed`: only shots the target-the-objective hook aims at it;
@@ -919,3 +921,8 @@ Screenshot tests are left out until there is a need.
   at `Defences.CRITICAL_SHARE` (15 %, shared by the game's `LowArmour`) and hashes its flag only
   once set, so replays that never get that low keep their hashes; the level screen queues the line
   urgent and `VoiceLines` lists it (source `armour`).
+- 2026-10-06: The voice speaker table gains `stage` (`VoiceData.Speaker.stage`): a radio line that
+  is only a stage direction plays that sound in place of a voice; `VoiceLines.stageSound` finds it
+  and `VoiceLines.radioVoice` (a line's rendered file, else its stage sound) serves `Voices` and
+  RadioTimelineTest alike. The Choir's is concept round 29's option a, provisionally, copied by
+  `:pipeline:copyPlaceholderStageSounds`; option b since the round closed (2026-10-06).

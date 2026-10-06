@@ -114,6 +114,24 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
 }
 
 /**
+ * Copies the voice part's stage sounds into assets/voice/<voice>/ under their concept names: the
+ * sound the speaker table's `stage` names (design/audio/voice/data.yaml), played for a radio line
+ * that is only a stage direction. The Choir's sung sting is round 29's option b (user, 2026-10-06),
+ * the sung "ah" F3 to E3.
+ */
+val copyPlaceholderStageSounds = tasks.register<JavaExec>("copyPlaceholderStageSounds") {
+    description = "Copies the voices' stage sounds (the Choir sings) into assets/voice."
+    group = "assets"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "vanguard.pipeline.PlaceholderSounds"
+    args(
+        design.dir("audio/voice/concept").asFile.absolutePath,
+        assets.dir("voice/choir").asFile.absolutePath,
+        "voice-choir-sings-r29-b.ogg",
+    )
+}
+
+/**
  * Copies the chosen concept music the game plays into assets/music under the names it loads. Final
  * themes (tools/art/themes.py, with a SOURCE comment) are left alone.
  */
@@ -153,7 +171,7 @@ val credits = tasks.register<JavaExec>("credits") {
     group = "assets"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass = "vanguard.pipeline.CreditsList"
-    mustRunAfter(cutPlaceholderSprites, copyPlaceholderSounds, copyPlaceholderMusic)
+    mustRunAfter(cutPlaceholderSprites, copyPlaceholderSounds, copyPlaceholderStageSounds, copyPlaceholderMusic)
     args(rootProject.projectDir.absolutePath, assets.file("ui/credits.txt").asFile.absolutePath)
 }
 
@@ -176,7 +194,7 @@ tasks.test {
 tasks.register("importPlaceholders") {
     description = "Copies chosen concept art and audio into assets/ as placeholders."
     group = "assets"
-    dependsOn(cutPlaceholderSprites, copyPlaceholderSounds, copyPlaceholderMusic, credits)
+    dependsOn(cutPlaceholderSprites, copyPlaceholderSounds, copyPlaceholderStageSounds, copyPlaceholderMusic, credits)
 }
 
 /** Packs assets/sprites and assets/backdrop into texture atlases; build output, never committed. */

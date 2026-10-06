@@ -130,3 +130,29 @@ Whisper (faster-whisper base.en) reads both takes back whole; it hears "Aegis" a
 Outcome (user, 2026-10-05): **a** cast (`refs/ref-lifeboat-seven.wav`; the production line by
 `tools/art/voice.py` at the neutral settings through radio filter b); b moved to
 `concept/rejected/`, its clip deleted.
+
+## voice-choir-sings
+
+Round 29 (2026-10-06): the sound of the Choir's stage direction `[the Choir sings]` (Act 1's five
+Choir cues: Level 01 t 160, Level 03 t 58.5, Level 05 t 144.5, Level 07 t 94 and its
+boss-destroyed cue), which is not spoken. Two kinds, two options each, generated with
+`tools/concept/audio/choir_r29.py`; every option goes through radio filter b (`radio()` in
+`tools/concept/audio/tts_r18.py`) and is mastered like the voice lines (−16 LUFS, −1.5 dBFS
+ceiling; OGG Vorbis q4, 44.1 kHz mono, 3.7–4.0 s with the reverb's tail and the filter's pad).
+The voice is the Choir's base, Varga's reference clip (`refs/ref-varga.wav`, Betsie Bush, public
+domain), at the Choir's settings (0.3 / 0.3 / 0.7).
+
+| Variant | Kind | What | How |
+|---|---|---|---|
+| a | sung sting (voice) | "Ooh", one held note (E3) | Chatterbox's own sustained vowel: a take of "Ooooooooooooooh." (seed 30) that holds the vowel for 16 s at about 170 Hz; its steadiest 2.2 s, level evened out, pitch-flattened onto E3 (165 Hz) with a slow vibrato (5.2 Hz, ±0.5 %) by TD-PSOLA (the voice's formants kept); then the Choir's layering as `choir()` of `tts_r18.py` (copies at −12, −5, 0 and +7 semitones, gains 0.8 / 0.55 / 0.45 / 0.3, staggered 0–45 ms, a reversed copy at 0.22, the 55/82 Hz drone with low noise, the 2.2 s reverb 35 % wet) |
+| b | sung sting (voice) | "Ah", the Choir motif's landing: F3 falling to E3 | Chatterbox does not hold an "aah" (its "Aaaah" spellings close into "eh" or stop), so the tone is built: 0.5 s of the steady open vowel of a take of "Ahhhhhhhhhhhhhhhh..." (seed 31; F1 ≈ 440 Hz, F2 ≈ 1200 Hz), its pitch periods replayed back and forth by TD-PSOLA and sung as F3 for 0.85 s, a 0.15 s glide and E3 for 1.4 s (the motif's b2 to the root); then `choir()`, as a |
+| c | choir pad (synthesized) | "Oo" chord E3 B3 E4 B4, held 1.8 s | the music's choir voice, `v_choir` of `tools/concept/audio/music_r02.py` (four detuned saws through three vowel formants, the pads of "The Choir Descends"), in the layering's voicing and gains; the music choir bus's 150 Hz high-pass, then `choir()`'s room without its copies (the 55/82 Hz drone with low noise, the 2.2 s reverb 35 % wet) |
+| d | choir pad (synthesized) | The motif's last two notes, F4 then E4, sung "ah" over an "oo" pad on E4 and B4 | `v_choir` as in the intro of "The Choir Descends" (motif "ah" at 0.55, pad "oo" at 0.35 per voice; F4 0.75 s, E4 1.0 s); treated as c |
+
+Brief: a few seconds of the alien Choir breaking into the radio with no words — eerie, choral,
+in the key of the Choir's music (E minor / phrygian, the motif ending on the b2-to-root fall), and
+plainly a transmission (band-limited, static, squelch clicks), at the loudness of the spoken
+lines so it neither drowns them nor gets lost under the music's duck.
+
+Outcome (user, 2026-10-06): **b** chosen, the sung "ah" F3 → E3 (the speaker table's `stage`,
+copied into `assets/voice/choir/`); a, c and d moved to `concept/rejected/`.
