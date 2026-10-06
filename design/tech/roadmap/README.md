@@ -66,9 +66,10 @@ production art is a concept round right after its part, so M4 ships no placehold
 - [x] M1 First flight
 - [x] M2 Level 01
 - [x] M3 The campaign loop
-- [ ] M4 Act 1 (built, parts A–H; concept round 26 closed and every M4 part's art final; the
-      balance tests pass in part H's builds; open: the user's playthrough of the build and CI green
-      on the branch)
+- [x] M4 Act 1 (built, parts A–H; concept round 26 closed and every M4 part's art final; the
+      balance tests pass in part H's builds; the user played the build — its one finding, the
+      Choir's silent stage directions, fixed in round 29 —; CI green on the branch; merged into
+      main on 2026-10-06)
 - [ ] M5 Act 2
 - [ ] M6 Acts 1–2 release
 
@@ -116,3 +117,5 @@ production art is a concept round right after its part, so M4 ships no placehold
   yet); the balance tests (`BalanceTest`, `ActPlaythroughTest`) pass in part H's builds; CI
   on the branch was red on macOS until part H's fix, and the run for the part H commit had not
   finished at the close; **the user has not played the M4 build yet**. M4 stays open until then.
+- 2026-10-06: M4 done: the user played the build (one finding, the Choir's stage directions made no
+  sound: fixed with a stage sound, concept round 29), CI green on m4-act-1; merged into main.
