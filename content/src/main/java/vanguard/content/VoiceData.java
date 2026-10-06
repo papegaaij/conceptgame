@@ -60,6 +60,9 @@ public record VoiceData(Map<String, Settings> expressions, Map<String, Speaker> 
      *     clip, its lines have no voice file and play as text with the radio blips
      * @param filter {@code pa}: its radio lines go through the public-address filter instead of the
      *     radio filter (Level 06's perimeter beacon, an automated message from loudspeakers)
+     * @param stage the sound a radio line of this speaker plays when it is only a stage direction
+     *     ({@code [the Choir sings]}), which is not spoken: a file in {@code assets/voice/<slug>/}
+     *     (the Choir's sung sting, concept round 29)
      */
     public record Speaker(
             List<String> names,
@@ -69,7 +72,8 @@ public record VoiceData(Map<String, Settings> expressions, Map<String, Speaker> 
             Optional<String> layering,
             Optional<Map<String, Integer>> pins,
             Optional<Boolean> uncast,
-            Optional<String> filter) {
+            Optional<String> filter,
+            Optional<String> stage) {
         public Speaker {
             Check.notEmpty("names", names);
             Check.that(
@@ -79,6 +83,9 @@ public record VoiceData(Map<String, Settings> expressions, Map<String, Speaker> 
                     Check.that(clip.matches("ref-[a-z0-9-]+"), "ref: a clip name ref-<speaker>, was '" + clip + "'"));
             Check.that(layering.map("choir"::equals).orElse(true), "layering: only 'choir' is known");
             Check.that(filter.map("pa"::equals).orElse(true), "filter: only 'pa' is known");
+            stage.ifPresent(file -> Check.that(
+                    file.matches("[a-z0-9]+(-[a-z0-9]+)*\\.ogg"), "stage: an .ogg file name, was '" + file + "'"));
+            Check.that(stage.isEmpty() || ref.isPresent(), "stage: only a cast speaker has a stage sound");
         }
     }
 

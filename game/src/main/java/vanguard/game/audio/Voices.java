@@ -41,10 +41,13 @@ public final class Voices implements Mixer.Listener {
         mixer.listen(this);
     }
 
-    /** The voice of a radio line as shown (with {@code {ally}} filled in), if it has a file. */
+    /**
+     * The voice of a radio line as shown (with {@code {ally}} filled in), if it has a file: its
+     * rendered line, or for a stage direction the speaker's stage sound (the Choir sings).
+     */
     public Optional<Voice> radio(String speaker, String line, String expression) {
-        VoiceLines.VoiceLine voice = radio.get(VoiceLines.indexKey(speaker, line, expression));
-        return voice == null ? Optional.empty() : file(voice.path());
+        return VoiceLines.radioVoice(radio, content.voices(), speaker, line, expression)
+                .flatMap(this::file);
     }
 
     /** The voice of a briefing page, if it has a file. */

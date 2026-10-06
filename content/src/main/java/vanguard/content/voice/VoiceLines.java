@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import vanguard.content.ActData;
 import vanguard.content.BriefingPage;
 import vanguard.content.Content;
@@ -123,6 +125,46 @@ public final class VoiceLines {
                 .replaceAll("\\s+", " ")
                 .strip();
         return spoken.matches("[\\p{Punct}\\s]*") ? "" : spoken;
+    }
+
+    /**
+     * Whether {@code text} is only a stage direction in square brackets ({@code [the Choir sings]}):
+     * nothing in it is spoken.
+     */
+    public static boolean stageDirection(String text) {
+        return text.contains("[") && spoken(text).isEmpty();
+    }
+
+    /**
+     * The sound a radio line that is only a stage direction plays in place of a voice: the speaker's
+     * {@code stage} sound in the speaker table, {@code voice/<voice>/<file>} (the Choir's sung sting
+     * for {@code [the Choir sings]}); empty for a spoken line or a speaker without one.
+     */
+    public static Optional<String> stageSound(VoiceData voices, String speaker, String text) {
+        if (!stageDirection(text)) {
+            return Optional.empty();
+        }
+        return voices.voiceOf(speaker)
+                .flatMap(voice -> voices.speakers().get(voice).stage().map(file -> "voice/" + voice + "/" + file));
+    }
+
+    /** Every speaker's stage sound under assets/: files no rendered line names, kept by the renderer. */
+    public static Set<String> stageSounds(VoiceData voices) {
+        Set<String> sounds = new TreeSet<>();
+        voices.speakers().forEach((voice, speaker) -> speaker.stage()
+                .ifPresent(file -> sounds.add("voice/" + voice + "/" + file)));
+        return Set.copyOf(sounds);
+    }
+
+    /**
+     * The voice a radio line as shown plays, its asset path: the rendered file of the line in
+     * {@code index} ({@link #radioIndex}), or for a stage direction the speaker's {@link #stageSound};
+     * empty when it has neither (the line shows as text).
+     */
+    public static Optional<String> radioVoice(
+            Map<String, VoiceLine> index, VoiceData voices, String speaker, String text, String expression) {
+        VoiceLine line = index.get(indexKey(speaker, text, expression));
+        return line != null ? Optional.of(line.path()) : stageSound(voices, speaker, text);
     }
 
     /** The line {@code speaker} says, if the speaker has a voice and the text anything to say. */

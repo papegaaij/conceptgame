@@ -14,7 +14,8 @@ updated: 2026-10-06
 The radio lines are spoken. Every line in the level data is rendered offline by the Chatterbox
 text-to-speech engine, through the shared radio filter, into OGG files under `assets/`; the game
 plays the file with the radio subtitle, which stays on screen. The briefings and the Choir are
-voiced by the same pipeline. The engine and the radio filter were chosen in concept
+voiced by the same pipeline; a line that is only a stage direction (`[the Choir sings]`) plays its
+speaker's stage sound instead. The engine and the radio filter were chosen in concept
 [round 18](../../concept-rounds/round-18/README.md), the generic speakers' voices are cast in
 [round 19](../../concept-rounds/round-19/README.md); the build and CI never run the engine.
 
@@ -49,7 +50,9 @@ header of `tools/concept/audio/tts_r18.py`; the production renderer reuses it.
    per convoy unit (One–Five in Level 04). The text as spoken drops the `*` of italics and reads
    a dash as a comma. A
    line that is only a stage direction in square brackets (the Choir's `[the Choir sings]` in
-   Act 1) is not spoken: it stays text, with the music's choir pads.
+   Act 1) is not spoken and is not in the list: it shows as text and plays its speaker's **stage
+   sound** instead (`stage` in the speaker table, a file in `assets/voice/<speaker>/` that no key
+   names; the Choir's sung sting, concept [round 29](../../concept-rounds/round-29/README.md)).
 2. **Key.** Each line gets a key: a hash (SHA-256, first 12 hex digits) of the speaker's voice
    (slug, reference clip, the settings the line is spoken with, the layering), the text as
    spoken, the `expression`, the `shout` flag and the filter (radio, distorted or dry: briefing
@@ -136,7 +139,8 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
 ### Speakers and expression
 
 A speaker table (a `data.yaml` next to this README) lists each speaker's slug, reference clip,
-base `exaggeration`, `cfg_weight`, `temperature` and optional pinned seeds. The cue's
+base `exaggeration`, `cfg_weight`, `temperature`, optional pinned seeds and an optional `stage`
+sound (see *The Choir*). The cue's
 `expression` adjusts them; round 18's settings are the starting point:
 
 | Expression | exaggeration | cfg_weight | temperature | Round 18 example |
@@ -162,7 +166,14 @@ at −12, −5, 0 and +7 semitones (same length, gains 0.8 / 0.55 / 0.45 / 0.3),
 plus a reversed copy at 0.22, over a 55/82 Hz drone with low noise, through a 2.2 s reverb
 (35 % wet); then the radio filter. The Choir is **voiced** (user decision), layered as in round
 18. Its Act 1 cues are stage directions (`[the Choir sings]`), which are not spoken; its first
-spoken words come in Acts 3–4.
+spoken words come in Acts 3–4. Such a cue plays the Choir's **stage sound** (`stage` in the
+speaker table) on the voice bus with the subtitle, as a voice file plays: a few seconds of the
+Choir singing without words, at the spoken lines' loudness (−16 LUFS) through radio filter b.
+Concept [round 29](../../concept-rounds/round-29/README.md) offers two kinds, a wordless sting
+sung in the Choir's voice (Varga's reference voice with the layering above; a, b) and a
+synthesized choir pad like the music's (c, d); option **a** plays until the user's choice. The
+file is copied into `assets/voice/choir/` by `./gradlew :pipeline:copyPlaceholderStageSounds`;
+the renderer leaves files not named by a key alone.
 
 ### Briefings
 
@@ -189,6 +200,8 @@ the radio.
   music, effects and radio volumes, times the master volume; the radio-blip (radio bus) volume
   stays as it is. It applies to the radio voice and the briefings.
 - A missing voice file is not an error: the line shows as text with the blips, as today.
+- A stage-direction line (`[the Choir sings]`) plays its speaker's stage sound as its voice file:
+  the subtitle is held until it ends and the music ducks under it.
 
 ### Build and CI
 
@@ -228,6 +241,10 @@ level).
 - [x] `content` test: every radio cue has its voice file; CI runs no TTS
 - [x] [Options](../../ui/options/README.md) and [HUD](../../ui/hud/README.md) documents updated
       for the voice
+- [x] A line that is only a stage direction plays its speaker's `stage` sound (speaker table) on
+      the voice bus, found by `VoiceLines.radioVoice` for the game and RadioTimelineTest; the
+      Choir's is round 29's option b (the sung "ah" F3 to E3), copied by
+      `:pipeline:copyPlaceholderStageSounds`; VoiceFilesTest checks the file and every Choir cue
 
 ## Concept art
 
@@ -258,6 +275,16 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
 | [concept/rejected/voice-perimeter-beacon-r23-b.ogg](concept/rejected/voice-perimeter-beacon-r23-b.ogg) | Daedalus perimeter beacon (round 23 audition, public-address filter), reader Lucy Burgoyne (`tools/concept/audio/tts_r23.py`) | rejected |
 | [concept/voice-lifeboat-seven-r25-a.ogg](concept/voice-lifeboat-seven-r25-a.ogg) | Lifeboat Seven (round 25 audition), reader Tadhg Hynes (`tools/concept/audio/tts_r25.py`) | chosen |
 | [concept/rejected/voice-lifeboat-seven-r25-b.ogg](concept/rejected/voice-lifeboat-seven-r25-b.ogg) | Lifeboat Seven (round 25 audition), reader Lizzie Driver (`tools/concept/audio/tts_r25.py`) | rejected |
+| [concept/rejected/voice-choir-sings-r29-a.ogg](concept/rejected/voice-choir-sings-r29-a.ogg) | The Choir sings (round 29): sung sting, "ooh" held on E3 in the Choir's voice, layered (`tools/concept/audio/choir_r29.py`) | rejected |
+| [concept/voice-choir-sings-r29-b.ogg](concept/voice-choir-sings-r29-b.ogg) | The Choir sings (round 29): sung sting, "ah" falling F3 to E3 in the Choir's voice, layered (`tools/concept/audio/choir_r29.py`) | chosen |
+| [concept/rejected/voice-choir-sings-r29-c.ogg](concept/rejected/voice-choir-sings-r29-c.ogg) | The Choir sings (round 29): synthesized choir pad, "oo" chord E3 B3 E4 B4 (`tools/concept/audio/choir_r29.py`) | rejected |
+| [concept/rejected/voice-choir-sings-r29-d.ogg](concept/rejected/voice-choir-sings-r29-d.ogg) | The Choir sings (round 29): synthesized choir pad, the motif's F4 to E4 over an "oo" pad (`tools/concept/audio/choir_r29.py`) | rejected |
+
+Concept [round 29](../../concept-rounds/round-29/README.md) — the sound of the Choir's stage
+direction `[the Choir sings]`: a wordless sung sting in the Choir's voice (a, b) or a synthesized
+choir pad (c, d), all through radio filter b (`tools/concept/audio/choir_r29.py`; how each is made
+in [concept/prompts.md](concept/prompts.md#voice-choir-sings)). Closed 2026-10-06: **b** chosen;
+a, c and d in `concept/rejected/`.
 
 ## Open questions
 
@@ -373,3 +400,20 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
   the four pinned takes included, none to re-render (the rear-wave variant "Contacts on six! Why is
   it always six?" stays, beside Level 06's scripted take of the same line). `art` stays `chosen`:
   the later acts' lines are not rendered yet.
+- 2026-10-06: The Choir's radio messages made no sound (user): its Act 1 cues are the stage
+  direction `[the Choir sings]`, which is not spoken, and the rule "stays text, with the music's
+  choir pads" played nothing in the line's place. User decision:
+  hear both kinds of sound in a concept round and choose by ear; round 29 opened with a wordless
+  sung sting in the Choir's voice (a: Chatterbox's own sustained "ooh", pitch-flattened onto E3;
+  b: an "ah" built from half a second of vowel, sung F3 to E3) and a synthesized choir pad like the
+  music's (c: an "oo" chord; d: the motif's F4 to E4 over a pad), each through the Choir's
+  room and radio filter b at −16 LUFS (`tools/concept/audio/choir_r29.py`). Wired data-driven: the
+  speaker table's new `stage` field names the sound a speaker's stage-direction line plays
+  (`VoiceLines.stageSound` / `radioVoice`, used by `Voices` and RadioTimelineTest), option a
+  provisionally, copied into `assets/voice/choir/` by `:pipeline:copyPlaceholderStageSounds`;
+  `tools/art/voice.py` now deletes only unused files named by a key.
+- 2026-10-06: Concept round 29 closed (user): the Choir's `[the Choir sings]` plays **b**, the
+  sung "ah" in the Choir's voice falling F3 to E3, the motif's landing (the speaker table's
+  `stage`, copied into `assets/voice/choir/` by `:pipeline:copyPlaceholderStageSounds`). Rejected:
+  a (the held "ooh" on E3) and the synthesized pads c ("oo" chord) and d (the motif over a pad),
+  moved to `concept/rejected/` (`choir_r29.py`'s `CHOSEN`).

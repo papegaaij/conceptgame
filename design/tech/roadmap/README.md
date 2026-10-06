@@ -70,14 +70,14 @@ Hive Node and Ravager and D's Wraith.
 | Part | Scope | Depends on | Round |
 |---|---|---|---|
 | **A** Act 2 systems — **done** | Rook and the escort slot ([wingmen](../../player/wingmen/README.md): AI, guns, escort inventory, side, repairs, eject, retry and checkpoint, barks, `--escort`), save format 3 with `escort`, the hangar's escort UI and the HUD's escort box; the Act 2 arsenal without water (final effects and sounds of the Tail Gun, Fan Blaster, Hornet Launcher and Swivel Gun, the Proximity Mines' delivery and `area`); the Targeting computer and the Salvage scanner; the act HP factor and the Act 1 terms in data ([enemies](../../enemies/README.md#balancing-basis), [economy](../../systems/economy/README.md)). Flown on the Act 1 levels with `--loadout` and `--escort` | — | 28 (closed): Rook's craft and eject pod, the weapon effects, the Act 2 weapon sounds, the barks' voices, the scanner's glint |
-| **B** Level 08 and the Act 2 intro | Level data (dense, typical haul, four Varga lines, voiced); Creeper; the megacity backdrop with perspective towers, roofs and traffic lanes; Act 2's data (title card, briefing pages, images); "Homefront" final and stems; the Act 1 → Act 2 transition | A | 29 |
-| **C** Level 09 | Hive Node, Ravager, `pack`; hold zones and the distance-keyed wave clock; the named-target tracker; the missed-node rule; the collapse; "Firestorm" final and stems | B | 30 |
-| **D** Level 10 | Wraith (cloak, loop, rear entry); Mote Swarm (`flock`, `swarm`, authored paths: the Skitter's item); the air allies (shuttles) and the scripted loss; rear-heavy pacing | B | 31 |
-| **E** Level 11 | The `sub` layer and the water rules; the Torpedo Pod and `anti-sub`; Driftjelly, Reef Spitter; convoy ships and frigate; the Harbour Kraken mid-boss; the ocean backdrop; the Bomb Rack over water | A | 32 |
-| **F** Level 12 | Weather (rain, lightning reveal, gusts, the eye); Lamprey (chase, latch, drain, shake-off) with `swarm`; sondes; the storm backdrop; the mines' sounds in play | D, E | 33 |
-| **G** Level 13 | `defend` with a timed halt; the Nansen Relay and its integrity bar; hook modes `alternate`, `in-arc`, `always`; Skimmer; `cross`; whiteout; supply drones; the arctic backdrop | E | 34 |
-| **H** Level 14 and the act end | Root bursts; the Siege Spire act boss (root parts, maw launches, ground → air phase); the Geneva backdrop; the daylight section; Act 2's outro pages and act summary; the act-end order | B, C, D | 35 |
-| **I** Close-out | `ActPlaythroughTest` and `BalanceTest` for Act 2 with Rook and the Act 2 plan; the variety checklist as built; the later tags (drones and the other utility modules to Acts 3–6); leftover sounds and the voice listen-through; the user's playthrough | all | 36 |
+| **B** Level 08 and the Act 2 intro | Level data (dense, typical haul, four Varga lines, voiced); Creeper; the megacity backdrop with perspective towers, roofs and traffic lanes; Act 2's data (title card, briefing pages, images); "Homefront" final and stems; the Act 1 → Act 2 transition | A | 30 |
+| **C** Level 09 | Hive Node, Ravager, `pack`; hold zones and the distance-keyed wave clock; the named-target tracker; the missed-node rule; the collapse; "Firestorm" final and stems | B | 31 |
+| **D** Level 10 | Wraith (cloak, loop, rear entry); Mote Swarm (`flock`, `swarm`, authored paths: the Skitter's item); the air allies (shuttles) and the scripted loss; rear-heavy pacing | B | 32 |
+| **E** Level 11 | The `sub` layer and the water rules; the Torpedo Pod and `anti-sub`; Driftjelly, Reef Spitter; convoy ships and frigate; the Harbour Kraken mid-boss; the ocean backdrop; the Bomb Rack over water | A | 33 |
+| **F** Level 12 | Weather (rain, lightning reveal, gusts, the eye); Lamprey (chase, latch, drain, shake-off) with `swarm`; sondes; the storm backdrop; the mines' sounds in play | D, E | 34 |
+| **G** Level 13 | `defend` with a timed halt; the Nansen Relay and its integrity bar; hook modes `alternate`, `in-arc`, `always`; Skimmer; `cross`; whiteout; supply drones; the arctic backdrop | E | 35 |
+| **H** Level 14 and the act end | Root bursts; the Siege Spire act boss (root parts, maw launches, ground → air phase); the Geneva backdrop; the daylight section; Act 2's outro pages and act summary; the act-end order | B, C, D | 36 |
+| **I** Close-out | `ActPlaythroughTest` and `BalanceTest` for Act 2 with Rook and the Act 2 plan; the variety checklist as built; the later tags (drones and the other utility modules to Acts 3–6); leftover sounds and the voice listen-through; the user's playthrough | all | 37 |
 
 ## Implementation
 
@@ -85,9 +85,10 @@ Hive Node and Ravager and D's Wraith.
 - [x] M1 First flight
 - [x] M2 Level 01
 - [x] M3 The campaign loop
-- [ ] M4 Act 1 (built, parts A–H; concept round 26 closed and every M4 part's art final; the
-      balance tests pass in part H's builds; open: the user's playthrough of the build and CI green
-      on the branch)
+- [x] M4 Act 1 (built, parts A–H; concept round 26 closed and every M4 part's art final; the
+      balance tests pass in part H's builds; the user played the build — its one finding, the
+      Choir's silent stage directions, fixed in round 29 —; CI green on the branch; merged into
+      main on 2026-10-06)
 - [ ] M5 Act 2 (parts A–I under *M5 parts*; part A done, concept round 28 closed; next: part B,
       Level 08 and the Act 2 intro)
 - [ ] M6 Acts 1–2 release
@@ -157,3 +158,8 @@ Hive Node and Ravager and D's Wraith.
   data (not built), and the balance item (`BalanceTest` with his DPS, the plan buying his guns, the
   autopilot and `ActPlaythroughTest` flying with him), tagged **later: M5 part I** with the
   close-out's Act 2 balance tests. The next part is **B**, Level 08 and the Act 2 intro (round 29).
+- 2026-10-06: M4 done: the user played the build (one finding, the Choir's stage directions made no
+  sound: fixed with a stage sound, concept round 29), CI green on m4-act-1; merged into main.
+- 2026-10-06: The M5 concept rounds shift by one: round 29 went to the Choir's stage-sound fix on
+  m4-act-1 (merged into main with M4), so part B's round is 30 and parts C–I's are 31–37 (the
+  *M5 parts* table).

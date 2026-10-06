@@ -47,6 +47,7 @@ they belong to; a round only collects them.
 | [round-26](round-26/README.md) | M4 part H, the Act 1 close-out: Vrell deaths, Smart Bomb, boss bar, title-card still, ship flames and damage, shield ring, shadows, medium bullet, HUD warnings, test fire, credits roll, music finals, wired SFX, low-armour line, Varga's intel lines, part H numbers and the L01–L06 voice listen-through | approved | n/a | chosen |
 | [round-27](round-27/README.md) | Round 26's open sound questions: save-done sound b and Coilwyrm chain-cut tear a chosen, the Vrell screech's cue approved as built | approved | n/a | chosen |
 | [round-28](round-28/README.md) | M5 part A, the Act 2 systems: Rook's sprites, AI, escort UI, HUD box and 27 voiced barks, the Act 2 weapons' finals, Targeting computer and Salvage scanner, mine arming beep and secret glint (a/b), tile abbreviations, act HP factor, part A decisions | approved | n/a | chosen |
+| [round-29](round-29/README.md) | The Choir sings: a sound for the Choir's stage direction, the sung "ah" F3 → E3 (b) chosen over the held "ooh" (a) and the synthesized choir pads (c, d) | approved | n/a | chosen |
 
 ## Design
 
@@ -95,3 +96,4 @@ How a round works:
 | 26 | 2026-10-05 | closed | M4 part H: the Act 1 close-out (final art review, captures, music finals, SFX, low-armour line, intel lines, part H numbers, voice listen-through) |
 | 27 | 2026-10-06 | closed | Round 26's open sound questions: save-done sound and Coilwyrm chain-cut tear (a/b concepts), the Vrell screech wired as large units enter |
 | 28 | 2026-10-06 | closed | M5 part A: the Act 2 systems (final art review of Rook and the Act 2 weapons, AI, escort UI and barks, Targeting computer and Salvage scanner approved, mine beep a and secret glint a, part A numbers and decisions) |
+| 29 | 2026-10-06 | closed | The Choir sings: a sound for `[the Choir sings]`, sung sting (a, b) or synthesized choir pad (c, d); b chosen |

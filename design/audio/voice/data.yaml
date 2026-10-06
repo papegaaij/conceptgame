@@ -13,7 +13,9 @@ expressions:   # exaggeration 0.25-2, cfg_weight (lower: slower, more dramatic),
 # shift: added to the expression's row (optional); fixed: settings for every line instead of the
 # expression's; layering: choir = the Choir's post-processing; pins: a line's seed by its key;
 # uncast: true = no voice cast yet (no ref): its lines have no voice file and play as text;
-# filter: pa = the public-address filter instead of the radio filter (an automated loudspeaker).
+# filter: pa = the public-address filter instead of the radio filter (an automated loudspeaker);
+# stage: the sound (a file in assets/voice/<slug>/) a radio line plays when it is only a stage
+# direction in square brackets, which is not spoken (the Choir sings).
 speakers:
   okafor: {names: [Okafor], ref: ref-okafor}
   varga: {names: [Varga], ref: ref-varga}
@@ -31,6 +33,7 @@ speakers:
     ref: ref-varga
     fixed: {exaggeration: 0.3, cfg_weight: 0.3, temperature: 0.7}
     layering: choir
+    stage: voice-choir-sings-r29-b.ogg   # "[the Choir sings]": round 29's option b, the sung "ah" F3 to E3
   yard-control: {names: [Yard Control], ref: ref-yard-control}
   dock: {names: [Dock One, Dock Two, Dock Three, Dock Four], ref: ref-dock}
   ring-control: {names: [Ring Control], ref: ref-ring-control}

@@ -288,13 +288,16 @@ class RadioTimelineTest {
         return voiceSeconds(cue.speaker(), VoiceLines.allyLine(cue.line(), 2), cue.expression());
     }
 
-    /** The voice length of {@code speaker}'s {@code text} in {@code expression} from its rendered file, 0 without one. */
+    /**
+     * The voice length of {@code speaker}'s {@code text} in {@code expression} from its rendered file
+     * (a stage direction's: the speaker's stage sound, the Choir's sung sting), 0 without one.
+     */
     private static float voiceSeconds(String speaker, String text, String expression) {
-        VoiceLines.VoiceLine line = VOICES.get(VoiceLines.indexKey(speaker, text, expression));
-        if (line == null) {
+        Optional<String> path = VoiceLines.radioVoice(VOICES, CONTENT.voices(), speaker, text, expression);
+        if (path.isEmpty()) {
             return 0;
         }
-        try (VorbisFile file = new VorbisFile(java.nio.file.Files.readAllBytes(ASSETS.resolve(line.path())))) {
+        try (VorbisFile file = new VorbisFile(java.nio.file.Files.readAllBytes(ASSETS.resolve(path.get())))) {
             return (float) file.frameCount() / file.sampleRate();
         } catch (java.io.IOException e) {
             return 0;

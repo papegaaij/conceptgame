@@ -8,7 +8,9 @@ Outputs (assets/voice/):
   expression, the shout flag and the filter) comes from vanguard.content.voice.VoiceLines, which
   the game uses too: `./gradlew :pipeline:voiceLines` writes the list this script reads
   (pipeline/build/voice/lines.json). A line whose file exists is not rendered again; a file no
-  line uses any more is deleted (--keep lists them instead).
+  line uses any more is deleted (--keep lists them instead); files not named by a key, such as
+  a speaker's stage sound (the Choir sings, copied by :pipeline:copyPlaceholderStageSounds), are
+  left alone.
 
 Render: Chatterbox (ResembleAI/chatterbox, chatterbox-tts 0.1.7) in its venv
 ~/.cache/tv-tts/venv-chatterbox (set up as in tools/concept/audio/tts_r18.py; models in
@@ -219,8 +221,11 @@ def main(args):
     subprocess.run([str(ROOT / "gradlew"), "-q", ":pipeline:voiceLines"], cwd=ROOT, check=True)
     lines = {line["path"]: line for line in json.loads(LINES.read_text())}
     todo = [line for path, line in lines.items() if not (ROOT / "assets" / path).exists()]
+    # Only files named by a key are this renderer's: a speaker's stage sound (the Choir sings,
+    # copied by :pipeline:copyPlaceholderStageSounds) stays.
     unused = sorted(p for p in ASSETS.rglob("*.ogg")
-                    if str(p.relative_to(ROOT / "assets")) not in lines)
+                    if re.fullmatch(r"[0-9a-f]{12}\.ogg", p.name)
+                    and str(p.relative_to(ROOT / "assets")) not in lines)
     print(f"{len(lines)} lines, {len(todo)} to render, {len(unused)} unused files")
     for p in unused:
         print(("  unused " if "--keep" in args or "--list" in args else "  deleted ")
