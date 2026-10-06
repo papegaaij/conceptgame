@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,13 +25,16 @@ import vanguard.sim.PickupType;
 /**
  * The sound effects against their files and design/audio/sfx: every {@link Sfx} file is in the
  * assets, and every chosen sound of the README's Concept art tables is either played (an {@link Sfx}
- * entry) or listed with its reason under "Chosen sounds the game does not play".
+ * entry) or listed with its reason under "Chosen sounds the game does not play"; the game plays no
+ * other sound but a proposed one of an open concept round, provisionally until the user's choice.
  */
 class SfxFilesTest {
     private static final Path ASSETS = Path.of(System.getProperty("vanguard.assetsDir", "../assets"));
     private static final Path README = ASSETS.resolveSibling("design/audio/sfx/README.md");
     private static final Pattern CHOSEN_ROW =
             Pattern.compile("^\\| \\[concept/([^/\\]]+\\.ogg)\\]\\(concept/[^)]+\\) \\|.*\\| (chosen[^|]*) \\|$");
+    private static final Pattern PROPOSED_ROW =
+            Pattern.compile("^\\| \\[concept/([^/\\]]+\\.ogg)\\]\\(concept/[^)]+\\) \\|.*\\| proposed \\|$");
     private static final Pattern UNPLAYED_ROW =
             Pattern.compile("^\\| \\[([^\\]]+\\.ogg)\\]\\(concept/[^)]+\\) \\| (.*) \\|$");
     private static final String UNPLAYED_HEADING = "### Chosen sounds the game does not play";
@@ -46,10 +50,15 @@ class SfxFilesTest {
     void everyChosenSoundIsPlayedOrListedWithItsReason() throws IOException {
         List<String> lines = Files.readAllLines(README);
         List<String> chosen = new ArrayList<>();
+        Set<String> proposed = new HashSet<>();
         for (String line : lines) {
             Matcher row = CHOSEN_ROW.matcher(line);
             if (row.matches()) {
                 chosen.add(row.group(1));
+            }
+            Matcher open = PROPOSED_ROW.matcher(line);
+            if (open.matches()) {
+                proposed.add(open.group(1));
             }
         }
         Map<String, String> unplayed = unplayed(lines);
@@ -69,7 +78,9 @@ class SfxFilesTest {
             assertFalse(entry.getValue().isBlank(), entry.getKey() + " has no reason");
         }
         for (String file : played) {
-            assertTrue(chosen.contains(file), file + " is played but not a chosen sound of the README");
+            assertTrue(
+                    chosen.contains(file) || proposed.contains(file),
+                    file + " is played but neither a chosen nor a proposed sound of the README");
         }
     }
 

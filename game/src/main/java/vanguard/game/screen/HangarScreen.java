@@ -68,7 +68,11 @@ public final class HangarScreen implements GameScreen {
         }
         view = new HangarView(services.files, services.glass, services.sprites, services.catalogue, services.content);
         if (autosave) {
-            this.autosave = services.save(SaveSlots.Slot.AUTOSAVE, campaign) ? "AUTOSAVED" : "AUTOSAVE FAILED";
+            boolean written = services.save(SaveSlots.Slot.AUTOSAVE, campaign);
+            this.autosave = written ? "AUTOSAVED" : "AUTOSAVE FAILED";
+            if (written) {
+                services.play(Sfx.SAVE_DONE);
+            }
         } else {
             this.autosave = "";
         }

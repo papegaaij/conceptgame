@@ -28,7 +28,8 @@ import vanguard.sim.WarningEdge;
  * 03's events reuse the sounds there are until they get their own: a spore drops with a soft low
  * organic plop, bursts or is shot with the tiny explosion, debris rings like metal and breaks with
  * a low tiny explosion. Besides the events it follows the ship's state ({@link #watch}): the
- * low-armour beeps and the shield's restore chime.
+ * low-armour beeps and the shield's restore chime; and the large Vrell units entering the screen,
+ * which screech.
  */
 public final class FlightSounds {
     /** The levels relative to player damage, the loudest group (+2 dB in the mixing rules). */
@@ -137,6 +138,9 @@ public final class FlightSounds {
     private boolean[] wasHolding;
     /** The next {@link #watch} only notes the state (after a restart or a boss checkpoint's restore). */
     private boolean resync = true;
+
+    /** The Vrell screech as a large unit enters the screen, at most one every 3 s. */
+    private final ScreechCue screech = new ScreechCue(SimStep.ticks(ScreechCue.THROTTLE_SECONDS));
 
     /**
      * @param looks the explosions of the level's enemy kinds
@@ -409,10 +413,10 @@ public final class FlightSounds {
                 case SLED_LAUNCHED -> bank.play(Sfx.SLED_PASS, 0.8f, 1f, pan);
                 // A Brood Pod's fleshy burst, shot or on its own (round 08 b), as its Skitters fly out.
                 case BROOD_HATCHED -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, pitch(0.04), pan);
-                // Level 06: a cut chain's wet tear (a placeholder from the existing sounds), its
-                // regrowth, the chained pops, the Mantis's telegraph and beam, the Smart Bomb, the
-                // flare's launch and burn.
-                case CHAIN_CUT -> bank.play(Sfx.BROOD_BURST, EXPLOSIONS, 0.8f * pitch(0.04), pan);
+                // Level 06: a cut chain's wet tear (round 27 a, provisional), its regrowth, the
+                // chained pops, the Mantis's telegraph and beam, the Smart Bomb, the flare's launch
+                // and burn.
+                case CHAIN_CUT -> bank.play(Sfx.COILWYRM_CUT, EXPLOSIONS, pitch(0.04), pan);
                 // The new head growing (round 23 b, an insect growl and chitter).
                 case CHAIN_REGROWN -> bank.play(Sfx.COILWYRM_REGROW, EXPLOSIONS, pitch(0.04), pan);
                 // A chained death's burst (round 24): the member's own burst, in the step its look bursts.
@@ -479,7 +483,8 @@ public final class FlightSounds {
      * event. A boss with its own sounds (round 25, the Brood Carrier): its sacs opening (one sound
      * for the sacs that open together) and shutting with their windows, a sac shot off bursting (not
      * at its death, whose chain plays them), its iris opening as the core is exposed, its roar as its
-     * turn starts. And a tow's cable snapping as its pod falls free.
+     * turn starts. A tow's cable snapping as its pod falls free. And the Vrell screech as a large
+     * unit enters the screen ({@link ScreechCue}).
      */
     public void watch(Sortie sortie) {
         int pieces = Math.min(bossSounds.length, sortie.setPieceCount());
@@ -500,6 +505,11 @@ public final class FlightSounds {
             }
         }
         watchShip(sortie);
+        // Levelled like the Vrell spawns (design/audio/sfx), so it sits under the explosions.
+        Sfx screeched = screech.watch(sortie, resync);
+        if (screeched != null) {
+            bank.play(screeched, EXPLOSIONS, pitch(0.03), pan(screech.x()));
+        }
         if (wasOpen == null) {
             wasOpen = new boolean[pieces][];
             wasWrecked = new boolean[pieces][];

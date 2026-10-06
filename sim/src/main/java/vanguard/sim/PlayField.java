@@ -11,7 +11,7 @@ public final class PlayField {
     private PlayField() {}
 
     /** Whether a box of the given size around (x, y) overlaps the play field. */
-    static boolean overlaps(double x, double y, Hitbox box) {
+    public static boolean overlaps(double x, double y, Hitbox box) {
         return x + box.width() / 2 > 0
                 && x - box.width() / 2 < WIDTH
                 && y + box.height() / 2 > 0

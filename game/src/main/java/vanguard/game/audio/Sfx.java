@@ -126,6 +126,16 @@ public enum Sfx {
     FLARE_BURN("sfx/hazard-flare-burn-r23-a.ogg", 2, Bus.EFFECTS, ENEMY_FIRE),
     /** A cut Coilwyrm's rear part growing its new head (round 23 b, an insect growl and chitter). */
     COILWYRM_REGROW("sfx/enemy-coilwyrm-regrow-r23-b.ogg", 2, Bus.EFFECTS, EXPLOSION),
+    /**
+     * The Vrell screech (round 08 c and d, in turn) as a large Vrell unit enters the screen: the
+     * Mantis, the Coilwyrm's head, the Spore Bomber, the Scuttler; at most one every 3 s
+     * ({@link ScreechCue}).
+     */
+    ENEMY_SCREECH_C("sfx/enemy-screech-r08-c.ogg", 1, Bus.EFFECTS, ENEMY_FIRE),
+
+    ENEMY_SCREECH_D("sfx/enemy-screech-r08-d.ogg", 1, Bus.EFFECTS, ENEMY_FIRE),
+    /** A Coilwyrm's chain cut through: the body torn in two (round 27 a, a wet flesh rip). */
+    COILWYRM_CUT("sfx/enemy-coilwyrm-cut-r27-a.ogg", 2, Bus.EFFECTS, EXPLOSION),
     /** A Brood Pod bursting into its Skitters, shot or on its own (round 08 b, the fleshy burst). */
     BROOD_BURST("sfx/enemy-spawn-r08-b.ogg", 2, Bus.EFFECTS, EXPLOSION),
     /**
@@ -184,7 +194,9 @@ public enum Sfx {
     /** An item fitted to a slot or moved to the inventory. */
     EQUIP("sfx/ui-equip-r08-a.ogg", 1, Bus.EFFECTS, WARNING),
     /** A weapon upgraded a level. */
-    UPGRADE("sfx/ui-upgrade-r08-a.ogg", 1, Bus.EFFECTS, WARNING);
+    UPGRADE("sfx/ui-upgrade-r08-a.ogg", 1, Bus.EFFECTS, WARNING),
+    /** A save written: the hangar's autosave as it opens, a save to a slot (round 27 b, the calm chime). */
+    SAVE_DONE("sfx/ui-save-r27-b.ogg", 1, Bus.EFFECTS, WARNING);
 
     /**
      * Which voices give way when more than {@link VoiceLimit#MAX_VOICES} effects play (design/audio/sfx,

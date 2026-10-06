@@ -13,7 +13,9 @@ The treatment is the concept one, unchanged: tools/concept/audio/import_sfx.py's
 original file instead of the lossy HQ preview. Sounds with a treatment of their own bring it along
 (DERIVED: tools/concept/audio/sfx_r24.py's PRODUCTION, the Coilwyrm's bursts: cut, levelled on
 the loudest 100 ms, the head's slowed over a sub thump; sfx_r25.py's PRODUCTION, the Brood
-Carrier's sounds and the cable snap: cut, slowed or reversed, levelled on the loudest 100 ms). One step comes first: an original whose decoded
+Carrier's sounds and the cable snap: cut, slowed or reversed, levelled on the loudest 100 ms;
+sfx_r27.py's PRODUCTION, the Coilwyrm's chain-cut tear: cut, slowed, levelled on the loudest
+100 ms). One step comes first: an original whose decoded
 samples exceed full scale (lossy originals and float WAVs, up to +18.7 dBFS for "Machine Gun 001")
 is clipped at full scale, as every integer decoder plays it and as Freesound made the preview the
 user chose from; levelled on its unclipped peak, such a sound came out up to 11 dB quieter. Originals come from the cache that
@@ -40,9 +42,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "concept" / "audio"
 from import_sfx import SOURCES, band_rms_db, process  # noqa: E402
 from sfx_r24 import PRODUCTION as R24  # noqa: E402  (sounds with their own treatment: round 24)
 from sfx_r25 import PRODUCTION as R25  # noqa: E402  (and round 25)
+from sfx_r27 import PRODUCTION as R27  # noqa: E402  (and round 27's tear)
 from synth import SR, db, decode, write_ogg, write_wav  # noqa: E402
 
-DERIVED = {**R24, **R25}
+DERIVED = {**R24, **R25, **R27}
 ROOT = Path(__file__).resolve().parents[2]
 SFX_DOC = ROOT / "design" / "audio" / "sfx" / "README.md"
 CONCEPT = ROOT / "design" / "audio" / "sfx" / "concept"

@@ -791,8 +791,11 @@ public final class Enemy implements Hashed {
         return y;
     }
 
-    /** Unique among the units of an attempt. */
-    int serial() {
+    /**
+     * Unique among the units of an attempt (a shot's lock; the presentation's once-per-unit cues,
+     * such as the Vrell screech as a large unit enters the screen).
+     */
+    public int serial() {
         return serial;
     }
 

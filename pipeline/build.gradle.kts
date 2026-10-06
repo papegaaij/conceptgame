@@ -106,6 +106,10 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
         "ui-shop-denied-r08-a.ogg",
         "ui-equip-r08-a.ogg",
         "ui-upgrade-r08-a.ogg",
+        // Concept round 27's choices: the save sound (synthesized) and the Coilwyrm's chain-cut
+        // tear (its final file from tools/art/sfx_originals.py).
+        "ui-save-r27-b.ogg",
+        "enemy-coilwyrm-cut-r27-a.ogg",
     )
 }
 

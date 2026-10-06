@@ -115,10 +115,10 @@ public final class SlotsScreen implements GameScreen {
     private Transition confirm() {
         SaveSlots.Entry entry = entries.get(selected);
         if (campaign.isPresent()) {
-            services.play(Sfx.MENU_CONFIRM);
             if (entry instanceof SaveSlots.Entry.Empty) {
                 write();
             } else {
+                services.play(Sfx.MENU_CONFIRM);
                 overwrite = Optional.of(new Dialog(
                         "OVERWRITE SLOT " + entry.slot().index() + "?",
                         "THE SAVE IN IT IS REPLACED.",
@@ -136,11 +136,12 @@ public final class SlotsScreen implements GameScreen {
         return Transition.STAY;
     }
 
+    /** Writes the slot: the save-done sound when it is written, the back blip when it failed. */
     private void write() {
         SaveSlots.Slot slot = entries.get(selected).slot();
-        message = services.save(slot, campaign.orElseThrow())
-                ? "SAVED TO SLOT " + slot.index()
-                : "SAVE FAILED - SEE THE LOG";
+        boolean written = services.save(slot, campaign.orElseThrow());
+        services.play(written ? Sfx.SAVE_DONE : Sfx.MENU_BACK);
+        message = written ? "SAVED TO SLOT " + slot.index() : "SAVE FAILED - SEE THE LOG";
         entries = services.saves.list();
     }
 

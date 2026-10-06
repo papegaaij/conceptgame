@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Sound effects
@@ -147,7 +147,7 @@ reused round 02 files marked (r02).
 |---|---|
 | Enemy shot: small [a](concept/enemy-shot-small-r08-a.ogg), [b](concept/enemy-shot-small-r08-b.ogg) / heavy [a](concept/enemy-shot-heavy-r08-a.ogg), [b](concept/enemy-shot-heavy-r08-b.ogg) / laser charge warning [a](concept/enemy-laser-warning-r08-a.ogg) | P1 |
 | Missile launch (enemy) — [a](concept/enemy-missile-r08-a.ogg) | P1 |
-| Vrell screech (spawn/attack cue), 2 variants: [c](concept/enemy-screech-r08-c.ogg), [d](concept/enemy-screech-r08-d.ogg) | P2 |
+| Vrell screech, 2 variants: [c](concept/enemy-screech-r08-c.ogg), [d](concept/enemy-screech-r08-d.ogg), in turn — a large Vrell unit entering the screen (its hit box first over the play field): the Mantis, the Coilwyrm's head (not its body or a regrown head), the Spore Bomber, the Scuttler; once per unit, at most one screech every 3 s (a unit entering inside them stays silent), at the Vrell spawns' level (user decision 2026-10-06) | P2 |
 | Turret rotate / lock-on beep — [a](concept/enemy-lock-r08-a.ogg) | P2 |
 | Portal / warp-in; Vrell spawn (Brood Pod bursting, Hive Node and Brood Carrier spawns) — [a](concept/enemy-spawn-r08-a.ogg) (wet creature swell), [b](concept/enemy-spawn-r08-b.ogg) (fleshy burst) | P2 |
 | Carrier launching drones — the Brood Carrier's units leaving its sacs: chosen [b](concept/enemy-carrier-launch-r25-b.ogg) (slime lunge; a creature spit was rejected), [round 25](../../concept-rounds/round-25/README.md) | P2 |
@@ -157,6 +157,7 @@ reused round 02 files marked (r02).
 | Polyp Mortar lob — chosen [a](concept/enemy-mortar-lob-r21-a.ogg) (mortar thump; an organic spit was rejected); impact — chosen [a](concept/enemy-mortar-impact-r21-a.ogg) (wet splat; an acid sizzle was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
 | Mass-driver sled (Level 05 hazard): whine while the rail lights chase — chosen [a](concept/hazard-sled-whine-r21-a.ogg) (charge hum loop, played twice over the 1.5 s chase; a rising charge was rejected); pass — chosen [b](concept/hazard-sled-pass-r21-b.ogg) (rushing flyby; a rail-gun crack was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
 | Mantis (Level 06): telegraph, the 0.6 s arc — chosen [a](concept/enemy-mantis-telegraph-r23-a.ogg) (laser charge-up; a second charge was rejected); beam sweep, 1.3 s — chosen [b](concept/enemy-mantis-sweep-r23-b.ogg) (death ray with crackle, CC-BY; a game-style beam was rejected), [round 23](../../concept-rounds/round-23/README.md) | P2 |
+| Coilwyrm chain-cut tear (Level 06): the body torn in two as a cut segment's rear part starts to regrow, over the segment's burst — chosen [a](concept/enemy-coilwyrm-cut-r27-a.ogg) (a run of wet flesh rips, 15 % slower; one juicy limb-tearing rip with a low body was rejected), [round 27](../../concept-rounds/round-27/README.md) | P2 |
 | Coilwyrm head regrowth (Level 06), 0.6 s — chosen [b](concept/enemy-coilwyrm-regrow-r23-b.ogg) (insect growl and chitter; a wet slime was rejected), [round 23](../../concept-rounds/round-23/README.md) | P2 |
 | Coilwyrm death (Level 06): the head's deeper burst — chosen [c](concept/enemy-coilwyrm-head-burst-r24-c.ogg) (messy splatter, slowed over a sub thump, CC-BY), then a segment's or the tail's wet burst, 13 times down the chain 0.25 s apart — chosen [b](concept/enemy-coilwyrm-burst-r24-b.ogg) (fleshy burst; a wet gib crack, the messy splatter and a synthesized pop were rejected); [preview](concept/enemy-coilwyrm-death-final-r24-a.ogg), [round 24](../../concept-rounds/round-24/README.md) | P2 |
 | Perimeter beacon flares (Level 06 hazard): launch — chosen [a](concept/hazard-flare-launch-r23-a.ogg) (flare-gun shot, CC-BY; a firework ignition was rejected); burn loop while it falls — chosen [a](concept/hazard-flare-burn-r23-a.ogg) (road flare, the 3 s loop played back to back while a flare burns; a second road flare was rejected), [round 23](../../concept-rounds/round-23/README.md) | P2 |
@@ -167,7 +168,7 @@ reused round 02 files marked (r02).
 |---|---|
 | Menu move / confirm / back — [a](concept/ui-menu-move-r08-a.ogg) / [a](concept/ui-menu-confirm-r08-a.ogg) / [a](concept/ui-menu-back-r08-a.ogg) | P1 |
 | Buy / sell / equip / upgrade / can't afford / won't fit (power) — buy [a](concept/ui-shop-buy-r08-a.ogg), sell [a](concept/ui-shop-sell-r08-a.ogg), can't afford / won't fit [a](concept/ui-shop-denied-r08-a.ogg), equip [a](concept/ui-equip-r08-a.ogg), upgrade [a](concept/ui-upgrade-r08-a.ogg) | P1 |
-| Save done | P2 |
+| Save done: the hangar's autosave as it opens and a save to a slot (a failed save plays the back blip) — chosen [b](concept/ui-save-r27-b.ogg) (a latch click, two warm bells over a pad; data ticks landing on a bright fifth and a bell were rejected), [round 27](../../concept-rounds/round-27/README.md) | P2 |
 | Typewriter blip (briefing text) — [a](concept/ui-typewriter-r08-a.ogg) | P1 |
 | Radio squelch open / close — [a](concept/ui-radio-open-r08-a.ogg) / [a](concept/ui-radio-close-r08-a.ogg) | P1 |
 | Warning klaxon (boss, rear attack) — [a](concept/ui-klaxon-r08-a.ogg) (seamless loop; a single blast can be cut from it) | P1 |
@@ -192,7 +193,9 @@ gate. P2–P3, one loop per setting in the [world](../../world/README.md).
 ### Chosen sounds the game does not play
 
 Every other chosen sound in the Concept art tables below is played by the game (an entry of
-`vanguard.game.audio.Sfx`; `SfxFilesTest` checks both lists against this README).
+`vanguard.game.audio.Sfx`; `SfxFilesTest` checks both lists against this README). Besides them the
+game may play only `proposed` sounds of an open concept round, provisionally until the user's choice
+(none at present).
 
 | File | Why not |
 |---|---|
@@ -222,8 +225,6 @@ Every other chosen sound in the Concept art tables below is played by the game (
 | [enemy-lock-r08-a.ogg](concept/enemy-lock-r08-a.ogg) | No Act 1 turret locks on (the SAM Nest, L29, is the first) |
 | [enemy-laser-warning-r08-a.ogg](concept/enemy-laser-warning-r08-a.ogg) | Act 1's only laser, the Mantis, has its own telegraph (round 23) |
 | [enemy-spawn-r08-a.ogg](concept/enemy-spawn-r08-a.ogg) | Vrell spawn a: the Brood Carrier's launches have their own sound (round 25); the Hive Node is not in Act 1 |
-| [enemy-screech-r08-c.ogg](concept/enemy-screech-r08-c.ogg) | Vrell screech: no Act 1 event is its cue yet — **later: M5** (raised in concept round 26; the user has not been asked to decide it yet) |
-| [enemy-screech-r08-d.ogg](concept/enemy-screech-r08-d.ogg) | Vrell screech: no Act 1 event is its cue yet — **later: M5** (raised in concept round 26; the user has not been asked to decide it yet) |
 | [enemy-coilwyrm-death-final-r24-a.ogg](concept/enemy-coilwyrm-death-final-r24-a.ogg) | A review preview of the Coilwyrm's chained death; the game plays its two bursts |
 
 ### Mixing rules
@@ -235,7 +236,7 @@ Every other chosen sound in the Concept art tables below is played by the game (
   the lowest priority at or below its own, and is dropped when every voice ranks above it. The
   groups not named above: the interface (menus, radio blips, the hangar, the debrief, the music's
   cues) ranks with the warnings, the specials' sounds with the boss sounds, enemy hazards (mortar,
-  sled, flares, the Mantis's beam) with enemy fire, hits with the player fire that lands them. A
+  sled, flares, the Mantis's beam) and the Vrell screech with enemy fire, hits with the player fire that lands them. A
   running loop (an ambience) is never stolen, since it would not come back, and always gets a
   voice.
 - **Levels** (relative, first draft): player fire −12 dB, enemy fire −9 dB, explosions 0 dB,
@@ -496,6 +497,23 @@ sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carri
 | [concept/secret-cable-snap-r25-a.ogg](concept/secret-cable-snap-r25-a.ogg) | "snapping-chain" by CosmicEmbers (CC-BY 3.0) — cable snap a: a sharp crack, the loose chain rattling after it (1.2 s) | chosen |
 | [concept/rejected/secret-cable-snap-r25-b.ogg](concept/rejected/secret-cable-snap-r25-b.ogg) | "Guitar string snaps.wav" by juskiddink (CC-BY 4.0) — cable snap b: a string snapping, 25 % slower, a heavy cable's twang and ring (1.6 s) | rejected |
 
+Concept round 27 (user decision of 2026-10-06 on round 26's open questions) — an a/b pair for the
+save-done sound, synthesized in the round-08 UI family (peak −8 dBFS like the other UI blips), and
+for the Coilwyrm's chain-cut tear, recorded (CC0 / CC-BY, cut from the cached Freesound
+**originals**, levelled on the loudest 100 ms of the 200 Hz–5 kHz band to −20 dB, between the
+segment burst's −17.3 and the regrowth's −27.4), all by `tools/concept/audio/sfx_r27.py`. Not
+listened to by Claude. Closed 2026-10-06: save done **b**, chain-cut tear **a**; the save sound is
+copied into `assets/sfx/` by `copyPlaceholderSounds`, the tear's production file is written by
+`tools/art/sfx_originals.py` with sfx_r27.py's treatment (`PRODUCTION`). Briefs and sources:
+[concept/prompts.md](concept/prompts.md#round-27--the-save-done-sound-and-the-coilwyrms-chain-cut-tear), [CREDITS.md](../../../CREDITS.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/rejected/ui-save-r27-a.ogg](concept/rejected/ui-save-r27-a.ogg) | Synthesized — save done a, "write and seal": four quick rising pulse ticks (E6 G♯6 B6 E7), then a bright triangle fifth (E6 + B6) over a bell an octave up, a short echo (0.70 s) | rejected |
+| [concept/ui-save-r27-b.ogg](concept/ui-save-r27-b.ogg) | Synthesized — save done b, "calm chime": a soft latch click, two warm bells a fourth apart (A5, D6 80 ms later) over a swelling triangle pad (0.92 s) | chosen |
+| [concept/enemy-coilwyrm-cut-r27-a.ogg](concept/enemy-coilwyrm-cut-r27-a.ogg) | "rip_tear FLESH!!!!.wav" by aust_paul (CC0 1.0) — chain-cut tear a: a monster tearing at flesh, a run of short wet rips, 15 % slower for a bigger body (1.06 s) | chosen |
+| [concept/rejected/enemy-coilwyrm-cut-r27-b.ogg](concept/rejected/enemy-coilwyrm-cut-r27-b.ogg) | "Tearing Flesh" by dereklieu (CC-BY 3.0) — chain-cut tear b: one juicy limb-tearing rip (layered bread breaks) with a low body (0.72 s) | rejected |
+
 ## Implementation
 
 - [x] SFX playback with instance limits, stealing by priority, pitch variation: the 32-voice
@@ -512,23 +530,21 @@ sources: [concept/prompts.md](concept/prompts.md#round-25--level-07s-brood-carri
   chosen by `Sfx.shop`) played by the hangar screen instead of the menu blips: a shop action its
   own, a paid repair the purchase, an undo and a confirmed sale the refund, a refusal the denial
   (`HangarScreen.doneSound`; `HangarSoundsTest`)
-- [ ] Save done (P2) and a Coilwyrm chain-cut tear: no sound chosen yet (the cut plays a lower
-  Brood Pod burst) — **later: M5** (raised in concept round 26 without a proposal; whether to make
-  concepts for them is not decided by the user yet, see the open questions)
+- [x] The Vrell screech (user decision 2026-10-06): `Sfx.ENEMY_SCREECH_C`/`_D` in turn as a Mantis,
+  a Coilwyrm's head, a Spore Bomber or a Scuttler first comes onto the screen, once per unit (by its
+  serial), at most one every 3 s, at the explosion gain like the Vrell spawns, enemy-fire priority
+  (`ScreechCue`, followed in `FlightSounds.watch`; `ScreechCueTest`, with Level 06 flown)
+- [x] Save done (P2) and the Coilwyrm's chain-cut tear, round 27's choices: `Sfx.SAVE_DONE`
+  (save b, a concept copy by `copyPlaceholderSounds`) when the hangar's autosave or a save to a slot
+  is written (`HangarScreen`, `SlotsScreen`), `Sfx.COILWYRM_CUT` (tear a, rebuilt from its original
+  by `tools/art/sfx_originals.py` with sfx_r27.py's `PRODUCTION`) on `CHAIN_CUT` (before: a lower
+  Brood Pod burst)
 - [ ] The Act 2 sounds: Tail Gun, proximity mine drop and arm, torpedo launch, Hornet missile,
   water explosion, the Act 2 ambiences — **later: M5**
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
-  from rounds 02–08, round 21's four, round 23's five, round 24's two and round 25's seven) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
+  from rounds 02–08, round 21's four, round 23's five, round 24's two, round 25's seven and round 27's one) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
   [`tools/art/sfx_originals.py`](../../../tools/art/README.md); `importPlaceholders` keeps them
   (only the synthesized sounds are still copied). `art: final` waits for the user's round-12 review.
-
-## Open questions
-
-Raised in concept round 26 without a proposal and not decided by the user yet (later: M5):
-
-- Which event should cue the Vrell screech (chosen c and d)? No Act 1 event plays it yet.
-- Should a later round make concepts for a save-done sound (P2) and the Coilwyrm's chain-cut tear
-  (today the cut plays a lower Brood Pod burst)?
 
 ## Decisions
 
@@ -683,3 +699,18 @@ Raised in concept round 26 without a proposal and not decided by the user yet (l
   questions, tagged `later: M5`. Every item is ticked or tagged later, so the document is `done`;
   `art` stays `chosen`, since the synthesized sounds are still concept copies and the save-done and
   chain-cut sounds have none.
+- 2026-10-06: Round 26's open questions decided (user): the **Vrell screech** (c and d, in turn)
+  plays as a large Vrell unit enters the screen, the Mantis, the Coilwyrm's head, the Spore Bomber
+  and the Scuttler, throttled to one every **3 s** so a wave does not stack them; no simulation event
+  marks an enemy's entry, so the game watches each step for a unit of those kinds whose hit box
+  first overlaps the play field (by its serial, so it screeches once). It ranks with enemy fire.
+  Concepts for the **save-done sound** and the **Coilwyrm's chain-cut tear** go into [concept
+  round 27](../../concept-rounds/round-27/README.md) (two synthesized, two recorded options; a of
+  each wired until the choice: the save at the hangar's autosave and a slot save, the tear at the
+  cut).
+- 2026-10-06: Concept round 27 closed (user): save done **b**, the calm chime (latch click, two warm
+  bells over a pad; a, the rising data ticks on a bright fifth, rejected); the Coilwyrm's chain-cut
+  tear **a**, "rip_tear FLESH!!!!.wav" by aust_paul (CC0; b, "Tearing Flesh" by dereklieu, CC-BY,
+  rejected, so it leaves the credits roll); the Vrell screech approved as built. The save sound
+  ships as a concept copy like the other synthesized UI blips, the tear rebuilt from its Freesound
+  original by `tools/art/sfx_originals.py`. The game now plays no proposed sound.

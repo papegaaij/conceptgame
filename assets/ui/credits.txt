@@ -61,7 +61,7 @@ item|“snapping-chain” by CosmicEmbers
 detail|CC-BY 3.0 · freesound.org/people/CosmicEmbers/sounds/161650
 gap|
 role|WITH THANKS TO (CC0)
-text|BaggoNotes, bevibeldesign, Bird_man, cobratronik, coolguy244e, craigsmith, cubix, Cyberios, Daleonfire, darcyadam, derplayer, dinodilopho, Division4884, Elektrocell, FlatHill, frankelmedico, GameAudio, Glitchedtones, gprosser, humanoide9000, iwanPlays, Jacco18, Jarusca, Jerimee, JoelAudio, JoMungus, JovianSounds, jvmyka@gmail.com, Kinoton, lorenzgillner, LucasDuff, magnuswaker, mattpavone, michael_grinnell, mitchelk, Mozfoo, NHMWretched, nicktermer, noirenex, Noxdl, peepholecircus, pgi, plasterbrain, qubodup, SamsterBirdies, SecureSubset, Sheyvan, sidohzen, SuperPhat, ThefitzyG, TRP, unfa, wilhellboy, xkeril
+text|aust_paul, BaggoNotes, bevibeldesign, Bird_man, cobratronik, coolguy244e, craigsmith, cubix, Cyberios, Daleonfire, darcyadam, derplayer, dinodilopho, Division4884, Elektrocell, FlatHill, frankelmedico, GameAudio, Glitchedtones, gprosser, humanoide9000, iwanPlays, Jacco18, Jarusca, Jerimee, JoelAudio, JoMungus, JovianSounds, jvmyka@gmail.com, Kinoton, lorenzgillner, LucasDuff, magnuswaker, mattpavone, michael_grinnell, mitchelk, Mozfoo, NHMWretched, nicktermer, noirenex, Noxdl, peepholecircus, pgi, plasterbrain, qubodup, SamsterBirdies, SecureSubset, Sheyvan, sidohzen, SuperPhat, ThefitzyG, TRP, unfa, wilhellboy, xkeril
 gap|
 title|VOICES
 text|Spoken by the Chatterbox text-to-speech engine (Resemble AI, MIT licence) in voices cloned from LibriVox recordings

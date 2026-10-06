@@ -928,3 +928,48 @@ Edit: leading silence trimmed, cut to 1.20 s, 60 Hz high-pass, 0.50 s fade-out, 
 Source: <https://freesound.org/people/juskiddink/sounds/58491/> — CC-BY 4.0. Use: the lifeboat's amber tow cable snapping on its third hit, the cargo pod falling free.
 Why: A guitar's E string snapping, 25 % slower: a heavy steel cable's twang with a ringing tail; the guitar body's boom is high-passed out.
 Edit: leading silence trimmed, cut from 0.48 s, cut to 1.20 s, 200 Hz high-pass, 0.02 s fade-in, 0.70 s fade-out, played 25 % slower, levelled to -17 dB, ceiling -1.5 dBFS.
+
+## Round 27 — the save-done sound and the Coilwyrm's chain-cut tear
+
+Brief (user decision of 2026-10-06 on round 26's open questions): a **save-done** sound, played when
+the hangar's autosave or a save to a slot is written: a short, positive interface confirmation,
+clearly not the menu confirm (two rising square notes) nor the shop's purchase (two notes and a coin
+sparkle), synthesized in the round-08 UI family (`sfx_r08.py`'s notes, bells and sparkles; peak
+-8 dBFS like the other UI blips). And the **Coilwyrm's chain-cut tear**, played when a shot cuts the
+chain through (the simulation's `CHAIN_CUT`, over the cut segment's own burst): a wet, organic
+tear or rip that reads as the body being severed, distinct from the segment bursts (round 24's
+fleshy burst); recorded only (CC0 / CC-BY, Freesound), found with the Freesound API's text search
+("flesh tear", "gore rip wet", "limb tear") filtered to CC0 and CC-BY. One a/b pair each, all from
+`tools/concept/audio/sfx_r27.py`, deterministic; the tears cut from the **Freesound originals**
+cached by `tools/concept/audio/freesound_fetch.py --download`, so a chosen tear is already the
+production file. The tears are levelled on the loudest 100 ms of the 200 Hz–5 kHz band to -20 dB
+(ceiling -3 dBFS), between the segment burst (-17.3) and the regrowth (-27.4); the Brood Pod burst
+they replace measures -23.3. The save sounds reach -21.1 (a) and -20.1 dB (b) on that measure, the
+menu confirm -17.5, the purchase -22.6, the upgrade -23.3. Not listened to: checked by envelopes,
+band balance and levels only.
+
+Outcome (user, 2026-10-06): save done **b**, chain-cut tear **a** (CC0); save a and tear b
+(CC-BY) moved to `concept/rejected/` (the headings below keep the files' names). The save sound is
+copied into `assets/sfx/` by `copyPlaceholderSounds`; the tear's file there is written by
+`tools/art/sfx_originals.py` with sfx_r27.py's `PRODUCTION` (the same cut, with a `SOURCE`
+comment).
+
+### ui-save-r27-a — synthesized, "write and seal"
+Use: save done (the hangar's autosave as it opens, a save to a slot).
+Why: Four quick rising pulse ticks (E6 G♯6 B6 E7, 32 ms apart) read as data being written, then a bright triangle fifth (E6 + B6) held 0.2 s over a bell an octave up seals it; a short echo. Brighter and longer than the menu confirm, no coin sparkle.
+Edit: 0.70 s, peak -8 dBFS, loudest 100 ms of the band -21.1 dB; 97 % of the energy in 200 Hz–5 kHz.
+
+### ui-save-r27-b — synthesized, "calm chime"
+Use: save done (the hangar's autosave as it opens, a save to a slot).
+Why: A soft latch click, then two warm bells a fourth apart (A5, then D6 80 ms later) over a triangle pad (D5 + A5) that swells in over 60 ms and fades: calmer and rounder than a, a "your progress is safe" chime under the debrief's total.
+Edit: 0.92 s, peak -8 dBFS, loudest 100 ms of the band -20.1 dB.
+
+### enemy-coilwyrm-cut-r27-a — "rip_tear FLESH!!!!.wav" by aust_paul
+Source: <https://freesound.org/people/aust_paul/sounds/30928/> — CC0 1.0. Use: a Coilwyrm's chain cut through (`CHAIN_CUT`), over the cut segment's burst.
+Why: "Some sort of monster or animal tearing at flesh", organic Foley (4.1 stars from 110 ratings): a run of short wet rips over half a second. The original is bright (most of its energy at 1.6–6.4 kHz) and thin below 800 Hz, so it plays 15 % slower for a bigger body.
+Edit: leading silence trimmed, cut to 0.90 s, 80 Hz high-pass, 11 kHz low-pass, 0.35 s fade-out, played 15 % slower (1.06 s), levelled to -20 dB, ceiling -3.0 dBFS (peak -4.5 dBFS).
+
+### enemy-coilwyrm-cut-r27-b — "Tearing Flesh" by dereklieu
+Source: <https://freesound.org/people/dereklieu/sounds/241822/> — CC-BY 3.0. Use: a Coilwyrm's chain cut through (`CHAIN_CUT`), over the cut segment's burst.
+Why: "A juicy and gross" limb being torn off, made from stale bread torn apart with the breaks layered: one big rip with a heavy low body, shorter and punchier than a. Half the original's energy is below 80 Hz, so it is high-passed at 90 Hz; 28 % stays below 200 Hz.
+Edit: leading silence trimmed, cut to 0.70 s, 90 Hz high-pass, 0.30 s fade-out (0.72 s), levelled to -20 dB, ceiling -3.0 dBFS (peak -5.6 dBFS).
