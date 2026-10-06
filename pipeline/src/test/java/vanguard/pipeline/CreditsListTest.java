@@ -125,22 +125,83 @@ class CreditsListTest {
                 () -> CreditsList.parse(HEADER + "| assets/sfx/a.ogg | Title | Author | no link |\n"));
     }
 
+    /** A Windows checkout gives CREDITS.md {@code \r\n} line ends; the roll is the same. */
+    @Test
+    void aCreditsMdWithWindowsLineEndsGivesTheSameRoll() throws IOException {
+        touch("assets/sfx/zap-r01-a.ogg");
+        touch("assets/sfx/b.ogg");
+        String markdown = HEADER
+                + row("assets/sfx/zap-r01-a.ogg", "Big Zap", "zapper", "CC-BY 4.0")
+                + row("assets/sfx/b.ogg", "Free", "zed", "CC0 1.0");
+        String unix = roll(markdown);
+        assertEquals(unix, roll(markdown.replace("\n", "\r\n")));
+        assertFalse(unix.contains("\r"), "the roll is written with \\n line ends");
+        assertTrue(
+                unix.contains("item|“Big Zap” by zapper\ndetail|CC-BY 4.0 · freesound.org/people/zapper/sounds/1\n"));
+        assertEquals(
+                CreditsList.parse(markdown),
+                CreditsList.parse(markdown.replace("\n", "\r\n")),
+                "the same rows, line numbers and cells");
+    }
+
+    /** The committed roll and CREDITS.md are read alike whatever line ends the checkout gave them. */
+    @Test
+    void textFilesAreReadWithUnixLineEnds() throws IOException {
+        Path windows = dir.resolve("windows.txt");
+        Files.writeString(windows, "logo|\r\ngap|\r\nitem|a\r\n", StandardCharsets.UTF_8);
+        Path mac = dir.resolve("mac.txt");
+        Files.writeString(mac, "logo|\rgap|\ritem|a\r", StandardCharsets.UTF_8);
+        assertEquals("logo|\ngap|\nitem|a\n", CreditsList.readText(windows));
+        assertEquals("logo|\ngap|\nitem|a\n", CreditsList.readText(mac));
+    }
+
     @Test
     void theCommittedRollIsUpToDate() throws IOException {
-        String committed = Files.readString(ROOT.resolve(CreditsList.OUTPUT), StandardCharsets.UTF_8);
-        assertEquals(CreditsList.render(ROOT), committed, "run ./gradlew :pipeline:credits and commit the roll");
+        assertRollUpToDate(ROOT);
     }
 
     /** Checked from the other side: every CC-BY row whose file is in assets/ is in the committed roll. */
     @Test
     void everyShippedCcByFileOfCreditsMdIsInTheRoll() throws IOException {
-        String roll = Files.readString(ROOT.resolve(CreditsList.OUTPUT), StandardCharsets.UTF_8);
-        List<CreditsList.Row> rows =
-                CreditsList.parse(Files.readString(ROOT.resolve("CREDITS.md"), StandardCharsets.UTF_8));
+        assertTrue(assertShippedCcByRowsInRoll(ROOT) > 0, "the assets ship CC-BY sounds");
+        assertTrue(
+                CreditsList.readText(ROOT.resolve(CreditsList.OUTPUT)).contains("title|FONTS\n"),
+                "the fonts are credited");
+    }
+
+    /**
+     * The checks of the committed roll pass on a Windows checkout, where Git ({@code core.autocrlf})
+     * gives CREDITS.md and the committed roll {@code \r\n} line ends (CI's windows-latest runner).
+     */
+    @Test
+    void theCommittedRollChecksPassOnAWindowsCheckout() throws IOException {
+        touch("assets/sfx/zap-r01-a.ogg");
+        touch("assets/sfx/b.ogg");
+        String markdown = HEADER
+                + row("assets/sfx/zap-r01-a.ogg", "Big Zap", "zapper", "CC-BY 4.0")
+                + row("assets/sfx/b.ogg", "Free", "zed", "CC0 1.0");
+        String roll = roll(markdown);
+        Files.writeString(dir.resolve("CREDITS.md"), markdown.replace("\n", "\r\n"), StandardCharsets.UTF_8);
+        Path committed = dir.resolve(CreditsList.OUTPUT);
+        Files.createDirectories(committed.getParent());
+        Files.writeString(committed, roll.replace("\n", "\r\n"), StandardCharsets.UTF_8);
+        assertRollUpToDate(dir);
+        assertEquals(1, assertShippedCcByRowsInRoll(dir));
+    }
+
+    private static void assertRollUpToDate(Path root) throws IOException {
+        String committed = CreditsList.readText(root.resolve(CreditsList.OUTPUT));
+        assertEquals(CreditsList.render(root), committed, "run ./gradlew :pipeline:credits and commit the roll");
+    }
+
+    /** Asserts that every CC-BY row with a file in {@code root}'s assets is in its roll; the number of rows. */
+    private static int assertShippedCcByRowsInRoll(Path root) throws IOException {
+        String roll = CreditsList.readText(root.resolve(CreditsList.OUTPUT));
+        List<CreditsList.Row> rows = CreditsList.parse(CreditsList.readText(root.resolve("CREDITS.md")));
         int shipped = 0;
         for (CreditsList.Row row : rows) {
             boolean inAssets = row.paths().stream()
-                    .anyMatch(path -> path.startsWith("assets/") && Files.isRegularFile(ROOT.resolve(path)));
+                    .anyMatch(path -> path.startsWith("assets/") && Files.isRegularFile(root.resolve(path)));
             if (inAssets && row.licence().toUpperCase(Locale.ROOT).startsWith("CC-BY")) {
                 shipped++;
                 assertTrue(
@@ -149,16 +210,14 @@ class CreditsListTest {
                 assertTrue(roll.contains("detail|" + row.licence() + " · " + row.source() + "\n"));
             }
         }
-        assertTrue(shipped > 0, "the assets ship CC-BY sounds");
-        assertTrue(roll.contains("title|FONTS\n"), "the fonts are credited");
+        return shipped;
     }
 
     /** Every recorded sound effect in assets/sfx that CREDITS.md names under CC-BY is credited. */
     @Test
     void everyCcBySoundInTheAssetsIsCredited() throws IOException {
-        String roll = Files.readString(ROOT.resolve(CreditsList.OUTPUT), StandardCharsets.UTF_8);
-        List<CreditsList.Row> rows =
-                CreditsList.parse(Files.readString(ROOT.resolve("CREDITS.md"), StandardCharsets.UTF_8));
+        String roll = CreditsList.readText(ROOT.resolve(CreditsList.OUTPUT));
+        List<CreditsList.Row> rows = CreditsList.parse(CreditsList.readText(ROOT.resolve("CREDITS.md")));
         try (Stream<Path> sounds = Files.list(ROOT.resolve("assets/sfx"))) {
             for (Path sound : sounds.toList()) {
                 String name = sound.getFileName().toString();

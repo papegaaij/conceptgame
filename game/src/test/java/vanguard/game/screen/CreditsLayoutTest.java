@@ -81,6 +81,13 @@ class CreditsLayoutTest {
                         line.kind() == CreditsRoll.Kind.TITLE && line.text().equals("FONTS")));
     }
 
+    /** A Windows checkout (Git's {@code core.autocrlf}) gives the roll {@code \r\n} line ends. */
+    @Test
+    void aRollWithWindowsLineEndsLaysOutTheSame() throws IOException {
+        String roll = committedRoll().replace("\r\n", "\n");
+        assertEquals(roll(roll).lines(), roll(roll.replace("\n", "\r\n")).lines());
+    }
+
     @Test
     void longTextsWrapToTheColumnAndLinesStackDown() {
         CreditsRoll roll = roll("logo|\ngap|\ntitle|SOUND\ntext|" + "word ".repeat(60) + "\nitem|a\n");

@@ -115,8 +115,7 @@ public final class CreditsList {
         }
         Path root = Path.of(args[0]);
         Path out = Path.of(args[1]);
-        String markdown = Files.readString(root.resolve("CREDITS.md"), StandardCharsets.UTF_8);
-        Listing listing = listing(parse(markdown), root);
+        Listing listing = listing(parse(readText(root.resolve("CREDITS.md"))), root);
         Files.createDirectories(out.toAbsolutePath().getParent());
         Files.writeString(out, render(listing), StandardCharsets.UTF_8);
         System.out.println(listing.credits().size() + " attributions, "
@@ -125,13 +124,27 @@ public final class CreditsList {
 
     /** The roll for the repository at {@code root}, as {@link #main} writes it. */
     static String render(Path root) throws IOException {
-        return render(listing(parse(Files.readString(root.resolve("CREDITS.md"), StandardCharsets.UTF_8)), root));
+        return render(listing(parse(readText(root.resolve("CREDITS.md"))), root));
+    }
+
+    /**
+     * A text file with its line ends as {@code \n}: a Windows checkout (Git's {@code core.autocrlf})
+     * gives CREDITS.md and the committed roll {@code \r\n}, while the roll is always written with
+     * {@code \n}.
+     */
+    static String readText(Path file) throws IOException {
+        return normalise(Files.readString(file, StandardCharsets.UTF_8));
+    }
+
+    /** {@code text} with every {@code \r\n} and lone {@code \r} line end as {@code \n}. */
+    static String normalise(String text) {
+        return text.replace("\r\n", "\n").replace('\r', '\n');
     }
 
     /** The rows of the asset table; a row that is not six cells or misses a link fails loudly. */
     static List<Row> parse(String markdown) {
         List<Row> rows = new ArrayList<>();
-        String[] lines = markdown.split("\n", -1);
+        String[] lines = normalise(markdown).split("\n", -1);
         boolean table = false;
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].strip();

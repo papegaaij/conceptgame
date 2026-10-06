@@ -20,3 +20,7 @@ gradlew text eol=lf
 
 # The data files too: the content tests edit their text line by line
 *.yaml  text eol=lf
+
+# Generated text the build reads and compares with its generator's output (written with \n), e.g.
+# the credits roll of :pipeline:credits; Git for Windows would check it out with \r\n otherwise
+assets/ui/credits.txt text eol=lf
