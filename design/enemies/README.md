@@ -623,9 +623,14 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
   and `first_level`; `SimSpecs.enemy` without a level stays at the factor 1. Act 1's levels are
   unchanged (replay hashes and the Level 01–07 tests as before). Factors today, from the reference
   curve: Spore Bomber 45 HP at L08 to 60 at L14, Scuttler 44 to 59, Mantis 30 to 40, Brood Pod 47 to
-  63, Coilwyrm 113 to 151 (parts summed), each keeping its time to kill. A level beyond the
+  63, Coilwyrm 118 to 149 (each part rounded, then summed), each keeping its time to kill. A level beyond the
   reference curve (Act 3 before its curve is written) is an error, so the curve is extended before
   a level uses it. The boss-bounty rule needed no code: the payout already applies the act factor to
   every bounty, boss parts included; `BalanceTest` and `tools/balance.py` now compare a boss's
   share at its level with the act factor applied (Act 1's unchanged), and `UtilityEffectsTest`
   pins it (188 Act 1 terms pay 301 in Act 2).
+- 2026-10-06: Concept round 28 closed (user: accepted): the act HP factor as built (D5 = c; the
+  table of [round 28](../concept-rounds/round-28/README.md#act-hp-factor): each part rounded half to
+  even, so the Coilwyrm is 118–149 HP at medium over L08–L14) and the boss-bounty rule (data in Act 1
+  terms, every payout act-scaled, no exemption) approved; the Coilwyrm head's ×2 fix noted. The
+  document stays `in-progress` while M5 builds its Act 2 items.

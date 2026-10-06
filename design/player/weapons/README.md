@@ -27,15 +27,15 @@ below.
 | [scatter-vulcan](scatter-vulcan/README.md) | Scatter Vulcan — Front, spread; DPS 18 → 65; 1 200; L02 | approved | done | final |
 | [lance-laser](lance-laser/README.md) | Lance Laser — Front, piercing, forward; DPS 25 → 95; 2 500; L05 | approved | done | final |
 | [hammer-mortar](hammer-mortar/README.md) | Hammer Mortar — Front, anti-ground, area; DPS 25 → 90; 1 500; L07 | approved | done | final |
-| [hornet-launcher](hornet-launcher/README.md) | Hornet Launcher — Front, homing; DPS 15 → 60; 2 000; L10 | approved | done | chosen |
+| [hornet-launcher](hornet-launcher/README.md) | Hornet Launcher — Front, homing; DPS 15 → 60; 2 000; L10 | approved | done | final |
 | [side-splitter](side-splitter/README.md) | Side Splitter — Rear, side; DPS 12 → 40; 1 400; L05 | approved | done | final |
-| [tail-gun](tail-gun/README.md) | Tail Gun — Rear, rear; DPS 10 → 35; 600; L08 | approved | done | chosen |
-| [fan-blaster](fan-blaster/README.md) | Fan Blaster — Rear, rear, spread; DPS 10.2 → 40; 1 200; L10 | approved | done | chosen |
-| [proximity-mines](proximity-mines/README.md) | Proximity Mines — Rear, rear, area; DPS 20 → 70; 1 500; L12 | approved | in-progress | chosen |
+| [tail-gun](tail-gun/README.md) | Tail Gun — Rear, rear; DPS 10 → 35; 600; L08 | approved | done | final |
+| [fan-blaster](fan-blaster/README.md) | Fan Blaster — Rear, rear, spread; DPS 10.2 → 40; 1 200; L10 | approved | done | final |
+| [proximity-mines](proximity-mines/README.md) | Proximity Mines — Rear, rear, area; DPS 20 → 70; 1 500; L12 | approved | done | final |
 | [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | approved | done | final |
 | [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | approved | done | final |
 | [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | approved | done | final |
-| [swivel-gun](swivel-gun/README.md) | Swivel Gun — Wing (per pod), side, homing; DPS 8 → 26; 1 500; L09 | approved | done | chosen |
+| [swivel-gun](swivel-gun/README.md) | Swivel Gun — Wing (per pod), side, homing; DPS 8 → 26; 1 500; L09 | approved | done | final |
 | [torpedo-pod](torpedo-pod/README.md) | Torpedo Pod — Wing (per pod), anti-sub; DPS 10 → 32; 1 000; L11 | approved | not-started | chosen |
 
 ## Design
@@ -140,7 +140,7 @@ are in its own `concept/`); generator `tools/art/act2_weapon_fx.py`.
 
 | File | What | Status |
 |---|---|---|
-| [concept/act2-weapons-capture-r28-a.png](concept/act2-weapons-capture-r28-a.png) | Game captures with `--loadout` on Act 1 levels: the Fan Blaster, Tail Gun, Hornets, Swivel Guns and Proximity Mines in flight with their final effects | proposed |
+| [concept/act2-weapons-capture-r28-a.png](concept/act2-weapons-capture-r28-a.png) | Game captures with `--loadout` on Act 1 levels: the Fan Blaster, Tail Gun, Hornets, Swivel Guns and Proximity Mines in flight with their final effects | chosen |
 
 ## Implementation
 
@@ -205,3 +205,8 @@ are in its own `concept/`); generator `tools/art/act2_weapon_fx.py`.
   `slew`, `drift`, `arm`, `trigger`; `hits: area` marks the mines. A homing missile's turn and a
   turret's slew are the one turn rate the Targeting computer scales. Effects from
   `tools/art/act2_weapon_fx.py`, proposed for round 28; Act 1's replays and hashes are unchanged.
+- 2026-10-06: Concept round 28 closed (user: accepted): the five Act 2 weapons' effects
+  (`tools/art/act2_weapon_fx.py`) approved as **final**, and the Tail Gun, Fan Blaster, Hornet
+  Launcher, Swivel Gun and Proximity Mines have `art: final` (the Swivel's fixed barrel and the
+  mines' weak spots accepted as shown); the mine's arming beep is **a**, the armed chirp. This doc's
+  `art` stays `chosen` while the Torpedo Pod has concept art only (part E).

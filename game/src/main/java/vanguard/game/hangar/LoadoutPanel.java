@@ -53,7 +53,9 @@ final class LoadoutPanel {
             LoadoutSlot.SPECIAL,
             LoadoutSlot.UTILITY_1,
             LoadoutSlot.UTILITY_2);
-    private static final int TILE_WIDTH = 48;
+    /** A module tile's width; its name is centred in the 8 px label font ({@link Names#tile}). */
+    static final int TILE_WIDTH = 48;
+
     private static final int TILE_GAP = 2;
 
     private static final int WING_WIDTH = 132;
@@ -162,7 +164,7 @@ final class LoadoutPanel {
         glass.shadowed(
                 batch,
                 glass.fonts.label,
-                item.map(i -> Names.tile(i.name())).orElse("EMPTY"),
+                item.map(i -> Names.callout(i.name())).orElse("EMPTY"),
                 item.isPresent() ? Glass.WHITE : Glass.DIM,
                 callout.x() + (item.isPresent() ? NAME_INDENT : 6),
                 callout.y() + 26,
@@ -199,7 +201,7 @@ final class LoadoutPanel {
         glass.shadowed(
                 batch,
                 glass.fonts.label,
-                gun.map(i -> Names.tile(i.name())).orElse("-"),
+                gun.map(i -> Names.callout(i.name())).orElse("-"),
                 Glass.WHITE,
                 x + ESCORT_INSET,
                 y + ESCORT_GUN_ROW,

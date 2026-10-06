@@ -15,9 +15,9 @@ rook:
   glide_seconds: 0.6          # to a new formation slot
   swap_seconds: 1.0           # his own slot back inside the field this long before he returns to it
   formations: {wing: [64, 28], wide: [120, 10], trail: [40, 90]}   # [x, y] px, y down, x mirrored on the left
-  flank_distance: 160         # px horizontally: the Wide formation and target priority 2
+  flank_distance: 160         # px from his centre (plain distance): the Wide formation and target priority 2
   reaction_seconds: 0.25
-  dodge: {interval: 0.1, look_ahead: 0.4, clearance: 14, step: 48, reacts: 0.7}   # reacts: share of the predicted bullets he dodges (user decision 2026-10-06)
+  dodge: {interval: 0.1, look_ahead: 0.6, clearance: 14, step: 48, reacts: 0.7}   # reacts: share of the predicted bullets he dodges (user decision 2026-10-06)
   cone: 30                    # degrees (full width) ahead in which he fires
   range: 360                  # px
   recent_hit_seconds: 1.0     # target priority 1: an enemy the player damaged this recently

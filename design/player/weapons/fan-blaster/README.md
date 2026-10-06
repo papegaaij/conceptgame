@@ -2,7 +2,7 @@
 title: Fan Blaster
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-06
 ---
@@ -57,8 +57,8 @@ Prompts: [concept/prompts.md](concept/prompts.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/fan-blaster-final-r28-a.png](concept/fan-blaster-final-r28-a.png) | Final effects: the `rear` family's energy bolt, shorter and rounder for the fan's 6×6 hit box (`energy_bolt(7, 2.5)`), drawn at every angle of its fans (145–215°), with the shared pulse muzzle flash and impact (sheet) | proposed |
-| [concept/fan-blaster-final-r28-a.gif](concept/fan-blaster-final-r28-a.gif) | The L5 fan (±30° with its dense core) leaving the rear muzzle and fading at 390 px (motion) | proposed |
+| [concept/fan-blaster-final-r28-a.png](concept/fan-blaster-final-r28-a.png) | Final effects: the `rear` family's energy bolt, shorter and rounder for the fan's 6×6 hit box (`energy_bolt(7, 2.5)`), drawn at every angle of its fans (145–215°), with the shared pulse muzzle flash and impact (sheet) | chosen |
+| [concept/fan-blaster-final-r28-a.gif](concept/fan-blaster-final-r28-a.gif) | The L5 fan (±30° with its dense core) leaving the rear muzzle and fading at 390 px (motion) | chosen |
 
 ## Implementation
 
@@ -78,3 +78,4 @@ The Fan Blaster has flown since M4 part A with borrowed effects. M5 part A gives
 - 2026-10-02: Numbers moved into [data.yaml](data.yaml) (M2 data files); the property and per-level tables are rendered from it by `tools/sync_tables.py`.
 - 2026-10-06: M5 part A (user decision D1 = a): built in part A with the other Act 2 weapons that need no water (Tail Gun, Fan Blaster, Hornet Launcher, Swivel Gun, Proximity Mines); the effects go straight to production (the families were chosen in round 08) and are reviewed in concept round 28. The Torpedo Pod and the `sub` layer move to part E (Level 11).
 - 2026-10-06: M5 part A built: its own effects from `tools/art/act2_weapon_fx.py` (a shorter, rounder `rear` bolt for its 6×6 hit box at every angle of its fans; the shared pulse muzzle flash and impact; review files proposed for round 28) and its `pulse` family 10 % lower as a rear gun; the shots fade over the last quarter of their 390 px as the level's ranged bolts do.
+- 2026-10-06: Concept round 28 closed (user: accepted): its effects (`tools/art/act2_weapon_fx.py`) approved as **final**, `art: final`: the shorter, rounder `rear` bolt at every angle of its fans, fading over the last quarter of its 390 px, with the pulse muzzle flash and impact, and its `pulse` sound 10 % lower.

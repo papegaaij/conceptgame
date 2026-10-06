@@ -1,7 +1,7 @@
 ---
 title: Economy
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../player, ../difficulty]
 updated: 2026-10-06
@@ -182,7 +182,9 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
 - [x] The unlocked item in the shop once it exists (the Targeting computer from the visit after M5
   part A builds it; until then it stays out of the shop, user decision D2 of M4 part H) — M5 part A
   (from the L07 visit with the L06 core's unlock, otherwise from L08; test `UtilityModulesTest`)
-- [ ] Rook's guns, upgrades and repairs as sinks; his kills paid like the player's — M5 part A
+- [x] Rook's guns, upgrades and repairs as sinks; his kills paid like the player's — M5 part A
+  (his guns at 60 % with their upgrades and sell-back, his repair line at the difficulty's cost:
+  `EscortTest`, `HangarEscortTest`; his kills: `WingmanTest.hisKillsPayLikeThePlayersAndChain`)
 - [x] The Salvage scanner's bonus on salvage and hidden crates, outside the typical haul — M5 part A
   (`Loadout.salvageBonus`, one rounding with the credit factor in `Sortie.payPickup`; the typical
   haul and `BalanceTest` leave it out; test `UtilityEffectsTest`)
@@ -308,3 +310,9 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   needed no code: every payout, boss parts included, is its Act 1 value × the act factor; the
   boss-share check of `BalanceTest` and `tools/balance.py` now applies the act factor at the boss's
   level (Act 1's bosses unchanged), and a test pins the Harbour Kraken's 188 paying 301 in Act 2.
+- 2026-10-06: Concept round 28 closed (user: accepted): the boss-bounty rule as built (boss and
+  mid-boss bounties planned as absolute credits are written in Act 1 terms, the absolute amount ÷
+  the act factor, and every payout is act-scaled with no exemption: the Harbour Kraken's 300 is
+  written 188 and pays 301), Rook's prices (60 % of the base weapons') and his repair line at the
+  difficulty's cost, and the Salvage scanner's bonus outside the budget. Every item is ticked, so
+  the document is `done` again.

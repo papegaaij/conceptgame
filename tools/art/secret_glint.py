@@ -17,17 +17,21 @@ pipeline: effects), then mapped to one median-cut palette (24 colours). The look
 family of the loot targets' glint (warm white `FFF4D6`) with the gold of the salvage pickups.
 
 Outputs:
-  assets/sprites/glint-secret_0..3.png   the wired option (default a, provisional until round 28
-                                         closes; `--variant b` writes b instead); a `glint` root
+  assets/sprites/glint-secret_0..3.png   the wired option (default a, chosen in round 28;
+                                         `--variant b` writes b instead); a `glint` root
                                          name, so it lands on the shared sprite pages
                                          (vanguard.pipeline.SpriteUse) next to the loot glint
-  design/player/systems/concept/secret-glint-r28-<a|b>.png/.gif  one review pair per option: the
+  design/player/systems/concept/secret-glint-r28-<a|b>.png/.gif  one review pair per option (the
+                                         rejected b into concept/rejected/): the
                                          frames at 8x with the old glint, and the glint playing on
                                          Level 01's cargo container (station deck) and in the dark
                                          (Level 06), the old glint beside it, at 3x
 
 The wired option's review is built from the files in assets/ (what the game loads), the other's
 from the same finished frames in memory.
+
+Chosen (round 28 closed, 2026-10-06): a, the star glint (CHOSEN); b, the scanner ping, was
+rejected, and its review pair is written to concept/rejected/.
 
 Run: python3 tools/art/secret_glint.py [--variant a|b] [--review]   (~2 s)
 """
@@ -51,6 +55,7 @@ FRAMES = 4                              # SecretGlints.FRAMES: four frames in 0.
 WHITE = np.array([255, 246, 222]) / 255  # the loot glint's warm white
 GOLD = np.array([255, 188, 84]) / 255    # the salvage pickups' gold
 SIZES = {"a": 23, "b": 35}
+CHOSEN = "a"                            # round 28's pick; the other option's review goes to rejected/
 
 
 def grid(size):
@@ -181,9 +186,10 @@ def review(variant, wired):
             row.paste(panel(DECK, crate, g), (col * PANEL[0], 0))
             row.paste(panel(DARK, crate, g), (col * PANEL[0], PANEL[1]))
         gif.append(sprite.enlarge(row, 3))
-    png = CONCEPT / f"secret-glint-{REVIEW_ROUND}-{variant}.png"
+    folder = CONCEPT if variant == CHOSEN else CONCEPT / "rejected"
+    png = folder / f"secret-glint-{REVIEW_ROUND}-{variant}.png"
     out = png.with_suffix(".gif")
-    CONCEPT.mkdir(parents=True, exist_ok=True)
+    folder.mkdir(parents=True, exist_ok=True)
     sheet.convert("RGB").save(png, optimize=True)
     artkit.write_gif(gif, out, fps=GIF_FPS, colors=128)
     print(f"review: {png.relative_to(artkit.ROOT)}, {out.relative_to(artkit.ROOT)}")
@@ -191,7 +197,7 @@ def review(variant, wired):
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    wired = args[args.index("--variant") + 1] if "--variant" in args else "a"
+    wired = args[args.index("--variant") + 1] if "--variant" in args else CHOSEN
     if wired not in DRAW:
         sys.exit(f"unknown variant {wired!r}: a or b")
     if "--review" not in args:

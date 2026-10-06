@@ -2,7 +2,7 @@
 title: Hornet Launcher
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-06
 ---
@@ -59,8 +59,8 @@ Prompts: [concept/prompts.md](concept/prompts.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/hornet-launcher-final-r28-a.png](concept/hornet-launcher-final-r28-a.png) | Final effects: the Hornet missile (`missile_model` at 16 px with its plume) at 32 headings with the key light fixed, the six-frame smoke-trail puff (`smoke_puff`, stepped translucency), the shared launcher muzzle flash and explosive impact (sheet) | proposed |
-| [concept/hornet-launcher-final-r28-a.gif](concept/hornet-launcher-final-r28-a.gif) | A four-missile volley leaving the ±10 px ports, speeding up from 450 to 650 px/s and curving onto a target, leaving smoke puffs, bursting on it (motion) | proposed |
+| [concept/hornet-launcher-final-r28-a.png](concept/hornet-launcher-final-r28-a.png) | Final effects: the Hornet missile (`missile_model` at 16 px with its plume) at 32 headings with the key light fixed, the six-frame smoke-trail puff (`smoke_puff`, stepped translucency), the shared launcher muzzle flash and explosive impact (sheet) | chosen |
+| [concept/hornet-launcher-final-r28-a.gif](concept/hornet-launcher-final-r28-a.gif) | A four-missile volley leaving the ±10 px ports, speeding up from 450 to 650 px/s and curving onto a target, leaving smoke puffs, bursting on it (motion) | chosen |
 
 ## Implementation
 
@@ -82,3 +82,4 @@ The Hornet Launcher has flown since M4 part A with borrowed effects. M5 part A g
 - 2026-10-06: M5 part A (user decision D1 = a): built in part A with the other Act 2 weapons that need no water (Tail Gun, Fan Blaster, Hornet Launcher, Swivel Gun, Proximity Mines); the effects go straight to production (the families were chosen in round 08) and are reviewed in concept round 28. The Torpedo Pod and the `sub` layer move to part E (Level 11).
 - 2026-10-06: M5 part A built the behaviour as written, with its numbers in [data.yaml](data.yaml): `lifetime: 1.6`, `cone: 120`, `accelerate: 0.3` (450 → 650 px/s along the heading, which also speeds up its turns' arc) and `ports: 10` (the missiles of a volley leave from the −10 and +10 px ports in turn, left first, in pattern order); its own effects from `tools/art/act2_weapon_fx.py` (the missile at 32 headings, a smoke-trail puff left every 4 steps, the shared launcher muzzle flash and explosive impact; review files proposed for round 28); its `missile` family's sound (shot-missile-r03-a). The turn rate stays one number (`WeaponSpec.turnRate`), which the Targeting computer's +20 % scales.
 - 2026-10-06: M5 part A built the Targeting computer's +20 % on the missiles' turn (180 → 216°/s at L1–L2, 220 → 264°/s at L3–L4, 260 → 312°/s at L5 and in overdrive), applied where `SimSpecs.loadout` builds the Stormhawk's weapons.
+- 2026-10-06: Concept round 28 closed (user: accepted): its effects (`tools/art/act2_weapon_fx.py`) approved as **final**, `art: final`: the 16 px missile at 32 headings, its smoke-trail puffs, the launcher muzzle flash and explosive impact, the ±10 px ports in turn and the 450 → 650 px/s speed-up, and the `missile` family's sound.

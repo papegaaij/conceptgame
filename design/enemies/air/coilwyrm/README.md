@@ -174,3 +174,7 @@ Chosen concept: [coilwyrm-r08-a.png](../concept/coilwyrm-r08-a.png), [coilwyrm-r
   stays at ×1. A head-first kill takes half the damage it did (40 HP at medium: 20 points of
   hits). No test or balancing number moved: the head's HP, the bounties and the typical haul are
   unchanged, and Level 01's replay hash stays (no chain flies there).
+- 2026-10-06: Concept round 28 closed (user): the head's ×2 fix noted as built (a head-first kill on
+  medium needs 20 points of hits, a regrown head stays ×1, the Targeting computer's brackets show
+  round a living head); its returning HP with the act HP factor (118–149 at medium over L08–L14,
+  [enemies](../../README.md#balancing-basis)) accepted.

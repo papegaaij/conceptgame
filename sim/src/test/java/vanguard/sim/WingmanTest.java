@@ -9,6 +9,7 @@ import static vanguard.sim.TestSpecs.SKITTER;
 import static vanguard.sim.TestSpecs.muzzle;
 import static vanguard.sim.TestSpecs.wave;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -176,6 +177,234 @@ class WingmanTest {
         assertEquals(80, rook.armour());
         assertEquals(slotX, rook.x(), 0.5, "back in his slot");
         assertEquals(0, sortie.bulletCount());
+    }
+
+    /** {@link #AI}, but reacting to {@code reacts} of the bullets he predicts. */
+    private static WingmanSpec.Ai reacting(double reacts) {
+        return new WingmanSpec.Ai(
+                AI.wing(),
+                AI.wide(),
+                AI.trail(),
+                AI.glideSeconds(),
+                AI.swapSeconds(),
+                AI.flankDistance(),
+                AI.reactionSeconds(),
+                AI.dodgeInterval(),
+                AI.lookAhead(),
+                AI.clearance(),
+                AI.dodgeStep(),
+                reacts,
+                AI.coneHalfAngle(),
+                AI.range(),
+                AI.recentHitSeconds());
+    }
+
+    /** Steps per bullet: a whole number of his prediction intervals, so each comes at the same phase. */
+    private static final int BULLET_STEPS = 240;
+
+    /**
+     * {@code count} single bullets, one every {@link #BULLET_STEPS}, straight down 8 px beside his
+     * centre (a hit unless he moves), closest 123 steps after it is fired: he decides on it half
+     * way through his look-ahead, early enough to clear it. Returns which of them hit him; checks
+     * that each one is decided exactly once (his generator draws once per bullet).
+     */
+    private static boolean[] singleBullets(long seed, double reacts, int count) {
+        WingmanSpec spec = new WingmanSpec(WingmanSpec.Side.LEFT, 80, CRAFT, reacting(reacts), GUN);
+        Sortie sortie = new Sortie(
+                seed,
+                TestSpecs.LOADOUT.withWingman(spec),
+                TestSpecs.level(10 + 4.0 * count, List.of()),
+                TestSpecs.RULES,
+                TestSpecs.FULL_ARMOUR);
+        Wingman rook = wingman(sortie);
+        run(sortie, 30, Command.NONE);
+        boolean[] hits = new boolean[count];
+        SplitMix64 once = new SplitMix64(0);
+        for (int b = 0; b < count; b++) {
+            long before = rook.luck();
+            sortie.fireBullet(rook.x() + 8, rook.y() + 150 * 123.0 / SimStep.PER_SECOND, -Math.PI / 2, 150, 0.1);
+            for (int i = 0; i < BULLET_STEPS; i++) {
+                sortie.step(Command.NONE);
+                hits[b] |= happened(sortie, SimEvents.Type.WINGMAN_HIT);
+            }
+            assertEquals(0, sortie.bulletCount());
+            once.state(before);
+            once.nextDouble();
+            assertEquals(once.state(), rook.luck(), "bullet " + b + " is decided once");
+        }
+        return hits;
+    }
+
+    private static int count(boolean[] hits) {
+        int n = 0;
+        for (boolean hit : hits) {
+            n += hit ? 1 : 0;
+        }
+        return n;
+    }
+
+    @Test
+    void heReactsToHisShareOfTheBulletsEachDecidedOnceTheSameForTheSameSeed() {
+        assertEquals(20, count(singleBullets(1, 0.0, 20)), "reacting to none, every one hits him");
+        assertEquals(0, count(singleBullets(1, 1.0, 20)), "reacting to every one, no single bullet hits him");
+
+        boolean[] hits = singleBullets(1, 0.7, 200);
+        int n = count(hits);
+        // Decided again at every prediction (four per bullet here), one would hit only 0.3^4 of the time.
+        assertTrue(n >= 40 && n <= 80, "about 30 % of 200 single bullets hit him: " + n);
+        assertTrue(Arrays.equals(hits, singleBullets(1, 0.7, 200)), "the same seed, the same hits");
+        assertFalse(Arrays.equals(hits, singleBullets(2, 0.7, 200)), "another seed, other hits");
+    }
+
+    /** A Coilwyrm (Level 06's numbers) entering from {@code entry} at t=1 on {@code path} (depths). */
+    private static WaveSpec chainWave(WaveSpec.Entry entry, List<WaveSpec.At> path, Optional<WaveSpec.LoopBack> loop) {
+        return new WaveSpec(
+                1,
+                WaveSpec.Formation.SNAKE,
+                FarsideTest.COILWYRM,
+                1,
+                entry,
+                WaveSpec.Edge.NONE,
+                Optional.empty(),
+                Optional.empty(),
+                1,
+                Optional.empty(),
+                Optional.empty(),
+                List.of(),
+                Optional.empty(),
+                List.of(path),
+                loop);
+    }
+
+    /** Only his formation matters here: nothing hurts the ship or him. */
+    private static Sortie unhurt(LevelScript level) {
+        return new Sortie(
+                1,
+                TestSpecs.LOADOUT.withWingman(rook(WingmanSpec.Side.LEFT)),
+                level,
+                TestSpecs.RULES.withInvulnerableShip(),
+                TestSpecs.FULL_ARMOUR);
+    }
+
+    @Test
+    void aChainFromTheRearMovesHimToTrail() {
+        Sortie sortie = unhurt(TestSpecs.level(
+                30,
+                List.of(chainWave(
+                        WaveSpec.Entry.REAR,
+                        List.of(new WaveSpec.At(420, 620), new WaveSpec.At(420, 300), new WaveSpec.At(420, -80)),
+                        Optional.empty()))));
+        run(sortie, 60 + 20, Command.NONE);
+
+        assertEquals(Wingman.Formation.TRAIL, wingman(sortie).formation());
+    }
+
+    @Test
+    void aFrontChainThatLoopsBackMovesHimToTrailOnceItIsBackFromTheRear() {
+        Sortie sortie = unhurt(TestSpecs.level(
+                40,
+                List.of(chainWave(
+                        WaveSpec.Entry.FRONT,
+                        List.of(new WaveSpec.At(420, -60), new WaveSpec.At(420, 300), new WaveSpec.At(420, 700)),
+                        Optional.of(new WaveSpec.LoopBack(6, List.of()))))));
+        Wingman rook = wingman(sortie);
+        // The path: 760 px at 180 px/s from t=1, then 6 s off the screen.
+        double reentry = 1 + 760.0 / 180 + 6;
+        boolean trailBefore = false;
+        while (sortie.levelSeconds() < reentry - 0.1) {
+            sortie.step(Command.NONE);
+            trailBefore |= rook.formation() == Wingman.Formation.TRAIL;
+        }
+        assertFalse(trailBefore, "a front chain is no rear wave");
+        while (sortie.levelSeconds() < reentry + 1) {
+            sortie.step(Command.NONE);
+        }
+
+        assertEquals(Wingman.Formation.TRAIL, rook.formation(), "the loop-back is a rear wave");
+    }
+
+    /** The gap between his hit box and an enemy's, px: negative where they overlap. */
+    private static double gap(Wingman rook, Enemy enemy) {
+        Hitbox his = rook.spec().craft().hitbox();
+        Hitbox its = enemy.hitbox();
+        return Math.max(
+                Math.abs(rook.x() - enemy.x()) - (his.width() + its.width()) / 2,
+                Math.abs(rook.y() - enemy.y()) - (his.height() + its.height()) / 2);
+    }
+
+    /** One step's command towards (x, y), with a small dead zone. */
+    private static int towards(Ship ship, double x, double y) {
+        int commands = Command.NONE;
+        if (ship.x() < x - 2) {
+            commands |= Command.RIGHT.bit();
+        } else if (ship.x() > x + 2) {
+            commands |= Command.LEFT.bit();
+        }
+        if (ship.y() < y - 2) {
+            commands |= Command.UP.bit();
+        } else if (ship.y() > y + 2) {
+            commands |= Command.DOWN.bit();
+        }
+        return commands;
+    }
+
+    @Test
+    void hisWideSlotKeepsClearOfAMantisBody() {
+        WaveSpec mantis = new WaveSpec(
+                2,
+                WaveSpec.Formation.SINGLE,
+                FarsideTest.MANTIS,
+                1,
+                WaveSpec.Entry.SIDES,
+                WaveSpec.Edge.LEFT,
+                Optional.empty(),
+                Optional.empty(),
+                1,
+                Optional.empty(),
+                Optional.empty(),
+                List.of(),
+                Optional.empty());
+        Sortie sortie = sortie(TestSpecs.level(30, List.of(mantis)), WingmanSpec.Side.LEFT);
+        Wingman rook = wingman(sortie);
+        boolean wide = false;
+        boolean contact = false;
+        double closest = Double.MAX_VALUE;
+        int steps = 0;
+        // The player where his Wide slot (120 px beside, 10 px behind) lies on the Mantis hovering
+        // 40 px from the left edge, 300 px below the top.
+        while (sortie.levelSeconds() < 14) {
+            sortie.step(towards(sortie.ship(), 170, 250));
+            wide |= rook.formation() == Wingman.Formation.WIDE;
+            contact |= happened(sortie, SimEvents.Type.WINGMAN_HIT);
+            for (int i = 0; i < sortie.enemyCount(); i++) {
+                closest = Math.min(closest, gap(rook, sortie.enemy(i)));
+                steps++;
+            }
+        }
+
+        assertTrue(steps > 0 && wide);
+        assertTrue(sortie.flying());
+        assertFalse(contact, "no contact with the Mantis");
+        assertTrue(closest >= 0, "his hit box never touches its body: " + closest);
+        assertEquals(WingmanSpec.Side.LEFT, rook.side(), "his own side");
+    }
+
+    @Test
+    void heKeepsFortyPixelsFromThePlayerWhileHeSwapsSidesInABottomCorner() {
+        Sortie sortie = sortie(TestSpecs.level(30, List.of()), WingmanSpec.Side.LEFT);
+        Wingman rook = wingman(sortie);
+        double closest = Double.MAX_VALUE;
+        for (int i = 0; i < 360; i++) {
+            sortie.step(i < 180 ? Command.LEFT.bit() | Command.DOWN.bit() : Command.RIGHT.bit() | Command.DOWN.bit());
+            if (i == 179) {
+                assertEquals(WingmanSpec.Side.RIGHT, rook.side(), "mirrored in the bottom left corner");
+            }
+            Ship ship = sortie.ship();
+            closest = Math.min(closest, Math.hypot(rook.x() - ship.x(), rook.y() - ship.y()));
+        }
+
+        assertEquals(WingmanSpec.Side.LEFT, rook.side(), "his own side again in the bottom right corner");
+        assertTrue(closest >= 40 - 1e-9, "never closer than 40 px: " + closest);
     }
 
     @Test

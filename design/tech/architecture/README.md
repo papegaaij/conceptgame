@@ -467,7 +467,8 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   `min_distance`, `edge_gap`, `ram_damage`, `launch_warning` (share of his armour), `glide_seconds`,
   `swap_seconds`, `formations` (`wing`, `wide`, `trail`: `[x, y]` offsets from the player's centre,
   y down, x mirrored on the left side), `flank_distance`, `reaction_seconds`, `dodge` (`interval`,
-  `look_ahead`, `clearance`, `step`), `cone` (° full width), `range`, `recent_hit_seconds`, `eject`
+  `look_ahead`, `clearance` (also his gap to the air enemies' bodies), `step`, `reacts` (the share
+  of the predicted bullets he reacts to, each decided once by his own seeded generator)), `cone` (° full width), `range`, `recent_hit_seconds`, `eject`
   (`explosion`, `pod_speed`)); `guns` (`price_factor` of the base weapon's price and upgrade base,
   and the `list`, the first the free starter: `id`, `name`, `base` (a weapon slug), `scale` (on each
   projectile's damage), `available`); `barks` (`speaker`, `spacing` s, and `triggers` in priority

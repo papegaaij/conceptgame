@@ -217,6 +217,8 @@ level).
       in `assets/voice/`: Level 07's 18 lines and the Act 1 outro's four pages accepted in round 25;
       the act briefing, Levels 01–06's briefing pages and radio lines and Hammer Lead's Airstrike
       call, 128 lines, and the low-armour line accepted as rendered in round 26)
+- [x] Rook's 27 radio barks (M5 part A, source `wingmen barks <trigger>`) rendered, four takes
+      pinned, and accepted as rendered in round 28
 - [x] Playback with the radio message: voice on its own voice bus, music ducking while it plays,
       URGENT cuts and replays, a subtitle page held until its voice ends, pause and stop,
       text-only fallback; the mission failed screen speaks the level's line (the cut has no
@@ -367,3 +369,7 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
   each pinned seed is the first of four tried that Whisper reads back word for word both ways. The
   rest read back word for word apart from spelling ("6" for "six", "Punchin'", "Hah"). VoiceFilesTest
   now requires the barks' files. For the user's ear in concept round 28.
+- 2026-10-06: Concept round 28 closed (user: accepted): Rook's 27 radio barks accepted as rendered,
+  the four pinned takes included, none to re-render (the rear-wave variant "Contacts on six! Why is
+  it always six?" stays, beside Level 06's scripted take of the same line). `art` stays `chosen`:
+  the later acts' lines are not rendered yet.

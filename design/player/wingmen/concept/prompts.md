@@ -122,3 +122,32 @@ HUD escort box (5, 1, `EJECTED`) and the bark on the radio, the Act 2 weapons, t
 and the hangar's escort tab. The mp4 (full 960×540 frame): Level 06 t 23.6–31.6 and 54.6–61.6,
 Level 02 t 55.5–65.5, Level 06 t 101.6–139.6 (hit, smoke, the rear warning and bark, the eject),
 Level 07 t 20.5–28.5 and 105.5–121.5, the hangar.
+
+## rook-eject-capture-r28-b
+
+Concept round 28 (M5 part A), a capture of the game, not generated art (`.png` labelled sheet),
+taken after the eject fixes (the pod's path rule, drawn over the explosion after 0.1 s with its
+beacon glow and smoke trail, the urgent eject bark). Method as
+[part-a-capture-final-r28-a](#part-a-capture-final-r28-a): the install script of
+`:desktop:installDist` on a private Xvfb display at 960×540 (a 960×540 window at 0,0,
+`controls.auto-fire=true`), `--bench`, recorded with `ffmpeg -f x11grab -framerate 30`
+(lossless), sound to a file through OpenAL Soft's `wave` driver (nothing played aloud), the ship
+swayed by XTest key events on that display (up once, then left/right holds).
+**Scratch data:** a copy of [data.yaml](../data.yaml) placed first on the run's classpath only (the
+real file is unchanged) with `rook.armour: 2`, `rook.hitbox: [40, 40]` and `dodge.reacts: 0.0`, so
+that one bullet ejects him: in four Level 06 runs with armour 2 (medium, then dodging off, then hard
+with the sways, then the 40 px hitbox on medium with the sways; 100–150 s) he was never hit. The run: `--level 7 --escort rook:missiles:3,side=right
+--loadout front=hornet-launcher:3,left=swivel-gun:3,right=swivel-gun:3,rear=fan-blaster:3,utility=targeting-computer,utility2=salvage-scanner:2
+--bench 140`, medium; a bullet during the Brood Carrier fight ejected him at about video 137.1 s.
+
+The sheet (frames at 10 fps, assembled with PIL): the eject at 3× zoom in six frames 0.1 s apart
+(the flash; the pod over the explosion; its red beacon glow; the pod tumbling off with the grey
+smoke puffs behind it), and the full frame 0.7 s after the eject: the pod heading for the right
+edge, away from the player's ship on the left, `EJECTED` in the HUD's escort box and the eject bark
+"I'm out, I'm out! She's all yours, Lancer!" opening on the radio at once.
+
+Findings: the pod clears the explosion's edge within 0.1–0.2 s and reads by its blinking red glow
+and its trail; the 16×16 pod itself is small at 1× but identifiable, so it was not re-rendered
+larger (`tools/art/rook.py` unchanged). The pod took the nearer edge with the ship on the other side, so the in-the-way branch of the path
+rule did not occur in this run (it is covered by `WingmanPodTest`). The bark
+played at once, not held back by the spacing.

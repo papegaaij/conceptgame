@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Concept round 28: the proximity mine's arming beep (synthesized), an a/b pair.
 
-Outputs (design/audio/sfx/concept/; OGG Vorbis q6, 44.1 kHz stereo):
+Outputs (design/audio/sfx/concept/, the unchosen one into concept/rejected/; OGG Vorbis q6,
+44.1 kHz stereo):
 
   weapon-mine-arm-r28-<v>.ogg   a proximity mine arming, 0.4 s after its drop
                                 (design/player/weapons/proximity-mines): the `mine` family's
@@ -22,6 +23,10 @@ time at most.
 
 Nobody listened to these: they were checked by their envelopes and levels (printed by this script
 for every file it writes).
+
+Chosen (round 28 closed, 2026-10-06): a, the armed chirp (CHOSEN); b is written to
+concept/rejected/. The game plays a as a concept copy: `copyPlaceholderSounds` (pipeline) copies
+it into assets/sfx/ like the other synthesized sounds, and `Sfx.MINE_ARM` names it.
 
 Usage: python3 tools/concept/audio/sfx_r28.py [subject-or-file ...]
        e.g. weapon-mine-arm (both variants) or weapon-mine-arm-r28-a. Deterministic.
@@ -70,6 +75,7 @@ def mine_arm_b():
 
 
 SYNTH = {"weapon-mine-arm": {"a": mine_arm_a, "b": mine_arm_b}}
+CHOSEN = {"weapon-mine-arm": "a"}
 
 
 def build_synth(subject, v):
@@ -77,7 +83,8 @@ def build_synth(subject, v):
     sig = sig - sig.mean(axis=1, keepdims=True)
     sig = fade(normalize_peak(sig, PEAK_TICK), 0.0005, 0.005)
     name = f"{subject}-r28-{v}"
-    out = write_ogg(OUT / f"{name}.ogg", sig, max_peak_db=PEAK_TICK, tags={"COMMENT": f"{SCRIPT} {name}"})
+    out_dir = OUT if CHOSEN.get(subject) == v else OUT / "rejected"
+    out = write_ogg(out_dir / f"{name}.ogg", sig, max_peak_db=PEAK_TICK, tags={"COMMENT": f"{SCRIPT} {name}"})
     report(out, "synthesized")
 
 

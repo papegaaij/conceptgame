@@ -28,13 +28,14 @@ subtle as the loot targets' 9×9 sparkle (see the capture above); make it bigger
 keeping it a glint, not a pickup. Option a: a 23×23 four-point star in the loot glint's warm white
 (`FFF4D6`), its long arms tapering out to 10 px, short diagonal arms, a white core, over a soft halo
 in the salvage pickups' gold; four frames as the game plays them (0.3 s every 1.5 s): it rises,
-flares, twinkles (the diagonals longest) and sinks back into the fading halo. Played in the game
-until the round closes.
+flares, twinkles (the diagonals longest) and sinks back into the fading halo. **Chosen** in round
+28 (user, 2026-10-06): the game's `glint-secret_0` … `glint-secret_3` (with their `Source` chunk).
 
 ## secret-glint-r28-b
 
-Production art, not a prompt: `tools/art/secret_glint.py --variant b` writes it to the game's
-sprites instead of a. Option b, "scanner ping": a 35×35 thin gold ring that expands from the
+**Rejected** in round 28 (user, 2026-10-06; a chosen): the review pair is in `concept/rejected/`,
+where the script's `--review` writes it. Production art, not a prompt: `tools/art/secret_glint.py
+--variant b` would write it to the game's sprites instead of a. Option b, "scanner ping": a 35×35 thin gold ring that expands from the
 object's centre (radius 3, 7, 11, 15 px over the four frames) and fades as it grows, four brighter
 lock marks on it at the diagonals (a sensor's lock), a faint wash inside the ring and a white flash
 at the centre in the first two frames: it reads as the scanner finding the object rather than the

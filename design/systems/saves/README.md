@@ -1,7 +1,7 @@
 ---
 title: Saves
 design: approved
-implementation: in-progress
+implementation: done
 art: n/a
 depends-on: [../../ui/main-menu, ../../ui/hangar]
 updated: 2026-10-06
@@ -93,7 +93,9 @@ the act.
 - [x] Debug runs write no save: read-only save slots (`SaveSlots.readOnly`, chosen by
   `LaunchOptions.debugRun()`), so every autosave and manual save is skipped; tested in
   `DebugRunTest` and `SaveSlotsTest`
-- [ ] `escort` field, with Rook (format version 3, migrated from version 2) — M5 part A
+- [x] `escort` field, with Rook (format version 3, migrated from version 2) — M5 part A
+  (`SaveFormat.VERSION` 3, `migrateFrom2` hires him when the save is past Level 07; tests in
+  `EscortTest`: the round trip, a new campaign's, the migration, a version 3 save without it)
 - [x] Per-level records in `stats.levels` (format version 2, migrated from version 1) for the act summary (M4 part G; `SaveFormat.VERSION` 2, `migrateFrom1`)
 
 ## Decisions
@@ -144,3 +146,7 @@ the act.
   grade) writes nothing. `--settings` and `--difficulty` alone are not debug options. The Save
   game screen still opens, says that saving is off and writes nothing (simpler than hiding the
   hangar's Save command).
+- 2026-10-06: Concept round 28 closed (user: accepted): debug runs writing no save (read-only save
+  slots for every debug option, `--escort` never part of the campaign's gear) noted as built, and
+  the save's `escort` field (format version 3) accepted with part A. Every item is ticked, so the
+  document is `done` again.

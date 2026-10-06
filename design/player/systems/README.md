@@ -1,8 +1,8 @@
 ---
 title: Ship systems
 design: approved
-implementation: in-progress
-art: proposed
+implementation: done
+art: final
 depends-on: [../generator, ../../ui/hangar]
 updated: 2026-10-06
 ---
@@ -35,8 +35,8 @@ are the "nice extra options": they make the ship better at a job without adding 
 |---|---|---|---|---|---|---|
 | Sensor suite | Improves hangar intel detail (see below) and shows off-screen threat arrows at L2+ | L1–L3 | 1 | 800 / 2 000 / 4 500 | start | idea |
 | Pickup magnet | Pickups within 72 / 108 / 144 px of the ship fly to it at 240 / 300 / 360 px/s (see below) | L1–L3 | 1 | 600 / 1 500 / 3 000 | act 1 | approved |
-| Salvage scanner | +10 / +20 % credits from salvage pickups and hidden crates; a glint marks the objects that hide a secret (see below) | L1–L2 | 1 | 2 500 / 6 000 | act 2 | draft |
-| Targeting computer | Homing turn rate +20 % (Stormhawk weapons), fading HP bars under damaged enemies, brackets on open weak points (see below) | L1 | 1 | 3 000 | act 2 (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores), otherwise L08) | draft |
+| Salvage scanner | +10 / +20 % credits from salvage pickups and hidden crates; a glint marks the objects that hide a secret (see below) | L1–L2 | 1 | 2 500 / 6 000 | act 2 | approved |
+| Targeting computer | Homing turn rate +20 % (Stormhawk weapons), fading HP bars under damaged enemies, brackets on open weak points (see below) | L1 | 1 | 3 000 | act 2 (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores), otherwise L08) | approved |
 | Evasive thrusters | Double-tap direction: 72 px dash, 0.25 s invulnerable, 3 s cooldown | L1 | 2 | 4 000 | act 3 | idea |
 | Auto-repair nanites | Repairs 1 armour per 4 s, up to 50 % of max armour | L1–L2 (2 s at L2) | 3 | 6 000 / 12 000 | act 4 | idea |
 | Pressure hull | Removes the underwater top-speed and shield-regen penalties (see [europa](../../world/europa/README.md#under-water-rules)) | L1 | 1 | 2 000 | L22 | idea |
@@ -91,9 +91,9 @@ the L08 visit (`available: act 2`).
 - **Glint.** Every object that reveals a secret (a trigger, a destructible with a hidden crate,
   Level 07's tow cable) shows a short sparkle (4 frames in 0.3 s, every 1.5 s) at its centre while
   it is on the screen and not yet spent, with both levels, in the dark as well (a dark trigger still
-  takes hits only while lit). A data core's secret glints too. The glint's own sprite is proposed in
-  concept round 28 (a bigger star glint with a soft gold halo, or a scanner ring that expands from
-  the object); until the choice the game plays option a.
+  takes hits only while lit). A data core's secret glints too. The glint's own sprite is the star
+  glint chosen in concept round 28: a 23×23 four-point star with a warm white core over a soft gold
+  halo (`glint-secret`, `tools/art/secret_glint.py`).
 
 ### Hydro-kit (automatic)
 
@@ -136,11 +136,11 @@ Prompts and capture notes: [concept/prompts.md](concept/prompts.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/targeting-computer-capture-r28-a.png](concept/targeting-computer-capture-r28-a.png) | A capture of the game (Level 07): the Targeting computer's HP bar under a damaged Brood Pod, its lime brackets on the Brood Carrier's open bay sacs, and zooms of the bar and of the Salvage scanner's glint on the lifeboat's tow cable | proposed |
-| [concept/secret-glint-r28-a.png](concept/secret-glint-r28-a.png) | Salvage scanner glint, option a "star glint" (production art, `tools/art/secret_glint.py`): 23×23, a four-point star with 10 px arms, short diagonals and a warm white core over a soft gold halo, 4 frames (rise, flare, twinkle, fade), additive, 24 colours; beside the old 9×9 loot glint, and on a cargo container on the station deck and in the dark (sheet) | proposed |
-| [concept/secret-glint-r28-a.gif](concept/secret-glint-r28-a.gif) | Option a playing as the game does (4 frames in 0.3 s every 1.5 s) on a cargo container, deck and dark, beside the old glint (motion) | proposed |
-| [concept/secret-glint-r28-b.png](concept/secret-glint-r28-b.png) | Salvage scanner glint, option b "scanner ping": 35×35, a thin gold ring expanding from the object (radius 3, 7, 11, 15 px) and fading, four lock marks on it at the diagonals, a white flash at the centre in the first two frames, additive, 24 colours (sheet) | proposed |
-| [concept/secret-glint-r28-b.gif](concept/secret-glint-r28-b.gif) | Option b playing as the game would, beside the old glint (motion) | proposed |
+| [concept/targeting-computer-capture-r28-a.png](concept/targeting-computer-capture-r28-a.png) | A capture of the game (Level 07): the Targeting computer's HP bar under a damaged Brood Pod, its lime brackets on the Brood Carrier's open bay sacs, and zooms of the bar and of the Salvage scanner's glint on the lifeboat's tow cable | chosen |
+| [concept/secret-glint-r28-a.png](concept/secret-glint-r28-a.png) | Salvage scanner glint, option a "star glint" (production art, `tools/art/secret_glint.py`): 23×23, a four-point star with 10 px arms, short diagonals and a warm white core over a soft gold halo, 4 frames (rise, flare, twinkle, fade), additive, 24 colours; beside the old 9×9 loot glint, and on a cargo container on the station deck and in the dark (sheet) | chosen |
+| [concept/secret-glint-r28-a.gif](concept/secret-glint-r28-a.gif) | Option a playing as the game does (4 frames in 0.3 s every 1.5 s) on a cargo container, deck and dark, beside the old glint (motion) | chosen |
+| [concept/rejected/secret-glint-r28-b.png](concept/rejected/secret-glint-r28-b.png) | Salvage scanner glint, option b "scanner ping": 35×35, a thin gold ring expanding from the object (radius 3, 7, 11, 15 px) and fading, four lock marks on it at the diagonals, a white flash at the centre in the first two frames, additive, 24 colours (sheet) | rejected |
+| [concept/rejected/secret-glint-r28-b.gif](concept/rejected/secret-glint-r28-b.gif) | Option b playing as the game would, beside the old glint (motion) | rejected |
 
 ## Implementation
 
@@ -159,8 +159,8 @@ Prompts and capture notes: [concept/prompts.md](concept/prompts.md).
 - [x] Salvage scanner: +10 / +20 % on salvage and hidden crates, the glint on a secret's objects —
   M5 part A (`salvage` in [data.yaml](data.yaml); `Loadout.salvageBonus` paid in
   `Sortie.payPickup`, the glint in `vanguard.game.render.SecretGlints`; tests `UtilityEffectsTest`,
-  `UtilityModulesTest`; the glint plays its own sprite `glint-secret`, concept round 28's option a
-  until the round closes, and the loot targets' glint frames when the sprite pages lack it)
+  `UtilityModulesTest`; the glint plays its own sprite `glint-secret`, concept round 28's chosen
+  star glint, and the loot targets' glint frames when the sprite pages lack it)
 - [x] Sensor suite: off-screen threat arrows at L2+ (M4 part H, `vanguard.game.render.ThreatArrows`;
   the sensor level in `Flight.sensor()`)
 - [x] The third utility bay as data (5 000 cr, `available: act 3`): loaded and validated, for sale
@@ -266,3 +266,14 @@ Prompts and capture notes: [concept/prompts.md](concept/prompts.md).
   piece's part (`EnemySpec.ChainSpec.headMultiplier`, from the head part's `multiplier`; a regrown
   head has none), so the Targeting computer's lime brackets show round a living Coilwyrm head (the
   rule's `large` unit with a multiplier) and not round a regrown one.
+- 2026-10-06: Concept round 28 closed (user: everything accepted, glint **a**): the Targeting
+  computer's details (the HP bars' size, colours, 1.5 s + 0.3 s fade and the units that get one, the
+  lime brackets' pulse and the parts that get them, the +20 % turn for the Stormhawk's homing weapons
+  only) and the Salvage scanner's (+10 / +20 % on salvage pickups and hidden crates before the one
+  rounding, outside the budget and not in the score; the glint's timing and the objects that glint)
+  are **approved**, so both rows leave `draft` for `approved`. The glint is option **a**, the star
+  glint (23×23, warm white over a soft gold halo), approved as **final**: the game already played it
+  (`glint-secret`); b, the scanner ping, rejected (its review pair in `concept/rejected/`, where
+  `secret_glint.py --review` writes it). With the Targeting computer's code-drawn bars and brackets
+  accepted as built, every asset of this part is approved: `art: final`. Every remaining item is
+  tagged with its act, so the part is `done` again.

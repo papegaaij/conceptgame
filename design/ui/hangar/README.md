@@ -1,7 +1,7 @@
 ---
 title: Hangar
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
 updated: 2026-10-06
@@ -50,7 +50,12 @@ illustrative and come from [player](../../player/README.md).)
 - **Loadout** (left): the ship diagram with every slot. Select a slot to filter the shop to
   items that fit it. Core stats underneath. The **power bar** at the bottom shows the current
   load and, while browsing, the projected load in a lighter colour; it turns red when an item
-  would not fit.
+  would not fit. The **module tiles** under the diagram (GEN, SHD, ARM, ENG, SPC, UTL, UTL; 48 px
+  wide) name the fitted part in at most **6 characters** of the 8 px label font: the model without
+  its nickname (`MK II` for Mk II "Arc"), `STD`, `CMP I` / `CMP II` for Composite, `STRIKE`,
+  `S-BOMB`, `FLARES`, `SENSOR`, `MAGNET`, `TARGET` (Targeting computer), `SALVGE` (Salvage
+  scanner); a longer name loses its spaces and is cut to 6 (`CMPIII`, `EVASIV`). The weapon
+  callouts are wider and keep the longer short names (`MICRO-MSL`).
 - **Shop** (centre): list for the selected slot (owned items first, then buyable, then locked
   with their unlock hint). ◆ markers show how many of the item's traits match the intel
   recommendation. A **NEW** tag marks items that entered the shop since the last visit; the
@@ -350,3 +355,24 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
 - 2026-10-06: user decision: Rook's side stays outside the visit's undo, as *Side* says. A side
   change pushes no undo step, and undoing an earlier transaction keeps the side he has now
   (`Hangar.escortSide`, `Hangar.restore`; test `EscortTest.hisSideIsAHangarSettingOutsideTheUndo`).
+- 2026-10-06: The module tiles' names fit their 48 px (M5 part A: names such as `AIRSTRIKE`,
+  `SMART BOMB` and `TARGETING COMPUTER` are wider than the tile): at most 6
+  characters of the 8 px label font, with the abbreviations under *Panels* (`Names.tile`; the weapon
+  callouts use `Names.callout`). For the Salvage scanner `SALVGE` over `SCANNR`: the tile says what
+  the module is for (salvage) and `SCANNR` would read like the Sensor suite, the other scanner in
+  the utility bays. Test `LoadoutTilesLayoutTest`: every generator, shield, plating, engine,
+  special and utility module fits 6 × 8 px, and those of Acts 1–2 (unlocked by Level 14) fit by
+  their model or an abbreviation, never by the fallback cut. Later parts still fall back (`CMPIII`,
+  `EVASIV`, `AUTO-R`, `PRESSU`, `ASCEND`) until their acts give them abbreviations.
+- 2026-10-06: The capture's "1 FREE SMART BOMB CHARGE" notice was an artefact of its hand-made save
+  (placed at Level 08), not a bug: the visit gave the Airstrike's and the Smart Bomb's free charges
+  at once, and `HangarState.notice` keeps only the last notice. In a played campaign the two gifts
+  come at different visits (their unlocks, Levels 04 and 06). No change.
+- 2026-10-06: Concept round 28 closed (user: accepted): the escort UI approved as built (the escort
+  tab after the rear mount, the 92×92 callout with his side, icon, gun and pips, armour amber below
+  50 % or `GROUNDED`, his gun shop at 60 % with the visit's undo, the `ROOK'S SIDE` row outside the
+  undo, the `SHIP` / `ROOK` repair lines, the two launch warnings, his guns' test fire from his
+  nose), and the module tiles' abbreviations (`CMP I`, `CMP II`, `STRIKE`, `S-BOMB`, `FLARES`,
+  `SENSOR`, `MAGNET`, `TARGET`, `SALVGE`) accepted; the later acts' modules keep the cut fallback
+  until their acts. Every item but mouse navigation (M6) is ticked, so the document is `done`
+  again; `art` stays `chosen` (the later acts' tactical maps and intel pictures do not exist yet).

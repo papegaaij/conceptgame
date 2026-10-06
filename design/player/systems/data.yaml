@@ -31,7 +31,7 @@ utility:
     draw: 1
     prices: [2500, 6000]
     available: act 2
-    design: draft
+    design: approved
     salvage:  # one share per level: added to every salvage pickup's and hidden crate's credits (outside the budget)
       bonus: [0.1, 0.2]
     notes: {effect: '+10 / +20 % credits from salvage pickups and hidden crates; a glint marks the objects that hide a secret (see below)'}
@@ -39,7 +39,7 @@ utility:
     draw: 1
     prices: [3000]
     available: act 2
-    design: draft
+    design: approved
     targeting:  # turn_bonus: share added to the Stormhawk's homing turn rates and the Swivel's slew; an HP bar stays bar_seconds after the last hit, then fades over bar_fade s
       turn_bonus: 0.2
       bar_seconds: 1.5

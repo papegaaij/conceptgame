@@ -38,8 +38,8 @@ public final class Wingman {
     /** The most air enemies whose contact he remembers, so a lasting contact hurts once. */
     private static final int CONTACTS = 4;
 
-    /** The most bullets he remembers missing at once, so each one is decided once. */
-    private static final int MISSES = 4;
+    /** The most bullets he remembers deciding on at once, so each one is decided once. */
+    private static final int DECIDED = 4;
 
     /** Two predicted lines this close (px) at the same velocity are the same bullet's. */
     private static final double SAME_LINE = 1;
@@ -49,6 +49,12 @@ public final class Wingman {
 
     /** A move clear of a body that would bring his slot within his minimum distance of the player costs this much more, px. */
     private static final double NEAR_PLAYER_COST = 1000;
+
+    /** A move clear of a body whose way crosses the body (or, from outside, its box) costs this much more, px. */
+    private static final double CROSSING_COST = 500;
+
+    /** A way that only touches a box's edge (in parts of its length) does not cross it. */
+    private static final double CROSSING_EPSILON = 1e-9;
 
     /** An enemy that moved farther than this in a step jumped (a loop-back's re-entry): no velocity, px. */
     private static final double JUMP = 16;
@@ -125,15 +131,16 @@ public final class Wingman {
     private int dodgeLeft;
 
     /**
-     * The bullets he predicted but did not react to, each by its velocity and its line (the cross
+     * The bullets he decided on (and whether he reacted), each by its velocity and its line (the cross
      * product of position and velocity, the same all along its flight), with the steps he still
      * remembers it; so a bullet is decided once, not again at every prediction.
      */
-    private final double[] missedVx = new double[MISSES];
+    private final double[] decidedVx = new double[DECIDED];
 
-    private final double[] missedVy = new double[MISSES];
-    private final double[] missedLine = new double[MISSES];
-    private final int[] missedTicks = new int[MISSES];
+    private final double[] decidedVy = new double[DECIDED];
+    private final double[] decidedLine = new double[DECIDED];
+    private final int[] decidedTicks = new int[DECIDED];
+    private final boolean[] reacted = new boolean[DECIDED];
 
     /** Where he flies to this step: his slot plus a sidestep, moved clear of the enemies' bodies. */
     private double goalX;
@@ -191,8 +198,8 @@ public final class Wingman {
         dodgeWait = -1;
         dodgeX = dodgeY = 0;
         dodgeLeft = 0;
-        for (int i = 0; i < MISSES; i++) {
-            missedTicks[i] = 0;
+        for (int i = 0; i < DECIDED; i++) {
+            decidedTicks[i] = 0;
         }
         evading = false;
         target = -1;
@@ -445,16 +452,18 @@ public final class Wingman {
      * Every dodge interval he predicts the enemy bullets over his look-ahead: the soonest one passing
      * within his clearance is decided once. He reacts to it with his reaction share (his generator):
      * a sidestep at right angles to it, away from its line, which starts after his reaction delay
-     * and lasts the look-ahead, then back to his slot. Otherwise he misses it, and remembers so until
-     * it has passed.
+     * and lasts the look-ahead, then back to his slot; otherwise he misses it. Either way he
+     * remembers his decision until the bullet has passed, so it is decided once: a bullet he missed
+     * he ignores from then on, one he reacted to he keeps sidestepping (planned afresh, no new
+     * decision) while it is still the soonest.
      */
     private void dodge(Pool<EnemyBullet> bullets) {
         if (dodgeLeft > 0 && --dodgeLeft == 0) {
             dodgeX = dodgeY = 0;
         }
-        for (int m = 0; m < MISSES; m++) {
-            if (missedTicks[m] > 0) {
-                missedTicks[m]--;
+        for (int m = 0; m < DECIDED; m++) {
+            if (decidedTicks[m] > 0) {
+                decidedTicks[m]--;
             }
         }
         if (dodgeWait >= 0 && dodgeWait-- == 0) {
@@ -475,6 +484,7 @@ public final class Wingman {
         double clearance = ai.clearance() * ai.clearance();
         double soonest = ai.lookAhead();
         int threat = -1;
+        boolean known = false;
         for (int i = 0; i < bullets.size(); i++) {
             EnemyBullet bullet = bullets.get(i);
             double rx = bullet.x() - x;
@@ -491,18 +501,26 @@ public final class Wingman {
             }
             double cx = rx + bvx * t;
             double cy = ry + bvy * t;
-            if (cx * cx + cy * cy < clearance && !missed(bullet, speed)) {
+            if (cx * cx + cy * cy >= clearance) {
+                continue;
+            }
+            int memory = decided(bullet, speed);
+            if (memory < 0 || reacted[memory]) {
                 soonest = t;
                 threat = i;
+                known = memory >= 0;
             }
         }
         if (threat < 0) {
             return;
         }
         EnemyBullet bullet = bullets.get(threat);
-        if (luck.nextDouble() >= ai.reacts()) {
-            miss(bullet);
-            return;
+        if (!known) {
+            boolean reacts = luck.nextDouble() < ai.reacts();
+            remember(bullet, reacts);
+            if (!reacts) {
+                return;
+            }
         }
         double speed = Math.sqrt(bullet.vx() * bullet.vx() + bullet.vy() * bullet.vy());
         // At right angles to the bullet's flight, to the side of its line he is on.
@@ -517,41 +535,52 @@ public final class Wingman {
         dodgeWait = reactionTicks;
     }
 
-    /** Whether he missed {@code bullet} (its squared speed {@code speed}) and still remembers it. */
-    private boolean missed(EnemyBullet bullet, double speed) {
+    /**
+     * His memory of his decision on {@code bullet} (its squared speed {@code speed}), or -1 if he
+     * has none (any more).
+     */
+    private int decided(EnemyBullet bullet, double speed) {
         double line = bullet.x() * bullet.vy() - bullet.y() * bullet.vx();
         double same = SAME_LINE * Math.sqrt(speed);
-        for (int m = 0; m < MISSES; m++) {
-            if (missedTicks[m] > 0
-                    && missedVx[m] == bullet.vx()
-                    && missedVy[m] == bullet.vy()
-                    && Math.abs(missedLine[m] - line) <= same) {
-                return true;
+        for (int m = 0; m < DECIDED; m++) {
+            if (decidedTicks[m] > 0
+                    && decidedVx[m] == bullet.vx()
+                    && decidedVy[m] == bullet.vy()
+                    && Math.abs(decidedLine[m] - line) <= same) {
+                return m;
             }
         }
-        return false;
-    }
-
-    /** Remembers a bullet he did not react to, until it has passed (in place of the oldest memory). */
-    private void miss(EnemyBullet bullet) {
-        int slot = 0;
-        for (int m = 1; m < MISSES; m++) {
-            if (missedTicks[m] < missedTicks[slot]) {
-                slot = m;
-            }
-        }
-        missedVx[slot] = bullet.vx();
-        missedVy[slot] = bullet.vy();
-        missedLine[slot] = bullet.x() * bullet.vy() - bullet.y() * bullet.vx();
-        missedTicks[slot] = holdTicks + intervalTicks;
+        return -1;
     }
 
     /**
-     * Where he flies to: the point (tx, ty) inside the play field's margins, moved out of the box
-     * around every air enemy's body (its hit box grown by his half hit box and his clearance,
-     * stretched over where it flies in his look-ahead) the shortest way that stays inside the field,
-     * preferring one that keeps his minimum distance to the player. Sets {@link #goalX} and
-     * {@link #goalY}; returns whether it moved the point.
+     * Remembers his decision on a bullet, whether he {@code reacts} to it, until it has passed (in
+     * place of the oldest memory).
+     */
+    private void remember(EnemyBullet bullet, boolean reacts) {
+        int slot = 0;
+        for (int m = 1; m < DECIDED; m++) {
+            if (decidedTicks[m] < decidedTicks[slot]) {
+                slot = m;
+            }
+        }
+        decidedVx[slot] = bullet.vx();
+        decidedVy[slot] = bullet.vy();
+        decidedLine[slot] = bullet.x() * bullet.vy() - bullet.y() * bullet.vx();
+        decidedTicks[slot] = holdTicks + intervalTicks;
+        reacted[slot] = reacts;
+    }
+
+    /**
+     * Where he flies to: the point (tx, ty) inside the play field's margins, kept clear of every air
+     * enemy's body. Around each body lies a box: its hit box grown by his half hit box and his
+     * clearance, stretched over where it flies in his look-ahead. While he is outside a box and his
+     * goal lies in it or his way there crosses it, the goal moves to the box's edge the shortest way
+     * that keeps him from crossing it (he waits on his side while it passes); once he is inside one,
+     * and his goal lies in it or his way there crosses the body itself, he leaves it the shortest way
+     * that does not cross the body. Either way the move stays inside the field and prefers one that
+     * keeps his minimum distance to the player. Sets {@link #goalX} and {@link #goalY}; returns
+     * whether it moved the point.
      */
     private boolean clearOfBodies(Pool<Enemy> enemies, double shipX, double shipY, double tx, double ty) {
         WingmanSpec.Craft craft = spec.craft();
@@ -577,27 +606,41 @@ public final class Wingman {
                 if (stepX * stepX + stepY * stepY > JUMP * JUMP) {
                     stepX = stepY = 0;
                 }
-                double halfW = enemy.hitbox().width() / 2 + craft.hitbox().width() / 2 + gap;
-                double halfH = enemy.hitbox().height() / 2 + craft.hitbox().height() / 2 + gap;
-                double boxLeft = Math.min(ex, ex + stepX * ahead) - halfW;
-                double boxRight = Math.max(ex, ex + stepX * ahead) + halfW;
-                double boxBottom = Math.min(ey, ey + stepY * ahead) - halfH;
-                double boxTop = Math.max(ey, ey + stepY * ahead) + halfH;
-                if (goalX <= boxLeft || goalX >= boxRight || goalY <= boxBottom || goalY >= boxTop) {
+                // The body itself as he touches it, and the box he keeps out of.
+                double touchW = enemy.hitbox().width() / 2 + craft.hitbox().width() / 2;
+                double touchH = enemy.hitbox().height() / 2 + craft.hitbox().height() / 2;
+                double boxLeft = Math.min(ex, ex + stepX * ahead) - touchW - gap;
+                double boxRight = Math.max(ex, ex + stepX * ahead) + touchW + gap;
+                double boxBottom = Math.min(ey, ey + stepY * ahead) - touchH - gap;
+                double boxTop = Math.max(ey, ey + stepY * ahead) + touchH + gap;
+                boolean goalIn = goalX > boxLeft && goalX < boxRight && goalY > boxBottom && goalY < boxTop;
+                boolean in = x > boxLeft && x < boxRight && y > boxBottom && y < boxTop;
+                // What his way must not cross: the box from outside it, the body from inside it.
+                double wallLeft = in ? ex - touchW : boxLeft;
+                double wallRight = in ? ex + touchW : boxRight;
+                double wallBottom = in ? ey - touchH : boxBottom;
+                double wallTop = in ? ey + touchH : boxTop;
+                if (!goalIn && !crosses(x, y, goalX, goalY, wallLeft, wallRight, wallBottom, wallTop)) {
                     continue;
                 }
+                // From outside, the goal moves to an edge; from inside, he leaves from where he is.
+                double fromX = in ? x : goalX;
+                double fromY = in ? y : goalY;
                 double bestX = goalX;
                 double bestY = goalY;
                 double best = Double.MAX_VALUE;
                 for (int k = 0; k < 4; k++) {
-                    double cx = k == 0 ? boxLeft : k == 1 ? boxRight : goalX;
-                    double cy = k == 2 ? boxBottom : k == 3 ? boxTop : goalY;
+                    double cx = k == 0 ? boxLeft : k == 1 ? boxRight : fromX;
+                    double cy = k == 2 ? boxBottom : k == 3 ? boxTop : fromY;
                     if (cx < limit || cx > right || cy < limit || cy > top) {
                         continue;
                     }
+                    double cost = Math.abs(cx - fromX) + Math.abs(cy - fromY);
+                    if (crosses(x, y, cx, cy, wallLeft, wallRight, wallBottom, wallTop)) {
+                        cost += CROSSING_COST;
+                    }
                     double px = cx - shipX;
                     double py = cy - shipY;
-                    double cost = Math.abs(cx - goalX) + Math.abs(cy - goalY);
                     if (px * px + py * py < min * min) {
                         cost += NEAR_PLAYER_COST;
                     }
@@ -607,7 +650,7 @@ public final class Wingman {
                         bestY = cy;
                     }
                 }
-                if (best < Double.MAX_VALUE) {
+                if (best < Double.MAX_VALUE && (bestX != goalX || bestY != goalY)) {
                     goalX = bestX;
                     goalY = bestY;
                     moved = true;
@@ -619,6 +662,32 @@ public final class Wingman {
             }
         }
         return shifted;
+    }
+
+    /**
+     * Whether the way from (ax, ay) to (bx, by) passes through the inside of the box (touching its
+     * edge is not crossing it).
+     */
+    private static boolean crosses(
+            double ax, double ay, double bx, double by, double left, double right, double bottom, double top) {
+        double dx = bx - ax;
+        double dy = by - ay;
+        double enter = 0;
+        double leave = 1;
+        for (int k = 0; k < 4; k++) {
+            double p = k == 0 ? -dx : k == 1 ? dx : k == 2 ? -dy : dy;
+            double q = k == 0 ? ax - left : k == 1 ? right - ax : k == 2 ? ay - bottom : top - ay;
+            if (p == 0) {
+                if (q <= 0) {
+                    return false;
+                }
+            } else if (p < 0) {
+                enter = Math.max(enter, q / p);
+            } else {
+                leave = Math.min(leave, q / p);
+            }
+        }
+        return leave - enter > CROSSING_EPSILON;
     }
 
     /**
@@ -859,9 +928,13 @@ public final class Wingman {
         for (int i = 0; i < contactCount; i++) {
             hash.add(contacts[i]);
         }
-        for (int m = 0; m < MISSES; m++) {
-            if (missedTicks[m] > 0) {
-                hash.add(missedVx[m]).add(missedVy[m]).add(missedLine[m]).add(missedTicks[m]);
+        for (int m = 0; m < DECIDED; m++) {
+            if (decidedTicks[m] > 0) {
+                hash.add(decidedVx[m])
+                        .add(decidedVy[m])
+                        .add(decidedLine[m])
+                        .add(decidedTicks[m])
+                        .add(reacted[m] ? 1 : 0);
             }
         }
     }

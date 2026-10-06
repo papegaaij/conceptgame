@@ -1,6 +1,8 @@
 package vanguard.game.hangar;
 
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import vanguard.content.campaign.LoadoutSlot;
 
 /** How the hangar writes item and slot names and numbers in the bitmap fonts' upper case. */
@@ -12,20 +14,61 @@ public final class Names {
         return name.toUpperCase(Locale.ROOT);
     }
 
+    /** The most characters a module tile's name shows: 48 px of tile in the 8 px label font. */
+    public static final int TILE_CHARS = 6;
+
+    /** The tiles' abbreviations, longest first so that a name is not shortened twice. */
+    private static final Map<String, String> TILE_WORDS = tileWords();
+
     /**
-     * A part's short name for the module tiles and the schematic's callouts: the model without its
-     * nickname, {@code COMP I} for Composite I, {@code MICRO-MSL} for the Micro-missile Pod.
+     * A weapon's or Rook's gun's short name for the schematic's callouts: the model without its
+     * nickname, {@code MICRO-MSL} for the Micro-missile Pod.
+     */
+    public static String callout(String name) {
+        return of(model(name)).replace("MICRO-MISSILE", "MICRO-MSL").replace(" POD", "");
+    }
+
+    /**
+     * A core part's, special's or utility module's name on its module tile, at most {@link
+     * #TILE_CHARS} characters: the model without its nickname ({@code MK II} for Mk II "Arc"),
+     * with the tiles' abbreviations ({@code CMP I}, {@code STRIKE}, {@code S-BOMB}, {@code
+     * FLARES}, {@code TARGET}, {@code SALVGE}); a longer name loses its spaces and is cut.
      */
     public static String tile(String name) {
-        String model =
-                name.contains("\"") ? name.substring(0, name.indexOf('"')).strip() : name;
-        return of(model)
-                .replace("COMPOSITE", "COMP")
-                .replace("STANDARD", "STD")
-                .replace("SENSOR SUITE", "SENSOR")
-                .replace("PICKUP MAGNET", "MAGNET")
-                .replace("MICRO-MISSILE", "MICRO-MSL")
-                .replace(" POD", "");
+        String text = abbreviated(name);
+        if (text.length() <= TILE_CHARS) {
+            return text;
+        }
+        String joined = text.replace(" ", "");
+        return joined.substring(0, Math.min(TILE_CHARS, joined.length()));
+    }
+
+    /** The tile name before the fallback cut: the model with the tiles' abbreviations. */
+    static String abbreviated(String name) {
+        String text = of(model(name));
+        for (Map.Entry<String, String> word : TILE_WORDS.entrySet()) {
+            text = text.replace(word.getKey(), word.getValue());
+        }
+        return text;
+    }
+
+    private static Map<String, String> tileWords() {
+        Map<String, String> words = new LinkedHashMap<>();
+        words.put("TARGETING COMPUTER", "TARGET");
+        words.put("SALVAGE SCANNER", "SALVGE");
+        words.put("PICKUP MAGNET", "MAGNET");
+        words.put("SENSOR SUITE", "SENSOR");
+        words.put("DECOY FLARES", "FLARES");
+        words.put("SMART BOMB", "S-BOMB");
+        words.put("COMPOSITE", "CMP");
+        words.put("AIRSTRIKE", "STRIKE");
+        words.put("STANDARD", "STD");
+        return words;
+    }
+
+    /** The model without its nickname: {@code Mk II} for {@code Mk II "Arc"}. */
+    private static String model(String name) {
+        return name.contains("\"") ? name.substring(0, name.indexOf('"')).strip() : name;
     }
 
     /** Power in MW with at most one decimal: {@code 4.5 MW}, {@code 8 MW}. */

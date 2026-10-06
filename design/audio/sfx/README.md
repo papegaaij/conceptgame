@@ -84,7 +84,7 @@ reused round 02 files marked (r02).
 | Harpoon torpedo / depth charge | Muffled launch, bubbles; underwater boom; the Torpedo Pod (L11) — **later: M5 part E**, Harpoon Torpedoes and Depth Charges Act 4 | P2 |
 | Plasma Arc | Crackle | P3 |
 | Tail Gun / Fan Blaster | Like the front guns, a little lower (rear guns play their family 10 % lower, built with the Side Splitter); Tail Gun (L08) and Fan Blaster (L10), built in M5 part A | P1 |
-| Proximity mine drop / arm | Click + beep; Proximity Mines (L12): the drop plays the `mine` family at its own pitch (M5 part A); the arming beep as a mine arms: proposed in [round 28](#concept-art) (a "armed chirp", b "sensor ping"), a played until the choice | P2 |
+| Proximity mine drop / arm | Click + beep; Proximity Mines (L12): the drop plays the `mine` family at its own pitch (M5 part A); the arming beep as a mine arms: chosen [a](concept/weapon-mine-arm-r28-a.ogg) "armed chirp" in [round 28](../../concept-rounds/round-28/README.md) (b "sensor ping" rejected) | P2 |
 | Choir Resonator | Alien chord shot | P3 |
 | Overdrive start / end | Power-up surge / power-down | P1 |
 
@@ -514,14 +514,15 @@ copied into `assets/sfx/` by `copyPlaceholderSounds`, the tear's production file
 
 Concept round 28 (M5 part A) — an a/b pair for the proximity mine's arming beep, synthesized in the
 round-08 UI family by `tools/concept/audio/sfx_r28.py`: short, dry, high and quiet (peak −12 dBFS,
-the tick level), so mines arming together do not clutter. Not listened to by Claude. Option a plays
-in the game until the round closes (`Sfx.MINE_ARM`, a concept copy by `copyPlaceholderSounds`).
+the tick level), so mines arming together do not clutter. Not listened to by Claude. Closed: **a**
+chosen (user), b in `concept/rejected/`; the game plays a as a concept copy (`Sfx.MINE_ARM`,
+`copyPlaceholderSounds`).
 Briefs: [concept/prompts.md](concept/prompts.md#round-28--the-proximity-mines-arming-beep).
 
 | File | What | Status |
 |---|---|---|
-| [concept/weapon-mine-arm-r28-a.ogg](concept/weapon-mine-arm-r28-a.ogg) | Synthesized — mine arming a, "armed chirp": two soft rising pulse blips a fifth apart (A6, E7 45 ms later), low-passed (0.10 s) | proposed |
-| [concept/weapon-mine-arm-r28-b.ogg](concept/weapon-mine-arm-r28-b.ogg) | Synthesized — mine arming b, "sensor ping": one sine ping gliding up a fifth in 15 ms, ringing out on a faint metallic overtone over a tiny latch click (0.15 s) | proposed |
+| [concept/weapon-mine-arm-r28-a.ogg](concept/weapon-mine-arm-r28-a.ogg) | Synthesized — mine arming a, "armed chirp": two soft rising pulse blips a fifth apart (A6, E7 45 ms later), low-passed (0.10 s) | chosen |
+| [concept/rejected/weapon-mine-arm-r28-b.ogg](concept/rejected/weapon-mine-arm-r28-b.ogg) | Synthesized — mine arming b, "sensor ping": one sine ping gliding up a fifth in 15 ms, ringing out on a faint metallic overtone over a tiny latch click (0.15 s) | rejected |
 
 ## Implementation
 
@@ -555,7 +556,7 @@ Briefs: [concept/prompts.md](concept/prompts.md#round-28--the-proximity-mines-ar
   (`FlightSounds`)
 - [x] The proximity mine's arming beep: `Sfx.MINE_ARM` on the simulation's `PROXIMITY_MINE_ARMED`
   (the step a mine arms), at −10 dB in the flight mix, ±3 % pitch, panned, two instances at most
-  (`FlightSounds`); round 28's option a until the round closes (M5 part A)
+  (`FlightSounds`); round 28's chosen a, the armed chirp (M5 part A)
 - [ ] Torpedo launch and the water explosion — **later: M5 part E**; the Act 2 ambiences —
   **later: M5** (parts B, E, F, G, with their levels)
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
@@ -746,3 +747,9 @@ Briefs: [concept/prompts.md](concept/prompts.md#round-28--the-proximity-mines-ar
   replay hashes are unchanged, events are not hashed); option a plays there provisionally
   (`Sfx.MINE_ARM`, two instances, −10 dB, between the hits' −8 and the shots' −14), so the game plays
   one proposed sound until the round closes.
+- 2026-10-06: Concept round 28 closed (user): the mine's arming beep **a**, the armed chirp (two
+  rising pulse blips a fifth apart); b, the gliding sensor ping, rejected and moved to
+  `concept/rejected/` (`sfx_r28.py`'s `CHOSEN` writes it there). The game already played a, as a
+  concept copy like the other synthesized sounds (`copyPlaceholderSounds`, `Sfx.MINE_ARM`); it
+  again plays no proposed sound. This doc's `art` stays `chosen` (the synthesized sounds are not
+  final).

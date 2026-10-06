@@ -2,7 +2,7 @@
 title: Swivel Gun
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-06
 ---
@@ -58,8 +58,8 @@ Prompts: [concept/prompts.md](concept/prompts.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/swivel-gun-final-r28-a.png](concept/swivel-gun-final-r28-a.png) | Final effects: the turret's tracer (`tracer(8, 1.4)`, the `ballistic` family) at 32 headings, with the shared ballistic muzzle flash and impact (sheet) | proposed |
-| [concept/swivel-gun-final-r28-a.gif](concept/swivel-gun-final-r28-a.gif) | Two Swivel pods on the Stormhawk following a target that circles the ship, the tracers flying at it in every direction (the pods' barrels do not turn) (motion) | proposed |
+| [concept/swivel-gun-final-r28-a.png](concept/swivel-gun-final-r28-a.png) | Final effects: the turret's tracer (`tracer(8, 1.4)`, the `ballistic` family) at 32 headings, with the shared ballistic muzzle flash and impact (sheet) | chosen |
+| [concept/swivel-gun-final-r28-a.gif](concept/swivel-gun-final-r28-a.gif) | Two Swivel pods on the Stormhawk following a target that circles the ship, the tracers flying at it in every direction (the pods' barrels do not turn) (motion) | chosen |
 
 ## Implementation
 
@@ -81,3 +81,4 @@ The Swivel Gun has flown since M4 part A with borrowed effects. M5 part A gives 
 - 2026-10-06: M5 part A (user decision D1 = a): built in part A with the other Act 2 weapons that need no water (Tail Gun, Fan Blaster, Hornet Launcher, Swivel Gun, Proximity Mines); the effects go straight to production (the families were chosen in round 08) and are reviewed in concept round 28. The Torpedo Pod and the `sub` layer move to part E (Level 11).
 - 2026-10-06: M5 part A built the turret as written: a `TURRET` delivery, aiming each step whether fire is held or not, firing only with a target, its shots straight bullets that reach every layer a homing missile does (a high-air boss's part only for the shot aimed at it); `slew: 360` and `cone: 60` (the forward cone) in [data.yaml](data.yaml), the 20 % flank preference a constant of the simulation (`PlayerFire.FLANK_PREFERENCE`); its turret is aimed from the pod's muzzle. Its own effects from `tools/art/act2_weapon_fx.py` (the tracer at 32 headings, the shared ballistic muzzle flash and impact; review files proposed for round 28); the `ballistic` family's sound. The pod's barrel is drawn fixed (the stormhawk pod sprite); a turning barrel is a round-28 question. The slew is the weapon's one turn rate (`WeaponSpec.turnRate`), which the Targeting computer's +20 % scales.
 - 2026-10-06: M5 part A built the Targeting computer's +20 % on the turret's slew (360 → 432°/s), applied where `SimSpecs.loadout` builds the Stormhawk's weapons.
+- 2026-10-06: Concept round 28 closed (user: accepted): its effects (`tools/art/act2_weapon_fx.py`) approved as **final**, `art: final`: the tracer at 32 headings with the ballistic muzzle flash and impact, and the `ballistic` family's sound; the pod's barrel stays drawn fixed (no turning barrel), as the round showed it.

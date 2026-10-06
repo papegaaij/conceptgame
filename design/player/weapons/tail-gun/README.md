@@ -2,7 +2,7 @@
 title: Tail Gun
 design: approved
 implementation: done
-art: chosen
+art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-06
 ---
@@ -57,8 +57,8 @@ Prompts: [concept/prompts.md](concept/prompts.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/tail-gun-final-r28-a.png](concept/tail-gun-final-r28-a.png) | Final effects: the `rear` family's energy bolt (`energy_bolt(10, 2.2)`) drawn at every angle its patterns use (straight back), with the shared pulse muzzle flash and impact (sheet) | proposed |
-| [concept/tail-gun-final-r28-a.gif](concept/tail-gun-final-r28-a.gif) | The Stormhawk flying with the L5 pattern (three parallel bolts) firing backwards, the pulse muzzle flash at the rear muzzle (motion) | proposed |
+| [concept/tail-gun-final-r28-a.png](concept/tail-gun-final-r28-a.png) | Final effects: the `rear` family's energy bolt (`energy_bolt(10, 2.2)`) drawn at every angle its patterns use (straight back), with the shared pulse muzzle flash and impact (sheet) | chosen |
+| [concept/tail-gun-final-r28-a.gif](concept/tail-gun-final-r28-a.gif) | The Stormhawk flying with the L5 pattern (three parallel bolts) firing backwards, the pulse muzzle flash at the rear muzzle (motion) | chosen |
 
 ## Implementation
 
@@ -78,3 +78,4 @@ The Tail Gun has flown since M4 part A with borrowed effects. M5 part A gives it
 - 2026-10-02: Numbers moved into [data.yaml](data.yaml) (M2 data files); the property and per-level tables are rendered from it by `tools/sync_tables.py`.
 - 2026-10-06: M5 part A (user decision D1 = a): built in part A with the other Act 2 weapons that need no water (Tail Gun, Fan Blaster, Hornet Launcher, Swivel Gun, Proximity Mines); the effects go straight to production (the families were chosen in round 08) and are reviewed in concept round 28. The Torpedo Pod and the `sub` layer move to part E (Level 11).
 - 2026-10-06: M5 part A built: its own effects from `tools/art/act2_weapon_fx.py` (the `rear` bolt at every angle its patterns use, the shared pulse muzzle flash and impact; review files proposed for round 28) and its `pulse` family 10 % lower as a rear gun; the rest (data, patterns, layers, draw and prices) checked against this document. Act 1's replays are unchanged.
+- 2026-10-06: Concept round 28 closed (user: accepted): its effects (`tools/art/act2_weapon_fx.py`) approved as **final**, `art: final`: the `rear` energy bolt straight back with the shared pulse muzzle flash and impact, and its `pulse` sound 10 % lower.

@@ -1,8 +1,8 @@
 ---
 title: Proximity Mines
 design: approved
-implementation: in-progress
-art: chosen
+implementation: done
+art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
 updated: 2026-10-06
 ---
@@ -59,8 +59,8 @@ Prompts: [concept/prompts.md](concept/prompts.md).
 
 | File | What | Status |
 |---|---|---|
-| [concept/proximity-mines-final-r28-a.png](concept/proximity-mines-final-r28-a.png) | Final effects: the mine (`mine_model` at 12 px) with its sensor dark (unarmed) and lit at three strengths (the armed pulse), the 12-frame blast (the round-09 fireball with a blue shock ring out to the 48 px radius) and the shared launcher muzzle flash (sheet) | proposed |
-| [concept/proximity-mines-final-r28-a.gif](concept/proximity-mines-final-r28-a.gif) | Mines dropping behind the ship, drifting to a halt, arming (the light pulses) and one bursting as a target passes (motion) | proposed |
+| [concept/proximity-mines-final-r28-a.png](concept/proximity-mines-final-r28-a.png) | Final effects: the mine (`mine_model` at 12 px) with its sensor dark (unarmed) and lit at three strengths (the armed pulse), the 12-frame blast (the round-09 fireball with a blue shock ring out to the 48 px radius) and the shared launcher muzzle flash (sheet) | chosen |
+| [concept/proximity-mines-final-r28-a.gif](concept/proximity-mines-final-r28-a.gif) | Mines dropping behind the ship, drifting to a halt, arming (the light pulses) and one bursting as a target passes (motion) | chosen |
 
 ## Implementation
 
@@ -70,7 +70,7 @@ M5 part A: the Proximity Mines get their delivery (none flew before: the hangar 
 - [x] Projectile pattern per level 1–5 and the overdrive pattern
 - [x] Layer hit rules for its traits (see Layers hit) on `air`, `low-air` and `ground`
 - [x] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
-- [x] The arming beep (the `mine` family's "arming beep"): played the step a mine arms, round 28's option a until the round closes ([sound effects](../../../audio/sfx/README.md#concept-art))
+- [x] The arming beep (the `mine` family's "arming beep"): played the step a mine arms, round 28's chosen a, the armed chirp ([sound effects](../../../audio/sfx/README.md#concept-art))
 - [x] Behaviour as described above
 - [x] Power draw per level counted in the loadout; upgrades priced as listed
 - [x] The mine delivery: the drop with its decaying drift, holding its screen position on `air`, arming, the proximity trigger on `air` and `low-air`, one blast, the fizzle and the *max live* cap
@@ -89,3 +89,4 @@ M5 part A: the Proximity Mines get their delivery (none flew before: the hangar 
   [sound effects](../../../audio/sfx/README.md#concept-art)); the simulation marks the step a mine
   arms (`PROXIMITY_MINE_ARMED`, at the mine, the mount as its value) and the game plays option a
   there until the round closes, at most two at a time.
+- 2026-10-06: Concept round 28 closed (user: accepted): its effects (`tools/art/act2_weapon_fx.py`) approved as **final**, `art: final`: the 12 px mine dark while unarmed and pulsing once armed, the 12-frame blast with its blue ring to the 48 px radius and the launcher muzzle flash, accepted with the weak spots the round named (the sensor light reads only at 1–2 px, the blast may draw over the ship's tail, a fizzle is not marked); the arming beep is **a**, the armed chirp (b, the sensor ping, rejected; see [sound effects](../../../audio/sfx/README.md#decisions)).

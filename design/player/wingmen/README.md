@@ -2,7 +2,7 @@
 title: Wingmen and drones
 design: approved
 implementation: in-progress
-art: chosen
+art: final
 depends-on: [../weapons, ../../story, ../../systems/saves, ../../ui/hangar, ../../ui/hud]
 updated: 2026-10-06
 ---
@@ -42,7 +42,7 @@ the Warden (L22).
 | Hire | Free when he is assigned (L08); his guns and their upgrades are paid |
 | Ship | An AF-12 Stormhawk built on the variant-C airframe (the blended manta from the [ship concepts](../ship/README.md)) in Rook's own colours; 42×42 sprite, slightly smaller than the player's 48×48 so the player's ship always reads first; armour 80, no shield |
 | Position | Formation slot beside and slightly behind the player (left or right, hangar setting) |
-| Behaviour | Keeps formation, shoots what the player shoots, dodges bullets with a delay, targets enemies closing from the sides |
+| Behaviour | Keeps formation, fires whenever the player fires, dodges bullets with a delay, prefers the player's target, then an enemy near him (a flank threat, within 160 px) |
 | Weapon | One gun fitted from his own inventory (see *Rook's guns* and *Escort inventory* below), each gun upgradable L1–L5 at 60 % of the player's prices |
 | Downed | At 0 armour he ejects and is out for the rest of the level; his armour is repaired in the hangar, like the player's (see *Armour and repairs*) |
 | Radio | Banters on the radio; warns about threats from the rear ("Six o'clock, Lancer!") |
@@ -68,7 +68,8 @@ right) is the hangar setting and mirrors the x values.
 |---|---|
 | Armour | 80, no shield, no hit invulnerability; takes enemy bullets and contact damage like the player |
 | Hitbox | 11×11 px, on the `air` layer |
-| Movement | Top speed 250 px/s, full speed in 0.2 s; never closer than 40 px to the player; keeps the 12 px play-field margin |
+| Movement | Top speed 250 px/s, full speed in 0.2 s; never closer than 40 px to the player, also where that meets the play-field margin (the player near an edge or in a corner, a side swap gliding past him: he is pushed out along the margin); keeps the 12 px play-field margin |
+| Bodies | His slot keeps his 14 px dodge clearance from every `air` enemy's hit box, over where the enemy flies in the next 0.4 s: a slot inside that box moves to its nearest edge he can reach without crossing the box (he waits on his side while a body passes), and once inside one he leaves it the shortest way that does not cross the body; such a move jinks like a sidestep and keeps the 40 px to the player |
 | Collision with an `air` enemy | Rook takes the enemy's full contact damage and deals 20 to it; a `tiny` or `small` enemy is destroyed by the impact, as when it rams the player |
 
 **Formations** — he switches automatically and glides to the new slot over 0.6 s.
@@ -76,10 +77,12 @@ right) is the hangar setting and mirrors the x values.
 | Formation | Offset | When |
 |---|---|---|
 | Wing (default) | (64, +28) | No other condition |
-| Wide | (120, +10) | A `sides` wave is active, or an enemy is within 160 px of him horizontally |
+| Wide | (120, +10) | A `sides` wave is active, or an enemy is within 160 px of him (plain distance from his centre, so an enemy just ahead counts too) |
 | Trail | (40, +90) | A `rear` wave is active: pursuers overtake him first and enter his firing cone sooner |
 
-A wave is active from its first unit's entry until its last unit has died or left the screen.
+A wave is active from its first unit's entry until its last unit has died or left the screen. A
+segment chain counts by the edge it entered from last: a Coilwyrm wave from the rear is a rear
+wave, and a chain that loops back is one from its re-entry at the bottom edge.
 When both Trail and Wide apply, **Trail** wins. When the slot lies outside the play field (the
 player flies close to the edge on Rook's side, or near the bottom edge in Trail), he takes the
 **mirrored slot** on the other side, and returns to his own side once it has been inside the
@@ -90,15 +93,16 @@ field for 1 s. Formation changes and side swaps start after his reaction delay.
 | Property | Value |
 |---|---|
 | Reaction delay | 0.25 s for target switches, formation changes and dodges |
-| Dodging | Every 0.1 s he predicts enemy bullets 0.4 s ahead; if one would pass within 14 px, he sidesteps up to 48 px at right angles to it, then returns to his slot. Because of the delay he avoids about 70 % of single bullets and fewer in dense patterns |
+| Dodging | Every 0.1 s he predicts enemy bullets 0.6 s ahead (user decision 2026-10-06; 0.4 s left him too little time against aimed fire); the soonest one that would pass within 14 px he decides on **once**: he **reacts to about 70 %** of them (user decision 2026-10-06), sidestepping up to 48 px at right angles to it after his reaction delay and keeping at it while it is the soonest, then back to his slot; the rest he misses and ignores. The 0.25 s delay inside the 0.6 s look-ahead leaves him 0.25–0.35 s to clear a bullet |
 | Firing cone | 30° ahead of his ship (15° either side of straight up), range 360 px: where he picks his target. His craft never turns (banking frames only), so he fires up the screen |
 | Fire | Fires whenever the player is firing, at his gun's rate, with a target in his cone or without one; he never fires while the player does not. The target only decides what he aims at: a homing gun's shots start locked onto it (without one they find their own) |
-| Target priority | (1) an enemy the player damaged in the last 1.0 s; (2) an enemy within 160 px of him horizontally (flank threat); (3) the nearest enemy — all within his cone. Layers follow his gun's traits (Missiles can hit `high-air`; Mortar only `ground`) |
+| Target priority | (1) an enemy the player damaged in the last 1.0 s; (2) an enemy within 160 px of him (flank threat); (3) the nearest enemy — all within his cone. Layers follow his gun's traits (Missiles can hit `high-air`; Mortar only `ground`) |
 
 Enemies never aim at Rook: aimed attacks and the target-the-objective hook pick the player or the
 objective as before, and Rook is hit by what crosses his path. He collects no pickups and is not
-pushed by the scroll. The AI uses no randomness, so a sortie with him stays deterministic (state
-hash, replays); runs without him keep their hashes.
+pushed by the scroll. The AI's only randomness is his own generator for the dodge share, seeded
+from the sortie's seed and kept in the boss checkpoint, so a sortie with him stays deterministic
+(state hash, replays); runs without him keep their hashes.
 
 **Rook's guns** — each uses a player weapon's per-level table, scaled; prices are 60 % of the
 player weapon's base price, upgrades follow the [weapons](../weapons/README.md#common-rules)
@@ -157,9 +161,13 @@ its shares are about what dies.
 
 ### Shot down, retry and checkpoint
 
-- At 0 armour he **ejects**: the pod pops out and drifts off-screen towards the nearer side edge
-  (120 px/s) while the ship explodes (`medium` explosion). He is out for the rest of the level.
-  This never fails the mission and costs no score.
+- At 0 armour he **ejects**: the pod pops out and drifts off-screen sideways (120 px/s, level
+  with where he ejected) while the ship explodes (`medium` explosion). It heads for the **nearer
+  side edge unless the player's ship is in the way** (on that side of the pod and within **36 px**
+  above or below its line); then it takes the other edge, so the pod never passes under the ship.
+  It pops out under the explosion and is drawn **over it after 0.1 s**, with a red **glow** around
+  it while its beacon blinks and a thin **trail** of light smoke behind it, so it reads on any
+  ground. He is out for the rest of the level. This never fails the mission and costs no score.
 - His scripted radio lines still play after he ejects (he is on the radio from his pod). A line
   that needs him flying (a level's "Rook's first kill") does not fire.
 - On a **retry** he starts again with his level-start state, like the player: his level-start
@@ -178,17 +186,22 @@ its shares are about what dies.
 ### Radio barks
 
 Rook's barks are **event lines** under the [radio queue](../../ui/hud/README.md#left-panel-mission)
-rules: they wait for a gap, are dropped as stale after 6 s, never push a timed line, and are voiced
-like every Act 1 line ([voice](../../audio/voice/README.md)).
+rules: they wait for a gap, are dropped as stale after 6 s and never push a timed line (all but the
+eject bark, an urgent line: see below), and are voiced like every Act 1 line
+([voice](../../audio/voice/README.md)).
 
 - **Spacing:** at least **8 s** from the start of any Rook line (a bark or a scripted line) to the
   next bark. A bark that fires sooner is dropped, and so is one that fires within 8 s before a
-  timed Rook line is due: the scripted line says it.
+  timed Rook line is due: the scripted line says it. The **eject bark** (trigger 6) is exempt: it
+  is never dropped by the spacing, a scripted line or as stale.
 - **Priority:** only one bark waits at a time; a bark of a higher priority (lower number) replaces
   a waiting one, a lower one is dropped.
 - **Variants:** the *n*-th bark of a trigger in an attempt (from 0) plays variant
   (level number + *n*) mod the trigger's count, so levels open on different lines and a retry
   replays the same ones.
+- The **eject bark is urgent**: it cuts a bark of his that waits or is on the radio and plays at
+  once like the Airstrike's call (an urgent line already on the radio finishes first), and no other
+  bark replaces it.
 - After he ejects, trigger 5 can no longer fire; the others still do (he watches the scope from
   his pod).
 - The level documents' scripted "Six o'clock" and "flank" lines (L08 t=92, L10 t=50, L12 t=102,
@@ -238,8 +251,9 @@ is the difficulty's `repair_cost`, so it is not in the file.
 - **His craft** is drawn like the player's: the banking frame of his bank, his two warm engine
   flames, a runtime drop shadow on the ground layer, the muzzle flash of his gun at his nose, a
   white flash on a hit, a smoke trail below 30 % armour (denser below 15 %) and, after the eject,
-  the `medium` explosion and the pod drifting off to the nearer side edge.
-- **Production sprites** (art track, concept round 28; `tools/art/rook.py`), in `assets/sprites/`:
+  the `medium` explosion and the pod drifting off to a side edge (the path rule above), over the
+  explosion after 0.1 s with its beacon glow and smoke trail.
+- **Production sprites** (art track, final since concept round 28; `tools/art/rook.py`), in `assets/sprites/`:
   `rook_0` … `rook_4` (42×42, hard left … hard right at −30, −15, 0, +15 and +30° of roll through
   the Stormhawk's perspective camera, as the player's `ship_0` … `ship_4`, so the pair banks as
   one; the round-09 Ember model); `rook-flame_0` … `rook-flame_2` (8×14, his warm engine flame:
@@ -305,36 +319,38 @@ Concept round 28 (M5 part A) — game capture, see [prompts](concept/prompts.md#
 
 | File | What | Status |
 |---|---|---|
-| [concept/rook-ingame-capture-r28-a.png](concept/rook-ingame-capture-r28-a.png) | Game capture, Level 02 with `--escort rook:missiles:3,side=right`: Rook (placeholder Ember frames) in the Wide formation with his warm engine glow and shadow, his "Flank! Watch the edges, Lancer!" bark on the radio, the HUD's escort box | proposed |
-| [concept/rook-final-r28-a.png](concept/rook-final-r28-a.png) | Production sprites (`tools/art/rook.py`): the five banking frames, with both flames at their pivots, the flame loop, the eject pod's tumble, 1× beside the Stormhawk with a greyscale check | proposed |
-| [concept/rook-final-r28-a.gif](concept/rook-final-r28-a.gif) | Loop (`tools/art/rook.py`): Rook in the Wing formation banking with the Stormhawk, flames flickering, then his eject pod tumbling off to the side | proposed |
-| [concept/part-a-capture-final-r28-a.png](concept/part-a-capture-final-r28-a.png) | Game capture sheet (M5 part A): Rook in production sprites in Wing and Wide, his muzzle flash and smoke, the eject (Level 06, scratch low armour) with the pod and `EJECTED`, his rear-wave bark, the Hornet, Swivel, Fan Blaster, Tail Gun and Proximity Mines, the Targeting computer's brackets and HP bar, the Salvage scanner's glint, the hangar's escort tab | proposed |
-| [concept/part-a-capture-final-r28-a.mp4](concept/part-a-capture-final-r28-a.mp4) | The same capture as video with the game's sound (101 s): formations, the barks' voices, the eject, the Act 2 weapons, the utility modules, the hangar | proposed |
+| [concept/rook-ingame-capture-r28-a.png](concept/rook-ingame-capture-r28-a.png) | Game capture, Level 02 with `--escort rook:missiles:3,side=right`: Rook (placeholder Ember frames) in the Wide formation with his warm engine glow and shadow, his "Flank! Watch the edges, Lancer!" bark on the radio, the HUD's escort box | chosen |
+| [concept/rook-final-r28-a.png](concept/rook-final-r28-a.png) | Production sprites (`tools/art/rook.py`): the five banking frames, with both flames at their pivots, the flame loop, the eject pod's tumble, 1× beside the Stormhawk with a greyscale check | chosen |
+| [concept/rook-final-r28-a.gif](concept/rook-final-r28-a.gif) | Loop (`tools/art/rook.py`): Rook in the Wing formation banking with the Stormhawk, flames flickering, then his eject pod tumbling off to the side | chosen |
+| [concept/part-a-capture-final-r28-a.png](concept/part-a-capture-final-r28-a.png) | Game capture sheet (M5 part A): Rook in production sprites in Wing and Wide, his muzzle flash and smoke, the eject (Level 06, scratch low armour) with the pod and `EJECTED`, his rear-wave bark, the Hornet, Swivel, Fan Blaster, Tail Gun and Proximity Mines, the Targeting computer's brackets and HP bar, the Salvage scanner's glint, the hangar's escort tab | chosen |
+| [concept/part-a-capture-final-r28-a.mp4](concept/part-a-capture-final-r28-a.mp4) | The same capture as video with the game's sound (101 s): formations, the barks' voices, the eject, the Act 2 weapons, the utility modules, the hangar | chosen |
+| [concept/rook-eject-capture-r28-b.png](concept/rook-eject-capture-r28-b.png) | Game capture sheet of the eject after the pod fixes (Level 07 medium, scratch data: armour 2, hitbox 40, no dodging): the pod over the explosion, its red beacon glow and smoke trail at 3× zoom, 0.1 s apart, and the full frame with the pod heading for the edge away from the ship, `EJECTED` in the HUD and the eject bark on the radio | chosen |
 
 ## Implementation
 
-M5 part A builds Rook and the escort slot; production art and the barks' voices are proposed in
-concept round 28.
+M5 part A builds Rook and the escort slot; its production art, the barks' voices and the AI as
+built were accepted in concept round 28.
 
-- [ ] Escort slot unlocked by a story flag: Rook hired when the hangar opens with Level 08 or later next; the save's `escort` (format version 3, see [saves](../../systems/saves/README.md))
-- [ ] Rook flies only in levels from 08 on (not in Act 1 replays from mission select, not on `--level` below 8)
-- [ ] Rook AI as in *Rook's AI*: formations Wing / Wide / Trail with the 0.6 s glide and the mirrored slot at the edges, reaction delay, dodging, targeting priority, firing cone, fire whenever the player fires; deterministic (state hash, replay test)
-- [ ] Collisions and damage: enemy bullets and `air` contacts on his 11×11 hitbox, 20 to the enemy, `tiny`/`small` rammers destroyed
-- [ ] Rook's four guns derived from the player weapon tables (scale on damage, one muzzle, no overdrive), with their 60 % prices and upgrade costs
+- [x] Escort slot unlocked by a story flag: Rook hired when the hangar opens with Level 08 or later next; the save's `escort` (format version 3, see [saves](../../systems/saves/README.md)) (`Campaign.hireWhenDue`, `SaveFormat.migrateFrom2`; tests in `EscortTest`)
+- [x] Rook flies only in levels from 08 on (not in Act 1 replays from mission select, not on `--level` below 8) (`Campaign.escortFlies`; `EscortTest.heFliesFromLevel08ButNotInAnAct1Replay`)
+- [x] Rook AI as in *Rook's AI*: formations Wing / Wide / Trail with the 0.6 s glide and the mirrored slot at the edges, reaction delay, dodging, targeting priority, firing cone, fire whenever the player fires; deterministic (state hash, replay test) (`vanguard.sim.Wingman`; tests in `WingmanTest`: the formations, the mirrored slot, Trail on rear chains, the 70 % dodge, the body clearance and the 40 px, his fire; the same commands give the same state hash and a run without him keeps its own, the recorded `ReplayTest` run flies without him)
+- [x] Collisions and damage: enemy bullets and `air` contacts on his 11×11 hitbox, 20 to the enemy, `tiny`/`small` rammers destroyed (`Sortie`'s wingman hits: bullets, mines and air contacts, a lasting contact hurting once)
+- [x] Rook's four guns derived from the player weapon tables (scale on damage, one muzzle, no overdrive), with their 60 % prices and upgrade costs (`SimSpecs.wingman`; `WingmenDataTest`, `EscortTest.hisGunsCostSixtyPercentOfTheirBaseWeaponsAndDrawNoPower`)
 - [x] Escort inventory in the hangar: buy, upgrade each gun L1–L5, fit one, sell at the sell-back share, undo in the visit (see [hangar](../../ui/hangar/README.md))
 - [x] His side setting (left/right) in the hangar, saved
 - [x] Armour kept between levels; the hangar's Rook repair line at the difficulty's repair cost; launch warning below 50 %; grounded at 0
-- [ ] His kills pay like the player's: bounty, score, chain, objectives, statistics
-- [x] Eject: the pod drifting off to the nearer edge, the `medium` explosion, out for the level, never a failure
-- [ ] Retry with his level-start state (and the armour floor); the boss checkpoint includes him
-- [x] Wingman radio barks: the eight triggers with their variants, priority, 8 s spacing and the event-line queue rules; voiced (the game plays each line's voice file once it is rendered, concept round 28)
+- [x] His kills pay like the player's: bounty, score, chain, objectives, statistics (his shots are the player's shot pool with his mount, so they share the kill path; `WingmanTest.hisKillsPayLikeThePlayersAndChain`)
+- [x] Eject: the pod drifting off to the nearer edge unless the ship is in the way (36 px), over the explosion after 0.1 s with its beacon glow and smoke trail, the `medium` explosion, out for the level, never a failure; the eject bark urgent and exempt from the spacing
+- [x] Retry with his level-start state (and the armour floor); the boss checkpoint includes him (`WingmanTest.atZeroArmourHeEjectsWithoutFailingTheLevelAndARetryBringsHimBack`, `theBossCheckpointKeepsHisArmourAndARetryFromBossBringsHimBackInIt`, `EscortTest.aRetryRaisesHisArmourToTheFloorButLeavesAGroundedRookHome`)
+- [x] Wingman radio barks: the eight triggers with their variants, priority, 8 s spacing and the event-line queue rules; voiced (27 lines, accepted as rendered in concept round 28)
 - [x] HUD escort box (see [HUD](../../ui/hud/README.md))
 - [x] His craft in the level: banking frames, engine flames, runtime shadow, muzzle flash, hit flash, smoke when low, the eject (see *In the game*); the placeholder Ember frames, glow and drawn pod remain as fallbacks
-- [ ] Debug option `--escort rook:<gun>:<level>[,side=left|right]` and `--escort none`
-- [ ] His data in [data.yaml](data.yaml) with its loader and validator (`WingmenData`); the guns and barks tables rendered from it by `tools/sync_tables.py`
-- [ ] `BalanceTest` prints his DPS; the balance plan buys his guns and repairs from L08; the autopilot and `ActPlaythroughTest` fly with him
-- [x] Production sprites of Rook's craft (5 banking frames, Ember, 42×42), his engine flame, the eject pod and the engine mounts (`tools/art/rook.py`, review files proposed in concept round 28)
-- [ ] His shots in their base weapons' families — **later: art track**
+- [x] Debug option `--escort rook:<gun>:<level>[,side=left|right]` and `--escort none` (`DebugFit.withEscort`, never saved; `LaunchOptionsTest.aDebugEscortFliesRookWithHisGun`, `EscortTest.theEscortDebugOptionFliesHimOnAnyLevelOrKeepsHimHome`, `theEscortDebugOptionIsNeverSavedNorKept`)
+- [x] His data in [data.yaml](data.yaml) with its loader and validator (`WingmenData`, `ContentValidator.checkWingmen`; `WingmenDataTest`)
+- [ ] The guns and barks tables above rendered from [data.yaml](data.yaml) by `tools/sync_tables.py` (still hand-written, see *Data*)
+- [ ] `BalanceTest` prints his DPS; the balance plan buys his guns and repairs from L08; the autopilot and `ActPlaythroughTest` fly with him — **later: M5 part I** (the close-out's `BalanceTest` and `ActPlaythroughTest` for Act 2 with Rook and the Act 2 plan, [roadmap](../../tech/roadmap/README.md#m5-parts); not built in part A)
+- [x] Production sprites of Rook's craft (5 banking frames, Ember, 42×42), his engine flame, the eject pod and the engine mounts (`tools/art/rook.py`, approved as final in concept round 28)
+- [x] His shots in their base weapons' families: drawn with the base weapons' final shot sprites and muzzle flash at his nose (`WeaponLooks` builds his gun's look by its base weapon's slug; `WingmanLooks.drawMuzzle`)
 - [ ] Warden heavy drone: formation, cannon, draw-fire rule — **later: Act 4** (the Warden unlocks at L22)
 - [ ] Drone behaviours: orbit, trail, block, rebuild — **later: Act 3** (light drone L15, rear-guard drone L20) and **later: Act 5** (hunter drone L29)
 - [ ] Rook missing for L27–L29 (only a heavy drone in the slot), back from L30 — **later: Act 4**
@@ -426,3 +442,58 @@ concept round 28.
   stays one 2048² page (73 %). In a `--bench` run (Levels 02 and 07, Xvfb) his frames bank, the
   flames sit on the mounts and the HUD's escort icon shows the new frame; the pod could not be
   seen in the game, since no bench run made him eject.
+- 2026-10-06: User decision: Rook **reacts to about 70 %** of the bullets he predicts (`dodge.reacts`
+  0.7; before, he reacted to every one), each bullet decided once by his own generator (seeded from
+  the sortie's seed, its state in the boss checkpoint), so a stray bullet hits him now and then. The
+  capture of round 28 showed three more AI faults, fixed with it: a segment chain's members carried
+  no rear entry, so a Coilwyrm from the rear or a loop-back never put him in Trail (a chain now counts
+  by the edge it entered from last); his slot ignored the air enemies' bodies, so he flew into them
+  (closest −18 px; now the 14 px body clearance, his way included: he no longer crosses a body to
+  reach a slot beyond it); and at the edges the 40 px minimum could give way (now pushed out along
+  the margin). A bullet he reacts to stays decided while he sidesteps it (deciding it afresh at
+  every prediction drew again and would have missed one only 0.3⁴ of the time). Measured headless
+  (the test autopilot, the plan's fit, his L1 Autocannon, seeds 1–4), hits and armour left before →
+  after: Level 02 medium 0–2 → 2–3 (68–72), hard 3–5 (60–68); Level 06 medium 0–5 → 0–4 (64–80),
+  hard 1–7 → 4–9 (44–64); Level 07 medium 3–8 (48–68) → 5–11 (36–60), hard 11–19 (2–36) → 10–20
+  (0–40) with an eject in 2 of 4 runs (3 of seeds 1–8); never closer than 40.0 px to the player; no
+  body contact (all hits are bullets, closest gap +2.9 px); Trail now on Level 06's rear wave
+  (134 s) in every run (the two loop-back Coilwyrms died before looping back; the loop-back is
+  tested). The share hardly sets his wear: reacting to every bullet, Level 07 hard still ejects in 3
+  of 8 runs, as the 0.25 s delay inside the 0.4 s look-ahead leaves him 0.05–0.15 s to clear one; a
+  0.6 s look-ahead (with the 70 %) measured no eject in those 8 runs (armour 4–50) and about the same
+  medium wear. `reacts` and the clearance stay as they are; the look-ahead is for the user. Tests in
+  `WingmanTest`.
+- 2026-10-06: The eject, after the round-28 capture (the pod drifted to the nearer edge and passed
+  under the player's ship; the eject bark fell under the 8 s spacing like any bark): the pod
+  takes the **nearer side edge unless the ship is in the way** (on that side and within **36 px**
+  of the pod's line; then the other edge; `Wingman.podSide`, tests in `WingmanPodTest`), is drawn
+  **over the explosion after 0.1 s** with a red beacon **glow** and a light smoke **trail**
+  (`WingmanLooks.drawOver`); and the **eject bark is urgent**: exempt from the spacing, the scripted
+  Rook lines and going stale, it cuts his waiting or playing bark and plays at once (`Barks`,
+  `RadioQueue.cancel`; tests in `BarksTest`). Checked in the game on a private Xvfb
+  ([rook-eject-capture-r28-b.png](concept/rook-eject-capture-r28-b.png), Level 07 medium with
+  scratch data so he ejects: armour 2, hitbox 40, no dodging): the pod clears the explosion's edge
+  within 0.1–0.2 s, its beacon glow blinks red and the grey puffs trace its path to the right edge
+  away from the ship; "I'm out, I'm out! She's all yours, Lancer!" opens on the radio at once. The
+  16×16 pod is small at 1× but reads by its trail and blink, so it was not re-rendered larger.
+- 2026-10-06: Look-ahead raised from 0.4 to 0.6 s (user): with 0.4 s he ejected in 3 of 8 hard Level 07
+  runs even when reacting to every bullet (the 0.25 s delay left 0.05–0.15 s to move); at 0.6 s the
+  agent's 8 hard runs had no ejects (armour 4–50 left) and medium wear stayed about the same.
+- 2026-10-06: Concept round 28 closed (user: everything accepted). Rook's production sprites
+  (`tools/art/rook.py`: the five banking frames at ±15 / ±30°, the 3-frame flame loop, the 16×16
+  eject pod drawn once, not as a/b) approved as **final**, so with his shots in the base weapons'
+  final sprites every asset he uses is final: `art: final` (the drones and the Warden are `idea`
+  rows with no art yet, for their acts). The captures accepted, the pod after its fixes included.
+  The AI approved as built, and the round's question answered: the **flank threat** (the Wide
+  formation and target priority 2) is **plain distance**, an enemy within 160 px of his centre
+  (a circle, so an enemy just ahead counts too), not "closing from the sides" (the Behaviour row
+  reworded; the data's `flank_distance` comment already said so). His 27 barks accepted as
+  rendered, the four pinned takes included. The part A decisions checked as carried out. Ticked
+  after checking the code and tests: the hire and save field, where he flies, the AI, collisions,
+  the guns, his kills, retry and checkpoint, `--escort`, the `WingmenData` loader and validator,
+  and his shots in the base weapons' families (the item's "later: art track" no longer applies:
+  `WeaponLooks` draws them with the base weapons' final sprites). Still open, so the document stays
+  `in-progress`: rendering the guns and barks tables from the data (split off the loader item, no
+  part named yet), and the balance item (`BalanceTest` printing his DPS, the balance plan buying his
+  guns and repairs from L08, the autopilot and `ActPlaythroughTest` flying with him), not built in
+  part A and tagged **later: M5 part I**, whose close-out runs those tests for Act 2 with Rook.
