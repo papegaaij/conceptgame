@@ -39,6 +39,7 @@ import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
 import vanguard.sim.SpecialSlot;
 import vanguard.sim.WeaponSpec;
+import vanguard.sim.Wingman;
 
 /**
  * Draws a level back to front, interpolating every position between the last two simulation
@@ -49,7 +50,7 @@ import vanguard.sim.WeaponSpec;
  * the low-air flyers, the low-air layer's banks (so a low flyer can sit inside them), a hull
  * boss's shadow while it flies above the play plane, a lifeboat tow (friendly, under the flyers), the flyers
  * and a set piece on the play plane, a set piece breaking up at its death, the solid death pieces of air units (tatters, husks), the debris chunks, the cranes, the pickups, the solid rounds
- * (missiles, bombs, shells), the ship with its engine flames, damage smoke and sparks, wing pods and
+ * (missiles, bombs, shells), Rook's craft beside it (or his drifting eject pod, {@link WingmanLooks}), the ship with its engine flames, damage smoke and sparks, wing pods and
  * shield ring ({@link ShipLooks}), the glowing shots, muzzle flashes and
  * effects, a set piece on high-air (above the ship, at the high-air scale), the units a boss off the
  * play plane has launched (they leave its sacs downward, so they show over its hull), the high-air layer,
@@ -184,6 +185,8 @@ public final class LevelRenderer {
     private final TowLooks tows;
     /** The ship's engine flames, damage smoke and sparks and its shield ring. */
     private final ShipLooks shipLooks;
+    /** Rook's craft, its flames, smoke, muzzle flash and eject pod (M5 part A). */
+    private final WingmanLooks wingmanLooks;
     /** The flyers' drop shadows on the ground layer. */
     private final Shadows shadows;
     /** The enemy bullets' sprites by their class. */
@@ -191,6 +194,10 @@ public final class LevelRenderer {
 
     private final BitmapFont font;
     private float whiteFlash = 1;
+    /** The Targeting computer's HP bars and weak-point brackets; null without one fitted. */
+    private TargetingOverlay targeting;
+    /** The Salvage scanner's glint on the secrets' objects; null without one fitted. */
+    private SecretGlints secretGlints;
 
     /**
      * @param files the assets, for the pivot files of the cranes and set pieces
@@ -254,9 +261,20 @@ public final class LevelRenderer {
         this.farside = new FarsideLooks(sprites, script);
         this.tows = new TowLooks(sprites);
         this.shipLooks = new ShipLooks(sprites, files);
+        this.wingmanLooks = new WingmanLooks(sprites, files, flash);
         this.shadows = new Shadows();
         this.bullets = new BulletLooks(sprites);
         this.font = font;
+    }
+
+    /**
+     * The fitted utility modules' marks: the Targeting computer's (over the units, under the
+     * bullets) and the Salvage scanner's glint (over the ground objects, cranes and tows, in the
+     * dark as well); null for a module that is not fitted.
+     */
+    public void modules(TargetingOverlay targetingOverlay, SecretGlints glints) {
+        targeting = targetingOverlay;
+        secretGlints = glints;
     }
 
     /** Frees the light map and the generated textures. */
@@ -271,9 +289,15 @@ public final class LevelRenderer {
     /** The level restarts: the boss's parts forget their opening animations. */
     public void restart() {
         shipLooks.reset();
+        wingmanLooks.reset();
         if (bossLooks.hull != null) {
             bossLooks.hull.reset();
         }
+    }
+
+    /** Rook was hit at step {@code tick}: his hull flashes white. */
+    public void wingmanHit(long tick) {
+        wingmanLooks.hit(tick);
     }
 
     /** A unit's pivot file in assets/pivots/, or null when it has none. */
@@ -352,8 +376,15 @@ public final class LevelRenderer {
         pieces.draw(batch, scroll);
         drawDebris(batch, sortie, alpha);
         drawCranes(batch, sortie, alpha);
+        if (secretGlints != null) {
+            secretGlints.draw(batch, sortie, alpha);
+        }
         drawPickups(batch, sortie, alpha);
         drawShots(batch, sortie, alpha, false);
+        Wingman rook = sortie.wingman().orElse(null);
+        if (rook != null) {
+            wingmanLooks.draw(batch, rook, sortie.tick(), alpha, whiteFlash);
+        }
         if (sortie.flying()) {
             drawShip(batch, sortie, alpha, shieldShimmer);
         }
@@ -362,17 +393,30 @@ public final class LevelRenderer {
         if (sortie.flying()) {
             drawMuzzles(batch, sortie, alpha, true);
         }
+        if (rook != null) {
+            wingmanLooks.drawMuzzle(batch, rook, weapons, sortie.wingmanMount(), alpha, true);
+        }
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         if (sortie.flying()) {
             drawMuzzles(batch, sortie, alpha, false);
         }
+        if (rook != null) {
+            wingmanLooks.drawMuzzle(batch, rook, weapons, sortie.wingmanMount(), alpha, false);
+        }
         effects.draw(batch, scroll);
+        if (rook != null) {
+            // His eject pod over the explosion once it has popped out of it.
+            wingmanLooks.drawOver(batch, rook, sortie.tick(), alpha);
+        }
         farside.drawSmartBomb(batch, sortie, alpha, whiteFlash);
         drawSetPieces(batch, sortie, alpha, seconds, true);
         if (overHull) {
             drawEnemies(batch, sortie, alpha, Depth.AIR, Launched.ONLY);
         }
         backdrop.drawFront(batch, scroll, seconds);
+        if (targeting != null) {
+            targeting.draw(batch, sortie, alpha);
+        }
         drawMines(batch, sortie, alpha);
         drawBullets(batch, sortie, alpha);
         screenFlash.draw(batch, sprites.pixel, alpha, whiteFlash);
@@ -691,6 +735,10 @@ public final class LevelRenderer {
                     Shadows.AIR_DX,
                     Shadows.AIR_DY,
                     1);
+        }
+        Wingman rook = sortie.wingman().orElse(null);
+        if (rook != null) {
+            wingmanLooks.drawShadow(batch, rook, alpha);
         }
         shadows.end(batch);
     }
@@ -1202,7 +1250,8 @@ public final class LevelRenderer {
                             x,
                             y,
                             1 + SHELL_ARC_SCALE * (float) Math.sin(Math.PI * shot.airProgress(alpha)));
-                case BOLT, HOMING -> {
+                case MINE -> drawCentred(batch, sprite, x, y);
+                case BOLT, HOMING, TURRET -> {
                     double left = shot.rangeLeft();
                     if (left < FADE_SHARE) {
                         batch.setColor(1, 1, 1, (float) (left / FADE_SHARE));

@@ -10,6 +10,7 @@ import vanguard.game.level.LowArmour;
 import vanguard.sim.Defences;
 import vanguard.sim.Sortie;
 import vanguard.sim.SpecialSlot;
+import vanguard.sim.Wingman;
 
 /**
  * The right HUD panel (design/ui/hud, ship): armour and shield bars with their numbers (the armour
@@ -18,8 +19,11 @@ import vanguard.sim.SpecialSlot;
  * up during an overdrive), the four weapon slots with their level pips and the overdrive timer,
  * and the special's row in the same style: its 16 px hangar icon, name and charges, greyed while
  * its strike flies or with no charge left, flashing red when the special button is denied. Under
- * them, until the other specials and the utility modules fly (later in M4): the fitted items the
- * sortie leaves out, as "not yet available". The escort follows with Rook's slot (M5).
+ * the special the escort box (M5 part A) while Rook flies in the level: the {@code ESCORT} plate, his
+ * 16 px hangar icon and {@code ROOK}, his armour as a bar with the number, flashing red at 30 % as
+ * the player's; after he ejects the bar is empty and the well reads {@code EJECTED} in red. Without
+ * an escort its region stays empty. Under it: the fitted items the sortie leaves out, as "not yet
+ * available".
  */
 final class ShipPanel {
     private static final int X = PixelScreen.WIDTH - HudKit.PANEL_WIDTH;
@@ -46,6 +50,25 @@ final class ShipPanel {
 
     static final int CRITICAL_ARMOUR_PHASE_TICKS = 18;
     private static final float GREYED = 0.35f;
+    /** The special's row: its well's top below the panel's top inset, and its height. */
+    static final int SPECIAL_TOP = 258;
+
+    static final int SPECIAL_HEIGHT = ROW + 10;
+    /** The escort's plate, below the special's row, and its well under the plate. */
+    static final int ESCORT_PLATE = 292;
+
+    static final int ESCORT_TOP = ESCORT_PLATE + 22;
+    static final int ESCORT_HEIGHT = 38;
+    /** The items that do not fly yet, under the escort's region (empty without an escort). */
+    static final int NOT_FLOWN_PLATE = ESCORT_TOP + ESCORT_HEIGHT + 18;
+    /** The escort's well: the icon's and the name's left, the bar's inset and height. */
+    static final int ESCORT_ICON_X = 6;
+
+    static final int ESCORT_NAME_X = 28;
+    static final int ESCORT_BAR_INSET = 6;
+    static final int ESCORT_BAR_HEIGHT = 8;
+    static final String ESCORT_NAME = "ROOK";
+    static final String EJECTED = "EJECTED";
 
     private static final Color ARMOUR = Color.valueOf("FF4400");
     private static final Color ARMOUR_EMPTY = Color.valueOf("2A0B00");
@@ -66,16 +89,19 @@ final class ShipPanel {
 
     /** The fitted special's 16 px hangar icon; {@code null} without a special that flies. */
     private final TextureRegion specialIcon;
+    /** Rook's 16 px hangar icon. */
+    private final TextureRegion escortIcon;
     /** "×" when the font has it, else "x". */
     private final String times;
 
     private int frame;
     private int denied;
 
-    ShipPanel(HudKit kit, double overdriveLength, TextureRegion specialIcon) {
+    ShipPanel(HudKit kit, double overdriveLength, TextureRegion specialIcon, TextureRegion escortIcon) {
         this.kit = kit;
         this.overdriveLength = overdriveLength;
         this.specialIcon = specialIcon;
+        this.escortIcon = escortIcon;
         times = kit.small.getData().hasGlyph('\u00d7') ? "\u00d7" : "x";
     }
 
@@ -117,22 +143,61 @@ final class ShipPanel {
                 false);
         power(batch, sparePower, regenBonus, sortie.overdriveSeconds() > 0, x, y - 104);
         weapons(batch, weapons, sortie.overdriveSeconds(), x, y - 148);
-        special(batch, sortie.special(), x, y - 258);
+        special(batch, sortie.special(), x, y - SPECIAL_TOP);
         if (denied > 0) {
             denied--;
         }
+        Wingman rook = sortie.wingman().orElse(null);
+        if (rook != null) {
+            escort(batch, rook, sortie.tick(), x, y);
+        }
         if (!notFlown.isEmpty()) {
-            kit.label(batch, "NOT YET AVAILABLE", x, y - 300);
+            kit.label(batch, "NOT YET AVAILABLE", x, y - NOT_FLOWN_PLATE);
             for (int i = 0; i < Math.min(notFlown.size(), MAX_NOT_FLOWN); i++) {
                 String name = notFlown.get(i).toUpperCase(Locale.ROOT);
-                kit.text(batch, kit.small, name, HudKit.LABEL, x + 8, y - 318 - i * 13);
+                kit.text(batch, kit.small, name, HudKit.LABEL, x + 8, y - NOT_FLOWN_PLATE - 18 - i * 13);
             }
+        }
+    }
+
+    /**
+     * The escort box under the special's row: {@code ESCORT}, then {@code [icon] ROOK} with his armour
+     * number over his armour bar; the bar empty and {@code EJECTED} in red once he is out.
+     */
+    private void escort(SpriteBatch batch, Wingman rook, long tick, int x, int y) {
+        kit.label(batch, "ESCORT", x, y - ESCORT_PLATE);
+        int top = y - ESCORT_TOP;
+        kit.lcd(batch, x, top - ESCORT_HEIGHT, HudKit.INNER_WIDTH, ESCORT_HEIGHT);
+        boolean out = rook.ejected();
+        boolean alarm = !out && armourFlash(LowArmour.of(rook.armour(), rook.maxArmour()), tick);
+        kit.glow(batch, out ? HudKit.ALERT : HudKit.READOUT, x, top - ESCORT_HEIGHT, HudKit.INNER_WIDTH, ESCORT_HEIGHT);
+        int rowTop = top - 5;
+        batch.draw(escortIcon, x + ESCORT_ICON_X, top - 4 - escortIcon.getRegionHeight());
+        kit.text(batch, kit.small, ESCORT_NAME, out ? HudKit.LABEL : HudKit.READOUT, x + ESCORT_NAME_X, rowTop);
+        String number = out ? EJECTED : Integer.toString((int) Math.ceil(rook.armour()));
+        kit.textRight(
+                batch,
+                kit.small,
+                number,
+                out || alarm ? HudKit.ALERT : HudKit.LABEL,
+                x,
+                rowTop,
+                HudKit.INNER_WIDTH - ESCORT_BAR_INSET);
+        int barX = x + ESCORT_BAR_INSET;
+        int barWidth = HudKit.INNER_WIDTH - 2 * ESCORT_BAR_INSET;
+        int barY = top - ESCORT_HEIGHT + ESCORT_BAR_INSET;
+        kit.fill(batch, ARMOUR_EMPTY, barX, barY, barWidth, ESCORT_BAR_HEIGHT);
+        double share = out ? 0 : Math.clamp(rook.armour() / rook.maxArmour(), 0, 1);
+        kit.fill(batch, ARMOUR, barX, barY, (float) Math.floor(barWidth * share), ESCORT_BAR_HEIGHT);
+        if (alarm) {
+            kit.fill(batch, ALARM, barX, barY, barWidth, ESCORT_BAR_HEIGHT);
+            kit.glow(batch, HudKit.ALERT, barX - 4, barY - 4, barWidth + 8, ESCORT_BAR_HEIGHT + 8);
         }
     }
 
     /** The special's row below the weapons box: {@code SPECIAL [icon] AIRSTRIKE ×2}. */
     private void special(SpriteBatch batch, SpecialSlot special, int x, int top) {
-        int height = ROW + 10;
+        int height = SPECIAL_HEIGHT;
         kit.lcd(batch, x, top - height, HudKit.INNER_WIDTH, height);
         boolean flash = denied > 0 && denied / DENIED_PHASE_FRAMES % 2 == 0;
         kit.glow(batch, flash ? HudKit.ALERT : HudKit.READOUT, x, top - height, HudKit.INNER_WIDTH, height);

@@ -26,7 +26,8 @@ import vanguard.sim.WeaponSpec;
  * The hangar's test fire (design/ui/hangar, Test fire): every weapon the simulation flies, in every
  * slot it fits, at every level, loops without errors and hits a dummy where that weapon should: a
  * forward gun ahead of the ship, a rear gun behind it, a side gun beside it (both sides), a bomb at
- * or behind the pod on its line, a mortar shell well ahead, a homing missile anywhere. The loop is
+ * or behind the pod on its line, a mortar shell well ahead, a homing missile or a turret's shot
+ * anywhere (a turret's on the dummies either side of its line), a mine's blast behind the ship. The loop is
  * deterministic and starts over, and stepping it allocates nothing.
  */
 class TestFireTest {
@@ -97,6 +98,17 @@ class TestFireTest {
                 }
             }
             case HOMING -> {}
+            case TURRET -> {
+                // The turret swings to the dummies either side of its line, not only along it.
+                double line = shipX + TestFire.line(shown.slot());
+                assertTrue(
+                        hits.stream().anyMatch(hit -> hit.x() < line - TestFire.TARGET_SIZE),
+                        "left of its line: " + where);
+                assertTrue(
+                        hits.stream().anyMatch(hit -> hit.x() > line + TestFire.TARGET_SIZE),
+                        "right of its line: " + where);
+            }
+            case MINE -> assertTrue(hits.stream().anyMatch(hit -> hit.y() < shipY - HULL), "behind: " + where);
             case DROPPED -> {
                 double line = shipX + TestFire.line(shown.slot());
                 assertTrue(
@@ -120,7 +132,11 @@ class TestFireTest {
             double y = events.y(i);
             switch (events.type(i)) {
                 case ENEMY_HIT -> hits.add(new Hit(x, y));
+                // A mine bursts only for a dummy: where it bursts counts.
                 case BLAST -> {
+                    if (weapon.delivery() == WeaponSpec.Delivery.MINE) {
+                        hits.add(new Hit(x, y));
+                    }
                     for (int j = 0; j < sortie.enemyCount(); j++) {
                         Enemy dummy = sortie.enemy(j);
                         double dx = Math.max(
@@ -179,7 +195,10 @@ class TestFireTest {
                 TestFire.of(CONTENT, LoadoutSlot.FRONT, "pulse-cannon", 6)
                         .orElseThrow()
                         .level());
-        assertEquals(Optional.empty(), TestFire.of(CONTENT, LoadoutSlot.REAR, "proximity-mines", 1));
+        assertEquals(
+                Optional.of(new TestFire.Shown("proximity-mines", Armament.Slot.REAR, 1)),
+                TestFire.of(CONTENT, LoadoutSlot.REAR, "proximity-mines", 1));
+        assertEquals(Optional.empty(), TestFire.of(CONTENT, LoadoutSlot.LEFT_WING, "torpedo-pod", 1));
         assertEquals(Optional.empty(), TestFire.of(CONTENT, LoadoutSlot.GENERATOR, "Mk I", 1));
     }
 }

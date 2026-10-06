@@ -110,6 +110,8 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
         // tear (its final file from tools/art/sfx_originals.py).
         "ui-save-r27-b.ogg",
         "enemy-coilwyrm-cut-r27-a.ogg",
+        // Concept round 28 (open): the proximity mine's arming beep, option a until the choice.
+        "weapon-mine-arm-r28-a.ogg",
     )
 }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * design/player/weapons/&lt;slug&gt;/data.yaml: one weapon with its five upgrade levels and the
@@ -13,7 +14,8 @@ import java.util.Optional;
  * @param upgradeBase what the upgrade cost factors multiply; the price when absent
  * @param unlock the level from whose hangar visit the weapon is in the shop
  * @param draw the power draw at L1 and L5 in MW
- * @param hits which targets it can hit: {@code standard}, {@code homing}, {@code ground-only}, …
+ * @param hits which targets it can hit: {@code standard}, {@code homing}, {@code ground-only},
+ *     {@code area} (proximity mines), …
  * @param speed the projectile speed in px/s; none for lobbed and dropped projectiles
  * @param size the projectile's hit box
  * @param range how far the projectiles fly; none for mines, which have a lifetime instead; a
@@ -23,7 +25,14 @@ import java.util.Optional;
  * @param fall seconds a dropped bomb falls to the ground
  * @param flight seconds a lobbed shell flies to its landing point
  * @param snap how far from its landing point a lobbed shell finds a ground target, px
- * @param cone the angle ahead in which a homing shot picks its target, degrees
+ * @param cone the angle ahead in which a homing shot picks its target; a turret's forward cone,
+ *     outside which a target wins when it is nearly as close as the nearest, degrees
+ * @param accelerate seconds an accelerating shot takes from its start to its end speed
+ * @param ports px either side of the muzzle the shots of a volley leave from, in turn (left first)
+ * @param slew a turret's turn rate, °/s: the weapon aims its straight shots at the nearest enemy
+ * @param drift seconds over which a mine's drift (at the speed) decays to nothing
+ * @param arm seconds before a mine arms
+ * @param trigger how close an enemy sets off an armed mine, px
  * @param mirrored fires the pattern to the left too (numbers per side)
  * @param pod a wing pod (numbers per pod)
  * @param seek homing, lobbed or dropped: every projectile counts as a single-target hit
@@ -48,6 +57,12 @@ public record WeaponData(
         Optional<Double> flight,
         Optional<Double> snap,
         Optional<Double> cone,
+        Optional<Double> accelerate,
+        Optional<Double> ports,
+        Optional<Double> slew,
+        Optional<Double> drift,
+        Optional<Double> arm,
+        Optional<Double> trigger,
         Optional<Boolean> mirrored,
         Optional<Boolean> pod,
         Optional<Boolean> seek,
@@ -58,7 +73,35 @@ public record WeaponData(
         Check.positive("unlock", unlock);
         Check.that(levels.size() == 5, "levels: one entry for each of L1–L5, found " + levels.size());
         Check.that(range.isPresent() || lifetime.isPresent(), "range or lifetime is required");
+        accelerate.ifPresent(seconds -> {
+            Check.positive("accelerate", seconds);
+            Check.that(speed.isPresent(), "accelerate needs a speed [start, end]");
+        });
+        slew.ifPresent(rate -> {
+            Check.positive("slew", rate);
+            Check.that(range.isPresent() && speed.isPresent(), "a turret (slew) needs a range and a speed");
+        });
+        if (hits.equals(MINES)) {
+            Check.that(
+                    speed.isPresent()
+                            && lifetime.isPresent()
+                            && drift.isPresent()
+                            && arm.isPresent()
+                            && trigger.isPresent(),
+                    "mines (hits: area) need a speed, a lifetime, drift, arm and trigger");
+            Check.positive("drift", drift.orElseThrow());
+            Check.notNegative("arm", arm.orElseThrow());
+            Check.positive("trigger", trigger.orElseThrow());
+            Check.that(
+                    Stream.concat(levels.stream(), Stream.of(overdrive))
+                            .allMatch(level ->
+                                    level.blast().isPresent() && level.maxLive().isPresent()),
+                    "mines (hits: area): every level and the overdrive need a blast and max_live");
+        }
     }
+
+    /** The {@code hits} of proximity mines: they burst in a blast that reaches air, low-air and ground. */
+    public static final String MINES = "area";
 
     public enum Slot {
         FRONT,

@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Architecture
@@ -84,6 +84,7 @@ README), and the tables in the README are **rendered from the data**:
 | Level | `design/campaign/<act>/<level>/data.yaml` (sections, scroll, waves, ground targets, secrets, cues, objectives, music, difficulty changes, backdrop) | the *Threat profile*, *Layout*, *Backdrop*, *Waves*, *Ground targets*, *Radio chatter* and *Credit budget* tables |
 | Act | `design/campaign/<act>/data.yaml` (the act's levels, title card, act briefing and act-end outro) | the act's *Act intro and outro* quotes (the outro's still hand-kept, planned `act-outro` table) |
 | Allies | `design/allies/data.yaml` (one entry per ally) | the allies' spec tables (still hand-written) |
+| Wingmen | planned (M5 part A): `design/player/wingmen/data.yaml` (Rook, his guns, his barks) | the guns and barks tables (still hand-written) |
 | Economy, scoring, difficulty, retry | `design/systems/<part>/data.yaml` | the scoring bonus and grade tables and the difficulty levers (the economy's tables are still hand-written; retry has no table) |
 
 - **Marked tables.** A generated table sits between `<!-- data: NAME -->` and `<!-- /data -->`;
@@ -132,8 +133,13 @@ first entry of a part's model list is the starter (price 0, `start`).
   or dropped), `size`, `range` (px, `screen` or `drop`) or `lifetime` (a homing weapon has both:
   its `range` is the seek radius), the behaviour numbers `converge` (° a pod turns in towards the
   centre line), `fall` (s a dropped bomb falls), `flight` (s a lobbed shell flies), `snap` (px a
-  shell's auto-aim reaches), `cone` (° ahead a homing shot picks its target in), flags `mirrored` (fires
-  the same pattern to the left too; numbers per side), `pod` (numbers per pod) and `seek`
+  shell's auto-aim reaches), `cone` (° ahead a homing shot picks its target in; a turret's forward
+  cone), `accelerate` (s an accelerating shot takes from its `speed` start to its end), `ports` (px
+  either side of the muzzle the shots of a volley leave from in turn, left first), `slew` (°/s: a
+  turret, which aims its straight shots at the nearest enemy all round), the mines' `drift` (s their
+  drop's drift decays over), `arm` (s before they arm) and `trigger` (px an `air` or `low-air` enemy
+  sets one off at; mines have `hits: area`, a `lifetime` and per level a `blast` and `max_live`),
+  flags `mirrored` (fires the same pattern to the left too; numbers per side), `pod` (numbers per pod) and `seek`
   (homing, lobbed or dropped: every projectile counts as a hit on a single target), then
   `levels` (five) and `overdrive`, each with `pattern`, `rate` (volleys/s), `damage` per
   projectile and optional `pierce`, `blast`, `turn` (°/s), `max_live`. A pattern lists one
@@ -409,7 +415,11 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   `extra` (each bought bay's `price` and `available`; their count and `start` add up to the loadout's
   utility slots); `utility`
   with `draw`, one price per level, `design` status, the Pickup magnet's `magnet` (`radius`, `pull`, one
-  per level) and an optional `for_sale` (false keeps an unlocked module out of the shop)); specials (`input_buffer` (s a press waits
+  per level) and an optional `for_sale` (false keeps an unlocked module out of the shop); the
+  Targeting computer's `targeting` (`turn_bonus`, 0.2: the share added to the
+  Stormhawk's homing turn rates and the Swivel's slew; `bar_seconds`, 1.5: how long an HP bar stays
+  after the last hit; `bar_fade`, 0.3 s) and the Salvage scanner's `salvage` (`bonus`, one share
+  per level: `[0.1, 0.2]`)); specials (`input_buffer` (s a press waits
   while the special is busy), `specials` with `name`, `charge_price`, `max_charges`, `unlock` and
   optional `free_charges` (given once at the unlock), and the `airstrike` block: `delay`, `offset`,
   `speed`, `bomber_size`, `bomb_spacing`, `fall`, `blast_radius`, `damage` (`ground`, `air` per
@@ -447,7 +457,24 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   under the first page, played once) and `pages` (as the briefing's: `speaker`, `line`, optional
   `expression` and `image`); the loader checks that every level's act exists and includes it.
   Saves (not a data file; see [saves](../../systems/saves/README.md)): format version 2 (part G)
-  adds `stats.levels`, per won level number its banked `credits` and `kills`.
+  adds `stats.levels`, per won level number its banked `credits` and `kills`. Planned (M5 part A):
+  format version 3 adds `escort` (`hired`, `side`, `fitted`, `guns` with `item` and `level`,
+  `armour`), migrated from version 2.
+- **Wingmen** (planned (M5 part A): `player/wingmen/data.yaml`, see
+  [wingmen](../../player/wingmen/README.md#data)): `rook` (`joins` (the first
+  level), `side` (a new campaign's), `armour`, `size`, `hitbox`, `muzzle` (his one gun's muzzle,
+  px from the sprite's top left), `speed`, `acceleration_seconds`,
+  `min_distance`, `edge_gap`, `ram_damage`, `launch_warning` (share of his armour), `glide_seconds`,
+  `swap_seconds`, `formations` (`wing`, `wide`, `trail`: `[x, y]` offsets from the player's centre,
+  y down, x mirrored on the left side), `flank_distance`, `reaction_seconds`, `dodge` (`interval`,
+  `look_ahead`, `clearance`, `step`), `cone` (° full width), `range`, `recent_hit_seconds`, `eject`
+  (`explosion`, `pod_speed`)); `guns` (`price_factor` of the base weapon's price and upgrade base,
+  and the `list`, the first the free starter: `id`, `name`, `base` (a weapon slug), `scale` (on each
+  projectile's damage), `available`); `barks` (`speaker`, `spacing` s, and `triggers` in priority
+  order: `trigger` (`boss-warning`, `rear-wave` with `ahead` s, `sides-wave`, `player-armour` and
+  `rook-armour` with `below` (share), `rook-ejects`, `kill-streak` with `kills` and `seconds`,
+  `overdrive`), the portrait's `expression`, optional `shout`, and the variant `lines`). His repair
+  cost is the difficulty's `repair_cost`.
 
 ### Presentation (`game`)
 
@@ -919,3 +946,32 @@ Screenshot tests are left out until there is a need.
   at `Defences.CRITICAL_SHARE` (15 %, shared by the game's `LowArmour`) and hashes its flag only
   once set, so replays that never get that low keep their hashes; the level screen queues the line
   urgent and `VoiceLines` lists it (source `armour`).
+- 2026-10-06: Schema text for M5 part A (Rook and the escort slot, the Act 2 weapons, the
+  Targeting computer and the Salvage scanner), marked "planned (M5 part A)" until the loader reads
+  it: the wingmen data file (written with its loader `WingmenData`, since the loader rejects a data
+  file it does not know), the weapons' `accelerate`, `ports`, `drift`, `arm`, `trigger` and `slew`, the utility
+  modules' `targeting` and `salvage` blocks, and save format version 3 with `escort`.
+- 2026-10-06: M5 part A, the Act 2 weapons (built; the weapons' schema text above is no longer
+  "planned"). `sim`: `WeaponSpec.Delivery` gains `TURRET` (aimed by `PlayerFire` per mount at its
+  slew, the weapon's `turnRate`, hashed only for turret mounts) and `MINE` (a `Shot` that drifts,
+  arms and holds its screen position; `PlayerFire.hitGround` sets mines off and bursts them;
+  `WeaponSpec.Mines`), and accelerating shots (`endSpeed`, `accelSeconds`; `Shot.speed()`); the
+  old 18-argument `WeaponSpec` constructor stays for weapons without them. `content`: `WeaponData`
+  reads `accelerate`, `ports`, `slew`, `drift`, `arm`, `trigger` (`hits: area` = mines);
+  `SimSpecs.weapon` builds the ports' muzzles and the one turn rate. `game`: `WeaponLooks` gives
+  the mines their pulse and blast and the Hornet its smoke trail (`LevelScreen`, `TestFireView`).
+- 2026-10-06: M5 part A, the Targeting computer and the Salvage scanner (built; their schema text
+  above is no longer "planned"): `SystemsData.Utility` reads `targeting` (`turn_bonus`,
+  `bar_seconds`, `bar_fade`) and `salvage` (`bonus` per level); `SimSpecs.fliesUtility` flies both.
+  `sim`: `Loadout.salvageBonus` (0 without a scanner) multiplies a salvage pickup's and a hidden
+  crate's payout before its one rounding (`Tally.earn` with a factor); `Enemy.ticksSinceHit` counts
+  the steps since a unit's last damage for the HP bar, outside the state hash like its facing, so
+  every replay hash stays. `content`: `SimSpecs.loadout` takes the turn bonus (the Targeting
+  computer's share) and raises the Stormhawk's weapons' `turnRate`; `SimSpecs.wingman` builds Rook's
+  guns at the base turn. `Flight` reports `targeting` and `salvage` for the renderer. The act HP
+  factor: `SimSpecs.level` passes the level's act and number to everything it builds
+  (`SimSpecs.actHpFactor`; `SimSpecs.enemy` and the public `setPiece`/`boss` without a level apply
+  none). `game`: `TargetingOverlay` (bars and brackets, after the front scenery, under the spore
+  mines and bullets) and `SecretGlints` (before the pickups), handed to `LevelRenderer.modules`;
+  both draw from the simulation's state and keep no per-unit state. The `--loadout` debug option
+  takes `utility` and `utility2` slots (a module's name in lower case, hyphenated).

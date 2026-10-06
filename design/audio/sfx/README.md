@@ -77,14 +77,14 @@ reused round 02 files marked (r02).
 |---|---|---|
 | Pulse Cannon shot | Short, bright "pew"; very frequent, so quiet and varied (3 pitch variants) | P1 |
 | Scatter Vulcan shot | Rapid chatter | P1 |
-| Hornet / micro-missile launch | Whoosh with a small ignition pop; the Hornet Launcher (L10) — **later: M5** | P1 |
+| Hornet / micro-missile launch | Whoosh with a small ignition pop; the Hornet Launcher (L10) plays its `missile` family since M5 part A | P1 |
 | Hammer Mortar / bomb drop | Hollow thunk, whistle down | P2 |
 | Lance Laser | Sustained zap with tail | P2 |
 | Ion Beam loop | Humming loop with start/stop | P2 |
-| Harpoon torpedo / depth charge | Muffled launch, bubbles; underwater boom; the Torpedo Pod (L11) — **later: M5**, Harpoon Torpedoes and Depth Charges Act 4 | P2 |
+| Harpoon torpedo / depth charge | Muffled launch, bubbles; underwater boom; the Torpedo Pod (L11) — **later: M5 part E**, Harpoon Torpedoes and Depth Charges Act 4 | P2 |
 | Plasma Arc | Crackle | P3 |
-| Tail Gun / Fan Blaster | Like the front guns, a little lower (rear guns play their family 10 % lower, built with the Side Splitter); Tail Gun (L08) and Fan Blaster (L10) — **later: M5** | P1 |
-| Proximity mine drop / arm | Click + beep; Proximity Mines (L12) — **later: M5** | P2 |
+| Tail Gun / Fan Blaster | Like the front guns, a little lower (rear guns play their family 10 % lower, built with the Side Splitter); Tail Gun (L08) and Fan Blaster (L10), built in M5 part A | P1 |
+| Proximity mine drop / arm | Click + beep; Proximity Mines (L12): the drop plays the `mine` family at its own pitch (M5 part A); the arming beep as a mine arms: proposed in [round 28](#concept-art) (a "armed chirp", b "sensor ping"), a played until the choice | P2 |
 | Choir Resonator | Alien chord shot | P3 |
 | Overdrive start / end | Power-up surge / power-down | P1 |
 
@@ -202,9 +202,7 @@ game may play only `proposed` sounds of an open concept round, provisionally unt
 | [player-shot-r02-b.ogg](concept/player-shot-r02-b.ogg) | `pulse` family b ("heavy"): the family plays a, levels differ by pitch; kept for layering a heavy level |
 | [player-shot-r02-c.ogg](concept/player-shot-r02-c.ogg) | `laser` family a: the Lance Laser plays b (r03) |
 | [player-shot-r02-e.ogg](concept/player-shot-r02-e.ogg) | `vulcan` family a: the Scatter Vulcan plays b (r03) |
-| [shot-missile-r03-a.ogg](concept/shot-missile-r03-a.ogg) | Hornet Launcher, an Act 2 weapon (L10) — later: M5 |
-| [shot-torpedo-r03-a.ogg](concept/shot-torpedo-r03-a.ogg) | Torpedo Pod, an Act 2 weapon (L11) — later: M5 |
-| [shot-mine-r03-a.ogg](concept/shot-mine-r03-a.ogg) | Proximity Mines, an Act 2 weapon (L12) — later: M5 |
+| [shot-torpedo-r03-a.ogg](concept/shot-torpedo-r03-a.ogg) | Torpedo Pod, an Act 2 weapon (L11) — later: M5 part E |
 | [shot-tesla-r03-a.ogg](concept/shot-tesla-r03-a.ogg) | Tesla Coil Pod, Plasma Arc, EMP Burst: later acts |
 | [shot-resonator-r03-a.ogg](concept/shot-resonator-r03-a.ogg) | Choir Resonator: a later act |
 | [shot-beam-r04-a.ogg](concept/shot-beam-r04-a.ogg) | Ion Beam loop: a later act |
@@ -514,6 +512,17 @@ copied into `assets/sfx/` by `copyPlaceholderSounds`, the tear's production file
 | [concept/enemy-coilwyrm-cut-r27-a.ogg](concept/enemy-coilwyrm-cut-r27-a.ogg) | "rip_tear FLESH!!!!.wav" by aust_paul (CC0 1.0) — chain-cut tear a: a monster tearing at flesh, a run of short wet rips, 15 % slower for a bigger body (1.06 s) | chosen |
 | [concept/rejected/enemy-coilwyrm-cut-r27-b.ogg](concept/rejected/enemy-coilwyrm-cut-r27-b.ogg) | "Tearing Flesh" by dereklieu (CC-BY 3.0) — chain-cut tear b: one juicy limb-tearing rip (layered bread breaks) with a low body (0.72 s) | rejected |
 
+Concept round 28 (M5 part A) — an a/b pair for the proximity mine's arming beep, synthesized in the
+round-08 UI family by `tools/concept/audio/sfx_r28.py`: short, dry, high and quiet (peak −12 dBFS,
+the tick level), so mines arming together do not clutter. Not listened to by Claude. Option a plays
+in the game until the round closes (`Sfx.MINE_ARM`, a concept copy by `copyPlaceholderSounds`).
+Briefs: [concept/prompts.md](concept/prompts.md#round-28--the-proximity-mines-arming-beep).
+
+| File | What | Status |
+|---|---|---|
+| [concept/weapon-mine-arm-r28-a.ogg](concept/weapon-mine-arm-r28-a.ogg) | Synthesized — mine arming a, "armed chirp": two soft rising pulse blips a fifth apart (A6, E7 45 ms later), low-passed (0.10 s) | proposed |
+| [concept/weapon-mine-arm-r28-b.ogg](concept/weapon-mine-arm-r28-b.ogg) | Synthesized — mine arming b, "sensor ping": one sine ping gliding up a fifth in 15 ms, ringing out on a faint metallic overtone over a tiny latch click (0.15 s) | proposed |
+
 ## Implementation
 
 - [x] SFX playback with instance limits, stealing by priority, pitch variation: the 32-voice
@@ -539,8 +548,16 @@ copied into `assets/sfx/` by `copyPlaceholderSounds`, the tear's production file
   is written (`HangarScreen`, `SlotsScreen`), `Sfx.COILWYRM_CUT` (tear a, rebuilt from its original
   by `tools/art/sfx_originals.py` with sfx_r27.py's `PRODUCTION`) on `CHAIN_CUT` (before: a lower
   Brood Pod burst)
-- [ ] The Act 2 sounds: Tail Gun, proximity mine drop and arm, torpedo launch, Hornet missile,
-  water explosion, the Act 2 ambiences — **later: M5**
+- [x] The Act 2 weapon sounds built in M5 part A: the Tail Gun and Fan Blaster play the `pulse`
+  family 10 % lower as rear guns, the Hornet Launcher `Sfx.MISSILE_SHOT` (shot-missile-r03-a), the
+  Proximity Mines' drop `Sfx.MINE_DROP` (shot-mine-r03-a, not lowered: a drop, not a gun), the
+  Swivel Gun the `ballistic` family; a mine's blast plays the small explosion like a bomb's
+  (`FlightSounds`)
+- [x] The proximity mine's arming beep: `Sfx.MINE_ARM` on the simulation's `PROXIMITY_MINE_ARMED`
+  (the step a mine arms), at −10 dB in the flight mix, ±3 % pitch, panned, two instances at most
+  (`FlightSounds`); round 28's option a until the round closes (M5 part A)
+- [ ] Torpedo launch and the water explosion — **later: M5 part E**; the Act 2 ambiences —
+  **later: M5** (parts B, E, F, G, with their levels)
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
   from rounds 02–08, round 21's four, round 23's five, round 24's two, round 25's seven and round 27's one) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
   [`tools/art/sfx_originals.py`](../../../tools/art/README.md); `importPlaceholders` keeps them
@@ -714,3 +731,18 @@ copied into `assets/sfx/` by `copyPlaceholderSounds`, the tear's production file
   rejected, so it leaves the credits roll); the Vrell screech approved as built. The save sound
   ships as a concept copy like the other synthesized UI blips, the tear rebuilt from its Freesound
   original by `tools/art/sfx_originals.py`. The game now plays no proposed sound.
+- 2026-10-06: M5 plan (user decision D1 of part A): the Act 2 weapon sounds are retagged by part:
+  the Hornet, the rear guns and the mines' drop and arm with part A, the torpedo with part E
+  (Level 11).
+- 2026-10-06: M5 part A built the Act 2 weapon sounds from the chosen families: the Hornet's
+  `missile` (shot-missile-r03-a) and the mines' drop (shot-mine-r03-a) are played now, so they
+  leave the not-played list; rear guns keep the 10 % lower pitch, the mine's drop does not (it is
+  not a gun). The arming beep the `mine` family names has no chosen sound: a gap for round 28.
+- 2026-10-06: M5 part A, concept round 28: the proximity mine's arming beep gets two synthesized
+  proposals (`tools/concept/audio/sfx_r28.py`, round-08 UI family, peak −12 dBFS): a, a rising
+  two-blip "armed chirp", and b, a single gliding "sensor ping". Main-agent brief: short (≤ 0.15 s),
+  dry and quiet, since a mount drops up to two mines a second and keeps up to six. The simulation
+  now marks the step a mine arms (`PROXIMITY_MINE_ARMED`, at the mine; it allocates nothing and the
+  replay hashes are unchanged, events are not hashed); option a plays there provisionally
+  (`Sfx.MINE_ARM`, two instances, −10 dB, between the hits' −8 and the shots' −14), so the game plays
+  one proposed sound until the round closes.

@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy, ../../../audio/sfx]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Coilwyrm
@@ -87,6 +87,10 @@ Chosen concept: [coilwyrm-r08-a.png](../concept/coilwyrm-r08-a.png), [coilwyrm-r
 - [x] Split once with regrowth, second cut kills the severed part
 - [x] Chained death explosion
 - [x] Stat block values loaded from data; global difficulty multipliers applied
+- [x] The head's weak point: every damage the head takes is multiplied by its part's `multiplier`
+  (×2; shots, blasts, specials, ramming), like a set piece's part; segments, tail and a regrown head
+  take plain damage (`EnemySpec.ChainSpec.headMultiplier`, `Enemy.damage`; tests `FarsideTest`,
+  `FarsideLevelTest`); the Targeting computer's brackets mark the living head
 - [x] Death effect, bounty and score per this spec (the head's teal flash and skull pieces, the
       segments' and tail's glint and pieces of `tools/art/coilwyrm.py` with their bursts and pops)
 - [x] Production sprites drawn: head (4 jaw frames), regrown head, segments at their taper's
@@ -164,3 +168,9 @@ Chosen concept: [coilwyrm-r08-a.png](../concept/coilwyrm-r08-a.png), [coilwyrm-r
   against the `large` class's 40–60, but it is a multi-part enemy and cutting it up segment by
   segment is extra work the player is paid for; a head-first kill pays the class's 40.
   `BalanceTest` lists it under `ACCEPTED` instead of pending a decision.
+- 2026-10-06: Bug fixed (M5 part A): the head's ×2 (its part's `multiplier`, the teal crest) was in
+  the data but never simulated, so since Level 06 the head took plain damage. It now takes every
+  damage ×2, as a set piece's parts take theirs; the regrown head has no multiplier in the data and
+  stays at ×1. A head-first kill takes half the damage it did (40 HP at medium: 20 points of
+  hits). No test or balancing number moved: the head's HP, the bounties and the typical haul are
+  unchanged, and Level 01's replay hash stays (no chain flies there).

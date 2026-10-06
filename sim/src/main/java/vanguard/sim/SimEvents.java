@@ -157,7 +157,24 @@ public final class SimEvents {
          * Part G: a boss's open window launched a unit (at the window part; the Brood Carrier's sacs);
          * value: the unit's kind.
          */
-        BOSS_LAUNCHED;
+        BOSS_LAUNCHED,
+        /**
+         * M5 part A: the wingman took damage (at him); value: the damage, rounded up. His shots carry
+         * {@link Sortie#wingmanMount()} as their mount in the shot events.
+         */
+        WINGMAN_HIT,
+        /** The wingman's armour dropped below his low-armour share, once per attempt (at him): his bark. */
+        WINGMAN_CRITICAL,
+        /**
+         * The wingman's armour reached zero: he ejects, his craft explodes (at him); value: the pod's
+         * drift, -1 to the left edge, 1 to the right.
+         */
+        WINGMAN_EJECTED,
+        /**
+         * M5 part A: one of the ship's proximity mines armed (at the mine), 0.4 s after its drop: its
+         * arming beep; value: the mount that dropped it.
+         */
+        PROXIMITY_MINE_ARMED;
 
         private static final Type[] VALUES = values();
     }

@@ -66,6 +66,7 @@ public final class Names {
             case UTILITY_1 -> "UTILITY BAY 1";
             case UTILITY_2 -> "UTILITY BAY 2";
             case UTILITY_3 -> "UTILITY BAY 3";
+            case ESCORT -> "ESCORT";
         };
     }
 
@@ -78,6 +79,7 @@ public final class Names {
             case ENGINE -> "ENG";
             case SPECIAL -> "SPC";
             case UTILITY_1, UTILITY_2, UTILITY_3 -> "UTL";
+            case ESCORT -> "ESC";
             case FRONT, REAR, LEFT_WING, RIGHT_WING -> slot(slot);
         };
     }

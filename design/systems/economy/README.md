@@ -1,10 +1,10 @@
 ---
 title: Economy
 design: approved
-implementation: done
+implementation: in-progress
 art: n/a
 depends-on: [../../player, ../difficulty]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Economy
@@ -49,6 +49,20 @@ Two budgeting conventions, used by level documents and `tools/balance.py`:
   objectives. The order per payout is: Act 1 bounty × act factor × difficulty income × bounty
   scale, then **one** rounding, half to even. The scale only moves credits; the score uses the
   bounty without it. A level sets its scale so its typical haul lands on its budget (below).
+- **Data holds Act 1 terms** (M5 part A, 2026-10-06): every credit amount in a data file is the
+  Act 1 value, and the code multiplies it by the act factor: bounties, ground targets, salvage,
+  hidden crates, objective credits and an escort's credits per unit home, boss and mid-boss
+  bounties included. A level document may quote the act-scaled amount the player sees (Level
+  08's billboard cache "worth 160"), but its data writes the Act 1 term (100) and the budget table
+  counts the scaled one. A boss bounty planned as an absolute amount (15 % / 30 % of the level's
+  budget) is converted the same way when its data is written: the Harbour Kraken's 300 in Act 2 is
+  written 188 (see [enemies](../../enemies/README.md#balancing-basis)). There is no act-factor
+  exemption in the code.
+- **Rook's kills pay like the player's** (M5 part A): the same bounty, scale and rounding, see
+  [wingmen](../../player/wingmen/README.md#kills-user-decision-d2-of-m5-part-a).
+- **The Salvage scanner's bonus is outside the budget**: +10 / +20 % on salvage and hidden crates
+  (see [ship systems](../../player/systems/README.md#salvage-scanner-user-decision-d7-of-m5-part-a)),
+  like the grade bonus not counted in the typical haul.
 - **Spawned adds are budgeted at their expected count**: units that appear during play
   (Skitters from hive nodes, units launched by a boss) count in the level budget at the number
   a typical run expects to see, at their normal bounty.
@@ -63,7 +77,8 @@ cost their normal price. Later acts add rows as their level documents place core
 An unlock is recorded when the core is collected in a won level: the save keeps the core
 (`dataCores`) and the unlock (`unlocks`) at once, even when the item does not exist in the game
 yet. The L06 core's Targeting computer is such a case: Level 06 (M4 part F) records it, and the
-item enters the shop once utility modules exist (M5), from the first hangar visit after that.
+item enters the shop once M5 part A builds its effects, from the first hangar visit after that
+(the L07 visit with the core, otherwise L08).
 
 | Data core found in | Item unlocked early | Normal unlock | Why this item |
 |---|---|---|---|
@@ -129,7 +144,9 @@ the static estimate cannot always pay both the plan and the repairs of its 15 ar
 level: today the L13 visit falls 425 credits short of the Composite II plating. A typical hard
 player is expected to take less damage or skip some repairs (user decision 2026-10-05); the content
 test `BalanceTest` prints the hard sheet with such shortfalls as accepted notes.
-- Rook's upgrades and repairs
+- Rook's guns, their upgrades (60 % of the player's prices, see
+  [wingmen](../../player/wingmen/README.md#rooks-ai-first-draft-parameters)) and his repairs (a
+  hangar line at the difficulty's repair cost per point, like the player's armour)
 
 ### Sell-back and undo
 
@@ -162,7 +179,13 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   minimum density in the content test `DensityTest`)
 - [x] Data cores: the core and its unlock recorded in the save (`dataCores`, `unlocks`) when
   collected in a won level (M4 part F: a secret's `data_core` in the level data)
-- [ ] The unlocked item in the shop once it exists — **later: M5** (the Targeting computer, built with the utility modules' effects; until then it stays out of the shop, user decision D2 of M4 part H)
+- [x] The unlocked item in the shop once it exists (the Targeting computer from the visit after M5
+  part A builds it; until then it stays out of the shop, user decision D2 of M4 part H) — M5 part A
+  (from the L07 visit with the L06 core's unlock, otherwise from L08; test `UtilityModulesTest`)
+- [ ] Rook's guns, upgrades and repairs as sinks; his kills paid like the player's — M5 part A
+- [x] The Salvage scanner's bonus on salvage and hidden crates, outside the typical haul — M5 part A
+  (`Loadout.salvageBonus`, one rounding with the credit factor in `Sortie.payPickup`; the typical
+  haul and `BalanceTest` leave it out; test `UtilityEffectsTest`)
 - [x] Balancing sheet that simulates per-level budgets vs prices: `tools/balance.py` prints the
   balance plan's purchases per hangar visit against each level's typical haul (budget(n) for a level
   without data yet), with the power load, the DPS against the reference and the enemies' time to
@@ -269,3 +292,19 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   economy is accepted as tighter (see *Sinks*): `BalanceTest` prints the hard sheet and its credit
   shortfall (today the L13 visit's Composite II, 425 short) as accepted.
 - 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the part H balance pass accepted: Act 1 won at the first attempt on every difficulty by `ActPlaythroughTest` (8,349 / 7,108 / 6,525 credits at the act's end on easy / medium / hard), the Leviathan's bounty 113 with Level 03's `bounty_scale` 1.07, the Coilwyrm's bounty as an accepted exception, hard's tighter economy with the L13 visit's Composite II plating 425 credits short, and `tools/balance.py` as the printed balancing sheet (exit 0).
+- 2026-10-06: M5 part A (user decisions D2–D4, D7 and the stated defaults, see
+  [wingmen](../../player/wingmen/README.md#decisions)): Rook's kills pay like the player's; his guns
+  cost 60 % of the player's prices and are owned in an escort inventory; his repairs are a hangar
+  line at the difficulty's repair cost per point (main-agent choice: the player's cost, not the
+  flat 10 cr per point of the first draft); the Salvage scanner adds +10 / +20 % on salvage and
+  hidden crates outside the budget; the Targeting computer enters the shop from the visit after
+  part A. The economy rule of the gap analysis is settled: **data holds Act 1 terms**, and the
+  documents' absolute boss bounties are converted when Levels 11 and 14 write their data (parts E
+  and H), so the code needs no act-factor exemption. Rook is in the balance plan from L08; his DPS
+  is printed, not counted against the reference. The document is `in-progress` again while M5
+  builds it.
+- 2026-10-06: M5 part A built the Targeting computer's shop entry and the Salvage scanner's bonus
+  (see [ship systems](../../player/systems/README.md#decisions)). The rule "data holds Act 1 terms"
+  needed no code: every payout, boss parts included, is its Act 1 value × the act factor; the
+  boss-share check of `BalanceTest` and `tools/balance.py` now applies the act factor at the boss's
+  level (Act 1's bosses unchanged), and a test pins the Harbour Kraken's 188 paying 301 in Act 2.

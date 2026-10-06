@@ -27,7 +27,7 @@ class ItemIconsTest {
     void everyItemOfTheCatalogueHasBothIcons() {
         for (ItemKind kind : ItemKind.values()) {
             for (var item : CATALOGUE.items(kind)) {
-                String name = ItemIcons.name(item);
+                String name = ItemIcons.iconName(item, CATALOGUE);
                 assertTrue(Files.isRegularFile(ICONS.resolve(name + ".png")), name);
                 assertTrue(Files.isRegularFile(ICONS.resolve(name + "-large.png")), name + "-large");
             }

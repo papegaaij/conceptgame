@@ -10,7 +10,7 @@ import vanguard.game.ui.Dialog;
  * hangar's quit does, and a yes leaves for the main menu. The campaign is left as it is: after a
  * won level it is written to the autosave the hangar would have written as it opened, so the won
  * level stays won and Continue goes on in the hangar; a new game's intro briefing has nothing to
- * keep yet and leaves the saves alone.
+ * keep yet and leaves the saves alone, and so does a debug run, which writes no save at all.
  */
 public final class BriefingExit {
     /** What the briefing does this frame. */
@@ -25,12 +25,24 @@ public final class BriefingExit {
         LEAVE
     }
 
+    /** The question's detail in a debug run. */
+    static final String DEBUG_RUN = "A DEBUG RUN WRITES NO SAVE.";
+
     private final String detail;
     private Optional<Dialog> dialog = Optional.empty();
 
     /** @param autosaves whether leaving writes the autosave, see {@link #autosaves(Campaign)} */
     public BriefingExit(boolean autosaves) {
-        detail = autosaves ? "THE AUTOSAVE KEEPS YOUR PROGRESS." : "THE NEW CAMPAIGN IS NOT SAVED YET.";
+        this(autosaves ? "THE AUTOSAVE KEEPS YOUR PROGRESS." : "THE NEW CAMPAIGN IS NOT SAVED YET.");
+    }
+
+    private BriefingExit(String detail) {
+        this.detail = detail;
+    }
+
+    /** The exit of a debug run's briefing: leaving writes no save (design/systems/saves), and says so. */
+    public static BriefingExit debugRun() {
+        return new BriefingExit(DEBUG_RUN);
     }
 
     /** Reads the frame's menu input. */

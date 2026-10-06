@@ -159,8 +159,8 @@ public final class RadioQueue {
         add(speaker, portrait, expression, line, distorted, priority, Optional.empty(), 0);
     }
 
-    /** Queues a spoken line: {@code voice} is its file, {@code voiceSeconds} its length. */
-    public void add(
+    /** Queues a spoken line: {@code voice} is its file, {@code voiceSeconds} its length; returns the queued message. */
+    public Message add(
             String speaker,
             String portrait,
             String expression,
@@ -169,8 +169,32 @@ public final class RadioQueue {
             Priority priority,
             Optional<String> voice,
             float voiceSeconds) {
-        queue.add(new Waiting(
-                new Message(speaker, portrait, expression, wrap(line), distorted, voice, voiceSeconds), priority));
+        Message message = new Message(speaker, portrait, expression, wrap(line), distorted, voice, voiceSeconds);
+        queue.add(new Waiting(message, priority));
+        return message;
+    }
+
+    /** Whether {@code message} (as {@link #add} returned it) still waits: not yet on the radio, nor dropped as stale. */
+    public boolean waiting(Message message) {
+        return queue.stream().anyMatch(waiting -> waiting.message == message);
+    }
+
+    /** Takes {@code message} out of the queue while it waits (a bark replaced by a more urgent one). */
+    public void withdraw(Message message) {
+        queue.removeIf(waiting -> waiting.message == message);
+    }
+
+    /**
+     * Takes {@code message} off the radio: out of the queue while it waits, closed at once (without
+     * its closing squelch) while it plays, so the next update opens what waits. Rook's eject bark
+     * cuts his own bark this way, which then does not play again after it.
+     */
+    public void cancel(Message message) {
+        withdraw(message);
+        if (current.isPresent() && current.get() == message) {
+            current = Optional.empty();
+            gap = 0;
+        }
     }
 
     /** Drops everything, as when the level restarts. */

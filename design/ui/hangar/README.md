@@ -1,10 +1,10 @@
 ---
 title: Hangar
 design: approved
-implementation: done
+implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Hangar
@@ -74,12 +74,36 @@ illustrative and come from [player](../../player/README.md).)
   recommended weapon traits. A set piece (a `huge` unit outside the waves, such as Level 03's
   Leviathan) is not named: from sensor L2 it shows as an "unknown huge contact" (its size tier)
   with its 40×40 silhouette at the right of the boss row.
-- **Repair**: armour repair per point or "repair all", with cost. Also Rook's repairs.
+- **Repair**: armour repair per point or "repair all", with cost; from Level 08 a second line
+  for Rook's armour (see *Escort* below).
 - **Save**: slot list, see [saves](../../systems/saves/README.md).
 - **Launch**: confirmation if the loadout lacks a recommended trait ("No anti-sub weapon
-  fitted. Launch anyway?") or armour is below 50 %. The trait warning only uses what the intel
+  fitted. Launch anyway?"), armour is below 50 %, or (from Level 08) Rook's armour is below 50 %
+  ("Rook's armour 34/80.") or he is grounded ("Rook is grounded and stays home."); one
+  confirmation lists every warning that applies. The trait warning only uses what the intel
   shows: it needs the sensor level that reveals the recommended traits (L3, counting the easy
   bonus); below it there is no trait warning, so the launch never tells more than the intel.
+
+### Escort (from Level 08)
+
+The escort slot holds Rook from the hangar visit before Level 08 (see
+[wingmen](../../player/wingmen/README.md)); before that its callout stays locked with his craft's
+icon, as built.
+
+- **Escort callout** on the schematic: Rook's craft icon, his fitted gun's name with five level
+  pips, his armour `nn/80` and his side (`L` or `R`); `GROUNDED` in red at 0 armour. It is one of
+  the slots Q/E cycle.
+- **Selecting it** fills the shop with his four guns (fitted, owned, buyable by price; the NEW tag
+  at the L08 visit). The detail shows the gun's traits (its base weapon's), his DPS at that level,
+  the price at 60 %, draw `0` (his own power: the power bar does not move) and the green/red deltas
+  against his fitted gun. Choices as for the front gun: buy, upgrade, fit, sell (not the fitted
+  gun); every one of them joins the visit's undo.
+- **Side**: a `SIDE LEFT / RIGHT` choice in the escort's detail, toggled with left/right; free,
+  saved with the visit, not part of the undo.
+- **Repair**: the Repair panel shows two lines, `SHIP` and `ROOK`, each with its missing points,
+  its cost at the difficulty's repair cost per point, per point or all.
+- **Test fire**: the box loops his selected gun from a single nose muzzle at his scale, like a
+  front gun.
 
 ### Transactions
 
@@ -145,6 +169,12 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
       (Level 03's Leviathan; `Intel.contacts()`, the silhouette `intel/boss-<enemy>`)
 - [x] Trait-match markers in the shop
 - [x] Launch warnings (missing recommended trait, low armour)
+- [x] Escort callout unlocked from the L08 visit: Rook's icon, gun and level pips, armour, side, `GROUNDED` — M5 part A
+- [x] Escort shop: his four guns at 60 %, buy, upgrade, fit, sell, undo, deltas against his fitted gun, draw 0 — M5 part A
+- [x] Rook's side toggle (left/right), saved — M5 part A
+- [x] Repair panel: the `ROOK` line at the difficulty's repair cost — M5 part A
+- [x] Launch warnings: Rook's armour below 50 %, Rook grounded — M5 part A
+- [x] Test fire of Rook's guns and of the Proximity Mines (their dummies fly low, `low-air`, which sets mines off) — M5 part A
 
 ## Open questions
 
@@ -296,3 +326,27 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
   `available: act 3`); the hangar sells it from the visit before Level 15 (`Hangar.available(Bay)`),
   so no Act 1–2 visit offers it and the save is unchanged. The shop keeps its two UTL slots; buying
   the bay and the third UTL slot come with Act 3 (tracked in ship systems).
+- 2026-10-06: M5 part A (user decisions D3 = b and D4 = a, see
+  [wingmen](../../player/wingmen/README.md#decisions)): the escort UI is designed under *Escort*:
+  the callout with his gun, armour and side; his four guns in the shop like a front gun's (escort
+  inventory, 60 % prices, the visit's undo); a side toggle on the escort's detail (the L08 HUD hint
+  "Rook's side can be set in the hangar"); a `ROOK` repair line at the player's repair cost; launch
+  warnings for his armour below 50 % and for a grounded Rook. Main-agent choices: the side toggle
+  is a setting outside the undo; his guns are test-fired from one nose muzzle; the mines' test fire
+  needs dummies on `air`, since mines trigger only on `air` and `low-air`. The document is
+  `in-progress` again while M5 builds it.
+- 2026-10-06: M5 part A, the escort UI as built (main-agent choices, for review with concept
+  round 28): once Rook is hired the escort is a tab after the rear mount; his callout grows to
+  92×92 px under the left wing's callout (the escort title with his side `L`/`R`, his icon and
+  `ROOK`, his fitted gun's name with five pips, his armour, amber below the launch warning's 50 %, or
+  `GROUNDED` in red), so his longest gun name fits. The side is a last row `ROOK'S SIDE` in the
+  escort's shop: left/right pick the side, confirm toggles it, its detail shows `LEFT` / `RIGHT`. The
+  repair panel lists `SHIP` and `ROOK` with their missing points; Q/E switch the line (each keeps the
+  most points the credits pay for), left/right and up/down set the points as before; it opens on the
+  ship's line while that has points missing it can pay for. The launch warnings read `ROOK'S ARMOUR
+  34/80` and `ROOK IS GROUNDED AND STAYS HOME`. His guns are test-fired from his craft (his nose
+  muzzle at his scale, the dummies as tough as the scale asks). The side change was part of the
+  visit's undo as first built (M5 part A1), against *Side* above; closed in the next entry.
+- 2026-10-06: user decision: Rook's side stays outside the visit's undo, as *Side* says. A side
+  change pushes no undo step, and undoing an earlier transaction keeps the side he has now
+  (`Hangar.escortSide`, `Hangar.restore`; test `EscortTest.hisSideIsAHangarSettingOutsideTheUndo`).

@@ -1,10 +1,10 @@
 ---
 title: HUD
 design: approved
-implementation: done
+implementation: in-progress
 art: final
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # HUD
@@ -96,7 +96,7 @@ control prompts 384–430 (a two-line well, 42 px), objective tracker 436–482 
 | Power | Spare power as pips and the resulting regen bonus; glows during overdrive. Output drained by enemies (Void Leech) shows in a warning colour and the gauge flashes when load exceeds output (see [generator](../../player/generator/README.md#enemy-drain-effects)) |
 | Weapons | Front, rear, left, right with level pips (5); overdrive timer bar |
 | Special | Icon, charges or cooldown ring; greyed out if unavailable in this setting |
-| Escort | Rook's (or the heavy drone's) armour; "EJECTED" when down |
+| Escort | Rook's (or the heavy drone's) armour; "EJECTED" when down. A box under the special row in the weapons' style: the `ESCORT` plate, Rook's 16 px hangar icon and `ROOK`, his armour as a bar with the number (flashing red at 30 %, as the player's); after the eject the bar is empty and the well reads `EJECTED` in red. Drawn only while an escort flies in the level (from Level 08, or with `--escort`); otherwise its region stays empty, so nothing else moves |
 
 (The mock shows the level 21 *Dust Colossus* boss fight; numbers are illustrative.)
 
@@ -194,7 +194,7 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
 - [x] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Act 1's done: Level 01's kill counter, Level 02's dock pips, Level 03's bomber counter, Level 04's crawler pips, Level 05's `BATTERIES A B C D` over `NEST n / 30`, Level 06's `MANTISES` escapes and Level 07's bay count; the later levels' trackers are part of those levels' own tickets)
 - [x] Right panel: armour, shield, power (spare-power bar and the regen bonus, glowing in an overdrive), weapons (front, rear, left, right with level pips), overdrive timer
 - [x] Right panel: special (M4 part D): a row under the weapons box in their style, `SPECIAL`, the special's 16 px hangar icon, its name and `×` charges; greyed while its strike flies or with no charge left, flashing red when the button is denied
-- [ ] Right panel: escort — **later: M5** (Rook's escort slot)
+- [x] Right panel: escort box (plate, icon, `ROOK`, armour bar and number, the 30 % flash, `EJECTED`; hidden without an escort) — M5 part A
 - [x] Radio message queue with portraits, priority interrupts
 - [x] Boss bar and name at the top of the play field, shorter for a mid-boss (M4 part E); drawn on
       its production plate `hud/boss-bar-plate` (a nine-patch) once that exists, plainly until then
@@ -398,3 +398,15 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
   to 18 s when it cuts a long line near its end in a dense run of timed lines (Level 03 from
   t=36.5), mostly 2–13 s, once per attempt and only when the ship is nearly lost.
 - 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the boss bar's plate approved as **final**; the wave banners, the sensor suite's threat arrows, the low-armour flash and the credit-numbers option accepted as built, the banners' **code-drawn look as final** (no rendered banner art), with the arrows' short lead (about 0.3 s before a wave enters) as it is. The objective tracker item is ticked for Act 1 (Levels 06 and 07 use the generic tracker; the later levels' trackers belong to those levels), so every item is ticked or tagged later and the document is `done`.
+- 2026-10-06: M5 part A: the escort box is specified after the chosen mock (`hud-r08-a.png`:
+  `ESCORT ROOK` over his armour bar): under the special row, his icon and name, the bar with the
+  number, the low-armour flash at 30 %, `EJECTED` after he ejects, and nothing drawn in a level
+  without an escort (main-agent choices; the mock shows no states). His barks use the radio queue
+  as event lines (see [wingmen](../../player/wingmen/README.md#radio-barks)). The document is
+  `in-progress` again while M5 builds it.
+- 2026-10-06: M5 part A, the escort box as built: the `ESCORT` plate under the special's row,
+  a 38 px well with his 16 px icon, `ROOK` and his armour number (or `EJECTED` in red) on its top
+  row and his armour bar (8 px, the armour colours) under them; the number and the bar flash red at
+  30 % in the player's rhythm. The "not yet available" list moved under the escort's region, so it
+  stays put whether an escort flies or not. Capture:
+  [rook-ingame-capture-r28-a.png](../../player/wingmen/concept/rook-ingame-capture-r28-a.png).

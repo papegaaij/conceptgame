@@ -233,7 +233,10 @@ def bounty_problem(data, e):
         d = level_dir(e["first_level"])
         if not d:
             return None
-        paid = e["bounty"] * load(f"{d}/data.yaml").get("bounty_scale", 1)
+        # Data holds Act 1 terms; the act factor applies to every payout, a boss's included (no exemption).
+        act = int(d.split("/")[1].split("-")[1])
+        paid = (e["bounty"] * data["economy"]["act_factor"] ** (act - 1)
+                * load(f"{d}/data.yaml").get("bounty_scale", 1))
         actual = paid / budget(data, e["first_level"])
         if abs(actual - share) > share * SHARE_TOLERANCE:
             return (f"{paid:.0f} paid = {100 * actual:.1f} % of L{e['first_level']:02d}'s budget, "
@@ -243,6 +246,29 @@ def bounty_problem(data, e):
     lo, hi = {"tiny": (2, 5), "small": (10, 15), "medium": (40, 60) if hardened else (18, 30),
               "large": (40, 60)}[e["tier"]]
     return None if lo <= e["bounty"] <= hi else f"{e['bounty']} outside the {e['tier']} class {lo}-{hi}"
+
+
+ACT_2 = range(8, 15)  # Levels 08-14
+
+
+def act_hp_report(ref):
+    """The act HP factor (design/enemies, Balancing basis; D5 = c of M5 part A): every returning
+    medium-or-larger unit's HP (parts summed, medium) and time to kill at the Act 2 levels after its
+    first; BalanceTest checks the same."""
+    print("\nReturning units in Act 2 (act HP factor = reference DPS at the level / at the first level):")
+    print("Enemy            | Tier     | First | " + " | ".join(f"L{n:02d} HP / TTK" for n in ACT_2))
+    for slug in enemy_slugs():
+        e = enemy(slug)
+        if "boss" in e or e["tier"] in ("tiny", "small", "huge") or e["first_level"] not in ref:
+            continue
+        cells = []
+        for n in ACT_2:
+            if n <= e["first_level"] or n not in ref:
+                cells.append(f"{'-':>12}")
+                continue
+            hp = e["hp"] * ref[n] / ref[e["first_level"]]
+            cells.append(f"{hp:5.0f} {hp / ref[n]:4.2f} s")
+        print(f"{e['name']:16} | {e['tier']:8} | L{e['first_level']:02d}   | " + " | ".join(cells))
 
 
 def enemy_report(data, ref):
@@ -316,6 +342,7 @@ def report(data):
               + "; ".join(f"{diff} L{lvl}: " + ", ".join(f"{action} {items}" for action, items in step.items())
                            for diff, steps in hard.items() for lvl, step in steps.items()))
     enemy_report(data, ref)
+    act_hp_report(ref)
     print("\nAccepted: " + ("none" if not accepted else "\n  " + "\n  ".join(accepted)))
     print("\nProblems: " + ("none" if not problems else "\n  " + "\n  ".join(problems)))
     return 1 if problems else 0

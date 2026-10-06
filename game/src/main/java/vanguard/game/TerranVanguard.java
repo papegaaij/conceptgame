@@ -60,7 +60,7 @@ public final class TerranVanguard extends ApplicationAdapter {
      * @param level a debug option: the level the level start flies
      * @param actEnd a debug option: winning the level start's level ends its act (act summary, outro)
      * @param benchSeconds exit after this many seconds and log the frame count; 0 runs until quit
-     * @param saves the save slots
+     * @param saves the save slots: read-only in a debug run, which writes no save
      * @param screenshots the directory the screenshot key writes into
      */
     public TerranVanguard(
@@ -102,7 +102,7 @@ public final class TerranVanguard extends ApplicationAdapter {
         screens = new ScreenFlow(startLevel ? testLevel() : MainMenuScreen.title(services), Gdx.app::exit);
     }
 
-    /** Level 01 (or the {@code --level}) of a new campaign at the launch difficulty, for testing; nothing is saved before its hangar. */
+    /** Level 01 (or the {@code --level}) of a new campaign at the launch difficulty, for testing; a debug run, which writes no save. */
     private LevelScreen testLevel() {
         Campaign campaign = DebugFit.startAt(services.campaignRules, difficulty, level);
         debugFit.ifPresent(fit -> fit.applyTo(campaign, services.catalogue));

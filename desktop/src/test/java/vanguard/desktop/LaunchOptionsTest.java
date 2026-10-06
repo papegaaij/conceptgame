@@ -8,8 +8,10 @@ import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import vanguard.content.Difficulty;
+import vanguard.content.campaign.DebugFit;
 import vanguard.content.campaign.Fitted;
 import vanguard.content.campaign.LoadoutSlot;
+import vanguard.sim.WingmanSpec;
 
 class LaunchOptionsTest {
     @Test
@@ -70,6 +72,27 @@ class LaunchOptionsTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> LaunchOptions.parse("--loadout", "front=pulse-cannon", "--start", "title"));
+    }
+
+    @Test
+    void aDebugEscortFliesRookWithHisGun() {
+        LaunchOptions options =
+                LaunchOptions.parse("--escort", "rook:missiles:3,side=right", "--loadout", "rear=tail-gun");
+
+        assertEquals(true, options.startLevel());
+        DebugFit fit = options.debugFit().orElseThrow();
+        assertEquals(Map.of(LoadoutSlot.REAR, new Fitted("tail-gun", 1)), fit.weapons());
+        assertEquals(
+                Optional.of(new DebugFit.EscortFit(
+                        Optional.of(new Fitted("missiles", 3)), Optional.of(WingmanSpec.Side.RIGHT))),
+                fit.escort());
+        assertEquals(
+                Optional.of(new DebugFit.EscortFit(Optional.empty(), Optional.empty())),
+                LaunchOptions.parse("--escort", "none").debugFit().orElseThrow().escort());
+        assertThrows(IllegalArgumentException.class, () -> LaunchOptions.parse("--escort", "rook:missiles:9"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LaunchOptions.parse("--escort", "rook:mortar", "--start", "title"));
     }
 
     @Test

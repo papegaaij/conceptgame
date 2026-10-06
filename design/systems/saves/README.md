@@ -1,10 +1,10 @@
 ---
 title: Saves
 design: approved
-implementation: done
+implementation: in-progress
 art: n/a
 depends-on: [../../ui/main-menu, ../../ui/hangar]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Saves
@@ -27,6 +27,13 @@ slot. "Load game" in the main menu lists them. There is no mid-level saving: a l
 - **Manual save**: from the hangar's Save tab, into one of 8 slots (overwrite with
   confirmation).
 - **Continue** in the main menu loads the most recent save of any kind.
+- **Debug runs never write a save**: a run started with a testing option (a level start, `--level`,
+  `--loadout`, `--special`, `--escort`, `--act-end`, `--bench`, `--invulnerable`, `--debug-speed`)
+  plays normally but writes neither the autosave nor a manual
+  save, and never creates the `saves` directory; it still reads the saves (Continue, Load game).
+  The hangar shows *AUTOSAVE OFF - DEBUG RUN* instead of *AUTOSAVED*, its quit dialog and the
+  briefing's say *A DEBUG RUN WRITES NO SAVE.*, and the Save game screen shows *SAVING OFF IN A
+  DEBUG RUN* and writes nothing when a slot is confirmed.
 
 ### Contents
 
@@ -44,7 +51,7 @@ A versioned document (engine-agnostic; for example JSON):
 | `unlocks` | Shop items unlocked (by act, data cores or story) |
 | `specials` | Charges per special type |
 | `armour` | Current armour (repair is not automatic) |
-| `escort` | Rook hired, his weapon and level, his armour |
+| `escort` | The escort slot (format version 3, M5 part A): `hired` (Rook has joined), `side` (`left`/`right`), `fitted` (the id of his fitted gun, none before he joins), `guns` (every gun he owns with its level, `{"item": "autocannon", "level": 1}`, the fitted one included) and `armour` (his current armour; repair is not automatic). See [wingmen](../../player/wingmen/README.md) |
 | `retriesLeft` | Hard mode only |
 | `grades` | Best grade per completed level |
 | `dataCores` | Collected data cores (lore) |
@@ -63,6 +70,15 @@ is shown as unreadable and never half loaded; older versions are migrated. Versi
 G) adds `stats.levels`; a version 1 save loads with no level recorded, and the act summary shows
 what is recorded.
 
+**Version 3** (M5 part A) adds `escort`. In a new campaign it reads
+`{"hired": false, "side": "left", "fitted": null, "guns": [], "armour": 80}`; when the hangar opens
+with Level 08 or later next, Rook is hired with the free Autocannon at L1 fitted and full armour
+(`{"hired": true, …, "fitted": "autocannon", "guns": [{"item": "autocannon", "level": 1}],
+"armour": 80}`). A version 2 save is migrated (version 1 first through 2): its `escort` is the new
+campaign's, with Rook hired (Autocannon L1, full armour, left side) when its `nextLevel` is 8 or
+later. The field is always present from version 3 on, and a version 3 save without it is
+unreadable like any save with a missing field.
+
 ### Slot display
 
 Each slot shows: act and level name, difficulty, credits, playtime, date, and a small icon for
@@ -74,7 +90,10 @@ the act.
 - [x] Autosave on entering the hangar; 8 manual slots
 - [x] Continue = most recent save
 - [x] Slot list UI in load/save screens
-- [ ] `escort` field, with Rook — **later: M5** (the escort slot opens in Act 2)
+- [x] Debug runs write no save: read-only save slots (`SaveSlots.readOnly`, chosen by
+  `LaunchOptions.debugRun()`), so every autosave and manual save is skipped; tested in
+  `DebugRunTest` and `SaveSlotsTest`
+- [ ] `escort` field, with Rook (format version 3, migrated from version 2) — M5 part A
 - [x] Per-level records in `stats.levels` (format version 2, migrated from version 1) for the act summary (M4 part G; `SaveFormat.VERSION` 2, `migrateFrom1`)
 
 ## Decisions
@@ -109,3 +128,19 @@ the act.
   shows what is recorded. A new win of a level replaces its record.
 - 2026-10-05: M4 part H docs reconciliation: `stats.levels` and the version 1 → 2 migration were
   built in part G; ticked. Only the `escort` field (M5) is open, so the document is `done` for M4.
+- 2026-10-06: M5 part A (default stated with the user's decisions D2–D4, see
+  [wingmen](../../player/wingmen/README.md#decisions)): format version 3 adds `escort` with `hired`,
+  `side`, `fitted`, `guns` (each owned gun with its level, his escort inventory) and `armour`; a
+  version 2 save gets Rook hired when its next level is 8 or later. Main-agent choices: the field is
+  always present (not hired before Level 08) rather than absent, and the fitted gun is an id into
+  `guns` rather than a separate entry, so a gun's level has one place. The document is
+  `in-progress` again while M5 builds it.
+- 2026-10-06: Debug runs never write saves (user decision): `--loadout` and `--special` went into
+  the debug campaign's gear, so a hangar, failure, restart, game-over or act-end autosave after
+  such a run overwrote the real autosave. Every debug run (`--level`, `--loadout`, `--special`,
+  `--escort`, `--act-end`, `--start level`, `--bench`, `--invulnerable`, `--debug-speed`) now has
+  read-only save slots: one flag of the run, so every write path (the hangar's autosave as it
+  opens and at quit, a failure's and a restart's, the briefing's Escape, a manual save, a replay's
+  grade) writes nothing. `--settings` and `--difficulty` alone are not debug options. The Save
+  game screen still opens, says that saving is off and writes nothing (simpler than hiding the
+  hangar's Save command).

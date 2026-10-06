@@ -54,6 +54,15 @@ public final class EnemyBullet implements Hashed {
         return y;
     }
 
+    /** Its velocity, px/s (y up). */
+    double vx() {
+        return vx;
+    }
+
+    double vy() {
+        return vy;
+    }
+
     /** The damage of a hit, by its bullet class (design/enemies, balancing basis). */
     public double damage() {
         return damage;

@@ -3,7 +3,7 @@ title: Lt. Kenji "Rook" Tanaka
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-06
 ---
 
 # Lt. Kenji "Rook" Tanaka
@@ -45,6 +45,9 @@ one-liner. When the player equips an AI wingman, it is Rook flying it (see
 | Water level | "Water. Why is it always water?" |
 | Act 5 return | "Miss me? Don't answer that. Just shoot." |
 
+His in-level **barks** (the eight wingman triggers, 3–4 variants each) are written in
+[wingmen](../../../player/wingmen/README.md#radio-barks), next to their triggers and queue rules.
+
 ### Portrait brief
 
 Japanese man in his early thirties, messy black hair under a pushed-up flight helmet visor, a
@@ -72,3 +75,6 @@ procedural faces only show the style (framing, lighting, colour treatment, frame
 - 2026-09-30: Concept round 03: portrait style **B** (comm-screen pixel portrait) chosen, with a bit more colour retained so it looks less flat.
 - 2026-09-30: Concept round 04: style-B portrait with retained colour chosen.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../../reviews/acts-1-2/README.md).
+- 2026-10-06: M5 part A: Rook's wingman barks are written (27 lines over eight triggers) in
+  [wingmen](../../../player/wingmen/README.md#radio-barks), voiced like every line since Act 1;
+  the sample lines above stay as his voice's reference.

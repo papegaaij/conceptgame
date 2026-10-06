@@ -27,6 +27,15 @@ public enum Sfx {
     MICROMISSILE_SHOT("sfx/shot-micromissile-r03-a.ogg", 3, Bus.EFFECTS, PLAYER_FIRE),
     MORTAR_SHOT("sfx/shot-mortar-r03-a.ogg", 2, Bus.EFFECTS, PLAYER_FIRE),
     BOMB_SHOT("sfx/shot-bomb-r03-a.ogg", 2, Bus.EFFECTS, PLAYER_FIRE),
+    /** The Act 2 families: the Hornet Launcher's rocket launch and the proximity mine's drop-and-bounce clunk. */
+    MISSILE_SHOT("sfx/shot-missile-r03-a.ogg", 2, Bus.EFFECTS, PLAYER_FIRE),
+
+    MINE_DROP("sfx/shot-mine-r03-a.ogg", 2, Bus.EFFECTS, PLAYER_FIRE),
+    /**
+     * A proximity mine arming (round 28 a, provisional until the round closes: a soft rising
+     * two-blip chirp); two at a time, so mines arming together do not stack.
+     */
+    MINE_ARM("sfx/weapon-mine-arm-r28-a.ogg", 2, Bus.EFFECTS, PLAYER_FIRE),
     OVERDRIVE_START("sfx/overdrive-start-r08-a.ogg", 1, Bus.EFFECTS, PICKUP),
     OVERDRIVE_END("sfx/overdrive-end-r08-a.ogg", 1, Bus.EFFECTS, PICKUP),
     /** Hits are the player's fire landing: they share its priority. */

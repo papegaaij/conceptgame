@@ -176,10 +176,48 @@ class SimSpecsTest {
     }
 
     @Test
-    void minesAndTorpedoesDoNotFlyYet() {
+    void minesFlyButTorpedoesDoNotYet() {
         assertTrue(SimSpecs.flies(content, "micro-missile-pod"));
-        assertFalse(SimSpecs.flies(content, "proximity-mines"));
+        assertTrue(SimSpecs.flies(content, "proximity-mines"));
         assertFalse(SimSpecs.flies(content, "torpedo-pod"));
+    }
+
+    @Test
+    void theHornetLeavesItsPortsInTurnAndSpeedsUp() {
+        WeaponSpec hornet = weapon(Armament.Slot.FRONT, "hornet-launcher", 4);
+        assertEquals(WeaponSpec.Delivery.HOMING, hornet.delivery());
+        assertEquals(
+                List.of(-10.0, 10.0, -10.0, 10.0),
+                hornet.muzzles().stream().map(WeaponSpec.Muzzle::dx).toList());
+        assertEquals(450, hornet.speed());
+        assertEquals(650, hornet.endSpeed());
+        assertEquals(0.3, hornet.accelSeconds());
+        assertEquals(1.6, hornet.lifetimeSeconds());
+        assertEquals(Math.toRadians(60), hornet.coneHalfAngle(), 1e-12);
+        assertEquals(Math.toRadians(220), hornet.turnRate(), 1e-12);
+    }
+
+    @Test
+    void theSwivelGunIsATurretSlewingAtItsRate() {
+        WeaponSpec swivel = weapon(Armament.Slot.LEFT_WING, "swivel-gun", 1);
+        assertEquals(WeaponSpec.Delivery.TURRET, swivel.delivery());
+        assertEquals(Math.toRadians(360), swivel.turnRate(), 1e-12);
+        assertEquals(Math.toRadians(30), swivel.coneHalfAngle(), 1e-12);
+        assertEquals(300, swivel.range());
+        assertEquals(0, swivel.muzzles().getFirst().angle(), 1e-12);
+    }
+
+    @Test
+    void proximityMinesCarryTheirNumbersPerLevel() {
+        WeaponSpec mines = weapon(Armament.Slot.REAR, "proximity-mines", 5);
+        assertEquals(WeaponSpec.Delivery.MINE, mines.delivery());
+        assertEquals(new WeaponSpec.Mines(0.5, 0.4, 40, 6), mines.mines());
+        assertEquals(56, mines.blast());
+        assertEquals(4, mines.lifetimeSeconds());
+        assertEquals(Math.PI, mines.muzzles().getFirst().angle(), 1e-12);
+        assertEquals(3, weapon(Armament.Slot.REAR, "proximity-mines", 1).mines().maxLive());
+        assertEquals(
+                WeaponSpec.Mines.NONE, weapon(Armament.Slot.REAR, "tail-gun", 1).mines());
     }
 
     @Test

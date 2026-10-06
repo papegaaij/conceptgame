@@ -1,9 +1,9 @@
 package vanguard.sim;
 
 /**
- * A projectile of one of the ship's weapons: a bolt flying straight, a homing missile, or a bomb
- * or shell on its way to the ground (see {@link WeaponSpec.Delivery}). Pooled: {@link #fire} reuses
- * the instance.
+ * A projectile of one of the ship's weapons: a bolt flying straight (a turret's shot too), a homing
+ * missile, a bomb or shell on its way to the ground, or a proximity mine holding its place (see
+ * {@link WeaponSpec.Delivery}). Pooled: {@link #fire} reuses the instance.
  */
 public final class Shot implements Hashed {
     /** The most targets a piercing bolt remembers, so it hits each only once. */
@@ -35,7 +35,7 @@ public final class Shot implements Hashed {
     private double landY;
     private int airTicks;
 
-    /** A bolt or a homing missile leaving (x, y) at {@code angle}. */
+    /** A bolt, a homing missile or a mine leaving (x, y) at {@code angle}. */
     void fire(WeaponSpec spec, int mountIndex, double startX, double startY, double angle) {
         start(spec, mountIndex, startX, startY);
         heading = angle;
@@ -69,14 +69,58 @@ public final class Shot implements Hashed {
         target = -1;
     }
 
-    /** One step of straight flight. */
+    /** One step of straight flight; an accelerating missile speeds up along its heading. */
     void move() {
         prevX = x;
         prevY = y;
+        double speed = speed();
+        if (weapon.accelSeconds() > 0) {
+            vx = speed * Trig.sin(heading);
+            vy = speed * Trig.cos(heading);
+        }
         x += vx * SimStep.SECONDS;
         y += vy * SimStep.SECONDS;
-        travelled += weapon.speed() * SimStep.SECONDS;
+        travelled += speed * SimStep.SECONDS;
         ticks++;
+    }
+
+    /** Its speed now, px/s: an accelerating missile's grows from the weapon's speed to its end speed. */
+    double speed() {
+        if (weapon.accelSeconds() <= 0) {
+            return weapon.speed();
+        }
+        double share = Math.min(1, ticks * SimStep.SECONDS / weapon.accelSeconds());
+        return weapon.speed() + (weapon.endSpeed() - weapon.speed()) * share;
+    }
+
+    /**
+     * One step of a mine: its drift decays to nothing over the weapon's drift time, then it holds its
+     * screen position.
+     */
+    void drift() {
+        prevX = x;
+        prevY = y;
+        double left = 1 - ticks * SimStep.SECONDS / weapon.mines().driftSeconds();
+        if (left > 0) {
+            x += vx * left * SimStep.SECONDS;
+            y += vy * left * SimStep.SECONDS;
+        }
+        ticks++;
+    }
+
+    /** Whether a mine has armed: it bursts when an enemy comes close. */
+    public boolean armed() {
+        return ticks >= SimStep.ticks(weapon.mines().armSeconds());
+    }
+
+    /** Whether a mine armed in the step it just took (its arming beep). */
+    boolean armsNow() {
+        return ticks == SimStep.ticks(weapon.mines().armSeconds());
+    }
+
+    /** Steps since it left the muzzle. */
+    public int age() {
+        return ticks;
     }
 
     /** Its velocity across the screen, px/s (y up); 0 for a bomb or shell. */
@@ -94,8 +138,9 @@ public final class Shot implements Hashed {
         double delta = Math.IEEEremainder(wanted - heading, 2 * StrictMath.PI);
         double most = weapon.turnRate() * turnFactor * SimStep.SECONDS;
         heading = Math.IEEEremainder(heading + Math.clamp(delta, -most, most), 2 * StrictMath.PI);
-        vx = weapon.speed() * Trig.sin(heading);
-        vy = weapon.speed() * Trig.cos(heading);
+        double speed = speed();
+        vx = speed * Trig.sin(heading);
+        vy = speed * Trig.cos(heading);
     }
 
     /**
@@ -141,9 +186,9 @@ public final class Shot implements Hashed {
         return --pierceLeft <= 0;
     }
 
-    /** Whether it has flown its range, or its lifetime for a homing shot. */
+    /** Whether it has flown its range, or its lifetime for a homing shot or a mine. */
     boolean spent() {
-        if (weapon.delivery() == WeaponSpec.Delivery.HOMING) {
+        if (weapon.delivery() == WeaponSpec.Delivery.HOMING || weapon.delivery() == WeaponSpec.Delivery.MINE) {
             return ticks * SimStep.SECONDS >= weapon.lifetimeSeconds();
         }
         return travelled >= weapon.range();
@@ -222,7 +267,8 @@ public final class Shot implements Hashed {
 
     /** The share of a bolt's range that is left, 1 for one that flies to the screen edge. */
     public double rangeLeft() {
-        if (weapon.delivery() != WeaponSpec.Delivery.BOLT || Double.isInfinite(weapon.range())) {
+        if ((weapon.delivery() != WeaponSpec.Delivery.BOLT && weapon.delivery() != WeaponSpec.Delivery.TURRET)
+                || Double.isInfinite(weapon.range())) {
             return 1;
         }
         return Math.max(0, 1 - travelled / weapon.range());

@@ -29,7 +29,8 @@ final class Radio {
     static int fitted(Armament armament, SpecialSlot special) {
         int fitted = special.fitted() ? LevelScript.RadioCue.FITTED_SPECIAL : 0;
         for (int m = 0; m < armament.size(); m++) {
-            if (armament.mount(m).weapon().delivery() == WeaponSpec.Delivery.HOMING) {
+            WeaponSpec.Delivery delivery = armament.mount(m).weapon().delivery();
+            if (delivery == WeaponSpec.Delivery.HOMING || delivery == WeaponSpec.Delivery.TURRET) {
                 fitted |= LevelScript.RadioCue.FITTED_HOMING;
             }
         }

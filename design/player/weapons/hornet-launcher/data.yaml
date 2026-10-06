@@ -10,7 +10,11 @@ vfx: missile
 hits: homing
 speed: [450, 650]
 size: [6, 14]
-range: 420
+range: 420       # homing: the seek radius
+lifetime: 1.6    # s of flight
+cone: 120        # degrees ahead in which a missile picks its target
+accelerate: 0.3  # s from 450 to 650 px/s
+ports: 10        # px either side of the muzzle: the missiles of a volley leave from the ports in turn
 seek: true
 levels:
   - {pattern: [[0, -25], [0, 25]], rate: 1.25, damage: 6, turn: 180}

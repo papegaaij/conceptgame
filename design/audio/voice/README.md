@@ -4,7 +4,7 @@ design: draft
 implementation: done
 art: chosen
 depends-on: [.., ../../story/characters, ../../ui/hud, ../../ui/options, ../../tech/architecture]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Voice
@@ -40,7 +40,9 @@ header of `tools/concept/audio/tts_r18.py`; the production renderer reuses it.
 1. **Line list.** `vanguard.content.voice.VoiceLines` (shared by the game) lists every `radio`
    cue of every level's `data.yaml` (timed and event cues, a secret's line, the `mission-failed`
    line, the `easy` / `hard` line variants, a special's call such as Hammer Lead's, Okafor's
-   low-armour line from the [armour](../../player/armor/README.md) data), and every
+   low-armour line from the [armour](../../player/armor/README.md) data, Rook's 27 radio barks
+   from the [wingmen](../../player/wingmen/README.md#radio-barks) data, source
+   `wingmen barks <trigger>`), and every
    page of the levels' and acts' briefings (not the hangar teaser); `./gradlew
    :pipeline:voiceLines` writes it with the keys and settings to
    `pipeline/build/voice/lines.json` for the renderer. A line with `{ally}` expands to one line
@@ -353,3 +355,15 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
   re-render; with round 25's Level 07 and outro, all 151 Act 1 lines are reviewed, so the item is
   ticked and the implementation is `done`. `art` stays `chosen`: the later acts' lines are not
   rendered yet. The document's `design` stays `draft` (not part of this round's approval).
+- 2026-10-06: M5 part A: Rook's 27 radio barks ([wingmen](../../player/wingmen/README.md#radio-barks),
+  source `wingmen barks <trigger>`; grim for the boss warning and the armour barks, the shout row for
+  the rear, sides and eject barks, fierce for the kill streak and the overdrive) rendered by
+  `tools/art/voice.py` in one GPU job, radio filter b; no other line of the list was missing. Every
+  take passed the length check on its first seed (0.96–4.47 s of speech, none near the cap). Whisper
+  (base.en) read each take back, dry and through the filter; four were re-rolled on later seeds and
+  pinned in the speaker table: "Rook's hurting, Lancer. Hurting bad." (the key's seed said
+  "herding", dry too), "Flank! Watch the edges, Lancer!" ("Clank" through the filter), "Power-up!
+  Grab it!" (the "P" lost in the filter) and "Overdrive's up for grabs, Lancer!" ("Over drives");
+  each pinned seed is the first of four tried that Whisper reads back word for word both ways. The
+  rest read back word for word apart from spelling ("6" for "six", "Punchin'", "Hah"). VoiceFilesTest
+  now requires the barks' files. For the user's ear in concept round 28.

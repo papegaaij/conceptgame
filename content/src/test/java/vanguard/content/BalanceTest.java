@@ -19,6 +19,7 @@ import vanguard.content.campaign.Fitted;
 import vanguard.content.campaign.Hangar;
 import vanguard.content.campaign.LoadoutSlot;
 import vanguard.content.campaign.SaveGame;
+import vanguard.sim.EnemySpec;
 
 /**
  * The balancing checks over the data (design/systems/economy, design/enemies Balancing basis;
@@ -34,7 +35,10 @@ import vanguard.content.campaign.SaveGame;
  *   <li>the plan's fit reaches the reference DPS the enemy stat blocks assume (0.75–1.33×), with
  *       Levels 01–03's gentle onboarding (about 1.5×) as the accepted exception;
  *   <li>every enemy's time to kill at its first level and its bounty fit its size class, with the
- *       Coilwyrm's bounty as the accepted exception ({@link #ACCEPTED}).
+ *       Coilwyrm's bounty as the accepted exception ({@link #ACCEPTED}); a boss's bounty as paid
+ *       there (its Act 1 terms × the act factor × the level's bounty scale);
+ *   <li>a returning {@code medium} or larger unit keeps its time to kill at every Act 2 level after
+ *       its first, with the act HP factor (user decision D5 = c of M5 part A).
  * </ul>
  */
 class BalanceTest {
@@ -362,6 +366,58 @@ class BalanceTest {
     }
 
     /**
+     * The act HP factor (design/enemies Balancing basis, D5 = c of M5 part A): a returning unit of
+     * tier {@code medium} or larger, built by {@link SimSpecs#enemy} for each Act 2 level after its
+     * first (Levels 08–14, as far as the reference DPS curve goes), keeps its time to kill inside its
+     * size class's target at that level's reference DPS (its parts' and segments' HP summed; 1 HP of
+     * rounding allowed). Units already off target at their first level are left to {@link
+     * #everyEnemyFitsTheBalancingBasis}.
+     */
+    @Test
+    void everyReturningUnitKeepsItsTimeToKillInActTwo() {
+        Map<String, String> found = new TreeMap<>();
+        int checked = 0;
+        for (var entry : new TreeMap<>(CONTENT.enemies()).entrySet()) {
+            EnemyData enemy = entry.getValue();
+            if (enemy.boss().isPresent()
+                    || enemy.tier().compareTo(Tier.MEDIUM) < 0
+                    || enemy.tier() == Tier.HUGE
+                    || timeToKill(enemy).isPresent()) {
+                continue;
+            }
+            double[] target = enemy.tier() == Tier.MEDIUM ? new double[] {0.4, 1.5} : new double[] {1, 3};
+            for (int level = Math.max(ACT_2_FIRST, enemy.firstLevel() + 1); level <= ACT_2_LAST; level++) {
+                Double reference = CONTENT.enemyBasis().referenceDps().get(level);
+                if (reference == null) {
+                    continue;
+                }
+                EnemySpec spec = SimSpecs.enemy(CONTENT, entry.getKey(), Difficulty.MEDIUM, Optional.empty(), 2, level);
+                double hp = spec.hp()
+                        + spec.chain()
+                                .map(chain -> chain.segment().hp()
+                                                * chain.segmentBoxes().size()
+                                        + chain.tail().hp())
+                                .orElse(0.0);
+                checked++;
+                if (hp < target[0] * reference - 1 || hp > target[1] * reference + 1) {
+                    found.put(
+                            entry.getKey() + " L" + level,
+                            String.format(
+                                    "HP %.0f / %.1f DPS = %.2f s, target %s-%s s",
+                                    hp, reference, hp / reference, target[0], target[1]));
+                }
+            }
+        }
+        assertTrue(checked > 0, "returning units checked");
+        assertEquals(Map.of(), found, "returning units off their time to kill");
+    }
+
+    /** Act 2's levels (design/campaign/act-2-homefront). */
+    static final int ACT_2_FIRST = 8;
+
+    static final int ACT_2_LAST = 14;
+
+    /**
      * Time to kill at the unit's first level (design/enemies Balancing basis): {@code tiny} one hit
      * of the starting gun, {@code small} ≤ 0.3 s, {@code medium} 0.4–1.5 s, {@code large} 1–3 s,
      * {@code huge} set pieces 20–40 s, mid-bosses 45–75 s, act bosses 90–180 s; bosses and set
@@ -413,7 +469,11 @@ class BalanceTest {
             if (key.isEmpty()) {
                 return Optional.empty();
             }
-            double paid = enemy.bounty() * CONTENT.level(key.get()).bounties();
+            // Boss bounties hold Act 1 terms; the act factor applies to them like every payout (no exemption).
+            int act = Integer.parseInt(Content.actDirectory(key.get()).split("-")[1]);
+            double paid = enemy.bounty()
+                    * Math.pow(CONTENT.economy().actFactor(), act - 1)
+                    * CONTENT.level(key.get()).bounties();
             double actual = paid / CONTENT.economy().budget().of(enemy.firstLevel());
             if (Math.abs(actual - share) > share * SHARE_TOLERANCE) {
                 return Optional.of(String.format(

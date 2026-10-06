@@ -186,6 +186,7 @@ final class EnemyForce {
             Enemy enemy = enemies.obtain();
             if (enemy != null) {
                 enemy.spawn(spawn, spawned);
+                enemy.entered(waves.lastEntry());
                 if (spawn.escort().isPresent()) {
                     enemy.escort(lastCarrier);
                 }
@@ -219,7 +220,7 @@ final class EnemyForce {
         }
         EnemySpec head = spawn.enemy();
         EnemySpec.ChainSpec spec = head.chain().orElseThrow();
-        chain.start(spec, chainsSpawned++, spawn, regrownKinds[spawn.kind()]);
+        chain.start(spec, chainsSpawned++, spawn, regrownKinds[spawn.kind()], waves.lastEntry());
         int members = spec.members();
         for (int i = 0; i < members; i++) {
             Enemy member = enemies.obtain();
@@ -716,6 +717,26 @@ final class EnemyForce {
                 bullets.free(i);
             }
         }
+    }
+
+    /**
+     * The edges whose waves are active (design/player/wingmen): a unit of a wave that entered from
+     * the sides ({@link WarningEdge#LEFT} and {@link WarningEdge#RIGHT}) or the rear
+     * ({@link WarningEdge#BOTTOM}) is still alive, as {@link WarningEdge} bits. A chain's members
+     * count by their chain's edge: its wave's, the rear once it has looped back.
+     */
+    int activeEdges() {
+        int edges = 0;
+        for (int j = 0; j < enemies.size(); j++) {
+            Enemy enemy = enemies.get(j);
+            WaveSpec.Entry entry = enemy.chain() != null ? enemy.chain().entry() : enemy.entry();
+            if (entry == WaveSpec.Entry.SIDES) {
+                edges |= WarningEdge.LEFT.bit() | WarningEdge.RIGHT.bit();
+            } else if (entry == WaveSpec.Entry.REAR) {
+                edges |= WarningEdge.BOTTOM.bit();
+            }
+        }
+        return edges;
     }
 
     /** The edges showing an edge warning at {@code levelTick}, as {@link WarningEdge} bits. */

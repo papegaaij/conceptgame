@@ -4,6 +4,7 @@ import com.badlogic.gdx.Graphics.Monitor;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl3.audio.Lwjgl3Audio;
+import java.nio.file.Path;
 import vanguard.content.campaign.SaveSlots;
 import vanguard.game.TerranVanguard;
 import vanguard.game.display.Bounds;
@@ -32,8 +33,10 @@ public final class DesktopLauncher {
                 options.settingsFile().orElseGet(() -> ConfigDirectory.current().resolve(SettingsFile.FILE_NAME)));
         DisplaySettings settings = settingsFile.read();
         System.out.println("settings: " + settingsFile.path());
-        // The saves live next to the settings file (design/systems/saves), so --settings moves them too.
-        var saves = new SaveSlots(settingsFile.path().toAbsolutePath().resolveSibling("saves"));
+        var saves = saveSlots(options, settingsFile.path());
+        if (!saves.writable()) {
+            System.out.println("debug run: no save is written");
+        }
         // So do the screenshots of the screenshot key (design/ui/controls).
         var screenshots = settingsFile.path().toAbsolutePath().resolveSibling("screenshots");
         var displayModes = new DisplayModes(settings, settingsFile::write);
@@ -58,6 +61,15 @@ public final class DesktopLauncher {
                 return new LimitedAudio(AUDIO_SOURCES, AUDIO_BUFFER_COUNT, AUDIO_BUFFER_BYTES);
             }
         };
+    }
+
+    /**
+     * The save slots: they live next to the settings file (design/systems/saves), so --settings
+     * moves them too; a debug run only reads them, it writes no save.
+     */
+    static SaveSlots saveSlots(LaunchOptions options, Path settingsFile) {
+        Path directory = settingsFile.toAbsolutePath().resolveSibling("saves");
+        return options.debugRun() ? SaveSlots.readOnly(directory) : new SaveSlots(directory);
     }
 
     private static Lwjgl3ApplicationConfiguration configuration(DisplaySettings settings, String osName) {

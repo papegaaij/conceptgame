@@ -78,6 +78,12 @@ public final class Enemy implements Hashed {
     private double facing;
 
     private double hp;
+    /**
+     * Simulation steps since it last took damage, for the Targeting computer's HP bar; {@link
+     * Integer#MAX_VALUE} before its first hit. For the presentation only, not part of the state hash.
+     */
+    private int ticksSinceHit = Integer.MAX_VALUE;
+
     private int volleyTicks;
     private int burstLeft;
     private int burstTicks;
@@ -129,6 +135,8 @@ public final class Enemy implements Hashed {
     private boolean entered;
 
     private int spitTicks;
+    /** The edge its wave entered from (a wingman's formation follows the sides and rear waves); front for any other unit. */
+    private WaveSpec.Entry entry = WaveSpec.Entry.FRONT;
 
     /** @param unitSerial unique among the units of an attempt, for the shots that lock onto it */
     void spawn(Spawn plan, int unitSerial) {
@@ -152,6 +160,7 @@ public final class Enemy implements Hashed {
         orbit = plan.orbit();
         exit = plan.exit();
         hp = spec.hp();
+        ticksSinceHit = Integer.MAX_VALUE;
         burstLeft = 0;
         leadsTarget = plan.leadsTarget();
         carried = plan.carried();
@@ -201,6 +210,7 @@ public final class Enemy implements Hashed {
 
     /** The fields of Level 04's spawners, escorts and walkers back to a plain unit's. */
     private void clearLevel04() {
+        entry = WaveSpec.Entry.FRONT;
         chain = null;
         link = 0;
         sweepWait = -1;
@@ -271,6 +281,7 @@ public final class Enemy implements Hashed {
         orbit = Optional.empty();
         exit = Spawn.Exit.DOWN;
         hp = spec.hp();
+        ticksSinceHit = Integer.MAX_VALUE;
         volleyTicks = 0;
         burstLeft = 0;
         burstTicks = 0;
@@ -323,6 +334,7 @@ public final class Enemy implements Hashed {
         x = prevX = atX;
         y = prevY = PlayField.HEIGHT + box.height() / 2;
         hp = spec.hp();
+        ticksSinceHit = Integer.MAX_VALUE;
         aim = 0;
         facing = 0;
         inArc = false;
@@ -348,6 +360,9 @@ public final class Enemy implements Hashed {
      * {@code aimY}): the ship, or the convoy unit the target-the-objective hook chose this step.
      */
     boolean move(double shipX, double shipY, double groundScroll, double aimX, double aimY) {
+        if (ticksSinceHit < Integer.MAX_VALUE) {
+            ticksSinceHit++;
+        }
         if (phase == Phase.CHAIN) {
             // Its chain placed it this step already.
             return true;
@@ -725,13 +740,21 @@ public final class Enemy implements Hashed {
      * armour exists.
      */
     boolean damage(double amount, boolean fromAbove) {
-        hp -= amount;
+        // A segment chain's original head is a weak point (its spec carries the chain); a set
+        // piece's parts multiply theirs in SetPiece.damagePart.
+        hp -= spec.chain().isPresent() ? amount * spec.chain().get().headMultiplier() : amount;
+        ticksSinceHit = 0;
         return hp <= 0;
     }
 
     /** The hit points left. */
-    double hp() {
+    public double hp() {
         return hp;
+    }
+
+    /** Simulation steps since it last took damage; {@link Integer#MAX_VALUE} before (the Targeting computer's HP bar). */
+    public int ticksSinceHit() {
+        return ticksSinceHit;
     }
 
     @Override
@@ -1001,6 +1024,7 @@ public final class Enemy implements Hashed {
         orbit = Optional.empty();
         exit = Spawn.Exit.DOWN;
         hp = spec.hp();
+        ticksSinceHit = Integer.MAX_VALUE;
         volleyTicks = spec.gun().isPresent() ? SimStep.ticks(spec.gun().get().firstShotDelay()) + 1 : 0;
         burstLeft = 0;
         burstTicks = 0;
@@ -1013,6 +1037,19 @@ public final class Enemy implements Hashed {
         x = prevX = atX;
         y = prevY = atY;
         facing = heading;
+    }
+
+    /** Marks it as a unit of a wave that entered from {@code edge}. */
+    void entered(WaveSpec.Entry edge) {
+        entry = edge;
+    }
+
+    /**
+     * The edge its wave entered from; front for a unit that is not a wave's (a chain's member: see
+     * {@link Chain#entry()}).
+     */
+    public WaveSpec.Entry entry() {
+        return entry;
     }
 
     /** It carries {@code pickup}, dropped when it is destroyed (a chain's head carries its wave's). */

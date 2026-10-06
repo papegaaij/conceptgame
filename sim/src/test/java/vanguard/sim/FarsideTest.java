@@ -83,7 +83,8 @@ class FarsideTest {
         EnemySpec segment = part("coilwyrm-segment", 4, boxes.getFirst(), 10, true, 3, Optional.empty(), 180);
         EnemySpec tail = part("coilwyrm-tail", 10, new Hitbox(28, 28), 10, true, 10, Optional.empty(), 180);
         EnemySpec regrown = part("coilwyrm-regrown", 20, new Hitbox(41, 41), 20, false, 20, Optional.of(fan), 220);
-        EnemySpec.ChainSpec chain = new EnemySpec.ChainSpec(segment, boxes, tail, 10, regrown, 0.6, 220, offsets, 0.06);
+        EnemySpec.ChainSpec chain =
+                new EnemySpec.ChainSpec(segment, boxes, tail, 10, regrown, 0.6, 220, offsets, 0.06, 2);
         EnemySpec head = part("coilwyrm", 40, new Hitbox(41, 41), 20, false, 40, Optional.of(fan), 180);
         return withChain(head, chain);
     }
@@ -346,6 +347,49 @@ class FarsideTest {
         assertEquals(SimStep.ticks(0.06) * SEGMENTS, lastPop - firstPop, "0.06 s between pops");
         assertEquals(0, sortie.chainCount());
         assertEquals(0, sortie.enemyCount());
+    }
+
+    @Test
+    void theHeadIsAWeakPointThatTakesTwiceTheDamageButNotItsSegmentsOrARegrownHead() {
+        Sortie sortie = sortie(level(List.of(chainWave(240, Optional.empty())), List.of(), 0, Optional.empty()));
+        run(sortie, 3.5, Command.NONE);
+        Chain chain = sortie.chain(0);
+        Enemy head = member(sortie, chain, 0);
+        Enemy segment = member(sortie, chain, 3);
+        Enemy tail = member(sortie, chain, SEGMENTS + 1);
+
+        assertFalse(head.damage(5), "40 HP");
+        assertEquals(30, head.hp(), 1e-9, "a 5-point hit takes 10");
+        assertFalse(head.damage(5, true));
+        assertEquals(20, head.hp(), 1e-9, "blasts from above too, like a set piece's part");
+        assertFalse(segment.damage(1));
+        assertEquals(3, segment.hp(), 1e-9);
+        assertFalse(tail.damage(5));
+        assertEquals(5, tail.hp(), 1e-9);
+        assertTrue(head.damage(10), "20 HP left go with a 10-point hit");
+
+        Sortie cut = sortie(level(List.of(chainWave(240, Optional.empty())), List.of(), 0, Optional.empty()));
+        run(cut, 3.5, Command.NONE);
+        cut.destroyEnemy(indexOf(cut, cut.chain(0), 5));
+        run(cut, 0.7, Command.NONE);
+        Enemy regrown = member(cut, cut.chain(1), 0);
+        assertEquals("coilwyrm-regrown", regrown.spec().slug());
+        assertFalse(regrown.damage(5));
+        assertEquals(15, regrown.hp(), 1e-9, "the regrown head is no weak point");
+    }
+
+    @Test
+    void aShotOnTheHeadDealsTwiceItsDamage() {
+        Sortie sortie = sortie(level(List.of(chainWave(240, Optional.empty())), List.of(), 0, Optional.empty()));
+        Enemy head = null;
+        double damage = TestSpecs.LOADOUT.armament().mount(0).weapon().damage();
+        for (int i = 0; i < SimStep.ticks(8) && (head == null || head.hp() == 40); i++) {
+            sortie.step(Command.FIRE.bit());
+            Chain chain = sortie.chainCount() > 0 ? sortie.chain(0) : null;
+            head = chain == null ? null : member(sortie, chain, 0);
+        }
+        assertNotNull(head, "the head flies down into the ship's fire");
+        assertEquals(40 - 2 * damage, head.hp(), 1e-9, "the first shot on the head took twice its damage");
     }
 
     @Test

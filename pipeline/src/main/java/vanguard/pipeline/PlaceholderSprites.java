@@ -46,6 +46,9 @@ public final class PlaceholderSprites {
     private static final int LABEL_HEIGHT = 10;
 
     private static final String SHIP_SHEET = "player/ship/concept/player-ship-r08-a.png";
+    /** Rook's craft (Ember), concept round 09: 5 banking frames at 4x ({@code vfx_r09.rook_sheet}). */
+    private static final String ROOK_SHEET = "player/wingmen/concept/rook-craft-r09-a.png";
+
     private static final String SKITTER_SHEET = "enemies/air/concept/skitter-r04-a.png";
     private static final String NEEDLER_SHEET = "enemies/air/concept/needler-r04-a.png";
     /** The Polyp Mortar's chosen concept (round 04), the same sheet layout as the Needler's. */
@@ -146,6 +149,22 @@ public final class PlaceholderSprites {
                     5,
                     54,
                     spriteChecker(420, 228, 0, 8),
+                    Treatment.KEYED,
+                    false,
+                    NATIVE_SIZE),
+            // vfx_r09.rook_sheet: Rook's 5 banking frames at 4x (hard left .. hard right), 40x40 in the
+            // concept; the production sprites (42x42, tools/art/) replace them.
+            new Cut(
+                    "rook",
+                    ROOK_SHEET,
+                    356,
+                    50,
+                    160,
+                    160,
+                    4,
+                    5,
+                    172,
+                    spriteChecker(356, 50, 172, 8),
                     Treatment.KEYED,
                     false,
                     NATIVE_SIZE),

@@ -143,20 +143,25 @@ versions in `gradle/libs.versions.toml`.
   reporting code work; `./gradlew spotlessApply` fixes the formatting.
 - `./gradlew :desktop:run --args="--bench 3 --settings <file>"` – starts the game; `--bench <s>`
   exits after `<s>` seconds, `--settings` uses another settings file than the one in the
-  platform's config directory; the save slots live in `saves/` next to the settings file, so a
-  temporary `--settings` file keeps test saves away from the real ones (as do the F12 screenshots
-  in `screenshots/`). Automated runs always pass `--bench`. `--difficulty
+  platform's config directory; the save slots live in `saves/` next to the settings file. A debug
+  run (a level start, any of the options below, `--bench`, `--invulnerable`, `--debug-speed`) writes
+  no save at all, so a temporary `--settings` file is only needed to keep test settings and the F12
+  screenshots (`screenshots/`) away from the real ones. Automated runs always pass `--bench`. `--difficulty
   easy|medium|hard` (default medium) picks the difficulty until the menus exist (M3);
   `--debug-speed <n>` runs the simulation n times faster and the debug option `--invulnerable`
   lets nothing hit the ship and keeps a lost battery from failing a level (to see a level to its
   end, e.g. with `--bench` for captures);
   `--loadout front=scatter-vulcan:3,left=bomb-rack,right=micro-missile-pod:2,rear=side-splitter`
   fits weapons (slot `front`/`rear`/`left`/`right`, level 1 if left out, the power cap unchecked)
+  and utility modules (`utility=targeting-computer,utility2=salvage-scanner:2`)
   and starts in the level; `--special airstrike:2` fits a special with its charges (its name in
   lower case, hyphenated; 1 charge if left out, at most its most) and starts in the level;
+  `--escort rook:<gun>:<level>[,side=left|right]` flies Rook in the escort slot with that gun
+  (`autocannon`, `scatter`, `missiles`, `mortar`; level 1 if left out) at full armour on any level,
+  Act 1's included, and starts in the level (`--escort none`: a level from 08 on without him);
   `--level <n>` starts at level n instead of Level 01; `--act-end` makes winning that level end
   its act (the act summary in the debrief, then the act outro, then the hangar), to see the act end
-  before an act's last level exists; all six are for testing only.
+  before an act's last level exists; all seven are for testing only.
 - `./gradlew :desktop:installDist` – the start script in `desktop/build/install/terran-vanguard/`.
 - `./gradlew :desktop:packageLinuxX64` (also `packageWinX64`, `packageMacX64`, `packageMacM1`) –
   Construo bundles with a trimmed JRE in `desktop/build/construo/dist/`. Run Gradle on JDK 21 for

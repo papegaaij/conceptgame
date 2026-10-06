@@ -133,6 +133,7 @@ class FarsideLevelTest {
         assertEquals(27 * 0.7, chain.segmentBoxes().getLast().width(), 1e-9);
         assertEquals(0.5 * (58 + 54) / 2, chain.offsets().get(1), 1e-9);
         assertEquals(0.25, chain.popSeconds(), 1e-9);
+        assertEquals(2, chain.headMultiplier(), 1e-9, "the head's weak point (its part's multiplier)");
         assertEquals(4, chain.segment().hp(), 1e-9);
         assertEquals(3, chain.segment().bounty());
         assertEquals(10, chain.segment().contactDamage(), 1e-9, "small contact");

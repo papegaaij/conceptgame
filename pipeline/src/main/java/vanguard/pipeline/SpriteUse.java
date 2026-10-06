@@ -28,13 +28,15 @@ final class SpriteUse {
     static final String SHARED = "sprites";
 
     /**
-     * The sprites the game draws in any level whatever its data: the ship and its engine flame, the
-     * pickups, explosions and weapon effects, the wing-mount pods, the enemies' bullets and the loot
-     * targets' beacon and glint.
+     * The sprites the game draws in any level whatever its data: the ship and its engine flame, Rook's
+     * craft with its flame and eject pod (he flies wherever the escort slot does), the pickups,
+     * explosions and weapon effects, the wing-mount pods, the enemies' bullets and the loot targets'
+     * beacon and glint.
      */
     static final List<String> GAME_WIDE = List.of(
             "ship",
             "engine-flame",
+            "rook",
             "pickup",
             "explosion",
             "ballistic",

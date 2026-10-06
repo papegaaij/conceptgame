@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.Set;
 import vanguard.content.campaign.Catalogue.Item;
 import vanguard.content.campaign.Catalogue.Stat;
+import vanguard.sim.WingmanSpec;
 
 /**
  * A hangar visit's shop and loadout rules (design/ui/hangar, design/player, design/systems/economy)
@@ -22,6 +23,12 @@ import vanguard.content.campaign.Catalogue.Stat;
  * sell-back share of all that was spent on an item (for all of it when the item was bought during
  * this visit), special charges, armour repair and the visit's undo, which returns every transaction
  * of the visit in reverse order for 100 %.
+ *
+ * <p>Rook's guns (design/player/wingmen, Escort inventory) are the {@link LoadoutSlot#ESCORT}
+ * slot's items once he is hired: bought, upgraded, fitted and sold like the player's weapons, his
+ * fitted gun never unfitted or sold, no power drawn. His armour has its own repair line at the same
+ * cost per point, which is part of the visit's undo; his side is a setting outside it (design/ui/hangar):
+ * an undo keeps the side he has now.
  *
  * <p>The power load is the sum of the fitted items' draws and may not exceed the generator's
  * output; the front gun and the core parts are always fitted. A plating swap keeps the damage: the
@@ -199,6 +206,10 @@ public final class Hangar {
     public List<Offer> shop(LoadoutSlot slot) {
         ItemKind kind = slot.kind();
         Gear gear = campaign.gear();
+        if (kind == ItemKind.ESCORT && !gear.escort().hired()) {
+            // The escort slot opens when Rook joins (Level 08).
+            return List.of();
+        }
         List<Offer> offers = new ArrayList<>();
         Set<String> listed = new LinkedHashSet<>();
         Optional.ofNullable(gear.loadout().get(slot)).ifPresent(fitted -> {
@@ -391,8 +402,12 @@ public final class Hangar {
         return new Step(campaign.gear(), bought);
     }
 
+    /** Back to {@code step}'s gear, Rook keeping the side he has now: his side is not undone. */
     private void restore(Step step) {
-        campaign.gear(step.gear());
+        Gear restored = step.gear();
+        Escort escort = restored.escort();
+        campaign.gear(
+                restored.withEscort(escort.withSide(campaign.gear().escort().side())));
         bought = step.bought();
     }
 
@@ -425,6 +440,55 @@ public final class Hangar {
         undo.push(step());
         campaign.gear(before.withCredits(before.credits() - points * repairCost())
                 .withArmour(Math.min(campaign.maxArmour(), before.armour() + points)));
+        return true;
+    }
+
+    /** Whether Rook is hired: the escort slot is open. */
+    public boolean escortHired() {
+        return campaign.gear().escort().hired();
+    }
+
+    /** Rook's whole armour points missing; 0 before he is hired. */
+    public int escortMissingArmour() {
+        Escort escort = campaign.gear().escort();
+        return escort.hired() ? (int) Math.ceil(campaign.escortMaxArmour() - escort.armour() - EPSILON) : 0;
+    }
+
+    /** The most of Rook's points the credits repair now, at the same cost per point as the ship's. */
+    public int affordableEscortRepair() {
+        int cost = repairCost();
+        return cost == 0 ? escortMissingArmour() : Math.min(escortMissingArmour(), campaign.credits() / cost);
+    }
+
+    /**
+     * Repairs Rook's armour points at the difficulty's cost per point; any repair ends his grounding.
+     *
+     * @return whether it was done: at least one point, no more than are missing or affordable
+     */
+    public boolean repairEscort(int points) {
+        if (points < 1 || points > affordableEscortRepair()) {
+            return false;
+        }
+        Gear before = campaign.gear();
+        undo.push(step());
+        Escort escort = before.escort();
+        campaign.gear(before.withCredits(before.credits() - points * repairCost())
+                .withEscort(escort.withArmour(Math.min(campaign.escortMaxArmour(), escort.armour() + points))));
+        return true;
+    }
+
+    /**
+     * Sets Rook's side (the hangar toggle on the escort tile): a setting, not a transaction, so it is
+     * not part of the visit's undo and no undo moves him back.
+     *
+     * @return whether it changed: he is hired and was on the other side
+     */
+    public boolean escortSide(WingmanSpec.Side side) {
+        Gear before = campaign.gear();
+        if (!before.escort().hired() || before.escort().side() == side) {
+            return false;
+        }
+        campaign.gear(before.withEscort(before.escort().withSide(side)));
         return true;
     }
 
@@ -470,6 +534,7 @@ public final class Hangar {
         final Map<ItemKind, List<Fitted>> inventory = new EnumMap<>(ItemKind.class);
         final Map<String, Integer> specials;
         double armour;
+        final Escort escort;
         final Set<LoadoutSlot> fitted = EnumSet.noneOf(LoadoutSlot.class);
         final Map<ItemKind, List<Fitted>> stored = new EnumMap<>(ItemKind.class);
 
@@ -481,6 +546,7 @@ public final class Hangar {
             gear.inventory().forEach((kind, items) -> inventory.put(kind, new ArrayList<>(items)));
             specials = new HashMap<>(gear.specials());
             armour = gear.armour();
+            escort = gear.escort();
             fitted.addAll(step.bought().fitted());
             step.bought().stored().forEach((kind, items) -> stored.put(kind, new ArrayList<>(items)));
         }
@@ -525,7 +591,8 @@ public final class Hangar {
         }
 
         Step step() {
-            return new Step(new Gear(credits, loadout, inventory, specials, armour), new Bought(fitted, stored));
+            return new Step(
+                    new Gear(credits, loadout, inventory, specials, armour, escort), new Bought(fitted, stored));
         }
     }
 }

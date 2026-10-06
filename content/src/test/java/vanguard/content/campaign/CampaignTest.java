@@ -295,8 +295,13 @@ class CampaignTest {
         var loadout = new java.util.EnumMap<LoadoutSlot, Fitted>(LoadoutSlot.class);
         loadout.putAll(gear.loadout());
         loadout.put(LoadoutSlot.SPECIAL, new Fitted("Smart Bomb", 1));
-        campaign.gear(
-                new Gear(gear.credits(), loadout, gear.inventory(), java.util.Map.of("Smart Bomb", 2), gear.armour()));
+        campaign.gear(new Gear(
+                gear.credits(),
+                loadout,
+                gear.inventory(),
+                java.util.Map.of("Smart Bomb", 2),
+                gear.armour(),
+                gear.escort()));
 
         List<Campaign.FreeCharges> given = campaign.giveFreeCharges(CONTENT.specials());
 
@@ -348,7 +353,8 @@ class CampaignTest {
         var charges = new java.util.HashMap<>(campaign.gear().specials());
         charges.put("Airstrike", 3);
         Gear gear = campaign.gear();
-        campaign.gear(new Gear(gear.credits(), gear.loadout(), gear.inventory(), charges, gear.armour()));
+        campaign.gear(
+                new Gear(gear.credits(), gear.loadout(), gear.inventory(), charges, gear.armour(), gear.escort()));
         campaign.launch();
 
         campaign.fail();

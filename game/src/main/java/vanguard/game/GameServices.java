@@ -58,7 +58,7 @@ public final class GameServices implements Disposable {
     public final CampaignRules campaignRules;
     /** What the hangar shop sells, with its sell-back and repair rules. */
     public final Catalogue catalogue;
-    /** The save slots in the saves directory next to the settings file. */
+    /** The save slots in the saves directory next to the settings file; read-only in a debug run. */
     public final SaveSlots saves;
 
     public final Sprites sprites;
@@ -130,8 +130,17 @@ public final class GameServices implements Disposable {
     }
 
     /**
+     * Whether this is a debug run (a level start, {@code --bench}, {@code --invulnerable}, {@code
+     * --debug-speed}): it writes no save at all, its save slots are read-only (design/systems/saves).
+     */
+    public boolean debugRun() {
+        return !saves.writable();
+    }
+
+    /**
      * Writes the campaign into a save slot; a failure is logged, since it must not stop the game. A
-     * replay is never saved (design/ui/mission-select): nothing is written for it.
+     * replay is never saved (design/ui/mission-select), nor is anything in a debug run: nothing is
+     * written for them.
      *
      * @return whether the save was written
      */
@@ -140,8 +149,7 @@ public final class GameServices implements Disposable {
             return false;
         }
         try {
-            saves.write(slot, campaign.save(Instant.now()));
-            return true;
+            return saves.write(slot, campaign.save(Instant.now()));
         } catch (IOException | RuntimeException e) {
             LOG.log(Level.WARNING, "could not write save slot " + slot.index() + " in " + saves.directory(), e);
             return false;

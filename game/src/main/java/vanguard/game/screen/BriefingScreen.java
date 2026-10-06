@@ -224,7 +224,7 @@ public final class BriefingScreen implements GameScreen {
             }
         }
         pager = new BriefingPager(lengths);
-        exit = new BriefingExit(BriefingExit.autosaves(campaign));
+        exit = services.debugRun() ? BriefingExit.debugRun() : new BriefingExit(BriefingExit.autosaves(campaign));
         titleCard = script.titleCard().isPresent() ? TITLE_CARD_SECONDS : 0;
         titleLettering = script.titleCard().map(card -> {
             var texture = new Texture(services.files.internal("ui/" + script.actDirectory() + "-title.png"));

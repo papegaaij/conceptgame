@@ -973,3 +973,25 @@ Edit: leading silence trimmed, cut to 0.90 s, 80 Hz high-pass, 11 kHz low-pass, 
 Source: <https://freesound.org/people/dereklieu/sounds/241822/> — CC-BY 3.0. Use: a Coilwyrm's chain cut through (`CHAIN_CUT`), over the cut segment's burst.
 Why: "A juicy and gross" limb being torn off, made from stale bread torn apart with the breaks layered: one big rip with a heavy low body, shorter and punchier than a. Half the original's energy is below 80 Hz, so it is high-passed at 90 Hz; 28 % stays below 200 Hz.
 Edit: leading silence trimmed, cut to 0.70 s, 90 Hz high-pass, 0.30 s fade-out (0.72 s), levelled to -20 dB, ceiling -3.0 dBFS (peak -5.6 dBFS).
+
+## Round 28 — the proximity mine's arming beep
+
+Brief (M5 part A): the `mine` family's **arming beep**, played as one of the Proximity Mines' mines
+arms 0.4 s after its drop (the simulation's `PROXIMITY_MINE_ARMED`): a short, quiet electronic
+"armed" chirp that does not clutter when several mines arm (a mount drops up to two a second and
+keeps up to six alive). Synthesized in the round-08 UI family (`sfx_r08.py`'s notes), dry (no echo
+or reverb tail to pile up), high and narrow-band so it sits above the shots' and explosions' body,
+peak -12 dBFS (the tick level of the tally tick and the typewriter, below the UI blips' -8); the game
+plays it at -10 dB in the flight mix (the hits at -8, the shots at -14) and two at a time at most.
+One a/b pair from `tools/concept/audio/sfx_r28.py`, deterministic. Not listened to: checked by
+envelopes, band balance and levels only. Option a is played until the round closes.
+
+### weapon-mine-arm-r28-a — synthesized, "armed chirp"
+Use: a proximity mine arming (`PROXIMITY_MINE_ARMED`).
+Why: Two soft rising pulse blips a fifth apart (A6, then E7 45 ms later), 28 ms each, a 12.5 % pulse low-passed at 5.5 kHz over a sine for body: an electronic, friendly "ready" that is over before the next mine drops.
+Edit: 0.10 s, peak -12 dBFS, loudest 100 ms of the band -24.6 dB; 93 % of the energy in 200 Hz–5 kHz, nothing below 200 Hz.
+
+### weapon-mine-arm-r28-b — synthesized, "sensor ping"
+Use: a proximity mine arming (`PROXIMITY_MINE_ARMED`).
+Why: One sine ping that glides up a fifth (1.6 to 2.4 kHz) in 15 ms and rings out (35 ms decay) on a faint metallic overtone at 2.76× (the round-08 bells' ratio), a tiny band-passed latch click under its start: a single sensor "lock" rather than a two-note signal, a little longer but softer at its tail.
+Edit: 0.15 s, peak -12 dBFS, loudest 100 ms of the band -23.9 dB; 99 % of the energy in 200 Hz–5 kHz.

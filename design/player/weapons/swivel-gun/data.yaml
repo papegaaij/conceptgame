@@ -10,7 +10,9 @@ vfx: ballistic
 hits: homing
 speed: 700
 size: [5, 5]
-range: 300
+range: 300   # the turret's reach: it aims at enemies this close; its shots fly as far
+slew: 360    # degrees per second the turret turns
+cone: 60     # degrees ahead: an enemy outside this cone wins when within 20 % of the nearest's distance
 pod: true
 seek: true
 levels:

@@ -1,0 +1,62 @@
+{
+ "source": "tools/art/rook.py (production art, M5 part A batch)",
+ "frames": [
+  "hard left",
+  "left",
+  "level",
+  "right",
+  "hard right"
+ ],
+ "points": {
+  "engine-left": [
+   [
+    19,
+    35
+   ],
+   [
+    18,
+    35
+   ],
+   [
+    18,
+    34
+   ],
+   [
+    18,
+    34
+   ],
+   [
+    19,
+    34
+   ]
+  ],
+  "engine-right": [
+   [
+    23,
+    34
+   ],
+   [
+    24,
+    34
+   ],
+   [
+    24,
+    34
+   ],
+   [
+    24,
+    35
+   ],
+   [
+    23,
+    35
+   ]
+  ]
+ },
+ "rook-flame": {
+  "attach": [
+   4,
+   0
+  ]
+ }
+}

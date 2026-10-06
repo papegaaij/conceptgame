@@ -27,7 +27,10 @@ import vanguard.content.LevelData;
 class VoiceFilesTest {
     private static final Content CONTENT = ContentLoader.fromClasspath();
     private static final Path ASSETS = Path.of(System.getProperty("vanguard.assetsDir", "../assets"));
-    /** The levels whose lines must have their files, and the acts whose briefings must. */
+    /**
+     * The levels whose lines must have their files, the acts whose briefings must, and the other
+     * sources by their prefix (the specials' calls, the low-armour line, Rook's barks).
+     */
     private static final Set<String> RENDERED = Set.of(
             "act-1-first-contact/level-01-break-at-dawn",
             "act-1-first-contact/level-02-shipyard-burning",
@@ -39,7 +42,8 @@ class VoiceFilesTest {
             "act-1-first-contact briefing",
             "act-1-first-contact outro",
             "specials",
-            "armour");
+            "armour",
+            VoiceLines.BARKS);
 
     private static boolean rendered(VoiceLines.VoiceLine line) {
         return RENDERED.stream().anyMatch(where -> line.source().startsWith(where));

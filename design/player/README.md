@@ -21,13 +21,13 @@ generator limits what can be fitted at the same time.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [ship](ship/README.md) | AF-12 Stormhawk: movement, hitbox, sprite and animation requirements | approved | done | final |
-| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | approved | done | chosen |
+| [weapons](weapons/README.md) | Front, rear and wing-mount weapons, traits, power draw, costs, upgrades | approved | in-progress | chosen |
 | [generator](generator/README.md) | Power output that limits the loadout; spare power boosts shield regen | approved | done | none |
 | [shields](shields/README.md) | Regenerating energy shield, capacity, regen and delay | approved | done | final |
 | [armor](armor/README.md) | Non-regenerating hull points, plating upgrades, repairs | approved | done | none |
-| [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | approved | not-started | chosen |
+| [wingmen](wingmen/README.md) | AI wingman Rook (escort slot) and drones (wing mounts) | approved | in-progress | chosen |
 | [specials](specials/README.md) | Special abilities: airstrike, smart bomb, EMP, orbital lance, … | approved | done | chosen |
-| [systems](systems/README.md) | Engines and utility-bay modules: magnet, sensors, auto-repair, … | approved | done | none |
+| [systems](systems/README.md) | Engines and utility-bay modules: magnet, sensors, auto-repair, … | approved | in-progress | proposed |
 
 ## Design
 

@@ -128,6 +128,7 @@ public final class Missions {
                 save.unlocks(),
                 save.specials(),
                 save.armour(),
+                save.escort(),
                 save.retriesLeft(),
                 grades,
                 save.dataCores(),

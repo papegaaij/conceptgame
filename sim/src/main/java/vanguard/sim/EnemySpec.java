@@ -174,7 +174,9 @@ public record EnemySpec(
      * when the rear part died meanwhile) and lunges at the ship at {@code regrowSpeed}; a second cut
      * kills the severed part from the cut backwards, one member every {@code popSeconds}, as the
      * head's death does with the whole chain. The tail pays {@code tailFirstBonus} more when it is
-     * destroyed before any other part.
+     * destroyed before any other part. The head is a weak point: every damage it takes is
+     * multiplied by {@code headMultiplier} (its part's {@code multiplier}, like a set piece's part);
+     * a regrown head's is 1.
      */
     public record ChainSpec(
             EnemySpec segment,
@@ -185,13 +187,41 @@ public record EnemySpec(
             double regrowSeconds,
             double regrowSpeed,
             java.util.List<Double> offsets,
-            double popSeconds) {
+            double popSeconds,
+            double headMultiplier) {
         public ChainSpec {
             segmentBoxes = java.util.List.copyOf(segmentBoxes);
             offsets = java.util.List.copyOf(offsets);
             if (offsets.size() != segmentBoxes.size() + 2) {
                 throw new IllegalArgumentException("a chain has an offset per member: head, segments, tail");
             }
+            if (!(headMultiplier > 0)) {
+                throw new IllegalArgumentException("a chain's head multiplier is positive: " + headMultiplier);
+            }
+        }
+
+        /** A chain whose head takes plain damage (multiplier 1). */
+        public ChainSpec(
+                EnemySpec segment,
+                java.util.List<Hitbox> segmentBoxes,
+                EnemySpec tail,
+                int tailFirstBonus,
+                EnemySpec regrown,
+                double regrowSeconds,
+                double regrowSpeed,
+                java.util.List<Double> offsets,
+                double popSeconds) {
+            this(
+                    segment,
+                    segmentBoxes,
+                    tail,
+                    tailFirstBonus,
+                    regrown,
+                    regrowSeconds,
+                    regrowSpeed,
+                    offsets,
+                    popSeconds,
+                    1);
         }
 
         /** The members: head, segments and tail. */

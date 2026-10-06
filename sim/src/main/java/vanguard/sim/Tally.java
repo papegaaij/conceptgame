@@ -119,6 +119,14 @@ final class Tally {
     }
 
     /**
+     * Pays {@code baseCredits} (Act 1, medium) from {@code source} times {@code bonus} (the Salvage
+     * scanner's 1.1 or 1.2 on salvage and hidden crates, 1 without), rounded once; returns the credits paid.
+     */
+    int earn(CreditSource source, int baseCredits, double bonus) {
+        return pay(source, baseCredits * rules.creditFactor() * bonus);
+    }
+
+    /**
      * Pays a bounty of {@code baseCredits} (Act 1, medium) from {@code source}: times the credit
      * factor and the level's bounty scale, rounded once; returns the credits paid.
      */

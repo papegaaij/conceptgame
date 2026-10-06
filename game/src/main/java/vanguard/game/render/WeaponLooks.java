@@ -8,15 +8,21 @@ import vanguard.sim.WeaponSpec;
 
 /**
  * How the fitted weapons look (design/player/weapons, the projectile families of concept round 08,
- * produced by tools/art/pulse_cannon.py and tools/art/weapon_fx.py): per mount its projectile, its
- * muzzle flash and its impact, and the wing pod drawn on the ship. Straight shots have a sprite per
- * angle their patterns use, homing missiles an angle set of 32 headings, and the lance one per
- * level; bombs and shells are single sprites the renderer scales on their way down. Weapons without
- * their own art yet (Act 2) borrow the family of their delivery.
+ * produced by tools/art/pulse_cannon.py, tools/art/weapon_fx.py and tools/art/act2_weapon_fx.py):
+ * per mount its projectile, its muzzle flash and its impact, and the wing pod drawn on the ship.
+ * Straight shots have a sprite per angle their patterns use, homing missiles and a turret's tracers
+ * an angle set of 32 headings, and the lance one per level; bombs and shells are single sprites the
+ * renderer scales on their way down. A mine shows its sensor dark until it arms, then pulsing, and
+ * bursts in its own blast; the Hornet leaves a smoke trail. Weapons without their own art yet (the
+ * Torpedo Pod) borrow the family of their delivery.
  */
 public final class WeaponLooks {
     private static final int MISSILE_HEADINGS = 32;
     private static final int DEGREES = 360;
+    /** An armed mine's sensor light: the frames it pulses through, each shown this many steps. */
+    private static final int[] MINE_PULSE = {1, 2, 3, 2};
+
+    private static final int MINE_PULSE_TICKS = 4;
 
     /** The look of one mount. */
     static final class Look {
@@ -34,6 +40,10 @@ public final class WeaponLooks {
         final Array<AtlasRegion> pod;
         /** The pod sprite's top-left on the 48x48 hull sprite per banking frame, y down. */
         final int[][] podOffsets;
+        /** A blast of its own (a mine's); {@code null}: the shared small explosion. */
+        Array<AtlasRegion> blast;
+        /** The puffs of its smoke trail (the Hornet's); {@code null} for none. */
+        Array<AtlasRegion> trail;
 
         Look(
                 AtlasRegion[] shots,
@@ -63,11 +73,22 @@ public final class WeaponLooks {
      * @param pods the pods' offsets on the hull ({@code assets/pivots/pods.json})
      */
     public WeaponLooks(Armament armament, int[] levels, Sprites sprites, PodPivots pods) {
+        this(armament, levels, sprites, pods, java.util.Optional.empty());
+    }
+
+    /**
+     * With the look of a wingman's gun too (M5 part A: Rook's shots carry the mount index past the
+     * armament's, {@code Sortie.wingmanMount()}); it has no pod and no muzzle flash on the hull.
+     */
+    public WeaponLooks(
+            Armament armament, int[] levels, Sprites sprites, PodPivots pods, java.util.Optional<WeaponSpec> wingman) {
         this.armament = armament;
-        looks = new Look[armament.size()];
+        looks = new Look[armament.size() + (wingman.isPresent() ? 1 : 0)];
         for (int m = 0; m < armament.size(); m++) {
             looks[m] = look(armament.mount(m), levels[m], sprites, pods);
         }
+        wingman.ifPresent(gun ->
+                looks[armament.size()] = look(new Armament.Mount(Armament.Slot.FRONT, gun, gun), 1, sprites, pods));
     }
 
     private static Look look(Armament.Mount mount, int level, Sprites sprites, PodPivots pods) {
@@ -81,7 +102,7 @@ public final class WeaponLooks {
                 shots = overdrive = single(sprites.pulseBolt);
                 glowing = true;
             }
-            case "scatter-vulcan", "autocannon-pod", "side-splitter" -> {
+            case "scatter-vulcan", "autocannon-pod", "side-splitter", "tail-gun", "fan-blaster" -> {
                 shots = overdrive = byAngle(sprites.frames(slug + "-shot"));
                 glowing = true;
             }
@@ -91,8 +112,21 @@ public final class WeaponLooks {
                 overdrive = single(indexed(lances, level + 1));
                 glowing = true;
             }
-            case "micro-missile-pod" -> {
-                shots = overdrive = byHeading(sprites.frames("micro-missile-pod-shot"));
+            case "micro-missile-pod", "hornet-launcher" -> {
+                shots = overdrive = byHeading(sprites.frames(slug + "-shot"));
+                glowing = false;
+            }
+            case "swivel-gun" -> {
+                shots = overdrive = byHeading(sprites.frames("swivel-gun-shot"));
+                glowing = true;
+            }
+            case "proximity-mines" -> {
+                // Indexed by the sensor light: 0 dark (unarmed), 1..3 its pulse (sprite(Shot)).
+                Array<AtlasRegion> mines = sprites.frames("proximity-mines-shot");
+                shots = overdrive = new AtlasRegion[mines.size];
+                for (int i = 0; i < mines.size; i++) {
+                    shots[i] = mines.get(i);
+                }
                 glowing = false;
             }
             case "bomb-rack", "hammer-mortar" -> {
@@ -126,7 +160,7 @@ public final class WeaponLooks {
             pod = sprites.frames(name);
             offsets = pods.offsets(name);
         }
-        return new Look(
+        Look look = new Look(
                 shots,
                 overdrive,
                 glowing,
@@ -135,6 +169,12 @@ public final class WeaponLooks {
                 impact(weapon.vfx(), sprites),
                 pod,
                 offsets);
+        if (slug.equals("proximity-mines")) {
+            look.blast = sprites.frames("proximity-mines-blast");
+        } else if (slug.equals("hornet-launcher")) {
+            look.trail = sprites.frames("hornet-launcher-smoke");
+        }
+        return look;
     }
 
     /** The pod sprite type a wing weapon is drawn with (tools/art/stormhawk.py); {@code null} if it has none. */
@@ -150,7 +190,11 @@ public final class WeaponLooks {
     }
 
     private static boolean launcher(String vfx) {
-        return vfx.equals("micromissile") || vfx.equals("mortar") || vfx.equals("bomb") || vfx.equals("missile");
+        return vfx.equals("micromissile")
+                || vfx.equals("mortar")
+                || vfx.equals("bomb")
+                || vfx.equals("missile")
+                || vfx.equals("mine");
     }
 
     private static Array<AtlasRegion> muzzle(String vfx, Sprites sprites) {
@@ -218,15 +262,31 @@ public final class WeaponLooks {
         return looks[m].impact;
     }
 
+    /** The blast of mount {@code m}'s mines, or {@code shared} (the small explosion) for a bomb or shell. */
+    public Array<AtlasRegion> blast(int m, Array<AtlasRegion> shared) {
+        return looks[m].blast != null ? looks[m].blast : shared;
+    }
+
+    /** The smoke-trail puff of mount {@code m}'s missiles; {@code null} for a weapon without one. */
+    public Array<AtlasRegion> trail(int m) {
+        return looks[m].trail;
+    }
+
+    /** The mounts on the hull (a wingman's gun is not among them). */
     int size() {
-        return looks.length;
+        return armament.size();
     }
 
     /** The sprite of a shot in flight, for its heading and the pattern it was fired with. */
     AtlasRegion sprite(Shot shot) {
         Look look = looks[shot.mount()];
-        AtlasRegion[] set =
-                shot.weapon() == armament.mount(shot.mount()).overdrive() ? look.overdriveShots : look.shots;
+        AtlasRegion[] set = shot.mount() < armament.size()
+                        && shot.weapon() == armament.mount(shot.mount()).overdrive()
+                ? look.overdriveShots
+                : look.shots;
+        if (shot.weapon().delivery() == WeaponSpec.Delivery.MINE) {
+            return set[shot.armed() ? MINE_PULSE[shot.age() / MINE_PULSE_TICKS % MINE_PULSE.length] : 0];
+        }
         if (set.length == 1) {
             return set[0];
         }

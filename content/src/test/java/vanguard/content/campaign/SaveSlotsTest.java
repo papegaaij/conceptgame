@@ -32,6 +32,24 @@ class SaveSlotsTest {
     }
 
     @Test
+    void readOnlySlotsOfADebugRunReadButNeverWrite() throws IOException {
+        Path saves = directory.resolve("saves");
+        SaveGame kept = saveAt("2026-10-01T10:00:00Z");
+        new SaveSlots(saves).write(SaveSlots.Slot.AUTOSAVE, kept);
+        SaveSlots slots = SaveSlots.readOnly(saves);
+
+        assertFalse(slots.writable());
+        assertFalse(slots.write(SaveSlots.Slot.AUTOSAVE, saveAt("2026-10-02T10:00:00Z")));
+        assertFalse(slots.write(new SaveSlots.Slot(1), saveAt("2026-10-02T10:00:00Z")));
+        assertEquals(Optional.of(kept), slots.mostRecent(), "the real autosave is read and stays as it was");
+        assertInstanceOf(SaveSlots.Entry.Empty.class, slots.read(new SaveSlots.Slot(1)));
+
+        Path absent = directory.resolve("absent");
+        assertFalse(SaveSlots.readOnly(absent).write(SaveSlots.Slot.AUTOSAVE, kept));
+        assertFalse(Files.exists(absent), "nor is the saves directory created");
+    }
+
+    @Test
     void aWrittenSaveIsReadBackAndTheMostRecentIsContinued() throws IOException {
         SaveSlots slots = new SaveSlots(directory.resolve("saves"));
         SaveGame older = saveAt("2026-10-01T10:00:00Z");

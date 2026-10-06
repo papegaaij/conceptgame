@@ -26,7 +26,7 @@ class SaveFormatTest {
 
         String json = SaveFormat.write(save);
 
-        assertTrue(json.contains("\"version\" : 2"), json);
+        assertTrue(json.contains("\"version\" : 3"), json);
         assertEquals(save, SaveFormat.read(json));
         assertEquals(
                 Map.of(1, new SaveGame.LevelStats(480, 80)),
@@ -41,6 +41,7 @@ class SaveFormatTest {
         ObjectNode tree = (ObjectNode) JsonMapper.builder().build().readTree(json);
         tree.put("version", 1);
         ((ObjectNode) tree.get("stats")).remove("levels");
+        tree.remove("escort");
         String old = tree.toString();
         assertTrue(!old.contains("\"levels\""), old);
 
@@ -56,7 +57,8 @@ class SaveFormatTest {
 
     @Test
     void aVersion1SaveWithLevelStatsIsRejected() {
-        String json = SaveFormat.write(save()).replace("\"version\" : 2", "\"version\" : 1");
+        String json = SaveFormat.write(save()).replace("\"version\" : 3", "\"version\" : 1");
+        // Its stats.levels (version 2) is what makes it invalid; the escort (version 3) goes first.
 
         assertThrows(SaveException.class, () -> SaveFormat.read(json));
     }
@@ -72,7 +74,7 @@ class SaveFormatTest {
 
     @Test
     void aNewerFormatVersionIsRejected() {
-        String json = SaveFormat.write(save()).replace("\"version\" : 2", "\"version\" : 3");
+        String json = SaveFormat.write(save()).replace("\"version\" : 3", "\"version\" : 4");
 
         SaveException e = assertThrows(SaveException.class, () -> SaveFormat.read(json));
         assertTrue(e.getMessage().contains("newer version"), e.getMessage());
@@ -82,10 +84,10 @@ class SaveFormatTest {
     void anUnknownOrMissingVersionIsRejected() {
         String json = SaveFormat.write(save());
 
-        assertThrows(SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 2", "\"version\" : 0")));
-        assertThrows(SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 2,", "")));
+        assertThrows(SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 3", "\"version\" : 0")));
+        assertThrows(SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 3,", "")));
         assertThrows(
-                SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 2", "\"version\" : \"2\"")));
+                SaveException.class, () -> SaveFormat.read(json.replace("\"version\" : 3", "\"version\" : \"3\"")));
     }
 
     @Test

@@ -90,10 +90,19 @@ public final class Chain implements Hashed {
     private boolean entered;
     /** Whether its head is dead: the body drifts to a halt while it bursts. */
     private boolean drifting;
+    /**
+     * The edge it entered from last (design/player/wingmen: a wave's edge while it is active): its
+     * wave's, the rear once it has looped back, its parent's for a rear part.
+     */
+    private WaveSpec.Entry entry = WaveSpec.Entry.FRONT;
 
-    /** A wave's chain: the head point starts at its path's start, the members strung out behind it. */
-    void start(EnemySpec.ChainSpec chainSpec, int chainSerial, Spawn plan, int regrownHeadKind) {
+    /**
+     * A wave's chain entering from {@code from}: the head point starts at its path's start, the
+     * members strung out behind it.
+     */
+    void start(EnemySpec.ChainSpec chainSpec, int chainSerial, Spawn plan, int regrownHeadKind, WaveSpec.Entry from) {
         clear(chainSpec, chainSerial);
+        entry = from;
         regrownKind = regrownHeadKind;
         original = true;
         canRegrow = true;
@@ -128,6 +137,7 @@ public final class Chain implements Hashed {
         popTicks = 0;
         entered = false;
         drifting = false;
+        entry = WaveSpec.Entry.FRONT;
         for (int i = 0; i < MAX_MEMBERS; i++) {
             members[i] = null;
         }
@@ -229,6 +239,7 @@ public final class Chain implements Hashed {
     private void reenter() {
         path = loop.path();
         loop = null;
+        entry = WaveSpec.Entry.REAR;
         mode = Mode.PATH;
         segment = 0;
         distance = 0;
@@ -339,6 +350,7 @@ public final class Chain implements Hashed {
         rear.regrowTicks = SimStep.ticks(spec.regrowSeconds());
         rear.speed = spec.regrowSpeed();
         rear.entered = true;
+        rear.entry = entry;
         // The rear part's history: this one's, up to the cut point.
         double cutS = hs[newest] - offsets[i];
         int at = newest;
@@ -503,6 +515,11 @@ public final class Chain implements Hashed {
     /** Whether destroying member {@code i} now pays the first bonus: the tail of an uncut wave's chain. */
     boolean firstBonusDue(int i) {
         return original && !cut && canRegrow && i == size - 1 && i == spec.members() - 1;
+    }
+
+    /** The edge it entered from last: its wave's, or the rear after its loop-back. */
+    WaveSpec.Entry entry() {
+        return entry;
     }
 
     /** Whether it is a wave's chain (its head is the unit that counts as the kill). */

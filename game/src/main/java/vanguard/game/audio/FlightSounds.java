@@ -42,6 +42,9 @@ public final class FlightSounds {
     private static final float ENEMY_FIRE = decibels(-11);
     private static final float PICKUPS = decibels(-8);
     private static final float PLAYER_FIRE = decibels(-14);
+    /** A proximity mine's arming beep: a quiet tick above the shots' level, below the hits'. */
+    private static final float MINE_ARMING = decibels(-10);
+
     private static final float MAX_PAN = 0.4f;
     private static final PickupType[] PICKUP_TYPES = PickupType.values();
 
@@ -148,16 +151,38 @@ public final class FlightSounds {
      * @param setPieces the slugs of the level's set pieces, whose death cries they play
      */
     public FlightSounds(SfxBank bank, EnemyLooks[] looks, Armament armament, List<String> setPieces) {
+        this(bank, looks, armament, setPieces, java.util.Optional.empty());
+    }
+
+    /**
+     * With a wingman's gun too (M5 part A): its shots carry the mount index past the armament's and
+     * play its family.
+     */
+    public FlightSounds(
+            SfxBank bank,
+            EnemyLooks[] looks,
+            Armament armament,
+            List<String> setPieces,
+            java.util.Optional<vanguard.sim.WeaponSpec> wingman) {
         this.bank = bank;
         this.looks = looks;
         cries = setPieces.stream().map(FlightSounds::cry).toArray(Sfx[]::new);
         bossSounds = setPieces.stream().map(FlightSounds::bossSounds).toArray(BossSounds[]::new);
         ownPhaseSounds = Arrays.stream(bossSounds).anyMatch(Objects::nonNull);
-        shots = new Sfx[armament.size()];
-        shotPitch = new float[armament.size()];
+        int mounts = armament.size() + (wingman.isPresent() ? 1 : 0);
+        shots = new Sfx[mounts];
+        shotPitch = new float[mounts];
+        wingman.ifPresent(gun -> {
+            shots[armament.size()] = shot(gun.sfx());
+            shotPitch[armament.size()] = 1;
+        });
         for (int m = 0; m < armament.size(); m++) {
             shots[m] = shot(armament.mount(m).weapon().sfx());
-            shotPitch[m] = armament.mount(m).slot() == Armament.Slot.REAR ? REAR_PITCH : 1;
+            // Rear guns play their family lower; a mine's drop is not a gun's report.
+            shotPitch[m] = armament.mount(m).slot() == Armament.Slot.REAR
+                            && !armament.mount(m).weapon().sfx().equals("mine")
+                    ? REAR_PITCH
+                    : 1;
         }
     }
 
@@ -193,7 +218,7 @@ public final class FlightSounds {
         return k < bossSounds.length && bossSounds[k] != null ? bossSounds[k].sacBurst() : null;
     }
 
-    /** The sound of a weapon sound family; the families of later weapons play the pulse until they have theirs. */
+    /** The sound of a weapon sound family; the families of later weapons (the torpedo) play the pulse until they have theirs. */
     private static Sfx shot(String family) {
         return switch (family) {
             case "vulcan" -> Sfx.VULCAN_SHOT;
@@ -202,6 +227,8 @@ public final class FlightSounds {
             case "micromissile" -> Sfx.MICROMISSILE_SHOT;
             case "mortar" -> Sfx.MORTAR_SHOT;
             case "bomb" -> Sfx.BOMB_SHOT;
+            case "missile" -> Sfx.MISSILE_SHOT;
+            case "mine" -> Sfx.MINE_DROP;
             default -> Sfx.PULSE_SHOT;
         };
     }
@@ -298,6 +325,7 @@ public final class FlightSounds {
                     int mount = events.value(i);
                     bank.play(shots[mount], PLAYER_FIRE, shotPitch[mount] * pitch(0.05), pan);
                 }
+                case PROXIMITY_MINE_ARMED -> bank.play(Sfx.MINE_ARM, MINE_ARMING, pitch(0.03), pan);
                 case SHOT_GLANCED ->
                     bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, 1.3f * pitch(0.05), pan);
                 case BLAST ->
@@ -380,6 +408,12 @@ public final class FlightSounds {
                 case ALLY_HIT -> bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, 0.9f * pitch(0.05), pan);
                 case ALLY_LOST ->
                     bank.play(alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B), EXPLOSIONS, 1, pan);
+                // Rook (M5 part A): a metal hit on his hull, quieter than the ship's; his craft's
+                // medium explosion as he ejects.
+                case WINGMAN_HIT ->
+                    bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), 0.7f * HITS, 0.9f * pitch(0.05), pan);
+                case WINGMAN_EJECTED ->
+                    bank.play(alternate(Sfx.EXPLOSION_MEDIUM_A, Sfx.EXPLOSION_MEDIUM_B), PLAYER_DAMAGE, 1, pan);
                 case PRIMARY_FAILED -> bank.play(Sfx.MISSION_FAILED, PLAYER_DAMAGE, 1, 0);
                 // The boss's arrival warns like an edge warning; its death pays out in a shower.
                 // A boss with its own sounds roars as it comes in (after the klaxon's first blast); its

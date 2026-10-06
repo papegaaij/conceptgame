@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [../enemies, ../art-direction, ../ui/hud]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Allies
@@ -132,6 +132,10 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
 - [x] HUD objective tracker hookup (pips or integrity bar) (the crawler's pips; the relay's integrity bar with Level 13)
 - [x] Specs above loaded from data; level overrides (difficulty HP, positions) from the level
 - [x] Civilian crawler: follows the road curve with 7 headings; hit only by crawler-aimed shots and pass-through claws (10/s)
+- [ ] Evacuation shuttle: authored lanes, damage, smoke below 50 %, the glide down when lost, its HUD pips; data and production sprite — **later: M5 part D** (Level 10)
+- [ ] Convoy cargo ship (two slams) and escort frigate (flak as a cue only); data and production sprites — **later: M5 part E** (Level 11)
+- [ ] Nansen Relay: integrity, relay-aimed damage, dark when destroyed; data and production art — **later: M5 part G** (Level 13)
+- [ ] CDF supply drone (roster): arc and armour patch drop — **later: M5 part G** (Level 13) and **part H** (Level 14)
 
 ## Open questions
 
@@ -169,3 +173,6 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
   darkened small explosion.
 - 2026-10-03: Concept round 17 (user decision): the civilian crawler's production art approved as **final** ([round 17](../concept-rounds/round-17/README.md)).
 - 2026-10-05: M4 part H docs reconciliation: implementation `done`; every item is ticked (the Act 1 ally, the civilian crawler; the Act 2 allies come with their levels in M5).
+- 2026-10-06: M5 plan (a stated default of part A): the Act 2 allies get their checklist items,
+  tagged with the M5 part of their first level (shuttle D, convoy E, relay and supply drone G and
+  H); the document stays `done` for M4 under the deferral rule.

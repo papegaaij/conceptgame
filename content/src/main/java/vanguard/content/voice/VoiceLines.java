@@ -18,11 +18,13 @@ import vanguard.content.Expression;
 import vanguard.content.LevelData;
 import vanguard.content.SpecialsData;
 import vanguard.content.VoiceData;
+import vanguard.content.WingmenData;
 
 /**
  * The spoken lines (design/audio/voice, Offline pipeline): every radio cue of every level (with its
  * easy and hard variants and one line per convoy unit for {@code {ally}}), the secrets' lines, the
- * specials' calls, the low-armour line (source {@code armour}) and every page of the levels' and acts' briefings and of the acts' outros (spoken
+ * specials' calls, the low-armour line (source {@code armour}), Rook's radio barks (source
+ * {@code wingmen barks <trigger>}) and every page of the levels' and acts' briefings and of the acts' outros (spoken
  * dry, as briefings), each with the key its rendered file is named by. The renderer (tools/art/voice.py, through {@code :pipeline:voiceLines}) and
  * the game share this list, so the game finds a line's file by the same key.
  */
@@ -32,6 +34,9 @@ public final class VoiceLines {
 
     /** The placeholder in a line that names the ground-target group it is about ("{group} is behind you"). */
     public static final String GROUP = "{group}";
+
+    /** The source of Rook's radio barks (design/player/wingmen, Radio barks), followed by the trigger. */
+    public static final String BARKS = "wingmen barks";
 
     /** Bumped when the rendering changes in a way that must redo every line. */
     private static final String VERSION = "voice-1";
@@ -194,6 +199,21 @@ public final class VoiceLines {
                         false,
                         lowArmour.distorted().orElse(false) ? Filter.DISTORTED : Filter.RADIO,
                         "armour"));
+        WingmenData.Barks barks = content.wingmen().barks();
+        for (WingmenData.Bark bark : barks.triggers()) {
+            for (String text : bark.lines()) {
+                add(
+                        lines,
+                        line(
+                                voices,
+                                barks.speaker(),
+                                text,
+                                bark.expression(),
+                                bark.shouted(),
+                                Filter.RADIO,
+                                BARKS + " " + bark.trigger()));
+            }
+        }
         for (Map.Entry<String, ActData> act : new TreeMap<>(content.acts()).entrySet()) {
             briefing(lines, voices, act.getValue().briefing(), act.getKey() + " briefing");
             act.getValue().outro().ifPresent(outro -> briefing(lines, voices, outro.pages(), act.getKey() + " outro"));

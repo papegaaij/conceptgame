@@ -17,7 +17,15 @@ expressions:   # exaggeration 0.25-2, cfg_weight (lower: slower, more dramatic),
 speakers:
   okafor: {names: [Okafor], ref: ref-okafor}
   varga: {names: [Varga], ref: ref-varga}
-  rook: {names: [Rook], ref: ref-rook, pins: {ff3da796bbb8: 267639418}}   # "Okay. Okay. That was big. We did big.": the key's seed repeated "We did big"
+  rook:
+    names: [Rook]
+    ref: ref-rook
+    pins:
+      ff3da796bbb8: 267639418   # "Okay. Okay. That was big. We did big.": the key's seed repeated "We did big"
+      6dbea988135b: 115075739   # bark "Flank! Watch the edges, Lancer!": the key's seed read "Clank" through the radio filter
+      f398f9f266a7: 255430562   # bark "Rook's hurting, Lancer. Hurting bad.": the key's seed said "herding"
+      e67f76d7e9c7: 241694575   # bark "Power-up! Grab it!": the key's seed lost the "P" through the radio filter
+      31edae4eee56: 52353765    # bark "Overdrive's up for grabs, Lancer!": the key's seed read "Over drives" through the filter
   choir:
     names: [The Choir]
     ref: ref-varga

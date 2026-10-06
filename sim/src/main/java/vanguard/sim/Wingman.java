@@ -1,0 +1,969 @@
+package vanguard.sim;
+
+import java.util.List;
+
+/**
+ * A wingman flying in the escort slot (design/player/wingmen: Rook), stepped by the {@link Sortie}:
+ * he keeps a formation slot beside and behind the player, gliding to a new one when the waves
+ * change (Wing by default, Wide while a sides wave is active or an enemy is on his flank, Trail
+ * while a rear wave is active) and taking the mirrored slot while his own lies outside the play
+ * field; he dodges the enemy bullets he predicts to pass close, picks a target in his firing cone
+ * (the player's last hit first, then a flank threat, then the nearest) for a homing gun's lock, and
+ * fires his gun whenever the player fires, with a target or without. Every decision waits his
+ * reaction delay. He reacts to only a share of the bullets he predicts (user decision 2026-10-06:
+ * about 70 %), so stray bullets hit him now and then; his slot keeps clear of the air enemies'
+ * bodies. He takes enemy bullets and the contact of air enemies; at zero armour he ejects and is
+ * out for the rest of the attempt.
+ *
+ * <p>No allocation, and his only randomness is his own generator seeded from the sortie's seed:
+ * the same inputs give the same flight, and the state is hashed by the sortie only when he flies.
+ */
+public final class Wingman {
+    /** His formation (design/player/wingmen, Formations). */
+    public enum Formation {
+        WING,
+        WIDE,
+        TRAIL
+    }
+
+    /** He slows down as he arrives at his slot: his wanted speed is the distance over this time. */
+    private static final double ARRIVE_SECONDS = 0.1;
+
+    /**
+     * A sidestep is a jink: he accelerates this many times harder while he dodges, so the time his
+     * reaction delay leaves him (the look-ahead minus the delay) is enough for most single bullets.
+     */
+    private static final double JINK = 4;
+
+    /** The most air enemies whose contact he remembers, so a lasting contact hurts once. */
+    private static final int CONTACTS = 4;
+
+    /** The most bullets he remembers missing at once, so each one is decided once. */
+    private static final int MISSES = 4;
+
+    /** Two predicted lines this close (px) at the same velocity are the same bullet's. */
+    private static final double SAME_LINE = 1;
+
+    /** Passes over the enemies when his slot is moved clear of a body (it may land on another). */
+    private static final int BODY_PASSES = 3;
+
+    /** A move clear of a body that would bring his slot within his minimum distance of the player costs this much more, px. */
+    private static final double NEAR_PLAYER_COST = 1000;
+
+    /** An enemy that moved farther than this in a step jumped (a loop-back's re-entry): no velocity, px. */
+    private static final double JUMP = 16;
+
+    /** Mixed into the sortie's seed for his own generator, so it does not follow the sortie's. */
+    private static final long LUCK_SALT = 0x524F4F4B5F4C55L;
+
+    private static final double LINE_EPSILON = 1e-9;
+
+    /**
+     * How far above or below his eject pod's line the ship's centre must be for the pod to pass it:
+     * half the ship's 48 px, half the pod's 16 px and a little air.
+     */
+    static final double POD_CLEARANCE = 36;
+
+    private final WingmanSpec spec;
+    private final Hull hull;
+    private final double accelerationStep;
+    private final double limit;
+    private final double tanHalfCone;
+    private final double podStep;
+    private final int glideTicks;
+    private final int swapTicks;
+    private final int reactionTicks;
+    private final int intervalTicks;
+    private final int holdTicks;
+    private final int recentHitTicks;
+    /** Whether he reacts to a bullet he predicts: his own generator, seeded from the sortie's seed. */
+    private final SplitMix64 luck;
+
+    private double x;
+    private double y;
+    private double prevX;
+    private double prevY;
+    private double vx;
+    private double vy;
+    private int bank;
+    private int bankTimer;
+
+    private double armour;
+    private boolean critical;
+    private boolean ejected;
+    private int ejectTicks;
+    private double ejectX;
+    private double ejectY;
+    private int podSign;
+    /** The serials of the air enemies touching him in the last step, and how many. */
+    private final int[] contacts = new int[CONTACTS];
+
+    private int contactCount;
+    private final int[] touching = new int[CONTACTS];
+    private int touchingCount;
+
+    private Formation formation;
+    private int formationWait;
+    private WingmanSpec.Side side;
+    private int sideWait;
+    /** Steps his own slot has been inside the field while he flies the mirrored one. */
+    private int inside;
+    /** The offset the glide started from (px right of and above the player) and its steps so far. */
+    private double fromX;
+
+    private double fromY;
+    private int glided;
+
+    private int scanWait;
+    /** Steps until the dodge he decided on starts; -1 for none waiting. */
+    private int dodgeWait;
+
+    private double pendingX;
+    private double pendingY;
+    private double dodgeX;
+    private double dodgeY;
+    private int dodgeLeft;
+
+    /**
+     * The bullets he predicted but did not react to, each by its velocity and its line (the cross
+     * product of position and velocity, the same all along its flight), with the steps he still
+     * remembers it; so a bullet is decided once, not again at every prediction.
+     */
+    private final double[] missedVx = new double[MISSES];
+
+    private final double[] missedVy = new double[MISSES];
+    private final double[] missedLine = new double[MISSES];
+    private final int[] missedTicks = new int[MISSES];
+
+    /** Where he flies to this step: his slot plus a sidestep, moved clear of the enemies' bodies. */
+    private double goalX;
+
+    private double goalY;
+    /** Whether his slot was moved clear of a body this step: he jinks as in a sidestep. */
+    private boolean evading;
+
+    /** His target: an enemy's serial, or a set-piece part's as the homing locks use; -1 for none. */
+    private int target;
+
+    private int targetWait;
+    private int cooldown;
+    private int sinceShot;
+
+    /** Outside a sortie (tests): his generator seeded from seed 0. */
+    Wingman(WingmanSpec spec) {
+        this(spec, 0);
+    }
+
+    /** @param seed the sortie's seed, from which his own generator is seeded */
+    Wingman(WingmanSpec spec, long seed) {
+        this.spec = spec;
+        luck = new SplitMix64(seed ^ LUCK_SALT);
+        WingmanSpec.Craft craft = spec.craft();
+        hull = new Hull(List.of(new Hull.Part(0, 0, craft.hitbox())));
+        accelerationStep = craft.speed() / craft.accelerationSeconds() * SimStep.SECONDS;
+        limit = craft.edgeLimit();
+        WingmanSpec.Ai ai = spec.ai();
+        tanHalfCone = StrictMath.tan(ai.coneHalfAngle());
+        podStep = craft.podSpeed() * SimStep.SECONDS;
+        glideTicks = Math.max(1, SimStep.ticks(ai.glideSeconds()));
+        swapTicks = SimStep.ticks(ai.swapSeconds());
+        reactionTicks = SimStep.ticks(ai.reactionSeconds());
+        intervalTicks = Math.max(1, SimStep.ticks(ai.dodgeInterval()));
+        holdTicks = Math.max(1, SimStep.ticks(ai.lookAhead()));
+        recentHitTicks = SimStep.ticks(ai.recentHitSeconds());
+        reset(spec.armour(), Ship.START_X, Ship.START_Y);
+    }
+
+    /** The start of an attempt: {@code armour} points, in his Wing slot beside the ship at (shipX, shipY). */
+    void reset(double startArmour, double shipX, double shipY) {
+        armour = startArmour;
+        critical = false;
+        ejected = false;
+        ejectTicks = 0;
+        contactCount = 0;
+        formation = Formation.WING;
+        formationWait = -1;
+        side = spec.side();
+        sideWait = -1;
+        inside = 0;
+        glided = glideTicks;
+        scanWait = 0;
+        dodgeWait = -1;
+        dodgeX = dodgeY = 0;
+        dodgeLeft = 0;
+        for (int i = 0; i < MISSES; i++) {
+            missedTicks[i] = 0;
+        }
+        evading = false;
+        target = -1;
+        targetWait = -1;
+        cooldown = 0;
+        sinceShot = Integer.MAX_VALUE;
+        bank = bankTimer = 0;
+        formUp(shipX, shipY);
+        prevX = x;
+        prevY = y;
+    }
+
+    /**
+     * Back to a boss checkpoint's armour, ejected or not, in formation beside the ship, his
+     * generator as it was then.
+     */
+    void restore(
+            double checkpointArmour,
+            boolean wasEjected,
+            boolean wasCritical,
+            long checkpointLuck,
+            double shipX,
+            double shipY) {
+        reset(wasEjected ? spec.armour() : checkpointArmour, shipX, shipY);
+        luck.state(checkpointLuck);
+        armour = wasEjected ? 0 : checkpointArmour;
+        ejected = wasEjected;
+        critical = wasCritical;
+    }
+
+    void rememberPosition() {
+        prevX = x;
+        prevY = y;
+    }
+
+    /** In his slot beside the ship at (shipX, shipY), at rest: during the launch, and at a (re)start. */
+    void formUp(double shipX, double shipY) {
+        x = shipX + slotX();
+        y = shipY + slotY();
+        vx = vy = 0;
+    }
+
+    /**
+     * One step of flight while the player flies (or waits for his retry): formation, dodging,
+     * targeting, then the move towards his slot. {@code activeEdges} are the edges with an active
+     * wave ({@link WarningEdge} bits) and {@code playerHit} the enemy the player's shots damaged last,
+     * with the steps since.
+     */
+    void fly(
+            double shipX,
+            double shipY,
+            int activeEdges,
+            Pool<Enemy> enemies,
+            Pool<EnemyBullet> bullets,
+            SetPiece[] setPieces,
+            int playerHit) {
+        if (ejected) {
+            ejectTicks++;
+            return;
+        }
+        if (cooldown > 0) {
+            cooldown--;
+        }
+        if (sinceShot < Integer.MAX_VALUE) {
+            sinceShot++;
+        }
+        boolean flank = scanEnemies(enemies, setPieces, playerHit);
+        chooseFormation(shipX, activeEdges, flank);
+        dodge(bullets);
+        glided = Math.min(glideTicks, glided + 1);
+        evading = clearOfBodies(enemies, shipX, shipY, shipX + slotX() + dodgeX, shipY + slotY() + dodgeY);
+        move(shipX, shipY);
+        steerBank();
+    }
+
+    /** His generator's state, for a boss checkpoint. */
+    long luck() {
+        return luck.state();
+    }
+
+    /** The player's last hit counts as his first choice while it is this recent, steps. */
+    int recentHitTicks() {
+        return recentHitTicks;
+    }
+
+    /**
+     * Picks his target among the enemies and set-piece parts in his cone and range on the layers his
+     * gun reaches (after his reaction delay), and returns whether an enemy is on his flank (within
+     * the flank distance of him).
+     */
+    private boolean scanEnemies(Pool<Enemy> enemies, SetPiece[] setPieces, int playerHit) {
+        boolean flank = false;
+        boolean targetSeen = false;
+        int best = -1;
+        int bestRank = Integer.MAX_VALUE;
+        double bestDistance = Double.MAX_VALUE;
+        double flankDistance = spec.ai().flankDistance();
+        for (int j = 0; j < enemies.size(); j++) {
+            Enemy enemy = enemies.get(j);
+            if (!PlayerFire.onField(enemy)) {
+                continue;
+            }
+            double dx = enemy.x() - x;
+            double dy = enemy.y() - y;
+            // A flank threat: an enemy within the flank distance of him (not merely in the same
+            // column of the screen, which every enemy far ahead would be).
+            boolean beside = dx * dx + dy * dy <= flankDistance * flankDistance;
+            flank |= beside;
+            if (!reaches(enemy.spec().layer()) || !inCone(dx, dy)) {
+                continue;
+            }
+            targetSeen |= enemy.serial() == target;
+            int rank = enemy.serial() == playerHit ? 1 : beside ? 2 : 3;
+            double distance = dx * dx + dy * dy;
+            if (rank < bestRank || (rank == bestRank && distance < bestDistance)) {
+                best = enemy.serial();
+                bestRank = rank;
+                bestDistance = distance;
+            }
+        }
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
+            if (!piece.present() || !reaches(piece.layer())) {
+                continue;
+            }
+            List<LevelScript.PartSpec> parts = piece.spec().parts();
+            for (int p = 0; p < parts.size(); p++) {
+                double px = piece.partX(p);
+                double py = piece.partY(p);
+                if (piece.partWrecked(p)
+                        || piece.partShielded(p)
+                        || !PlayField.overlaps(px, py, parts.get(p).box())
+                        || !inCone(px - x, py - y)) {
+                    continue;
+                }
+                int serial = PlayerFire.PART_SERIAL + k * LevelScript.SetPieceSpec.MAX_PARTS + p;
+                targetSeen |= serial == target;
+                double distance = (px - x) * (px - x) + (py - y) * (py - y);
+                if (3 < bestRank || (bestRank == 3 && distance < bestDistance)) {
+                    best = serial;
+                    bestRank = 3;
+                    bestDistance = distance;
+                }
+            }
+        }
+        if (!targetSeen) {
+            // A target that died or left his cone is dropped at once: no homing shot locks onto it.
+            target = -1;
+        }
+        if (best == target) {
+            targetWait = -1;
+        } else if (targetWait < 0) {
+            targetWait = reactionTicks;
+        }
+        if (targetWait >= 0 && targetWait-- == 0) {
+            target = best;
+            targetWait = -1;
+        }
+        return flank;
+    }
+
+    /** Whether his gun's shots reach a target on {@code layer}: a shell or bomb only the ground. */
+    private boolean reaches(Layer layer) {
+        WeaponSpec.Delivery delivery = spec.gun().delivery();
+        return delivery.landing() ? layer == Layer.GROUND : delivery.reaches(layer);
+    }
+
+    /** Whether a target (dx, dy) from him lies in his firing cone ahead and in range. */
+    private boolean inCone(double dx, double dy) {
+        double range = spec.ai().range();
+        return dy > 0 && Math.abs(dx) <= dy * tanHalfCone && dx * dx + dy * dy <= range * range;
+    }
+
+    /**
+     * Trail while a rear wave is active, Wide while a sides wave is or an enemy is on his flank,
+     * Wing otherwise; the mirrored side while his own slot lies outside the play field, back once it
+     * has been inside for the swap time. Each change waits his reaction delay, then he glides.
+     */
+    private void chooseFormation(double shipX, int activeEdges, boolean flank) {
+        Formation wanted;
+        if (WarningEdge.BOTTOM.in(activeEdges)) {
+            wanted = Formation.TRAIL;
+        } else if (WarningEdge.LEFT.in(activeEdges) || WarningEdge.RIGHT.in(activeEdges) || flank) {
+            wanted = Formation.WIDE;
+        } else {
+            wanted = Formation.WING;
+        }
+        if (wanted == formation) {
+            formationWait = -1;
+        } else if (formationWait < 0) {
+            formationWait = reactionTicks;
+        }
+        if (formationWait >= 0 && formationWait-- == 0) {
+            startGlide();
+            formation = wanted;
+            formationWait = -1;
+        }
+        WingmanSpec.Side own = spec.side();
+        double ownX = shipX + own.sign() * offset(formation).x();
+        boolean ownOutside = ownX < limit || ownX > PlayField.WIDTH - limit;
+        WingmanSpec.Side wantedSide;
+        if (side == own) {
+            inside = 0;
+            wantedSide = ownOutside ? own.other() : own;
+        } else {
+            inside = ownOutside ? 0 : inside + 1;
+            wantedSide = inside >= swapTicks ? own : side;
+        }
+        if (wantedSide == side) {
+            sideWait = -1;
+        } else if (sideWait < 0) {
+            sideWait = reactionTicks;
+        }
+        if (sideWait >= 0 && sideWait-- == 0) {
+            startGlide();
+            side = wantedSide;
+            sideWait = -1;
+            inside = 0;
+        }
+    }
+
+    private void startGlide() {
+        fromX = slotX();
+        fromY = slotY();
+        glided = 0;
+    }
+
+    private WingmanSpec.Offset offset(Formation of) {
+        WingmanSpec.Ai ai = spec.ai();
+        return switch (of) {
+            case WING -> ai.wing();
+            case WIDE -> ai.wide();
+            case TRAIL -> ai.trail();
+        };
+    }
+
+    /** His slot now, px right of the player's centre: the formation's, part way through a glide. */
+    private double slotX() {
+        double to = side.sign() * offset(formation).x();
+        return fromX + (to - fromX) * glided / glideTicks;
+    }
+
+    /** His slot now, px above the player's centre (a slot behind him is below). */
+    private double slotY() {
+        double to = -offset(formation).y();
+        return fromY + (to - fromY) * glided / glideTicks;
+    }
+
+    /**
+     * Every dodge interval he predicts the enemy bullets over his look-ahead: the soonest one passing
+     * within his clearance is decided once. He reacts to it with his reaction share (his generator):
+     * a sidestep at right angles to it, away from its line, which starts after his reaction delay
+     * and lasts the look-ahead, then back to his slot. Otherwise he misses it, and remembers so until
+     * it has passed.
+     */
+    private void dodge(Pool<EnemyBullet> bullets) {
+        if (dodgeLeft > 0 && --dodgeLeft == 0) {
+            dodgeX = dodgeY = 0;
+        }
+        for (int m = 0; m < MISSES; m++) {
+            if (missedTicks[m] > 0) {
+                missedTicks[m]--;
+            }
+        }
+        if (dodgeWait >= 0 && dodgeWait-- == 0) {
+            dodgeX = pendingX;
+            dodgeY = pendingY;
+            dodgeLeft = holdTicks;
+            dodgeWait = -1;
+        }
+        if (scanWait > 0) {
+            scanWait--;
+            return;
+        }
+        scanWait = intervalTicks - 1;
+        if (dodgeWait >= 0) {
+            return;
+        }
+        WingmanSpec.Ai ai = spec.ai();
+        double clearance = ai.clearance() * ai.clearance();
+        double soonest = ai.lookAhead();
+        int threat = -1;
+        for (int i = 0; i < bullets.size(); i++) {
+            EnemyBullet bullet = bullets.get(i);
+            double rx = bullet.x() - x;
+            double ry = bullet.y() - y;
+            double bvx = bullet.vx();
+            double bvy = bullet.vy();
+            double speed = bvx * bvx + bvy * bvy;
+            if (speed <= 0) {
+                continue;
+            }
+            double t = -(rx * bvx + ry * bvy) / speed;
+            if (t < 0 || t > soonest) {
+                continue;
+            }
+            double cx = rx + bvx * t;
+            double cy = ry + bvy * t;
+            if (cx * cx + cy * cy < clearance && !missed(bullet, speed)) {
+                soonest = t;
+                threat = i;
+            }
+        }
+        if (threat < 0) {
+            return;
+        }
+        EnemyBullet bullet = bullets.get(threat);
+        if (luck.nextDouble() >= ai.reacts()) {
+            miss(bullet);
+            return;
+        }
+        double speed = Math.sqrt(bullet.vx() * bullet.vx() + bullet.vy() * bullet.vy());
+        // At right angles to the bullet's flight, to the side of its line he is on.
+        double px = -bullet.vy() / speed;
+        double py = bullet.vx() / speed;
+        double offLine = px * (x - bullet.x()) + py * (y - bullet.y());
+        // Right on its line: towards his own side.
+        double away =
+                Math.abs(offLine) < LINE_EPSILON ? side.sign() * Math.signum(px + LINE_EPSILON) : Math.signum(offLine);
+        pendingX = away * ai.dodgeStep() * px;
+        pendingY = away * ai.dodgeStep() * py;
+        dodgeWait = reactionTicks;
+    }
+
+    /** Whether he missed {@code bullet} (its squared speed {@code speed}) and still remembers it. */
+    private boolean missed(EnemyBullet bullet, double speed) {
+        double line = bullet.x() * bullet.vy() - bullet.y() * bullet.vx();
+        double same = SAME_LINE * Math.sqrt(speed);
+        for (int m = 0; m < MISSES; m++) {
+            if (missedTicks[m] > 0
+                    && missedVx[m] == bullet.vx()
+                    && missedVy[m] == bullet.vy()
+                    && Math.abs(missedLine[m] - line) <= same) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Remembers a bullet he did not react to, until it has passed (in place of the oldest memory). */
+    private void miss(EnemyBullet bullet) {
+        int slot = 0;
+        for (int m = 1; m < MISSES; m++) {
+            if (missedTicks[m] < missedTicks[slot]) {
+                slot = m;
+            }
+        }
+        missedVx[slot] = bullet.vx();
+        missedVy[slot] = bullet.vy();
+        missedLine[slot] = bullet.x() * bullet.vy() - bullet.y() * bullet.vx();
+        missedTicks[slot] = holdTicks + intervalTicks;
+    }
+
+    /**
+     * Where he flies to: the point (tx, ty) inside the play field's margins, moved out of the box
+     * around every air enemy's body (its hit box grown by his half hit box and his clearance,
+     * stretched over where it flies in his look-ahead) the shortest way that stays inside the field,
+     * preferring one that keeps his minimum distance to the player. Sets {@link #goalX} and
+     * {@link #goalY}; returns whether it moved the point.
+     */
+    private boolean clearOfBodies(Pool<Enemy> enemies, double shipX, double shipY, double tx, double ty) {
+        WingmanSpec.Craft craft = spec.craft();
+        double gap = spec.ai().clearance();
+        double ahead = spec.ai().lookAhead() / SimStep.SECONDS;
+        double min = craft.minDistance();
+        double right = PlayField.WIDTH - limit;
+        double top = PlayField.HEIGHT - limit;
+        goalX = Math.clamp(tx, limit, right);
+        goalY = Math.clamp(ty, limit, top);
+        boolean shifted = false;
+        for (int pass = 0; pass < BODY_PASSES; pass++) {
+            boolean moved = false;
+            for (int j = 0; j < enemies.size(); j++) {
+                Enemy enemy = enemies.get(j);
+                if (!enemy.spec().layer().collidesWithPlayer() || !PlayerFire.onField(enemy)) {
+                    continue;
+                }
+                double ex = enemy.x();
+                double ey = enemy.y();
+                double stepX = ex - enemy.renderX(0);
+                double stepY = ey - enemy.renderY(0);
+                if (stepX * stepX + stepY * stepY > JUMP * JUMP) {
+                    stepX = stepY = 0;
+                }
+                double halfW = enemy.hitbox().width() / 2 + craft.hitbox().width() / 2 + gap;
+                double halfH = enemy.hitbox().height() / 2 + craft.hitbox().height() / 2 + gap;
+                double boxLeft = Math.min(ex, ex + stepX * ahead) - halfW;
+                double boxRight = Math.max(ex, ex + stepX * ahead) + halfW;
+                double boxBottom = Math.min(ey, ey + stepY * ahead) - halfH;
+                double boxTop = Math.max(ey, ey + stepY * ahead) + halfH;
+                if (goalX <= boxLeft || goalX >= boxRight || goalY <= boxBottom || goalY >= boxTop) {
+                    continue;
+                }
+                double bestX = goalX;
+                double bestY = goalY;
+                double best = Double.MAX_VALUE;
+                for (int k = 0; k < 4; k++) {
+                    double cx = k == 0 ? boxLeft : k == 1 ? boxRight : goalX;
+                    double cy = k == 2 ? boxBottom : k == 3 ? boxTop : goalY;
+                    if (cx < limit || cx > right || cy < limit || cy > top) {
+                        continue;
+                    }
+                    double px = cx - shipX;
+                    double py = cy - shipY;
+                    double cost = Math.abs(cx - goalX) + Math.abs(cy - goalY);
+                    if (px * px + py * py < min * min) {
+                        cost += NEAR_PLAYER_COST;
+                    }
+                    if (cost < best) {
+                        best = cost;
+                        bestX = cx;
+                        bestY = cy;
+                    }
+                }
+                if (best < Double.MAX_VALUE) {
+                    goalX = bestX;
+                    goalY = bestY;
+                    moved = true;
+                    shifted = true;
+                }
+            }
+            if (!moved) {
+                break;
+            }
+        }
+        return shifted;
+    }
+
+    /**
+     * Flies towards his goal (his slot plus a sidestep, clear of the bodies) at up to his top speed,
+     * accelerating at his rate (jinking while he sidesteps or clears a body), slowing as he arrives;
+     * then {@linkplain #keepClear kept} inside the play field's margins and his minimum distance from
+     * the player.
+     */
+    private void move(double shipX, double shipY) {
+        WingmanSpec.Craft craft = spec.craft();
+        double ex = goalX - x;
+        double ey = goalY - y;
+        double distance = Math.sqrt(ex * ex + ey * ey);
+        double wantedX = 0;
+        double wantedY = 0;
+        if (distance > 0) {
+            double speed = Math.min(craft.speed(), distance / ARRIVE_SECONDS);
+            wantedX = ex / distance * speed;
+            wantedY = ey / distance * speed;
+        }
+        double dvx = wantedX - vx;
+        double dvy = wantedY - vy;
+        double change = Math.sqrt(dvx * dvx + dvy * dvy);
+        double most = dodgeLeft > 0 || evading ? JINK * accelerationStep : accelerationStep;
+        if (change > most) {
+            dvx *= most / change;
+            dvy *= most / change;
+        }
+        vx += dvx;
+        vy += dvy;
+        x += vx * SimStep.SECONDS;
+        y += vy * SimStep.SECONDS;
+        keepClear(shipX, shipY);
+    }
+
+    /**
+     * Inside the play field's margins and never closer to the player's centre than his minimum
+     * distance, also where the two meet (the player near an edge, a side swap gliding past him):
+     * pushed straight out from the player when that point lies inside the margins, else to the
+     * nearest point at the minimum distance on a margin.
+     */
+    private void keepClear(double shipX, double shipY) {
+        double right = PlayField.WIDTH - limit;
+        double top = PlayField.HEIGHT - limit;
+        if (x < limit || x > right) {
+            x = Math.clamp(x, limit, right);
+            vx = 0;
+        }
+        if (y < limit || y > top) {
+            y = Math.clamp(y, limit, top);
+            vy = 0;
+        }
+        double rx = x - shipX;
+        double ry = y - shipY;
+        double near = rx * rx + ry * ry;
+        double min = spec.craft().minDistance();
+        if (near >= min * min) {
+            return;
+        }
+        if (near == 0) {
+            rx = side.sign();
+            ry = 0;
+            near = 1;
+        }
+        double scale = min / Math.sqrt(near);
+        double outX = shipX + rx * scale;
+        double outY = shipY + ry * scale;
+        if (outX >= limit && outX <= right && outY >= limit && outY <= top) {
+            x = outX;
+            y = outY;
+            return;
+        }
+        // Where the circle at his minimum distance crosses a margin, inside the others: the nearest.
+        double bestX = outX;
+        double bestY = outY;
+        double best = Double.MAX_VALUE;
+        for (int k = 0; k < 4; k++) {
+            boolean vertical = k < 2;
+            double line = k == 0 ? limit : k == 1 ? right : k == 2 ? limit : top;
+            double across = line - (vertical ? shipX : shipY);
+            if (Math.abs(across) > min) {
+                continue;
+            }
+            double along = Math.sqrt(min * min - across * across);
+            for (int sign = -1; sign <= 1; sign += 2) {
+                double cx = vertical ? line : shipX + sign * along;
+                double cy = vertical ? shipY + sign * along : line;
+                if (cx < limit || cx > right || cy < limit || cy > top) {
+                    continue;
+                }
+                double d = (cx - x) * (cx - x) + (cy - y) * (cy - y);
+                if (d < best) {
+                    best = d;
+                    bestX = cx;
+                    bestY = cy;
+                }
+            }
+        }
+        x = Math.clamp(bestX, limit, right);
+        y = Math.clamp(bestY, limit, top);
+        vx = vy = 0;
+    }
+
+    /** Banking follows the horizontal speed, one frame every few steps, as the player's. */
+    private void steerBank() {
+        int wanted = Math.clamp(
+                Math.round(ShipSpec.HARD_BANK * vx / spec.craft().speed()), -ShipSpec.HARD_BANK, ShipSpec.HARD_BANK);
+        if (bank == wanted) {
+            bankTimer = 0;
+        } else if (++bankTimer >= spec.craft().bankStepTicks()) {
+            bank += Integer.signum(wanted - bank);
+            bankTimer = 0;
+        }
+    }
+
+    /**
+     * Whether he fires a volley now: his gun is ready and the player fires, whether he has a target
+     * or not (the target only steers a homing shot's lock). Starts the gun's interval when he does.
+     */
+    boolean fires(boolean playerFiring) {
+        if (ejected || cooldown > 0 || !playerFiring) {
+            return false;
+        }
+        cooldown = spec.gun().intervalTicks();
+        sinceShot = 0;
+        return true;
+    }
+
+    /** Starts a new step's contact bookkeeping: the air enemies touching him are counted afresh. */
+    void beginContacts() {
+        touchingCount = 0;
+    }
+
+    /**
+     * An air enemy touches him: returns whether it is a new contact (one that did not touch him in
+     * the last step), which hurts; a lasting contact hurts once.
+     */
+    boolean touch(int serial) {
+        if (touchingCount < CONTACTS) {
+            touching[touchingCount++] = serial;
+        }
+        for (int i = 0; i < contactCount; i++) {
+            if (contacts[i] == serial) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Ends the step's contact bookkeeping. */
+    void endContacts() {
+        System.arraycopy(touching, 0, contacts, 0, touchingCount);
+        contactCount = touchingCount;
+    }
+
+    /**
+     * He takes {@code damage} (no shield, no mercy time): the hit's event, his low-armour event the
+     * first time he drops below its share in the attempt, and at zero the ejection, whose pod keeps
+     * clear of the ship at (shipX, shipY). Returns whether he ejected.
+     */
+    boolean hit(double damage, double shipX, double shipY, SimEvents events) {
+        if (ejected || !(damage > 0)) {
+            return false;
+        }
+        armour = Math.max(0, armour - damage);
+        events.add(SimEvents.Type.WINGMAN_HIT, x, y, (int) Math.ceil(damage));
+        if (armour <= 0) {
+            eject(shipX, shipY, events);
+            return true;
+        }
+        WingmanSpec.Craft craft = spec.craft();
+        if (!critical && armour < craft.lowArmour() * craft.maxArmour()) {
+            critical = true;
+            events.add(SimEvents.Type.WINGMAN_CRITICAL, x, y);
+        }
+        return false;
+    }
+
+    /**
+     * At zero armour: the pod pops out and drifts to a side edge ({@link #podSide}); he is out for
+     * the attempt.
+     */
+    private void eject(double shipX, double shipY, SimEvents events) {
+        ejected = true;
+        ejectTicks = 0;
+        ejectX = x;
+        ejectY = y;
+        podSign = podSide(x, y, shipX, shipY);
+        vx = vy = 0;
+        target = -1;
+        dodgeX = dodgeY = 0;
+        events.add(SimEvents.Type.WINGMAN_EJECTED, x, y, podSign);
+    }
+
+    /**
+     * The side edge an eject pod at (x, y) drifts to, -1 left or 1 right: the nearer one, unless the
+     * ship at (shipX, shipY) lies on that way (beside the pod's line, within {@link #POD_CLEARANCE}
+     * above or below it); then the other one, so the pod never crosses the ship.
+     */
+    static int podSide(double x, double y, double shipX, double shipY) {
+        int nearer = x < PlayField.WIDTH / 2.0 ? -1 : 1;
+        boolean inTheWay = Math.signum(shipX - x) == nearer && Math.abs(shipY - y) < POD_CLEARANCE;
+        return inTheWay ? -nearer : nearer;
+    }
+
+    void addTo(StateHash hash) {
+        hash.add(x)
+                .add(y)
+                .add(vx)
+                .add(vy)
+                .add(bank)
+                .add(bankTimer)
+                .add(armour)
+                .add(critical ? 1 : 0)
+                .add(ejected ? 1 : 0)
+                .add(ejectTicks)
+                .add(formation.ordinal())
+                .add(formationWait)
+                .add(side.ordinal())
+                .add(sideWait)
+                .add(inside)
+                .add(fromX)
+                .add(fromY)
+                .add(glided)
+                .add(scanWait)
+                .add(dodgeWait)
+                .add(pendingX)
+                .add(pendingY)
+                .add(dodgeX)
+                .add(dodgeY)
+                .add(dodgeLeft)
+                .add(luck.state())
+                .add(target)
+                .add(targetWait)
+                .add(cooldown)
+                .add(sinceShot)
+                .add(contactCount);
+        for (int i = 0; i < contactCount; i++) {
+            hash.add(contacts[i]);
+        }
+        for (int m = 0; m < MISSES; m++) {
+            if (missedTicks[m] > 0) {
+                hash.add(missedVx[m]).add(missedVy[m]).add(missedLine[m]).add(missedTicks[m]);
+            }
+        }
+    }
+
+    Hull hull() {
+        return hull;
+    }
+
+    public WingmanSpec spec() {
+        return spec;
+    }
+
+    /** His gun at its level. */
+    public WeaponSpec gun() {
+        return spec.gun();
+    }
+
+    public double x() {
+        return x;
+    }
+
+    public double y() {
+        return y;
+    }
+
+    /** Position between the previous and the current step; {@code alpha} in [0, 1]. */
+    public double renderX(double alpha) {
+        return prevX + (x - prevX) * alpha;
+    }
+
+    /** Position between the previous and the current step; {@code alpha} in [0, 1]. */
+    public double renderY(double alpha) {
+        return prevY + (y - prevY) * alpha;
+    }
+
+    public double vx() {
+        return vx;
+    }
+
+    public double vy() {
+        return vy;
+    }
+
+    /** The banking frame: -2 hard left, 0 level, 2 hard right. */
+    public int bank() {
+        return bank;
+    }
+
+    public double armour() {
+        return armour;
+    }
+
+    public double maxArmour() {
+        return spec.craft().maxArmour();
+    }
+
+    /** Whether he has ejected in this attempt: out for the rest of it. */
+    public boolean ejected() {
+        return ejected;
+    }
+
+    /** Whether his armour has dropped below his low-armour share in this attempt. */
+    public boolean wasCritical() {
+        return critical;
+    }
+
+    /** The formation he flies (or glides to). */
+    public Formation formation() {
+        return formation;
+    }
+
+    /** The side he flies on now: his own, or the mirrored one while his own slot is outside the field. */
+    public WingmanSpec.Side side() {
+        return side;
+    }
+
+    /** His target (an enemy's serial, or a set-piece part's lock serial); -1 for none. */
+    public int target() {
+        return target;
+    }
+
+    /** Whether he is sidestepping a bullet now. */
+    public boolean dodging() {
+        return dodgeLeft > 0;
+    }
+
+    /** Steps since his gun last fired, for its muzzle flash; {@link Integer#MAX_VALUE} before its first shot. */
+    public int ticksSinceShot() {
+        return sinceShot;
+    }
+
+    /** Steps since he ejected; 0 while he flies. */
+    public int ticksSinceEject() {
+        return ejected ? ejectTicks : 0;
+    }
+
+    /** Where his eject pod is: drifting from where he ejected to a side edge ({@link #podSide}). */
+    public double podX(double alpha) {
+        return ejectX + podSign * podStep * (ejectTicks + alpha);
+    }
+
+    public double podY() {
+        return ejectY;
+    }
+}

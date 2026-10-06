@@ -13,9 +13,9 @@ import vanguard.content.WeaponRulesData;
 
 /**
  * Everything the hangar shop can sell (design/ui/hangar, design/systems/economy), from the design
- * data: the weapons, the core parts (generators, shields, plating, engines), the utility modules
- * and the specials' charges, each with its price, upgrade costs, power draw per level, the level
- * whose hangar visit it enters the shop at, its traits and the numbers the shop compares. Also the
+ * data: the weapons, the core parts (generators, shields, plating, engines), the utility modules,
+ * the specials' charges and Rook's guns (design/player/wingmen), each with its price, upgrade
+ * costs, power draw per level, the level whose hangar visit it enters the shop at, its traits and the numbers the shop compares. Also the
  * shop's rules: the sell-back share and the repair cost per armour point.
  */
 public final class Catalogue {
@@ -136,14 +136,18 @@ public final class Catalogue {
     private final double sellBack;
     private final Map<Difficulty, Integer> repairCost;
     private final Map<Difficulty, Integer> sensorBonus;
+    /** Rook's guns' base weapons, by gun id. */
+    private final Map<String, String> escortBases;
 
     private Catalogue(
             Map<ItemKind, List<Item>> items,
             List<Bay> bays,
             double sellBack,
             Map<Difficulty, Integer> repairCost,
-            Map<Difficulty, Integer> sensorBonus) {
+            Map<Difficulty, Integer> sensorBonus,
+            Map<String, String> escortBases) {
         this.items = items;
+        this.escortBases = escortBases;
         this.bays = bays;
         this.sellBack = sellBack;
         this.repairCost = repairCost;
@@ -236,6 +240,14 @@ public final class Catalogue {
                             special.unlock(),
                             Map.of(Stat.CHARGES, (double) special.maxCharges())));
         }
+        Map<String, String> escortBases = new java.util.TreeMap<>();
+        var guns = content.wingmen().guns();
+        for (var gun : guns.list()) {
+            items.get(ItemKind.ESCORT)
+                    .add(escortGun(
+                            gun, content.weapon(gun.base()), gun == guns.starter(), guns.priceFactor(), rules, player));
+            escortBases.put(gun.id(), gun.base());
+        }
         items.replaceAll((kind, list) -> List.copyOf(list));
         var difficulty = content.difficulty();
         Map<Difficulty, Integer> repair = new EnumMap<>(Difficulty.class);
@@ -244,7 +256,50 @@ public final class Catalogue {
             repair.put(level, difficulty.repairCost().of(level));
             sensors.put(level, difficulty.sensorBonus().of(level));
         }
-        return new Catalogue(items, bays(content), content.economy().sellBack(), repair, sensors);
+        return new Catalogue(
+                items, bays(content), content.economy().sellBack(), repair, sensors, Map.copyOf(escortBases));
+    }
+
+    /**
+     * One of Rook's guns (design/player/wingmen, Rook's guns): the price factor of its base weapon's
+     * price (free for the starter) and of its upgrade base for the upgrades, by the weapons' formula;
+     * no power draw; the base weapon's traits; its DPS scaled.
+     */
+    private static Item escortGun(
+            vanguard.content.WingmenData.Gun gun,
+            WeaponData base,
+            boolean starter,
+            double priceFactor,
+            WeaponRulesData rules,
+            vanguard.content.PlayerData player) {
+        double upgradeBase = priceFactor * base.upgradeBase().orElse(base.price());
+        List<Integer> upgrades = rules.upgradeCostFactors().stream()
+                .map(factor -> (int) Math.rint(upgradeBase * factor))
+                .toList();
+        int sides = base.mirrored().orElse(false) ? 2 : 1;
+        List<Map<Stat, Double>> stats = base.levels().stream()
+                .map(level ->
+                        Map.of(Stat.DPS, sides * level.pattern().size() * level.damage() * gun.scale() * level.rate()))
+                .toList();
+        return new Item(
+                ItemKind.ESCORT,
+                gun.id(),
+                gun.name(),
+                starter ? 0 : (int) Math.rint(priceFactor * base.price()),
+                upgrades,
+                stats.stream().map(level -> 0.0).toList(),
+                player.firstLevel(gun.available()),
+                base.traits(),
+                stats);
+    }
+
+    /** The slug of the player weapon Rook's gun {@code id} is derived from (its icon is that weapon's). */
+    public String escortBase(String id) {
+        String base = escortBases.get(id);
+        if (base == null) {
+            throw new IllegalArgumentException("no escort gun '" + id + "'");
+        }
+        return base;
     }
 
     /** The bought bays, each opening the utility slot after the starting ones; one slot per bay. */

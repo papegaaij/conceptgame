@@ -3,7 +3,7 @@ title: Campaign
 design: approved
 implementation: done
 art: none
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Campaign
@@ -210,9 +210,9 @@ criteria), Open questions, Decisions. The worked example is
 - [x] Shop unlocks follow the *Loadout pressure* table (data-driven, per level): each item's
       `unlock` or `available` in its data (`Hangar.available`, `Catalogue`); the Act 1 rows
       (`forward` to `area`) checked against the weapons' data
-- [ ] The Act 2 rows (`rear` L08, `anti-sub` L11) checked with their weapons in play — **later:
-      M5**; `beam` (L15) and `shield-breaker` (L29) with their weapons — **later: Act 3** and
-      **later: Act 5**
+- [ ] The Act 2 rows checked with their weapons in play: `rear` (L08) — **later: M5 part A**;
+      `anti-sub` (L11) — **later: M5 part E**; `beam` (L15) and `shield-breaker` (L29) with their
+      weapons — **later: Act 3** and **later: Act 5**
 - [x] Campaign progress (current level, unlocks) is stored in the save game
       ([systems](../systems/README.md)).
 
@@ -262,3 +262,6 @@ criteria), Open questions, Decisions. The worked example is
 - 2026-10-05: M4 part H docs reconciliation: the sequence, threat-profile and shop-unlock items
   are split into the built Act 1 part (ticked) and the later levels (tagged with their milestone
   or act), so the document is `done` for M4 under the roadmap's rule for deferred items.
+- 2026-10-06: M5 plan: the Act 2 trait rows are split by part, `rear` with part A (the Act 2
+  arsenal) and `anti-sub` with part E (the Torpedo Pod and the `sub` layer, user decision D1 of
+  part A; see the [roadmap](../tech/roadmap/README.md#m5-parts)).

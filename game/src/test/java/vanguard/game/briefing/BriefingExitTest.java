@@ -46,6 +46,20 @@ class BriefingExitTest {
     }
 
     @Test
+    void aDebugRunSaysItWritesNoSave() {
+        BriefingExit debug = BriefingExit.debugRun();
+        devices.keys.clear();
+        input.update(devices);
+        menu.update(1 / 60f);
+        devices.keys.add(Keys.ESCAPE);
+        input.update(devices);
+        menu.update(1 / 60f);
+
+        assertEquals(BriefingExit.Step.ASKING, debug.update(menu));
+        assertEquals(BriefingExit.DEBUG_RUN, debug.dialog().orElseThrow().detail());
+    }
+
+    @Test
     void escapeAgainOrNoStaysInTheBriefing() {
         press(Keys.ESCAPE);
         assertEquals(BriefingExit.Step.STAYED, press(Keys.ESCAPE));

@@ -29,6 +29,7 @@ final class ContentValidator {
 
     List<String> problems() {
         checkItems();
+        checkWingmen();
         content.enemies().values().forEach(this::checkEnemy);
         content.levels().values().forEach(this::checkLevel);
         content.levels().forEach(this::checkAct);
@@ -78,6 +79,38 @@ final class ContentValidator {
                     systems,
                     "utility[" + i + "].available",
                     systems.utility().get(i).available());
+        }
+    }
+
+    /**
+     * Rook's guns are based on player weapons the simulation flies, each with a price, so his
+     * escort shop can derive theirs.
+     */
+    private void checkWingmen() {
+        WingmenData wingmen = content.wingmen();
+        var guns = wingmen.guns().list();
+        for (int i = 0; i < guns.size(); i++) {
+            WingmenData.Gun gun = guns.get(i);
+            String field = "guns.list[" + i + "]";
+            checkAvailable(wingmen, field + ".available", gun.available());
+            WeaponData weapon = content.weapons().get(gun.base());
+            if (weapon == null) {
+                problem(wingmen, field + ".base", "no player weapon '" + gun.base() + "'");
+            } else if (!SimSpecs.flies(content, gun.base())) {
+                problem(wingmen, field + ".base", "its weapon's hits '" + weapon.hits() + "' do not fly");
+            }
+        }
+        if (wingmen.barks()
+                .bark(WingmenData.ROOK_ARMOUR)
+                .flatMap(WingmenData.Bark::below)
+                .isEmpty()) {
+            problem(wingmen, "barks.triggers", "no " + WingmenData.ROOK_ARMOUR + " trigger with its share below");
+        }
+        if (!content.voices().speakers().containsKey(wingmen.barks().speaker().toLowerCase(Locale.ROOT))) {
+            problem(
+                    wingmen,
+                    "barks.speaker",
+                    "no voice speaker '" + wingmen.barks().speaker() + "'");
         }
     }
 

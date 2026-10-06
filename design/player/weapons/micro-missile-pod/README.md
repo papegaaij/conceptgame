@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Micro-missile Pod
@@ -61,8 +61,8 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - [x] Projectile pattern per level 1–5 and the overdrive pattern
 - [x] Layer hit rules for its traits (see Layers hit)
 - [x] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
-- [x] Behaviour as described above, except:
-- [ ] +20 % turn rate with the targeting computer — **later: M5** (the Targeting computer is built with the utility modules in M5 and kept out of the shop until then: user decision D2 of M4 part H)
+- [x] Behaviour as described above
+- [x] +20 % turn rate with the targeting computer (the doubled rate on a high-air boss included) — M5 part A (user decision D6 of M5 part A; `SimSpecs.loadout`'s turn bonus, test `UtilityModulesTest`)
 - [x] Power draw per level counted in the loadout; upgrades priced as listed
 
 ## Decisions
@@ -78,3 +78,7 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
   sat inside the turning circle and the hull caught the missiles, so no sac was hit).
 - 2026-10-05: M4 part H (user decision D2 = A): the Targeting computer stays out of the shop until
   M5, so its +20 % turn-rate bonus is retagged from M4 to M5.
+- 2026-10-06: M5 part A (user decision D6 = a): the Targeting computer is built in part A, so its
+  +20 % turn rate is part A's; it multiplies the turn rate of every level and the doubled rate
+  while locked on a high-air boss. Back to `in-progress` until then.
+- 2026-10-06: M5 part A built the Targeting computer's +20 %: the fitted module raises the weapon's one turn rate (`WeaponSpec.turnRate`, 270 → 324°/s at L1–L4, 300 → 360°/s at L5 and in overdrive) where `SimSpecs.loadout` builds the Stormhawk's weapons, so the doubled rate on a high-air boss doubles the raised one; Rook's Missiles (this pod's pattern) keep the base turn.

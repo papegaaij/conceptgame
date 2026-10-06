@@ -1,9 +1,9 @@
 ---
 title: Enemies
 design: approved
-implementation: done
+implementation: in-progress
 art: chosen
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Enemies
@@ -345,9 +345,18 @@ Bosses assume an **effective DPS of 0.6 × reference** (accuracy, dodging, phase
 0.4–1.5 s · `large` parts and heads 1–3 s · `huge` set pieces 20–40 s · mid-bosses 45–75 s ·
 act bosses 90–180 s (matches [bosses](bosses/README.md)).
 
-**Act HP factor** (user decision 2026-10-01): a unit returning in a later level gets
+**Act HP factor** (user decision 2026-10-01, narrowed by D5 of M5 part A on 2026-10-06): in a
+level from **Act 2 on** (Level 08 and later), a returning unit of tier **`medium` or larger**
+(its `first_level` earlier than the level) gets
 `HP × (reference DPS at that level ÷ reference DPS at its first level)`, so its time-to-kill stays
-the same; no elite variants. The reference DPS curve is extended act by act as levels are written.
+the same; no elite variants. **`tiny` and `small` units keep their HP**, so the dense levels'
+popcorn stays easy (the campaign's "many small, easy units"), and Act 1's levels are unchanged. The
+factor applies to every part's HP of a multi-part unit and every segment of a chain; it is applied
+with the difficulty's HP lever, one rounding (half to even, at least 1). Bounties are unchanged (the
+act factor already scales them). The time-to-kill check of `BalanceTest` covers these units at
+every level they return in. Examples at Act 2 levels: Spore Bomber (L03) ×60/32 = ×1.88 at L08,
+Mantis (L06) ×80/52 = ×1.54 at L14, Scuttler (L04) ×76/38 = ×2 at L13. The reference DPS curve is
+extended act by act as levels are written.
 
 **Damage to the player** (shield first, overflow to armour; collisions split half/half — see
 [shields](../player/shields/README.md)):
@@ -373,8 +382,12 @@ play field is 540 px tall).
 **Bounties** (Act 1 terms, medium; the act factor 1.6^(act−1) is applied automatically, see
 [economy](../systems/economy/README.md)): `tiny` 2–5 · `small` 10–15 · `medium` 18–30 ·
 hardened and `large` 40–60 · `huge` set pieces ≈ 15 % of their level's budget (sum of part
-bounties). Mid-bosses and act bosses are given as **absolute** medium credits in their level
-(15 % / 30 % of that level's budget) and are not act-scaled again. Accepted exception (user
+bounties). Mid-bosses and act bosses are planned as **absolute** medium credits in their level
+(15 % / 30 % of that level's budget), but their **data holds Act 1 terms like every other
+bounty**: the absolute amount ÷ the act factor (the Harbour Kraken's 300 at Act 2 is written 188),
+and the code multiplies every payout by the act factor, bosses included; there is no exemption
+(M5 part A default, 2026-10-06). The conversion is made when a boss's data is written (the
+Kraken in M5 part E, the Siege Spire in part H). Accepted exception (user
 decision 2026-10-05): the [Coilwyrm](air/coilwyrm/README.md)'s parts total 86, above the `large`
 class, as cutting a multi-part enemy up is extra work (a head-first kill pays 40). Check: level
 01's worked budget (Skitter 5, Needler 12) is unchanged; a typical Act 1 level of 90–120 kills
@@ -493,6 +506,11 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
       layer, the `laser-sweep` wedge and the `mortar` marker, `EdgeWarnings`, `Rules.bulletBudget`).
 - [x] Global difficulty multipliers with per-enemy overrides (the stat blocks' `difficulty:` hooks,
       `EnemyData.Hook`).
+- [x] The act HP factor for returning `medium` and larger units from Act 2 on, with its time-to-kill
+      check in `BalanceTest` — M5 part A (`SimSpecs.actHpFactor`, applied by `SimSpecs.level` to
+      waves, ground units, broods, set pieces and a boss's parts and launched units; tests
+      `ActHpFactorTest`, `BalanceTest.everyReturningUnitKeepsItsTimeToKillInActTwo`;
+      `tools/balance.py` prints the returning units' HP and time to kill at Levels 08–14)
 - [x] Target-the-objective hook: per-level unit/wave configuration, mode `nearest` (Level 04's
       convoy; `LevelScript`, `EnemyBullet`).
 - [ ] The modes `alternate`, `in-arc` and `always` — **later: M5** (Level 13, the first level that
@@ -589,3 +607,25 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
   `hard-only` tags) is reworded to the per-difficulty pattern changes in the stat blocks and the
   waves' `skip`, which cover every Act 1 case; see [difficulty](../systems/difficulty/README.md).
 - 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the `medium` bullet's large pulsing orb approved as **final**, drawn for the Leviathan's and the Scuttler's aimed shots with the heavy shot sound. The part's `art` stays `chosen`: the other types of the round-09 bullet set (among them the Ascendancy colours) have no production art yet; they come with their first enemies (M5 and later).
+- 2026-10-06: M5 part A (user decision D5 = c): the act HP factor, designed but never built, applies
+  only to returning `medium` and larger units in levels from Act 2 on; `tiny` and `small` units keep
+  their HP. Rejected: a (every returning unit: a Skitter would take 3–4 hits, against the dense
+  "many small, easy units" rule) and b (dropping the rule: returning mediums would die 2–3× faster
+  than their time-to-kill targets). Main-agent details: the factor covers every part and segment,
+  is rounded once with the difficulty lever, and leaves bounties alone.
+- 2026-10-06: M5 part A default: boss and mid-boss bounties stay planned as absolute credits, but
+  their data holds Act 1 terms (absolute ÷ act factor) and the code act-scales every payout; the
+  exemption the text implied is not built. The document is `in-progress` again while M5 builds its
+  Act 2 items.
+- 2026-10-06: M5 part A built the act HP factor (D5 = c) as written: `SimSpecs.level` knows the
+  level's act and number and gives every unit it builds (waves, ground units, a spawner's brood, a
+  set piece's parts, a boss's parts and the units it releases) the factor of its stat block's tier
+  and `first_level`; `SimSpecs.enemy` without a level stays at the factor 1. Act 1's levels are
+  unchanged (replay hashes and the Level 01–07 tests as before). Factors today, from the reference
+  curve: Spore Bomber 45 HP at L08 to 60 at L14, Scuttler 44 to 59, Mantis 30 to 40, Brood Pod 47 to
+  63, Coilwyrm 113 to 151 (parts summed), each keeping its time to kill. A level beyond the
+  reference curve (Act 3 before its curve is written) is an error, so the curve is extended before
+  a level uses it. The boss-bounty rule needed no code: the payout already applies the act factor to
+  every bounty, boss parts included; `BalanceTest` and `tools/balance.py` now compare a boss's
+  share at its level with the act factor applied (Act 1's unchanged), and `UtilityEffectsTest`
+  pins it (188 Act 1 terms pay 301 in Act 2).

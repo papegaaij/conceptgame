@@ -2,7 +2,9 @@ package vanguard.sim;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The level's waves planned unit by unit ({@link Formations}), in the order they enter, and the
@@ -16,6 +18,9 @@ final class WaveSchedule {
 
     private final List<EnemySpec> kinds;
     private final Spawn[] spawns;
+    /** Per planned unit, the edge its wave enters from. */
+    private final WaveSpec.Entry[] entries;
+
     private final int[] warningStarts;
     private final int[] warningEnds;
     private final int[] warningEdges;
@@ -26,14 +31,23 @@ final class WaveSchedule {
         this.kinds = kinds;
         List<Spawn> planned = new ArrayList<>();
         List<WaveSpec> warned = new ArrayList<>();
+        Map<Spawn, WaveSpec.Entry> entryOf = new IdentityHashMap<>();
         for (WaveSpec wave : waves) {
+            int before = planned.size();
             Formations.plan(wave, kinds.indexOf(wave.enemy()), rng, planned);
+            for (int i = before; i < planned.size(); i++) {
+                entryOf.put(planned.get(i), wave.entry());
+            }
             if (wave.entry() != WaveSpec.Entry.FRONT) {
                 warned.add(wave);
             }
         }
         planned.sort(Comparator.comparingInt(Spawn::tick));
         spawns = planned.toArray(Spawn[]::new);
+        entries = new WaveSpec.Entry[spawns.length];
+        for (int i = 0; i < spawns.length; i++) {
+            entries[i] = entryOf.getOrDefault(spawns[i], WaveSpec.Entry.FRONT);
+        }
         // A chain's loop-back re-enters from the bottom edge: warned like a rear entry.
         List<Spawn> loops =
                 planned.stream().filter(spawn -> spawn.loop().isPresent()).toList();
@@ -87,6 +101,11 @@ final class WaveSchedule {
     /** The next unit if it enters at or before {@code tick}, advancing past it; otherwise {@code null}. */
     Spawn due(int tick) {
         return next < spawns.length && spawns[next].tick() <= tick ? spawns[next++] : null;
+    }
+
+    /** The edge the wave of the unit {@link #due} returned last enters from. */
+    WaveSpec.Entry lastEntry() {
+        return entries[next - 1];
     }
 
     /** The edges with a warning showing at {@code tick}, as {@link WarningEdge} bits. */

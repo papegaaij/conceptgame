@@ -2,7 +2,8 @@ package vanguard.content.campaign;
 
 /**
  * The Stormhawk's loadout slots (design/player, the ship's slot layout). The third utility bay is
- * bought from Act 3; the escort slot follows with Act 2.
+ * bought from Act 3; the escort slot holds Rook's fitted gun once he is hired (Level 08), which
+ * the save keeps in its {@code escort} field rather than in the loadout.
  */
 public enum LoadoutSlot {
     FRONT(ItemKind.FRONT),
@@ -16,7 +17,8 @@ public enum LoadoutSlot {
     SPECIAL(ItemKind.SPECIAL),
     UTILITY_1(ItemKind.UTILITY),
     UTILITY_2(ItemKind.UTILITY),
-    UTILITY_3(ItemKind.UTILITY);
+    UTILITY_3(ItemKind.UTILITY),
+    ESCORT(ItemKind.ESCORT);
 
     private final ItemKind kind;
 

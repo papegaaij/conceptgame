@@ -1,0 +1,67 @@
+# Wingmen: Rook and the escort slot (README.md). Schema: ../../tech/architecture/README.md#data-file-schemas
+rook:
+  joins: 8                    # hired when the hangar opens with this level (or a later one) next
+  side: left                  # a new campaign's side (hangar setting, saved)
+  armour: 80
+  size: [42, 42]              # sprite px
+  hitbox: [11, 11]
+  muzzle: [21, 3]             # his one muzzle at the nose, px from the sprite's top left
+  speed: 250                  # px/s
+  acceleration_seconds: 0.2
+  min_distance: 40            # px from the player's centre
+  edge_gap: 12                # px from the play field's edges
+  ram_damage: 20              # dealt to an air enemy he collides with
+  launch_warning: 0.5         # the hangar warns below this share of his armour
+  glide_seconds: 0.6          # to a new formation slot
+  swap_seconds: 1.0           # his own slot back inside the field this long before he returns to it
+  formations: {wing: [64, 28], wide: [120, 10], trail: [40, 90]}   # [x, y] px, y down, x mirrored on the left
+  flank_distance: 160         # px horizontally: the Wide formation and target priority 2
+  reaction_seconds: 0.25
+  dodge: {interval: 0.1, look_ahead: 0.4, clearance: 14, step: 48, reacts: 0.7}   # reacts: share of the predicted bullets he dodges (user decision 2026-10-06)
+  cone: 30                    # degrees (full width) ahead in which he fires
+  range: 360                  # px
+  recent_hit_seconds: 1.0     # target priority 1: an enemy the player damaged this recently
+  eject: {explosion: medium, pod_speed: 120}
+guns:
+  price_factor: 0.6           # of the base weapon's price and upgrade base
+  list:                       # the first is the starter: free, fitted when he joins
+    - {id: autocannon, name: Autocannon, base: autocannon-pod, scale: 1.5, available: act 2}
+    - {id: scatter, name: Scatter, base: scatter-vulcan, scale: 0.6, available: act 2}
+    - {id: missiles, name: Missiles, base: micro-missile-pod, scale: 1.5, available: act 2}
+    - {id: mortar, name: Mortar, base: hammer-mortar, scale: 0.6, available: act 2}
+barks:
+  speaker: Rook
+  spacing: 8                  # s between the start of a Rook line and the next bark
+  triggers:                   # in priority order (first = highest)
+    - trigger: boss-warning
+      expression: grim
+      lines: ["Here comes the big one.", "Heads up. Something nasty's coming.", "Oh, I don't like the look of that.", "Big contact inbound. Stay loose, Lancer."]
+    - trigger: rear-wave
+      ahead: 1.5              # s before the wave enters
+      expression: fierce
+      shout: true
+      lines: ["Six o'clock, Lancer!", "Contacts on six! Why is it always six?", "Check six, check six!", "Behind us! They're on our tails!"]
+    - trigger: sides-wave
+      expression: fierce
+      shout: true
+      lines: ["Contacts on your flank!", "Bandits coming in from the side!", "Flank! Watch the edges, Lancer!"]
+    - trigger: player-armour
+      below: 0.3
+      expression: grim
+      lines: ["You're smoking, Lancer. Ease off!", "That hull won't take much more, Lancer!", "Lancer, you're coming apart. Get clear!"]
+    - trigger: rook-armour
+      below: 0.3
+      expression: grim
+      lines: ["Taking a beating over here!", "I'm hit. I'm okay. I'm mostly okay!", "Rook's hurting, Lancer. Hurting bad."]
+    - trigger: rook-ejects
+      expression: fierce
+      shout: true
+      lines: ["Punching out! Give 'em hell!", "I'm out, I'm out! She's all yours, Lancer!", "Ejecting! Somebody owes me a ship."]
+    - trigger: kill-streak
+      kills: 10
+      seconds: 5
+      expression: fierce
+      lines: ["Nice shooting!", "Ha! Save some for me!", "Now that's how it's done.", "Look at you go, Lancer."]
+    - trigger: overdrive
+      expression: fierce
+      lines: ["Power-up! Grab it!", "Ooh, shiny. Grab that.", "Overdrive's up for grabs, Lancer!"]

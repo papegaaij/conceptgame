@@ -17,8 +17,9 @@ import vanguard.content.campaign.DebugFit;
  * @param invulnerable a debug option: nothing hits the ship, to see a level to its end when testing
  * @param startLevel start in Level 01 rather than at the title screen; by default only a bench run
  *     and a debug fit do, {@code --start title} lets a bench run test the menus
- * @param debugFit debug options ({@code --loadout}, {@code --special}): weapons and a special with
- *     its charges fitted for the level start, see {@link DebugFit}
+ * @param debugFit debug options ({@code --loadout}, {@code --special}, {@code --escort}): weapons, a
+ *     special with its charges and Rook in the escort slot (or none) for the level start, see
+ *     {@link DebugFit}
  * @param level a debug option ({@code --level}): the level the level start flies, 1 by default
  * @param actEnd a debug option ({@code --act-end}): winning the level start's level ends its act
  *     early, with the act summary in its debrief and the act outro
@@ -36,7 +37,7 @@ record LaunchOptions(
     /**
      * Parses {@code [--bench <seconds>] [--settings <file>] [--difficulty easy|medium|hard] [--debug-speed <factor>]
      * [--invulnerable] [--start title|level] [--loadout <slot>=<weapon>[:<level>],...] [--special <special>[:<charges>]]
-     * [--level <n>] [--act-end]}.
+     * [--escort rook:<gun>[:<level>][,side=left|right]|none] [--level <n>] [--act-end]}.
      */
     static LaunchOptions parse(String... args) {
         Boolean start = null;
@@ -47,6 +48,7 @@ record LaunchOptions(
         boolean invulnerable = false;
         DebugFit debugFit = null;
         String special = null;
+        String escort = null;
         int level = 1;
         boolean actEnd = false;
         for (int i = 0; i < args.length; i++) {
@@ -58,6 +60,7 @@ record LaunchOptions(
                 case "--invulnerable" -> invulnerable = true;
                 case "--loadout" -> debugFit = DebugFit.parse(value(args, ++i));
                 case "--special" -> special = value(args, ++i);
+                case "--escort" -> escort = value(args, ++i);
                 case "--level" -> level = Integer.parseInt(value(args, ++i));
                 case "--act-end" -> actEnd = true;
                 case "--start" ->
@@ -72,13 +75,16 @@ record LaunchOptions(
         if (special != null) {
             debugFit = (debugFit == null ? DebugFit.NONE : debugFit).withSpecial(special);
         }
+        if (escort != null) {
+            debugFit = (debugFit == null ? DebugFit.NONE : debugFit).withEscort(escort);
+        }
         if (!(debugSpeed > 0)) {
             throw new IllegalArgumentException("--debug-speed must be > 0");
         }
         boolean startLevel = start != null ? start : benchSeconds > 0 || debugFit != null || level != 1 || actEnd;
         if ((debugFit != null || level != 1 || actEnd) && !startLevel) {
             throw new IllegalArgumentException(
-                    "--loadout, --special, --level and --act-end set the level start, they need --start level");
+                    "--loadout, --special, --escort, --level and --act-end set the level start, they need --start level");
         }
         if (level < 1) {
             throw new IllegalArgumentException("--level must be at least 1");
@@ -93,6 +99,16 @@ record LaunchOptions(
                 Optional.ofNullable(debugFit),
                 level,
                 actEnd);
+    }
+
+    /**
+     * Whether this is a debug run, which writes no save at all (design/systems/saves): a level start
+     * (any of {@code --start level}, {@code --level}, {@code --loadout}, {@code --special}, {@code
+     * --escort}, {@code --act-end}), a bench run, {@code --invulnerable} or {@code --debug-speed}.
+     * {@code --settings} and {@code --difficulty} alone are not.
+     */
+    boolean debugRun() {
+        return startLevel || benchSeconds > 0 || invulnerable || debugSpeed != 1;
     }
 
     private static String value(String[] args, int index) {

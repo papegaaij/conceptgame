@@ -1,10 +1,10 @@
 ---
 title: Ship systems
 design: approved
-implementation: done
-art: none
+implementation: in-progress
+art: proposed
 depends-on: [../generator, ../../ui/hangar]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Ship systems
@@ -35,8 +35,8 @@ are the "nice extra options": they make the ship better at a job without adding 
 |---|---|---|---|---|---|---|
 | Sensor suite | Improves hangar intel detail (see below) and shows off-screen threat arrows at L2+ | L1–L3 | 1 | 800 / 2 000 / 4 500 | start | idea |
 | Pickup magnet | Pickups within 72 / 108 / 144 px of the ship fly to it at 240 / 300 / 360 px/s (see below) | L1–L3 | 1 | 600 / 1 500 / 3 000 | act 1 | approved |
-| Salvage scanner | +10 / +20 % credits from drops; reveals hidden crates | L1–L2 | 1 | 2 500 / 6 000 | act 2 | idea |
-| Targeting computer | Homing turn rate +20 %, enemy HP bars, boss weak-point markers | L1 | 1 | 3 000 | act 2 (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores)); not in the shop until M5 | idea |
+| Salvage scanner | +10 / +20 % credits from salvage pickups and hidden crates; a glint marks the objects that hide a secret (see below) | L1–L2 | 1 | 2 500 / 6 000 | act 2 | draft |
+| Targeting computer | Homing turn rate +20 % (Stormhawk weapons), fading HP bars under damaged enemies, brackets on open weak points (see below) | L1 | 1 | 3 000 | act 2 (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores), otherwise L08) | draft |
 | Evasive thrusters | Double-tap direction: 72 px dash, 0.25 s invulnerable, 3 s cooldown | L1 | 2 | 4 000 | act 3 | idea |
 | Auto-repair nanites | Repairs 1 armour per 4 s, up to 50 % of max armour | L1–L2 (2 s at L2) | 3 | 6 000 / 12 000 | act 4 | idea |
 | Pressure hull | Removes the underwater top-speed and shield-regen penalties (see [europa](../../world/europa/README.md#under-water-rules)) | L1 | 1 | 2 000 | L22 | idea |
@@ -54,6 +54,46 @@ pickups are pulled: the beacons, containers, cranes and tows that release them s
 are. A pulled pickup keeps its 6 s lifetime, and nothing is pulled while the ship is wrecked. With
 a magnet in both bays the better level counts. The numbers are in the *Utility modules* table
 above: at L1 a pickup at the edge of the reach is taken about 0.15 s later, at L3 about 0.3 s.
+
+### Targeting computer (user decision D6 of M5 part A)
+
+A fitted Targeting computer (one level) does three things in flight; a second one in the other bay
+adds nothing.
+
+- **HP bars.** A thin bar (2 px, the enemy's hitbox width, at least 12 and at most 48 px) 4 px
+  under every damaged enemy that is not `tiny`: it appears with the first hit, shows the unit's
+  remaining HP (a multi-part unit's living parts summed) in the HUD's phosphor green on a dark
+  trough, amber below 30 %, stays 1.5 s after the last hit and then fades out over 0.3 s. Bosses,
+  mid-bosses and set pieces get none (the boss bar and the brackets cover them), nor do ground
+  objects without a stat block (containers, beacons, triggers). Drawn over the units, under the
+  bullets.
+- **Weak-point brackets.** Pulsing lime corner brackets (2 px, 2 pulses per second between 60 and
+  100 % opacity) round every part with a damage `multiplier` of a boss, mid-boss, set piece or
+  `large` or bigger unit, **while that part can take damage**: its phase has exposed it, its
+  window is open, the boss is not in an invulnerable move. They go when the part is destroyed or
+  closes.
+- **Homing turn +20 %.** The Stormhawk's homing weapons turn 20 % faster: the Micro-missile Pod's
+  and the Hornet Launcher's missiles (their `turn`, also the Micro-missile's doubled rate on a
+  high-air boss) and the Swivel Gun's turret slew (360 → 432°/s). Not Rook's guns.
+
+It enters the shop from the first hangar visit after M5 part A: from the L07 visit for a save
+that holds the L06 [data core](../../systems/economy/README.md#data-cores)'s unlock, otherwise from
+the L08 visit (`available: act 2`).
+
+### Salvage scanner (user decision D7 of M5 part A)
+
+- **Credits.** The best fitted scanner's level adds **+10 %** (L1) or **+20 %** (L2) to the credits
+  of every **salvage pickup** (small, medium, large) and every **secret's hidden crate**; not to
+  bounties, objectives or the grade bonus. The bonus multiplies the payout before its one rounding
+  (Act 1 value × act factor × difficulty income × the bonus, half to even), shows in the floating
+  number and counts in the debrief's salvage and secrets lines. It is **outside the budget**, like
+  the grade bonus: the typical haul, the level budgets and `BalanceTest` leave it out.
+- **Glint.** Every object that reveals a secret (a trigger, a destructible with a hidden crate,
+  Level 07's tow cable) shows a short sparkle (4 frames in 0.3 s, every 1.5 s) at its centre while
+  it is on the screen and not yet spent, with both levels, in the dark as well (a dark trigger still
+  takes hits only while lit). A data core's secret glints too. The glint's own sprite is proposed in
+  concept round 28 (a bigger star glint with a soft gold halo, or a scanner ring that expands from
+  the object); until the choice the game plays option a.
 
 ### Hydro-kit (automatic)
 
@@ -90,6 +130,18 @@ and opens the loadout's third utility slot; it is sold from the hangar visit bef
 | 3 | 5 000 | act 3 |
 <!-- /data -->
 
+## Concept art
+
+Prompts and capture notes: [concept/prompts.md](concept/prompts.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/targeting-computer-capture-r28-a.png](concept/targeting-computer-capture-r28-a.png) | A capture of the game (Level 07): the Targeting computer's HP bar under a damaged Brood Pod, its lime brackets on the Brood Carrier's open bay sacs, and zooms of the bar and of the Salvage scanner's glint on the lifeboat's tow cable | proposed |
+| [concept/secret-glint-r28-a.png](concept/secret-glint-r28-a.png) | Salvage scanner glint, option a "star glint" (production art, `tools/art/secret_glint.py`): 23×23, a four-point star with 10 px arms, short diagonals and a warm white core over a soft gold halo, 4 frames (rise, flare, twinkle, fade), additive, 24 colours; beside the old 9×9 loot glint, and on a cargo container on the station deck and in the dark (sheet) | proposed |
+| [concept/secret-glint-r28-a.gif](concept/secret-glint-r28-a.gif) | Option a playing as the game does (4 frames in 0.3 s every 1.5 s) on a cargo container, deck and dark, beside the old glint (motion) | proposed |
+| [concept/secret-glint-r28-b.png](concept/secret-glint-r28-b.png) | Salvage scanner glint, option b "scanner ping": 35×35, a thin gold ring expanding from the object (radius 3, 7, 11, 15 px) and fading, four lock marks on it at the diagonals, a white flash at the centre in the first two frames, additive, 24 colours (sheet) | proposed |
+| [concept/secret-glint-r28-b.gif](concept/secret-glint-r28-b.gif) | Option b playing as the game would, beside the old glint (motion) | proposed |
+
 ## Implementation
 
 - [x] Engine speed per model
@@ -99,6 +151,16 @@ and opens the loadout's third utility slot; it is sold from the hangar visit bef
   `UtilityModulesTest`)
 - [x] Targeting computer kept out of the shop until M5; the L06 data core's unlock of it stays in
   the save (M4 part H, `for_sale: false` in [data.yaml](data.yaml))
+- [x] Targeting computer: HP bars, weak-point brackets and the +20 % homing turn as under
+  *Targeting computer*; in the shop from the next visit (L07 with the data core, otherwise L08:
+  `for_sale: false` removed) — M5 part A (`targeting` in [data.yaml](data.yaml); the turn bonus in
+  `SimSpecs.loadout`, the marks in `vanguard.game.render.TargetingOverlay` from
+  `Enemy.ticksSinceHit`; tests `UtilityModulesTest`, `UtilityEffectsTest`)
+- [x] Salvage scanner: +10 / +20 % on salvage and hidden crates, the glint on a secret's objects —
+  M5 part A (`salvage` in [data.yaml](data.yaml); `Loadout.salvageBonus` paid in
+  `Sortie.payPickup`, the glint in `vanguard.game.render.SecretGlints`; tests `UtilityEffectsTest`,
+  `UtilityModulesTest`; the glint plays its own sprite `glint-secret`, concept round 28's option a
+  until the round closes, and the loot targets' glint frames when the sprite pages lack it)
 - [x] Sensor suite: off-screen threat arrows at L2+ (M4 part H, `vanguard.game.render.ThreatArrows`;
   the sensor level in `Flight.sensor()`)
 - [x] The third utility bay as data (5 000 cr, `available: act 3`): loaded and validated, for sale
@@ -106,7 +168,9 @@ and opens the loadout's third utility slot; it is sold from the hangar visit bef
   `Hangar.available(Bay)`, test `UtilityModulesTest`)
 - [ ] Buying the third bay in the hangar and fitting its slot (`UTILITY_3`) — **later: Act 3** (it
   is first for sale at the L15 visit; the save then records the bought bay)
-- [ ] The other modules' effects — later: M5
+- [ ] The other modules' effects — **later: Act 3** (Evasive thrusters, the third bay's act),
+  **later: Act 4** (Auto-repair nanites, Pressure hull) and **later: Act 6** (Ascendancy IFF
+  spoofer)
 - [x] Sensor level controls the intel panel detail
 - [ ] Underwater penalties and the pressure hull — **later: Act 4** (the pressure hull is an L22
   module; the penalties are Europa's under-water rules)
@@ -160,3 +224,45 @@ and opens the loadout's third utility slot; it is sold from the hangar visit bef
   table) and the loader and validator accept it; the hangar sells it from the L15 visit, so no Act
   1–2 visit offers it and the save is unchanged. Buying it and fitting the third slot are built
   with Act 3. This closes the [hangar](../../ui/hangar/README.md)'s open question on its data entry.
+- 2026-10-06: M5 part A, user decisions: **D6 = a**, the Targeting computer shows a fading HP bar
+  under damaged non-tiny enemies, lime brackets on open weak points, and turns the Stormhawk's
+  homing weapons 20 % faster (not Rook's); in the shop from the first visit after part A (L07 with
+  the data core, otherwise L08). Rejected: b (bars always on: noise in levels of 50 units a
+  minute) and c (only `large` units and bosses: weak value for 3 000 cr). **D7 = a**, the Salvage
+  scanner is built in part A: +10 / +20 % on salvage pickups and secrets' crates, outside the
+  budget like a grade bonus, and a glint on a secret's trigger object while it is on screen.
+  Rejected: b (out of the shop, retagged Act 3: the Act 2 shop loses a utility item) and c (the
+  credits only: a half-built item). Until part A's code lands the scanner is on sale with no
+  effect, as since the L08 visit was reachable. Both rows leave `idea` for `draft`: the user
+  decided the effects, the details above (bar size and colours, the 0.3 s fade, the bracket pulse,
+  which units and objects count, the glint's timing, the bonus before the rounding) are main-agent
+  choices for review with concept round 28. "The other modules' effects" is split: the M5 pair
+  above, the rest tagged with their acts.
+- 2026-10-06: M5 part A built both modules as designed above; main-agent and builder choices for
+  review with concept round 28: the HP bar sits under the unit's hit box (2 px, the HUD's readout
+  green `40FF80`, amber `FFE04A` below 30 %, on the LCD dark trough), counts as "hit" any damage
+  (shots, blasts, the Airstrike, ramming); a segment chain (the Coilwyrm) shows one bar under its
+  foremost living member with its living members' HP summed; `tiny` is read from each unit's stat
+  block. The brackets are lime `B4FF3C`, a sine pulse between 60 and 100 % at 2 Hz, each arm a
+  quarter of the part's box, 2 px outside it, on a boss's, mid-boss's or set piece's parts with a
+  damage multiplier while not shielded, armoured or wrecked; the Coilwyrm head's ×2 is in its data
+  but not simulated, so it gets none. The +20 % raises the weapons' one turn rate where
+  `SimSpecs.loadout` builds the Stormhawk's weapons (overdrive included), so Rook's guns, built
+  from the base weapons, keep theirs. The scanner's factor (1 + its bonus) multiplies the payout
+  before the one rounding; the score counts the plain value. The glint sparkles at the object's
+  centre (a destructible or trigger hiding a secret, a crane clamp holding its crate, a tow cable
+  until cut), each at its own phase, over every layer below the pickups; until its own sprite it
+  plays the three loot-target glint frames forwards and back. Without either module every replay
+  hash is unchanged (the enemy's hit counter is not hashed). `--loadout` also fits utility modules
+  for testing (`utility=targeting-computer,utility2=salvage-scanner:2`).
+- 2026-10-06: Concept round 28: the Salvage scanner's glint gets its own sprite, two production
+  options by `tools/art/secret_glint.py` (the loot glint's warm white with the salvage gold, 2D
+  light fields at 4×, additive, one 24-colour palette each): a, a 23×23 star glint with a soft halo,
+  and b, a 35×35 scanner ring that expands from the object. Option a is written to the game's
+  sprites (`glint-secret`, on the shared pages under the `glint` root) and played until the round
+  closes (`SecretGlints`, the old loot glint as its fallback); `--variant b` swaps it.
+- 2026-10-06: Bug fixed (M5 part A): the Coilwyrm head's ×2 weak-point multiplier was in its data
+  but never simulated (since Level 06). The chain's head now takes every damage ×2 like a set
+  piece's part (`EnemySpec.ChainSpec.headMultiplier`, from the head part's `multiplier`; a regrown
+  head has none), so the Targeting computer's lime brackets show round a living Coilwyrm head (the
+  rule's `large` unit with a multiplier) and not round a regrown one.

@@ -27,6 +27,12 @@ import java.util.List;
  * <p>A level with an {@code escort} primary objective has a {@link Convoy} on its road; it fails
  * when the last unit is lost (design/systems/retry, on a failed primary objective): the ship flies
  * on but nothing can hurt it, and the presentation retries the level as after a wreck.
+ *
+ * <p>M5 part A: a {@link Wingman} (Rook) flies beside the ship when the loadout has one. His shots
+ * share the ship's shot pool with the mount index {@link #wingmanMount()}, and what they destroy
+ * pays like the player's kills. He ejects at zero armour without failing anything; a retry starts
+ * him with his level-start armour, the boss checkpoint keeps his armour and whether he ejected.
+ * His state is hashed only when he flies, so a sortie without him keeps its hash.
  */
 public final class Sortie {
     private static final int GROUND_CAPACITY = 32;
@@ -110,6 +116,16 @@ public final class Sortie {
     private final double magnetRadius;
     /** How far a pickup in the magnet's reach flies per step, px; 0 without a magnet. */
     private final double magnetStep;
+    /** The Salvage scanner's factor on salvage pickups and hidden crates: 1 + its bonus, 1 without one. */
+    private final double salvageFactor;
+    /** M5 part A: the wingman in the escort slot (Rook); null without one. */
+    private final Wingman wingman;
+    /** {@link #wingman} for the presentation, made once (stepping allocates nothing). */
+    private final java.util.Optional<Wingman> wingmanView;
+    /** The mount index the wingman's shots carry: one past the armament's. */
+    private final int wingmanMount;
+    /** The wingman's armour at the start of the next attempt. */
+    private double wingmanStart;
 
     private long tick;
     private int levelTick;
@@ -178,6 +194,10 @@ public final class Sortie {
         double groundScroll;
         int levelTick;
         int streamReleased;
+        double wingmanArmour;
+        boolean wingmanEjected;
+        boolean wingmanCritical;
+        long wingmanLuck;
     }
 
     /** @param armour the ship's armour at the level start (design/systems/retry: not full, unless it was full) */
@@ -365,6 +385,11 @@ public final class Sortie {
         pickupTicks = SimStep.ticks(rules.pickups().seconds());
         magnetRadius = loadout.magnet().map(Magnet::radius).orElse(0.0);
         magnetStep = loadout.magnet().map(Magnet::pullSpeed).orElse(0.0) * SimStep.SECONDS;
+        salvageFactor = 1 + loadout.salvageBonus();
+        wingman = loadout.wingman().map(flying -> new Wingman(flying, seed)).orElse(null);
+        wingmanView = java.util.Optional.ofNullable(wingman);
+        wingmanMount = loadout.armament().size();
+        wingmanStart = loadout.wingman().map(WingmanSpec::armour).orElse(0.0);
         startAttempt(armour);
     }
 
@@ -418,6 +443,9 @@ public final class Sortie {
             ship.fly(commands);
             fire.fire(commands, force.enemies(), ground);
         }
+        if (wingman != null) {
+            flyWingman(commands);
+        }
         special.command(commands, !launching() && flying() && !complete, ship.x(), ship.y());
         tally.step(chainTargets());
         if (!complete) {
@@ -457,7 +485,7 @@ public final class Sortie {
         if (darkness != null) {
             light();
         }
-        fire.hitGround(ground, force.enemies());
+        fire.hitGround(ground, force.enemies(), force.mines());
         special.update(scrollStep, force.enemies(), ground, setPieces, hits);
         special.bomb(force.enemies(), setPieces, hits, force.bullets(), force.lobs(), force.mines());
         if (convoy != null) {
@@ -470,6 +498,9 @@ public final class Sortie {
             hitBySled();
             hitByDebris();
             hitBySetPieces();
+        }
+        if (wingman != null && flying() && !complete && !failed && !rules.invulnerableShip()) {
+            hitWingman();
         }
         if (convoy != null && !complete && !wrecked && !failed) {
             hitAllies();
@@ -494,12 +525,111 @@ public final class Sortie {
         retryArmour = armour;
     }
 
+    /**
+     * As {@link #retry(double)}, the wingman starting the next attempt with {@code wingmanArmour}
+     * (design/player/wingmen: his level-start armour, at least the retry's armour floor).
+     */
+    public void retry(double armour, double wingmanArmour) {
+        retry(armour);
+        if (wingman != null) {
+            if (!(wingmanArmour > 0)) {
+                throw new IllegalArgumentException("a retry needs the wingman's armour");
+            }
+            wingmanStart = Math.min(wingmanArmour, wingman.maxArmour());
+        }
+    }
+
     private void startAttempt(double armour) {
         ship.reset(armour);
         if (launchTicks > 0) {
             ship.launch(0);
             ship.rememberPosition();
         }
+        if (wingman != null) {
+            wingman.reset(wingmanStart, ship.x(), ship.y());
+        }
+    }
+
+    /**
+     * The wingman's step: in his slot during the launch; then his AI and, while the player fires,
+     * his gun.
+     */
+    private void flyWingman(int commands) {
+        wingman.rememberPosition();
+        if (launching()) {
+            wingman.formUp(ship.x(), ship.y());
+            return;
+        }
+        wingman.fly(
+                ship.x(),
+                ship.y(),
+                force.activeEdges(),
+                force.enemies(),
+                force.bullets(),
+                setPieces,
+                fire.recentHit(wingman.recentHitTicks()));
+        if (wingman.fires(flying() && Command.FIRE.in(commands))) {
+            fire.wingmanVolley(
+                    wingmanMount, wingman.gun(), wingman.x(), wingman.y(), wingman.target(), force.enemies(), ground);
+        }
+    }
+
+    /**
+     * The wingman takes what crosses his path (design/player/wingmen): enemy bullets, armed spore
+     * mines, and the contact of air enemies, which take his ram damage (a small one is destroyed, as
+     * when it rams the player; what his ram destroys pays like the player's kills). Enemies never
+     * aim at him.
+     */
+    private void hitWingman() {
+        if (wingman.ejected()) {
+            return;
+        }
+        Hull hull = wingman.hull();
+        double x = wingman.x();
+        double y = wingman.y();
+        Pool<EnemyBullet> bullets = force.bullets();
+        for (int i = bullets.size() - 1; i >= 0; i--) {
+            EnemyBullet bullet = bullets.get(i);
+            if (hull.overlaps(x, y, EnemyGun.BULLET, bullet.x(), bullet.y())) {
+                bullets.free(i);
+                if (wingman.hit(bullet.damage(), ship.x(), ship.y(), events)) {
+                    return;
+                }
+            }
+        }
+        Pool<Mine> mines = force.mines();
+        for (int i = mines.size() - 1; i >= 0; i--) {
+            Mine mine = mines.get(i);
+            if (mine.armed() && hull.overlaps(x, y, EnemyGun.MineSpec.BOX, mine.x(), mine.y())) {
+                double damage = mine.gun().damage();
+                events.add(SimEvents.Type.MINE_BURST, mine.x(), mine.y());
+                mines.free(i);
+                if (wingman.hit(damage, ship.x(), ship.y(), events)) {
+                    return;
+                }
+            }
+        }
+        Pool<Enemy> enemies = force.enemies();
+        double ram = wingman.spec().craft().ramDamage();
+        wingman.beginContacts();
+        for (int j = enemies.size() - 1; j >= 0; j--) {
+            Enemy enemy = enemies.get(j);
+            EnemySpec spec = enemy.spec();
+            if (!spec.layer().collidesWithPlayer()
+                    || Chain.doomed(enemy)
+                    || !hull.overlaps(x, y, enemy.hitbox(), enemy.x(), enemy.y())
+                    || !wingman.touch(enemy.serial())) {
+                continue;
+            }
+            boolean out = wingman.hit(spec.contactDamage(), ship.x(), ship.y(), events);
+            if (enemy.damage(ram) || spec.destroyedByRamming()) {
+                destroy(j);
+            }
+            if (out) {
+                return;
+            }
+        }
+        wingman.endContacts();
     }
 
     /** When the checkpoint boss arrives, steps on the level clock; -1 without one. */
@@ -573,6 +703,12 @@ public final class Sortie {
         c.groundScroll = groundScroll;
         c.levelTick = levelTick;
         c.streamReleased = streamReleased;
+        if (wingman != null) {
+            c.wingmanArmour = wingman.armour();
+            c.wingmanEjected = wingman.ejected();
+            c.wingmanCritical = wingman.wasCritical();
+            c.wingmanLuck = wingman.luck();
+        }
         checkpointTaken = true;
     }
 
@@ -613,6 +749,9 @@ public final class Sortie {
         attempt++;
         ship.reset(c.armour);
         ship.defences().restore(c.shield, c.armour, c.armourLost);
+        if (wingman != null) {
+            wingman.restore(c.wingmanArmour, c.wingmanEjected, c.wingmanCritical, c.wingmanLuck, ship.x(), ship.y());
+        }
         events.add(SimEvents.Type.SORTIE_RESTARTED, ship.x(), ship.y());
         events.add(SimEvents.Type.BOSS_RETRY, ship.x(), ship.y());
     }
@@ -1696,8 +1835,12 @@ public final class Sortie {
                 pickup.type().ordinal());
     }
 
+    /**
+     * A salvage pickup or a hidden crate: its credits times the Salvage scanner's factor (one
+     * rounding with the credit factor), scored at its plain value.
+     */
     private void payPickup(CreditSource source, Pickup pickup) {
-        int paid = tally.earn(source, pickup.credits());
+        int paid = tally.earn(source, pickup.credits(), salvageFactor);
         tally.scoreValue(pickup.credits());
         events.add(SimEvents.Type.CREDITS_PICKED_UP, pickup.x(), pickup.y(), paid);
     }
@@ -1818,6 +1961,12 @@ public final class Sortie {
                     .add(rampFrom)
                     .add(rampTicks);
         }
+        if (wingman != null) {
+            // Only with a wingman, so the hashes of sorties without one stay as they were.
+            wingman.addTo(hash);
+            fire.addRecentHitTo(hash);
+            hash.add(wingmanStart);
+        }
         return hash.value();
     }
 
@@ -1884,6 +2033,24 @@ public final class Sortie {
         return fire.ticksSinceShot(m);
     }
 
+    /** Mount {@code m}'s turret heading (the Swivel Gun's pod), radians clockwise from up. */
+    public double turretHeading(int m) {
+        return fire.turretHeading(m);
+    }
+
+    /** M5 part A: the wingman flying in the escort slot (Rook), if one flies in this sortie. */
+    public java.util.Optional<Wingman> wingman() {
+        return wingmanView;
+    }
+
+    /**
+     * The mount index the wingman's shots ({@link Shot#mount()}) and their events
+     * ({@link SimEvents.Type#SHOT_FIRED}, hits, blasts) carry: one past the {@link #armament()}'s.
+     */
+    public int wingmanMount() {
+        return wingmanMount;
+    }
+
     /** The special slot: its charges, and the Airstrike in flight for the presentation. */
     public SpecialSlot special() {
         return special;
@@ -1923,6 +2090,11 @@ public final class Sortie {
     /** Drops a spore of {@code gun}'s mine at (x, y) drifting at {@code angle}, as a mine layer does (for tests). */
     void dropMine(EnemyGun gun, double x, double y, double angle) {
         force.dropMine(gun, x, y, angle);
+    }
+
+    /** Fires an enemy bullet from (x, y) at {@code angle} (0 = right, y up), as a gun does (for tests). */
+    void fireBullet(double x, double y, double angle, double speed, double damage) {
+        force.fireAngle(x, y, angle, speed, damage, ship);
     }
 
     /** Starts an overdrive of {@code seconds}, as its pickup does; a running one starts over. */

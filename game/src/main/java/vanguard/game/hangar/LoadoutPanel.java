@@ -18,7 +18,10 @@ import vanguard.game.ui.Glass;
 /**
  * The hangar's centre (design/ui/hangar, layout B): the Stormhawk's holographic schematic with a
  * holographic callout per weapon mount (level pips, the fitted item's icon and name) and the escort
- * slot (locked until Act 2, with Rook's craft), the module tiles of the core parts, the special and
+ * slot (locked until Rook joins at Level 08, with his craft; then his callout: his icon, his fitted
+ * gun's name with five level pips, his armour {@code nn/80} (amber below the launch warning's 50 %)
+ * or {@code GROUNDED} in red, and his side
+ * {@code L} or {@code R}), the module tiles of the core parts, the special and
  * the two utility bays, and the power bar in its trough with the load, the load the selected choice
  * would make in a lighter colour (red when it would not fit) and the generator's output.
  */
@@ -58,13 +61,30 @@ final class LoadoutPanel {
     /** Narrower than the front's, to clear the escort slot beside it. */
     private static final int REAR_WIDTH = 154;
 
-    private static final int ESCORT_WIDTH = 86;
+    static final int ESCORT_WIDTH = 86;
+    /** Rook's callout once he is hired: taller than the locked slot, between the left wing's callout and the panel's foot. */
+    static final int ESCORT_X = X + 6;
+    /** Wider than the locked slot (to the rear callout's edge), so his longest gun name fits. */
+    static final int ESCORT_CALLOUT_WIDTH = 92;
+    /** The callout's text starts this far in from its left edge. */
+    static final int ESCORT_INSET = 4;
+
+    static final int ESCORT_Y = Y + 226;
+    static final int ESCORT_HEIGHT = 92;
+    /** Rows of Rook's callout below its top: the plate, his name, his gun, its pips, his armour. */
+    static final int ESCORT_NAME_ROW = 20;
+
+    static final int ESCORT_GUN_ROW = 48;
+    static final int ESCORT_PIPS_ROW = 62;
+    static final int ESCORT_ARMOUR_ROW = 76;
+    static final String GROUNDED = "GROUNDED";
+    static final String ROOK = "ROOK";
     private static final int CALLOUT_HEIGHT = 46;
     private static final int FRONT_Y = Y + 24;
     private static final int REAR_Y = Y + 276;
     private static final int WING_Y = Y + 116;
     /** The fitted item's name starts right of its icon. */
-    private static final int NAME_INDENT = 32;
+    static final int NAME_INDENT = 32;
 
     private record Callout(LoadoutSlot slot, int x, int y, int width) {}
 
@@ -109,17 +129,21 @@ final class LoadoutPanel {
         for (Callout callout : CALLOUTS) {
             drawCallout(batch, hangar, callout, state.slot() == callout.slot());
         }
-        int escortY = Y + 270;
-        glass.lockedCallout(batch, X + 12, escortY, ESCORT_WIDTH, 48);
-        glass.shadowed(batch, glass.fonts.label, "ESCORT", Glass.DIM, X + 18, escortY + 8);
-        glass.shadowed(batch, glass.fonts.label, "ACT 2", Glass.DIM, X + 18, escortY + 26);
-        TextureRegion rook = icons.escort().large();
-        batch.setColor(LOCKED_ICON);
-        batch.draw(
-                rook,
-                X + 12 + ESCORT_WIDTH - 6 - rook.getRegionWidth(),
-                PixelScreen.HEIGHT - escortY - 12 - rook.getRegionHeight());
-        batch.setColor(Color.WHITE);
+        if (hangar.escortHired()) {
+            drawEscort(batch, hangar, state.slot() == LoadoutSlot.ESCORT);
+        } else {
+            int escortY = Y + 270;
+            glass.lockedCallout(batch, X + 12, escortY, ESCORT_WIDTH, 48);
+            glass.shadowed(batch, glass.fonts.label, "ESCORT", Glass.DIM, X + 18, escortY + 8);
+            glass.shadowed(batch, glass.fonts.label, "ACT 2", Glass.DIM, X + 18, escortY + 26);
+            TextureRegion rook = icons.escort().large();
+            batch.setColor(LOCKED_ICON);
+            batch.draw(
+                    rook,
+                    X + 12 + ESCORT_WIDTH - 6 - rook.getRegionWidth(),
+                    PixelScreen.HEIGHT - escortY - 12 - rook.getRegionHeight());
+            batch.setColor(Color.WHITE);
+        }
         drawTiles(batch, hangar, state.slot());
         drawPower(batch, hangar, state.choice());
     }
@@ -153,6 +177,57 @@ final class LoadoutPanel {
                     7,
                     7);
         }
+    }
+
+    /**
+     * Rook's callout (design/ui/hangar, Escort): {@code ESCORT} and his side, his icon and name, his
+     * fitted gun with its level pips, his armour or {@code GROUNDED} in red.
+     */
+    private void drawEscort(SpriteBatch batch, Hangar hangar, boolean selected) {
+        Campaign campaign = hangar.campaign();
+        Color edge = selected ? Glass.AMBER : LINE;
+        int x = ESCORT_X;
+        int y = ESCORT_Y;
+        glass.callout(batch, x, y, ESCORT_CALLOUT_WIDTH, ESCORT_HEIGHT, selected);
+        glass.shadowed(batch, glass.fonts.label, Names.slot(LoadoutSlot.ESCORT), edge, x + ESCORT_INSET, y + 6);
+        glass.right(
+                batch, glass.fonts.label, side(campaign), Glass.CYAN, x + ESCORT_CALLOUT_WIDTH - ESCORT_INSET, y + 6);
+        TextureRegion rook = icons.escort().large();
+        batch.draw(rook, x + ESCORT_INSET, PixelScreen.HEIGHT - y - 18 - rook.getRegionHeight());
+        glass.shadowed(batch, glass.fonts.label, ROOK, Glass.WHITE, x + NAME_INDENT, y + ESCORT_NAME_ROW);
+        Optional<Item> gun = hangar.fitted(LoadoutSlot.ESCORT);
+        glass.shadowed(
+                batch,
+                glass.fonts.label,
+                gun.map(i -> Names.tile(i.name())).orElse("-"),
+                Glass.WHITE,
+                x + ESCORT_INSET,
+                y + ESCORT_GUN_ROW,
+                ESCORT_CALLOUT_WIDTH - 2 * ESCORT_INSET);
+        Fitted fitted = campaign.loadout().get(LoadoutSlot.ESCORT);
+        int level = fitted == null ? 0 : fitted.level();
+        for (int i = 0; i < PIPS; i++) {
+            glass.bar(
+                    batch, i < level ? Glass.AMBER : Glass.UNLIT, x + ESCORT_INSET + i * 9, y + ESCORT_PIPS_ROW, 7, 7);
+        }
+        boolean grounded = campaign.escortGrounded();
+        glass.shadowed(
+                batch,
+                glass.fonts.label,
+                grounded ? GROUNDED : armour(campaign),
+                grounded ? Glass.ALERT : campaign.escortArmourLow() ? Glass.AMBER : Glass.CYAN,
+                x + ESCORT_INSET,
+                y + ESCORT_ARMOUR_ROW);
+    }
+
+    /** Rook's side on the callout: {@code L} or {@code R}. */
+    static String side(Campaign campaign) {
+        return campaign.gear().escort().side().name().substring(0, 1);
+    }
+
+    /** Rook's armour on the callout: {@code 34/80}. */
+    static String armour(Campaign campaign) {
+        return (int) Math.ceil(campaign.gear().escort().armour()) + "/" + (int) campaign.escortMaxArmour();
     }
 
     private void drawTiles(SpriteBatch batch, Hangar hangar, LoadoutSlot selected) {

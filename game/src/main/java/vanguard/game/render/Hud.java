@@ -47,7 +47,8 @@ public final class Hud {
                         .special()
                         .map(special -> sprites.region("icons/" + iconName(special.name())))
                         .map(TextureRegion.class::cast)
-                        .orElse(null));
+                        .orElse(null),
+                sprites.region("icons/escort-rook"));
         this.flight = flight;
         this.regenBonus = regenBonus;
         for (Flight.Weapon weapon : flight.weapons()) {

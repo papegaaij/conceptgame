@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../architecture, ../../campaign]
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Implementation roadmap
@@ -27,7 +27,7 @@ milestone lists which documents it covers, it does not copy their items.
 | M2 | **Level 01** | [Level 01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) from launch to end: scroll timeline, waves from its data file, ground targets, radio chatter, objectives, debrief totals | data-file loader and table sync, level script runner, formations, layers, [scoring](../../systems/scoring/README.md), [debrief](../../ui/debrief/README.md), replay test for L01 |
 | M3 | **The campaign loop** | Menu → new game → briefing → hangar (buy, fit, sell) → level → debrief → save; load game | [main menu](../../ui/main-menu/README.md), [briefing](../../ui/briefing/README.md), [hangar](../../ui/hangar/README.md), [economy](../../systems/economy/README.md), [saves](../../systems/saves/README.md), [difficulty](../../systems/difficulty/README.md), [pause](../../ui/pause/README.md), [options](../../ui/options/README.md) |
 | M4 | **Act 1** | Levels 02–07 with their enemies, bosses, weapons, specials and allies; balance tests green | [act 1](../../campaign/act-1-first-contact/README.md) levels, the Act 1 [enemies](../../enemies/README.md) and bosses, [weapons](../../player/weapons/README.md), [specials](../../player/specials/README.md), [allies](../../allies/README.md); the M3 documents' `later: M4` items: [economy](../../systems/economy/README.md) bounties and balancing sheet, [difficulty](../../systems/difficulty/README.md) bullet tags, [retry](../../systems/retry/README.md) boss checkpoint, [debrief](../../ui/debrief/README.md) data cores and act summary, [hangar](../../ui/hangar/README.md) test fire and Varga's intel lines |
-| M5 | **Act 2** | Levels 08–14 and their new units and equipment | [act 2](../../campaign/act-2-homefront/README.md) levels and their enemies and equipment, the [wingmen](../../player/wingmen/README.md) escort slot (Rook from L08), the [saves](../../systems/saves/README.md) `escort` field, the Targeting computer in the shop with its effects (economy, from part H), the perspective towers and roofs of L08 (art direction) |
+| M5 | **Act 2** | Levels 08–14 and their new units and equipment | [act 2](../../campaign/act-2-homefront/README.md) levels and their enemies and equipment, the [wingmen](../../player/wingmen/README.md) escort slot (Rook from L08), the [saves](../../systems/saves/README.md) `escort` field, the Targeting computer in the shop with its effects and the Salvage scanner's ([ship systems](../../player/systems/README.md), part A), the perspective towers and roofs of L08 (art direction); built in parts A–I (below) |
 | M6 | **Acts 1–2 release** | Credits screen with the CC-BY attributions, polish pass, release bundles for all OSes on a `v0.1` tag | [credits](../../ui/credits/README.md), mouse support in the out-of-game screens ([ui](../../ui/README.md)), the [scoring](../../systems/scoring/README.md) high-score table per difficulty with its name entry at game over and at the campaign's end, remaining checklist items of Acts 1–2 |
 
 ### Rules
@@ -60,6 +60,25 @@ the close-out (balance tests, balancing sheet, bullet tags, test fire, Varga's i
 open points in a part's documents are settled with the user when the part starts. Each level's
 production art is a concept round right after its part, so M4 ships no placeholders.
 
+### M5 parts
+
+M5 is built like M4: each part is a commit series the user can play, opened with its own gap check
+and the user's decisions, closed by its production-art concept round, so M5 ships no
+placeholders. The order is linear; H comes last among the levels, as it reuses B's Creeper, C's
+Hive Node and Ravager and D's Wraith.
+
+| Part | Scope | Depends on | Round |
+|---|---|---|---|
+| **A** Act 2 systems | Rook and the escort slot ([wingmen](../../player/wingmen/README.md): AI, guns, escort inventory, side, repairs, eject, retry and checkpoint, barks, `--escort`), save format 3 with `escort`, the hangar's escort UI and the HUD's escort box; the Act 2 arsenal without water (final effects and sounds of the Tail Gun, Fan Blaster, Hornet Launcher and Swivel Gun, the Proximity Mines' delivery and `area`); the Targeting computer and the Salvage scanner; the act HP factor and the Act 1 terms in data ([enemies](../../enemies/README.md#balancing-basis), [economy](../../systems/economy/README.md)). Flown on the Act 1 levels with `--loadout` and `--escort` | — | 28: Rook's craft and eject pod, the weapon effects, the Act 2 weapon sounds, the barks' voices, the scanner's glint |
+| **B** Level 08 and the Act 2 intro | Level data (dense, typical haul, four Varga lines, voiced); Creeper; the megacity backdrop with perspective towers, roofs and traffic lanes; Act 2's data (title card, briefing pages, images); "Homefront" final and stems; the Act 1 → Act 2 transition | A | 29 |
+| **C** Level 09 | Hive Node, Ravager, `pack`; hold zones and the distance-keyed wave clock; the named-target tracker; the missed-node rule; the collapse; "Firestorm" final and stems | B | 30 |
+| **D** Level 10 | Wraith (cloak, loop, rear entry); Mote Swarm (`flock`, `swarm`, authored paths: the Skitter's item); the air allies (shuttles) and the scripted loss; rear-heavy pacing | B | 31 |
+| **E** Level 11 | The `sub` layer and the water rules; the Torpedo Pod and `anti-sub`; Driftjelly, Reef Spitter; convoy ships and frigate; the Harbour Kraken mid-boss; the ocean backdrop; the Bomb Rack over water | A | 32 |
+| **F** Level 12 | Weather (rain, lightning reveal, gusts, the eye); Lamprey (chase, latch, drain, shake-off) with `swarm`; sondes; the storm backdrop; the mines' sounds in play | D, E | 33 |
+| **G** Level 13 | `defend` with a timed halt; the Nansen Relay and its integrity bar; hook modes `alternate`, `in-arc`, `always`; Skimmer; `cross`; whiteout; supply drones; the arctic backdrop | E | 34 |
+| **H** Level 14 and the act end | Root bursts; the Siege Spire act boss (root parts, maw launches, ground → air phase); the Geneva backdrop; the daylight section; Act 2's outro pages and act summary; the act-end order | B, C, D | 35 |
+| **I** Close-out | `ActPlaythroughTest` and `BalanceTest` for Act 2 with Rook and the Act 2 plan; the variety checklist as built; the later tags (drones and the other utility modules to Acts 3–6); leftover sounds and the voice listen-through; the user's playthrough | all | 36 |
+
 ## Implementation
 
 - [x] M0 Skeleton
@@ -69,7 +88,7 @@ production art is a concept round right after its part, so M4 ships no placehold
 - [ ] M4 Act 1 (built, parts A–H; concept round 26 closed and every M4 part's art final; the
       balance tests pass in part H's builds; open: the user's playthrough of the build and CI green
       on the branch)
-- [ ] M5 Act 2
+- [ ] M5 Act 2 (parts A–I under *M5 parts*; part A started)
 - [ ] M6 Acts 1–2 release
 
 ## Open questions
@@ -116,3 +135,16 @@ production art is a concept round right after its part, so M4 ships no placehold
   yet); the balance tests (`BalanceTest`, `ActPlaythroughTest`) pass in part H's builds; CI
   on the branch was red on macOS until part H's fix, and the run for the part H commit had not
   finished at the close; **the user has not played the M4 build yet**. M4 stays open until then.
+- 2026-10-06: M5 plan, from the gap analysis of the `m5-act-2` branch: parts A–I as under *M5
+  parts*, concept rounds 28–36, one per part, as in M4. Part A started with the user's decisions
+  D1–D7: **D1 = a** (part A builds Rook and the escort slot, the five Act 2 weapons that need no
+  water, the Targeting computer and the Salvage scanner; the Torpedo Pod and the `sub` layer move
+  to part E), **D2 = a** (Rook's kills pay like the player's), **D3 = b** (a hangar repair line for
+  Rook, launch warning below 50 %), **D4 = a** (Rook's guns in an escort inventory at 60 %),
+  **D5 = c** (the act HP factor only for returning `medium` and larger units from Act 2 on),
+  **D6 = a** (the Targeting computer's HP bars, weak-point brackets and +20 % homing turn),
+  **D7 = a** (the Salvage scanner's +10 / +20 % and glint built in part A); the gap analysis's
+  stated defaults apply (save format 3, Rook only in levels from 08, `--escort`, the barks' queue
+  rules, data in Act 1 terms). The Targeting computer moves from part H to part A. Details are in
+  [wingmen](../../player/wingmen/README.md), [ship systems](../../player/systems/README.md),
+  [enemies](../../enemies/README.md) and [economy](../../systems/economy/README.md).

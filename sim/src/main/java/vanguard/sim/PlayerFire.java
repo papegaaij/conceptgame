@@ -13,8 +13,12 @@ import java.util.List;
  * body makes the rest glance; homing missiles lock onto parts too. A boss on {@code high-air} is
  * above the play field: a missile seeks its open parts all round (not only in its cone), climbs to
  * the one it locks onto, turning at {@link #CLIMB_TURN} times its rate, and passes beneath the hull
- * and every other part. What a hit destroys is handed to {@link Hits}, which the {@link Sortie}
- * implements.
+ * and every other part. A turret (the Swivel Gun) aims its pod at the nearest enemy all round,
+ * favouring the flanks and the rear, and fires straight shots its way only while it has a target.
+ * Proximity mines hold their screen position, arm, and burst when an enemy on {@code air} or
+ * {@code low-air} comes close; the blast hits every {@code air}, {@code low-air} and {@code ground}
+ * target within it once (the {@code area} rule). What a hit destroys is handed to {@link Hits},
+ * which the {@link Sortie} implements.
  */
 final class PlayerFire {
     private static final int SHOT_CAPACITY = 256;
@@ -38,7 +42,7 @@ final class PlayerFire {
     }
 
     /** Homing locks on a set piece's part use serials from here: unit serials stay far below it. */
-    private static final int PART_SERIAL = 1 << 24;
+    static final int PART_SERIAL = 1 << 24;
 
     /**
      * How many times faster than its rate a missile turns while it climbs to a high-air boss's part:
@@ -46,6 +50,12 @@ final class PlayerFire {
      * the turning circle of the weapon's own rate.
      */
     static final double CLIMB_TURN = 2;
+
+    /**
+     * A turret's flank preference (design/player/weapons/swivel-gun): an enemy outside its forward
+     * cone wins when it is no farther than this many times the nearest enemy's distance (20 %).
+     */
+    static final double FLANK_PREFERENCE = 1.2;
 
     private final Ship ship;
     private final Armament armament;
@@ -55,7 +65,15 @@ final class PlayerFire {
     private final Pool<Shot> shots = new Pool<>(SHOT_CAPACITY, Shot::new, Shot[]::new);
     private final int[] cooldowns;
     private final int[] sinceShot;
+    /** A turret mount's heading, radians clockwise from up; its locked target (a serial), -1 for none. */
+    private final double[] turretHeadings;
+
+    private final int[] turretTargets;
     private int overdriveTicks;
+    /** The enemy (a serial) the player's shots damaged last, for the wingman's first target; -1 for none. */
+    private int lastHit;
+    /** Steps since {@link #lastHit} was damaged. */
+    private int sinceHit;
 
     /** The homing target found by {@link #locked} or {@link #nearestInCone}. */
     private double targetX;
@@ -70,6 +88,8 @@ final class PlayerFire {
         this.setPieces = setPieces;
         cooldowns = new int[armament.size()];
         sinceShot = new int[armament.size()];
+        turretHeadings = new double[armament.size()];
+        turretTargets = new int[armament.size()];
         reset();
     }
 
@@ -79,8 +99,12 @@ final class PlayerFire {
         for (int m = 0; m < armament.size(); m++) {
             cooldowns[m] = 0;
             sinceShot[m] = Integer.MAX_VALUE;
+            turretHeadings[m] = armament.mount(m).weapon().muzzles().getFirst().angle();
+            turretTargets[m] = -1;
         }
         overdriveTicks = 0;
+        lastHit = -1;
+        sinceHit = Integer.MAX_VALUE;
     }
 
     /** Starts an overdrive of {@code ticks} steps; a running one starts over. */
@@ -105,11 +129,19 @@ final class PlayerFire {
             if (cooldowns[m] > 0) {
                 cooldowns[m]--;
             }
-            if (cooldowns[m] > 0 || !held) {
-                continue;
-            }
             Armament.Mount mount = armament.mount(m);
             WeaponSpec weapon = overdriveTicks > 0 ? mount.overdrive() : mount.weapon();
+            if (weapon.delivery() == WeaponSpec.Delivery.TURRET) {
+                aim(m, weapon, enemies);
+            }
+            if (cooldowns[m] > 0
+                    || !held
+                    || (weapon.delivery() == WeaponSpec.Delivery.TURRET && turretTargets[m] < 0)
+                    || (weapon.delivery() == WeaponSpec.Delivery.MINE
+                            && liveMines(m) >= weapon.mines().maxLive())) {
+                // A turret without a target holds fire; at its mine cap a mount waits for one to go.
+                continue;
+            }
             cooldowns[m] = weapon.intervalTicks();
             sinceShot[m] = 0;
             volley(m, weapon, enemies, ground);
@@ -132,12 +164,109 @@ final class PlayerFire {
                 continue;
             }
             switch (weapon.delivery()) {
-                case BOLT, HOMING -> shot.fire(weapon, mount, x, y, muzzle.angle());
+                case BOLT, HOMING, MINE -> shot.fire(weapon, mount, x, y, muzzle.angle());
+                case TURRET -> {
+                    shot.fire(weapon, mount, x, y, turretHeadings[mount]);
+                    // Its lock: a high-air boss's part is hit only by a shot aimed at it.
+                    shot.lock(turretTargets[mount]);
+                }
                 case DROPPED -> shot.lob(weapon, mount, x, y, x, y);
                 case LOBBED -> lob(shot, weapon, mount, x, y, enemies, ground);
             }
         }
         events.add(SimEvents.Type.SHOT_FIRED, sumX / muzzles.size(), sumY / muzzles.size(), mount);
+    }
+
+    /** How many of mount {@code m}'s mines are out. */
+    private int liveMines(int m) {
+        int live = 0;
+        for (int i = 0; i < shots.size(); i++) {
+            if (shots.get(i).mount() == m) {
+                live++;
+            }
+        }
+        return live;
+    }
+
+    /**
+     * Turns mount {@code m}'s turret by at most its slew rate for one step: towards the nearest
+     * enemy (or set-piece part) within its reach all round, where one outside its forward cone wins
+     * when it is no farther than {@link #FLANK_PREFERENCE} times the nearest; back to forward
+     * without one.
+     */
+    private void aim(int m, WeaponSpec weapon, Pool<Enemy> enemies) {
+        WeaponSpec.Muzzle muzzle = weapon.muzzles().getFirst();
+        double x = ship.x() + muzzle.dx();
+        double y = ship.y() + muzzle.dy();
+        double reach = weapon.range() * weapon.range();
+        double nearest = reach;
+        double flank = reach;
+        int nearestSerial = -1;
+        int flankSerial = -1;
+        double nearestX = 0;
+        double nearestY = 0;
+        double flankX = 0;
+        double flankY = 0;
+        for (int j = 0; j < enemies.size(); j++) {
+            Enemy enemy = enemies.get(j);
+            if (!onField(enemy)) {
+                continue;
+            }
+            double d = distanceSquared(x, y, enemy.x(), enemy.y());
+            if (d <= nearest) {
+                nearest = d;
+                nearestSerial = enemy.serial();
+                nearestX = enemy.x();
+                nearestY = enemy.y();
+            }
+            if (d <= flank && outsideCone(x, y, enemy.x(), enemy.y(), muzzle.angle(), weapon.coneHalfAngle())) {
+                flank = d;
+                flankSerial = enemy.serial();
+                flankX = enemy.x();
+                flankY = enemy.y();
+            }
+        }
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
+            for (int p = 0; p < piece.partCount(); p++) {
+                if (!partTarget(piece, p)) {
+                    continue;
+                }
+                double d = distanceSquared(x, y, targetX, targetY);
+                int serial = PART_SERIAL + k * LevelScript.SetPieceSpec.MAX_PARTS + p;
+                if (d <= nearest) {
+                    nearest = d;
+                    nearestSerial = serial;
+                    nearestX = targetX;
+                    nearestY = targetY;
+                }
+                if (d <= flank && outsideCone(x, y, targetX, targetY, muzzle.angle(), weapon.coneHalfAngle())) {
+                    flank = d;
+                    flankSerial = serial;
+                    flankX = targetX;
+                    flankY = targetY;
+                }
+            }
+        }
+        double wanted = muzzle.angle();
+        if (flankSerial >= 0 && flank <= FLANK_PREFERENCE * FLANK_PREFERENCE * nearest) {
+            turretTargets[m] = flankSerial;
+            wanted = StrictMath.atan2(flankX - x, flankY - y);
+        } else if (nearestSerial >= 0) {
+            turretTargets[m] = nearestSerial;
+            wanted = StrictMath.atan2(nearestX - x, nearestY - y);
+        } else {
+            turretTargets[m] = -1;
+        }
+        double delta = Math.IEEEremainder(wanted - turretHeadings[m], 2 * StrictMath.PI);
+        double most = weapon.turnRate() * SimStep.SECONDS;
+        turretHeadings[m] = Math.IEEEremainder(turretHeadings[m] + Math.clamp(delta, -most, most), 2 * StrictMath.PI);
+    }
+
+    /** Whether (tx, ty) lies outside the cone of {@code halfAngle} either side of {@code forward} seen from (x, y). */
+    private static boolean outsideCone(double x, double y, double tx, double ty, double forward, double halfAngle) {
+        double off = Math.IEEEremainder(StrictMath.atan2(tx - x, ty - y) - forward, 2 * StrictMath.PI);
+        return Math.abs(off) > halfAngle;
     }
 
     /**
@@ -184,11 +313,24 @@ final class PlayerFire {
      * landing point, which scrolls down with the ground by {@code groundScroll}.
      */
     void move(double groundScroll, Pool<Enemy> enemies) {
+        if (sinceHit < Integer.MAX_VALUE) {
+            sinceHit++;
+        }
         for (int i = shots.size() - 1; i >= 0; i--) {
             Shot shot = shots.get(i);
             WeaponSpec weapon = shot.weapon();
             if (weapon.delivery().landing()) {
                 shot.fall(groundScroll);
+                continue;
+            }
+            if (weapon.delivery() == WeaponSpec.Delivery.MINE) {
+                // A mine holds its place on the screen (it does not scroll) until it bursts or fizzles.
+                shot.drift();
+                if (shot.spent() || !PlayField.overlaps(shot.x(), shot.y(), weapon.size())) {
+                    shots.free(i);
+                } else if (shot.armsNow()) {
+                    events.add(SimEvents.Type.PROXIMITY_MINE_ARMED, shot.x(), shot.y(), shot.mount());
+                }
                 continue;
             }
             if (weapon.delivery() == WeaponSpec.Delivery.HOMING) {
@@ -330,7 +472,7 @@ final class PlayerFire {
         for (int i = shots.size() - 1; i >= 0; i--) {
             Shot shot = shots.get(i);
             WeaponSpec weapon = shot.weapon();
-            if (weapon.delivery().landing()) {
+            if (weapon.delivery().landing() || weapon.delivery() == WeaponSpec.Delivery.MINE) {
                 continue;
             }
             for (int j = enemies.size() - 1; j >= 0; j--) {
@@ -349,6 +491,10 @@ final class PlayerFire {
                     break;
                 }
                 events.add(SimEvents.Type.ENEMY_HIT, shot.x(), shot.y(), shot.mount());
+                if (shot.mount() < armament.size()) {
+                    lastHit = enemy.serial();
+                    sinceHit = 0;
+                }
                 boolean spent = shot.pierced();
                 if (enemy.damage(shot.damage() * groundFactor(weapon, spec.layer()))) {
                     hits.enemyDestroyed(j);
@@ -485,15 +631,22 @@ final class PlayerFire {
 
     /**
      * Bolts and missiles that missed the air hit the ground objects below (design/enemies, layer
-     * rules); bombs and shells that have landed burst.
+     * rules); bombs and shells that have landed burst, and so do armed mines with an enemy close.
      */
-    void hitGround(Pool<GroundObject> ground, Pool<Enemy> enemies) {
+    void hitGround(Pool<GroundObject> ground, Pool<Enemy> enemies, Pool<Mine> spores) {
         for (int i = shots.size() - 1; i >= 0; i--) {
             Shot shot = shots.get(i);
             WeaponSpec weapon = shot.weapon();
             if (weapon.delivery().landing()) {
                 if (shot.airProgress(0) >= 1) {
                     burst(shot, ground, enemies);
+                    shots.free(i);
+                }
+                continue;
+            }
+            if (weapon.delivery() == WeaponSpec.Delivery.MINE) {
+                if (shot.armed() && triggered(shot, enemies)) {
+                    mineBurst(shot, ground, enemies, spores);
                     shots.free(i);
                 }
                 continue;
@@ -549,6 +702,106 @@ final class PlayerFire {
         }
     }
 
+    /**
+     * Whether an enemy on {@code air} or {@code low-air} (a unit, or a set piece's body or living
+     * part on one of those layers) is within an armed mine's trigger distance.
+     */
+    private boolean triggered(Shot mine, Pool<Enemy> enemies) {
+        double x = mine.x();
+        double y = mine.y();
+        double trigger = mine.weapon().mines().trigger();
+        for (int j = 0; j < enemies.size(); j++) {
+            Enemy enemy = enemies.get(j);
+            if (triggers(enemy.spec().layer())
+                    && onField(enemy)
+                    && inBlast(x, y, trigger, enemy.x(), enemy.y(), enemy.hitbox())) {
+                return true;
+            }
+        }
+        for (SetPiece piece : setPieces) {
+            if (!piece.present() || !triggers(piece.layer())) {
+                continue;
+            }
+            if (PlayField.overlaps(piece.x(), piece.y(), piece.body())
+                    && inBlast(x, y, trigger, piece.x(), piece.y(), piece.body())) {
+                return true;
+            }
+            List<LevelScript.PartSpec> parts = piece.spec().parts();
+            for (int p = 0; p < parts.size(); p++) {
+                double px = piece.partX(p);
+                double py = piece.partY(p);
+                Hitbox box = parts.get(p).box();
+                if (!piece.partWrecked(p) && PlayField.overlaps(px, py, box) && inBlast(x, y, trigger, px, py, box)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** The layers whose enemies set off a proximity mine: the player's plane and the one below it. */
+    private static boolean triggers(Layer layer) {
+        return layer == Layer.AIR || layer == Layer.LOW_AIR;
+    }
+
+    /**
+     * A mine's blast (the {@code area} rule): every enemy on {@code air}, {@code low-air} and
+     * {@code ground}, every ground object (hardened ones glance off without {@code anti-ground}),
+     * every living set-piece part on those layers that takes damage and every armed spore mine within
+     * the blast radius takes the damage once.
+     */
+    private void mineBurst(Shot mine, Pool<GroundObject> ground, Pool<Enemy> enemies, Pool<Mine> spores) {
+        WeaponSpec weapon = mine.weapon();
+        double x = mine.x();
+        double y = mine.y();
+        double radius = weapon.blast();
+        events.add(SimEvents.Type.BLAST, x, y, mine.mount());
+        for (int j = ground.size() - 1; j >= 0; j--) {
+            GroundObject object = ground.get(j);
+            LevelScript.GroundObjectSpec spec = object.spec();
+            if (object.hittable()
+                    && (weapon.antiGround() || !spec.hardened())
+                    && inBlast(x, y, radius, object.x(), object.y(), spec.size())) {
+                strike(j, object, mine.damage());
+            }
+        }
+        for (int j = enemies.size() - 1; j >= 0; j--) {
+            Enemy enemy = enemies.get(j);
+            if (enemy.spec().layer() != Layer.HIGH_AIR
+                    && onField(enemy)
+                    && inBlast(x, y, radius, enemy.x(), enemy.y(), enemy.hitbox())
+                    && enemy.damage(mine.damage(), true)) {
+                hits.enemyDestroyed(j);
+            }
+        }
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
+            if (!piece.present() || piece.layer() == Layer.HIGH_AIR) {
+                continue;
+            }
+            List<LevelScript.PartSpec> parts = piece.spec().parts();
+            for (int p = 0; p < parts.size() && piece.present(); p++) {
+                double px = piece.partX(p);
+                double py = piece.partY(p);
+                if (!piece.partWrecked(p)
+                        && !piece.partShielded(p)
+                        && PlayField.overlaps(px, py, parts.get(p).box())
+                        && inBlast(x, y, radius, px, py, parts.get(p).box())
+                        && piece.damagePart(p, mine.damage())) {
+                    hits.partDestroyed(k, p);
+                }
+            }
+        }
+        for (int j = spores.size() - 1; j >= 0; j--) {
+            Mine spore = spores.get(j);
+            if (spore.armed()
+                    && inBlast(x, y, radius, spore.x(), spore.y(), EnemyGun.MineSpec.BOX)
+                    && spore.damage(mine.damage())) {
+                hits.mineDestroyed(j);
+            }
+        }
+    }
+
     /** A hit on a ground object: a trigger counts it, a destructible takes the damage. */
     private void strike(int index, GroundObject object, double damage) {
         if (object.spec().trigger()) {
@@ -591,6 +844,9 @@ final class PlayerFire {
     void addTo(StateHash hash) {
         for (int m = 0; m < armament.size(); m++) {
             hash.add(cooldowns[m]).add(sinceShot[m]);
+            if (armament.mount(m).weapon().delivery() == WeaponSpec.Delivery.TURRET) {
+                hash.add(turretHeadings[m]).add(turretTargets[m]);
+            }
         }
         hash.add(overdriveTicks);
     }
@@ -608,7 +864,63 @@ final class PlayerFire {
         return sinceShot[m];
     }
 
+    /**
+     * A wingman's volley (design/player/wingmen): his gun fires from (x, y) as mount {@code mount}
+     * (past the armament's, so its shots and events are told apart); a homing projectile starts
+     * locked onto {@code target} (a serial as the homing locks use, -1 for none), a lobbed shell
+     * picks its ground target as the player's do.
+     */
+    void wingmanVolley(
+            int mount,
+            WeaponSpec weapon,
+            double x,
+            double y,
+            int target,
+            Pool<Enemy> enemies,
+            Pool<GroundObject> ground) {
+        List<WeaponSpec.Muzzle> muzzles = weapon.muzzles();
+        double sumX = 0;
+        double sumY = 0;
+        for (int i = 0; i < muzzles.size(); i++) {
+            WeaponSpec.Muzzle muzzle = muzzles.get(i);
+            double mx = x + muzzle.dx();
+            double my = y + muzzle.dy();
+            sumX += mx;
+            sumY += my;
+            Shot shot = shots.obtain();
+            if (shot == null) {
+                continue;
+            }
+            if (weapon.delivery() == WeaponSpec.Delivery.LOBBED) {
+                lob(shot, weapon, mount, mx, my, enemies, ground);
+            } else if (weapon.delivery() == WeaponSpec.Delivery.DROPPED) {
+                shot.lob(weapon, mount, mx, my, mx, my);
+            } else {
+                shot.fire(weapon, mount, mx, my, muzzle.angle());
+                if (weapon.delivery() == WeaponSpec.Delivery.HOMING) {
+                    shot.lock(target);
+                }
+            }
+        }
+        events.add(SimEvents.Type.SHOT_FIRED, sumX / muzzles.size(), sumY / muzzles.size(), mount);
+    }
+
+    /** The enemy (a serial) the player's shots damaged within the last {@code ticks} steps; -1 for none. */
+    int recentHit(int ticks) {
+        return sinceHit <= ticks ? lastHit : -1;
+    }
+
+    /** The player's last hit, which steers a wingman: hashed only when one flies. */
+    void addRecentHitTo(StateHash hash) {
+        hash.add(lastHit).add(sinceHit);
+    }
+
     int overdriveTicks() {
         return overdriveTicks;
+    }
+
+    /** Mount {@code m}'s turret heading, radians clockwise from up (its muzzle's angle for other weapons). */
+    double turretHeading(int m) {
+        return turretHeadings[m];
     }
 }

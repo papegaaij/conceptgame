@@ -8,21 +8,29 @@ import java.util.TreeMap;
 
 /**
  * What the hangar changes in the campaign (design/ui/hangar): the credits, the fitted item per
- * slot, the owned items that are not fitted (by kind), the charges per special and the armour.
- * Immutable, so a hangar visit can keep the state before each transaction for its undo.
+ * slot, the owned items that are not fitted (by kind), the charges per special, the armour and the
+ * escort slot (Rook's fitted gun in the loadout, his other guns in the inventory, the rest in
+ * {@link Escort}). Immutable, so a hangar visit can keep the state before each transaction for its
+ * undo.
  *
  * @param armour the current armour points (repair is not automatic)
+ * @param escort Rook: hired or not, his side and armour
  */
 public record Gear(
         int credits,
         Map<LoadoutSlot, Fitted> loadout,
         Map<ItemKind, List<Fitted>> inventory,
         Map<String, Integer> specials,
-        double armour) {
+        double armour,
+        Escort escort) {
     public Gear {
         loadout = ordered(LoadoutSlot.class, loadout);
         inventory = inventoryCopy(inventory);
         specials = Collections.unmodifiableMap(new TreeMap<>(specials));
+        java.util.Objects.requireNonNull(escort, "escort");
+        if (!escort.hired() && (loadout.containsKey(LoadoutSlot.ESCORT) || inventory.containsKey(ItemKind.ESCORT))) {
+            throw new IllegalArgumentException("guns in the escort slot of a Rook who is not hired");
+        }
     }
 
     /** A copy in slot order, so a save lists the slots as the ship has them. */
@@ -44,11 +52,15 @@ public record Gear(
     }
 
     public Gear withCredits(int changed) {
-        return new Gear(changed, loadout, inventory, specials, armour);
+        return new Gear(changed, loadout, inventory, specials, armour, escort);
     }
 
     public Gear withArmour(double changed) {
-        return new Gear(credits, loadout, inventory, specials, changed);
+        return new Gear(credits, loadout, inventory, specials, changed, escort);
+    }
+
+    public Gear withEscort(Escort changed) {
+        return new Gear(credits, loadout, inventory, specials, armour, changed);
     }
 
     /** The owned, unfitted items of a kind. */

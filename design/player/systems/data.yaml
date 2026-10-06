@@ -31,17 +31,22 @@ utility:
     draw: 1
     prices: [2500, 6000]
     available: act 2
-    design: idea
-    notes: {effect: +10 / +20 % credits from drops; reveals hidden crates}
+    design: draft
+    salvage:  # one share per level: added to every salvage pickup's and hidden crate's credits (outside the budget)
+      bonus: [0.1, 0.2]
+    notes: {effect: '+10 / +20 % credits from salvage pickups and hidden crates; a glint marks the objects that hide a secret (see below)'}
   - name: Targeting computer
     draw: 1
     prices: [3000]
     available: act 2
-    design: idea
-    for_sale: false  # out of the shop until M5 builds its effects; the L06 data core's unlock stays recorded
+    design: draft
+    targeting:  # turn_bonus: share added to the Stormhawk's homing turn rates and the Swivel's slew; an HP bar stays bar_seconds after the last hit, then fades over bar_fade s
+      turn_bonus: 0.2
+      bar_seconds: 1.5
+      bar_fade: 0.3
     notes:
-      effect: Homing turn rate +20 %, enemy HP bars, boss weak-point markers
-      available: (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores)); not in the shop until M5
+      effect: 'Homing turn rate +20 % (Stormhawk weapons), fading HP bars under damaged enemies, brackets on open weak points (see below)'
+      available: (from L07 with the L06 [data core](../../systems/economy/README.md#data-cores), otherwise L08)
   - name: Evasive thrusters
     draw: 2
     prices: [4000]

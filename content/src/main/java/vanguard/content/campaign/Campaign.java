@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import vanguard.content.Difficulty;
 import vanguard.content.SpecialsData;
 import vanguard.sim.LevelResult;
+import vanguard.sim.WingmanSpec;
 
 /**
  * The campaign state (design/systems/saves, design/systems/retry, design/systems/economy): plain
@@ -24,6 +25,12 @@ import vanguard.sim.LevelResult;
  * the level's retries on hard too. A game over returns to the hangar before the level: the gear
  * of the last launch with the level's retries renewed, which the autosave written at the failure
  * then holds, so Continue starts the level over instead of resuming it with none left.
+ *
+ * <p>The escort slot (design/player/wingmen, M5 part A): Rook is hired when the campaign reaches
+ * the hangar before Level 08 (or is loaded past it), with the free Autocannon at L1 and full armour.
+ * He flies from Level 08 on while his armour is above 0 (grounded after an ejection until a repair);
+ * his armour is kept as a won level ended it, a retry raises it to the armour floor like the
+ * player's, and a failed attempt leaves it as he launched.
  */
 public final class Campaign {
     /** What a failed attempt leads to. */
@@ -54,6 +61,29 @@ public final class Campaign {
     private final Map<Integer, SaveGame.LevelStats> levelStats;
     /** A debug option: the level whose win ends its act early ({@code --act-end}); never saved. */
     private Optional<Integer> debugActEnd = Optional.empty();
+    /**
+     * A debug option ({@code --escort}): the Rook every flight takes whatever the level, or none
+     * (empty: the gear's, by the rules). It applies to the flights only: the gear, and so every save,
+     * never holds it.
+     */
+    private Optional<DebugEscort> debugEscort = Optional.empty();
+
+    /**
+     * The {@code --escort} debug option's Rook.
+     *
+     * @param gun his gun at its level; empty for {@code none}: he does not fly
+     * @param side his side; empty for the gear's
+     */
+    private record DebugEscort(Optional<Fitted> gun, Optional<WingmanSpec.Side> side) {}
+
+    /**
+     * Rook as a flight takes him (design/player/wingmen).
+     *
+     * @param gun his gun at its level
+     * @param side his side
+     * @param armour his armour at the start of the attempt
+     */
+    public record EscortFlight(Fitted gun, WingmanSpec.Side side, double armour) {}
     /** The replay this campaign flies, if it is one: a throwaway copy of a save. */
     private Optional<Replay> replay = Optional.empty();
 
@@ -72,7 +102,8 @@ public final class Campaign {
         playtime = save.playtime();
         nextLevel = save.nextLevel();
         score = save.score();
-        gear = new Gear(save.credits(), save.loadout(), save.inventory(), save.specials(), save.armour());
+        gear = gear(save);
+        hireWhenDue();
         launched = gear;
         unlocks = new ArrayList<>(save.unlocks());
         retriesLeft = save.retriesLeft();
@@ -82,6 +113,81 @@ public final class Campaign {
         kills = save.stats().kills();
         deaths = save.stats().deaths();
         levelStats = new TreeMap<>(save.stats().levels());
+    }
+
+    /** The gear of a save: Rook's fitted gun into the escort slot, his other guns into the escort inventory. */
+    private static Gear gear(SaveGame save) {
+        SaveGame.EscortSlot slot = save.escort();
+        Map<LoadoutSlot, Fitted> loadout = new EnumMap<>(LoadoutSlot.class);
+        loadout.putAll(save.loadout());
+        Map<ItemKind, List<Fitted>> inventory = new EnumMap<>(ItemKind.class);
+        inventory.putAll(save.inventory());
+        List<Fitted> guns = new ArrayList<>();
+        for (Fitted gun : slot.guns()) {
+            if (slot.fitted().filter(gun.item()::equals).isPresent()) {
+                loadout.put(LoadoutSlot.ESCORT, gun);
+            } else {
+                guns.add(gun);
+            }
+        }
+        inventory.put(ItemKind.ESCORT, guns);
+        Escort escort = new Escort(slot.hired(), side(slot.side()), slot.armour());
+        return new Gear(save.credits(), loadout, inventory, save.specials(), save.armour(), escort);
+    }
+
+    private static WingmanSpec.Side side(String saved) {
+        return WingmanSpec.Side.valueOf(saved.toUpperCase(java.util.Locale.ROOT));
+    }
+
+    private static String side(WingmanSpec.Side side) {
+        return side.name().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    /** The save's escort slot of the gear. */
+    private static SaveGame.EscortSlot escortSlot(Gear gear) {
+        Optional<Fitted> fitted = Optional.ofNullable(gear.loadout().get(LoadoutSlot.ESCORT));
+        List<Fitted> guns = new ArrayList<>();
+        fitted.ifPresent(guns::add);
+        guns.addAll(gear.inventory(ItemKind.ESCORT));
+        Escort escort = gear.escort();
+        return new SaveGame.EscortSlot(
+                escort.hired(), side(escort.side()), fitted.map(Fitted::item), guns, escort.armour());
+    }
+
+    /** The gear without Rook's guns, for the save's loadout and inventory. */
+    private static Map<LoadoutSlot, Fitted> shipLoadout(Gear gear) {
+        Map<LoadoutSlot, Fitted> loadout = new EnumMap<>(LoadoutSlot.class);
+        loadout.putAll(gear.loadout());
+        loadout.remove(LoadoutSlot.ESCORT);
+        return loadout;
+    }
+
+    private static Map<ItemKind, List<Fitted>> shipInventory(Gear gear) {
+        Map<ItemKind, List<Fitted>> inventory = new EnumMap<>(ItemKind.class);
+        inventory.putAll(gear.inventory());
+        inventory.remove(ItemKind.ESCORT);
+        return inventory;
+    }
+
+    /**
+     * Rook joins when the hangar opens with his level (or a later one) next: the free gun at L1
+     * fitted, full armour, on the side the campaign has (a new campaign's: the data's).
+     */
+    private void hireWhenDue() {
+        CampaignRules.EscortRules escort = rules.escort();
+        if (gear.escort().hired() || nextLevel < escort.joins()) {
+            return;
+        }
+        Map<LoadoutSlot, Fitted> loadout = new EnumMap<>(LoadoutSlot.class);
+        loadout.putAll(gear.loadout());
+        loadout.put(LoadoutSlot.ESCORT, new Fitted(escort.starterGun(), 1));
+        gear = new Gear(
+                gear.credits(),
+                loadout,
+                gear.inventory(),
+                gear.specials(),
+                gear.armour(),
+                new Escort(true, gear.escort().side(), escort.maxArmour()));
     }
 
     /** A new campaign: Level 01 next, the starting credits, the starter loadout at full armour. */
@@ -101,6 +207,12 @@ public final class Campaign {
                         List.of(),
                         Map.of(),
                         rules.starterArmour(),
+                        new SaveGame.EscortSlot(
+                                false,
+                                side(rules.escort().side()),
+                                Optional.empty(),
+                                List.of(),
+                                rules.escort().maxArmour()),
                         rules.retries(difficulty),
                         Map.of(),
                         List.of(),
@@ -149,11 +261,12 @@ public final class Campaign {
                 nextLevel,
                 gear.credits(),
                 score,
-                gear.loadout(),
-                gear.inventory(),
+                shipLoadout(gear),
+                shipInventory(gear),
                 unlocks,
                 gear.specials(),
                 gear.armour(),
+                escortSlot(gear),
                 retriesLeft,
                 grades,
                 dataCores,
@@ -204,7 +317,7 @@ public final class Campaign {
             given.add(new FreeCharges(special.name(), added, fit));
         }
         if (!given.isEmpty()) {
-            gear = new Gear(gear.credits(), loadout, gear.inventory(), charges, gear.armour());
+            gear = new Gear(gear.credits(), loadout, gear.inventory(), charges, gear.armour(), gear.escort());
         }
         return given;
     }
@@ -260,6 +373,12 @@ public final class Campaign {
     private void useRetry() {
         retriesLeft = retriesLeft.map(left -> left - 1);
         gear = gear.withArmour(Math.max(gear.armour(), rules.armourFloor() * maxArmour()));
+        Escort escort = gear.escort();
+        if (escort.hired() && escort.armour() > 0) {
+            // Rook too (design/player/wingmen): a grounded Rook stays home until a repair.
+            gear = gear.withEscort(
+                    escort.withArmour(Math.max(escort.armour(), rules.armourFloor() * escortMaxArmour())));
+        }
     }
 
     /**
@@ -283,6 +402,21 @@ public final class Campaign {
      * @param chargesFound its charges found there (already limited to its most)
      */
     public boolean complete(LevelResult result, double armourLeft, int chargesUsed, int chargesFound) {
+        return complete(result, armourLeft, chargesUsed, chargesFound, java.util.OptionalDouble.empty());
+    }
+
+    /**
+     * The level was won, as {@link #complete(LevelResult, double, int, int)}, and Rook's armour is
+     * kept as the level ended it (0 after an ejection: grounded until a repair).
+     *
+     * @param escortArmourLeft Rook's armour at the end of the level; empty when he did not fly
+     */
+    public boolean complete(
+            LevelResult result,
+            double armourLeft,
+            int chargesUsed,
+            int chargesFound,
+            java.util.OptionalDouble escortArmourLeft) {
         if (!(armourLeft > 0)) {
             throw new IllegalArgumentException("a won level leaves armour, not " + armourLeft);
         }
@@ -296,7 +430,12 @@ public final class Campaign {
         if (special != null && (chargesUsed != 0 || chargesFound != 0)) {
             Map<String, Integer> charges = new HashMap<>(gear.specials());
             charges.put(special.item(), Math.max(0, gear.charges(special.item()) - chargesUsed + chargesFound));
-            gear = new Gear(gear.credits(), gear.loadout(), gear.inventory(), charges, gear.armour());
+            gear = new Gear(gear.credits(), gear.loadout(), gear.inventory(), charges, gear.armour(), gear.escort());
+        }
+        if (escortArmourLeft.isPresent() && gear.escort().hired() && debugEscort.isEmpty()) {
+            // The --escort debug option's Rook is not the gear's: his armour is not kept.
+            gear = gear.withEscort(
+                    gear.escort().withArmour(Math.clamp(escortArmourLeft.getAsDouble(), 0, escortMaxArmour())));
         }
         // A data core collected in a won level: the core and its unlock are kept at once
         // (design/systems/economy, Data cores), even before the item exists.
@@ -315,6 +454,7 @@ public final class Campaign {
         boolean newBest = recordGrade(result.grade().letter());
         nextLevel++;
         retriesLeft = rules.retries(difficulty);
+        hireWhenDue();
         launched = gear;
         return newBest;
     }
@@ -370,6 +510,63 @@ public final class Campaign {
     /** Replaces the hangar's state: a transaction, or its undo. */
     void gear(Gear changed) {
         gear = changed;
+    }
+
+    /** Rook's full armour. */
+    public double escortMaxArmour() {
+        return rules.escort().maxArmour();
+    }
+
+    /** Whether Rook is hired and grounded: his armour is 0 after an ejection, he stays home until a repair. */
+    public boolean escortGrounded() {
+        return gear.escort().hired() && gear.escort().armour() <= 0;
+    }
+
+    /** Whether the launch warns about Rook's armour: he is hired and below the warning share (grounded too). */
+    public boolean escortArmourLow() {
+        return gear.escort().hired() && gear.escort().armour() < rules.escort().launchWarning() * escortMaxArmour();
+    }
+
+    /**
+     * Whether Rook flies the next level: hired, not grounded, and the level is his joining level or
+     * later (not an Act 1 replay); the {@code --escort} debug option decides instead when given.
+     */
+    public boolean escortFlies() {
+        return escortFlight().isPresent();
+    }
+
+    /**
+     * Rook as the next flight takes him: the gear's, with his fitted gun, side and armour, when he
+     * flies by the rules; the {@code --escort} debug option's instead when given (his gun, the given
+     * side or the gear's, full armour, whatever the level; none for {@code --escort none}).
+     */
+    public Optional<EscortFlight> escortFlight() {
+        if (debugEscort.isPresent()) {
+            DebugEscort debug = debugEscort.get();
+            return debug.gun()
+                    .map(gun -> new EscortFlight(
+                            gun, debug.side().orElse(gear.escort().side()), escortMaxArmour()));
+        }
+        Escort escort = gear.escort();
+        Fitted gun = gear.loadout().get(LoadoutSlot.ESCORT);
+        if (!escort.hired()
+                || !(escort.armour() > 0)
+                || gun == null
+                || nextLevel < rules.escort().joins()) {
+            return Optional.empty();
+        }
+        return Optional.of(new EscortFlight(gun, escort.side(), Math.min(escort.armour(), escortMaxArmour())));
+    }
+
+    /**
+     * A debug option for testing ({@code --escort}): Rook with {@code gun} at its level and full
+     * armour, on the given side or the gear's, flies every level whatever its number; or, with
+     * {@code gun} empty ({@code --escort none}), he does not fly. It applies to the flights only: the
+     * gear is left alone (he is not hired by it, his guns and armour are the gear's as before), so no
+     * save holds it.
+     */
+    public void debugEscort(Optional<Fitted> gun, Optional<WingmanSpec.Side> side) {
+        debugEscort = Optional.of(new DebugEscort(gun, side));
     }
 
     /** The story state, saved as the save's story flags (among them the free charges given). */

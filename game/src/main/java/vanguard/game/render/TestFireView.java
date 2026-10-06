@@ -38,6 +38,8 @@ public final class TestFireView {
     private static final int GRID = 40;
     /** Bolts with a range fade out over its last quarter (the level's rule). */
     private static final double FADE_SHARE = 0.25;
+    /** A missile's smoke trail leaves a puff every this many steps (the level's). */
+    private static final int TRAIL_TICKS = 4;
     /** The dummies' pool slots that are tracked for their hit flash. */
     private static final int MAX_DUMMIES = 8;
 
@@ -50,32 +52,58 @@ public final class TestFireView {
     private final PodPivots pods;
     private final Array<AtlasRegion> glance;
     private final Effects effects = Effects.glowing();
+    /** A missile's smoke trail (the Hornet's), as the level leaves it. */
+    private final Effects trails = Effects.solid();
+
     private final Matrix4 saved = new Matrix4();
     private final Matrix4 transform = new Matrix4();
     private final int[] flash = new int[MAX_DUMMIES];
     private WeaponLooks weapons;
+    /** The craft's banking frames: the Stormhawk's, or Rook's for his guns. */
+    private Array<AtlasRegion> hull;
 
     public TestFireView(Sprites sprites, PodPivots pods) {
         this.sprites = sprites;
+        hull = sprites.ship;
         this.pods = pods;
         glance = sprites.frames("ballistic-impact");
     }
 
     /** A new loop of a new weapon: its looks, nothing of the last one left. */
     public void show(Sortie sortie, int level) {
+        show(sortie, level, false);
+    }
+
+    /**
+     * As {@link #show(Sortie, int)}; with {@code rook} the craft is Rook's (one of his guns in the
+     * escort's test fire, M5 part A), while his frames exist.
+     */
+    public void show(Sortie sortie, int level, boolean rook) {
         weapons = new WeaponLooks(sortie.armament(), new int[] {level}, sprites, pods);
+        hull = rook && sprites.has("rook") ? sprites.frames("rook") : sprites.ship;
         restart();
     }
 
     /** The loop started over: its effects are gone. */
     public void restart() {
         effects.clear();
+        trails.clear();
         Arrays.fill(flash, 0);
     }
 
     /** After each simulation step: the effects advance, the step's hits and explosions start theirs. */
     public void stepped(Sortie sortie) {
         effects.step();
+        trails.step();
+        if (sortie.tick() % TRAIL_TICKS == 0) {
+            for (int i = 0; i < sortie.shotCount(); i++) {
+                Shot shot = sortie.shot(i);
+                Array<AtlasRegion> trail = weapons.trail(shot.mount());
+                if (trail != null) {
+                    trails.start(trail, FRAME_TICKS, shot.renderX(1), shot.renderY(1));
+                }
+            }
+        }
         for (int i = 0; i < flash.length; i++) {
             if (flash[i] > 0) {
                 flash[i]--;
@@ -94,7 +122,8 @@ public final class TestFireView {
                     }
                 }
                 case SHOT_GLANCED -> effects.start(glance, FRAME_TICKS, x, y);
-                case BLAST, ENEMY_DESTROYED -> effects.start(sprites.explosionSmall, FRAME_TICKS, x, y);
+                case BLAST -> effects.start(weapons.blast(events.value(i), sprites.explosionSmall), FRAME_TICKS, x, y);
+                case ENEMY_DESTROYED -> effects.start(sprites.explosionSmall, FRAME_TICKS, x, y);
                 default -> {}
             }
         }
@@ -144,6 +173,7 @@ public final class TestFireView {
         batch.setTransformMatrix(transform);
         drawGrid(batch, sortie, alpha, boxWidth / SCALE, boxHeight / SCALE, centreX, centreY);
         drawDummies(batch, sortie, alpha);
+        trails.draw(batch, 0);
         drawShots(batch, sortie, alpha, false);
         drawShip(batch, sortie.ship(), alpha);
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
@@ -195,7 +225,7 @@ public final class TestFireView {
     /** As the level draws the ship: its banking frame with the fitted wing pod. */
     private void drawShip(SpriteBatch batch, Ship ship, float alpha) {
         int bank = ship.bank() + ShipSpec.HARD_BANK;
-        TextureRegion hull = sprites.ship.get(bank);
+        TextureRegion hull = this.hull.get(Math.min(bank, this.hull.size - 1));
         float x = Math.round(PixelScreen.PLAY_FIELD_X + ship.renderX(alpha));
         float y = Math.round(ship.renderY(alpha));
         float left = x - hull.getRegionWidth() / 2f;
@@ -225,7 +255,8 @@ public final class TestFireView {
                 case DROPPED -> drawScaled(batch, sprite, x, y, 1 - 0.4f * (float) shot.airProgress(alpha));
                 case LOBBED ->
                     drawScaled(batch, sprite, x, y, 1 + 0.4f * (float) Math.sin(Math.PI * shot.airProgress(alpha)));
-                case BOLT, HOMING -> {
+                case MINE -> drawScaled(batch, sprite, x, y, 1);
+                case BOLT, HOMING, TURRET -> {
                     // Bolts with a range fade out over its last part, as in the level.
                     double left = shot.rangeLeft();
                     batch.setColor(1, 1, 1, left < FADE_SHARE ? (float) (left / FADE_SHARE) : 1);

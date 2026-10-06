@@ -26,7 +26,7 @@ final class ItemIcons {
     ItemIcons(Sprites sprites, Catalogue catalogue) {
         for (ItemKind kind : ItemKind.values()) {
             for (Item item : catalogue.items(kind)) {
-                icons.put(item, icon(sprites, name(item)));
+                icons.put(item, icon(sprites, iconName(item, catalogue)));
             }
         }
         escort = icon(sprites, "escort-rook");
@@ -40,6 +40,11 @@ final class ItemIcons {
     static String name(Item item) {
         String id = item.kind().weapon() ? item.id() : item.kind().name() + "-" + item.id();
         return id.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+    }
+
+    /** The icon an item is drawn with: its own, or for one of Rook's guns its base weapon's (no art of its own yet). */
+    static String iconName(Item item, Catalogue catalogue) {
+        return item.kind() == ItemKind.ESCORT ? catalogue.escortBase(item.id()) : name(item);
     }
 
     /** The icon of one of the catalogue's items. */

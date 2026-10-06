@@ -27,6 +27,7 @@ import vanguard.game.audio.Tracks;
 import vanguard.game.audio.Voices;
 import vanguard.game.input.Action;
 import vanguard.game.input.FlightCommands;
+import vanguard.game.level.Barks;
 import vanguard.game.level.ControlPrompts;
 import vanguard.game.level.Outro;
 import vanguard.game.level.PromptTexts;
@@ -41,8 +42,10 @@ import vanguard.game.render.Hud;
 import vanguard.game.render.LevelRenderer;
 import vanguard.game.render.PodPivots;
 import vanguard.game.render.ScreenFlash;
+import vanguard.game.render.SecretGlints;
 import vanguard.game.render.SetPieceDeath;
 import vanguard.game.render.SetPieceWrecks;
+import vanguard.game.render.TargetingOverlay;
 import vanguard.game.render.ThreatArrows;
 import vanguard.game.render.WaveBanners;
 import vanguard.game.render.WeaponLooks;
@@ -51,12 +54,15 @@ import vanguard.sim.FixedStepClock;
 import vanguard.sim.Layer;
 import vanguard.sim.LevelResult;
 import vanguard.sim.LevelScript;
+import vanguard.sim.PickupType;
 import vanguard.sim.PlayField;
 import vanguard.sim.Rules;
 import vanguard.sim.SetPiece;
+import vanguard.sim.Shot;
 import vanguard.sim.SimEvents;
 import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
+import vanguard.sim.Wingman;
 
 /**
  * Flying a level of the campaign: runs the simulation at its fixed step from the campaign's
@@ -91,6 +97,10 @@ public final class LevelScreen implements GameScreen {
     private static final int TINY_EXPLOSION_FRAME_TICKS = 2;
     private static final int LARGE_EXPLOSION_FRAME_TICKS = 4;
     private static final int IMPACT_FRAME_TICKS = 2;
+    /** A missile's smoke trail: a puff every this many steps, each frame of it shown this long. */
+    private static final int TRAIL_TICKS = 4;
+
+    private static final int TRAIL_FRAME_TICKS = 2;
     /** A destroyed ground target's 8 debris frames last 0.4 s. */
     private static final int DEBRIS_FRAME_TICKS = 3;
     /** A ground unit's remains stay on the ground until they scroll off (at most 10 s). */
@@ -161,6 +171,9 @@ public final class LevelScreen implements GameScreen {
 
     private final RadioQueue radio = new RadioQueue();
     private final RadioSchedule radioSchedule;
+    /** Rook's radio barks while he flies in the level (M5 part A); null without him. */
+    private final Barks barks;
+
     private final ControlPrompts prompts;
     private final PromptTexts promptTexts;
     private final LevelMusic music;
@@ -201,13 +214,22 @@ public final class LevelScreen implements GameScreen {
                 services.invulnerable ? rules.withInvulnerableShip() : rules,
                 campaign.armour());
         radioSchedule = new RadioSchedule(sortie.script(), sortie.special().fitted());
+        barks = sortie.wingman().isPresent()
+                ? Barks.of(
+                        services.content.wingmen().barks(),
+                        sortie.script(),
+                        sortie.special().fitted(),
+                        radio,
+                        this::bark)
+                : null;
         wrecks = new SetPieceWrecks(sortie.setPieceCount());
         looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites, services.content);
         weaponLooks = new WeaponLooks(
                 sortie.armament(),
                 flight.weapons().stream().mapToInt(Flight.Weapon::level).toArray(),
                 services.sprites,
-                new PodPivots(services.files));
+                new PodPivots(services.files),
+                sortie.wingman().map(Wingman::gun));
         glance = services.sprites.frames("ballistic-impact");
         explosionMedium = services.sprites.frames("explosion-medium");
         deathClouds = sortie.script().setPieces().stream()
@@ -230,7 +252,8 @@ public final class LevelScreen implements GameScreen {
                 sortie.armament(),
                 sortie.script().setPieces().stream()
                         .map(LevelScript.SetPieceSpec::slug)
-                        .toList());
+                        .toList(),
+                sortie.wingman().map(Wingman::gun));
         sounds.flareSeconds(sortie.script()
                 .darkness()
                 .map(LevelScript.Darkness::flareSeconds)
@@ -249,6 +272,15 @@ public final class LevelScreen implements GameScreen {
         banner = new BossBanner(services.sprites.pixel, services.fonts.heading, services.fonts.body);
         waveBanners = new WaveBanners(services.sprites.pixel, services.fonts.body);
         threatArrows = flight.sensor() >= THREAT_ARROW_SENSOR ? new ThreatArrows() : null;
+        renderer.modules(
+                flight.targeting()
+                        ? new TargetingOverlay(
+                                services.sprites.pixel,
+                                services.content,
+                                sortie.enemyKinds(),
+                                SimSpecs.targeting(services.content))
+                        : null,
+                flight.salvage() > 0 ? new SecretGlints(services.sprites) : null);
         chainSounds = new DelayedSounds(services.sfx);
         name = Content.levelName(levelKey);
         hud = new Hud(
@@ -403,7 +435,14 @@ public final class LevelScreen implements GameScreen {
 
     /** Starts the level over from its start state with {@code armour} (a retry, or the pause menu's restart). */
     void retry(double armour) {
-        sortie.retry(armour);
+        // The flight's Rook: the gear's, or the --escort debug option's (never the gear's).
+        double rook = campaign.escortFlight().map(Campaign.EscortFlight::armour).orElse(0.0);
+        if (sortie.wingman().isPresent() && rook > 0) {
+            // Rook starts over with his level-start armour, raised to the floor like the player's.
+            sortie.retry(armour, rook);
+        } else {
+            sortie.retry(armour);
+        }
         outro.stop();
         slowMotion = 0;
         failure = Optional.empty();
@@ -459,6 +498,10 @@ public final class LevelScreen implements GameScreen {
                 shimmer--;
             }
             react(sortie.events());
+            if (barks != null) {
+                barks.step(SimStep.ticks(sortie.levelSeconds()), armourShare(), overdrivePickups());
+            }
+            smokeTrails();
             sounds.watch(sortie);
             int started = warnings.step(sortie.edgeWarnings(), sortie.tick());
             sounds.edgeWarnings(started);
@@ -479,6 +522,42 @@ public final class LevelScreen implements GameScreen {
         return Transition.STAY;
     }
 
+    /** The ship's armour as a share of its most, for Rook's bark about it. */
+    private double armourShare() {
+        var defences = sortie.ship().defences();
+        return defences.maxArmour() > 0 ? defences.armour() / defences.maxArmour() : 1;
+    }
+
+    /** The overdrive pickups on the field, for Rook's bark when one appears. */
+    private int overdrivePickups() {
+        int count = 0;
+        for (int i = 0; i < sortie.pickupCount(); i++) {
+            if (sortie.pickup(i).type() == PickupType.OVERDRIVE) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /** Queues one of Rook's barks (an event line; his eject bark urgent) with its voice file, if it has one. */
+    private RadioQueue.Message bark(Barks.Line line) {
+        return queue(line.speaker(), line.speaker(), line.expression(), line.text(), false, line.priority());
+    }
+
+    /** Every few steps a missile with a smoke trail (the Hornet) leaves a puff where it is. */
+    private void smokeTrails() {
+        if (sortie.tick() % TRAIL_TICKS != 0) {
+            return;
+        }
+        for (int i = 0; i < sortie.shotCount(); i++) {
+            Shot shot = sortie.shot(i);
+            Array<AtlasRegion> trail = weaponLooks.trail(shot.mount());
+            if (trail != null) {
+                pieces.start(trail, TRAIL_FRAME_TICKS, shot.renderX(1), shot.renderY(1));
+            }
+        }
+    }
+
     private void react(SimEvents events) {
         sounds.play(events);
         for (int i = 0; i < events.size(); i++) {
@@ -490,8 +569,21 @@ public final class LevelScreen implements GameScreen {
                     effects.startOnGround(
                             weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y, 0, sortie.groundScroll());
                 case SHOT_GLANCED -> effects.start(glance, IMPACT_FRAME_TICKS, x, y);
-                case BLAST -> effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
+                case BLAST -> {
+                    // A bomb's or shell's burst is the small explosion; a mine bursts in its own blast.
+                    Array<AtlasRegion> blast = weaponLooks.blast(events.value(i), services.sprites.explosionSmall);
+                    effects.start(
+                            blast,
+                            blast == services.sprites.explosionSmall
+                                    ? TINY_EXPLOSION_FRAME_TICKS
+                                    : MEDIUM_EXPLOSION_FRAME_TICKS,
+                            x,
+                            y);
+                }
                 case ENEMY_DESTROYED -> {
+                    if (barks != null) {
+                        barks.kill(sortie.levelSeconds());
+                    }
                     EnemyLooks look = looks[events.value(i)];
                     layersHit.add(sortie.enemyKinds().get(events.value(i)).layer());
                     death(events.value(i), x, y);
@@ -544,6 +636,9 @@ public final class LevelScreen implements GameScreen {
                     music.bossDown();
                 }
                 case BOSS_ARRIVED -> {
+                    if (barks != null) {
+                        barks.bossWarning(sortie.levelSeconds());
+                    }
                     if (music.bossArrived()) {
                         // An act boss: the warning track with the klaxon and the banner (design/ui/hud).
                         services.sfx.play(Sfx.KLAXON, KLAXON_VOLUME, 1, 0);
@@ -635,7 +730,24 @@ public final class LevelScreen implements GameScreen {
                     services.save(SaveSlots.Slot.AUTOSAVE, campaign);
                     failedIn = FAILED_SCREEN_SECONDS;
                 }
+                // Rook (M5 part A): his hull flashes on a hit; his low-armour bark; as he ejects his
+                // craft bursts in the medium explosion and he shouts his eject bark.
+                case WINGMAN_HIT -> renderer.wingmanHit(sortie.tick());
+                case WINGMAN_CRITICAL -> {
+                    if (barks != null) {
+                        barks.rookCritical(sortie.levelSeconds());
+                    }
+                }
+                case WINGMAN_EJECTED -> {
+                    effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y);
+                    if (barks != null) {
+                        barks.rookEjected(sortie.levelSeconds());
+                    }
+                }
                 case SORTIE_RESTARTED -> {
+                    if (barks != null) {
+                        barks.reset(SimStep.ticks(sortie.levelSeconds()));
+                    }
                     failureLine = Optional.empty();
                     layersHit.clear();
                     effects.clear();
@@ -888,7 +1000,7 @@ public final class LevelScreen implements GameScreen {
     }
 
     /** Queues a radio line with its voice file, if it has one; without one it shows as text only. */
-    private void queue(
+    private RadioQueue.Message queue(
             String speaker,
             String portrait,
             String expression,
@@ -896,7 +1008,7 @@ public final class LevelScreen implements GameScreen {
             boolean distorted,
             RadioQueue.Priority priority) {
         Optional<Voices.Voice> voice = services.voices.radio(speaker, line, expression);
-        radio.add(
+        return radio.add(
                 speaker,
                 portrait,
                 expression,
@@ -917,6 +1029,10 @@ public final class LevelScreen implements GameScreen {
                 // The voice starts with the message; an urgent line cuts the one that plays
                 // (design/audio/voice, Playback).
                 RadioQueue.Message message = radio.current().orElseThrow();
+                if (barks != null) {
+                    // A Rook line on the radio, bark or scripted, starts the barks' spacing.
+                    barks.opened(message.speaker(), sortie.levelSeconds());
+                }
                 message.voice()
                         .ifPresentOrElse(
                                 path -> services.voices.play(new Voices.Voice(path, message.voiceSeconds())),
@@ -991,7 +1107,10 @@ public final class LevelScreen implements GameScreen {
                 result,
                 sortie.ship().defences().armour(),
                 sortie.special().used(),
-                sortie.special().found());
+                sortie.special().found(),
+                sortie.wingman()
+                        .map(rook -> java.util.OptionalDouble.of(rook.armour()))
+                        .orElse(java.util.OptionalDouble.empty()));
         if (newBest) {
             // A replay's better grade goes into the save it was started from (design/ui/mission-select).
             campaign.replay()

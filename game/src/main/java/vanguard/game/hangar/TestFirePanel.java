@@ -22,7 +22,8 @@ import vanguard.sim.SimStep;
  * weapon is selected it loops a {@link TestFire} of it in the slot being shopped, at the level the
  * detail shows, or at the next one while its UPGRADE choice is highlighted (what the purchase would
  * give), and starts over whenever that changes. The box is the play field turned a quarter
- * ({@link TestFireView}): the ship faces right. Other items show what the box is for.
+ * ({@link TestFireView}): the ship faces right; one of Rook's guns fires from his craft. Other items
+ * show what the box is for.
  */
 final class TestFirePanel {
     /** The box: its top-left on the 960x540 screen and its size, under the shop's message lines. */
@@ -100,7 +101,7 @@ final class TestFirePanel {
         if (wanted.isPresent()) {
             TestFire.Shown weapon = wanted.get();
             fire = new TestFire(content, weapon);
-            view.show(fire.sortie(), weapon.level());
+            view.show(fire.sortie(), weapon.level(), weapon.escortGun().isPresent());
             label = label(weapon.level(), upgrade);
             labelColour = Glass.AMBER;
             return;
@@ -120,7 +121,7 @@ final class TestFirePanel {
     }
 
     private static boolean isWeapon(ItemKind kind) {
-        return kind == ItemKind.FRONT || kind == ItemKind.REAR || kind == ItemKind.WING;
+        return kind == ItemKind.FRONT || kind == ItemKind.REAR || kind == ItemKind.WING || kind == ItemKind.ESCORT;
     }
 
     /**

@@ -9,6 +9,8 @@ import vanguard.content.ArmourData;
 import vanguard.content.Content;
 import vanguard.content.Difficulty;
 import vanguard.content.ScoringData;
+import vanguard.content.WingmenData;
+import vanguard.sim.WingmanSpec;
 
 /**
  * The numbers the campaign state follows, from the design data: the starting credits
@@ -18,6 +20,7 @@ import vanguard.content.ScoringData;
  *
  * @param starterArmour the starter plating's maximum armour
  * @param plating the maximum armour of each plating, by name
+ * @param escort Rook's rules in the escort slot (design/player/wingmen)
  */
 public record CampaignRules(
         int startingCredits,
@@ -26,13 +29,26 @@ public record CampaignRules(
         Map<LoadoutSlot, Fitted> starterLoadout,
         double starterArmour,
         Map<String, Double> plating,
-        List<String> grades) {
+        List<String> grades,
+        EscortRules escort) {
     public CampaignRules {
         retries = Map.copyOf(retries);
         starterLoadout = Map.copyOf(starterLoadout);
         plating = Map.copyOf(plating);
         grades = List.copyOf(grades);
     }
+
+    /**
+     * Rook in the campaign (design/player/wingmen).
+     *
+     * @param joins hired when the hangar opens with this level (or a later one) next
+     * @param starterGun the id of the gun fitted when he joins, at L1
+     * @param side a new campaign's side
+     * @param maxArmour his full armour
+     * @param launchWarning the launch warns while his armour is below this share
+     */
+    public record EscortRules(
+            int joins, String starterGun, WingmanSpec.Side side, double maxArmour, double launchWarning) {}
 
     public static CampaignRules of(Content content) {
         Map<Difficulty, Optional<Integer>> retries = new EnumMap<>(Difficulty.class);
@@ -63,7 +79,18 @@ public record CampaignRules(
                         .collect(Collectors.toMap(ArmourData.Plating::name, ArmourData.Plating::max)),
                 content.scoring().grades().stream()
                         .map(ScoringData.Grade::grade)
-                        .toList());
+                        .toList(),
+                escortRules(content.wingmen()));
+    }
+
+    private static EscortRules escortRules(WingmenData wingmen) {
+        WingmenData.Rook rook = wingmen.rook();
+        return new EscortRules(
+                rook.joins(),
+                wingmen.guns().starter().id(),
+                WingmanSpec.Side.valueOf(rook.side().toUpperCase(java.util.Locale.ROOT)),
+                rook.armour(),
+                rook.launchWarning());
     }
 
     /** The maximum armour of the plating with this name. */

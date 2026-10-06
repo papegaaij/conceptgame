@@ -22,13 +22,15 @@ import vanguard.game.render.PixelScreen;
 import vanguard.game.ui.Fonts;
 import vanguard.game.ui.Glass;
 import vanguard.game.ui.Words;
+import vanguard.sim.WingmanSpec;
 
 /**
  * The hangar's shop drawer (left, design/ui/hangar): the rows for the selected slot (fitted, owned,
  * buyable with price and ◆ trait matches and the NEW tag, locked with their unlock level), each
  * with its icon on a glass row band, the scroll markers, the selected item with its large icon,
  * traits, numbers and the deltas against the fitted item, its choices, the last transaction's
- * message; the test-fire box below them is the {@link TestFirePanel}'s.
+ * message; the test-fire box below them is the {@link TestFirePanel}'s. The escort's shop (M5 part
+ * A) lists Rook's guns and, last, the row of his side with its {@code LEFT} / {@code RIGHT} choice.
  */
 final class ShopPanel {
     static final int X = 16;
@@ -63,22 +65,31 @@ final class ShopPanel {
         glass.panel(batch, X, Y, WIDTH, HEIGHT, 0.86f);
         glass.header(batch, "SHOP - " + Names.slot(state.slot()), INNER, RIGHT, Y + 10);
         List<Offer> rows = state.rows();
+        int count = state.rowCount();
         boolean shop = state.focus() == HangarState.Focus.SHOP;
-        for (int i = state.top(); i < Math.min(rows.size(), state.top() + HangarState.VISIBLE_ROWS); i++) {
-            drawRow(batch, rows.get(i), ROWS_Y + (i - state.top()) * ROW, shop && i == state.row(), markedTraits);
+        for (int i = state.top(); i < Math.min(count, state.top() + HangarState.VISIBLE_ROWS); i++) {
+            int y = ROWS_Y + (i - state.top()) * ROW;
+            if (i < rows.size()) {
+                drawRow(batch, rows.get(i), y, shop && i == state.row(), markedTraits);
+            } else {
+                drawSideRow(batch, state, y, shop && i == state.row());
+            }
         }
-        if (rows.size() > HangarState.VISIBLE_ROWS) {
-            String more = (state.top() + 1) + "-" + Math.min(rows.size(), state.top() + HangarState.VISIBLE_ROWS)
-                    + " OF " + rows.size();
+        if (count > HangarState.VISIBLE_ROWS) {
+            String more =
+                    (state.top() + 1) + "-" + Math.min(count, state.top() + HangarState.VISIBLE_ROWS) + " OF " + count;
             int moreY = ROWS_Y + HangarState.VISIBLE_ROWS * ROW;
             glass.right(batch, glass.fonts.label, more, Glass.DIM, RIGHT, moreY);
-            boolean below = state.top() + HangarState.VISIBLE_ROWS < rows.size();
+            boolean below = state.top() + HangarState.VISIBLE_ROWS < count;
             glass.scrollMarkers(
                     batch, RIGHT - Fonts.width(glass.fonts.label, more) - 6, moreY - 2, state.top() > 0, below);
         }
         int detail = ROWS_Y + HangarState.VISIBLE_ROWS * ROW + 16;
         glass.header(batch, "SELECTED", INNER, RIGHT, detail);
         state.selected().ifPresent(offer -> drawDetail(batch, state, offer, detail + 16));
+        if (state.sideSelected()) {
+            drawSide(batch, state, detail + 16);
+        }
         Optional<Choice> refused = state.focus() == HangarState.Focus.SHOP
                 ? state.choice().filter(choice -> !choice.allowed())
                 : Optional.empty();
@@ -124,6 +135,40 @@ final class ShopPanel {
                 y,
                 x - matches * 10 - NAME_X - 4);
     }
+
+    /** The escort's last row: Rook's side, {@code ROOK'S SIDE ... LEFT}. */
+    private void drawSideRow(SpriteBatch batch, HangarState state, int y, boolean selected) {
+        glass.row(batch, X + 4, y - 5, WIDTH - 8, ROW - 2);
+        if (selected) {
+            glass.selection(batch, X + 2, y - 5, WIDTH - 4, ROW - 2);
+            glass.cursor(batch, glass.fonts.label, X + 4, y + 4);
+        }
+        drawIcon(batch, icons.escort().small(), INNER - 2, y - 3, false);
+        glass.right(batch, glass.fonts.label, state.escortSide().name(), Glass.CYAN, RIGHT, y);
+        glass.shadowed(batch, glass.fonts.label, SIDE, selected ? Glass.AMBER : Glass.WHITE, NAME_X, y);
+    }
+
+    /** The side row's detail: where Rook flies, and the {@code LEFT} / {@code RIGHT} choice. */
+    private void drawSide(SpriteBatch batch, HangarState state, int y) {
+        glass.shadowed(batch, glass.fonts.body, SIDE, Glass.AMBER, INNER, y);
+        glass.shadowed(batch, glass.fonts.label, "WHERE ROOK FLIES BESIDE YOU.", Glass.WHITE, INNER, y + 24);
+        glass.shadowed(batch, glass.fonts.label, "FREE: LEFT / RIGHT SET IT.", Glass.LABEL, INNER, y + 38);
+        boolean shop = state.focus() == HangarState.Focus.SHOP;
+        float x = INNER;
+        for (WingmanSpec.Side side : WingmanSpec.Side.values()) {
+            String text = side.name();
+            float width = Fonts.width(glass.fonts.label, text) + 14;
+            boolean on = state.escortSide() == side;
+            glass.chip(batch, glass.fonts.label, text, x, y + 64, width, 20, on && shop, true);
+            if (on && !shop) {
+                glass.outline(batch, Glass.AMBER, x, y + 64, width, 20);
+            }
+            x += width + 6;
+        }
+    }
+
+    /** The side row's name. */
+    static final String SIDE = "ROOK'S SIDE";
 
     /** An item's icon with its top-left corner at (x, y), darkened while it is locked. */
     private static void drawIcon(SpriteBatch batch, TextureRegion icon, float x, float y, boolean locked) {

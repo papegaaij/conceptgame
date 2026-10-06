@@ -27,7 +27,8 @@ import vanguard.game.ui.Glass;
  * over the hero scene, each with its act icon, next mission, difficulty, credits, playtime and
  * date, and a preview of the selected save. Loading (from the main menu) opens the hangar with the
  * save; saving (from the hangar) writes into a manual slot, after a confirmation when it holds a
- * save. Back returns to the screen below.
+ * save; in a debug run it writes nothing and says that saving is off. Back returns to the screen
+ * below.
  */
 public final class SlotsScreen implements GameScreen {
     private static final DateTimeFormatter DATE =
@@ -40,6 +41,8 @@ public final class SlotsScreen implements GameScreen {
     private static final int PREVIEW_Y = 150;
     private static final int PREVIEW_WIDTH = 300;
     private static final int PREVIEW_HEIGHT = 300;
+    /** Saving in a debug run, which writes no save (design/systems/saves). */
+    private static final String SAVING_OFF = "SAVING OFF IN A DEBUG RUN";
 
     private final GameServices services;
     /** The campaign to save; empty when loading. */
@@ -55,6 +58,12 @@ public final class SlotsScreen implements GameScreen {
         this.campaign = campaign;
         entries = services.saves.list();
         selected = campaign.isPresent() ? 1 : firstSaved();
+        message = idleMessage();
+    }
+
+    /** The message while nothing was tried: in a debug run's save screen that saving is off. */
+    private String idleMessage() {
+        return campaign.isPresent() && services.debugRun() ? SAVING_OFF : "";
     }
 
     /** Load game, from the main menu. */
@@ -107,7 +116,7 @@ public final class SlotsScreen implements GameScreen {
         }
         if (selected != before) {
             services.play(Sfx.MENU_MOVE);
-            message = "";
+            message = idleMessage();
         }
         return input.confirm() ? confirm() : Transition.STAY;
     }
@@ -115,7 +124,9 @@ public final class SlotsScreen implements GameScreen {
     private Transition confirm() {
         SaveSlots.Entry entry = entries.get(selected);
         if (campaign.isPresent()) {
-            if (entry instanceof SaveSlots.Entry.Empty) {
+            if (services.debugRun()) {
+                services.play(Sfx.MENU_BACK);
+            } else if (entry instanceof SaveSlots.Entry.Empty) {
                 write();
             } else {
                 services.play(Sfx.MENU_CONFIRM);
@@ -222,7 +233,7 @@ public final class SlotsScreen implements GameScreen {
                     batch,
                     glass.fonts.label,
                     message,
-                    message.startsWith("SAVE FAILED") ? Glass.ALERT : Glass.GREEN,
+                    message.startsWith("SAVE FAILED") || message.equals(SAVING_OFF) ? Glass.ALERT : Glass.GREEN,
                     x,
                     PREVIEW_Y + PREVIEW_HEIGHT - 22);
         }

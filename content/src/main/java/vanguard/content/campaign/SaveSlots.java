@@ -14,6 +14,8 @@ import java.util.stream.IntStream;
  * The save slots on disk (design/systems/saves): the autosave and 8 manual slots, one JSON file
  * each in the saves directory ({@code autosave.json}, {@code slot-1.json} … {@code slot-8.json}).
  * A save is written next to its file and moved into place, so a crash never leaves half a save.
+ * The slots of a debug run ({@link #readOnly(Path)}) are only read: they never write a save, nor
+ * create the saves directory, so a test run can never overwrite the player's saves.
  */
 public final class SaveSlots {
     public static final int MANUAL_SLOTS = 8;
@@ -55,9 +57,26 @@ public final class SaveSlots {
     }
 
     private final Path directory;
+    private final boolean writable;
 
+    /** The slots of a normal run: read and written. */
     public SaveSlots(Path directory) {
+        this(directory, true);
+    }
+
+    private SaveSlots(Path directory, boolean writable) {
         this.directory = directory;
+        this.writable = writable;
+    }
+
+    /** The slots of a debug run (design/systems/saves): read, never written. */
+    public static SaveSlots readOnly(Path directory) {
+        return new SaveSlots(directory, false);
+    }
+
+    /** Whether saves are written: false in a debug run. */
+    public boolean writable() {
+        return writable;
     }
 
     public Path directory() {
@@ -97,12 +116,21 @@ public final class SaveSlots {
                 .max(Comparator.comparing(saved -> saved.save().created()));
     }
 
-    /** Writes a save into a slot, replacing what it held. */
-    public void write(Slot slot, SaveGame save) throws IOException {
+    /**
+     * Writes a save into a slot, replacing what it held; read-only slots (a debug run) write
+     * nothing and leave the saves directory as it is.
+     *
+     * @return whether the save was written: false for read-only slots
+     */
+    public boolean write(Slot slot, SaveGame save) throws IOException {
+        if (!writable) {
+            return false;
+        }
         Files.createDirectories(directory);
         Path file = directory.resolve(slot.fileName());
         Path temporary = directory.resolve(slot.fileName() + ".tmp");
         Files.writeString(temporary, SaveFormat.write(save), StandardCharsets.UTF_8);
         Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        return true;
     }
 }

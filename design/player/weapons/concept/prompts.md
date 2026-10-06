@@ -70,3 +70,15 @@ field. Fits: `front=scatter-vulcan:5,left=bomb-rack:3,right=micro-missile-pod:3,
 `front=hammer-mortar:5,left=bomb-rack:4,right=autocannon-pod:5,rear=side-splitter:5`. The × in the
 middle is the X server's mouse pointer.
 
+
+## act2-weapons-capture-r28-a
+
+A capture of the game, not generated art: `build/.../install/terran-vanguard/bin/terran-vanguard
+--bench <s> --settings <file> --level 1 --invulnerable --debug-speed 2 --loadout "<fit>"` on an
+own Xvfb display (`Xvfb :57 -screen 0 960x540x24`, `DISPLAY=:57` set on the command), recorded
+with `ffmpeg -f x11grab -framerate 20` around Level 01's rear wave (4 fps for the Tail Gun run),
+cropped to the play field; the bottom row enlarged 2× (nearest neighbour) around the ship.
+Settings: a 960×540 window at 0,0, `audio.master=0`, `controls.auto-fire=true`; no input, so the
+ship holds its start position. Fits: `front=hornet-launcher:3,rear=fan-blaster:5,left=swivel-gun:3,right=swivel-gun:3`;
+`front=pulse-cannon:3,rear=tail-gun:5,left=swivel-gun:5,right=swivel-gun:5`;
+`front=pulse-cannon:1,rear=proximity-mines:5`. The × in the middle is the X server's mouse pointer.

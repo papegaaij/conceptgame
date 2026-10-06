@@ -36,6 +36,7 @@ import vanguard.sim.SmartBombSpec;
 import vanguard.sim.SpecialSpec;
 import vanguard.sim.WaveSpec;
 import vanguard.sim.WeaponSpec;
+import vanguard.sim.WingmanSpec;
 
 /**
  * Builds the simulation's specs from the loaded content at one difficulty. The dependency points
@@ -88,6 +89,24 @@ public final class SimSpecs {
             String plating,
             double sparePower,
             Difficulty difficulty) {
+        return loadout(content, engine, weapons, shield, plating, sparePower, difficulty, 0);
+    }
+
+    /**
+     * As {@link #loadout(Content, String, List, String, String, double, Difficulty)}, the weapons'
+     * one turn rate (a homing missile's turn, a turret's slew) raised by {@code turnBonus}: the
+     * fitted Targeting computer's share (design/player/systems), 0 without one. Only the
+     * Stormhawk's own weapons: Rook's guns are built by {@link #wingman} at their base turn.
+     */
+    public static Loadout loadout(
+            Content content,
+            String engine,
+            List<FittedWeapon> weapons,
+            String shield,
+            String plating,
+            double sparePower,
+            Difficulty difficulty,
+            double turnBonus) {
         ShieldModel model =
                 shield(content, named(content.shields().models(), ShieldData.Model::name, shield), difficulty);
         double regen = model.regenPerSecond() * (1 + regenBonus(content, sparePower));
@@ -96,8 +115,8 @@ public final class SimSpecs {
                 new Armament(weapons.stream()
                         .map(fitted -> new Armament.Mount(
                                 fitted.slot(),
-                                weapon(content, fitted.slot(), fitted.weapon(), fitted.level()),
-                                weapon(content, fitted.slot(), fitted.weapon(), fitted.level() + 1)))
+                                weapon(content, fitted.slot(), fitted.weapon(), fitted.level(), turnBonus),
+                                weapon(content, fitted.slot(), fitted.weapon(), fitted.level() + 1, turnBonus)))
                         .toList()),
                 new ShieldModel(model.capacity(), regen, model.regenDelaySeconds(), model.breakSeconds()),
                 plating(named(content.armour().plating(), ArmourData.Plating::name, plating)));
@@ -132,19 +151,43 @@ public final class SimSpecs {
     }
 
     /**
-     * Whether the simulation flies the weapon: the deliveries of the Act 1 arsenal (standard bolts,
-     * homing missiles, dropped and lobbed ground-only shots); mines and torpedoes follow with Act 2.
+     * Whether the simulation flies the weapon: standard bolts, homing missiles and turrets, dropped
+     * and lobbed ground-only shots and proximity mines; the torpedoes follow with the {@code sub}
+     * layer.
      */
     public static boolean flies(Content content, String weapon) {
         return delivery(content.weapon(weapon)).isPresent();
     }
 
-    /** The utility module the simulation flies so far (design/player/systems): the Pickup magnet. */
+    /** The utility modules the simulation flies (design/player/systems). */
     public static final String PICKUP_MAGNET = "Pickup magnet";
 
-    /** Whether the simulation flies the utility module of this name; the others follow in M5. */
+    public static final String TARGETING_COMPUTER = "Targeting computer";
+
+    public static final String SALVAGE_SCANNER = "Salvage scanner";
+
+    /**
+     * Whether the simulation flies the utility module of this name: the Pickup magnet, the Targeting
+     * computer and the Salvage scanner; the later acts' modules follow with them.
+     */
     public static boolean fliesUtility(String name) {
-        return name.equals(PICKUP_MAGNET);
+        return name.equals(PICKUP_MAGNET) || name.equals(TARGETING_COMPUTER) || name.equals(SALVAGE_SCANNER);
+    }
+
+    /** The Targeting computer's numbers from design/player/systems/data.yaml. */
+    public static SystemsData.Targeting targeting(Content content) {
+        return named(content.systems().utility(), SystemsData.Utility::name, TARGETING_COMPUTER)
+                .targeting()
+                .orElseThrow(() -> new IllegalArgumentException(TARGETING_COMPUTER + " has no targeting numbers"));
+    }
+
+    /** The Salvage scanner's credit bonus at {@code level} (1–2): the share added to salvage and hidden crates. */
+    public static double salvageBonus(Content content, int level) {
+        return named(content.systems().utility(), SystemsData.Utility::name, SALVAGE_SCANNER)
+                .salvage()
+                .orElseThrow(() -> new IllegalArgumentException(SALVAGE_SCANNER + " has no salvage numbers"))
+                .bonus()
+                .get(level - 1);
     }
 
     /** The Pickup magnet at {@code level} (1–3) from design/player/systems/data.yaml. */
@@ -153,6 +196,76 @@ public final class SimSpecs {
                 .magnet()
                 .orElseThrow(() -> new IllegalArgumentException(PICKUP_MAGNET + " has no magnet numbers"));
         return new Magnet(numbers.radius().get(level - 1), numbers.pull().get(level - 1));
+    }
+
+    /**
+     * Rook in the escort slot (design/player/wingmen) with his gun {@code gunId} at {@code level}
+     * (1–5), on {@code side}, starting the level with {@code armour}: his gun is the base weapon's
+     * pattern at that level with each projectile's damage scaled, fired from his one muzzle at the
+     * nose (a pod weapon's pattern as the pod on his side has it, so the Missiles launch outward);
+     * no overdrive.
+     */
+    public static WingmanSpec wingman(Content content, String gunId, int level, WingmanSpec.Side side, double armour) {
+        WingmenData data = content.wingmen();
+        WingmenData.Rook rook = data.rook();
+        WingmenData.Gun gun = data.guns().gun(gunId);
+        WeaponData base = content.weapon(gun.base());
+        if (level < 1 || level > base.levels().size()) {
+            throw new IllegalArgumentException(
+                    gunId + ": level " + level + " outside 1.." + base.levels().size());
+        }
+        WeaponSpec pattern = weapon(content, Armament.Slot.FRONT, gun.base(), level);
+        Point front = content.ship().mounts().front();
+        double shipCentre = content.ship().size() / 2;
+        double mirror = side == WingmanSpec.Side.LEFT && base.pod().orElse(false) ? -1 : 1;
+        double noseX = rook.muzzle().x() - rook.size().width() / 2;
+        double noseY = rook.size().height() / 2 - rook.muzzle().y();
+        List<WeaponSpec.Muzzle> muzzles = pattern.muzzles().stream()
+                .map(muzzle -> new WeaponSpec.Muzzle(
+                        noseX + mirror * (muzzle.dx() - (front.x() - shipCentre)), noseY, mirror * muzzle.angle()))
+                .toList();
+        WingmenData.Formations formations = rook.formations();
+        WingmenData.Dodge dodge = rook.dodge();
+        double lowArmour = data.barks()
+                .bark(WingmenData.ROOK_ARMOUR)
+                .flatMap(WingmenData.Bark::below)
+                .orElseThrow();
+        return new WingmanSpec(
+                side,
+                armour,
+                new WingmanSpec.Craft(
+                        rook.size().width(),
+                        rook.armour(),
+                        hitbox(rook.hitbox()),
+                        rook.speed(),
+                        rook.accelerationSeconds(),
+                        rook.minDistance(),
+                        rook.edgeGap(),
+                        rook.ramDamage(),
+                        lowArmour,
+                        rook.eject().podSpeed(),
+                        content.ship().bankChangeSteps() / ShipSpec.HARD_BANK),
+                new WingmanSpec.Ai(
+                        offset(formations.wing()),
+                        offset(formations.wide()),
+                        offset(formations.trail()),
+                        rook.glideSeconds(),
+                        rook.swapSeconds(),
+                        rook.flankDistance(),
+                        rook.reactionSeconds(),
+                        dodge.interval(),
+                        dodge.lookAhead(),
+                        dodge.clearance(),
+                        dodge.step(),
+                        dodge.reacts(),
+                        Math.toRadians(rook.cone() / 2),
+                        rook.range(),
+                        rook.recentHitSeconds()),
+                pattern.scaled(gun.scale(), muzzles));
+    }
+
+    private static WingmanSpec.Offset offset(Point slot) {
+        return new WingmanSpec.Offset(slot.x(), slot.y());
     }
 
     /** The specials the simulation flies so far (design/player/specials): the Airstrike and the Smart Bomb. */
@@ -214,7 +327,9 @@ public final class SimSpecs {
     private static Optional<WeaponSpec.Delivery> delivery(WeaponData weapon) {
         return switch (weapon.hits()) {
             case "standard" -> Optional.of(WeaponSpec.Delivery.BOLT);
-            case "homing" -> Optional.of(WeaponSpec.Delivery.HOMING);
+            case "homing" ->
+                Optional.of(weapon.slew().isPresent() ? WeaponSpec.Delivery.TURRET : WeaponSpec.Delivery.HOMING);
+            case WeaponData.MINES -> Optional.of(WeaponSpec.Delivery.MINE);
             case "ground-only" ->
                 Optional.of(
                         weapon.range().orElseThrow().kind() == WeaponData.Range.Kind.DROP
@@ -228,9 +343,15 @@ public final class SimSpecs {
      * A weapon in a slot at an upgrade level, 6 being its overdrive pattern. The muzzles follow from
      * the ship's mount points: the front muzzle, the rear muzzle or, for a weapon that fires to both
      * sides, the wing roots (the pattern to the right, mirrored to the left); a pod fires from its
-     * wing mount, the left one mirrored, and turns in by the weapon's convergence.
+     * wing mount, the left one mirrored, and turns in by the weapon's convergence. A weapon with
+     * ports fires the shots of a volley from them in turn, left first.
      */
     static WeaponSpec weapon(Content content, Armament.Slot slot, String slug, int upgradeLevel) {
+        return weapon(content, slot, slug, upgradeLevel, 0);
+    }
+
+    /** As {@link #weapon(Content, Armament.Slot, String, int)}, its turn rate raised by {@code turnBonus} (a share). */
+    static WeaponSpec weapon(Content content, Armament.Slot slot, String slug, int upgradeLevel, double turnBonus) {
         WeaponData weapon = content.weapon(slug);
         WeaponSpec.Delivery delivery = delivery(weapon)
                 .orElseThrow(
@@ -241,9 +362,11 @@ public final class SimSpecs {
         ShipData.Mounts mounts = content.ship().mounts();
         double centre = content.ship().size() / 2;
         List<WeaponSpec.Muzzle> muzzles = new ArrayList<>();
+        double ports = weapon.ports().orElse(0.0);
         for (WeaponData.Shot shot : level.pattern()) {
+            double port = muzzles.size() % 2 == 0 ? -ports : ports;
             switch (slot) {
-                case FRONT -> muzzles.add(muzzle(mounts.front(), centre, shot.x(), shot.angle()));
+                case FRONT -> muzzles.add(muzzle(mounts.front(), centre, shot.x() + port, shot.angle()));
                 case REAR -> {
                     if (weapon.mirrored().orElse(false)) {
                         muzzles.add(muzzle(mounts.roots().get(1), centre, shot.x(), shot.angle()));
@@ -266,7 +389,14 @@ public final class SimSpecs {
                             shot.angle() - weapon.converge().orElse(0.0)));
             }
         }
-        WeaponData.Range range = weapon.range().orElseThrow();
+        double speed = weapon.speed().map(WeaponData.Speed::start).orElse(0.0);
+        WeaponSpec.Mines mines = delivery == WeaponSpec.Delivery.MINE
+                ? new WeaponSpec.Mines(
+                        weapon.drift().orElseThrow(),
+                        weapon.arm().orElseThrow(),
+                        weapon.trigger().orElseThrow(),
+                        level.maxLive().orElseThrow())
+                : WeaponSpec.Mines.NONE;
         return new WeaponSpec(
                 slug,
                 weapon.vfx(),
@@ -275,21 +405,27 @@ public final class SimSpecs {
                 weapon.traits().contains("anti-ground"),
                 level.rate(),
                 level.damage(),
-                weapon.speed().map(WeaponData.Speed::start).orElse(0.0),
+                speed,
                 hitbox(weapon.size()),
-                switch (range.kind()) {
-                    case SCREEN -> Double.POSITIVE_INFINITY;
-                    case DROP -> 0;
-                    case DISTANCE -> range.px();
-                },
+                weapon.range()
+                        .map(range -> switch (range.kind()) {
+                            case SCREEN -> Double.POSITIVE_INFINITY;
+                            case DROP -> 0.0;
+                            case DISTANCE -> range.px();
+                        })
+                        .orElse(Double.POSITIVE_INFINITY),
                 weapon.lifetime().orElse(Double.POSITIVE_INFINITY),
                 level.pierce().orElse(1),
                 level.blast().orElse(0.0),
-                Math.toRadians(level.turn().orElse(0.0)),
+                // The one turn rate (a homing missile's or a turret's slew) the Targeting computer's bonus scales.
+                Math.toRadians(level.turn().or(weapon::slew).orElse(0.0) * (1 + turnBonus)),
                 Math.toRadians(weapon.cone().orElse(360.0) / 2),
                 weapon.fall().or(weapon::flight).orElse(0.0),
                 weapon.snap().orElse(0.0),
-                muzzles);
+                muzzles,
+                weapon.speed().map(WeaponData.Speed::end).orElse(speed),
+                weapon.accelerate().orElse(0.0),
+                mines);
     }
 
     /** A projectile leaving a mount point (sprite pixels from the top left) with an offset and an angle in degrees. */
@@ -397,12 +533,13 @@ public final class SimSpecs {
         carried.removeIf(placed -> !placed.dropsOn(difficulty));
         Map<String, LevelData.EnemyChange> enemyChanges =
                 variant.flatMap(LevelData.Variant::enemies).orElse(Map.of());
+        InLevel inLevel = new InLevel(levelKey(levelKey, 1), levelKey(levelKey, 2));
         List<WaveSpec> waves = new ArrayList<>();
         for (LevelData.Wave wave : level.waves()) {
             if (!wave.fliesOn(difficulty)) {
                 continue;
             }
-            addWave(content, wave, difficulty, enemyChanges, carried, waves);
+            addWave(content, wave, difficulty, enemyChanges, carried, waves, inLevel);
         }
         return new LevelScript(
                 levelKey(levelKey, 2),
@@ -414,7 +551,7 @@ public final class SimSpecs {
                         .toList(),
                 waves,
                 groundObjects(level),
-                groundUnits(content, level, difficulty, secondary),
+                groundUnits(content, level, difficulty, secondary, inLevel),
                 level.secrets().size(),
                 radio(level, difficulty),
                 LevelRules.secondary(content, level, secondary),
@@ -422,8 +559,8 @@ public final class SimSpecs {
                 debris(level, difficulty),
                 java.util.stream.Stream.concat(
                                 level.setPieces().orElse(List.of()).stream()
-                                        .map(piece -> setPiece(content, piece, difficulty)),
-                                level.boss().map(boss -> boss(content, boss, difficulty)).stream())
+                                        .map(piece -> setPiece(content, piece, difficulty, inLevel)),
+                                level.boss().map(boss -> boss(content, boss, difficulty, inLevel)).stream())
                         .toList(),
                 level.objectives().escort().map(escort -> escort(content, escort, difficulty)),
                 level.road().map(road -> road(level, road)),
@@ -585,7 +722,14 @@ public final class SimSpecs {
      */
     public static LevelScript.SetPieceSpec setPiece(
             Content content, LevelData.SetPieceData piece, Difficulty difficulty) {
+        return setPiece(content, piece, difficulty, InLevel.NOWHERE);
+    }
+
+    /** As {@link #setPiece(Content, LevelData.SetPieceData, Difficulty)}, a returning one with the act HP factor of its level. */
+    private static LevelScript.SetPieceSpec setPiece(
+            Content content, LevelData.SetPieceData piece, Difficulty difficulty, InLevel inLevel) {
         EnemyData enemy = content.enemy(piece.enemy());
+        double actHp = actHpFactor(content, enemy, inLevel);
         List<EnemyData.PartData> partList = enemy.partList()
                 .orElseThrow(() -> new IllegalArgumentException(piece.enemy() + ": a set piece has a part_list"));
         List<LevelScript.PartSpec> parts = new ArrayList<>();
@@ -609,7 +753,7 @@ public final class SimSpecs {
                     part.offset().x(),
                     part.offset().y(),
                     hitbox(part.hitbox()),
-                    content.difficulty().enemyHp(part.hp(), difficulty),
+                    content.difficulty().enemyHp(part.hp() * actHp, difficulty),
                     part.kind().equals("vital"),
                     part.bounty(),
                     gun,
@@ -654,6 +798,15 @@ public final class SimSpecs {
      */
     public static LevelScript.SetPieceSpec boss(
             Content content, LevelData.BossPlacement placement, Difficulty difficulty) {
+        return boss(content, placement, difficulty, InLevel.NOWHERE);
+    }
+
+    /**
+     * As {@link #boss(Content, LevelData.BossPlacement, Difficulty)} in a level: a returning boss's
+     * parts and the units it releases get the act HP factor of that level.
+     */
+    private static LevelScript.SetPieceSpec boss(
+            Content content, LevelData.BossPlacement placement, Difficulty difficulty, InLevel inLevel) {
         String slug = placement.enemy();
         EnemyData enemy = content.enemy(slug);
         EnemyData.BossData script =
@@ -673,7 +826,10 @@ public final class SimSpecs {
                     part.offset().x(),
                     part.offset().y(),
                     hitbox(part.hitbox()),
-                    part.armoured() ? 1 : content.difficulty().enemyHp(part.hp(), difficulty),
+                    part.armoured()
+                            ? 1
+                            : content.difficulty()
+                                    .enemyHp(part.hp() * actHpFactor(content, enemy, inLevel), difficulty),
                     part.kind().equals("vital"),
                     part.bounty(),
                     Optional.empty(),
@@ -793,7 +949,7 @@ public final class SimSpecs {
                     phase.alternate().isPresent(),
                     phase.streams()
                             .map(stream -> new BossSpec.Stream(
-                                    enemy(content, stream.enemy(), difficulty, Optional.empty()),
+                                    enemy(content, stream.enemy(), difficulty, Optional.empty(), inLevel),
                                     stream.count(),
                                     stream.every(),
                                     stream.interval(),
@@ -809,7 +965,8 @@ public final class SimSpecs {
                     phase.until().seconds().orElse(Double.POSITIVE_INFINITY),
                     delay,
                     Optional.empty(),
-                    phase.windows().map(windows -> bossWindows(content, enemy, windows, spawnCounts, difficulty))));
+                    phase.windows()
+                            .map(windows -> bossWindows(content, enemy, windows, spawnCounts, difficulty, inLevel))));
         }
         EnemyData.Movement movement = enemy.movement();
         EnemyData.Hover hover =
@@ -921,7 +1078,8 @@ public final class SimSpecs {
             EnemyData enemy,
             EnemyData.WindowData windows,
             Map<String, Integer> spawnCounts,
-            Difficulty difficulty) {
+            Difficulty difficulty,
+            InLevel inLevel) {
         return new BossSpec.Windows(
                 windows.groups().stream()
                         .map(group -> group.stream()
@@ -935,7 +1093,7 @@ public final class SimSpecs {
                 windows.spawns().orElse(List.of()).stream()
                         .map(spawn -> new BossSpec.Spawn(
                                 spawn.name(),
-                                enemy(content, spawn.enemy(), difficulty, Optional.empty()),
+                                enemy(content, spawn.enemy(), difficulty, Optional.empty(), inLevel),
                                 spawnCounts.getOrDefault(spawn.name(), spawn.count()),
                                 spawn.speed(),
                                 Math.toRadians(spawn.arc().orElse(0.0)),
@@ -953,14 +1111,14 @@ public final class SimSpecs {
 
     /** The ground enemies of the level's ground targets at {@code difficulty}, each in its group of the secondary objective. */
     private static List<LevelScript.GroundUnit> groundUnits(
-            Content content, LevelData level, Difficulty difficulty, LevelData.Secondary secondary) {
+            Content content, LevelData level, Difficulty difficulty, LevelData.Secondary secondary, InLevel inLevel) {
         List<String> groups = level.objectives().groups();
         List<LevelScript.GroundUnit> units = new ArrayList<>();
         for (LevelData.GroundTarget target : level.groundTargets()) {
             if (target.enemy().isEmpty()) {
                 continue;
             }
-            EnemySpec enemy = enemy(content, target.enemy().get(), difficulty, Optional.empty());
+            EnemySpec enemy = enemy(content, target.enemy().get(), difficulty, Optional.empty(), inLevel);
             int group = target.group().map(groups::indexOf).orElse(-1);
             List<LevelData.Placement> at =
                     switch (difficulty) {
@@ -1022,7 +1180,8 @@ public final class SimSpecs {
             Difficulty difficulty,
             Map<String, LevelData.EnemyChange> enemyChanges,
             List<LevelData.PlacedPickup> carried,
-            List<WaveSpec> out) {
+            List<WaveSpec> out,
+            InLevel inLevel) {
         Optional<LevelData.Change> change =
                 switch (difficulty) {
                     case EASY -> wave.easy();
@@ -1057,7 +1216,12 @@ public final class SimSpecs {
             out.add(new WaveSpec(
                     wave.t(),
                     formation(group.formation()),
-                    enemy(content, group.enemy(), difficulty, Optional.ofNullable(enemyChanges.get(group.enemy()))),
+                    enemy(
+                            content,
+                            group.enemy(),
+                            difficulty,
+                            Optional.ofNullable(enemyChanges.get(group.enemy())),
+                            inLevel),
                     count,
                     switch (entry) {
                         case FRONT -> WaveSpec.Entry.FRONT;
@@ -1134,14 +1298,70 @@ public final class SimSpecs {
      */
     public static EnemySpec enemy(
             Content content, String slug, Difficulty difficulty, Optional<LevelData.EnemyChange> change) {
+        return enemy(content, slug, difficulty, change, InLevel.NOWHERE);
+    }
+
+    /**
+     * As {@link #enemy(Content, String, Difficulty, Optional)} in Level {@code level} of Act {@code
+     * act}: a returning unit of tier {@code medium} or larger gets the act HP factor there (see
+     * {@link #actHpFactor}) on its HP and its chain's, rounded once with the HP lever.
+     */
+    public static EnemySpec enemy(
+            Content content,
+            String slug,
+            Difficulty difficulty,
+            Optional<LevelData.EnemyChange> change,
+            int act,
+            int level) {
+        return enemy(content, slug, difficulty, change, new InLevel(act, level));
+    }
+
+    /**
+     * The act HP factor of a unit in Level {@code level} of Act {@code act} (design/enemies,
+     * Balancing basis; user decision D5 = c of M5 part A): from Act 2 on, a unit of tier {@code
+     * medium} or larger that returns from an earlier level (its {@code first_level}) gets the
+     * reference DPS at the level over that at its first level, so its time to kill stays; {@code
+     * tiny} and {@code small} units, Act 1's levels and a unit's own first level get 1. Its bounty is
+     * unchanged (the act factor scales the credits).
+     */
+    public static double actHpFactor(Content content, String slug, int act, int level) {
+        return actHpFactor(content, content.enemy(slug), new InLevel(act, level));
+    }
+
+    private static double actHpFactor(Content content, EnemyData enemy, InLevel inLevel) {
+        if (inLevel.act() < 2 || enemy.tier().compareTo(Tier.MEDIUM) < 0 || enemy.firstLevel() >= inLevel.level()) {
+            return 1;
+        }
+        Map<Integer, Double> reference = content.enemyBasis().referenceDps();
+        Double now = reference.get(inLevel.level());
+        Double first = reference.get(enemy.firstLevel());
+        if (now == null || first == null) {
+            throw new IllegalArgumentException(enemy.name() + ": no reference DPS for Level " + inLevel.level()
+                    + " or its first level " + enemy.firstLevel() + " (design/enemies/data.yaml)");
+        }
+        return now / first;
+    }
+
+    /** Where a unit flies, for the act HP factor: a level's act and number; {@link #NOWHERE} outside a level. */
+    private record InLevel(int act, int level) {
+        static final InLevel NOWHERE = new InLevel(1, 0);
+    }
+
+    private static EnemySpec enemy(
+            Content content,
+            String slug,
+            Difficulty difficulty,
+            Optional<LevelData.EnemyChange> change,
+            InLevel inLevel) {
         EnemyData enemy = content.enemy(slug);
+        double actHp = actHpFactor(content, enemy, inLevel);
         EnemyData.Movement movement = enemy.movement();
         Optional<EnemyData.Hook> hook = hook(enemy, difficulty);
         Optional<EnemySpec.Brood> brood = enemy.attacks().stream()
                 .flatMap(attack -> attack.spawn().stream())
                 .findFirst()
                 .map(spawn -> new EnemySpec.Brood(
-                        enemy(content, spawn.enemy(), difficulty, Optional.empty()),
+                        enemy(content, spawn.enemy(), difficulty, Optional.empty(), inLevel),
                         hook.flatMap(EnemyData.Hook::spawnCount).orElse(spawn.count()),
                         hook.flatMap(EnemyData.Hook::spawnAfter).orElse(spawn.after()),
                         spawn.telegraph(),
@@ -1170,7 +1390,7 @@ public final class SimSpecs {
                         .findFirst()));
         EnemySpec spec = new EnemySpec(
                 slug,
-                content.difficulty().enemyHp(head.map(EnemyData.PartData::hp).orElse(enemy.hp()), difficulty),
+                content.difficulty().enemyHp(head.map(EnemyData.PartData::hp).orElse(enemy.hp()) * actHp, difficulty),
                 hitbox(enemy.hitbox()),
                 Layers.of(enemy.layer()),
                 content.enemyBasis().contactDamage().get(enemy.tier()),
@@ -1224,7 +1444,7 @@ public final class SimSpecs {
                                 movement.hover().flatMap(EnemyData.Hover::exit).isPresent())),
                 sweep(content, enemy, difficulty),
                 Optional.empty());
-        return enemy.segmentChain().isPresent() ? withChain(content, enemy, spec, difficulty) : spec;
+        return enemy.segmentChain().isPresent() ? withChain(content, enemy, spec, difficulty, actHp) : spec;
     }
 
     /**
@@ -1267,7 +1487,8 @@ public final class SimSpecs {
      * as its sprite, the tail as its hit box over the share); the tail and the regrown head from the
      * part list and the regrow block, the regrown head firing the head's fan (the hook's count).
      */
-    private static EnemySpec withChain(Content content, EnemyData enemy, EnemySpec head, Difficulty difficulty) {
+    private static EnemySpec withChain(
+            Content content, EnemyData enemy, EnemySpec head, Difficulty difficulty, double actHp) {
         EnemyData.SegmentChain chain = enemy.segmentChain().orElseThrow();
         Optional<EnemyData.Hook> hook = hook(enemy, difficulty);
         int segments = hook.flatMap(EnemyData.Hook::segments).orElse(chain.segments());
@@ -1298,7 +1519,7 @@ public final class SimSpecs {
                 content,
                 slug + "-segment",
                 head,
-                chain.hp(),
+                chain.hp() * actHp,
                 boxes.getFirst(),
                 small,
                 rammed,
@@ -1310,7 +1531,7 @@ public final class SimSpecs {
                 content,
                 slug + "-tail",
                 head,
-                tail.hp(),
+                tail.hp() * actHp,
                 hitbox(tail.hitbox()),
                 small,
                 rammed,
@@ -1337,7 +1558,7 @@ public final class SimSpecs {
                 content,
                 slug + "-regrown",
                 head,
-                chain.regrow().hp(),
+                chain.regrow().hp() * actHp,
                 head.hitbox(),
                 head.contactDamage(),
                 false,
@@ -1354,7 +1575,12 @@ public final class SimSpecs {
                 chain.regrow().seconds(),
                 chain.regrow().speed(),
                 offsets,
-                chain.popInterval());
+                chain.popInterval(),
+                enemy.partList().orElseThrow().stream()
+                        .filter(part -> part.kind().equals("vital"))
+                        .findFirst()
+                        .flatMap(EnemyData.PartData::multiplier)
+                        .orElse(1.0));
         return new EnemySpec(
                 head.slug(),
                 head.hp(),

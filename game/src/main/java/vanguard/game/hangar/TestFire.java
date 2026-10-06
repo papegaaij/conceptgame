@@ -19,6 +19,8 @@ import vanguard.sim.PlayField;
 import vanguard.sim.Rules;
 import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
+import vanguard.sim.WeaponSpec;
+import vanguard.sim.WingmanSpec;
 
 /**
  * The hangar's test fire (design/ui/hangar, Test fire): a looping mini-sortie of one weapon at one
@@ -26,14 +28,27 @@ import vanguard.sim.Sortie;
  * the middle of the play field and holds fire while three dummy targets on the ground drift down past
  * it on the scroll: one on the weapon's line and one either side of it, so a forward gun meets them
  * ahead, a side gun beside the ship, a rear gun behind it, a bomb under its pod, a mortar shell on
- * its snap and a homing missile on its turn. The dummies take {@value #HITS_TO_KILL} of the weapon's
- * level-1 hits (one level-1 blast of a bomb or shell), so a higher level kills them sooner. When all three are gone the loop starts over
+ * its snap, a homing missile on its turn and a turret wherever it swings. For proximity mines the
+ * dummies fly low ({@code low-air}, which sets mines off) and pass through the mines behind the
+ * ship. The dummies take {@value #HITS_TO_KILL} of the weapon's level-1 hits (one level-1 blast of a
+ * bomb, shell or mine), so a higher level kills them sooner. When all three are gone the loop starts over
  * from the same state (the sortie's own retry), so every loop is the same. Nothing hits the ship.
  * Stepping allocates nothing beyond the simulation's own rules.
+ *
+ * <p>One of Rook's guns (the escort's shop, M5 part A) fires like a front gun: his gun at its level
+ * from his single nose muzzle at his scale (design/player/wingmen, Rook's guns), the dummies as tough
+ * as for the base weapon times the scale.
  */
 public final class TestFire {
-    /** The weapon shown: its slug, the slot it fires from and its upgrade level (1-5). */
-    public record Shown(String weapon, Armament.Slot slot, int level) {}
+    /**
+     * The weapon shown: its slug, the slot it fires from and its upgrade level (1-5); for one of Rook's
+     * guns its id, the weapon being its base weapon fired from the front.
+     */
+    public record Shown(String weapon, Armament.Slot slot, int level, Optional<String> escortGun) {
+        public Shown(String weapon, Armament.Slot slot, int level) {
+            this(weapon, slot, level, Optional.empty());
+        }
+    }
 
     /** The ground scrolls at this speed, px/s: the dummies drift down past the ship. */
     static final double SCROLL = 90;
@@ -55,7 +70,7 @@ public final class TestFire {
     static final double TARGET_SIZE = 20;
     /** How many of the weapon's level-1 hits destroy a dummy. */
     static final double HITS_TO_KILL = 2;
-    /** A bomb or shell blast at level 1 destroys a dummy outright: a pass under the pod gives only one. */
+    /** A bomb, shell or mine blast at level 1 destroys a dummy outright: a pass under the pod gives only one. */
     static final double BLASTS_TO_KILL = 1;
     /** After the last dummy is gone, the loop shows this long more (its explosion) before it starts over. */
     static final int TAIL_TICKS = SimStep.ticks(0.6);
@@ -89,11 +104,29 @@ public final class TestFire {
                 content.armour().plating().getFirst().name(),
                 0,
                 Difficulty.MEDIUM);
+        double scale = 1;
+        if (shown.escortGun().isPresent()) {
+            // Rook's gun from his nose, scaled: the pattern of the base weapon in its place.
+            String gun = shown.escortGun().get();
+            WeaponSpec rook = SimSpecs.wingman(
+                            content,
+                            gun,
+                            shown.level(),
+                            WingmanSpec.Side.RIGHT,
+                            content.wingmen().rook().armour())
+                    .gun();
+            loadout = new Loadout(
+                    loadout.ship(),
+                    new Armament(List.of(new Armament.Mount(Armament.Slot.FRONT, rook, rook))),
+                    loadout.shield(),
+                    loadout.plating());
+            scale = content.wingmen().guns().gun(gun).scale();
+        }
         armour = loadout.plating().maxArmour();
         line = line(shown.slot());
         Rules rules = SimSpecs.rules(content, content.levelKey(1).orElseThrow(), Difficulty.MEDIUM)
                 .withInvulnerableShip();
-        sortie = new Sortie(SEED, loadout, script(content.weapon(shown.weapon()), line), rules, armour);
+        sortie = new Sortie(SEED, loadout, script(content.weapon(shown.weapon()), line, scale), rules, armour);
         climb();
     }
 
@@ -110,6 +143,19 @@ public final class TestFire {
                     case RIGHT_WING -> Armament.Slot.RIGHT_WING;
                     default -> null;
                 };
+        if (slot == LoadoutSlot.ESCORT) {
+            return content.wingmen().guns().list().stream()
+                    .filter(gun -> gun.id().equals(item))
+                    .findFirst()
+                    .map(gun -> new Shown(
+                            gun.base(),
+                            Armament.Slot.FRONT,
+                            Math.clamp(
+                                    level,
+                                    1,
+                                    content.weapon(gun.base()).levels().size()),
+                            Optional.of(gun.id())));
+        }
         if (weaponSlot == null || !content.weapons().containsKey(item) || !SimSpecs.flies(content, item)) {
             return Optional.empty();
         }
@@ -128,14 +174,22 @@ public final class TestFire {
 
     /** The test range: one endless section on the scroll and the three dummies, entering after the climb. */
     static LevelScript script(WeaponData weapon, double line) {
-        boolean landing = weapon.hits().equals("ground-only");
-        double hp = (landing ? BLASTS_TO_KILL : HITS_TO_KILL)
-                * weapon.levels().getFirst().damage();
+        return script(weapon, line, 1);
+    }
+
+    /** As {@link #script(WeaponData, double)}, the dummies as tough as {@code scale} of the weapon's hits ask. */
+    static LevelScript script(WeaponData weapon, double line, double scale) {
+        boolean mines = weapon.hits().equals(WeaponData.MINES);
+        boolean blasting = mines || weapon.hits().equals("ground-only");
+        double hp = (blasting ? BLASTS_TO_KILL : HITS_TO_KILL)
+                * weapon.levels().getFirst().damage()
+                * scale;
         EnemySpec dummy = new EnemySpec(
                 DUMMY,
                 hp,
                 new Hitbox(TARGET_SIZE, TARGET_SIZE),
-                Layer.GROUND,
+                // Mines burst only for flyers: the dummies fly low, on the scroll like the others.
+                mines ? Layer.LOW_AIR : Layer.GROUND,
                 0,
                 false,
                 0,

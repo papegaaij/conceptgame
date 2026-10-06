@@ -10,7 +10,10 @@ vfx: mine
 hits: area
 speed: 60
 size: [10, 10]
-lifetime: 4
+lifetime: 4  # s before an unexploded mine fizzles
+drift: 0.5   # s over which the drop's backward drift (the speed) decays to nothing
+arm: 0.4     # s before a mine arms
+trigger: 40  # px: an enemy on air or low-air this close sets an armed mine off
 seek: true
 levels:
   - {pattern: [[0, 180]], rate: 1, damage: 20, blast: 48, max_live: 3}
