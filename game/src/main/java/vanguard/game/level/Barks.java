@@ -204,6 +204,22 @@ public final class Barks {
         }
     }
 
+    /**
+     * A scripted line about Rook fired at level time {@code t} (M5 part B: the radio's {@code
+     * escort-first-kill} cue): a Rook line counts as one opened now for the spacing, and a bark of his
+     * queued at the same time (the kill that made a streak) is withdrawn, so the scripted line says it.
+     */
+    public void scripted(String speaker, double t) {
+        if (!speaker.equals(data.speaker())) {
+            return;
+        }
+        lastRookStart = t;
+        if (waiting != null && radio.waiting(waiting) && waitingPriority >= 0) {
+            radio.withdraw(waiting);
+            waiting = null;
+        }
+    }
+
     /** A boss's warning starts (an act boss's warning, a mid-boss's sting). */
     public boolean bossWarning(double t) {
         return fire(Trigger.BOSS_WARNING, t);

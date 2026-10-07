@@ -3,6 +3,7 @@ package vanguard.game.level;
 import vanguard.content.voice.VoiceLines;
 import vanguard.sim.LevelScript;
 import vanguard.sim.SimStep;
+import vanguard.sim.WingmanSpec;
 
 /**
  * The level script's radio cues as the {@link RadioQueue} needs them: how each queues, and how long
@@ -44,6 +45,15 @@ public final class RadioSchedule {
     /** A cue's line with {@link #ALLY} filled in as the convoy unit's number word ({@code unit} from 0). */
     public static String line(String line, int unit) {
         return VoiceLines.allyLine(line, unit);
+    }
+
+    /**
+     * A cue's line as shown and spoken: {@link #ALLY} as the convoy unit's number word ({@code unit}
+     * from 0, -1 for none) and (M5 part B) {@link VoiceLines#SIDE} as the escort's side, {@code
+     * left} or {@code right} ({@code side}: the save's, or {@code --escort}'s {@code side=}).
+     */
+    public static String line(String line, int unit, WingmanSpec.Side side) {
+        return VoiceLines.sideLine(line(line, unit), side == WingmanSpec.Side.LEFT ? "left" : "right");
     }
 
     /** Seconds from {@code levelSeconds} until the next timed cue starts; infinite after the last. */

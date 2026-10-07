@@ -92,7 +92,7 @@ class CampaignRouteTest {
     }
 
     @Test
-    void afterLevel07TheActOutroComesThenTheHangarBeforeLevel08() {
+    void afterLevel07TheActOutroComesThenTheAct2IntroAndTheBriefingOfLevel08() {
         Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
         for (int i = 0; i < 7; i++) {
             campaign.complete(CampaignTest.won("A", 80, 1000), 60);
@@ -103,7 +103,23 @@ class CampaignRouteTest {
         assertEquals(7, outro.script().last());
         assertEquals(8, outro.script().nextLevel());
         assertEquals(4, outro.script().pages().size());
-        // After the outro: Act 2 has no data yet, so the hangar before Level 08, which cannot launch.
+        // After the outro: Act 2's title card and act briefing, then Level 08's pages, then its hangar.
+        var briefing =
+                assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.beforeNextLevel(content, campaign));
+        assertEquals(8, briefing.script().mission());
+        assertEquals("HOMEFRONT", briefing.script().titleCard().orElseThrow().name());
+        assertEquals(Optional.of("act-2-homefront/level-08-neon-skyline"), CampaignRoute.launch(content, campaign));
+    }
+
+    @Test
+    void afterLevel08TheHangarBeforeLevel09WaitsForItsData() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 8; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
+
+        // Level 09 has no data yet: the hangar before it, which cannot launch.
+        assertInstanceOf(CampaignRoute.Step.Hangar.class, CampaignRoute.afterLevel(content, campaign));
         assertInstanceOf(CampaignRoute.Step.Hangar.class, CampaignRoute.beforeNextLevel(content, campaign));
         assertEquals(Optional.empty(), CampaignRoute.launch(content, campaign));
     }

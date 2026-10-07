@@ -59,6 +59,21 @@ public final class Wingman {
     /** An enemy that moved farther than this in a step jumped (a loop-back's re-entry): no velocity, px. */
     private static final double JUMP = 16;
 
+    /**
+     * Around the player (design/player/wingmen: his way to a slot on the other side), he steers to a
+     * point this far round the circle at his minimum distance ahead of where he is, radians.
+     */
+    private static final double DETOUR_STEP = StrictMath.PI / 4;
+
+    /** Each way round the player is checked for room inside the margins at this many points. */
+    private static final int DETOUR_SAMPLES = 24;
+
+    /** He steers round the player this far outside his minimum distance, px. */
+    private static final double DETOUR_GAP = 8;
+
+    /** A way round the player may touch a margin by this much, px (he starts on one). */
+    private static final double DETOUR_TOLERANCE = 1;
+
     /** Mixed into the sortie's seed for his own generator, so it does not follow the sortie's. */
     private static final long LUCK_SALT = 0x524F4F4B5F4C55L;
 
@@ -146,6 +161,11 @@ public final class Wingman {
     private double goalX;
 
     private double goalY;
+
+    /** Where he steers this step: his goal, or a point on his way round the player to it. */
+    private double aimX;
+
+    private double aimY;
     /** Whether his slot was moved clear of a body this step: he jinks as in a sidestep. */
     private boolean evading;
 
@@ -698,8 +718,9 @@ public final class Wingman {
      */
     private void move(double shipX, double shipY) {
         WingmanSpec.Craft craft = spec.craft();
-        double ex = goalX - x;
-        double ey = goalY - y;
+        aimAround(shipX, shipY);
+        double ex = aimX - x;
+        double ey = aimY - y;
         double distance = Math.sqrt(ex * ex + ey * ey);
         double wantedX = 0;
         double wantedY = 0;
@@ -721,6 +742,90 @@ public final class Wingman {
         x += vx * SimStep.SECONDS;
         y += vy * SimStep.SECONDS;
         keepClear(shipX, shipY);
+    }
+
+    /**
+     * Sets {@link #aimX} and {@link #aimY}: his goal, unless his straight way there passes within his
+     * minimum distance of the player (a slot on the player's other side) on a side without room
+     * inside the play field's margins at that distance, while the other side has it. Then he steers
+     * round the player the other way, a little outside that distance: with the player low on the
+     * screen, the way beneath him is closed and he passes over him (Level 08's capture, round 30:
+     * pushed back by {@link #keepClear} at the bottom margin, he stayed beneath the player to the
+     * level's end). Otherwise straight on, {@link #keepClear} sliding him round the player.
+     */
+    private void aimAround(double shipX, double shipY) {
+        aimX = goalX;
+        aimY = goalY;
+        double min = spec.craft().minDistance();
+        double gx = goalX - shipX;
+        double gy = goalY - shipY;
+        double px = x - shipX;
+        double py = y - shipY;
+        if (gx * gx + gy * gy < min * min) {
+            return;
+        }
+        // The point of his way nearest the player's centre.
+        double wx = gx - px;
+        double wy = gy - py;
+        double length = wx * wx + wy * wy;
+        double along = length > 0 ? Math.clamp(-(px * wx + py * wy) / length, 0, 1) : 0;
+        double nx = px + wx * along;
+        double ny = py + wy * along;
+        if (nx * nx + ny * ny >= min * min) {
+            return;
+        }
+        double from = StrictMath.atan2(py, px);
+        double to = StrictMath.atan2(gy, gx);
+        double counter = to - from;
+        while (counter < 0) {
+            counter += 2 * StrictMath.PI;
+        }
+        while (counter >= 2 * StrictMath.PI) {
+            counter -= 2 * StrictMath.PI;
+        }
+        double clockwise = 2 * StrictMath.PI - counter;
+        // The way the push-out slides him round: the side his straight way passes the player on.
+        boolean pushedCounter;
+        if (nx == 0 && ny == 0) {
+            pushedCounter = counter <= clockwise;
+        } else {
+            double near = StrictMath.atan2(ny, nx) - from;
+            while (near < 0) {
+                near += 2 * StrictMath.PI;
+            }
+            while (near >= 2 * StrictMath.PI) {
+                near -= 2 * StrictMath.PI;
+            }
+            pushedCounter = near <= counter;
+        }
+        if (roomAround(shipX, shipY, from, pushedCounter ? counter : -clockwise, min)
+                || !roomAround(shipX, shipY, from, pushedCounter ? -clockwise : counter, min)) {
+            // That way has room (or neither has): straight on, kept clear as before.
+            return;
+        }
+        double turn = pushedCounter ? -Math.min(clockwise, DETOUR_STEP) : Math.min(counter, DETOUR_STEP);
+        double radius = min + DETOUR_GAP;
+        aimX = Math.clamp(shipX + radius * Trig.cos(from + turn), limit, PlayField.WIDTH - limit);
+        aimY = Math.clamp(shipY + radius * Trig.sin(from + turn), limit, PlayField.HEIGHT - limit);
+    }
+
+    /**
+     * Whether the arc at {@code radius} round the player from angle {@code from} through {@code
+     * turn} radians (positive: counter-clockwise) lies inside the play field's margins.
+     */
+    private boolean roomAround(double shipX, double shipY, double from, double turn, double radius) {
+        double right = PlayField.WIDTH - limit + DETOUR_TOLERANCE;
+        double top = PlayField.HEIGHT - limit + DETOUR_TOLERANCE;
+        double low = limit - DETOUR_TOLERANCE;
+        for (int k = 1; k <= DETOUR_SAMPLES; k++) {
+            double angle = from + turn * k / DETOUR_SAMPLES;
+            double ax = shipX + radius * Trig.cos(angle);
+            double ay = shipY + radius * Trig.sin(angle);
+            if (ax < low || ax > right || ay < low || ay > top) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

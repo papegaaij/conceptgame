@@ -120,7 +120,7 @@ final class IntelPanel {
         int portraitY = Y + 26;
         canvas.portrait(teaser, INNER, portraitY, SPEAKER_PORTRAIT);
         canvas.text(Speaker.plate(teaser.speaker()), Glass.AMBER, TEXT_X, portraitY, false);
-        canvas.text("CDF INTEL", Glass.CYAN, TEXT_X, portraitY + 13, false);
+        canvas.text(Speaker.role(teaser.speaker()), Glass.CYAN, TEXT_X, portraitY + 13, false);
         int line = portraitY + 30;
         for (String text : Words.wrap(Names.of("\"" + teaser.line() + "\""), (RIGHT - TEXT_X) / 8)) {
             canvas.text(text, Glass.BODY, TEXT_X, line, false);

@@ -7,7 +7,8 @@ Outputs (assets/sprites/intel/, packed onto the shared sprite pages as ``intel/<
                      stinger, spine-turret (Levels 01-02, UI batch); spore-bomber, whirl-seed
                      (Level 03, M4 part C batch); brood-pod, scuttler (Level 04, M4 part D batch); mantis,
                      coilwyrm (Level 06, M4 part F batch: the production models of tools/art/mantis.py,
-                     nose down, and tools/art/coilwyrm.py, the head with a segment trailing)
+                     nose down, and tools/art/coilwyrm.py, the head with a segment trailing); creeper
+                     (Level 08, M5 part B batch: the production model of tools/art/creeper.py)
   boss-<boss>.png    40x40 sensor silhouette of a boss of Act 1: gorgon-frigate (L05 mid-boss),
                      brood-carrier (L07) (UI batch); leviathan (L03's set piece, the threat
                      profile's "unknown huge contact", M4 part C batch)
@@ -15,13 +16,14 @@ Outputs (assets/sprites/intel/, packed onto the shared sprite pages as ``intel/<
   design/ui/hangar/concept/intel-final-r16-a.png   review sheet of the M4 part C batch's
   design/ui/hangar/concept/intel-final-r17-a.png   review sheet of the M4 part D batch's
   design/ui/hangar/concept/intel-final-r23-a.png   review sheet of the M4 part F batch's
+  design/ui/hangar/concept/intel-final-r30-a.png   review sheet of the M5 part B batch's
 
 The names are the enemy's or boss's name as a slug (vanguard.game.render.Portraits.slug). A
 portrait is the unit's chosen round-04 model (tools/concept/enemies_r04.py, imported unchanged) in
 its own colours, nose down as it comes at the player (the Whirl Seed is the six-blade production
 seed of tools/art/vrell_l03.py, as the game draws it, at rest; the Brood Pod and the Scuttler are
 the production models of tools/art/vrell_l04.py, the pod between swells, the Scuttler walking down
-at heading 0 in its first walk frame), ray-marched at 8x through the sprite path
+at heading 0 in its first walk frame; the Creeper likewise from tools/art/creeper.py), ray-marched at 8x through the sprite path
 (1-bit alpha, unsharp mask) onto the intel's sensor plate: a dark teal screen with a dot grid, a
 cyan scan line and corner brackets, lightly tinted cyan as the scan sees it, 32 colours. A boss
 silhouette shows what L2 knows of it: the outline only, the shape filled flat in dark teal with a
@@ -49,6 +51,7 @@ import artkit
 from artkit import DESIGN, ROOT, SPRITES, sprite
 
 import coilwyrm  # noqa: E402  (the Coilwyrm's production models)
+import creeper  # noqa: E402  (the Creeper's production model)
 import leviathan  # noqa: E402  (the Leviathan's production model)
 import mantis  # noqa: E402  (the Mantis's production model)
 import vrell_l03  # noqa: E402  (the Whirl Seed's production model)
@@ -68,9 +71,11 @@ UI_BATCH = "UI batch"
 BATCHES = {"spore-bomber": "M4 part C batch", "whirl-seed": "M4 part C batch",
            "boss-leviathan": "M4 part C batch",
            "brood-pod": "M4 part D batch", "scuttler": "M4 part D batch",
-           "mantis": "M4 part F batch", "coilwyrm": "M4 part F batch"}
+           "mantis": "M4 part F batch", "coilwyrm": "M4 part F batch",
+           "creeper": "M5 part B batch"}
 # the concept round that reviews a batch
-ROUNDS = {UI_BATCH: "r13", "M4 part C batch": "r16", "M4 part D batch": "r17", "M4 part F batch": "r23"}
+ROUNDS = {UI_BATCH: "r13", "M4 part C batch": "r16", "M4 part D batch": "r17", "M4 part F batch": "r23",
+          "M5 part B batch": "r30"}
 OUT = SPRITES / "intel"
 CONCEPT = DESIGN / "ui" / "hangar" / "concept"
 PORTRAIT = 30
@@ -88,6 +93,7 @@ ENEMIES = {
     "scuttler": lambda: scuttler_model(),
     "mantis": lambda: mantis.turned(*mantis.model(0.3, 0.0, 1.0), 0.0),
     "coilwyrm": lambda: coilwyrm_model(),
+    "creeper": lambda: creeper.model(0, 0),
 }
 BOSSES = ("gorgon-frigate", "brood-carrier", "leviathan")
 PLATE = np.array([4, 16, 28], float)

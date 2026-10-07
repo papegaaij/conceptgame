@@ -14,9 +14,10 @@ import vanguard.sim.SimStep;
 /**
  * The checks of a level's backdrop (design/art-direction): the ids resolve, at most one tile set
  * per layer and section and one in every section on an opaque layer, every section's atmosphere
- * has a look, and, frame by frame over the whole level and its outro, no more mid-size set pieces
+ * has a look, a tower's wall texture is an image of its own and a tower is neither mirrored nor
+ * overhead, and, frame by frame over the whole level and its outro, no more mid-size set pieces
  * and strongly animated elements on screen than the art direction allows and nothing moving faster
- * than about 2 px per frame on its own.
+ * than about 2 px per frame on its own (a tower's roof included, which slides over the ground).
  */
 final class BackdropCheck {
     /** Two or three mid-size set pieces per screen (Density). */
@@ -130,6 +131,9 @@ final class BackdropCheck {
                 backdrop.tileSets().entrySet()) {
             ok &= checkDrift("backdrop.tile_sets." + tileSet.getKey(), tileSet.getValue());
         }
+        for (Map.Entry<String, BackdropData.Piece> piece : backdrop.pieces().entrySet()) {
+            piece.getValue().tower().ifPresent(tower -> checkWall(piece.getKey(), tower.wall()));
+        }
         for (int i = 0; i < backdrop.placed().size(); i++) {
             BackdropData.PlacedPiece placed = backdrop.placed().get(i);
             String field = "backdrop.placed[" + i + "]";
@@ -149,6 +153,15 @@ final class BackdropCheck {
             }
             if (piece.headings().isPresent() && placed.mirrored()) {
                 problem.accept(field + ".mirror", "a piece with headings is not mirrored");
+            }
+            if (piece.isTower() && placed.mirrored()) {
+                problem.accept(
+                        field + ".mirror",
+                        "a tower is not mirrored (its roof and walls are lit from the upper left; give a mirrored"
+                                + " roof its own piece)");
+            }
+            if (piece.isTower() && placed.isOverhead()) {
+                problem.accept(field + ".overhead", "a tower is not overhead (ground units are drawn over it anyway)");
             }
             placed.path().ifPresent(points -> {
                 for (int p = 1; p < points.size(); p++) {
@@ -170,6 +183,15 @@ final class BackdropCheck {
         return ok;
     }
 
+    /** A tower's wall texture is an image of its own, neither a set piece nor a tile set. */
+    private void checkWall(String piece, String wall) {
+        if (backdrop.pieces().containsKey(wall) || backdrop.tileSets().containsKey(wall)) {
+            problem.accept(
+                    "backdrop.pieces." + piece + ".tower.wall",
+                    "'" + wall + "' is a set piece or tile set; a wall texture is an image of its own");
+        }
+    }
+
     private boolean checkDrift(String field, BackdropData.TileSet tileSet) {
         if (Math.abs(tileSet.drift().orElse(0.0)) > MAX_OWN_SPEED) {
             problem.accept(field + ".drift", "drifts faster than " + MAX_OWN_SPEED + " px/s (about 2 px per frame)");
@@ -178,10 +200,22 @@ final class BackdropCheck {
         return true;
     }
 
-    /** Samples every simulation step of the level and its outro for the density and the motion budget. */
+    /**
+     * Samples every simulation step of the level and its outro for the density and the motion budget
+     * (a repeat's every placement, and a tower's roof sliding over the ground).
+     */
     private void checkScreens() {
-        List<BackdropData.PlacedPiece> placed = backdrop.placed();
+        List<BackdropData.PlacedPiece> placed = new ArrayList<>();
+        List<String> fields = new ArrayList<>();
+        for (int i = 0; i < backdrop.placed().size(); i++) {
+            BackdropData.PlacedPiece p = backdrop.placed().get(i);
+            for (int n = 0; n < p.count(); n++) {
+                placed.add(p.copy(n));
+                fields.add("backdrop.placed[" + i + "]" + (p.count() > 1 ? " (repeat " + (n + 1) + ")" : ""));
+            }
+        }
         boolean[] seen = new boolean[placed.size()];
+        boolean[] tooFast = new boolean[placed.size()];
         boolean densityReported = false;
         boolean motionReported = false;
         int steps = SimStep.ticks(level.outroEnd());
@@ -199,6 +233,22 @@ final class BackdropCheck {
                     }
                     if (piece.animated() || p.path().isPresent()) {
                         animated.add(p.piece());
+                    }
+                    if (piece.isTower() && !tooFast[i]) {
+                        double speed = piece.tower().orElseThrow().ownSpeed(groundSpeed(t));
+                        if (speed > MAX_OWN_SPEED) {
+                            problem.accept(
+                                    fields.get(i),
+                                    String.format(
+                                            Locale.ROOT,
+                                            "%sthe roof of '%s' slides %.0f px/s over the ground, more than %.0f"
+                                                    + " (about 2 px per frame): lower its height",
+                                            at(t),
+                                            p.piece(),
+                                            speed,
+                                            MAX_OWN_SPEED));
+                            tooFast[i] = true;
+                        }
                     }
                 }
             }
@@ -220,25 +270,44 @@ final class BackdropCheck {
         }
         for (int i = 0; i < placed.size(); i++) {
             if (!seen[i]) {
-                problem.accept("backdrop.placed[" + i + "]", "'" + placed.get(i).piece() + "' is never on screen");
+                problem.accept(fields.get(i), "'" + placed.get(i).piece() + "' is never on screen");
             }
         }
+    }
+
+    /** The ground's scroll speed at {@code t}, px/s (over the step that starts there). */
+    private double groundSpeed(double t) {
+        return (level.scrollAt(t + SimStep.SECONDS) - level.scrollAt(t)) / SimStep.SECONDS;
     }
 
     private static String at(double t) {
         return String.format(Locale.ROOT, "t=%.2f: ", t);
     }
 
+    /** Whether a part of the piece is on screen; a tower's footprint or its roof, drawn farther from the centre. */
     private boolean onScreen(BackdropData.PlacedPiece placed, double t) {
         BackdropData.Piece piece = backdrop.pieces().get(placed.piece());
         double y = level.pieceCentre(placed) - level.scrollAt(t) * backdrop.factor(piece.layer()) + placed.offsetY(t);
         double x = placed.x() + placed.offsetX(t);
-        double halfWidth = piece.size().width() / 2;
-        double halfHeight = piece.size().height() / 2;
-        return x + halfWidth > 0
-                && x - halfWidth < PlayField.WIDTH
-                && y + halfHeight > 0
-                && y - halfHeight < PlayField.HEIGHT;
+        if (onScreen(x, y, piece.size().width(), piece.size().height())) {
+            return true;
+        }
+        if (piece.tower().isEmpty()) {
+            return false;
+        }
+        double k = piece.tower().get().scale();
+        return onScreen(
+                BackdropData.Tower.project(x, BackdropData.Tower.CENTRE_X, k),
+                BackdropData.Tower.project(y, BackdropData.Tower.CENTRE_Y, k),
+                piece.imageWidth(),
+                piece.imageHeight());
+    }
+
+    private static boolean onScreen(double x, double y, double width, double height) {
+        return x + width / 2 > 0
+                && x - width / 2 < PlayField.WIDTH
+                && y + height / 2 > 0
+                && y - height / 2 < PlayField.HEIGHT;
     }
 
     /** The drifting section tile sets with a part on screen, and the atmosphere's banks if they drift. */

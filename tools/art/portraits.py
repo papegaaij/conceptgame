@@ -7,9 +7,13 @@ Outputs (assets/sprites/portraits/, packed onto the shared sprite pages as ``por
                                      neutral, grim and fierce; generic-cdf and generic-civilian
                                      in neutral
   briefing-<slug>-<expression>.png   144x144 briefing portrait (the 72 px portrait at 2x with CRT
-                                     scanlines), for the briefing speakers okafor and varga
+                                     scanlines), for the briefing speakers okafor, rook (from
+                                     Act 2: Level 08's hangar teaser, round 30) and varga
   radio-the-choir-neutral_0..31.png  the Choir's interference glyph, a 32-frame loop (12 fps)
   design/story/characters/concept/portraits-final-r13-a.png/.gif   review sheet and loop
+  design/story/characters/rook/concept/rook-briefing-portrait-final-r30-a.png   Rook's briefing
+                                     portraits (round 30), next to his radio portraits and the
+                                     other briefing speakers'
 
 The busts are the concept SDF busts (tools/concept/portraits_r03.py, the generic speakers of
 portraits_r08.py), imported unchanged; the expressions replace their face with this script's
@@ -52,12 +56,16 @@ EXPRESSIONS = ("neutral", "grim", "fierce")
 # neutral; the briefing size only for who speaks in a briefing of Acts 1-2
 SPEAKERS = {
     "okafor": (EXPRESSIONS, ("radio", "briefing")),
-    "rook": (EXPRESSIONS, ("radio",)),
+    "rook": (EXPRESSIONS, ("radio", "briefing")),
     "varga": (EXPRESSIONS, ("radio", "briefing")),
     "generic-cdf": (("neutral",), ("radio",)),
     "generic-civilian": (("neutral",), ("radio",)),
 }
 CHOIR = "the-choir"
+# the briefing speakers as round 13 approved them: its review sheet stays as it was
+R13_BRIEFING = ("okafor", "varga")
+ROOK_ROUND = "r30"
+ROOK_CONCEPT = ROOT / "design" / "story" / "characters" / "rook" / "concept"
 
 # Face parameters per expression, as offsets on the concept face (world units; the head is about
 # 0.6 across, 1 unit = 48 px at 72 px): the brows' inner and outer ends up (+) or down (-), the
@@ -263,13 +271,13 @@ def review():
                                     "ONE 36-COLOUR PALETTE PER CHARACTER OVER ITS EXPRESSIONS", raster.LABEL)
     y = 56
     for slug in cast:
-        names, sizes = SPEAKERS[slug]
+        names = SPEAKERS[slug][0]
         radios = [load(f"radio-{slug}-{n}") for n in names]
         raster.draw_text(sheet, 16, y, f"{r03.CAST[slug]['name']}  ({artkit.colour_count(radios)} COLOURS)",
                          raster.LABEL)
         x = 16
         for n in names:
-            if "briefing" in sizes:
+            if slug in R13_BRIEFING:
                 sheet.alpha_composite(load(f"briefing-{slug}-{n}"), (x, y + 14))
             raster.draw_text(sheet, x, y + 14 + 146, n.upper(), raster.LABEL_DIM)
             x += 144 + 12
@@ -307,6 +315,44 @@ def review():
     gif = png.with_suffix(".gif")
     artkit.write_gif(frames, gif, fps=12, colors=128)
     print(f"review: {png.relative_to(ROOT)}, {gif.relative_to(ROOT)}")
+    review_rook()
+
+
+def review_rook():
+    """Round 30: Rook's briefing portraits (he speaks Level 08's hangar teaser), at 1x next to his
+    radio portraits, and the other briefing speakers' neutral portraits for comparison."""
+    names = SPEAKERS["rook"][0]
+    width = 16 + 3 * (144 + 12) + 3 * (72 + 8) + 8
+    height = 56 + 14 + 144 + 20 + 30 + 144 + 20 + 12
+    sheet = raster.sheet(width, height, f"ROOK BRIEFING PORTRAITS (FINAL {ROOK_ROUND.upper()})",
+                         f"PRODUCTION ART, ACT 2 - {ROOK_ROUND.upper()}")
+    raster.draw_text(sheet, 16, 38, "BRIEFING 144X144 AT 1X (THE RADIO PORTRAIT AT 2X WITH SCANLINES) | RADIO 72X72; "
+                                    "ONE 36-COLOUR FIGURE PALETTE", raster.LABEL)
+    y = 56
+    radios = [load(f"radio-rook-{n}") for n in names]
+    briefings = [load(f"briefing-rook-{n}") for n in names]
+    raster.draw_text(sheet, 16, y, f"{r03.CAST['rook']['name']}  ({artkit.colour_count(radios)} COLOURS)",
+                     raster.LABEL)
+    x = 16
+    for n, img in zip(names, briefings):
+        sheet.alpha_composite(img, (x, y + 14))
+        raster.draw_text(sheet, x, y + 14 + 146, n.upper(), raster.LABEL_DIM)
+        x += 144 + 12
+    for img in radios:
+        sheet.alpha_composite(img, (x, y + 14))
+        x += 72 + 8
+    y += 14 + 144 + 20 + 8
+    others = [slug for slug, (_, sizes) in SPEAKERS.items() if "briefing" in sizes and slug != "rook"]
+    raster.draw_text(sheet, 16, y, "THE OTHER BRIEFING SPEAKERS, NEUTRAL: " + ", ".join(
+        r03.CAST[slug]["name"] for slug in others), raster.LABEL)
+    x = 16
+    for slug in others + ["rook"]:
+        sheet.alpha_composite(load(f"briefing-{slug}-neutral"), (x, y + 14))
+        raster.draw_text(sheet, x, y + 14 + 146, slug.upper(), raster.LABEL_DIM)
+        x += 144 + 12
+    png = ROOK_CONCEPT / f"rook-briefing-portrait-final-{ROOK_ROUND}-a.png"
+    sheet.convert("RGB").save(png, optimize=True)
+    print(f"review: {png.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

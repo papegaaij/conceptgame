@@ -25,6 +25,10 @@ class TracksTest {
     void theLevelThemesAndTheActBossCuesHaveTheirFiles() {
         assertEquals("music/coalition-rising.ogg", Tracks.path(5));
         assertEquals("music/afterburner-base.ogg", Tracks.basePath("afterburner"));
+        // Track 6, Level 08's "Homefront" (M5 part B), with its base stem.
+        assertEquals("music/homefront.ogg", Tracks.path(6));
+        assertEquals("music/homefront-base.ogg", Tracks.basePath(Tracks.name(6).orElseThrow()));
+        assertTrue(Files.exists(ASSETS.resolve(Tracks.basePath("homefront"))), "the Homefront base stem");
         assertEquals("music/choir-descends.ogg", Tracks.path(Tracks.BOSS_VRELL));
         assertEquals("music/boss-warning.ogg", Tracks.path(Tracks.BOSS_WARNING));
         assertEquals("music/act-complete.ogg", Tracks.path(Tracks.ACT_COMPLETE));

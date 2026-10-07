@@ -20,6 +20,9 @@ import vanguard.content.ContentLoader;
 class BriefingLayoutTest {
     private static final Path IMAGES = Path.of(System.getProperty("vanguard.assetsDir", "../assets"), "ui", "briefing");
 
+    /** Act 1's directory under design/campaign: its level pages go on over screens. */
+    private static final String ACT_1 = "act-1-first-contact/";
+
     private final Content content = ContentLoader.fromClasspath();
 
     @Test
@@ -41,6 +44,33 @@ class BriefingLayoutTest {
         assertEquals(
                 BriefingScreen.lines(page),
                 screens.stream().flatMap(List::stream).toList());
+    }
+
+    /**
+     * An act's briefing page fits one screen, and from Act 2 on so does a level's, below the page's
+     * image when it has one (design/ui/briefing, 2026-10-07: Level 08's capture, round 30, had two
+     * pages spill a few lines, or a single word, onto a second screen). Act 1's level pages were
+     * written and voiced to go on over the next screens and keep doing so, as an act's outro does.
+     */
+    @Test
+    void anActPageAndALevelPageFromAct2OnFitOneScreen() {
+        List<BriefingPage> pages = new ArrayList<>();
+        content.acts().values().forEach(act -> pages.addAll(act.briefing()));
+        content.levels().forEach((path, level) -> {
+            if (!path.startsWith(ACT_1)) {
+                pages.addAll(level.briefing().pages());
+            }
+        });
+        assertTrue(pages.size() > 8, "the acts' pages and Level 08's at least");
+        List<String> over = new ArrayList<>();
+        for (BriefingPage page : pages) {
+            List<List<String>> screens = BriefingScreen.screens(page);
+            if (screens.size() > 1) {
+                over.add(page.speaker() + " (" + BriefingScreen.lines(page).size() + " lines of "
+                        + BriefingScreen.maxLines(page.image().isPresent()) + "): " + page.line());
+            }
+        }
+        assertEquals(List.of(), over);
     }
 
     /** tools/art/briefing_images.py renders every image a page names, at the screen's image size. */

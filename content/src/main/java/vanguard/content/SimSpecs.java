@@ -1382,7 +1382,12 @@ public final class SimSpecs {
                         Math.toRadians(enemy.attacks().stream()
                                 .flatMap(attack -> attack.away().stream())
                                 .findFirst()
-                                .orElse(0.0))));
+                                .orElse(0.0)),
+                        // M5 part B: a walker's fan with aim target (the default) goes at the ship.
+                        walkerFan(enemy)
+                                .map(fan -> fan.aim().orElse("target").equals("target"))
+                                .orElse(false),
+                        walkerFan(enemy).flatMap(EnemyData.Attack::stagger).orElse(0.0)));
         // A segment chain's unit is its head: the head part's HP and bounty (the unit's include the body).
         Optional<EnemyData.PartData> head = enemy.segmentChain()
                 .flatMap(chain -> enemy.partList().flatMap(parts -> parts.stream()
@@ -1447,6 +1452,28 @@ public final class SimSpecs {
         return enemy.segmentChain().isPresent() ? withChain(content, enemy, spec, difficulty, actHp) : spec;
     }
 
+    /** A walker's fan: its attack with the {@code fan} pattern. */
+    private static Optional<EnemyData.Attack> walkerFan(EnemyData enemy) {
+        return enemy.attacks().stream()
+                .filter(attack -> attack.pattern().equals("fan"))
+                .findFirst();
+    }
+
+    /**
+     * An attack's interval at {@code difficulty}: the hook's authored {@code attacks.<name>.interval}
+     * as it is (the fire-rate lever does not apply on top of it: the Mantis's beam, the Creeper's
+     * hard fan), otherwise its interval by the fire-rate lever; infinite without one.
+     */
+    private static double interval(
+            Content content, EnemyData.Attack attack, Optional<EnemyData.Hook> hook, Difficulty difficulty) {
+        Optional<Double> authored = attack.name()
+                .flatMap(name -> hook.flatMap(EnemyData.Hook::attacks).map(changes -> changes.get(name)))
+                .flatMap(EnemyData.AttackChange::interval);
+        return authored.orElseGet(() -> attack.interval()
+                .map(i -> i / content.difficulty().enemyFireRate().of(difficulty))
+                .orElse(Double.POSITIVE_INFINITY));
+    }
+
     /**
      * A laser sweep at {@code difficulty} (design/enemies/air/mantis): the stat block's sweep with
      * the hooks' arc and interval (an authored interval is final; otherwise the fire-rate lever
@@ -1459,12 +1486,7 @@ public final class SimSpecs {
                 .findFirst()
                 .map(attack -> {
                     EnemyData.Sweep sweep = attack.sweep().orElseThrow();
-                    Optional<Double> authored = attack.name()
-                            .flatMap(name ->
-                                    hook.flatMap(EnemyData.Hook::attacks).map(changes -> changes.get(name)))
-                            .flatMap(EnemyData.AttackChange::interval);
-                    double interval = authored.orElseGet(() -> attack.interval().orElseThrow()
-                            / content.difficulty().enemyFireRate().of(difficulty));
+                    double interval = interval(content, attack, hook, difficulty);
                     return new EnemySpec.Sweep(
                             Math.toRadians(
                                     hook.flatMap(EnemyData.Hook::sweepArc).orElse(sweep.arc())),
@@ -1665,8 +1687,8 @@ public final class SimSpecs {
     }
 
     /**
-     * An enemy's attack at {@code difficulty}: its interval by the fire-rate lever, its bullets by
-     * the bullet-speed lever, a level's burst change or the stat block's hooks (burst, fan size,
+     * An enemy's attack at {@code difficulty}: its interval by the fire-rate lever (or the hook's
+     * authored interval, M5 part B), its bullets by the bullet-speed lever, a level's burst change or the stat block's hooks (burst, fan size,
      * leading the target in circles, a mine's ring and whether it bursts).
      */
     private static Optional<EnemyGun> gun(
@@ -1722,9 +1744,7 @@ public final class SimSpecs {
                         hook.flatMap(EnemyData.Hook::ring).orElse(lob.ring()),
                         bulletDamage(content, lob.ringBullet())));
         return new EnemyGun(
-                attack.interval()
-                        .map(i -> i / levers.enemyFireRate().of(difficulty))
-                        .orElse(Double.POSITIVE_INFINITY),
+                interval(content, attack, hook, difficulty),
                 attack.firstShotDelay().orElse(0.0),
                 burst,
                 attack.speed().orElseThrow() * levers.enemyBulletSpeed().of(difficulty),
@@ -1805,6 +1825,7 @@ public final class SimSpecs {
                         case ENEMY_ESCAPED -> LevelScript.CueTrigger.ENEMY_ESCAPED;
                         case FIRST_ALLY_HIT -> LevelScript.CueTrigger.FIRST_ALLY_HIT;
                         case FIRST_ALLY_LOST -> LevelScript.CueTrigger.FIRST_ALLY_LOST;
+                        case ESCORT_FIRST_KILL -> LevelScript.CueTrigger.ESCORT_FIRST_KILL;
                         case MISSION_FAILED -> LevelScript.CueTrigger.MISSION_FAILED;
                         case BOSS_PHASE -> LevelScript.CueTrigger.BOSS_PHASE;
                         case BOSS_DESTROYED -> LevelScript.CueTrigger.BOSS_DESTROYED;

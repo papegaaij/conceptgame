@@ -4,7 +4,7 @@ design: draft
 implementation: done
 art: chosen
 depends-on: [..]
-updated: 2026-10-05
+updated: 2026-10-07
 ---
 
 # Reference voices
@@ -35,6 +35,7 @@ How the clips are chosen and used: [voice](../README.md#reference-voices).
 | `ref-driver-control.wav` | Driver Control | Alex Foster | [The Invisible Man, ch. 1–2 (Wells)](https://archive.org/details/invisible_man_librivox) | public domain | chosen (round 21) |
 | `ref-perimeter-beacon.wav` | Daedalus perimeter beacon | Mark F. Smith | [The Time Machine (version 2), ch. 1 (Wells)](https://archive.org/details/time_machine_ms_librivox) | CC0 1.0 | chosen (round 23) |
 | `ref-lifeboat-seven.wav` | Lifeboat Seven | Tadhg Hynes | [Far From the Madding Crowd, ch. 1 (Hardy)](https://archive.org/details/far_from_the_madding_crowd_th_librivox) | public domain | chosen (round 25) |
+| `ref-civilian.wav` | The Ikoyi shelter civilian (Level 08) | Faith Abiola-Ellison | [The Yoruba-speaking Peoples of the Slave Coast of West Africa, selections, section 1 (Ellis)](https://archive.org/details/yorubapeoples_2408_librivox) | public domain (Public Domain Mark 1.0) | chosen (round 30) |
 
 Round 19's chosen candidates were renamed to `ref-<speaker>.wav`; the rejected candidates and
 round 18's Tranquility Control clip (David Leeson), which no speaker uses any more, were deleted
@@ -51,6 +52,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
       candidate renamed `ref-perimeter-beacon.wav`, the other deleted with its CREDITS.md row
 - [x] Lifeboat Seven's clip, cast in [round 25](../../../concept-rounds/round-25/README.md); the chosen
       candidate renamed `ref-lifeboat-seven.wav`, the other deleted with its CREDITS.md row
+- [x] The Ikoyi shelter civilian's clip (Level 08), cast in [round 30](../../../concept-rounds/round-30/README.md);
+      the chosen candidate renamed `ref-civilian.wav`, the other deleted with its CREDITS.md row
 
 ## Decisions
 
@@ -75,3 +78,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
   `ref-lifeboat-seven.wav`; Lizzie Driver's candidate (b) deleted with its CREDITS.md row (its
   source and cut stay in `tools/concept/audio/tts_r25.py`).
 - 2026-10-05: Every item is ticked (Act 1's speakers all cast, the last in round 25), so the implementation is `done`.
+- 2026-10-06: Round 30 candidates for the Ikoyi shelter civilian (Level 08) added (KirksVoice, Faith
+  Abiola-Ellison; licences checked on each archive.org item's `licenseurl`: Public Domain Mark 1.0).
+- 2026-10-07: Round 30 decided (user): the Ikoyi shelter civilian is Faith Abiola-Ellison (b),
+  renamed `ref-civilian.wav`; KirksVoice's candidate (a) deleted with its CREDITS.md row (its
+  source and cut stay in `tools/concept/audio/tts_r30.py`).

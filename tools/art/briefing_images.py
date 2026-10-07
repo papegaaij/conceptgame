@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Production art: the briefings' tactical maps and mission images (design/ui/briefing), one per
-briefing page of the Act 1 intro, Levels 01-07 and the Act 1 outro, in the chosen briefing-r08-a look: a dark
+briefing page of the Act 1 intro, Levels 01-07, the Act 1 outro, the Act 2 intro and Level 08, in the chosen briefing-r08-a look: a dark
 tactical display with its grid, scan rows and edge ticks, holographic planets, cyan routes and
 labels, red and violet for the Vrell, amber for objectives.
 
@@ -47,26 +47,45 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
                           the destroyed carrier group, its track ending in Earth's atmosphere
   act-1-outro-rook        outro p4: Aegis Wing reassigned to Earth defence, Rook's craft (Ember) in the
                           wing slot beside Lancer's Stormhawk, his radio portrait
+  act-2-landfall          Act 2 p1: the landers coming down at dawn below the cloud deck over the Gulf
+                          of Guinea, 34 burning trails over the sea, the CDF tracking overlay counting
+                          them (12 days tracked, none stopped), the three landing zones
+  act-2-front-lines       Act 2 p2: the CDF global display (a flat projection of hand-drawn coasts),
+                          the three landing zones glowing, the fronts numbered: the cities (Nova Lagos,
+                          Geneva Concord), the Atlantic sea lanes, the Arctic relay chain
+  act-2-over-home         Act 2 p3: a Nova Lagos street from rooftop height in one-point perspective,
+                          people on the low roofs looking up and waving, Lancer passing low
+  act-2-scramble          Act 2 p4: Aegis Wing on a coastal CDF airbase at dusk, Lancer, Rook's Ember
+                          and three Stormhawks on their pads, canopies closing; Nova Lagos burning 40 km
+                          off
+  level-08-nova-lagos     L08 p1: the night route: the harbour, the elevated highways, the tower
+                          district, the Third Mainland highway over the lagoon to the Ikoyi shelters,
+                          the walkers heading for them; Lancer and Rook at the start
+  level-08-walker-scan    L08 p2: the Creeper on a low roof (its gland and eye glow added), its aimed
+                          five-way fan of orbs, a convoy's fans 0.5 s apart front to back, the
+                          anti-ground x2 marker
   design/ui/briefing/concept/briefing-images-final-r13-a.png   review sheet, Act 1 intro + L01-02
   design/ui/briefing/concept/briefing-images-final-r20-a.png   review sheet, L03-04 (M4 batch)
   design/ui/briefing/concept/briefing-images-final-r21-a.png   review sheet, L05 (M4 part E)
   design/ui/briefing/concept/briefing-images-final-r23-a.png   review sheet, L06 (M4 part F)
   design/ui/briefing/concept/briefing-images-final-r25-a.png   review sheet, L07 + Act 1 outro (part G)
+  design/ui/briefing/concept/briefing-images-final-r30-a.png   review sheet, Act 2 intro + L08 (M5 part B)
  Every image is composed
 in layers like the hangar map (tools/art/ui_scenes.py): the display and planets posterized to 24
 colours with ordered dither, the lines, markers and labels to 16 of their own, then the sprites
 from assets/ (the Stormhawk, Skitter, Needler, the Brood Carrier's composed poses, chunks and glows,
-backdrop pieces, the portraits) with their own palettes; Rook's craft from vfx_r08's chosen
-round-09 render (no production sprite yet);
+backdrop pieces, the portraits, the Creeper, the orb, the bomb, Rook's production Ember craft) with
+their own palettes; the Act 1 outro's Rook craft from vfx_r08's chosen round-09 render, as approved;
 additive light (the Mantis's beam parts from assets/, its wedge from mantis_beam.py's generator
 code; the carrier's core glow, also on its open sacs) added as the game blends it, its pixels to 32 colours of their own.
 The labels use the concept pixel font (render/raster.py), as the chosen mockup does.
 
-Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23|r25] [--review]   (~10 s; after
+Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23|r25|r30] [--review]   (~10 s; after
 stormhawk.py, vrell_air.py, intel.py, vrell_l03.py, leviathan.py, vrell_l04.py, civilian_crawler.py
 airstrike_bomber.py, l05_hazards.py, mantis.py, mantis_beam.py, coilwyrm.py, l06_darkness.py,
-backdrop_l06.py, brood_carrier.py, brood_carrier_death.py, backdrop_l07.py and portraits.py, whose
-sprites it shows); the review sheet written is the open round's (r25) unless
+backdrop_l06.py, brood_carrier.py, brood_carrier_death.py, backdrop_l07.py, portraits.py, rook.py,
+creeper.py, enemy_bullets.py and weapon_fx.py, whose sprites it shows); the review sheet written is
+the open round's (r30) unless
 a round is named.
 """
 import json
@@ -88,7 +107,8 @@ from render import raster, terrain  # noqa: E402
 SCRIPT = "briefing_images.py"
 SOURCE = artkit.source_note(SCRIPT, "UI batch")
 SOURCE_M4 = artkit.source_note(SCRIPT, "M4 briefing images")
-ROUND = "r25"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23)
+SOURCE_M5 = artkit.source_note(SCRIPT, "M5 part B batch")
+ROUND = "r30"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23, r25)
 OUT = ROOT / "assets" / "ui" / "briefing"
 CONCEPT = DESIGN / "ui" / "briefing" / "concept"
 W, H = 672, 240
@@ -1236,6 +1256,416 @@ def outro_rook():
     return b
 
 
+# --------------------------------------------------------------------------- Act 2 (M5 part B)
+
+def fill(b, points, colour, alpha=1.0):
+    """A polygon filled into the display layer (``b.base``), blended by ``alpha``."""
+    mask = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(mask).polygon([tuple(p) for p in points], fill=255)
+    m = np.array(mask).astype(np.float64)[..., None] / 255 * alpha
+    b.base = b.base * (1 - m) + np.array(colour, float) * m
+
+
+def creeper_lit(frame, zoom):
+    """A Creeper frame with its gland and eye glow added as the game blends it, palettised."""
+    body = np.array(asset(f"creeper_{frame}", zoom)).astype(np.float64)
+    glow = np.array(asset(f"creeper-glow_{frame}", zoom)).astype(np.float64)
+    body[..., :3] = np.clip(body[..., :3] + glow[..., :3], 0, 255)
+    return artkit.quantize_set([Image.fromarray(body.astype(np.uint8))], 48)[0]
+
+
+def rook_craft(zoom=1):
+    """Rook's craft, the production Ember sprite (tools/art/rook.py), level."""
+    return asset("rook_2", zoom)
+
+
+def landfall():
+    """Act 2 p1: the landers coming down at dawn, seen from below the cloud deck over the Gulf of
+    Guinea: dozens of burning trails, the CDF tracking overlay counting them."""
+    b = Board()
+    hy = 196
+    sea = b.yy > hy
+    b.base = np.where(sea[..., None], np.dstack([4 + 0 * b.yy, 12 + 0 * b.yy, 24 + 10 * (b.yy - hy) / 44]), b.base)
+    b.glow(470, hy, 150, (80, 40, 16), 0.9)                       # dawn under the deck, to the east
+    deck = raster.fbm(W, H, 24, 811, octaves=4, period=False)
+    band = np.exp(-((b.yy - 44) / 15) ** 2) * (0.45 + 0.8 * deck)
+    b.base += band[..., None] * np.array([26, 46, 70])
+    for y in range(hy + 6, H - 6, 7):                             # the swell, foreshortened
+        b.dashed([(10, y), (466, y)], CYAN_DIM, 1, 14 + (y - hy), 6 + (y - hy) // 2)
+    b.title("GULF OF GUINEA - 04:00, BELOW THE CLOUD DECK")
+    b.line([(0, hy), (470, hy)], CYAN_DIM, 1, 200)
+    b.dashed([(0, 64), (470, 64)], CYAN_DIM, 1, 3, 5)
+    b.label(12, 68, "CLOUD DECK - 9 KM", CYAN_DIM)
+    b.label(12, hy - 12, "SEA LEVEL", CYAN_DIM)
+    rng = np.random.default_rng(2185)
+    d = np.array([-0.42, 0.91])
+    for k in range(34):
+        hx = rng.uniform(70, 450)
+        hy_ = rng.uniform(78, hy - 8) if k % 3 else rng.uniform(70, 120)
+        head = np.array([hx, hy_])
+        tail = head - d * (hy_ - 50) / d[1]
+        mid = tail + (head - tail) * 0.55
+        b.line([tuple(tail), tuple(mid)], RED, 1, 150)
+        b.line([tuple(mid), tuple(head)], AMBER, 1, 230)
+        b.glow(hx, hy_, 6, (140, 70, 20), 0.9)
+        b.marker(hx, hy_, "dot", WHITE, 1)
+        if k % 5 == 0:
+            b.bracket(hx - 6, hy_ - 6, hx + 6, hy_ + 6, RED, 3)
+            b.label(hx + 9, hy_ - 3, f"T{217 + 13 * k:03d}", RED)
+    px = 494
+    b.line([(px - 14, 26), (px - 14, H - 12)], CYAN_DIM, 1, 90)
+    b.label(px, 30, "CDF TRACKING", WHITE)
+    b.label(px, 44, "TRACKS IN VIEW: 34", AMBER)
+    b.label(px, 56, "TRACKED: 12 DAYS", CYAN)
+    b.label(px, 68, "STOPPED: 0", RED)
+    b.line([(px, 86), (W - 12, 86)], CYAN_DIM, 1, 120)
+    b.label(px, 94, "LANDFALL - 3 ZONES", WHITE)
+    for i, zone in enumerate(("GULF OF GUINEA", "JAVA SEA", "RIVER PLATE")):
+        b.marker(px + 4, 112 + 14 * i, "chevron", RED, 3)
+        b.label(px + 14, 108 + 14 * i, zone, RED if i == 0 else VIOLET)
+    b.label(px, 162, "THROUGH THE CLOUD DECK", CYAN_DIM)
+    b.label(px, 174, "AT 04:00 LOCAL", CYAN_DIM)
+    b.label(W - 10, 9, "THE SECOND FLEET - LANDFALL", RED, right=True)
+    b.label(W - 10, H - 16, "WE COULD NOT STOP ONE", AMBER, right=True)
+    return b
+
+
+# Rough coastlines (lon, lat) for the CDF globe display, enough to read the continents.
+CONTINENTS = [
+    [(-168, 66), (-162, 70), (-140, 70), (-125, 70), (-110, 73), (-95, 72), (-85, 70), (-80, 73), (-65, 62),
+     (-60, 55), (-56, 52), (-66, 45), (-70, 42), (-76, 38), (-76, 35), (-81, 31), (-80, 26), (-82, 25),
+     (-83, 29), (-90, 30), (-97, 27), (-97, 22), (-92, 18), (-87, 21), (-88, 16), (-83, 10), (-78, 8),
+     (-80, 7), (-85, 10), (-92, 14), (-105, 20), (-110, 24), (-112, 29), (-115, 30), (-117, 33), (-121, 35),
+     (-124, 40), (-124, 46), (-128, 51), (-135, 57), (-142, 60), (-152, 59), (-158, 56), (-165, 54),
+     (-162, 59), (-166, 62)],
+    [(-73, 78), (-60, 82), (-30, 83), (-20, 80), (-20, 72), (-25, 68), (-40, 64), (-44, 60), (-50, 62),
+     (-55, 68), (-60, 75)],
+    [(-80, 9), (-75, 11), (-70, 12), (-62, 11), (-55, 6), (-50, 2), (-45, -2), (-38, -5), (-35, -8),
+     (-39, -15), (-41, -22), (-48, -26), (-53, -33), (-57, -35), (-58, -38), (-62, -39), (-65, -42),
+     (-66, -47), (-69, -51), (-68, -55), (-72, -54), (-75, -50), (-74, -42), (-72, -30), (-71, -20),
+     (-76, -14), (-81, -6), (-80, -1), (-78, 2), (-79, 7)],
+    [(-17, 21), (-16, 28), (-10, 32), (-6, 36), (10, 37), (11, 33), (20, 31), (25, 32), (32, 31), (35, 28),
+     (39, 20), (43, 12), (51, 12), (46, 4), (41, -2), (40, -10), (40, -16), (35, -24), (32, -29), (27, -34),
+     (20, -35), (18, -32), (15, -27), (12, -18), (13, -12), (9, -1), (9, 4), (5, 5), (-2, 5), (-8, 4),
+     (-13, 8), (-17, 14)],
+    [(-10, 36), (-9, 43), (-2, 44), (-5, 48), (-1, 49), (5, 53), (8, 57), (5, 62), (10, 64), (16, 69),
+     (25, 71), (40, 68), (45, 68), (60, 69), (70, 73), (80, 73), (100, 77), (115, 74), (130, 72), (140, 72),
+     (160, 70), (170, 70), (180, 68), (180, 65), (177, 62), (163, 60), (160, 55), (156, 51), (155, 57),
+     (150, 59), (140, 54), (140, 48), (135, 43), (130, 42), (127, 38), (126, 35), (121, 40), (117, 39),
+     (122, 37), (119, 32), (122, 30), (118, 24), (110, 21), (108, 16), (109, 12), (105, 9), (102, 13),
+     (100, 13), (98, 8), (103, 1), (100, 3), (98, 10), (97, 17), (92, 22), (88, 22), (80, 15), (77, 8),
+     (73, 17), (70, 22), (66, 25), (57, 25), (56, 27), (50, 30), (48, 29), (51, 25), (56, 24), (59, 22),
+     (52, 16), (43, 13), (39, 20), (35, 28), (36, 36), (30, 36), (27, 38), (26, 41), (23, 40), (22, 37),
+     (20, 40), (16, 38), (13, 41), (13, 45), (19, 42), (12, 46), (9, 44), (3, 43), (-4, 37)],
+    [(-5, 50), (1, 51), (1, 53), (-2, 56), (-3, 59), (-6, 58), (-5, 55), (-3, 54)],
+    [(95, 5), (98, 4), (104, -2), (106, -6), (102, -4), (96, 2)],
+    [(109, 1), (111, 2), (117, 7), (119, 5), (118, 1), (116, -4), (110, -3)],
+    [(105, -6), (110, -7), (114, -7), (114, -8), (106, -7)],
+    [(131, -1), (141, -3), (150, -10), (142, -9), (138, -8), (132, -4)],
+    [(114, -22), (114, -34), (118, -35), (124, -34), (132, -32), (138, -35), (140, -38), (147, -38),
+     (150, -37), (153, -30), (153, -25), (146, -19), (142, -11), (141, -17), (136, -12), (130, -12),
+     (126, -14), (122, -18)],
+    [(130, 31), (135, 34), (140, 36), (142, 40), (141, 45), (140, 41), (136, 36), (131, 34)],
+    [(44, -25), (47, -25), (50, -15), (49, -12), (44, -16)],
+]
+MAP_X, MAP_Y, MAP_K = 30, 26, 1.7      # lon -180..180, lat 80..-45 at 1.7 px a degree
+
+
+def geo(lon, lat):
+    return MAP_X + (lon + 180) * MAP_K, MAP_Y + (80 - lat) * MAP_K
+
+
+def front_lines():
+    """Act 2 p2: the CDF globe display (a flat projection) with the three landing zones glowing and
+    the act's fronts: the cities, the Atlantic sea lanes, the Arctic relay chain."""
+    b = Board()
+    mask = Image.new("L", (W, H), 0)
+    md = ImageDraw.Draw(mask)
+    for poly in CONTINENTS:
+        md.polygon([geo(*p) for p in poly], fill=255)
+    land = np.array(mask) > 0
+    tex = 0.55 + 0.5 * raster.fbm(W, H, 16, 905, octaves=4, period=False)
+    b.base = np.where(land[..., None], raster.ramp(ui_scenes.HOLO, np.clip(tex, 0, 1)), b.base)
+    zones = [(3, 3, "GULF OF GUINEA"), (110, -5, "JAVA SEA"), (-56, -35, "RIVER PLATE")]
+    for lon, lat, _ in zones:
+        b.glow(*geo(lon, lat), 16, (110, 30, 120), 1.1)
+    b.title("CDF GLOBAL DISPLAY - THE FRONTS")
+    for lon in range(-150, 180, 30):
+        b.line([geo(lon, 80), geo(lon, -45)], CYAN_DIM, 1, 50)
+    for lat in (60, 30, 0, -30):
+        b.line([geo(-180, lat), geo(180, lat)], CYAN_DIM, 1, 50 if lat else 90)
+    for poly in CONTINENTS:
+        b.line([geo(*p) for p in poly + poly[:1]], CYAN_DIM, 1, 200)
+    for i, (lon, lat, name) in enumerate(zones):
+        x, y = geo(lon, lat)
+        b.ring(x, y, 6, colour=RED, alpha=230, width=2)
+        b.ring(x, y, 11, colour=VIOLET, alpha=180)
+        b.marker(x, y, "dot", WHITE, 1)
+    b.label(geo(3, 3)[0] - 34, geo(3, 3)[1] + 15, "GULF OF GUINEA", RED)
+    b.label(geo(110, -5)[0] - 20, geo(110, -5)[1] + 15, "JAVA SEA", RED)
+    b.label(geo(-56, -35)[0] + 14, geo(-56, -35)[1] + 2, "RIVER PLATE", RED)
+    lagos = geo(3.4, 6.5)
+    b.marker(*lagos, "diamond", AMBER, 3)
+    b.line([lagos, (lagos[0] - 30, lagos[1] - 6)], AMBER, 1, 200)
+    b.label(lagos[0] - 32, lagos[1] - 10, "NOVA LAGOS", WHITE, right=True)
+    b.label(lagos[0] - 32, lagos[1], "1 THE CITIES", AMBER, right=True)
+    for lon, lat in ((6.1, 46.2), (106.8, -6.2), (-58.4, -34.6)):
+        b.marker(*geo(lon, lat), "diamond", AMBER, 2)
+    b.label(geo(6.1, 46.2)[0] + 8, geo(6.1, 46.2)[1] - 2, "GENEVA CONCORD", AMBER)
+    for path in (((0, 2), (-20, 20), (-35, 38), (-70, 39)), ((0, 2), (-14, 22), (-12, 40), (-6, 47))):
+        b.dashed([geo(*p) for p in path], CYAN, 1, 4, 3)
+    b.label(geo(-62, 25)[0], geo(-62, 25)[1], "2 THE SEA LANES", CYAN)
+    relays = [(-70, 74), (-40, 76), (-10, 75), (20, 76), (50, 75), (80, 76), (110, 75)]
+    b.line([geo(*p) for p in relays], GREEN, 1, 200)
+    for p in relays:
+        b.marker(*geo(*p), "square", GREEN, 2)
+    b.label(geo(120, 75)[0], geo(120, 75)[1] - 4, "3 THE ARCTIC RELAYS", GREEN)
+    b.label(W - 10, 9, "WHERE THE LINE IS BREAKING", AMBER, right=True)
+    b.label(10, H - 16, "LANDING ZONES", RED)
+    return b
+
+
+def person(b, px, py, tall, waving):
+    """A small figure standing at (px, py), head up (looking at the sky), maybe an arm raised."""
+    w = max(1.0, tall * 0.28)
+    r = max(1.0, tall * 0.13)
+    hip, neck = py - tall * 0.38, py - tall * 0.78
+    colour = WHITE + (240,)
+    b.draw.line([(px - w * 0.3, py), (px - w * 0.2, hip)], fill=colour, width=1)
+    b.draw.line([(px + w * 0.3, py), (px + w * 0.2, hip)], fill=colour, width=1)
+    b.draw.rectangle([px - w / 2, neck, px + w / 2, hip], fill=colour)
+    b.draw.ellipse([px - r, neck - 2 * r - 1, px + r, neck - 1], fill=colour)
+    if waving:
+        b.draw.line([(px + w / 2, neck + 1), (px + w / 2 + tall * 0.25, neck - tall * 0.4)], fill=colour, width=1)
+
+
+def over_home():
+    """Act 2 p3: a city street at night from rooftop height, people on the low roofs and the
+    balconies looking up as a Stormhawk passes low over the street."""
+    b = Board()
+    vx, vy, f, cam = 336.0, 118.0, 210.0, 2.2
+
+    def at(x, y, z):
+        return vx + f * x / z, vy - f * (y - cam) / z
+
+    b.glow(vx, vy, 100, (90, 38, 12), 0.9)                       # the city burning far off
+    fill(b, [at(-1.5, 0, 1.0), at(1.5, 0, 1.0), at(1.5, 0, 60), at(-1.5, 0, 60)], (8, 10, 22))
+    rng = np.random.default_rng(3108)
+    blocks = []
+    for side in (-1, 1):
+        z = 2.0 if side < 0 else 1.6
+        low = True                                              # the near ones low, with people
+        while z < 36:
+            depth = rng.uniform(1.4, 2.4) * (1 + z / 10)
+            hgt = rng.uniform(1.1, 1.7) if low else rng.uniform(3.2, 6.5)
+            blocks.append((side, z, z + depth, hgt))
+            low = not low if rng.random() < 0.8 else low
+            z += depth + 0.1
+    people = []
+    for side, z0, z1, hgt in sorted(blocks, key=lambda blk: -blk[1]):   # far ones first
+        x = side * 1.6
+        face = [at(x, 0, z0), at(x, 0, z1), at(x, hgt, z1), at(x, hgt, z0)]
+        fill(b, face, (26, 36, 74) if side < 0 else (18, 26, 58))
+        top = [at(x, hgt, z0), at(x, hgt, z1), at(x + side * 4, hgt, z1), at(x + side * 4, hgt, z0)]
+        if hgt < cam:                                             # a low roof, seen from above
+            fill(b, top, (34, 46, 86))
+            if z0 < 12:
+                for _ in range(int(rng.integers(3, 7))):
+                    people.append((x + side * rng.uniform(0.15, 2.2), hgt, rng.uniform(z0 + 0.2, z1 - 0.2), True))
+        rows = int(hgt / 0.5)
+        for fl in range(rows):
+            yf = 0.25 + fl * 0.5
+            for c in range(int((z1 - z0) / 0.45)):
+                zc = z0 + 0.2 + c * 0.45
+                if rng.random() > 0.32:
+                    continue
+                wx, wy = at(x, yf, zc)
+                size = max(1, int(round(f * 0.07 / zc)))
+                col = AMBER if rng.random() < 0.75 else CYAN
+                b.draw.rectangle([wx, wy - size, wx + size - 1, wy], fill=col + (210,))
+            if hgt > cam and 0 < fl < rows - 1 and fl % 2 == 0 and z0 < 7 and rng.random() < 0.5:
+                b.line([at(x, yf - 0.2, z0 + 0.2), at(x, yf - 0.2, z0 + 1.0)], GREY, 1, 230)   # a balcony
+                people.append((x, yf - 0.2, z0 + 0.6, False))
+        b.line([at(x, hgt, z0), at(x, hgt, z1)], CYAN, 1, 220)
+        b.line([at(x, 0, z0), at(x, hgt, z0)], CYAN_DIM, 1, 160)
+    for x, y, z, waving in sorted(people, key=lambda p: -p[2]):
+        person(b, *at(x, y, z), max(5.0, f * 0.36 / z), waving and rng.random() < 0.45)
+    for z in np.arange(1.6, 30, 1.8):                              # street lamps and the lane marks
+        for side in (-1, 1):
+            b.glow(*at(side * 1.3, 0.8, z), max(1.5, 22 / z), (130, 86, 30), 0.8)
+        b.line([at(0, 0, z), at(0, 0, z + 0.7)], CYAN_DIM, 1, 140)
+    b.title("NOVA LAGOS - A STREET, ROOFTOP HEIGHT")
+    sx, sy = 400, 52
+    b.glow(sx, sy + 26, 12, (40, 90, 140), 0.8)
+    b.sprite(asset("ship_2", 2), sx, sy)
+    b.label(sx + 52, sy - 14, "LANCER - LOW PASS", CYAN)
+    b.label(sx + 52, sy - 4, "60 M OVER THE ROOFS", CYAN_DIM)
+    b.label(10, 30, "PEOPLE ON THE ROOFS", WHITE)
+    b.label(10, 40, "LOOKING UP", WHITE)
+    b.label(10, 50, "WATCHING THE SKY", AMBER)
+    b.label(W - 10, 9, "OVER HOME NOW", CYAN_DIM, right=True)
+    b.label(W - 10, H - 16, "FLY ACCORDINGLY", AMBER, right=True)
+    return b
+
+
+def scramble():
+    """Act 2 p4: Aegis Wing's Stormhawks and Rook's Ember on a coastal CDF airbase at dusk,
+    canopies closing, Nova Lagos burning on the horizon."""
+    b = Board()
+    b.glow(W + 20, 110, 170, (100, 44, 16), 1.0)                  # dusk and the fires to the east
+    coast = 70 + 14 * np.sin(b.yy / 23) + 6 * np.sin(b.yy / 9)
+    b.base = np.where((b.xx < coast)[..., None], b.base * 0.55 + np.array([2, 8, 22]), b.base)
+    b.title("CDF COASTAL AIRBASE - DUSK")
+    b.line([(coast[y, 0], y) for y in range(20, H, 4)], CYAN_DIM, 1, 200)
+    b.label(12, H - 16, "GULF OF GUINEA", CYAN_DIM)
+    ry = 206
+    b.draw.rectangle([120, ry - 9, 560, ry + 9], outline=CYAN_DIM + (220,))
+    b.dashed([(130, ry), (550, ry)], CYAN_DIM, 1, 8, 6)
+    b.label(124, ry - 22, "RUNWAY", CYAN_DIM)
+    pads = [("LANCER", "ship_2", CYAN), ("ROOK", "rook", AMBER), ("AEGIS TWO", "ship_2", GREY),
+            ("AEGIS 3", "ship_2", GREY), ("AEGIS 4", "ship_2", GREY)]
+    for i, (name, kind, colour) in enumerate(pads):
+        x, y = 170 + 76 * i, 112
+        b.draw.rectangle([x - 28, y - 30, x + 28, y + 30], outline=CYAN_DIM + (180,))
+        b.sprite(rook_craft() if kind == "rook" else asset("ship_2"), x, y)
+        b.label(x - 26, y + 36, name, colour)
+        b.label(x - 26, y + 46, "CANOPY", GREEN if i < 2 else CYAN_DIM)
+        b.dashed([(x, y + 30), (x, ry - 10)], CYAN_DIM, 1, 3, 3)
+        if i < 2:
+            b.bracket(x - 30, y - 32, x + 30, y + 32, colour, 5)
+    b.label(130, 50, "AEGIS WING - SCRAMBLE", WHITE)
+    b.label(130, 60, "CANOPIES CLOSING", GREEN)
+    cx, cy = 628, 100
+    for k, (dx, dy) in enumerate(((-18, -10), (-6, 6), (8, -16), (14, 12), (-14, 18), (2, -2))):
+        b.draw.rectangle([cx + dx - 4, cy + dy - 4, cx + dx + 4, cy + dy + 4], outline=GREY + (200,))
+        if k % 2 == 0:
+            b.glow(cx + dx, cy + dy, 9, (150, 60, 14), 0.9)
+            b.marker(cx + dx, cy + dy, "dot", RED, 1)
+    b.label(W - 10, 140, "NOVA LAGOS", RED, right=True)
+    b.label(W - 10, 150, "BURNING - 40 KM", AMBER, right=True)
+    b.arrow(566, ry, 610, 126, CYAN)
+    b.label(W - 10, 9, "WE CAN STOP THEM STAYING", AMBER, right=True)
+    return b
+
+
+def nova_lagos():
+    """L08 p1: the night route over Nova Lagos: in over the harbour, along the elevated highways,
+    through the tower district to the Third Mainland highway; the Ikoyi shelters at its far end,
+    the walkers heading for them; Lancer and Rook."""
+    b = Board()
+    lagoon = (b.yy > 150 + 30 * np.sin(b.xx / 90)) & (b.xx > 430)
+    sea = b.yy > 196 - 0.12 * b.xx
+    water = lagoon | sea
+    b.base = np.where(water[..., None], b.base * 0.5 + np.array([2, 8, 24]), b.base)
+    rng = np.random.default_rng(808)
+    for _ in range(170):                                          # the city's lights
+        x, y = rng.uniform(20, 650), rng.uniform(22, 220)
+        if not water[int(y), int(x)]:
+            b.glow(x, y, rng.uniform(2, 5), (90, 70, 30), 0.5)
+    for x, y in ((450, 120), (500, 96), (560, 120)):
+        b.glow(x, y, 26, (60, 50, 50), 0.7)                       # smoke over the district
+    b.title("NOVA LAGOS - TONIGHT'S ROUTE")
+    b.label(14, H - 16, "GULF OF GUINEA", CYAN_DIM)
+    b.label(520, H - 16, "LAGOS LAGOON", CYAN_DIM)
+    for x in (40, 70, 100):                                       # the harbour piers and cranes
+        b.draw.rectangle([x, 178 - 0.12 * x, x + 10, 214 - 0.12 * x], outline=CYAN_DIM + (220,))
+        b.line([(x + 5, 182 - 0.12 * x), (x + 5, 168 - 0.12 * x), (x + 12, 168 - 0.12 * x)], CYAN, 1, 220)
+    b.label(18, 152, "HARBOUR", CYAN)
+    hw = [(110, 150), (170, 128), (240, 132), (290, 112)]
+    for off in (-3, 3):
+        b.line([(x, y + off) for x, y in hw], CYAN_DIM, 1, 220)
+    b.label(170, 140, "ELEVATED HIGHWAYS", CYAN_DIM)
+    for x, y, s in ((300, 70, 14), (322, 96, 10), (346, 66, 18), (370, 100, 12), (330, 124, 9), (392, 74, 11),
+                    (304, 100, 8), (360, 130, 8)):
+        b.draw.rectangle([x - s, y - s, x + s, y + s], outline=CYAN + (220,))
+        b.draw.rectangle([x - s + 3, y - s + 3, x + s - 3, y + s - 3], outline=CYAN_DIM + (160,))
+    b.label(300, 30, "TOWER DISTRICT", CYAN)
+    b.label(452, 72, "SMOKE", GREY)
+    tm = [(420, 130), (470, 150), (540, 170), (600, 160), (630, 130)]
+    for off in (-3, 3):
+        b.line([(x, y + off) for x, y in tm], CYAN, 1, 230)
+    b.label(450, 184, "THIRD MAINLAND HIGHWAY", CYAN)
+    sx, sy = 636, 108
+    b.draw.rectangle([sx - 18, sy - 12, sx + 18, sy + 12], outline=AMBER + (240,))
+    b.marker(sx, sy, "diamond", AMBER, 4)
+    b.label(W - 10, 76, "IKOYI SHELTERS", AMBER, right=True)
+    b.label(W - 10, 86, "CIVILIANS", GREEN, right=True)
+    route = [(60, 200), (110, 150), (170, 128), (240, 132), (290, 112), (350, 112), (420, 130), (470, 150),
+             (540, 170), (600, 160), (618, 128)]
+    b.dashed(route[:-1], AMBER, 2, 7, 4)
+    b.arrow(*route[-2], *route[-1], AMBER, dashed=False)
+    for x, y in ((250, 108), (380, 150), (420, 104), (500, 132), (560, 146)):
+        b.marker(x, y, "chevron", RED, 4)
+        b.arrow(x + 7, y - 2, x + 27, y - 2, RED, size=3)
+    b.label(250, 210, "WALKERS - HEADING FOR THE SHELTERS", RED)
+    b.sprite(asset("ship_2"), 40, 92)
+    b.sprite(rook_craft(), 76, 104)
+    b.label(14, 58, "LANCER", CYAN)
+    b.label(66, 124, "ROOK", AMBER)
+    b.label(W - 10, 9, "FIRST SORTIE WITH ROOK", AMBER, right=True)
+    b.label(W - 10, 22, "NIGHT - FLY LOW", CYAN_DIM, right=True)
+    return b
+
+
+def creeper_walker_scan():
+    """L08 p2: Varga's scan of the Creeper: on a low roof, its five-way fan aimed at the ship; a
+    convoy's fans 0.5 s apart; anything that hits the ground hurts it twice as hard."""
+    b = Board()
+    b.title("SENSOR SCAN - CREEPER")
+    cx, cy = 196, 104
+    b.glow(cx, cy, 70, (10, 40, 50), 0.6)
+    b.draw.rectangle([cx - 80, cy - 44, cx + 80, cy + 44], outline=GREY + (200,))
+    b.label(cx + 20, cy + 48, "LOW ROOF", GREY)
+    creeper = creeper_lit(4 * 6, 2)                               # heading 4: walks to the left
+    b.sprite(creeper, cx, cy)
+    gland = np.array([cx - 46, cy + 1.0])
+    ship = np.array([84.0, 190])
+    b.sprite(asset("ship_2"), *ship)
+    aim = np.arctan2(*(ship - gland)[::-1])
+    orb = asset("orb_0")
+    for k in range(5):
+        a = aim + np.radians(-25 + 12.5 * k)
+        u = np.array([np.cos(a), np.sin(a)])
+        b.dashed([tuple(gland + u * 8), tuple(gland + u * 92)], VIOLET, 1, 3, 3)
+        b.sprite(orb, *(gland + u * 66))
+    b.label(cx - 150, 26, "CREEPER", WHITE)
+    b.label(cx - 150, 36, "CRAWLS THE STREETS", CYAN_DIM)
+    b.label(cx - 150, 46, "AND THE LOW ROOFS", CYAN_DIM)
+    b.label(cx - 20, 168, "5-WAY FAN, AIMED AT YOU", VIOLET)
+    b.label(cx - 20, 178, "EVERY 3 SECONDS", VIOLET)
+    b.line([(cx - 40, cy - 12), (cx - 10, 50)], AMBER, 1, 200)
+    b.label(cx - 14, 40, "FAN GLAND", AMBER)
+    bx, by = 330, 40
+    b.draw.rectangle([bx - 4, by - 6, bx + 114, by + 26], outline=GREEN + (240,))
+    b.sprite(asset("bomb-rack-shot"), bx + 8, by + 10)
+    b.label(bx + 18, by - 1, "ANTI-GROUND", GREEN)
+    b.label(bx + 18, by + 9, "DAMAGE X2", GREEN)
+    b.arrow(bx - 6, by + 18, cx + 64, cy - 18, GREEN)
+    sy = 150
+    b.line([(400, sy - 16), (W - 8, sy - 16)], CYAN_DIM, 1, 120)
+    b.line([(400, sy + 16), (W - 8, sy + 16)], CYAN_DIM, 1, 120)
+    b.label(404, sy + 20, "STREET", CYAN_DIM)
+    small = asset(f"creeper_{4 * 6}")
+    ship2 = np.array([448.0, 214])
+    b.sprite(asset("ship_2"), *ship2)
+    for i, x in enumerate((486, 554, 622)):
+        b.sprite(small, x, sy)
+        g = np.array([x - 23, sy + 1.0])
+        aim = np.arctan2(*(ship2 - g)[::-1])
+        r = (1.0 - 0.5 * i) * 40 + 10                         # the first volley furthest out
+        for k in range(5):
+            a = aim + np.radians(-25 + 12.5 * k)
+            u = np.array([np.cos(a), np.sin(a)])
+            b.line([tuple(g + u * 5), tuple(g + u * (r - 3))], VIOLET, 1, 110)
+            b.marker(*(g + u * r), "dot", VIOLET, 2)
+        b.label(x - 20, sy - 30, f"T+{0.5 * i:.1f} S", AMBER)
+    b.label(404, 92, "CONVOY: FANS 0.5 S APART", WHITE)
+    b.label(404, 102, "FRONT TO BACK", CYAN_DIM)
+    b.label(W - 10, 9, "GROUND LAYER", CYAN_DIM, right=True)
+    b.label(10, H - 16, "EVERY ONE YOU STOP NEVER REACHES THE SHELTERS", AMBER)
+    return b
+
+
 IMAGES = {
     "act-1-tether-gate": tether_gate,
     "act-1-outer-stations": outer_stations,
@@ -1260,6 +1690,12 @@ IMAGES = {
     "act-1-outro-daedalus-rim": outro_daedalus,
     "act-1-outro-second-fleet": outro_second_fleet,
     "act-1-outro-rook": outro_rook,
+    "act-2-landfall": landfall,
+    "act-2-front-lines": front_lines,
+    "act-2-over-home": over_home,
+    "act-2-scramble": scramble,
+    "level-08-nova-lagos": nova_lagos,
+    "level-08-walker-scan": creeper_walker_scan,
 }
 
 # Review sheets per batch: round, the images on it, the batch name.
@@ -1268,14 +1704,15 @@ BATCHES = {
     "r20": (list(IMAGES)[9:13], "M4 BRIEFING IMAGES"),
     "r21": (list(IMAGES)[13:15], "M4 PART E"),
     "r23": (list(IMAGES)[15:17], "M4 PART F"),
-    "r25": (list(IMAGES)[17:], "M4 PART G"),
+    "r25": (list(IMAGES)[17:23], "M4 PART G"),
+    "r30": (list(IMAGES)[23:], "M5 PART B"),
 }
 
 
 def build(names):
     OUT.mkdir(parents=True, exist_ok=True)
     for name in names:
-        source = SOURCE if name in BATCHES["r13"][0] else SOURCE_M4
+        source = SOURCE if name in BATCHES["r13"][0] else SOURCE_M5 if name in BATCHES["r30"][0] else SOURCE_M4
         artkit.save_png(IMAGES[name]().image(), OUT / f"{name}.png", source)
     print(f"{len(names)} briefing images in {OUT.relative_to(ROOT)}")
 

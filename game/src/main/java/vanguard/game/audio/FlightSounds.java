@@ -7,6 +7,7 @@ import vanguard.game.level.LowArmour;
 import vanguard.game.render.BulletLooks;
 import vanguard.game.render.EnemyLooks;
 import vanguard.game.render.LevelRenderer;
+import vanguard.game.render.TriggerBreak;
 import vanguard.sim.Armament;
 import vanguard.sim.Defences;
 import vanguard.sim.PickupType;
@@ -124,6 +125,8 @@ public final class FlightSounds {
     private static final double LARGE_GROUND_AREA = 1000;
     /** Which ground objects of the script are large, from the first {@link #watch}; null before. */
     private boolean[] largeGround;
+    /** Which ground objects of the script are triggers that break as they are spent ({@link TriggerBreak}); null before. */
+    private boolean[] breakingTrigger;
     /** Whether each set piece's death is huge: an act boss, or a set piece that is no boss. */
     private boolean[] hugeDeath;
     /** Whether each set piece's death is an act boss's tail-to-head chain. */
@@ -348,13 +351,15 @@ public final class FlightSounds {
                             pitch(0.05),
                             pan);
                 case GROUND_HIT -> bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, pitch(0.05), pan);
-                // A ground target's blast with its crumble (round 08): a structure's collapse or a
-                // small target's rubble burst, under the blast.
-                case GROUND_DESTROYED -> {
-                    bank.play(alternate(Sfx.EXPLOSION_SMALL_C, Sfx.EXPLOSION_SMALL_A), EXPLOSIONS, pitch(0.04), pan);
+                // A destroyed ground target: its blast with its crumble.
+                case GROUND_DESTROYED -> groundBreak(events.value(i), pan);
+                // A trigger whose spent frame is a wreck (Level 08's billboard topples) breaks the
+                // same way (TriggerBreak); the others are spent without a sound of their own.
+                case TRIGGER_SPENT -> {
                     int index = events.value(i);
-                    boolean large = largeGround != null && index < largeGround.length && largeGround[index];
-                    bank.play(large ? Sfx.CRUMBLE_LARGE : Sfx.CRUMBLE_SMALL, 0.7f * EXPLOSIONS, pitch(0.05), pan);
+                    if (breakingTrigger != null && index < breakingTrigger.length && breakingTrigger[index]) {
+                        groundBreak(index, pan);
+                    }
                 }
                 case MINE_DROPPED ->
                     bank.play(alternate(Sfx.HIT_ORGANIC_A, Sfx.HIT_ORGANIC_B), ENEMY_FIRE, 0.6f * pitch(0.05), pan);
@@ -513,6 +518,16 @@ public final class FlightSounds {
     }
 
     /**
+     * A ground target's blast with its crumble (round 08): a structure's collapse or a small
+     * target's rubble burst, under the blast.
+     */
+    private void groundBreak(int index, float pan) {
+        bank.play(alternate(Sfx.EXPLOSION_SMALL_C, Sfx.EXPLOSION_SMALL_A), EXPLOSIONS, pitch(0.04), pan);
+        boolean large = largeGround != null && index < largeGround.length && largeGround[index];
+        bank.play(large ? Sfx.CRUMBLE_LARGE : Sfx.CRUMBLE_SMALL, 0.7f * EXPLOSIONS, pitch(0.05), pan);
+    }
+
+    /**
      * Once a simulation step, after {@link #play}: the sounds that follow a state rather than an
      * event. A boss with its own sounds (round 25, the Brood Carrier): its sacs opening (one sound
      * for the sacs that open together) and shutting with their windows, a sac shot off bursting (not
@@ -525,9 +540,11 @@ public final class FlightSounds {
         if (largeGround == null) {
             var objects = sortie.script().groundObjects();
             largeGround = new boolean[objects.size()];
+            breakingTrigger = new boolean[objects.size()];
             for (int g = 0; g < largeGround.length; g++) {
                 var size = objects.get(g).size();
                 largeGround[g] = size.width() * size.height() >= LARGE_GROUND_AREA;
+                breakingTrigger[g] = TriggerBreak.breaks(objects.get(g));
             }
             hugeDeath = new boolean[sortie.setPieceCount()];
             finale = new boolean[sortie.setPieceCount()];

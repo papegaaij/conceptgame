@@ -67,7 +67,7 @@ title|VOICES
 text|Spoken by the Chatterbox text-to-speech engine (Resemble AI, MIT licence) in voices cloned from LibriVox recordings
 gap|
 role|READ BY (PUBLIC DOMAIN AND CC0)
-text|Adrian Praetzellis, Alex Foster, Betsie Bush, Cori Samuel, Gord Mackenzie, Kara Shallenberg, Karen Savage, Kristin Hughes, Mark F. Smith, Mark Nelson, Rick Rodstrom, Ruth Golding, Tadhg Hynes
+text|Adrian Praetzellis, Alex Foster, Betsie Bush, Cori Samuel, Faith Abiola-Ellison, Gord Mackenzie, Kara Shallenberg, Karen Savage, Kristin Hughes, Mark F. Smith, Mark Nelson, Rick Rodstrom, Ruth Golding, Tadhg Hynes
 gap|
 title|FONTS
 item|“DejaVu Sans Mono Bold” by DejaVu fonts team, after Bitstream Vera (Bitstream)

@@ -152,7 +152,10 @@ public final class LevelRenderer {
     private final Map<String, Array<AtlasRegion>> groundLooks = new HashMap<>();
     /** The looks of the triggers drawn with frames of their own instead of the beacon or trigger light. */
     private final Set<String> triggerLooks = new HashSet<>();
-    /** A trigger look's {@code -glow} frame (the terminal's LEDs), drawn after the light pass until it is spent. */
+    /**
+     * A trigger look's {@code -glow} frames (the terminal's LEDs; the billboard's neon flicker, a loop
+     * by {@link GroundGlow}), drawn after the light pass until it is spent.
+     */
     private final Map<String, Array<AtlasRegion>> groundGlows = new HashMap<>();
     /**
      * A trigger look's {@code -glint} frames (the survey cache's markers), drawn after the light
@@ -580,8 +583,9 @@ public final class LevelRenderer {
 
     /**
      * After the light pass, at full brightness: the triggers' glow frames (the data core terminal's
-     * LEDs) until they are spent, and their markers' glint (the survey cache's) only while the
-     * headlight or a flare lights them, so the secret stays dark until found.
+     * LEDs, the billboard's flicker looping by {@link GroundGlow}) until they are spent, and their
+     * markers' glint (the survey cache's) only while the headlight or a flare lights them, so the
+     * secret stays dark until found.
      */
     private void drawGroundGlows(SpriteBatch batch, Sortie sortie, float alpha) {
         if (groundGlows.isEmpty() && groundGlints.isEmpty()) {
@@ -595,7 +599,9 @@ public final class LevelRenderer {
             }
             Array<AtlasRegion> glow = groundGlows.get(object.spec().look());
             if (glow != null) {
-                drawCentred(batch, glow.first(), object.renderX(), object.renderY(alpha));
+                int frame = GroundGlow.frame(
+                        sortie.tick(), glow.size, groundLooks.get(object.spec().look()).size, object.damaged());
+                drawCentred(batch, glow.get(frame), object.renderX(), object.renderY(alpha));
             }
             Array<AtlasRegion> glint = groundGlints.get(object.spec().look());
             if (glint != null && sortie.lit(object)) {

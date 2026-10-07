@@ -1,0 +1,15 @@
+# Act 2 – Homefront: its levels and the act intro (title card and act briefing), rendered into
+# README.md (Act intro and outro). The act-end outro after Level 14 follows with M5 part H.
+# Schema: ../../tech/architecture/README.md#data-file-schemas
+levels: [8, 14]
+
+title_card:  # over a still of Nova Lagos at night from low orbit, fires along the coast, the landing trails through the cloud deck
+  act: ACT II
+  name: HOMEFRONT
+  line: Earth · May 2185
+
+briefing:  # Commander Okafor, full screen; one page per paragraph, each with its image (tools/art/briefing_images.py); user decision D3 of M5 part B
+  - {speaker: Okafor, expression: grim, image: act-2-landfall, line: "Twelve days. That is how long we watched the second fleet come in. We tracked every ship of it, and we could not stop one. At four o'clock this morning it came down through the cloud deck in three places: the Gulf of Guinea, the Java Sea and the River Plate."}
+  - {speaker: Okafor, image: act-2-front-lines, line: "The landers came down on the cities. The army holds the streets where it can; the sky is ours to hold. Aegis Wing goes where the line is breaking: the cities first, then the sea lanes, then the Arctic relays that tie the planetary defence grid together."}
+  - {speaker: Okafor, image: act-2-over-home, line: "Until now you fought over shipyards and craters, in vacuum. From today you fly over home: over streets you know, and over people who will be watching the sky for you. Fly accordingly."}
+  - {speaker: Okafor, expression: fierce, image: act-2-scramble, line: "We could not stop them landing. We can stop them staying. Mission briefing follows. Aegis Actual out."}

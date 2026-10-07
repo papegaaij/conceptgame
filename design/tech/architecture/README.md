@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Architecture
@@ -247,6 +247,16 @@ first entry of a part's model list is the starter (price 0, `start`).
   group (a group with parts destroyed releases its share rounded up, an empty group nothing),
   `speed`, `arc` (°) and `glide` (s); a part in a window group takes damage only while its group
   is open.
+  M5 part B, for the [Creeper](../../enemies/ground/creeper/README.md) (flown in Level 08): a
+  walker's `fan` with `aim: target` (the default) is aimed at the player, as a flyer's, and with
+  `aim: facing` along its facing (the Scuttler; `down` is rejected for a walker); a walker's fan's
+  `stagger` (s, positive; only a walker's fan has one): the units of one wave share a volley clock
+  that starts as the first of them comes onto the screen, the first volley half an interval later
+  and then one every interval, unit *i* (from 0, in entry order) firing *i* × `stagger` after the
+  volley's start, a unit off the screen skipping its turn (a wave whose last unit's turn would
+  reach the next volley is rejected when the level is built); and the difficulty hook `attacks`
+  with an `interval` on any named attack, an ordinary unit's included: authored, so the fire-rate
+  lever does not apply on top.
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`, optional
@@ -292,8 +302,13 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   a trigger's `hits`, `reveals` (triggers revealing the same secret reveal it together, when the
   last of them is spent) and optional `sprite` (its own frames instead of the beacon or the level's
   trigger light: `<sprite>_0..2` intact, hit, spent, or `_0..1` intact, spent; an optional
-  `<sprite>-glow` drawn after the darkness's light pass until it is spent, and `<sprite>-glint_<n>`
-  drawn after it only while it is lit; Level 06's survey cache and terminal)); `secrets` (`name`, hidden `crate` credits, `radio` line; or a
+  `<sprite>-glow` drawn after the darkness's light pass until it is spent (one frame: a still
+  light; `<sprite>-glow_0..n`: a loop at 8 fps, `GroundGlow.FRAMES_PER_SECOND`, irregular flicker
+  steps baked into the frames; with a hit frame an even loop splits in halves, the first until the
+  first hit, the second after it: Level 08's billboard), and `<sprite>-glint_<n>`
+  drawn after it only while it is lit; Level 06's survey cache and terminal; a look whose spent
+  frame is a wreck, `TriggerBreak`'s billboard, breaks like a destructible on the hit that spends
+  it, `SimEvents.Type.TRIGGER_SPENT`: the small explosion, blast and crumble)); `secrets` (`name`, hidden `crate` credits, `radio` line; or a
   `data_core` with the shop item it `unlocks` and `crate: 0`: it drops the data core pickup, its
   line plays when it is collected, and a won level records the core and its unlock); a dark
   level's `darkness` (`headlight`: `from` s, `length` px, an `easy` length, `angle` °; `flare`:
@@ -306,7 +321,10 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   `t` or `event` `first-kill` or `enemy-escaped` (with `enemy`; a set piece escapes at the end of
   its last pass) / `group-cleared` / `group-lost` (with `group`) / `first-group-lost` /
   `secondary-objective` / `level-end` / `first-ally-hit` / `first-ally-lost` (a convoy's first hit
-  and first loss; `{ally}` in the line becomes the unit's number word, "Three") / `boss-phase`
+  and first loss; `{ally}` in the line becomes the unit's number word, "Three") / (M5 part B)
+  `escort-first-kill` (no `enemy`: the first kill whose killing shot or blast is the
+  escort's, `wingmanMount`, while he flies; never after he ejects; once per attempt, the flag in
+  the state hash and the boss checkpoint; without an escort flying it never plays) / `boss-phase`
   (with `phase`, the phase's name) / `boss-destroyed` (the level's boss; planned (part G): the
   loader gave such a cue an empty subject while the simulation cues the boss's slug, so it never
   played, Level 05's "Frigate down" included; part G fixes it) / `mission-failed`
@@ -317,7 +335,9 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   G): `requires: homing` (a weapon with homing delivery fitted) and `requires_not` (`special` or
   `homing`: plays only without it), and a `boss-phase` cue's `timeout: true` (it plays only when
   the phase before ended on its timeout with parts it waited for alive);
-  `speaker`, `line`,
+  `speaker`, `line` (M5 part B: `{side}` in it becomes `left` or `right`, the escort's side: the
+  save's, or `--escort`'s `side=`, left when he does not fly; such a line is voiced once per side
+  and the subtitle shows the side's text),
   `distorted`, the portrait's optional `expression` (`neutral`, `grim`, `fierce`; neutral if not
   given; a secret's `radio` line takes it too), `shout: true` (the voice shouts the line, with the
   speaker table's `shout` row; separate from how the line queues), and `easy` / `hard` changes
@@ -345,7 +365,9 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   than the ally's headings, ±30° for the crawler); `music`
   (`track`, `start_section`, optional `start_db` (the theme's level through its start section,
   rising to full at the next), `full_section`, optional `stems` (section: `base` or `full`,
-  overriding it), `ambience`, `end_jingle`, optional `boss_sting` (`miniboss-sting`: track 21 over
+  overriding it), `ambience` (the setting's loop by its key in the
+  [sfx](../../audio/sfx/README.md#ambience-per-setting) *Ambience* table: `earth-orbit`, `luna`,
+  `earth-megacity`), `end_jingle`, optional `boss_sting` (`miniboss-sting`: track 21 over
   a 0.5 s crossfade when the boss arrives, the theme returning after it), optional `ambience_from`
   (the level time from which only the ambience plays: the theme fades out as at a won level) and
   `voice_loop` (`speaker`, `section`, `db`: that speaker's first timed radio line loops at `db`
@@ -406,6 +428,42 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   screen) and motion budget (at most 2 strongly animated elements: animated or moving pieces,
   drifting tile sets, the atmosphere's banks counting as one; nothing moving faster than 120 px/s,
   about 2 px per frame, on its own).
+  **Tower pieces** for the perspective towers of the
+  [art direction](../../art-direction/README.md#parallax-layer-model) (user decision D1 of M5
+  part B: scenery only): a `ground` piece with a `tower` block is drawn in true perspective
+  instead of flat. Its `size` is the footprint on the ground; its image `<id>.png` is the roof
+  seen from above **at its drawn size**, the footprint × *k* rounded to whole pixels (62 × 64 at
+  *h* 1.35: 80 × 83), so it is never resampled at run time. `tower` has `height` (*h* in camera
+  units, 0 < *h* ≤ 1.5: the roof is drawn at scale *k* = 6 ÷ (6 − *h*) round the projection
+  centre, the play field's (240, 297) counted from its top left, so 1.35 gives 1.29 and 1.5 gives
+  1.33), `wall` (the id of a wall texture `assets/backdrop/level-NN/<wall>.png` in kebab-case,
+  not a piece's or tile set's id; its columns run along a wall as seen from outside, left to
+  right, and repeat every texture width along a long wall; its rows run from the foot, the
+  image's bottom row, up to the roof's edge, window rows included, stretched over the wall in
+  true perspective: a row at height *z* is drawn at 6 ÷ (6 − *z*), so the storeys grow a little
+  towards the roof; several towers may share one) and optional `shade` (0..1, the brightness of
+  the walls facing right and down, away from the key light, default 0.5; the walls facing up and
+  left are drawn as the texture). Each frame the renderer (`TowerProjection`) draws a tower's
+  visible walls (the sides that face the projection centre: the roof leans out past them) and
+  then its roof at its projected place on whole pixels, towers in order of height (lowest first,
+  then in placement order), after the ground layer's tiles and flat pieces and before the ground
+  objects and units, so a tower never hides a unit, a ground target or a bullet; it marks the
+  shadow stencil with the rest of the ground, so flyers' shadows fall on walls and roofs at the
+  ground offset. A wall is drawn as textured quads, cells of at most 16 px along it and bands up
+  it that widen by at most a tenth (about 1 000 quads with 30 towers on screen, 0.1–0.4 ms of
+  CPU a frame, one or two draw calls). Placed as other pieces (`t`, `x` of the footprint's
+  centre); no `mirror` (the roof and walls are lit from the upper left: a mirrored roof is a
+  piece of its own, as for every lit piece), `path` or `overhead`. Nothing the simulation knows
+  stands on a tower: ground targets, walker paths and crates stay on streets and low structures
+  drawn flat. `content` checks a tower's `height`, `shade` and `wall` id, that it is a ground
+  piece with one image, neither mirrored nor overhead, and that its roof's own speed, (*k* − 1) ×
+  the scroll, stays inside the motion budget while it is on screen (a tower is on screen while
+  its footprint or its roof is); a tower is not one of the budget's animated elements and counts
+  towards the density rule only with `mid_size`. A placed piece may also carry a **`repeat`**
+  (`count` placements in all, at least 2, each `every` s after the one before, its `path` shifted
+  in time with it; a stream of traffic): the renderer and the checks see every copy, a copy's
+  problem is reported as `placed[i] (repeat n)`, and the *Backdrop* table lists the stream once
+  with "×count every s".
 - **Ship and core parts**: ship (`acceleration_seconds`, `stop_seconds`, `precision_factor`,
   `size`, `edge_gap`, `hull` (hit boxes `[x, y, width, height]` from the sprite's top left), `collection_radius`, `mercy_seconds`, `bank_change_steps`,
   `mounts`: `front`, `wings`, `roots` (the side guns' muzzles), `rear`, `engines`; its speed is the fitted engine's); shields (`break_seconds`, `models` with
@@ -983,3 +1041,32 @@ Screenshot tests are left out until there is a need.
   and `VoiceLines.radioVoice` (a line's rendered file, else its stage sound) serves `Voices` and
   RadioTimelineTest alike. The Choir's is concept round 29's option a, provisionally, copied by
   `:pipeline:copyPlaceholderStageSounds`; option b since the round closed (2026-10-06).
+- 2026-10-06: M5 part B (user decisions D1 and D4, and the gap defaults): the schema text gains,
+  as planned (M5 part B) until built, the **tower pieces** of the backdrop (a `ground` piece's
+  `tower` block: `height`, `wall`, `shade`; drawn per frame round the projection centre, never
+  under a unit; scenery only, D1 = a), the radio event **`escort-first-kill`** and **`{side}`** in
+  a radio line (D4 = a), the ambience key `earth-megacity`, and for the Creeper a walker's aimed
+  fan, the fan's **`stagger`** and an authored hook `interval` on an ordinary attack. The
+  `stagger` key is not in the Creeper's data yet: the loader rejects unknown keys, so the
+  Creeper's README holds it as a proposal until the walker code reads it. The tower block is a
+  proposal for the renderer task to settle with this text.
+- 2026-10-06: M5 part B built the Creeper's walker schema (a walker fan's `aim`, the fan's
+  `stagger`, the authored hook `interval` on an ordinary attack; `stagger` is now in the Creeper's
+  data), the radio event `escort-first-kill`, `{side}` in a radio line and the ambience key
+  `earth-megacity`; their schema text is no longer marked planned (the tower pieces are the
+  renderer task's).
+- 2026-10-06: M5 part B built the **tower pieces** (D1 = a), settling the proposal: the roof's
+  image is drawn at its scale (footprint × *k*, never resampled), not at the footprint's size; no
+  `mirror` on a tower (symmetry rule: the roof and the walls' shading are lit from the upper
+  left); wall rows follow the true perspective up the wall; the projection centre is (240, 297)
+  from the top left, y 243 in the play field's y-up coordinates; a tower is on screen for the
+  checks while its footprint or its roof is. The optional **`repeat`** helper of a placed piece
+  (M3, traffic streams) came with it. `BackdropData.Tower`, `BackdropCheck`, `TowerProjection`;
+  tests `BackdropDataTest`, `TowerProjectionTest`.
+- 2026-10-07: M5 part B: the billboard's topple (Level 08) takes the default, a destructible's
+  break. The hit that spends any ground trigger raises `TRIGGER_SPENT` (its script index; events
+  are not hashed, so the replay hashes stay); `LevelScreen` and `FlightSounds` break only a
+  trigger `TriggerBreak` names (a spent frame that is a wreck: the billboard): the small explosion
+  on the ground, the small blast and its size's crumble (large at 72×40). Level 06's survey cache
+  (shot open) and terminal (core released), the beacon, the lifeboat lights and the sled's clamp
+  stay quiet. Tests `TriggerSpentTest`, `TriggerBreakTest`, `TriggerBreakSoundsTest`.

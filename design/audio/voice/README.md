@@ -4,7 +4,7 @@ design: draft
 implementation: done
 art: chosen
 depends-on: [.., ../../story/characters, ../../ui/hud, ../../ui/options, ../../tech/architecture]
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Voice
@@ -47,7 +47,9 @@ header of `tools/concept/audio/tts_r18.py`; the production renderer reuses it.
    page of the levels' and acts' briefings (not the hangar teaser); `./gradlew
    :pipeline:voiceLines` writes it with the keys and settings to
    `pipeline/build/voice/lines.json` for the renderer. A line with `{ally}` expands to one line
-   per convoy unit (One–Five in Level 04). The text as spoken drops the `*` of italics and reads
+   per convoy unit (One–Five in Level 04); a line with `{side}` (M5 part B) expands to two, `left`
+   and `right`, and the game shows and plays the one of Rook's side
+   ([wingmen](../../player/wingmen/README.md#scripted-lines-about-him-user-decision-d4-of-m5-part-b)). The text as spoken drops the `*` of italics and reads
    a dash as a comma. A
    line that is only a stage direction in square brackets (the Choir's `[the Choir sings]` in
    Act 1) is not spoken and is not in the list: it shows as text and plays its speaker's **stage
@@ -118,6 +120,9 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
 | Convoy | Adrian Praetzellis | `refs/ref-convoy.wav` |
 | Hammer Lead | Gord Mackenzie | `refs/ref-hammer-lead.wav` |
 | Driver Control | Alex Foster | `refs/ref-driver-control.wav` |
+| Perimeter beacon | Mark F. Smith | `refs/ref-perimeter-beacon.wav` |
+| Lifeboat Seven | Tadhg Hynes | `refs/ref-lifeboat-seven.wav` |
+| Civilian (shelter nine) | Faith Abiola-Ellison | `refs/ref-civilian.wav` |
 
 - **Generic speakers** get readers from the same sources, never a main-cast reader, auditioned in
   [round 19](../../concept-rounds/round-19/README.md). One voice per role, so a role keeps its
@@ -135,6 +140,14 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
   Level 07 adds **Lifeboat Seven** (a drifting CDF lifeboat's crew, one line at t=22), cast in
   [round 25](../../concept-rounds/round-25/README.md) (Tadhg Hynes, a), at the neutral settings
   through radio filter b, as auditioned.
+  Level 08 adds the **Ikoyi shelter civilian** (speaker `Civilian`, "shelter nine": a civilian in
+  a Nova Lagos shelter calling for help, two lines, the call and the secondary objective's thanks;
+  the radio portrait `radio-generic-civilian`), auditioned in concept round 30 (user decision D6 a
+  of M5 part B): her two real lines with two candidate readers (a, b) from the same CC0 and
+  public-domain sources, never a main-cast reader, through radio filter b at the neutral settings
+  (`tools/concept/audio/tts_r30.py`), and cast in that round: Faith Abiola-Ellison (b, a woman's
+  voice, clip pitch 151 Hz), at the neutral settings through radio filter b, as auditioned; her
+  two lines are voiced (both takes pinned in the speaker table).
 
 ### Speakers and expression
 
@@ -241,6 +254,15 @@ level).
 - [x] `content` test: every radio cue has its voice file; CI runs no TTS
 - [x] [Options](../../ui/options/README.md) and [HUD](../../ui/hud/README.md) documents updated
       for the voice
+- [x] `{side}` in a line: two lines (`left`, `right`) in the line list, the game playing the one of
+      Rook's side (M5 part B; `VoiceLines.SIDE`, `RadioSchedule.line`)
+- [x] The Ikoyi shelter civilian: reference clips for the round-30 audition under `refs/` and in
+      CREDITS.md, the chosen reader in the speaker table (M5 part B; b, Faith Abiola-Ellison,
+      `refs/ref-civilian.wav`)
+- [x] Level 08's lines (radio, the `{side}` takes, the secret, the briefing pages) and the Act 2
+      act briefing rendered and reviewed in concept round 30; the civilian's after her casting
+      (M5 part B; rendered 2026-10-06, 19 lines, three takes pinned; the civilian's two lines
+      rendered 2026-10-07, both takes pinned; accepted as rendered when round 30 closed)
 - [x] A line that is only a stage direction plays its speaker's `stage` sound (speaker table) on
       the voice bus, found by `VoiceLines.radioVoice` for the game and RadioTimelineTest; the
       Choir's is round 29's option b (the sung "ah" F3 to E3), copied by
@@ -279,6 +301,18 @@ in [concept/prompts.md](concept/prompts.md), the clips in [refs](refs/README.md)
 | [concept/voice-choir-sings-r29-b.ogg](concept/voice-choir-sings-r29-b.ogg) | The Choir sings (round 29): sung sting, "ah" falling F3 to E3 in the Choir's voice, layered (`tools/concept/audio/choir_r29.py`) | chosen |
 | [concept/rejected/voice-choir-sings-r29-c.ogg](concept/rejected/voice-choir-sings-r29-c.ogg) | The Choir sings (round 29): synthesized choir pad, "oo" chord E3 B3 E4 B4 (`tools/concept/audio/choir_r29.py`) | rejected |
 | [concept/rejected/voice-choir-sings-r29-d.ogg](concept/rejected/voice-choir-sings-r29-d.ogg) | The Choir sings (round 29): synthesized choir pad, the motif's F4 to E4 over an "oo" pad (`tools/concept/audio/choir_r29.py`) | rejected |
+
+Concept [round 30](../../concept-rounds/round-30/README.md) (M5 part B) — casting the Ikoyi
+shelter civilian of Level 08: her two lines (the t=113 call and the secondary objective's thanks,
+1 s apart) with two candidate reference voices (`-a`, `-b`), rendered by Chatterbox at the neutral
+settings through radio filter b (`tools/concept/audio/tts_r30.py`; the clips
+`refs/ref-civilian-r30-a.wav` and `-b.wav`). Closed 2026-10-07: **b** chosen (its clip renamed
+`refs/ref-civilian.wav`); a in `concept/rejected/`, its clip deleted.
+
+| File | What | Status |
+|---|---|---|
+| [concept/rejected/voice-civilian-r30-a.ogg](concept/rejected/voice-civilian-r30-a.ogg) | The Ikoyi shelter civilian (round 30 audition), reader KirksVoice (`tools/concept/audio/tts_r30.py`) | rejected |
+| [concept/voice-civilian-r30-b.ogg](concept/voice-civilian-r30-b.ogg) | The Ikoyi shelter civilian (round 30 audition), reader Faith Abiola-Ellison (`tools/concept/audio/tts_r30.py`) | chosen |
 
 Concept [round 29](../../concept-rounds/round-29/README.md) — the sound of the Choir's stage
 direction `[the Choir sings]`: a wordless sung sting in the Choir's voice (a, b) or a synthesized
@@ -417,3 +451,49 @@ a, c and d in `concept/rejected/`.
   `stage`, copied into `assets/voice/choir/` by `:pipeline:copyPlaceholderStageSounds`). Rejected:
   a (the held "ooh" on E3) and the synthesized pads c ("oo" chord) and d (the motif over a pad),
   moved to `concept/rejected/` (`choir_r29.py`'s `CHOSEN`).
+- 2026-10-06: M5 part B (user decisions D4 = a and D6 = a): Level 08's radio is voiced like Act 1's
+  (its "text only" note is reversed in the level's document); a line with **`{side}`** expands to a
+  `left` and a `right` line, played by Rook's side; the **Ikoyi shelter civilian** ("shelter nine",
+  two lines) is auditioned a/b in concept round 30 and plays as text until cast. The document goes
+  back to `in-progress` for part B's renders.
+- 2026-10-06: Round 30's civilian audition rendered (`tts_r30.py`): a KirksVoice (African Myths,
+  clip pitch 111 Hz), b Faith Abiola-Ellison (Yoruba-speaking Peoples, 151 Hz, near Okafor's 150 Hz),
+  both LibriVox public domain (Public Domain Mark 1.0), both lines 1 s apart, neutral, radio filter
+  b, −16 LUFS; reference clips and Whisper transcripts in `refs/` and CREDITS.md. Measured only.
+- 2026-10-06: M5 part B: `{side}` is built: `VoiceLines` lists a `{side}` line once per side
+  (`left`, `right`), and the level screen shows and plays the take of Rook's side setting (left
+  when he does not fly).
+- 2026-10-06: M5 part B (step B9): Level 08's lines and the Act 2 act briefing rendered by
+  `tools/art/voice.py`'s pipeline (only the act's missing lines, nothing deleted), 19 lines: the
+  act briefing's four pages and Level 08's two briefing pages (dry), its ten radio lines with
+  Rook's t=8.5 side line once per side, his `escort-first-kill` line, and the billboard secret
+  (Okafor 10, Varga 4, Rook 5). The Civilian's two lines stay text (uncast until round 30 casts
+  her); the Choir's `[the Choir sings]` plays its stage sound; the hangar teaser is not voiced.
+  Every take passed the length check, one chunk on its second seed (page 1's "Aegis Actual out.").
+  Whisper (base.en) read each take back, dry and through the filter; three Okafor takes were
+  re-rolled and pinned in the speaker table, each the first of four seeds that reads back word for
+  word both ways: act page 3 (the key's seed said "you've fought"), Level 08's t=1 line ("contact
+  inbound") and the level-end line ("arcologies" heard as "all colleges" through the filter). Level
+  08's briefing page 1 (32.2 s) keeps the key's seeds: "Bring each other home" reads back only
+  with a name prompt, as with all four other seeds tried, and "Ikoyi" and "Vrell" need the prompt
+  too. VoiceFilesTest now checks Level 08 and the Act 2 briefing, with the Civilian allowed uncast
+  while her audition is open (`AUDITIONING`); RadioTimelineTest no longer exempts Level 08 and
+  plays an uncast speaker's line as text in any level. With the real lengths no voiced timed line
+  of Level 08 starts more than a second late. For the user's ear in concept round 30.
+- 2026-10-07: Level 08's two briefing pages, shortened to fit one screen each, re-rendered by
+  `tools/art/voice.py` (only those two lines; their old files deleted as unused): Okafor 20.0 s,
+  Varga 12.7 s, both on the key's seed with no retry. Whisper (base.en) reads them back word for
+  word but for "the streets in low roofs" for "and" and "Everyone" for "Every one" (with a name
+  prompt: Lancer, Rook, Vrell and Ikoyi spelt right).
+- 2026-10-07: Round 30's civilian audition re-rendered (`tts_r30.py`, same clips, settings and
+  seeds) with the t=113 line's current wording "Shelter nine, Ikoyi! Walkers on the roofs, heading
+  our way!" (the first renders read the earlier call): a 10.76 s, b 10.84 s, −16 LUFS. Whisper
+  (base.en) reads a back word for word and b with "Sheltonine" for "shelter nine". Measured only.
+- 2026-10-07: Concept round 30 closed (user): the Ikoyi shelter civilian is **b**, Faith
+  Abiola-Ellison (a woman's voice, clip pitch 151 Hz), at the neutral settings through radio filter
+  b, as auditioned; her clip is `refs/ref-civilian.wav` and her two lines are voiced (the t=113
+  call pinned on seed 86689958, read back word for word as "Shelter 9, Ikoyi, …"; the secondary's
+  thanks on seed 179901323), so `AUDITIONING` is empty again. KirksVoice (a) rejected: his audition
+  moved to `concept/rejected/`, his clip deleted with its CREDITS.md row. The 19 lines of Level 08
+  and the Act 2 act briefing accepted as rendered, the three pinned Okafor takes included; none to
+  re-render. Every item is ticked, so the implementation is `done` again.

@@ -24,7 +24,8 @@ import vanguard.content.WingmenData;
 
 /**
  * The spoken lines (design/audio/voice, Offline pipeline): every radio cue of every level (with its
- * easy and hard variants and one line per convoy unit for {@code {ally}}), the secrets' lines, the
+ * easy and hard variants, one line per convoy unit for {@code {ally}} and one per escort side for
+ * {@code {side}}), the secrets' lines, the
  * specials' calls, the low-armour line (source {@code armour}), Rook's radio barks (source
  * {@code wingmen barks <trigger>}) and every page of the levels' and acts' briefings and of the acts' outros (spoken
  * dry, as briefings), each with the key its rendered file is named by. The renderer (tools/art/voice.py, through {@code :pipeline:voiceLines}) and
@@ -33,6 +34,15 @@ import vanguard.content.WingmenData;
 public final class VoiceLines {
     /** The placeholder in a convoy line that names the unit it is about ("Crawler {ally} is hit!"). */
     public static final String ALLY = "{ally}";
+
+    /**
+     * M5 part B: the placeholder in a line that names the escort's side, {@code left} or {@code right}
+     * ("Lancer, I'm on your {side}"; design/player/wingmen, Scripted lines about him).
+     */
+    public static final String SIDE = "{side}";
+
+    /** The words {@link #SIDE} becomes: one voiced line each. */
+    public static final List<String> SIDES = List.of("left", "right");
 
     /** The placeholder in a line that names the ground-target group it is about ("{group} is behind you"). */
     public static final String GROUP = "{group}";
@@ -107,6 +117,11 @@ public final class VoiceLines {
             return line;
         }
         return line.replace(ALLY, unit < NUMBERS.length ? NUMBERS[unit] : Integer.toString(unit + 1));
+    }
+
+    /** A cue's line with {@link #SIDE} as the escort's side ({@code left} or {@code right}). */
+    public static String sideLine(String line, String side) {
+        return line.replace(SIDE, side);
     }
 
     /** A cue's line with {@link #GROUP} as the group's name; unchanged without a group. */
@@ -287,7 +302,15 @@ public final class VoiceLines {
                     + cue.t()
                             .map(t -> "t=" + t)
                             .orElseGet(() -> cue.event().orElseThrow().toString());
+            List<String> sided = new ArrayList<>();
             for (String text : texts) {
+                if (text.contains(SIDE)) {
+                    SIDES.forEach(side -> sided.add(sideLine(text, side)));
+                } else {
+                    sided.add(text);
+                }
+            }
+            for (String text : sided) {
                 if (text.contains(GROUP)) {
                     for (String group : level.objectives().groups()) {
                         add(

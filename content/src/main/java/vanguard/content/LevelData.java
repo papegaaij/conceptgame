@@ -971,6 +971,13 @@ public record LevelData(
         /** The first convoy unit lost; the line may name it as {@code {ally}}. */
         @JsonProperty("first-ally-lost")
         FIRST_ALLY_LOST,
+        /**
+         * M5 part B (design/player/wingmen, Scripted lines about him): the first kill in the attempt
+         * whose killing shot or blast is the escort's (Rook's), while he flies; never after he ejects,
+         * nor in a level he does not fly in. Names no enemy.
+         */
+        @JsonProperty("escort-first-kill")
+        ESCORT_FIRST_KILL,
         /** The primary objective failed: the line on the mission failed screen (not on the radio). */
         @JsonProperty("mission-failed")
         MISSION_FAILED,

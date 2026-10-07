@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Production music: the title, hangar and briefing themes (UI batch part U3, round 13), the Act 1
-boss and act-end music (M4 part G, round 25) and the Act 1 level themes with their base stems, the
-three jingles and the mini-boss sting (M4 part H, round 26).
+boss and act-end music (M4 part G, round 25), the Act 1 level themes with their base stems, the
+three jingles and the mini-boss sting (M4 part H, round 26) and the first Act 2 level theme with its
+base stem (M5 part B, round 30).
 
 Outputs:
   assets/music/title-theme.ogg     "Terran Vanguard", full length (chosen: title-theme-full-r08-a)
@@ -18,6 +19,8 @@ Outputs:
   assets/music/mission-complete.ogg  #23, played once (chosen: mission-complete-r08-a)
   assets/music/mission-failed.ogg  #25, played once (chosen: mission-failed-r08-a)
   assets/music/game-over.ogg       #26, played once (chosen: game-over-r08-a)
+  assets/music/homefront.ogg       #6 "Homefront", full length (chosen: homefront-full-r08-a)
+  assets/music/homefront-base.ogg  its base stem (music_r30.py; straight to production, no concept file)
   design/audio/music/concept/themes-final-r13-a.png      review sheet of round 13
   design/audio/music/concept/boss-music-final-r25-a.png  review sheet of round 25
   design/audio/music/concept/{choir-descends,boss-warning,act-complete}-final-r25-a.ogg
@@ -30,11 +33,16 @@ Outputs:
   design/audio/music/concept/<asset>-final-r26-a.ogg     the eight round-26 files (byte copies)
   design/audio/music/concept/<theme or stem>-seam-final-r26-a.ogg
                                    tracks 4 and 5 and their base stems across the loop seam
+  design/audio/music/concept/music-final-r30-a.png       review sheet of round 30
+  design/audio/music/concept/homefront{,-base}-final-r30-a.ogg
+                                   the two round-30 files (byte copies)
+  design/audio/music/concept/homefront{,-base}-seam-final-r30-a.ogg
+                                   track 6 and its base stem across the loop seam
 
 Each piece is rendered by the frozen concept generator that made the chosen file
 (tools/concept/audio/music_r08.py: ``render_loop`` for the themes, ``render_sting`` for the
-one-shot cues; music_r15.py / music_r11.py for the base stems, which fail unless their full mix
-is the chosen full mix byte for byte; same composition, seeds, mix EQ and master), which already
+one-shot cues; music_r15.py / music_r11.py / music_r30.py for the base stems, which fail unless
+their full mix is the chosen full mix byte for byte; same composition, seeds, mix EQ and master), which already
 used the final settings of the production plan: OGG Vorbis q6, -14 LUFS integrated; a theme as
 intro + loop + 2-bar fade tail with sample-exact ``LOOPSTART`` / ``LOOPLENGTH`` comments, a cue as
 one take with a short fade. The encoded stream is then remuxed (packets copied, nothing re-encoded) with a ``SOURCE``
@@ -58,15 +66,19 @@ at Tracks.BOSS_WARNING_BARS_SECONDS read from the Java source): the hand-off is 
 three bars at 150 BPM to the sample, track 18 starts on its own downbeat at sample 0, the warning's
 tail under it stays far below it, the summed 16-bit stream never clips, and the loudness step from
 the warning's last bar into the boss track's first stays within HANDOFF_STEP. It also reports
-whether the decoded audio is identical to the chosen concept file (if not, how far it differs).
+whether the decoded audio is identical to the chosen concept file (if not, how far it differs); a
+piece rendered straight to production (the "Homefront" base stem, round 30: its generator proves its
+full mix is the chosen one) has no concept file to compare with.
 
 Usage: python3 tools/art/themes.py [title] [hangar] [briefing] [boss] [warning] [actcomplete]
                                    [afterburner] [afterburner-base] [coalition] [coalition-base]
-                                   [miniboss] [complete] [failed] [gameover]
+                                   [miniboss] [complete] [failed] [gameover] [homefront]
+                                   [homefront-base]
                                                        render (default all), then check and review
        python3 tools/art/themes.py --check [keys]      check only (default all)
        python3 tools/art/themes.py --review [keys]     review sheets (and r25/r26 aids) of the keys' rounds
-Run time ~4 min for the three round-13 themes, ~2 min for the round-25 pieces, ~5 min for round 26.
+Run time ~4 min for the three round-13 themes, ~2 min for the round-25 pieces, ~5 min for round 26,
+~6 min for round 30.
 """
 import importlib
 import re
@@ -111,6 +123,8 @@ ROUNDS = {
          artkit.source_note(SCRIPT, "M4 part G")),
     26: ("music-final-r26-a.png", "LEVEL THEMES, STEMS, JINGLES AND STING (FINAL)",
          "PRODUCTION ART, M4 PART H - R26", artkit.source_note(SCRIPT, "M4 part H")),
+    30: ("music-final-r30-a.png", "HOMEFRONT AND ITS BASE STEM (FINAL)", "PRODUCTION ART, M5 PART B - R30",
+         artkit.source_note(SCRIPT, "M5 part B")),
 }
 # key: (asset name, music_r08 key, title shown on the sheet, round); loops first, then one-shots
 THEMES = {
@@ -120,6 +134,7 @@ THEMES = {
     "boss": ("choir-descends", "choir", "THE CHOIR DESCENDS - TRACK 18, VRELL BOSS THEME", 25),
     "afterburner": ("afterburner", "afterburner", "AFTERBURNER - TRACK 4, ACT 1 A", 26),
     "coalition": ("coalition-rising", "coalition", "COALITION RISING - TRACK 5, ACT 1 B", 26),
+    "homefront": ("homefront", "homefront", "HOMEFRONT - TRACK 6, ACT 2 A", 30),
 }
 # key: (asset name, key of its full mix in THEMES, title, round, stem generator, chosen file)
 STEMS = {
@@ -127,6 +142,9 @@ STEMS = {
                          "music_r15", "afterburner-base-r15-a"),
     "coalition-base": ("coalition-rising-base", "coalition", "COALITION RISING - TRACK 5, BASE STEM", 26,
                        "music_r11", "coalition-rising-base-r11-a"),
+    # no concept round: music_r30 writes homefront-base-r30-a.ogg only into the temporary render directory
+    "homefront-base": ("homefront-base", "homefront", "HOMEFRONT - TRACK 6, BASE STEM", 30,
+                       "music_r30", "homefront-base-r30-a"),
 }
 CUES = {
     "warning": ("boss-warning", "warning", "RED ALERT - TRACK 22, BOSS WARNING", 25),
@@ -354,9 +372,11 @@ def check(keys):
     failed = False
     for key in keys:
         m = measure(asset_file(key))
-        chosen = decode(concept_file(key))
-        same = chosen.shape == m["audio"].shape and np.array_equal(chosen, m["audio"])
-        if same:
+        chosen = decode(concept_file(key)) if concept_file(key).exists() else None
+        same = chosen is not None and chosen.shape == m["audio"].shape and np.array_equal(chosen, m["audio"])
+        if chosen is None:
+            relation = "no concept file (rendered straight to production)"
+        elif same:
             relation = f"audio identical to {concept_file(key).name}"
         elif chosen.shape == m["audio"].shape:
             rms = lambda x: 20 * np.log10(np.sqrt((x ** 2).mean()) + 1e-12)  # noqa: E731
@@ -560,7 +580,7 @@ def review(round_no):
               "AMBER: LOOPSTART / LOOP END")
     if round_no == 25:
         legend += "   GREEN: ONE-SHOT CUE   PURPLE: TRACK 18 UNDER THE CUE   AMBER ON A CUE: THE HAND-OFF"
-    elif round_no > 25:
+    elif any(v[3] == round_no for v in CUES.values()):
         legend += "   GREEN: ONE-SHOT CUE"
     raster.draw_text(img, 20, y - 14, legend, raster.LABEL_DIM)
     path = CONCEPT / file

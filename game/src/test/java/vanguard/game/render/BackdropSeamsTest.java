@@ -30,10 +30,14 @@ import vanguard.sim.SimStep;
  * tile's height). Over open space (a level with a deep layer, Level 07's L1 point) every tile set
  * repeats without a line too, the translucent banks and streaks included, Level 07's set pieces keep
  * clear of their image borders on every layer, and nothing but the deep layer is on screen in the
- * boss arena, where an early kill makes the clock (and the scroll) jump to the arena's end.
+ * boss arena, where an early kill makes the clock (and the scroll) jump to the arena's end. Level 08's
+ * city has a deep layer under the harbour's water, but its ground covers the screen elsewhere, so
+ * there too the ground runs on where a section's tile set changes (under a cross highway), and its
+ * set pieces keep clear of their image borders as Level 07's do.
  */
 class BackdropSeamsTest {
     private static final String LEVEL_07 = "act-1-first-contact/level-07-brood-carrier";
+    private static final String LEVEL_08 = "act-2-homefront/level-08-neon-skyline";
     private static final Path BACKDROP = Path.of(System.getProperty("vanguard.assetsDir", "../assets"), "backdrop");
     private static final BackdropLayer[] TERRAIN = {BackdropLayer.GROUND, BackdropLayer.FAR};
     /** How much more the rows around the wrap may change than the rows around them (the old line: 3.2 to 3.7). */
@@ -132,13 +136,52 @@ class BackdropSeamsTest {
 
     @Test
     void levelSevensSetPiecesShowNoEdgeOnAnyLayer() throws IOException {
-        LevelData level = ContentLoader.fromClasspath().level(LEVEL_07);
-        String folder = Backdrop.folder(LEVEL_07, level);
-        assumeTrue(folder.equals("level-07/"), "Level 07 still takes another level's backdrop images");
+        assertEquals(
+                List.of(), cutPieces(LEVEL_07, "level-07/"), "pieces cut at an image border that crosses the screen");
+    }
+
+    @Test
+    void levelEightsSetPiecesShowNoEdgeOnAnyLayer() throws IOException {
+        assertEquals(
+                List.of(), cutPieces(LEVEL_08, "level-08/"), "pieces cut at an image border that crosses the screen");
+    }
+
+    @Test
+    void levelEightsGroundRunsOnWhereItsTileSetChanges() throws IOException {
+        LevelData level = ContentLoader.fromClasspath().level(LEVEL_08);
+        Path folder = BACKDROP.resolve(Backdrop.folder(LEVEL_08, level));
+        assumeTrue(folder.endsWith("level-08"), "Level 08 still takes another level's backdrop images");
+        List<String> seams = new ArrayList<>();
+        for (int s = 1; s < level.sections().size(); s++) {
+            String below = tileOn(level, s - 1, BackdropLayer.GROUND);
+            String above = tileOn(level, s, BackdropLayer.GROUND);
+            if (below == null || above == null || below.equals(above)) {
+                continue;
+            }
+            long seam = Math.round(level.seam(BackdropLayer.GROUND, s));
+            double share = differing(
+                    composite(level, BackdropLayer.GROUND, folder, below, seam - 2, seam + 2),
+                    composite(level, BackdropLayer.GROUND, folder, above, seam - 2, seam + 2));
+            if (share > 0.002) {
+                seams.add(String.format(
+                        Locale.ROOT, "%s -> %s at %d: %.1f %% of the pixels", below, above, seam, share * 100));
+            }
+        }
+        assertEquals(List.of(), seams, "ground tile set changes that no piece covers");
+    }
+
+    /** A level's flat set pieces (towers aside: a roof lies over its own walls) cut at an image border on screen. */
+    private List<String> cutPieces(String key, String own) throws IOException {
+        LevelData level = ContentLoader.fromClasspath().level(key);
+        String folder = Backdrop.folder(key, level);
+        assumeTrue(folder.equals(own), key + " still takes another level's backdrop images");
         BackdropData backdrop = level.backdrop();
         List<String> cut = new ArrayList<>();
-        for (BackdropData.PlacedPiece placed : backdrop.placed()) {
+        for (BackdropData.PlacedPiece placed : backdrop.placements()) {
             BackdropData.Piece spec = backdrop.pieces().get(placed.piece());
+            if (spec.isTower()) {
+                continue;
+            }
             int count = spec.imageCount();
             double minDx = 0;
             double maxDx = 0;
@@ -168,7 +211,7 @@ class BackdropSeamsTest {
                 }
             }
         }
-        assertEquals(List.of(), cut, "pieces cut at an image border that crosses the screen");
+        return cut;
     }
 
     @Test
@@ -187,7 +230,7 @@ class BackdropSeamsTest {
                 }
                 double start = level.sectionStart(s);
                 double end = level.sections().get(s).end();
-                for (BackdropData.PlacedPiece placed : backdrop.placed()) {
+                for (BackdropData.PlacedPiece placed : backdrop.placements()) {
                     BackdropData.Piece spec = backdrop.pieces().get(placed.piece());
                     if (spec.layer() == BackdropLayer.DEEP) {
                         continue;
@@ -345,9 +388,9 @@ class BackdropSeamsTest {
             }
         }
         BackdropData backdrop = level.backdrop();
-        for (BackdropData.PlacedPiece placed : backdrop.placed()) {
+        for (BackdropData.PlacedPiece placed : backdrop.placements()) {
             BackdropData.Piece spec = backdrop.pieces().get(placed.piece());
-            if (spec.layer() != layer || placed.path().isPresent()) {
+            if (spec.layer() != layer || placed.path().isPresent() || spec.isTower()) {
                 continue;
             }
             BufferedImage piece =

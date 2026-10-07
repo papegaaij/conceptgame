@@ -23,8 +23,9 @@ import vanguard.sim.PlayField;
 import vanguard.sim.SimStep;
 
 /**
- * Every level's backdrop finds its images in assets/backdrop, at the sizes its data file gives, and
- * on the layers that cover the screen no set piece shows an edge until the debrief.
+ * Every level's backdrop finds its images in assets/backdrop, at the sizes its data file gives (a
+ * tower's roof at its scale, and its wall texture), and on the layers that cover the screen no set
+ * piece shows an edge until the debrief.
  */
 class BackdropAssetsTest {
     private static final Path BACKDROP = Path.of(System.getProperty("vanguard.assetsDir", "../assets"), "backdrop");
@@ -44,12 +45,17 @@ class BackdropAssetsTest {
             }
             for (Map.Entry<String, BackdropData.Piece> piece : backdrop.pieces().entrySet()) {
                 BackdropData.Piece spec = piece.getValue();
-                int width = (int) spec.size().width();
-                int height = (int) spec.size().height();
+                // A tower's image is its roof as drawn: the footprint at the roof's scale.
+                int width = spec.imageWidth();
+                int height = spec.imageHeight();
                 int count = spec.imageCount();
                 for (int i = 0; i < count; i++) {
                     String file = count == 1 ? piece.getKey() : piece.getKey() + "_" + i;
                     assertSize(folder.resolve(file + ".png"), width, height);
+                }
+                if (spec.tower().isPresent()) {
+                    Path wall = folder.resolve(spec.tower().get().wall() + ".png");
+                    assertTrue(Files.isRegularFile(wall), wall + " exists (" + piece.getKey() + "'s wall)");
                 }
             }
         }
@@ -67,9 +73,10 @@ class BackdropAssetsTest {
             LevelData level = entry.getValue();
             BackdropData backdrop = level.backdrop();
             Path folder = BACKDROP.resolve(Backdrop.folder(entry.getKey(), entry.getValue()));
-            for (BackdropData.PlacedPiece placed : backdrop.placed()) {
+            for (BackdropData.PlacedPiece placed : backdrop.placements()) {
                 BackdropData.Piece spec = backdrop.pieces().get(placed.piece());
-                if (spec.layer() == backdrop.base()) {
+                // A tower's roof lies over its own walls, not over the tiles.
+                if (spec.layer() == backdrop.base() && !spec.isTower()) {
                     for (BufferedImage image : images(folder, placed.piece(), spec)) {
                         assertNoEdgeOnScreen(level, placed, spec, image);
                     }

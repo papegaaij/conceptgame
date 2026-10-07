@@ -14,7 +14,9 @@ import com.badlogic.gdx.utils.Disposable;
  * where the ground layer lies under it: the ground's tiles and pieces mark the stencil buffer while
  * they are drawn ({@link #beginGround}), and the shadows draw only on marked pixels, so they fall
  * on stations, wrecks and terrain but never on open space (Levels 03 and 07) or the far layer seen
- * through gaps. Each pixel is shadowed once (drawing clears its mark), so overlapping flyers do not
+ * through gaps. A perspective tower's walls and roof are ground too ({@link TowerProjection}, drawn
+ * with the ground's pieces): a flyer's shadow falls on them at the ground's offset (the art
+ * direction's rule for scenery towers), not nearer for a roof. Each pixel is shadowed once (drawing clears its mark), so overlapping flyers do not
  * stack into a darker blot. Cost: one stencil clear per frame and one extra draw per flyer.
  */
 public final class Shadows implements Disposable {

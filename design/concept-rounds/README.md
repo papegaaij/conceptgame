@@ -3,7 +3,7 @@ title: Concept rounds
 design: review
 implementation: n/a
 art: chosen
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Concept rounds
@@ -48,6 +48,7 @@ they belong to; a round only collects them.
 | [round-27](round-27/README.md) | Round 26's open sound questions: save-done sound b and Coilwyrm chain-cut tear a chosen, the Vrell screech's cue approved as built | approved | n/a | chosen |
 | [round-28](round-28/README.md) | M5 part A, the Act 2 systems: Rook's sprites, AI, escort UI, HUD box and 27 voiced barks, the Act 2 weapons' finals, Targeting computer and Salvage scanner, mine arming beep and secret glint (a/b), tile abbreviations, act HP factor, part A decisions | approved | n/a | chosen |
 | [round-29](round-29/README.md) | The Choir sings: a sound for the Choir's stage direction, the sung "ah" F3 → E3 (b) chosen over the held "ooh" (a) and the synthesized choir pads (c, d) | approved | n/a | chosen |
+| [round-30](round-30/README.md) | M5 part B, Level 08 and the Act 2 intro: the Creeper, the megacity backdrop and perspective towers, the Act 2 still and briefing images, Rook's briefing portraits, Homefront final and base stem, billboard a, traffic a and civilian voice b, captures, voiced lines, texts, part B numbers and decisions | approved | n/a | chosen |
 
 ## Design
 
@@ -97,3 +98,4 @@ How a round works:
 | 27 | 2026-10-06 | closed | Round 26's open sound questions: save-done sound and Coilwyrm chain-cut tear (a/b concepts), the Vrell screech wired as large units enter |
 | 28 | 2026-10-06 | closed | M5 part A: the Act 2 systems (final art review of Rook and the Act 2 weapons, AI, escort UI and barks, Targeting computer and Salvage scanner approved, mine beep a and secret glint a, part A numbers and decisions) |
 | 29 | 2026-10-06 | closed | The Choir sings: a sound for `[the Choir sings]`, sung sting (a, b) or synthesized choir pad (c, d); b chosen |
+| 30 | 2026-10-07 | closed | M5 part B: Level 08 and the Act 2 intro (final art review, billboard a, traffic a and civilian voice b, captures, voiced lines, texts approved, part B numbers and decisions, the one-screen page rule and the teaser's role labels kept) |

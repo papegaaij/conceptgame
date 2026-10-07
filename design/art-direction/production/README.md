@@ -4,7 +4,7 @@ design: draft
 implementation: done
 art: n/a
 depends-on: [.., ../../tech/roadmap, ../../tech/architecture, ../../audio/music, ../../audio/sfx]
-updated: 2026-10-05
+updated: 2026-10-07
 ---
 
 # Production art plan
@@ -84,7 +84,9 @@ are textures of their own in `assets/ui/` (about 3 MiB loaded, the scene always,
 hangar), outside the atlas budget. With the portraits (`assets/sprites/portraits/`) and the intel
 pictures (`assets/sprites/intel/`): 1 page of 2048×1024 (8 MiB of 32); the briefing images are
 textures of their own in `assets/ui/briefing/` (0.6 MiB each, loaded by the briefing that shows them). The Leviathan's frames (Level 03,
-with the death chunks): about 1.88 M px, about 7.2 MiB of its 16 MiB one-page budget.
+with the death chunks): about 1.88 M px, about 7.2 MiB of its 16 MiB one-page budget. In M5 part B
+(2026-10-07) the shared atlas is 1 page of 2048² (75 % full, 16 MiB of 32), no longer 2048×1024;
+Level 08's unit atlas 1 page of 2048×1024 (52 %), the level at 3 of 6 pages.
 
 **Sounds**: a final OGG carries a `SOURCE` Vorbis comment; `importPlaceholders`
 (`PlaceholderSounds`) keeps every sound in `assets/sfx/` that has one.
@@ -152,7 +154,8 @@ Game captures of the production batches that span several parts; prompts:
 - [x] M4 part F (Level 06, M4 part F batch): the Mantis (`tools/art/mantis.py`) and its beam b (`tools/art/mantis_beam.py`), the Coilwyrm at 48 headings (`tools/art/coilwyrm.py`), the darkness's glow frames, flare shell and light shapes (`tools/art/l06_darkness.py`), the Level 06 backdrop (`tools/art/backdrop_l06.py`), the Mantis's and Coilwyrm's intel portraits (`tools/art/intel.py`) and the props from the chosen concepts (ore cart b, survey cache a, data core terminal b and the data core pickup; `tools/art/l06_props.py`) rendered; approved as final in round 23 (the Level 06 briefing images accepted, to be re-rendered for the Coilwyrm's 0.5 spacing and the beam from the Mantis's head)
 - [x] M4 part G (Level 07 and the act end): the Brood Carrier with its turn (`tools/art/brood_carrier.py`), its death and drifting carcass (`tools/art/brood_carrier_death.py`), the Level 07 backdrop (`tools/art/backdrop_l07.py`), the Level 07 briefing and Act 1 outro images; approved as final in round 25 (the lifeboat tow's production sprites from the chosen b, `tools/art/lifeboat.py`, made at the close)
 - [x] M4 part H's batch final (concept round 26: the Act 1 title-card still (`tools/art/act_stills.py`), the Skitter's, Needler's and Scuttler's deaths (`tools/art/vrell_deaths.py`), the Smart Bomb's burst and ring (`tools/art/smart_bomb.py`), the boss bar's plate (`tools/art/boss_bar.py`), the ship's damage frames and the shield ring (`tools/art/ship_fx.py`), the `medium` bullet (`tools/art/bullet_medium.py`), the music finals (`tools/art/themes.py`); the wave banners and the drop shadows drawn in code); approved as final there, so every M4 part is final (a round per M4 part, user decision)
-- [ ] M5 parts final — **later: M5** (a round per level, as in M4)
+- [ ] M5 parts final — **later: M5** (a round per level, as in M4; part A's round 28 and part B's
+      round 30 closed)
 
 ## Open questions
 
@@ -327,3 +330,8 @@ Game captures of the production batches that span several parts; prompts:
   with it every M4 part's art is final and all of Act 1's art is final. The part-H item is ticked;
   only the M5 parts' item (tagged `later: M5`) is open, so the plan's implementation is `done` for
   M4.
+- 2026-10-07: Concept round 30 closed (user): M5 part B's batch approved as final (the Creeper,
+  Level 08's backdrop and perspective towers, the Act 2 still, the briefing images, Rook's briefing
+  portraits, "Homefront" and its base stem); the billboard (a) and the traffic (a) produced at the
+  close (`tools/art/billboard.py`, `tools/art/l08_traffic.py` through `backdrop_l08.py`). The shared
+  atlas page is now 2048² (75 % full in the close's build); the size notes above said 2048×1024.

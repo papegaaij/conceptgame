@@ -1143,6 +1143,11 @@ public record LevelScript(
         FIRST_ALLY_HIT,
         /** The first convoy unit lost in the attempt; its line may name the unit ({@code {ally}}). */
         FIRST_ALLY_LOST,
+        /**
+         * M5 part B: the first kill in the attempt by the wingman's shot or blast ({@link
+         * Sortie#wingmanMount()}), while he flies; never after he ejects. No subject.
+         */
+        ESCORT_FIRST_KILL,
         /** The primary objective failed: the line the mission failed screen shows, not played on the radio. */
         MISSION_FAILED,
         /** A boss entered a phase after its first; the subject is the phase's name. */

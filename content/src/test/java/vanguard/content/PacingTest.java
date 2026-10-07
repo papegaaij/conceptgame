@@ -65,14 +65,16 @@ class PacingTest {
     static List<double[]> emptyStretches(String key, Difficulty difficulty) {
         // The starter fit; for Levels 05 to 07, where the starter cannot clear the batteries in time
         // (Level 05), finish hard (Level 06) or bring down the Brood Carrier (Level 07),
-        // the balance plan's fit for the level.
+        // the balance plan's fit for the level; from Level 08 on the plan's fit with Rook on its wing.
         Loadout loadout = key.equals(Level05Test.LEVEL)
                 ? Level05Test.planLoadout(CONTENT, difficulty)
                 : key.equals(Level06Test.LEVEL)
                         ? Level06Test.planLoadout(CONTENT, difficulty)
                         : key.equals(Level07Test.LEVEL)
                                 ? Level07Test.planLoadout(CONTENT, difficulty)
-                                : SimSpecs.starterLoadout(CONTENT, difficulty);
+                                : key.equals(Level08Test.LEVEL)
+                                        ? Level08Test.planLoadout(CONTENT, difficulty)
+                                        : SimSpecs.starterLoadout(CONTENT, difficulty);
         Sortie sortie = new Sortie(
                 2185,
                 loadout,

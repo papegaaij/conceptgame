@@ -1,0 +1,45 @@
+# Creeper stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Creeper
+faction: Vrell
+layer: ground
+tier: medium
+size: [60, 60]    # sprite px
+hitbox: [40, 44]
+parts: single
+orientation: 16 angles
+hp: 30
+armour: none
+speed: 35         # px/s walking, on top of the scroll
+movement:
+  walk: {speed: 35, turn_rate: 90, stride: 22}   # px/s, °/s, px of ground per 6-frame walk cycle
+attacks:
+  - pattern: fan
+    name: fan
+    bullet: small
+    aim: target       # centred on the player (the Scuttler's fan is `facing`)
+    interval: 3.0
+    speed: 140
+    count: 5
+    spread: 50
+    stagger: 0.5      # s: unit i of a wave fires i × 0.5 s after the first unit's volley (a shared volley clock)
+    notes:
+      text: '{count}-way `{pattern}` aimed at the player every {interval} s (spread {spread}°, {speed} px/s, `{bullet}` = {damage}); a convoy fires its fans {stagger} s apart, front to back'
+formations:
+  - {name: convoy, size: [3, 5]}
+weak_points:
+  - {name: violet fan gland}
+drops: []
+traits: [anti-ground, area]
+bounty: 22
+first_level: 8
+difficulty:
+  hard: {fan_count: 7, attacks: {fan: {interval: 2.6}}}   # an authored interval: the fire-rate lever does not apply on top
+notes:
+  orientation: (16 headings × 6 walk frames; it faces where it walks)
+  speed: (plus scroll)
+  movement: '`walk` along an authored ground path (streets, ramps, low roofs); turns at {movement.walk.turn_rate}°/s; the walk phase advances with distance ({movement.walk.stride} px per cycle)'
+  formations: (one path, the units 1.5 s apart)
+  weak_points: (drawn only)
+  death: '`medium` organic burst: legs scatter, the gland bursts violet; leaves a legless husk at its last heading'
+  used_in: returns L09 and L14 (with the act HP factor)
+  difficulty: 'hard: fan 7-way, every 2.6 s'

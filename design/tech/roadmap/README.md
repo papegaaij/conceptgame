@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../architecture, ../../campaign]
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Implementation roadmap
@@ -70,7 +70,7 @@ Hive Node and Ravager and D's Wraith.
 | Part | Scope | Depends on | Round |
 |---|---|---|---|
 | **A** Act 2 systems — **done** | Rook and the escort slot ([wingmen](../../player/wingmen/README.md): AI, guns, escort inventory, side, repairs, eject, retry and checkpoint, barks, `--escort`), save format 3 with `escort`, the hangar's escort UI and the HUD's escort box; the Act 2 arsenal without water (final effects and sounds of the Tail Gun, Fan Blaster, Hornet Launcher and Swivel Gun, the Proximity Mines' delivery and `area`); the Targeting computer and the Salvage scanner; the act HP factor and the Act 1 terms in data ([enemies](../../enemies/README.md#balancing-basis), [economy](../../systems/economy/README.md)). Flown on the Act 1 levels with `--loadout` and `--escort` | — | 28 (closed): Rook's craft and eject pod, the weapon effects, the Act 2 weapon sounds, the barks' voices, the scanner's glint |
-| **B** Level 08 and the Act 2 intro | Level data (dense, typical haul, four Varga lines, voiced); Creeper; the megacity backdrop with perspective towers, roofs and traffic lanes; Act 2's data (title card, briefing pages, images); "Homefront" final and stems; the Act 1 → Act 2 transition | A | 30 |
+| **B** Level 08 and the Act 2 intro — **done** | Level data (dense, typical haul, four Varga lines, voiced); Creeper; the megacity backdrop with perspective towers (scenery only) and traffic lanes; Act 2's data (title card, briefing pages, images); "Homefront" final and stems; the Act 1 → Act 2 transition | A | 30 (closed): the Creeper, the megacity backdrop and towers, the Act 2 still and briefing images, Rook's briefing portraits, "Homefront" and its base stem, the billboard (a), the traffic (a), the civilian's voice (b) |
 | **C** Level 09 | Hive Node, Ravager, `pack`; hold zones and the distance-keyed wave clock; the named-target tracker; the missed-node rule; the collapse; "Firestorm" final and stems | B | 31 |
 | **D** Level 10 | Wraith (cloak, loop, rear entry); Mote Swarm (`flock`, `swarm`, authored paths: the Skitter's item); the air allies (shuttles) and the scripted loss; rear-heavy pacing | B | 32 |
 | **E** Level 11 | The `sub` layer and the water rules; the Torpedo Pod and `anti-sub`; Driftjelly, Reef Spitter; convoy ships and frigate; the Harbour Kraken mid-boss; the ocean backdrop; the Bomb Rack over water | A | 33 |
@@ -89,8 +89,8 @@ Hive Node and Ravager and D's Wraith.
       balance tests pass in part H's builds; the user played the build — its one finding, the
       Choir's silent stage directions, fixed in round 29 —; CI green on the branch; merged into
       main on 2026-10-06)
-- [ ] M5 Act 2 (parts A–I under *M5 parts*; part A done, concept round 28 closed; next: part B,
-      Level 08 and the Act 2 intro)
+- [ ] M5 Act 2 (parts A–I under *M5 parts*; part A done, concept round 28 closed; part B, Level 08
+      and the Act 2 intro, done, concept round 30 closed)
 - [ ] M6 Acts 1–2 release
 
 ## Open questions
@@ -163,3 +163,34 @@ Hive Node and Ravager and D's Wraith.
 - 2026-10-06: The M5 concept rounds shift by one: round 29 went to the Choir's stage-sound fix on
   m4-act-1 (merged into main with M4), so part B's round is 30 and parts C–I's are 31–37 (the
   *M5 parts* table).
+- 2026-10-06: M5 part B started, from its gap check, with the user's decisions D1–D6:
+  **D1 = a** (the megacity's towers in true perspective as scenery only, drawn by the renderer;
+  turrets, Creepers, ground targets and crates at street level and on low structures drawn
+  without lean; no wall crawling: [art direction](../../art-direction/README.md#parallax-layer-model)),
+  **D2 = a** (civilian traffic is backdrop scenery, shots pass through), **D3 = a** (the Act 2
+  intro texts rewritten: about four act briefing pages and two Level 08 pages, no repetition of
+  the Act 1 outro, the contradictions fixed), **D4 = a** (a radio event `escort-first-kill` for
+  Rook's first kill and `{side}` line variants: [wingmen](../../player/wingmen/README.md)),
+  **D5 = a** (the opener shortened to about 10 s, the level densified with its own units, the
+  Creepers 12 → 15) and **D6 = a** (the chosen concepts and the four new backdrop sections
+  straight to production; a/b only for the billboard, the traffic and the Ikoyi shelter
+  civilian's voice). The gap check's stated defaults apply: the data in Act 1 terms (crate 100,
+  secondary 56), no act HP factor on Level 08's units (all `tiny` or `small`); Rook's scripted
+  flank line dropped, no glide-in, his side prompt at about t=6; the radio retimed to the 1 s
+  rule; the Creeper's weak point drawn only, its fan aimed, the 0.5 s stagger, a 16-heading husk
+  and the screech; ambience in section 1, the "Homefront" base stem from section 2 and the full
+  mix in section 5; the Act 2 title card over its still with one image per act page and two for
+  Level 08's briefing; an M4 save already at the Level 08 hangar skips the Act 2 intro (a new
+  campaign or `--level 7` shows it); Act 2 keeps the Act 1 tactical map. Details in
+  [Act 2](../../campaign/act-2-homefront/README.md), its
+  [Level 08](../../campaign/act-2-homefront/level-08-neon-skyline/README.md), the
+  [Creeper](../../enemies/ground/creeper/README.md), [music](../../audio/music/README.md),
+  [sfx](../../audio/sfx/README.md), [voice](../../audio/voice/README.md) and the
+  [schemas](../architecture/README.md#data-file-schemas). Part B's concept round is 30.
+- 2026-10-07: M5 part B done: concept round 30 closed (user, 2026-10-07). The production art
+  approved as final, the billboard **a** (the neon sky-sign), the traffic **a** (the wedge cars
+  and the CDF gunship) and the Ikoyi shelter civilian **b** (Faith Abiola-Ellison) chosen and
+  produced at the close; the captures, the voiced lines, the texts (Level 08 and Act 2 now
+  `approved`), the part B numbers and the D1–D6 checklist accepted; the rule "from Act 2 on, an act
+  page and a level page each fit one screen" kept, and the hangar teaser's role labels kept
+  (`Speaker.role`). The next part is **C**, Level 09 (round 31).

@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../../campaign]
-updated: 2026-10-05
+updated: 2026-10-07
 ---
 
 # Music
@@ -104,6 +104,32 @@ under the ambience and the launch rail, rising to full in 2 s at the section 2 t
 Round 11 proposes the first pair, for "Coalition Rising": a base stem rendered from the same
 pass as the chosen full mix (same length, loop points and gain), so the game can crossfade from
 the base stem to the full mix sample-aligned; the full mix is the intensity layer's "on" state.
+
+### "Homefront" in production (M5 part B)
+
+Track 6, "Homefront", is Level 08's theme (the first Act 2 level; user decision D6 = a of M5 part
+B: the chosen concept goes straight to production, reviewed as final in concept round 30).
+
+- **Full mix** `assets/music/homefront.ogg`: the chosen
+  [homefront-full-r08-a](concept/homefront-full-r08-a.ogg) rendered by `tools/art/themes.py` (key
+  `homefront`) from `music_r08.homefront_full` unchanged, checked against the final spec as
+  round 26's tracks were: OGG Vorbis q6, −14 LUFS (±0.5 LU), true peak ≤ −1 dBTP, `LOOPSTART` /
+  `LOOPLENGTH` and a `SOURCE` comment; only what fails is fixed.
+- **Base stem** `assets/music/homefront-base.ogg` (key `homefront-base`): a new frozen stem
+  generator, `tools/concept/audio/music_r30.py`, in the manner of `music_r11.py` and
+  `music_r15.py`: one render of the same composition and seeds, the base groups mixed with the full
+  mix's own chains and linked mastering, so both files have the same length, loop points and gain
+  and crossfade sample-aligned. The base keeps the riff and arpeggio, bass, string and choir pads,
+  the kicks, timpani, sirens and risers; it drops the lead, the brass (stabs, hits, horn lines),
+  the counter-melody strings and the breakbeat top (snares, rolls, hats), taiko and crashes. One
+  version, no a/b: it goes straight to production (no concept file of its own).
+- **Review files** for round 30: `homefront-final-r30-a.ogg` and `homefront-base-final-r30-a.ogg`
+  (the assets byte for byte) and the loop-seam listening aids `homefront-seam-final-r30-a.ogg` and
+  `homefront-base-seam-final-r30-a.ogg`, with a review sheet as round 26's.
+- **Level 08** plays the megacity ambience alone in section 1, the base stem from the section 2
+  transition and the full mix in section 5 (the finale), the intensity stem also rising with the
+  on-screen density as built; the game's track map gets track 6 → `homefront` (`homefront-base` by
+  the stem rule).
 
 ## Concept art
 
@@ -215,6 +241,23 @@ of the Decisions log (2026-10-05). Prompts:
 | [concept/coalition-rising-base-seam-final-r26-a.ogg](concept/coalition-rising-base-seam-final-r26-a.ogg) | Listening aid: track 5's base stem across its loop seam, 8 s each side | chosen |
 | [concept/music-final-r26-a.png](concept/music-final-r26-a.png) | Review sheet: the eight finals' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam, end level and size | chosen |
 
+Production art, M5 part B (for concept round 30): track 6 "Homefront", Level 08's theme, and its base
+stem, rendered into `assets/music/` by [tools/art/themes.py](../../../tools/art/README.md) (keys
+`homefront`, `homefront-base`): the full mix by the chosen generator unchanged (`music_r08.py`), the
+base stem by the new frozen stem generator `tools/concept/audio/music_r30.py` (it stops unless its
+full mix is the chosen `homefront-full-r08-a` byte for byte); `SOURCE` comment. Both pass the check
+with no fix. Approved as final in [round 30](../../concept-rounds/round-30/README.md) (user,
+2026-10-07). Prompts:
+[concept/prompts.md](concept/prompts.md#music-final-r30-a--track-6-and-its-base-stem-production-art).
+
+| File | What | Status |
+|---|---|---|
+| [concept/homefront-final-r30-a.ogg](concept/homefront-final-r30-a.ogg) | #6 "Homefront" final, `assets/music/homefront.ogg` byte for byte: 140.8 s, loop 306000 + 5760000 samples (6.94 s + 130.61 s), −14.0 LUFS, −1.6 dBTP, seam 0.21; audio identical to the chosen file | chosen |
+| [concept/homefront-base-final-r30-a.ogg](concept/homefront-base-final-r30-a.ogg) | #6 base stem final, `assets/music/homefront-base.ogg` byte for byte: same length and loop points, the full mix's gain (−18.2 LUFS, −4.2 LU), −3.3 dBTP, seam 0.61; no concept file of its own | chosen |
+| [concept/homefront-seam-final-r30-a.ogg](concept/homefront-seam-final-r30-a.ogg) | Listening aid: track 6 across its loop seam, 8 s each side | chosen |
+| [concept/homefront-base-seam-final-r30-a.ogg](concept/homefront-base-seam-final-r30-a.ogg) | Listening aid: track 6's base stem across its loop seam, 8 s each side | chosen |
+| [concept/music-final-r30-a.png](concept/music-final-r30-a.png) | Review sheet: both files' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam and size | chosen |
+
 ## Implementation
 
 - [x] Music player with intro + loop points
@@ -222,6 +265,8 @@ of the Decisions log (2026-10-05). Prompts:
 - [x] Two-stem intensity layer driven by density or level script
 - [x] Per-level track assignment from level data (each level's `music` block: track, stems,
       sting, boss warning and boss track)
+- [x] Track 6 "Homefront" in the game's track map, with its base stem, played by Level 08 (M5
+      part B; `Tracks`, approved as final in concept round 30)
 
 ## Open questions
 
@@ -329,3 +374,14 @@ of the Decisions log (2026-10-05). Prompts:
   reports all 14 music files kept as final. Review files, four loop-seam aids and the sheet
   `music-final-r26-a.png` proposed for round 26; `art` stays `chosen` until the user approves them.
 - 2026-10-05: Concept round 26 closed (user: the round accepted as proposed, D6 = A): #4 "Afterburner" and #5 "Coalition Rising" with their base stems, #21 "Contact Heavy", #23 "Mission Complete", #25 "Mission Failed" and #26 "Game Over" approved as **final**, Afterburner's and its stem's true-peak gain dips included; with them every file in `assets/music/` (the 14 tracks and stems Acts 1 uses) is final. `art` stays `chosen`, since the other tracks of the 28 (Acts 2–7, the Ascendancy and final bosses, the ending and credits) are not final yet.
+- 2026-10-06: M5 part B (user decision D6 = a and the gap defaults): "Homefront" (track 6) goes
+  straight to production for Level 08: the chosen full-length mix checked against the final spec
+  and rendered by `tools/art/themes.py`, plus one base stem from a new frozen stem generator
+  (`music_r30.py`, the round-11 method), both reviewed as final in concept round 30. Level 08:
+  ambience only in section 1, the base stem from section 2, the full mix in section 5. The
+  document goes back to `in-progress` for the track map.
+- 2026-10-07: [Concept round 30](../../concept-rounds/round-30/README.md) closed (user,
+  2026-10-07): track 6 "Homefront" and its base stem approved as **final** (the base stem without
+  a concept round of its own, its 0.61 seam and the city ambience in section 1 as they are). The
+  track map item is ticked, so the implementation is `done` again; `art` stays `chosen` (the other
+  Act 2 tracks are concepts until their rounds).

@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Color;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import vanguard.content.Content;
 import vanguard.content.ContentLoader;
 import vanguard.content.LevelData;
 import vanguard.content.campaign.Intel;
+import vanguard.game.ui.Speaker;
 
 /**
  * The intel panel fits every level at every sensor level: no two of its parts overlap, nothing
@@ -162,6 +164,33 @@ class IntelPanelLayoutTest {
                         "the row is shown");
             }
         }
+    }
+
+    /**
+     * The teaser's speaker shows with the name plate and the role line of the briefing's speaker
+     * (Level 08's capture, round 30: Rook's teaser read {@code LT. K. TANAKA / CDF INTEL}).
+     */
+    @Test
+    void theTeasersSpeakerShowsWithTheirNameAndRole() {
+        Map<String, List<String>> plates = Map.of(
+                "act-2-homefront/level-08-neon-skyline", List.of("LT. K. TANAKA", "AEGIS TWO"),
+                "act-1-first-contact/level-01-break-at-dawn", List.of("DR. E. VARGA", "CDF INTELLIGENCE"));
+        plates.forEach((level, expected) -> {
+            Measure measure = new Measure();
+            IntelPanel.layout(
+                    measure,
+                    Intel.of(CONTENT, level, 3),
+                    CONTENT.level(level).briefing().teaser(),
+                    level);
+            List<String> texts = measure.parts.stream().map(Box::what).toList();
+            assertEquals(
+                    List.of("text \"" + expected.get(0) + "\"", "text \"" + expected.get(1) + "\""),
+                    texts.subList(1, 3),
+                    level);
+            assertEquals(
+                    expected.get(1),
+                    Speaker.role(CONTENT.level(level).briefing().teaser().speaker()));
+        });
     }
 
     private static Measure assertFits(Intel intel, BriefingPage teaser, String level, String where) {

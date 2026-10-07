@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Hangar
@@ -146,6 +146,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 | [concept/intel-final-r16-a.png](concept/intel-final-r16-a.png) | Review sheet (M4 part C batch, `tools/art/intel.py`): the 30×30 intel portraits of the Spore Bomber and the six-bladed Whirl Seed and the Leviathan's 40×40 "unknown huge contact" silhouette (facing down, `boss-leviathan`), at 1× and 3× | chosen |
 | [concept/intel-final-r17-a.png](concept/intel-final-r17-a.png) | Review sheet (M4 part D batch, `tools/art/intel.py`): the 30×30 intel portraits of Level 04's Brood Pod (between swells) and Scuttler (walking down), from the production models of `tools/art/vrell_l04.py`, at 1× and 3× | chosen |
 | [concept/intel-final-r23-a.png](concept/intel-final-r23-a.png) | Review sheet (M4 part F batch, `tools/art/intel.py`, [round 23](../../concept-rounds/round-23/README.md)): the 30×30 intel portraits of Level 06's Mantis (nose down) and Coilwyrm (the head with its first segment), from the production models of `tools/art/mantis.py` and `tools/art/coilwyrm.py`, at 1× and 3× | chosen |
+| [concept/intel-final-r30-a.png](concept/intel-final-r30-a.png) | Review sheet (M5 part B batch, `tools/art/intel.py`, [round 30](../../concept-rounds/README.md)): the 30×30 intel portrait of Level 08's Creeper (walking down), from the production model of `tools/art/creeper.py` with its readability lift, at 1× and 3× | chosen |
 
 M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game capture, see
 [concept/prompts.md](concept/prompts.md#test-fire-capture-r26-a).
@@ -376,3 +377,15 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
   `SENSOR`, `MAGNET`, `TARGET`, `SALVGE`) accepted; the later acts' modules keep the cut fallback
   until their acts. Every item but mouse navigation (M6) is ticked, so the document is `done`
   again; `art` stays `chosen` (the later acts' tactical maps and intel pictures do not exist yet).
+- 2026-10-07: The intel panel's line under the teaser speaker's name is the briefing speaker's role
+  line, no longer a fixed `CDF INTEL` (Level 08's capture, round 30: Rook's teaser read
+  `LT. K. TANAKA / CDF INTEL`): `AEGIS TWO` for Rook, `CDF INTELLIGENCE` for Varga, `CDF COMMAND` for
+  Okafor (Level 04's teaser) (`Speaker.role`; `IntelPanelLayoutTest.theTeasersSpeakerShowsWithTheirNameAndRole`;
+  every level's intel still fits at every sensor level).
+- 2026-10-07: [Concept round 30](../../concept-rounds/round-30/README.md) closed (user,
+  2026-10-07): the Creeper's intel portrait (re-rendered with its readability lift) approved as
+  **final**. Asked separately in the round (question 17), the user **keeps the role labels**: the
+  line under the teaser speaker's name comes from the speaker's role (`Speaker.role`): Varga
+  `CDF INTELLIGENCE`, Okafor `CDF COMMAND`, Rook `AEGIS TWO`. This supersedes the fixed
+  `CDF INTEL` of the 2026-10-02 decision; `IntelPanelLayoutTest` passes for every level at every
+  sensor level with the longer label. `art` stays `chosen`.

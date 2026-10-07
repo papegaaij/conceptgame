@@ -16,10 +16,11 @@ import vanguard.sim.PlayField;
 /**
  * A level's parallax backdrop as its data file lays it out (design/art-direction, Parallax layer
  * model): per layer the sections' tile sets, which change at a seam entering at the top edge when
- * a section starts, the set pieces at their places along the scroll, and the atmosphere of the
- * section (low-air cloud banks, high-air wisps, haze over the deep and far layers), which ramps
- * across a section boundary. Every layer scrolls by its factor of the ground's distance and is
- * drawn at whole pixels; nothing is allocated per frame.
+ * a section starts, the set pieces at their places along the scroll (a ground piece with a tower
+ * block drawn in perspective by {@link TowerProjection}), and the atmosphere of the section (low-air
+ * cloud banks, high-air wisps, haze over the deep and far layers), which ramps across a section
+ * boundary. Every layer scrolls by its factor of the ground's distance and is drawn at whole pixels
+ * (a tower's walls lean between them); nothing is allocated per frame.
  */
 public final class Backdrop {
     private static final int WIDTH = PlayField.WIDTH;
@@ -42,6 +43,7 @@ public final class Backdrop {
     private final long[][] seams;
 
     private final Piece[][] pieces;
+    private final TowerProjection towers;
     private final Look[] looks;
     private final TextureRegion strip = new TextureRegion();
     private Look from;
@@ -79,9 +81,9 @@ public final class Backdrop {
                 seams[l][s] = s == 0 ? Long.MIN_VALUE : Math.round(level.seam(layer, s));
             }
             List<Piece> onLayer = new ArrayList<>();
-            for (BackdropData.PlacedPiece placed : data.placed()) {
+            for (BackdropData.PlacedPiece placed : data.placements()) {
                 BackdropData.Piece spec = data.pieces().get(placed.piece());
-                if (spec.layer() == layer) {
+                if (spec.layer() == layer && !spec.isTower()) {
                     Array<AtlasRegion> images = sprites.backdrop(folder + placed.piece(), spec.imageCount());
                     long bottom =
                             Math.round(level.pieceCentre(placed) - spec.size().height() / 2);
@@ -90,6 +92,7 @@ public final class Backdrop {
             }
             pieces[l] = onLayer.toArray(Piece[]::new);
         }
+        towers = new TowerProjection(towers(sprites, folder, level));
         for (int s = 0; s < sectionCount; s++) {
             for (String id : level.sections().get(s).tiles()) {
                 BackdropData.TileSet tileSet = data.tileSets().get(id);
@@ -128,6 +131,40 @@ public final class Backdrop {
         return name.substring(0, "level-NN".length()) + "/";
     }
 
+    /** The level's placed towers with their roofs and wall textures. */
+    private static List<TowerProjection.Tower> towers(Sprites sprites, String folder, LevelData level) {
+        BackdropData data = level.backdrop();
+        List<TowerProjection.Tower> towers = new ArrayList<>();
+        for (BackdropData.PlacedPiece placed : data.placements()) {
+            BackdropData.Piece spec = data.pieces().get(placed.piece());
+            if (spec.tower().isEmpty()) {
+                continue;
+            }
+            BackdropData.Tower tower = spec.tower().get();
+            AtlasRegion roof = sprites.backdrop(folder + placed.piece(), 1).first();
+            if (roof.getRegionWidth() != spec.imageWidth() || roof.getRegionHeight() != spec.imageHeight()) {
+                throw new IllegalStateException("'" + placed.piece() + "': a tower's roof is drawn at its scale, "
+                        + spec.imageWidth() + "x" + spec.imageHeight() + ", the image is " + roof.getRegionWidth()
+                        + "x" + roof.getRegionHeight());
+            }
+            int footWidth = (int) Math.round(spec.size().width());
+            int footHeight = (int) Math.round(spec.size().height());
+            double centre = level.pieceCentre(placed);
+            towers.add(new TowerProjection.Tower(
+                    placed.x(),
+                    centre,
+                    Math.round(centre - footHeight / 2.0),
+                    footWidth,
+                    footHeight,
+                    tower.scale(),
+                    tower.height(),
+                    (float) tower.shadeOrDefault(),
+                    roof,
+                    sprites.backdrop(folder + tower.wall(), 1).first()));
+        }
+        return towers;
+    }
+
     private static Tiles tiles(Sprites sprites, String folder, String id, BackdropData.TileSet tileSet) {
         return new Tiles(
                 sprites.backdrop(folder + id, 1).first(), tileSet.drift().orElse(0.0));
@@ -162,10 +199,14 @@ public final class Backdrop {
 
     /**
      * The ground layer's set pieces, over its tiles and the level's road (design/campaign, Level 04:
-     * the convoy apron, the bridge and the gate lie over the road).
+     * the convoy apron, the bridge and the gate lie over the road), then its perspective towers,
+     * lowest first, each its walls and then its roof (design/art-direction, Perspective towers are
+     * scenery): all under the ground objects and units drawn next, and marking the shadow stencil
+     * with the rest of the ground (see {@link Shadows}).
      */
     public void drawGroundPieces(SpriteBatch batch, double groundScroll, double seconds) {
         drawPieces(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), seconds, false);
+        towers.draw(batch, groundScroll);
     }
 
     /**

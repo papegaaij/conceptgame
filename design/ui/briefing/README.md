@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../../story, ../../campaign]
-updated: 2026-10-05
+updated: 2026-10-07
 ---
 
 # Briefing screen
@@ -83,6 +83,7 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 | [concept/briefing-images-final-r21-a.png](concept/briefing-images-final-r21-a.png) | Review sheet, M4 part E ([round 21](../../concept-rounds/round-21/README.md)): the two 672×240 images of Level 05 (the nest crater beside the mass-driver line with batteries A–D, Lancer's run over the rim, the sleds; the Polyp Mortar's lob to its marker a second ahead, the ship moving out, an unknown contact in orbit) | chosen |
 | [concept/briefing-images-final-r23-a.png](concept/briefing-images-final-r23-a.png) | Review sheet, M4 part F ([round 23](../../concept-rounds/round-23/README.md)): the two 672×240 images of Level 06 (the far side across the terminator, the silent settlements, Daedalus Rim's lit domes, Lancer's run into the dark by headlight; the Mantis at the screen edge sweeping its beam, side-firing guns reaching it, the Coilwyrm coming round behind the ship) | chosen |
 | [concept/briefing-images-final-r25-a.png](concept/briefing-images-final-r25-a.png) | Review sheet, M4 part G (round 25): the two 672×240 images of Level 07 (the Brood Carrier holding at L1 with its escort screen, the overrun picket and the pods on Luna traced back to it; the overhead scan: nose-down on high air over the ship with its shadow and a bay pair open, only missiles reaching up, the turn in place, broadside at the ship's level with a pair open and the plate iris open over the lime core) and the four of the Act 1 outro, one per page (the carcass drifting apart at L1 with Earth beyond; Daedalus Rim still empty, lights on, the file open; the second fleet's track from beyond the Moon into Earth's atmosphere; Aegis Wing reassigned to Earth defence, Rook's craft on Lancer's wing) | chosen |
+| [concept/briefing-images-final-r30-a.png](concept/briefing-images-final-r30-a.png) | Review sheet, M5 part B (round 30): the four 672×240 images of the Act 2 intro, one per page (the landers' burning trails coming down through the cloud deck over the Gulf of Guinea with the CDF tracking overlay counting them; the CDF global display with the three landing zones and the act's fronts: the cities, the Atlantic sea lanes, the Arctic relay chain; a Nova Lagos street from rooftop height, people on the low roofs looking up as Lancer passes low; Aegis Wing and Rook's Ember on a coastal airbase at dusk, Nova Lagos burning 40 km off) and the two of Level 08 (the night route over the harbour, the elevated highways, the tower district and the Third Mainland highway to the Ikoyi shelters, the walkers heading for them, Lancer and Rook; the Creeper on a low roof with its aimed five-way fan, a convoy's fans 0.5 s apart, the anti-ground ×2 marker) | chosen |
 
 ## Implementation
 
@@ -99,6 +100,8 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 - [x] Level 07's two images and the Act 1 outro's four (one per page, part G's D3), named in the
       level's and the act's data; `BriefingLayoutTest` checks every level page's and outro page's
       image at the screen's size
+- [x] The Act 2 intro's four images and Level 08's two (one per page, D3 of M5 part B), named in
+      the act's and the level's data; `BriefingLayoutTest` passes with them
 
 ## Decisions
 
@@ -213,3 +216,33 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
   the bracket's middle, all inside it, clear of the title and the labels. Scale, labels, colours,
   Earth, Luna, the ichor clouds and the debris dots are unchanged; the other twenty-two images stay
   byte-identical. Review sheet `briefing-images-final-r25-a` rebuilt.
+- 2026-10-06: Briefing images of the Act 2 intro and Level 08 (M5 part B, straight to production
+  per D6, `tools/art/briefing_images.py`), one per page (D3), named in the act's and the level's
+  data: `act-2-landfall`, `act-2-front-lines`, `act-2-over-home`, `act-2-scramble`,
+  `level-08-nova-lagos`, `level-08-walker-scan`. They show the production Creeper with its gland
+  glow (`creeper.py`, the walk frame at heading 4), the Vrell orb (`enemy_bullets.py`), the bomb
+  rack's shot (`weapon_fx.py`), the Stormhawk and Rook's craft, now the production Ember
+  sprite (`rook.py`; the Act 1 outro image keeps the round-09 render it was approved with). The
+  globe display is a flat projection of hand-drawn coastlines, enough to read the continents; the
+  street view a perspective drawn in the display's lines. The earlier twenty-three images and their
+  sheets re-render byte-identical. Review sheet `briefing-images-final-r30-a` proposed for round
+  30; `art` stays `chosen`.
+- 2026-10-07: From the Level 08 capture (round 30). From Act 2 on, a level's briefing page fits
+  one screen (4 lines below its image), as every act page already does; Act 1's level pages were
+  written and voiced to go on over the next screens and keep doing so, as the act outros do
+  (`BriefingLayoutTest.anActPageAndALevelPageFromAct2OnFitOneScreen`). An act outro's NEXT panel and
+  its last page's hint follow the route: the next act's title card and the next briefing when the
+  next level opens an act with data (`ACT II: HOMEFRONT, THEN THE BRIEFING FOR MISSION 08: NEON
+  SKYLINE`, `ENTER TO ACT II`), the next briefing within an act (`--act-end`), the hangar only when
+  the next level has no data (`OutroOnwardTest`).
+- 2026-10-07: `level-08-walker-scan` re-rendered with the Creeper's readability lift (round 30:
+  lighter chitin and legs, back pores, light rim), so the scan shows the Creeper the level flies; the
+  other twenty-eight images stay byte-identical. Review sheet `briefing-images-final-r30-a` rebuilt.
+- 2026-10-07: [Concept round 30](../../concept-rounds/round-30/README.md) closed (user,
+  2026-10-07): the six briefing images of the Act 2 intro and Level 08 approved as **final**
+  (`level-08-walker-scan` with the Creeper's lift; the rough coastlines, the less holographic
+  "over home", the busy convoy fans and the agent's numbers on the images as they are). The rule
+  found in the capture is **kept**: from Act 2 on, an act page and a level page each fit one screen
+  (4 lines below the image, `BriefingLayoutTest.anActPageAndALevelPageFromAct2OnFitOneScreen`), so
+  later acts say less per page or use more pages; Act 1's level pages keep running on over the next
+  screens, as written and voiced. `art` stays `chosen`.

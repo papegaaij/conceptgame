@@ -104,6 +104,11 @@ public final class SfxBank implements Disposable, Mixer.Listener {
         return voices.playing(clock.getAsLong());
     }
 
+    /** How many instances of {@code sfx} play now (for tests). */
+    int playing(Sfx sfx) {
+        return voices.playing(sfx, clock.getAsLong());
+    }
+
     @Override
     public void gainsChanged() {
         for (Sfx sfx : Sfx.values()) {

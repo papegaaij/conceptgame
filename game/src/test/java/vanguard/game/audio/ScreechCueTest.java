@@ -24,7 +24,7 @@ class ScreechCueTest {
 
     @Test
     void theLargeVrellUnitsScreechAndNoOtherKind() {
-        for (String slug : List.of("mantis", "coilwyrm", "spore-bomber", "scuttler")) {
+        for (String slug : List.of("mantis", "coilwyrm", "spore-bomber", "scuttler", "creeper")) {
             assertTrue(ScreechCue.screeches(slug), slug);
         }
         for (String slug : List.of(

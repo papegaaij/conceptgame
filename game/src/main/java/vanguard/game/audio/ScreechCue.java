@@ -22,8 +22,8 @@ final class ScreechCue {
     /** The least time between two screeches. */
     static final double THROTTLE_SECONDS = 3;
 
-    /** The enemy kinds that screech, by slug: the large Vrell units of Act 1 (not the Coilwyrm's body or regrown head). */
-    static final Set<String> SCREECHERS = Set.of("mantis", "coilwyrm", "spore-bomber", "scuttler");
+    /** The enemy kinds that screech, by slug: the large Vrell units of Act 1 (not the Coilwyrm's body or regrown head) and the Creeper (M5 part B). */
+    static final Set<String> SCREECHERS = Set.of("mantis", "coilwyrm", "spore-bomber", "scuttler", "creeper");
 
     /** How many units it remembers: far more than the large units ever on the screen at once. */
     static final int REMEMBERED = 64;

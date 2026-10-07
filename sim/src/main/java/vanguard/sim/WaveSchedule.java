@@ -20,6 +20,15 @@ final class WaveSchedule {
     private final Spawn[] spawns;
     /** Per planned unit, the edge its wave enters from. */
     private final WaveSpec.Entry[] entries;
+    /**
+     * Per planned unit, its wave's volley clock (M5 part B: a walker wave with a fan stagger, design/
+     * enemies/ground/creeper) and its place in the wave; -1 and 0 for a unit without one.
+     */
+    private final int[] volleyGroups;
+
+    private final int[] volleyUnits;
+    /** The number of volley clocks: one per staggered walker wave. */
+    private final int volleyClocks;
 
     private final int[] warningStarts;
     private final int[] warningEnds;
@@ -32,11 +41,19 @@ final class WaveSchedule {
         List<Spawn> planned = new ArrayList<>();
         List<WaveSpec> warned = new ArrayList<>();
         Map<Spawn, WaveSpec.Entry> entryOf = new IdentityHashMap<>();
+        Map<Spawn, int[]> volleyOf = new IdentityHashMap<>();
+        int clocks = 0;
         for (WaveSpec wave : waves) {
             int before = planned.size();
             Formations.plan(wave, kinds.indexOf(wave.enemy()), rng, planned);
             for (int i = before; i < planned.size(); i++) {
                 entryOf.put(planned.get(i), wave.entry());
+            }
+            if (staggered(wave)) {
+                for (int i = before; i < planned.size(); i++) {
+                    volleyOf.put(planned.get(i), new int[] {clocks, i - before});
+                }
+                clocks++;
             }
             if (wave.entry() != WaveSpec.Entry.FRONT) {
                 warned.add(wave);
@@ -45,9 +62,15 @@ final class WaveSchedule {
         planned.sort(Comparator.comparingInt(Spawn::tick));
         spawns = planned.toArray(Spawn[]::new);
         entries = new WaveSpec.Entry[spawns.length];
+        volleyGroups = new int[spawns.length];
+        volleyUnits = new int[spawns.length];
         for (int i = 0; i < spawns.length; i++) {
             entries[i] = entryOf.getOrDefault(spawns[i], WaveSpec.Entry.FRONT);
+            int[] volley = volleyOf.getOrDefault(spawns[i], new int[] {-1, 0});
+            volleyGroups[i] = volley[0];
+            volleyUnits[i] = volley[1];
         }
+        volleyClocks = clocks;
         // A chain's loop-back re-enters from the bottom edge: warned like a rear entry.
         List<Spawn> loops =
                 planned.stream().filter(spawn -> spawn.loop().isPresent()).toList();
@@ -70,6 +93,26 @@ final class WaveSchedule {
             warningEnds[warned.size() + i] = end;
             warningEdges[warned.size() + i] = WarningEdge.BOTTOM.bit();
         }
+    }
+
+    /**
+     * Whether a wave's units share a staggered volley clock (a walker with a fan stagger); its last
+     * unit's turn must come before the next volley, so a volley never overlaps the next.
+     */
+    private static boolean staggered(WaveSpec wave) {
+        EnemySpec enemy = wave.enemy();
+        if (enemy.walker().isEmpty()
+                || !enemy.walker().get().staggered()
+                || enemy.gun().isEmpty()) {
+            return false;
+        }
+        double stagger = enemy.walker().get().staggerSeconds();
+        double interval = enemy.gun().get().intervalSeconds();
+        if (SimStep.ticks((wave.count() - 1) * stagger) >= SimStep.ticks(interval)) {
+            throw new IllegalArgumentException(enemy.slug() + ": a wave of " + wave.count() + " staggered " + stagger
+                    + " s apart does not fit its " + interval + " s volley interval");
+        }
+        return true;
     }
 
     private static int edges(WaveSpec wave) {
@@ -106,6 +149,21 @@ final class WaveSchedule {
     /** The edge the wave of the unit {@link #due} returned last enters from. */
     WaveSpec.Entry lastEntry() {
         return entries[next - 1];
+    }
+
+    /** The volley clock of the unit {@link #due} returned last; -1 without one. */
+    int lastVolleyGroup() {
+        return volleyGroups[next - 1];
+    }
+
+    /** The place in its wave (from 0, in entry order) of the unit {@link #due} returned last. */
+    int lastVolleyUnit() {
+        return volleyUnits[next - 1];
+    }
+
+    /** The number of volley clocks: one per staggered walker wave. */
+    int volleyClocks() {
+        return volleyClocks;
     }
 
     /** The edges with a warning showing at {@code tick}, as {@link WarningEdge} bits. */

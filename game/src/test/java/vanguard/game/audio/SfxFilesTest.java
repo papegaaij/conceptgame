@@ -121,6 +121,16 @@ class SfxFilesTest {
     }
 
     @Test
+    void everySettingKeyPlaysItsAmbienceLoop() {
+        assertEquals(Sfx.AMBIENCE_ORBIT, Sfx.ambience("earth-orbit"));
+        assertEquals(Sfx.AMBIENCE_LUNA, Sfx.ambience("luna"));
+        // M5 part B: Level 08's megacity.
+        assertEquals(Sfx.AMBIENCE_CITY, Sfx.ambience("earth-megacity"));
+        assertEquals(Sfx.Priority.AMBIENCE, Sfx.ambience("earth-megacity").priority());
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> Sfx.ambience("europa"));
+    }
+
+    @Test
     void everyShopActionHasItsSound() {
         assertEquals(Sfx.SHOP_BUY, Sfx.shop(Hangar.Action.BUY));
         assertEquals(Sfx.SHOP_BUY, Sfx.shop(Hangar.Action.BUY_CHARGE));

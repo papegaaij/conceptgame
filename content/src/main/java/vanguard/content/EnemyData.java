@@ -359,7 +359,9 @@ public record EnemyData(
      * @param arc a turret fires while the player is within this many degrees of its facing (down the screen)
      */
     /**
-     * @param aim planned (part D): where a fan points, {@code target} (the default), {@code down} or {@code facing}
+     * @param aim where a fan points, {@code target} (the default), {@code down} or {@code facing}; a walker's fan
+     *     (M5 part B) is aimed at the player with {@code target} and along its facing with {@code facing};
+     *     planned (part D) for the other units
      * @param away planned (part D): an aimed attack fires only while the player is more than this many ° off its facing
      * @param spawn planned (part D): the {@code spawn} pattern's release, which has no bullet, interval or speed
      * @param mortar the {@code mortar} pattern's lob (its {@code bullet} is the direct hit, its {@code speed} the ring's)
@@ -369,6 +371,9 @@ public record EnemyData(
      * @param arms a {@code spiral}'s arms; its {@code interval} is between two bullets of an arm
      * @param duration seconds a {@code spiral} runs before it hands over in an alternation; part G:
      *     without it a spiral fires for as long as its phase lasts (it cannot alternate)
+     * @param stagger M5 part B, a walker's fan (design/enemies/ground/creeper): the units of one wave
+     *     share a volley clock, unit i (in the order they enter) firing i × this many seconds after
+     *     the first; a unit off the screen skips its turn
      */
     public record Attack(
             String pattern,
@@ -391,7 +396,8 @@ public record EnemyData(
             Optional<Boolean> rotate,
             Optional<Integer> arms,
             Optional<Double> duration,
-            Optional<Sweep> sweep) {
+            Optional<Sweep> sweep,
+            Optional<Double> stagger) {
         public Attack {
             Check.that(
                     pattern.equals("laser-sweep") == sweep.isPresent(), "a laser-sweep has its sweep, the others none");
@@ -440,6 +446,8 @@ public record EnemyData(
                     "a fan or a ring has a count, the others none");
             Check.that(pattern.equals("fan") == spread.isPresent(), "a fan has a spread, the others none");
             count.ifPresent(c -> Check.positive("count", c));
+            Check.that(pattern.equals("fan") || stagger.isEmpty(), "only a fan has a stagger");
+            stagger.ifPresent(st -> Check.positive("stagger", st));
         }
     }
 

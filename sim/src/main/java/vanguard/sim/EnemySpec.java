@@ -284,8 +284,15 @@ public record EnemySpec(
      * A walker (design/enemies/ground/scuttler): it walks its wave's ground path at {@code speed}
      * px/s over the ground, its facing turning at most {@code turnRate} radians per second; one walk
      * cycle per {@code stride} px. Direct shots arriving within {@code frontArc} radians of its
-     * facing glance off; its {@link EnemySpec#gun()} is a fan along its facing, and {@code spit} an
-     * aimed attack that fires only while the ship is more than {@code awayRadians} off its facing.
+     * facing glance off; its {@link EnemySpec#gun()} is a fan along its facing (the Scuttler) or, with
+     * {@code fanAtShip}, centred on the ship (the Creeper, M5 part B), and {@code spit} an aimed
+     * attack that fires only while the ship is more than {@code awayRadians} off its facing.
+     *
+     * @param staggerSeconds M5 part B (design/enemies/ground/creeper): with more than 0, the units of
+     *     one wave share a volley clock that starts as the first of them comes onto the screen; unit
+     *     i (in the order they enter) fires its fan i × this many seconds after the volley's start,
+     *     the first volley half an interval after the clock starts and then one every interval; a
+     *     unit off the screen skips its turn. 0: each unit keeps its own clock
      */
     public record Walker(
             double speed,
@@ -293,7 +300,25 @@ public record EnemySpec(
             double stride,
             double frontArc,
             Optional<EnemyGun> spit,
-            double awayRadians) {}
+            double awayRadians,
+            boolean fanAtShip,
+            double staggerSeconds) {
+        /** A walker whose fan goes along its facing, each unit on its own clock (Level 04's Scuttler). */
+        public Walker(
+                double speed,
+                double turnRate,
+                double stride,
+                double frontArc,
+                Optional<EnemyGun> spit,
+                double awayRadians) {
+            this(speed, turnRate, stride, frontArc, spit, awayRadians, false, 0);
+        }
+
+        /** Whether the units of a wave share a staggered volley clock. */
+        public boolean staggered() {
+            return staggerSeconds > 0;
+        }
+    }
 
     /** The constructor of Level 03: without the spawners and walkers of Level 04. */
     public EnemySpec(

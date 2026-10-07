@@ -25,8 +25,16 @@ final class PlayerFire {
 
     /** What the sortie does when a shot destroys something. */
     interface Hits {
-        /** The enemy at {@code index} was destroyed. */
-        void enemyDestroyed(int index);
+        /** The enemy at {@code index} was destroyed (by a special: no mount). */
+        default void enemyDestroyed(int index) {
+            enemyDestroyed(index, -1);
+        }
+
+        /**
+         * The enemy at {@code index} was destroyed by a shot or blast of {@code mount} (a fitted
+         * weapon's, or {@link Sortie#wingmanMount()} for the wingman's); -1 for none.
+         */
+        void enemyDestroyed(int index, int mount);
 
         /** The destructible ground object at {@code index} was destroyed. */
         void groundDestroyed(int index);
@@ -37,8 +45,13 @@ final class PlayerFire {
         /** The spore mine at {@code index} was shot. */
         void mineDestroyed(int index);
 
-        /** Part {@code part} of set piece {@code piece} was destroyed. */
-        void partDestroyed(int piece, int part);
+        /** Part {@code part} of set piece {@code piece} was destroyed (by a special: no mount). */
+        default void partDestroyed(int piece, int part) {
+            partDestroyed(piece, part, -1);
+        }
+
+        /** Part {@code part} of set piece {@code piece} was destroyed by a shot or blast of {@code mount}; -1 for none. */
+        void partDestroyed(int piece, int part, int mount);
     }
 
     /** Homing locks on a set piece's part use serials from here: unit serials stay far below it. */
@@ -497,7 +510,7 @@ final class PlayerFire {
                 }
                 boolean spent = shot.pierced();
                 if (enemy.damage(shot.damage() * groundFactor(weapon, spec.layer()))) {
-                    hits.enemyDestroyed(j);
+                    hits.enemyDestroyed(j, shot.mount());
                 }
                 if (spent) {
                     shots.free(i);
@@ -581,7 +594,7 @@ final class PlayerFire {
                     events.add(SimEvents.Type.ENEMY_HIT, shot.x(), shot.y(), shot.mount());
                     boolean spent = shot.pierced();
                     if (piece.damagePart(p, shot.damage())) {
-                        hits.partDestroyed(k, p);
+                        hits.partDestroyed(k, p, shot.mount());
                     }
                     if (spent) {
                         shots.free(i);
@@ -697,7 +710,7 @@ final class PlayerFire {
                     && onField(enemy)
                     && inBlast(x, y, weapon.blast(), enemy.x(), enemy.y(), enemy.hitbox())
                     && enemy.damage(shot.damage(), true)) {
-                hits.enemyDestroyed(j);
+                hits.enemyDestroyed(j, shot.mount());
             }
         }
     }
@@ -771,7 +784,7 @@ final class PlayerFire {
                     && onField(enemy)
                     && inBlast(x, y, radius, enemy.x(), enemy.y(), enemy.hitbox())
                     && enemy.damage(mine.damage(), true)) {
-                hits.enemyDestroyed(j);
+                hits.enemyDestroyed(j, mine.mount());
             }
         }
         for (int k = 0; k < setPieces.length; k++) {
@@ -788,7 +801,7 @@ final class PlayerFire {
                         && PlayField.overlaps(px, py, parts.get(p).box())
                         && inBlast(x, y, radius, px, py, parts.get(p).box())
                         && piece.damagePart(p, mine.damage())) {
-                    hits.partDestroyed(k, p);
+                    hits.partDestroyed(k, p, mine.mount());
                 }
             }
         }

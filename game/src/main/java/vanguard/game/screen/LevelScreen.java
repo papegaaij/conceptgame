@@ -47,6 +47,7 @@ import vanguard.game.render.SetPieceDeath;
 import vanguard.game.render.SetPieceWrecks;
 import vanguard.game.render.TargetingOverlay;
 import vanguard.game.render.ThreatArrows;
+import vanguard.game.render.TriggerBreak;
 import vanguard.game.render.WaveBanners;
 import vanguard.game.render.WeaponLooks;
 import vanguard.game.settings.Settings;
@@ -63,6 +64,7 @@ import vanguard.sim.SimEvents;
 import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
 import vanguard.sim.Wingman;
+import vanguard.sim.WingmanSpec;
 
 /**
  * Flying a level of the campaign: runs the simulation at its fixed step from the campaign's
@@ -237,7 +239,8 @@ public final class LevelScreen implements GameScreen {
                         ? services.sprites.frames(spec.slug() + "-ichor")
                         : new Array<AtlasRegion>())
                 .toList();
-        // A trigger is never destroyed (it is spent and stays): no break-apart, no wreck.
+        // A trigger is never destroyed (it is spent and stays, a billboard's toppled frame its own
+        // wreck): no break-apart, no wreck.
         groundBreaks = sortie.script().groundObjects().stream()
                 .map(spec ->
                         spec.trigger() ? new Array<AtlasRegion>() : services.sprites.frames(spec.look() + "-break"))
@@ -306,7 +309,7 @@ public final class LevelScreen implements GameScreen {
                 base.exists() ? base : full,
                 full,
                 services.sfx,
-                ambience(level.music().ambience()),
+                Sfx.ambience(level.music().ambience()),
                 level.music().startSection(),
                 level.music().startDb().orElse(0.0),
                 level.music()::full,
@@ -351,13 +354,12 @@ public final class LevelScreen implements GameScreen {
                 .orElseThrow(() -> new IllegalArgumentException("no music file for track " + track + " yet"));
     }
 
-    /** A setting's ambience loop (design/audio/sfx, ambience per setting). */
-    private static Sfx ambience(String setting) {
-        return switch (setting) {
-            case "earth-orbit" -> Sfx.AMBIENCE_ORBIT;
-            case "luna" -> Sfx.AMBIENCE_LUNA;
-            default -> throw new IllegalArgumentException("no ambience for " + setting + " yet");
-        };
+    /**
+     * Rook's side for a radio line's {@code {side}} (M5 part B): his flight's side setting (the
+     * save's, or {@code --escort}'s {@code side=}), left when he does not fly.
+     */
+    private WingmanSpec.Side escortSide() {
+        return sortie.wingman().map(wingman -> wingman.spec().side()).orElse(WingmanSpec.Side.LEFT);
     }
 
     /** "MISSION 01 - BREAK AT DAWN", for the pause menu. */
@@ -630,6 +632,19 @@ public final class LevelScreen implements GameScreen {
                             0,
                             sortie.groundScroll());
                 }
+                case TRIGGER_SPENT -> {
+                    // A trigger whose spent frame is a wreck (Level 08's billboard topples) bursts in a
+                    // destructible's small explosion; its spent frame stays as the wreck (TriggerBreak).
+                    if (TriggerBreak.breaks(sortie.script().groundObjects().get(events.value(i)))) {
+                        effects.startOnGround(
+                                services.sprites.explosionSmall,
+                                TINY_EXPLOSION_FRAME_TICKS,
+                                x,
+                                y,
+                                0,
+                                sortie.groundScroll());
+                    }
+                }
                 case CREDITS_PICKED_UP -> creditNumbers.show(events.value(i), x, y);
                 case BOSS_DESTROYED -> {
                     creditShower(events.value(i), x, y);
@@ -701,11 +716,15 @@ public final class LevelScreen implements GameScreen {
                                 case FIRST_ALLY_LOST -> sortie.firstAllyLost();
                                 default -> -1;
                             };
+                    if (cue.trigger() == LevelScript.CueTrigger.ESCORT_FIRST_KILL && barks != null) {
+                        // Rook's first kill (M5 part B): a scripted Rook line for the barks' spacing.
+                        barks.scripted(cue.speaker(), sortie.levelSeconds());
+                    }
                     queue(
                             cue.speaker(),
                             cue.portrait(),
                             cue.expression(),
-                            RadioSchedule.line(cue.line(), unit),
+                            RadioSchedule.line(cue.line(), unit, escortSide()),
                             cue.distorted(),
                             radioSchedule.priority(events.value(i)));
                 }

@@ -16,6 +16,7 @@ import vanguard.content.ActData;
 import vanguard.content.BriefingPage;
 import vanguard.content.Content;
 import vanguard.content.campaign.BriefingScript;
+import vanguard.content.campaign.Briefings;
 import vanguard.content.campaign.Campaign;
 import vanguard.content.campaign.OutroScript;
 import vanguard.content.campaign.SaveSlots;
@@ -164,11 +165,7 @@ public final class BriefingScreen implements GameScreen {
     /** The act outro (design/campaign, Act intro and outro); {@code next} after its last page. */
     public static BriefingScreen outro(
             GameServices services, Campaign campaign, OutroScript outro, Supplier<GameScreen> next) {
-        String onward = services.content
-                .levelKey(outro.nextLevel())
-                .map(key -> String.format(
-                        Locale.ROOT, "THE HANGAR BEFORE MISSION %02d: %s", outro.nextLevel(), Content.levelName(key)))
-                .orElse(String.format(Locale.ROOT, "THE HANGAR BEFORE MISSION %02d", outro.nextLevel()));
+        Onward onward = onward(services.content, outro);
         return new BriefingScreen(
                 services,
                 campaign,
@@ -183,10 +180,45 @@ public final class BriefingScreen implements GameScreen {
                                 displayed(outro.act()),
                                 String.format(Locale.ROOT, "MISSIONS %02d - %02d FLOWN", outro.first(), outro.last())),
                         "NEXT",
-                        Words.wrap(displayed(onward), (PixelScreen.WIDTH - LEFT_X - 14 - TEASER_X) / 8),
-                        "ENTER TO THE HANGAR",
+                        Words.wrap(displayed(onward.next()), (PixelScreen.WIDTH - LEFT_X - 14 - TEASER_X) / 8),
+                        onward.hint(),
                         outro.music()),
                 next);
+    }
+
+    /**
+     * What follows an act outro, for its NEXT panel and its last page's hint.
+     *
+     * @param next the NEXT panel's text
+     * @param hint the hint once the last page is shown
+     */
+    record Onward(String next, String hint) {}
+
+    /**
+     * What follows the outro on the campaign's route ({@code CampaignRoute.beforeNextLevel}): the
+     * next act's title card and briefing when the next level opens an act with data (Act 2 after
+     * Act 1), the next level's briefing when it has one, otherwise the hangar (Level 08's capture,
+     * round 30: the hint said the hangar while the Act 2 title card came first).
+     */
+    static Onward onward(Content content, OutroScript outro) {
+        Optional<BriefingScript> briefing = Briefings.before(content, outro.nextLevel());
+        if (briefing.isEmpty()) {
+            String hangar = content.levelKey(outro.nextLevel())
+                    .map(key -> String.format(
+                            Locale.ROOT,
+                            "THE HANGAR BEFORE MISSION %02d: %s",
+                            outro.nextLevel(),
+                            Content.levelName(key)))
+                    .orElse(String.format(Locale.ROOT, "THE HANGAR BEFORE MISSION %02d", outro.nextLevel()));
+            return new Onward(hangar, "ENTER TO THE HANGAR");
+        }
+        BriefingScript script = briefing.get();
+        String mission =
+                String.format(Locale.ROOT, "THE BRIEFING FOR MISSION %02d: %s", script.mission(), script.missionName());
+        return script.titleCard()
+                .map(card -> new Onward(
+                        card.act() + ": " + card.name() + ", THEN " + mission, displayed("ENTER TO " + card.act())))
+                .orElseGet(() -> new Onward(mission, "ENTER TO THE BRIEFING"));
     }
 
     private static Script mission(GameServices services, BriefingScript script) {

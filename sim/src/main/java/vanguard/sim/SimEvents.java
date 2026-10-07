@@ -56,6 +56,12 @@ public final class SimEvents {
         GROUND_DESTROYED,
         /** A trigger released its secret's hidden crate (at the trigger). */
         SECRET_FOUND,
+        /**
+         * A ground trigger took its last hit and is spent (at the trigger), before the
+         * {@link #SECRET_FOUND} it may bring (with the last of several triggers sharing a secret);
+         * value: its index in the script's ground objects. Level 08's billboard topples with it.
+         */
+        TRIGGER_SPENT,
         /** The ship collected a pickup (at the pickup); value: its {@link PickupType} ordinal. */
         PICKUP_COLLECTED,
         /** Credits were picked up (at the pickup); value: the credits. */

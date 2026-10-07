@@ -425,8 +425,17 @@ def backdrop_table(d):
             cells[i][b["tile_sets"][tile]["layer"]].append(f"`{tile}`")
     for placed in b["placed"]:
         start, end = on_screen(level, b, placed)
+        repeat = placed.get("repeat")
+        if repeat:  # a stream: from the first placement's start to the last one's end
+            shift = (repeat["count"] - 1) * repeat["every"]
+            last = dict(placed, t=placed["t"] + shift)
+            if "path" in placed:
+                last["path"] = [[p[0] + shift, p[1], p[2]] for p in placed["path"]]
+            end = on_screen(level, b, last)[1]
         layer = b["pieces"][placed["piece"]]["layer"]
         when = f"flies {num(start)}–{num(end)}" if "path" in placed else f"{num(round(start))}–{num(round(end))}"
+        if repeat:
+            when += f" s, ×{repeat['count']} every {num(repeat['every'])}"
         cells[section_of(level, start) - 1][layer].append(f"{placed['piece']} {when} s")
     rows = []
     for i, s in enumerate(level["sections"]):

@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: final
 depends-on: [../weapons, ../../story, ../../systems/saves, ../../ui/hangar, ../../ui/hud]
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Wingmen and drones
@@ -68,7 +68,7 @@ right) is the hangar setting and mirrors the x values.
 |---|---|
 | Armour | 80, no shield, no hit invulnerability; takes enemy bullets and contact damage like the player |
 | Hitbox | 11×11 px, on the `air` layer |
-| Movement | Top speed 250 px/s, full speed in 0.2 s; never closer than 40 px to the player, also where that meets the play-field margin (the player near an edge or in a corner, a side swap gliding past him: he is pushed out along the margin); keeps the 12 px play-field margin |
+| Movement | Top speed 250 px/s, full speed in 0.2 s; never closer than 40 px to the player, also where that meets the play-field margin (the player near an edge or in a corner, a side swap gliding past him: he is pushed out along the margin); keeps the 12 px play-field margin. When his straight way to his slot passes within the 40 px (a slot on the player's other side) on a side where the margins leave no room at that distance, he steers round the player the other way, 8 px outside them: with the player low on the screen the way beneath is closed and he passes over him |
 | Bodies | His slot keeps his 14 px dodge clearance from every `air` enemy's hit box, over where the enemy flies in the next 0.4 s: a slot inside that box moves to its nearest edge he can reach without crossing the box (he waits on his side while a body passes), and once inside one he leaves it the shortest way that does not cross the body; such a move jinks like a sidestep and keeps the 40 px to the player |
 | Collision with an `air` enemy | Rook takes the enemy's full contact damage and deals 20 to it; a `tiny` or `small` enemy is destroyed by the impact, as when it rams the player |
 
@@ -169,7 +169,8 @@ its shares are about what dies.
   it while its beacon blinks and a thin **trail** of light smoke behind it, so it reads on any
   ground. He is out for the rest of the level. This never fails the mission and costs no score.
 - His scripted radio lines still play after he ejects (he is on the radio from his pod). A line
-  that needs him flying (a level's "Rook's first kill") does not fire.
+  that needs him flying (a level's "Rook's first kill", the `escort-first-kill` event below) does
+  not fire.
 - On a **retry** he starts again with his level-start state, like the player: his level-start
   armour, at least the retry's armour floor share (as the player's, see
   [retry](../../systems/retry/README.md)).
@@ -182,6 +183,23 @@ its shares are about what dies.
 - The gusts of [Level 12](../../campaign/act-2-homefront/level-12-storm-front/README.md) push him
   like the player.
 - Ravager pounces and `air` contacts hit him as designed (his collision rule above).
+
+### Scripted lines about him (user decision D4 of M5 part B)
+
+Two kinds of a level's radio cues are about Rook himself (schema in
+[architecture](../../tech/architecture/README.md#data-file-schemas), built in M5 part B):
+
+- **His first kill**: the radio event **`escort-first-kill`** (no `enemy`) fires on the first
+  kill in an attempt whose killing shot or blast is his (his gun's mount), while he flies. It
+  never fires after he has ejected, nor in a level he does not fly in (`--escort none`, an Act 1
+  replay); it fires at most once per attempt (the flag is in the state hash and the boss
+  checkpoint, so a retry from the boss keeps it). A cue on it is an event line like the barks'
+  triggers; its line counts as a scripted Rook line for the barks' 8 s spacing (from the moment it
+  fires: a bark queued with the same kill, a streak, is withdrawn). Level 08's "Splash one" is the
+  first.
+- **His side**: `{side}` in a radio line becomes `left` or `right`, his side setting (the save's,
+  or `--escort`'s `side=`): the line is voiced once per side and plays the take for his side, the
+  subtitle showing that text. Level 08's opening "Lancer, I'm on your {side}" is the first.
 
 ### Radio barks
 
@@ -351,6 +369,8 @@ built were accepted in concept round 28.
 - [ ] `BalanceTest` prints his DPS; the balance plan buys his guns and repairs from L08; the autopilot and `ActPlaythroughTest` fly with him — **later: M5 part I** (the close-out's `BalanceTest` and `ActPlaythroughTest` for Act 2 with Rook and the Act 2 plan, [roadmap](../../tech/roadmap/README.md#m5-parts); not built in part A)
 - [x] Production sprites of Rook's craft (5 banking frames, Ember, 42×42), his engine flame, the eject pod and the engine mounts (`tools/art/rook.py`, approved as final in concept round 28)
 - [x] His shots in their base weapons' families: drawn with the base weapons' final shot sprites and muzzle flash at his nose (`WeaponLooks` builds his gun's look by its base weapon's slug; `WingmanLooks.drawMuzzle`)
+- [x] The radio event `escort-first-kill`: his first kill per attempt, only while he flies, never after an eject, the flag in the state hash and the boss checkpoint; loader, `SimSpecs` and schema text (M5 part B, D4)
+- [x] `{side}` in a radio line: one take per side in the voice line list, the take and subtitle of his side played (M5 part B, D4)
 - [ ] Warden heavy drone: formation, cannon, draw-fire rule — **later: Act 4** (the Warden unlocks at L22)
 - [ ] Drone behaviours: orbit, trail, block, rebuild — **later: Act 3** (light drone L15, rear-guard drone L20) and **later: Act 5** (hunter drone L29)
 - [ ] Rook missing for L27–L29 (only a heavy drone in the slot), back from L30 — **later: Act 4**
@@ -497,3 +517,28 @@ built were accepted in concept round 28.
   part named yet), and the balance item (`BalanceTest` printing his DPS, the balance plan buying his
   guns and repairs from L08, the autopilot and `ActPlaythroughTest` flying with him), not built in
   part A and tagged **later: M5 part I**, whose close-out runs those tests for Act 2 with Rook.
+- 2026-10-06: M5 part B, user decision **D4 = a**: Level 08's two Rook lines get their mechanics,
+  a radio event **`escort-first-kill`** (his first kill per attempt while he flies, never after an
+  eject; once per attempt, the flag in the state hash and the boss checkpoint) and **`{side}`** in
+  a radio line (one voiced take per side, played by his side setting). Rejected: (b) no new
+  mechanics, the first-kill line on the player's first kill and a neutral "I'm on your wing" (a
+  weaker beat), and (c) only `{side}`. Our readings: the event fires on a kill by his own shot or blast
+  only; a cue on it counts as a scripted Rook line
+  for the barks' spacing; in a level he does not fly in it never plays.
+- 2026-10-06: M5 part B built the two mechanics of D4: `escort-first-kill` (the simulation's kill
+  by his mount's shot or blast, a set piece's vital part included, while he flies; the flag in the
+  state hash and the boss checkpoint; the level screen counts it as a scripted Rook line for the
+  barks, withdrawing a bark queued with the same kill) and `{side}` (the voice line list has both
+  takes; the level screen shows and plays the one of his side setting, left when he does not fly).
+- 2026-10-07: Level 08's capture (round 30) showed Rook beneath the player from t≈141 to the level's
+  end, not in a formation slot. Not a stale rear edge (he never was in Trail; no unit kept a rear or
+  sides entry): back from the left wall with the player low on the screen (y≈69), his way from the
+  mirrored slot to his own passed beneath the player, where the 40 px minimum distance reaches below
+  the bottom margin, so the push-out held him in that corner for good. When the side his straight way
+  passes the player on has no room inside the margins at 40 px and the other side has, he now steers
+  round the player that other way (8 px outside the 40 px, a point 45° ahead on the circle): over
+  the player when the way beneath is closed. Otherwise his flight is unchanged (PacingTest's Level
+  08 runs with Rook show the same pauses as before). Replayed headless with the
+  capture's flight plan, he is back in his slot within a second. Test:
+  `WingmanTest.heGoesRoundOverThePlayerToHisOwnSlotWhenTheWayBeneathIsClosed` (fails without the
+  detour).

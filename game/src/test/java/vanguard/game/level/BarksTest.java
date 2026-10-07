@@ -104,6 +104,24 @@ class BarksTest {
     }
 
     @Test
+    void hisFirstKillLineCountsAsAScriptedRookLineForTheSpacing() {
+        // M5 part B: the kill that made a streak also started "Splash one": the bark queued with it goes,
+        // and the next eight seconds stay free of barks.
+        Barks barks = barks(8);
+        busy();
+        assertTrue(barks.bossWarning(20));
+        assertTrue(radio.waiting(lastQueued));
+
+        barks.scripted("Okafor", 20);
+        assertTrue(radio.waiting(lastQueued), "only a Rook line counts");
+        barks.scripted("Rook", 20);
+
+        assertFalse(radio.waiting(lastQueued), "the waiting bark is withdrawn");
+        assertFalse(barks.bossWarning(27.9));
+        assertTrue(barks.bossWarning(28.1));
+    }
+
+    @Test
     void aBarkIsDroppedWithinEightSecondsOfTheStartOfARookLine() {
         Barks barks = barks(8);
         barks.opened("Rook", 20);

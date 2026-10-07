@@ -87,8 +87,34 @@ class BriefingsTest {
         assertTrue(outro.pages().getFirst().line().startsWith("The carrier is dead."));
     }
 
+    /** Act 2 opens with its title card and four act pages, then Level 08's Okafor and Varga pages (M5 part B). */
+    @Test
+    void theBriefingBeforeLevel08IsTheAct2IntroThenItsOwnPages() {
+        BriefingScript intro = Briefings.before(content, 8).orElseThrow();
+
+        assertEquals("HOMEFRONT", intro.titleCard().orElseThrow().name());
+        assertEquals("ACT II - HOMEFRONT", intro.act());
+        assertEquals("NEON SKYLINE", intro.missionName());
+        assertEquals(
+                List.of("Okafor", "Okafor", "Okafor", "Okafor", "Okafor", "Varga"),
+                intro.pages().stream().map(BriefingPage::speaker).toList(),
+                "four act briefing pages, then Okafor and Varga");
+        assertEquals(
+                List.of(
+                        "act-2-landfall",
+                        "act-2-front-lines",
+                        "act-2-over-home",
+                        "act-2-scramble",
+                        "level-08-nova-lagos",
+                        "level-08-walker-scan"),
+                intro.pages().stream().map(page -> page.image().orElseThrow()).toList());
+        assertEquals(
+                List.of("SURVIVE TO THE END OF THE MISSION", "BONUS: NO CREEPER GETS THROUGH"), intro.objectives());
+        assertEquals("Rook", intro.teaser().speaker());
+    }
+
     @Test
     void aLevelThatIsNotBuiltYetHasNoBriefing() {
-        assertEquals(Optional.empty(), Briefings.before(content, 8));
+        assertEquals(Optional.empty(), Briefings.before(content, 9));
     }
 }

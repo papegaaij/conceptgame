@@ -149,6 +149,11 @@ public final class Sortie {
     private int streamReleased;
     /** Whether this attempt recorded the boss checkpoint. */
     private boolean checkpointTaken;
+    /**
+     * M5 part B: whether the wingman's shot or blast made a kill in this attempt (the radio's
+     * {@code escort-first-kill} fired then); hashed with a wingman and kept by the boss checkpoint.
+     */
+    private boolean escortKilled;
     /** Whether the next step restarts at the boss checkpoint. */
     private boolean bossRetry;
     /** Whether the next step jumps the clock to the arena's end (the boss died early). */
@@ -198,6 +203,7 @@ public final class Sortie {
         boolean wingmanEjected;
         boolean wingmanCritical;
         long wingmanLuck;
+        boolean escortKilled;
     }
 
     /** @param armour the ship's armour at the level start (design/systems/retry: not full, unless it was full) */
@@ -256,7 +262,8 @@ public final class Sortie {
         partsPiece = script.secondary().byParts() ? pieceOf(script.secondary().partsOf()) : -1;
         PlayerFire.Hits hits = new PlayerFire.Hits() {
             @Override
-            public void enemyDestroyed(int index) {
+            public void enemyDestroyed(int index, int mount) {
+                escortKill(mount);
                 destroy(index);
             }
 
@@ -267,7 +274,9 @@ public final class Sortie {
 
             @Override
             public void triggerReleased(int index) {
-                released(ground.get(index));
+                GroundObject trigger = ground.get(index);
+                events.add(SimEvents.Type.TRIGGER_SPENT, trigger.x(), trigger.y(), trigger.serial());
+                released(trigger);
             }
 
             @Override
@@ -276,7 +285,10 @@ public final class Sortie {
             }
 
             @Override
-            public void partDestroyed(int piece, int part) {
+            public void partDestroyed(int piece, int part, int mount) {
+                if (setPieces[piece].spec().parts().get(part).vital()) {
+                    escortKill(mount);
+                }
                 wreck(piece, part);
             }
         };
@@ -709,6 +721,7 @@ public final class Sortie {
             c.wingmanCritical = wingman.wasCritical();
             c.wingmanLuck = wingman.luck();
         }
+        c.escortKilled = escortKilled;
         checkpointTaken = true;
     }
 
@@ -752,6 +765,7 @@ public final class Sortie {
         if (wingman != null) {
             wingman.restore(c.wingmanArmour, c.wingmanEjected, c.wingmanCritical, c.wingmanLuck, ship.x(), ship.y());
         }
+        escortKilled = c.escortKilled;
         events.add(SimEvents.Type.SORTIE_RESTARTED, ship.x(), ship.y());
         events.add(SimEvents.Type.BOSS_RETRY, ship.x(), ship.y());
     }
@@ -791,6 +805,7 @@ public final class Sortie {
 
     private void restart() {
         checkpointTaken = false;
+        escortKilled = false;
         Arrays.fill(coresCollected, false);
         bossRetry = false;
         streamReleased = 0;
@@ -1063,6 +1078,24 @@ public final class Sortie {
             crate.drop(PickupType.HIDDEN_CRATE, spec.crateCredits(), trigger.x(), trigger.y(), pickupTicks);
         }
         radio.cue(LevelScript.CueTrigger.SECRET, spec.secret());
+    }
+
+    /**
+     * A kill by {@code mount}'s shot or blast (M5 part B, design/player/wingmen, Scripted lines about
+     * him): the wingman's first, while he flies, starts the radio's {@code escort-first-kill} cues,
+     * once per attempt. Called just before the kill is paid.
+     */
+    private void escortKill(int mount) {
+        if (wingman == null || mount != wingmanMount || escortKilled || wingman.ejected()) {
+            return;
+        }
+        escortKilled = true;
+        radio.cue(LevelScript.CueTrigger.ESCORT_FIRST_KILL, "");
+    }
+
+    /** Whether the wingman made a kill with his gun in this attempt (the {@code escort-first-kill} radio event fired). */
+    public boolean escortKilled() {
+        return escortKilled;
     }
 
     private void destroy(int index) {
@@ -1942,6 +1975,8 @@ public final class Sortie {
         if (force.chains().size() > 0) {
             Pools.addAll(hash, force.chains());
         }
+        // M5 part B: the staggered walker waves' volley clocks (none before Level 08).
+        force.addVolleyClocksTo(hash);
         for (int k = 0; k < cores.length; k++) {
             if (cores[k] != null) {
                 hash.add(coresCollected[k] ? 1 : 0);
@@ -1965,7 +2000,7 @@ public final class Sortie {
             // Only with a wingman, so the hashes of sorties without one stay as they were.
             wingman.addTo(hash);
             fire.addRecentHitTo(hash);
-            hash.add(wingmanStart);
+            hash.add(wingmanStart).add(escortKilled ? 1 : 0);
         }
         return hash.value();
     }

@@ -146,6 +146,16 @@ final class ContentValidator {
             EnemyData.Attack attack = enemy.attacks().get(i);
             String field = "attacks[" + i + "]";
             attack.bullet().ifPresent(bullet -> checkBullet(enemy, field + ".bullet", bullet));
+            boolean walker = enemy.movement().walk().isPresent();
+            if (attack.stagger().isPresent() && !walker) {
+                // M5 part B: only a walker wave shares a staggered volley clock so far.
+                problem(enemy, field + ".stagger", "only a walker's fan is staggered");
+            }
+            if (walker
+                    && attack.pattern().equals("fan")
+                    && attack.aim().filter("down"::equals).isPresent()) {
+                problem(enemy, field + ".aim", "a walker's fan aims at the target or along its facing");
+            }
             attack.mine().ifPresent(mine -> checkBullet(enemy, field + ".mine.ring_bullet", mine.ringBullet()));
             attack.mortar().ifPresent(mortar -> checkBullet(enemy, field + ".mortar.ring_bullet", mortar.ringBullet()));
             attack.sweep().flatMap(EnemyData.Sweep::origin).ifPresent(origin -> {

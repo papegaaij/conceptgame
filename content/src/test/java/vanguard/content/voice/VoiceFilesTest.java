@@ -42,6 +42,8 @@ class VoiceFilesTest {
             "act-1-first-contact/level-07-brood-carrier",
             "act-1-first-contact briefing",
             "act-1-first-contact outro",
+            "act-2-homefront/level-08-neon-skyline",
+            "act-2-homefront briefing",
             "specials",
             "armour",
             VoiceLines.BARKS);
@@ -101,16 +103,27 @@ class VoiceFilesTest {
     }
 
     /**
-     * The rendered levels have no uncast speaker left: Level 07's Lifeboat Seven was cast in round 25,
-     * so its line has a voice (and its file, above) instead of playing as text.
+     * The speakers of a rendered level whose casting round is still open: their lines play as text
+     * until it closes (none: Level 08's Civilian was cast in concept round 30). Each must still be
+     * marked uncast in the speaker table; once cast, it leaves this set and its lines need their files.
+     */
+    private static final Set<String> AUDITIONING = Set.of();
+
+    /**
+     * The rendered levels have no uncast speaker left but the ones in an open audition
+     * ({@link #AUDITIONING}): Level 07's Lifeboat Seven was cast in round 25 and Level 08's Civilian
+     * in round 30, so their lines have a voice (and their files, above) instead of playing as text.
      */
     @Test
     void everySpeakerOfARenderedLevelIsCast() {
+        AUDITIONING.forEach(speaker ->
+                assertTrue(CONTENT.voices().uncast(speaker), speaker + " is cast: remove it from AUDITIONING"));
         CONTENT.levels().forEach((id, level) -> {
             if (RENDERED.contains(id)) {
                 level.radio()
                         .forEach(cue -> assertTrue(
-                                CONTENT.voices().voiceOf(cue.speaker()).isPresent(),
+                                CONTENT.voices().voiceOf(cue.speaker()).isPresent()
+                                        || AUDITIONING.contains(cue.speaker()),
                                 id + ": " + cue.speaker() + " is not cast"));
             }
         });
@@ -118,6 +131,10 @@ class VoiceFilesTest {
                 "lifeboat-seven",
                 CONTENT.voices().voiceOf("Lifeboat Seven").orElse(null),
                 "Lifeboat Seven speaks with its own voice");
+        assertEquals(
+                "civilian",
+                CONTENT.voices().voiceOf("Civilian").orElse(null),
+                "the Civilian speaks with her own voice");
     }
 
     /** The acts' briefings and outros are spoken too: every page's speaker has a voice and a line. */

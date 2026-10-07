@@ -407,6 +407,36 @@ class WingmanTest {
         assertTrue(closest >= 40 - 1e-9, "never closer than 40 px: " + closest);
     }
 
+    /**
+     * Level 08's capture (round 30): low on the screen, back from the left wall, his way from the
+     * mirrored slot to his own passed beneath the player, where the bottom margin leaves no room at
+     * his minimum distance; pushed back he stayed beneath the player to the level's end. He goes
+     * round over the player instead.
+     */
+    @Test
+    void heGoesRoundOverThePlayerToHisOwnSlotWhenTheWayBeneathIsClosed() {
+        Sortie sortie = sortie(TestSpecs.level(60, List.of()), WingmanSpec.Side.LEFT);
+        Wingman rook = wingman(sortie);
+        run(sortie, 180, Command.LEFT.bit() | Command.DOWN.bit());
+        assertEquals(WingmanSpec.Side.RIGHT, rook.side(), "mirrored at the left wall");
+        double closest = Double.MAX_VALUE;
+        for (int i = 0; i < 300 && sortie.ship().x() < Ship.START_X; i++) {
+            sortie.step(Command.RIGHT.bit() | Command.DOWN.bit());
+        }
+        for (int i = 0; i < 240; i++) {
+            sortie.step(Command.DOWN.bit());
+            Ship ship = sortie.ship();
+            closest = Math.min(closest, Math.hypot(rook.x() - ship.x(), rook.y() - ship.y()));
+        }
+
+        Ship ship = sortie.ship();
+        assertTrue(ship.y() < 40 + 28 + 12 + 21, "the way beneath him is closed: " + ship.y());
+        assertEquals(WingmanSpec.Side.LEFT, rook.side());
+        assertEquals(Wingman.Formation.WING, rook.formation());
+        assertEquals(ship.x() - 64, rook.x(), 1, "in his own Wing slot, not beneath the player");
+        assertTrue(closest >= 40 - 1e-9, "never closer than 40 px: " + closest);
+    }
+
     @Test
     void aBulletTooCloseHitsHimAndHisLowArmourIsCalledOnce() {
         Sortie sortie = sortie(TestSpecs.level(30, List.of()), WingmanSpec.Side.LEFT);

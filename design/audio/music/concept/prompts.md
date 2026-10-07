@@ -757,3 +757,42 @@ chosen ones; only the comment is new.
 - `music-final-r26-a.png` (`--review`): the eight files' waveforms with the intro (grey), loop
   (blue), fade tail (dark), the loop points (amber) and the one-shots (green), with the measured
   numbers.
+
+## music-final-r30-a — track 6 and its base stem (production art)
+
+Not a proposal of new music: the production files of track 6 "Homefront", Level 08's theme, for the
+M5 part B review (round 30; user decision D6 = a: the chosen concept straight to production).
+`python3 tools/art/themes.py homefront homefront-base` renders the chosen `homefront-full-r08-a`
+again with its generator (`tools/concept/audio/music_r08.py`, `homefront_full`, unchanged) and the
+base stem with the new frozen stem generator `tools/concept/audio/music_r30.py`, remuxes each stream
+with a `SOURCE` comment into `assets/music/` and checks them (q6, −14 LUFS ±0.5 LU, true peak
+≤ −1 dBTP, `LOOPSTART` / `LOOPLENGTH`, a click-free seam; the base stem quieter than the full mix,
+with its length and loop points).
+
+Base stem brief (`music_r30.py`, the round-11 method of `music_r11.py` / `music_r15.py`): one render
+of `music_r08.homefront_full()`, same composition and seeds; the kicks and timpani are tagged on
+their way into the "drums" and "perc" groups and also collected in "kick" and "timp" groups, and the
+full mix's `mixdown()` call is captured, so the base stem is the same mixdown (each group's own
+high-pass, sidechain duck, delay, reverb seed, widening and gain) over the base groups only. Kept:
+the string / pluck 16th riff, the arpeggio, the bass, the string and choir pads (with the choir's
+"oo" lines), the kicks, the timpani, the sirens and risers. Dropped: the lead synth, all brass (stabs,
+hits and horn lines), the counter-melody strings and the breakbeat top (snares, ghost snares,
+rolls, hats), taiko and crashes. Mastering is linked (each loudness pass and the encoder's peak
+correction measure the full mix and apply its gain to both), so base + w × (full − base) crossfades
+sample-aligned. The stem had no concept round: the generator writes `homefront-base-r30-a.ogg` only
+into the temporary render directory, and proves its full mix is the chosen file byte for byte.
+
+Measured (`themes.py --check homefront homefront-base`): `homefront.ogg` 140.82 s, loop 306000 +
+5760000 samples (6.939 s + 130.612 s), −14.0 LUFS, −1.6 dBTP, seam 0.21, 3.14 MB, audio identical to
+the chosen file; `homefront-base.ogg` same length and loop, −18.2 LUFS (−4.2 LU under the full mix),
+−3.3 dBTP, seam 0.61, 2.97 MB. No fix was needed. Measured only, not listened to.
+
+- `homefront-final-r30-a.ogg`, `homefront-base-final-r30-a.ogg`: byte copies of the two files in
+  `assets/music/`, for the review board.
+- `homefront-seam-final-r30-a.ogg`, `homefront-base-seam-final-r30-a.ogg`: listening aids, the last
+  8 s of each loop followed by the first 8 s after `LOOPSTART`, as the looping stream plays the seam
+  (0.5 s fades at both ends).
+- `music-final-r30-a.png` (`--review`): both files' waveforms with the intro (grey), loop (blue),
+  fade tail (dark) and the loop points (amber), with the measured numbers.
+
+Outcome (user, 2026-10-07): both files approved as **final** in round 30.

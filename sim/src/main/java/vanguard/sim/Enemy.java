@@ -135,6 +135,13 @@ public final class Enemy implements Hashed {
     private boolean entered;
 
     private int spitTicks;
+    /**
+     * M5 part B: its wave's volley clock (a staggered walker wave, design/enemies/ground/creeper)
+     * and its place in the wave (from 0, in entry order); -1 and 0 without one.
+     */
+    private int volleyGroup = -1;
+
+    private int volleyUnit;
     /** The edge its wave entered from (a wingman's formation follows the sides and rear waves); front for any other unit. */
     private WaveSpec.Entry entry = WaveSpec.Entry.FRONT;
 
@@ -231,6 +238,8 @@ public final class Enemy implements Hashed {
         walked = 0;
         entered = false;
         spitTicks = 0;
+        volleyGroup = -1;
+        volleyUnit = 0;
         glideTicks = 0;
         glideHoldTicks = 0;
     }
@@ -560,6 +569,41 @@ public final class Enemy implements Hashed {
         return true;
     }
 
+    /**
+     * A walker of a staggered wave joins its wave's volley clock {@code clock} as unit {@code unit}
+     * (from 0, in entry order); -1: it keeps its own clock.
+     */
+    void volley(int clock, int unit) {
+        volleyGroup = walkPath != null ? clock : -1;
+        volleyUnit = volleyGroup >= 0 ? unit : 0;
+    }
+
+    /** Its wave's volley clock; -1 for a unit on its own clock. */
+    int volleyGroup() {
+        return volleyGroup;
+    }
+
+    /**
+     * Whether a walker of a staggered wave fires its fan this step (M5 part B, design/enemies/
+     * ground/creeper): the wave's volley clock {@code clocks[volleyGroup]} starts as the first of
+     * its units is on the screen; the first volley comes half an interval later and then one every
+     * interval, unit i firing i × the stagger after the volley's start. A unit off the screen skips
+     * its turn.
+     */
+    boolean staggeredVolley(int[] clocks) {
+        if (spec.gun().isEmpty() || !PlayField.overlaps(x, y, box)) {
+            return false;
+        }
+        if (clocks[volleyGroup] == 0) {
+            clocks[volleyGroup] = 1;
+        }
+        EnemyGun gun = spec.gun().get();
+        int since = clocks[volleyGroup]
+                - SimStep.ticks(gun.intervalSeconds() / 2)
+                - SimStep.ticks(volleyUnit * spec.walker().orElseThrow().staggerSeconds());
+        return since >= 0 && since % SimStep.ticks(gun.intervalSeconds()) == 0;
+    }
+
     /** Whether a spawner's time ran out: it bursts on its own this step. */
     boolean burstDue() {
         return broodTicks >= 0
@@ -803,6 +847,9 @@ public final class Enemy implements Hashed {
                     .add(scrolled)
                     .add(spitTicks)
                     .add(entered ? 1 : 0);
+        }
+        if (volleyGroup >= 0) {
+            hash.add(volleyGroup).add(volleyUnit);
         }
     }
 

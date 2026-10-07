@@ -3,7 +3,7 @@ title: Art direction
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-05
+updated: 2026-10-07
 ---
 
 # Art direction
@@ -274,6 +274,19 @@ every scene gets a clearly visible **atmosphere layer** and, where the setting a
   (camera height model, see parallax B); canyon walls and cliffs run from the rim at scale 1.0
   down to the floor at the `far` scale (0.6 in parallax C). As they scroll, walls turn, which
   gives real depth. Everything else is orthographic.
+- **Perspective towers are scenery** (user decision D1 of M5 part B, 2026-10-06): the towers of a
+  city (Level 08's Nova Lagos first, then Levels 09 and 14) are drawn in true perspective at run
+  time, a pre-rendered roof and textured walls per tower, projected each frame round the play
+  field's (240, 297) with the camera model of parallax B (a roof at height *h* drawn at
+  *k* = 6 ÷ (6 − *h*), *h* up to about 1.35, so a roof moves up to 1.29× the ground's scroll and
+  leans up to about 70 px outward at the field's edge). Nothing gameplay touches stands on a
+  tower: turrets, walkers, ground targets, triggers and crates sit at **street level** or on
+  **low structures drawn without lean** (parking decks, landing pads, low roofs and podiums), and
+  walkers keep to streets, ramps and low roofs (no wall crawling). Ground units, ground targets
+  and bullets are drawn over the towers, so a leaning wall never hides one; levels keep walker
+  paths and targets clear of where the walls lean, so this is seldom seen. Flyers' shadows fall
+  on walls and roofs at the ground offset. The data and renderer are in
+  [architecture](../tech/architecture/README.md#data-file-schemas) (tower pieces).
 - **Kit-bashed structures**: stations, colonies and similar structures are assembled from a kit
   of pre-rendered parts (trusses, modules, arrays, domes) rather than rendered as one image, as
   90s tile sets were. The concept tools do this with `tools/concept/render/station.py`.
@@ -425,6 +438,14 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 | [concept/scene-ocean-r10-a.png](concept/scene-ocean-r10-a.png) | Ocean (L11) within the motion budget: sea and wakes as the strong motion, slower swell, lower contrast, fainter whitecaps and wisps; 25 fps (sheet) | chosen |
 | [concept/scene-ocean-r10-a.gif](concept/scene-ocean-r10-a.gif) | Ocean: seamless loop | chosen |
 
+Concept round 30 (M5 part B), the perspective towers' renderer test: a capture of the game, not
+production art; placeholder kit by `tools/concept/towers_r30.py` (prompts:
+[concept/prompts.md](concept/prompts.md#towers-capture-r30-a)).
+
+| File | What | Status |
+|---|---|---|
+| [concept/towers-capture-r30-a.png](concept/towers-capture-r30-a.png) | The runtime tower projection in a scratch copy of Level 04's first section (placeholder streets, roofs and window walls in palette B; 114 towers, *h* 0.3–1.35): roofs leaning out from (240, 297), the walls that face the centre with true-perspective window rows, shaded right and down; the convoy, the ship and a flyer with its shadow drawn over the tower district | chosen |
+
 ## Implementation
 
 - [x] Renderer draws the screen at 960×540 and scales by integer factors with letterboxing
@@ -433,14 +454,18 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
       the table and a ground scroll speed, configurable per level (each level's `backdrop`:
       `scroll_factors`, `BackdropLayer`, `BackdropCheck`).
 - [ ] The `sub` layer — **later: M5** (the naval levels; see [enemies](../enemies/README.md#implementation)).
-- [ ] Perspective geometry between layers (canyon walls, cliffs) as well as tall structures —
-      **later: M5** (Level 08's tower district) and **later: Act 3** (the canyon walls, L16).
+- [ ] Perspective geometry between layers for canyon walls and cliffs — **later: Act 3** (the
+      canyon walls, L16).
 - [x] Runtime drop shadows from sprite alpha, offset per layer, masked to shadow-catching layers
       (`Shadows`: the flyers, the Coilwyrm's segments and the ship; the ground layer's tiles, road
       and pieces mark the stencil buffer). The flyers' second shadow on low-air bank tops (12, 17)
       and the 1–1.5 px blur are not drawn.
-- [ ] Perspective roof projection for tall ground structures — **later: M5** (Level 08's towers;
-      the open question below decides whether it is built at all).
+- [x] Perspective towers as scenery (D1 of M5 part B): tower pieces with a roof, textured walls
+      and a height, projected each frame round (240, 297) at *k* = 6 ÷ (6 − *h*), drawn under the
+      ground units, marking the shadow stencil, their lean checked against the motion budget
+      (`BackdropData.Tower`, `BackdropCheck`, `TowerProjection`, the test capture
+      `towers-capture-r30-a`); Level 08's tower district in production (`tools/art/backdrop_l08.py`,
+      approved as final in concept round 30), reused by Levels 09 and 14.
 - [x] High-air weather and decoration opacity capped where it overlaps the play plane; high-air
   enemies drawn at 75 % opacity, perspective-scaled, with shadows (the weather at 40 %; the
   Leviathan from M4 part C, the Brood Carrier with its shadow in part G, approved in round 25).
@@ -461,8 +486,7 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
 
 ## Open questions
 
-- **Perspective towers**: keep the true-perspective roof projection of parallax B, or use purely
-  orthographic pre-rendered tiles for all ground structures?
+- None open.
 
 ## Decisions
 
@@ -554,3 +578,28 @@ Concept [round 10](../concept-rounds/round-10/README.md) — revisions under the
   (9, 13) for low-air, masked by the stencil to the shadow-catching ground layer), without the
   1–1.5 px blur and the second shadow on low-air bank tops; the `medium` bullet's large orb approved
   as final. This document's `art` stays `chosen` (it covers the later acts' art too).
+- 2026-10-06: Open question on the perspective towers closed (user decision **D1 = a** of M5
+  part B): parallax B's true-perspective towers are kept, as **scenery only**: the renderer
+  projects each tower (a pre-rendered roof and textured wall quads) round the play field's
+  (240, 297) each frame, and everything gameplay touches stays at street level or on low
+  structures drawn without lean; walkers keep to streets, ramps and low roofs. Rejected: (b) full
+  perspective with units on roofs (heights in the simulation, projected hit boxes, walls as climb
+  paths: a large simulation, content and render task carried into Levels 09 and 14) and (c) no
+  runtime perspective (orthographic tiles with a baked lean, dropping parallax B's turning walls).
+  Our readings, for review in concept round 30: ground units, ground targets and bullets are drawn
+  over the towers (readability before occlusion), and flyers' shadows fall on walls and roofs at
+  the ground offset. The towers item now covers Level 08 (M5 part B); the canyon walls stay
+  **later: Act 3**.
+- 2026-10-06: Perspective towers built (M5 part B, renderer task): the roof is pre-rendered at its
+  drawn size (footprint × *k*), so it is never resampled; the wall texture's rows are spread up
+  the wall in true perspective (storeys a little taller towards the roof); the walls facing right
+  and down are drawn at the tower's `shade` (default 0.5), those facing up and left as the
+  texture; a tower is never mirrored (the symmetry rule: a mirrored roof is a piece of its own).
+  The readings of the D1 entry are what the renderer does (ground units, targets and bullets over
+  the towers; flyers' shadows on walls and roofs at the ground offset); the test capture
+  `towers-capture-r30-a` (placeholder kit) goes to the user in concept round 30. The towers do not
+  yet cast the short (6, 8) structure shadow onto the ground below them.
+- 2026-10-07: [Concept round 30](../concept-rounds/round-30/README.md) closed (user, 2026-10-07):
+  the perspective towers accepted as built (the test capture `towers-capture-r30-a` and Level 08's
+  production towers, roofs leaning out from (240, 297) with the walls turning), so the towers item
+  is ticked for Level 08; the canyon walls' perspective geometry stays Act 3.

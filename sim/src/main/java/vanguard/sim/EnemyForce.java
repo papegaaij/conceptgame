@@ -66,6 +66,11 @@ final class EnemyForce {
     private final int[] broodKinds;
     /** The spawner that entered last, which the escorts entering after it circle. */
     private Enemy lastCarrier;
+    /**
+     * M5 part B: per staggered walker wave its volley clock, in steps since the first of its units
+     * came onto the screen (counting that step as 1); 0 before (see {@link Enemy#staggeredVolley}).
+     */
+    private final int[] volleyClocks;
 
     /** Plans the waves with {@code rng}, which also spreads the aimed shots later. */
     EnemyForce(
@@ -140,6 +145,7 @@ final class EnemyForce {
                     spec.brood().isPresent() ? kinds.indexOf(spec.brood().get().enemy()) : -1;
         }
         this.waves = new WaveSchedule(waveSpecs, kinds, rng);
+        volleyClocks = new int[waves.volleyClocks()];
         this.groundUnits = groundUnits;
         groundKinds = new int[groundUnits.size()];
         groundTicks = new int[groundUnits.size()];
@@ -174,6 +180,7 @@ final class EnemyForce {
         spawned = 0;
         nextGround = 0;
         lastCarrier = null;
+        java.util.Arrays.fill(volleyClocks, 0);
     }
 
     /** Lets in every unit due at {@code levelTick}, flying and on the ground. */
@@ -187,6 +194,7 @@ final class EnemyForce {
             if (enemy != null) {
                 enemy.spawn(spawn, spawned);
                 enemy.entered(waves.lastEntry());
+                enemy.volley(waves.lastVolleyGroup(), waves.lastVolleyUnit());
                 if (spawn.escort().isPresent()) {
                     enemy.escort(lastCarrier);
                 }
@@ -340,6 +348,11 @@ final class EnemyForce {
         if (chains.size() > 0) {
             moveChains(ship);
         }
+        for (int g = 0; g < volleyClocks.length; g++) {
+            if (volleyClocks[g] > 0) {
+                volleyClocks[g]++;
+            }
+        }
         for (int i = enemies.size() - 1; i >= 0; i--) {
             Enemy enemy = enemies.get(i);
             int target = target(enemy, ship);
@@ -378,17 +391,19 @@ final class EnemyForce {
 
     /**
      * A walker's attacks (design/enemies/ground/scuttler): its fan along its facing, which aims at
-     * nobody, and its spit, aimed (at the ship, or the convoy unit the hook picks) while the ship
-     * is behind it.
+     * nobody, or (M5 part B, design/enemies/ground/creeper) centred on the ship, on its own clock or
+     * its wave's staggered one; and its spit, aimed (at the ship, or the convoy unit the hook picks)
+     * while the ship is behind it.
      */
     private void fireWalker(Enemy enemy, Ship ship, boolean firing) {
-        boolean fan = enemy.trigger();
+        boolean fan = enemy.volleyGroup() >= 0 ? enemy.staggeredVolley(volleyClocks) : enemy.trigger();
         boolean spit = enemy.spit(ship.x(), ship.y());
         if (!firing) {
             return;
         }
         if (fan) {
-            fire(enemy.x(), enemy.y(), enemy.spec().gun().orElseThrow(), false, enemy.facing(), ship, -1, true);
+            boolean atShip = enemy.spec().walker().orElseThrow().fanAtShip();
+            fire(enemy.x(), enemy.y(), enemy.spec().gun().orElseThrow(), false, enemy.facing(), ship, -1, !atShip);
         }
         if (spit) {
             EnemyGun gun = enemy.spec().walker().orElseThrow().spit().orElseThrow();
@@ -511,6 +526,13 @@ final class EnemyForce {
             return;
         }
         bullets.obtain().fire(x, y, Trig.cos(angle) * speed, Trig.sin(angle) * speed, damage);
+    }
+
+    /** Adds the staggered waves' volley clocks to {@code hash}; nothing without one (Act 1's hashes stay). */
+    void addVolleyClocksTo(StateHash hash) {
+        for (int clock : volleyClocks) {
+            hash.add(clock);
+        }
     }
 
     /** The schedule's place, for a boss checkpoint: the next wave unit, the next ground unit, the units let in. */

@@ -1,7 +1,7 @@
 ---
 title: Sound effects
 design: approved
-implementation: done
+implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
 updated: 2026-10-06
@@ -147,7 +147,7 @@ reused round 02 files marked (r02).
 |---|---|
 | Enemy shot: small [a](concept/enemy-shot-small-r08-a.ogg), [b](concept/enemy-shot-small-r08-b.ogg) / heavy [a](concept/enemy-shot-heavy-r08-a.ogg), [b](concept/enemy-shot-heavy-r08-b.ogg) / laser charge warning [a](concept/enemy-laser-warning-r08-a.ogg) | P1 |
 | Missile launch (enemy) — [a](concept/enemy-missile-r08-a.ogg) | P1 |
-| Vrell screech, 2 variants: [c](concept/enemy-screech-r08-c.ogg), [d](concept/enemy-screech-r08-d.ogg), in turn — a large Vrell unit entering the screen (its hit box first over the play field): the Mantis, the Coilwyrm's head (not its body or a regrown head), the Spore Bomber, the Scuttler; once per unit, at most one screech every 3 s (a unit entering inside them stays silent), at the Vrell spawns' level (user decision 2026-10-06) | P2 |
+| Vrell screech, 2 variants: [c](concept/enemy-screech-r08-c.ogg), [d](concept/enemy-screech-r08-d.ogg), in turn — a large Vrell unit entering the screen (its hit box first over the play field): the Mantis, the Coilwyrm's head (not its body or a regrown head), the Spore Bomber, the Scuttler and, from Level 08, the [Creeper](../../enemies/ground/creeper/README.md) (M5 part B); once per unit, at most one screech every 3 s (a unit entering inside them stays silent), at the Vrell spawns' level (user decision 2026-10-06) | P2 |
 | Turret rotate / lock-on beep — [a](concept/enemy-lock-r08-a.ogg) | P2 |
 | Portal / warp-in; Vrell spawn (Brood Pod bursting, Hive Node and Brood Carrier spawns) — [a](concept/enemy-spawn-r08-a.ogg) (wet creature swell), [b](concept/enemy-spawn-r08-b.ogg) (fleshy burst) | P2 |
 | Carrier launching drones — the Brood Carrier's units leaving its sacs: chosen [b](concept/enemy-carrier-launch-r25-b.ogg) (slime lunge; a creature spit was rejected), [round 25](../../concept-rounds/round-25/README.md) | P2 |
@@ -181,14 +181,14 @@ Space hum, orbital station creaks, city wind and sirens, Martian dust wind, unde
 whale-like calls under Europa's ice, asteroid rumble, Jovian storm, alien pulsing beyond the
 gate. P2–P3, one loop per setting in the [world](../../world/README.md).
 
-| Setting | Loop (round 08) |
-|---|---|
-| Earth orbit | [a](concept/ambience-orbit-r08-a.ogg) — space drone, 16 s |
-| Luna | [a](concept/ambience-luna-r08-a.ogg) — desolate space-wind drone, 16 s |
-| Earth megacity | [a](concept/ambience-city-r08-a.ogg) — night city with distant sirens, 20 s |
-| Earth ocean | [a](concept/ambience-ocean-r08-a.ogg) — waves at speed, 16 s |
-| Earth ocean storm | [a](concept/ambience-storm-r08-a.ogg) — rain and thunder, 24 s |
-| Earth arctic | [a](concept/ambience-arctic-r08-a.ogg) — cold wind, 16 s |
+| Setting | Key (a level's `music.ambience`) | Loop (round 08) |
+|---|---|---|
+| Earth orbit | `earth-orbit` | [a](concept/ambience-orbit-r08-a.ogg) — space drone, 16 s |
+| Luna | `luna` | [a](concept/ambience-luna-r08-a.ogg) — desolate space-wind drone, 16 s |
+| Earth megacity | `earth-megacity` (Level 08, M5 part B) | [a](concept/ambience-city-r08-a.ogg) — night city with distant sirens, 20 s; played as it is (M5 part B default) |
+| Earth ocean | — (M5 part E) | [a](concept/ambience-ocean-r08-a.ogg) — waves at speed, 16 s |
+| Earth ocean storm | — (M5 part F) | [a](concept/ambience-storm-r08-a.ogg) — rain and thunder, 24 s |
+| Earth arctic | — (M5 part G) | [a](concept/ambience-arctic-r08-a.ogg) — cold wind, 16 s |
 
 ### Chosen sounds the game does not play
 
@@ -215,7 +215,6 @@ game may play only `proposed` sounds of an open concept round, provisionally unt
 | [explosion-underwater-r03-a.ogg](concept/explosion-underwater-r03-a.ogg) | Under-water kills: Act 4 |
 | [explosion-underwater-r04-a.ogg](concept/explosion-underwater-r04-a.ogg) | Under-water kills: Act 4 |
 | [explosion-water-r03-a.ogg](concept/explosion-water-r03-a.ogg) | Surface naval kills: Act 2's ocean — later: M5 |
-| [ambience-city-r08-a.ogg](concept/ambience-city-r08-a.ogg) | Megacity setting: Act 2 — later: M5 |
 | [ambience-ocean-r08-a.ogg](concept/ambience-ocean-r08-a.ogg) | Ocean setting: Act 2 — later: M5 |
 | [ambience-storm-r08-a.ogg](concept/ambience-storm-r08-a.ogg) | Ocean storm setting: Act 2 — later: M5 |
 | [ambience-arctic-r08-a.ogg](concept/ambience-arctic-r08-a.ogg) | Arctic setting: Act 2 — later: M5 |
@@ -557,8 +556,12 @@ Briefs: [concept/prompts.md](concept/prompts.md#round-28--the-proximity-mines-ar
 - [x] The proximity mine's arming beep: `Sfx.MINE_ARM` on the simulation's `PROXIMITY_MINE_ARMED`
   (the step a mine arms), at −10 dB in the flight mix, ±3 % pitch, panned, two instances at most
   (`FlightSounds`); round 28's chosen a, the armed chirp (M5 part A)
-- [ ] Torpedo launch and the water explosion — **later: M5 part E**; the Act 2 ambiences —
-  **later: M5** (parts B, E, F, G, with their levels)
+- [x] The megacity ambience (`earth-megacity`: `Sfx.AMBIENCE_CITY`, `Sfx.ambience` maps a level's
+  key to its loop for the level screen) under Level 08's section 1 (M5 part B)
+- [x] The Creeper's screech as it comes onto the screen, like the Scuttler's (`ScreechCue`) (M5
+  part B)
+- [ ] Torpedo launch and the water explosion — **later: M5 part E**; the other Act 2 ambiences —
+  **later: M5** (parts E, F, G, with their levels)
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
   from rounds 02–08, round 21's four, round 23's five, round 24's two, round 25's seven and round 27's one) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
   [`tools/art/sfx_originals.py`](../../../tools/art/README.md); `importPlaceholders` keeps them
@@ -753,3 +756,13 @@ Briefs: [concept/prompts.md](concept/prompts.md#round-28--the-proximity-mines-ar
   concept copy like the other synthesized sounds (`copyPlaceholderSounds`, `Sfx.MINE_ARM`); it
   again plays no proposed sound. This doc's `art` stays `chosen` (the synthesized sounds are not
   final).
+- 2026-10-06: M5 part B (gap defaults with the user's decisions D1–D6): the **megacity ambience**
+  (round 08's a, used as it is) plays under Level 08 by the key `earth-megacity`, a new column of
+  the *Ambience* table that names each setting's key for a level's `music.ambience`; the
+  **Creeper** screeches on entry like the Scuttler; it needs no other new sound (the enemy fan
+  shot, the `medium` explosion). The billboard's topple plays the destructible break or the
+  `medium` explosion unless its concept pair brings a sound. The document goes back to
+  `in-progress` for part B.
+- 2026-10-06: M5 part B: the game plays the megacity ambience by the key `earth-megacity`
+  (`Sfx.AMBIENCE_CITY`; its row left the *Chosen sounds the game does not play* table) and the
+  Creeper screeches on entry (`ScreechCue`).

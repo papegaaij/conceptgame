@@ -460,3 +460,20 @@ limited palette, crisp pixels, 2D shoot'em up play field.
 ## explosions-final-r12-a
 
 Round 12, production art (Level 01 batch). Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by `tools/art/explosions.py --review`; the frames themselves are rendered by `tools/art/explosions.py` (see `tools/art/README.md`). Shows every frame of the four rungs and the four playing side by side. Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.
+
+## towers-capture-r30-a
+
+Round 30 (M5 part B), the perspective towers' renderer test. Not an image-generator prompt and not
+production art: a frame of the game (960×540, grabbed from a recording on a virtual display)
+running a scratch copy of Level 04 whose first section has a placeholder city: the ground
+tile `city-streets`, twelve roofs `tower-h<NN>-<a|b>` (heights 0.30–1.35, footprint 62 × 64 px,
+each roof at its scale) and the walls `wall-low`, `wall-mid`, `wall-tall`, all made by
+`tools/concept/towers_r30.py <out_dir>`, which also prints the pieces and the 114 placements
+(one tower per block on both sides of a central avenue). The level data in the repository is not
+changed. Brief for the reviewer: do the leaning roofs, the turning walls and their shading read as
+the parallax B city (`parallax-r03-b`), and do the units and shadows over them stay readable? The
+production kit will be the Level 08 backdrop's (`tools/art/backdrop_l08.py`, to come).
+
+Outcome (user, 2026-10-07): accepted in round 30; the production towers are Level 08's
+(`tools/art/backdrop_l08.py`, approved as final in the same round).
+

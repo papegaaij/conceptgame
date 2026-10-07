@@ -31,6 +31,7 @@ public final class Tracks {
             Map.entry(3, "briefing-theme"),
             Map.entry(4, "afterburner"),
             Map.entry(5, "coalition-rising"),
+            Map.entry(6, "homefront"),
             Map.entry(BOSS_VRELL, "choir-descends"),
             Map.entry(21, "miniboss-sting"),
             Map.entry(BOSS_WARNING, "boss-warning"),

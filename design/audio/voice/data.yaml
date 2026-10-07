@@ -17,7 +17,13 @@ expressions:   # exaggeration 0.25-2, cfg_weight (lower: slower, more dramatic),
 # stage: the sound (a file in assets/voice/<slug>/) a radio line plays when it is only a stage
 # direction in square brackets, which is not spoken (the Choir sings).
 speakers:
-  okafor: {names: [Okafor], ref: ref-okafor}
+  okafor:
+    names: [Okafor]
+    ref: ref-okafor
+    pins:
+      468143d57448: 73929799    # Act 2 briefing page 3 "Until now you fought…": the key's seed said "you've fought"
+      d16b2f349c6c: 219591441   # Level 08 t=1 "Aegis, contacts inbound…": the key's seed said "contact inbound"
+      e2da9c95df0f: 237873619   # Level 08 end "…The arcologies are next.": the key's seed read "all colleges" through the radio filter
   varga: {names: [Varga], ref: ref-varga}
   rook:
     names: [Rook]
@@ -48,3 +54,9 @@ speakers:
     fixed: {exaggeration: 0.3, cfg_weight: 0.5, temperature: 0.6}
     filter: pa
   lifeboat-seven: {names: [Lifeboat Seven], ref: ref-lifeboat-seven}   # Level 07; cast in round 25 (a, Tadhg Hynes), neutral as auditioned
+  civilian:   # Level 08 ("shelter nine"); cast in round 30 (b, Faith Abiola-Ellison), neutral as auditioned
+    names: [Civilian]
+    ref: ref-civilian
+    pins:
+      52ac8741e93c: 86689958    # t=113 "Shelter nine, Ikoyi!…": the key's seed read "on the roof" and lost "Shelter nine" dry
+      ab9138181b26: 179901323   # secondary "Shelter nine here…": the key's seed read "The roof's acquired"

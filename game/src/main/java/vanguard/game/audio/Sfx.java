@@ -183,6 +183,8 @@ public enum Sfx {
     AMBIENCE_ORBIT("sfx/ambience-orbit-r08-a.ogg", 1, Bus.EFFECTS, AMBIENCE),
     /** The Luna ambience, looped (design/audio/sfx, Ambience per setting): Level 04. */
     AMBIENCE_LUNA("sfx/ambience-luna-r08-a.ogg", 1, Bus.EFFECTS, AMBIENCE),
+    /** The Earth megacity ambience (night city, distant sirens), looped: Level 08 (M5 part B). */
+    AMBIENCE_CITY("sfx/ambience-city-r08-a.ogg", 1, Bus.EFFECTS, AMBIENCE),
     /** The mission complete jingle (design/audio/music, track 23), played as a one-shot. */
     MISSION_COMPLETE("music/mission-complete.ogg", 1, Bus.MUSIC, WARNING),
     /** The music's failure sting (design/audio/music, track 25), played over the cut music. */
@@ -254,6 +256,19 @@ public enum Sfx {
 
     public Priority priority() {
         return priority;
+    }
+
+    /**
+     * A setting's ambience loop by its key, a level's {@code music.ambience} (design/audio/sfx,
+     * Ambience per setting).
+     */
+    public static Sfx ambience(String setting) {
+        return switch (setting) {
+            case "earth-orbit" -> AMBIENCE_ORBIT;
+            case "luna" -> AMBIENCE_LUNA;
+            case "earth-megacity" -> AMBIENCE_CITY;
+            default -> throw new IllegalArgumentException("no ambience for " + setting + " yet");
+        };
     }
 
     /**

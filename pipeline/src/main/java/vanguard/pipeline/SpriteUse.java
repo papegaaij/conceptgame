@@ -21,7 +21,8 @@ import vanguard.content.LevelData;
  * its own (cranes, debris, sleds, rocks, the darkness's flares, the tows' lifeboat, pod and cable). A
  * sprite belongs to a root when its name is the root or starts with the root and a hyphen
  * ({@code leviathan} owns {@code leviathan-fin-left}). The shared roots are the weapons, the specials
- * and the game's own effects ({@link #GAME_WIDE}); a sprite no root claims fails the build.
+ * and the game's own effects ({@link #GAME_WIDE}); an enemy no level uses yet goes in its first level's
+ * unit atlas (its art can land before its level's data); a sprite no root claims fails the build.
  */
 final class SpriteUse {
     /** The shared atlas, always loaded. */
@@ -67,6 +68,16 @@ final class SpriteUse {
         content.specials().specials().forEach(special -> shared.add(slug(special.name())));
         Map<String, Set<String>> levels = new TreeMap<>();
         content.levels().forEach((key, level) -> levels.put(atlasOf(key), roots(content, level)));
+        // An enemy no level's data uses yet (its art lands before its level) goes in the unit atlas
+        // of its stat block's first level, where that level's waves will claim it.
+        Set<String> used = new TreeSet<>();
+        levels.values().forEach(used::addAll);
+        content.enemies().forEach((slug, enemy) -> {
+            if (!used.contains(slug)) {
+                levels.computeIfAbsent(atlasOf(enemy.firstLevel()), level -> new TreeSet<>())
+                        .add(slug);
+            }
+        });
         Map<String, String> atlases = new TreeMap<>();
         List<String> orphans = new ArrayList<>();
         for (String sprite : sprites) {
@@ -93,7 +104,12 @@ final class SpriteUse {
 
     /** The unit atlas of a level key: {@code level-NN}. */
     static String atlasOf(String levelKey) {
-        return String.format(Locale.ROOT, "level-%02d", Content.levelNumber(levelKey));
+        return atlasOf(Content.levelNumber(levelKey));
+    }
+
+    /** The unit atlas of level {@code number}: {@code level-NN}. */
+    static String atlasOf(int number) {
+        return String.format(Locale.ROOT, "level-%02d", number);
     }
 
     /** The sprite roots a level uses. */

@@ -156,3 +156,35 @@ lines so it neither drowns them nor gets lost under the music's duck.
 
 Outcome (user, 2026-10-06): **b** chosen, the sung "ah" F3 → E3 (the speaker table's `stage`,
 copied into `assets/voice/choir/`); a, c and d moved to `concept/rejected/`.
+
+## voice-civilian
+
+Round 30 (the Level 08 audition, M5 part B, user decision D6 = a), generated with
+`tools/concept/audio/tts_r30.py` the same way as round 25 (seed 30 + 10 × the variant's index + the
+line's index), each line through radio filter b on its own (its clicks, −16 LUFS), the two joined
+with 1 s of silence. The Ikoyi shelter civilian (L08, speaker `Civilian`, "shelter nine": a civilian
+in a Nova Lagos shelter under attack, then relieved), neutral (0.5 / 0.5 / 0.7), both of her lines
+as Level 08's data has them: t=113 "Shelter nine, Ikoyi! Walkers on the roofs, heading our way!"
+and the secondary objective's "Shelter nine here. The roofs are quiet. Thank you, Aegis."
+Re-rendered on 2026-10-07 with the t=113 line's current wording (the first renders of 2026-10-06
+read the earlier "Aegis, this is shelter nine in Ikoyi! They're on the roofs above us!"); the same
+clips, settings and seeds, so the second line is the same take up to GPU sampling. Measured: a
+10.76 s, −16.1 LUFS; b 10.84 s, −15.9 LUFS (OGG Vorbis q4, 44.1 kHz mono). Whisper (faster-whisper
+base.en) reads both files back whole: a word for word ("Shelter 9, Ikoyi, walkers on the roofs,
+heading our way. Shelter 9 here, the roofs are quiet. Thank you, Aegis."); b the same except
+"shelter nine" as "Sheltonine" twice. The raw takes (before the filter) read back word for word,
+b's "Shelter 9" included; a's raw first line has "Ikoyee". Measured only, not listened to.
+
+| Variant | Reader | Source | Licence | Clip pitch |
+|---|---|---|---|---|
+| a | KirksVoice | [African Myths, ch. 1 (Woodson)](https://archive.org/details/africanmyths_2601_librivox), cut at 60 s | public domain (Public Domain Mark 1.0) | 111 Hz (takes 132 / 121 Hz); a male voice by pitch |
+| b | Faith Abiola-Ellison | [The Yoruba-speaking Peoples of the Slave Coast of West Africa, selections, section 1 (Ellis)](https://archive.org/details/yorubapeoples_2408_librivox), cut at 60 s | public domain (Public Domain Mark 1.0) | 151 Hz (takes 149 / 148 Hz); the same reader reads Blyden's Lagos lecture for LibriVox; near Okafor's clip (150 Hz), who answers the t=113 call at t=120.5 |
+
+Both chapters are Yoruba subjects (the Ifa creation myth, the Yoruba pantheon), chosen for a Lagos
+speaker; the readers' accents are not claimed here, only the pitch (librosa pyin median over the
+voiced frames). Neither reader is in the cast.
+
+Outcome (user, 2026-10-07): **b** cast, Faith Abiola-Ellison (`refs/ref-civilian.wav`; the
+production lines by `tools/art/voice.py` at the neutral settings through radio filter b, both takes
+pinned in the speaker table); a moved to `concept/rejected/`, its clip deleted with its CREDITS.md
+row.
