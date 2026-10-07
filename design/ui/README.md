@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../art-direction, ../systems]
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # User interface
@@ -102,7 +102,7 @@ Production art, UI batch part U3 (concept round 13): the bitmap fonts rendered b
 - [x] Screen/state machine for the flow above
 - [x] Shared UI kit: panels, buttons, lists, bars, portrait frame, bitmap fonts (glass pieces: `tools/art/ui_kit.py`; fonts: `tools/art/fonts.py`)
 - [x] Keyboard and gamepad navigation on every screen (every screen of `vanguard.game.screen` reads the shared menu input, `services.menu`: menus, briefing, hangar, options, pause, debrief with the act summary and outro, mission select, mission failed, game over, credits)
-- [ ] Mouse support on every out-of-game screen (hover selects, click confirms, wheel scrolls lists, right-click or a back button goes back), with the hangar's panels and the options sliders and remapping usable by mouse; the in-level game stays keyboard/gamepad only — **later: M6** (see the [roadmap](../tech/roadmap/README.md))
+- [ ] Mouse support on every out-of-game screen (hover selects, click confirms, wheel scrolls lists, right-click or a back button goes back), with the hangar's panels and the options sliders and remapping usable by mouse; the in-level game stays keyboard/gamepad only, and the pointer is hidden in flight (today it stays visible in full screen) — **later: M6** (see the [roadmap](../tech/roadmap/README.md))
 
 ## Open questions
 
@@ -176,3 +176,6 @@ Production art, UI batch part U3 (concept round 13): the bitmap fonts rendered b
   outro on a replay from mission select (the summary's part of that is a main-agent default).
 - 2026-10-05: M4 part H docs reconciliation: keyboard and gamepad navigation reaches every screen
   of the build; ticked. Only mouse support (M6) is open, so the document is `done` for M4.
+- 2026-10-07: The mouse pointer stays visible in full screen during a level (seen in the round-30
+  capture, confirmed by the user); hiding it in flight is part of the M6 mouse support work (user
+  decision).
