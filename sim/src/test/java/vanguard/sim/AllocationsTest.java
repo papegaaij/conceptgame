@@ -49,7 +49,10 @@ class AllocationsTest {
 
     @Test
     void aOneOffInASingleRunIsIgnored() {
-        // Like the JVM resolving a class's strings in the second run, which broke CI on macOS.
+        // Like the JVM resolving a class's strings in the second run, which broke CI on macOS. The
+        // first run is the warm-up: it allocates only while classes still load, and when earlier
+        // tests in this JVM already loaded them it allocates nothing and the measurement would stop
+        // there, so it gets a one-off of its own.
         int[] runs = {0};
         long allocated = Allocations.least(
                 () -> {
@@ -60,7 +63,7 @@ class AllocationsTest {
                     for (int i = 0; i < STEPS; i++) {
                         sortie.step(SortieTest.Pilot.commands(i));
                     }
-                    if (runs[0] == 2) {
+                    if (runs[0] <= 2) {
                         sink = new byte[4096];
                     }
                 });
