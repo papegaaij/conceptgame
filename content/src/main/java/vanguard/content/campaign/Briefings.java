@@ -64,7 +64,10 @@ public final class Briefings {
                         outro.pages()));
     }
 
-    /** The objective lines of the briefing: the primary objective, then the secondary one as a bonus. */
+    /**
+     * The objective lines of the briefing: the primary objective, then the secondary one as a bonus,
+     * by its name where the data gives one ("BONUS: HOLD THE BRIDGE").
+     */
     static List<String> objectives(Content content, LevelData.Objectives objectives) {
         List<String> lines = new ArrayList<>();
         lines.add(
@@ -95,8 +98,12 @@ public final class Briefings {
         objectives
                 .secondary()
                 .ifPresent(secondary -> lines.add(secondary
-                        .killRatio()
-                        .map(ratio -> String.format(Locale.ROOT, "BONUS: DESTROY %.0f %% OF ALL ENEMIES", 100 * ratio))
+                        .name()
+                        .map(name -> "BONUS: " + name.toUpperCase(Locale.ROOT))
+                        .or(() -> secondary
+                                .killRatio()
+                                .map(ratio -> String.format(
+                                        Locale.ROOT, "BONUS: DESTROY %.0f %% OF ALL ENEMIES", 100 * ratio)))
                         .or(() -> secondary
                                 .escapes()
                                 .map(slug -> spawner(content, slug)

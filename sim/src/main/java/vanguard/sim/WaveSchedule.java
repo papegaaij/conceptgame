@@ -27,6 +27,8 @@ final class WaveSchedule {
     private final int[] volleyGroups;
 
     private final int[] volleyUnits;
+    /** M5 part C: per planned unit, its wave's tag ("" for none). */
+    private final String[] tags;
     /** The number of volley clocks: one per staggered walker wave. */
     private final int volleyClocks;
 
@@ -42,12 +44,14 @@ final class WaveSchedule {
         List<WaveSpec> warned = new ArrayList<>();
         Map<Spawn, WaveSpec.Entry> entryOf = new IdentityHashMap<>();
         Map<Spawn, int[]> volleyOf = new IdentityHashMap<>();
+        Map<Spawn, String> tagOf = new IdentityHashMap<>();
         int clocks = 0;
         for (WaveSpec wave : waves) {
             int before = planned.size();
             Formations.plan(wave, kinds.indexOf(wave.enemy()), rng, planned);
             for (int i = before; i < planned.size(); i++) {
                 entryOf.put(planned.get(i), wave.entry());
+                tagOf.put(planned.get(i), wave.tag());
             }
             if (staggered(wave)) {
                 for (int i = before; i < planned.size(); i++) {
@@ -64,7 +68,9 @@ final class WaveSchedule {
         entries = new WaveSpec.Entry[spawns.length];
         volleyGroups = new int[spawns.length];
         volleyUnits = new int[spawns.length];
+        tags = new String[spawns.length];
         for (int i = 0; i < spawns.length; i++) {
+            tags[i] = tagOf.getOrDefault(spawns[i], "");
             entries[i] = entryOf.getOrDefault(spawns[i], WaveSpec.Entry.FRONT);
             int[] volley = volleyOf.getOrDefault(spawns[i], new int[] {-1, 0});
             volleyGroups[i] = volley[0];
@@ -156,6 +162,11 @@ final class WaveSchedule {
         return volleyGroups[next - 1];
     }
 
+    /** M5 part C: the tag of the wave of the unit {@link #due} returned last ("" for none). */
+    String lastTag() {
+        return tags[next - 1];
+    }
+
     /** The place in its wave (from 0, in entry order) of the unit {@link #due} returned last. */
     int lastVolleyUnit() {
         return volleyUnits[next - 1];
@@ -182,6 +193,15 @@ final class WaveSchedule {
         int count = 0;
         for (Spawn spawn : spawns) {
             count += spawn.enemy().slug().equals(slug) ? 1 : 0;
+        }
+        return count;
+    }
+
+    /** M5 part C: the units of the enemy {@code slug} of the waves tagged {@code tag} the level sends. */
+    int unitsOf(String slug, String tag) {
+        int count = 0;
+        for (int i = 0; i < spawns.length; i++) {
+            count += spawns[i].enemy().slug().equals(slug) && tags[i].equals(tag) ? 1 : 0;
         }
         return count;
     }

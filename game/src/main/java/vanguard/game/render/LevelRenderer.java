@@ -121,7 +121,10 @@ public final class LevelRenderer {
     private static final int BOMBER_SHADOW_DY = -48;
     /** The bomber's engine flicker: each of its frames shows this many steps. */
     private static final int BOMBER_FRAME_TICKS = 2;
-    /** A shell grows by this much at the top of its arc (design/player/weapons/hammer-mortar: 1.0 -> 1.4 -> 1.0). */
+    /**
+     * A shell grows by this much at the top of its arc (design/player/weapons/hammer-mortar: 1.0 -> 1.4
+     * -> 1.0); a shorter lob (Rook's aimed Mortar) by its share of the full range.
+     */
     private static final float SHELL_ARC_SCALE = 0.4f;
     /** Bolts with a range fade out over its last part (design/player/weapons/scatter-vulcan). */
     private static final double FADE_SHARE = 0.25;
@@ -177,6 +180,10 @@ public final class LevelRenderer {
     private final Array<AtlasRegion> rocks;
 
     private final Backdrop backdrop;
+    /** M5 part C: the backdrop's level and real clocks at the render time. */
+    private final BackdropClock clock = new BackdropClock();
+    /** M5 part C: Level 09's collapse (the lean, the drop, its shadow, dust, dust peak and heap); null without one. */
+    private final CollapseLooks collapse;
     /** The level's road and convoy, if it has them. */
     private final ConvoyLooks convoy;
 
@@ -259,6 +266,9 @@ public final class LevelRenderer {
                 flash);
         rocks = sprites.has("rock") ? sprites.frames("rock") : null;
         this.backdrop = new Backdrop(sprites, level, levelKey);
+        this.collapse = level.collapse()
+                .map(spec -> new CollapseLooks(sprites, spec, backdrop, Backdrop.folder(levelKey, level)))
+                .orElse(null);
         this.convoy = new ConvoyLooks(sprites, flash, level, script, levelKey);
         this.flash = flash;
         this.farside = new FarsideLooks(sprites, script);
@@ -291,6 +301,7 @@ public final class LevelRenderer {
 
     /** The level restarts: the boss's parts forget their opening animations. */
     public void restart() {
+        clock.reset();
         shipLooks.reset();
         wingmanLooks.reset();
         if (bossLooks.hull != null) {
@@ -338,22 +349,30 @@ public final class LevelRenderer {
         whiteFlash = flashReduction ? REDUCED_FLASH : 1;
         double lag = SimStep.SECONDS * (1 - alpha);
         double scroll = sortie.groundScroll() - sortie.groundSpeed() * lag;
-        double seconds = sortie.levelSeconds() - lag;
-        backdrop.drawBehind(batch, scroll, seconds);
+        // M5 part C: between two steps script time moves at the level clock's rate (a fifth in a hold).
+        double seconds = sortie.levelSeconds() - lag * sortie.scriptRate();
+        clock.record(sortie.levelSeconds(), sortie.realSeconds());
+        clock.at(seconds, Math.max(0, sortie.realSeconds() - lag));
+        if (collapse != null) {
+            collapse.update(sortie, scroll, lag);
+        }
+        backdrop.drawBehind(batch, scroll, clock);
         // The ground layer marks where the flyers' shadows may fall (not on open space or the far layer).
         shadows.clear(batch);
         shadows.beginGround(batch);
-        backdrop.drawGroundTiles(batch, scroll, seconds);
+        backdrop.drawGroundTiles(batch, scroll, clock);
         convoy.drawRoad(batch, Math.round(scroll));
-        backdrop.drawGroundPieces(batch, scroll, seconds);
+        // With Level 09's collapse's shadow, heap and base dust under the towers (CollapseLooks).
+        backdrop.drawGroundPieces(batch, scroll, clock);
         shadows.endGround(batch);
         luna.drawSled(batch, sortie, scroll, alpha);
         luna.drawMarkers(batch, sortie, alpha);
         drawGround(batch, sortie, alpha);
         convoy.drawConvoy(batch, sortie, alpha, whiteFlash);
         shadows.beginGround(batch);
-        backdrop.drawOverhead(batch, scroll, seconds);
+        backdrop.drawOverhead(batch, scroll, clock);
         shadows.endGround(batch);
+        drawCreep(batch, sortie, alpha);
         debris.draw(batch, scroll);
         boolean overHull = bossOffPlane(sortie);
         drawEnemies(batch, sortie, alpha, Depth.GROUND, Launched.ANY);
@@ -363,11 +382,15 @@ public final class LevelRenderer {
         drawGroundGlows(batch, sortie, alpha);
         drawBomberShadows(batch, sortie, alpha);
         drawShadows(batch, sortie, alpha);
+        drawEnemies(batch, sortie, alpha, Depth.LEAP, Launched.ANY);
         drawEnemies(batch, sortie, alpha, Depth.LOW_AIR, Launched.ANY);
         blasts.draw(batch, scroll);
-        backdrop.drawLowAir(batch, scroll, seconds);
+        if (collapse != null) {
+            collapse.drawOver(batch);
+        }
+        backdrop.drawLowAir(batch, scroll, clock);
         drawBossShadows(batch, sortie, alpha);
-        drawWalkerGlows(batch, sortie, alpha);
+        drawUnitGlows(batch, sortie, alpha);
         tows.draw(batch, sortie, alpha, seconds);
         drawEnemies(batch, sortie, alpha, Depth.AIR, overHull ? Launched.NOT : Launched.ANY);
         drawChains(batch, sortie, alpha);
@@ -416,7 +439,7 @@ public final class LevelRenderer {
         if (overHull) {
             drawEnemies(batch, sortie, alpha, Depth.AIR, Launched.ONLY);
         }
-        backdrop.drawFront(batch, scroll, seconds);
+        backdrop.drawFront(batch, scroll, clock);
         if (targeting != null) {
             targeting.draw(batch, sortie, alpha);
         }
@@ -613,19 +636,29 @@ public final class LevelRenderer {
     }
 
     /** Where an enemy is drawn in the stack. */
-    private enum Depth {
+    enum Depth {
         /** The ground units, with the ground objects. */
         GROUND,
+        /**
+         * M5 part C: a pouncer leaping off the ground (the Ravager), over its pack and the flyers'
+         * shadows, under the low flyers; in its air window it is on {@link #AIR}.
+         */
+        LEAP,
         /** The low flyers, below the low-air banks. */
         LOW_AIR,
         /** The flyers on the play plane. */
         AIR;
 
+        /** Its depth by the layer it is on now ({@link Enemy#layer()}: a pounce's air window is air). */
         static Depth of(Enemy enemy) {
+            Layer layer = enemy.layer();
+            if (enemy.leaping()) {
+                return layer == Layer.AIR ? AIR : LEAP;
+            }
             if (enemy.grounded() || enemy.walking()) {
                 return GROUND;
             }
-            return enemy.spec().layer() == Layer.LOW_AIR ? LOW_AIR : AIR;
+            return layer == Layer.LOW_AIR ? LOW_AIR : AIR;
         }
     }
 
@@ -673,11 +706,15 @@ public final class LevelRenderer {
                 continue;
             }
             EnemyLooks look = looks[enemy.kind()];
-            AtlasRegion frame = enemyFrame(sortie, enemy, i);
+            AtlasRegion frame = enemyFrame(sortie, enemy, i, alpha);
             if (LunaLooks.target(sortie, enemy)) {
                 luna.drawOutline(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
             }
             drawCentred(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
+            if (depth == Depth.AIR && enemy.leaping()) {
+                // In its air window the leap's glow goes with the body, over the low-air layer.
+                drawLeapGlow(batch, enemy, look, alpha);
+            }
             if (enemy.paused() && !look.flare().isEmpty()) {
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
                 AtlasRegion flare = look.flare().get((int) (sortie.tick() / FLARE_FRAME_TICKS % look.flare().size));
@@ -687,12 +724,22 @@ public final class LevelRenderer {
         }
     }
 
-    /** Enemy {@code i}'s frame: its heading and animation step, its walk cycle or the Mantis's pose. */
-    private AtlasRegion enemyFrame(Sortie sortie, Enemy enemy, int i) {
+    /**
+     * Enemy {@code i}'s frame: its heading and animation step, its walk cycle or the Mantis's pose; a
+     * periodic spawner's iris state and pulse, a pouncer's leap frame in the air part of its leap.
+     */
+    private AtlasRegion enemyFrame(Sortie sortie, Enemy enemy, int i, float alpha) {
         EnemyLooks look = looks[enemy.kind()];
         AtlasRegion mantis = farside.mantisFrame(look, enemy, sortie.tick());
         if (mantis != null) {
             return mantis;
+        }
+        if (look.iris()) {
+            return look.frames().get(EnemyLooks.irisFrame(enemy.iris(), sortie.tick(), enemy.serial()));
+        }
+        int step = leapStep(enemy, look, alpha);
+        if (step >= 0) {
+            return look.leap().get(look.leapFrame(enemy.facing(), step));
         }
         return enemy.walking()
                 ? look.frames().get(look.walkFrame(enemy.facing(), enemy.walked()))
@@ -700,9 +747,71 @@ public final class LevelRenderer {
     }
 
     /**
+     * A pouncer's leap step at the render time ({@link EnemyLooks#leapStep}): -1 when it is not
+     * leaping, has no leap frames, or is low enough to be drawn galloping.
+     */
+    private static int leapStep(Enemy enemy, EnemyLooks look, float alpha) {
+        if (!enemy.leaping() || !look.leaps()) {
+            return -1;
+        }
+        return EnemyLooks.leapStep(EnemyLooks.leapLift(enemy.leapProgress(alpha)));
+    }
+
+    /** A leaping pouncer's glow (its maw and eyes), additive over its leap frame. */
+    private void drawLeapGlow(SpriteBatch batch, Enemy enemy, EnemyLooks look, float alpha) {
+        int step = leapStep(enemy, look, alpha);
+        if (step < 0 || look.leapGlow().isEmpty()) {
+            return;
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        drawCentred(
+                batch,
+                look.leapGlow().get(look.leapFrame(enemy.facing(), step)),
+                enemy.renderX(alpha),
+                enemy.renderY(alpha));
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    /**
+     * A pouncer's shadow in its leap (tools/art/ravager.py, the art direction's Shadows rule): its leap
+     * frame's silhouette at its ground size, sliding down-right with the lift up to the air layer's
+     * offset at the apex; none while it is drawn galloping.
+     */
+    private static void drawLeapShadow(SpriteBatch batch, Enemy enemy, EnemyLooks look, float alpha) {
+        double lift = EnemyLooks.leapLift(enemy.leapProgress(alpha));
+        int step = EnemyLooks.leapStep(lift);
+        if (step < 0) {
+            return;
+        }
+        Shadows.draw(
+                batch,
+                look.leap().get(look.leapFrame(enemy.facing(), step)),
+                (float) (X0 + enemy.renderX(alpha)),
+                (float) enemy.renderY(alpha),
+                (int) Math.round(EnemyLooks.LEAP_SHADOW_DX * lift),
+                (int) Math.round(EnemyLooks.LEAP_SHADOW_DY * lift),
+                (float) (1 / (Shadows.SCALE * EnemyLooks.LEAP_SCALES[step])));
+    }
+
+    /**
+     * Under each live periodic spawner (the Hive Node) its biomass creep, on the ground over the
+     * ground objects (its wither after the death is an effect on the ground, started by the screen).
+     */
+    private void drawCreep(SpriteBatch batch, Sortie sortie, float alpha) {
+        for (int i = 0; i < sortie.enemyCount(); i++) {
+            Enemy enemy = sortie.enemy(i);
+            EnemyLooks look = looks[enemy.kind()];
+            if (!look.creep().isEmpty()) {
+                drawCentred(batch, look.creep().first(), enemy.renderX(alpha), enemy.renderY(alpha));
+            }
+        }
+    }
+
+    /**
      * The flyers' drop shadows on the ground layer, from their frames' alpha (design/art-direction,
      * Shadows): the low flyers' at the low-air offset, the play plane's flyers' (the units, the
-     * chains' segments and the ship) at the air offset; under the low flyers and the low-air layer.
+     * chains' segments and the ship) at the air offset, a leaping pouncer's sliding out with its lift;
+     * under the low flyers and the low-air layer.
      */
     private void drawShadows(SpriteBatch batch, Sortie sortie, float alpha) {
         shadows.begin(batch);
@@ -712,10 +821,17 @@ public final class LevelRenderer {
             if (depth == Depth.GROUND || enemy.chain() != null) {
                 continue;
             }
+            if (enemy.leaping()) {
+                EnemyLooks look = looks[enemy.kind()];
+                if (look.leaps()) {
+                    drawLeapShadow(batch, enemy, look, alpha);
+                }
+                continue;
+            }
             boolean low = depth == Depth.LOW_AIR;
             Shadows.draw(
                     batch,
-                    enemyFrame(sortie, enemy, i),
+                    enemyFrame(sortie, enemy, i, alpha),
                     (float) (X0 + enemy.renderX(alpha)),
                     (float) enemy.renderY(alpha),
                     low ? Shadows.LOW_AIR_DX : Shadows.AIR_DX,
@@ -817,14 +933,30 @@ public final class LevelRenderer {
 
     /**
      * The walkers' emissive backs, additive above the low-air layer, so the Scuttler's lime back
-     * glows through the dust that hides its body (design/campaign, Level 04 hazards).
+     * glows through the dust that hides its body (design/campaign, Level 04 hazards); a leaping
+     * pouncer's maw and eyes off the ground (in its air window they are drawn with its body); a
+     * periodic spawner's throat and polyps at its iris state (the Hive Node: the iris glows while it
+     * opens, the spawn's telegraph).
      */
-    private void drawWalkerGlows(SpriteBatch batch, Sortie sortie, float alpha) {
+    private void drawUnitGlows(SpriteBatch batch, Sortie sortie, float alpha) {
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         for (int i = 0; i < sortie.enemyCount(); i++) {
             Enemy enemy = sortie.enemy(i);
             EnemyLooks look = looks[enemy.kind()];
-            if (enemy.walking() && !look.glow().isEmpty()) {
+            if (look.glow().isEmpty()) {
+                continue;
+            }
+            if (look.iris()) {
+                int frame = EnemyLooks.irisFrame(enemy.iris(), sortie.tick(), enemy.serial());
+                drawCentred(batch, look.glow().get(frame), enemy.renderX(alpha), enemy.renderY(alpha));
+            } else if (enemy.walking()) {
+                if (leapStep(enemy, look, alpha) >= 0) {
+                    if (Depth.of(enemy) == Depth.LEAP) {
+                        drawLeapGlow(batch, enemy, look, alpha);
+                        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+                    }
+                    continue;
+                }
                 drawCentred(
                         batch,
                         look.glow().get(look.walkFrame(enemy.facing(), enemy.walked())),
@@ -1255,7 +1387,7 @@ public final class LevelRenderer {
                             sprite,
                             x,
                             y,
-                            1 + SHELL_ARC_SCALE * (float) Math.sin(Math.PI * shot.airProgress(alpha)));
+                            1 + SHELL_ARC_SCALE * (float) (shot.arc() * Math.sin(Math.PI * shot.airProgress(alpha))));
                 case MINE -> drawCentred(batch, sprite, x, y);
                 case BOLT, HOMING, TURRET -> {
                     double left = shot.rangeLeft();

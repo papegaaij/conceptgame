@@ -21,7 +21,7 @@ import vanguard.sim.LevelScript.CueTrigger;
 import vanguard.sim.SimStep;
 
 /**
- * The timed radio lines of Levels 01–08 play when the level scripts mean them to: the real queue,
+ * The timed radio lines of Levels 01–09 play when the level scripts mean them to: the real queue,
  * stepped at the simulation's rate at the default text speed, with the event lines a player can
  * set off in between (an escaped Spore Bomber before the Leviathan's first pass, the lifeboat
  * secret, a convoy's first hit and loss, the Brood Carrier's phases, Rook's first kill, …), starts none of them more
@@ -30,7 +30,11 @@ import vanguard.sim.SimStep;
  * weapon, both, neither): a cue the fit does not allow is never queued, as in the game. Okafor's
  * low-armour line (design/player/armor), which the game queues as urgent, plays at once wherever it
  * falls and every timed line still plays after it. A line with Rook's side ({@code {side}}, Level
- * 08) is played with each side's text.
+ * 08) is played with each side's text. M5 part C: a level with hold zones (Level 09) is flown through
+ * them: the level clock (script time) slows to the hold's speed over its ramp while the queue runs
+ * on real time, each hold lasting a typical 6 s and the medium window of about 10.6 s, the collapse
+ * starting as the last cluster dies; a line is late by the real seconds after the level clock
+ * reached its time, and a line that requires the escort plays only with him flying (both fits).
  */
 class RadioTimelineTest {
     private static final Content CONTENT = ContentLoader.fromClasspath();
@@ -47,25 +51,39 @@ class RadioTimelineTest {
     private static final String LEVEL_06 = "act-1-first-contact/level-06-farside";
     private static final String LEVEL_07 = "act-1-first-contact/level-07-brood-carrier";
     private static final String LEVEL_08 = "act-2-homefront/level-08-neon-skyline";
+    private static final String LEVEL_09 = "act-2-homefront/level-09-arcology-fall";
 
     /** Rook's sides: a {@code {side}} line is played with each one's text. */
     private static final List<String> SIDES = VoiceLines.SIDES;
 
     /**
-     * Levels whose lines are not rendered yet (none: Level 08's were rendered in M5 part B's step B9,
-     * Level 07's in M4 part G): their voiced runs play the lines as text and list the late ones,
-     * without asking for the files. An uncast speaker's line (marked {@code uncast} in the speaker
-     * table; none since concept round 30 cast Level 08's Civilian) plays as text in any level.
+     * Levels whose lines are not rendered yet (none: Level 09's were rendered in M5 part C's voice
+     * step, Level 08's in M5 part B's step B9, Level 07's in M4 part G): their voiced runs play the
+     * lines as text and list the late ones, without asking for the files. An uncast speaker's line
+     * (marked {@code uncast} in the speaker table: Level 09's Kilo Lead until round 31 casts him)
+     * plays as text in any level.
      */
     private static final Set<String> UNVOICED = Set.of();
 
-    /** The fits a cue can require: neither, a special, a homing weapon, both. */
+    private static final int ESCORT = LevelScript.RadioCue.FITTED_ESCORT;
+
+    /** The fits a cue can require: neither, a special, a homing weapon, both; each with and without the escort flying. */
     private static final int[] FITS = {
         0,
         LevelScript.RadioCue.FITTED_SPECIAL,
         LevelScript.RadioCue.FITTED_HOMING,
-        LevelScript.RadioCue.FITTED_SPECIAL | LevelScript.RadioCue.FITTED_HOMING
+        LevelScript.RadioCue.FITTED_SPECIAL | LevelScript.RadioCue.FITTED_HOMING,
+        ESCORT,
+        ESCORT | LevelScript.RadioCue.FITTED_SPECIAL,
+        ESCORT | LevelScript.RadioCue.FITTED_HOMING,
+        ESCORT | LevelScript.RadioCue.FITTED_SPECIAL | LevelScript.RadioCue.FITTED_HOMING
     };
+
+    /**
+     * How long each hold zone lasts in real seconds in a level with holds (Level 09): a typical hold
+     * (the README's 6 s) and the whole medium window (≈ 10.6 s at 30 px/s); NaN for a level without.
+     */
+    private static final double[] HOLD_SECONDS = {6, 10.6};
 
     /**
      * Timed lines written to follow the line before them rather than to start at their time, by
@@ -80,14 +98,48 @@ class RadioTimelineTest {
     private static final String LOW_ARMOUR_EXPRESSION =
             LOW_ARMOUR.expression().orElse(Expression.NEUTRAL).slug();
 
-    /** An event a player sets off at {@code t}. */
-    private record Event(double t, CueTrigger trigger, String subject) {}
+    /**
+     * An event a player sets off at script time {@code t}, or (M5 part C) {@code into} real seconds
+     * after hold zone {@code hold} started (a node killed in its hold).
+     */
+    private record Event(double t, CueTrigger trigger, String subject, int hold, double into) {
+        Event(double t, CueTrigger trigger, String subject) {
+            this(t, trigger, subject, -1, 0);
+        }
 
-    /** A cue and when its message opened, if it did. */
-    private record Played(LevelScript.RadioCue cue, Optional<Double> opened) {}
+        static Event inHold(int hold, double into, CueTrigger trigger, String subject) {
+            return new Event(Double.NaN, trigger, subject, hold, into);
+        }
+    }
+
+    /**
+     * A cue and when its message opened, if it did (real seconds), and when it was due (real seconds:
+     * when the level clock reached its time, for a timed cue).
+     */
+    private record Played(LevelScript.RadioCue cue, Optional<Double> opened, double due) {
+        /** How late a timed line opened after the level clock reached its time, real seconds. */
+        double late() {
+            return opened.orElseThrow() - due;
+        }
+    }
 
     /** Per level, the runs to check: each a list of events on top of the timed lines and the level end. */
     private static final Map<String, List<List<Event>>> RUNS = Map.of(
+            LEVEL_09,
+            List.of(
+                    List.of(),
+                    // the first node dies early or late in the plaza's hold; the first pounce on the boulevard
+                    List.of(
+                            Event.inHold(0, 2, CueTrigger.FIRST_KILL, "hive-node"),
+                            new Event(60, CueTrigger.FIRST_POUNCE, "")),
+                    List.of(
+                            Event.inHold(0, 5, CueTrigger.FIRST_KILL, "hive-node"),
+                            new Event(75, CueTrigger.FIRST_POUNCE, ""),
+                            new Event(88, CueTrigger.SECRET, "cocoon cache")),
+                    // the pounce just after Varga's warning, the cocoon as it passes
+                    List.of(
+                            new Event(58.5, CueTrigger.FIRST_POUNCE, ""),
+                            new Event(86, CueTrigger.SECRET, "cocoon cache"))),
             LEVEL_08,
             List.of(
                     List.of(),
@@ -187,33 +239,42 @@ class RadioTimelineTest {
                             new Event(199, CueTrigger.BOSS_PHASE, "Core"),
                             new Event(230, CueTrigger.BOSS_DESTROYED, "brood-carrier"))));
 
+    /** The real seconds each hold lasts to fly a level with: {@link #HOLD_SECONDS}, or NaN for a level without holds. */
+    private static double[] holdSeconds(LevelScript script) {
+        return script.holds().isEmpty() ? new double[] {Double.NaN} : HOLD_SECONDS;
+    }
+
     @Test
-    void theTimedLinesOfLevels01To08StartAtMostASecondLate() {
+    void theTimedLinesOfLevels01To09StartAtMostASecondLate() {
         RUNS.forEach((level, runs) -> {
             for (Difficulty difficulty : Difficulty.values()) {
                 LevelScript script = SimSpecs.level(CONTENT, level, difficulty);
                 for (List<Event> events : runs) {
                     for (int fitted : FITS) {
                         for (String side : SIDES) {
-                            String where = level + " on " + difficulty + " with " + events + " (fit " + fitted + ", "
-                                    + side + "): ";
-                            List<Played> played = play(script, events, fitted, false, side);
-                            for (Played line : played) {
-                                LevelScript.RadioCue cue = line.cue();
-                                if (cue.trigger() != CueTrigger.TIME || !cue.allowedWith(fitted)) {
-                                    continue;
+                            for (double hold : holdSeconds(script)) {
+                                String where = level + " on " + difficulty + " with " + events + " (fit " + fitted
+                                        + ", " + side + ", holds " + hold + " s): ";
+                                List<Played> played =
+                                        play(script, events, fitted, false, Double.NaN, new double[1], side, hold);
+                                for (Played line : played) {
+                                    LevelScript.RadioCue cue = line.cue();
+                                    if (cue.trigger() != CueTrigger.TIME || !cue.allowedWith(fitted)) {
+                                        continue;
+                                    }
+                                    assertTrue(
+                                            line.opened().isPresent(),
+                                            where + "the timed line at t=" + cue.t() + " plays");
+                                    if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
+                                        continue;
+                                    }
+                                    double late = line.late();
+                                    assertTrue(
+                                            late <= MAX_LATE_SECONDS,
+                                            String.format(
+                                                    "%s%s's line at t=%s starts %.1f s late: %s",
+                                                    where, cue.speaker(), cue.t(), late, cue.line()));
                                 }
-                                assertTrue(
-                                        line.opened().isPresent(), where + "the timed line at t=" + cue.t() + " plays");
-                                if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
-                                    continue;
-                                }
-                                double late = line.opened().get() - cue.t();
-                                assertTrue(
-                                        late <= MAX_LATE_SECONDS,
-                                        String.format(
-                                                "%s%s's line at t=%s starts %.1f s late: %s",
-                                                where, cue.speaker(), cue.t(), late, cue.line()));
                             }
                         }
                     }
@@ -236,29 +297,33 @@ class RadioTimelineTest {
                 for (List<Event> events : runs) {
                     for (int fitted : FITS) {
                         for (String side : SIDES) {
-                            for (Played line : play(script, events, fitted, true, side)) {
-                                LevelScript.RadioCue cue = line.cue();
-                                if (cue.trigger() != CueTrigger.TIME || !cue.allowedWith(fitted)) {
-                                    continue;
-                                }
-                                assertTrue(
-                                        line.opened().isPresent(),
-                                        level + ": the timed line at t=" + cue.t() + " plays");
-                                assertTrue(
-                                        VoiceLines.spoken(cue.line()).isEmpty()
-                                                || voiceSeconds(cue, side) > 0
-                                                || UNVOICED.contains(level)
-                                                || CONTENT.voices().uncast(cue.speaker()),
-                                        level + ": the timed line at t=" + cue.t() + " has its voice");
-                                if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
-                                    continue;
-                                }
-                                double late = line.opened().get() - cue.t();
-                                if (late > MAX_LATE_SECONDS) {
-                                    worst.merge(
-                                            String.format("%s t=%s %s (%s)", level, cue.t(), cue.speaker(), difficulty),
-                                            late,
-                                            Math::max);
+                            for (double hold : holdSeconds(script)) {
+                                for (Played line :
+                                        play(script, events, fitted, true, Double.NaN, new double[1], side, hold)) {
+                                    LevelScript.RadioCue cue = line.cue();
+                                    if (cue.trigger() != CueTrigger.TIME || !cue.allowedWith(fitted)) {
+                                        continue;
+                                    }
+                                    assertTrue(
+                                            line.opened().isPresent(),
+                                            level + ": the timed line at t=" + cue.t() + " plays");
+                                    assertTrue(
+                                            VoiceLines.spoken(cue.line()).isEmpty()
+                                                    || voiceSeconds(cue, side) > 0
+                                                    || UNVOICED.contains(level)
+                                                    || CONTENT.voices().uncast(cue.speaker()),
+                                            level + ": the timed line at t=" + cue.t() + " has its voice");
+                                    if (FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
+                                        continue;
+                                    }
+                                    double late = line.late();
+                                    if (late > MAX_LATE_SECONDS) {
+                                        worst.merge(
+                                                String.format(
+                                                        "%s t=%s %s (%s)", level, cue.t(), cue.speaker(), difficulty),
+                                                late,
+                                                Math::max);
+                                    }
                                 }
                             }
                         }
@@ -296,7 +361,7 @@ class RadioTimelineTest {
                             continue;
                         }
                         assertTrue(line.opened().isPresent(), where + "the timed line at t=" + cue.t() + " plays");
-                        double late = line.opened().get() - cue.t();
+                        double late = line.late();
                         if (late > MAX_LATE_SECONDS
                                 && !FOLLOWING.getOrDefault(level, Set.of()).contains(cue.t())) {
                             worst.merge(level + " t=" + cue.t() + " " + cue.speaker(), late, Math::max);
@@ -335,6 +400,34 @@ class RadioTimelineTest {
         }
     }
 
+    /**
+     * The holds are flown where Level 09's nodes reach their depth: three, in order, at a fifth of the
+     * scroll on medium (30 of 150 px/s), the last one running on through the collapse.
+     */
+    @Test
+    void level09sHoldsAreFlownWhereItsNodesReachTheirDepth() {
+        LevelScript script = SimSpecs.level(CONTENT, LEVEL_09, Difficulty.MEDIUM);
+        List<HoldRun> holds = holdRuns(script, 6);
+        assertTrue(holds.size() == 3, "three holds: " + holds);
+        for (int h = 0; h < holds.size(); h++) {
+            HoldRun hold = holds.get(h);
+            assertTrue(Double.isFinite(hold.start()) && hold.start() < script.seconds(), "hold " + h + ": " + hold);
+            assertTrue(Math.abs(hold.ratio() - 0.2) < 1e-9, "hold " + h + " at a fifth: " + hold.ratio());
+            assertTrue(h == 0 || hold.start() > holds.get(h - 1).start(), "in order");
+        }
+        assertTrue(
+                holds.getLast().collapse() && holds.getLast().seconds() > 6, "the last runs on through the collapse");
+        // A line inside a hold is due in real time: the Choir's 152.5 (between two holds) still plays at most 1 s late.
+        for (Played line : play(script, List.of(), ESCORT, false, Double.NaN, new double[1], SIDES.getFirst(), 10.6)) {
+            if (line.cue().trigger() == CueTrigger.TIME) {
+                assertTrue(line.opened().isPresent() && line.late() <= MAX_LATE_SECONDS, line.toString());
+            }
+            if (line.cue().trigger() == CueTrigger.HOLD_START || line.cue().trigger() == CueTrigger.COLLAPSE) {
+                assertTrue(line.opened().isPresent(), "the " + line.cue().trigger() + " line plays");
+            }
+        }
+    }
+
     @Test
     void theLeviathansLinesFindTheirGapsAndALateReactionIsDropped() {
         LevelScript script = SimSpecs.level(CONTENT, LEVEL_03, Difficulty.MEDIUM);
@@ -345,12 +438,64 @@ class RadioTimelineTest {
         assertTrue(!opened(play(script, List.of(new Event(169, CueTrigger.FIRST_KILL, "leviathan"))), "leviathan"));
     }
 
-    /** Whether one of {@code events} has set off the event cue by {@code tick}. */
-    private static boolean setOff(List<Event> events, LevelScript.RadioCue cue, int tick) {
+    /**
+     * Whether one of {@code events} has set off the event cue by {@code scriptTick} (the level
+     * clock), an event in a hold by {@code realTick} with hold {@code k} started at {@code holdStarts[k]}.
+     */
+    private static boolean setOff(
+            List<Event> events, LevelScript.RadioCue cue, int scriptTick, int realTick, int[] holdStarts) {
         return events.stream()
                 .anyMatch(event -> event.trigger() == cue.trigger()
                         && event.subject().equals(cue.subject())
-                        && SimStep.ticks(event.t()) <= tick);
+                        && (event.hold() < 0
+                                ? SimStep.ticks(event.t()) <= scriptTick
+                                : holdStarts[event.hold()] >= 0
+                                        && realTick - holdStarts[event.hold()] >= SimStep.ticks(event.into())));
+    }
+
+    /**
+     * M5 part C: a hold zone as the test flies it: from {@code start} (script time, when the first
+     * unit of its groups reaches its depth below the top edge, scrolling at the section's speed) the
+     * level clock eases (smoothstep on the speed, as the simulation) over {@code ramp} to {@code ratio}
+     * of real time, for {@code seconds} real seconds (its groups' kill), and back; a hold over the
+     * collapse's groups runs on through the collapse's warning, drop and blast until its dust has
+     * settled (user decision, 2026-10-07), the collapse cue starting as its groups die.
+     */
+    private record HoldRun(double start, double ratio, double ramp, double seconds, boolean collapse) {}
+
+    private static List<HoldRun> holdRuns(LevelScript script, double seconds) {
+        List<HoldRun> runs = new ArrayList<>();
+        if (Double.isNaN(seconds)) {
+            return runs;
+        }
+        for (LevelScript.Hold hold : script.holds()) {
+            double start = Double.POSITIVE_INFINITY;
+            for (LevelScript.GroundUnit unit : script.groundUnits()) {
+                if (unit.group() >= 0 && hold.waitsFor(unit.group())) {
+                    double speed = sectionSpeed(script, unit.t());
+                    start = Math.min(start, unit.t() + (unit.enemy().hitbox().height() / 2 + hold.depth()) / speed);
+                }
+            }
+            boolean collapse =
+                    script.collapse().map(c -> c.groups().equals(hold.groups())).orElse(false);
+            double extra = collapse
+                    ? script.collapse().get().warningSeconds()
+                            + script.collapse().get().dropSeconds()
+                            + script.collapse().get().settleSeconds()
+                    : 0;
+            runs.add(new HoldRun(
+                    start, hold.speed() / sectionSpeed(script, start), hold.rampSeconds(), seconds + extra, collapse));
+        }
+        return runs;
+    }
+
+    private static double sectionSpeed(LevelScript script, double t) {
+        for (LevelScript.Section section : script.sections()) {
+            if (t < section.end()) {
+                return section.speed();
+            }
+        }
+        return script.sections().getLast().speed();
     }
 
     private static boolean opened(List<Played> played, String subject) {
@@ -365,17 +510,12 @@ class RadioTimelineTest {
      * until it is idle.
      */
     private static List<Played> play(LevelScript script, List<Event> events) {
-        return play(script, events, 0, false);
+        return play(script, events, ESCORT, false);
     }
 
     /** As the game queues them with {@code fitted} on the ship: a cue it does not allow never starts. */
     private static List<Played> play(LevelScript script, List<Event> events, int fitted, boolean voiced) {
-        return play(script, events, fitted, voiced, SIDES.getFirst());
-    }
-
-    /** As above with Rook on {@code side}. */
-    private static List<Played> play(LevelScript script, List<Event> events, int fitted, boolean voiced, String side) {
-        return play(script, events, fitted, voiced, Double.NaN, new double[1], side);
+        return play(script, events, fitted, voiced, Double.NaN, new double[1], SIDES.getFirst(), 6);
     }
 
     /**
@@ -389,10 +529,14 @@ class RadioTimelineTest {
             boolean voiced,
             double lowArmourAt,
             double[] lowArmourOpened) {
-        return play(script, events, fitted, voiced, lowArmourAt, lowArmourOpened, SIDES.getFirst());
+        return play(script, events, fitted, voiced, lowArmourAt, lowArmourOpened, SIDES.getFirst(), 6);
     }
 
-    /** As above with Rook on {@code side}. */
+    /**
+     * As above with Rook on {@code side} and each hold zone lasting {@code holdSeconds} real seconds
+     * (NaN or a level without holds: the level clock runs with real time). The loop steps real time;
+     * the level clock follows the holds.
+     */
     private static List<Played> play(
             LevelScript script,
             List<Event> events,
@@ -400,29 +544,63 @@ class RadioTimelineTest {
             boolean voiced,
             double lowArmourAt,
             double[] lowArmourOpened,
-            String side) {
+            String side,
+            double holdSeconds) {
         int lowArmourTick = Double.isNaN(lowArmourAt) ? -1 : SimStep.ticks(lowArmourAt);
         List<String> lowArmourLines = RadioQueue.wrap(LOW_ARMOUR.line());
-        RadioSchedule schedule = new RadioSchedule(script);
+        RadioSchedule schedule = new RadioSchedule(script, fitted & ~ESCORT);
+        boolean escort = (fitted & ESCORT) != 0;
         RadioQueue radio = new RadioQueue();
         List<LevelScript.RadioCue> cues = script.radio();
         boolean[] fired = new boolean[cues.size()];
+        double[] dueAt = new double[cues.size()];
         List<Integer> queued = new ArrayList<>();
         Double[] opened = new Double[cues.size()];
         int end = SimStep.ticks(script.seconds());
-        for (int tick = 1; tick <= end + SimStep.ticks(60); tick++) {
+        List<HoldRun> holds = holdRuns(script, holdSeconds);
+        int[] holdStarts = new int[holds.size()];
+        java.util.Arrays.fill(holdStarts, -1);
+        // The level clock in fixed point, as the simulation's (1/65 536 of a step).
+        long scriptFixed = 0;
+        int scriptTick = 0;
+        int afterEnd = -1;
+        for (int tick = 1; afterEnd < 0 || tick <= afterEnd; tick++) {
             double seconds = (double) tick / SimStep.PER_SECOND;
+            double rate = 1;
+            boolean collapsing = false;
+            for (int h = 0; h < holds.size(); h++) {
+                HoldRun hold = holds.get(h);
+                if (holdStarts[h] < 0 && scriptTick >= SimStep.ticks(hold.start())) {
+                    holdStarts[h] = tick;
+                }
+                if (holdStarts[h] >= 0) {
+                    double in = (tick - holdStarts[h]) * SimStep.SECONDS;
+                    double out = in - hold.seconds();
+                    double s = out < 0 ? Math.min(1, in / hold.ramp()) : Math.max(0, 1 - out / hold.ramp());
+                    rate = Math.min(rate, 1 + (hold.ratio() - 1) * s * s * (3 - 2 * s));
+                    collapsing |= hold.collapse() && in >= holdSeconds;
+                }
+            }
+            scriptFixed += Math.max(1, Math.round(rate * 65536));
+            scriptTick = (int) (scriptFixed >> 16);
+            if (scriptTick >= end && afterEnd < 0) {
+                afterEnd = tick + SimStep.ticks(60);
+            }
+            double scriptSeconds = (double) scriptFixed / 65536 * SimStep.SECONDS;
             for (int i = 0; i < cues.size(); i++) {
                 LevelScript.RadioCue cue = cues.get(i);
                 boolean due =
                         switch (cue.trigger()) {
-                            case TIME -> tick <= end && SimStep.ticks(cue.t()) <= tick;
-                            case LEVEL_END -> tick == end;
+                            case TIME -> scriptTick <= end && SimStep.ticks(cue.t()) <= scriptTick;
+                            case LEVEL_END -> scriptTick >= end;
                             case SECONDARY_OBJECTIVE -> false;
-                            default -> setOff(events, cue, tick);
+                            case HOLD_START -> holdStarts.length > 0 && holdStarts[0] >= 0;
+                            case COLLAPSE -> collapsing;
+                            default -> setOff(events, cue, scriptTick, tick, holdStarts);
                         };
                 if (due && !fired[i] && cue.allowedWith(fitted)) {
                     fired[i] = true;
+                    dueAt[i] = cue.trigger() == CueTrigger.TIME && holds.isEmpty() ? cue.t() : seconds;
                     queued.add(i);
                     radio.add(
                             cue.speaker(),
@@ -446,7 +624,8 @@ class RadioTimelineTest {
                         Optional.empty(),
                         voiced ? voiceSeconds(LOW_ARMOUR.speaker(), LOW_ARMOUR.line(), LOW_ARMOUR_EXPRESSION) : 0);
             }
-            float untilTimed = tick < end ? schedule.untilTimed(seconds) : Float.POSITIVE_INFINITY;
+            float untilTimed =
+                    scriptTick < end ? schedule.untilTimed(scriptSeconds, rate, escort) : Float.POSITIVE_INFINITY;
             if (radio.update((float) SimStep.SECONDS, untilTimed) == RadioQueue.Change.OPENED) {
                 RadioQueue.Message message = radio.current().orElseThrow();
                 if (Double.isNaN(lowArmourOpened[0])
@@ -466,7 +645,7 @@ class RadioTimelineTest {
         }
         List<Played> played = new ArrayList<>();
         for (int i = 0; i < cues.size(); i++) {
-            played.add(new Played(cues.get(i), Optional.ofNullable(opened[i])));
+            played.add(new Played(cues.get(i), Optional.ofNullable(opened[i]), dueAt[i]));
         }
         return played;
     }

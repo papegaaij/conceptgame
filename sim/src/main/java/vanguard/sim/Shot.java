@@ -34,6 +34,8 @@ public final class Shot implements Hashed {
     private double landX;
     private double landY;
     private int airTicks;
+    /** The share of the full lob it flies, 0..1: its arc's height; 1 for a full lob or a bomb. */
+    private double arc = 1;
 
     /** A bolt, a homing missile or a mine leaving (x, y) at {@code angle}. */
     void fire(WeaponSpec spec, int mountIndex, double startX, double startY, double angle) {
@@ -45,10 +47,26 @@ public final class Shot implements Hashed {
 
     /** A bomb or shell released at (x, y) that lands at (landX, landY) on the ground. */
     void lob(WeaponSpec spec, int mountIndex, double releaseX, double releaseY, double groundX, double groundY) {
+        lob(spec, mountIndex, releaseX, releaseY, groundX, groundY, 1);
+    }
+
+    /**
+     * A shell lobbed a {@code share} (0..1) of its full range: it flies that share of the weapon's
+     * air time, on an arc that much lower (Rook's aimed Mortar).
+     */
+    void lob(
+            WeaponSpec spec,
+            int mountIndex,
+            double releaseX,
+            double releaseY,
+            double groundX,
+            double groundY,
+            double share) {
         start(spec, mountIndex, releaseX, releaseY);
         landX = groundX;
         landY = groundY;
-        airTicks = Math.max(1, SimStep.ticks(spec.airSeconds()));
+        arc = share;
+        airTicks = Math.max(1, SimStep.ticks(spec.airSeconds() * share));
         heading = 0;
         vx = vy = 0;
         placeInAir();
@@ -67,6 +85,7 @@ public final class Shot implements Hashed {
         pierceLeft = spec.pierce();
         struckCount = 0;
         target = -1;
+        arc = 1;
     }
 
     /** One step of straight flight; an accelerating missile speeds up along its heading. */
@@ -214,6 +233,10 @@ public final class Shot implements Hashed {
                 .add(target)
                 .add(landX)
                 .add(landY);
+        if (weapon.delivery() == WeaponSpec.Delivery.LOBBED) {
+            // A shell's flight: Rook's aimed lobs fly shorter (user decision 2026-10-07).
+            hash.add(airTicks);
+        }
         for (int i = 0; i < struckCount; i++) {
             hash.add(struck[i]);
         }
@@ -263,6 +286,11 @@ public final class Shot implements Hashed {
             return 0;
         }
         return Math.min(1, (ticks + alpha) / airTicks);
+    }
+
+    /** The height of a lobbed shell's arc as a share of a full-range lob's, 0..1 (Rook aims shorter lobs). */
+    public double arc() {
+        return arc;
     }
 
     /** The share of a bolt's range that is left, 1 for one that flies to the screen edge. */

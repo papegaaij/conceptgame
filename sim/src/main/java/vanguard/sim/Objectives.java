@@ -93,9 +93,12 @@ final class Objectives {
         secondaryMet = false;
     }
 
-    /** A unit of {@code slug} was destroyed; returns whether that met an escapes objective. */
-    boolean escapeDestroyed(String slug) {
-        if (!secondary.counts(slug) || escapesFailed) {
+    /**
+     * A unit of {@code slug} of a wave tagged {@code tag} ("" for none) was destroyed; returns
+     * whether that met an escapes objective.
+     */
+    boolean escapeDestroyed(String slug, String tag) {
+        if (!secondary.counts(slug, tag) || escapesFailed) {
             return false;
         }
         escapesDestroyed++;
@@ -128,9 +131,9 @@ final class Objectives {
         return true;
     }
 
-    /** A unit of {@code slug} got away; returns whether that failed an escapes objective. */
-    boolean escapeLost(String slug) {
-        if (!secondary.counts(slug) || escapesFailed || secondaryMet) {
+    /** A unit of {@code slug} of a wave tagged {@code tag} ("" for none) got away; returns whether that failed an escapes objective. */
+    boolean escapeLost(String slug, String tag) {
+        if (!secondary.counts(slug, tag) || escapesFailed || secondaryMet) {
             return false;
         }
         escapesFailed = true;

@@ -182,6 +182,42 @@ public final class Hangar {
         return traits;
     }
 
+    /** The trait of the sources that damage hardened targets (design/enemies, hardened armour). */
+    public static final String ANTI_GROUND = "anti-ground";
+
+    /**
+     * The specials that damage hardened targets (design/player/specials: the Airstrike's bombs and the
+     * Smart Bomb's flash hit them); the Decoy Flares do not.
+     */
+    public static final Set<String> HARDENED_SPECIALS = Set.of("Airstrike", "Smart Bomb");
+
+    /**
+     * M5 part C (design/ui/hangar, Launch, user decision D7 = a): the traits the next flight brings
+     * from every source a level's {@code required} trait counts: the fitted weapons' traits, the
+     * traits of Rook's fitted gun while he flies (hired, fitted and not grounded; his Mortar is
+     * {@code anti-ground}), and {@value #ANTI_GROUND} for an Airstrike or a Smart Bomb fitted with at
+     * least one charge.
+     */
+    public Set<String> sourceTraits() {
+        Set<String> traits = new LinkedHashSet<>(fittedTraits());
+        campaign.escortFlight()
+                .ifPresent(flight ->
+                        traits.addAll(item(ItemKind.ESCORT, flight.gun()).traits()));
+        Fitted special = campaign.gear().loadout().get(LoadoutSlot.SPECIAL);
+        if (special != null
+                && HARDENED_SPECIALS.contains(special.item())
+                && campaign.gear().charges(special.item()) > 0) {
+            traits.add(ANTI_GROUND);
+        }
+        return traits;
+    }
+
+    /** The {@code required} traits of a level that no source of the next flight brings ({@link #sourceTraits}). */
+    public List<String> missingRequired(List<String> required) {
+        Set<String> sources = sourceTraits();
+        return required.stream().filter(trait -> !sources.contains(trait)).toList();
+    }
+
     /**
      * Whether an item is in the shop at this visit: from its unlock level on, or unlocked early; never
      * an item that is not for sale yet (its early unlock stays in the campaign for later).

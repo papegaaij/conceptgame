@@ -34,6 +34,9 @@ import vanguard.sim.PlayField;
  * @param backdrop the parallax layers behind and above the play plane
  * @param threatProfile what the hangar intel panel shows before the level (design/ui/hangar)
  * @param briefing the mission briefing before the level (design/ui/briefing)
+ * @param holds M5 part C: the hold zones, where the scroll eases down until their groups are gone
+ *     and the level clock (script time) slows with it (Level 09's node clusters)
+ * @param collapse M5 part C: the collapse once its groups are cleared (Level 09's arcology)
  */
 public record LevelData(
         double scrollSpeed,
@@ -61,7 +64,9 @@ public record LevelData(
         ThreatProfile threatProfile,
         Briefing briefing,
         Optional<Darkness> darkness,
-        Optional<List<Tow>> tows) {
+        Optional<List<Tow>> tows,
+        Optional<List<Hold>> holds,
+        Optional<Collapse> collapse) {
     public LevelData {
         Check.positive("scroll_speed", scrollSpeed);
         Check.notNegative("launch_seconds", launchSeconds);
@@ -264,6 +269,132 @@ public record LevelData(
         public Rocks {
             Check.positive("life", life);
             Check.positive("hp", hp);
+        }
+    }
+
+    /**
+     * M5 part C (user decisions D2 and D3 = a; Level 09): a hold zone. When the first unit of its
+     * {@code groups} (ground-target groups of the objectives) reaches {@code y} px below the top
+     * edge, the scroll eases over {@code ramp} s to {@code speed} px/s ({@code easy} / {@code hard}
+     * {@code speed}) and stays there until every unit of those groups is gone, then eases back. No
+     * timeout. The level clock advances at the current speed ÷ the section's, so every time in the
+     * level file is script time.
+     */
+    public record Hold(
+            List<String> groups,
+            double y,
+            double speed,
+            Optional<HoldChange> easy,
+            Optional<HoldChange> hard,
+            double ramp) {
+        public Hold {
+            Check.notEmpty("groups", groups);
+            groups = List.copyOf(groups);
+            Check.that(y > 0 && y < PlayField.HEIGHT, "y: inside the play field, was " + y);
+            Check.positive("speed", speed);
+            Check.positive("ramp", ramp);
+        }
+
+        /** Its speed on {@code difficulty}, px/s. */
+        public double speedOn(Difficulty difficulty) {
+            return switch (difficulty) {
+                case EASY -> easy.map(HoldChange::speed).orElse(speed);
+                case MEDIUM -> speed;
+                case HARD -> hard.map(HoldChange::speed).orElse(speed);
+            };
+        }
+    }
+
+    /** A difficulty's hold speed, px/s. */
+    public record HoldChange(double speed) {
+        public HoldChange {
+            Check.positive("speed", speed);
+        }
+    }
+
+    /**
+     * M5 part C (user decision D5 = a; Level 09; round 31's look c, 2026-10-07): the collapse. When
+     * every unit of its {@code groups} is destroyed, the backdrop's {@code tower} (placed exactly
+     * once) leans for {@code warning} s (the warning), then drops straight down in {@code drop} s; at
+     * the impact its {@code blast} rolls out from the tower's foot: a ring growing from {@code
+     * blast.from} to {@code blast.to} px round the footprint's centre in {@code blast.seconds} (eased
+     * 1 − (1 − t)²), destroying every ground unit in the band (the tower's footprint along the scroll,
+     * see {@link #collapseBand}) when it reaches it, paid and scored as an Airstrike kill; air units and
+     * the player are untouched. Presentation: the {@code dust} atmosphere it raises, ramping back out
+     * over its {@code seconds} after the impact, and the {@code rubble} backdrop piece it leaves; a
+     * hold over its groups lasts until that dust has settled (user decision, 2026-10-07).
+     */
+    public record Collapse(
+            List<String> groups, double warning, double drop, Blast blast, String tower, Dust dust, String rubble) {
+        public Collapse {
+            Check.notEmpty("groups", groups);
+            groups = List.copyOf(groups);
+            Check.notNegative("warning", warning);
+            Check.positive("drop", drop);
+            Check.that(blast != null && dust != null, "collapse: needs its blast and its dust");
+            Check.that(dust.seconds() >= blast.seconds(), "collapse: the dust settles after the blast");
+        }
+
+        /** Seconds from the warning's start to the impact (the end of the drop). */
+        public double impact() {
+            return warning + drop;
+        }
+
+        /** Seconds from the warning's start to the blast's end (the collapse's end). */
+        public double end() {
+            return warning + drop + blast.seconds();
+        }
+
+        /** Seconds from the warning's start to the dust's settling (a hold over its groups ends). */
+        public double settled() {
+            return warning + drop + dust.seconds();
+        }
+    }
+
+    /**
+     * The collapse's blast: its kill ring's radius grows from {@code from} to {@code to} px round the
+     * tower's footprint's centre over {@code seconds} from the impact.
+     */
+    public record Blast(double seconds, double from, double to) {
+        public Blast {
+            Check.positive("seconds", seconds);
+            Check.notNegative("from", from);
+            Check.that(to > from, "blast: the ring grows (to > from)");
+        }
+    }
+
+    /**
+     * A collapse's band on the ground: {@code bottom} to {@code top}, ground positions (px from the
+     * screen's bottom edge at the level start, as {@link #pieceCentre}), under a tower whose
+     * footprint's centre is {@code x} px from the play field's left edge.
+     */
+    public record Band(double bottom, double top, double x) {
+        /** The footprint's centre on the ground, a ground position. */
+        public double centre() {
+            return (bottom + top) / 2;
+        }
+    }
+
+    /**
+     * The collapse's band: its tower's footprint along the scroll, centred where the placed tower's
+     * footprint lies on the ground.
+     */
+    public Optional<Band> collapseBand() {
+        return collapse.map(c -> {
+            BackdropData.PlacedPiece placed = backdrop.placements().stream()
+                    .filter(p -> p.piece().equals(c.tower()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("collapse.tower: '" + c.tower() + "' is not placed"));
+            double centre = pieceCentre(placed);
+            double half = backdrop.pieces().get(c.tower()).size().height() / 2;
+            return new Band(centre - half, centre + half, placed.x());
+        });
+    }
+
+    /** An event-triggered atmosphere peak: {@code atmosphere} at once, ramping back out over {@code seconds}. */
+    public record Dust(Atmosphere atmosphere, double seconds) {
+        public Dust {
+            Check.positive("seconds", seconds);
         }
     }
 
@@ -549,6 +680,8 @@ public record LevelData(
      * @param easy changes on easy
      * @param hard changes on hard
      * @param skip the difficulties the wave is left out on (Level 06's hard-only Coilwyrm pair)
+     * @param tag M5 part C: a name a secondary {@code escapes} objective may be scoped to (Level 09's
+     *     {@code bridge} packs)
      */
     public record Wave(
             double t,
@@ -568,9 +701,11 @@ public record LevelData(
             Optional<LoopBack> loopBack,
             Optional<Change> easy,
             Optional<Change> hard,
-            Optional<List<String>> skip) {
+            Optional<List<String>> skip,
+            Optional<String> tag) {
         public Wave {
             Check.notNegative("t", t);
+            tag.ifPresent(name -> Check.that(!name.isBlank(), "tag: a name"));
             skip.ifPresent(names -> names.forEach(Difficulty::of));
             paths.ifPresent(p -> {
                 Check.that(!p.isEmpty(), "paths: at least one path");
@@ -861,7 +996,8 @@ public record LevelData(
      * @param easy changes on easy
      * @param hard changes on hard
      * @param requires what has to be fitted for it to play: {@code special} or (part G)
-     *     {@code homing}, a weapon with homing delivery
+     *     {@code homing}, a weapon with homing delivery, or (M5 part C) {@code escort}: an escort
+     *     flying (hired, fitted and not ejected; Rook's scripted lines), asked when it is due
      * @param requiresNot part G: what must not be fitted for it to play (Level 07's "You can't touch
      *     it up there" without a homing weapon)
      * @param timeout part G, a boss-phase cue: true plays it only when the phase before ended on
@@ -913,21 +1049,25 @@ public record LevelData(
     }
 
     /**
-     * What a radio cue requires: {@code special} (a special fitted) or {@code homing} (a weapon with
-     * homing delivery fitted); a prompt knows only {@code special}.
+     * What a radio cue requires: {@code special} (a special fitted), {@code homing} (a weapon with
+     * homing delivery fitted) or (M5 part C) {@code escort} (an escort flying); a prompt knows only
+     * {@code special}.
      */
     static final class Requirement {
         /** A special fitted. */
         static final String SPECIAL = "special";
         /** A weapon with homing delivery fitted. */
         static final String HOMING = "homing";
+        /** M5 part C: an escort flying (hired, fitted and not ejected). */
+        static final String ESCORT = "escort";
 
         private Requirement() {}
 
         static void check(String requires) {
             Check.that(
-                    requires.equals(SPECIAL) || requires.equals(HOMING),
-                    "requires: 'special' or 'homing' (on a prompt only 'special' is known), was '" + requires + "'");
+                    requires.equals(SPECIAL) || requires.equals(HOMING) || requires.equals(ESCORT),
+                    "requires: 'special', 'homing' or 'escort' (on a prompt only 'special' is known), was '" + requires
+                            + "'");
         }
 
         static void checkPrompt(String requires) {
@@ -986,7 +1126,16 @@ public record LevelData(
         BOSS_PHASE,
         /** The boss was destroyed. */
         @JsonProperty("boss-destroyed")
-        BOSS_DESTROYED
+        BOSS_DESTROYED,
+        /** M5 part C: the level's first hold zone starts to ease down (once). */
+        @JsonProperty("hold-start")
+        HOLD_START,
+        /** M5 part C: the attempt's first pounce takes off. Names no enemy. */
+        @JsonProperty("first-pounce")
+        FIRST_POUNCE,
+        /** M5 part C: the collapse's shadow starts. */
+        @JsonProperty("collapse")
+        COLLAPSE
     }
 
     /**
@@ -1103,7 +1252,11 @@ public record LevelData(
      * {@code killAll} (Level 05's "Scorched crater", the tracker's {@code label}) for {@code credits},
      * or (part G) shoot off every one of the level boss's {@code parts} before its phase
      * {@code before} ends (Level 07's "Gut the bays": all eight sacs before the broadside phase
-     * times out; the tracker's {@code label}) for {@code credits}.
+     * times out; the tracker's {@code label}) for {@code credits}. M5 part C (user decision D6 = a):
+     * an {@code escapes} objective's {@code tag} scopes it to the units of the waves with that tag
+     * (Level 09's two {@code bridge} packs). An optional {@code name} names the objective where the
+     * generated wording would mislead (Level 09's "Hold the bridge": only the bridge packs count):
+     * the briefing's bonus line and the README's credit table use it.
      */
     public record Secondary(
             Optional<Double> killRatio,
@@ -1113,8 +1266,35 @@ public record LevelData(
             Optional<List<String>> parts,
             Optional<String> before,
             Optional<String> label,
-            int credits) {
+            int credits,
+            Optional<String> tag,
+            Optional<String> name) {
+        /** Without M5 part C's wave tag and name. */
+        public Secondary(
+                Optional<Double> killRatio,
+                Optional<List<String>> groups,
+                Optional<String> escapes,
+                Optional<List<String>> killAll,
+                Optional<List<String>> parts,
+                Optional<String> before,
+                Optional<String> label,
+                int credits) {
+            this(
+                    killRatio,
+                    groups,
+                    escapes,
+                    killAll,
+                    parts,
+                    before,
+                    label,
+                    credits,
+                    Optional.empty(),
+                    Optional.empty());
+        }
+
         public Secondary {
+            name.ifPresent(n -> Check.that(!n.isBlank(), "name: give the objective's name"));
+            Check.that(tag.isEmpty() || escapes.isPresent(), "only an escapes objective is scoped to a wave tag");
             Check.that(
                     (killRatio.isPresent() ? 1 : 0)
                                     + (groups.isPresent() ? 1 : 0)
@@ -1154,6 +1334,9 @@ public record LevelData(
      *     the klaxon and the warning banner) when an act boss arrives, the theme crossfading out
      * @param bossTrack part G: the boss theme (by file name, {@code choir-descends}: track 18) that
      *     comes in after the warning and fades out at the kill, leaving the ambience
+     * @param fullOn M5 part C: run-time events that play the full mix: {@code hold} while a hold zone
+     *     runs (fading in over 1 s as it starts, out over 4 s after it ends), {@code collapse} from
+     *     the collapse to the level's end
      */
     public record Music(
             int track,
@@ -1167,7 +1350,8 @@ public record LevelData(
             Optional<Double> ambienceFrom,
             Optional<VoiceLoop> voiceLoop,
             Optional<String> bossWarning,
-            Optional<String> bossTrack) {
+            Optional<String> bossTrack,
+            Optional<List<FullOn>> fullOn) {
         /**
          * The timed radio line of {@code speaker} (its first), looping at {@code db} (below full)
          * while section {@code section} (1-based) plays; silent while the speaker has no voice file.
@@ -1177,6 +1361,19 @@ public record LevelData(
                 Check.positive("section", section);
                 Check.that(db <= 0, "db: must not be above full level");
             }
+        }
+
+        /** M5 part C: a run-time event that plays the full mix ({@code full_on}). */
+        public enum FullOn {
+            @JsonProperty("hold")
+            HOLD,
+            @JsonProperty("collapse")
+            COLLAPSE
+        }
+
+        /** Whether {@code event} plays the full mix (its {@code full_on} names it). */
+        public boolean fullOn(FullOn event) {
+            return fullOn.map(events -> events.contains(event)).orElse(false);
         }
 
         /** The stems a section plays. */
@@ -1198,6 +1395,10 @@ public record LevelData(
             startDb.ifPresent(db -> Check.that(db <= 0, "start_db: must not be above full level"));
             ambienceFrom.ifPresent(t -> Check.positive("ambience_from", t));
             Check.that(bossTrack.isEmpty() || bossWarning.isPresent(), "a boss_track comes in after its boss_warning");
+            fullOn.ifPresent(events -> {
+                Check.notEmpty("full_on", events);
+                Check.that(events.size() == new java.util.HashSet<>(events).size(), "full_on: each event once");
+            });
         }
     }
 
@@ -1214,6 +1415,9 @@ public record LevelData(
      * @param objective the OBJECTIVE field shown from sensor L1 ("ESCORT 5 CRAWLERS"); none without
      * @param varga Dr. Varga's intel line for each sensor level, all four: {@code none}, {@code l1},
      *     {@code l2}, {@code l3}
+     * @param required M5 part C (user decision D7 = a): the traits among {@code traits} the primary
+     *     objective cannot be met without (Level 09's {@code anti-ground}): a launch warning at every
+     *     sensor level
      */
     public record ThreatProfile(
             String setting,
@@ -1224,7 +1428,8 @@ public record LevelData(
             String boss,
             Optional<String> specials,
             Optional<String> objective,
-            Map<String, String> varga) {
+            Map<String, String> varga,
+            Optional<List<String>> required) {
         /** The keys of Varga's lines, from no sensor suite to L3. */
         public static final List<String> SENSOR_KEYS = List.of("none", "l1", "l2", "l3");
 
@@ -1237,6 +1442,35 @@ public record LevelData(
             traits = List.copyOf(traits);
             hazards = List.copyOf(hazards);
             varga = Map.copyOf(varga);
+            required = required.map(List::copyOf);
+            List<String> recommended = traits;
+            required.ifPresent(names -> {
+                Check.notEmpty("required", names);
+                for (String name : names) {
+                    Check.that(
+                            recommended.contains(name),
+                            "required: '" + name + "' is not one of the traits " + recommended);
+                }
+            });
+        }
+
+        /** Without M5 part C's required traits. */
+        public ThreatProfile(
+                String setting,
+                List<String> layers,
+                int density,
+                List<String> traits,
+                List<String> hazards,
+                String boss,
+                Optional<String> specials,
+                Optional<String> objective,
+                Map<String, String> varga) {
+            this(setting, layers, density, traits, hazards, boss, specials, objective, varga, Optional.empty());
+        }
+
+        /** The traits the primary objective cannot be met without; empty for none. */
+        public List<String> requiredTraits() {
+            return required.orElse(List.of());
         }
 
         /** Varga's line for a sensor level, 0 (no sensor suite) to 3. */

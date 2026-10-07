@@ -338,6 +338,10 @@ public final class FarsideLooks implements Disposable {
             }
             String slug = enemy.spec().slug();
             EnemyLooks look = looks[enemy.kind()];
+            if (look.iris()) {
+                // M5 part C: a periodic spawner's glow follows its iris (LevelRenderer draws it).
+                continue;
+            }
             if (!look.glow().isEmpty()) {
                 TextureRegion glow = look.glowFrame(enemy.facing(), look.step(sortie.tick(), i, enemy.burstSeconds()));
                 batch.draw(

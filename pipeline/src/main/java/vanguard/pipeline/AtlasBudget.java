@@ -18,7 +18,8 @@ import java.util.stream.Stream;
  * on the packed atlases at RGBA8: the {@code sprites} atlas is always loaded and counts as the
  * shared pages; a level's pages are its unit atlas ({@code level-NN.atlas}, loaded while the level
  * runs) and the {@code backdrop} pages that hold one of its regions ({@code level-NN/...}); one
- * sprite (all frames of one region name) must fit a page.
+ * sprite (all frames of one region name in one atlas; a unit several levels use is in each of
+ * their atlases) must fit a page.
  */
 public final class AtlasBudget {
     static final long PAGE_BYTES = 2048L * 2048 * 4;
@@ -53,11 +54,13 @@ public final class AtlasBudget {
         List<Page> sprites = read(atlasDir.resolve("sprites.atlas"));
         check(violations, "shared pages (sprites atlas)", sprites, SHARED_PAGES);
         Map<String, List<Page>> units = units(atlasDir);
+        // A sprite's frames within one atlas; a unit copied into several levels' atlases counts once.
         Map<String, Long> spriteBytes = new TreeMap<>();
-        Stream.concat(Stream.of(sprites), units.values().stream())
-                .flatMap(List::stream)
-                .forEach(
-                        page -> page.regionBytes().forEach((name, bytes) -> spriteBytes.merge(name, bytes, Long::sum)));
+        Stream.concat(Stream.of(sprites), units.values().stream()).forEach(atlas -> {
+            Map<String, Long> inAtlas = new TreeMap<>();
+            atlas.forEach(page -> page.regionBytes().forEach((name, bytes) -> inAtlas.merge(name, bytes, Long::sum)));
+            inAtlas.forEach((name, bytes) -> spriteBytes.merge(name, bytes, Math::max));
+        });
         spriteBytes.forEach((name, bytes) -> {
             if (bytes > PAGE_BYTES) {
                 violations.add("sprite '" + name + "': " + mib(bytes) + " MiB of frames, more than one page ("

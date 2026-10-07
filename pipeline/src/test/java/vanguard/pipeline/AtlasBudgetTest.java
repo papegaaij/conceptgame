@@ -104,6 +104,18 @@ class AtlasBudgetTest {
                 List.of("sprite 'halo': 20 MiB of frames, more than one page (16 MiB)"), AtlasBudget.violations(dir));
     }
 
+    /** A unit several levels use is copied into each of their unit atlases (D10 = a): it counts once. */
+    @Test
+    void aUnitInTwoLevelsAtlasesCountsOncePerAtlas() throws IOException {
+        write("sprites.atlas", page("sprites.png", 64, 64, region("ship", 8, 8)));
+        String creeper = region("creeper", 1024, 1024).repeat(3);
+        write("level-08.atlas", page("level-08.png", 2048, 2048, creeper));
+        write("level-09.atlas", page("level-09.png", 2048, 2048, creeper));
+        write("backdrop.atlas", page("backdrop.png", 64, 64, region("level-08/city", 8, 8)));
+
+        assertEquals(List.of(), AtlasBudget.violations(dir));
+    }
+
     @Test
     void oneSpriteLargerThanAPageFails() throws IOException {
         String halo = region("halo", 1024, 1024).repeat(5);

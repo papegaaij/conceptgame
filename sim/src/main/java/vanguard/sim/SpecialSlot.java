@@ -370,8 +370,8 @@ public final class SpecialSlot {
         double radius = airstrike.blastRadius();
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
-            EnemySpec spec = enemy.spec();
-            Layer layer = spec.layer();
+            // Its current layer (M5 part C: a pounce's air window takes the air damage).
+            Layer layer = enemy.layer();
             if (layer == Layer.HIGH_AIR
                     || !PlayerFire.onField(enemy)
                     || !PlayerFire.inBlast(x, y, radius, enemy.x(), enemy.y(), enemy.hitbox())) {

@@ -51,6 +51,9 @@ final class Formations {
     /** A convoy's units follow one another this far apart, and come down this far from their side edge. */
     static final double CONVOY_INTERVAL_SECONDS = 1.5;
 
+    /** M5 part C: a pack's walkers enter this far apart, each on its own path (design/enemies, formation vocabulary). */
+    static final double PACK_INTERVAL_SECONDS = 0.25;
+
     private static final double CONVOY_EDGE_GAP = 70;
     private static final double CONVOY_TURN = 60;
     /** A whirl cluster releases its units within this time. */
@@ -105,6 +108,9 @@ final class Formations {
             case PINCER -> planner.pincer();
             case CIRCLE -> planner.circle();
             case CARRIER_ESCORTS -> planner.carrierEscorts();
+            case PACK ->
+                throw new IllegalArgumentException("a pack is a formation of walkers, not of "
+                        + wave.enemy().slug());
         }
     }
 
@@ -480,13 +486,19 @@ final class Formations {
         /**
          * Walkers (design/enemies/ground/scuttler) on the wave's ground paths: unit i walks path
          * i (wrapping); a pincer with a single path mirrors it about the centre line for every
-         * second unit and sends each further pair {@link #CONVOY_INTERVAL_SECONDS} later; any other
-         * formation (a convoy, a single) sends its units one after another that far apart. These
-         * planners are separate from the air formations of the same names.
+         * second unit and sends each further pair {@link #CONVOY_INTERVAL_SECONDS} later; a pack (M5
+         * part C) needs a path per unit and sends them {@link #PACK_INTERVAL_SECONDS} apart; any other
+         * formation (a convoy, a single) sends its units one after another {@link
+         * #CONVOY_INTERVAL_SECONDS} apart. These planners are separate from the air formations of the
+         * same names.
          */
         void walkers() {
             if (wave.paths().isEmpty()) {
                 throw unsupported("a walker wave needs its paths");
+            }
+            if (wave.formation() == WaveSpec.Formation.PACK && wave.paths().size() < wave.count()) {
+                throw unsupported(
+                        "a pack needs a path per unit: " + wave.paths().size() + " for " + wave.count());
             }
             for (int i = 0; i < wave.count(); i++) {
                 WalkPath path = walkPath(wave.paths().get(i % wave.paths().size()));
@@ -496,6 +508,8 @@ final class Formations {
                         path = path.mirrored();
                     }
                     delay = (i / 2) * CONVOY_INTERVAL_SECONDS;
+                } else if (wave.formation() == WaveSpec.Formation.PACK) {
+                    delay = i * PACK_INTERVAL_SECONDS;
                 } else {
                     delay = i * CONVOY_INTERVAL_SECONDS;
                 }

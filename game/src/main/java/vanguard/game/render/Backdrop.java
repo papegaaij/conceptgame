@@ -20,7 +20,10 @@ import vanguard.sim.PlayField;
  * block drawn in perspective by {@link TowerProjection}), and the atmosphere of the section (low-air
  * cloud banks, high-air wisps, haze over the deep and far layers), which ramps across a section
  * boundary. Every layer scrolls by its factor of the ground's distance and is drawn at whole pixels
- * (a tower's walls lean between them); nothing is allocated per frame.
+ * (a tower's walls lean between them); nothing is allocated per frame. The pieces' places along the
+ * scroll and the atmosphere go by the level clock, their paths, animation frames and the tile sets'
+ * drift by the real clock (M5 part C: moving scenery keeps its speed in a hold zone, see {@link
+ * BackdropClock}).
  */
 public final class Backdrop {
     private static final int WIDTH = PlayField.WIDTH;
@@ -45,6 +48,13 @@ public final class Backdrop {
     private final Piece[][] pieces;
     private final TowerProjection towers;
     private final Look[] looks;
+    /** M5 part C: the collapse's dust peak's look (Level 09's {@code heavy}); null without a collapse. */
+    private final Look dust;
+    /** How strongly the dust peak shows now, 0 to 1 ({@link #dustPeak}). */
+    private float dustWeight;
+    /** M5 part C: drawn between the ground pieces and the towers; null for nothing ({@link #underTowers}). */
+    private UnderTowers underTowers;
+
     private final TextureRegion strip = new TextureRegion();
     private Look from;
     private Look to;
@@ -54,9 +64,16 @@ public final class Backdrop {
 
     private record Look(Tiles banks, Tiles wisps, float haze) {}
 
-    /** A placed set piece with its images and its bottom edge on its layer. */
+    /**
+     * A placed set piece with its images and its bottom edge on its layer; {@code pathStart} is its
+     * path's first waypoint's script time (NaN without a path).
+     */
     private record Piece(
-            BackdropData.PlacedPiece placed, BackdropData.Piece spec, Array<AtlasRegion> images, long bottom) {}
+            BackdropData.PlacedPiece placed,
+            BackdropData.Piece spec,
+            Array<AtlasRegion> images,
+            long bottom,
+            double pathStart) {}
 
     /**
      * @param sprites the backdrop atlas, which holds the level's images as {@code level-NN/<id>}
@@ -87,12 +104,14 @@ public final class Backdrop {
                     Array<AtlasRegion> images = sprites.backdrop(folder + placed.piece(), spec.imageCount());
                     long bottom =
                             Math.round(level.pieceCentre(placed) - spec.size().height() / 2);
-                    onLayer.add(new Piece(placed, spec, images, bottom));
+                    double pathStart =
+                            placed.path().map(points -> points.getFirst().t()).orElse(Double.NaN);
+                    onLayer.add(new Piece(placed, spec, images, bottom, pathStart));
                 }
             }
             pieces[l] = onLayer.toArray(Piece[]::new);
         }
-        towers = new TowerProjection(towers(sprites, folder, level));
+        towers = new TowerProjection(towers(sprites, folder, level), pixel);
         for (int s = 0; s < sectionCount; s++) {
             for (String id : level.sections().get(s).tiles()) {
                 BackdropData.TileSet tileSet = data.tileSets().get(id);
@@ -115,6 +134,61 @@ public final class Backdrop {
                             .orElse(null),
                     (float) look.haze());
         }
+        dust = level.collapse()
+                .flatMap(collapse -> data.atmosphere().of(collapse.dust().atmosphere()))
+                .map(look -> new Look(
+                        look.banks()
+                                .map(id -> tiles(
+                                        sprites, folder, id, data.tileSets().get(id)))
+                                .orElse(null),
+                        look.wisps()
+                                .map(id -> tiles(
+                                        sprites, folder, id, data.tileSets().get(id)))
+                                .orElse(null),
+                        (float) look.haze()))
+                .orElse(null);
+    }
+
+    /**
+     * M5 part C: the collapse's event-triggered dust peak (Level 09) shows at {@code weight}, 0 (the
+     * section's own atmosphere) to 1 (the peak's: its banks, wisps and haze), blended like a change
+     * across a section boundary.
+     */
+    public void dustPeak(float weight) {
+        dustWeight = dust == null ? 0 : Math.clamp(weight, 0, 1);
+    }
+
+    /**
+     * M5 part C: the tower whose footprint's centre lies nearest {@code groundCentre} on the ground
+     * layer, within {@code reach} px; -1 for none.
+     */
+    int towerNear(double groundCentre, double reach) {
+        return towers.nearest(groundCentre, reach);
+    }
+
+    /** M5 part C: tower {@code index} ({@link #towerNear}) is not drawn (the fallen arcology); -1 draws them all. */
+    void hideTower(int index) {
+        towers.hide(index);
+    }
+
+    /** M5 part C: tower {@code index} ({@link #towerNear}) is drawn bent (see {@link TowerProjection#bend}); -1 for none. */
+    void bendTower(int index, double lean, double shakeX, double shakeY, double share, double crush, float dust) {
+        towers.bend(index, lean, shakeX, shakeY, share, crush, dust);
+    }
+
+    /** What is drawn over the ground layer's set pieces and under its towers (Level 09's collapse). */
+    interface UnderTowers {
+        void draw(SpriteBatch batch);
+    }
+
+    /** M5 part C: {@code layer} is drawn between the ground pieces and the towers; null for nothing. */
+    void underTowers(UnderTowers layer) {
+        underTowers = layer;
+    }
+
+    /** M5 part C: tower {@code index} ({@link #towerNear}). */
+    TowerProjection.Tower tower(int index) {
+        return towers.tower(index);
     }
 
     /**
@@ -175,15 +249,15 @@ public final class Backdrop {
      * {@link #drawGroundTiles}.
      *
      * @param groundScroll the ground layer's distance in px
-     * @param seconds the time since the level start
+     * @param clock the level clock and the real clock at the render time
      */
-    public void drawBehind(SpriteBatch batch, double groundScroll, double seconds) {
-        blend(seconds);
+    public void drawBehind(SpriteBatch batch, double groundScroll, BackdropClock clock) {
+        blend(clock.script());
         if (level.backdrop().hasDeep()) {
             // A surface without a deep layer (Luna) has ground tiles that cover the screen.
-            drawLayer(batch, BackdropLayer.DEEP, groundScroll, seconds);
+            drawLayer(batch, BackdropLayer.DEEP, groundScroll, clock);
         }
-        drawLayer(batch, BackdropLayer.FAR, groundScroll, seconds);
+        drawLayer(batch, BackdropLayer.FAR, groundScroll, clock);
         float veil = from.haze() + (to.haze() - from.haze()) * weight;
         if (veil > 0) {
             batch.setColor(haze.r, haze.g, haze.b, veil);
@@ -193,19 +267,23 @@ public final class Backdrop {
     }
 
     /** The ground layer's tiles, over the haze (they catch the flyers' shadows, see {@link Shadows}). */
-    public void drawGroundTiles(SpriteBatch batch, double groundScroll, double seconds) {
-        drawSectionTiles(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), seconds);
+    public void drawGroundTiles(SpriteBatch batch, double groundScroll, BackdropClock clock) {
+        drawSectionTiles(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), clock);
     }
 
     /**
      * The ground layer's set pieces, over its tiles and the level's road (design/campaign, Level 04:
      * the convoy apron, the bridge and the gate lie over the road), then its perspective towers,
      * lowest first, each its walls and then its roof (design/art-direction, Perspective towers are
-     * scenery): all under the ground objects and units drawn next, and marking the shadow stencil
-     * with the rest of the ground (see {@link Shadows}).
+     * scenery), with Level 09's collapse's shadow and base dust between them ({@link #underTowers}):
+     * all under the ground objects and units drawn next, and marking the shadow stencil with the rest
+     * of the ground (see {@link Shadows}).
      */
-    public void drawGroundPieces(SpriteBatch batch, double groundScroll, double seconds) {
-        drawPieces(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), seconds, false);
+    public void drawGroundPieces(SpriteBatch batch, double groundScroll, BackdropClock clock) {
+        drawPieces(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), clock, false);
+        if (underTowers != null) {
+            underTowers.draw(batch);
+        }
         towers.draw(batch, groundScroll);
     }
 
@@ -214,28 +292,28 @@ public final class Backdrop {
      * ground units (design/campaign, Level 04: the crawlers pass under the bridge's arches and drive
      * into the gate; the Spine Turrets stand on the arches).
      */
-    public void drawOverhead(SpriteBatch batch, double groundScroll, double seconds) {
-        drawPieces(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), seconds, true);
+    public void drawOverhead(SpriteBatch batch, double groundScroll, BackdropClock clock) {
+        drawPieces(batch, BackdropLayer.GROUND, scroll(BackdropLayer.GROUND, groundScroll), clock, true);
     }
 
     /** The low-air layer above the ground objects and below the play plane: its tiles, the cloud banks, its pieces. */
-    public void drawLowAir(SpriteBatch batch, double groundScroll, double seconds) {
-        blend(seconds);
+    public void drawLowAir(SpriteBatch batch, double groundScroll, BackdropClock clock) {
+        blend(clock.script());
         long scroll = scroll(BackdropLayer.LOW_AIR, groundScroll);
-        drawSectionTiles(batch, BackdropLayer.LOW_AIR, scroll, seconds);
-        drawAtmosphere(batch, from.banks(), to.banks(), scroll, seconds);
-        drawPieces(batch, BackdropLayer.LOW_AIR, scroll, seconds, false);
+        drawSectionTiles(batch, BackdropLayer.LOW_AIR, scroll, clock);
+        drawAtmosphere(batch, from.banks(), to.banks(), scroll, clock.real());
+        drawPieces(batch, BackdropLayer.LOW_AIR, scroll, clock, false);
     }
 
     /** The high-air layer above the play plane, additive and at most 40 % opaque. */
-    public void drawFront(SpriteBatch batch, double groundScroll, double seconds) {
-        blend(seconds);
+    public void drawFront(SpriteBatch batch, double groundScroll, BackdropClock clock) {
+        blend(clock.script());
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         long scroll = scroll(BackdropLayer.HIGH_AIR, groundScroll);
         batch.setColor(1, 1, 1, HIGH_AIR_OPACITY);
-        drawSectionTiles(batch, BackdropLayer.HIGH_AIR, scroll, seconds);
-        drawPieces(batch, BackdropLayer.HIGH_AIR, scroll, seconds, false);
-        drawAtmosphere(batch, from.wisps(), to.wisps(), scroll, seconds);
+        drawSectionTiles(batch, BackdropLayer.HIGH_AIR, scroll, clock);
+        drawPieces(batch, BackdropLayer.HIGH_AIR, scroll, clock, false);
+        drawAtmosphere(batch, from.wisps(), to.wisps(), scroll, clock.real());
         batch.setColor(Color.WHITE);
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
@@ -262,26 +340,37 @@ public final class Backdrop {
                 weight = (float) (progress * progress * (3 - 2 * progress));
             }
         }
+        if (dustWeight > 0) {
+            // The collapse's dust over whatever the section shows (it falls in a section's middle).
+            from = weight < 0.5f ? from : to;
+            to = dust;
+            weight = dustWeight;
+        }
     }
 
-    private void drawLayer(SpriteBatch batch, BackdropLayer layer, double groundScroll, double seconds) {
+    private void drawLayer(SpriteBatch batch, BackdropLayer layer, double groundScroll, BackdropClock clock) {
         long scroll = scroll(layer, groundScroll);
-        drawSectionTiles(batch, layer, scroll, seconds);
-        drawPieces(batch, layer, scroll, seconds, false);
+        drawSectionTiles(batch, layer, scroll, clock);
+        drawPieces(batch, layer, scroll, clock, false);
     }
 
     private long scroll(BackdropLayer layer, double groundScroll) {
         return Math.round(groundScroll * factors[layer.ordinal()]);
     }
 
-    private void drawSectionTiles(SpriteBatch batch, BackdropLayer layer, long scroll, double seconds) {
+    private void drawSectionTiles(SpriteBatch batch, BackdropLayer layer, long scroll, BackdropClock clock) {
         int l = layer.ordinal();
         for (int s = 0; s < tiles[l].length; s++) {
             Tiles section = tiles[l][s];
             if (section != null) {
                 long end = s + 1 < tiles[l].length ? seams[l][s + 1] : Long.MAX_VALUE;
                 drawTiles(
-                        batch, section, Math.max(seams[l][s], scroll), Math.min(end, scroll + HEIGHT), scroll, seconds);
+                        batch,
+                        section,
+                        Math.max(seams[l][s], scroll),
+                        Math.min(end, scroll + HEIGHT),
+                        scroll,
+                        clock.real());
             }
         }
     }
@@ -300,7 +389,7 @@ public final class Backdrop {
         batch.setColor(1, 1, 1, alpha);
     }
 
-    /** The rows {@code [from, to)} of a layer filled with a tile set that repeats from position 0. */
+    /** The rows {@code [from, to)} of a layer filled with a tile set that repeats from position 0, drifting by real {@code seconds}. */
     private void drawTiles(SpriteBatch batch, Tiles tileSet, long from, long to, long scroll, double seconds) {
         TextureRegion image = tileSet.image();
         int height = image.getRegionHeight();
@@ -325,7 +414,8 @@ public final class Backdrop {
         batch.draw(strip, screenX, screenY);
     }
 
-    private void drawPieces(SpriteBatch batch, BackdropLayer layer, long scroll, double seconds, boolean overhead) {
+    private void drawPieces(
+            SpriteBatch batch, BackdropLayer layer, long scroll, BackdropClock clock, boolean overhead) {
         for (Piece piece : pieces[layer.ordinal()]) {
             BackdropData.PlacedPiece placed = piece.placed();
             if (placed.isOverhead() != overhead) {
@@ -333,12 +423,13 @@ public final class Backdrop {
             }
             float width = (float) piece.spec().size().width();
             float height = (float) piece.spec().size().height();
-            float y = piece.bottom() - scroll + Math.round(placed.offsetY(seconds));
+            double along = Double.isNaN(piece.pathStart()) ? 0 : clock.pathTime(piece.pathStart());
+            float y = piece.bottom() - scroll + Math.round(placed.offsetY(along));
             if (y >= HEIGHT || y + height <= 0) {
                 continue;
             }
-            float x = X0 + Math.round(placed.x() + placed.offsetX(seconds) - width / 2);
-            TextureRegion image = piece.images().get(imageAt(piece, seconds));
+            float x = X0 + Math.round(placed.x() + placed.offsetX(along) - width / 2);
+            TextureRegion image = piece.images().get(imageAt(piece, clock.real(), along));
             if (placed.mirrored()) {
                 batch.draw(image, x + width, y, -width, height);
             } else {
@@ -347,15 +438,15 @@ public final class Backdrop {
         }
     }
 
-    /** The animation frame, the heading along the path, or the only image. */
-    private static int imageAt(Piece piece, double seconds) {
+    /** The animation frame at real {@code seconds}, the heading along the path at {@code along}, or the only image. */
+    private static int imageAt(Piece piece, double seconds, double along) {
         int count = piece.images().size;
         if (piece.spec().animated()) {
             return (int)
                     Math.floorMod((long) Math.floor(seconds * piece.spec().fps().orElseThrow()), (long) count);
         }
         if (piece.spec().headings().isPresent()) {
-            return (int) Math.floorMod(Math.round(piece.placed().heading(seconds) * count / 360), (long) count);
+            return (int) Math.floorMod(Math.round(piece.placed().heading(along) * count / 360), (long) count);
         }
         return 0;
     }

@@ -1,0 +1,45 @@
+# Ravager stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Ravager
+faction: Vrell
+layer: ground
+tier: medium      # its contact class is `medium` (15) in the pounce's air window
+size: [56, 56]    # sprite px
+hitbox: [40, 28]
+parts: single
+orientation: 16 angles
+hp: 16
+armour: none
+speed: 160        # px/s galloping, on top of the scroll
+movement:
+  walk: {speed: 160, turn_rate: 180, stride: 46}   # px/s, °/s, px of ground per 8-frame gallop cycle
+attacks:
+  - pattern: pounce
+    name: pounce
+    interval: 3.0       # s from landing until it may take off again (hard 2.0: the hook below)
+    pounce:
+      range: 200        # px: it takes off when the ship's centre is this close to its own
+      leap: 0.75        # s from take-off to landing, aimed at the ship's position at take-off (no homing)
+      air: 0.3          # s in the middle of the leap on the `air` layer: contact `medium` once per pounce
+      scale: 1.43       # drawn scale at the leap's apex (1 at take-off and landing)
+    notes:
+      text: '`{pattern}`: within {pounce.range} px of the ship it leaps over the ship''s position over {pounce.leap} s, aimed twice as far so the middle of the leap passes over that spot, drawn up to {pounce.scale}× with its shadow sliding away; for the middle {pounce.air} s it is on `air` and deals contact `{tier}` = {contact_damage} once; then it lands behind it (kept on the play field) and runs on; {interval} s between pounces; no ranged attack'
+formations:
+  - {name: pack, size: [3, 5]}
+weak_points:
+  - {name: glowing teal maw}
+drops: []
+traits: [anti-ground, spread]
+bounty: 18
+first_level: 9
+difficulty:
+  hard: {attacks: {pounce: {interval: 2.0}}}   # an authored interval: the fire-rate lever does not apply on top
+notes:
+  layer: '; `air` for the middle 0.3 s of a pounce'
+  orientation: (16 headings × 8 gallop frames; it faces where it runs; leap frames for the pounce)
+  speed: (plus scroll)
+  movement: '`walk` (a gallop) along its own authored ground path in a pack; turns at {movement.walk.turn_rate}°/s; the gallop''s 8 frames advance with distance ({movement.walk.stride} px per cycle)'
+  formations: (each unit on its own path, 0.25 s apart)
+  weak_points: (drawn only)
+  death: '`small` organic burst; no husk'
+  used_in: returns L14 (with the act HP factor)
+  difficulty: 'hard: 2 s between pounces; packs +1 (level data)'

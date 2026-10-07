@@ -139,4 +139,13 @@ public record Intel(
     public List<String> markedTraits() {
         return shows(Field.TRAITS) ? profile.traits() : List.of();
     }
+
+    /**
+     * M5 part C (user decision D7 = a): the traits the primary objective cannot be met without (Level
+     * 09's {@code anti-ground}), known at every sensor level (the briefing says them); none for most
+     * levels.
+     */
+    public List<String> requiredTraits() {
+        return profile.requiredTraits();
+    }
 }

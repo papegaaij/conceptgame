@@ -257,6 +257,27 @@ first entry of a part's model list is the starter (price 0, `start`).
   reach the next volley is rejected when the level is built); and the difficulty hook `attacks`
   with an `interval` on any named attack, an ordinary unit's included: authored, so the fire-rate
   lever does not apply on top.
+  M5 part C, for the [Hive Node](../../enemies/ground/hive-node/README.md) and the
+  [Ravager](../../enemies/ground/ravager/README.md) (flown in Level 09): `armour: hardened` flies for an
+  enemy as for a hardened ground object (only `anti-ground` deliveries, the Airstrike and the
+  Smart Bomb damage it; other shots and blasts glance, `SHOT_GLANCED`; a homing shot's lock-on and
+  Rook's target pick skip it unless the weapon is `anti-ground`); a **periodic `spawn`**: the
+  `spawn` block with `every` (s between releases, the first `every` s after the unit's centre
+  crosses the top edge) instead of `after` and `burst_bounty` (a periodic spawner never bursts on
+  its own), its `telegraph` (s the iris opens ahead of a release), `enemy`, `count`, `arc`,
+  `speed` and `shut_within` (px: an opening due while the ship's centre is this close is skipped,
+  and so is a release the ship came that close to during the telegraph; the next one waits a whole
+  `every`); a unit has at most one `spawn`; the released units count into the level's enemies as they
+  are released (as a boss's streams), the density and haul checks count one release per spawner,
+  and the hook `spawn_count` sets the count; the attack pattern **`pounce`** (no `bullet` or
+  `speed`; its `interval` is the s from landing until it may leap again, by the fire-rate lever
+  unless the hook `attacks: {pounce: {interval}}` authors it, as hard's; a `pounce` block: `range` (px, centre to centre,
+  that starts a leap while the unit is on the screen), `leap` (s, aimed at the ship's position at
+  take-off, no homing), `air` (s in the middle of the leap on the `air` layer: the unit's
+  **current layer**, read at every hit, contact and targeting site instead of its stat block's;
+  contact of its tier's class with the ship or the escort once per leap; ×1 from air-reaching
+  weapons, ground-only blasts miss, mines trigger) and `scale` (the drawn scale at the apex));
+  only a walker pounces; and the formation **`pack`** (see *Level*; the planner flies it).
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`, optional
@@ -404,6 +425,68 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   table is derived: kills × bounties (× `bounty_scale`), ground targets, crates, the objectives,
   each as a perfect run and as the typical haul (weighted by the economy's `typical_player`),
   against budget(n) of the economy; the attack directions are each entry's share of the enemies.
+  M5 part C, for
+  [Level 09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md) (user decisions D2,
+  D3, D5, D6 and D7 of M5 part C): **hold zones**, `holds` (each: `groups`, the ground-target
+  groups of the objectives it waits for, each group in one hold at most; `y`, px below the top edge
+  the first unit of those groups reaches to start it; `speed`, px/s it eases to, with `easy` /
+  `hard` `speed`, below every section's speed; `ramp`, s of the ease each way, a smoothstep): the
+  scroll eases to the hold's speed and back to the section's once every unit of its groups is gone
+  (a hold whose groups include the `collapse`'s, once their clearing started it, only when the
+  collapse's dust has settled, the impact + its `dust` `seconds` (user, 2026-10-07; Level 09:
+  9.0 s after the warning starts), so the scroll stays at the hold's speed through the lean, the
+  drop, the blast and the settling dust and what falls and the heap it leaves stay on the screen;
+  no event marks the settling, the hold's `HOLD_END` comes in that step);
+  there is no timeout (a unit that leaves the screen alive fails a `destroy-targets` primary at
+  once, which also ends the hold); a hold whose groups are gone before it starts never starts; one
+  hold runs at a time; the hold's state is in the state hash (only in a level with holds or a
+  collapse, so the other levels hash as before). Holds are not built for a level with set pieces,
+  cranes, sleds, tows or a boss (`content` rejects it). **The level clock** then advances at the
+  current scroll speed ÷ the section's speed (D2 = a: 0.2 at 30 of 150), in fixed point (1/65 536
+  of a step; outside a hold exactly one step per step, so the existing levels step and replay as
+  before), so every time in a level file is **script time**, the scroll distance ÷ the section's
+  speed: waves, ground targets, radio `t`, prompts, edge warnings, the sections and their
+  atmosphere, the backdrop's placements, the progress bar and the level end wait with the scroll in
+  a hold, while units, bullets, the spawners' cycles, pounces and Rook run on the real steps (the
+  density and haul checks count script time, the pacing check real time); the simulation gives
+  both clocks and the rate (`Sortie.levelSeconds()`/`scriptSeconds()`, `realSeconds()`,
+  `scriptRate()`); planned (M5 part C, the game): the radio queue's own timing and the backdrop's
+  animation on the real clock. A **`collapse`** block (D5 = a, round 31's look c: `groups`, the groups whose clearing
+  starts it, every unit destroyed; `warning`, s the tower leans before it drops; `drop`, s it takes
+  to drop straight down, the impact at `warning` + `drop`; `blast` (`seconds`, `from`, `to`): from
+  the impact its kill ring grows from `from` to `to` px round the tower's footprint's centre over
+  `seconds`, eased 1 − (1 − t)², the dust blast's front; `tower`, the backdrop's tower piece that
+  falls, placed exactly once: the band is its footprint's extent along the scroll (the whole width),
+  so it lies on the ground under the tower and scrolls with it however early or late the groups are
+  cleared; `dust`, the `atmosphere` it raises and the `seconds` it ramps back out over after the
+  impact, at least the blast's (a hold over its groups lasts until then); `rubble`, the backdrop piece it leaves, a piece id of the level's backdrop), timed on the
+  real steps, with the events `COLLAPSE_WARNING` (the lean starts), `COLLAPSE_FALL` (the drop
+  starts), `COLLAPSE_IMPACT` and `COLLAPSE_END` (the blast has rolled out): every ground unit (on the
+  `ground` layer at that moment, so a pouncing Ravager in its air window is spared) in the band
+  whose centre the ring reaches is destroyed and pays and scores as an Airstrike kill; air units
+  and the player are untouched; built (user, 2026-10-07, round 31's look c), replacing the earlier
+  sweep from left to right; the game draws the lean, the drop, the cast shadow, the dust and the
+  rubble heap (`CollapseLooks`). A wave's optional **`tag`** (a name) and a secondary `escapes` with a
+  `tag` (D6 = a): only the units of the waves with that tag count (their number per difficulty
+  follows from the waves), met when all of them are destroyed, failed when one leaves the screen
+  alive; `content` checks that a wave of the enemy carries the tag. Any secondary may give a
+  **`name`** (Level 09's `Hold the bridge`), used where the generated wording would mislead: the
+  briefing's bonus line (`BONUS: HOLD THE BRIDGE`) and the README's credit table (`Secondary: hold
+  the bridge`) show it; the tracker's `label` stays apart. A **`pack`** walker wave lists
+  one path per unit, as many as its largest difficulty's count (`content` checks it), the units
+  entering 0.25 s apart. Radio events **`hold-start`** (the level's first hold starts its ease;
+  once; only in a level with holds), **`first-pounce`** (the attempt's first pounce takes off; no
+  `enemy`; only with an enemy that pounces) and **`collapse`** (the collapse's warning starts; only
+  with a collapse), and **`requires: escort`** on any cue (it plays only while an escort flies:
+  hired, fitted and not ejected, asked when the cue is due; Rook's scripted lines; also
+  `requires_not: escort`). The threat profile's **`required`** (D7 = a: the traits among its
+  `traits` the primary cannot be met without), loaded and checked; planned (M5 part C, the game): a
+  launch warning at every sensor level, counting every source that damages hardened targets, see
+  the [hangar](../../ui/hangar/README.md). The `music` block's **`full_on`** (`hold`: the full mix
+  while a hold runs, fading in over 1 s as it starts and out over 4 s after it ends; `collapse`:
+  the full mix from the collapse to the level's end; each only in a level with it), loaded and
+  checked, the simulation telling `holdActive()`, `collapseStarted()` and the `HOLD_START`,
+  `HOLD_END` and `COLLAPSE_WARNING` events; planned (M5 part C, the game): the run-time stem hook.
 - **Level backdrop** (`backdrop` in a level's data file; the *Backdrop* table is rendered from it):
   `scroll_factors` per layer (`deep`, `far`, `ground` = 1.0, `low-air`, `high-air`; `deep` may be
   left out on a top-down surface, Level 04's Luna: then the ground is the layer that covers the
@@ -463,7 +546,12 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   (`count` placements in all, at least 2, each `every` s after the one before, its `path` shifted
   in time with it; a stream of traffic): the renderer and the checks see every copy, a copy's
   problem is reported as `placed[i] (repeat n)`, and the *Backdrop* table lists the stream once
-  with "×count every s".
+  with "×count every s". Planned (M5 part C, the level clock of hold zones): a placed piece's
+  `path` and a tile set's `drift` animate on the real clock, so moving scenery (Level 09's Kilo
+  trucks) keeps its speed in a hold; a path's waypoints are timed from the moment its first
+  waypoint's script time is reached, and the placements themselves stay in script time (the
+  simulation's real clock is `Sortie.realSeconds()`, script time `levelSeconds()`, and between
+  steps script time moves at `scriptRate()`).
 - **Ship and core parts**: ship (`acceleration_seconds`, `stop_seconds`, `precision_factor`,
   `size`, `edge_gap`, `hull` (hit boxes `[x, y, width, height]` from the sprite's top left), `collection_radius`, `mercy_seconds`, `bank_change_steps`,
   `mounts`: `front`, `wings`, `roots` (the side guns' muzzles), `rear`, `engines`; its speed is the fitted engine's); shields (`break_seconds`, `models` with
@@ -1070,3 +1158,26 @@ Screenshot tests are left out until there is a need.
   on the ground, the small blast and its size's crumble (large at 72×40). Level 06's survey cache
   (shot open) and terminal (core released), the beacon, the lifeboat lights and the sled's clamp
   stay quiet. Tests `TriggerSpentTest`, `TriggerBreakTest`, `TriggerBreakSoundsTest`.
+- 2026-10-07: Schema text for M5 part C (Level 09; user decisions D1–D11 of 2026-10-07 and the
+  stated defaults), marked "planned (M5 part C)" until the loader reads it: for enemies,
+  `armour: hardened` flown for a unit, the periodic `spawn` (`every`, `shut_within`; no `after` or
+  `burst_bounty`), the attack pattern `pounce` (`interval`, `pounce`: `range`, `leap`, `air`,
+  `scale`) with a unit's current layer, and the formation `pack` (in the basis's vocabulary now);
+  for levels, `holds` and the level clock in script time (D2 = a, D3 = a), the `collapse` (D5 = a),
+  a wave's `tag` and a tagged `escapes` secondary (D6 = a), the radio events `hold-start`,
+  `first-pounce` and `collapse` and `requires: escort`, the threat profile's `required` (D7 = a),
+  the music's `full_on`; for the backdrop, the real clock for paths and drift. The Hive Node's and
+  the Ravager's data files hold only the keys the loader knows; the new ones wait in a comment there
+  (the loader rejects unknown keys), as the Creeper's `stagger` waited in its README in part B.
+- 2026-10-07: M5 part C, round 31's collapse look c (user): the `collapse` block's `sweep` gives way
+  to `drop` and `blast` (`seconds`, `from`, `to`): the tower leans for `warning`, drops for `drop`,
+  and from the impact the kills spread outward from its foot on a ring that rides the dust blast's
+  front (Level 09: 1.5 s lean, 1.5 s drop, impact at 3.0 s, radius 100 → 390 px in 1 s), the same
+  band and pay; new event `COLLAPSE_IMPACT`; `COLLAPSE_END` (and a hold through the collapse) at the
+  blast's end. The old key is rejected by the strict loader.
+- 2026-10-07: M5 part C (user): a hold through the collapse lasts until the collapse's dust has
+  settled (the impact + `dust.seconds`; Level 09: 9.0 s after the warning starts), no longer until
+  `COLLAPSE_END`, so with late kills the rubble heap is not scrolled away under the dust. The
+  simulation's `LevelScript.Collapse` carries the dust's seconds (`settleSeconds`, at least the
+  blast's; `content` checks it); the events are unchanged (no settle event: the music's `full_on:
+  collapse` stays on to the level's end).

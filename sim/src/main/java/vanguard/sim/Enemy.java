@@ -145,6 +145,56 @@ public final class Enemy implements Hashed {
     /** The edge its wave entered from (a wingman's formation follows the sides and rear waves); front for any other unit. */
     private WaveSpec.Entry entry = WaveSpec.Entry.FRONT;
 
+    /** {@link #spawnStep}: nothing happens. */
+    static final int SPAWN_NONE = 0;
+    /** {@link #spawnStep}: the iris starts to open (the telegraph). */
+    static final int SPAWN_TELEGRAPH = 1;
+    /** {@link #spawnStep}: the spawner releases its units now. */
+    static final int SPAWN_RELEASE = 2;
+
+    /**
+     * M5 part C, a periodic spawner (design/enemies/ground/hive-node): steps until its next release,
+     * -1 before its centre crossed the top edge.
+     */
+    private int spawnWait;
+    /** Steps since its iris started to open; -1 while it is shut. */
+    private int irisTicks;
+    /** Whether the iris now opening releases its units at its end. */
+    private boolean releasing;
+
+    /** M5 part C, a pounce (design/enemies/ground/ravager): steps since take-off; -1 while it is not leaping. */
+    private int leapTicks;
+    /** Steps before it may leap again (from landing). */
+    private int pounceWait;
+    /** The leap's steps, and the steps of its air window [{@link #airFrom}, {@link #airTo}). */
+    private int leapTotal;
+
+    private int airFrom;
+    private int airTo;
+    /**
+     * Where the leap started, where it lands and the point its middle (the apex and the air window)
+     * passes over: the ship's position at take-off (user decision 2026-10-07, the overshoot).
+     */
+    private double leapFromX;
+
+    private double leapFromY;
+    private double leapToX;
+    private double leapToY;
+    private double leapOverX;
+    private double leapOverY;
+    /** What this leap touched already, as {@link #TOUCHED_SHIP} and {@link #TOUCHED_WINGMAN} bits: once each per leap. */
+    private int pounceTouched;
+    /** Whether it landed in this step (not hashed: set and read within the step). */
+    private boolean landed;
+
+    /** M5 part C: its wave's tag; "" for none (not hashed: it follows from the plan). */
+    private String tag = "";
+
+    /** A pounce's contact with the ship. */
+    static final int TOUCHED_SHIP = 1;
+    /** A pounce's contact with the wingman. */
+    static final int TOUCHED_WINGMAN = 2;
+
     /** @param unitSerial unique among the units of an attempt, for the shots that lock onto it */
     void spawn(Spawn plan, int unitSerial) {
         clearLevel04();
@@ -212,12 +262,21 @@ public final class Enemy implements Hashed {
             spitTicks = walker.spit().isPresent()
                     ? SimStep.ticks(walker.spit().get().intervalSeconds() / 2)
                     : 0;
+            if (spec.pounce().isPresent()) {
+                EnemySpec.Pounce pounce = spec.pounce().get();
+                leapTotal = Math.max(1, SimStep.ticks(pounce.leapSeconds()));
+                int air = Math.min(leapTotal, SimStep.ticks(pounce.airSeconds()));
+                // The middle of the leap: its steps run 1 .. leapTotal.
+                airFrom = 1 + (leapTotal - air) / 2;
+                airTo = airFrom + air;
+            }
         }
     }
 
     /** The fields of Level 04's spawners, escorts and walkers back to a plain unit's. */
     private void clearLevel04() {
         entry = WaveSpec.Entry.FRONT;
+        tag = "";
         chain = null;
         link = 0;
         sweepWait = -1;
@@ -242,6 +301,22 @@ public final class Enemy implements Hashed {
         volleyUnit = 0;
         glideTicks = 0;
         glideHoldTicks = 0;
+        spawnWait = -1;
+        irisTicks = -1;
+        releasing = false;
+        leapTicks = -1;
+        pounceWait = 0;
+        leapTotal = 0;
+        airFrom = 0;
+        airTo = 0;
+        leapFromX = 0;
+        leapFromY = 0;
+        leapToX = 0;
+        leapToY = 0;
+        leapOverX = 0;
+        leapOverY = 0;
+        pounceTouched = 0;
+        landed = false;
     }
 
     /**
@@ -389,9 +464,18 @@ public final class Enemy implements Hashed {
                 return y + box.height() / 2 > 0;
             }
             case WALK -> {
-                y -= groundScroll;
                 scrolled += groundScroll;
-                walk();
+                landed = false;
+                if (leapTicks >= 0) {
+                    // In a pounce it flies over the ship's position at take-off and lands beyond it.
+                    leap();
+                } else {
+                    y -= groundScroll;
+                    walk();
+                    if (pounceWait > 0) {
+                        pounceWait--;
+                    }
+                }
                 boolean on = PlayField.overlaps(x, y, box);
                 entered |= on;
                 return on || (!entered && y + box.height() / 2 > 0);
@@ -526,6 +610,181 @@ public final class Enemy implements Hashed {
         x -= Trig.sin(facing) * step;
         y -= Trig.cos(facing) * step;
         walked += step;
+    }
+
+    /**
+     * One step of a pounce's leap: its first half to the point it passes over (the ship's position at
+     * take-off), its second half on to its landing point; at its end it lands and waits its interval.
+     */
+    private void leap() {
+        leapTicks++;
+        double p = (double) leapTicks / leapTotal;
+        if (2 * leapTicks <= leapTotal) {
+            x = leapFromX + (leapOverX - leapFromX) * 2 * p;
+            y = leapFromY + (leapOverY - leapFromY) * 2 * p;
+        } else {
+            x = leapOverX + (leapToX - leapOverX) * (2 * p - 1);
+            y = leapOverY + (leapToY - leapOverY) * (2 * p - 1);
+        }
+        if (leapTicks >= leapTotal) {
+            leapTicks = -1;
+            pounceWait = SimStep.ticks(spec.pounce().orElseThrow().intervalSeconds());
+            landed = true;
+        }
+    }
+
+    /**
+     * M5 part C (design/enemies/ground/ravager): a walker with a pounce leaps at the ship at
+     * (shipX, shipY) when it is on the screen, ready (not leaping, its interval since the last
+     * landing over) and the ship's centre is within its range; returns whether it took off now.
+     * The leap overshoots (user decision 2026-10-07): its middle, the apex and the air window, passes
+     * over the ship's position at take-off and it lands as far beyond, its landing point kept on the
+     * play field (its centre at least half its hit box inside every edge; the second half of the leap
+     * is then shorter), so a ship that holds still is touched and one that moves away is not.
+     */
+    boolean pounce(double shipX, double shipY) {
+        if (walkPath == null
+                || spec.pounce().isEmpty()
+                || leapTicks >= 0
+                || pounceWait > 0
+                || !PlayField.overlaps(x, y, box)) {
+            return false;
+        }
+        double dx = shipX - x;
+        double dy = shipY - y;
+        double range = spec.pounce().get().range();
+        if (dx * dx + dy * dy > range * range) {
+            return false;
+        }
+        leapTicks = 0;
+        leapFromX = x;
+        leapFromY = y;
+        leapOverX = shipX;
+        leapOverY = shipY;
+        double halfWidth = box.width() / 2;
+        double halfHeight = box.height() / 2;
+        leapToX = Math.clamp(2 * shipX - x, halfWidth, PlayField.WIDTH - halfWidth);
+        leapToY = Math.clamp(2 * shipY - y, halfHeight, PlayField.HEIGHT - halfHeight);
+        pounceTouched = 0;
+        if (dx != 0 || dy != 0) {
+            facing = heading(dx, dy);
+        }
+        return true;
+    }
+
+    /** Whether it is in a pounce's leap. */
+    public boolean leaping() {
+        return leapTicks >= 0;
+    }
+
+    /** Whether its pounce landed in this step. */
+    boolean landedNow() {
+        return landed;
+    }
+
+    /**
+     * How far its leap is, from 0 at take-off to 1 at landing, between the previous and the current
+     * step ({@code alpha} in [0, 1]); 0 while it is not leaping.
+     */
+    public double leapProgress(double alpha) {
+        if (leapTicks < 0) {
+            return 0;
+        }
+        return Math.clamp((leapTicks - 1 + alpha) / leapTotal, 0.0, 1.0);
+    }
+
+    /**
+     * Its drawn scale in a leap (design/enemies/ground/ravager): 1 at take-off and landing, its
+     * pounce's scale at the apex, along a parabola; 1 while it is not leaping.
+     */
+    public double leapScale(double alpha) {
+        if (leapTicks < 0) {
+            return 1;
+        }
+        double p = leapProgress(alpha);
+        return 1 + (spec.pounce().orElseThrow().scale() - 1) * 4 * p * (1 - p);
+    }
+
+    /**
+     * The layer it is on now (M5 part C): its stat block's, except {@link Layer#AIR} in the air
+     * window of a pounce's leap. Every hit, contact and targeting rule reads this.
+     */
+    public Layer layer() {
+        return leapTicks >= airFrom && leapTicks < airTo ? Layer.AIR : spec.layer();
+    }
+
+    /**
+     * A pounce touches {@code what} ({@link #TOUCHED_SHIP} or {@link #TOUCHED_WINGMAN}): returns
+     * whether it is the leap's first touch of it, which deals its contact; once per leap.
+     */
+    boolean pounceTouch(int what) {
+        if ((pounceTouched & what) != 0) {
+            return false;
+        }
+        pounceTouched |= what;
+        return true;
+    }
+
+    /**
+     * One step of a periodic spawner's cycle (design/enemies/ground/hive-node), after it moved:
+     * {@link #SPAWN_RELEASE} when its units go now, {@link #SPAWN_TELEGRAPH} when its iris starts to
+     * open, else {@link #SPAWN_NONE}. The cycle starts as its centre crosses the top edge; an
+     * opening due while the ship at (shipX, shipY) is within the spawner's shut distance, or while
+     * its centre is below the bottom edge, is skipped, and so is a release the ship came that close
+     * to during the telegraph (the iris shuts again without it).
+     */
+    int spawnStep(double shipX, double shipY) {
+        EnemySpec.Spawner spawner = spec.spawner().orElseThrow();
+        int telegraph = SimStep.ticks(spawner.telegraphSeconds());
+        if (irisTicks >= 0 && ++irisTicks >= 2 * Math.max(1, telegraph)) {
+            irisTicks = -1;
+        }
+        if (spawnWait < 0) {
+            if (y > PlayField.HEIGHT) {
+                return SPAWN_NONE;
+            }
+            spawnWait = SimStep.ticks(spawner.everySeconds());
+            return SPAWN_NONE;
+        }
+        spawnWait--;
+        double dx = shipX - x;
+        double dy = shipY - y;
+        boolean clear = dx * dx + dy * dy > spawner.shutWithin() * spawner.shutWithin() && y >= 0;
+        int result = SPAWN_NONE;
+        if (spawnWait == telegraph) {
+            releasing = clear;
+            if (clear) {
+                irisTicks = 0;
+                result = SPAWN_TELEGRAPH;
+            }
+        }
+        if (spawnWait == 0) {
+            spawnWait = SimStep.ticks(spawner.everySeconds());
+            if (releasing && clear) {
+                result = SPAWN_RELEASE;
+            }
+            releasing = false;
+        }
+        return result;
+    }
+
+    /**
+     * How far its iris is open (design/enemies/ground/hive-node): from 0 (shut) it opens evenly over
+     * the telegraph to 1 at the release and shuts again over as long; 0 for other units.
+     */
+    public double iris() {
+        if (irisTicks < 0) {
+            return 0;
+        }
+        int telegraph = Math.max(1, SimStep.ticks(spec.spawner().orElseThrow().telegraphSeconds()));
+        return irisTicks <= telegraph
+                ? (double) irisTicks / telegraph
+                : Math.max(0, (double) (2 * telegraph - irisTicks) / telegraph);
+    }
+
+    /** Whether its iris is opening for a release now: the spawn's telegraph. */
+    public boolean irisOpening() {
+        return releasing && irisTicks >= 0;
     }
 
     /**
@@ -851,6 +1110,21 @@ public final class Enemy implements Hashed {
         if (volleyGroup >= 0) {
             hash.add(volleyGroup).add(volleyUnit);
         }
+        // M5 part C's spawners and pounces add their state; earlier units hash as before.
+        if (spec.spawner().isPresent()) {
+            hash.add(spawnWait).add(irisTicks).add(releasing ? 1 : 0);
+        }
+        if (spec.pounce().isPresent()) {
+            hash.add(leapTicks)
+                    .add(pounceWait)
+                    .add(leapFromX)
+                    .add(leapFromY)
+                    .add(leapToX)
+                    .add(leapToY)
+                    .add(leapOverX)
+                    .add(leapOverY)
+                    .add(pounceTouched);
+        }
     }
 
     double x() {
@@ -1084,6 +1358,16 @@ public final class Enemy implements Hashed {
         x = prevX = atX;
         y = prevY = atY;
         facing = heading;
+    }
+
+    /** M5 part C: marks it as a unit of a wave tagged {@code waveTag} ("" for none). */
+    void tag(String waveTag) {
+        tag = waveTag;
+    }
+
+    /** M5 part C: the tag of its wave (Level 09's {@code bridge}); "" for none or a unit that is not a wave's. */
+    public String tag() {
+        return tag;
     }
 
     /** Marks it as a unit of a wave that entered from {@code edge}. */

@@ -188,3 +188,37 @@ Outcome (user, 2026-10-07): **b** cast, Faith Abiola-Ellison (`refs/ref-civilian
 production lines by `tools/art/voice.py` at the neutral settings through radio filter b, both takes
 pinned in the speaker table); a moved to `concept/rejected/`, its clip deleted with its CREDITS.md
 row.
+
+## voice-kilo-lead
+
+Round 31 (the Level 09 audition, M5 part C, user decision D11 = a), generated with
+`tools/concept/audio/tts_r31.py` the same way as round 30 (seed 31 + 10 × the variant's index + the
+line's index), each line through radio filter b on its own (its clicks, −16 LUFS), the two joined
+with 1 s of silence. The Kilo Lead (L09, speaker `Kilo Lead`: the CDF officer of the Kilo truck
+convoy on the Okonjo Bridge, sixty civilians in his trucks; the radio portrait `radio-generic-cdf`),
+neutral (0.5 / 0.5 / 0.7), both of his lines as Level 09's README has them: t=95 "Aegis, Kilo convoy
+on the Okonjo Bridge. Sixty civilians in the trucks, and things are coming over the far bank." and
+the secondary objective's "Kilo convoy is across. Thank you, Aegis." Measured: a 11.52 s,
+−15.8 LUFS; b 14.28 s, −16.1 LUFS (OGG Vorbis q4, 44.1 kHz mono); b speaks slower (the t=95 take
+8.84 s against a's 6.72 s). Whisper (faster-whisper base.en) reads both files back whole: a "Aegis,
+Kilo Convoy and the Okanjo Bridge. Sixty civilians in the trucks and things are coming over the far
+bank. Kilo Convoy is across. Thank you Aegis." ("on" heard as "and", also in the raw take); b "Ages,
+Kilo Kondvoi on the Okanjo Bridge, 60 civilians in the trucks and things are coming over the far
+bank. Kilo Kondvoi is across, thank you ages." The raw takes (before the filter) read back word for
+word except a's "and the" for "on the", b's "ages" for "Aegis" in both lines and "Conboy" in the
+second; "Okonjo" is read "Okanjo" in all four (Whisper's spelling of an unknown name). Measured only,
+not listened to.
+
+| Variant | Reader | Source | Licence | Clip pitch |
+|---|---|---|---|---|
+| a | Aaron Bennett | [On Mamba Station: U.S. Marines in West Africa, 1990–2003, ch. 1 (Antal, Vanden Berghe)](https://archive.org/details/onmambastation_2507_librivox), cut at 60 s | public domain (Public Domain Mark 1.0) | 129 Hz (takes 131 / 150 Hz); a male voice |
+| b | tombooker | [The Colored Regulars in the United States Army, ch. 1 (Steward)](https://archive.org/details/coloredregulars_2605_librivox), cut at 60 s | public domain (Public Domain Mark 1.0) | 101 Hz (takes 105 / 109 Hz); a deeper male voice, near Hammer Lead's clip (99 Hz) |
+
+Both are military non-fiction read solo, chosen for an officer's measured delivery; a's book is the
+story of the Marines' civilian evacuations from West Africa, close to the convoy's job. The readers'
+accents are not claimed here, only the pitch (librosa pyin median over the voiced frames). Neither
+reader is in the cast or was auditioned before.
+
+Outcome (user, 2026-10-07): **a** cast, Aaron Bennett (`refs/ref-kilo-lead.wav`; the production
+lines by `tools/art/voice.py` at the neutral settings through radio filter b, no pins needed); b
+moved to `concept/rejected/`, its clip deleted with its CREDITS.md row.

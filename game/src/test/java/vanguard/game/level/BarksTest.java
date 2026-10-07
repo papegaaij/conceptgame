@@ -421,4 +421,85 @@ class BarksTest {
     }
 
     private RadioQueue.Message lastQueued;
+
+    @Test
+    void inAHoldTheSpacingToATimedRookLineIsMeasuredInRealSeconds() {
+        // M5 part C: a timed Rook line 2 s of script time ahead; in a hold at a fifth of the speed it is
+        // 10 real seconds away, beyond the 8 s spacing, so a bark may play now; outside a hold it may not.
+        Barks barks = barks(9, new double[] {60}, NONE, NONE);
+        barks.clock(58, 58, 1);
+        assertFalse(barks.bossWarning(58), "2 s before his timed line");
+
+        barks.clock(58, 70, 0.2);
+        assertTrue(barks.bossWarning(70), "10 real seconds before it in the hold");
+    }
+
+    @Test
+    void aTimedLineThatRequiresHimNoLongerCountsOnceHeEjected() {
+        // M5 part C (requires: escort): after he ejects his scripted line does not play, so it holds no bark back.
+        Barks barks = new Barks(DATA, 9, new double[] {60}, new boolean[] {true}, NONE, NONE, radio, line -> {
+            queued.add(line);
+            return radio.add(
+                    line.speaker(),
+                    line.speaker(),
+                    line.expression(),
+                    line.text(),
+                    false,
+                    line.priority(),
+                    Optional.empty(),
+                    0);
+        });
+        assertFalse(barks.bossWarning(57), "his line at 60 still counts while he flies");
+        barks.rookEjected(57.5);
+        radio.update(0.01f);
+        barks.opened("Rook", 40);
+        assertTrue(barks.bossWarning(59), "it does not once he is out");
+    }
+
+    @Test
+    void ofTakesTheEscortFlagFromTheCue() {
+        var line = new LevelScript.RadioCue(
+                LevelScript.CueTrigger.TIME,
+                60,
+                "",
+                "Rook",
+                "Six bugs, two pilots.",
+                false,
+                "neutral",
+                "Rook",
+                false,
+                0,
+                Integer.MAX_VALUE,
+                LevelScript.RadioCue.FITTED_ESCORT,
+                0);
+        var script = new LevelScript(
+                9,
+                2,
+                0,
+                List.of(new LevelScript.Section(150, 200)),
+                List.of(),
+                List.of(),
+                List.of(),
+                0,
+                List.of(line),
+                new LevelScript.Secondary(0.8, 50),
+                List.of());
+        Barks barks = Barks.of(DATA, script, 0, radio, bark -> {
+            queued.add(bark);
+            return radio.add(
+                    bark.speaker(),
+                    bark.speaker(),
+                    bark.expression(),
+                    bark.text(),
+                    false,
+                    bark.priority(),
+                    Optional.empty(),
+                    0);
+        });
+        assertFalse(barks.bossWarning(57), "his line at 60 is near");
+        barks.rookEjected(57.5);
+        radio.update(0.01f);
+        barks.opened("Rook", 40);
+        assertTrue(barks.bossWarning(59), "not once he is out");
+    }
 }

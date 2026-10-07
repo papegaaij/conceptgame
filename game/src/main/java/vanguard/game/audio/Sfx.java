@@ -169,6 +169,28 @@ public enum Sfx {
     CARRIER_SAC_BURST("sfx/enemy-carrier-sac-burst-r25-a.ogg", 3, Bus.EFFECTS, BOSS),
     /** The plate iris opening over the core (round 25 b, a grinding organic morph). */
     CARRIER_IRIS("sfx/enemy-carrier-iris-r25-b.ogg", 1, Bus.EFFECTS, BOSS),
+    /**
+     * M5 part C: a Hive Node's iris opening, the telegraph of its release (design/audio/sfx: the Brood
+     * Carrier's chosen iris b reused, a grinding organic morph).
+     */
+    HIVE_IRIS("sfx/enemy-carrier-iris-r25-b.ogg", 2, Bus.EFFECTS, WARNING),
+    /** M5 part C: a Hive Node releasing its Skitters (design/audio/sfx: the Vrell spawn a, a wet creature swell). */
+    HIVE_SPAWN("sfx/enemy-spawn-r08-a.ogg", 2, Bus.EFFECTS, ENEMY_FIRE),
+    /**
+     * M5 part C: a Ravager taking off for its pounce (round 31, both kept: a, a rasping dog-like snarl
+     * over a quick swish; b, a snapping attack roar over a heavier whoosh). The game picks one at
+     * random per pounce ({@link FlightSounds#pounce}).
+     */
+    RAVAGER_POUNCE_A("sfx/ravager-pounce-r31-a.ogg", 2, Bus.EFFECTS, ENEMY_FIRE),
+
+    RAVAGER_POUNCE_B("sfx/ravager-pounce-r31-b.ogg", 2, Bus.EFFECTS, ENEMY_FIRE),
+    /**
+     * M5 part C: the arcology's collapse (Level 09; round 31 a): a stony rumble that swells over the
+     * collapse's 1.5 s lean and 1.5 s drop into a tumbling masonry crash at the impact, {@link
+     * FlightSounds#COLLAPSE_CRASH_SECONDS}, about 7 s in all; played as the warning starts ({@link
+     * FlightSounds#COLLAPSE_AT_WARNING}).
+     */
+    ARCOLOGY_COLLAPSE("sfx/collapse-r31-a.ogg", 1, Bus.EFFECTS, BOSS),
     /** A tow's cable snapping as its pod falls free: Level 07's lifeboat (round 25 a, a chain snap). */
     CABLE_SNAP("sfx/secret-cable-snap-r25-a.ogg", 1, Bus.EFFECTS, EXPLOSION),
     /** The Airstrike's jets flyby (round 08 a), as the bombers enter. */

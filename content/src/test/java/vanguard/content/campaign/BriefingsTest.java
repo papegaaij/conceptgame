@@ -113,8 +113,28 @@ class BriefingsTest {
         assertEquals("Rook", intro.teaser().speaker());
     }
 
+    /** Level 09 (M5 part C): Okafor's and Varga's pages with their images, the six nodes and the bridge. */
+    @Test
+    void theBriefingBeforeLevel09IsItsOwnTwoPages() {
+        BriefingScript briefing = Briefings.before(content, 9).orElseThrow();
+
+        assertEquals(Optional.empty(), briefing.titleCard(), "no act intro inside the act");
+        assertEquals("ARCOLOGY FALL", briefing.missionName());
+        assertEquals(
+                List.of("Okafor", "Varga"),
+                briefing.pages().stream().map(BriefingPage::speaker).toList());
+        assertEquals(
+                List.of("level-09-arcology-district", "level-09-node-scan"),
+                briefing.pages().stream()
+                        .map(page -> page.image().orElseThrow())
+                        .toList());
+        assertEquals("Rook", briefing.teaser().speaker());
+        System.out.println("Level 09 briefing objectives: " + briefing.objectives());
+        assertEquals("BONUS: HOLD THE BRIDGE", briefing.objectives().getLast(), "the secondary by its name");
+    }
+
     @Test
     void aLevelThatIsNotBuiltYetHasNoBriefing() {
-        assertEquals(Optional.empty(), Briefings.before(content, 9));
+        assertEquals(Optional.empty(), Briefings.before(content, 10));
     }
 }

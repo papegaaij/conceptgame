@@ -49,6 +49,7 @@ they belong to; a round only collects them.
 | [round-28](round-28/README.md) | M5 part A, the Act 2 systems: Rook's sprites, AI, escort UI, HUD box and 27 voiced barks, the Act 2 weapons' finals, Targeting computer and Salvage scanner, mine arming beep and secret glint (a/b), tile abbreviations, act HP factor, part A decisions | approved | n/a | chosen |
 | [round-29](round-29/README.md) | The Choir sings: a sound for the Choir's stage direction, the sung "ah" F3 → E3 (b) chosen over the held "ooh" (a) and the synthesized choir pads (c, d) | approved | n/a | chosen |
 | [round-30](round-30/README.md) | M5 part B, Level 08 and the Act 2 intro: the Creeper, the megacity backdrop and perspective towers, the Act 2 still and briefing images, Rook's briefing portraits, Homefront final and base stem, billboard a, traffic a and civilian voice b, captures, voiced lines, texts, part B numbers and decisions | approved | n/a | chosen |
+| [round-31](round-31/README.md) | M5 part C, Level 09 Arcology Fall: the Hive Node, the Ravager, the arcology backdrop with the Kilo trucks and the cocoon, the collapse look (a/b rejected, c approved and built), briefing images, Firestorm final and base stem, collapse and pounce sounds (a/b), Kilo Lead audition (a/b), capture, voiced lines, texts, part C numbers, decisions and build choices | approved | n/a | chosen |
 
 ## Design
 
@@ -99,3 +100,4 @@ How a round works:
 | 28 | 2026-10-06 | closed | M5 part A: the Act 2 systems (final art review of Rook and the Act 2 weapons, AI, escort UI and barks, Targeting computer and Salvage scanner approved, mine beep a and secret glint a, part A numbers and decisions) |
 | 29 | 2026-10-06 | closed | The Choir sings: a sound for `[the Choir sings]`, sung sting (a, b) or synthesized choir pad (c, d); b chosen |
 | 30 | 2026-10-07 | closed | M5 part B: Level 08 and the Act 2 intro (final art review, billboard a, traffic a and civilian voice b, captures, voiced lines, texts approved, part B numbers and decisions, the one-screen page rule and the teaser's role labels kept) |
+| 31 | 2026-10-07 | closed | M5 part C: Level 09 (final art review of the Hive Node, Ravager, backdrop, briefing images and Firestorm, all approved; collapse sound a, both pounce sounds kept, Kilo Lead a; capture, voiced lines, texts, part C numbers, decisions and build choices accepted; the collapse look: a and b rejected, the rework c approved with two tweaks and built in the game, hold C lasting until the dust settles) |

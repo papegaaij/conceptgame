@@ -3,7 +3,7 @@ title: Enemies
 design: approved
 implementation: in-progress
 art: chosen
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Enemies
@@ -236,6 +236,7 @@ that move in any direction must read from any angle:
 | `carrier + escorts` | A large unit (often `spawn`) with escorts in `orbit`. |
 | `turret nest` | 3–6 ground turrets in a cluster with overlapping fire. |
 | `convoy` | Ground or naval units in a column along a road, river or lane. |
+| `pack` | 3–5 walkers entering together, each on its own ground path, 0.25 s apart (the Ravager). |
 | `submerged ambush` | `sub` units that surface together around the player. |
 | `swarm` | A loose, randomised cloud with flocking behaviour. |
 | `solo set piece` | One huge unit on its own, announced by radio (at most one per level). |
@@ -280,7 +281,7 @@ promoted to draft. Acts 1 and 2 were rechecked against their level documents on 
 |---|---|---|---|
 | `air` / `space` | All weapons | Yes (contact damage) | The player's own plane. `space` = `air` in vacuum-only levels. |
 | `low-air` | All weapons | No | Drawn smaller and lower; its bullets rise to the player plane. |
-| `ground` | All weapons; `anti-ground` does ×2 | No | **Hardened** ground targets (bunkers, nodes) can only be damaged by `anti-ground` weapons (incl. the Airstrike); other shots glance off with a spark. |
+| `ground` | All weapons; `anti-ground` does ×2 | No; the [Ravager](ground/ravager/README.md)'s pounce is `air` for its middle 0.3 s | **Hardened** ground targets and units (bunkers, the [Hive Node](ground/hive-node/README.md)) can only be damaged by `anti-ground` weapons, the Airstrike and the Smart Bomb; other shots glance off with a spark, and homing shots and Rook do not pick them unless their weapon is `anti-ground` (M5 part C). |
 | `high-air` | `homing` and `beam` only | No | Drawn larger and above the player; drops or deploys things. Descends to `air` to become fully hittable. |
 | `sub` (player above water) | `anti-sub` only | No | Seen as a shadow under the waves. When it surfaces it becomes a `ground` (naval surface) target. |
 | `sub` (underwater mode, Act 4) | All weapons; without `anti-sub` 50% damage | Yes | The `sub` layer is the play plane; see the [under water rules](../world/europa/README.md#under-water-rules). |
@@ -500,6 +501,10 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
       whirl cluster, carrier + escorts, convoy, the walkers' paths and the chains' paths).
 - [ ] The other formations with the first level that uses each — **later: M5** (e.g. `swarm`,
       `submerged ambush`) and the acts after it.
+- [ ] M5 part C (Level 09): the `pack` formation (one path per walker, 0.25 s apart), hardened
+      enemies (`armour: hardened` flown: the glance, homing shots and Rook skipping them), a
+      periodic `spawn` on a ground unit (the Hive Node), a per-unit current layer (the Ravager's
+      pounce, `air` for its middle 0.3 s) read at every hit, contact and targeting site.
 - [x] Layer rules for hit detection and collision on `ground`, `low-air`, `air` and `high-air`: what each weapon delivery reaches, hardened ground targets, contact on the player's layer.
 - [ ] The `space`, `sub` and `deep` layers — **later: M5** (`sub`, the naval levels) and **later: Act 5** (`space`, the belt's open-space levels from L31; Level 07 flies on `air` like L01–L03).
 - [x] Bullet rendering order, telegraphs, edge warnings and the bullet budget (bullets above every
@@ -634,3 +639,12 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
   even, so the Coilwyrm is 118–149 HP at medium over L08–L14) and the boss-bounty rule (data in Act 1
   terms, every payout act-scaled, no exemption) approved; the Coilwyrm head's ×2 fix noted. The
   document stays `in-progress` while M5 builds its Act 2 items.
+- 2026-10-07: M5 part C (user decisions D1–D11 of 2026-10-07 and the stated defaults): the
+  formation **`pack`** joins the vocabulary (3–5 walkers entering together, each on its own ground
+  path, 0.25 s apart; the Ravager); **hardened** extends from ground objects to enemies (the Hive
+  Node: only `anti-ground`, the Airstrike and the Smart Bomb damage it; homing shots and Rook skip
+  a hardened unit unless their weapon is `anti-ground`); the Ravager's pounce is the one ground
+  unit's contact with the player (D4 = a: `air` for the middle 0.3 s of its leap). The
+  [Hive Node](ground/hive-node/README.md) and [Ravager](ground/ravager/README.md) stat blocks moved
+  into their `data.yaml` with their weak points drawn only; their new keys (a periodic `spawn`, the
+  `pounce`) are planned in the [schemas](../tech/architecture/README.md#data-file-schemas).

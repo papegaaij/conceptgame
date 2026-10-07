@@ -108,7 +108,8 @@ SCRIPT = "briefing_images.py"
 SOURCE = artkit.source_note(SCRIPT, "UI batch")
 SOURCE_M4 = artkit.source_note(SCRIPT, "M4 briefing images")
 SOURCE_M5 = artkit.source_note(SCRIPT, "M5 part B batch")
-ROUND = "r30"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23, r25)
+SOURCE_M5C = artkit.source_note(SCRIPT, "M5 part C batch")
+ROUND = "r31"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23, r25, r30)
 OUT = ROOT / "assets" / "ui" / "briefing"
 CONCEPT = DESIGN / "ui" / "briefing" / "concept"
 W, H = 672, 240
@@ -1666,6 +1667,148 @@ def creeper_walker_scan():
     return b
 
 
+def arcology_district():
+    """L09 p1: the arcology district before dawn, the grey glow in the east: the route in along the
+    ruined elevated highway, Unity Plaza (cluster A), the boulevard, the lagoon and the Okonjo Bridge
+    with the Kilo convoy (cluster B at its bridgehead), the Ndidi Arcology's lobby plaza (cluster C);
+    Lancer and Rook at the start."""
+    b = Board()
+    b.glow(W + 40, 120, 260, (40, 44, 58), 0.9)                   # the grey glow in the east
+    lagoon = (b.xx > 360 + 22 * np.sin(b.yy / 40)) & (b.xx < 520 + 18 * np.sin(b.yy / 55 + 1))
+    b.base = np.where(lagoon[..., None], b.base * 0.5 + np.array([4, 10, 28]) + (b.xx / W)[..., None] * 14, b.base)
+    rng = np.random.default_rng(909)
+    for _ in range(150):                                          # the district's last lights
+        x, y = rng.uniform(20, 650), rng.uniform(22, 220)
+        if not lagoon[int(y), int(x)]:
+            b.glow(x, y, rng.uniform(2, 4), (80, 64, 30), 0.4)
+    for x, y in ((210, 60), (580, 70), (600, 150)):
+        b.glow(x, y, 24, (55, 50, 52), 0.6)                       # smoke
+    b.title("NOVA LAGOS - ARCOLOGY DISTRICT - BEFORE DAWN")
+    hw = [(20, 210), (80, 180), (130, 150)]                       # the elevated highway in
+    for off in (-3, 3):
+        b.line([(x, y + off) for x, y in hw], CYAN_DIM, 1, 220)
+    b.label(82, 196, "ELEVATED HIGHWAY", CYAN_DIM)                # below the highway, clear of ROOK
+    px, py = 180, 120                                             # Unity Plaza
+    b.draw.rectangle([px - 34, py - 26, px + 34, py + 26], outline=CYAN + (220,))
+    b.draw.ellipse([px - 7, py - 7, px + 7, py + 7], outline=CYAN_DIM + (200,))
+    b.label(px - 34, py + 32, "UNITY PLAZA", CYAN)
+    bl = [(214, 112), (270, 96), (330, 96), (366, 100)]           # the boulevard
+    for off in (-4, 4):
+        b.line([(x, y + off) for x, y in bl], CYAN_DIM, 1, 220)
+    b.label(244, 74, "BOULEVARD", CYAN_DIM)
+    bx = 440                                                      # the Okonjo Bridge over the lagoon
+    for off in (-4, 4):
+        b.line([(bx - 40 + off, 196), (bx + 40 + off, 40)], CYAN, 1, 230)
+    b.label(436, 206, "OKONJO BRIDGE", CYAN)
+    b.label(380, 226, "LAGOS LAGOON", CYAN_DIM)
+    for k in range(4):                                            # the Kilo convoy on it
+        t = 0.25 + 0.12 * k
+        cx, cy = bx - 40 + 80 * t, 196 - 156 * t
+        b.draw.rectangle([cx - 2, cy - 3, cx + 2, cy + 3], fill=GREEN + (255,))
+    b.label(468, 120, "KILO CONVOY", GREEN)
+    b.label(468, 130, "60 CIVILIANS", GREEN)
+    ax, ay = 600, 96                                              # the Ndidi Arcology
+    for r in (22, 15, 8):
+        b.draw.rectangle([ax - r, ay - r, ax + r, ay + r], outline=(VIOLET if r == 22 else CYAN_DIM) + (230,))
+    b.glow(ax, ay, 22, (60, 20, 70), 0.7)
+    b.label(W - 10, 30, "NDIDI ARCOLOGY", VIOLET, right=True)
+    b.label(W - 10, 40, "HOLLOW WITH CREEP", GREY, right=True)
+    clusters = {"A": [(166, 112), (194, 128)], "B": [(470, 60), (492, 72)], "C": [(574, 122), (590, 134)]}
+    for name, nodes in clusters.items():
+        for x, y in nodes:
+            b.glow(x, y, 8, (40, 10, 60), 0.9)
+            b.marker(x, y, "diamond", AMBER, 4)
+        cx = sum(x for x, _ in nodes) / 2
+        cy = min(y for _, y in nodes) - 14
+        b.label(int(cx) - 3, int(cy) - 4, name, AMBER)
+    b.label(500, 84, "BRIDGEHEAD", CYAN_DIM)
+    route = [(30, 214), (80, 184), (130, 154), (180, 120), (270, 100), (366, 100), (420, 120), (480, 66),
+             (540, 90), (596, 128)]
+    b.dashed(route[:-1], AMBER, 2, 7, 4)
+    b.arrow(*route[-2], *route[-1], AMBER, dashed=False)
+    b.sprite(asset("ship_2"), 40, 120)
+    b.sprite(rook_craft(), 72, 132)
+    b.label(14, 88, "LANCER", CYAN)
+    b.label(90, 150, "ROOK", AMBER)
+    b.label(W - 10, 9, "DESTROY 6 HIVE NODES", AMBER, right=True)
+    b.label(W - 10, 216, "LAST HOUR OF NIGHT", GREY, right=True)
+    return b
+
+
+def node_lit(frame, zoom):
+    """A Hive Node frame with its glow added as the game blends it, palettised."""
+    body = np.array(asset(f"hive-node_{frame}", zoom)).astype(np.float64)
+    glow = np.array(asset(f"hive-node-glow_{frame}", zoom)).astype(np.float64)
+    body[..., :3] = np.clip(body[..., :3] + glow[..., :3] * glow[..., 3:4] / 255, 0, 255)
+    return artkit.quantize_set([Image.fromarray(body.astype(np.uint8))], 48)[0]
+
+
+def node_scan():
+    """L09 p2: Varga's scan: a Hive Node with its iris open (hardened: normal rounds spark off), its
+    iris cycle breeding Skitters, the anti-ground sources that crack it; a Ravager's pounce arc at
+    the ship with its air window."""
+    b = Board()
+    b.title("SENSOR SCAN - HIVE NODE / RAVAGER")
+    nx, ny = 104, 120
+    b.glow(nx, ny, 70, (6, 40, 34), 0.8)
+    creep = asset("hive-node-creep_0")
+    b.sprite(creep, nx, ny)
+    b.sprite(node_lit(20, 2), nx, ny)
+    b.label(14, 26, "HIVE NODE", WHITE)
+    b.label(14, 36, "HARDENED SPAWNER", CYAN_DIM)
+    b.draw.rectangle([10, 210, 78, 224], outline=GREY + (230,))
+    b.label(14, 214, "HARDENED", GREY)
+    b.line([(44, 210), (66, 180)], GREY, 1, 200)
+    for k, (fx, it) in enumerate(((0, "IRIS SHUT"), (20, "OPEN"))):              # the iris cycle
+        x = 252 + k * 74
+        b.sprite(node_lit(fx, 1), x, 176)
+        b.label(x - 26, 218, it, CYAN_DIM)
+    b.arrow(282, 176, 300, 176, CYAN_DIM, size=3)
+    for dx, dy in ((372, 160), (390, 186)):
+        b.sprite(asset("skitter_0"), dx, dy)
+        b.arrow(352, 176, dx - 8, dy, VIOLET, size=2)
+    b.label(352, 208, "EVERY 4 S:", VIOLET)
+    b.label(352, 218, "2 SKITTERS", VIOLET)
+    gx, gy = 200, 30                                              # what cracks it
+    b.draw.rectangle([gx - 4, gy - 6, gx + 196, gy + 70], outline=GREEN + (240,))
+    b.label(gx + 2, gy - 1, "ONLY ANTI-GROUND CRACKS IT", GREEN)
+    b.sprite(asset("bomb-rack-shot"), gx + 12, gy + 22)
+    b.label(gx + 26, gy + 18, "BOMBS", GREEN)
+    b.sprite(asset("hammer-mortar-shot"), gx + 12, gy + 38)
+    b.label(gx + 26, gy + 34, "MORTARS, ROOK'S TOO", GREEN)
+    b.sprite(asset("airstrike-bomber_0"), gx + 170, gy + 36)
+    b.label(gx + 26, gy + 50, "THE AIRSTRIKE", GREEN)
+    b.label(gx - 4, gy + 80, "NORMAL ROUNDS SPARK OFF", GREY)
+    rx, ry = 446, 76                                              # the Ravager's pounce
+    ship = np.array([630.0, 200])
+    b.label(422, 26, "RAVAGER", WHITE)
+    b.label(422, 36, "PACK HUNTER", CYAN_DIM)
+    b.sprite(asset(f"ravager_{14 * 8}", 1), rx, ry)
+    pts = []
+    for k in range(25):
+        s_ = k / 24
+        x = rx + 20 + (ship[0] - 20 - rx - 20) * s_
+        y = ry + 16 + (ship[1] - 18 - ry - 16) * s_ - math_sin(s_) * 34
+        pts.append((x, y))
+    air0, air1 = int(24 * 0.3), int(24 * 0.7)
+    b.dashed(pts[:air0 + 1], CYAN_DIM, 1, 4, 3)
+    b.line(pts[air0:air1 + 1], RED, 3)
+    b.dashed(pts[air1:], CYAN_DIM, 1, 4, 3)
+    b.sprite(asset(f"ravager-leap_{14 * 4 + 1}"), *pts[3])
+    b.sprite(asset("ship_2"), *ship)
+    b.label(452, 196, "AIR 0.3 S:", RED)
+    b.label(452, 206, "IT HITS YOU", RED)
+    b.label(W - 10, 26, "POUNCES WITHIN", AMBER, right=True)
+    b.label(W - 10, 36, "200 PX", AMBER, right=True)
+    b.label(422, 224, "SHOOT IT BEFORE IT JUMPS", AMBER)
+    b.label(W - 10, 9, "GROUND LAYER", CYAN_DIM, right=True)
+    return b
+
+
+def math_sin(s_):
+    return float(np.sin(np.pi * s_))
+
+
 IMAGES = {
     "act-1-tether-gate": tether_gate,
     "act-1-outer-stations": outer_stations,
@@ -1696,6 +1839,8 @@ IMAGES = {
     "act-2-scramble": scramble,
     "level-08-nova-lagos": nova_lagos,
     "level-08-walker-scan": creeper_walker_scan,
+    "level-09-arcology-district": arcology_district,
+    "level-09-node-scan": node_scan,
 }
 
 # Review sheets per batch: round, the images on it, the batch name.
@@ -1705,14 +1850,16 @@ BATCHES = {
     "r21": (list(IMAGES)[13:15], "M4 PART E"),
     "r23": (list(IMAGES)[15:17], "M4 PART F"),
     "r25": (list(IMAGES)[17:23], "M4 PART G"),
-    "r30": (list(IMAGES)[23:], "M5 PART B"),
+    "r30": (list(IMAGES)[23:29], "M5 PART B"),
+    "r31": (list(IMAGES)[29:], "M5 PART C"),
 }
 
 
 def build(names):
     OUT.mkdir(parents=True, exist_ok=True)
     for name in names:
-        source = SOURCE if name in BATCHES["r13"][0] else SOURCE_M5 if name in BATCHES["r30"][0] else SOURCE_M4
+        source = (SOURCE if name in BATCHES["r13"][0] else SOURCE_M5 if name in BATCHES["r30"][0]
+                  else SOURCE_M5C if name in BATCHES["r31"][0] else SOURCE_M4)
         artkit.save_png(IMAGES[name]().image(), OUT / f"{name}.png", source)
     print(f"{len(names)} briefing images in {OUT.relative_to(ROOT)}")
 

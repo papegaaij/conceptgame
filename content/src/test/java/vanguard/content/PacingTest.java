@@ -25,7 +25,8 @@ import vanguard.sim.Sortie;
  * good player. A stretch is empty when no live enemy overlaps the play field: air and ground units
  * alike (turrets, walkers, released broods). A set piece on screen (a crane, a boss) counts as an
  * enemy: it is a scripted moment. The stretches are measured on the attempt that completes the
- * level, from the end of its launch to the end of the scroll.
+ * level, from the end of its launch to the end of the scroll, in real seconds (M5 part C: in a hold
+ * zone the level clock slows with the scroll, {@link Sortie#realSeconds()}).
  */
 class PacingTest {
     /** The first level the rule applies to; Levels 01-03 are the warm-up. */
@@ -61,11 +62,12 @@ class PacingTest {
         assertTrue(pauses.size() <= LONG_PAUSES, "pauses over " + EMPTY_SECONDS + " s:" + text);
     }
 
-    /** The empty stretches of the completed attempt, as [from, to] in level seconds. */
+    /** The empty stretches of the completed attempt, as [from, to] in real seconds since the attempt's start. */
     static List<double[]> emptyStretches(String key, Difficulty difficulty) {
         // The starter fit; for Levels 05 to 07, where the starter cannot clear the batteries in time
         // (Level 05), finish hard (Level 06) or bring down the Brood Carrier (Level 07),
-        // the balance plan's fit for the level; from Level 08 on the plan's fit with Rook on its wing.
+        // the balance plan's fit for the level; from Level 08 on the plan's fit with Rook on its wing
+        // (Level 09: the Bomb Rack and Rook's Mortar for the hardened nodes, D8 = c of M5 part C).
         Loadout loadout = key.equals(Level05Test.LEVEL)
                 ? Level05Test.planLoadout(CONTENT, difficulty)
                 : key.equals(Level06Test.LEVEL)
@@ -74,7 +76,9 @@ class PacingTest {
                                 ? Level07Test.planLoadout(CONTENT, difficulty)
                                 : key.equals(Level08Test.LEVEL)
                                         ? Level08Test.planLoadout(CONTENT, difficulty)
-                                        : SimSpecs.starterLoadout(CONTENT, difficulty);
+                                        : key.equals(Level09Test.LEVEL)
+                                                ? Level09Test.planLoadout(CONTENT, difficulty)
+                                                : SimSpecs.starterLoadout(CONTENT, difficulty);
         Sortie sortie = new Sortie(
                 2185,
                 loadout,
@@ -97,15 +101,15 @@ class PacingTest {
             }
             boolean empty = !occupied(sortie);
             if (empty && emptySince < 0) {
-                emptySince = sortie.levelSeconds();
+                emptySince = sortie.realSeconds();
             } else if (!empty && emptySince >= 0) {
-                stretches.add(new double[] {emptySince, sortie.levelSeconds()});
+                stretches.add(new double[] {emptySince, sortie.realSeconds()});
                 emptySince = -1;
             }
         }
         assertTrue(sortie.complete(), key + " " + difficulty + " completes");
         if (emptySince >= 0) {
-            stretches.add(new double[] {emptySince, sortie.levelSeconds()});
+            stretches.add(new double[] {emptySince, sortie.realSeconds()});
         }
         return stretches;
     }

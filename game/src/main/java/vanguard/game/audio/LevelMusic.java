@@ -17,7 +17,10 @@ import java.util.function.IntPredicate;
  * forces the full mix for its second), crossfading the same way. While a radio
  * message is shown the music ducks by 4 dB (design/audio, Mix groups). A level may end on its
  * ambience alone: from its {@code ambience_from} time the theme fades out as at a won level
- * (Level 06), and loop a radio line faintly under one section (Level 06's perimeter beacon).
+ * (Level 06), and loop a radio line faintly under one section (Level 06's perimeter beacon). M5 part
+ * C: a run-time hook ({@code full_on}) plays the full mix while the sortie asks for it whatever the
+ * section (Level 09: while a hold zone runs and from the collapse on), fading in over a second as it
+ * starts and out over {@value #RUN_TIME_OUT_SECONDS} s after it ends.
  *
  * <p>An act boss (Level 07) has its own music: at its arrival the theme crossfades out over 0.5 s
  * while the boss warning (track 22) starts, and the boss track (track 18) comes in on the downbeat
@@ -31,6 +34,8 @@ public final class LevelMusic implements Disposable {
     private static final float FADE_SECONDS = 1;
     /** The intensity layer fades in over a second (design/audio/music, Intensity layers). */
     private static final double CROSSFADE_SECONDS = 1;
+    /** M5 part C: the run-time hook's full mix fades back to the base stem over this long (design/audio/music). */
+    static final double RUN_TIME_OUT_SECONDS = 4;
     /** The start level rises to full over this long. */
     private static final float RISE_SECONDS = 2;
     /** −4 dB. */
@@ -49,6 +54,11 @@ public final class LevelMusic implements Disposable {
     private final IntPredicate fullMix;
     private Optional<MusicStreamer> music = Optional.empty();
     private Optional<StemMix> stems = Optional.empty();
+    /** The full mix's share the stems were last sent to. */
+    private float stemTarget;
+    /** Whether the run-time hook asked for the full mix at the last update. */
+    private boolean intense;
+
     private boolean cut;
     private float fade = -1;
     private float duck = 1;
@@ -176,6 +186,20 @@ public final class LevelMusic implements Disposable {
      * @param radio whether a radio message is shown
      */
     public void update(int section, double levelSeconds, float seconds, boolean radio) {
+        update(section, levelSeconds, seconds, radio, false);
+    }
+
+    /**
+     * As {@link #update(int, double, float, boolean)}, with the run-time hook (M5 part C, {@code
+     * full_on}).
+     *
+     * @param runTimeFull whether the sortie's state asks for the full mix now (a hold zone runs, the
+     *     collapse has started), whatever the section
+     */
+    public void update(int section, double levelSeconds, float seconds, boolean radio, boolean runTimeFull) {
+        boolean wasIntense = intense;
+        intense = runTimeFull;
+        boolean wanted = fullMix.test(section) || runTimeFull;
         if (levelSeconds >= ambienceFrom && fade < 0 && music.isPresent()) {
             fadeOut();
         }
@@ -191,12 +215,15 @@ public final class LevelMusic implements Disposable {
                     new VorbisFile(base.readBytes()),
                     new VorbisFile(full.readBytes()),
                     CROSSFADE_SECONDS,
-                    fullMix.test(section) ? 1 : 0);
+                    wanted ? 1 : 0);
+            stemTarget = wanted ? 1 : 0;
             stems = Optional.of(mix);
             music = Optional.of(MusicStreamer.play(audio, mix, MUSIC_VOLUME * rise, mixer));
         }
-        if (stems.isPresent()) {
-            stems.get().fadeTo(fullMix.test(section) ? 1 : 0);
+        float share = wanted ? 1 : 0;
+        if (stems.isPresent() && share != stemTarget) {
+            stems.get().fadeTo(share, fadeSeconds(share, wasIntense && !runTimeFull));
+            stemTarget = share;
         }
         if (section > startSection) {
             rise = Math.min(1, rise + seconds * (1 - startLevel) / RISE_SECONDS);
@@ -232,6 +259,17 @@ public final class LevelMusic implements Disposable {
                 stopBoss();
             }
         }
+    }
+
+    /**
+     * How long a stem change takes (design/audio/music, Intensity layers): a second, but the run-time
+     * hook's full mix fades back to the base stem over {@value #RUN_TIME_OUT_SECONDS} s.
+     *
+     * @param target the full mix's share it fades to
+     * @param runTimeEnded whether the run-time hook just stopped asking for the full mix
+     */
+    static double fadeSeconds(float target, boolean runTimeEnded) {
+        return target < 1 && runTimeEnded ? RUN_TIME_OUT_SECONDS : CROSSFADE_SECONDS;
     }
 
     /**
@@ -380,6 +418,7 @@ public final class LevelMusic implements Disposable {
         music.ifPresent(MusicStreamer::close);
         music = Optional.empty();
         stems = Optional.empty();
+        intense = false;
     }
 
     private void stopBoss() {

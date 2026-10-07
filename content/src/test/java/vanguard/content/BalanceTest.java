@@ -35,10 +35,13 @@ import vanguard.sim.EnemySpec;
  *   <li>the plan's fit reaches the reference DPS the enemy stat blocks assume (0.75–1.33×), with
  *       Levels 01–03's gentle onboarding (about 1.5×) as the accepted exception;
  *   <li>every enemy's time to kill at its first level and its bounty fit its size class, with the
- *       Coilwyrm's bounty as the accepted exception ({@link #ACCEPTED}); a boss's bounty as paid
+ *       Coilwyrm's bounty and the Ravager's time to kill as the accepted exceptions ({@link #ACCEPTED}); a boss's bounty as paid
  *       there (its Act 1 terms × the act factor × the level's bounty scale);
  *   <li>a returning {@code medium} or larger unit keeps its time to kill at every Act 2 level after
- *       its first, with the act HP factor (user decision D5 = c of M5 part A).
+ *       its first, with the act HP factor (user decision D5 = c of M5 part A);
+ *   <li>the plan's anti-ground sources clear every hold zone's hardened cluster in at most {@link
+ *       #HOLD_SHARE} of the hold's window at medium (user decision D8 = c of M5 part C; hard's
+ *       tighter ratio is accepted, user decision 2026-10-07).
  * </ul>
  */
 class BalanceTest {
@@ -62,6 +65,13 @@ class BalanceTest {
     /** Bosses and set pieces assume an effective DPS of 0.6 × reference (design/enemies Balancing basis). */
     static final double EFFECTIVE = 0.6;
 
+    /**
+     * M5 part C (D8 = c): a hold zone's cluster dies within this share of its window at medium, the
+     * plan's anti-ground DPS against the cluster's HP (hard is not checked: about 0.73 there,
+     * accepted by the user on 2026-10-07).
+     */
+    static final double HOLD_SHARE = 0.6;
+
     /** A boss's or set piece's bounty may lie this share of its target either side (the basis says "about"). */
     static final double SHARE_TOLERANCE = 1 / 3.0;
 
@@ -73,7 +83,10 @@ class BalanceTest {
             "coilwyrm bounty",
             "the parts' sum 86 (head 40, 12 segments × 3, tail 10) is above the large class's 40-60:"
                     + " a multi-part enemy, cutting it up is extra work; a head-first kill pays 40"
-                    + " (user decision 2026-10-05)");
+                    + " (user decision 2026-10-05)",
+            "ravager ttk",
+            "16 HP at L09's reference DPS 63 is 0.25 s, below the medium class's 0.4-1.5 s: a fast,"
+                    + " fragile pack hunter (user decision 2026-10-07, M5 part C)");
 
     /**
      * Hard: the static estimate cannot always pay both the plan's purchases and the repairs of its
@@ -106,7 +119,8 @@ class BalanceTest {
             double front,
             double rear,
             double volley,
-            Optional<Double> reference) {
+            Optional<Double> reference,
+            double antiGround) {
         Optional<Double> ratio() {
             return reference.map(ref -> front / ref);
         }
@@ -176,7 +190,8 @@ class BalanceTest {
                     dps[0],
                     dps[1],
                     dps[0] + dps[1],
-                    Optional.ofNullable(CONTENT.enemyBasis().referenceDps().get(level))));
+                    Optional.ofNullable(CONTENT.enemyBasis().referenceDps().get(level)),
+                    antiGround(campaign.gear().loadout())));
             SaveGame after = campaign.save(Instant.EPOCH);
             save = next(after, after.credits() + income, campaign.maxArmour() - plan.repairPoints());
         }
@@ -224,6 +239,35 @@ class BalanceTest {
             }
         }
         return new double[] {front, rear};
+    }
+
+    /**
+     * The single-target DPS of a loadout's anti-ground sources (the only damage a hardened unit
+     * takes, the specials aside): its {@code anti-ground} weapons and Rook's gun if its base weapon
+     * is one (his gun's scale × the base weapon's single-target DPS at its level).
+     */
+    static double antiGround(Map<LoadoutSlot, Fitted> loadout) {
+        double dps = 0;
+        for (Map.Entry<LoadoutSlot, Fitted> entry : loadout.entrySet()) {
+            Fitted fitted = entry.getValue();
+            if (entry.getKey() == LoadoutSlot.ESCORT) {
+                WingmenData.Gun gun = CONTENT.wingmen().guns().list().stream()
+                        .filter(g -> g.id().equals(fitted.item()))
+                        .findFirst()
+                        .orElseThrow();
+                WeaponData base = CONTENT.weapon(gun.base());
+                if (base.traits().contains("anti-ground")) {
+                    dps += gun.scale() * singleTarget(base, base.levels().get(fitted.level() - 1));
+                }
+            } else if (List.of(LoadoutSlot.FRONT, LoadoutSlot.LEFT_WING, LoadoutSlot.RIGHT_WING, LoadoutSlot.REAR)
+                    .contains(entry.getKey())) {
+                WeaponData weapon = CONTENT.weapon(fitted.item());
+                if (weapon.traits().contains("anti-ground")) {
+                    dps += singleTarget(weapon, weapon.levels().get(fitted.level() - 1));
+                }
+            }
+        }
+        return dps;
     }
 
     /**
@@ -323,6 +367,52 @@ class BalanceTest {
         }
         System.out.println("* the level's typical haul (design/systems/economy); otherwise budget(n)");
         return problems;
+    }
+
+    /**
+     * M5 part C (user decision D8 = c): at every level with hold zones, the plan's fit kills each
+     * hold's hardened cluster (its units' HP at medium) with its anti-ground sources in at most
+     * {@link #HOLD_SHARE} of the hold's window: from the trigger (its first unit {@code depth} px
+     * below the top edge) until that unit's far edge leaves the bottom edge, the scroll easing over
+     * the ramp (a smoothstep, so the section's and the hold's speeds averaged) and then at the hold
+     * speed. Medium only (the user's call; hard's 40 px/s window and 83 HP nodes give about 0.73).
+     */
+    @Test
+    void thePlansAntiGroundClearsEveryHoldInTime() {
+        List<String> slow = new ArrayList<>();
+        int holds = 0;
+        for (Row row : sheet()) {
+            Optional<String> key = CONTENT.levelKey(row.level());
+            if (key.isEmpty()) {
+                continue;
+            }
+            vanguard.sim.LevelScript level = SimSpecs.level(CONTENT, key.get(), Difficulty.MEDIUM);
+            double scroll = CONTENT.level(key.get()).scrollSpeed();
+            for (vanguard.sim.LevelScript.Hold hold : level.holds()) {
+                holds++;
+                double hp = 0;
+                double half = 0;
+                for (vanguard.sim.LevelScript.GroundUnit unit : level.groundUnits()) {
+                    if (hold.groups().contains(unit.group())) {
+                        hp += unit.enemy().hp();
+                        half = Math.max(half, unit.enemy().hitbox().height() / 2);
+                    }
+                }
+                double ease = hold.rampSeconds() * (scroll + hold.speed()) / 2;
+                double window = hold.rampSeconds()
+                        + (vanguard.sim.PlayField.HEIGHT + half - hold.depth() - ease) / hold.speed();
+                double kill = hp / row.antiGround();
+                System.out.printf(
+                        "L%02d hold %s: %.0f HP / anti-ground %.1f DPS = %.1f s of a %.1f s window (%.2f, at most %.1f)%n",
+                        row.level(), hold.groups(), hp, row.antiGround(), kill, window, kill / window, HOLD_SHARE);
+                if (!(kill <= HOLD_SHARE * window)) {
+                    slow.add(
+                            String.format("L%02d hold %s: %.1f s of %.1f s", row.level(), hold.groups(), kill, window));
+                }
+            }
+        }
+        assertTrue(holds > 0, "Level 09's holds are checked");
+        assertTrue(slow.isEmpty(), "the plan's anti-ground is too slow for: " + slow);
     }
 
     @Test

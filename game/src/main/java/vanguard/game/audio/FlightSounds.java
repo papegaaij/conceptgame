@@ -67,6 +67,7 @@ public final class FlightSounds {
     /** Each set piece's death cry, by index in the script; null for none. */
     private final Sfx[] cries;
 
+    /** The sounds' own generator (the pitch variation, the pounce's pick), apart from the simulation's. */
     private final SplitMix64 random = new SplitMix64(0x5F3);
     /** Sounds waiting for their step (a set piece's break-up): what, how loud, pitch, pan, steps left. */
     private final Sfx[] pending = new Sfx[MAX_PENDING];
@@ -317,6 +318,22 @@ public final class FlightSounds {
         }
     }
 
+    /**
+     * M5 part C: whether the arcology's collapse sound starts with its warning (round 31 a: a rumble
+     * that swells under the lean and the drop into the crash) rather than with the drop (a sound that
+     * crashes from its first moment, as the placeholder did).
+     */
+    static final boolean COLLAPSE_AT_WARNING = true;
+
+    /**
+     * Where the crash sits in {@link Sfx#ARCOLOGY_COLLAPSE}, in seconds from its start: Level 09's
+     * collapse impact (the 1.5 s lean and the 1.5 s drop, round 31's look c), so a sound started with
+     * the warning crashes as the tower hits the ground (the file cut by tools/concept/audio/
+     * sfx_r31.py's PRODUCTION at its IMPACT, built by tools/art/sfx_originals.py). The test {@code
+     * SfxFilesTest} ties it to the level's impact.
+     */
+    static final double COLLAPSE_CRASH_SECONDS = 3.0;
+
     /** Plays the sounds of one step's events. */
     public void play(SimEvents events) {
         int launches = 0;
@@ -471,6 +488,20 @@ public final class FlightSounds {
                 // The Mantis (round 23): its telegraph a warning (the player-damage level), its beam a
                 // little above the enemy fire, one long sound.
                 case SWEEP_TELEGRAPH -> bank.play(Sfx.MANTIS_TELEGRAPH, PLAYER_DAMAGE, pitch(0.03), pan);
+                // M5 part C: the Hive Node's iris and release, the Ravager's take-off, the arcology's collapse.
+                case SPAWN_TELEGRAPH -> bank.play(Sfx.HIVE_IRIS, HITS, pitch(0.04), pan);
+                case SPAWN_RELEASED -> bank.play(Sfx.HIVE_SPAWN, EXPLOSIONS, pitch(0.04), pan);
+                case POUNCE -> bank.play(pounce(random), HITS, pitch(0.06), pan);
+                case COLLAPSE_WARNING -> {
+                    if (COLLAPSE_AT_WARNING) {
+                        bank.play(Sfx.ARCOLOGY_COLLAPSE, EXPLOSIONS, 1, 0);
+                    }
+                }
+                case COLLAPSE_FALL -> {
+                    if (!COLLAPSE_AT_WARNING) {
+                        bank.play(Sfx.ARCOLOGY_COLLAPSE, EXPLOSIONS, 1, 0);
+                    }
+                }
                 case SWEEP_FIRED -> bank.play(Sfx.MANTIS_SWEEP, HITS, pitch(0.03), pan);
                 // The Smart Bomb (round 08 a): its energy blast, swelling over 0.5 s, on the huge rung's
                 // sub-heavy boom, which gives the instant flash its punch.
@@ -700,6 +731,14 @@ public final class FlightSounds {
             case SHIELD_CELL -> Sfx.SHIELD_CELL;
             case ARMOUR_PATCH -> Sfx.ARMOUR_PATCH;
         };
+    }
+
+    /**
+     * The Ravager's pounce, a or b at random each time (round 31: both kept): drawn from the sound's
+     * own generator, never the simulation's, which stays deterministic.
+     */
+    static Sfx pounce(SplitMix64 random) {
+        return random.nextInt(2) == 0 ? Sfx.RAVAGER_POUNCE_A : Sfx.RAVAGER_POUNCE_B;
     }
 
     /** Two variants in turn, so no file plays twice in a row. */

@@ -68,7 +68,7 @@ public final class ThreatArrows implements Disposable {
         count = 0;
         for (int i = 0; i < sortie.enemyCount(); i++) {
             Enemy enemy = sortie.enemy(i);
-            if (enemy.spec().layer() == Layer.GROUND) {
+            if (enemy.layer() == Layer.GROUND) {
                 continue;
             }
             track(

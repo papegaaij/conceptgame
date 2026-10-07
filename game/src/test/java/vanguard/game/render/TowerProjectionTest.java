@@ -21,6 +21,34 @@ class TowerProjectionTest {
         assertEquals(540 - 297, BackdropData.Tower.CENTRE_Y);
     }
 
+    /**
+     * The walls drawn are the ones facing the projection centre (the camera sees those): a tower left
+     * of the centre shows its east wall, right of it its west wall, above it its south wall, below it
+     * its north wall; one over the centre shows none. (The east and west walls were swapped before
+     * 2026-10-07: a tower left of the centre drew its hidden west wall under its roof and left a gap
+     * where its east wall belongs.)
+     */
+    @Test
+    void theWallsFacingTheCentreAreTheOnesDrawn() {
+        assertEquals(TowerProjection.EAST, sides(60, 243), "left of the centre");
+        assertEquals(TowerProjection.WEST, sides(420, 243), "right of the centre");
+        assertEquals(TowerProjection.SOUTH, sides(240, 480), "above the centre");
+        assertEquals(TowerProjection.NORTH, sides(240, 40), "below the centre");
+        assertEquals(TowerProjection.EAST | TowerProjection.SOUTH, sides(60, 480), "up and left: two walls");
+        assertEquals(0, sides(240, 243), "over the centre: only the roof");
+    }
+
+    /** The visible sides of a 60 x 50 tower 1.35 units high whose footprint is centred at (x, y). */
+    private static int sides(double x, double y) {
+        double k = K_135;
+        float fx0 = (float) (x - 30);
+        float fy0 = (float) (y - 25);
+        float rx0 = TowerProjection.roofLeft(x, (int) Math.round(60 * k), k);
+        float ry0 = TowerProjection.roofBottom(y, (int) Math.round(50 * k), k);
+        return TowerProjection.visibleSides(
+                fx0, fy0, fx0 + 60, fy0 + 50, rx0, ry0, rx0 + Math.round(60 * k), ry0 + Math.round(50 * k));
+    }
+
     @Test
     void aRoofOverTheCentreDoesNotLean() {
         // A 60 x 60 footprint at k = 1.29 has a 77 x 77 roof, centred over it.

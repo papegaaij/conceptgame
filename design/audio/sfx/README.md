@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Sound effects
@@ -64,7 +64,7 @@ reused round 02 files marked (r02).
 | Rung | Length | Files | Enemies (examples from the [roster](../../enemies/README.md)) |
 |---|---|---|---|
 | `tiny` | ≤ 0.6 s | [a](concept/explosion-tiny-r03-a.ogg), [b](concept/explosion-tiny-r03-b.ogg) | Skitter, Asteroid Mite, spores, shootable missiles and mines, Shard Drone links |
-| `small` | 0.7–1.1 s | [a](concept/explosion-r02-a.ogg) (r02), [b](concept/explosion-r02-b.ogg) (r02), [c](concept/explosion-small-r03-a.ogg) | Needler, Stinger, Talon, Ghost Drone, Harrow, Skimmer, Spine Turret, Driftjelly |
+| `small` | 0.7–1.1 s | [a](concept/explosion-r02-a.ogg) (r02), [b](concept/explosion-r02-b.ogg) (r02), [c](concept/explosion-small-r03-a.ogg) | Needler, Stinger, Talon, Ghost Drone, Harrow, Skimmer, Spine Turret, Driftjelly, Ravager |
 | `medium` | 1.6–2 s | [a](concept/explosion-r02-c.ogg) (r02), [b](concept/explosion-medium-r03-b.ogg) | Gilded Gunship, Hornet, Chimera, Mantis, Creeper, SAM Nest, Crawler Tank, Reef Spitter, Minelayer, destroyed buildings |
 | `large` | 2.8–3.1 s | [a](concept/explosion-r02-d.ogg) (r02), [b](concept/explosion-r02-e.ogg) (r02), [c](concept/explosion-large-r03-a.ogg) | Hive Node, Sentinel Tower, Rail Bunker, Abyss Ray, Choir Seraph, mid-boss parts, boss phase ends |
 | `huge` | 5–6 s | [a](concept/explosion-huge-r03-b.ogg) (sub-heavy boom), [b](concept/explosion-huge-r04-a.ogg) (recorded 4 kg TNT blast with debris, round 04) | Act-boss deaths, capital ships, Smart Bomb, Iron Sovereign core |
@@ -153,6 +153,9 @@ reused round 02 files marked (r02).
 | Carrier launching drones — the Brood Carrier's units leaving its sacs: chosen [b](concept/enemy-carrier-launch-r25-b.ogg) (slime lunge; a creature spit was rejected), [round 25](../../concept-rounds/round-25/README.md) | P2 |
 | Boss roars and phase-change cues (per boss) — the Brood Carrier (Level 07): roar as it arrives and, lower, as it turns broadside, chosen [b](concept/enemy-carrier-roar-r25-b.ogg) (bear and didgeridoo; a deep roar with echo was rejected); a bay sac opening, chosen [b](concept/enemy-carrier-sac-open-r25-b.ogg), and closing, chosen [b](concept/enemy-carrier-sac-close-r25-b.ogg) (a tear out of sucking mud and its reverse; flesh pulled apart was rejected); a sac bursting, chosen [a](concept/enemy-carrier-sac-burst-r25-a.ogg) (very wet, fleshy explosion, CC-BY; a visceral tear was rejected); the plate iris opening, chosen [b](concept/enemy-carrier-iris-r25-b.ogg) (organic morph; an alien hatch was rejected), [round 25](../../concept-rounds/round-25/README.md); other bosses P3 | P2 |
 | Lifeboat tow (Level 07 secret): the amber cable snapping on its third hit — chosen [a](concept/secret-cable-snap-r25-a.ogg) (chain snap, CC-BY; a slowed string twang was rejected), [round 25](../../concept-rounds/round-25/README.md); the hits play the metal hit, the crate the large salvage | P2 |
+| Hive Node (Level 09, M5 part C): the iris opening reuses the Brood Carrier's chosen iris [b](concept/enemy-carrier-iris-r25-b.ogg) (organic morph), the release the Vrell spawn [a](concept/enemy-spawn-r08-a.ogg), its death the `large` rung; no screech (a static mound: its iris is its cue) | P2 |
+| Ravager pounce (Level 09, M5 part C): a short snarl and lunge as it takes off — chosen [a](concept/ravager-pounce-r31-a.ogg) and [b](concept/ravager-pounce-r31-b.ogg) (both kept: the game picks one at random per pounce), [round 31](../../concept-rounds/round-31/README.md); its death the `small` rung; no screech (a pack would screech on top of itself; the pounce is its cue) | P2 |
+| Arcology collapse (Level 09, M5 part C): a low rumble under the 1.5 s lean and the 1.5 s drop swelling into a long crash at the impact (about 7 s) — chosen [a](concept/collapse-r31-a.ogg) (stony rumble swelling into a tumbling masonry crash, CC-BY; a steel-frame cave-in was rejected; the production file crashes at 3.0 s, the concept file at 1.5 s), [round 31](../../concept-rounds/round-31/README.md) | P2 |
 | Leviathan whale-song cry (its death, under the large burst) — [a](concept/enemy-leviathan-cry-r16-a.ogg) (synthesized, round 16) | P2 |
 | Polyp Mortar lob — chosen [a](concept/enemy-mortar-lob-r21-a.ogg) (mortar thump; an organic spit was rejected); impact — chosen [a](concept/enemy-mortar-impact-r21-a.ogg) (wet splat; an acid sizzle was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
 | Mass-driver sled (Level 05 hazard): whine while the rail lights chase — chosen [a](concept/hazard-sled-whine-r21-a.ogg) (charge hum loop, played twice over the 1.5 s chase; a rising charge was rejected); pass — chosen [b](concept/hazard-sled-pass-r21-b.ogg) (rushing flyby; a rail-gun crack was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
@@ -221,7 +224,6 @@ game may play only `proposed` sounds of an open concept round, provisionally unt
 | [enemy-missile-r08-a.ogg](concept/enemy-missile-r08-a.ogg) | No Act 1 enemy fires missiles (the SAM Nest, L29, and the Hornet, L31, are the first) |
 | [enemy-lock-r08-a.ogg](concept/enemy-lock-r08-a.ogg) | No Act 1 turret locks on (the SAM Nest, L29, is the first) |
 | [enemy-laser-warning-r08-a.ogg](concept/enemy-laser-warning-r08-a.ogg) | Act 1's only laser, the Mantis, has its own telegraph (round 23) |
-| [enemy-spawn-r08-a.ogg](concept/enemy-spawn-r08-a.ogg) | Vrell spawn a: the Brood Carrier's launches have their own sound (round 25); the Hive Node is not in Act 1 |
 | [enemy-coilwyrm-death-final-r24-a.ogg](concept/enemy-coilwyrm-death-final-r24-a.ogg) | A review preview of the Coilwyrm's chained death; the game plays its two bursts |
 
 ### Mixing rules
@@ -523,6 +525,22 @@ Briefs: [concept/prompts.md](concept/prompts.md#round-28--the-proximity-mines-ar
 | [concept/weapon-mine-arm-r28-a.ogg](concept/weapon-mine-arm-r28-a.ogg) | Synthesized — mine arming a, "armed chirp": two soft rising pulse blips a fifth apart (A6, E7 45 ms later), low-passed (0.10 s) | chosen |
 | [concept/rejected/weapon-mine-arm-r28-b.ogg](concept/rejected/weapon-mine-arm-r28-b.ogg) | Synthesized — mine arming b, "sensor ping": one sine ping gliding up a fifth in 15 ms, ringing out on a faint metallic overtone over a tiny latch click (0.15 s) | rejected |
 
+Concept round 31 (M5 part C) — a/b pairs for the arcology's collapse (a rumble swelling over the
+1.5 s warning into a long crash) and the Ravager's pounce (a short snarl over a whoosh), cut by
+`tools/concept/audio/sfx_r31.py` from cached Freesound originals (CC0 / CC-BY); the Hive Node reuses
+the carrier iris (`enemy-carrier-iris-r25-b`) and the spawn (`enemy-spawn-r08-a`). Not listened to by
+Claude. Outcome (user, 2026-10-07): collapse **a**, both pounces kept (picked at random per
+pounce); collapse b moved to `concept/rejected/`. Briefs and sources:
+[concept/prompts.md](concept/prompts.md#round-31--the-arcologys-collapse-and-the-ravagers-pounce),
+[CREDITS.md](../../../CREDITS.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/collapse-r31-a.ogg](concept/collapse-r31-a.ogg) | "Cracking Earthquake" by uagadugu (CC0) + "Big crash, a house tumbling down" by YleArkisto (CC-BY 4.0) — collapse a: stony rumble swelling 1.5 s into a tumbling masonry crash (5.5 s) | chosen |
+| [concept/rejected/collapse-r31-b.ogg](concept/rejected/collapse-r31-b.ogg) | "Radiator Metal Rumbling" by RutgerMuller (CC0) + "Explosion or Collapse.wav" by tec_studio (CC0) — collapse b: steel-frame rattle swelling into a deep rolling cave-in with a long dust tail (5.7 s) | rejected |
+| [concept/ravager-pounce-r31-a.ogg](concept/ravager-pounce-r31-a.ogg) | "Goblin Snarl" by qubodup (CC0) — pounce a: rasping dog-like attack snarl over a quick swish (0.7 s) | chosen |
+| [concept/ravager-pounce-r31-b.ogg](concept/ravager-pounce-r31-b.ogg) | "Dragon: Snarl, Roar + Attack" by Breviceps (CC0) — pounce b: snapping attack roar, sped up to hound size, over a heavier whoosh (0.7 s) | chosen |
+
 ## Implementation
 
 - [x] SFX playback with instance limits, stealing by priority, pitch variation: the 32-voice
@@ -560,10 +578,18 @@ Briefs: [concept/prompts.md](concept/prompts.md#round-28--the-proximity-mines-ar
   key to its loop for the level screen) under Level 08's section 1 (M5 part B)
 - [x] The Creeper's screech as it comes onto the screen, like the Scuttler's (`ScreechCue`) (M5
   part B)
+- [x] Level 09's sounds (M5 part C): the Hive Node's iris and release (reused), the Ravager's pounce
+  and the arcology's collapse (round 31's picks), played from the simulation's events:
+  `Sfx.HIVE_IRIS` (carrier iris b) on `SPAWN_TELEGRAPH`, `Sfx.HIVE_SPAWN` (Vrell spawn a) on
+  `SPAWN_RELEASED`, the node's death on the `large` rung and the Ravager's on the `small` one; the
+  pounce (`POUNCE`) plays `Sfx.RAVAGER_POUNCE_A` or `_B` at random (`FlightSounds`' own SplitMix64),
+  the collapse `Sfx.ARCOLOGY_COLLAPSE` (collapse a) from the warning's start (`COLLAPSE_AT_WARNING`),
+  the crash at the impact, 3.0 s in (`COLLAPSE_CRASH_SECONDS`, round 31's look c: the 1.5 s lean
+  and the 1.5 s drop)
 - [ ] Torpedo launch and the water explosion — **later: M5 part E**; the other Act 2 ambiences —
   **later: M5** (parts E, F, G, with their levels)
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
-  from rounds 02–08, round 21's four, round 23's five, round 24's two, round 25's seven and round 27's one) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
+  from rounds 02–08, round 21's four, round 23's five, round 24's two, round 25's seven, round 27's one and round 31's three) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
   [`tools/art/sfx_originals.py`](../../../tools/art/README.md); `importPlaceholders` keeps them
   (only the synthesized sounds are still copied). `art: final` waits for the user's round-12 review.
 
@@ -766,3 +792,28 @@ Briefs: [concept/prompts.md](concept/prompts.md#round-28--the-proximity-mines-ar
 - 2026-10-06: M5 part B: the game plays the megacity ambience by the key `earth-megacity`
   (`Sfx.AMBIENCE_CITY`; its row left the *Chosen sounds the game does not play* table) and the
   Creeper screeches on entry (`ScreechCue`).
+- 2026-10-07: M5 part C (user decision D9 = a and the stated defaults): Level 09 needs two new
+  sounds, the **Ravager's pounce** and the **arcology's collapse** (a rumble under the shadow
+  swelling into a long crash), each an a/b in concept round 31 (recorded CC0 / CC-BY sources, each
+  in CREDITS.md); the **Hive Node** reuses the Brood Carrier's iris b and the Vrell spawn a, and
+  dies on the `large` rung; the Ravager dies on the `small` rung. Our reading, for review: neither
+  unit screeches on entry (the node's iris and the pounce are their cues; a pack would screech over
+  itself).
+- 2026-10-07: M5 part C, game side: the Hive Node plays the Brood Carrier's iris b as its iris opens
+  and the Vrell spawn a (so it leaves the "not played" list) as it releases; the Ravager's take-off
+  and the arcology's collapse are wired to their own slots with placeholders (carrier launch b, a
+  slime lunge; hit-crumble a, "building collapse", from the fall) until round 31's picks are in
+  `assets/sfx/`, when the collapse sound moves to the shadow's start
+  (`FlightSounds.COLLAPSE_AT_WARNING`).
+- 2026-10-07: Round 31 closed for the sounds: collapse a (CC-BY 4.0, YleArkisto, on the credits
+  roll), both pounces kept and picked at random per pounce; rebuilt from the originals into
+  `assets/sfx/` by `tools/art/sfx_originals.py` with `sfx_r31.py`'s `PRODUCTION`; the collapse
+  plays from the shadow (crash at 1.5 s; to move to the impact when the fall is reworked). Collapse
+  b (a steel-frame cave-in) moved to `concept/rejected/`. The Hive Node's reuse of the carrier iris
+  b and the Vrell spawn a, and no screech for either unit, confirmed (round 31 row 8).
+- 2026-10-07: The collapse's crash moved to the impact (round 31's look c built: the 1.5 s lean,
+  then the 1.5 s drop): `sfx_r31.py`'s `PRODUCTION` now mixes the crash at its `IMPACT` (3.0 s)
+  over a rumble cut 1.5 s longer and swelling for those 3.0 s, rebuilt by
+  `tools/art/sfx_originals.py` into `assets/sfx/collapse-r31-a.ogg` (7.0 s; the same two
+  originals, so the credits are unchanged; its check flags the length against the 5.5 s concept
+  file, which stays as the record of the choice). `FlightSounds.COLLAPSE_CRASH_SECONDS` is 3.0.

@@ -12,7 +12,7 @@ import vanguard.sim.WaveSpec;
 /**
  * The campaign's minimum density (design/campaign, Difficulty curve): every level reaches its
  * act's minimum in enemies per minute of scroll at medium, air and ground units with the released
- * spawns, the launch and the boss fight (an arena section and what follows it) excluded. The
+ * spawns (a periodic spawner's one release, M5 part C), the launch and the boss fight (an arena section and what follows it) excluded. The
  * warm-up Levels 01-03 have their own, lower minimum.
  */
 class DensityTest {
@@ -53,13 +53,16 @@ class DensityTest {
         int enemies = 0;
         for (WaveSpec wave : level.waves()) {
             if (wave.t() < end) {
-                int released = wave.enemy().brood().map(EnemySpec.Brood::count).orElse(0);
+                int released = wave.enemy().brood().map(EnemySpec.Brood::count).orElse(0)
+                        + wave.enemy().spawner().map(EnemySpec.Spawner::count).orElse(0);
                 enemies += wave.count() * (1 + released);
             }
         }
         for (LevelScript.GroundUnit unit : level.groundUnits()) {
             if (unit.t() < end) {
-                enemies++;
+                // M5 part C: a periodic spawner (Level 09's Hive Nodes) counts one release
+                enemies +=
+                        1 + unit.enemy().spawner().map(EnemySpec.Spawner::count).orElse(0);
             }
         }
         return enemies / ((end - level.launchSeconds()) / 60);

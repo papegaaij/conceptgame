@@ -33,6 +33,9 @@ import java.util.Optional;
  * @param tows part G: friendly craft towing a secret's crate on a cable (Level 07's lifeboat tow)
  * @param partDrops part G: pickups dropped by a set piece's parts when they are shot off (Level
  *     07's first destroyed bay sac)
+ * @param holds M5 part C: the hold zones (Level 09's node clusters), where the scroll eases down
+ *     until their groups are destroyed and the level clock slows with it
+ * @param collapse M5 part C: the collapse (Level 09's arcology) once its groups are cleared
  */
 public record LevelScript(
         int number,
@@ -56,8 +59,24 @@ public record LevelScript(
         List<GroupDrop> groupDrops,
         Optional<Darkness> darkness,
         List<TowSpec> tows,
-        List<PartDrop> partDrops) {
+        List<PartDrop> partDrops,
+        List<Hold> holds,
+        Optional<Collapse> collapse) {
     public LevelScript {
+        holds = List.copyOf(holds);
+        int groupCount = groups(targets, secondary).size();
+        for (Hold hold : holds) {
+            for (int group : hold.groups()) {
+                if (group < 0 || group >= groupCount) {
+                    throw new IllegalArgumentException("a hold waits for groups of the level, not " + group);
+                }
+            }
+        }
+        for (int group : collapse.map(Collapse::groups).orElse(List.of())) {
+            if (group < 0 || group >= groupCount) {
+                throw new IllegalArgumentException("a collapse waits for groups of the level, not " + group);
+            }
+        }
         targets = List.copyOf(targets);
         groupDrops = List.copyOf(groupDrops);
         tows = List.copyOf(tows);
@@ -78,6 +97,144 @@ public record LevelScript(
         }
         if (escort.isPresent() && road.isEmpty()) {
             throw new IllegalArgumentException("a convoy follows the level's road");
+        }
+    }
+
+    /** A level without M5 part C's hold zones and collapse. */
+    public LevelScript(
+            int number,
+            int act,
+            double launchSeconds,
+            List<Section> sections,
+            List<WaveSpec> waves,
+            List<GroundObjectSpec> groundObjects,
+            List<GroundUnit> groundUnits,
+            int secrets,
+            List<RadioCue> radio,
+            Secondary secondary,
+            List<CraneSpec> cranes,
+            List<DebrisSpec> debris,
+            List<SetPieceSpec> setPieces,
+            Optional<Escort> escort,
+            Optional<Road> road,
+            List<String> targets,
+            Optional<SledSpec> sled,
+            Optional<RockSpec> rocks,
+            List<GroupDrop> groupDrops,
+            Optional<Darkness> darkness,
+            List<TowSpec> tows,
+            List<PartDrop> partDrops) {
+        this(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                List.of(),
+                Optional.empty());
+    }
+
+    /**
+     * M5 part C (design/campaign Level 09, user decisions D2 and D3 = a): a hold zone. When the first
+     * unit of its {@code groups} reaches {@code depth} px below the top edge, the scroll eases over
+     * {@code rampSeconds} to {@code speed} px/s and stays there until every unit of those groups is
+     * gone (a hold over the {@link Collapse collapse}'s groups whose clearing started it: until its
+     * fall ends); then it eases back to the section's speed. There is no timeout: a unit that leaves
+     * the screen alive fails a destroy-targets primary at once.
+     *
+     * @param groups indexes into {@link LevelScript#groups()}
+     */
+    public record Hold(List<Integer> groups, double depth, double speed, double rampSeconds) {
+        public Hold {
+            groups = List.copyOf(groups);
+            if (groups.isEmpty()) {
+                throw new IllegalArgumentException("a hold waits for at least one group");
+            }
+            if (!(speed > 0) || !(rampSeconds > 0)) {
+                throw new IllegalArgumentException("a hold eases to a speed over a ramp");
+            }
+        }
+
+        /** Whether it waits for group {@code group}. */
+        public boolean waitsFor(int group) {
+            for (int i = 0; i < groups.size(); i++) {
+                if (groups.get(i) == group) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * M5 part C (design/campaign Level 09, user decision D5 = a; round 31's look c): the collapse.
+     * When every unit of its {@code groups} is destroyed (none got away), its tower leans for {@code
+     * warningSeconds} (the warning), then drops for {@code dropSeconds}; at the impact its blast rolls
+     * out from the tower's foot: a ring round the footprint's centre ({@code x}, half way between
+     * {@code bottom} and {@code top}) whose radius grows from {@code blastFrom} to {@code blastTo} px
+     * over {@code blastSeconds}, eased 1 − (1 − t)² (the dust blast's front). Every ground unit in the
+     * band (from {@code bottom} to {@code top}, the whole width) whose centre the ring reaches is
+     * destroyed, paying and scoring as an Airstrike kill; air units and the player are untouched. Its
+     * dust settles {@code settleSeconds} after the impact (the heavy dust's ramp out, at least the
+     * blast's time): a hold over its groups lasts until then (user decision, 2026-10-07). The
+     * band lies on the ground (ground positions: px from the screen's bottom edge at the level start,
+     * as the backdrop's pieces), so it scrolls with the ground and covers the same ground (the tower
+     * that falls) whenever its groups are cleared. The real clock times it, not the level clock.
+     *
+     * @param groups indexes into {@link LevelScript#groups()}
+     * @param x the footprint's centre, px from the play field's left edge
+     */
+    public record Collapse(
+            List<Integer> groups,
+            double warningSeconds,
+            double dropSeconds,
+            double blastSeconds,
+            double blastFrom,
+            double blastTo,
+            double settleSeconds,
+            double x,
+            double bottom,
+            double top) {
+        public Collapse {
+            groups = List.copyOf(groups);
+            if (groups.isEmpty()) {
+                throw new IllegalArgumentException("a collapse waits for at least one group");
+            }
+            if (!(warningSeconds >= 0) || !(dropSeconds > 0) || !(blastSeconds > 0)) {
+                throw new IllegalArgumentException("a collapse drops after its warning, then its blast rolls out");
+            }
+            if (!(blastFrom >= 0) || !(blastTo > blastFrom)) {
+                throw new IllegalArgumentException("a collapse's blast grows outward");
+            }
+            if (!(settleSeconds >= blastSeconds)) {
+                throw new IllegalArgumentException("a collapse's dust settles after its blast");
+            }
+            if (!(top > bottom)) {
+                throw new IllegalArgumentException("a collapse's band has its top ahead of its bottom");
+            }
+        }
+
+        /** The blast's kill radius {@code seconds} after the impact, px: eased out from {@code blastFrom} to {@code blastTo}. */
+        public double blastRadius(double seconds) {
+            double t = Math.clamp(seconds / blastSeconds, 0, 1);
+            return blastFrom + (blastTo - blastFrom) * (1 - (1 - t) * (1 - t));
         }
     }
 
@@ -369,6 +526,10 @@ public record LevelScript(
 
     /** The names of the groups the ground units' {@link GroundUnit#group()} indexes: the primary's or the secondary's. */
     public List<String> groups() {
+        return groups(targets, secondary);
+    }
+
+    private static List<String> groups(List<String> targets, Secondary secondary) {
         return targets.isEmpty() ? secondary.groups() : targets;
     }
 
@@ -545,6 +706,8 @@ public record LevelScript(
      *     them alive; empty for none
      * @param parts indexes into that set piece's parts
      * @param beforePhase the index of the boss phase they must die in or before
+     * @param tag M5 part C (user decision D6 = a): scopes {@code escapes} to the units of the waves
+     *     with this tag (Level 09's {@code bridge} packs); empty for every unit of the enemy
      */
     public record Secondary(
             double killRatio,
@@ -555,7 +718,8 @@ public record LevelScript(
             String label,
             String partsOf,
             List<Integer> parts,
-            int beforePhase) {
+            int beforePhase,
+            String tag) {
         public Secondary {
             groups = List.copyOf(groups);
             killAll = List.copyOf(killAll);
@@ -563,6 +727,23 @@ public record LevelScript(
             if (parts.isEmpty() != partsOf.isEmpty()) {
                 throw new IllegalArgumentException("a parts objective names its set piece and its parts");
             }
+            if (!tag.isEmpty() && escapes.isEmpty()) {
+                throw new IllegalArgumentException("only an escapes objective is scoped to a wave tag");
+            }
+        }
+
+        /** Without M5 part C's wave tag. */
+        public Secondary(
+                double killRatio,
+                int credits,
+                List<String> groups,
+                String escapes,
+                List<String> killAll,
+                String label,
+                String partsOf,
+                List<Integer> parts,
+                int beforePhase) {
+            this(killRatio, credits, groups, escapes, killAll, label, partsOf, parts, beforePhase, "");
         }
 
         public Secondary(
@@ -607,9 +788,17 @@ public record LevelScript(
             return !parts.isEmpty();
         }
 
-        /** Whether a unit of {@code slug} counts towards an escapes or kill-all objective. */
+        /**
+         * Whether a unit of {@code slug} counts towards an escapes or kill-all objective (an escapes
+         * objective scoped to a tag counts only the units of the waves with that tag).
+         */
         public boolean counts(String slug) {
-            return escapes.equals(slug) || killAll.contains(slug);
+            return (escapes.equals(slug) && tag.isEmpty()) || killAll.contains(slug);
+        }
+
+        /** Whether a unit of {@code slug} of a wave tagged {@code waveTag} ("" for none) counts towards it. */
+        public boolean counts(String slug, String waveTag) {
+            return (escapes.equals(slug) && (tag.isEmpty() || tag.equals(waveTag))) || killAll.contains(slug);
         }
     }
 
@@ -1036,7 +1225,8 @@ public record LevelScript(
      * @param alliesMin a level-end cue starts only with at least this many convoy units home
      * @param alliesMax ... and at most this many
      * @param requires part G: it starts only with all of these fitted, as {@link #FITTED_SPECIAL}
-     *     and {@link #FITTED_HOMING} bits (with {@code requiresSpecial}, {@link #FITTED_SPECIAL} is set)
+     *     and {@link #FITTED_HOMING} bits (with {@code requiresSpecial}, {@link #FITTED_SPECIAL} is set);
+     *     M5 part C: {@link #FITTED_ESCORT}, it starts only while an escort flies (Rook's scripted lines)
      * @param requiresNot part G: it starts only with none of these fitted (Level 07's line for a
      *     ship without a homing weapon)
      */
@@ -1058,6 +1248,11 @@ public record LevelScript(
         public static final int FITTED_SPECIAL = 1;
         /** What is fitted: a weapon with homing delivery. */
         public static final int FITTED_HOMING = 2;
+        /**
+         * M5 part C: an escort flies (hired, fitted and not ejected; Rook): it changes during the
+         * attempt, so the radio asks for it when a cue is due.
+         */
+        public static final int FITTED_ESCORT = 4;
 
         public RadioCue {
             requires |= requiresSpecial ? FITTED_SPECIAL : 0;
@@ -1159,6 +1354,12 @@ public record LevelScript(
          * waited for still alive (Level 07's broadside phase timing out); the subject is the name of
          * the phase it entered. Its {@link #BOSS_PHASE} cues start as well.
          */
-        BOSS_TIMEOUT
+        BOSS_TIMEOUT,
+        /** M5 part C: the level's first hold zone starts to ease down; once. No subject. */
+        HOLD_START,
+        /** M5 part C: the attempt's first pounce takes off ({@link SimEvents.Type#POUNCE}). No subject. */
+        FIRST_POUNCE,
+        /** M5 part C: the collapse's shadow starts. No subject. */
+        COLLAPSE
     }
 }

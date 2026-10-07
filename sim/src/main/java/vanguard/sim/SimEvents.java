@@ -22,7 +22,10 @@ public final class SimEvents {
         ENEMY_FIRED,
         /** A shot hit a ground object (at the shot); value: the mount that fired it. */
         GROUND_HIT,
-        /** A shot glanced off a hardened ground target without damage (at the shot); value: the mount. */
+        /**
+         * A shot glanced off a hardened ground target or (M5 part C) a hardened enemy without damage
+         * (at the shot; a blast's glance at the enemy); value: the mount.
+         */
         SHOT_GLANCED,
         /** A bomb or shell burst on the ground (at its landing point); value: the mount that fired it. */
         BLAST,
@@ -180,7 +183,44 @@ public final class SimEvents {
          * M5 part A: one of the ship's proximity mines armed (at the mine), 0.4 s after its drop: its
          * arming beep; value: the mount that dropped it.
          */
-        PROXIMITY_MINE_ARMED;
+        PROXIMITY_MINE_ARMED,
+        /**
+         * M5 part C: a periodic spawner's iris started to open, the telegraph of its release (at its
+         * centre; design/enemies/ground/hive-node); value: its kind.
+         */
+        SPAWN_TELEGRAPH,
+        /** M5 part C: a periodic spawner released its units (at its centre); value: its kind. */
+        SPAWN_RELEASED,
+        /** M5 part C: a walker took off for a pounce (at it; design/enemies/ground/ravager); value: its kind. */
+        POUNCE,
+        /** M5 part C: a pounce landed (at it); value: its kind. */
+        POUNCE_LANDED,
+        /**
+         * M5 part C: a hold zone started (at the ship; design/campaign Level 09): the scroll eases down
+         * to its speed from the next step; value: the hold's index. The music's {@code full_on: hold}
+         * fades in from here.
+         */
+        HOLD_START,
+        /**
+         * M5 part C: a hold zone ended, every unit of its groups gone (at the ship): the scroll eases
+         * back to the section's speed; value: the hold's index. The {@code full_on: hold} mix fades
+         * out from here.
+         */
+        HOLD_END,
+        /**
+         * M5 part C: the collapse started (at the ship): its tower leans (the warning) over the band,
+         * {@link Sortie#collapseBandTop()} to {@link Sortie#collapseBandBottom()}.
+         */
+        COLLAPSE_WARNING,
+        /** M5 part C: the collapse's tower starts to drop straight down (at the ship), the warning over. */
+        COLLAPSE_FALL,
+        /**
+         * M5 part C: the collapse's tower hits the ground (at the ship): its blast rolls out from the
+         * foot, killing the ground units in the band as it reaches them ({@link Sortie#collapseBlastRadius()}).
+         */
+        COLLAPSE_IMPACT,
+        /** M5 part C: the collapse's blast has rolled out (at the ship): it is over, a hold through it ends. */
+        COLLAPSE_END;
 
         private static final Type[] VALUES = values();
     }

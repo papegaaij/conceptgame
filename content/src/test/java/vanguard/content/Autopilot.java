@@ -25,7 +25,11 @@ import vanguard.sim.Sortie;
  * cruises among the column, so more of the ground enemies' aimed shots (at the nearer of the ship
  * and the convoy) go for it, and it shoots the ground enemies nearest the convoy first. With a segment chain on the
  * screen (Level 06) it slips sideways to the side clear of its members and lines up under a
- * chain's head rather than its body (a cut grows a new head). It reads the sortie's state only, so
+ * chain's head rather than its body (a cut grows a new head). Over a hardened destroy-targets unit
+ * (Level 09's Hive Nodes, which only bombs and mortars crack) it flies over the unit, where its bombs
+ * fall, leading it by the scroll during the bombs' fall, holding its line as over a battery; when
+ * one is about to get away it calls the Airstrike (if fitted and charged) with a bomber over it. It reads each unit's current layer (a
+ * pouncing Ravager is in the air for part of its leap). It reads the sortie's state only, so
  * it is deterministic; the recorded replay stores its commands. Public for the campaign tests (the
  * Act 1 playthrough, {@code ActPlaythroughTest}).
  */
@@ -44,6 +48,22 @@ public final class Autopilot {
      * above it, in its line of fire, as long as possible.
      */
     private static final double BATTERY_Y = 45;
+
+    /** Level 09: the bombs' fall, s (design/player/weapons/bomb-rack): it leads a node by the scroll over it. */
+    private static final double BOMB_FALL = 0.5;
+    /**
+     * Level 09: a hardened target this close to the bottom edge, px, with more HP than {@link
+     * #STRIKE_HP} gets the Airstrike, if one is fitted and charged.
+     */
+    private static final double STRIKE_LOW = 170;
+
+    private static final double STRIKE_HP = 15;
+    /** The Airstrike's bombers fly this far either side of the ship's x (design/player/specials). */
+    private static final double STRIKE_OFFSET = 64;
+    /** Two targets this far apart sideways, px, both lie under one strike's two bombers. */
+    private static final double STRIKE_PAIR_MIN = 80;
+
+    private static final double STRIKE_PAIR_MAX = 190;
 
     private static final double CHAIN_ABOVE = 120;
     private static final double CHAIN_BELOW = 70;
@@ -92,6 +112,11 @@ public final class Autopilot {
             lowest = battery;
             targetY = Math.min(targetY, BATTERY_Y);
         }
+        Enemy node = hardenedTarget(sortie);
+        if (node != null) {
+            lowest = node;
+            targetY = Math.max(40, node.renderY(1) - sortie.groundSpeed() * BOMB_FALL);
+        }
         Enemy head = chainHead(sortie, shipY);
         if (head != null) {
             lowest = head;
@@ -110,6 +135,13 @@ public final class Autopilot {
             } else if (ground != null) {
                 targetX = ground.renderX();
             }
+        }
+        if (node != null && strikeDue(sortie, node)) {
+            double strikeX = strikeX(sortie, node);
+            if (Math.abs(strikeX - shipX) <= DEAD_ZONE) {
+                return commands | Command.SPECIAL.bit();
+            }
+            return commands | steer(shipX, shipY, strikeX, targetY);
         }
         if ((lowest != null || walker != null) && sortie.pickupCount() > 0) {
             Pickup pickup = sortie.pickup(0);
@@ -141,6 +173,65 @@ public final class Autopilot {
             }
         }
         return lowest;
+    }
+
+    /**
+     * Level 09: the lowest hardened unit of a destroy-targets group on the screen (a Hive Node: only
+     * {@code anti-ground} deliveries crack it, so it flies over it); null without one.
+     */
+    private static Enemy hardenedTarget(Sortie sortie) {
+        if (sortie.script().targets().isEmpty()) {
+            return null;
+        }
+        Enemy lowest = null;
+        for (int i = 0; i < sortie.enemyCount(); i++) {
+            Enemy enemy = sortie.enemy(i);
+            double y = enemy.renderY(1);
+            if (enemy.groupIndex() >= 0
+                    && enemy.spec().hardened()
+                    && y < PlayField.HEIGHT - 20
+                    && y > 20
+                    && (lowest == null || y < lowest.renderY(1))) {
+                lowest = enemy;
+            }
+        }
+        return lowest;
+    }
+
+    /**
+     * Level 09: whether to call the Airstrike on a hardened target about to get away (low on the
+     * screen with HP left): only with an Airstrike fitted, charged and not already flying.
+     */
+    private static boolean strikeDue(Sortie sortie, Enemy node) {
+        var special = sortie.special();
+        return special.fitted()
+                && special.name().equals("Airstrike")
+                && special.ready()
+                && special.charges() > 0
+                && node.renderY(1) < STRIKE_LOW
+                && node.hp() > STRIKE_HP;
+    }
+
+    /**
+     * Where to call the strike: with another hardened target of a group on the screen
+     * {@link #STRIKE_PAIR_MIN}–{@link #STRIKE_PAIR_MAX} px to its side, midway between the two (each
+     * bomber then flies over one); otherwise {@link #STRIKE_OFFSET} to its side, toward the centre.
+     */
+    private static double strikeX(Sortie sortie, Enemy node) {
+        double x = node.renderX(1);
+        for (int i = 0; i < sortie.enemyCount(); i++) {
+            Enemy other = sortie.enemy(i);
+            double dx = Math.abs(other.renderX(1) - x);
+            if (other != node
+                    && other.groupIndex() >= 0
+                    && other.spec().hardened()
+                    && other.renderY(1) < PlayField.HEIGHT - 20
+                    && dx >= STRIKE_PAIR_MIN
+                    && dx <= STRIKE_PAIR_MAX) {
+                return (x + other.renderX(1)) / 2;
+            }
+        }
+        return x < PlayField.WIDTH / 2.0 ? x + STRIKE_OFFSET : x - STRIKE_OFFSET;
     }
 
     /** Level 06: the lowest head of a segment chain on the screen above the ship; null without one. */
@@ -247,7 +338,7 @@ public final class Autopilot {
             Enemy enemy = sortie.enemy(i);
             double x = enemy.renderX(1);
             double y = enemy.renderY(1);
-            if (enemy.spec().layer() != Layer.GROUND
+            if (enemy.layer() != Layer.GROUND
                     || y > PlayField.HEIGHT - 10
                     || y < shipY - 20
                     || x < 0
@@ -384,7 +475,7 @@ public final class Autopilot {
             }
             for (int i = 0; i < sortie.enemyCount(); i++) {
                 Enemy enemy = sortie.enemy(i);
-                if (enemy.spec().layer() == Layer.GROUND) {
+                if (enemy.layer() == Layer.GROUND) {
                     continue;
                 }
                 double ex = enemy.renderX(1) + (enemy.renderX(1) - enemy.renderX(0)) * steps;
@@ -504,7 +595,7 @@ public final class Autopilot {
     /** The side to dodge bullets and rammers to: negative = left, positive = right, 0 = nothing close. */
     private static double threat(Sortie sortie, double shipX, double shipY) {
         // Level 05: with a battery unit on the screen it holds its line and dodges only the closest bullets.
-        boolean holding = battery(sortie, shipY) != null;
+        boolean holding = battery(sortie, shipY) != null || hardenedTarget(sortie) != null;
         double bulletDx = holding ? 18 : 24;
         double bulletDy = holding ? 40 : DANGER;
         for (int i = 0; i < sortie.bulletCount(); i++) {
@@ -519,7 +610,7 @@ public final class Autopilot {
         boolean overGround = !sortie.script().targets().isEmpty();
         for (int i = 0; i < sortie.enemyCount(); i++) {
             Enemy enemy = sortie.enemy(i);
-            if (overGround && enemy.spec().layer() == Layer.GROUND) {
+            if (overGround && enemy.layer() == Layer.GROUND) {
                 continue;
             }
             double dx = enemy.renderX(1) - shipX;

@@ -6,8 +6,9 @@ import java.util.List;
 /**
  * The level's radio cues (design/campaign, radio chatter): each starts once per attempt, at its
  * time or on its event, as a {@link SimEvents.Type#RADIO} event at the ship. A cue starts only
- * with what it requires fitted and nothing it requires not (a special, a homing weapon), and a
- * level-end cue only with the convoy units home in its range.
+ * with what it requires fitted and nothing it requires not (a special, a homing weapon; M5 part C: an
+ * escort flying, asked when the cue is due), and a level-end cue only with the convoy units home in
+ * its range.
  */
 final class Radio {
     private final List<LevelScript.RadioCue> cues;
@@ -16,6 +17,8 @@ final class Radio {
     private final Ship ship;
     /** What is fitted, as {@link LevelScript.RadioCue#FITTED_SPECIAL} and {@link LevelScript.RadioCue#FITTED_HOMING} bits. */
     private final int fitted;
+    /** M5 part C: the escort in the escort slot (Rook); null without one. */
+    private Wingman escort;
 
     Radio(List<LevelScript.RadioCue> cues, SimEvents events, Ship ship, int fitted) {
         this.cues = cues;
@@ -35,6 +38,11 @@ final class Radio {
             }
         }
         return fitted;
+    }
+
+    /** M5 part C: the escort whose flying a cue's {@code requires: escort} asks for; null without one. */
+    void escort(Wingman wingman) {
+        escort = wingman;
     }
 
     /** Copies which cues have started into {@code into} (a boss checkpoint). */
@@ -95,7 +103,8 @@ final class Radio {
     }
 
     private boolean allowed(LevelScript.RadioCue cue) {
-        return cue.allowedWith(fitted);
+        boolean flying = escort != null && !escort.ejected();
+        return cue.allowedWith(fitted | (flying ? LevelScript.RadioCue.FITTED_ESCORT : 0));
     }
 
     private void start(int index) {

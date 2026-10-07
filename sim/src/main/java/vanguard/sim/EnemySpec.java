@@ -33,6 +33,11 @@ import java.util.Optional;
  * @param sideHover a unit entering from a side edge (the Mantis): where it hovers and how it leaves
  * @param sweep its laser sweep (the Mantis), fired while it hovers instead of a gun
  * @param chain the segment chain behind its head (the Coilwyrm)
+ * @param hardened M5 part C (design/enemies/ground/hive-node): only {@code anti-ground} deliveries,
+ *     the Airstrike and the Smart Bomb damage it; other shots and blasts glance off, and homing
+ *     shots and the wingman do not pick it as a target unless their weapon is {@code anti-ground}
+ * @param spawner M5 part C: a periodic spawner's cycle (the Hive Node)
+ * @param pounce M5 part C: a walker's leap at the ship (the Ravager)
  */
 public record EnemySpec(
         String slug,
@@ -59,7 +64,115 @@ public record EnemySpec(
         Optional<Walker> walker,
         Optional<SideHover> sideHover,
         Optional<Sweep> sweep,
-        Optional<ChainSpec> chain) {
+        Optional<ChainSpec> chain,
+        boolean hardened,
+        Optional<Spawner> spawner,
+        Optional<Pounce> pounce) {
+
+    /** The constructor of Level 08: without the hardened units, spawners and pounces of Level 09 (M5 part C). */
+    public EnemySpec(
+            String slug,
+            double hp,
+            Hitbox hitbox,
+            Layer layer,
+            double contactDamage,
+            boolean destroyedByRamming,
+            int bounty,
+            double speed,
+            Optional<Snake> snake,
+            Optional<Double> streamSpeed,
+            Optional<Hover> hover,
+            Optional<Orbit> orbit,
+            Optional<EnemyGun> gun,
+            Optional<Drop> drop,
+            Optional<Dive> dive,
+            boolean terrain,
+            Optional<Spiral> spiral,
+            Optional<Range> strafe,
+            Optional<DeathBurst> deathBurst,
+            Optional<Sine> sine,
+            Optional<Brood> brood,
+            Optional<Walker> walker,
+            Optional<SideHover> sideHover,
+            Optional<Sweep> sweep,
+            Optional<ChainSpec> chain) {
+        this(
+                slug,
+                hp,
+                hitbox,
+                layer,
+                contactDamage,
+                destroyedByRamming,
+                bounty,
+                speed,
+                snake,
+                streamSpeed,
+                hover,
+                orbit,
+                gun,
+                drop,
+                dive,
+                terrain,
+                spiral,
+                strafe,
+                deathBurst,
+                sine,
+                brood,
+                walker,
+                sideHover,
+                sweep,
+                chain,
+                false,
+                Optional.empty(),
+                Optional.empty());
+    }
+
+    /**
+     * A periodic spawner (design/enemies/ground/hive-node, M5 part C): every {@code everySeconds},
+     * counted from when its centre crosses the top edge, its iris opens over {@code
+     * telegraphSeconds} and then releases {@code count} units of {@code enemy} from its centre,
+     * spread evenly over {@code arcRadians} centred on the direction to the ship and flying straight
+     * out at {@code speed} px/s (as a {@link Brood}'s). An opening due while the ship's centre is
+     * within {@code shutWithin} px of its own is skipped (no telegraph), and so is a release the ship
+     * came that close to during the telegraph; the next one is due a whole cycle later. It never
+     * bursts on its own.
+     */
+    public record Spawner(
+            EnemySpec enemy,
+            int count,
+            double everySeconds,
+            double telegraphSeconds,
+            double arcRadians,
+            double speed,
+            double shutWithin) {
+        public Spawner {
+            if (count < 1 || !(everySeconds > telegraphSeconds) || telegraphSeconds < 0 || shutWithin < 0) {
+                throw new IllegalArgumentException(
+                        "a spawner releases at least one unit, its telegraph inside its cycle");
+            }
+        }
+    }
+
+    /**
+     * A pounce (design/enemies/ground/ravager, M5 part C): a walker on the screen whose centre is
+     * within {@code range} px of the ship's leaps at the ship's position at take-off over {@code
+     * leapSeconds} (no homing); for the middle {@code airSeconds} of the leap its current layer is
+     * {@link Layer#AIR} (contact with the ship and the wingman once per leap, air-reaching weapons,
+     * mines), else {@link Layer#GROUND}; drawn up to {@code scale} at the apex. It lands, rejoins its
+     * path and may leap again {@code intervalSeconds} after landing.
+     */
+    public record Pounce(double range, double leapSeconds, double airSeconds, double scale, double intervalSeconds) {
+        public Pounce {
+            if (!(range > 0)
+                    || !(leapSeconds > 0)
+                    || airSeconds < 0
+                    || airSeconds > leapSeconds
+                    || !(scale > 0)
+                    || intervalSeconds < 0) {
+                throw new IllegalArgumentException("a pounce has a range, a leap and its air window inside it");
+            }
+        }
+    }
 
     /** The constructor of Level 05: without the side hover, sweep and chain of Level 06. */
     public EnemySpec(

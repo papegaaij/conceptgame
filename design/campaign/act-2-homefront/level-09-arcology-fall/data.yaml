@@ -1,0 +1,1184 @@
+# Level 09 – Arcology Fall: the level script, rendered into README.md (briefing, threat profile,
+# layout, waves, ground targets, radio, credit budget). Times are SCRIPT time (user decision D2 = a
+# of M5 part C): the scroll distance ÷ 150 px/s. In a hold zone the level clock slows with the
+# scroll, so waves, ground targets, radio t-lines and the backdrop's placements wait with it.
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+scroll_speed: 150
+launch_seconds: 5     # flying in from the bottom edge with Rook in his slot, as in Level 08
+bounty_scale: 0.4    # every bounty × 0.4: the typical haul on budget(9) (M5 part C, step C3)
+control_prompts: []
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Earth megacity
+  layers: [ground, air]
+  density: 3
+  traits: [anti-ground, area]
+  required: [anti-ground]   # D7 = a: the launch warning at every sensor level without a source that damages hardened targets
+  hazards: [structural collapse]
+  boss: none
+  objective: DESTROY 6 HIVE NODES   # the OBJECTIVE field from sensor L1
+  varga:
+    none: The arcology district before dawn, Lancer. Things on the ground that must die, and flyers over them.
+    l1: Mostly from ahead, two pincers from the flanks. Six targets to destroy, and a tower may fall. It won't touch you.
+    l2: "New: the Hive Node, a hardened spawner, and the Ravager, a pack hunter that pounces. Creepers and turrets too."
+    l3: "Anti-ground is a must: nothing else cracks a node. One cache: a creep cocoon on a boulevard roof. Bomb it open."
+  notes:
+    Dominant layers: '`ground` (hive nodes, Ravager packs, Creepers, turrets, mortars), `air`; `low-air` carries smoke and dust (scenery)'
+    Attack directions: '{directions} by enemy count (two Needler pincers)'
+    Density: '{density}'
+    Recommended traits: '`anti-ground` (**required**, user decision D7 = a), `area`'
+    Hazards: the arcology collapse (scripted, on the ground layer, harmless to the player)
+    Boss / mid-boss: 'none (finale: the third hold and the collapse)'
+    Sensor-suite detail: 'none: Earth megacity before dawn, `ground` + `air`, front · L1: + directions, density {density}, the hazard "structural collapse", the objective `{objective}` · L2: + Hive Node (new), Ravager (new), Skitter, Needler, Stinger, Creeper, Spine Turret and Polyp Mortar portraits; no boss · L3: + `anti-ground` and `area` highlighted, the wave strip marking the three node clusters (37, 119 and 163 s), 1 secret'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets (tools/art/backdrop_l09.py --proposal)
+  - name: Arcology Approach
+    end: 20
+    atmosphere: light
+    tiles: [pre-dawn, approach]
+    notes:
+      layers:
+        deep: the sprawl's glow under the smoke haze, a grey glow in the east.
+        ground: a ruined elevated highway, burnt-out traffic, a CDF barricade; the first arcology towers in perspective with violet creep veins on their upper floors.
+        low-air: smoke wisps.
+      purpose: Launch and set-up; the first creep seen on the towers.
+  - name: Unity Plaza
+    end: 58
+    atmosphere: clear
+    tiles: [pre-dawn, plaza-district]
+    notes:
+      layers:
+        ground: a wide plaza with a dry fountain, the creep spreading from nodes A1 and A2 across the paving, park trees at the edges, the turret pair; towers around it.
+        low-air: none (the plaza must read clearly).
+      purpose: 'First hold zone (30 px/s in hold A): learn that nodes need anti-ground and that the scroll waits for you.'
+  - name: Boulevard Run
+    end: 96
+    atmosphere: light
+    tiles: [pre-dawn, boulevard]
+    notes:
+      layers:
+        ground: a long boulevard with a burnt-out tram, abandoned cars and tree rows; low roofs either side (the mortars, a turret nest, the cocoon); towers in perspective.
+        low-air: dust drifting off the street.
+      purpose: 'Ravager introduction: one pack alone, then a larger pack around the tram; the cocoon secret.'
+  - name: Okonjo Bridge
+    end: 138
+    atmosphere: medium
+    tiles: [pre-dawn, lagoon]
+    notes:
+      layers:
+        ground: the lagoon channel, the Okonjo Bridge running up the screen with the Kilo truck convoy crossing it, the far bank's quay with two mortars, the bridgehead turrets, nodes B1 and B2 on the south-bank approach.
+        low-air: smoke banks over the water.
+      purpose: 'The bridge assault (the secondary), then the second hold (30 px/s in hold B).'
+  - name: Arcology Fall
+    end: 186
+    atmosphere: medium
+    tiles: [pre-dawn, lobby-district]
+    notes:
+      layers:
+        ground: the Ndidi Arcology's lobby plaza with nodes C1 and C2, the arcology tower hollowed by creep; after the collapse its rubble heap under settling dust.
+        low-air: smoke, then the collapse's `heavy` dust banks, ramping out over 6 s.
+      purpose: 'Third hold (30 px/s in hold C), then the collapse set piece and a quiet end over the rubble.'
+
+# Skitter streams and snakes, Needler and Stinger groups of the level's own roster between the
+# node clusters and the Ravager packs (the act's minimum: at least 50 a minute of script time).
+# Walker paths: [x, y] points in screen coordinates at the unit's entry (y px below the top edge),
+# scrolling with the ground; past the last point a walker walks straight on. Creepers walk north
+# (up the screen, so the ground carries them down at 150 - 35 = 115 px/s), a convoy's units 1.5 s
+# apart on one path. A Ravager pack's units enter 0.25 s apart, each on its own path (as many paths
+# as the largest difficulty's count): they gallop down into the street, then across it at a shallow
+# angle (about 90 px/s down the screen at the full scroll), within pouncing range of the ship.
+waves:
+  - {t: 7, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, notes: Over the ruined highway; the first targets for Rook}
+  - {t: 10, formation: V-wing, enemy: needler, count: 5, from: front, notes: Over the CDF barricade}
+  - {t: 13.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: Curls over the fallen highway span}
+  - {t: 17.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - {t: 21, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, notes: Into the plaza district}
+  - {t: 23.5, formation: line abreast, enemy: needler, count: 3, from: front}
+  - t: 26
+    formation: convoy
+    enemy: creeper
+    count: 3
+    from: front
+    paths: [[[300, -40], [300, -150], [230, -250], [230, -800]]]   # up the avenue toward the plaza and its nodes
+    notes: Crawls up the avenue toward the plaza's nodes
+  - {t: 28.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - {t: 31, formation: column, enemy: stinger, count: 3, from: front, notes: Ahead of the turret pair; the last one drops the Airstrike charge (only with a special fitted)}
+  - {t: 34, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: Over the plaza's turret pair}
+  - {t: 40, formation: snake, enemy: skitter, count: 6, from: front, edge: right, notes: "During hold A, where the nodes' Skitters join them"}
+  - {t: 42, formation: V-wing, enemy: needler, count: 4, from: front, notes: "Over the plaza, during or after hold A"}
+  - {t: 45.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25}
+  - {t: 49, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, skip: [easy], notes: "2 per side, hold {hold} s; Rook's flank bark"}
+  - {t: 49, formation: line abreast, enemy: needler, count: 4, from: front, skip: [medium, hard], notes: "Easy only: the pincer from the front"}
+  - {t: 53, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25}
+  - {t: 56, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: After hold A}
+  - {t: 59, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25, notes: Down the empty boulevard}
+  - t: 62
+    formation: pack
+    enemy: ravager
+    count: 3
+    from: front
+    paths:   # down into the boulevard, then across it to the right
+      - [[90, -30], [110, 110], [520, -50]]
+      - [[140, -30], [160, 120], [550, -40]]
+      - [[190, -30], [210, 130], [580, -30]]
+      - [[60, -30], [70, 140], [490, -20]]
+    easy: {count: 3}
+    hard: {count: 4}
+    notes: "**New.** Gallops down the empty boulevard and across it; pounces within 200 px; Varga's line at t=58, Rook's on the first pounce; hard 4"
+  - {t: 66, formation: snake, enemy: skitter, count: 6, from: front, edge: right}
+  - {t: 70, formation: V-wing, enemy: needler, count: 5, from: front, notes: Over the boulevard mortars}
+  - {t: 73, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - t: 76
+    formation: pack
+    enemy: ravager
+    count: 4
+    from: front
+    paths:   # down the boulevard, splitting round the burnt-out tram, half to each side
+      - [[200, -30], [190, 120], [-80, 20]]
+      - [[260, -30], [270, 120], [560, 20]]
+      - [[180, -30], [160, 140], [-100, 50]]
+      - [[280, -30], [300, 140], [580, 50]]
+      - [[230, -30], [230, 100], [560, -60]]
+    easy: {count: 3}
+    hard: {count: 5}
+    notes: "Splits around the burnt-out tram; the last one drops an overdrive; easy 3, hard 5"
+  - {t: 80, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25, notes: Over the cocoon's roof}
+  - t: 84
+    formation: convoy
+    enemy: creeper
+    count: 3
+    from: front
+    paths: [[[260, -40], [260, -150], [230, -250], [230, -800]]]   # up the boulevard past the cocoon's roof
+    notes: Along the boulevard past the cocoon's roof
+  - {t: 88, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25}
+  - {t: 90, formation: column, enemy: stinger, count: 3, from: front}
+  - {t: 93.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - {t: 97, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, notes: Over the lagoon}
+  - {t: 99, formation: V-wing, enemy: needler, count: 4, from: front, notes: Over the far bank}
+  - {t: 102, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - t: 106
+    formation: pack
+    enemy: ravager
+    count: 4
+    from: front
+    tag: bridge
+    paths:   # down the bridge's deck (x 220-300) after the Kilo convoy, weaving across it
+      - [[285, -30], [235, 10], [285, 50], [235, 90], [285, 130], [235, 170], [285, 210], [235, 250], [285, 290], [235, 330], [285, 370], [235, 410], [285, 450], [235, 490], [285, 530], [235, 570], [285, 610], [235, 650]]
+      - [[230, -30], [280, 10], [230, 50], [280, 90], [230, 130], [280, 170], [230, 210], [280, 250], [230, 290], [280, 330], [230, 370], [280, 410], [230, 450], [280, 490], [230, 530], [280, 570], [230, 610], [280, 650]]
+      - [[290, -30], [240, 10], [290, 50], [240, 90], [290, 130], [240, 170], [290, 210], [240, 250], [290, 290], [240, 330], [290, 370], [240, 410], [290, 450], [240, 490], [290, 530], [240, 570], [290, 610], [240, 650]]
+      - [[225, -30], [275, 10], [225, 50], [275, 90], [225, 130], [275, 170], [225, 210], [275, 250], [225, 290], [275, 330], [225, 370], [275, 410], [225, 450], [275, 490], [225, 530], [275, 570], [225, 610], [275, 650]]
+      - [[295, -30], [245, 10], [295, 50], [245, 90], [295, 130], [245, 170], [295, 210], [245, 250], [295, 290], [245, 330], [295, 370], [245, 410], [295, 450], [245, 490], [295, 530], [245, 570], [295, 610], [245, 650]]
+    easy: {count: 3}
+    hard: {count: 5}
+    notes: "Bridge assault, part 1 (tag `bridge`): down the bridge toward the convoy; easy 3, hard 5"
+  - {t: 110, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25}
+  - t: 114
+    formation: pack
+    enemy: ravager
+    count: 4
+    from: front
+    tag: bridge
+    paths:   # as part 1, a little to the other side of the deck first
+      - [[230, -30], [280, 10], [230, 50], [280, 90], [230, 130], [280, 170], [230, 210], [280, 250], [230, 290], [280, 330], [230, 370], [280, 410], [230, 450], [280, 490], [230, 530], [280, 570], [230, 610], [280, 650]]
+      - [[290, -30], [240, 10], [290, 50], [240, 90], [290, 130], [240, 170], [290, 210], [240, 250], [290, 290], [240, 330], [290, 370], [240, 410], [290, 450], [240, 490], [290, 530], [240, 570], [290, 610], [240, 650]]
+      - [[225, -30], [275, 10], [225, 50], [275, 90], [225, 130], [275, 170], [225, 210], [275, 250], [225, 290], [275, 330], [225, 370], [275, 410], [225, 450], [275, 490], [225, 530], [275, 570], [225, 610], [275, 650]]
+      - [[295, -30], [245, 10], [295, 50], [245, 90], [295, 130], [245, 170], [295, 210], [245, 250], [295, 290], [245, 330], [295, 370], [245, 410], [295, 450], [245, 490], [295, 530], [245, 570], [295, 610], [245, 650]]
+      - [[235, -30], [285, 10], [235, 50], [285, 90], [235, 130], [285, 170], [235, 210], [285, 250], [235, 290], [285, 330], [235, 370], [285, 410], [235, 450], [285, 490], [235, 530], [285, 570], [235, 610], [285, 650]]
+    easy: {count: 3}
+    hard: {count: 5}
+    notes: "Bridge assault, part 2 (tag `bridge`); easy 3, hard 5"
+  - {t: 116, formation: column, enemy: stinger, count: 3, from: front, notes: "Over the bridgehead turrets; on easy the last one drops a second Airstrike charge (only with a special fitted)"}
+  - {t: 120.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, notes: "During hold B, away from the nodes"}
+  - {t: 124.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: After hold B}
+  - {t: 128, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, skip: [easy], notes: "After hold B; 2 per side; Rook's flank bark"}
+  - {t: 128, formation: line abreast, enemy: needler, count: 4, from: front, skip: [medium, hard], notes: "Easy only: the pincer from the front"}
+  - {t: 132, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - {t: 135, formation: snake, enemy: skitter, count: 6, from: front, edge: right}
+  - {t: 139, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25, notes: Into the lobby district}
+  - {t: 142, formation: V-wing, enemy: needler, count: 5, from: front, notes: Toward the arcology}
+  - {t: 145.5, formation: snake, enemy: skitter, count: 6, from: front, edge: right}
+  - {t: 149.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - {t: 153, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: Under the Choir's song}
+  - {t: 156, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25}
+  - t: 158
+    formation: convoy
+    enemy: creeper
+    count: 3
+    from: front
+    paths: [[[360, -40], [360, -150], [300, -260], [300, -800]]]   # out of the lobby plaza toward the nodes
+    notes: Out of the lobby plaza toward the nodes
+  - t: 162
+    formation: pack
+    enemy: ravager
+    count: 3
+    from: front
+    paths:   # out of the arcology lobby, across the avenue to the left
+      - [[400, -30], [380, 120], [-60, -20]]
+      - [[440, -30], [420, 130], [-40, -10]]
+      - [[360, -30], [340, 140], [-80, 0]]
+      - [[460, -30], [450, 110], [-20, -40]]
+    easy: {count: 3}
+    hard: {count: 4}
+    notes: Charges out of the arcology lobby; hard 4
+  - t: 166
+    formation: pack
+    enemy: ravager
+    count: 4
+    from: front
+    paths:   # into the lobby plaza and across it to the right, clear of the arcology (in hold C the scroll is slow, so they cross nearly level)
+      - [[240, -30], [240, 160], [540, 120]]
+      - [[280, -30], [280, 180], [560, 140]]
+      - [[320, -30], [320, 150], [580, 110]]
+      - [[220, -30], [220, 170], [520, 150]]
+      - [[360, -30], [360, 190], [600, 150]]
+    easy: {count: 3}
+    hard: {count: 5}
+    notes: During hold C; the collapse catches the ones still on the plaza; easy 3, hard 5
+  - {t: 167.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25, notes: Over the falling tower}
+  - {t: 170, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: Over the dust after the collapse}
+  - {t: 174, formation: V-wing, enemy: needler, count: 4, from: front, notes: Over the dust}
+  - {t: 178, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: Over the rubble; the last wave}
+
+ground_targets:  # at: [t, x], when it enters at the top edge and its x (the layout tools/art/backdrop_l09.py builds its structures round)
+  - target: plaza turrets
+    section: 2
+    enemy: spine-turret
+    count: 2
+    at: [[34.6, 168], [34.6, 312]]
+    notes:
+      target: '[Spine Turret](../../../enemies/ground/spine-turret/README.md) ×{count} guarding the plaza (t≈35)'
+      effect: Bounty
+  - target: Node A1
+    section: 2
+    enemy: hive-node
+    count: 1
+    group: Node A1
+    at: [[37.4, 150]]
+    notes:
+      target: '[Hive Node](../../../enemies/ground/hive-node/README.md) **Node A1**, hardened (t≈37)'
+      effect: Primary target; hold A
+  - target: Node A2
+    section: 2
+    enemy: hive-node
+    count: 1
+    group: Node A2
+    at: [[38.2, 330]]
+    notes:
+      target: Hive Node **Node A2**, hardened (t≈38)
+      effect: Primary target; hold A
+  - target: boulevard mortars
+    section: 3
+    enemy: polyp-mortar
+    count: 2
+    at: [[67.6, 120], [68.8, 352]]
+    notes:
+      target: '[Polyp Mortar](../../../enemies/ground/polyp-mortar/README.md) ×{count} on low roofs by the boulevard (t≈68)'
+      effect: Bounty
+  - target: roof nest
+    section: 3
+    enemy: spine-turret
+    count: 3
+    at: [[79.6, 340], [80.0, 390], [80.4, 440]]
+    notes:
+      target: 'Spine Turret turret nest ×{count} on a low roof (t≈80)'
+      effect: Bounty
+  - target: creep cocoon
+    section: 3
+    layer: ground
+    size: [44, 40]
+    sprite: cocoon   # assets/sprites/cocoon_0..2, -break_0..7 (tools/art/backdrop_l09.py --props)
+    hp: 30
+    hardened: true
+    drop: armour patch
+    reveals: cocoon cache
+    at: [[86, 118]]   # on a low roof by the boulevard
+    notes:
+      target: 'Creep cocoon on a low roof by the boulevard (**hardened**, {hp} HP; t≈86)'
+      effect: 'Only `anti-ground` weapons, the Airstrike or the Smart Bomb open it; releases the hidden crate (secret, see below) and drops an armour patch'
+  - target: quay mortars
+    section: 4
+    enemy: polyp-mortar
+    count: 2
+    at: [[107.6, 48], [108.8, 84]]
+    notes:
+      target: 'Polyp Mortar ×{count} on the far bank''s quay (t≈108)'
+      effect: Bounty
+  - target: bridgehead turrets
+    section: 4
+    enemy: spine-turret
+    count: 2
+    at: [[116.2, 52], [116.2, 186]]
+    notes:
+      target: 'Spine Turret ×{count} at the bridgehead (t≈116)'
+      effect: Bounty
+  - target: Node B1
+    section: 4
+    enemy: hive-node
+    count: 1
+    group: Node B1
+    at: [[119.4, 64]]
+    notes:
+      target: Hive Node **Node B1**, hardened (t≈119)
+      effect: Primary target; hold B
+  - target: Node B2
+    section: 4
+    enemy: hive-node
+    count: 1
+    group: Node B2
+    at: [[120.2, 168]]
+    notes:
+      target: Hive Node **Node B2**, hardened (t≈120)
+      effect: Primary target; hold B
+  - target: cluster C turrets
+    section: 5
+    enemy: spine-turret
+    count: 0
+    at: []
+    hard: {at: [[161.6, 286], [161.6, 448]]}
+    notes:
+      target: 'Spine Turrets guarding cluster C (t≈162), none on easy and medium'
+      effect: Bounty
+  - target: Node C1
+    section: 5
+    enemy: hive-node
+    count: 1
+    group: Node C1
+    at: [[163.6, 318]]
+    notes:
+      target: Hive Node **Node C1**, hardened (t≈164)
+      effect: Primary target; hold C; both C nodes dead start the collapse
+  - target: Node C2
+    section: 5
+    enemy: hive-node
+    count: 1
+    group: Node C2
+    at: [[164.4, 420]]
+    notes:
+      target: Hive Node **Node C2**, hardened (t≈164)
+      effect: Primary target; hold C; both C nodes dead start the collapse
+
+holds:  # D3 = a: no timeout; a node that leaves the screen alive fails the mission at once (D1 = a)
+  - {groups: [Node A1, Node A2], y: 200, speed: 30, easy: {speed: 20}, hard: {speed: 40}, ramp: 1}
+  - {groups: [Node B1, Node B2], y: 200, speed: 30, easy: {speed: 20}, hard: {speed: 40}, ramp: 1}
+  - {groups: [Node C1, Node C2], y: 200, speed: 30, easy: {speed: 20}, hard: {speed: 40}, ramp: 1}
+
+collapse:  # D5 = a, round 31's look c: the Ndidi Arcology (the backdrop's `arcology`) leans, then drops straight down
+  groups: [Node C1, Node C2]
+  warning: 1.5   # the lean (to the right, 0 -> 4 degrees)
+  drop: 1.5      # straight down into itself: the impact at warning + drop = 3.0 s
+  blast: {seconds: 1, from: 100, to: 390}   # the kills ride the dust blast's front: radius 100 -> 390 px round the foot, eased 1 - (1 - t)^2
+  tower: arcology   # the band: this tower's 180 px footprint on the ground (placed once), however early or late the nodes die
+  dust: {atmosphere: heavy, seconds: 6}   # in from 0.35 s before the impact, out over 6 s after it
+  rubble: arcology-heap   # the rubble heap left at the foot (tools/art/collapse_l09.py)
+
+secrets:
+  - name: cocoon cache
+    crate: 100   # Act 1 terms: pays 160 with the act factor
+    radio: {speaker: Varga, line: "That cocoon was sitting on a CDF supply crate. Take it."}
+
+pickups:
+  - {pickup: special charge, dropped_by: {wave: 31, unit: last}}   # the last Stinger of the column ahead of the plaza's turret pair (only with a special fitted)
+  - {pickup: overdrive, dropped_by: {wave: 76, unit: last}}        # the last Ravager of the tram pack
+
+radio:  # trigger: t or event; requires: escort = only while Rook flies (hired, fitted and not ejected)
+  - {t: 1, speaker: Okafor, line: "Six hive nodes in the arcology district. All six die, Lancer."}
+  - {t: 8.5, speaker: Rook, requires: escort, line: "Six bugs, two pilots. I like those odds."}
+  - {t: 24, speaker: Varga, line: "The nodes are hardened. Normal rounds just spark off them. Bombs, mortars or the Airstrike."}
+  - {event: hold-start, speaker: Okafor, line: "Slowing you down over the plaza. Make it count.", notes: {trigger: "First hold starts (`hold-start`)"}}
+  - {event: first-kill, enemy: hive-node, speaker: Rook, requires: escort, line: "One down. That's a horrible noise they make.", notes: {trigger: "First Hive Node destroyed"}}
+  - {t: 58, speaker: Varga, line: "Fast movers on the ground, Lancer. Low, four legs. Hunting."}
+  - {event: first-pounce, speaker: Rook, requires: escort, line: "It jumped at you! Since when do they jump?", notes: {trigger: "First pounce (`first-pounce`)"}}
+  - {t: 95, speaker: Kilo Lead, portrait: generic-cdf, line: "Aegis, Kilo convoy on the Okonjo Bridge. Sixty civilians in the trucks, and things are coming over the far bank."}
+  - {t: 107, speaker: Okafor, line: "Lancer, keep them off that bridge."}
+  - {t: 140, speaker: Varga, line: "The arcology's frame is hollow with creep. Kill those last nodes and it may come down."}
+  - {t: 152.5, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
+  - {event: collapse, speaker: Rook, requires: escort, line: "Timber. Somebody had to say it.", notes: {trigger: "Collapse starts (`collapse`)"}}
+  - {event: level-end, speaker: Okafor, line: "All six nodes dead. The outer districts evacuate at first light, and you're flying cover.", notes: {trigger: Level end}}
+  - {event: secondary-objective, speaker: Kilo Lead, portrait: generic-cdf, line: "Kilo convoy is across. Thank you, Aegis.", notes: {trigger: Secondary met}}
+  - {event: mission-failed, speaker: Okafor, expression: grim, line: "{group} got past you, Lancer. If it lives, the district is lost.", notes: {trigger: "A node leaves the screen alive (the failed screen's line)"}}
+
+objectives:
+  primary: destroy-targets
+  targets: [Node A1, Node A2, Node B1, Node B2, Node C1, Node C2]   # fails as soon as one leaves the screen alive
+  secondary: {escapes: ravager, tag: bridge, name: Hold the bridge, credits: 63}   # every Ravager of the two bridge packs (63 in Act 1 terms: pays 101)
+
+music:
+  track: 7            # Act 2 B "Firestorm" (audio/music track list)
+  start_section: 1    # the base stem from the launch
+  full_section: 5
+  stems: {5: base}    # the base stem through the whole level; the full mix only on the run-time events below
+  full_on: [hold, collapse]   # the full mix in each hold (1 s in, 4 s out) and from the collapse to the end
+  ambience: earth-megacity
+  end_jingle: mission-complete
+
+difficulty:  # the pincers' entries, the packs' sizes and the hard cluster C turrets are in their entries; the holds' speeds in `holds`; the stat blocks' hooks apply (hard: 3 Skitters per opening, pounces every 2 s)
+  easy:
+    extra_pickups:
+      - {pickup: special charge, dropped_by: {wave: 116, unit: last}}   # the last Stinger over the bridgehead (only with a special fitted)
+
+briefing:
+  pages:
+    - {speaker: Okafor, image: level-09-arcology-district, line: "Overnight the Vrell grew six hive nodes in the arcology district, Lancer: three clusters, A, B and C. Each one breeds swarmers, and their creep eats the towers. Destroy all six. Leave one alive and we lose the district."}
+    - {speaker: Varga, image: level-09-node-scan, line: "The nodes are hardened: only bombs, mortars or the Airstrike crack them, Rook's mortar too. And something new hunts the streets in packs. Fast, low, and it leaps at you. Shoot it before it jumps."}
+  teaser: {speaker: Rook, line: "Hardened nodes ahead, Lancer. Fit something that hits the ground, or fit me the mortar."}
+
+backdrop:
+  # Presentation only: the Nova Lagos arcology district in the last hour of the night (tools/art/
+  # backdrop_l09.py, Level 08's production kit re-dressed; D9 = a). Towers are scenery in true
+  # perspective; none leans over a ground target, its structure or a walker's path while on screen.
+  # Motion budget: the fires (1) and the Kilo trucks (1), never together; the banks do not drift.
+  scroll_factors: {deep: 0.12, far: 0.45, ground: 1, low-air: 1.35, high-air: 2}
+  ramp: 4
+  haze_colour: 2a2a3a  # cool grey-violet: the haze before dawn
+  atmosphere:
+    clear: {wisps: mist, haze: 0}   # section 2: thin mist only
+    light: {banks: dust, wisps: mist, haze: 0.06}   # sections 1 and 3: street dust
+    medium: {banks: smoke, wisps: ash, haze: 0.14}   # sections 4-5: river smoke, the towers' smoke, ash
+    heavy: {banks: dust-heavy, wisps: ash, haze: 0.26}   # the collapse's dust (the event-triggered peak, ramping out over 6 s)
+  tile_sets:
+    pre-dawn: {layer: deep, height: 480}   # the sky before dawn mirrored, grey in the east: seen only in the lagoon
+    approach: {layer: ground, height: 960}   # 1: the ruined elevated highway (x 170-310), burnt-out traffic, blocks either side
+    plaza-district: {layer: ground, height: 960}   # 2: avenues (x 112, 252), office roofs, parks
+    boulevard: {layer: ground, height: 960}   # 3: the boulevard (x 170-290) with tram tracks, abandoned cars
+    lagoon: {layer: ground, height: 960}   # 4: the lagoon (translucent), the west bank's quay, the Okonjo Bridge (x 220-300)
+    lobby-district: {layer: ground, height: 960}   # 5: arcology podiums round the avenue (x 196-284), creep
+    dust: {layer: low-air, height: 960}   # light: street dust, thin, lit grey from the east
+    smoke: {layer: low-air, height: 960}   # medium: river smoke and the towers' smoke
+    dust-heavy: {layer: low-air, height: 960}   # heavy: the collapse's dust (the event-triggered peak)
+    mist: {layer: high-air, height: 960}   # clear and light: thin mist (additive), grey in the east
+    ash: {layer: high-air, height: 960}   # medium and heavy: ash (additive)
+  pieces:
+    cross-highway: {layer: ground, size: [480, 92]}   # an elevated cross highway; one over every section seam
+    barricade: {layer: ground, size: [172, 96]}   # the CDF checkpoint across the elevated highway
+    highway-breach: {layer: ground, size: [148, 120]}   # a fallen span of the elevated highway
+    burnt-block-a: {layer: ground, size: [72, 82]}   # a collapsed block
+    burnt-block-b: {layer: ground, size: [76, 82]}
+    burnt-block-c: {layer: ground, size: [94, 82]}
+    fire: {layer: ground, size: [40, 40], frames: 4, fps: 8}   # flames on the burnt blocks (sections 1, 3, 5)
+    smoke-column-a: {layer: low-air, size: [150, 200]}   # smoke plumes over the burning blocks (static)
+    smoke-column-b: {layer: low-air, size: [130, 180]}
+    tram: {layer: ground, size: [36, 168]}   # the burnt-out tram on the boulevard's tracks
+    car-wrecks-a: {layer: ground, size: [44, 64]}   # abandoned aircars on the boulevard
+    car-wrecks-b: {layer: ground, size: [44, 64]}
+    ferry-wreck: {layer: ground, size: [72, 168], mid_size: true}   # a capsized ferry in the lagoon
+    kilo-truck: {layer: ground, size: [44, 44], headings: 16}   # the Kilo convoy's CDF truck (16 headings, 0 nose up, clockwise); scenery, shots pass through
+    arcology-heap: {layer: ground, size: [280, 250], mid_size: true}   # the rubble heap the collapse leaves at the arcology's foot (round 31's look c; not placed)
+    unity-plaza: {layer: ground, size: [480, 762], mid_size: true}   # Unity Plaza: the plaza pair's spots, the dry fountain, nodes A1/A2's creep
+    mortar-roof: {layer: ground, size: [96, 92]}   # a boulevard mortar's low roof (one per mortar)
+    roof-nest: {layer: ground, size: [208, 228], mid_size: true}   # the boulevard turret nest's low roof
+    cocoon-roof: {layer: ground, size: [124, 112]}   # the cocoon's low roof, creep round its spot
+    quay-pads: {layer: ground, size: [120, 264]}   # the far bank's quay pads under the two mortars
+    bridgehead: {layer: ground, size: [224, 842], mid_size: true}   # the bridgehead: the far bank widened to the deck, the ramp, the pair's spots, nodes B1/B2's creep
+    lobby-plaza: {layer: ground, size: [280, 642], mid_size: true}   # the Ndidi lobby plaza: nodes C1/C2's creep, hard's pair's spots
+    arcology-b: {layer: ground, size: [150, 140], tower: {height: 1.35, wall: wall-arcology, shade: 0.5}}   # a smaller arcology (h 1.35) on the edge of the district
+    tower-40x44-h060-a: {layer: ground, size: [40, 44], tower: {height: 0.6, wall: wall-mid}}
+    tower-40x44-h060-b: {layer: ground, size: [40, 44], tower: {height: 0.6, wall: wall-mid}}
+    tower-40x44-h085-a: {layer: ground, size: [40, 44], tower: {height: 0.85, wall: wall-mid}}
+    tower-40x44-h085-b: {layer: ground, size: [40, 44], tower: {height: 0.85, wall: wall-mid}}
+    tower-40x44-h110-a: {layer: ground, size: [40, 44], tower: {height: 1.1, wall: wall-tall}}
+    tower-40x44-h110-b: {layer: ground, size: [40, 44], tower: {height: 1.1, wall: wall-tall}}
+    tower-56x56-h035-a: {layer: ground, size: [56, 56], tower: {height: 0.35, wall: wall-low}}
+    tower-56x56-h035-b: {layer: ground, size: [56, 56], tower: {height: 0.35, wall: wall-low}}
+    tower-56x56-h060-a: {layer: ground, size: [56, 56], tower: {height: 0.6, wall: wall-mid}}
+    tower-56x56-h060-b: {layer: ground, size: [56, 56], tower: {height: 0.6, wall: wall-mid}}
+    tower-56x56-h060-burnt: {layer: ground, size: [56, 56], tower: {height: 0.6, wall: wall-burnt, shade: 0.45}}
+    tower-56x56-h085-a: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-mid}}
+    tower-56x56-h085-b: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-mid}}
+    tower-56x56-h085-burnt: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-burnt, shade: 0.45}}
+    tower-56x56-h085-creep: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-creep-mid}}
+    tower-56x56-h110-a: {layer: ground, size: [56, 56], tower: {height: 1.1, wall: wall-tall}}
+    tower-56x56-h110-b: {layer: ground, size: [56, 56], tower: {height: 1.1, wall: wall-tall}}
+    tower-56x56-h110-creep: {layer: ground, size: [56, 56], tower: {height: 1.1, wall: wall-creep-tall}}
+    tower-56x56-h135-a: {layer: ground, size: [56, 56], tower: {height: 1.35, wall: wall-tall}}
+    tower-56x56-h135-b: {layer: ground, size: [56, 56], tower: {height: 1.35, wall: wall-tall}}
+    tower-56x56-h135-creep: {layer: ground, size: [56, 56], tower: {height: 1.35, wall: wall-creep-tall}}
+    tower-68x64-h035-a: {layer: ground, size: [68, 64], tower: {height: 0.35, wall: wall-low}}
+    tower-68x64-h035-b: {layer: ground, size: [68, 64], tower: {height: 0.35, wall: wall-low}}
+    tower-68x64-h060-a: {layer: ground, size: [68, 64], tower: {height: 0.6, wall: wall-mid}}
+    tower-68x64-h060-b: {layer: ground, size: [68, 64], tower: {height: 0.6, wall: wall-mid}}
+    tower-68x64-h060-burnt: {layer: ground, size: [68, 64], tower: {height: 0.6, wall: wall-burnt, shade: 0.45}}
+    tower-68x64-h085-a: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-mid}}
+    tower-68x64-h085-b: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-mid}}
+    tower-68x64-h085-burnt: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-burnt, shade: 0.45}}
+    tower-68x64-h085-creep: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-creep-mid}}
+    tower-68x64-h110-a: {layer: ground, size: [68, 64], tower: {height: 1.1, wall: wall-tall}}
+    tower-68x64-h110-b: {layer: ground, size: [68, 64], tower: {height: 1.1, wall: wall-tall}}
+    tower-68x64-h110-creep: {layer: ground, size: [68, 64], tower: {height: 1.1, wall: wall-creep-tall}}
+    tower-68x64-h135-a: {layer: ground, size: [68, 64], tower: {height: 1.35, wall: wall-tall}}
+    tower-68x64-h135-b: {layer: ground, size: [68, 64], tower: {height: 1.35, wall: wall-tall}}
+    tower-68x64-h135-creep: {layer: ground, size: [68, 64], tower: {height: 1.35, wall: wall-creep-tall}}
+    tower-84x72-h060-a: {layer: ground, size: [84, 72], tower: {height: 0.6, wall: wall-mid}}
+    tower-84x72-h060-b: {layer: ground, size: [84, 72], tower: {height: 0.6, wall: wall-mid}}
+    tower-84x72-h060-burnt: {layer: ground, size: [84, 72], tower: {height: 0.6, wall: wall-burnt, shade: 0.45}}
+    tower-84x72-h085-a: {layer: ground, size: [84, 72], tower: {height: 0.85, wall: wall-mid}}
+    tower-84x72-h085-b: {layer: ground, size: [84, 72], tower: {height: 0.85, wall: wall-mid}}
+    tower-84x72-h085-burnt: {layer: ground, size: [84, 72], tower: {height: 0.85, wall: wall-burnt, shade: 0.45}}
+    tower-84x72-h085-creep: {layer: ground, size: [84, 72], tower: {height: 0.85, wall: wall-creep-mid}}
+    tower-84x72-h110-a: {layer: ground, size: [84, 72], tower: {height: 1.1, wall: wall-tall}}
+    tower-84x72-h110-b: {layer: ground, size: [84, 72], tower: {height: 1.1, wall: wall-tall}}
+    tower-84x72-h110-creep: {layer: ground, size: [84, 72], tower: {height: 1.1, wall: wall-creep-tall}}
+    tower-84x72-h135-a: {layer: ground, size: [84, 72], tower: {height: 1.35, wall: wall-tall}}
+    tower-84x72-h135-b: {layer: ground, size: [84, 72], tower: {height: 1.35, wall: wall-tall}}
+    tower-84x72-h135-creep: {layer: ground, size: [84, 72], tower: {height: 1.35, wall: wall-creep-tall}}
+    arcology: {layer: ground, size: [200, 180], tower: {height: 1.5, wall: wall-arcology-hollow, shade: 0.5}, mid_size: true}   # the Ndidi Arcology (a tower, h 1.5), hollowed by the creep; it falls in the collapse
+  placed:
+    # over the seam of sections 1 and 2, where the ground tiles change
+    - {piece: cross-highway, t: 21.8, x: 240}
+    - {piece: cross-highway, t: 59.8, x: 240}
+    - {piece: cross-highway, t: 97.8, x: 240}
+    - {piece: cross-highway, t: 139.8, x: 240}
+    # 1. Arcology Approach: the ruined elevated highway, the CDF barricade
+    - {piece: barricade, t: 9, x: 240}
+    - {piece: highway-breach, t: 15.6, x: 240}
+    # 2. Unity Plaza
+    - {piece: unity-plaza, t: 38.403, x: 240}
+    - {piece: mortar-roof, t: 69.507, x: 120}
+    - {piece: mortar-roof, t: 70.707, x: 352}
+    - {piece: roof-nest, t: 81.9, x: 390}
+    - {piece: cocoon-roof, t: 87.907, x: 122}
+    - {piece: quay-pads, t: 110.107, x: 66}
+    - {piece: bridgehead, t: 120.137, x: 112}
+    - {piece: lobby-plaza, t: 165.003, x: 340}
+    # 3. Boulevard Run: the tram, the mortars' roofs, the nest, the cocoon's roof
+    - {piece: tram, t: 77.4, x: 230}
+    - {piece: car-wrecks-a, t: 62.2, x: 200}
+    - {piece: car-wrecks-b, t: 70.4, x: 262}
+    - {piece: car-wrecks-b, t: 88.6, x: 200}
+    # 4. Okonjo Bridge: the lagoon, the ferry wreck, the quay pads, the bridgehead
+    - {piece: ferry-wreck, t: 100.6, x: 392}
+    # 5. Arcology Fall: the Ndidi lobby plaza and the arcology (the Ndidi Arcology: a tower, h 1.5, left of the plaza; it falls in the collapse)
+    - {piece: arcology, t: 166.187, x: 100}
+    - {piece: burnt-block-b, t: 2.36, x: 45}
+    - {piece: burnt-block-b, t: 3, x: 435}
+    - {piece: burnt-block-b, t: 4.92, x: 435}
+    - {piece: burnt-block-b, t: 5.56, x: 435}
+    - {piece: burnt-block-b, t: 6.2, x: 45}
+    - {piece: burnt-block-b, t: 7.48, x: 45}
+    - {piece: burnt-block-b, t: 15.16, x: 45}
+    - {piece: burnt-block-b, t: 16.44, x: 45}
+    - {piece: burnt-block-b, t: 20.92, x: 435}
+    - {piece: burnt-block-b, t: 60.6, x: 436}
+    - {piece: burnt-block-c, t: 61.24, x: 338}
+    - {piece: burnt-block-c, t: 61.88, x: 338}
+    - {piece: burnt-block-b, t: 61.88, x: 436}
+    - {piece: burnt-block-b, t: 62.52, x: 131}
+    - {piece: burnt-block-a, t: 63.16, x: 43}
+    - {piece: burnt-block-b, t: 63.16, x: 131}
+    - {piece: burnt-block-c, t: 63.16, x: 338}
+    - {piece: burnt-block-a, t: 64.44, x: 43}
+    - {piece: burnt-block-c, t: 65.08, x: 338}
+    - {piece: burnt-block-a, t: 65.72, x: 43}
+    - {piece: burnt-block-b, t: 71.48, x: 131}
+    - {piece: burnt-block-c, t: 72.76, x: 338}
+    - {piece: burnt-block-b, t: 74.04, x: 436}
+    - {piece: burnt-block-a, t: 74.68, x: 43}
+    - {piece: burnt-block-b, t: 74.68, x: 436}
+    - {piece: burnt-block-a, t: 75.32, x: 43}
+    - {piece: burnt-block-b, t: 76.6, x: 131}
+    - {piece: burnt-block-b, t: 77.24, x: 436}
+    - {piece: burnt-block-b, t: 78.52, x: 436}
+    - {piece: burnt-block-b, t: 83, x: 131}
+    - {piece: burnt-block-b, t: 84.28, x: 131}
+    - {piece: burnt-block-b, t: 86.2, x: 436}
+    - {piece: burnt-block-b, t: 87.48, x: 436}
+    - {piece: burnt-block-b, t: 89.4, x: 131}
+    - {piece: burnt-block-c, t: 89.4, x: 338}
+    - {piece: burnt-block-a, t: 90.04, x: 43}
+    - {piece: burnt-block-b, t: 90.04, x: 131}
+    - {piece: burnt-block-c, t: 90.68, x: 338}
+    - {piece: burnt-block-b, t: 91.32, x: 131}
+    - {piece: burnt-block-a, t: 91.96, x: 43}
+    - {piece: burnt-block-b, t: 91.96, x: 131}
+    - {piece: burnt-block-b, t: 93.88, x: 436}
+    - {piece: burnt-block-b, t: 95.16, x: 436}
+    - {piece: burnt-block-b, t: 95.8, x: 131}
+    - {piece: burnt-block-a, t: 96.44, x: 43}
+    - {piece: burnt-block-b, t: 97.08, x: 131}
+    - {piece: burnt-block-c, t: 140.6, x: 51}
+    - {piece: burnt-block-c, t: 140.6, x: 429}
+    - {piece: burnt-block-c, t: 143.16, x: 51}
+    - {piece: burnt-block-c, t: 143.16, x: 429}
+    - {piece: burnt-block-c, t: 143.8, x: 51}
+    - {piece: burnt-block-c, t: 143.8, x: 328}
+    - {piece: burnt-block-c, t: 144.44, x: 328}
+    - {piece: burnt-block-c, t: 145.08, x: 429}
+    - {piece: burnt-block-c, t: 145.72, x: 152}
+    - {piece: burnt-block-c, t: 148.28, x: 152}
+    - {piece: burnt-block-c, t: 152.12, x: 328}
+    - {piece: burnt-block-c, t: 153.4, x: 152}
+    - {piece: burnt-block-c, t: 153.4, x: 429}
+    - {piece: burnt-block-c, t: 154.04, x: 152}
+    - {piece: burnt-block-c, t: 154.68, x: 429}
+    - {piece: burnt-block-c, t: 155.32, x: 429}
+    - {piece: burnt-block-c, t: 155.96, x: 429}
+    - {piece: burnt-block-c, t: 156.6, x: 328}
+    - {piece: burnt-block-c, t: 158.52, x: 152}
+    - {piece: burnt-block-c, t: 159.16, x: 429}
+    - {piece: burnt-block-c, t: 159.8, x: 51}
+    - {piece: burnt-block-c, t: 161.08, x: 152}
+    - {piece: burnt-block-c, t: 161.08, x: 328}
+    - {piece: burnt-block-c, t: 161.72, x: 152}
+    - {piece: burnt-block-c, t: 161.72, x: 429}
+    - {piece: burnt-block-c, t: 162.36, x: 429}
+    - {piece: burnt-block-c, t: 163, x: 51}
+    - {piece: burnt-block-c, t: 164.92, x: 51}
+    - {piece: burnt-block-c, t: 167.48, x: 51}
+    - {piece: burnt-block-c, t: 168.76, x: 152}
+    - {piece: burnt-block-c, t: 169.4, x: 429}
+    - {piece: burnt-block-c, t: 170.04, x: 51}
+    - {piece: burnt-block-c, t: 171.32, x: 429}
+    - {piece: burnt-block-c, t: 172.6, x: 51}
+    - {piece: burnt-block-c, t: 173.24, x: 429}
+    - {piece: burnt-block-c, t: 173.88, x: 51}
+    - {piece: burnt-block-c, t: 175.8, x: 152}
+    - {piece: burnt-block-c, t: 177.08, x: 328}
+    - {piece: burnt-block-c, t: 178.36, x: 328}
+    - {piece: burnt-block-c, t: 178.36, x: 429}
+    - {piece: burnt-block-c, t: 179.64, x: 152}
+    - {piece: burnt-block-c, t: 180.92, x: 152}
+    - {piece: burnt-block-c, t: 181.56, x: 328}
+    - {piece: burnt-block-c, t: 183.48, x: 152}
+    - {piece: burnt-block-c, t: 184.76, x: 51}
+    - {piece: burnt-block-c, t: 185.4, x: 152}
+    - {piece: burnt-block-c, t: 187.32, x: 152}
+    - {piece: burnt-block-c, t: 189.24, x: 328}
+    - {piece: burnt-block-c, t: 190.52, x: 51}
+    - {piece: burnt-block-c, t: 191.16, x: 328}
+    - {piece: burnt-block-c, t: 191.16, x: 429}
+    - {piece: burnt-block-c, t: 194.36, x: 51}
+    - {piece: fire, t: 2.251, x: 44}
+    - {piece: fire, t: 2.988, x: 424}
+    - {piece: fire, t: 4.937, x: 438}
+    - {piece: fire, t: 60.63, x: 438}
+    - {piece: fire, t: 61.201, x: 345}
+    - {piece: fire, t: 61.85, x: 334}
+    - {piece: fire, t: 63.28, x: 121}
+    - {piece: fire, t: 65.008, x: 345}
+    - {piece: fire, t: 65.804, x: 39}
+    - {piece: fire, t: 71.373, x: 138}
+    - {piece: fire, t: 74.67, x: 425}
+    - {piece: fire, t: 75.321, x: 38}
+    - {piece: fire, t: 86.109, x: 446}
+    - {piece: fire, t: 87.495, x: 447}
+    - {piece: fire, t: 90.012, x: 51}
+    - {piece: fire, t: 92.057, x: 52}
+    - {piece: fire, t: 96.515, x: 41}
+    - {piece: fire, t: 140.484, x: 61}
+    - {piece: fire, t: 143.844, x: 50}
+    - {piece: fire, t: 145.088, x: 425}
+    - {piece: fire, t: 152.206, x: 330}
+    - {piece: fire, t: 153.509, x: 154}
+    - {piece: fire, t: 153.317, x: 433}
+    - {piece: fire, t: 155.287, x: 427}
+    - {piece: fire, t: 159.229, x: 440}
+    - {piece: fire, t: 161.16, x: 158}
+    - {piece: fire, t: 160.994, x: 328}
+    - {piece: fire, t: 161.816, x: 152}
+    - {piece: fire, t: 161.71, x: 424}
+    - {piece: fire, t: 164.876, x: 46}
+    - {piece: fire, t: 167.585, x: 48}
+    - {piece: fire, t: 168.739, x: 155}
+    - {piece: fire, t: 169.967, x: 57}
+    - {piece: fire, t: 172.572, x: 39}
+    - {piece: fire, t: 173.258, x: 432}
+    - {piece: fire, t: 175.732, x: 142}
+    - {piece: fire, t: 177.062, x: 337}
+    - {piece: fire, t: 179.724, x: 158}
+    - {piece: fire, t: 180.812, x: 151}
+    - {piece: fire, t: 185.446, x: 156}
+    - {piece: fire, t: 191.084, x: 432}
+    # 4. the Kilo convoy down the bridge (scenery, shots pass through)
+    - {piece: kilo-truck, t: 101.353, x: 248.5, path: [[99.4, 0, 0], [111.4, 0, -480]], repeat: {count: 11, every: 1.9}}
+    - {piece: tower-56x56-h060-b, t: 2.36, x: 127}
+    - {piece: tower-56x56-h060-a, t: 3, x: 45}
+    - {piece: tower-56x56-h035-a, t: 4.92, x: 127}
+    - {piece: tower-56x56-h035-b, t: 6.2, x: 435}
+    - {piece: tower-68x64-h035-a, t: 6.84, x: 45}
+    - {piece: tower-68x64-h035-a, t: 8.12, x: 45}
+    - {piece: tower-56x56-h035-a, t: 8.12, x: 127}
+    - {piece: tower-68x64-h060-a, t: 10.04, x: 45}
+    - {piece: tower-56x56-h060-b, t: 10.04, x: 127}
+    - {piece: tower-56x56-h060-a, t: 10.04, x: 353}
+    - {piece: tower-68x64-h060-a, t: 10.04, x: 435}
+    - {piece: tower-68x64-h060-a, t: 10.68, x: 45}
+    - {piece: tower-40x44-h060-a, t: 10.68, x: 127}
+    - {piece: tower-56x56-h060-a, t: 10.68, x: 353}
+    - {piece: tower-40x44-h060-a, t: 11.96, x: 127}
+    - {piece: tower-68x64-h085-creep, t: 11.96, x: 435}
+    - {piece: tower-68x64-h085-a, t: 12.6, x: 45}
+    - {piece: tower-56x56-h060-b, t: 12.6, x: 127}
+    - {piece: tower-56x56-h085-creep, t: 12.6, x: 353}
+    - {piece: tower-56x56-h060-b, t: 13.24, x: 435}
+    - {piece: tower-56x56-h085-creep, t: 13.88, x: 45}
+    - {piece: tower-56x56-h060-a, t: 13.88, x: 353}
+    - {piece: tower-68x64-h060-b, t: 14.52, x: 45}
+    - {piece: tower-56x56-h085-b, t: 14.52, x: 353}
+    - {piece: tower-68x64-h060-b, t: 14.52, x: 435}
+    - {piece: tower-40x44-h060-b, t: 15.16, x: 353}
+    - {piece: tower-68x64-h060-a, t: 15.16, x: 435}
+    - {piece: tower-40x44-h085-b, t: 15.8, x: 353}
+    - {piece: tower-68x64-h060-b, t: 15.8, x: 435}
+    - {piece: tower-68x64-h035-b, t: 17.08, x: 45}
+    - {piece: tower-56x56-h085-creep, t: 17.08, x: 353}
+    - {piece: tower-56x56-h085-b, t: 17.08, x: 435}
+    - {piece: tower-68x64-h085-a, t: 17.72, x: 45}
+    - {piece: tower-68x64-h035-a, t: 17.72, x: 435}
+    - {piece: tower-68x64-h035-a, t: 18.36, x: 45}
+    - {piece: tower-56x56-h060-b, t: 18.36, x: 127}
+    - {piece: tower-68x64-h060-a, t: 19, x: 45}
+    - {piece: tower-56x56-h085-creep, t: 19, x: 127}
+    - {piece: tower-68x64-h035-b, t: 19, x: 435}
+    - {piece: tower-68x64-h060-a, t: 19.64, x: 45}
+    - {piece: tower-56x56-h085-b, t: 19.64, x: 435}
+    - {piece: tower-68x64-h085-a, t: 20.28, x: 45}
+    - {piece: tower-56x56-h085-creep, t: 20.28, x: 127}
+    - {piece: tower-56x56-h060-b, t: 20.28, x: 353}
+    - {piece: tower-84x72-h085-b, t: 22.84, x: 182}
+    - {piece: tower-68x64-h060-a, t: 22.84, x: 320}
+    - {piece: tower-84x72-h085-a, t: 22.84, x: 425}
+    - {piece: tower-84x72-h135-a, t: 23.48, x: 320}
+    - {piece: tower-84x72-h110-a, t: 23.48, x: 425}
+    - {piece: tower-84x72-h135-a, t: 24.12, x: 182}
+    - {piece: tower-84x72-h060-b, t: 24.12, x: 320}
+    - {piece: tower-68x64-h135-creep, t: 24.12, x: 425}
+    - {piece: tower-68x64-h135-creep, t: 24.76, x: 49}
+    - {piece: tower-84x72-h085-b, t: 24.76, x: 182}
+    - {piece: tower-84x72-h135-creep, t: 24.76, x: 320}
+    - {piece: tower-84x72-h135-creep, t: 24.76, x: 425}
+    - {piece: tower-68x64-h135-b, t: 25.4, x: 49}
+    - {piece: tower-68x64-h135-creep, t: 25.4, x: 320}
+    - {piece: tower-84x72-h110-b, t: 25.4, x: 425}
+    - {piece: tower-68x64-h135-a, t: 26.04, x: 49}
+    - {piece: tower-84x72-h085-a, t: 26.04, x: 320}
+    - {piece: tower-84x72-h110-creep, t: 26.04, x: 425}
+    - {piece: tower-68x64-h085-a, t: 26.68, x: 49}
+    - {piece: tower-84x72-h135-a, t: 26.68, x: 182}
+    - {piece: tower-56x56-h135-a, t: 27.32, x: 49}
+    - {piece: tower-68x64-h085-creep, t: 27.96, x: 49}
+    - {piece: tower-84x72-h110-b, t: 27.96, x: 425}
+    - {piece: tower-68x64-h135-b, t: 28.6, x: 49}
+    - {piece: tower-84x72-h135-creep, t: 28.6, x: 425}
+    - {piece: tower-68x64-h135-b, t: 29.24, x: 49}
+    - {piece: tower-84x72-h085-a, t: 29.24, x: 425}
+    - {piece: tower-84x72-h110-b, t: 29.88, x: 425}
+    - {piece: tower-56x56-h060-a, t: 30.52, x: 49}
+    - {piece: tower-84x72-h060-b, t: 30.52, x: 425}
+    - {piece: tower-68x64-h060-b, t: 31.16, x: 49}
+    - {piece: tower-84x72-h110-creep, t: 31.16, x: 425}
+    - {piece: tower-68x64-h060-a, t: 31.8, x: 49}
+    - {piece: tower-68x64-h110-creep, t: 31.8, x: 425}
+    - {piece: tower-56x56-h135-b, t: 32.44, x: 49}
+    - {piece: tower-84x72-h135-b, t: 32.44, x: 425}
+    - {piece: tower-84x72-h085-creep, t: 33.08, x: 320}
+    - {piece: tower-68x64-h110-creep, t: 33.08, x: 425}
+    - {piece: tower-84x72-h085-a, t: 33.72, x: 320}
+    - {piece: tower-84x72-h135-a, t: 33.72, x: 425}
+    - {piece: tower-68x64-h110-creep, t: 34.36, x: 49}
+    - {piece: tower-84x72-h135-creep, t: 34.36, x: 320}
+    - {piece: tower-84x72-h110-b, t: 34.36, x: 425}
+    - {piece: tower-68x64-h060-a, t: 35, x: 320}
+    - {piece: tower-84x72-h110-b, t: 35, x: 425}
+    - {piece: tower-68x64-h135-b, t: 42.04, x: 49}
+    - {piece: tower-84x72-h085-b, t: 42.04, x: 182}
+    - {piece: tower-84x72-h135-b, t: 42.04, x: 320}
+    - {piece: tower-84x72-h110-b, t: 42.04, x: 425}
+    - {piece: tower-68x64-h135-b, t: 42.68, x: 49}
+    - {piece: tower-68x64-h135-creep, t: 42.68, x: 182}
+    - {piece: tower-84x72-h135-creep, t: 42.68, x: 425}
+    - {piece: tower-84x72-h110-b, t: 43.32, x: 182}
+    - {piece: tower-84x72-h110-a, t: 43.32, x: 320}
+    - {piece: tower-68x64-h135-b, t: 43.96, x: 49}
+    - {piece: tower-84x72-h110-creep, t: 43.96, x: 182}
+    - {piece: tower-84x72-h060-a, t: 43.96, x: 320}
+    - {piece: tower-68x64-h060-b, t: 43.96, x: 425}
+    - {piece: tower-84x72-h135-b, t: 44.6, x: 182}
+    - {piece: tower-68x64-h085-creep, t: 44.6, x: 320}
+    - {piece: tower-84x72-h135-a, t: 44.6, x: 425}
+    - {piece: tower-68x64-h110-b, t: 45.24, x: 49}
+    - {piece: tower-84x72-h135-creep, t: 45.24, x: 182}
+    - {piece: tower-84x72-h135-b, t: 45.24, x: 320}
+    - {piece: tower-84x72-h135-creep, t: 45.24, x: 425}
+    - {piece: tower-68x64-h110-b, t: 45.88, x: 49}
+    - {piece: tower-68x64-h085-b, t: 45.88, x: 182}
+    - {piece: tower-84x72-h135-creep, t: 45.88, x: 320}
+    - {piece: tower-84x72-h135-b, t: 45.88, x: 425}
+    - {piece: tower-68x64-h085-a, t: 46.52, x: 49}
+    - {piece: tower-68x64-h110-b, t: 46.52, x: 182}
+    - {piece: tower-84x72-h085-b, t: 46.52, x: 320}
+    - {piece: tower-68x64-h060-b, t: 46.52, x: 425}
+    - {piece: tower-68x64-h085-a, t: 47.16, x: 49}
+    - {piece: tower-84x72-h085-creep, t: 47.16, x: 425}
+    - {piece: tower-56x56-h110-a, t: 47.8, x: 49}
+    - {piece: tower-84x72-h110-creep, t: 47.8, x: 182}
+    - {piece: tower-56x56-h135-creep, t: 48.44, x: 49}
+    - {piece: tower-84x72-h110-creep, t: 48.44, x: 182}
+    - {piece: tower-68x64-h135-creep, t: 48.44, x: 320}
+    - {piece: tower-84x72-h110-creep, t: 48.44, x: 425}
+    - {piece: tower-56x56-h060-a, t: 49.08, x: 49}
+    - {piece: tower-68x64-h085-b, t: 49.08, x: 182}
+    - {piece: tower-84x72-h085-b, t: 49.08, x: 425}
+    - {piece: tower-68x64-h060-b, t: 49.72, x: 49}
+    - {piece: tower-84x72-h135-creep, t: 49.72, x: 182}
+    - {piece: tower-84x72-h135-a, t: 49.72, x: 425}
+    - {piece: tower-68x64-h110-a, t: 50.36, x: 49}
+    - {piece: tower-84x72-h135-creep, t: 50.36, x: 182}
+    - {piece: tower-68x64-h085-a, t: 50.36, x: 320}
+    - {piece: tower-84x72-h110-creep, t: 50.36, x: 425}
+    - {piece: tower-68x64-h135-creep, t: 51, x: 182}
+    - {piece: tower-84x72-h060-a, t: 51, x: 320}
+    - {piece: tower-68x64-h110-creep, t: 51.64, x: 49}
+    - {piece: tower-84x72-h110-creep, t: 51.64, x: 320}
+    - {piece: tower-84x72-h085-b, t: 51.64, x: 425}
+    - {piece: tower-68x64-h085-creep, t: 52.28, x: 49}
+    - {piece: tower-84x72-h085-a, t: 52.28, x: 182}
+    - {piece: tower-84x72-h110-creep, t: 52.28, x: 425}
+    - {piece: tower-68x64-h110-creep, t: 52.92, x: 49}
+    - {piece: tower-68x64-h085-a, t: 52.92, x: 182}
+    - {piece: tower-84x72-h085-b, t: 52.92, x: 320}
+    - {piece: tower-84x72-h060-b, t: 52.92, x: 425}
+    - {piece: tower-56x56-h110-creep, t: 53.56, x: 49}
+    - {piece: tower-84x72-h135-creep, t: 53.56, x: 182}
+    - {piece: tower-84x72-h060-a, t: 53.56, x: 320}
+    - {piece: tower-84x72-h135-creep, t: 53.56, x: 425}
+    - {piece: tower-84x72-h110-b, t: 54.2, x: 182}
+    - {piece: tower-84x72-h110-a, t: 54.2, x: 320}
+    - {piece: tower-68x64-h085-a, t: 54.2, x: 425}
+    - {piece: tower-84x72-h110-creep, t: 54.84, x: 320}
+    - {piece: tower-56x56-h085-a, t: 55.48, x: 49}
+    - {piece: tower-84x72-h060-a, t: 55.48, x: 182}
+    - {piece: tower-68x64-h110-creep, t: 56.12, x: 49}
+    - {piece: tower-84x72-h110-b, t: 56.12, x: 182}
+    - {piece: tower-84x72-h110-b, t: 56.12, x: 320}
+    - {piece: tower-84x72-h110-a, t: 56.12, x: 425}
+    - {piece: tower-68x64-h085-a, t: 56.76, x: 49}
+    - {piece: tower-68x64-h135-creep, t: 56.76, x: 182}
+    - {piece: tower-68x64-h110-b, t: 56.76, x: 320}
+    - {piece: tower-68x64-h110-a, t: 56.76, x: 425}
+    - {piece: tower-56x56-h060-b, t: 57.4, x: 49}
+    - {piece: tower-84x72-h110-creep, t: 57.4, x: 182}
+    - {piece: tower-68x64-h110-b, t: 58.04, x: 49}
+    - {piece: tower-84x72-h085-b, t: 58.04, x: 182}
+    - {piece: tower-68x64-h085-b, t: 58.04, x: 425}
+    - {piece: tower-68x64-h085-b, t: 58.68, x: 49}
+    - {piece: tower-84x72-h060-a, t: 58.68, x: 320}
+    - {piece: tower-56x56-h060-a, t: 60.6, x: 43}
+    - {piece: tower-68x64-h085-creep, t: 60.6, x: 131}
+    - {piece: tower-68x64-h085-burnt, t: 61.24, x: 131}
+    - {piece: tower-68x64-h085-a, t: 61.88, x: 43}
+    - {piece: tower-68x64-h110-b, t: 61.88, x: 131}
+    - {piece: tower-84x72-h085-burnt, t: 62.52, x: 338}
+    - {piece: tower-56x56-h110-creep, t: 65.72, x: 131}
+    - {piece: tower-68x64-h085-b, t: 65.72, x: 436}
+    - {piece: tower-84x72-h085-creep, t: 66.36, x: 338}
+    - {piece: tower-68x64-h085-creep, t: 66.36, x: 436}
+    - {piece: tower-68x64-h110-creep, t: 67, x: 131}
+    - {piece: tower-84x72-h085-burnt, t: 67, x: 338}
+    - {piece: tower-68x64-h085-creep, t: 67, x: 436}
+    - {piece: tower-68x64-h110-a, t: 67.64, x: 43}
+    - {piece: tower-68x64-h085-creep, t: 68.28, x: 43}
+    - {piece: tower-68x64-h110-creep, t: 68.28, x: 131}
+    - {piece: tower-84x72-h110-b, t: 68.28, x: 338}
+    - {piece: tower-56x56-h060-b, t: 68.92, x: 436}
+    - {piece: tower-84x72-h085-creep, t: 69.56, x: 338}
+    - {piece: tower-68x64-h060-a, t: 69.56, x: 436}
+    - {piece: tower-68x64-h085-creep, t: 70.84, x: 43}
+    - {piece: tower-56x56-h060-b, t: 71.48, x: 43}
+    - {piece: tower-68x64-h060-burnt, t: 71.48, x: 338}
+    - {piece: tower-56x56-h110-a, t: 72.12, x: 43}
+    - {piece: tower-84x72-h110-b, t: 73.4, x: 338}
+    - {piece: tower-68x64-h085-b, t: 73.4, x: 436}
+    - {piece: tower-68x64-h085-a, t: 74.04, x: 131}
+    - {piece: tower-68x64-h060-burnt, t: 74.04, x: 338}
+    - {piece: tower-68x64-h110-creep, t: 74.68, x: 131}
+    - {piece: tower-84x72-h060-burnt, t: 74.68, x: 338}
+    - {piece: tower-68x64-h060-b, t: 75.32, x: 131}
+    - {piece: tower-68x64-h110-b, t: 75.32, x: 338}
+    - {piece: tower-68x64-h035-b, t: 75.96, x: 131}
+    - {piece: tower-68x64-h085-creep, t: 75.96, x: 436}
+    - {piece: tower-68x64-h085-burnt, t: 76.6, x: 436}
+    - {piece: tower-68x64-h085-burnt, t: 79.16, x: 43}
+    - {piece: tower-56x56-h060-a, t: 79.16, x: 131}
+    - {piece: tower-84x72-h060-b, t: 79.8, x: 338}
+    - {piece: tower-68x64-h060-b, t: 80.44, x: 43}
+    - {piece: tower-68x64-h085-burnt, t: 80.44, x: 131}
+    - {piece: tower-84x72-h110-a, t: 80.44, x: 338}
+    - {piece: tower-68x64-h060-a, t: 80.44, x: 436}
+    - {piece: tower-68x64-h110-b, t: 81.08, x: 43}
+    - {piece: tower-68x64-h085-burnt, t: 81.72, x: 131}
+    - {piece: tower-56x56-h085-a, t: 82.36, x: 131}
+    - {piece: tower-56x56-h110-a, t: 83, x: 43}
+    - {piece: tower-56x56-h035-b, t: 83, x: 436}
+    - {piece: tower-56x56-h060-burnt, t: 83.64, x: 43}
+    - {piece: tower-84x72-h085-burnt, t: 84.28, x: 338}
+    - {piece: tower-68x64-h110-a, t: 84.28, x: 436}
+    - {piece: tower-68x64-h110-creep, t: 84.92, x: 131}
+    - {piece: tower-84x72-h060-burnt, t: 84.92, x: 338}
+    - {piece: tower-68x64-h060-a, t: 84.92, x: 436}
+    - {piece: tower-68x64-h085-burnt, t: 85.56, x: 43}
+    - {piece: tower-56x56-h060-a, t: 85.56, x: 131}
+    - {piece: tower-68x64-h110-b, t: 85.56, x: 338}
+    - {piece: tower-68x64-h060-burnt, t: 85.56, x: 436}
+    - {piece: tower-56x56-h110-b, t: 86.2, x: 43}
+    - {piece: tower-56x56-h110-b, t: 86.84, x: 436}
+    - {piece: tower-68x64-h085-burnt, t: 88.12, x: 436}
+    - {piece: tower-68x64-h085-burnt, t: 88.76, x: 43}
+    - {piece: tower-56x56-h060-burnt, t: 88.76, x: 436}
+    - {piece: tower-56x56-h110-creep, t: 90.04, x: 436}
+    - {piece: tower-68x64-h110-creep, t: 90.68, x: 43}
+    - {piece: tower-68x64-h060-burnt, t: 91.32, x: 338}
+    - {piece: tower-68x64-h110-a, t: 91.32, x: 436}
+    - {piece: tower-68x64-h060-b, t: 91.96, x: 338}
+    - {piece: tower-68x64-h110-b, t: 92.6, x: 43}
+    - {piece: tower-68x64-h110-a, t: 92.6, x: 436}
+    - {piece: tower-68x64-h110-creep, t: 93.24, x: 43}
+    - {piece: tower-68x64-h110-creep, t: 93.24, x: 436}
+    - {piece: tower-56x56-h060-b, t: 93.88, x: 131}
+    - {piece: tower-56x56-h060-b, t: 94.52, x: 43}
+    - {piece: tower-68x64-h110-creep, t: 94.52, x: 338}
+    - {piece: tower-56x56-h085-burnt, t: 94.52, x: 436}
+    - {piece: tower-84x72-h085-b, t: 95.16, x: 338}
+    - {piece: tower-84x72-h085-creep, t: 95.8, x: 338}
+    - {piece: tower-68x64-h085-a, t: 96.44, x: 436}
+    - {piece: tower-68x64-h085-burnt, t: 97.08, x: 43}
+    - {piece: tower-68x64-h085-burnt, t: 97.08, x: 338}
+    - {piece: tower-40x44-h060-b, t: 99.64, x: 31}
+    - {piece: tower-40x44-h110-a, t: 103.48, x: 31}
+    - {piece: tower-40x44-h110-b, t: 104.76, x: 31}
+    - {piece: tower-40x44-h110-b, t: 105.4, x: 31}
+    - {piece: tower-40x44-h060-b, t: 106.68, x: 31}
+    - {piece: tower-40x44-h110-b, t: 107.32, x: 31}
+    - {piece: tower-40x44-h110-b, t: 107.96, x: 31}
+    - {piece: tower-40x44-h085-a, t: 112.44, x: 31}
+    - {piece: tower-40x44-h110-b, t: 113.08, x: 31}
+    - {piece: tower-40x44-h060-a, t: 114.36, x: 31}
+    - {piece: tower-40x44-h060-a, t: 115, x: 31}
+    - {piece: tower-40x44-h060-b, t: 115.64, x: 31}
+    - {piece: tower-40x44-h060-a, t: 123.32, x: 31}
+    - {piece: tower-40x44-h110-a, t: 123.96, x: 31}
+    - {piece: tower-40x44-h110-b, t: 125.24, x: 31}
+    - {piece: tower-40x44-h060-a, t: 125.88, x: 31}
+    - {piece: tower-40x44-h060-b, t: 127.8, x: 31}
+    - {piece: tower-40x44-h060-a, t: 129.72, x: 31}
+    - {piece: tower-40x44-h060-b, t: 131, x: 31}
+    - {piece: tower-40x44-h110-a, t: 131.64, x: 31}
+    - {piece: tower-40x44-h060-a, t: 132.28, x: 31}
+    - {piece: tower-40x44-h060-b, t: 132.92, x: 31}
+    - {piece: tower-40x44-h085-b, t: 134.2, x: 31}
+    - {piece: tower-40x44-h085-a, t: 134.84, x: 31}
+    - {piece: tower-40x44-h060-a, t: 135.48, x: 31}
+    - {piece: tower-40x44-h085-b, t: 136.12, x: 31}
+    - {piece: tower-40x44-h110-b, t: 136.76, x: 31}
+    - {piece: tower-40x44-h060-b, t: 137.4, x: 31}
+    - {piece: tower-40x44-h060-a, t: 138.04, x: 31}
+    - {piece: tower-40x44-h060-a, t: 138.68, x: 31}
+    - {piece: tower-56x56-h085-burnt, t: 140.6, x: 152}
+    - {piece: tower-68x64-h110-creep, t: 140.6, x: 328}
+    - {piece: tower-84x72-h085-burnt, t: 141.24, x: 51}
+    - {piece: tower-84x72-h085-b, t: 141.24, x: 429}
+    - {piece: tower-84x72-h135-creep, t: 141.88, x: 51}
+    - {piece: tower-68x64-h135-creep, t: 141.88, x: 152}
+    - {piece: tower-68x64-h135-creep, t: 141.88, x: 328}
+    - {piece: tower-84x72-h085-burnt, t: 141.88, x: 429}
+    - {piece: tower-84x72-h110-creep, t: 142.52, x: 51}
+    - {piece: tower-68x64-h110-creep, t: 142.52, x: 152}
+    - {piece: tower-68x64-h060-burnt, t: 143.16, x: 152}
+    - {piece: tower-68x64-h060-burnt, t: 143.16, x: 328}
+    - {piece: tower-68x64-h060-burnt, t: 143.8, x: 152}
+    - {piece: tower-84x72-h110-creep, t: 143.8, x: 429}
+    - {piece: tower-68x64-h110-creep, t: 144.44, x: 51}
+    - {piece: tower-84x72-h110-creep, t: 144.44, x: 429}
+    - {piece: tower-84x72-h110-creep, t: 145.08, x: 51}
+    - {piece: tower-56x56-h110-creep, t: 145.08, x: 152}
+    - {piece: tower-56x56-h110-b, t: 145.72, x: 328}
+    - {piece: tower-68x64-h085-burnt, t: 145.72, x: 429}
+    - {piece: tower-68x64-h085-burnt, t: 146.36, x: 51}
+    - {piece: tower-68x64-h085-creep, t: 146.36, x: 152}
+    - {piece: tower-68x64-h135-creep, t: 146.36, x: 328}
+    - {piece: tower-84x72-h060-burnt, t: 146.36, x: 429}
+    - {piece: tower-68x64-h060-b, t: 147, x: 51}
+    - {piece: tower-68x64-h085-creep, t: 147, x: 152}
+    - {piece: tower-68x64-h060-b, t: 147, x: 328}
+    - {piece: tower-84x72-h135-creep, t: 147, x: 429}
+    - {piece: tower-84x72-h085-burnt, t: 147.64, x: 51}
+    - {piece: tower-56x56-h135-creep, t: 147.64, x: 328}
+    - {piece: tower-84x72-h085-burnt, t: 147.64, x: 429}
+    - {piece: tower-84x72-h110-creep, t: 148.28, x: 51}
+    - {piece: tower-84x72-h085-burnt, t: 148.92, x: 51}
+    - {piece: tower-68x64-h135-b, t: 148.92, x: 152}
+    - {piece: tower-68x64-h135-b, t: 148.92, x: 328}
+    - {piece: tower-84x72-h135-creep, t: 148.92, x: 429}
+    - {piece: tower-84x72-h085-burnt, t: 150.2, x: 429}
+    - {piece: tower-68x64-h135-creep, t: 150.84, x: 51}
+    - {piece: tower-56x56-h060-burnt, t: 150.84, x: 152}
+    - {piece: tower-68x64-h085-burnt, t: 150.84, x: 328}
+    - {piece: tower-68x64-h085-burnt, t: 150.84, x: 429}
+    - {piece: tower-84x72-h085-burnt, t: 151.48, x: 51}
+    - {piece: tower-56x56-h135-creep, t: 151.48, x: 152}
+    - {piece: tower-56x56-h135-creep, t: 151.48, x: 328}
+    - {piece: tower-68x64-h110-creep, t: 151.48, x: 429}
+    - {piece: tower-68x64-h110-b, t: 152.12, x: 51}
+    - {piece: tower-68x64-h110-creep, t: 152.12, x: 152}
+    - {piece: tower-84x72-h085-b, t: 152.12, x: 429}
+    - {piece: tower-56x56-h110-creep, t: 152.76, x: 152}
+    - {piece: tower-68x64-h085-burnt, t: 152.76, x: 328}
+    - {piece: tower-84x72-h110-creep, t: 152.76, x: 429}
+    - {piece: tower-84x72-h110-creep, t: 154.04, x: 51}
+    - {piece: tower-56x56-h085-creep, t: 154.04, x: 328}
+    - {piece: tower-84x72-h110-b, t: 154.68, x: 51}
+    - {piece: tower-56x56-h110-b, t: 154.68, x: 152}
+    - {piece: tower-68x64-h085-creep, t: 154.68, x: 328}
+    - {piece: tower-68x64-h110-creep, t: 155.32, x: 152}
+    - {piece: tower-68x64-h110-creep, t: 155.32, x: 328}
+    - {piece: tower-84x72-h110-creep, t: 155.96, x: 51}
+    - {piece: tower-68x64-h110-creep, t: 155.96, x: 328}
+    - {piece: tower-68x64-h085-burnt, t: 156.6, x: 152}
+    - {piece: tower-68x64-h085-burnt, t: 157.24, x: 51}
+    - {piece: tower-56x56-h085-b, t: 157.24, x: 152}
+    - {piece: tower-68x64-h135-creep, t: 157.24, x: 328}
+    - {piece: tower-84x72-h110-creep, t: 157.24, x: 429}
+    - {piece: tower-56x56-h135-creep, t: 157.88, x: 328}
+    - {piece: tower-84x72-h135-creep, t: 157.88, x: 429}
+    - {piece: tower-84x72-h085-creep, t: 158.52, x: 51}
+    - {piece: tower-56x56-h110-creep, t: 158.52, x: 328}
+    - {piece: tower-68x64-h110-creep, t: 159.16, x: 51}
+    - {piece: tower-68x64-h060-b, t: 159.16, x: 152}
+    - {piece: tower-84x72-h085-b, t: 160.44, x: 51}
+    - {piece: tower-84x72-h135-creep, t: 161.08, x: 51}
+    - {piece: tower-68x64-h135-b, t: 161.72, x: 51}
+    - {piece: tower-68x64-h085-burnt, t: 162.36, x: 51}
+    - {piece: tower-84x72-h135-creep, t: 168.12, x: 51}
+    - {piece: tower-84x72-h060-burnt, t: 168.76, x: 51}
+    - {piece: tower-84x72-h110-b, t: 169.4, x: 51}
+    - {piece: tower-68x64-h110-creep, t: 170.04, x: 328}
+    - {piece: tower-84x72-h135-creep, t: 170.04, x: 429}
+    - {piece: tower-84x72-h135-creep, t: 170.68, x: 429}
+    - {piece: tower-84x72-h060-burnt, t: 171.32, x: 51}
+    - {piece: tower-68x64-h110-creep, t: 171.32, x: 152}
+    - {piece: tower-56x56-h135-creep, t: 171.96, x: 328}
+    - {piece: tower-68x64-h060-b, t: 171.96, x: 429}
+    - {piece: tower-56x56-h085-creep, t: 172.6, x: 152}
+    - {piece: tower-56x56-h135-creep, t: 172.6, x: 328}
+    - {piece: tower-84x72-h060-burnt, t: 173.24, x: 51}
+    - {piece: tower-68x64-h110-creep, t: 173.24, x: 152}
+    - {piece: tower-56x56-h110-creep, t: 173.24, x: 328}
+    - {piece: tower-68x64-h110-b, t: 173.88, x: 152}
+    - {piece: tower-68x64-h060-burnt, t: 173.88, x: 328}
+    - {piece: tower-56x56-h110-creep, t: 174.52, x: 152}
+    - {piece: tower-68x64-h085-burnt, t: 174.52, x: 429}
+    - {piece: tower-84x72-h085-creep, t: 175.16, x: 51}
+    - {piece: tower-68x64-h135-creep, t: 175.16, x: 328}
+    - {piece: tower-84x72-h060-burnt, t: 175.16, x: 429}
+    - {piece: tower-84x72-h085-burnt, t: 175.8, x: 51}
+    - {piece: tower-56x56-h110-creep, t: 175.8, x: 328}
+    - {piece: tower-84x72-h085-burnt, t: 176.44, x: 51}
+    - {piece: tower-56x56-h110-b, t: 176.44, x: 152}
+    - {piece: tower-68x64-h085-creep, t: 176.44, x: 328}
+    - {piece: tower-84x72-h110-creep, t: 176.44, x: 429}
+    - {piece: tower-68x64-h110-creep, t: 177.08, x: 51}
+    - {piece: tower-68x64-h110-creep, t: 177.08, x: 152}
+    - {piece: tower-68x64-h060-burnt, t: 177.08, x: 429}
+    - {piece: tower-68x64-h135-creep, t: 177.72, x: 152}
+    - {piece: tower-68x64-h110-creep, t: 177.72, x: 328}
+    - {piece: tower-84x72-h085-b, t: 179, x: 51}
+    - {piece: tower-68x64-h085-creep, t: 179, x: 152}
+    - {piece: tower-56x56-h135-creep, t: 179, x: 328}
+    - {piece: tower-84x72-h135-creep, t: 180.28, x: 51}
+    - {piece: tower-68x64-h110-creep, t: 180.28, x: 152}
+    - {piece: tower-68x64-h060-b, t: 180.92, x: 51}
+    - {piece: tower-84x72-h060-burnt, t: 180.92, x: 429}
+    - {piece: tower-84x72-h135-creep, t: 181.56, x: 51}
+    - {piece: tower-68x64-h135-creep, t: 181.56, x: 152}
+    - {piece: tower-68x64-h135-creep, t: 182.2, x: 51}
+    - {piece: tower-56x56-h085-burnt, t: 182.2, x: 328}
+    - {piece: tower-68x64-h135-creep, t: 182.84, x: 51}
+    - {piece: tower-68x64-h085-b, t: 182.84, x: 152}
+    - {piece: tower-68x64-h085-b, t: 182.84, x: 328}
+    - {piece: tower-84x72-h085-burnt, t: 182.84, x: 429}
+    - {piece: tower-84x72-h060-burnt, t: 183.48, x: 51}
+    - {piece: tower-68x64-h135-b, t: 183.48, x: 429}
+    - {piece: tower-84x72-h110-creep, t: 184.12, x: 51}
+    - {piece: tower-68x64-h085-creep, t: 184.12, x: 152}
+    - {piece: tower-68x64-h110-b, t: 184.12, x: 429}
+    - {piece: tower-68x64-h110-creep, t: 184.76, x: 152}
+    - {piece: tower-68x64-h110-creep, t: 184.76, x: 328}
+    - {piece: tower-84x72-h060-burnt, t: 184.76, x: 429}
+    - {piece: tower-68x64-h085-burnt, t: 185.4, x: 51}
+    - {piece: tower-68x64-h110-creep, t: 185.4, x: 328}
+    - {piece: tower-68x64-h110-creep, t: 185.4, x: 429}
+    - {piece: tower-84x72-h135-creep, t: 186.04, x: 51}
+    - {piece: tower-84x72-h085-burnt, t: 186.04, x: 429}
+    - {piece: tower-56x56-h110-creep, t: 186.68, x: 152}
+    - {piece: tower-68x64-h110-b, t: 186.68, x: 328}
+    - {piece: tower-84x72-h060-burnt, t: 186.68, x: 429}
+    - {piece: tower-84x72-h135-b, t: 187.32, x: 429}
+    - {piece: tower-84x72-h135-creep, t: 187.96, x: 51}
+    - {piece: tower-68x64-h110-creep, t: 187.96, x: 152}
+    - {piece: tower-68x64-h110-creep, t: 187.96, x: 328}
+    - {piece: tower-84x72-h135-creep, t: 188.6, x: 51}
+    - {piece: tower-56x56-h060-b, t: 188.6, x: 152}
+    - {piece: tower-56x56-h110-creep, t: 188.6, x: 328}
+    - {piece: tower-84x72-h135-creep, t: 188.6, x: 429}
+    - {piece: tower-68x64-h135-creep, t: 189.24, x: 51}
+    - {piece: tower-56x56-h085-burnt, t: 189.24, x: 152}
+    - {piece: tower-68x64-h110-creep, t: 189.88, x: 152}
+    - {piece: tower-68x64-h085-burnt, t: 190.52, x: 429}
+    - {piece: tower-84x72-h135-b, t: 191.16, x: 51}
+    - {piece: tower-68x64-h110-b, t: 191.8, x: 152}
+    - {piece: tower-56x56-h085-b, t: 191.8, x: 328}
+    - {piece: tower-84x72-h135-creep, t: 191.8, x: 429}
+    - {piece: tower-84x72-h110-creep, t: 192.44, x: 51}
+    - {piece: tower-56x56-h085-creep, t: 192.44, x: 152}
+    - {piece: tower-84x72-h110-creep, t: 193.08, x: 51}
+    - {piece: tower-56x56-h060-burnt, t: 193.08, x: 152}
+    - {piece: tower-84x72-h060-burnt, t: 193.72, x: 51}
+    - {piece: tower-56x56-h135-b, t: 193.72, x: 328}
+    - {piece: tower-84x72-h110-creep, t: 193.72, x: 429}
+    - {piece: tower-68x64-h135-creep, t: 194.36, x: 429}
+    - {piece: tower-84x72-h060-burnt, t: 195, x: 51}
+    - {piece: tower-68x64-h085-burnt, t: 195, x: 152}
+    - {piece: tower-68x64-h085-burnt, t: 195, x: 328}
+    - {piece: tower-84x72-h135-creep, t: 195, x: 429}
+    - {piece: tower-84x72-h085-burnt, t: 195.64, x: 51}
+    - {piece: tower-56x56-h085-creep, t: 195.64, x: 152}
+    - {piece: tower-56x56-h085-burnt, t: 195.64, x: 328}
+    - {piece: tower-68x64-h085-burnt, t: 196.28, x: 51}
+    - {piece: tower-68x64-h135-creep, t: 196.28, x: 152}
+    - {piece: tower-84x72-h135-creep, t: 196.28, x: 429}
+    - {piece: tower-56x56-h085-burnt, t: 196.92, x: 328}
+    - {piece: tower-84x72-h085-b, t: 196.92, x: 429}
+    - {piece: tower-84x72-h085-burnt, t: 197.56, x: 51}
+    - {piece: tower-56x56-h085-b, t: 197.56, x: 152}
+    - {piece: tower-56x56-h085-burnt, t: 197.56, x: 328}
+    - {piece: tower-84x72-h085-b, t: 198.2, x: 51}
+    - {piece: tower-56x56-h110-b, t: 198.2, x: 152}
+    - {piece: tower-68x64-h135-creep, t: 198.2, x: 328}
+    - {piece: tower-84x72-h110-creep, t: 198.84, x: 51}
+    - {piece: tower-56x56-h110-creep, t: 198.84, x: 152}
+    - {piece: tower-68x64-h135-creep, t: 198.84, x: 429}
+    - {piece: tower-68x64-h135-creep, t: 199.48, x: 152}
+    - {piece: tower-68x64-h085-creep, t: 199.48, x: 429}
+    - {piece: tower-84x72-h110-creep, t: 200.12, x: 51}
+    - {piece: tower-68x64-h135-creep, t: 200.12, x: 328}
+    - {piece: tower-68x64-h060-burnt, t: 200.12, x: 429}
+    - {piece: tower-84x72-h135-b, t: 200.76, x: 51}
+    - {piece: tower-68x64-h085-burnt, t: 200.76, x: 152}
+    - {piece: tower-56x56-h110-creep, t: 200.76, x: 328}
+    - {piece: tower-56x56-h110-creep, t: 201.4, x: 152}
+    - {piece: tower-84x72-h110-creep, t: 202.04, x: 51}
+    - {piece: tower-84x72-h085-burnt, t: 202.04, x: 429}
+    - {piece: arcology-b, t: 23.6, x: 52}
+    - {piece: arcology-b, t: 180, x: 430}
+    # smoke plumes on low-air over the fires (static)
+    - {piece: smoke-column-a, t: 2.85, x: 77}
+    - {piece: smoke-column-b, t: 61.23, x: 403}
+    - {piece: smoke-column-a, t: 66.4, x: 82}
+    - {piece: smoke-column-b, t: 71.97, x: 172}
+    - {piece: smoke-column-a, t: 86.71, x: 403}
+    - {piece: smoke-column-b, t: 92.66, x: 81}
+    - {piece: smoke-column-a, t: 141.08, x: 87}
+    - {piece: smoke-column-b, t: 152.81, x: 300}
+    - {piece: smoke-column-a, t: 159.83, x: 488}
+    - {piece: smoke-column-b, t: 165.48, x: 86}
+    - {piece: smoke-column-a, t: 170.57, x: 84}
+    - {piece: smoke-column-b, t: 176.33, x: 176}
+    - {piece: smoke-column-a, t: 181.41, x: 203}
+    - {piece: smoke-column-b, t: 191.68, x: 386}

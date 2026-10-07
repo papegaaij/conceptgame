@@ -23,6 +23,8 @@ import java.util.Optional;
  *     units on the right, a convoy repeats it), in play-field points at {@code t}; a segment
  *     chain's flight paths, one per unit (its head flies it)
  * @param loopBack a segment chain's loop-back after its path
+ * @param tag M5 part C: the wave's tag (Level 09's {@code bridge}), which a secondary {@code escapes}
+ *     objective may be scoped to; empty for none
  */
 public record WaveSpec(
         double t,
@@ -39,10 +41,47 @@ public record WaveSpec(
         List<Carried> carried,
         Optional<At> at,
         List<List<At>> paths,
-        Optional<LoopBack> loopBack) {
+        Optional<LoopBack> loopBack,
+        String tag) {
     public WaveSpec {
         carried = List.copyOf(carried);
         paths = paths.stream().map(List::copyOf).toList();
+    }
+
+    /** A wave without a tag. */
+    public WaveSpec(
+            double t,
+            Formation formation,
+            EnemySpec enemy,
+            int count,
+            Entry entry,
+            Edge edge,
+            Optional<Double> holdSeconds,
+            Optional<Double> warningSeconds,
+            int breakGroup,
+            Optional<Double> speed,
+            Optional<Double> intervalSeconds,
+            List<Carried> carried,
+            Optional<At> at,
+            List<List<At>> paths,
+            Optional<LoopBack> loopBack) {
+        this(
+                t,
+                formation,
+                enemy,
+                count,
+                entry,
+                edge,
+                holdSeconds,
+                warningSeconds,
+                breakGroup,
+                speed,
+                intervalSeconds,
+                carried,
+                at,
+                paths,
+                loopBack,
+                "");
     }
 
     public WaveSpec(
@@ -169,7 +208,12 @@ public record WaveSpec(
         PINCER,
         CIRCLE,
         /** A spawner (the carrier) with the units that circle it as escorts (design/enemies/air/brood-pod). */
-        CARRIER_ESCORTS
+        CARRIER_ESCORTS,
+        /**
+         * M5 part C: walkers entering together, each on its own ground path, {@link
+         * Formations#PACK_INTERVAL_SECONDS} apart (design/enemies/ground/ravager).
+         */
+        PACK
     }
 
     /** The play-field edge a wave enters from. */

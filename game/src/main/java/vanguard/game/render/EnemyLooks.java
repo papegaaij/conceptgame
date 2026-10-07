@@ -36,6 +36,14 @@ import vanguard.sim.SimStep;
  * @param stride a walker's ground distance per walk cycle, px
  * @param telegraphSeconds a spawner's telegraph: its pulse speeds up over these last seconds before it
  *     bursts on its own (the Brood Pod); 0 for none
+ * @param iris M5 part C: a periodic spawner's frames (the Hive Node): {@value #IRIS_STATES} iris states
+ *     (shut, opening, open) of {@value #PULSE_FRAMES} pulse frames each, indexed {@code iris * 4 +
+ *     pulse} ({@link #irisFrame}); its {@code glow} the same order
+ * @param creep M5 part C: the biomass patch under a periodic spawner (the Hive Node), frame 0 alive,
+ *     then its wither after the death, the last the dry crust left; empty for none
+ * @param leap M5 part C: a pouncer's leap frames (the Ravager), {@value #LEAP_STEPS} lift steps per
+ *     heading, indexed {@code heading * 4 + step} ({@link #leapFrame}); empty for none
+ * @param leapGlow the leap frames' additive glow, the same order; empty for none
  */
 public record EnemyLooks(
         Array<AtlasRegion> frames,
@@ -53,7 +61,11 @@ public record EnemyLooks(
         Array<AtlasRegion> husks,
         int walkFrames,
         double stride,
-        double telegraphSeconds) {
+        double telegraphSeconds,
+        boolean iris,
+        Array<AtlasRegion> creep,
+        Array<AtlasRegion> leap,
+        Array<AtlasRegion> leapGlow) {
     /** Vrell organic motion runs at 8-12 fps: 10 fps. */
     private static final double ORGANIC_FPS = 10;
     /**
@@ -71,6 +83,34 @@ public record EnemyLooks(
      * the stat block's 16, so the chain's members on a curve turn smoothly.
      */
     static final int CHAIN_HEADINGS = 48;
+    /**
+     * A periodic spawner's iris states (tools/art/hive_node.py): shut, four opening steps (0.2 to 0.8)
+     * and open; each a breathing loop of {@value #PULSE_FRAMES} frames at {@value #PULSE_FPS} fps.
+     */
+    static final int IRIS_STATES = 6;
+
+    static final int PULSE_FRAMES = 4;
+    static final double PULSE_FPS = 4;
+    /**
+     * A pouncer's leap (tools/art/ravager.py): the lift sin(π s) over the leap's share s; below
+     * {@value #LEAP_GROUND_LIFT} it is drawn galloping, above it at one of {@value #LEAP_STEPS} lift
+     * steps, drawn at {@link #LEAP_SCALES} times its ground size (no runtime scale on a lit frame).
+     */
+    static final int LEAP_STEPS = 4;
+
+    static final double LEAP_GROUND_LIFT = 0.125;
+    static final double[] LEAP_SCALES = {1.1075, 1.215, 1.3225, 1.43};
+    /** The pounce's shadow slides down-right with the lift up to the air layer's offset (Shadows). */
+    static final int LEAP_SHADOW_DX = Shadows.AIR_DX;
+
+    static final int LEAP_SHADOW_DY = Shadows.AIR_DY;
+    /**
+     * A unit whose death burst differs from its size tier (its stat block's {@code death} note; the
+     * stat blocks' notes are not read by the game): the Hive Node collapses in a {@code large} burst,
+     * the Ravager (a {@code medium} contact) bursts {@code small}.
+     */
+    private static final java.util.Map<String, Tier> DEATH_TIERS =
+            java.util.Map.of("hive-node", Tier.LARGE, "ravager", Tier.SMALL);
 
     public EnemyLooks {
         if (frames.size % headings != 0) {
@@ -142,7 +182,12 @@ public record EnemyLooks(
         Array<AtlasRegion> frames =
                 sprites.has(slug) ? sprites.frames(slug) : Placeholders.frames(slug, orientation.headings());
         int headings = data.segmentChain().isPresent() && sprites.has(slug) ? CHAIN_HEADINGS : orientation.headings();
-        Tier tier = tinyPart ? Tier.TINY : data.tier();
+        Tier tier = tinyPart ? Tier.TINY : DEATH_TIERS.getOrDefault(slug, data.tier());
+        boolean iris = data.attacks().stream()
+                        .flatMap(attack -> attack.spawn().stream())
+                        .anyMatch(spawn -> spawn.every().isPresent())
+                && sprites.has(slug)
+                && frames.size == IRIS_STATES * PULSE_FRAMES;
         // A segment chain (the Coilwyrm, the only one) bursts wet: its segments and tail with the
         // segment burst (shot or in the chained death's ripple), its heads with the deeper one.
         boolean chain = data.segmentChain().isPresent();
@@ -155,6 +200,9 @@ public record EnemyLooks(
                 switch (tier) {
                     case TINY -> sprites.explosionTiny;
                     case SMALL -> sprites.explosionSmall;
+                    // M5 part C: the Hive Node's `large` collapse; other large units keep the medium burst.
+                    case LARGE ->
+                        DEATH_TIERS.containsKey(slug) ? sprites.explosionLarge : sprites.frames("explosion-medium");
                     default -> sprites.frames("explosion-medium");
                 },
                 chain ? chainBurst : Sfx.explosion(tier, false),
@@ -169,9 +217,72 @@ public record EnemyLooks(
                 data.movement().walk().map(EnemyData.Walk::stride).orElse(1.0),
                 data.attacks().stream()
                         .flatMap(attack -> attack.spawn().stream())
+                        .filter(spawn -> spawn.after().isPresent())
                         .mapToDouble(EnemyData.Spawn::telegraph)
                         .findFirst()
-                        .orElse(0));
+                        .orElse(0),
+                iris,
+                sprites.has(slug + "-creep") ? sprites.frames(slug + "-creep") : none,
+                walker && sprites.has(slug + "-leap") ? sprites.frames(slug + "-leap") : none,
+                walker && sprites.has(slug + "-leap-glow") ? sprites.frames(slug + "-leap-glow") : none);
+    }
+
+    /**
+     * A periodic spawner's frame index (the Hive Node; tools/art/hive_node.py): the iris state nearest
+     * its opening {@code iris} (0 shut to 1 open; {@code round(iris × 5)}) at its pulse frame, the
+     * breathing loop at {@value #PULSE_FPS} fps, each unit at its own phase.
+     */
+    static int irisFrame(double iris, long tick, int phase) {
+        int state = Math.clamp(Math.round(iris * (IRIS_STATES - 1)), 0, IRIS_STATES - 1);
+        int pulse = Math.floorMod((long) Math.floor(tick * PULSE_FPS / SimStep.PER_SECOND) + phase, PULSE_FRAMES);
+        return state * PULSE_FRAMES + pulse;
+    }
+
+    /** A periodic spawner's creep withers over 2 s after its death: each wither frame shows this many steps. */
+    public static final int WITHER_FRAME_TICKS = 15;
+
+    /**
+     * The creep's wither after a spawner's death as an animation on the ground (tools/art/hive_node.py):
+     * its wither frames (all but the first, the live patch) at {@value #WITHER_FRAME_TICKS} steps
+     * each, then the last (the dry crust) held, all of it lasting {@code totalTicks} (the remains'
+     * time, so it goes with the stump); empty without creep.
+     */
+    public static <T> Array<T> wither(Array<T> creep, int totalTicks) {
+        Array<T> frames = new Array<>();
+        if (creep.size < 2) {
+            return frames;
+        }
+        for (int i = 1; i < creep.size; i++) {
+            frames.add(creep.get(i));
+        }
+        while ((frames.size + 1) * WITHER_FRAME_TICKS <= totalTicks) {
+            frames.add(creep.peek());
+        }
+        return frames;
+    }
+
+    /** A pouncer's lift at the leap's share {@code progress} (0 at take-off, 1 at landing): sin(π s). */
+    static double leapLift(double progress) {
+        return Math.sin(Math.PI * Math.clamp(progress, 0, 1));
+    }
+
+    /** The leap step drawn at {@code lift} ({@link #leapLift}): -1 below {@value #LEAP_GROUND_LIFT} (galloping), else 0 to 3. */
+    static int leapStep(double lift) {
+        if (lift < LEAP_GROUND_LIFT) {
+            return -1;
+        }
+        return Math.clamp(Math.round(lift * LEAP_STEPS) - 1, 0, LEAP_STEPS - 1);
+    }
+
+    /** A pouncer's leap frame index at {@code facing} and leap step {@code step} ({@link #leapStep}, 0 to 3). */
+    int leapFrame(double facing, int step) {
+        int headingsOfLeap = leap.size / LEAP_STEPS;
+        return heading(facing, headingsOfLeap) * LEAP_STEPS + step;
+    }
+
+    /** Whether it is a pouncer with its leap frames. */
+    boolean leaps() {
+        return !leap.isEmpty();
     }
 
     /**

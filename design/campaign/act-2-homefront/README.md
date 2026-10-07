@@ -20,11 +20,11 @@ Siege Spire, a Vrell citadel that has rooted itself in the heart of the UTC capi
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [level-08-neon-skyline](level-08-neon-skyline/README.md) | Night megacity, Rook's first sortie on Lancer's wing, Creeper intro · front · density 3 | approved | done | final |
-| [level-09-arcology-fall](level-09-arcology-fall/README.md) | destroy-targets`: six hardened hive nodes, Ravager packs, the arcology collapse · front · density 3 | approved | not-started | chosen |
-| [level-10-evacuation-corridor](level-10-evacuation-corridor/README.md) | escort` of five shuttles, first rear-heavy level (Wraith, Mote Swarm), one scripted loss · rear 42% · density 3 | approved | not-started | chosen |
+| [level-09-arcology-fall](level-09-arcology-fall/README.md) | The act's first `destroy-targets`: six hardened hive nodes, hold zones, Ravager packs, the arcology collapse · front · density 3 | approved | done | final |
+| [level-10-evacuation-corridor](level-10-evacuation-corridor/README.md) | `escort` of five shuttles, first rear-heavy level (Wraith, Mote Swarm), one scripted loss · rear 42% · density 3 | approved | not-started | chosen |
 | [level-11-atlantic-convoy](level-11-atlantic-convoy/README.md) | Naval layer (Driftjelly, Reef Spitter), `sub` shadows, mid-boss Harbour Kraken · front · density 3 | approved | not-started | chosen |
 | [level-12-storm-front](level-12-storm-front/README.md) | Weather (rain, lightning, gusts), Lamprey intro, Varga sees the Vrell herd the storm · all · density 4 | approved | not-started | chosen |
-| [level-13-polar-relay](level-13-polar-relay/README.md) | defend` the Arctic relay for 180 s, Skimmer intro, whiteout · all edges · density 4 | approved | not-started | chosen |
+| [level-13-polar-relay](level-13-polar-relay/README.md) | `defend` the Arctic relay for 180 s, Skimmer intro, whiteout · all edges · density 4 | approved | not-started | chosen |
 | [level-14-siege-spire](level-14-siege-spire/README.md) | Geneva Concord approach through the root field, act boss Siege Spire · front · density 4 | approved | not-started | chosen |
 
 ## Design
@@ -129,7 +129,8 @@ the lake bright behind it)
 
 ### New mechanics
 
-- AI wingman (L08), hardened ground targets that need `anti-ground` (L09).
+- AI wingman (L08); hardened ground targets that need `anti-ground`, hold zones where the scroll
+  slows over the targets, and the arcology's collapse (L09).
 - Rear attacks as a level focus (L10), naval surface targets and the `sub` layer as scenery
   (L11), weather hazards (L12), `defend` objective with halted scroll (L13).
 
@@ -150,8 +151,10 @@ Returning from Act 1: Skitter, Needler, Stinger (L08–L14), Spine Turret, Polyp
 L13, L14), Spore Bomber (L12), Mantis (L12, L13), Whirl Seed (L12), Scuttler (L13). Only the
 returning `medium` and larger units get the act HP factor from the
 [balancing basis](../../enemies/README.md#balancing-basis) (D5 = c of M5 part A): here the Spore
-Bomber, the Mantis and the Scuttler. The `tiny` and `small` ones (Skitter, Whirl Seed, Needler,
-Stinger, Spine Turret, Polyp Mortar) keep their HP, so none of Level 08's returning units changes.
+Bomber, the Mantis and the Scuttler, and the act's own units in the levels after their first: the
+Creeper (L08) in L09 (30 → 32 HP) and L14 (40), the Hive Node and the Ravager (L09) in L14. The
+`tiny` and `small` ones (Skitter, Whirl Seed, Needler, Stinger, Spine Turret, Polyp Mortar) keep
+their HP, so none of Level 08's returning units changes.
 The level documents list the waves.
 
 ### Music
@@ -165,9 +168,10 @@ fanfare.
 ### Voice
 
 Every briefing page and radio line is voiced, as in Act 1 ([voice](../../audio/voice/README.md)):
-the act briefing's four pages, each level's briefing pages, teaser and radio. A new speaker is
-auditioned in the round of the level that introduces it (Level 08: the Ikoyi shelter civilian,
-round 30) and plays as text until it is cast.
+the act briefing's four pages and each level's briefing pages and radio; the hangar teaser is text
+only, by design (round 30). A new speaker is auditioned in the round of the level that introduces
+it (Level 08: the Ikoyi shelter civilian, round 30; Level 09: the Kilo Lead, the CDF officer of the
+truck convoy, round 31) and plays as text until it is cast.
 
 ## Concept art
 
@@ -234,3 +238,8 @@ the [briefing screen](../../ui/briefing/README.md)'s. Prompts: [concept/prompts.
   HOMEFRONT · Earth · May 2185, the four act briefing pages, voiced as rendered), so the document
   leaves `review` for `approved`, as Level 08's does. `art` stays `chosen`: Levels 09–14 use
   concept art until their rounds.
+- 2026-10-07: M5 part C started (Level 09, user decisions D1–D11 of 2026-10-07): the Contents rows
+  lost their stray backticks (Levels 09, 10, 13); the act HP factor's list names the Creeper,
+  which returns in L09 (32 HP) and L14, and the Hive Node and Ravager in L14; the *Voice* section no
+  longer says the hangar teaser is voiced (it is text only, by design since round 30) and names
+  Level 09's new speaker; *New mechanics* names L09's hold zones and collapse.

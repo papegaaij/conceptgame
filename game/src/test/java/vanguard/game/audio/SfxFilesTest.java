@@ -18,6 +18,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import vanguard.content.Content;
+import vanguard.content.ContentLoader;
+import vanguard.content.LevelData;
 import vanguard.content.Tier;
 import vanguard.content.campaign.Hangar;
 import vanguard.sim.PickupType;
@@ -182,6 +185,41 @@ class SfxFilesTest {
                     };
             assertEquals(expected, period, "armour " + armour);
         }
+    }
+
+    /** Round 31 kept both pounces: each pounce picks one at random, from the sounds' own generator. */
+    @Test
+    void aRavagerPouncesWithEitherSoundAtRandom() {
+        var random = new vanguard.sim.SplitMix64(31);
+        Map<Sfx, Integer> picks = new LinkedHashMap<>();
+        int repeats = 0;
+        Sfx last = null;
+        for (int i = 0; i < 200; i++) {
+            Sfx pick = FlightSounds.pounce(random);
+            picks.merge(pick, 1, Integer::sum);
+            repeats += pick == last ? 1 : 0;
+            last = pick;
+        }
+        assertEquals(Set.of(Sfx.RAVAGER_POUNCE_A, Sfx.RAVAGER_POUNCE_B), picks.keySet());
+        assertTrue(picks.values().stream().allMatch(n -> n > 60), "both about equally often: " + picks);
+        assertTrue(repeats > 0, "a random pick, not a strict alternation");
+        assertEquals(Sfx.RAVAGER_POUNCE_A.priority(), Sfx.RAVAGER_POUNCE_B.priority());
+    }
+
+    /**
+     * The collapse sound starts with Level 09's warning and crashes at the impact: its crash sits at
+     * the level's lean plus drop, and the file runs on past it (the crash and its debris tail).
+     */
+    @Test
+    void theCollapseSoundCrashesAtTheImpact() throws IOException {
+        Content content = ContentLoader.fromClasspath();
+        LevelData.Collapse collapse =
+                content.level(content.levelKey(9).orElseThrow()).collapse().orElseThrow();
+        assertTrue(FlightSounds.COLLAPSE_AT_WARNING);
+        assertEquals(collapse.impact(), FlightSounds.COLLAPSE_CRASH_SECONDS, 1e-9);
+        assertEquals(3.0, collapse.impact(), 1e-9, "the 1.5 s lean and the 1.5 s drop");
+        long nanos = SfxBank.oggNanos(Files.readAllBytes(ASSETS.resolve(Sfx.ARCOLOGY_COLLAPSE.path())));
+        assertTrue(nanos / 1e9 > FlightSounds.COLLAPSE_CRASH_SECONDS + 3, "the crash and its tail: " + nanos / 1e9);
     }
 
     @Test

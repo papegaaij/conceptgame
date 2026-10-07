@@ -299,7 +299,7 @@ None. The Creeper convoy with the Needler circle (t=162–181) is the finale.
 The Act 2 A theme "Homefront" (track 6 in the [track list](../../../audio/music/README.md#track-list)):
 section 1 has the [megacity ambience](../../../audio/sfx/README.md#ambience-per-setting) only
 (distant sirens), the base stem from section 2 (`start_section: 2`) and the full mix from
-section 5 (`full_section: 5`), the intensity stem also rising with the density as built; the
+section 5 (`full_section: 5`); the
 mission-complete jingle at the end.
 
 ## Credit budget

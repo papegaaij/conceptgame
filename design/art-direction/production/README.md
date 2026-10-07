@@ -1,7 +1,7 @@
 ---
 title: Production art plan
 design: draft
-implementation: done
+implementation: in-progress
 art: n/a
 depends-on: [.., ../../tech/roadmap, ../../tech/architecture, ../../audio/music, ../../audio/sfx]
 updated: 2026-10-07
@@ -65,17 +65,26 @@ shared pages, a level's pages are its **unit atlas** (`level-NN`) plus the backd
 its regions, and one sprite's frames must fit a page. `packAtlases` prints every atlas's pages and
 fill. **Per-level unit atlases**: a sprite only one level uses goes in that level's unit atlas,
 which the game loads when the level starts and disposes when it ends; the shared pages keep the
-ship, weapons, shots, pickups, effects, the enemies of more than one level, the HUD, the UI kit
-and everything the hangar shows outside a level (equipment icons, intel portraits and
-silhouettes, speaker portraits: all the sprites' subfolders). The split is derived from the data
+ship, weapons, shots, pickups, effects, the HUD, the UI kit and everything the hangar shows
+outside a level (equipment icons, intel portraits and silhouettes, speaker portraits: all the
+sprites' subfolders). **A sprite only levels use** (an enemy, a ground target's look, a hazard)
+goes into the unit atlas of **every** level that uses it, duplicated in the build output, which
+is never committed (user decision D10 = a of M5 part C, built: `SpriteUse` gives such a sprite
+every level's atlas, `AtlasPacker` copies it into each). The shared pages so stay with the
+game-wide sprites: the Creeper (Levels 08, 09 and 14, about a quarter of a 2048² page), the Hive
+Node and the Ravager (09 and 14) and the Wraith (10 and 12) would otherwise fill the second shared
+page by Act 2's end. The split is derived from the data
 (`SpriteUse`): a level uses the enemies of its waves, ground targets, set pieces and boss (and
 what they spawn or lob), its ground targets' looks, its escorted ally and the hazards it has
 (cranes, debris, sleds, rocks); weapons, specials and the game's own effects are shared; a sprite
 nothing claims fails the build. After the split (2026-10-04): shared 1 page of 2048×1024 (70 %
-full); Level 01 none (all its units are shared); Level 02 1 page of 2048² (48 %, the crane);
+full); Level 01 none (all its units were shared then; since D10 = a it has its own, see below); Level 02 1 page of 2048² (48 %, the crane);
 Level 03 1 page of 2048² (54 %, Leviathan, Spore Bomber, Whirl Seed, debris); Level 04 1 page of
 2048×512 (71 %, Scuttler, crawler, dugout); Level 05 1 page of 2048×1024 (51 %, Gorgon Frigate,
-Polyp Mortar, sleds, rocks). With their backdrops every level is at 2 or 3 pages of 6. After the Level 01 batch: shared 1 page of 2048×256 (2 MiB of 32), Level 01
+Polyp Mortar, sleds, rocks). With their backdrops every level is at 2 or 3 pages of 6. After
+D10 = a (2026-10-07): shared 1 page of 2048×1024 (72 %, no enemies left on it); Level 01 2048×128
+(56 %, Skitter, Needler, cargo); Level 08 2048×1024 (71 %); Level 09 2048² (69 %, Hive Node,
+Ravager); Level 07 two unit pages (2048² at 96 % and 2048×128); every level at 3 of 6 pages or fewer. After the Level 01 batch: shared 1 page of 2048×256 (2 MiB of 32), Level 01
 2 pages, 2048² and 1024×2048 (24 MiB of 96). With the HUD's metal parts (`assets/sprites/hud/`,
 on the same pages since `packAtlases` combines the sprites' subfolders): shared 1 page of 1024²
 (4 MiB of 32). With the glass UI kit (`assets/sprites/ui/`) and the 94 equipment icons
@@ -113,7 +122,7 @@ Measured in M2: Level 01 packs into a 2048² and a 2048×1024 backdrop page (24 
 |---|---|
 | Atlas pages per level (backdrop + the level's unit atlas, boss included) | ≤ 6 pages of 2048² (96 MiB at RGBA8) |
 | One unit or boss | ≤ 1 page (16 MiB); dense angle sets only with a symmetric design |
-| Shared pages (ship, weapons, pickups, effects, HUD, fonts), always loaded | ≤ 2 pages (32 MiB) |
+| Shared pages (ship, weapons, pickups, effects, HUD, fonts, the hangar's pictures; no level's units), always loaded | ≤ 2 pages (32 MiB) |
 | Music on disk | ~3–4 MB per 2.5-minute stem at q6 |
 
 **Symmetry rule** for angle sets: a design with *n*-fold radial symmetry renders only 360°/*n*
@@ -154,6 +163,8 @@ Game captures of the production batches that span several parts; prompts:
 - [x] M4 part F (Level 06, M4 part F batch): the Mantis (`tools/art/mantis.py`) and its beam b (`tools/art/mantis_beam.py`), the Coilwyrm at 48 headings (`tools/art/coilwyrm.py`), the darkness's glow frames, flare shell and light shapes (`tools/art/l06_darkness.py`), the Level 06 backdrop (`tools/art/backdrop_l06.py`), the Mantis's and Coilwyrm's intel portraits (`tools/art/intel.py`) and the props from the chosen concepts (ore cart b, survey cache a, data core terminal b and the data core pickup; `tools/art/l06_props.py`) rendered; approved as final in round 23 (the Level 06 briefing images accepted, to be re-rendered for the Coilwyrm's 0.5 spacing and the beam from the Mantis's head)
 - [x] M4 part G (Level 07 and the act end): the Brood Carrier with its turn (`tools/art/brood_carrier.py`), its death and drifting carcass (`tools/art/brood_carrier_death.py`), the Level 07 backdrop (`tools/art/backdrop_l07.py`), the Level 07 briefing and Act 1 outro images; approved as final in round 25 (the lifeboat tow's production sprites from the chosen b, `tools/art/lifeboat.py`, made at the close)
 - [x] M4 part H's batch final (concept round 26: the Act 1 title-card still (`tools/art/act_stills.py`), the Skitter's, Needler's and Scuttler's deaths (`tools/art/vrell_deaths.py`), the Smart Bomb's burst and ring (`tools/art/smart_bomb.py`), the boss bar's plate (`tools/art/boss_bar.py`), the ship's damage frames and the shield ring (`tools/art/ship_fx.py`), the `medium` bullet (`tools/art/bullet_medium.py`), the music finals (`tools/art/themes.py`); the wave banners and the drop shadows drawn in code); approved as final there, so every M4 part is final (a round per M4 part, user decision)
+- [x] A unit used by several levels packed into each of their unit atlases, the shared pages
+      keeping only the game-wide sprites (`SpriteUse`, `SpriteUseTest`; D10 = a) — M5 part C
 - [ ] M5 parts final — **later: M5** (a round per level, as in M4; part A's round 28 and part B's
       round 30 closed)
 
@@ -335,3 +346,11 @@ Game captures of the production batches that span several parts; prompts:
   portraits, "Homefront" and its base stem); the billboard (a) and the traffic (a) produced at the
   close (`tools/art/billboard.py`, `tools/art/l08_traffic.py` through `backdrop_l08.py`). The shared
   atlas page is now 2048² (75 % full in the close's build); the size notes above said 2048×1024.
+- 2026-10-07: M5 part C (user decision D10 = a): a sprite that only levels use goes into the unit
+  atlas of each level that uses it, duplicated in the build output (never committed); the shared
+  pages keep the game-wide sprites (ship, weapons, shots, pickups, effects, HUD, UI kit, the
+  hangar's pictures). By the old rule Level 09's data would move the Creeper (≈ 1 M px, about 23 %
+  of a 2048² page) onto the shared pages, which would spill to their second page now and reach the
+  two-page cap around Levels 12–14. Rejected: b (keep the rule and open the second shared page:
+  16 MiB more always loaded). `SpriteUse` and its test follow in part C; the plan is
+  `in-progress` again.

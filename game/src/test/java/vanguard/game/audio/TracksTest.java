@@ -29,6 +29,11 @@ class TracksTest {
         assertEquals("music/homefront.ogg", Tracks.path(6));
         assertEquals("music/homefront-base.ogg", Tracks.basePath(Tracks.name(6).orElseThrow()));
         assertTrue(Files.exists(ASSETS.resolve(Tracks.basePath("homefront"))), "the Homefront base stem");
+        // Track 7, Level 09's "Firestorm" (M5 part C; also Levels 11, 12 and 14's approach), with its base stem.
+        assertEquals("music/firestorm.ogg", Tracks.path(7));
+        assertEquals("music/firestorm-base.ogg", Tracks.basePath(Tracks.name(7).orElseThrow()));
+        assertTrue(Files.exists(ASSETS.resolve(Tracks.path(7))), "the Firestorm full mix");
+        assertTrue(Files.exists(ASSETS.resolve(Tracks.basePath("firestorm"))), "the Firestorm base stem");
         assertEquals("music/choir-descends.ogg", Tracks.path(Tracks.BOSS_VRELL));
         assertEquals("music/boss-warning.ogg", Tracks.path(Tracks.BOSS_WARNING));
         assertEquals("music/act-complete.ogg", Tracks.path(Tracks.ACT_COMPLETE));

@@ -33,6 +33,7 @@ import vanguard.game.level.Outro;
 import vanguard.game.level.PromptTexts;
 import vanguard.game.level.RadioQueue;
 import vanguard.game.level.RadioSchedule;
+import vanguard.game.render.AirborneWalkers;
 import vanguard.game.render.BossBanner;
 import vanguard.game.render.CreditNumbers;
 import vanguard.game.render.EdgeWarnings;
@@ -120,6 +121,11 @@ public final class LevelScreen implements GameScreen {
     private final Sortie sortie;
     private final FixedStepClock clock = new FixedStepClock(SimStep.SECONDS, MAX_STEPS_PER_FRAME);
     private final EnemyLooks[] looks;
+    /** M5 part C: per kind the creep's wither after a periodic spawner's death (the Hive Node); empty for none. */
+    private final List<Array<AtlasRegion>> withers;
+    /** M5 part C: the ground units in a pounce's air window before the step, to tell where a death belongs. */
+    private final AirborneWalkers airborne = new AirborneWalkers();
+
     private final WeaponLooks weaponLooks;
     /** The layers on which an enemy was destroyed in this attempt: a prompt that skips on one of them has left. */
     private final EnumSet<Layer> layersHit = EnumSet.noneOf(Layer.class);
@@ -215,17 +221,20 @@ public final class LevelScreen implements GameScreen {
                 SimSpecs.level(services.content, levelKey, difficulty),
                 services.invulnerable ? rules.withInvulnerableShip() : rules,
                 campaign.armour());
-        radioSchedule = new RadioSchedule(sortie.script(), sortie.special().fitted());
+        radioSchedule = new RadioSchedule(sortie.script(), RadioSchedule.fitted(sortie));
         barks = sortie.wingman().isPresent()
                 ? Barks.of(
                         services.content.wingmen().barks(),
                         sortie.script(),
-                        sortie.special().fitted(),
+                        RadioSchedule.fitted(sortie),
                         radio,
                         this::bark)
                 : null;
         wrecks = new SetPieceWrecks(sortie.setPieceCount());
         looks = EnemyLooks.of(sortie.enemyKinds(), services.sprites, services.content);
+        withers = java.util.Arrays.stream(looks)
+                .map(look -> EnemyLooks.wither(look.creep(), REMAINS_TICKS))
+                .toList();
         weaponLooks = new WeaponLooks(
                 sortie.armament(),
                 flight.weapons().stream().mapToInt(Flight.Weapon::level).toArray(),
@@ -405,7 +414,9 @@ public final class LevelScreen implements GameScreen {
                 cue.portrait(),
                 cue.requiresSpecial(),
                 cue.alliesMin(),
-                cue.alliesMax());
+                cue.alliesMax(),
+                cue.requires(),
+                cue.requiresNot());
     }
 
     Optional<LevelScript.RadioCue> failureLine() {
@@ -483,6 +494,7 @@ public final class LevelScreen implements GameScreen {
         int steps = clock.advance(simSeconds);
         int stepCommands = FlightCommands.of(services.input, settings.controls());
         for (int i = 0; i < steps; i++) {
+            airborne.record(sortie);
             sortie.step(stepCommands);
             if (!sortie.launching() && sortie.section() == 1) {
                 prompts.update(stepCommands);
@@ -499,9 +511,14 @@ public final class LevelScreen implements GameScreen {
             if (shimmer > 0) {
                 shimmer--;
             }
+            if (barks != null) {
+                // M5 part C: his spacing runs on real time, the waves' barks on the level clock.
+                barks.clock(sortie.levelSeconds(), sortie.realSeconds(), sortie.scriptRate());
+            }
             react(sortie.events());
             if (barks != null) {
-                barks.step(SimStep.ticks(sortie.levelSeconds()), armourShare(), overdrivePickups());
+                barks.step(
+                        SimStep.ticks(sortie.levelSeconds()), sortie.realSeconds(), armourShare(), overdrivePickups());
             }
             smokeTrails();
             sounds.watch(sortie);
@@ -520,8 +537,18 @@ public final class LevelScreen implements GameScreen {
                 sortie.section(),
                 sortie.levelSeconds(),
                 seconds,
-                radio.current().isPresent() || services.voices.playing());
+                radio.current().isPresent() || services.voices.playing(),
+                runTimeFull(level.music(), sortie.holdActive(), sortie.collapseStarted()));
         return Transition.STAY;
+    }
+
+    /**
+     * M5 part C, the music's run-time hook ({@code full_on}, design/audio/music): whether the full mix
+     * plays now, while a hold zone runs or from the collapse on, as the level's music block names them.
+     */
+    static boolean runTimeFull(LevelData.Music music, boolean holdActive, boolean collapseStarted) {
+        return (holdActive && music.fullOn(LevelData.Music.FullOn.HOLD))
+                || (collapseStarted && music.fullOn(LevelData.Music.FullOn.COLLAPSE));
     }
 
     /** The ship's armour as a share of its most, for Rook's bark about it. */
@@ -584,12 +611,21 @@ public final class LevelScreen implements GameScreen {
                 }
                 case ENEMY_DESTROYED -> {
                     if (barks != null) {
-                        barks.kill(sortie.levelSeconds());
+                        barks.kill(sortie.realSeconds());
                     }
-                    EnemyLooks look = looks[events.value(i)];
-                    layersHit.add(sortie.enemyKinds().get(events.value(i)).layer());
-                    death(events.value(i), x, y);
-                    if (!look.remains().isEmpty()) {
+                    int kind = events.value(i);
+                    EnemyLooks look = looks[kind];
+                    // M5 part C: a Ravager shot in its pounce's air window dies in the air.
+                    Layer layer =
+                            airborne.layerOf(kind, sortie.enemyKinds().get(kind).layer(), x, y);
+                    layersHit.add(layer);
+                    death(kind, x, y, layer == Layer.GROUND);
+                    if (layer == Layer.GROUND && !withers.get(kind).isEmpty()) {
+                        // The Hive Node's creep withers over 2 s under its stump, then lies dry.
+                        debris.startOnGround(
+                                withers.get(kind), EnemyLooks.WITHER_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+                    }
+                    if (layer == Layer.GROUND && !look.remains().isEmpty()) {
                         debris.startOnGround(
                                 look.remains(), REMAINS_TICKS / look.remains().size, x, y, 0, sortie.groundScroll());
                     }
@@ -652,7 +688,7 @@ public final class LevelScreen implements GameScreen {
                 }
                 case BOSS_ARRIVED -> {
                     if (barks != null) {
-                        barks.bossWarning(sortie.levelSeconds());
+                        barks.bossWarning(sortie.realSeconds());
                     }
                     if (music.bossArrived()) {
                         // An act boss: the warning track with the klaxon and the banner (design/ui/hud).
@@ -718,7 +754,7 @@ public final class LevelScreen implements GameScreen {
                             };
                     if (cue.trigger() == LevelScript.CueTrigger.ESCORT_FIRST_KILL && barks != null) {
                         // Rook's first kill (M5 part B): a scripted Rook line for the barks' spacing.
-                        barks.scripted(cue.speaker(), sortie.levelSeconds());
+                        barks.scripted(cue.speaker(), sortie.realSeconds());
                     }
                     queue(
                             cue.speaker(),
@@ -754,13 +790,13 @@ public final class LevelScreen implements GameScreen {
                 case WINGMAN_HIT -> renderer.wingmanHit(sortie.tick());
                 case WINGMAN_CRITICAL -> {
                     if (barks != null) {
-                        barks.rookCritical(sortie.levelSeconds());
+                        barks.rookCritical(sortie.realSeconds());
                     }
                 }
                 case WINGMAN_EJECTED -> {
                     effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y);
                     if (barks != null) {
-                        barks.rookEjected(sortie.levelSeconds());
+                        barks.rookEjected(sortie.realSeconds());
                     }
                 }
                 case SORTIE_RESTARTED -> {
@@ -816,8 +852,12 @@ public final class LevelScreen implements GameScreen {
      * with it and with its husk; a flyer's stay where it died on the play field.
      */
     private void death(int kind, double x, double y) {
+        death(kind, x, y, sortie.enemyKinds().get(kind).layer() == Layer.GROUND);
+    }
+
+    /** As above, on the ground or (a pouncer shot in the air) on the play field. */
+    private void death(int kind, double x, double y, boolean onGround) {
         EnemyLooks look = looks[kind];
-        boolean onGround = sortie.enemyKinds().get(kind).layer() == Layer.GROUND;
         EnemyLooks.DeathEffect deathPieces = look.deathPieces();
         start(pieces, deathPieces.frames(), deathPieces.ticksPerFrame(), x, y, deathPieces.delayTicks(), onGround);
         start(effects, look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y, 0, onGround);
@@ -1040,8 +1080,10 @@ public final class LevelScreen implements GameScreen {
 
     /** The radio's squelch on open and close, and a soft blip for every other typed character. */
     private void playRadio(float seconds) {
-        float untilTimed =
-                sortie.complete() ? Float.POSITIVE_INFINITY : radioSchedule.untilTimed(sortie.levelSeconds());
+        float untilTimed = sortie.complete()
+                ? Float.POSITIVE_INFINITY
+                : radioSchedule.untilTimed(
+                        sortie.levelSeconds(), sortie.scriptRate(), RadioSchedule.escortFlying(sortie));
         switch (radio.update(seconds, untilTimed)) {
             case OPENED -> {
                 services.sfx.play(Sfx.RADIO_OPEN, RADIO_VOLUME, 1, 0);
@@ -1050,7 +1092,7 @@ public final class LevelScreen implements GameScreen {
                 RadioQueue.Message message = radio.current().orElseThrow();
                 if (barks != null) {
                     // A Rook line on the radio, bark or scripted, starts the barks' spacing.
-                    barks.opened(message.speaker(), sortie.levelSeconds());
+                    barks.opened(message.speaker(), sortie.realSeconds());
                 }
                 message.voice()
                         .ifPresentOrElse(

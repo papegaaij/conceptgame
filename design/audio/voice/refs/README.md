@@ -36,6 +36,7 @@ How the clips are chosen and used: [voice](../README.md#reference-voices).
 | `ref-perimeter-beacon.wav` | Daedalus perimeter beacon | Mark F. Smith | [The Time Machine (version 2), ch. 1 (Wells)](https://archive.org/details/time_machine_ms_librivox) | CC0 1.0 | chosen (round 23) |
 | `ref-lifeboat-seven.wav` | Lifeboat Seven | Tadhg Hynes | [Far From the Madding Crowd, ch. 1 (Hardy)](https://archive.org/details/far_from_the_madding_crowd_th_librivox) | public domain | chosen (round 25) |
 | `ref-civilian.wav` | The Ikoyi shelter civilian (Level 08) | Faith Abiola-Ellison | [The Yoruba-speaking Peoples of the Slave Coast of West Africa, selections, section 1 (Ellis)](https://archive.org/details/yorubapeoples_2408_librivox) | public domain (Public Domain Mark 1.0) | chosen (round 30) |
+| `ref-kilo-lead.wav` | Kilo Lead (Level 09) | Aaron Bennett | [On Mamba Station: U.S. Marines in West Africa, ch. 1 (Antal, Vanden Berghe)](https://archive.org/details/onmambastation_2507_librivox) | public domain (Public Domain Mark 1.0) | chosen (round 31) |
 
 Round 19's chosen candidates were renamed to `ref-<speaker>.wav`; the rejected candidates and
 round 18's Tranquility Control clip (David Leeson), which no speaker uses any more, were deleted
@@ -54,6 +55,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
       candidate renamed `ref-lifeboat-seven.wav`, the other deleted with its CREDITS.md row
 - [x] The Ikoyi shelter civilian's clip (Level 08), cast in [round 30](../../../concept-rounds/round-30/README.md);
       the chosen candidate renamed `ref-civilian.wav`, the other deleted with its CREDITS.md row
+- [x] The Kilo Lead's clip (Level 09), cast in [round 31](../../../concept-rounds/round-31/README.md);
+      the chosen candidate renamed `ref-kilo-lead.wav`, the other deleted with its CREDITS.md row
 
 ## Decisions
 
@@ -83,3 +86,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
 - 2026-10-07: Round 30 decided (user): the Ikoyi shelter civilian is Faith Abiola-Ellison (b),
   renamed `ref-civilian.wav`; KirksVoice's candidate (a) deleted with its CREDITS.md row (its
   source and cut stay in `tools/concept/audio/tts_r30.py`).
+- 2026-10-07: Round 31 candidates for the Kilo Lead (Level 09) added (Aaron Bennett, tombooker;
+  licences checked on each archive.org item's `licenseurl`: Public Domain Mark 1.0).
+- 2026-10-07: Round 31 decided (user): the Kilo Lead is Aaron Bennett (a), renamed
+  `ref-kilo-lead.wav`; tombooker's candidate (b) deleted with its CREDITS.md row (its source and
+  cut stay in `tools/concept/audio/tts_r31.py`).

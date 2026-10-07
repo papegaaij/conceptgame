@@ -1,0 +1,46 @@
+# Hive Node stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+name: Hive Node
+faction: Vrell
+layer: ground
+tier: medium
+size: [76, 76]    # sprite px
+hitbox: [56, 56]
+parts: single
+orientation: radial
+hp: 64
+armour: hardened  # only anti-ground deliveries, the Airstrike and the Smart Bomb damage it (flown for an enemy, M5 part C)
+speed: 0          # scrolls with the ground
+movement:
+  terrain: {}
+attacks:
+  - pattern: spawn
+    spawn:
+      enemy: skitter
+      count: 2            # Skitters per opening (hard 3: the hook spawn_count below)
+      every: 4.0          # s between releases; the first one every s after its centre crosses the top edge
+      telegraph: 0.5      # s the iris opens ahead of a release
+      arc: 120            # ° the Skitters fan out in, centred on the ship (as the Brood Pod's)
+      speed: 160          # px/s, the released Skitters fly straight out, then fly as Skitters
+      shut_within: 96     # px: an opening due while the ship's centre is this close is skipped
+    notes:
+      text: '`{pattern}`: its iris opens over {spawn.telegraph} s every {spawn.every} s and releases {spawn.count} Skitters, flying out at {spawn.speed} px/s in a {spawn.arc}° arc toward the ship; it stays shut while the ship is within {spawn.shut_within} px; no direct fire'
+formations:
+  - {name: single}
+weak_points:
+  - {name: open iris}
+drops: []
+traits: [anti-ground]
+bounty: 45
+first_level: 9
+difficulty:
+  hard: {spawn_count: 3}
+notes:
+  orientation: (no headings; the lobes pulse, the iris opens and shuts)
+  speed: (scrolls with the ground)
+  movement: '`terrain`'
+  formations: (placed in pairs, each node its own named target)
+  weak_points: (drawn only; it glows while the iris opens, the spawn's telegraph)
+  bounty: '; the Skitters it releases pay their own 5 and count into the level''s enemies as released'
+  death: '`large` organic collapse; the creep around it withers over 2 s'
+  used_in: 'the primary `destroy-targets` objective''s named targets; returns L14 (with the act HP factor)'
+  difficulty: 'hard: 3 Skitters per opening'

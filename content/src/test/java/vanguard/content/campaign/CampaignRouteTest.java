@@ -3,6 +3,7 @@ package vanguard.content.campaign;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -112,13 +113,28 @@ class CampaignRouteTest {
     }
 
     @Test
-    void afterLevel08TheHangarBeforeLevel09WaitsForItsData() {
+    void afterLevel08ComesLevel09sBriefingAndLaunch() {
         Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
         for (int i = 0; i < 8; i++) {
             campaign.complete(CampaignTest.won("A", 80, 1000), 60);
         }
 
-        // Level 09 has no data yet: the hangar before it, which cannot launch.
+        // M5 part C: Level 09 has its data: its own briefing pages (no act intro), then the launch.
+        var briefing = assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.afterLevel(content, campaign));
+        assertEquals(9, briefing.script().mission());
+        assertTrue(briefing.script().titleCard().isEmpty());
+        assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.beforeNextLevel(content, campaign));
+        assertEquals(Optional.of("act-2-homefront/level-09-arcology-fall"), CampaignRoute.launch(content, campaign));
+    }
+
+    @Test
+    void afterLevel09TheHangarBeforeLevel10WaitsForItsData() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 9; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
+
+        // Level 10 has no data yet: the hangar before it, which cannot launch.
         assertInstanceOf(CampaignRoute.Step.Hangar.class, CampaignRoute.afterLevel(content, campaign));
         assertInstanceOf(CampaignRoute.Step.Hangar.class, CampaignRoute.beforeNextLevel(content, campaign));
         assertEquals(Optional.empty(), CampaignRoute.launch(content, campaign));

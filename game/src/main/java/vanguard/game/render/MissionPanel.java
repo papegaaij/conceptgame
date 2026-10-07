@@ -36,11 +36,19 @@ import vanguard.sim.Sortie;
 final class MissionPanel {
     private static final int X = HudKit.INSET;
     private static final int WIDTH = HudKit.INNER_WIDTH;
-    private static final int GROUP_PIP_STEP = 16;
+    static final int GROUP_PIP_STEP = 16;
+    /**
+     * M5 part C: a named target's mark wider than a letter (Level 09's {@code A1} … {@code C2}) takes
+     * its width plus this gap per step, right-aligned in the line.
+     */
+    static final int MARK_GAP = 4;
+
     private static final Color LOST = Color.valueOf("FF4400");
     private static final Color GROUP_OPEN = Color.valueOf("3A4060");
     /** The group objective's label: its groups' common first word in plural ("DOCKS"). */
     private String groupsLabel;
+    /** The step of the targets tracker's marks, once measured (Level 05's letters 16 px, Level 09's pairs wider). */
+    private int markStep;
     /** The groups' states as last drawn, and the frame each last changed in. */
     private int[] groupStates = new int[0];
 
@@ -341,7 +349,15 @@ final class MissionPanel {
             groupStates = new int[count];
             groupChanged = new int[count];
         }
-        int letterX = X + PAD + TEXT_WIDTH - count * GROUP_PIP_STEP;
+        if (markStep == 0) {
+            int widest = 0;
+            for (String group : groups) {
+                widest = Math.max(widest, advance(kit.body, mark(group)));
+            }
+            markStep = markStep(widest);
+        }
+        int step = markStep;
+        int letterX = X + PAD + markLeft(count, step);
         for (int g = 0; g < count; g++) {
             int state = sortie.groupState(g);
             if (state != groupStates[g]) {
@@ -361,12 +377,10 @@ final class MissionPanel {
             } else if (blink) {
                 letter = GROUP_OPEN;
             }
-            String name = groups.get(g);
-            String mark = name.substring(name.lastIndexOf(' ') + 1);
-            int left = letterX + g * GROUP_PIP_STEP;
-            kit.text(batch, kit.body, mark, letter, left, y, GROUP_PIP_STEP);
+            int left = letterX + g * step;
+            kit.text(batch, kit.body, mark(groups.get(g)), letter, left, y, step);
             if (state == 1) {
-                kit.fill(batch, letter, left - 1, y - LINE / 2 - 1, GROUP_PIP_STEP - 4, 2);
+                kit.fill(batch, letter, left - 1, y - LINE / 2 - 1, step - MARK_GAP, 2);
             }
         }
         drawSecondary(batch, sortie, wellTop - LINE, MissionLayout.TWO_LINE_WELL - LINE);
@@ -444,6 +458,39 @@ final class MissionPanel {
                     };
             kit.fill(batch, blink ? HudKit.LCD : pip, pipX + g * GROUP_PIP_STEP, y - 14, GROUP_PIP_STEP - 4, 10);
         }
+    }
+
+    /** The advance of a text's glyphs (as the layout test measures it: each glyph's full step, the last one's too). */
+    private static int advance(com.badlogic.gdx.graphics.g2d.BitmapFont font, String text) {
+        int width = 0;
+        for (int i = 0; i < text.length(); i++) {
+            com.badlogic.gdx.graphics.g2d.BitmapFont.Glyph glyph =
+                    font.getData().getGlyph(text.charAt(i));
+            width += glyph == null ? 0 : glyph.xadvance;
+        }
+        return width;
+    }
+
+    /** A named target's mark on the tracker: its group name's last word ("Battery A": {@code A}, "Node C2": {@code C2}). */
+    static String mark(String group) {
+        return group.substring(group.lastIndexOf(' ') + 1).toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * The step between the targets tracker's marks for a widest mark of {@code widest} px: a
+     * letter's 16 px (Level 05), or the mark and {@value #MARK_GAP} px (Level 09's pairs, 24 px).
+     */
+    static int markStep(int widest) {
+        return Math.max(GROUP_PIP_STEP, widest + MARK_GAP);
+    }
+
+    /**
+     * Where the first of {@code count} marks starts, px from the text's left edge: Level 05's letters
+     * as they were laid out; wider marks right-aligned, the last ending at the text's right edge.
+     */
+    static int markLeft(int count, int step) {
+        int left = TEXT_WIDTH - count * step;
+        return step == GROUP_PIP_STEP ? left : left + MARK_GAP;
     }
 
     /** "Dock One", "Dock Two" ... reads "DOCKS"; "Battery A" ... "BATTERIES". */

@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import vanguard.content.ContentLoader;
@@ -16,8 +17,9 @@ import vanguard.content.ContentLoader;
 /**
  * Packs the sprite frames in {@code assets/} into the game's texture atlases (build output, never
  * committed), all with nearest filtering, since everything is drawn at its native size on whole
- * pixels: the shared {@code sprites} atlas, one unit atlas {@code level-NN} per level that has
- * sprites only it uses ({@link SpriteUse} decides from the levels' data) and {@code backdrop}.
+ * pixels: the shared {@code sprites} atlas with the game-wide sprites, one unit atlas {@code
+ * level-NN} per level with every sprite that level uses (a unit of several levels is copied into each
+ * of their atlases; {@link SpriteUse} decides from the levels' data) and {@code backdrop}.
  * Subfolders become region names such as {@code level-01/earth} or {@code hud/well} (a {@code
  * .9.png} is a nine-patch with its splits); the sprites' subfolders (the HUD, the UI kit, the
  * hangar's icons and intel portraits, the speakers' portraits) are shared and share the sprite
@@ -55,7 +57,8 @@ public final class AtlasPacker {
 
     /**
      * Copies the sprite frames into one input folder per atlas: the subfolders and every sprite
-     * {@link SpriteUse} shares into {@code sprites}, a level's own sprites into {@code level-NN}.
+     * {@link SpriteUse} shares into {@code sprites}, the sprites levels use into the {@code
+     * level-NN} of each of those levels.
      */
     private static void stage(Path sprites, Path staging) throws IOException {
         List<Path> frames;
@@ -67,15 +70,17 @@ public final class AtlasPacker {
                 .map(frame -> FRAME.matcher(frame.getFileName().toString()).replaceFirst(""))
                 .distinct()
                 .toList();
-        Map<String, String> atlases = SpriteUse.atlases(ContentLoader.fromClasspath(), names);
+        Map<String, Set<String>> atlases = SpriteUse.atlases(ContentLoader.fromClasspath(), names);
         for (Path frame : frames) {
             String file = frame.getFileName().toString();
             if (Files.isDirectory(frame)) {
                 copyTree(frame, staging.resolve(SpriteUse.SHARED).resolve(file));
             } else if (file.endsWith(".png")) {
-                Path target = staging.resolve(atlases.get(FRAME.matcher(file).replaceFirst("")));
-                Files.createDirectories(target);
-                Files.copy(frame, target.resolve(file));
+                for (String atlas : atlases.get(FRAME.matcher(file).replaceFirst(""))) {
+                    Path target = staging.resolve(atlas);
+                    Files.createDirectories(target);
+                    Files.copy(frame, target.resolve(file));
+                }
             }
         }
     }

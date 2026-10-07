@@ -796,3 +796,54 @@ the chosen file; `homefront-base.ogg` same length and loop, −18.2 LUFS (−4.2
   fade tail (dark) and the loop points (amber), with the measured numbers.
 
 Outcome (user, 2026-10-07): both files approved as **final** in round 30.
+
+## music-final-r31-a — track 7 and its base stem (production art)
+
+Not a proposal of new music: the production files of track 7 "Firestorm", Level 09's theme (it also
+serves Levels 11, 12 and 14's approach), for the M5 part C review (round 31; the chosen concept
+straight to production, as "Homefront" in round 30). `python3 tools/art/themes.py firestorm
+firestorm-base` renders the chosen `act2-b-theme-r08-a` again with its generator
+(`tools/concept/audio/music_r08.py`, `firestorm`, unchanged) and the base stem with the new frozen
+stem generator `tools/concept/audio/music_r31.py`, remuxes each stream with a `SOURCE` comment into
+`assets/music/` and checks them (q6, −14 LUFS ±0.5 LU, true peak ≤ −1 dBTP, `LOOPSTART` /
+`LOOPLENGTH`, a click-free seam; the base stem quieter than the full mix, with its length and loop
+points).
+
+Base stem brief (`music_r31.py`, the round-11 method of `music_r11.py` / `music_r15.py` /
+`music_r30.py`): one render of `music_r08.firestorm()`, same composition and seeds; the kicks and
+timpani are tagged on their way into the "drums" and "perc" groups and also collected in "kick" and
+"timp" groups, and the full mix's `mixdown()` call is captured, so the base stem is the same mixdown
+(each group's own high-pass, sidechain duck, delay, reverb seed, widening and gain) over the base
+groups only. Kept: the reese bass (the acid bass in the tracker break), the 16th pluck figure, the
+acid arpeggio, the string and choir pads (with the choir's "oo" melody in A and its storm stabs), the
+storm's tremolo strings, the kicks, the timpani, the thunder, radio static and risers. Dropped: the
+lead synth, all brass (orchestral stabs, the stab riff, horn and trumpet lines), the short string
+stabs of the stab riff, the melody strings and the breakbeat top (snares, ghost snares, rolls, hats),
+the storm toms and the crashes. Mastering is linked (each loudness pass and the encoder's peak
+correction measure the full mix and apply its gain to both), so base + w × (full − base) crossfades
+sample-aligned. The stem had no concept round; the generator proves its full mix is the chosen file
+byte for byte. Per 8-bar section the base sits 1.7–5.9 LU under the full mix (−16.2 to −18.3 LUFS,
+evener than the full mix's −11.3 to −15.8); the largest steps are the brass sections B and E.
+
+True-peak fix (as round 26's "Afterburner"): the chosen full mix measured −0.2 dBTP and the base stem
+−0.1 dBTP (limit −1 dBTP; 8 inter-sample overs in the full mix, 2 in the stem, made by the Vorbis
+encoder); a plain gain cut of 0.9 dB would have taken the full mix to −14.9 LUFS. So the pair gets
+one gain envelope for both files (`TRUE_PEAK_FIX` in `themes.py`) that dips only around those
+transients, aimed at −1.3 dB, and both are encoded again at q6: 8 dips, at most −1.32 dB, 433 ms of
+120.4 s below unity; loudness and seams unchanged. The decoded full mix differs from the chosen file
+41 dB under the signal (the dips plus the re-encode's own codec noise; "Afterburner" 37 dB).
+
+Measured (`themes.py --check firestorm firestorm-base`): `firestorm.ogg` 120.43 s, loop 321300 +
+4838400 samples (7.286 s + 109.714 s, 64 bars), −14.0 LUFS, −1.3 dBTP, seam 0.63, 2.66 MB;
+`firestorm-base.ogg` same length and loop, −17.7 LUFS (−3.6 LU under the full mix), −1.4 dBTP,
+seam 0.52, 2.61 MB. Measured only, not listened to.
+
+- `firestorm-final-r31-a.ogg`, `firestorm-base-final-r31-a.ogg`: byte copies of the two files in
+  `assets/music/`, for the review board.
+- `firestorm-seam-final-r31-a.ogg`, `firestorm-base-seam-final-r31-a.ogg`: listening aids, the last
+  8 s of each loop followed by the first 8 s after `LOOPSTART`, as the looping stream plays the seam
+  (0.5 s fades at both ends).
+- `music-final-r31-a.png` (`--review`): both files' waveforms with the intro (grey), loop (blue),
+  fade tail (dark) and the loop points (amber), with the measured numbers.
+
+Outcome (user, 2026-10-07): both files approved as **final** in round 31.

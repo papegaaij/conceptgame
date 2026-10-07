@@ -33,6 +33,17 @@ import java.util.List;
  * pays like the player's kills. He ejects at zero armour without failing anything; a retry starts
  * him with his level-start armour, the boss checkpoint keeps his armour and whether he ejected.
  * His state is hashed only when he flies, so a sortie without him keeps its hash.
+ *
+ * <p>M5 part C (design/campaign Level 09, user decisions D2, D3 and D5 = a): the level clock is
+ * <em>script time</em>. Over a {@link LevelScript.Hold hold zone} the scroll eases down and the
+ * level clock advances at the current scroll speed ÷ the section's speed, a fraction of a step per
+ * step in fixed point ({@link #CLOCK_ONE}), so everything keyed to it (waves, ground targets, radio
+ * times, edge warnings, the level end) waits with the scroll, while units, bullets, spawn cycles,
+ * pounces and the wingman run on the real steps ({@link #realSeconds()}). Outside a hold the clock
+ * advances exactly one step per step, so a level without holds steps and hashes as before. The
+ * {@link LevelScript.Collapse collapse} runs on the real steps once its groups are cleared; a hold
+ * over its groups stays active until its dust has settled, so what falls and the heap it leaves
+ * stay on the screen.
  */
 public final class Sortie {
     private static final int GROUND_CAPACITY = 32;
@@ -129,6 +140,52 @@ public final class Sortie {
 
     private long tick;
     private int levelTick;
+    /** M5 part C: the level clock's part of a step past {@link #levelTick}, in 1/{@link #CLOCK_ONE} steps. */
+    private int tickFraction;
+    /** How far the level clock advanced in the last step, in 1/{@link #CLOCK_ONE} steps. */
+    private int clockStep = CLOCK_ONE;
+    /** Whether {@link #levelTick} moved on in this step (a step in a hold may leave it). */
+    private boolean clockTicked;
+    /** Steps since this attempt started: the real clock. */
+    private int realTick;
+    /** M5 part C: the hold zones, their ease in steps and their state ({@link #HOLD_WAITING} ...). */
+    private final LevelScript.Hold[] holds;
+
+    private final int[] holdRampTicks;
+    private final int[] holdState;
+    /** Per group, the hold that waits for it; -1 for none. */
+    private final int[] holdOfGroup;
+    /** The hold running now (started, its groups not all gone); -1 for none. */
+    private int activeHold = -1;
+    /** The hold whose speed the scroll eases to or back from; -1 while the scroll runs at the section's speed. */
+    private int easingHold = -1;
+    /** Steps into the ease, 0 (section speed) to the easing hold's ramp (its speed). */
+    private int easeTicks;
+    /** Whether a hold started in this attempt (the radio's {@code hold-start} is the first one's). */
+    private boolean holdStarted;
+    /** Whether a pounce took off in this attempt (the radio's {@code first-pounce}). */
+    private boolean pounced;
+    /** M5 part C: the collapse; null without one. */
+    private final LevelScript.Collapse collapse;
+
+    /**
+     * The collapse's warning (the lean) in steps; the impact, the blast's end and the dust's settling,
+     * steps from its start.
+     */
+    private final int collapseWarningTicks;
+
+    private final int collapseImpactTicks;
+    private final int collapseEndTicks;
+    private final int collapseSettledTicks;
+    /**
+     * Per hold, whether its groups include one of the collapse's: such a hold stays active through
+     * the collapse's warning, drop and blast until its dust has settled (user decision, 2026-10-07),
+     * so the ground (and the band and the heap on it) barely moves while it falls and settles.
+     */
+    private final boolean[] holdThroughCollapse;
+    /** Real steps since the collapse's warning started; -1 before. */
+    private int collapseTicks = -1;
+
     private int attempt = 1;
     private boolean wrecked;
     /** Whether the primary objective failed in this attempt (the convoy is lost, a battery got away). */
@@ -145,7 +202,7 @@ public final class Sortie {
     private int nextDebris;
     private int edgeWarnings;
     private boolean complete;
-    /** Boss stream units let in in this attempt (they count among the enemies). */
+    /** Boss stream units and (M5 part C) periodic spawners' units let in in this attempt (they count among the enemies). */
     private int streamReleased;
     /** Whether this attempt recorded the boss checkpoint. */
     private boolean checkpointTaken;
@@ -204,6 +261,15 @@ public final class Sortie {
         boolean wingmanCritical;
         long wingmanLuck;
         boolean escortKilled;
+        int tickFraction;
+        int realTick;
+        final int[] holdState = new int[holds.length];
+        int activeHold;
+        int easingHold;
+        int easeTicks;
+        boolean holdStarted;
+        boolean pounced;
+        int collapseTicks;
     }
 
     /** @param armour the ship's armour at the level start (design/systems/retry: not full, unless it was full) */
@@ -260,6 +326,34 @@ public final class Sortie {
             partDropPiece[d] = pieceOf(script.partDrops().get(d).slug());
         }
         partsPiece = script.secondary().byParts() ? pieceOf(script.secondary().partsOf()) : -1;
+        holds = script.holds().toArray(LevelScript.Hold[]::new);
+        holdRampTicks = new int[holds.length];
+        holdState = new int[holds.length];
+        holdOfGroup = new int[script.groups().size()];
+        Arrays.fill(holdOfGroup, -1);
+        for (int h = 0; h < holds.length; h++) {
+            holdRampTicks[h] = Math.max(1, SimStep.ticks(holds[h].rampSeconds()));
+            for (int group : holds[h].groups()) {
+                holdOfGroup[group] = h;
+            }
+        }
+        collapse = script.collapse().orElse(null);
+        collapseWarningTicks = collapse == null ? 0 : SimStep.ticks(collapse.warningSeconds());
+        collapseImpactTicks =
+                collapse == null ? 0 : collapseWarningTicks + Math.max(1, SimStep.ticks(collapse.dropSeconds()));
+        collapseEndTicks =
+                collapse == null ? 0 : collapseImpactTicks + Math.max(1, SimStep.ticks(collapse.blastSeconds()));
+        collapseSettledTicks = collapse == null
+                ? 0
+                : Math.max(collapseEndTicks, collapseImpactTicks + SimStep.ticks(collapse.settleSeconds()));
+        holdThroughCollapse = new boolean[holds.length];
+        if (collapse != null) {
+            for (int group : collapse.groups()) {
+                if (holdOfGroup[group] >= 0) {
+                    holdThroughCollapse[holdOfGroup[group]] = true;
+                }
+            }
+        }
         PlayerFire.Hits hits = new PlayerFire.Hits() {
             @Override
             public void enemyDestroyed(int index, int mount) {
@@ -314,6 +408,12 @@ public final class Sortie {
                     public void burst(Enemy enemy) {
                         selfBurst(enemy);
                     }
+
+                    @Override
+                    public void released(Enemy spawner, int units) {
+                        // M5 part C: a periodic spawner's units count among the enemies as released.
+                        streamReleased += units;
+                    }
                 });
         streamFromLeft = new Spawn[streams.length];
         streamFromRight = new Spawn[streams.length];
@@ -364,7 +464,10 @@ public final class Sortie {
             }
         };
         tally = new Tally(rules.scoring());
-        int escapers = force.unitsOf(script.secondary().escapes());
+        String tag = script.secondary().tag();
+        int escapers = tag.isEmpty()
+                ? force.unitsOf(script.secondary().escapes())
+                : force.unitsOf(script.secondary().escapes(), tag);
         for (String slug : script.secondary().killAll()) {
             escapers += force.unitsOf(slug);
         }
@@ -402,6 +505,7 @@ public final class Sortie {
         wingmanView = java.util.Optional.ofNullable(wingman);
         wingmanMount = loadout.armament().size();
         wingmanStart = loadout.wingman().map(WingmanSpec::armour).orElse(0.0);
+        radio.escort(wingman);
         startAttempt(armour);
     }
 
@@ -427,25 +531,33 @@ public final class Sortie {
         if (checkpoint != null && !checkpointTaken && levelTick + 1 == arrivalTicks()) {
             recordCheckpoint();
         }
+        realTick++;
+        clockTicked = false;
         double scrollStep;
         if (arenaJump) {
             // The boss died before the arena's end: the next section starts now.
             arenaJump = false;
             groundScroll += (arenaEndTicks - 1 - levelTick) * arenaSpeed * SimStep.SECONDS;
             levelTick = arenaEndTicks - 1;
+            tickFraction = 0;
             rampFrom = arenaSpeed;
             rampTicks = 0;
+        }
+        if (holds.length > 0) {
+            ease();
         }
         if (clockHeld()) {
             scrollStep = 0;
             rampFrom = 0;
             rampTicks = 0;
+            clockStep = 0;
         } else {
-            scrollStep = scrollSpeed() * SimStep.SECONDS;
+            double speed = scrollSpeed();
+            scrollStep = speed * SimStep.SECONDS;
+            advanceClock(speed);
             if (rampTicks >= 0 && ++rampTicks >= SimStep.ticks(ARENA_RAMP_SECONDS)) {
                 rampTicks = -1;
             }
-            levelTick++;
         }
         groundScroll += scrollStep;
         ship.rememberPosition();
@@ -520,8 +632,165 @@ public final class Sortie {
         if (flying()) {
             collectPickups();
         }
+        if (!pounced && events.count(SimEvents.Type.POUNCE) > 0) {
+            pounced = true;
+            radio.cue(LevelScript.CueTrigger.FIRST_POUNCE, "");
+        }
+        if (collapse != null) {
+            updateCollapse();
+        }
+        if (holds.length > 0 && !complete) {
+            // After the collapse: a hold over the collapse's groups ends in the step its dust has settled.
+            updateHolds();
+        }
         if (!complete && !wrecked && !failed && levelTick >= endTicks) {
             completeLevel();
+        }
+    }
+
+    /** The level clock's step: {@link #CLOCK_ONE} is one step of script time. */
+    public static final int CLOCK_ONE = 1 << 16;
+
+    /**
+     * Advances the level clock for a step at {@code speed} px/s: one whole step at the section's
+     * speed, the share of one at a hold's eased speed (the clock never runs faster than real time).
+     */
+    private void advanceClock(double speed) {
+        if (easeTicks == 0) {
+            clockStep = CLOCK_ONE;
+        } else {
+            double share = speed / sectionSpeed();
+            clockStep = Math.clamp(Math.round(share * CLOCK_ONE), 1, CLOCK_ONE);
+        }
+        tickFraction += clockStep;
+        int whole = tickFraction >> 16;
+        tickFraction &= CLOCK_ONE - 1;
+        levelTick += whole;
+        clockTicked = whole > 0;
+    }
+
+    /** The ease toward the running hold's speed, or back to the section's once no hold runs. */
+    private void ease() {
+        if (activeHold >= 0) {
+            easingHold = activeHold;
+            easeTicks = Math.min(easeTicks + 1, holdRampTicks[activeHold]);
+        } else if (easeTicks > 0) {
+            if (--easeTicks == 0) {
+                easingHold = -1;
+            }
+        }
+    }
+
+    /** A hold's states: not yet started, running, and over (or never needed: its groups were gone first). */
+    private static final int HOLD_WAITING = 0;
+
+    private static final int HOLD_RUNNING = 1;
+    private static final int HOLD_OVER = 2;
+
+    /**
+     * The hold zones after the step's hits: the running one ends once every unit of its groups is
+     * gone (destroyed, or away: a failed destroy-targets primary), or, for a hold over the collapse's
+     * groups whose clearing started the collapse, once its dust has settled; a waiting one starts when the
+     * first unit of its groups reaches its depth below the top edge (one hold runs at a time).
+     */
+    private void updateHolds() {
+        if (activeHold >= 0 && groupsDecided(holds[activeHold].groups(), false) && !collapseHolds(activeHold)) {
+            holdState[activeHold] = HOLD_OVER;
+            events.add(SimEvents.Type.HOLD_END, ship.x(), ship.y(), activeHold);
+            activeHold = -1;
+        }
+        for (int h = 0; h < holds.length; h++) {
+            if (holdState[h] == HOLD_WAITING && groupsDecided(holds[h].groups(), false)) {
+                holdState[h] = HOLD_OVER;
+            }
+        }
+        if (activeHold >= 0) {
+            return;
+        }
+        Pool<Enemy> enemies = force.enemies();
+        for (int i = 0; i < enemies.size(); i++) {
+            Enemy enemy = enemies.get(i);
+            int group = enemy.group();
+            int h = group >= 0 ? holdOfGroup[group] : -1;
+            if (h >= 0 && holdState[h] == HOLD_WAITING && enemy.y() <= PlayField.HEIGHT - holds[h].depth()) {
+                holdState[h] = HOLD_RUNNING;
+                activeHold = h;
+                events.add(SimEvents.Type.HOLD_START, ship.x(), ship.y(), h);
+                if (!holdStarted) {
+                    holdStarted = true;
+                    radio.cue(LevelScript.CueTrigger.HOLD_START, "");
+                }
+                return;
+            }
+        }
+    }
+
+    /** Whether hold {@code h} waits for the collapse: over its groups, the collapse started and its dust not yet settled. */
+    private boolean collapseHolds(int h) {
+        return holdThroughCollapse[h] && collapseTicks >= 0 && collapseTicks < collapseSettledTicks;
+    }
+
+    /** Whether every one of {@code groups} is decided (with {@code cleared}: cleared, none of its units got away). */
+    private boolean groupsDecided(List<Integer> groups, boolean cleared) {
+        for (int i = 0; i < groups.size(); i++) {
+            int state = objectives.groupState(groups.get(i));
+            if (state == Objectives.OPEN || (cleared && state != Objectives.CLEARED)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * The collapse (user decision D5 = a, round 31's look c): once its groups are cleared its tower
+     * leans (the warning and the radio's {@code collapse}), then drops; from the impact its blast's
+     * ring grows round the tower's foot, destroying every ground unit (on the ground layer now) in the
+     * band whose centre it reaches, paid and scored as an Airstrike kill; then it is over, its count
+     * of real steps running on for the dust's ramp out ({@link #collapseSeconds()}).
+     */
+    private void updateCollapse() {
+        if (collapseTicks < 0) {
+            if (!complete && groupsDecided(collapse.groups(), true)) {
+                collapseTicks = 0;
+                events.add(SimEvents.Type.COLLAPSE_WARNING, ship.x(), ship.y());
+                radio.cue(LevelScript.CueTrigger.COLLAPSE, "");
+            }
+            return;
+        }
+        collapseTicks++;
+        if (collapseTicks > collapseEndTicks) {
+            // Over: the count runs on as real time since the warning started (the dust's ramp out).
+            return;
+        }
+        if (collapseTicks == collapseWarningTicks) {
+            events.add(SimEvents.Type.COLLAPSE_FALL, ship.x(), ship.y());
+        }
+        if (collapseTicks == collapseImpactTicks) {
+            events.add(SimEvents.Type.COLLAPSE_IMPACT, ship.x(), ship.y());
+        }
+        if (collapseTicks >= collapseImpactTicks) {
+            double radius = collapseBlastRadius();
+            double reach = radius * radius;
+            double x = collapse.x();
+            double y = collapseFootY();
+            double top = collapseBandTop();
+            double bottom = collapseBandBottom();
+            Pool<Enemy> enemies = force.enemies();
+            for (int j = enemies.size() - 1; j >= 0; j--) {
+                Enemy enemy = enemies.get(j);
+                double dx = enemy.x() - x;
+                double dy = enemy.y() - y;
+                if (enemy.layer() == Layer.GROUND
+                        && !Chain.doomed(enemy)
+                        && enemy.y() <= top
+                        && enemy.y() >= bottom
+                        && dx * dx + dy * dy <= reach) {
+                    hits.enemyDestroyed(j);
+                }
+            }
+        }
+        if (collapseTicks == collapseEndTicks) {
+            events.add(SimEvents.Type.COLLAPSE_END, ship.x(), ship.y());
         }
     }
 
@@ -627,10 +896,12 @@ public final class Sortie {
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
             EnemySpec spec = enemy.spec();
-            if (!spec.layer().collidesWithPlayer()
+            // A pounce (M5 part C) touches him once per leap, in its air window.
+            if (!enemy.layer().collidesWithPlayer()
                     || Chain.doomed(enemy)
                     || !hull.overlaps(x, y, enemy.hitbox(), enemy.x(), enemy.y())
-                    || !wingman.touch(enemy.serial())) {
+                    || !wingman.touch(enemy.serial())
+                    || (enemy.leaping() && !enemy.pounceTouch(Enemy.TOUCHED_WINGMAN))) {
                 continue;
             }
             boolean out = wingman.hit(spec.contactDamage(), ship.x(), ship.y(), events);
@@ -722,6 +993,15 @@ public final class Sortie {
             c.wingmanLuck = wingman.luck();
         }
         c.escortKilled = escortKilled;
+        c.tickFraction = tickFraction;
+        c.realTick = realTick;
+        System.arraycopy(holdState, 0, c.holdState, 0, holdState.length);
+        c.activeHold = activeHold;
+        c.easingHold = easingHold;
+        c.easeTicks = easeTicks;
+        c.holdStarted = holdStarted;
+        c.pounced = pounced;
+        c.collapseTicks = collapseTicks;
         checkpointTaken = true;
     }
 
@@ -766,6 +1046,15 @@ public final class Sortie {
             wingman.restore(c.wingmanArmour, c.wingmanEjected, c.wingmanCritical, c.wingmanLuck, ship.x(), ship.y());
         }
         escortKilled = c.escortKilled;
+        tickFraction = c.tickFraction;
+        realTick = c.realTick;
+        System.arraycopy(c.holdState, 0, holdState, 0, holdState.length);
+        activeHold = c.activeHold;
+        easingHold = c.easingHold;
+        easeTicks = c.easeTicks;
+        holdStarted = c.holdStarted;
+        pounced = c.pounced;
+        collapseTicks = c.collapseTicks;
         events.add(SimEvents.Type.SORTIE_RESTARTED, ship.x(), ship.y());
         events.add(SimEvents.Type.BOSS_RETRY, ship.x(), ship.y());
     }
@@ -785,7 +1074,7 @@ public final class Sortie {
         double seconds = levelSeconds();
         List<LevelScript.Darkness.Flare> flares = darkness.flares();
         for (int i = 0; i < flares.size(); i++) {
-            if (SimStep.ticks(flares.get(i).t()) == levelTick && !complete) {
+            if (clockTicked && SimStep.ticks(flares.get(i).t()) == levelTick && !complete) {
                 events.add(SimEvents.Type.FLARE_FIRED, flares.get(i).x(), darkness.flareY(i, seconds), i);
             }
         }
@@ -835,6 +1124,16 @@ public final class Sortie {
         rocksThrown = 0;
         Arrays.fill(groupCalled, false);
         levelTick = 0;
+        tickFraction = 0;
+        clockStep = CLOCK_ONE;
+        realTick = 0;
+        Arrays.fill(holdState, HOLD_WAITING);
+        activeHold = -1;
+        easingHold = -1;
+        easeTicks = 0;
+        holdStarted = false;
+        pounced = false;
+        collapseTicks = -1;
         groundScroll = 0;
         nextGroundObject = 0;
         nextDebris = 0;
@@ -853,12 +1152,22 @@ public final class Sortie {
     }
 
     private double scrollSpeed() {
-        double speed = script.sections().get(section() - 1).speed();
+        double speed = sectionSpeed();
         if (rampTicks >= 0) {
             // Out of the arena the scroll ramps up to the section's speed.
             speed = rampFrom + (speed - rampFrom) * rampTicks / SimStep.ticks(ARENA_RAMP_SECONDS);
         }
+        if (easeTicks > 0) {
+            // M5 part C: over a hold zone it eases (smoothstep) to the hold's speed and back.
+            double s = (double) easeTicks / holdRampTicks[easingHold];
+            speed += (holds[easingHold].speed() - speed) * s * s * (3 - 2 * s);
+        }
         return speed;
+    }
+
+    /** The speed of the section the level clock is in, px/s. */
+    private double sectionSpeed() {
+        return script.sections().get(section() - 1).speed();
     }
 
     /** Out of the arena the scroll ramps up to the next section's speed over this time. */
@@ -936,7 +1245,7 @@ public final class Sortie {
             }
             if (piece.update(levelTick)) {
                 events.add(SimEvents.Type.SET_PIECE_ESCAPED, piece.x(), piece.y(), k);
-                if (objectives.escapeLost(piece.slug())) {
+                if (objectives.escapeLost(piece.slug(), "")) {
                     events.add(SimEvents.Type.OBJECTIVE_FAILED, piece.x(), piece.y());
                 }
                 radio.cue(LevelScript.CueTrigger.ENEMY_ESCAPED, piece.slug());
@@ -1118,6 +1427,7 @@ public final class Sortie {
         tally.kill(spec.bounty(), enemy.grounded() ? CreditSource.GROUND_TARGETS : CreditSource.KILLS);
         int kills = objectives.kill(enemy.kind());
         int group = enemy.group();
+        String tag = enemy.tag();
         double x = enemy.x();
         double y = enemy.y();
         if (rock != null && enemy.grounded()) {
@@ -1149,7 +1459,7 @@ public final class Sortie {
         if (group >= 0) {
             decided(group, objectives.groupUnitDestroyed(group), x, y);
         }
-        if (objectives.escapeDestroyed(spec.slug())) {
+        if (objectives.escapeDestroyed(spec.slug(), tag)) {
             paySecondary();
         }
     }
@@ -1255,7 +1565,7 @@ public final class Sortie {
                 arenaJump = true;
             }
         }
-        if (objectives.escapeDestroyed(spec.slug())) {
+        if (objectives.escapeDestroyed(spec.slug(), "")) {
             paySecondary();
         }
         if (k == partsPiece && objectives.partsSurvived()) {
@@ -1355,7 +1665,7 @@ public final class Sortie {
                 decided(group, state, enemy.x(), enemy.y());
             }
         }
-        if (objectives.escapeLost(slug)) {
+        if (objectives.escapeLost(slug, enemy.tag())) {
             events.add(SimEvents.Type.OBJECTIVE_FAILED, enemy.x(), enemy.y());
         }
         radio.cue(LevelScript.CueTrigger.ENEMY_ESCAPED, slug);
@@ -1732,16 +2042,20 @@ public final class Sortie {
         return false;
     }
 
-    /** A rammer on the player's layer deals its contact damage; a small one is destroyed by the impact. */
+    /**
+     * A rammer on the player's layer deals its contact damage; a small one is destroyed by the
+     * impact. A pounce (M5 part C) touches the ship once per leap, in its air window.
+     */
     private void ramShip() {
         Pool<Enemy> enemies = force.enemies();
         Hull hull = ship.spec().hull();
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
             EnemySpec spec = enemy.spec();
-            if (spec.layer().collidesWithPlayer()
+            if (enemy.layer().collidesWithPlayer()
                     && !Chain.doomed(enemy)
-                    && hull.overlaps(ship.x(), ship.y(), enemy.hitbox(), enemy.x(), enemy.y())) {
+                    && hull.overlaps(ship.x(), ship.y(), enemy.hitbox(), enemy.x(), enemy.y())
+                    && (!enemy.leaping() || enemy.pounceTouch(Enemy.TOUCHED_SHIP))) {
                 double lost = ship.defences().armourLost();
                 boolean wrecked = ship.defences().takeCollision(spec.contactDamage(), events, ship.x(), ship.y());
                 if (spec.destroyedByRamming()) {
@@ -1796,7 +2110,7 @@ public final class Sortie {
             Pool<Enemy> enemies = force.enemies();
             for (int j = 0; j < enemies.size() && !failed; j++) {
                 Enemy enemy = enemies.get(j);
-                if (enemy.spec().layer() != Layer.GROUND || enemy.grounded()) {
+                if (enemy.layer() != Layer.GROUND || enemy.grounded()) {
                     continue;
                 }
                 for (int k = 0; k < convoy.size() && !failed; k++) {
@@ -1907,7 +2221,7 @@ public final class Sortie {
         Pool<Enemy> enemies = force.enemies();
         for (int i = 0; i < enemies.size(); i++) {
             Enemy enemy = enemies.get(i);
-            if (enemy.spec().layer().hitByStandardShots() && PlayerFire.onField(enemy)) {
+            if (enemy.layer().hitByStandardShots() && PlayerFire.onField(enemy)) {
                 return true;
             }
         }
@@ -1995,6 +2309,23 @@ public final class Sortie {
                     .add(arenaJump ? 1 : 0)
                     .add(rampFrom)
                     .add(rampTicks);
+        }
+        if (holds.length > 0 || collapse != null) {
+            // M5 part C: only in a level with hold zones or a collapse, so the others hash as before.
+            hash.add(tickFraction)
+                    .add(clockStep)
+                    .add(realTick)
+                    .add(activeHold)
+                    .add(easingHold)
+                    .add(easeTicks)
+                    .add(holdStarted ? 1 : 0)
+                    .add(collapseTicks);
+            for (int state : holdState) {
+                hash.add(state);
+            }
+        }
+        if (pounced) {
+            hash.add(1);
         }
         if (wingman != null) {
             // Only with a wingman, so the hashes of sorties without one stay as they were.
@@ -2290,9 +2621,105 @@ public final class Sortie {
         return tick;
     }
 
-    /** Seconds since the start of this attempt. */
+    /**
+     * The level clock: script time since the start of this attempt, s (M5 part C: in a hold zone it
+     * advances slower than real time, see {@link #scriptRate()}). Every time in a level file is on
+     * this clock.
+     */
     public double levelSeconds() {
-        return levelTick * SimStep.SECONDS;
+        return (levelTick + (double) tickFraction / CLOCK_ONE) * SimStep.SECONDS;
+    }
+
+    /** M5 part C: the level clock, s; the same as {@link #levelSeconds()}. */
+    public double scriptSeconds() {
+        return levelSeconds();
+    }
+
+    /**
+     * M5 part C: how fast the level clock ran in the last step, script seconds per real second: 1
+     * outside a hold zone, the eased speed ÷ the section's in one (0.2 at 30 of 150), 0 while an
+     * arena halts it. For drawing between steps: script time at {@code alpha} is {@link
+     * #levelSeconds()} − (1 − alpha) × {@link SimStep#SECONDS} × this.
+     */
+    public double scriptRate() {
+        return (double) clockStep / CLOCK_ONE;
+    }
+
+    /**
+     * M5 part C: the real clock, seconds of steps since the start of this attempt (units, bullets,
+     * spawn cycles, pounces, the wingman, the radio queue and the backdrop's animation run on it).
+     */
+    public double realSeconds() {
+        return realTick * SimStep.SECONDS;
+    }
+
+    /** M5 part C: the hold zone running now (its index in {@link LevelScript#holds()}); -1 for none. */
+    public int activeHold() {
+        return activeHold;
+    }
+
+    /**
+     * M5 part C: whether a hold zone runs now, from its {@link SimEvents.Type#HOLD_START} to its
+     * {@link SimEvents.Type#HOLD_END} (the music's {@code full_on: hold}).
+     */
+    public boolean holdActive() {
+        return activeHold >= 0;
+    }
+
+    /** M5 part C: how far the scroll has eased toward a hold's speed, 0 (section speed) to 1 (the hold's). */
+    public double holdEase() {
+        return easeTicks == 0 ? 0 : (double) easeTicks / holdRampTicks[easingHold];
+    }
+
+    /** M5 part C: whether the collapse has started in this attempt (its warning and on; the music's {@code full_on: collapse}). */
+    public boolean collapseStarted() {
+        return collapseTicks >= 0;
+    }
+
+    /** M5 part C: real seconds since the collapse's warning started, running on after its end; -1 before it. */
+    public double collapseSeconds() {
+        return collapseTicks < 0 ? -1 : collapseTicks * SimStep.SECONDS;
+    }
+
+    /** M5 part C: whether the collapse's warning (its tower's lean) runs, before the drop. */
+    public boolean collapseWarning() {
+        return collapseTicks >= 0 && collapseTicks < collapseWarningTicks;
+    }
+
+    /** M5 part C: whether the collapse's tower has hit the ground (its blast rolling out, or over). */
+    public boolean collapseImpacted() {
+        return collapseTicks >= collapseImpactTicks && collapseTicks >= 0;
+    }
+
+    /**
+     * M5 part C: the collapse's blast's kill radius round the tower's foot now, px: 0 before the
+     * impact, then growing from the blast's {@code from} to its {@code to}, which it keeps once over.
+     */
+    public double collapseBlastRadius() {
+        if (collapse == null || !collapseImpacted()) {
+            return 0;
+        }
+        return collapse.blastRadius((collapseTicks - collapseImpactTicks) * SimStep.SECONDS);
+    }
+
+    /** M5 part C: the collapse's tower's footprint's centre, play-field x. */
+    public double collapseFootX() {
+        return collapse == null ? 0 : collapse.x();
+    }
+
+    /** M5 part C: the collapse's tower's footprint's centre now, play-field y (up), scrolling with the ground. */
+    public double collapseFootY() {
+        return collapse == null ? 0 : (collapse.top() + collapse.bottom()) / 2 - groundScroll;
+    }
+
+    /** M5 part C: the top of the collapse's band now, play-field y (up), scrolling with the ground. */
+    public double collapseBandTop() {
+        return collapse == null ? 0 : collapse.top() - groundScroll;
+    }
+
+    /** M5 part C: the bottom of the collapse's band now, play-field y (up), scrolling with the ground. */
+    public double collapseBandBottom() {
+        return collapse == null ? 0 : collapse.bottom() - groundScroll;
     }
 
     /** 1 for the first attempt, counting up with every restart after the ship was destroyed. */

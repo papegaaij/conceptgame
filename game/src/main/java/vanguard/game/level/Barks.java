@@ -34,9 +34,11 @@ import vanguard.sim.WaveSpec;
  *
  * The triggers come from the level's events (a boss's arrival, his low armour and ejection, kills),
  * from the level script (a rear wave 1.5 s before it enters, a sides wave as it enters) and from the
- * state the screen reads each step (the player's armour, overdrive pickups on the field). Everything
- * goes by the level's clock, so a retry plays the same barks; nothing here allocates per step except
- * a queued bark.
+ * state the screen reads each step (the player's armour, overdrive pickups on the field). The waves'
+ * barks go by the level's clock (script time), so a retry plays the same barks; the spacing and the
+ * streak's window are measured in real seconds (M5 part C: in a hold zone the level clock slows to a
+ * fifth, see {@link #clock}), and a timed Rook line that requires the escort ({@code requires:
+ * escort}) counts only while he flies. Nothing here allocates per step except a queued bark.
  */
 public final class Barks {
     /** The triggers, by their id in design/player/wingmen/data.yaml. */
@@ -84,8 +86,10 @@ public final class Barks {
     private final WingmenData.Bark[] barks = new WingmenData.Bark[Trigger.values().length];
 
     private final int[] priorities = new int[Trigger.values().length];
-    /** The level times (s) of the timed Rook lines of the level script. */
+    /** The level times (s, script time) of the timed Rook lines of the level script. */
     private final double[] timedRook;
+    /** Per timed Rook line whether it plays only while he flies ({@code requires: escort}). */
+    private final boolean[] timedEscortOnly;
     /** The steps at which a rear wave's and a sides wave's bark fires, sorted. */
     private final int[] rearTicks;
 
@@ -105,10 +109,18 @@ public final class Barks {
     private int overdrives;
     private int lastTick;
     private final Deque<Double> kills = new ArrayDeque<>();
+    /** The level clock at the last {@link #clock} (script seconds), NaN before: script time is real time. */
+    private double scriptNow = Double.NaN;
+    /** The real seconds at the last {@link #clock}. */
+    private double realNow;
+    /** The level clock's rate at the last {@link #clock}, script seconds per real second. */
+    private double rate = 1;
 
     /**
      * @param level the level number, which picks the first variant
      * @param timedRook the level times of the script's timed Rook lines
+     * @param timedEscortOnly per timed Rook line whether it requires the escort ({@code requires:
+     *     escort}): it no longer counts once he ejected
      * @param rearWaves the level times at which rear waves enter
      * @param sidesWaves the level times at which sides waves enter
      * @param queue queues a bark as an event line on {@code radio} and returns its message
@@ -117,10 +129,14 @@ public final class Barks {
             WingmenData.Barks data,
             int level,
             double[] timedRook,
+            boolean[] timedEscortOnly,
             double[] rearWaves,
             double[] sidesWaves,
             RadioQueue radio,
             Function<Line, RadioQueue.Message> queue) {
+        if (timedEscortOnly.length != timedRook.length) {
+            throw new IllegalArgumentException("one escort flag per timed Rook line");
+        }
         this.data = data;
         this.level = level;
         this.radio = radio;
@@ -131,6 +147,7 @@ public final class Barks {
             priorities[trigger.ordinal()] = bark.map(data.triggers()::indexOf).orElse(Integer.MAX_VALUE);
         }
         this.timedRook = timedRook.clone();
+        this.timedEscortOnly = timedEscortOnly.clone();
         double ahead = bark(Trigger.REAR_WAVE).flatMap(WingmenData.Bark::ahead).orElse(REAR_AHEAD_SECONDS);
         rearTicks = Arrays.stream(rearWaves)
                 .mapToInt(t -> SimStep.ticks(Math.max(0, t - ahead)))
@@ -145,6 +162,18 @@ public final class Barks {
         reset(0);
     }
 
+    /** Without a level clock of its own: script time is real time. */
+    public Barks(
+            WingmenData.Barks data,
+            int level,
+            double[] timedRook,
+            double[] rearWaves,
+            double[] sidesWaves,
+            RadioQueue radio,
+            Function<Line, RadioQueue.Message> queue) {
+        this(data, level, timedRook, new boolean[timedRook.length], rearWaves, sidesWaves, radio, queue);
+    }
+
     /**
      * Rook's barks in a level: the script's timed Rook lines (those that play with what is fitted) and
      * its rear and sides waves.
@@ -155,16 +184,34 @@ public final class Barks {
             boolean specialFitted,
             RadioQueue radio,
             Function<Line, RadioQueue.Message> queue) {
-        double[] timed = script.radio().stream()
+        return of(data, script, specialFitted ? LevelScript.RadioCue.FITTED_SPECIAL : 0, radio, queue);
+    }
+
+    /**
+     * As above with what is fitted as the radio's bits ({@link RadioSchedule#fitted}); the lines that
+     * require the escort count while he flies.
+     */
+    public static Barks of(
+            WingmenData.Barks data,
+            LevelScript script,
+            int fitted,
+            RadioQueue radio,
+            Function<Line, RadioQueue.Message> queue) {
+        List<LevelScript.RadioCue> rook = script.radio().stream()
                 .filter(cue -> cue.trigger() == LevelScript.CueTrigger.TIME)
                 .filter(cue -> cue.speaker().equals(data.speaker()))
-                .filter(cue -> specialFitted || !cue.requiresSpecial())
-                .mapToDouble(LevelScript.RadioCue::t)
-                .toArray();
+                .filter(cue -> cue.allowedWith(fitted | LevelScript.RadioCue.FITTED_ESCORT))
+                .toList();
+        double[] timed = rook.stream().mapToDouble(LevelScript.RadioCue::t).toArray();
+        boolean[] escortOnly = new boolean[rook.size()];
+        for (int i = 0; i < escortOnly.length; i++) {
+            escortOnly[i] = RadioSchedule.needsEscort(rook.get(i));
+        }
         return new Barks(
                 data,
                 script.number(),
                 timed,
+                escortOnly,
                 waves(script.waves(), WaveSpec.Entry.REAR),
                 waves(script.waves(), WaveSpec.Entry.SIDES),
                 radio,
@@ -182,6 +229,33 @@ public final class Barks {
         return Optional.ofNullable(barks[trigger.ordinal()]);
     }
 
+    /**
+     * The clocks after a simulation step (M5 part C): the level clock {@code scriptSeconds}, the real
+     * clock {@code realSeconds} that every {@code t} given to the barks is on, and the level clock's
+     * {@code scriptRate} (script seconds per real second; 0.2 in a hold zone at 30 of 150 px/s), so a
+     * timed Rook line's distance is measured in real seconds.
+     */
+    public void clock(double scriptSeconds, double realSeconds, double scriptRate) {
+        scriptNow = scriptSeconds;
+        realNow = realSeconds;
+        rate = scriptRate;
+    }
+
+    /** Real seconds between {@code t} (real) and a timed line due at script time {@code due}. */
+    private double realDistance(double due, double t) {
+        if (Double.isNaN(scriptNow)) {
+            return Math.abs(due - t);
+        }
+        double script = due - scriptNow;
+        if (script == 0) {
+            return Math.abs(realNow - t);
+        }
+        if (rate >= 1) {
+            return Math.abs(script + realNow - t);
+        }
+        return rate > 0 ? Math.abs(script / rate + realNow - t) : Double.POSITIVE_INFINITY;
+    }
+
     /** A new attempt (or the boss checkpoint) starting at {@code levelTick}: the counts and latches start over. */
     public void reset(int levelTick) {
         Arrays.fill(counts, 0);
@@ -197,7 +271,7 @@ public final class Barks {
         kills.clear();
     }
 
-    /** A line opened on the radio at level time {@code t}: a Rook line starts the spacing. */
+    /** A line opened on the radio at {@code t} (real seconds): a Rook line starts the spacing. */
     public void opened(String speaker, double t) {
         if (speaker.equals(data.speaker())) {
             lastRookStart = t;
@@ -262,7 +336,15 @@ public final class Barks {
      * the overdrive pickups on the field (a bark when one appears).
      */
     public void step(int levelTick, double playerArmourShare, int overdrivePickups) {
-        double t = levelTick * SimStep.SECONDS;
+        step(levelTick, levelTick * SimStep.SECONDS, playerArmourShare, overdrivePickups);
+    }
+
+    /**
+     * As above with the real clock: the barks fire at {@code realSeconds} (M5 part C), the waves' by
+     * the level clock's {@code levelTick}.
+     */
+    public void step(int levelTick, double realSeconds, double playerArmourShare, int overdrivePickups) {
+        double t = realSeconds;
         if (levelTick > lastTick) {
             if (due(rearTicks, levelTick)) {
                 fire(Trigger.REAR_WAVE, t);
@@ -298,7 +380,7 @@ public final class Barks {
     }
 
     /**
-     * A trigger at level time {@code t}: queued when the spacing and the priority allow it (the eject
+     * A trigger at {@code t} (real seconds; the level time where no {@link #clock} runs): queued when the spacing and the priority allow it (the eject
      * bark always).
      *
      * @return whether the bark was queued
@@ -312,8 +394,8 @@ public final class Barks {
         if (!eject && t - lastRookStart < data.spacing()) {
             return false;
         }
-        for (double due : timedRook) {
-            if (!eject && Math.abs(due - t) < data.spacing()) {
+        for (int i = 0; i < timedRook.length && !eject; i++) {
+            if (!(timedEscortOnly[i] && ejected) && realDistance(timedRook[i], t) < data.spacing()) {
                 return false;
             }
         }

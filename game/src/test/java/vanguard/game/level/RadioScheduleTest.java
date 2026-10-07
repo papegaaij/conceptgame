@@ -61,4 +61,55 @@ class RadioScheduleTest {
         assertEquals(10, new RadioSchedule(script, true).untilTimed(50), 1e-4);
         assertEquals(Float.POSITIVE_INFINITY, new RadioSchedule(script, false).untilTimed(50));
     }
+
+    /** A timed Rook line at {@code t} that requires the escort (M5 part C: {@code requires: escort}). */
+    private static LevelScript script(double t, int requires) {
+        var line = new LevelScript.RadioCue(
+                LevelScript.CueTrigger.TIME,
+                t,
+                "",
+                "Rook",
+                "Six bugs, two pilots.",
+                false,
+                "neutral",
+                "Rook",
+                false,
+                0,
+                Integer.MAX_VALUE,
+                requires,
+                0);
+        return new LevelScript(
+                9,
+                1,
+                0,
+                List.of(new LevelScript.Section(150, 200)),
+                List.of(),
+                List.of(),
+                List.of(),
+                0,
+                List.of(line),
+                new LevelScript.Secondary(0.8, 50),
+                List.of());
+    }
+
+    @Test
+    void anEscortLineCountsOnlyWhileHeFlies() {
+        var schedule = new RadioSchedule(script(60, LevelScript.RadioCue.FITTED_ESCORT), 0);
+        assertEquals(10, schedule.untilTimed(50, 1, true), 1e-4);
+        assertEquals(Float.POSITIVE_INFINITY, schedule.untilTimed(50, 1, false));
+        assertEquals(
+                true,
+                RadioSchedule.needsEscort(
+                        script(60, LevelScript.RadioCue.FITTED_ESCORT).radio().getFirst()));
+        assertEquals(false, RadioSchedule.needsEscort(script(60, 0).radio().getFirst()));
+    }
+
+    @Test
+    void inAHoldTheGapIsMeasuredInRealSeconds() {
+        var schedule = new RadioSchedule(script(60, 0), 0);
+        // M5 part C: 2 s of script time at the hold's rate of 0.2 (30 of 150 px/s) are 10 real seconds.
+        assertEquals(10, schedule.untilTimed(58, 0.2, true), 1e-3);
+        assertEquals(2, schedule.untilTimed(58, 1, true), 1e-4);
+        assertEquals(Float.POSITIVE_INFINITY, schedule.untilTimed(58, 0, true), "an arena halts the clock");
+    }
 }

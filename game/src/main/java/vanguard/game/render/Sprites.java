@@ -33,16 +33,14 @@ public final class Sprites implements Disposable {
     private final TextureAtlas sprites;
     /** The loaded unit atlases by level number, with the screens using them. */
     private final Map<Integer, Units> units = new LinkedHashMap<>();
+    /** The level whose unit atlas was entered last; its regions are found first. */
+    private int latest = -1;
 
     private final TextureAtlas backdrop;
     private final Texture pixelTexture;
 
     /** Hard left .. hard right. */
     public final Array<AtlasRegion> ship;
-    /** The wing beat. */
-    public final Array<AtlasRegion> skitter;
-    /** The claw snap. */
-    public final Array<AtlasRegion> needler;
     /** The Vrell standard orb bullet (the Needler's thorn): its core pulse. */
     public final Array<AtlasRegion> orb;
     /** The pickups' 8-frame spin loops. */
@@ -84,8 +82,6 @@ public final class Sprites implements Disposable {
         sprites = new TextureAtlas(files.internal("atlas/sprites.atlas"));
         backdrop = new TextureAtlas(files.internal("atlas/backdrop.atlas"));
         ship = frames(sprites, "ship");
-        skitter = frames(sprites, "skitter");
-        needler = frames(sprites, "needler");
         orb = frames(sprites, "orb");
         salvageSmall = frames(sprites, "pickup-salvage-small");
         crate = frames(sprites, "pickup-crate");
@@ -119,6 +115,7 @@ public final class Sprites implements Disposable {
      * a level entered twice (a retry starting before the last attempt's screen closes) keeps it.
      */
     public void enterLevel(int number) {
+        latest = number;
         Units entered = units.get(number);
         if (entered != null) {
             entered.users++;
@@ -162,9 +159,17 @@ public final class Sprites implements Disposable {
         return atlasOf(name).findRegion(name) != null;
     }
 
-    /** The atlas that holds a region of that name: the shared pages, or else a loaded unit atlas holding it. */
+    /**
+     * The atlas that holds a region of that name: the shared pages, or else a loaded unit atlas holding
+     * it, the most recently entered level's first (M5 part C: a unit used by several levels is packed
+     * into each of their atlases, so while two are loaded the new level's own copy is the one drawn).
+     */
     private TextureAtlas atlasOf(String name) {
         if (sprites.findRegion(name) == null) {
+            Units newest = units.get(latest);
+            if (newest != null && newest.atlas != null && newest.atlas.findRegion(name) != null) {
+                return newest.atlas;
+            }
             for (Units loaded : units.values()) {
                 if (loaded.atlas != null && loaded.atlas.findRegion(name) != null) {
                     return loaded.atlas;

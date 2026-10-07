@@ -227,7 +227,9 @@ def stat_block(d):
     def suffix(key):
         return f" {fill(notes[key], values)}" if key in notes else ""
 
-    attacks = "; ".join(fill(a["notes"]["text"], values | a | {"damage": bullet[a["bullet"]]}) for a in e["attacks"])
+    # A spawn or a pounce (M5 part C) has no bullet: its text names no {damage}.
+    attacks = "; ".join(fill(a["notes"]["text"], values | a | {"damage": bullet.get(a.get("bullet"))})
+                        for a in e["attacks"])
     attacks = fill(notes.get("attack_prefix", ""), values) + attacks
     parts = notes["parts"] if e["parts"] == "multi" else e["parts"]
     hp_text = (fill(notes["hp"], values) + " " if "hp" in notes else "") + num(e["hp"])
@@ -487,7 +489,7 @@ def ground_values(target):
     """A ground target's fields for its notes: its `count` (one per placement if not given), the
     credits of its drop, and for an enemy its stat block's `name` and `bounty`."""
     values = {"count": len(target["at"])} | target
-    if "drop" in target:
+    if target.get("drop", "").endswith("salvage"):  # a credit pickup (Level 09's cocoon drops an armour patch)
         values["drop_credits"] = pickup_credits(target["drop"])
     if "enemy" in target:
         e = load(f"{enemy_dir(target['enemy'])}/data.yaml")
@@ -639,6 +641,14 @@ def credit_budget(d):
     for slug, n in enemy_totals(level).items():
         for spawn in spawns(slug):
             kills.append((f"released {enemy_name(spawn['enemy'])}", n * spawn["count"], spawn["enemy"]))
+    # a periodic spawner among the ground targets (Level 09's Hive Nodes, M5 part C): one release each
+    released = {}
+    for g in level["ground_targets"]:
+        for spawn in spawns(g["enemy"]) if "enemy" in g else []:
+            if "every" in spawn:
+                released[spawn["enemy"]] = released.get(spawn["enemy"], 0) + len(g["at"]) * spawn["count"]
+    kills += [(f"released {enemy_name(slug)}", n, slug) for slug, n in released.items()]
+
     def kill_items(n, slug):
         """A kill's payouts; a segment chain's head, segments and tail each pay (and round) their own."""
         e = load(f"{enemy_dir(slug)}/data.yaml")
@@ -658,7 +668,7 @@ def credit_budget(d):
         if "enemy" in g:
             enemies[g["enemy"]] = enemies.get(g["enemy"], 0) + ground_values(g)["count"]
     paying = [ground_values(g) for g in level["ground_targets"]
-              if "enemy" not in g and ("bounty" in g or "drop" in g)]
+              if "enemy" not in g and ("bounty" in g or g.get("drop", "").endswith("salvage"))]
     parts = [f"{enemy_name(slug)} {n} × {stat_bounty(slug)}" for slug, n in enemies.items()]
     parts += [fill(g["notes"]["budget"], g) for g in paying]
     items = [(n, bounty(stat_bounty(slug)), rate["ground_targets"]) for slug, n in enemies.items()]
@@ -711,7 +721,11 @@ def credit_budget(d):
             [(1, pay(s["crate"]), rate["secrets"])])
     secondary = level["objectives"]["secondary"]
     count = 1
-    if "groups" in secondary:
+    if "name" in secondary:  # the objective's own name (Level 09's "Hold the bridge")
+        if "groups" in secondary:
+            count = len(secondary["groups"])
+        source = f"Secondary: {secondary['name'][0].lower()}{secondary['name'][1:]}"
+    elif "groups" in secondary:
         count = len(secondary["groups"])
         source = f"Secondary: {count} {group_noun(level)}s × {secondary['credits']}"
     elif "escapes" in secondary and spawns(secondary["escapes"]):

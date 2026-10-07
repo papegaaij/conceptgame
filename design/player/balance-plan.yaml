@@ -8,6 +8,7 @@
 # Key = the level that follows the visit. Actions:
 #   start: the starting loadout (front weapon and level; core = index into the part's model list)
 #   buy: [slot, weapon]   upgrade: [slot, level]   sell: [slot]   core: [kind, index into its list]
+#   (slot escort: Rook's gun by its id in wingmen/data.yaml, from Level 08 on)
 #   utility: [module, level]   charges: [special, count]
 # An optional `difficulties: {hard: {"NN": {...}}}` adds purchases to a visit on another
 # difficulty (ActPlaythroughTest); none are needed today: Act 1 is flown on every difficulty with the
@@ -29,9 +30,9 @@ plan:
   "06": {upgrade: [[front, 3]]}
   "07": {core: [[armor, 1]]}
   "08": {core: [[generator, 1]]}
-  "09": {buy: [[rear, tail-gun]]}
-  "10": {upgrade: [[rear, 2], [wing_l, 2], [wing_r, 2]], charges: [[Airstrike, 1]]}
+  "09": {sell: [wing_l], buy: [[wing_l, bomb-rack], [escort, mortar]]}   # anti-ground for the hardened Hive Nodes (D8 = c of M5 part C)
+  "10": {buy: [[rear, tail-gun]]}   # moved from L09 (D8 = c); the wing upgrades and L10's Airstrike charge moved later
   "11": {upgrade: [[front, 4]]}
-  "12": {sell: [wing_l, wing_r], buy: [[wing_l, micro-missile-pod], [wing_r, micro-missile-pod]]}
+  "12": {sell: [wing_l, wing_r], buy: [[wing_l, micro-missile-pod], [wing_r, micro-missile-pod]], charges: [[Airstrike, 1]]}
   "13": {core: [[armor, 2]], upgrade: [[wing_l, 2], [wing_r, 2]]}
-  "14": {charges: [[Airstrike, 1]]}  # with the free charge at L04 it carries its most, 4
+  "14": {upgrade: [[rear, 2]], charges: [[Airstrike, 1]]}  # with the free charge at L04 it carries its most, 4

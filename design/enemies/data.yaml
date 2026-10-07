@@ -37,6 +37,7 @@ formations:  # the formation vocabulary: name and description
   carrier + escorts: A large unit (often `spawn`) with escorts in `orbit`.
   turret nest: 3–6 ground turrets in a cluster with overlapping fire.
   convoy: Ground or naval units in a column along a road, river or lane.
+  pack: 3–5 walkers entering together, each on its own ground path, 0.25 s apart (the Ravager).
   submerged ambush: '`sub` units that surface together around the player.'
   swarm: A loose, randomised cloud with flocking behaviour.
   solo set piece: One huge unit on its own, announced by radio (at most one per level).

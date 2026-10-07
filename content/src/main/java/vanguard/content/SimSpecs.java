@@ -573,7 +573,9 @@ public final class SimSpecs {
                 groupDrops(level, carried),
                 level.darkness().map(darkness -> darkness(darkness, difficulty)),
                 LevelRules.tows(level),
-                LevelRules.partDrops(content, level, carried, SimSpecs::pickup));
+                LevelRules.partDrops(content, level, carried, SimSpecs::pickup),
+                PartCRules.holds(level, difficulty),
+                PartCRules.collapse(level));
     }
 
     /** A dark level's light at {@code difficulty} (Level 06): easy's longer headlight and flares, the flares it fires. */
@@ -1246,7 +1248,8 @@ public final class SimSpecs {
                                     back.after(),
                                     back.path().orElse(List.of()).stream()
                                             .map(point -> new WaveSpec.At(point.x(), point.y()))
-                                            .toList()))));
+                                            .toList())),
+                    wave.tag().orElse("")));
         }
     }
 
@@ -1271,6 +1274,7 @@ public final class SimSpecs {
             case "convoy" -> WaveSpec.Formation.CONVOY;
             case "whirl cluster" -> WaveSpec.Formation.WHIRL_CLUSTER;
             case "carrier + escorts" -> WaveSpec.Formation.CARRIER_ESCORTS;
+            case "pack" -> WaveSpec.Formation.PACK;
             default -> throw new IllegalArgumentException("the formation '" + name + "' is not implemented yet");
         };
     }
@@ -1359,15 +1363,43 @@ public final class SimSpecs {
         Optional<EnemyData.Hook> hook = hook(enemy, difficulty);
         Optional<EnemySpec.Brood> brood = enemy.attacks().stream()
                 .flatMap(attack -> attack.spawn().stream())
+                .filter(spawn -> !spawn.periodic())
                 .findFirst()
                 .map(spawn -> new EnemySpec.Brood(
                         enemy(content, spawn.enemy(), difficulty, Optional.empty(), inLevel),
                         hook.flatMap(EnemyData.Hook::spawnCount).orElse(spawn.count()),
-                        hook.flatMap(EnemyData.Hook::spawnAfter).orElse(spawn.after()),
+                        hook.flatMap(EnemyData.Hook::spawnAfter)
+                                .orElse(spawn.after().orElseThrow()),
                         spawn.telegraph(),
                         Math.toRadians(spawn.arc()),
                         spawn.speed(),
-                        spawn.burstBounty()));
+                        spawn.burstBounty().orElseThrow()));
+        // M5 part C: a periodic spawn (the Hive Node) with the hook's count.
+        Optional<EnemySpec.Spawner> spawner = enemy.attacks().stream()
+                .flatMap(attack -> attack.spawn().stream())
+                .filter(EnemyData.Spawn::periodic)
+                .findFirst()
+                .map(spawn -> new EnemySpec.Spawner(
+                        enemy(content, spawn.enemy(), difficulty, Optional.empty(), inLevel),
+                        hook.flatMap(EnemyData.Hook::spawnCount).orElse(spawn.count()),
+                        spawn.every().orElseThrow(),
+                        spawn.telegraph(),
+                        Math.toRadians(spawn.arc()),
+                        spawn.speed(),
+                        spawn.shutWithin().orElse(0.0)));
+        // M5 part C: a pounce (the Ravager), its interval by the hook's authored one or the fire-rate lever.
+        Optional<EnemySpec.Pounce> pounce = enemy.attacks().stream()
+                .filter(attack -> attack.pounce().isPresent())
+                .findFirst()
+                .map(attack -> {
+                    EnemyData.Pounce leap = attack.pounce().orElseThrow();
+                    return new EnemySpec.Pounce(
+                            leap.range(),
+                            leap.leap(),
+                            leap.air(),
+                            leap.scale(),
+                            interval(content, attack, hook, difficulty));
+                });
         double speedFactor = change.flatMap(LevelData.EnemyChange::speedFactor).orElse(1.0);
         Optional<EnemySpec.Walker> walker = movement.walk()
                 .map(walk -> new EnemySpec.Walker(
@@ -1448,7 +1480,10 @@ public final class SimSpecs {
                                 edgeX,
                                 movement.hover().flatMap(EnemyData.Hover::exit).isPresent())),
                 sweep(content, enemy, difficulty),
-                Optional.empty());
+                Optional.empty(),
+                enemy.armour().hardened(),
+                spawner,
+                pounce);
         return enemy.segmentChain().isPresent() ? withChain(content, enemy, spec, difficulty, actHp) : spec;
     }
 
@@ -1628,7 +1663,10 @@ public final class SimSpecs {
                 head.walker(),
                 head.sideHover(),
                 head.sweep(),
-                Optional.of(spec));
+                Optional.of(spec),
+                head.hardened(),
+                head.spawner(),
+                head.pounce());
     }
 
     /** A chain's part as a unit of its own: its HP by the HP lever, on the head's layer. */
@@ -1697,6 +1735,7 @@ public final class SimSpecs {
         List<EnemyData.Attack> attacks = enemy.attacks().stream()
                 .filter(attack -> !attack.pattern().equals("spawn"))
                 .filter(attack -> !attack.pattern().equals("laser-sweep"))
+                .filter(attack -> !attack.pattern().equals("pounce"))
                 .filter(attack ->
                         attack.away().isEmpty() || enemy.movement().walk().isEmpty())
                 .toList();
@@ -1829,6 +1868,9 @@ public final class SimSpecs {
                         case MISSION_FAILED -> LevelScript.CueTrigger.MISSION_FAILED;
                         case BOSS_PHASE -> LevelScript.CueTrigger.BOSS_PHASE;
                         case BOSS_DESTROYED -> LevelScript.CueTrigger.BOSS_DESTROYED;
+                        case HOLD_START -> LevelScript.CueTrigger.HOLD_START;
+                        case FIRST_POUNCE -> LevelScript.CueTrigger.FIRST_POUNCE;
+                        case COLLAPSE -> LevelScript.CueTrigger.COLLAPSE;
                     })
                     .orElse(LevelScript.CueTrigger.TIME);
             // Part G (LevelRules): a boss-destroyed cue's subject is the boss, a timeout cue its own

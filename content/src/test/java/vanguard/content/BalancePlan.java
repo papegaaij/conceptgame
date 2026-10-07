@@ -23,14 +23,16 @@ import vanguard.content.campaign.LoadoutSlot;
 /**
  * The expected purchases of a typical medium player per hangar visit (design/player/balance-plan.yaml),
  * made through the shop's own rules ({@link Hangar}): the balance tests and the act playthrough buy
- * the plan with it, and tools/balance.py prints the same plan as the balancing sheet.
+ * the plan with it, and tools/balance.py prints the same plan as the balancing sheet. The slot
+ * {@code escort} is Rook's gun (M5 part C: his Mortar, bought before Level 09).
  */
 public final class BalancePlan {
     private static final Map<String, LoadoutSlot> SLOTS = Map.of(
             "front", LoadoutSlot.FRONT,
             "rear", LoadoutSlot.REAR,
             "wing_l", LoadoutSlot.LEFT_WING,
-            "wing_r", LoadoutSlot.RIGHT_WING);
+            "wing_r", LoadoutSlot.RIGHT_WING,
+            "escort", LoadoutSlot.ESCORT);
     private static final Map<String, LoadoutSlot> CORE = Map.of(
             "generator", LoadoutSlot.GENERATOR,
             "shield", LoadoutSlot.SHIELD,

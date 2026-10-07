@@ -24,7 +24,14 @@ speakers:
       468143d57448: 73929799    # Act 2 briefing page 3 "Until now you fought…": the key's seed said "you've fought"
       d16b2f349c6c: 219591441   # Level 08 t=1 "Aegis, contacts inbound…": the key's seed said "contact inbound"
       e2da9c95df0f: 237873619   # Level 08 end "…The arcologies are next.": the key's seed read "all colleges" through the radio filter
-  varga: {names: [Varga], ref: ref-varga}
+      e17cf2dea039: 236441589   # Level 09 failed "Node A1 got past you, Lancer…": the key's seed read "you'll answer" both ways
+      f6b5fc8fbc52: 258695212   # Level 09 failed "Node A2 got past you, Lancer…": the key's seed read "you'll answer" through the filter
+      3e65a05739f4: 65428273    # Level 09 failed "Node C1 got past you, Lancer…": the key's seed read "See, one" and "your answer" dry
+  varga:
+    names: [Varga]
+    ref: ref-varga
+    pins:
+      febdaf698bba: 267115454   # Level 09 briefing page 2 "The nodes are hardened…": the key's seed read "the streets and packs" both ways
   rook:
     names: [Rook]
     ref: ref-rook
@@ -60,3 +67,6 @@ speakers:
     pins:
       52ac8741e93c: 86689958    # t=113 "Shelter nine, Ikoyi!…": the key's seed read "on the roof" and lost "Shelter nine" dry
       ab9138181b26: 179901323   # secondary "Shelter nine here…": the key's seed read "The roof's acquired"
+  kilo-lead:   # Level 09 (the CDF officer of the Kilo truck convoy); cast in round 31 (a, Aaron Bennett), neutral as auditioned
+    names: [Kilo Lead]
+    ref: ref-kilo-lead

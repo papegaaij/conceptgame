@@ -41,7 +41,9 @@ SHARE_TOLERANCE = 1 / 3          # a boss's or set piece's bounty share: "about"
 # Deviations from the balancing basis the user accepted (BalanceTest.ACCEPTED holds the same list).
 ACCEPTED = {
     ("coilwyrm", "bounty"): "a multi-part enemy, cutting it up is extra work; a head-first kill pays 40",
+    ("ravager", "ttk"): "a fast, fragile pack hunter (user decision 2026-10-07, M5 part C)",
 }
+HOLD_SHARE = 0.6                 # a hold's cluster dies in at most this share of its window (BalanceTest, medium)
 
 
 def load_all():
@@ -62,6 +64,7 @@ def load_all():
         },
         "utility": {u["name"]: u for u in load("player/systems/data.yaml")["utility"]},
         "specials": {s["name"]: s for s in load("player/specials/data.yaml")["specials"]},
+        "wingmen": load("player/wingmen/data.yaml"),
     }
 
 
@@ -120,6 +123,12 @@ def apply_plan(data):
             refund = round(state["invested"].pop(slot, 0) * data["economy"]["sell_back"])
             pay(-refund, f"sell {W[slug]['name']} ({slot})")
         for slot, slug in step.get("buy", []):
+            if slot == "escort":  # Rook's gun (M5 part C): price factor × its base weapon's price, no power
+                gun = escort_gun(data, slug)
+                pay(round(data["wingmen"]["guns"]["price_factor"] * W[gun["base"]]["price"]),
+                    f"buy Rook's {gun['name']}", slot)
+                state["slots"][slot] = [slug, 1]
+                continue
             w = W[slug]
             if w["unlock"] > n:
                 state["log"].append(f"!! {slug} not unlocked before L{key}")
@@ -160,10 +169,16 @@ def apply_plan(data):
         state["income"] += earned
 
 
+def escort_gun(data, gun_id):
+    return next(g for g in data["wingmen"]["guns"]["list"] if g["id"] == gun_id)
+
+
 def loadout_numbers(data, state):
     W, core = data["weapons"], data["core"]
     load_mw, fwd, rear, volley = 0.0, 0.0, 0.0, 0.0
     for slot, (slug, lvl) in state["slots"].items():
+        if slot == "escort":
+            continue
         w = W[slug]
         v, s = stats(w, w["levels"][lvl - 1])
         load_mw += draw(w, lvl)
@@ -331,6 +346,7 @@ def report(data):
             if boss:
                 line += f"; boss {enemy(boss)['name']} {enemy(boss)['hp'] / (EFFECTIVE * fwd):.0f} s (at 0.6×)"
             ttk_lines.append(line)
+            ttk_lines += hold_lines(data, d, st)
     print("\nBefore visit: the credits after the level before it, which earns its typical haul where the "
           "level has data (its credit-budget table), else budget(n).")
     print("\nLevels with data:")
@@ -346,6 +362,40 @@ def report(data):
     print("\nAccepted: " + ("none" if not accepted else "\n  " + "\n  ".join(accepted)))
     print("\nProblems: " + ("none" if not problems else "\n  " + "\n  ".join(problems)))
     return 1 if problems else 0
+
+
+def anti_ground_dps(data, state):
+    """The single-target DPS of the fit's anti-ground sources: its weapons and Rook's gun (his gun's
+    scale × its base weapon); the only damage a hardened unit takes (the specials aside)."""
+    W, dps = data["weapons"], 0.0
+    for slot, (slug, lvl) in state["slots"].items():
+        if slot == "escort":
+            gun = escort_gun(data, slug)
+            w = W[gun["base"]]
+            if "anti-ground" in w.get("traits", []):
+                dps += gun["scale"] * stats(w, w["levels"][lvl - 1])[1]
+        elif "anti-ground" in W[slug].get("traits", []):
+            dps += stats(W[slug], W[slug]["levels"][lvl - 1])[1]
+    return dps
+
+
+def hold_lines(data, d, state):
+    """A level's hold zones (M5 part C): each cluster's HP against the fit's anti-ground DPS and the
+    hold's window at medium (from the trigger until its first unit's far edge leaves the bottom
+    edge: the ease, then the hold speed); BalanceTest checks HP / DPS <= 0.6 x window."""
+    level = load(f"{d}/data.yaml")
+    lines = []
+    dps = anti_ground_dps(data, state)
+    for i, hold in enumerate(level.get("holds", [])):
+        units = [g for g in level["ground_targets"] if g.get("group") in hold["groups"]]
+        hp = sum(enemy(g["enemy"])["hp"] * len(g["at"]) for g in units)
+        half = max(enemy(g["enemy"])["hitbox"][1] / 2 for g in units)
+        ease = hold["ramp"] * (level["scroll_speed"] + hold["speed"]) / 2
+        window = hold["ramp"] + (540 + half - hold["y"] - ease) / hold["speed"]
+        ttk = hp / dps if dps else float("inf")
+        lines.append(f"  hold {i + 1} ({', '.join(hold['groups'])}): {hp:g} HP / anti-ground {dps:.1f} DPS = "
+                     f"{ttk:.1f} s of a {window:.1f} s window ({ttk / window:.2f}, at most {HOLD_SHARE})")
+    return lines
 
 
 def weapons_dump(data):

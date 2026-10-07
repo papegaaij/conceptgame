@@ -65,6 +65,11 @@ record TypicalHaul(int perfect, double typical, double budget) {
         }
         for (var unit : level.groundUnits()) {
             sum.bounty(1, unit.enemy().bounty(), rate.groundTargets());
+            // M5 part C: a periodic spawner (Level 09's Hive Nodes) counts one release, as DensityTest
+            unit.enemy()
+                    .spawner()
+                    .ifPresent(spawner ->
+                            sum.bounty(spawner.count(), spawner.enemy().bounty(), rate(rate, spawner.enemy())));
         }
         for (var object : level.groundObjects()) {
             sum.bounty(1, object.bounty(), rate.groundTargets());

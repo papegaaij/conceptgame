@@ -7,8 +7,10 @@ import java.util.List;
  * held, an overdrive switches every mount to its overdrive pattern, and the projectiles fly, seek,
  * fall and hit by the layer rules of design/enemies (Layer rules): bolts and homing missiles hit
  * what they pass on the layers their {@link WeaponSpec.Delivery} reaches and the ground objects
- * below; bombs and shells burst on the ground only. Hardened ground targets take damage from
- * {@code anti-ground} weapons only; other shots glance off. Armed spore mines on the player's
+ * below; bombs and shells burst on the ground only. Hardened ground targets and (M5 part C)
+ * hardened enemies take damage from {@code anti-ground} weapons only; other shots and blasts glance
+ * off, and a homing missile does not lock onto a hardened enemy unless it is anti-ground. Every
+ * rule reads an enemy's current layer ({@link Enemy#layer()}: a pounce's air window). Armed spore mines on the player's
  * layer are shot like enemies; a set piece's parts take the hits on their layer and its armoured
  * body makes the rest glance; homing missiles lock onto parts too. A boss on {@code high-air} is
  * above the play field: a missile seeks its open parts all round (not only in its cone), climbs to
@@ -311,7 +313,7 @@ final class PlayerFire {
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
             double d = distanceSquared(landX, landY, enemy.x(), enemy.y());
-            if (enemy.spec().layer() == Layer.GROUND && d <= best) {
+            if (enemy.layer() == Layer.GROUND && d <= best) {
                 best = d;
                 snapX = enemy.x();
                 snapY = enemy.y();
@@ -391,7 +393,14 @@ final class PlayerFire {
 
     /** Whether the shot's locked target is still on the field; it is then at the target position. */
     private boolean locked(Shot shot, Pool<Enemy> enemies) {
-        int target = shot.target();
+        return located(shot.target(), enemies);
+    }
+
+    /**
+     * Whether {@code target} (a serial as the homing locks use, -1 for none) is on the field; it is
+     * then at the target position.
+     */
+    private boolean located(int target, Pool<Enemy> enemies) {
         if (target < 0) {
             return false;
         }
@@ -441,7 +450,10 @@ final class PlayerFire {
         double nearestY = 0;
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
-            if (onField(enemy) && inCone(shot, enemy.x(), enemy.y(), best)) {
+            // M5 part C: a hardened unit is no target unless the weapon is anti-ground.
+            if (onField(enemy)
+                    && (weapon.antiGround() || !enemy.spec().hardened())
+                    && inCone(shot, enemy.x(), enemy.y(), best)) {
                 best = distanceSquared(shot.x(), shot.y(), enemy.x(), enemy.y());
                 nearest = enemy.serial();
                 nearestX = enemy.x();
@@ -490,15 +502,16 @@ final class PlayerFire {
             }
             for (int j = enemies.size() - 1; j >= 0; j--) {
                 Enemy enemy = enemies.get(j);
-                EnemySpec spec = enemy.spec();
-                if (!weapon.delivery().reaches(spec.layer())
+                Layer layer = enemy.layer();
+                if (!weapon.delivery().reaches(layer)
                         || !onField(enemy)
                         || !weapon.size().overlaps(shot.x(), shot.y(), enemy.hitbox(), enemy.x(), enemy.y())
                         || (weapon.pierce() > 1 && shot.struck(2 * enemy.serial()))) {
                     continue;
                 }
-                if (enemy.glances(shot.vx(), shot.vy())) {
-                    // A walker's frontal armour: a direct shot from ahead sparks off.
+                if ((enemy.spec().hardened() && !weapon.antiGround()) || enemy.glances(shot.vx(), shot.vy())) {
+                    // A hardened unit (M5 part C) without anti-ground, or a walker's frontal armour
+                    // for a direct shot from ahead: it sparks off.
                     events.add(SimEvents.Type.SHOT_GLANCED, shot.x(), shot.y(), shot.mount());
                     shots.free(i);
                     break;
@@ -509,7 +522,7 @@ final class PlayerFire {
                     sinceHit = 0;
                 }
                 boolean spent = shot.pierced();
-                if (enemy.damage(shot.damage() * groundFactor(weapon, spec.layer()))) {
+                if (enemy.damage(shot.damage() * groundFactor(weapon, layer))) {
                     hits.enemyDestroyed(j, shot.mount());
                 }
                 if (spent) {
@@ -688,7 +701,11 @@ final class PlayerFire {
         }
     }
 
-    /** A landed bomb or shell damages every ground object and ground enemy within its blast once. */
+    /**
+     * A landed bomb or shell damages every ground object and ground enemy (on the ground now: a
+     * pounce's air window is missed) within its blast once; hardened ones only with anti-ground,
+     * else a hardened enemy sparks.
+     */
     private void burst(Shot shot, Pool<GroundObject> ground, Pool<Enemy> enemies) {
         WeaponSpec weapon = shot.weapon();
         double x = shot.landX();
@@ -705,11 +722,14 @@ final class PlayerFire {
         }
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
-            EnemySpec spec = enemy.spec();
-            if (spec.layer() == Layer.GROUND
-                    && onField(enemy)
-                    && inBlast(x, y, weapon.blast(), enemy.x(), enemy.y(), enemy.hitbox())
-                    && enemy.damage(shot.damage(), true)) {
+            if (enemy.layer() != Layer.GROUND
+                    || !onField(enemy)
+                    || !inBlast(x, y, weapon.blast(), enemy.x(), enemy.y(), enemy.hitbox())) {
+                continue;
+            }
+            if (enemy.spec().hardened() && !weapon.antiGround()) {
+                events.add(SimEvents.Type.SHOT_GLANCED, enemy.x(), enemy.y(), shot.mount());
+            } else if (enemy.damage(shot.damage(), true)) {
                 hits.enemyDestroyed(j, shot.mount());
             }
         }
@@ -725,7 +745,7 @@ final class PlayerFire {
         double trigger = mine.weapon().mines().trigger();
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
-            if (triggers(enemy.spec().layer())
+            if (triggers(enemy.layer())
                     && onField(enemy)
                     && inBlast(x, y, trigger, enemy.x(), enemy.y(), enemy.hitbox())) {
                 return true;
@@ -780,10 +800,15 @@ final class PlayerFire {
         }
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
-            if (enemy.spec().layer() != Layer.HIGH_AIR
-                    && onField(enemy)
-                    && inBlast(x, y, radius, enemy.x(), enemy.y(), enemy.hitbox())
-                    && enemy.damage(mine.damage(), true)) {
+            if (enemy.layer() == Layer.HIGH_AIR
+                    || !onField(enemy)
+                    || !inBlast(x, y, radius, enemy.x(), enemy.y(), enemy.hitbox())) {
+                continue;
+            }
+            if (enemy.spec().hardened() && !weapon.antiGround()) {
+                // M5 part C: a hardened unit glances off as a hardened ground object does.
+                events.add(SimEvents.Type.SHOT_GLANCED, enemy.x(), enemy.y(), mine.mount());
+            } else if (enemy.damage(mine.damage(), true)) {
                 hits.enemyDestroyed(j, mine.mount());
             }
         }
@@ -880,8 +905,10 @@ final class PlayerFire {
     /**
      * A wingman's volley (design/player/wingmen): his gun fires from (x, y) as mount {@code mount}
      * (past the armament's, so its shots and events are told apart); a homing projectile starts
-     * locked onto {@code target} (a serial as the homing locks use, -1 for none), a lobbed shell
-     * picks its ground target as the player's do.
+     * locked onto {@code target} (a serial as the homing locks use, -1 for none). He aims a lobbed
+     * shell (user decision 2026-10-07): it lands on his ground target when that lies within the
+     * lob's range of the muzzle, its flight shortened to the distance; without one it picks its
+     * ground target as the player's do.
      */
     void wingmanVolley(
             int mount,
@@ -905,7 +932,13 @@ final class PlayerFire {
                 continue;
             }
             if (weapon.delivery() == WeaponSpec.Delivery.LOBBED) {
-                lob(shot, weapon, mount, mx, my, enemies, ground);
+                if (located(target, enemies)
+                        && distanceSquared(mx, my, targetX, targetY) <= weapon.range() * weapon.range()) {
+                    double share = Math.sqrt(distanceSquared(mx, my, targetX, targetY)) / weapon.range();
+                    shot.lob(weapon, mount, mx, my, targetX, targetY, share);
+                } else {
+                    lob(shot, weapon, mount, mx, my, enemies, ground);
+                }
             } else if (weapon.delivery() == WeaponSpec.Delivery.DROPPED) {
                 shot.lob(weapon, mount, mx, my, mx, my);
             } else {

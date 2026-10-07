@@ -97,7 +97,8 @@ final class LevelRules {
                 secondary.label().orElse(""),
                 partsOf,
                 parts,
-                beforePhase);
+                beforePhase,
+                secondary.tag().orElse(""));
     }
 
     /** What a radio cue's {@code requires} or {@code requires_not} names, as the simulation's fitted bits (0 for none). */
@@ -105,6 +106,7 @@ final class LevelRules {
         return name.map(n -> switch (n) {
                     case LevelData.Requirement.SPECIAL -> LevelScript.RadioCue.FITTED_SPECIAL;
                     case LevelData.Requirement.HOMING -> LevelScript.RadioCue.FITTED_HOMING;
+                    case LevelData.Requirement.ESCORT -> LevelScript.RadioCue.FITTED_ESCORT;
                     default -> throw new IllegalArgumentException("requires: unknown '" + n + "'");
                 })
                 .orElse(0);

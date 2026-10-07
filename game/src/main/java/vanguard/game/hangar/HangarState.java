@@ -477,6 +477,14 @@ public final class HangarState {
     /** The launch warning for a grounded Rook. */
     static final String ROOK_GROUNDED = "ROOK IS GROUNDED AND STAYS HOME";
 
+    /**
+     * The launch warning for a {@code required} trait no source brings (M5 part C): {@code NO
+     * ANTI-GROUND SOURCE FITTED} (a weapon, Rook's gun or a special's charge would do).
+     */
+    static String requiredWarning(String trait) {
+        return "NO " + trait.toUpperCase(Locale.ROOT) + " SOURCE FITTED";
+    }
+
     /** The launch warning for Rook's armour below 50 %: {@code ROOK'S ARMOUR 34/80}. */
     static String rookArmour(double armour, double max) {
         return String.format(Locale.ROOT, "ROOK'S ARMOUR %d/%d", (int) Math.ceil(armour), (int) max);
@@ -497,15 +505,22 @@ public final class HangarState {
     }
 
     /**
-     * What the launch confirmation warns about (design/ui/hangar, Launch): the missing recommended
-     * traits the sensor level shows (none below the level that reveals them), armour below 50 %, and
-     * once Rook is hired a grounded Rook (he stays home) or his armour below 50 %.
+     * What the launch confirmation warns about (design/ui/hangar, Launch): a level's {@code required}
+     * traits that no source brings, at every sensor level (M5 part C: Level 09's {@code anti-ground},
+     * counting Rook's gun while he flies and an Airstrike or Smart Bomb charge); the missing
+     * recommended traits the sensor level shows (none below the level that reveals them), armour
+     * below 50 %, and once Rook is hired a grounded Rook (he stays home) or his armour below 50 %.
      */
     public List<String> launchWarnings(Optional<Intel> intel) {
         List<String> warnings = new ArrayList<>();
-        intel.ifPresent(level -> level.markedTraits().stream()
-                .filter(trait -> !hangar.fittedTraits().contains(trait))
-                .forEach(trait -> warnings.add("NO " + trait.toUpperCase(Locale.ROOT) + " WEAPON FITTED")));
+        intel.ifPresent(level -> {
+            List<String> required = level.requiredTraits();
+            hangar.missingRequired(required).forEach(trait -> warnings.add(requiredWarning(trait)));
+            level.markedTraits().stream()
+                    .filter(trait -> !required.contains(trait))
+                    .filter(trait -> !hangar.fittedTraits().contains(trait))
+                    .forEach(trait -> warnings.add("NO " + trait.toUpperCase(Locale.ROOT) + " WEAPON FITTED"));
+        });
         if (hangar.campaign().armour() < hangar.campaign().maxArmour() / 2) {
             warnings.add("ARMOUR BELOW 50 %");
         }

@@ -48,14 +48,21 @@ public record EnemyData(
 
     /** The movement patterns it uses, with their parameters (design/enemies/README.md, Movement pattern vocabulary). */
     /**
-     * The armour: a text ({@code none}, {@code hardened}, ...), or planned (part D) a mapping with
-     * {@code front_arc}, the degrees each side of the facing from which direct shots glance off
-     * (dropped bombs, lobbed shells and the specials ignore it). Read, not flown yet.
+     * The armour: a text ({@code none}, {@code hardened}, ...), or a mapping with {@code front_arc},
+     * the degrees each side of the facing from which direct shots glance off (dropped bombs, lobbed
+     * shells and the specials ignore it; a walker's, Level 04). M5 part C: {@code hardened} flies for
+     * an enemy (design/enemies/ground/hive-node): only anti-ground deliveries, the Airstrike and the
+     * Smart Bomb damage it.
      */
     public record Armour(Optional<String> text, Optional<Double> frontArc) {
         @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
         public Armour {
             frontArc.ifPresent(arc -> Check.notNegative("front_arc", arc));
+        }
+
+        /** Whether it is {@code hardened}. */
+        public boolean hardened() {
+            return text.filter("hardened"::equals).isPresent();
         }
 
         /** The armour written as a text. */
@@ -374,6 +381,8 @@ public record EnemyData(
      * @param stagger M5 part B, a walker's fan (design/enemies/ground/creeper): the units of one wave
      *     share a volley clock, unit i (in the order they enter) firing i × this many seconds after
      *     the first; a unit off the screen skips its turn
+     * @param pounce M5 part C, the {@code pounce} pattern's leap (design/enemies/ground/ravager): no
+     *     bullet and no speed; its {@code interval} is the s from landing until it may leap again
      */
     public record Attack(
             String pattern,
@@ -397,7 +406,8 @@ public record EnemyData(
             Optional<Integer> arms,
             Optional<Double> duration,
             Optional<Sweep> sweep,
-            Optional<Double> stagger) {
+            Optional<Double> stagger,
+            Optional<Pounce> pounce) {
         public Attack {
             Check.that(
                     pattern.equals("laser-sweep") == sweep.isPresent(), "a laser-sweep has its sweep, the others none");
@@ -412,9 +422,14 @@ public record EnemyData(
                             || pattern.equals("mortar")
                             || pattern.equals("ring")
                             || pattern.equals("spiral")
-                            || pattern.equals("laser-sweep"),
-                    "pattern must be aimed, fan, mine, spawn, mortar, ring, spiral or laser-sweep, was '" + pattern
-                            + "'");
+                            || pattern.equals("laser-sweep")
+                            || pattern.equals("pounce"),
+                    "pattern must be aimed, fan, mine, spawn, mortar, ring, spiral, laser-sweep or pounce, was '"
+                            + pattern + "'");
+            Check.that(pattern.equals("pounce") == pounce.isPresent(), "a pounce has its pounce, the others none");
+            Check.that(
+                    !pattern.equals("pounce") || (bullet.isEmpty() && speed.isEmpty() && interval.isPresent()),
+                    "a pounce has an interval and no bullet or speed");
             Check.that(pattern.equals("mine") == mine.isPresent(), "a mine attack has its mine, the others none");
             Check.that(
                     pattern.equals("mortar") == mortar.isPresent(), "a mortar attack has its mortar, the others none");
@@ -431,6 +446,7 @@ public record EnemyData(
             Check.that(pattern.equals("spawn") == spawn.isPresent(), "a spawn attack has its spawn, the others none");
             Check.that(
                     pattern.equals("laser-sweep")
+                            || pattern.equals("pounce")
                             || pattern.equals("spawn") != (bullet.isPresent() && speed.isPresent()),
                     "an attack has a bullet and a speed, a spawn attack neither");
             Check.that(!pattern.equals("spawn") || interval.isEmpty(), "a spawn attack has no interval");
@@ -451,25 +467,65 @@ public record EnemyData(
         }
     }
 
-    /** A formation it appears in, with the unit count: {@code [n]} or {@code [min, max]}. */
     /**
-     * Planned (part D): a spawner's release. {@code count} units of {@code enemy} when it is killed or
-     * {@code after} s from entering (a self-burst paying {@code burst_bounty}, not a kill), with a
-     * {@code telegraph} of s before it, flying out at {@code speed} in an {@code arc} of °. Read, not
-     * flown yet.
+     * A spawner's release: {@code count} units of {@code enemy} flying out at {@code speed} in an
+     * {@code arc} of ° toward the ship. A brood (Level 04's Brood Pod) releases them when it is
+     * killed or {@code after} s from entering (a self-burst paying {@code burst_bounty}, not a kill),
+     * with a {@code telegraph} of s before it. M5 part C, a periodic spawner (the Hive Node): instead
+     * of {@code after} and {@code burst_bounty}, {@code every} s from its centre crossing the top
+     * edge, its iris opening over the {@code telegraph}, and an opening due while the ship's centre
+     * is within {@code shut_within} px skipped; it never bursts on its own.
      */
     public record Spawn(
-            String enemy, int count, double after, double telegraph, double arc, double speed, int burstBounty) {
+            String enemy,
+            int count,
+            Optional<Double> after,
+            Optional<Double> every,
+            double telegraph,
+            double arc,
+            double speed,
+            Optional<Integer> burstBounty,
+            Optional<Double> shutWithin) {
         public Spawn {
             Check.positive("count", count);
-            Check.positive("after", after);
+            Check.that(after.isPresent() != every.isPresent(), "a spawn has an after (a brood) or an every, not both");
+            after.ifPresent(a -> Check.positive("after", a));
+            every.ifPresent(e -> Check.positive("every", e));
             Check.notNegative("telegraph", telegraph);
             Check.positive("arc", arc);
             Check.positive("speed", speed);
-            Check.notNegative("burst_bounty", burstBounty);
+            Check.that(
+                    after.isPresent() == burstBounty.isPresent(),
+                    "a brood has a burst_bounty, a periodic spawn none (it never bursts)");
+            burstBounty.ifPresent(b -> Check.notNegative("burst_bounty", b));
+            Check.that(every.isPresent() || shutWithin.isEmpty(), "only a periodic spawn has a shut_within");
+            shutWithin.ifPresent(d -> Check.notNegative("shut_within", d));
+            every.ifPresent(e -> Check.that(telegraph < e, "the telegraph lies inside the cycle (every)"));
+        }
+
+        /** Whether it is a periodic spawn (with {@code every}). */
+        public boolean periodic() {
+            return every.isPresent();
         }
     }
 
+    /**
+     * M5 part C, a pounce's leap (design/enemies/ground/ravager): within {@code range} px of the
+     * ship (centre to centre, on the screen) it leaps at the ship's position over {@code leap} s;
+     * for the middle {@code air} s it is on the {@code air} layer; drawn {@code scale} times its size
+     * at the apex.
+     */
+    public record Pounce(double range, double leap, double air, double scale) {
+        public Pounce {
+            Check.positive("range", range);
+            Check.positive("leap", leap);
+            Check.notNegative("air", air);
+            Check.that(air <= leap, "the air window lies inside the leap");
+            Check.positive("scale", scale);
+        }
+    }
+
+    /** A formation it appears in, with the unit count: {@code [n]} or {@code [min, max]}. */
     public record FormationUse(String name, Optional<List<Integer>> size) {
         public FormationUse {
             size.ifPresent(s -> Check.that(s.size() == 1 || s.size() == 2, "size must be [n] or [min, max]"));

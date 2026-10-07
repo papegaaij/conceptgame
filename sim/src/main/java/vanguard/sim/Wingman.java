@@ -8,8 +8,8 @@ import java.util.List;
  * change (Wing by default, Wide while a sides wave is active or an enemy is on his flank, Trail
  * while a rear wave is active) and taking the mirrored slot while his own lies outside the play
  * field; he dodges the enemy bullets he predicts to pass close, picks a target in his firing cone
- * (the player's last hit first, then a flank threat, then the nearest) for a homing gun's lock, and
- * fires his gun whenever the player fires, with a target or without. Every decision waits his
+ * (the player's last hit first, then a flank threat, then the nearest) for a homing gun's lock or
+ * a lobbed gun's aim, and fires his gun whenever the player fires, with a target or without. Every decision waits his
  * reaction delay. He reacts to only a share of the bullets he predicts (user decision 2026-10-06:
  * about 70 %), so stray bullets hit him now and then; his slot keeps clear of the air enemies'
  * bodies. He takes enemy bullets and the contact of air enemies; at zero armour he ejects and is
@@ -328,7 +328,10 @@ public final class Wingman {
             // column of the screen, which every enemy far ahead would be).
             boolean beside = dx * dx + dy * dy <= flankDistance * flankDistance;
             flank |= beside;
-            if (!reaches(enemy.spec().layer()) || !inCone(dx, dy)) {
+            // M5 part C: on its current layer; a hardened unit only for an anti-ground gun.
+            if (!reaches(enemy.layer())
+                    || (enemy.spec().hardened() && !spec.gun().antiGround())
+                    || !inCone(dx, dy)) {
                 continue;
             }
             targetSeen |= enemy.serial() == target;
@@ -387,8 +390,17 @@ public final class Wingman {
         return delivery.landing() ? layer == Layer.GROUND : delivery.reaches(layer);
     }
 
-    /** Whether a target (dx, dy) from him lies in his firing cone ahead and in range. */
+    /**
+     * Whether a target (dx, dy) from him lies in his firing cone ahead and in range; for a lobbed
+     * gun (the Mortar), which he aims at its target (user decision 2026-10-07), anywhere ahead of him
+     * within the lob's range, so a ground target beside the player is his while he flies in
+     * formation.
+     */
     private boolean inCone(double dx, double dy) {
+        if (spec.gun().delivery() == WeaponSpec.Delivery.LOBBED) {
+            double reach = spec.gun().range();
+            return dy > 0 && dx * dx + dy * dy <= reach * reach;
+        }
         double range = spec.ai().range();
         return dy > 0 && Math.abs(dx) <= dy * tanHalfCone && dx * dx + dy * dy <= range * range;
     }
@@ -616,7 +628,7 @@ public final class Wingman {
             boolean moved = false;
             for (int j = 0; j < enemies.size(); j++) {
                 Enemy enemy = enemies.get(j);
-                if (!enemy.spec().layer().collidesWithPlayer() || !PlayerFire.onField(enemy)) {
+                if (!enemy.layer().collidesWithPlayer() || !PlayerFire.onField(enemy)) {
                     continue;
                 }
                 double ex = enemy.x();

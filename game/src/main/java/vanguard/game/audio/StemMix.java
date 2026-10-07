@@ -13,6 +13,8 @@ public final class StemMix implements PcmStream {
     private final PcmStream full;
     /** The mix moves by this much per frame: a whole crossfade takes the fade time. */
     private final float stepPerFrame;
+    /** The step of the change under way: {@link #stepPerFrame}, or a fade time of its own ({@link #fadeTo(float, double)}). */
+    private volatile float step;
 
     private volatile float target;
     private float mix;
@@ -29,6 +31,7 @@ public final class StemMix implements PcmStream {
         this.base = base;
         this.full = full;
         stepPerFrame = (float) (1 / (fadeSeconds * base.sampleRate()));
+        step = stepPerFrame;
     }
 
     /**
@@ -48,6 +51,17 @@ public final class StemMix implements PcmStream {
 
     /** Crossfades towards {@code share} of the full mix: 0 = the base stem alone, 1 = the full mix. */
     public void fadeTo(float share) {
+        step = stepPerFrame;
+        target = Math.clamp(share, 0, 1);
+    }
+
+    /**
+     * Crossfades towards {@code share} with a whole crossfade taking {@code fadeSeconds} (M5 part C:
+     * a hold zone's full mix fades out over 4 s, design/audio/music); it keeps that pace until the
+     * next change.
+     */
+    public void fadeTo(float share, double fadeSeconds) {
+        step = (float) (1 / (fadeSeconds * base.sampleRate()));
         target = Math.clamp(share, 0, 1);
     }
 
@@ -63,11 +77,12 @@ public final class StemMix implements PcmStream {
         full.read(f);
         int channels = channels();
         float goal = target;
+        float pace = step;
         for (int frame = 0; frame < out.length / channels; frame++) {
             if (mix < goal) {
-                mix = Math.min(goal, mix + stepPerFrame);
+                mix = Math.min(goal, mix + pace);
             } else if (mix > goal) {
-                mix = Math.max(goal, mix - stepPerFrame);
+                mix = Math.max(goal, mix - pace);
             }
             for (int c = 0; c < channels; c++) {
                 int i = frame * channels + c;

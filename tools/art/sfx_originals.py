@@ -15,7 +15,9 @@ original file instead of the lossy HQ preview. Sounds with a treatment of their 
 the loudest 100 ms, the head's slowed over a sub thump; sfx_r25.py's PRODUCTION, the Brood
 Carrier's sounds and the cable snap: cut, slowed or reversed, levelled on the loudest 100 ms;
 sfx_r27.py's PRODUCTION, the Coilwyrm's chain-cut tear: cut, slowed, levelled on the loudest
-100 ms). One step comes first: an original whose decoded
+100 ms; sfx_r31.py's PRODUCTION, the arcology's collapse, a crash over a swelling rumble from two
+originals (an entry's `pages`, in the order its build takes them), levelled to -15 LUFS, and the
+Ravager's two pounces, a snarl over a synthesized whoosh). One step comes first: an original whose decoded
 samples exceed full scale (lossy originals and float WAVs, up to +18.7 dBFS for "Machine Gun 001")
 is clipped at full scale, as every integer decoder plays it and as Freesound made the preview the
 user chose from; levelled on its unclipped peak, such a sound came out up to 11 dB quieter. Originals come from the cache that
@@ -43,9 +45,10 @@ from import_sfx import SOURCES, band_rms_db, process  # noqa: E402
 from sfx_r24 import PRODUCTION as R24  # noqa: E402  (sounds with their own treatment: round 24)
 from sfx_r25 import PRODUCTION as R25  # noqa: E402  (and round 25)
 from sfx_r27 import PRODUCTION as R27  # noqa: E402  (and round 27's tear)
+from sfx_r31 import PRODUCTION as R31  # noqa: E402  (and round 31's collapse and pounces)
 from synth import SR, db, decode, write_ogg, write_wav  # noqa: E402
 
-DERIVED = {**R24, **R25, **R27}
+DERIVED = {**R24, **R25, **R27, **R31}
 ROOT = Path(__file__).resolve().parents[2]
 SFX_DOC = ROOT / "design" / "audio" / "sfx" / "README.md"
 CONCEPT = ROOT / "design" / "audio" / "sfx" / "concept"
@@ -65,8 +68,8 @@ def chosen():
     return [name for name in [*SOURCES, *DERIVED] if status.get(name, "").startswith("chosen")]
 
 
-def original(src):
-    sound = SOUND_ID.search(src["page"])[1]
+def original(page):
+    sound = SOUND_ID.search(page)[1]
     files = sorted(p for p in CACHE.glob(f"{sound}_*") if not p.name.endswith(".part"))
     if not files:
         raise SystemExit(f"original {sound} is not cached: run "
@@ -75,17 +78,22 @@ def original(src):
 
 
 def build(name):
+    """A sound from its original, or from its originals (a DERIVED entry's `pages`, one per layer)."""
     src = SOURCES.get(name) or DERIVED[name]
-    sound, path = original(src)
-    note = f"{SCRIPT} (production audio) from the Freesound original {sound} {path.name}"
-    x = decode(path)
+    found = [original(page) for page in src.get("pages", [src["page"]])]
+    note = (f"{SCRIPT} (production audio) from the Freesound original{'s' if len(found) > 1 else ''} "
+            + ", ".join(f"{sound} {path.name}" for sound, path in found))
     with tempfile.TemporaryDirectory() as tmp:
-        if np.max(np.abs(x)) > 1:
-            path = Path(tmp) / "clipped.wav"
-            write_wav(path, np.clip(x, -1, 1))
-        out = src["build"](path) if "build" in src else process(src, path)
+        paths = []
+        for i, (_, path) in enumerate(found):
+            x = decode(path)
+            if np.max(np.abs(x)) > 1:
+                path = Path(tmp) / f"clipped-{i}.wav"
+                write_wav(path, np.clip(x, -1, 1))
+            paths.append(path)
+        out = src["build"](*paths) if "build" in src else process(src, paths[0])
     write_ogg(OUT / f"{name}.ogg", out, max_peak_db=src["peak"], tags={"SOURCE": note})
-    print(f"wrote assets/sfx/{name}.ogg  <- {path.name}")
+    print(f"wrote assets/sfx/{name}.ogg  <- {', '.join(path.name for _, path in found)}")
 
 
 def band_db(x, lo, hi):

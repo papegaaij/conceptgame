@@ -1,7 +1,7 @@
 ---
 title: Hangar
 design: approved
-implementation: done
+implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
 updated: 2026-10-07
@@ -88,6 +88,13 @@ illustrative and come from [player](../../player/README.md).)
   confirmation lists every warning that applies. The trait warning only uses what the intel
   shows: it needs the sensor level that reveals the recommended traits (L3, counting the easy
   bonus); below it there is no trait warning, so the launch never tells more than the intel.
+  **Required traits** (user decision D7 = a of M5 part C; built): a level can mark a trait as
+  `required` in its threat profile, a trait the primary objective cannot be met without (Level 09's
+  `anti-ground`: the hive nodes are hardened). Its warning shows at **every** sensor level, since
+  the briefing already says it ("No anti-ground source fitted: the targets cannot be destroyed."),
+  and it counts every source that damages hardened targets: an `anti-ground` weapon in any slot,
+  Rook's Mortar while he flies (hired, fitted and not grounded), and an Airstrike or Smart Bomb
+  fitted with at least one charge. A recommended trait that is not required keeps the L3 rule.
 
 ### Escort (from Level 08)
 
@@ -147,6 +154,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 | [concept/intel-final-r17-a.png](concept/intel-final-r17-a.png) | Review sheet (M4 part D batch, `tools/art/intel.py`): the 30×30 intel portraits of Level 04's Brood Pod (between swells) and Scuttler (walking down), from the production models of `tools/art/vrell_l04.py`, at 1× and 3× | chosen |
 | [concept/intel-final-r23-a.png](concept/intel-final-r23-a.png) | Review sheet (M4 part F batch, `tools/art/intel.py`, [round 23](../../concept-rounds/round-23/README.md)): the 30×30 intel portraits of Level 06's Mantis (nose down) and Coilwyrm (the head with its first segment), from the production models of `tools/art/mantis.py` and `tools/art/coilwyrm.py`, at 1× and 3× | chosen |
 | [concept/intel-final-r30-a.png](concept/intel-final-r30-a.png) | Review sheet (M5 part B batch, `tools/art/intel.py`, [round 30](../../concept-rounds/README.md)): the 30×30 intel portrait of Level 08's Creeper (walking down), from the production model of `tools/art/creeper.py` with its readability lift, at 1× and 3× | chosen |
+| [concept/intel-final-r31-a.png](concept/intel-final-r31-a.png) | Review sheet (M5 part C batch, `tools/art/intel.py`, [round 31](../../concept-rounds/README.md)): the 30×30 intel portraits of Level 09's Hive Node and Ravager, from the production models of `tools/art/hive_node.py` and `tools/art/ravager.py`, at 1× and 3× | chosen |
 
 M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game capture, see
 [concept/prompts.md](concept/prompts.md#test-fire-capture-r26-a).
@@ -181,6 +189,10 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
 - [x] Repair panel: the `ROOK` line at the difficulty's repair cost — M5 part A
 - [x] Launch warnings: Rook's armour below 50 %, Rook grounded — M5 part A
 - [x] Test fire of Rook's guns and of the Proximity Mines (their dummies fly low, `low-air`, which sets mines off) — M5 part A
+- [x] Launch warning for a `required` trait at every sensor level, counting Rook's gun (while he
+      flies) and the specials' charges as sources (Level 09's `anti-ground`, D7 = a) — M5 part C
+      (`Hangar.sourceTraits`/`missingRequired`, `Intel.requiredTraits`, `HangarState.launchWarnings`:
+      `NO ANTI-GROUND SOURCE FITTED`; `HangarRequiredTraitTest`, `LaunchRequiredTraitTest`)
 
 ## Open questions
 
@@ -389,3 +401,18 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
   `CDF INTELLIGENCE`, Okafor `CDF COMMAND`, Rook `AEGIS TWO`. This supersedes the fixed
   `CDF INTEL` of the 2026-10-02 decision; `IntelPanelLayoutTest` passes for every level at every
   sensor level with the longer label. `art` stays `chosen`.
+- 2026-10-07: M5 part C (user decision D7 = a): a level's threat profile can mark a trait
+  `required`; its launch warning shows at every sensor level (Level 09's briefing already says that
+  the nodes need `anti-ground`) and counts every source that damages hardened targets: an
+  `anti-ground` weapon, Rook's Mortar while he flies, an Airstrike or Smart Bomb charge. Rejected:
+  b (keep the sensor-L3 rule and only add Rook's gun and the specials: most players would launch
+  into a mission they cannot win without a word) and c (as built: Level 09's text would be wrong).
+  The document is `in-progress` again for it.
+- 2026-10-07: M5 part C, game side: the required trait's warning reads `NO ANTI-GROUND SOURCE
+  FITTED` (as long as a weapon's warning, so the launch dialog keeps its width) and comes first; a
+  required trait is not warned about a second time by the sensor-L3 rule. Sources: a weapon with the
+  trait in any slot, Rook's fitted gun while he flies the level (hired, not grounded), and for
+  `anti-ground` an Airstrike or Smart Bomb fitted with at least one charge.
+- 2026-10-07: [Concept round 31](../../concept-rounds/round-31/README.md) closed for the intel
+  portraits (user, 2026-10-07): Level 09's Hive Node (iris half open) and Ravager (running down)
+  approved as **final**.

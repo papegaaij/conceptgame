@@ -83,6 +83,45 @@ class MissionLayoutTest {
         }
     }
 
+    /**
+     * Level 09's two-line tracker (M5 part C, design/ui/hud): {@code NODES} and six two-character
+     * marks ({@code A1} … {@code C2}, the widest case of a targets tracker), right-aligned with a gap
+     * after the label, over the bridge secondary {@code RAVAGERS 10 / 10} (hard's count) or its end.
+     */
+    @Test
+    void theNodesTrackerFitsItsSixPairsAndTheRavagerLine() {
+        List<String> groups = List.of("Node A1", "Node A2", "Node B1", "Node B2", "Node C1", "Node C2");
+        String label = MissionPanel.groupsLabel(groups);
+        assertEquals("NODES", label);
+        int widest = 0;
+        for (String group : groups) {
+            String mark = MissionPanel.mark(group);
+            assertEquals(2, mark.length(), group);
+            widest = Math.max(widest, width(BODY, mark));
+        }
+        int step = MissionPanel.markStep(widest);
+        assertTrue(step > MissionPanel.GROUP_PIP_STEP, "pairs need a wider step than letters: " + step);
+        int left = MissionPanel.markLeft(groups.size(), step);
+        assertTrue(
+                width(BODY, label) + MissionPanel.MARK_GAP <= left,
+                "the label (" + width(BODY, label) + " px) and a gap fit before the first mark at " + left);
+        int right = left + (groups.size() - 1) * step + width(BODY, MissionPanel.mark(groups.getLast()));
+        assertTrue(right <= MissionLayout.TEXT_WIDTH, "the last mark ends at " + right);
+        String ravagers = MissionPanel.escapesLabel("ravager");
+        assertEquals("RAVAGERS", ravagers);
+        for (String count : List.of("10 / 10", "DONE", "FAILED")) {
+            assertFits(BODY, ravagers + " " + count, MissionLayout.TEXT_WIDTH);
+        }
+    }
+
+    /** Level 05's letters keep their 16 px step and place. */
+    @Test
+    void theBatteryLettersKeepTheirLayout() {
+        int widest = width(BODY, MissionPanel.mark("Battery D"));
+        assertEquals(MissionPanel.GROUP_PIP_STEP, MissionPanel.markStep(widest));
+        assertEquals(MissionLayout.TEXT_WIDTH - 4 * 16, MissionPanel.markLeft(4, MissionPanel.GROUP_PIP_STEP));
+    }
+
     /** Level 06's secondary: every Mantis destroyed before it leaves, {@code MANTISES 8 / 8}. */
     @Test
     void theMantisTrackerReadsMantisesAndFits() {

@@ -94,9 +94,9 @@ field for 1 s. Formation changes and side swaps start after his reaction delay.
 |---|---|
 | Reaction delay | 0.25 s for target switches, formation changes and dodges |
 | Dodging | Every 0.1 s he predicts enemy bullets 0.6 s ahead (user decision 2026-10-06; 0.4 s left him too little time against aimed fire); the soonest one that would pass within 14 px he decides on **once**: he **reacts to about 70 %** of them (user decision 2026-10-06), sidestepping up to 48 px at right angles to it after his reaction delay and keeping at it while it is the soonest, then back to his slot; the rest he misses and ignores. The 0.25 s delay inside the 0.6 s look-ahead leaves him 0.25–0.35 s to clear a bullet |
-| Firing cone | 30° ahead of his ship (15° either side of straight up), range 360 px: where he picks his target. His craft never turns (banking frames only), so he fires up the screen |
-| Fire | Fires whenever the player is firing, at his gun's rate, with a target in his cone or without one; he never fires while the player does not. The target only decides what he aims at: a homing gun's shots start locked onto it (without one they find their own) |
-| Target priority | (1) an enemy the player damaged in the last 1.0 s; (2) an enemy within 160 px of him (flank threat); (3) the nearest enemy — all within his cone. Layers follow his gun's traits (Missiles can hit `high-air`; Mortar only `ground`) |
+| Firing cone | 30° ahead of his ship (15° either side of straight up), range 360 px: where he picks his target. His craft never turns (banking frames only), so he fires up the screen. With the Mortar (a lobbed gun) he picks among the ground targets anywhere ahead of him within the lob's 200 px instead (user decision 2026-10-07), so a target beside the player is his while he flies in formation |
+| Fire | Fires whenever the player is firing, at his gun's rate, with a target in his cone or without one; he never fires while the player does not. The target only decides what he aims at: a homing gun's shots start locked onto it (without one they find their own); the Mortar's shells land **on it** at any distance up to the lob's 200 px, their flight time and arc shortened to the distance (user decision 2026-10-07; without a target they land 200 px ahead, snapping to a ground target within 48 px, as the player's) |
+| Target priority | (1) an enemy the player damaged in the last 1.0 s; (2) an enemy within 160 px of him (flank threat); (3) the nearest enemy — all within his cone (the Mortar's: ahead within 200 px). Layers follow his gun's traits (Missiles can hit `high-air`; Mortar only `ground`) |
 
 Enemies never aim at Rook: aimed attacks and the target-the-objective hook pick the player or the
 objective as before, and Rook is hit by what crosses his path. He collects no pickups and is not
@@ -113,7 +113,7 @@ formula on 60 % of the player weapon's upgrade base.
 | Autocannon | `autocannon` | [Autocannon Pod](../weapons/autocannon-pod/README.md) | × 1.5 | 12 → 37 | free (fitted when he joins) | 150 / 300 / 600 / 1 200 | L08 |
 | Scatter | `scatter` | [Scatter Vulcan](../weapons/scatter-vulcan/README.md) | × 0.6 (volley) | 11 → 39 | 720 | 360 / 720 / 1 440 / 2 880 | L08 |
 | Missiles | `missiles` | [Micro-missile Pod](../weapons/micro-missile-pod/README.md) | × 1.5 | 12 → 42 | 480 | 240 / 480 / 960 / 1 920 | L08 |
-| Mortar | `mortar` | [Hammer Mortar](../weapons/hammer-mortar/README.md) | × 0.6 | 15 → 54 | 900 | 450 / 900 / 1 800 / 3 600 | L08 |
+| Mortar | `mortar` | [Hammer Mortar](../weapons/hammer-mortar/README.md) | × 0.6 (aimed: lands on his ground target) | 15 → 54 | 900 | 450 / 900 / 1 800 / 3 600 | L08 |
 
 - The **scale multiplies each projectile's damage**; the pattern, rate, speed, blast, turn rate
   and traits are the base weapon's at the same level. He fires the pattern from one muzzle at his
@@ -542,3 +542,19 @@ built were accepted in concept round 28.
   capture's flight plan, he is back in his slot within a second. Test:
   `WingmanTest.heGoesRoundOverThePlayerToHisOwnSlotWhenTheWayBeneathIsClosed` (fails without the
   detour).
+- 2026-10-07: M5 part C (user decisions D7 = a and defaults): Rook skips hardened targets
+  (Level 09's Hive Nodes) unless his gun is anti-ground (the Mortar); the launch warning for a
+  `required` anti-ground trait counts his Mortar while he is not grounded. His scripted (timed)
+  radio lines carry `requires: escort`, so they stay silent while he is grounded.
+- 2026-10-07: Rook aims his lobbed gun (user, option a of the Level 09 balance issue): the Mortar
+  always landed 200 px ahead of him, so flying in formation beside the player his shells fell about
+  170 px past the Hive Node the player was bombing and added next to nothing. Now, with a ground
+  target (his pick; hardened ones only with this anti-ground gun) within the lob's 200 px, his
+  shells land on it at any distance, their flight time (0.6 s at 200 px) and drawn arc scaled to the
+  distance; his pick for the Mortar looks anywhere ahead of him within those 200 px instead of the
+  30° cone, which a target beside the player never enters within range. Without a target the
+  shells fly as before. The player's own Hammer Mortar keeps its fixed range; his formation, dodge
+  and look-ahead are unchanged. Test: `WingmanTest.heLobsHisMortarOntoTheGroundTargetThePlayerIsOver`.
+- 2026-10-07: [Concept round 31](../../concept-rounds/round-31/README.md) (user, 2026-10-07): the
+  build choice (b) **confirmed**: with a lobbed gun Rook picks ground targets anywhere ahead of him
+  within 200 px, not only in his 30° cone (beyond the brief "aim the lobbed gun", kept as built).

@@ -997,3 +997,80 @@ Edit: 0.10 s, peak -12 dBFS, loudest 100 ms of the band -24.6 dB; 93 % of the en
 Use: a proximity mine arming (`PROXIMITY_MINE_ARMED`).
 Why: One sine ping that glides up a fifth (1.6 to 2.4 kHz) in 15 ms and rings out (35 ms decay) on a faint metallic overtone at 2.76× (the round-08 bells' ratio), a tiny band-passed latch click under its start: a single sensor "lock" rather than a two-note signal, a little longer but softer at its tail.
 Edit: 0.15 s, peak -12 dBFS, loudest 100 ms of the band -23.9 dB; 99 % of the energy in 200 Hz–5 kHz.
+
+## Round 31 — the arcology's collapse and the Ravager's pounce
+
+Brief (M5 part C, user decision D9 = a): Level 09's two new sounds. The **arcology collapse**, played
+on the simulation's collapse event as Node C1 and C2 both die: a low rumble that swells under the
+tower's 1.5 s shadow (the warning), then a long crash from 1.5 s as the tower falls across the
+ground layer over 3 s, and a debris tail (about 5.5 s); the level's set piece, so as big as the
+biggest explosions but long, and distinct from `explosion-r02-d` ("building collapse", a 2.8 s
+blast with debris) and `hit-crumble-r08-a` (a ground target crumbling). The **Ravager pounce**,
+played as a Ravager takes off on its 0.75 s leap at the ship: a short snarl and lunge, an animal
+attack rather than a screech (the Vrell screech is the flyers' entry cue; the pounce is the
+Ravager's only cue and the one ground attack that hurts); packs of 3–5 can pounce close together,
+so it is short and dry. Recorded (CC0 / CC-BY, Freesound), found with the Freesound API's text
+search ("building collapse", "collapse rumble", "earthquake rumble", "demolition collapse"; "dog
+snarl attack", "creature attack snarl", "growl short creature") filtered to CC0 and CC-BY, cut from
+the **Freesound originals** cached by `tools/concept/audio/freesound_fetch.py --download`; each
+pounce has a synthesized whoosh under its snarl (band-passed noise sweeping up and back down, panned
+across). One a/b pair each, all from `tools/concept/audio/sfx_r31.py`, deterministic. The collapse is
+levelled on its integrated loudness, -15 LUFS, ceiling -1.5 dBFS (`explosion-huge-r04-a` -15.1 LUFS,
+`explosion-r02-d` -14.4): its sub-heavy crash makes the round-24 band measure unfair between a and b
+(at the same band level b would play 5 LU louder). A pounce is levelled on the loudest 100 ms of the
+200 Hz–5 kHz band to -22 dB, ceiling -6 dBFS (the Vrell screeches -24 / -27, the carrier launch
+-25). Not listened to: checked by envelopes, band balance and levels only.
+
+Outcome (user, 2026-10-07): collapse **a** (CC-BY, YleArkisto on the in-game credits roll), and
+**both** pounces kept, the game picking one at random per pounce; collapse b moved to
+`concept/rejected/` (the headings below keep the files' names). The three files in `assets/sfx/` are
+written by `tools/art/sfx_originals.py` with sfx_r31.py's `PRODUCTION` (the same cuts, with a
+`SOURCE` comment).
+
+### collapse-r31-a — "Cracking Earthquake" by uagadugu + "Big crash, a house tumbling down" by YleArkisto
+Source: <https://freesound.org/people/uagadugu/sounds/222521/> — CC0 1.0 (the rumble);
+<https://freesound.org/people/YleArkisto/sounds/342891/> — CC-BY 4.0 (the crash). Use: the arcology
+collapse (Level 09's collapse event).
+Why: The rumble is an earthquake cracking open soil and stone (4.8 stars from 398 ratings): a deep
+rumble with stony cracks in it, the frame starting to give. It swells from -24 dB to full over the
+1.5 s warning, then fades out under the crash. The crash is a big crash of a house tumbling down from
+the Finnish broadcaster Yle's effects archive (1980s tape, a mix): a sustained, tumbling crash of
+heavy masonry, read as the tower toppling across; its first 4 s, then a fade.
+Edit: rumble cut to 3.00 s from 0.50 s, 25 Hz high-pass, mixed 6 dB under the crash; crash cut to
+4.00 s, 25 Hz high-pass, 1.50 s fade-out, entering at 1.5 s. 5.50 s, -15.3 LUFS, peak -1.5 dBFS,
+loudest 100 ms of the band -15.2 dB; 64 % of the energy below 200 Hz. The warning rises from about
+-47 to -17 dBFS (100 ms RMS), the crash peaks at -11 and holds -17 to -20 for 2.5 s.
+
+### collapse-r31-b — "Radiator Metal Rumbling" by RutgerMuller + "Explosion or Collapse" by tec_studio
+Source: <https://freesound.org/people/RutgerMuller/sounds/51097/> — CC0 1.0 (the rumble);
+<https://freesound.org/people/tec_studio/sounds/703070/> — CC0 1.0 (the crash). Use: the arcology
+collapse (Level 09's collapse event).
+Why: The rumble is a radiator shaken for earthquake sounds (4.5 stars from 39 ratings), played 20 %
+slower: a steel frame rattling and groaning, the megastructure's skeleton rather than stone. It
+swells over the warning like a. The crash is "maybe a tunnel explosion or collapse": a deep, rolling
+roar that holds level for 3 s and decays into a long dust tail, read as the tower pancaking into a
+wave of dust; deeper and steadier than a's tumbling crash.
+Edit: rumble cut to 3.00 s from 0.30 s, 40 Hz high-pass, 20 % slower, mixed 4 dB under the crash;
+crash cut to 4.20 s, 45 Hz high-pass, 1.80 s fade-out, entering at 1.5 s. 5.70 s, -15.0 LUFS, peak
+-1.9 dBFS, loudest 100 ms of the band -18.5 dB; 71 % of the energy below 200 Hz. The warning rises
+from about -57 to -33 dBFS, the crash holds -13 to -17 for 3 s.
+
+### ravager-pounce-r31-a — "Goblin Snarl" by qubodup
+Source: <https://freesound.org/people/qubodup/sounds/442815/> — CC0 1.0 (a remix of strongbot's CC0
+dog snarl). Use: a Ravager taking off on its pounce.
+Why: A monster's attacking snarl made for a game (4.7 stars from 36 ratings): a rasping, dog-like
+snarl that reads as a hound going for the throat; its first lunge, 10 % slower for a bigger body,
+over a quick swish (the whoosh's centre 500 → 2 600 → 700 Hz, 9 dB under the snarl).
+Edit: leading silence trimmed, cut to 0.65 s, 90 Hz high-pass, 0.30 s fade-out, 10 % slower; 0.72 s,
+levelled to -22 dB, ceiling -6 dBFS (peak -10.4 dBFS, -24.1 LUFS); 88 % of the energy in
+200 Hz–5 kHz; loudest at once, then falling off over 0.5 s.
+
+### ravager-pounce-r31-b — "Dragon: Snarl, Roar + Attack" by Breviceps
+Source: <https://freesound.org/people/Breviceps/sounds/466830/> — CC0 1.0. Use: a Ravager taking off
+on its pounce.
+Why: A huge monster snarling and roaring (4.5 stars from 38 ratings); its second gesture, the attack,
+played 20 % faster so it is a hound-sized beast rather than a dragon: a snapping roar with a short
+swell into it, over a lower, heavier whoosh (250 → 1 500 → 350 Hz, 7 dB under the snarl).
+Edit: leading silence trimmed, cut to 0.85 s from 1.55 s, 90 Hz high-pass, 0.35 s fade-out, 20 %
+faster; 0.71 s, levelled to -22 dB, ceiling -6 dBFS (peak -11.7 dBFS, -20.9 LUFS); 93 % of the energy
+in 200 Hz–5 kHz; a 0.1 s swell, loudest at 0.3 s.

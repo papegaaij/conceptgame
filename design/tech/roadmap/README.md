@@ -71,7 +71,7 @@ Hive Node and Ravager and D's Wraith.
 |---|---|---|---|
 | **A** Act 2 systems — **done** | Rook and the escort slot ([wingmen](../../player/wingmen/README.md): AI, guns, escort inventory, side, repairs, eject, retry and checkpoint, barks, `--escort`), save format 3 with `escort`, the hangar's escort UI and the HUD's escort box; the Act 2 arsenal without water (final effects and sounds of the Tail Gun, Fan Blaster, Hornet Launcher and Swivel Gun, the Proximity Mines' delivery and `area`); the Targeting computer and the Salvage scanner; the act HP factor and the Act 1 terms in data ([enemies](../../enemies/README.md#balancing-basis), [economy](../../systems/economy/README.md)). Flown on the Act 1 levels with `--loadout` and `--escort` | — | 28 (closed): Rook's craft and eject pod, the weapon effects, the Act 2 weapon sounds, the barks' voices, the scanner's glint |
 | **B** Level 08 and the Act 2 intro — **done** | Level data (dense, typical haul, four Varga lines, voiced); Creeper; the megacity backdrop with perspective towers (scenery only) and traffic lanes; Act 2's data (title card, briefing pages, images); "Homefront" final and stems; the Act 1 → Act 2 transition | A | 30 (closed): the Creeper, the megacity backdrop and towers, the Act 2 still and briefing images, Rook's briefing portraits, "Homefront" and its base stem, the billboard (a), the traffic (a), the civilian's voice (b) |
-| **C** Level 09 | Hive Node, Ravager, `pack`; hold zones and the distance-keyed wave clock; the named-target tracker; the missed-node rule; the collapse; "Firestorm" final and stems | B | 31 |
+| **C** Level 09 — **done** | Hive Node (hardened, periodic spawn), Ravager (`pack`, the pounce's air window), hardened enemies; hold zones and the level clock in script time; the named-target tracker; a missed node fails at once; the collapse; the bridge secondary (a wave tag); the `required` launch warning; the balance plan's anti-ground (Bomb Rack and Rook's Mortar); multi-level units in each level's atlas; "Firestorm" final and stems with a run-time stem hook; the Kilo Lead's audition | B | 31 (closed): the collapse's look (a and b rejected, the rework c approved with two tweaks and built), the Hive Node, the Ravager, the Level 09 backdrop with the trucks and the cocoon, the briefing images, "Firestorm" and its base stem approved as final; the collapse sound (a), both pounce sounds (picked at random), the Kilo Lead's voice (a); the captures, the voiced lines, the texts, the numbers, the decisions and the build choices accepted |
 | **D** Level 10 | Wraith (cloak, loop, rear entry); Mote Swarm (`flock`, `swarm`, authored paths: the Skitter's item); the air allies (shuttles) and the scripted loss; rear-heavy pacing | B | 32 |
 | **E** Level 11 | The `sub` layer and the water rules; the Torpedo Pod and `anti-sub`; Driftjelly, Reef Spitter; convoy ships and frigate; the Harbour Kraken mid-boss; the ocean backdrop; the Bomb Rack over water | A | 33 |
 | **F** Level 12 | Weather (rain, lightning reveal, gusts, the eye); Lamprey (chase, latch, drain, shake-off) with `swarm`; sondes; the storm backdrop; the mines' sounds in play | D, E | 34 |
@@ -90,7 +90,8 @@ Hive Node and Ravager and D's Wraith.
       Choir's silent stage directions, fixed in round 29 —; CI green on the branch; merged into
       main on 2026-10-06)
 - [ ] M5 Act 2 (parts A–I under *M5 parts*; part A done, concept round 28 closed; part B, Level 08
-      and the Act 2 intro, done, concept round 30 closed)
+      and the Act 2 intro, done, concept round 30 closed; part C, Level 09, done, concept round 31
+      closed)
 - [ ] M6 Acts 1–2 release
 
 ## Open questions
@@ -194,3 +195,52 @@ Hive Node and Ravager and D's Wraith.
   `approved`), the part B numbers and the D1–D6 checklist accepted; the rule "from Act 2 on, an act
   page and a level page each fit one screen" kept, and the hangar teaser's role labels kept
   (`Speaker.role`). The next part is **C**, Level 09 (round 31).
+- 2026-10-07: M5 part C started (Level 09), from its gap check, with the user's decisions D1–D11:
+  **D1 = a** (a missed hive node fails the mission at once, as Level 05; no rear stream, no
+  flown-on mission), **D2 = a** (in a hold zone the level clock slows with the scroll: the level's
+  times are script time), **D3 = a** (no hold timeout; the hold speed by difficulty, 20 / 30 /
+  40 px/s), **D4 = a** (the Ravager is `air` for the middle 0.3 s of its pounce), **D5 = a** (the
+  collapse is a simulated sweep that kills the ground units under it and pays like Airstrike
+  kills), **D6 = a** (the bridge secondary counts the two tagged bridge waves), **D7 = a** (a
+  `required` trait warns at launch at every sensor level, counting Rook's Mortar and the specials),
+  **D8 = c** (the balance plan's L09 visit: a Bomb Rack for the left Autocannon and Rook's Mortar,
+  the Tail Gun to L10; a hardened check in `BalanceTest`), **D9 = a** (art straight to production
+  in the last hour of the night; a/b only for the collapse's look, the Kilo Lead's voice and the
+  pounce and collapse sounds), **D10 = a** (a unit several levels use goes into each of their unit
+  atlases) and **D11 = a** (the Kilo Lead auditioned a/b in round 31). The gap check's stated
+  defaults apply: weak points drawn only (the node's ×2 and the Ravager's ×1.5 struck); hardened
+  flown for enemies, homing shots and Rook skipping them unless anti-ground; the node's spawn every
+  4 s (2 Skitters, hard 3; shut within 96 px; one opening per node in the checks); six named groups
+  and the `NODES A1 … C2` tracker; `pack` in the vocabulary; the data in Act 1 terms with a
+  `bounty_scale`; the Creeper's act HP factor; density from the level's own roster; the radio
+  retimed with the events `hold-start`, `first-pounce`, `collapse` and `requires: escort`; two
+  one-screen briefing pages, Rook's teaser, Varga's four lines; the Airstrike charge only with a
+  special; the cocoon on a low roof; the trucks as scenery and nothing on `far`; the base stem from
+  the launch and the full mix in the holds and from the collapse; moving scenery on the real clock;
+  no hold indicator; the Act 2 README's fixes. Details in
+  [Level 09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), the
+  [Hive Node](../../enemies/ground/hive-node/README.md), the
+  [Ravager](../../enemies/ground/ravager/README.md), the
+  [schemas](../architecture/README.md#data-file-schemas), the [hangar](../../ui/hangar/README.md),
+  the [HUD](../../ui/hud/README.md), [music](../../audio/music/README.md),
+  [sfx](../../audio/sfx/README.md), [voice](../../audio/voice/README.md) and the
+  [production plan](../../art-direction/production/README.md). Part C's concept round is 31.
+- 2026-10-07: M5 part C: concept round 31 closed but for row 4 (user, 2026-10-07). The Hive Node,
+  the Ravager, Level 09's backdrop with the Kilo trucks and the cocoon, the two briefing images and
+  "Firestorm" with its base stem approved as final; the collapse sound **a** (CC-BY, on the credits
+  roll), **both** Ravager pounces kept (one picked at random per pounce) and the Kilo Lead **a**
+  (Aaron Bennett) chosen and produced; the capture, the 20 voiced lines, the texts (Level 09 now
+  `approved`), the part C numbers, the D1–D11 checklist and the six build choices (a)–(f) accepted.
+  The collapse's look: both **a** (topples across) and **b** (pancakes into a dust wave) rejected;
+  the user asked for a rework (it sways a little, then collapses straight down; its shadow moves
+  with it; dust in every direction from just before the impact and a large dust blast at it; no
+  sharp dust edge), variant c in progress, and the collapse's kills then spread outward from the
+  tower's foot at the impact over about 1 s instead of sweeping left to right (planned, built after
+  c is approved). Part C is done once row 4 closes.
+- 2026-10-07: M5 part C done, concept round 31 closed (user): the collapse's look **c** approved
+  with two tweaks (the shadow halved; a single lean to the right instead of a sway) and built in the
+  game (the lean and the drop by the tower projection, the cast shadow, the puff sprites, the
+  rubble heap, the kills outward from the tower's foot over 1 s, the sound's crash at the impact);
+  hold C lasts until the collapse's dust has settled (9.0 s after the warning starts, no longer the
+  blast's end at 4.0 s), so the heap stays in sight after a late kill. The next part is **D**,
+  Level 10 (round 32).

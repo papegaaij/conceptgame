@@ -20,7 +20,7 @@ and every level must follow.
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [production](production/README.md) | Production art plan: what final means, pipeline to `assets/`, order of work, budgets | draft | done | n/a |
+| [production](production/README.md) | Production art plan: what final means, pipeline to `assets/`, order of work, budgets | draft | in-progress | n/a |
 
 ## Design
 

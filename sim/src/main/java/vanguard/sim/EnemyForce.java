@@ -28,6 +28,12 @@ final class EnemyForce {
         default void burst(Enemy enemy) {
             escaped(enemy);
         }
+
+        /**
+         * M5 part C: a periodic spawner (design/enemies/ground/hive-node) released {@code units}
+         * units, which count among the level's enemies as they are released.
+         */
+        default void released(Enemy spawner, int units) {}
     }
 
     private static final int MINE_CAPACITY = 96;
@@ -108,12 +114,16 @@ final class EnemyForce {
                 distinct.add(extra);
             }
         }
-        // The units a spawner releases are among the kinds too.
+        // The units a spawner releases are among the kinds too (a brood, or M5 part C's periodic spawn).
         for (int k = 0; k < distinct.size(); k++) {
             EnemySpec spec = distinct.get(k);
             if (spec.brood().isPresent()
                     && !distinct.contains(spec.brood().get().enemy())) {
                 distinct.add(spec.brood().get().enemy());
+            }
+            if (spec.spawner().isPresent()
+                    && !distinct.contains(spec.spawner().get().enemy())) {
+                distinct.add(spec.spawner().get().enemy());
             }
         }
         // So are a chain's segments, tail and regrown head.
@@ -141,8 +151,11 @@ final class EnemyForce {
         broodKinds = new int[kinds.size()];
         for (int k = 0; k < kinds.size(); k++) {
             EnemySpec spec = kinds.get(k);
-            broodKinds[k] =
-                    spec.brood().isPresent() ? kinds.indexOf(spec.brood().get().enemy()) : -1;
+            broodKinds[k] = spec.brood().isPresent()
+                    ? kinds.indexOf(spec.brood().get().enemy())
+                    : spec.spawner().isPresent()
+                            ? kinds.indexOf(spec.spawner().get().enemy())
+                            : -1;
         }
         this.waves = new WaveSchedule(waveSpecs, kinds, rng);
         volleyClocks = new int[waves.volleyClocks()];
@@ -194,6 +207,7 @@ final class EnemyForce {
             if (enemy != null) {
                 enemy.spawn(spawn, spawned);
                 enemy.entered(waves.lastEntry());
+                enemy.tag(waves.lastTag());
                 enemy.volley(waves.lastVolleyGroup(), waves.lastVolleyUnit());
                 if (spawn.escort().isPresent()) {
                     enemy.escort(lastCarrier);
@@ -368,6 +382,8 @@ final class EnemyForce {
                 hatch(enemy, ship);
                 escapes.burst(enemy);
                 enemies.free(i);
+            } else if (enemy.spec().spawner().isPresent()) {
+                spawnCycle(enemy, ship, firing);
             } else if (enemy.walking()) {
                 fireWalker(enemy, ship, firing);
             } else if (enemy.spec().sweep().isPresent()) {
@@ -398,8 +414,14 @@ final class EnemyForce {
     private void fireWalker(Enemy enemy, Ship ship, boolean firing) {
         boolean fan = enemy.volleyGroup() >= 0 ? enemy.staggeredVolley(volleyClocks) : enemy.trigger();
         boolean spit = enemy.spit(ship.x(), ship.y());
+        if (enemy.landedNow()) {
+            events.add(SimEvents.Type.POUNCE_LANDED, enemy.x(), enemy.y(), enemy.kind());
+        }
         if (!firing) {
             return;
+        }
+        if (enemy.pounce(ship.x(), ship.y())) {
+            events.add(SimEvents.Type.POUNCE, enemy.x(), enemy.y(), enemy.kind());
         }
         if (fan) {
             boolean atShip = enemy.spec().walker().orElseThrow().fanAtShip();
@@ -421,27 +443,43 @@ final class EnemyForce {
      */
     void hatch(Enemy pod, Ship ship) {
         EnemySpec.Brood brood = pod.spec().brood().orElseThrow();
-        int kind = broodKinds[pod.kind()];
-        double toShip = StrictMath.atan2(ship.y() - pod.y(), ship.x() - pod.x());
-        for (int k = 0; k < brood.count(); k++) {
-            double angle = brood.count() == 1
-                    ? toShip
-                    : toShip - brood.arcRadians() / 2 + k * brood.arcRadians() / (brood.count() - 1);
+        fanOut(pod, brood.enemy(), brood.count(), brood.arcRadians(), brood.speed(), ship);
+        events.add(SimEvents.Type.BROOD_HATCHED, pod.x(), pod.y(), pod.kind());
+        carrierEnded(pod);
+    }
+
+    /**
+     * {@code count} units of {@code enemy} fly out of {@code from}'s centre, spread evenly over
+     * {@code arc} radians centred on the direction to the ship, at {@code speed} px/s.
+     */
+    private void fanOut(Enemy from, EnemySpec enemy, int count, double arc, double speed, Ship ship) {
+        int kind = broodKinds[from.kind()];
+        double toShip = StrictMath.atan2(ship.y() - from.y(), ship.x() - from.x());
+        for (int k = 0; k < count; k++) {
+            double angle = count == 1 ? toShip : toShip - arc / 2 + k * arc / (count - 1);
             Enemy unit = enemies.obtain();
             if (unit != null) {
-                unit.hatch(
-                        brood.enemy(),
-                        kind,
-                        pod.x(),
-                        pod.y(),
-                        Trig.cos(angle) * brood.speed(),
-                        Trig.sin(angle) * brood.speed(),
-                        spawned);
+                unit.hatch(enemy, kind, from.x(), from.y(), Trig.cos(angle) * speed, Trig.sin(angle) * speed, spawned);
             }
             spawned++;
         }
-        events.add(SimEvents.Type.BROOD_HATCHED, pod.x(), pod.y(), pod.kind());
-        carrierEnded(pod);
+    }
+
+    /**
+     * A periodic spawner's step (M5 part C, design/enemies/ground/hive-node): its cycle runs, its
+     * iris's telegraph is announced, and a due release (while the enemies fire) sends its units out
+     * like a brood's, counted among the level's enemies as they are released.
+     */
+    private void spawnCycle(Enemy enemy, Ship ship, boolean firing) {
+        int step = enemy.spawnStep(ship.x(), ship.y());
+        if (step == Enemy.SPAWN_TELEGRAPH) {
+            events.add(SimEvents.Type.SPAWN_TELEGRAPH, enemy.x(), enemy.y(), enemy.kind());
+        } else if (step == Enemy.SPAWN_RELEASE && firing) {
+            EnemySpec.Spawner spawner = enemy.spec().spawner().orElseThrow();
+            fanOut(enemy, spawner.enemy(), spawner.count(), spawner.arcRadians(), spawner.speed(), ship);
+            events.add(SimEvents.Type.SPAWN_RELEASED, enemy.x(), enemy.y(), enemy.kind());
+            escapes.released(enemy, spawner.count());
+        }
     }
 
     /**
@@ -791,6 +829,11 @@ final class EnemyForce {
             }
         }
         return count;
+    }
+
+    /** M5 part C: the units of the enemy {@code slug} of the waves tagged {@code tag} (a scoped escapes objective). */
+    int unitsOf(String slug, String tag) {
+        return waves.unitsOf(slug, tag);
     }
 
     /** Every unit the level sends, flying and on the ground, and the units its spawners release. */

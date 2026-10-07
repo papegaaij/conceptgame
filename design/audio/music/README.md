@@ -91,8 +91,12 @@ Which level uses A or B is set per level in the [campaign](../../campaign/README
 ### Intensity layers
 
 Level themes are delivered as two synced stems: **base** and **intensity** (extra drums and
-lead). The intensity stem fades in (1 s) when on-screen enemy density is high or a scripted
-level section asks for it, and fades out 4 s after calm returns.
+lead). The intensity stem fades in (1 s) when a scripted level section asks for it, and fades out
+4 s after calm returns. **As built** the switch is by section only (a level's `start_section`,
+`full_section` and `stems`); driving it by the on-screen density is **not built** (no level asks
+for it). Planned (M5 part C): a **run-time hook** from the sortie's state, the music data's
+`full_on`: `hold` (the full mix while a hold zone runs, 1 s in as it starts, 4 s out after it ends)
+and `collapse` (the full mix from Level 09's collapse to the end).
 
 The concept tracks are full mixes; round 11 delivered the first stem pair. A level that asks for
 the base stem until a section (Level 01 until section 3) plays the base stem from its music start
@@ -127,9 +131,33 @@ B: the chosen concept goes straight to production, reviewed as final in concept 
   (the assets byte for byte) and the loop-seam listening aids `homefront-seam-final-r30-a.ogg` and
   `homefront-base-seam-final-r30-a.ogg`, with a review sheet as round 26's.
 - **Level 08** plays the megacity ambience alone in section 1, the base stem from the section 2
-  transition and the full mix in section 5 (the finale), the intensity stem also rising with the
-  on-screen density as built; the game's track map gets track 6 → `homefront` (`homefront-base` by
-  the stem rule).
+  transition and the full mix in section 5 (the finale); the game's track map gets track 6 →
+  `homefront` (`homefront-base` by the stem rule). (An intensity rising with the on-screen density,
+  as this said before, is not built.)
+
+### "Firestorm" in production (M5 part C)
+
+Track 7, "Firestorm", is Level 09's theme and serves Levels 11, 12 and the Level 14 approach too
+(user decision D9 = a of M5 part C: the chosen concept goes straight to production, reviewed as
+final in concept round 31), in the same method as "Homefront":
+
+- **Full mix** `assets/music/firestorm.ogg`: the chosen
+  [act2-b-theme-r08-a](concept/act2-b-theme-r08-a.ogg) rendered by `tools/art/themes.py` (key
+  `firestorm`) from its round-08 generator unchanged, checked against the final spec (OGG Vorbis
+  q6, −14 LUFS ±0.5 LU, true peak ≤ −1 dBTP, `LOOPSTART` / `LOOPLENGTH`, a `SOURCE` comment); only
+  what fails is fixed.
+- **Base stem** `assets/music/firestorm-base.ogg` (key `firestorm-base`): a new frozen stem
+  generator, `tools/concept/audio/music_r31.py`, as `music_r30.py`: one render of the same
+  composition and seeds, the base groups through the full mix's own chains and linked mastering,
+  so both files share length, loop points and gain and crossfade sample-aligned. Guidance for the
+  split (the generator decides and records it): the base keeps the reese bass, the pads and
+  tremolo strings, the acid arpeggio and the kick; it drops the breakbeat top, the orchestral hits,
+  the stab riff, the brass motif and the toms. One version, no a/b.
+- **Review files** for round 31: `firestorm-final-r31-a.ogg`, `firestorm-base-final-r31-a.ogg`
+  (the assets byte for byte), the loop-seam aids and a review sheet, as round 30's.
+- **Level 09** plays the base stem from the launch, the full mix during each hold and from the
+  collapse (`full_on: [hold, collapse]`), over the megacity ambience; the game's track map gets
+  track 7 → `firestorm` (`firestorm-base` by the stem rule).
 
 ## Concept art
 
@@ -258,11 +286,35 @@ with no fix. Approved as final in [round 30](../../concept-rounds/round-30/READM
 | [concept/homefront-base-seam-final-r30-a.ogg](concept/homefront-base-seam-final-r30-a.ogg) | Listening aid: track 6's base stem across its loop seam, 8 s each side | chosen |
 | [concept/music-final-r30-a.png](concept/music-final-r30-a.png) | Review sheet: both files' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam and size | chosen |
 
+Production art, M5 part C (for concept round 31): track 7 "Firestorm", Level 09's theme, and its
+base stem, rendered by [tools/art/themes.py](../../../tools/art/README.md) (keys `firestorm`,
+`firestorm-base`): the full mix by the chosen generator unchanged (`music_r08.py`, `firestorm`), the
+base stem by the new frozen `tools/concept/audio/music_r31.py` (it stops unless its full mix is the
+chosen `act2-b-theme-r08-a` byte for byte); `SOURCE` comment; both get Afterburner's true-peak dip
+(`TRUE_PEAK_FIX`). Approved as final in [round 31](../../concept-rounds/round-31/README.md) (user,
+2026-10-07). Prompts:
+[concept/prompts.md](concept/prompts.md#music-final-r31-a--track-7-and-its-base-stem-production-art).
+
+| File | What | Status |
+|---|---|---|
+| [concept/firestorm-final-r31-a.ogg](concept/firestorm-final-r31-a.ogg) | #7 "Firestorm" final, `assets/music/firestorm.ogg` byte for byte: 120.4 s, loop 321300 + 4838400 samples (7.29 s + 109.71 s), −14.0 LUFS, −1.3 dBTP, seam 0.63; the chosen file with 8 transient dips (true peak was −0.2 dBTP) | chosen |
+| [concept/firestorm-base-final-r31-a.ogg](concept/firestorm-base-final-r31-a.ogg) | #7 base stem final, `assets/music/firestorm-base.ogg` byte for byte: same length and loop points, the full mix's gain (−17.7 LUFS, −3.6 LU), −1.4 dBTP, seam 0.52; no concept file of its own | chosen |
+| [concept/firestorm-seam-final-r31-a.ogg](concept/firestorm-seam-final-r31-a.ogg) | Listening aid: track 7 across its loop seam, 8 s each side | chosen |
+| [concept/firestorm-base-seam-final-r31-a.ogg](concept/firestorm-base-seam-final-r31-a.ogg) | Listening aid: track 7 (base stem) across its loop seam, 8 s each side | chosen |
+| [concept/music-final-r31-a.png](concept/music-final-r31-a.png) | Review sheet: both files' waveforms with intro, loop and fade tail marked, their loop points, loudness, true peak, seam and size | chosen |
+
 ## Implementation
 
 - [x] Music player with intro + loop points
 - [x] Crossfades and stinger transitions (boss warning, jingles)
-- [x] Two-stem intensity layer driven by density or level script
+- [x] Two-stem intensity layer driven by the level script (by section; density-driven switching is
+      not built, no level asks for it)
+- [x] The run-time stem hook `full_on` (`hold`, `collapse`) from the sortie's state — M5 part C
+      (`LevelMusic.update(…, runTimeFull)`, `LevelScreen.runTimeFull`: in over 1 s, out over 4 s,
+      `StemMix.fadeTo(share, seconds)`; `RunTimeStemsTest`, `RunTimeMusicTest`)
+- [x] Track 7 "Firestorm" with its base stem in the game's track map (`Tracks`: 7 →
+      `firestorm`), played by Level 09 — M5 part C (`TracksTest`; approved as final in concept
+      round 31)
 - [x] Per-level track assignment from level data (each level's `music` block: track, stems,
       sting, boss warning and boss track)
 - [x] Track 6 "Homefront" in the game's track map, with its base stem, played by Level 08 (M5
@@ -384,4 +436,26 @@ with no fix. Approved as final in [round 30](../../concept-rounds/round-30/READM
   2026-10-07): track 6 "Homefront" and its base stem approved as **final** (the base stem without
   a concept round of its own, its 0.61 seam and the city ambience in section 1 as they are). The
   track map item is ticked, so the implementation is `done` again; `art` stays `chosen` (the other
+  Act 2 tracks are concepts until their rounds).
+- 2026-10-07: M5 part C (user decision D9 = a and the stated defaults): "Firestorm" (track 7) goes
+  straight to production for Level 09, the chosen full mix checked against the final spec and a
+  base stem from a new frozen stem generator (`music_r31.py`), both reviewed as final in concept
+  round 31. Level 09: the base stem from the launch, the full mix in each hold zone (1 s in, 4 s out)
+  and from the collapse, through a new run-time hook (`full_on`). Corrected: the intensity layer is
+  switched by section only; "driven by density", here and in Level 08's text, was never built. The
+  document goes back to `in-progress`.
+- 2026-10-07: M5 part C: "Firestorm" (track 7) goes straight to production for Level 09 (also L11,
+  L12 and L14's approach): the chosen `act2-b-theme-r08-a` rendered by `themes.py` plus a base stem
+  from the new frozen `music_r31.py` (the round-11 method; the base without lead, brass, the stab
+  riff's short strings, the melody strings, the breakbeat top, toms and crashes). The pair failed the
+  true-peak limit (−0.2 / −0.1 dBTP) and got round 26's shared transient dip (8 dips, at most
+  −1.32 dB); reviewed as final in concept round 31. Measured only, not listened to.
+- 2026-10-07: M5 part C, game side: the `full_on` hook is built in `LevelMusic` (the full mix while
+  the sortie's hold zone runs or from the collapse on, as the level's `full_on` names them; 1 s in,
+  4 s out after a hold ends, a section's own change keeps the 1 s crossfade); track 7 maps to
+  `firestorm` / `firestorm-base`.
+- 2026-10-07: [Concept round 31](../../concept-rounds/round-31/README.md) closed for the music
+  (user, 2026-10-07): track 7 "Firestorm" and its base stem approved as **final** (the base stem
+  without a concept round of its own, its thin sections A and D, and the 8 transient dips as they
+  are). Every item is ticked, so the implementation is `done` again; `art` stays `chosen` (the other
   Act 2 tracks are concepts until their rounds).

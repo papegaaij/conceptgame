@@ -516,6 +516,50 @@ class WingmanTest {
         assertTrue(sortie.chain() >= 2, "chain: " + sortie.chain());
     }
 
+    /**
+     * User decision 2026-10-07: he aims his Mortar. A Hive Node-sized hardened target scrolls down the
+     * player's column, 64 px beside his Wing slot: his shells land on it (a lob of the full 200 px ahead
+     * of him would land 64 px beside it, out of its blast's and its snap's reach), each on an arc as
+     * short as the distance, and only his shells hurt it (the player's Pulse Cannon glances off).
+     */
+    @Test
+    void heLobsHisMortarOntoTheGroundTargetThePlayerIsOver() {
+        double hp = 1_000_000;
+        LevelScript level = PartCSpecs.level(
+                20, 60, List.of(), List.of(new LevelScript.GroundUnit(0, Ship.START_X, PartCSpecs.nodeTarget(hp), -1)));
+        WingmanSpec rook = new WingmanSpec(WingmanSpec.Side.LEFT, 80, CRAFT, AI, PartCSpecs.mortar());
+        Sortie sortie = new Sortie(
+                1,
+                TestSpecs.LOADOUT.withWingman(rook),
+                level,
+                TestSpecs.RULES.withInvulnerableShip(),
+                TestSpecs.FULL_ARMOUR);
+        int aimed = 0;
+        for (int i = 0; i < SimStep.ticks(12); i++) {
+            sortie.step(Command.FIRE.bit());
+            Enemy node = PartCSpecs.find(sortie, "node");
+            for (int s = 0; s < sortie.shotCount(); s++) {
+                Shot shot = sortie.shot(s);
+                if (shot.mount() != sortie.wingmanMount() || node == null) {
+                    continue;
+                }
+                if (Math.abs(shot.landX() - node.x()) < 1e-9 && Math.abs(shot.landY() - node.y()) < 1e-9) {
+                    aimed++;
+                    assertTrue(shot.arc() > 0 && shot.arc() <= 1, "a lob no longer than the range: " + shot.arc());
+                } else {
+                    assertTrue(
+                            Math.hypot(shot.landX() - node.x(), shot.landY() - node.y()) > 56,
+                            "a shell not aimed at it lands clear of it");
+                }
+            }
+        }
+
+        assertTrue(aimed > 0, "his shells land on the node");
+        Enemy node = PartCSpecs.find(sortie, "node");
+        double damage = hp - (node == null ? 0 : node.hp());
+        assertTrue(damage >= 12 * 5, "his shells hurt it: " + damage);
+    }
+
     @Test
     void heFiresOnlyWhileThePlayerFires() {
         Sortie sortie = sortie(groundAheadOfRook(), WingmanSpec.Side.LEFT);

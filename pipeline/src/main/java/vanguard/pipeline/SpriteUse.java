@@ -2,6 +2,7 @@ package vanguard.pipeline;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -13,12 +14,15 @@ import vanguard.content.EnemyData;
 import vanguard.content.LevelData;
 
 /**
- * Which atlas a sprite goes in (design/art-direction/production, Budgets): a sprite only one level
- * uses goes in that level's unit atlas ({@code level-NN}), everything else in the shared pages
- * ({@code sprites}), which the game keeps loaded. The levels' use is derived from their data: the
+ * Which atlases a sprite goes in (design/art-direction/production, Budgets): the game-wide sprites
+ * go in the shared pages ({@code sprites}), which the game keeps loaded; a sprite only levels use
+ * goes in the unit atlas ({@code level-NN}) of every level that uses it, duplicated in the build
+ * output (user decision D10 = a, M5 part C), so the shared pages never grow with the levels' units
+ * and a level finds all its units in its own atlas. The levels' use is derived from their data: the
  * enemies of their waves, ground targets, set pieces and boss (and the enemies those spawn), the
  * ground targets' looks, the escorted ally and the level's features the game draws with sprites of
- * its own (cranes, debris, sleds, rocks, the darkness's flares, the tows' lifeboat, pod and cable). A
+ * its own (cranes, debris, sleds, rocks, the darkness's flares, the tows' lifeboat, pod and cable, the
+ * collapse's dust puffs). A
  * sprite belongs to a root when its name is the root or starts with the root and a hyphen
  * ({@code leviathan} owns {@code leviathan-fin-left}). The shared roots are the weapons, the specials
  * and the game's own effects ({@link #GAME_WIDE}); an enemy no level uses yet goes in its first level's
@@ -56,13 +60,19 @@ final class SpriteUse {
     /** The sprites of a level's tows: {@code lifeboat}, {@code lifeboat-pod}, {@code lifeboat-cable} and their {@code -glow}s. */
     static final String TOW_ROOT = "lifeboat";
 
+    /** The dust puffs of a level's collapse: {@code collapse-puff_0..7} (Level 09's arcology). */
+    static final String COLLAPSE_ROOT = "collapse-puff";
+
     /** The look of a destructible ground target that names none (Level 01's cargo container). */
     private static final String DEFAULT_LOOK = "cargo-container";
 
     private SpriteUse() {}
 
-    /** The atlas of every sprite name: {@link #SHARED} or {@code level-NN}. */
-    static Map<String, String> atlases(Content content, Collection<String> sprites) {
+    /**
+     * The atlases of every sprite name: {@link #SHARED} alone, or the {@code level-NN} unit atlas of
+     * every level that uses it.
+     */
+    static Map<String, Set<String>> atlases(Content content, Collection<String> sprites) {
         Set<String> shared = new TreeSet<>(GAME_WIDE);
         content.weapons().keySet().forEach(shared::add);
         content.specials().specials().forEach(special -> shared.add(slug(special.name())));
@@ -78,7 +88,7 @@ final class SpriteUse {
                         .add(slug);
             }
         });
-        Map<String, String> atlases = new TreeMap<>();
+        Map<String, Set<String>> atlases = new TreeMap<>();
         List<String> orphans = new ArrayList<>();
         for (String sprite : sprites) {
             Set<String> users = new TreeSet<>();
@@ -87,10 +97,10 @@ final class SpriteUse {
                     users.add(level);
                 }
             });
-            if (claims(shared, sprite) || users.size() > 1) {
-                atlases.put(sprite, SHARED);
-            } else if (users.size() == 1) {
-                atlases.put(sprite, users.iterator().next());
+            if (claims(shared, sprite)) {
+                atlases.put(sprite, Set.of(SHARED));
+            } else if (!users.isEmpty()) {
+                atlases.put(sprite, Collections.unmodifiableSet(users));
             } else {
                 orphans.add(sprite);
             }
@@ -149,6 +159,8 @@ final class SpriteUse {
             roots.add("ore-canister");
         });
         level.rocks().ifPresent(rocks -> roots.add("rock"));
+        // M5 part C: a collapse's dust is drawn with its puff sprites (CollapseLooks).
+        level.collapse().ifPresent(collapse -> roots.add(COLLAPSE_ROOT));
         level.darkness().ifPresent(darkness -> {
             roots.add("flare");
             roots.add("headlight");

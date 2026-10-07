@@ -156,6 +156,11 @@ final class ContentValidator {
                     && attack.aim().filter("down"::equals).isPresent()) {
                 problem(enemy, field + ".aim", "a walker's fan aims at the target or along its facing");
             }
+            if (attack.pounce().isPresent() && !walker) {
+                // M5 part C: a pounce leaps off a walker's path and rejoins it.
+                problem(enemy, field + ".pounce", "only a walker pounces");
+            }
+            attack.spawn().ifPresent(spawn -> checkEnemyName(enemy, field + ".spawn.enemy", spawn.enemy()));
             attack.mine().ifPresent(mine -> checkBullet(enemy, field + ".mine.ring_bullet", mine.ringBullet()));
             attack.mortar().ifPresent(mortar -> checkBullet(enemy, field + ".mortar.ring_bullet", mortar.ringBullet()));
             attack.sweep().flatMap(EnemyData.Sweep::origin).ifPresent(origin -> {
@@ -174,6 +179,19 @@ final class ContentValidator {
                 enemy.difficulty().flatMap(EnemyData.Hooks::hard))) {
             hook.flatMap(EnemyData.Hook::deathBurst)
                     .ifPresent(puff -> checkBullet(enemy, "difficulty.death_burst.bullet", puff.bullet()));
+        }
+        if (enemy.attacks().stream()
+                        .filter(attack -> attack.spawn().isPresent())
+                        .count()
+                > 1) {
+            // M5 part C: a brood or a periodic spawn, one per unit.
+            problem(enemy, "attacks", "a unit has at most one spawn");
+        }
+        if (enemy.attacks().stream()
+                        .filter(attack -> attack.pounce().isPresent())
+                        .count()
+                > 1) {
+            problem(enemy, "attacks", "a unit has at most one pounce");
         }
         checkParts(enemy);
         checkBoss(enemy);
@@ -488,7 +506,141 @@ final class ContentValidator {
             variant.flatMap(LevelData.Variant::enemies)
                     .ifPresent(changes -> changes.keySet().forEach(slug -> checkEnemyName(level, "difficulty", slug)));
         }
+        checkPartC(level, levelEnemies);
         new BackdropCheck(level, (field, message) -> problem(level, field, message)).run();
+    }
+
+    /**
+     * M5 part C's level keys (Level 09): hold zones wait for the objectives' groups, each group in
+     * one hold at most, slower than every section on every difficulty, and not in a level with the
+     * set pieces, cranes, sleds, tows or boss that the level clock's slowing was not built for; the
+     * collapse waits for groups, falls with a tower placed once and leaves a backdrop piece; a scoped escapes objective has waves of
+     * its enemy with its tag; a pack has a path for each unit on every difficulty; the radio's new
+     * events, {@code music.full_on} and the threat profile's required traits have what they name.
+     */
+    private void checkPartC(LevelData level, Set<String> levelEnemies) {
+        List<LevelData.Hold> holds = level.holds().orElse(List.of());
+        Set<String> held = new TreeSet<>();
+        double slowest = level.sections().stream()
+                .mapToDouble(section -> section.speed().orElse(level.scrollSpeed()))
+                .min()
+                .orElseThrow();
+        for (int i = 0; i < holds.size(); i++) {
+            LevelData.Hold hold = holds.get(i);
+            String field = "holds[" + i + "]";
+            for (String group : hold.groups()) {
+                checkGroup(level, field + ".groups", group);
+                if (!held.add(group)) {
+                    problem(level, field + ".groups", "group '" + group + "' is in another hold already");
+                }
+            }
+            for (Difficulty difficulty : Difficulty.values()) {
+                if (hold.speedOn(difficulty) >= slowest) {
+                    problem(
+                            level,
+                            field + ".speed",
+                            hold.speedOn(difficulty) + " px/s on "
+                                    + difficulty.name().toLowerCase(Locale.ROOT)
+                                    + " is not below every section's speed (" + slowest + ")");
+                }
+            }
+        }
+        if (!holds.isEmpty()) {
+            List<String> unsupported = new ArrayList<>();
+            level.setPieces().filter(pieces -> !pieces.isEmpty()).ifPresent(pieces -> unsupported.add("set_pieces"));
+            level.cranes().filter(cranes -> !cranes.isEmpty()).ifPresent(cranes -> unsupported.add("cranes"));
+            level.sleds().ifPresent(sleds -> unsupported.add("sleds"));
+            level.tows().filter(tows -> !tows.isEmpty()).ifPresent(tows -> unsupported.add("tows"));
+            level.boss().ifPresent(boss -> unsupported.add("boss"));
+            if (!unsupported.isEmpty()) {
+                problem(level, "holds", "hold zones are not built for a level with " + unsupported);
+            }
+        }
+        level.collapse().ifPresent(collapse -> {
+            collapse.groups().forEach(group -> checkGroup(level, "collapse.groups", group));
+            if (!level.backdrop().pieces().containsKey(collapse.rubble())) {
+                problem(level, "collapse.rubble", "no backdrop piece '" + collapse.rubble() + "'");
+            }
+            BackdropData.Piece tower = level.backdrop().pieces().get(collapse.tower());
+            long placed = level.backdrop().placements().stream()
+                    .filter(p -> p.piece().equals(collapse.tower()))
+                    .count();
+            if (tower == null || tower.tower().isEmpty()) {
+                problem(level, "collapse.tower", "no backdrop tower piece '" + collapse.tower() + "'");
+            } else if (placed != 1) {
+                problem(level, "collapse.tower", "'" + collapse.tower() + "' is placed " + placed + " times, not once");
+            }
+        });
+        level.objectives().secondary().ifPresent(secondary -> secondary.tag().ifPresent(tag -> {
+            String slug = secondary.escapes().orElseThrow();
+            boolean tagged = level.waves().stream()
+                    .anyMatch(wave -> wave.tag().filter(tag::equals).isPresent()
+                            && wave.groupList().stream()
+                                    .anyMatch(group -> group.enemy().equals(slug)));
+            if (!tagged) {
+                problem(level, "objectives.secondary.tag", "no wave of '" + slug + "' tagged '" + tag + "'");
+            }
+        }));
+        for (int i = 0; i < level.waves().size(); i++) {
+            LevelData.Wave wave = level.waves().get(i);
+            for (LevelData.Group group : wave.groupList()) {
+                if (!group.formation().equals("pack")) {
+                    continue;
+                }
+                int paths = wave.paths().map(List::size).orElse(0);
+                int most = 0;
+                for (Difficulty difficulty : Difficulty.values()) {
+                    most = Math.max(most, wave.fliesOn(difficulty) ? countOn(wave, group, difficulty) : 0);
+                }
+                if (paths < most) {
+                    problem(
+                            level,
+                            "waves[" + i + "].paths",
+                            "a pack needs a path per unit, as many as its largest difficulty's count: " + paths
+                                    + " for " + most);
+                }
+            }
+        }
+        for (int i = 0; i < level.radio().size(); i++) {
+            LevelData.CueEvent event = level.radio().get(i).event().orElse(null);
+            String field = "radio[" + i + "].event";
+            if (event == LevelData.CueEvent.HOLD_START && holds.isEmpty()) {
+                problem(level, field, "hold-start in a level without holds");
+            } else if (event == LevelData.CueEvent.COLLAPSE && level.collapse().isEmpty()) {
+                problem(level, field, "collapse in a level without a collapse");
+            } else if (event == LevelData.CueEvent.FIRST_POUNCE
+                    && levelEnemies.stream().noneMatch(this::pounces)) {
+                problem(level, field, "first-pounce in a level without an enemy that pounces");
+            }
+        }
+        level.music().fullOn().ifPresent(events -> {
+            if (events.contains(LevelData.Music.FullOn.HOLD) && holds.isEmpty()) {
+                problem(level, "music.full_on", "hold in a level without holds");
+            }
+            if (events.contains(LevelData.Music.FullOn.COLLAPSE)
+                    && level.collapse().isEmpty()) {
+                problem(level, "music.full_on", "collapse in a level without a collapse");
+            }
+        });
+    }
+
+    /** The units of {@code group} of {@code wave} on {@code difficulty}, as {@link SimSpecs} plans them. */
+    private int countOn(LevelData.Wave wave, LevelData.Group group, Difficulty difficulty) {
+        Optional<LevelData.Change> change =
+                switch (difficulty) {
+                    case EASY -> wave.easy();
+                    case MEDIUM -> Optional.empty();
+                    case HARD -> wave.hard();
+                };
+        return change.flatMap(LevelData.Change::count)
+                .orElseGet(() -> content.difficulty().formationSize(group.count(), difficulty));
+    }
+
+    /** Whether the enemy {@code slug} has a pounce. */
+    private boolean pounces(String slug) {
+        return content.enemies().containsKey(slug)
+                && content.enemy(slug).attacks().stream()
+                        .anyMatch(attack -> attack.pounce().isPresent());
     }
 
     /**

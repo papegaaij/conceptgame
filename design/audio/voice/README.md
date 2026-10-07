@@ -123,6 +123,7 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
 | Perimeter beacon | Mark F. Smith | `refs/ref-perimeter-beacon.wav` |
 | Lifeboat Seven | Tadhg Hynes | `refs/ref-lifeboat-seven.wav` |
 | Civilian (shelter nine) | Faith Abiola-Ellison | `refs/ref-civilian.wav` |
+| Kilo Lead | Aaron Bennett | `refs/ref-kilo-lead.wav` |
 
 - **Generic speakers** get readers from the same sources, never a main-cast reader, auditioned in
   [round 19](../../concept-rounds/round-19/README.md). One voice per role, so a role keeps its
@@ -148,6 +149,14 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
   (`tools/concept/audio/tts_r30.py`), and cast in that round: Faith Abiola-Ellison (b, a woman's
   voice, clip pitch 151 Hz), at the neutral settings through radio filter b, as auditioned; her
   two lines are voiced (both takes pinned in the speaker table).
+  Level 09 adds the **Kilo Lead** (speaker `Kilo Lead`: the CDF officer of the Kilo truck convoy
+  on the Okonjo Bridge, two lines, the call at t=95 and the secondary objective's thanks; the radio
+  portrait `radio-generic-cdf`), auditioned in concept round 31 (user decision D11 = a of M5 part
+  C) as the civilian was: his two real lines with two new candidate readers (a, b) from the same
+  CC0 and public-domain sources, never a main-cast reader nor a voice already cast for another role,
+  through radio filter b at the neutral settings (`tools/concept/audio/tts_r31.py`), and cast in
+  that round: Aaron Bennett (a, clip pitch 129 Hz), at the neutral settings through radio filter
+  b, as auditioned; his two lines are voiced.
 
 ### Speakers and expression
 
@@ -263,6 +272,14 @@ level).
       act briefing rendered and reviewed in concept round 30; the civilian's after her casting
       (M5 part B; rendered 2026-10-06, 19 lines, three takes pinned; the civilian's two lines
       rendered 2026-10-07, both takes pinned; accepted as rendered when round 30 closed)
+- [x] The Kilo Lead (Level 09): reference clips for the round-31 audition under `refs/` and in
+      CREDITS.md, the chosen reader in the speaker table (M5 part C, D11 = a; a, Aaron Bennett,
+      `refs/ref-kilo-lead.wav`)
+- [x] Level 09's lines (radio, the briefing pages, the cocoon's line, the mission failed screen's
+      `{group}` line once per node) rendered and reviewed in concept round 31; the Kilo Lead's
+      after his casting (M5 part C; rendered 2026-10-07, 20 lines, four takes pinned; the Kilo
+      Lead's two lines rendered 2026-10-07, no pins needed; accepted as rendered when round 31
+      closed its voice rows)
 - [x] A line that is only a stage direction plays its speaker's `stage` sound (speaker table) on
       the voice bus, found by `VoiceLines.radioVoice` for the game and RadioTimelineTest; the
       Choir's is round 29's option b (the sung "ah" F3 to E3), copied by
@@ -313,6 +330,17 @@ settings through radio filter b (`tools/concept/audio/tts_r30.py`; the clips
 |---|---|---|
 | [concept/rejected/voice-civilian-r30-a.ogg](concept/rejected/voice-civilian-r30-a.ogg) | The Ikoyi shelter civilian (round 30 audition), reader KirksVoice (`tools/concept/audio/tts_r30.py`) | rejected |
 | [concept/voice-civilian-r30-b.ogg](concept/voice-civilian-r30-b.ogg) | The Ikoyi shelter civilian (round 30 audition), reader Faith Abiola-Ellison (`tools/concept/audio/tts_r30.py`) | chosen |
+
+Concept [round 31](../../concept-rounds/round-31/README.md) (M5 part C) — casting the Kilo Lead of
+Level 09: his two lines (the t=95 call and the secondary objective's thanks, 1 s apart) with two
+candidate reference voices (`-a`, `-b`), rendered by Chatterbox at the neutral settings through
+radio filter b (`tools/concept/audio/tts_r31.py`). Closed 2026-10-07: **a** chosen (its clip renamed
+`refs/ref-kilo-lead.wav`); b in `concept/rejected/`, its clip deleted.
+
+| File | What | Status |
+|---|---|---|
+| [concept/voice-kilo-lead-r31-a.ogg](concept/voice-kilo-lead-r31-a.ogg) | The Kilo Lead (round 31 audition), reader Aaron Bennett (`tools/concept/audio/tts_r31.py`) | chosen |
+| [concept/rejected/voice-kilo-lead-r31-b.ogg](concept/rejected/voice-kilo-lead-r31-b.ogg) | The Kilo Lead (round 31 audition), reader tombooker (`tools/concept/audio/tts_r31.py`) | rejected |
 
 Concept [round 29](../../concept-rounds/round-29/README.md) — the sound of the Choir's stage
 direction `[the Choir sings]`: a wordless sung sting in the Choir's voice (a, b) or a synthesized
@@ -497,3 +525,33 @@ a, c and d in `concept/rejected/`.
   moved to `concept/rejected/`, his clip deleted with its CREDITS.md row. The 19 lines of Level 08
   and the Act 2 act briefing accepted as rendered, the three pinned Okafor takes included; none to
   re-render. Every item is ticked, so the implementation is `done` again.
+- 2026-10-07: M5 part C (user decision D11 = a): Level 09's CDF officer of the Kilo convoy, speaker
+  `Kilo Lead`, gets an audition of two new public-domain or CC0 readers (a/b) in concept round 31,
+  as the Ikoyi shelter civilian did in round 30; he is `uncast` in the speaker table until then
+  and his two lines play as text (`VoiceFilesTest`'s `AUDITIONING` takes him while the round is
+  open). Rejected: b (reusing a generic reader already heard in another role, against round 19's
+  one voice per role). Level 09's mission failed line names the node (`{group}`), so it is voiced
+  once per node, as Level 05's battery line. The document is `in-progress` again for part C.
+- 2026-10-07: M5 part C (step C9): Level 09's lines rendered by `tools/art/voice.py`'s pipeline
+  (only the missing lines, nothing deleted), 20 lines: its two briefing pages (dry), its eleven
+  spoken radio lines (the `hold-start`, `first-kill`, `first-pounce`, `collapse` and level-end event
+  lines included; no `{side}` line), the cocoon secret's line and the mission failed line once per
+  node (A1–C2) (Okafor 11, Varga 5, Rook 4). The Kilo Lead's two lines stay text (uncast until
+  round 31 casts him); the Choir's `[the Choir sings]` plays its stage sound; the hangar teaser and
+  the intel lines are not voiced, as in Level 08. Every take passed the length check on its first
+  seed. Whisper (base.en) read each take back, dry and through the filter; "arcology", "Vrell" and
+  "Airstrike" need a name prompt (without it: "archeology", "Vrel", "air strike"). Four takes were
+  re-rolled (four seeds each) and pinned in the speaker table: Varga's briefing page 2 (the key's
+  seed read "the streets and packs"; the pin reads "in packs" both ways) and the failed lines of
+  nodes A1, A2 and C1 (the key's seeds ran "you, Lancer" into "you'll answer"; the pins read back
+  word for word but for sound-alikes: "U Lancer" for A1, "See, one" for C1 through the filter
+  without a prompt). VoiceFilesTest now checks Level 09, with the Kilo Lead in `AUDITIONING` while
+  round 31 is open; RadioTimelineTest no longer exempts Level 09 (`UNVOICED` is empty). With the
+  real lengths no voiced timed line of Level 09 starts more than a second late. For the user's ear
+  in concept round 31.
+- 2026-10-07: Concept round 31 closed (user): the Kilo Lead is a, Aaron Bennett, neutral as
+  auditioned; clip renamed `refs/ref-kilo-lead.wav`, b deleted with its CREDITS.md row; his two
+  Level 09 lines voiced (no pins needed), so `AUDITIONING` is empty again. tombooker (b) rejected:
+  his audition moved to `concept/rejected/`. The 20 lines of Level 09 accepted as rendered, the four
+  pinned takes included; none to re-render. Every item is ticked, so the implementation is `done`
+  again.

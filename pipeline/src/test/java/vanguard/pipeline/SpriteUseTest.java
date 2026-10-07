@@ -1,9 +1,11 @@
 package vanguard.pipeline;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +19,7 @@ class SpriteUseTest {
 
     @Test
     void aSpriteOnlyOneLevelUsesGoesInItsUnitAtlas() {
-        Map<String, String> atlases = SpriteUse.atlases(
+        Map<String, Set<String>> atlases = SpriteUse.atlases(
                 content,
                 List.of(
                         "leviathan-fin-left",
@@ -26,45 +28,96 @@ class SpriteUseTest {
                         "crane-four-arm",
                         "civilian-crawler-pip",
                         "gorgon-frigate-head",
-                        "mortar-blob",
                         "ore-canister"));
 
-        assertEquals("level-03", atlases.get("leviathan-fin-left"));
-        assertEquals("level-03", atlases.get("whirl-seed-husk"));
-        assertEquals("level-03", atlases.get("debris-large-a"));
-        assertEquals("level-02", atlases.get("crane-four-arm"));
-        assertEquals("level-04", atlases.get("civilian-crawler-pip"));
-        assertEquals("level-05", atlases.get("gorgon-frigate-head"));
-        assertEquals(SpriteUse.SHARED, atlases.get("mortar-blob"), "Levels 05 and 06 both have Polyp Mortars");
-        assertEquals("level-05", atlases.get("ore-canister"));
+        assertEquals(Set.of("level-03"), atlases.get("leviathan-fin-left"));
+        assertEquals(Set.of("level-03"), atlases.get("whirl-seed-husk"));
+        assertEquals(Set.of("level-03"), atlases.get("debris-large-a"));
+        assertEquals(Set.of("level-02"), atlases.get("crane-four-arm"));
+        assertEquals(Set.of("level-04"), atlases.get("civilian-crawler-pip"));
+        assertEquals(Set.of("level-05"), atlases.get("gorgon-frigate-head"));
+        assertEquals(Set.of("level-05"), atlases.get("ore-canister"));
+    }
+
+    /** D10 = a (M5 part C): a unit several levels use goes in each of their unit atlases, never the shared pages. */
+    @Test
+    void aSpriteOfSeveralLevelsGoesInEachOfTheirUnitAtlases() {
+        Map<String, Set<String>> atlases = SpriteUse.atlases(content, List.of("mortar-blob", "skitter"));
+
+        assertEquals(levelsUsing("mortar"), atlases.get("mortar-blob"));
+        assertTrue(
+                atlases.get("mortar-blob").containsAll(Set.of("level-05", "level-06")),
+                "Levels 05 and 06 have Polyp Mortars: " + atlases.get("mortar-blob"));
+        assertEquals(levelsUsing("skitter"), atlases.get("skitter"));
+        assertTrue(atlases.get("skitter").size() > 1, atlases.toString());
     }
 
     @Test
     void aLevelsTowsClaimTheLifeboatSprites() {
-        Map<String, String> atlases =
+        Map<String, Set<String>> atlases =
                 SpriteUse.atlases(content, List.of("lifeboat", "lifeboat-pod", "lifeboat-cable", "brood-carrier-hull"));
 
-        assertEquals("level-07", atlases.get("lifeboat"));
-        assertEquals("level-07", atlases.get("lifeboat-pod"));
-        assertEquals("level-07", atlases.get("lifeboat-cable"));
-        assertEquals("level-07", atlases.get("brood-carrier-hull"));
+        assertEquals(Set.of("level-07"), atlases.get("lifeboat"));
+        assertEquals(Set.of("level-07"), atlases.get("lifeboat-pod"));
+        assertEquals(Set.of("level-07"), atlases.get("lifeboat-cable"));
+        assertEquals(Set.of("level-07"), atlases.get("brood-carrier-hull"));
     }
 
     @Test
-    void sharedSpritesAreTheGameWideOnesAndThoseOfSeveralLevels() {
-        Map<String, String> atlases = SpriteUse.atlases(
-                content,
-                List.of(
-                        "ship",
-                        "skitter",
-                        "stinger-flare",
-                        "brood-pod",
-                        "supply-drop",
-                        "cargo-container",
-                        "scatter-vulcan-shot",
-                        "airstrike-bomber"));
+    void aLevelsCollapseClaimsItsDustPuffs() {
+        Map<String, Set<String>> atlases = SpriteUse.atlases(content, List.of("collapse-puff"));
 
-        assertTrue(atlases.values().stream().allMatch(SpriteUse.SHARED::equals), atlases.toString());
+        assertEquals(Set.of("level-09"), atlases.get("collapse-puff"), "Level 09's arcology");
+    }
+
+    @Test
+    void sharedSpritesAreTheGameWideOnesOnly() {
+        List<String> gameWide = List.of(
+                "ship",
+                "engine-flame",
+                "rook",
+                "pickup-crate",
+                "explosion-large",
+                "scatter-vulcan-shot",
+                "airstrike-bomber");
+        List<String> units = List.of("skitter", "stinger-flare", "brood-pod", "supply-drop", "cargo-container");
+        List<String> sprites = new ArrayList<>(gameWide);
+        sprites.addAll(units);
+
+        Map<String, Set<String>> atlases = SpriteUse.atlases(content, sprites);
+
+        gameWide.forEach(sprite -> assertEquals(Set.of(SpriteUse.SHARED), atlases.get(sprite), sprite));
+        units.forEach(sprite -> {
+            assertFalse(atlases.get(sprite).contains(SpriteUse.SHARED), sprite + ": " + atlases.get(sprite));
+            assertTrue(atlases.get(sprite).size() > 1, sprite + ": " + atlases.get(sprite));
+        });
+    }
+
+    /** Every level finds all the sprites its data names in its own unit atlas, or in the shared pages. */
+    @Test
+    void everyLevelsUnitsAreInItsOwnAtlas() {
+        Set<String> roots = new TreeSet<>();
+        content.levels().values().forEach(level -> roots.addAll(SpriteUse.roots(content, level)));
+
+        Map<String, Set<String>> atlases = SpriteUse.atlases(content, roots);
+
+        content.levels().forEach((key, level) -> {
+            for (String root : SpriteUse.roots(content, level)) {
+                Set<String> in = atlases.get(root);
+                assertTrue(
+                        in.contains(SpriteUse.atlasOf(key)) || in.equals(Set.of(SpriteUse.SHARED)), root + ": " + in);
+            }
+        });
+    }
+
+    private Set<String> levelsUsing(String root) {
+        Set<String> levels = new TreeSet<>();
+        content.levels().forEach((key, level) -> {
+            if (SpriteUse.roots(content, level).contains(root)) {
+                levels.add(SpriteUse.atlasOf(key));
+            }
+        });
+        return levels;
     }
 
     /**
@@ -89,9 +142,9 @@ class SpriteUseTest {
                 .findFirst()
                 .orElseThrow();
 
-        Map<String, String> atlases = SpriteUse.atlases(content, List.of(unused, unused + "-husk"));
+        Map<String, Set<String>> atlases = SpriteUse.atlases(content, List.of(unused, unused + "-husk"));
 
-        String atlas = SpriteUse.atlasOf(content.enemy(unused).firstLevel());
+        Set<String> atlas = Set.of(SpriteUse.atlasOf(content.enemy(unused).firstLevel()));
         assertEquals(Map.of(unused, atlas, unused + "-husk", atlas), atlases);
     }
 

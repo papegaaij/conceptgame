@@ -75,13 +75,14 @@ consecutive levels.
 - **Objective failure**: failing the **primary** objective is mission failed — the level is
   retried (see [retry](../systems/retry/README.md)). Each level doc sets the failure condition;
   defaults: `defend` fails when the defended station is destroyed, `escort` when every escorted
-  unit is lost (each unit lost before that only lowers the reward), `destroy-targets` when a
-  named target survives to the end of the scroll. Failing a **secondary** objective only loses
+  unit is lost (each unit lost before that only lowers the reward), `destroy-targets` as soon as a
+  named target leaves the screen alive (the built failed-primary flow, Level 05 and Level 09). Failing a **secondary** objective only loses
   its bonus.
 - **Lost-mission prompt** (user decision): as soon as a primary objective becomes impossible
   (a missed hive node, a lost escort, a destroyed relay), the game shows "Mission lost — retry
   now?" immediately, with an option to fly on to the end; either way the attempt's credits are
-  discarded (see [retry](../systems/retry/README.md)).
+  discarded (see [retry](../systems/retry/README.md)). Built so far without the fly-on option: a
+  failed primary opens the mission failed screen (M5 part C, D1 = a).
 
 ### Difficulty curve
 
