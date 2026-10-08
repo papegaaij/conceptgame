@@ -123,6 +123,8 @@ public final class Sortie {
     private final int launchTicks;
     private final int endTicks;
     private final int pickupTicks;
+    /** A secret's crate or data core: the level's own life for it, else {@link #pickupTicks}. */
+    private final int crateTicks;
     /** The fitted Pickup magnet's reach, px; 0 without one. */
     private final double magnetRadius;
     /** How far a pickup in the magnet's reach flies per step, px; 0 without a magnet. */
@@ -165,6 +167,10 @@ public final class Sortie {
     private boolean holdStarted;
     /** Whether a pounce took off in this attempt (the radio's {@code first-pounce}). */
     private boolean pounced;
+    /** M5 part D: whether a unit decloaked in this attempt (the radio's {@code first-decloak}). */
+    private boolean decloakSeen;
+    /** M5 part D: whether a swarm looped back in this attempt (the radio's {@code first-loop-back}). */
+    private boolean loopBackSeen;
     /** M5 part C: the collapse; null without one. */
     private final LevelScript.Collapse collapse;
 
@@ -270,6 +276,8 @@ public final class Sortie {
         boolean holdStarted;
         boolean pounced;
         int collapseTicks;
+        boolean decloakSeen;
+        boolean loopBackSeen;
     }
 
     /** @param armour the ship's armour at the level start (design/systems/retry: not full, unless it was full) */
@@ -489,7 +497,7 @@ public final class Sortie {
         groupCalled = new boolean[script.groups().size()];
         radio = new Radio(script.radio(), events, ship, Radio.fitted(loadout.armament(), special));
         convoy = script.escort()
-                .map(escort -> new Convoy(escort, script.road().orElseThrow()))
+                .map(escort -> new Convoy(escort, script.road().orElse(null), script.sections()))
                 .orElse(null);
         if (convoy != null) {
             force.hook(convoy, convoy.escort().targetedBy());
@@ -498,6 +506,7 @@ public final class Sortie {
         launchTicks = SimStep.ticks(script.launchSeconds());
         endTicks = SimStep.ticks(script.seconds());
         pickupTicks = SimStep.ticks(rules.pickups().seconds());
+        crateTicks = SimStep.ticks(rules.pickups().crateSeconds());
         magnetRadius = loadout.magnet().map(Magnet::radius).orElse(0.0);
         magnetStep = loadout.magnet().map(Magnet::pullSpeed).orElse(0.0) * SimStep.SECONDS;
         salvageFactor = 1 + loadout.salvageBonus();
@@ -614,6 +623,9 @@ public final class Sortie {
         special.bomb(force.enemies(), setPieces, hits, force.bullets(), force.lobs(), force.mines());
         if (convoy != null) {
             convoy.update(levelTick, groundScroll, scrollStep);
+            if (convoy.air() && !complete && !wrecked && !failed) {
+                scriptedLoss();
+            }
         }
         if (flying() && !complete && !failed && !rules.invulnerableShip()) {
             hitShip();
@@ -635,6 +647,14 @@ public final class Sortie {
         if (!pounced && events.count(SimEvents.Type.POUNCE) > 0) {
             pounced = true;
             radio.cue(LevelScript.CueTrigger.FIRST_POUNCE, "");
+        }
+        if (!decloakSeen && events.count(SimEvents.Type.DECLOAK) > 0) {
+            decloakSeen = true;
+            radio.cue(LevelScript.CueTrigger.FIRST_DECLOAK, "");
+        }
+        if (!loopBackSeen && events.count(SimEvents.Type.LOOP_BACK) > 0) {
+            loopBackSeen = true;
+            radio.cue(LevelScript.CueTrigger.FIRST_LOOP_BACK, "");
         }
         if (collapse != null) {
             updateCollapse();
@@ -1002,6 +1022,8 @@ public final class Sortie {
         c.holdStarted = holdStarted;
         c.pounced = pounced;
         c.collapseTicks = collapseTicks;
+        c.decloakSeen = decloakSeen;
+        c.loopBackSeen = loopBackSeen;
         checkpointTaken = true;
     }
 
@@ -1055,6 +1077,8 @@ public final class Sortie {
         holdStarted = c.holdStarted;
         pounced = c.pounced;
         collapseTicks = c.collapseTicks;
+        decloakSeen = c.decloakSeen;
+        loopBackSeen = c.loopBackSeen;
         events.add(SimEvents.Type.SORTIE_RESTARTED, ship.x(), ship.y());
         events.add(SimEvents.Type.BOSS_RETRY, ship.x(), ship.y());
     }
@@ -1133,6 +1157,8 @@ public final class Sortie {
         easeTicks = 0;
         holdStarted = false;
         pounced = false;
+        decloakSeen = false;
+        loopBackSeen = false;
         collapseTicks = -1;
         groundScroll = 0;
         nextGroundObject = 0;
@@ -1379,12 +1405,12 @@ public final class Sortie {
         if (spec.core().isPresent()) {
             // A data core: its line plays when it is collected; the pickup carries its secret's index.
             if (crate != null) {
-                crate.drop(PickupType.DATA_CORE, spec.secretIndex(), trigger.x(), trigger.y(), pickupTicks);
+                crate.drop(PickupType.DATA_CORE, spec.secretIndex(), trigger.x(), trigger.y(), crateTicks);
             }
             return;
         }
         if (crate != null) {
-            crate.drop(PickupType.HIDDEN_CRATE, spec.crateCredits(), trigger.x(), trigger.y(), pickupTicks);
+            crate.drop(PickupType.HIDDEN_CRATE, spec.crateCredits(), trigger.x(), trigger.y(), crateTicks);
         }
         radio.cue(LevelScript.CueTrigger.SECRET, spec.secret());
     }
@@ -1451,6 +1477,10 @@ public final class Sortie {
                     enemy.x(),
                     enemy.y(),
                     SimEvents.walkerValue(enemy.kind(), enemy.facing()));
+        }
+        if (enemy.flock() != null) {
+            // M5 part D: a swarm's member drops out of its flock.
+            force.flockMemberGone(enemy);
         }
         enemies.free(index);
         if (kills == 1) {
@@ -1730,6 +1760,17 @@ public final class Sortie {
         radio.cue(LevelScript.CueTrigger.MISSION_FAILED, "");
     }
 
+    /**
+     * Fires an enemy bullet from ({@code x}, {@code y}) at ({@code vx}, {@code vy}) px/s dealing {@code
+     * damage}, as a gun does; package-private for the tests (M5 part D's shuttle hits).
+     */
+    void fireEnemyBullet(double x, double y, double vx, double vy, double damage) {
+        EnemyBullet bullet = force.bullets().obtain();
+        if (bullet != null) {
+            bullet.fire(x, y, vx, vy, damage);
+        }
+    }
+
     /** Drops a pickup of {@code type} at ({@code x}, {@code y}), as a kill or a destroyed object does; package-private for the tests. */
     void drop(PickupType type, double x, double y) {
         if (type == PickupType.SPECIAL_CHARGE && !special.fitted()) {
@@ -1844,7 +1885,7 @@ public final class Sortie {
     private void dropTowCrate(Tow tow) {
         Pickup crate = pickups.obtain();
         if (crate != null) {
-            crate.drop(PickupType.HIDDEN_CRATE, tow.spec().crateCredits(), towPodX(tow), towPodY(tow), pickupTicks);
+            crate.drop(PickupType.HIDDEN_CRATE, tow.spec().crateCredits(), towPodX(tow), towPodY(tow), crateTicks);
         }
     }
 
@@ -1945,7 +1986,7 @@ public final class Sortie {
         events.add(SimEvents.Type.SECRET_FOUND, crane.tipX(), crane.tipY());
         Pickup crate = pickups.obtain();
         if (crate != null) {
-            crate.drop(PickupType.HIDDEN_CRATE, spec.crateCredits(), crane.tipX(), crane.tipY(), pickupTicks);
+            crate.drop(PickupType.HIDDEN_CRATE, spec.crateCredits(), crane.tipX(), crane.tipY(), crateTicks);
         }
         radio.cue(LevelScript.CueTrigger.SECRET, spec.secret());
     }
@@ -2091,6 +2132,10 @@ public final class Sortie {
      */
     private void hitAllies() {
         AllySpec spec = convoy.escort().ally();
+        if (convoy.air()) {
+            hitAirAllies(spec);
+            return;
+        }
         if (spec.objectiveAimed()) {
             Pool<EnemyBullet> bullets = force.bullets();
             for (int i = bullets.size() - 1; i >= 0 && !failed; i--) {
@@ -2123,7 +2168,80 @@ public final class Sortie {
         }
     }
 
-    /** Unit {@code k} of the convoy takes {@code damage}: the first hit's line, a loss's line, the failure. */
+    /**
+     * M5 part D (design/allies, evacuation shuttle; user decision D2 = a): an air escort's units take
+     * their damage. Every enemy bullet touching a unit that can be hit hurts the first such unit by its
+     * damage and is spent; an enemy body on the player's plane hurts each unit it starts to overlap by
+     * its contact damage, once per contact, and one that is destroyed by ramming the ship is destroyed
+     * by the impact and paid as then. Units in their untouchable windows let fire and contact pass.
+     */
+    private void hitAirAllies(AllySpec spec) {
+        if (spec.bullets()) {
+            Pool<EnemyBullet> bullets = force.bullets();
+            for (int i = bullets.size() - 1; i >= 0 && !failed; i--) {
+                EnemyBullet bullet = bullets.get(i);
+                int k = convoy.touchingInAir(bullet.x(), bullet.y(), EnemyGun.BULLET);
+                if (k >= 0) {
+                    bullets.free(i);
+                    hurt(k, bullet.damage(), true);
+                }
+            }
+        }
+        if (!spec.contact()) {
+            return;
+        }
+        Pool<Enemy> enemies = force.enemies();
+        for (int j = enemies.size() - 1; j >= 0 && !failed; j--) {
+            Enemy enemy = enemies.get(j);
+            int touching = 0;
+            if (enemy.layer().collidesWithPlayer() && !Chain.doomed(enemy) && !enemy.leaping()) {
+                for (int k = 0; k < convoy.size(); k++) {
+                    if (convoy.touchesInAir(k, enemy.x(), enemy.y(), enemy.hitbox())) {
+                        touching |= 1 << k;
+                    }
+                }
+            }
+            int fresh = touching & ~enemy.allyContacts();
+            enemy.allyContacts(touching);
+            EnemySpec kind = enemy.spec();
+            for (int k = 0; k < convoy.size() && fresh != 0 && !failed; k++) {
+                if ((fresh & 1 << k) == 0) {
+                    continue;
+                }
+                hurt(k, kind.contactDamage(), true);
+                if (kind.destroyedByRamming()) {
+                    destroy(j);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * M5 part D (design/campaign Level 10, user decision D4 = a): the scripted loss's glow starts at its
+     * time and its lance takes its unit at its own: the unit is lost without the loss cues, the pay
+     * or the fail; the radio's {@code scripted-loss} cues start.
+     */
+    private void scriptedLoss() {
+        int k = convoy.scripted();
+        if (k < 0) {
+            return;
+        }
+        Ally ally = convoy.get(k);
+        if (convoy.glowDue(levelTick)) {
+            events.add(SimEvents.Type.LOSS_GLOW, ally.x(), ally.y(), k);
+        }
+        if (convoy.lossDue(levelTick)) {
+            events.add(SimEvents.Type.SCRIPTED_LOSS, ally.x(), ally.y(), k);
+            radio.cue(LevelScript.CueTrigger.SCRIPTED_LOSS, "");
+        }
+    }
+
+    /**
+     * Unit {@code k} of the convoy takes {@code damage}: the first hit's line, a loss's lines (M5 part
+     * D: {@code first-ally-lost}'s on the first, then {@code ally-lost}'s on every one), the failure
+     * when every saveable unit is lost.
+     */
     private void hurt(int k, double damage, boolean announce) {
         Ally ally = convoy.get(k);
         boolean first = convoy.firstHit() < 0;
@@ -2138,10 +2256,15 @@ public final class Sortie {
             return;
         }
         events.add(SimEvents.Type.ALLY_LOST, ally.x(), ally.y(), k);
-        if (convoy.firstLost() == k && convoy.alive() == convoy.size() - 1) {
+        if (convoy.firstLost() == k && convoy.lostSaveable() == 1) {
             radio.cue(LevelScript.CueTrigger.FIRST_ALLY_LOST, "");
         }
+        radio.cue(LevelScript.CueTrigger.ALLY_LOST, "");
         if (convoy.allLost()) {
+            if (convoy.air() && rules.invulnerableShip()) {
+                // The debug option that lets a capture see the level to its end keeps it going too.
+                return;
+            }
             failed = true;
             events.add(SimEvents.Type.PRIMARY_FAILED, ship.x(), ship.y());
             radio.cue(LevelScript.CueTrigger.MISSION_FAILED, "");
@@ -2195,7 +2318,7 @@ public final class Sortie {
     private void completeLevel() {
         complete = true;
         events.add(SimEvents.Type.LEVEL_COMPLETE, ship.x(), ship.y());
-        int home = convoy == null ? 0 : convoy.alive();
+        int home = convoy == null ? 0 : convoy.saveableAlive();
         if (convoy != null) {
             // Each unit home is a payout of its own (design/campaign, Level 04: the escort objective).
             int credits = convoy.escort().credits();
@@ -2289,6 +2412,10 @@ public final class Sortie {
         if (force.chains().size() > 0) {
             Pools.addAll(hash, force.chains());
         }
+        // M5 part D: the swarms (none before Level 10).
+        if (force.flocks().size() > 0) {
+            Pools.addAll(hash, force.flocks());
+        }
         // M5 part B: the staggered walker waves' volley clocks (none before Level 08).
         force.addVolleyClocksTo(hash);
         for (int k = 0; k < cores.length; k++) {
@@ -2327,6 +2454,10 @@ public final class Sortie {
         if (pounced) {
             hash.add(1);
         }
+        if (decloakSeen || loopBackSeen) {
+            // M5 part D: only once a unit decloaked or a swarm looped back, so the other levels hash as before.
+            hash.add(decloakSeen ? 1 : 0).add(loopBackSeen ? 1 : 0);
+        }
         if (wingman != null) {
             // Only with a wingman, so the hashes of sorties without one stay as they were.
             wingman.addTo(hash);
@@ -2351,7 +2482,10 @@ public final class Sortie {
                         convoy == null
                                 ? LevelResult.Escort.NONE
                                 : new LevelResult.Escort(
-                                        convoy.escort().ally().slug(), convoy.alive(), convoy.size(), escortCredits),
+                                        convoy.escort().ally().slug(),
+                                        convoy.saveableAlive(),
+                                        convoy.saveable(),
+                                        escortCredits),
                         bossTime())
                 .withDataCores(dataCores());
     }
@@ -2439,6 +2573,15 @@ public final class Sortie {
 
     public Chain chain(int index) {
         return force.chains().get(index);
+    }
+
+    /** M5 part D: the swarms in flight (design/enemies/air/mote-swarm); their members are among the enemies. */
+    public int flockCount() {
+        return force.flocks().size();
+    }
+
+    public Flock flock(int index) {
+        return force.flocks().get(index);
     }
 
     /** The level's darkness, if it is dark. */
@@ -2585,6 +2728,38 @@ public final class Sortie {
     /** The convoy unit lost first in this attempt, for its radio line; -1 before. */
     public int firstAllyLost() {
         return convoy == null ? -1 : convoy.firstLost();
+    }
+
+    /**
+     * M5 part D: the convoy unit lost last in this attempt (never the scripted loss's), for the
+     * {@code ally-lost} line ({@code {ally}}); -1 before. That cue's radio event follows the unit's
+     * {@link SimEvents.Type#ALLY_LOST} event in the same step.
+     */
+    public int lastAllyLost() {
+        return convoy == null ? -1 : convoy.lastLost();
+    }
+
+    /** M5 part D: whether the escort objective's convoy is an air escort (Level 10's shuttles). */
+    public boolean airEscort() {
+        return convoy != null && convoy.air();
+    }
+
+    /**
+     * M5 part D: the units the player can save, every unit but the scripted loss's (Level 10: 4 of
+     * 5; the tracker's {@code SHUTTLES n / 4}); 0 without a convoy.
+     */
+    public int saveableAllies() {
+        return convoy == null ? 0 : convoy.saveable();
+    }
+
+    /** M5 part D: the saveable units still alive in this attempt (the tracker's n); 0 without a convoy. */
+    public int saveableAlliesAlive() {
+        return convoy == null ? 0 : convoy.saveableAlive();
+    }
+
+    /** M5 part D: the scripted loss's unit, from 0 (Level 10's Lifeline Three: 2); -1 for none. */
+    public int scriptedAlly() {
+        return convoy == null ? -1 : convoy.scripted();
     }
 
     /** The lobs in flight, their markers on the ground. */

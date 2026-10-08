@@ -1,0 +1,58 @@
+# Wraith stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+# M5 part D (Level 10; user decisions D6 = a and D7 = a of 2026-10-08): the cloak, the ambush path and
+# the hard hold are flown by the simulation.
+name: Wraith
+faction: Vrell
+layer: high-air   # while cloaked; `air` from its decloak flash on (the `cloak` block)
+tier: medium
+size: [72, 72]    # sprite px
+hitbox: [50, 40]
+parts: single
+orientation: 16 angles
+hp: 16            # D7 = a: 27 → 16, so the plan's rear DPS (Tail Gun L1, 10) kills it in 1.6 s of its 2.9 s window
+armour: none
+speed: 200        # px/s cloaked: the swoop down its lane and the re-entry
+cloak:
+  layer: air          # the layer from the decloak on; the stat block's `layer` is the cloaked one
+  flash: 0.4          # s of the decloak flash at its hold point: on `air` from its start (the unit's
+                      # current layer), the gun silent until it ends; the DECLOAK event at its start
+movement:
+  swoop: {}                              # cloaked, straight down its lane past the ship and off the bottom edge
+  ambush:             # the path of a `rear ambush` wave (with swoop, hover and straight)
+    gap: 1.5          # s below the bottom edge before it re-enters
+    lane: 40          # px from the nearer side edge: its centre's x on the way out (ties: left)
+  hover: {seconds: 2.5, y: [470, 520]}   # the decloaked hold after the flash; y px below the top edge (20–70 px above the bottom edge)
+  straight: {speed: 120}                 # the decloaked exit up the nearer side lane
+attacks:
+  - pattern: aimed
+    name: burst
+    bullet: medium
+    aim: up                # 2026-10-08 (user): a fixed fan straight up the screen through the shuttle band, not at the ship; no no-fire distance
+    spread: 40             # ° of the fan, from a burst's first shot (left) to its last (right)
+    interval: 1.2          # s between the two bursts of its hold
+    speed: 220             # px/s
+    first_shot_delay: 0.9  # s after it stops: the 0.4 s flash, then 0.5 s into the hold
+    burst: 5
+    burst_gap: 0.12        # s between the shots of a burst
+    notes:
+      text: '{burst}-shot `burst` ({burst_gap} s apart, {speed} px/s, `{bullet}` = {damage}) straight up the screen as a fixed {spread}° fan, its shots in turn from left to right, aimed at nobody and fired however close the player is (no no-fire distance), twice in its hold ({first_shot_delay} s after it stops, then {interval} s later); only while decloaked'
+formations:
+  - {name: rear ambush, size: [1, 4]}
+weak_points:
+  - {name: blue-violet veins}
+drops: []
+traits: [rear, homing]
+bounty: 30
+first_level: 10
+difficulty:
+  hard: {burst: 7, hover_seconds: 3.0}   # 7-shot bursts (authored: the pattern lever does not apply on top); holds 3.0 s after the flash
+notes:
+  layer: ' while cloaked (only `homing` hits it, no contact, specials skip it) → `air` from its decloak flash on'
+  orientation: (16 headings × 4 ripple frames; a cloaked shimmer set)
+  speed: '(cloaked, the swoop and the re-entry; {movement.straight.speed} px/s decloaked, its exit)'
+  movement: 'cloaked `swoop` straight down its lane past the ship and off the bottom edge, 1.5 s below it, `rear-entry` up to y = {movement.hover.y} px (20–70 px above the bottom edge; the edge warning 3 s ahead of the re-entry, while it still swoops), decloak (a 0.4 s violet flash, on `air` from its start), `hover` {movement.hover.seconds} s, then out up the nearer side lane (its centre 40 px from that edge) decloaked at {movement.straight.speed} px/s, clear of the shuttle band'
+  formations: (2–4 across the bottom edge, each in its own lane; a lone one as its introduction)
+  weak_points: (drawn only)
+  death: '`medium` burst: membrane tatters, violet flash'
+  used_in: L12, L14 (with the act HP factor); launched by the Siege Spire (L14)
+  difficulty: 'hard: 7-shot bursts; holds 3.0 s'

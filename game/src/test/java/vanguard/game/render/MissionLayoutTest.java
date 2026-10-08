@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import java.io.File;
 import java.util.ArrayList;
@@ -112,6 +113,67 @@ class MissionLayoutTest {
         for (String count : List.of("10 / 10", "DONE", "FAILED")) {
             assertFits(BODY, ravagers + " " + count, MissionLayout.TEXT_WIDTH);
         }
+    }
+
+    /**
+     * Level 10's air escort tracker (M5 part D, design/ui/hud, D3 = a): {@code SHUTTLES} and its count
+     * on line one, five armour bars about 32 px wide side by side on line two, within the well's text
+     * width and the line's height.
+     */
+    @Test
+    void theShuttleTrackerFitsItsCountAndFiveArmourBars() {
+        String shuttles = MissionPanel.escapesLabel("evacuation-shuttle");
+        assertEquals("SHUTTLES", shuttles);
+        assertEquals("3 / 4", MissionPanel.shuttleCount(3, 4));
+        for (int alive = 0; alive <= 4; alive++) {
+            String count = MissionPanel.shuttleCount(alive, 4);
+            assertTrue(
+                    width(BODY, shuttles) + MissionPanel.MARK_GAP + width(BODY, count) <= MissionLayout.TEXT_WIDTH,
+                    "the label, a gap and " + count + " fit");
+        }
+        int units = CONTENT.levels().values().stream()
+                .flatMap(level -> level.objectives().escort().stream())
+                .filter(escort -> escort.ally().equals("evacuation-shuttle"))
+                .mapToInt(LevelData.Escort::units)
+                .max()
+                .orElse(5);
+        assertEquals(5, units, "Lifeline One to Five");
+        assertTrue(MissionPanel.ALLY_BAR_WIDTH >= 30 && MissionPanel.ALLY_BAR_WIDTH <= 34, "about 32 px wide");
+        for (int k = 1; k < units; k++) {
+            assertTrue(
+                    MissionPanel.allyBarLeft(k) >= MissionPanel.allyBarLeft(k - 1) + MissionPanel.ALLY_BAR_WIDTH + 4,
+                    "bar " + k + " keeps a gap after the one before");
+        }
+        assertEquals(0, MissionPanel.allyBarLeft(0));
+        assertTrue(
+                MissionPanel.allyBarLeft(units - 1) + MissionPanel.ALLY_BAR_WIDTH <= MissionLayout.TEXT_WIDTH,
+                "the last bar ends at " + (MissionPanel.allyBarLeft(units - 1) + MissionPanel.ALLY_BAR_WIDTH));
+        assertTrue(
+                MissionPanel.ALLY_BAR_HEIGHT + 2 * MissionLayout.FRAME
+                        <= MissionLayout.TWO_LINE_WELL - MissionLayout.LINE,
+                "a bar and its trough fit line two");
+    }
+
+    /**
+     * 2026-10-08 (the round 32 capture read a home shuttle's bar as a lost one's): a unit home after
+     * the climb-out shows a full bar in its own pale mint, unlike a flying unit's (green, white on a
+     * hit, amber below half) and a lost one's (dark); its glow stays in the gap to the next bar.
+     */
+    @Test
+    void aShuttleHomeShowsAFullBarOfItsOwnColour() {
+        assertEquals(MissionPanel.ALLY_HOME, MissionPanel.shuttleBar(true, false, 0.3));
+        assertEquals(MissionPanel.ALLY_HOME, MissionPanel.shuttleBar(true, true, 1));
+        assertEquals(1, MissionPanel.shuttleBarShare(true, 0.3), 1e-9, "full whatever its armour");
+        assertEquals(0.3, MissionPanel.shuttleBarShare(false, 0.3), 1e-9);
+        for (boolean hit : new boolean[] {false, true}) {
+            for (double share : new double[] {0.2, 0.8}) {
+                assertTrue(!MissionPanel.ALLY_HOME.equals(MissionPanel.shuttleBar(false, hit, share)));
+            }
+        }
+        assertEquals(Color.WHITE, MissionPanel.shuttleBar(false, true, 0.8));
+        assertEquals(HudKit.AMBER, MissionPanel.shuttleBar(false, false, 0.2));
+        assertTrue(
+                3 + 3 < MissionPanel.ALLY_BAR_STEP - MissionPanel.ALLY_BAR_WIDTH, "two glows fit the gap between bars");
     }
 
     /** Level 05's letters keep their 16 px step and place. */

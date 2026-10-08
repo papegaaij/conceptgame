@@ -102,7 +102,7 @@ public final class SimEvents {
         AIRSTRIKE_BLAST,
         /** A convoy unit took a hit, or a walker's claws started on it (at the unit); value: its index. */
         ALLY_HIT,
-        /** A convoy unit was destroyed (at the unit); value: its index. */
+        /** A convoy unit was destroyed (at the unit); value: its index. M5 part D: not for the scripted loss. */
         ALLY_LOST,
         /** The primary objective failed (the last convoy unit was lost): the level fails without a wreck (at the ship). */
         PRIMARY_FAILED,
@@ -220,7 +220,32 @@ public final class SimEvents {
          */
         COLLAPSE_IMPACT,
         /** M5 part C: the collapse's blast has rolled out (at the ship): it is over, a hold through it ends. */
-        COLLAPSE_END;
+        COLLAPSE_END,
+        /**
+         * M5 part D: a cloaked unit decloaks at its hold point, the start of its flash (at it; design/
+         * enemies/air/wraith): on its decloaked layer from here, its gun silent until the flash ends;
+         * the decloak sound and the radio event {@code first-decloak}; value: its kind.
+         */
+        DECLOAK,
+        /**
+         * M5 part D: a swarm's leader point re-enters below the bottom edge for a loop-back (at the
+         * leader point; design/enemies/air/mote-swarm), when the bottom edge's warning ends: the
+         * swarm's sound and the radio event {@code first-loop-back}; value: the loop-back's number,
+         * from 1.
+         */
+        LOOP_BACK,
+        /**
+         * M5 part D: the scripted loss's glow starts over its unit (at the unit; design/campaign Level
+         * 10, the alien glow in the cloud deck, which follows the unit's sway until the lance); value:
+         * the unit's index.
+         */
+        LOSS_GLOW,
+        /**
+         * M5 part D: the scripted loss's lance takes its unit (at the unit): the lance, its sound and
+         * the music's duck; the unit is lost (it glides down, a presentation effect) without an
+         * {@link #ALLY_LOST} event; value: the unit's index.
+         */
+        SCRIPTED_LOSS;
 
         private static final Type[] VALUES = values();
     }

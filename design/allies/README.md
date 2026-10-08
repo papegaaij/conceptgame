@@ -1,10 +1,10 @@
 ---
 title: Allies
 design: approved
-implementation: done
+implementation: in-progress
 art: final
 depends-on: [../enemies, ../art-direction, ../ui/hud]
-updated: 2026-10-06
+updated: 2026-10-08
 ---
 
 # Allies
@@ -32,9 +32,11 @@ equipment, see [wingmen](../player/wingmen/README.md).
 - **Damage feedback**: a hit flash on every hit; smoke below 50 %; a destroyed ally never throws
   explosion debris onto the player's plane (it burns, sinks or glides away).
 - **HUD**: objective allies show in the [objective tracker](../ui/hud/README.md#left-panel-mission)
-  as pips or an integrity bar.
+  as pips, armour bars (the shuttles) or an integrity bar.
 - **No contact damage** to the player: the player can fly over or through every ally.
-- **Art**: the civilian crawler's concept is chosen (round 16, variant c; see *Concept art*); the other
+- **Art**: the civilian crawler's art is final (rounds 16 and 17; see *Concept art*); the evacuation
+  shuttle went straight to production as an a/b in concept round 32 (M5 part D, D10 = a; a, the
+  lifting body, picked and approved as final); the other
   allies get concept art in a later round. The chosen ocean
   scene ([scene-ocean-r10-a](../art-direction/concept/scene-ocean-r10-a.png)) already has the
   container-ship and frigate models the convoy will reuse.
@@ -56,16 +58,19 @@ no renderer for allies yet).
 
 ### Evacuation shuttle
 
-Civilian orbital shuttle with a CDF evac stripe.
+Civilian orbital shuttle with a CDF evac stripe. Its numbers live in [data.yaml](data.yaml) (the
+table is hand-written), with the air escort's hits, banking and glide (M5 part D, the
+[schemas](../tech/architecture/README.md#data-file-schemas)); the simulation flies it.
 
 | Property | Value |
 |---|---|
-| Size / layer | sprite 64×40, hitbox 48×28 px, `air` |
-| HP | armour 120, no shield, no regeneration |
-| Damaged by | Enemy bullets and contact damage, as they hurt the player |
-| Behaviour | Moves with the scroll in a loose formation band, drifting along authored lanes; never steers into the player. Below 50 % it trails smoke and its HUD pip flashes |
-| Destroyed | Loses power and glides down into the `far` layer trailing smoke |
-| Levels | [L10 Evacuation Corridor](../campaign/act-2-homefront/level-10-evacuation-corridor/README.md) (five shuttles, *Lifeline One–Five*) |
+| Size / layer | sprite 64×40, hitbox 48×28 px, `air`, always nose up (rendered banking frames, no headings) |
+| HP | armour 120 at medium, no shield, no regeneration (difficulty variants in the level: Level 10's 180 / 120 / 90) |
+| Damaged by | Every enemy bullet that touches its hit box, by the bullet's class (`small` 4, `medium` 6), the bullet spent; an `air` enemy's body by the enemy's tier once per contact, a `tiny` or `small` enemy destroyed by the impact as when it rams the ship (user decision D2 = a of M5 part D). Shots aimed at the player cross the band too. A level may make a unit untouchable for a while (the liftoff, the climb-out, a scripted loss): fire and contact then pass through it |
+| Behaviour | Holds its **station** in the level's formation band and drifts slowly round it on an authored **lane sway** (deterministic, on the level clock; D1 = a); never reacts to threats or steers into the player; the units' hit boxes never overlap. A level may lift the shuttles off pads (rising from the ground layer's scale to the air scale) and climb them out off the top edge. Below 50 % it trails smoke and its armour bar in the tracker turns amber |
+| Destroyed | Loses power and glides down into the `far` layer over about 3 s, scaled down, darkened and trailing smoke; no debris on the play plane (a presentation effect: the simulation removes it at once) |
+| HUD | The two-line [objective tracker](../ui/hud/README.md#left-panel-mission): the count of saveable shuttles over one small armour bar per shuttle (D3 = a) |
+| Levels | [L10 Evacuation Corridor](../campaign/act-2-homefront/level-10-evacuation-corridor/README.md) (five shuttles, *Lifeline One–Five*; stations, liftoff, scripted loss and fail rule there) |
 
 ### Convoy cargo ship
 
@@ -124,6 +129,8 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
 | [concept/civilian-crawler-r16-c.png](concept/civilian-crawler-r16-c.png) | Civilian crawler C: pressurised bus with a cargo sled, 40×72 (the long size reading); on regolith, column of five (84 px apart, 60 would overlap), damaged and wrecked | chosen |
 | [concept/civilian-crawler-final-r17-a.png](concept/civilian-crawler-final-r17-a.png) | Production art, round 17 (`tools/art/civilian_crawler.py`): the 7 headings (±30° in 10° steps) with 3 wheel frames each, the 7 wrecks and the HUD pip (sheet) | chosen |
 | [concept/civilian-crawler-final-r17-a.gif](concept/civilian-crawler-final-r17-a.gif) | Production art, round 17: a column of five following a winding Luna road, each at the heading nearest the road's direction (motion) | chosen |
+| [concept/evacuation-shuttle-r32-a.png](concept/evacuation-shuttle-r32-a.png), [.gif](concept/evacuation-shuttle-r32-a.gif) | Evacuation shuttle a, "lifting body" (`tools/art/shuttle.py`, production quality, M5 part D, round 32): 64×40, five bank frames (−30…+30°), damaged, liftoff steps, the glide wreck, engine flames and flare, the HUD pip; in the game, approved as final | chosen |
+| [concept/rejected/evacuation-shuttle-r32-b.png](concept/rejected/evacuation-shuttle-r32-b.png), [.gif](concept/rejected/evacuation-shuttle-r32-b.gif) | Evacuation shuttle b, "heavy lifter" (`tools/art/shuttle.py --variant b`, production quality): the same set; review files only | rejected |
 
 ## Implementation
 
@@ -132,15 +139,16 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
 - [x] HUD objective tracker hookup (pips or integrity bar) (the crawler's pips; the relay's integrity bar with Level 13)
 - [x] Specs above loaded from data; level overrides (difficulty HP, positions) from the level
 - [x] Civilian crawler: follows the road curve with 7 headings; hit only by crawler-aimed shots and pass-through claws (10/s)
-- [ ] Evacuation shuttle: authored lanes, damage, smoke below 50 %, the glide down when lost, its HUD pips; data and production sprite — **later: M5 part D** (Level 10)
+- [x] Evacuation shuttle, simulation and data (M5 part D, Level 10; `vanguard.sim.Convoy` with `LevelScript.Air`, `ShuttleEscortTest`): an `air` escort holding stations in a band with the lane sway, no road (D1 = a); hit by every enemy bullet and `air` contact, once per contact, small rammers destroyed and paid (D2 = a); untouchable windows (the pads and the liftoff, the climb-out, a scripted loss: fire and contact pass through); lost units kept where they were lost; the keys `bullets`, `contact`, `banks` and `glide` read
+- [x] Evacuation shuttle, presentation (M5 part D, the game): the liftoff's scale, the banking frames, smoke below 50 %; the glide into `far` when lost; its armour bars in the tracker (D3 = a); production sprite (round 32's a)
 - [ ] Convoy cargo ship (two slams) and escort frigate (flak as a cue only); data and production sprites — **later: M5 part E** (Level 11)
 - [ ] Nansen Relay: integrity, relay-aimed damage, dark when destroyed; data and production art — **later: M5 part G** (Level 13)
 - [ ] CDF supply drone (roster): arc and armour patch drop — **later: M5 part G** (Level 13) and **part H** (Level 14)
 
 ## Open questions
 
-- Sprites for the shuttle, cargo ship, frigate and relay: a later concept round. The cargo ship
-  and frigate can reuse the ocean scene's models.
+- Sprites for the cargo ship, frigate and relay: a later concept round. The cargo ship and frigate
+  can reuse the ocean scene's models.
 
 ## Decisions
 
@@ -176,3 +184,30 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
 - 2026-10-06: M5 plan (a stated default of part A): the Act 2 allies get their checklist items,
   tagged with the M5 part of their first level (shuttle D, convoy E, relay and supply drone G and
   H); the document stays `done` for M4 under the deferral rule.
+- 2026-10-08: M5 part D (user decisions of 2026-10-08 for Level 10): **D1 = a** the evacuation
+  shuttle holds an authored station in the level's band and drifts on a deterministic lane sway,
+  never reacting to threats; **D2 = a** every enemy bullet and every `air` contact hurts it (a
+  `tiny` or `small` enemy destroyed by the impact), as the spec said, made precise: the bullet is
+  spent, a contact hurts once; **D3 = a** its HUD is an armour bar per shuttle under the count, not
+  the pips the spec said; **D10 = a** its sprite at production quality as an a/b in round 32 (a in
+  the game until the pick). Stated defaults: untouchable windows (liftoff, climb-out, a scripted
+  loss: fire and contact pass through); the glide into `far` as a presentation effect; the numbers
+  in [data.yaml](data.yaml) with the planned keys (`bullets`, `contact`, `banks`, `glide`) in its
+  comment until the simulation reads them (`follows: lanes` is read already). Our readings, for
+  review: always nose up with 5 banking frames (full bank at 20 px/s sideways; 60 in the first draft never reached a bank frame at the lanes' sway), a 3 s glide. The
+  document goes to `review` for the shuttle's spec and is `in-progress` again for its build.
+- 2026-10-08: M5 part D step D4 (main-agent choices, for review in round 32): the simulation flies
+  the shuttle and reads its keys (`bullets`, `contact`, `banks`, `glide`; `follows: lanes` only
+  on the `air` layer). Our readings: a contact hurts a shuttle once while the enemy's body overlaps
+  it (a new contact after it left again); the shuttles stand untouchable on their pads before the
+  liftoff, scrolling with the ground; a bullet hits the first shuttle it touches that can be hit, so
+  one passing through an untouchable shuttle hurts the next; a lost shuttle stays where it was lost in
+  the simulation and the game draws its glide from `ticksSinceLost()`; with the debug option
+  `--invulnerable` losing every saveable shuttle does not fail the level.
+- 2026-10-08: Concept round 32 closed (user): the evacuation shuttle **a** "lifting body" (already in
+  the game) approved as **final**, the weak spots as they are (the subtle bank, the small scorches,
+  the hazy wreck); b "heavy lifter" rejected and moved to `concept/rejected/`. The shuttle's spec and
+  our readings (the stations, sways and pads, the untouchable pads and joint liftoff, a contact once
+  per overlap, a bullet passing an untouchable shuttle, a rammer paid, the full bank at 20 px/s, the
+  wreck's 64 px slide and glide, `--invulnerable` keeping an air escort from failing) accepted as
+  built, so `design: approved`; the shuttle's items are ticked, the rest wait for their M5 parts.

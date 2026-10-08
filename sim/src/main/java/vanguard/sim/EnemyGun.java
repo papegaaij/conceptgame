@@ -11,7 +11,7 @@ import java.util.Optional;
  *
  * @param intervalSeconds time between two volleys; infinite for a one-shot attack
  * @param firstShotDelay time from stopping (a turret: entering the screen) to the first volley
- * @param burst shots per volley, {@link #BURST_GAP_SECONDS} apart
+ * @param burst shots per volley, {@code burstGapSeconds} apart
  * @param bulletSpeed px/s
  * @param damage damage of a hit, by the bullet class (design/enemies, balancing basis)
  * @param leadsTargetInCircle whether selected units in a {@code circle} formation aim where the
@@ -25,6 +25,8 @@ import java.util.Optional;
  * @param mortar a mortar's lob (design/enemies/ground/polyp-mortar): it lobs one at the interval at
  *     the player's position instead of firing; {@code damage} is the direct hit's, {@code bulletSpeed}
  *     the ring's
+ * @param burstGapSeconds M5 part D: the gap between the shots of a burst (the stat block's {@code
+ *     burst_gap}; {@link #BURST_GAP_SECONDS} when it has none)
  */
 public record EnemyGun(
         double intervalSeconds,
@@ -38,7 +40,80 @@ public record EnemyGun(
         double turnRate,
         double arcRadians,
         Optional<MineSpec> mine,
-        Optional<MortarSpec> mortar) {
+        Optional<MortarSpec> mortar,
+        double burstGapSeconds,
+        boolean up) {
+    public EnemyGun {
+        if (!(burstGapSeconds > 0)) {
+            throw new IllegalArgumentException("a burst's shots are apart in time: " + burstGapSeconds);
+        }
+        if (up && (fan != 1 || mine.isPresent() || mortar.isPresent() || Double.isFinite(turnRate))) {
+            throw new IllegalArgumentException("only an aimed burst goes straight up");
+        }
+    }
+
+    /** An attack that is not fired straight up (every unit but the Wraith). */
+    public EnemyGun(
+            double intervalSeconds,
+            double firstShotDelay,
+            int burst,
+            double bulletSpeed,
+            double damage,
+            boolean leadsTargetInCircle,
+            int fan,
+            double spreadRadians,
+            double turnRate,
+            double arcRadians,
+            Optional<MineSpec> mine,
+            Optional<MortarSpec> mortar,
+            double burstGapSeconds) {
+        this(
+                intervalSeconds,
+                firstShotDelay,
+                burst,
+                bulletSpeed,
+                damage,
+                leadsTargetInCircle,
+                fan,
+                spreadRadians,
+                turnRate,
+                arcRadians,
+                mine,
+                mortar,
+                burstGapSeconds,
+                false);
+    }
+
+    /** An attack with the default burst gap, {@link #BURST_GAP_SECONDS} (every unit before M5 part D). */
+    public EnemyGun(
+            double intervalSeconds,
+            double firstShotDelay,
+            int burst,
+            double bulletSpeed,
+            double damage,
+            boolean leadsTargetInCircle,
+            int fan,
+            double spreadRadians,
+            double turnRate,
+            double arcRadians,
+            Optional<MineSpec> mine,
+            Optional<MortarSpec> mortar) {
+        this(
+                intervalSeconds,
+                firstShotDelay,
+                burst,
+                bulletSpeed,
+                damage,
+                leadsTargetInCircle,
+                fan,
+                spreadRadians,
+                turnRate,
+                arcRadians,
+                mine,
+                mortar,
+                BURST_GAP_SECONDS);
+    }
+
     /**
      * The gap between the shots of a burst. "Quick succession" in the attack vocabulary has no
      * number yet; this is a first value to tune.

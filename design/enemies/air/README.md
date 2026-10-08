@@ -3,7 +3,7 @@ title: Air enemies
 design: approved
 implementation: not-started
 art: chosen
-updated: 2026-10-05
+updated: 2026-10-08
 ---
 
 # Air enemies
@@ -21,7 +21,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [skitter](skitter/README.md) | Tiny swarm fodder that rams; teaches shooting (L01) | approved | done | final |
+| [skitter](skitter/README.md) | Tiny swarm fodder that rams; teaches shooting (L01) | approved | in-progress | final |
 | [needler](needler/README.md) | Basic gunner, hovers and fires aimed thorns (L01) | approved | done | final |
 | [stinger](stinger/README.md) | Diver that fires a fan at the bottom of its dive (L02) | approved | done | final |
 | [spore-bomber](spore-bomber/README.md) | Low-air bomber dropping rising spore mines (L03) | approved | done | final |
@@ -29,8 +29,8 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 | [brood-pod](brood-pod/README.md) | Egg sac that bursts into Skitters when killed or after 8 s (L04) | approved | done | final |
 | [mantis](mantis/README.md) | Side-entering laser sweeper (L06) | approved | done | final |
 | [coilwyrm](coilwyrm/README.md) | Segment-chain serpent that loops to the rear and regrows a head once (L06) | approved | done | final |
-| [wraith](wraith/README.md) | Cloaked manta that decloaks behind the player (L10) | approved | not-started | chosen |
-| [mote-swarm](mote-swarm/README.md) | Flock of tiny motes that loops round for a rear attack (L10) | approved | not-started | chosen |
+| [wraith](wraith/README.md) | Cloaked manta that decloaks behind the player (L10) | approved | done | final |
+| [mote-swarm](mote-swarm/README.md) | Flock of tiny motes that loops round for a rear attack (L10) | approved | done | final |
 | [lamprey](lamprey/README.md) | Homing eel that latches and drains the shield (L12) | approved | not-started | chosen |
 
 ## Roster
@@ -61,6 +61,10 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 - Not all air enemies fly nose-down: chains (Coilwyrm, Rail Serpent) and the Mote Swarm turn
   freely at 16/32 angles, and spinners (Whirl Seed, Buzzsaw Drone) are `radial`. See
   [orientation](../README.md#orientation-and-rotation).
+- The first rear specialists come with Level 10 (M5 part D): the [Wraith](wraith/README.md)
+  passes overhead cloaked on `high-air` and decloaks behind the player (`rear ambush`), the
+  [Mote Swarm](mote-swarm/README.md) is a boids flock (`swarm`) that loops back from below; both
+  are warned 3 s ahead of their re-entry at the bottom edge.
 
 ## Concept art
 
@@ -143,3 +147,7 @@ Concept [round 08](../../concept-rounds/round-08/README.md) — model-space re-r
 - 2026-10-01: Acts 1–2 units promoted to full specs: Skitter, Needler, Stinger, Spore Bomber, Whirl Seed, Brood Pod, Mantis, Coilwyrm, Wraith, Mote Swarm, Lamprey.
 - 2026-10-01: Concept round 08: model-space re-renders accepted; they supersede the r05 sheets.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-08: M5 part D (user decisions of 2026-10-08): the Wraith (D6 = a, its stat block flown;
+  D7 = a, HP 16) and the Mote Swarm (D8 = a, real flocking) get their data files and go to `review`
+  for round 32; their art goes straight to production (D10 = a). The Skitter's authored-paths item
+  is narrowed to snakes and swarms (D8 = a: the route as data), streams keeping their shapes.

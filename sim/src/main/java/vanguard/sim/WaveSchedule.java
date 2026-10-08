@@ -9,7 +9,8 @@ import java.util.Map;
 /**
  * The level's waves planned unit by unit ({@link Formations}), in the order they enter, and the
  * edge warnings for the waves that enter from the sides or the rear (design/enemies, bullet
- * readability rules: an arrow at that edge at least 1.5 s ahead). Built once per level; an
+ * readability rules: an arrow at that edge at least 3 s ahead), and at the bottom edge ahead of a
+ * chain's or a swarm's loop-back and a rear ambush unit's re-entry. Built once per level; an
  * attempt walks through it with a cursor.
  */
 final class WaveSchedule {
@@ -59,7 +60,8 @@ final class WaveSchedule {
                 }
                 clocks++;
             }
-            if (wave.entry() != WaveSpec.Entry.FRONT) {
+            // M5 part D: a rear ambush enters at the top; it is warned ahead of its re-entry instead.
+            if (wave.entry() != WaveSpec.Entry.FRONT && wave.formation() != WaveSpec.Formation.REAR_AMBUSH) {
                 warned.add(wave);
             }
         }
@@ -80,7 +82,23 @@ final class WaveSchedule {
         // A chain's loop-back re-enters from the bottom edge: warned like a rear entry.
         List<Spawn> loops =
                 planned.stream().filter(spawn -> spawn.loop().isPresent()).toList();
-        int warnings = warned.size() + loops.size();
+        // M5 part D: so do a rear ambush unit's re-entry and every loop-back of a swarm's route.
+        List<int[]> reentries = new ArrayList<>();
+        for (Spawn spawn : planned) {
+            if (spawn.ambush().isPresent()) {
+                int end = spawn.ambushReentryTick();
+                reentries.add(
+                        new int[] {end - SimStep.ticks(spawn.ambush().get().warningSeconds()), end});
+            }
+            if (spawn.swarm().isPresent() && spawn.swarm().get().member() == 0) {
+                Spawn.Route route = spawn.swarm().get().route();
+                for (int k = 0; k < route.loops().size(); k++) {
+                    int end = spawn.tick() + route.reentryAfter(k);
+                    reentries.add(new int[] {end - SimStep.ticks(route.warningSeconds()), end});
+                }
+            }
+        }
+        int warnings = warned.size() + loops.size() + reentries.size();
         warningStarts = new int[warnings];
         warningEnds = new int[warnings];
         warningEdges = new int[warnings];
@@ -98,6 +116,12 @@ final class WaveSchedule {
                     end - SimStep.ticks(spawn.loop().orElseThrow().warningSeconds());
             warningEnds[warned.size() + i] = end;
             warningEdges[warned.size() + i] = WarningEdge.BOTTOM.bit();
+        }
+        for (int i = 0; i < reentries.size(); i++) {
+            int at = warned.size() + loops.size() + i;
+            warningStarts[at] = reentries.get(i)[0];
+            warningEnds[at] = reentries.get(i)[1];
+            warningEdges[at] = WarningEdge.BOTTOM.bit();
         }
     }
 

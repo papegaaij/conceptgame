@@ -1,10 +1,10 @@
 ---
 title: Skitter
 design: approved
-implementation: done
+implementation: in-progress
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-05
+updated: 2026-10-08
 ---
 
 # Skitter
@@ -65,11 +65,11 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 
 ## Implementation
 
-- [ ] Snake, stream and swarm entry paths authored as data — **later: M5** (Act 1's snakes, streams
-  and lines fly as planned on the shapes `vanguard.sim.Formations` lays out, and no Act 1 level has
-  a Skitter swarm; Act 2's weaves, e.g. Level 14's snake between the cathedral towers, and the
-  `swarm` formation M5 builds for the Lamprey and the Mote Swarm are the first that need authored
-  paths)
+- [ ] Snake and swarm entry paths authored as data — **M5 part D** (user decision D8 = a of
+  2026-10-08): a `snake` wave's `paths` (one route of `[x, y]` points, as a chain's) and a `swarm`
+  wave's leader route, with the Mote Swarm's flock (Level 10) as the first swarm; streams keep the
+  shapes `vanguard.sim.Formations` lays out (no level needs authored streams). Act 1's snakes keep
+  their shapes too, a snake without `paths` flying one as before
 - [x] Contact damage 6, split shield/armour per the collision rule
 - [x] Pays 5 credits; counts toward chains
 - [x] Stat block values loaded from data; global difficulty multipliers applied
@@ -106,3 +106,8 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   rest of the checklist is done, so the Skitter is `done` for M4. Act 1 has no Skitter swarm and
   its snakes and streams fly as planned on the shapes `Formations` lays out; the authored paths come
   with the first levels that need them (Act 2's weaves and the `swarm` formation of M5).
+- 2026-10-08: M5 part D (user decision D8 = a and the stated defaults): the authored-paths item is
+  narrowed to **snakes and swarms**: a snake wave accepts `paths` (Level 10's Skitter snakes may use
+  them) and the `swarm` formation's leader route is
+  data (the Mote Swarm); streams keep their laid-out shapes. Ticked when the simulation reads them;
+  the document is `in-progress` again until then.

@@ -95,7 +95,8 @@ record TypicalHaul(int perfect, double typical, double budget) {
                 sum.bounty(launched, kind.bounty(), rate(rate, kind));
             }
         }
-        level.escort().ifPresent(escort -> sum.pay(escort.stations().size(), escort.credits(), rate.primary()));
+        // Each saveable unit home pays (M5 part D: not the scripted loss's, Level 10's Lifeline Three).
+        level.escort().ifPresent(escort -> sum.pay(escort.saveable(), escort.credits(), rate.primary()));
         for (var secret : data.secrets()) {
             sum.pay(1, secret.crate(), rate.secrets());
         }

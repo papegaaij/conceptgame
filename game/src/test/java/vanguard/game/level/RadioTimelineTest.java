@@ -21,7 +21,7 @@ import vanguard.sim.LevelScript.CueTrigger;
 import vanguard.sim.SimStep;
 
 /**
- * The timed radio lines of Levels 01–09 play when the level scripts mean them to: the real queue,
+ * The timed radio lines of Levels 01–10 play when the level scripts mean them to: the real queue,
  * stepped at the simulation's rate at the default text speed, with the event lines a player can
  * set off in between (an escaped Spore Bomber before the Leviathan's first pass, the lifeboat
  * secret, a convoy's first hit and loss, the Brood Carrier's phases, Rook's first kill, …), starts none of them more
@@ -35,6 +35,9 @@ import vanguard.sim.SimStep;
  * on real time, each hold lasting a typical 6 s and the medium window of about 10.6 s, the collapse
  * starting as the last cluster dies; a line is late by the real seconds after the level clock
  * reached its time, and a line that requires the escort plays only with him flying (both fits).
+ * M5 part D: Level 10's scripted loss sets off its {@code scripted-loss} line at its time in every
+ * run; its other events (the first decloak and loop-back, a shuttle hit or lost, the ferry cache)
+ * where the autopilot's runs see them.
  */
 class RadioTimelineTest {
     private static final Content CONTENT = ContentLoader.fromClasspath();
@@ -52,16 +55,17 @@ class RadioTimelineTest {
     private static final String LEVEL_07 = "act-1-first-contact/level-07-brood-carrier";
     private static final String LEVEL_08 = "act-2-homefront/level-08-neon-skyline";
     private static final String LEVEL_09 = "act-2-homefront/level-09-arcology-fall";
+    private static final String LEVEL_10 = "act-2-homefront/level-10-evacuation-corridor";
 
     /** Rook's sides: a {@code {side}} line is played with each one's text. */
     private static final List<String> SIDES = VoiceLines.SIDES;
 
     /**
-     * Levels whose lines are not rendered yet (none: Level 09's were rendered in M5 part C's voice
-     * step, Level 08's in M5 part B's step B9, Level 07's in M4 part G): their voiced runs play the
-     * lines as text and list the late ones, without asking for the files. An uncast speaker's line
-     * (marked {@code uncast} in the speaker table: Level 09's Kilo Lead until round 31 casts him)
-     * plays as text in any level.
+     * Levels whose lines are not rendered yet (none: Level 10's were rendered in M5 part D's voice
+     * step, Level 09's in M5 part C's, Level 08's in M5 part B's step B9, Level 07's in M4 part G):
+     * their voiced runs play the lines as text and list the late ones, without asking for the files.
+     * An uncast speaker's line (marked {@code uncast} in the speaker table; none since round 32 cast
+     * Level 10's Lifeline and Lifeline Three) plays as text in any level.
      */
     private static final Set<String> UNVOICED = Set.of();
 
@@ -125,6 +129,28 @@ class RadioTimelineTest {
 
     /** Per level, the runs to check: each a list of events on top of the timed lines and the level end. */
     private static final Map<String, List<List<Event>>> RUNS = Map.of(
+            LEVEL_10,
+            List.of(
+                    List.of(),
+                    // as the autopilot's runs see them: the first decloak at 55, the first loop-back at
+                    // 67.6, a shuttle hit early or late, the ferry cache as it passes, a shuttle lost
+                    List.of(
+                            new Event(15, CueTrigger.FIRST_ALLY_HIT, ""),
+                            new Event(55, CueTrigger.FIRST_DECLOAK, ""),
+                            new Event(67.6, CueTrigger.FIRST_LOOP_BACK, "")),
+                    List.of(
+                            new Event(20.1, CueTrigger.FIRST_ALLY_HIT, ""),
+                            new Event(55, CueTrigger.FIRST_DECLOAK, ""),
+                            new Event(67.6, CueTrigger.FIRST_LOOP_BACK, ""),
+                            new Event(150.5, CueTrigger.SECRET, "ferry cache"),
+                            new Event(165.5, CueTrigger.ALLY_LOST, "")),
+                    // a loss just before Lifeline Three's line, and one just after the lance
+                    List.of(new Event(33, CueTrigger.FIRST_ALLY_HIT, ""), new Event(113, CueTrigger.ALLY_LOST, "")),
+                    List.of(new Event(120, CueTrigger.ALLY_LOST, "")),
+                    // a shuttle lost as Varga explains the lance, and the cache found just before
+                    List.of(
+                            new Event(137, CueTrigger.SECRET, "ferry cache"),
+                            new Event(139.5, CueTrigger.ALLY_LOST, ""))),
             LEVEL_09,
             List.of(
                     List.of(),
@@ -245,7 +271,7 @@ class RadioTimelineTest {
     }
 
     @Test
-    void theTimedLinesOfLevels01To09StartAtMostASecondLate() {
+    void theTimedLinesOfLevels01To10StartAtMostASecondLate() {
         RUNS.forEach((level, runs) -> {
             for (Difficulty difficulty : Difficulty.values()) {
                 LevelScript script = SimSpecs.level(CONTENT, level, difficulty);
@@ -557,6 +583,12 @@ class RadioTimelineTest {
         List<Integer> queued = new ArrayList<>();
         Double[] opened = new Double[cues.size()];
         int end = SimStep.ticks(script.seconds());
+        // M5 part D: the scripted loss's time (Level 10's lance), never without one
+        int lanceTick = script.escort()
+                .flatMap(LevelScript.Escort::air)
+                .flatMap(LevelScript.Air::scriptedLoss)
+                .map(loss -> SimStep.ticks(loss.t()))
+                .orElse(Integer.MAX_VALUE);
         List<HoldRun> holds = holdRuns(script, holdSeconds);
         int[] holdStarts = new int[holds.size()];
         java.util.Arrays.fill(holdStarts, -1);
@@ -596,6 +628,8 @@ class RadioTimelineTest {
                             case SECONDARY_OBJECTIVE -> false;
                             case HOLD_START -> holdStarts.length > 0 && holdStarts[0] >= 0;
                             case COLLAPSE -> collapsing;
+                            // M5 part D: the lance comes at its time in every run (Level 10)
+                            case SCRIPTED_LOSS -> scriptTick >= lanceTick;
                             default -> setOff(events, cue, scriptTick, tick, holdStarts);
                         };
                 if (due && !fired[i] && cue.allowedWith(fitted)) {

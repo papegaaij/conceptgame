@@ -4,6 +4,7 @@ import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Disposable;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.IntPredicate;
 
@@ -21,6 +22,11 @@ import java.util.function.IntPredicate;
  * C: a run-time hook ({@code full_on}) plays the full mix while the sortie asks for it whatever the
  * section (Level 09: while a hold zone runs and from the collapse on), fading in over a second as it
  * starts and out over {@value #RUN_TIME_OUT_SECONDS} s after it ends.
+ *
+ * <p>M5 part D (Level 10): a run-time event may duck the theme ({@link #duck}: the scripted loss,
+ * −6 dB for 3 s, no sting), the lower of it and the radio's duck applying; and the ambience may
+ * crossfade to another at a section's start ({@link #ambienceChanges}: the megacity to the ocean
+ * at section 4 over 4 s).
  *
  * <p>An act boss (Level 07) has its own music: at its arrival the theme crossfades out over 0.5 s
  * while the boss warning (track 22) starts, and the boss track (track 18) comes in on the downbeat
@@ -110,6 +116,25 @@ public final class LevelMusic implements Disposable {
 
     private final double ambienceFrom;
     private final Optional<VoiceLoop> voiceLoop;
+
+    /** M5 part D: at section {@code section}'s start (1-based) the ambience crossfades to {@code ambience} over {@code seconds}. */
+    public record AmbienceChange(int section, Sfx ambience, double seconds) {}
+
+    private List<AmbienceChange> ambienceChanges = List.of();
+    /** The changes made so far, in order. */
+    private int changesMade;
+    /** The ambience looping at full now (or fading in). */
+    private Sfx currentAmbience;
+    /** The ambience fading out under a crossfade; null when none. */
+    private Sfx fadingAmbience;
+    /** The running crossfade's length and the seconds left of it. */
+    private double crossfade;
+
+    private double crossfadeLeft;
+    /** M5 part D: a run-time duck's level (linear) and the seconds left of it; 0 left for none. */
+    private float eventDuck = 1;
+
+    private double eventDuckLeft;
     private Sound loopSound;
     private long loopId = -1;
 
@@ -174,7 +199,70 @@ public final class LevelMusic implements Disposable {
         this.fullMix = fullMix;
         this.ambienceFrom = ambienceFrom;
         this.voiceLoop = voiceLoop;
+        currentAmbience = ambience;
         sfx.loop(ambience, AMBIENCE_VOLUME);
+    }
+
+    /** M5 part D: the level's ambience changes by section, in section order (Level 10's ocean). */
+    public LevelMusic ambienceChanges(List<AmbienceChange> changes) {
+        ambienceChanges = List.copyOf(changes);
+        return this;
+    }
+
+    /**
+     * M5 part D: a run-time event ducks the theme by {@code db} (below 0) for {@code seconds} (Level
+     * 10's scripted loss: −6 dB for 3 s, no sting); with the radio's duck the lower applies.
+     */
+    public void duck(double db, double seconds) {
+        eventDuck = (float) Math.pow(10, db / 20);
+        eventDuckLeft = seconds;
+    }
+
+    /**
+     * The level the duck moves to: the radio's {@link #DUCKED} while a message is shown, a run-time
+     * duck's {@code event} while it lasts (1 for none); the lower of the two, they do not add up.
+     */
+    static float duckTarget(boolean radio, float event) {
+        return Math.min(radio ? DUCKED : 1, event);
+    }
+
+    /** The ambience looping at full now (or fading in), for the tests. */
+    Sfx ambience() {
+        return currentAmbience;
+    }
+
+    /**
+     * The ambience changes due by {@code section} start their crossfade (a section skipped starts the
+     * last one's at once), and the running crossfade moves on by {@code seconds}: the new loop rises
+     * from silence as the old one falls, the old one stopped at its end.
+     */
+    private void ambience(int section, float seconds) {
+        while (changesMade < ambienceChanges.size()
+                && section >= ambienceChanges.get(changesMade).section()) {
+            AmbienceChange change = ambienceChanges.get(changesMade++);
+            if (change.ambience() == currentAmbience) {
+                continue;
+            }
+            if (fadingAmbience != null) {
+                sfx.stop(fadingAmbience);
+            }
+            fadingAmbience = currentAmbience;
+            currentAmbience = change.ambience();
+            sfx.loop(currentAmbience, 0);
+            crossfade = Math.max(1e-3, change.seconds());
+            crossfadeLeft = crossfade;
+        }
+        if (fadingAmbience == null) {
+            return;
+        }
+        crossfadeLeft = Math.max(0, crossfadeLeft - seconds);
+        float in = (float) (1 - crossfadeLeft / crossfade);
+        sfx.loopVolume(currentAmbience, AMBIENCE_VOLUME * in);
+        sfx.loopVolume(fadingAmbience, AMBIENCE_VOLUME * (1 - in));
+        if (crossfadeLeft == 0) {
+            sfx.stop(fadingAmbience);
+            fadingAmbience = null;
+        }
     }
 
     /**
@@ -228,7 +316,9 @@ public final class LevelMusic implements Disposable {
         if (section > startSection) {
             rise = Math.min(1, rise + seconds * (1 - startLevel) / RISE_SECONDS);
         }
-        float target = radio ? DUCKED : 1;
+        ambience(section, seconds);
+        float target = duckTarget(radio, eventDuckLeft > 0 ? eventDuck : 1);
+        eventDuckLeft = Math.max(0, eventDuckLeft - seconds);
         duck += (target - duck) * Math.min(1, DUCK_RATE * seconds);
         float faded = fade >= 0 ? fade / FADE_SECONDS : 1;
         float level = rise * faded * stingDip() * (themeOut >= 0 ? themeOut / BOSS_CROSSFADE : 1);
@@ -399,6 +489,8 @@ public final class LevelMusic implements Disposable {
     public void restart() {
         cut = false;
         sting = -1;
+        eventDuckLeft = 0;
+        restartAmbience();
         rise = startLevel;
         fade = -1;
         themeOut = -1;
@@ -407,6 +499,20 @@ public final class LevelMusic implements Disposable {
         stopTheme();
         stopBoss();
         stopLoop();
+    }
+
+    /** The level restarts at its start: its first ambience again, at full. */
+    private void restartAmbience() {
+        changesMade = 0;
+        if (fadingAmbience != null) {
+            sfx.stop(fadingAmbience);
+            fadingAmbience = null;
+        }
+        if (currentAmbience != ambience) {
+            sfx.stop(currentAmbience);
+            currentAmbience = ambience;
+            sfx.loop(ambience, AMBIENCE_VOLUME);
+        }
     }
 
     /** The level is won: the theme (or the boss music) fades out. */
@@ -431,6 +537,9 @@ public final class LevelMusic implements Disposable {
         stopTheme();
         stopBoss();
         stopLoop();
-        sfx.stop(ambience);
+        sfx.stop(currentAmbience);
+        if (fadingAmbience != null) {
+            sfx.stop(fadingAmbience);
+        }
     }
 }

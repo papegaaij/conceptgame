@@ -289,7 +289,7 @@ public final class VoiceLines {
     /** The radio lines of one level (its cues with their variants and convoy units, and its secrets). */
     public static List<VoiceLine> radio(VoiceData voices, LevelData level, String where) {
         Map<String, VoiceLine> lines = new LinkedHashMap<>();
-        int units = level.objectives().escort().map(escort -> escort.y().size()).orElse(0);
+        int units = level.objectives().escort().map(LevelData.Escort::units).orElse(0);
         for (LevelData.RadioCue cue : level.radio()) {
             Expression expression = cue.expression().orElse(Expression.NEUTRAL);
             boolean shout = cue.shout().orElse(false);

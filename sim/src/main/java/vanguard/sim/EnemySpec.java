@@ -38,6 +38,11 @@ import java.util.Optional;
  *     shots and the wingman do not pick it as a target unless their weapon is {@code anti-ground}
  * @param spawner M5 part C: a periodic spawner's cycle (the Hive Node)
  * @param pounce M5 part C: a walker's leap at the ship (the Ravager)
+ * @param cloak M5 part D: its cloak (design/enemies/air/wraith): its stat block's {@code layer} is the
+ *     cloaked one, the cloak's from its decloak on
+ * @param ambush M5 part D: the path of a {@code rear ambush} wave's unit (the Wraith)
+ * @param flock M5 part D: how the members of a {@code swarm} wave steer round its leader point (the
+ *     Mote Swarm)
  */
 public record EnemySpec(
         String slug,
@@ -67,7 +72,140 @@ public record EnemySpec(
         Optional<ChainSpec> chain,
         boolean hardened,
         Optional<Spawner> spawner,
-        Optional<Pounce> pounce) {
+        Optional<Pounce> pounce,
+        Optional<Cloak> cloak,
+        Optional<Ambush> ambush,
+        Optional<FlockSpec> flock) {
+
+    /** The constructor of Level 09: without the cloaks, ambushes and flocks of Level 10 (M5 part D). */
+    public EnemySpec(
+            String slug,
+            double hp,
+            Hitbox hitbox,
+            Layer layer,
+            double contactDamage,
+            boolean destroyedByRamming,
+            int bounty,
+            double speed,
+            Optional<Snake> snake,
+            Optional<Double> streamSpeed,
+            Optional<Hover> hover,
+            Optional<Orbit> orbit,
+            Optional<EnemyGun> gun,
+            Optional<Drop> drop,
+            Optional<Dive> dive,
+            boolean terrain,
+            Optional<Spiral> spiral,
+            Optional<Range> strafe,
+            Optional<DeathBurst> deathBurst,
+            Optional<Sine> sine,
+            Optional<Brood> brood,
+            Optional<Walker> walker,
+            Optional<SideHover> sideHover,
+            Optional<Sweep> sweep,
+            Optional<ChainSpec> chain,
+            boolean hardened,
+            Optional<Spawner> spawner,
+            Optional<Pounce> pounce) {
+        this(
+                slug,
+                hp,
+                hitbox,
+                layer,
+                contactDamage,
+                destroyedByRamming,
+                bounty,
+                speed,
+                snake,
+                streamSpeed,
+                hover,
+                orbit,
+                gun,
+                drop,
+                dive,
+                terrain,
+                spiral,
+                strafe,
+                deathBurst,
+                sine,
+                brood,
+                walker,
+                sideHover,
+                sweep,
+                chain,
+                hardened,
+                spawner,
+                pounce,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
+    }
+
+    /**
+     * M5 part D, a cloak (design/enemies/air/wraith): the unit flies on its stat block's layer (the
+     * cloaked one, {@code high-air}: only homing hits it, no contact, the specials skip it) until it
+     * decloaks at its hold point; from the start of the {@code flashSeconds} flash on its current
+     * layer is {@code layer}, and its gun stays silent until the flash ends.
+     */
+    public record Cloak(Layer layer, double flashSeconds) {
+        public Cloak {
+            if (!(flashSeconds >= 0)) {
+                throw new IllegalArgumentException("a decloak flash lasts 0 s or more: " + flashSeconds);
+            }
+        }
+    }
+
+    /**
+     * M5 part D, the path of a {@code rear ambush} wave's unit (design/enemies/air/wraith): it enters
+     * at the top edge in its lane and flies straight down it at its speed, past the ship and off the
+     * bottom edge; {@code gapSeconds} below it, it comes back up its lane to its {@link Hover} depth
+     * (the hold point), decloaks there (its {@link Cloak}'s flash) and holds its hover time, its gun
+     * counting its first-shot delay from the stop; then it leaves up the nearer side lane, its centre
+     * {@code lane} px from that edge (a tie goes left), at {@code exitSpeed} px/s.
+     */
+    public record Ambush(double gapSeconds, double lane, double exitSpeed) {
+        public Ambush {
+            if (!(gapSeconds >= 0) || !(lane >= 0) || !(exitSpeed > 0)) {
+                throw new IllegalArgumentException("an ambush has a gap, a lane and an exit speed");
+            }
+        }
+    }
+
+    /**
+     * M5 part D, a flock (design/enemies/air/mote-swarm, user decision D8 = a): the members of a
+     * {@code swarm} wave steer round a leader point that flies the wave's route. Each member keeps
+     * {@code separation} px from the others, matches the heading of ({@code alignment}) and closes on
+     * ({@code cohesion}) the members within {@code radius} px, and is pulled toward the leader point
+     * ({@code leader}); it turns at most {@code turnRate} radians per second and flies about
+     * {@code speed} px/s, {@code diveSpeed} after a loop-back. At most {@code max} members ({@link
+     * Flock#MAX_MEMBERS} at the most).
+     */
+    public record FlockSpec(
+            double separation,
+            double radius,
+            double alignment,
+            double cohesion,
+            double leader,
+            double speed,
+            double diveSpeed,
+            double turnRate,
+            int max) {
+        public FlockSpec {
+            if (!(separation > 0)
+                    || !(radius >= separation)
+                    || !(alignment >= 0)
+                    || !(cohesion >= 0)
+                    || !(leader > 0)
+                    || !(speed > 0)
+                    || !(diveSpeed > 0)
+                    || !(turnRate > 0)
+                    || max < 1
+                    || max > Flock.MAX_MEMBERS) {
+                throw new IllegalArgumentException("a flock has a separation inside its radius, a pull toward"
+                        + " its leader, speeds, a turn rate and 1 to " + Flock.MAX_MEMBERS + " members");
+            }
+        }
+    }
 
     /** The constructor of Level 08: without the hardened units, spawners and pounces of Level 09 (M5 part C). */
     public EnemySpec(

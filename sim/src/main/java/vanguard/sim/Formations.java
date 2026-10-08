@@ -60,6 +60,15 @@ final class Formations {
     static final double CLUSTER_RELEASE_SECONDS = 0.3;
     /** The gap between the stops of a column entering from a side edge, inwards from the edge. */
     private static final double COLUMN_STOP_SPACING = 70;
+    /** M5 part D: the most units of a rear ambush (design/enemies, formation vocabulary). */
+    static final int AMBUSH_MOST = 4;
+    /**
+     * M5 part D: how far a leaving ambush unit climbs while it slides out to its side lane, px; it
+     * is straight in its lane from twice this above its hold point.
+     */
+    private static final double AMBUSH_EXIT_RISE = 60;
+    /** The sunflower's turn between two points of a swarm's starting cloud. */
+    private static final double GOLDEN_ANGLE = StrictMath.PI * (3 - Math.sqrt(5));
 
     private Formations() {}
 
@@ -111,6 +120,8 @@ final class Formations {
             case PACK ->
                 throw new IllegalArgumentException("a pack is a formation of walkers, not of "
                         + wave.enemy().slug());
+            case SWARM -> planner.swarm();
+            case REAR_AMBUSH -> planner.rearAmbush();
         }
     }
 
@@ -137,6 +148,15 @@ final class Formations {
         }
 
         void snake() {
+            double spacing = required(enemy().snake(), "snake").spacingSeconds();
+            if (!wave.paths().isEmpty()) {
+                // M5 part D (the Skitter's authored-paths item): every unit flies the wave's route.
+                FlightPath route = route(wave.paths().getFirst());
+                for (int i = 0; i < wave.count(); i++) {
+                    add(i, wave.t() + i * spacing, route, speed(enemy().speed()), 0, Optional.empty(), Spawn.Exit.DOWN);
+                }
+                return;
+            }
             FlightPath path =
                     switch (wave.entry()) {
                         case FRONT ->
@@ -151,9 +171,8 @@ final class Formations {
                                 case RIGHT -> SWEEP.mirrored();
                                 default -> throw unsupported("a snake enters from one side");
                             };
-                        case REAR -> throw unsupported("snakes do not enter from the rear");
+                        case REAR -> throw unsupported("snakes enter from the rear only on their paths");
                     };
-            double spacing = required(enemy().snake(), "snake").spacingSeconds();
             for (int i = 0; i < wave.count(); i++) {
                 add(i, wave.t() + i * spacing, path, speed(enemy().speed()), 0, Optional.empty(), Spawn.Exit.DOWN);
             }
@@ -378,6 +397,11 @@ final class Formations {
                         case SIDES -> SIDE_STREAM;
                         case REAR -> throw unsupported("streams do not enter from the rear");
                     };
+            if (!wave.paths().isEmpty()) {
+                // M5 part D (Level 10, around the shuttle band): a unit from the left flies the wave's
+                // route, one from the right its mirror image.
+                fromLeft = route(wave.paths().getFirst());
+            }
             FlightPath fromRight = fromLeft.mirrored();
             double interval = required(wave.intervalSeconds(), "interval");
             double speed = speed(enemy().streamSpeed().orElse(enemy().speed()));
@@ -578,17 +602,7 @@ final class Formations {
             for (int i = 0; i < wave.count(); i++) {
                 List<WaveSpec.At> points = wave.paths().get(i % wave.paths().size());
                 boolean mirror = wave.paths().size() == 1 && i % 2 == 1;
-                double[] xy = new double[Math.max(2, points.size()) * 2];
-                for (int k = 0; k < points.size(); k++) {
-                    double x = points.get(k).x();
-                    xy[2 * k] = mirror ? WIDTH - x : x;
-                    xy[2 * k + 1] = HEIGHT - points.get(k).depth();
-                }
-                if (points.size() == 1) {
-                    // One point: straight down through it.
-                    xy[2] = xy[0];
-                    xy[3] = -OUTSIDE * 4;
-                }
+                double[] xy = points(points, mirror);
                 FlightPath path = FlightPath.through(xy);
                 Optional<Spawn.Loop> loop = wave.loopBack().map(back -> loop(back, xy[xy.length - 2], mirror));
                 out.add(new Spawn(
@@ -638,6 +652,149 @@ final class Formations {
                     Math.max(
                             WaveSchedule.EDGE_WARNING_SECONDS,
                             wave.warningSeconds().orElse(0.0)));
+        }
+
+        /**
+         * M5 part D, a swarm (design/enemies/air/mote-swarm): {@code count} members of a flock round a
+         * leader point that flies the wave's route (its first path, in (x, depth below the top edge)
+         * points, starting outside the play field) at the unit's path speed and its loop-backs at
+         * the flock's dive speed, each re-entering {@code after} s past the previous path's end on
+         * the loop-back's path shifted to start at that end's x (straight up without one), warned at
+         * the bottom edge ahead. The members start together in a seeded cloud round the route's first
+         * point, about the flock's separation apart.
+         */
+        void swarm() {
+            EnemySpec.FlockSpec flock = required(enemy().flock(), "a flock");
+            if (wave.paths().isEmpty()) {
+                throw unsupported("a swarm flies its wave's route (paths)");
+            }
+            if (wave.count() > flock.max()) {
+                throw unsupported("a flock has at most " + flock.max() + " members, not " + wave.count());
+            }
+            double[] xy = points(wave.paths().getFirst(), false);
+            FlightPath path = FlightPath.through(xy);
+            List<FlightPath> loops = new java.util.ArrayList<>();
+            double warning = Math.max(
+                    WaveSchedule.EDGE_WARNING_SECONDS, wave.warningSeconds().orElse(0.0));
+            double gap = 0;
+            if (wave.loopBack().isPresent()) {
+                WaveSpec.LoopBack back = wave.loopBack().get();
+                gap = back.afterSeconds();
+                double endX = xy[xy.length - 2];
+                for (int k = 0; k < back.count(); k++) {
+                    Spawn.Loop loop = loop(back, endX, false);
+                    loops.add(loop.path());
+                    endX = loop.path().endX();
+                }
+            }
+            Spawn.Route route = new Spawn.Route(path, loops, speed(enemy().speed()), flock.diveSpeed(), gap, warning);
+            double startX = xy[0];
+            double startY = xy[1];
+            // A sunflower cloud, about the separation apart, each point jittered by the seed.
+            for (int i = 0; i < wave.count(); i++) {
+                double r = flock.separation() * 0.6 * Math.sqrt(i + 0.5);
+                double angle = i * GOLDEN_ANGLE + rng.range(-0.3, 0.3);
+                double x = startX + r * StrictMath.cos(angle);
+                double y = startY + r * StrictMath.sin(angle);
+                out.add(new Spawn(
+                        SimStep.ticks(wave.t()),
+                        kind,
+                        enemy(),
+                        path,
+                        route.speed(),
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.DOWN,
+                        false,
+                        carried(i),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.of(new Spawn.Swarm(route, i, x, y))));
+            }
+        }
+
+        /**
+         * M5 part D, a rear ambush (design/enemies/air/wraith): {@code count} (1–4) units, unit i in
+         * the lane x = (i + 1) × 480 ÷ (n + 1) (a lone one in the middle); each enters at the top edge
+         * at the wave's time and flies its {@link EnemySpec.Ambush}: down its lane at its speed past
+         * the ship and off the bottom edge, its gap below it, back up to its hold point (a height in
+         * its hover range), the decloak and the hold, then out up the nearer side lane.
+         */
+        void rearAmbush() {
+            EnemySpec.Ambush ambush = required(enemy().ambush(), "an ambush path");
+            EnemySpec.Hover hover = required(enemy().hover(), "hover");
+            if (wave.count() < 1 || wave.count() > AMBUSH_MOST) {
+                throw unsupported("a rear ambush has 1 to " + AMBUSH_MOST + " units, not " + wave.count());
+            }
+            double flash = enemy().cloak().map(EnemySpec.Cloak::flashSeconds).orElse(0.0);
+            double warning = Math.max(
+                    WaveSchedule.EDGE_WARNING_SECONDS, wave.warningSeconds().orElse(0.0));
+            double speed = speed(enemy().speed());
+            for (int i = 0; i < wave.count(); i++) {
+                double x = (i + 1) * WIDTH / (wave.count() + 1);
+                double holdY = HEIGHT - hover.depth().pick(rng);
+                boolean left = x <= WIDTH / 2;
+                double laneX = left ? ambush.lane() : WIDTH - ambush.lane();
+                FlightPath down = FlightPath.through(x, HEIGHT + OUTSIDE, x, -OUTSIDE);
+                FlightPath rise = FlightPath.through(x, -OUTSIDE, x, holdY);
+                // Out to its side lane while it climbs, then straight up the lane.
+                FlightPath exit = FlightPath.through(
+                        x,
+                        holdY,
+                        laneX,
+                        holdY + AMBUSH_EXIT_RISE,
+                        laneX,
+                        holdY + 2 * AMBUSH_EXIT_RISE,
+                        laneX,
+                        HEIGHT + OUTSIDE);
+                out.add(new Spawn(
+                        SimStep.ticks(wave.t()),
+                        kind,
+                        enemy(),
+                        down,
+                        speed,
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.DOWN,
+                        false,
+                        carried(i),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.of(new Spawn.Ambush(
+                                rise,
+                                ambush.gapSeconds(),
+                                flash,
+                                hover.seconds().pick(rng),
+                                exit,
+                                ambush.exitSpeed(),
+                                warning)),
+                        Optional.empty()));
+            }
+        }
+
+        /** A route of (x, depth below the top edge) points as play-field points; one point: straight down through it. */
+        private static FlightPath route(List<WaveSpec.At> points) {
+            return FlightPath.through(points(points, false));
+        }
+
+        /** (x, depth) points as play-field x, y pairs, mirrored left to right with {@code mirror}. */
+        private static double[] points(List<WaveSpec.At> points, boolean mirror) {
+            double[] xy = new double[Math.max(2, points.size()) * 2];
+            for (int k = 0; k < points.size(); k++) {
+                double x = points.get(k).x();
+                xy[2 * k] = mirror ? WIDTH - x : x;
+                xy[2 * k + 1] = HEIGHT - points.get(k).depth();
+            }
+            if (points.size() == 1) {
+                xy[2] = xy[0];
+                xy[3] = -OUTSIDE * 4;
+            }
+            return xy;
         }
 
         private static WalkPath walkPath(List<WaveSpec.At> points) {

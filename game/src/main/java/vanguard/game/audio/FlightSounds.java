@@ -148,6 +148,19 @@ public final class FlightSounds {
 
     /** The Vrell screech as a large unit enters the screen, at most one every 3 s. */
     private final ScreechCue screech = new ScreechCue(SimStep.ticks(ScreechCue.THROTTLE_SECONDS));
+    /** M5 part D: a Mote Swarm's rush of wings as it enters the screen. */
+    private final SwarmCue swarms = new SwarmCue();
+
+    /**
+     * M5 part D: where the impact sits in {@link Sfx#LANCE_STRIKE}, seconds from its start: round 32's
+     * lance a lands it 1.2 s in (tools/concept/audio/sfx_r32.py), so the sound starts this long
+     * before the scripted loss's hit (Level 10: at 116.8 for the hit at 118), inside the glow.
+     */
+    static final double LANCE_IMPACT_SECONDS = 1.2;
+    /** The level clock at the last {@link #watch}, for the lance's start; NaN before the first. */
+    private double lastSeconds = Double.NaN;
+    /** The scripted loss's hit on the level clock, from the first {@link #watch}; infinite without one, NaN before. */
+    private double lanceHit = Double.NaN;
 
     /**
      * @param looks the explosions of the level's enemy kinds
@@ -503,6 +516,9 @@ public final class FlightSounds {
                     }
                 }
                 case SWEEP_FIRED -> bank.play(Sfx.MANTIS_SWEEP, HITS, pitch(0.03), pan);
+                // M5 part D: a Wraith's decloak and a Mote Swarm's loop-back, levelled like the Vrell
+                // spawns (round 32: decloak b, swarm b).
+                case DECLOAK, LOOP_BACK -> bank.play(eventSound(events.type(i)), EXPLOSIONS, pitch(0.03), pan);
                 // The Smart Bomb (round 08 a): its energy blast, swelling over 0.5 s, on the huge rung's
                 // sub-heavy boom, which gives the instant flash its punch.
                 case SMART_BOMB -> {
@@ -546,6 +562,25 @@ public final class FlightSounds {
         for (int n = 0; n < Math.min(launches, LAUNCH_SOUNDS); n++) {
             later(Sfx.CARRIER_LAUNCH, EXPLOSIONS, pitch(0.06), launchPan / launches, (n + 1) * LAUNCH_STEPS);
         }
+    }
+
+    /** M5 part D: the sound of a Level 10 event: the Wraith's decloak, the swarm's loop-back; null for another. */
+    static Sfx eventSound(SimEvents.Type type) {
+        return switch (type) {
+            case DECLOAK -> Sfx.WRAITH_DECLOAK;
+            case LOOP_BACK -> Sfx.MOTE_SWARM;
+            default -> null;
+        };
+    }
+
+    /**
+     * M5 part D: whether the lance's sound starts between the level clock {@code before} and {@code
+     * now}: its start {@link #LANCE_IMPACT_SECONDS} before the hit at {@code hitSeconds} lies after
+     * the one and at or before the other.
+     */
+    static boolean lanceDue(double before, double now, double hitSeconds) {
+        double start = hitSeconds - LANCE_IMPACT_SECONDS;
+        return before < start && start <= now;
     }
 
     /**
@@ -592,6 +627,11 @@ public final class FlightSounds {
         if (screeched != null) {
             bank.play(screeched, EXPLOSIONS, pitch(0.03), pan(screech.x()));
         }
+        // M5 part D: a swarm's entry; the scripted loss's lance, timed so its impact lands on the hit.
+        if (swarms.watch(sortie, resync)) {
+            bank.play(Sfx.MOTE_SWARM, EXPLOSIONS, pitch(0.03), pan(swarms.x()));
+        }
+        watchLance(sortie);
         if (wasOpen == null) {
             wasOpen = new boolean[pieces][];
             wasWrecked = new boolean[pieces][];
@@ -618,6 +658,28 @@ public final class FlightSounds {
             wasHolding[i] = holding;
         }
         resync = false;
+    }
+
+    /**
+     * The scripted loss's lance (M5 part D, Level 10): its sound starts {@link #LANCE_IMPACT_SECONDS}
+     * before the hit, panned to its unit; not after a restart that skipped past it.
+     */
+    private void watchLance(Sortie sortie) {
+        if (Double.isNaN(lanceHit)) {
+            lanceHit = sortie.script()
+                    .escort()
+                    .flatMap(vanguard.sim.LevelScript.Escort::air)
+                    .flatMap(vanguard.sim.LevelScript.Air::scriptedLoss)
+                    .map(vanguard.sim.LevelScript.ScriptedLoss::t)
+                    .orElse(Double.POSITIVE_INFINITY);
+        }
+        double now = sortie.levelSeconds();
+        double before = resync ? now : lastSeconds;
+        lastSeconds = now;
+        int unit = sortie.scriptedAlly();
+        if (unit >= 0 && !Double.isNaN(before) && lanceDue(before, now, lanceHit)) {
+            bank.play(Sfx.LANCE_STRIKE, PLAYER_DAMAGE, 1, pan(sortie.ally(unit).x()));
+        }
     }
 
     /**

@@ -3,7 +3,7 @@ title: Act 2 – Homefront
 design: approved
 implementation: in-progress
 art: chosen
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Act 2 – Homefront
@@ -21,7 +21,7 @@ Siege Spire, a Vrell citadel that has rooted itself in the heart of the UTC capi
 |---|---|---|---|---|
 | [level-08-neon-skyline](level-08-neon-skyline/README.md) | Night megacity, Rook's first sortie on Lancer's wing, Creeper intro · front · density 3 | approved | done | final |
 | [level-09-arcology-fall](level-09-arcology-fall/README.md) | The act's first `destroy-targets`: six hardened hive nodes, hold zones, Ravager packs, the arcology collapse · front · density 3 | approved | done | final |
-| [level-10-evacuation-corridor](level-10-evacuation-corridor/README.md) | `escort` of five shuttles, first rear-heavy level (Wraith, Mote Swarm), one scripted loss · rear 42% · density 3 | approved | not-started | chosen |
+| [level-10-evacuation-corridor](level-10-evacuation-corridor/README.md) | escort` of five shuttles at first light, first rear-heavy level (Wraith, Mote Swarm), one scripted loss · front and rear (a third from behind by threat) · density 3 | approved | done | final |
 | [level-11-atlantic-convoy](level-11-atlantic-convoy/README.md) | Naval layer (Driftjelly, Reef Spitter), `sub` shadows, mid-boss Harbour Kraken · front · density 3 | approved | not-started | chosen |
 | [level-12-storm-front](level-12-storm-front/README.md) | Weather (rain, lightning, gusts), Lamprey intro, Varga sees the Vrell herd the storm · all · density 4 | approved | not-started | chosen |
 | [level-13-polar-relay](level-13-polar-relay/README.md) | `defend` the Arctic relay for 180 s, Skimmer intro, whiteout · all edges · density 4 | approved | not-started | chosen |
@@ -47,7 +47,7 @@ overnight in the middle of **Geneva Concord**, the UTC capital.
   his first sortie as Lancer's wingman (Act 1's outro assigns him; the escort slot unlocks at the
   hangar visit before L08, see [wingmen](../../player/wingmen/README.md)).
 - L10: civilians on the radio. The first loss the player can't prevent (a shuttle is scripted
-  to be lost).
+  to be lost at first light, by a lance from something above the cloud deck).
 - L12: Dr. Varga notices the Vrell are herding the storm. They understand Earth's weather
   systems too well.
 - L13: holding the relay keeps the grid online, which is the setup for the Mars counter-offensive.
@@ -171,7 +171,8 @@ Every briefing page and radio line is voiced, as in Act 1 ([voice](../../audio/v
 the act briefing's four pages and each level's briefing pages and radio; the hangar teaser is text
 only, by design (round 30). A new speaker is auditioned in the round of the level that introduces
 it (Level 08: the Ikoyi shelter civilian, round 30; Level 09: the Kilo Lead, the CDF officer of the
-truck convoy, round 31) and plays as text until it is cast.
+truck convoy, round 31; Level 10: the shuttle pilots Lifeline and Lifeline Three, round 32) and
+plays as text until it is cast.
 
 ## Concept art
 
@@ -243,3 +244,9 @@ the [briefing screen](../../ui/briefing/README.md)'s. Prompts: [concept/prompts.
   which returns in L09 (32 HP) and L14, and the Hive Node and Ravager in L14; the *Voice* section no
   longer says the hangar teaser is voiced (it is text only, by design since round 30) and names
   Level 09's new speaker; *New mechanics* names L09's hold zones and collapse.
+- 2026-10-08: M5 part D (user decisions D1–D12 of 2026-10-08, see
+  [Level 10](level-10-evacuation-corridor/README.md#decisions)): Level 10's row corrected: the
+  draft's "rear 42%" counted waves; by enemy count the waves enter 81 % front, 18 % rear and 1 % from
+  the sides, and by threat about a third comes from behind (the looping Mote Swarms enter at the
+  top). Level 10 flies at first light (D11 = a), as Level 09's end line says; its texts go to
+  `review` for round 32.

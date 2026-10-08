@@ -27,11 +27,15 @@ speakers:
       e17cf2dea039: 236441589   # Level 09 failed "Node A1 got past you, Lancer…": the key's seed read "you'll answer" both ways
       f6b5fc8fbc52: 258695212   # Level 09 failed "Node A2 got past you, Lancer…": the key's seed read "you'll answer" through the filter
       3e65a05739f4: 65428273    # Level 09 failed "Node C1 got past you, Lancer…": the key's seed read "See, one" and "your answer" dry
+      57cca67e43d2: 241503377   # Level 10 briefing page 1 "Nova Lagos evacuates…": the key's seed read "Fides shuttles" both ways
+      9043598844d3: 118220431   # Level 10 end, four home "Four of five made orbit…": the key's seed read "eight to hundred and eighty" dry
   varga:
     names: [Varga]
     ref: ref-varga
     pins:
       febdaf698bba: 267115454   # Level 09 briefing page 2 "The nodes are hardened…": the key's seed read "the streets and packs" both ways
+      a86c85a4cc53: 77391054    # Level 10 briefing page 2 "The Vrell hunt…": the key's seed read "The rail hunt" but with a prompt through the filter; the pin reads "Vrell" with a prompt both ways
+      ec548c3af77b: 118220431   # Level 10 secret "That ferry's hold…": the key's seed read "berry's" through the filter; the pin "ferries" every way
   rook:
     names: [Rook]
     ref: ref-rook
@@ -70,3 +74,15 @@ speakers:
   kilo-lead:   # Level 09 (the CDF officer of the Kilo truck convoy); cast in round 31 (a, Aaron Bennett), neutral as auditioned
     names: [Kilo Lead]
     ref: ref-kilo-lead
+  lifeline:   # Level 10 (M5 part D, D12 = a): Lifeline One's pilot, also Two, Four and Five and the hit line (one voice, as the docks); cast in round 32 (b, KevinS), neutral as auditioned
+    names: [Lifeline, Lifeline One, Lifeline Two, Lifeline Four, Lifeline Five]
+    ref: ref-lifeline
+    pins:
+      880a1afa6d3f: 142687322   # Level 10 hit line "Lifeline One, we're hit!…": the key's seed jumped to about 450 Hz from "hit" to "Still" (the audition's octave jump)
+      d12056a029ff: 219300680   # Level 10 hit line "Lifeline Two, we're hit!…": the key's seed was pitched about 450 Hz throughout
+      8486aee613d9: 139003289   # Level 10 hit line "Lifeline Four, we're hit!…": the key's seed read "Lifeline, or" both ways and jumped on "or we're hit"
+      9c80dd346954: 164161116   # Level 10 hit line "Lifeline Five, we're hit!…": the key's seed jumped to about 500 Hz on "Still"
+      ec3c28e01987: 247734107   # Level 10 t=196 "Corridor clear…": the key's seed read "Core to clear" with and without a prompt; the pin reads "corridor clear" without one
+  lifeline-three:   # Level 10 (M5 part D, D12 = a): Lifeline Three's pilot, one line, cut off at its dash; cast in round 32 (b, Maria Kasper), neutral as auditioned
+    names: [Lifeline Three]
+    ref: ref-lifeline-three

@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../architecture, ../../campaign]
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Implementation roadmap
@@ -72,7 +72,7 @@ Hive Node and Ravager and D's Wraith.
 | **A** Act 2 systems — **done** | Rook and the escort slot ([wingmen](../../player/wingmen/README.md): AI, guns, escort inventory, side, repairs, eject, retry and checkpoint, barks, `--escort`), save format 3 with `escort`, the hangar's escort UI and the HUD's escort box; the Act 2 arsenal without water (final effects and sounds of the Tail Gun, Fan Blaster, Hornet Launcher and Swivel Gun, the Proximity Mines' delivery and `area`); the Targeting computer and the Salvage scanner; the act HP factor and the Act 1 terms in data ([enemies](../../enemies/README.md#balancing-basis), [economy](../../systems/economy/README.md)). Flown on the Act 1 levels with `--loadout` and `--escort` | — | 28 (closed): Rook's craft and eject pod, the weapon effects, the Act 2 weapon sounds, the barks' voices, the scanner's glint |
 | **B** Level 08 and the Act 2 intro — **done** | Level data (dense, typical haul, four Varga lines, voiced); Creeper; the megacity backdrop with perspective towers (scenery only) and traffic lanes; Act 2's data (title card, briefing pages, images); "Homefront" final and stems; the Act 1 → Act 2 transition | A | 30 (closed): the Creeper, the megacity backdrop and towers, the Act 2 still and briefing images, Rook's briefing portraits, "Homefront" and its base stem, the billboard (a), the traffic (a), the civilian's voice (b) |
 | **C** Level 09 — **done** | Hive Node (hardened, periodic spawn), Ravager (`pack`, the pounce's air window), hardened enemies; hold zones and the level clock in script time; the named-target tracker; a missed node fails at once; the collapse; the bridge secondary (a wave tag); the `required` launch warning; the balance plan's anti-ground (Bomb Rack and Rook's Mortar); multi-level units in each level's atlas; "Firestorm" final and stems with a run-time stem hook; the Kilo Lead's audition | B | 31 (closed): the collapse's look (a and b rejected, the rework c approved with two tweaks and built), the Hive Node, the Ravager, the Level 09 backdrop with the trucks and the cocoon, the briefing images, "Firestorm" and its base stem approved as final; the collapse sound (a), both pounce sounds (picked at random), the Kilo Lead's voice (a); the captures, the voiced lines, the texts, the numbers, the decisions and the build choices accepted |
-| **D** Level 10 | Wraith (cloak, loop, rear entry); Mote Swarm (`flock`, `swarm`, authored paths: the Skitter's item); the air allies (shuttles) and the scripted loss; rear-heavy pacing | B | 32 |
+| **D** Level 10 — **done** | Wraith (cloak, loop, rear entry, `rear ambush`); Mote Swarm (`flock`, `swarm`, authored paths: the Skitter's item); the air escort (shuttles: stations and lane sway, liftoff and climb-out, every bullet and contact hurting) and the scripted loss with its music duck; the `SHUTTLES` tracker with armour bars; `required: [rear]` and the plan's rear check; the ambience change by section; rear-heavy pacing; the Lifeline voices' auditions | B | 32 (closed): the Wraith, the Mote Swarm, the Level 10 backdrop at first light with the ferry hatch, the briefing images and intel portraits approved as final; the shuttle (a), the loss's look (b, the iris column), the decloak sound (b, CC-BY), the swarm sound (b), the lance sound (a), the Lifeline and Lifeline Three voices (b, b); the captures, the voiced lines, the texts, the numbers, the decisions and the build choices accepted |
 | **E** Level 11 | The `sub` layer and the water rules; the Torpedo Pod and `anti-sub`; Driftjelly, Reef Spitter; convoy ships and frigate; the Harbour Kraken mid-boss; the ocean backdrop; the Bomb Rack over water | A | 33 |
 | **F** Level 12 | Weather (rain, lightning reveal, gusts, the eye); Lamprey (chase, latch, drain, shake-off) with `swarm`; sondes; the storm backdrop; the mines' sounds in play | D, E | 34 |
 | **G** Level 13 | `defend` with a timed halt; the Nansen Relay and its integrity bar; hook modes `alternate`, `in-arc`, `always`; Skimmer; `cross`; whiteout; supply drones; the arctic backdrop | E | 35 |
@@ -91,6 +91,7 @@ Hive Node and Ravager and D's Wraith.
       main on 2026-10-06)
 - [ ] M5 Act 2 (parts A–I under *M5 parts*; part A done, concept round 28 closed; part B, Level 08
       and the Act 2 intro, done, concept round 30 closed; part C, Level 09, done, concept round 31
+      closed; part D, Level 10, done, concept round 32
       closed)
 - [ ] M6 Acts 1–2 release
 
@@ -244,3 +245,39 @@ Hive Node and Ravager and D's Wraith.
   hold C lasts until the collapse's dust has settled (9.0 s after the warning starts, no longer the
   blast's end at 4.0 s), so the heap stays in sight after a late kill. The next part is **D**,
   Level 10 (round 32).
+- 2026-10-08: M5 part D started (Level 10), from its gap check, with the user's decisions D1–D12,
+  all (a): **D1** the shuttles hold authored stations in a band with a slow lane sway and never
+  react to threats; **D2** every enemy bullet and contact hurts a shuttle, tuned until the
+  autopilot keeps at least 3 of the 4 saveable on medium; **D3** the tracker `SHUTTLES n / 4` over
+  five armour bars; **D4** Lifeline Three untouchable before t=118 (fire passes through), the
+  scripted loss costing nothing; **D5** the mission fails at once when the four saveable shuttles
+  are lost, the escort's pay per shuttle home, no secondary, four level-end lines; **D6** the Wraith
+  as its stat block (cloaked from the top, rear entry, decloaked exit along a side lane); **D7** the
+  Wraith's HP 27 → 16, a rear check in `BalanceTest`, the plan's L10 visit refitting Rook's
+  Autocannon (a `fit` action); **D8** real flocking for the Mote Swarm (its route as data, the
+  Skitter's authored-paths item for snakes and swarms); **D9** `required: [rear]`; **D10** art
+  straight to production, a/b only for the shuttle and the loss's glow and lance; **D11** first
+  light; **D12** two voices auditioned, Lifeline and Lifeline Three. The gap check's stated
+  defaults apply: data in Act 1 terms with a `bounty_scale`; the waves filled with popcorn to at
+  least 50 a minute and the 3 s pacing rule, the first enemies at t≈8; 190 px/s; 3 s edge warnings
+  everywhere; directions by `from`, the looping swarms `from: front` with the share by threat in the
+  text; the formations `swarm` and `rear ambush`; the Wraith's veins drawn only; hard's 7-shot
+  bursts, 3.0 s holds, an extra pair at t=170 and two loop-backs; the radio retimed with the events
+  `first-decloak`, `first-loop-back`, `scripted-loss` and `ally-lost`, Rook's t=50 line dropped, a
+  mission-failed line, "two hundred and twenty"; two one-screen briefing pages, Rook's teaser,
+  Varga's four lines; the shuttles untouchable in the liftoff and the climb-out, the glide into
+  `far`, armour 180 / 120 / 90; the ferry hatch with a hidden crate; "Homefront"'s base stem from
+  section 2, the full mix from section 3, the −6 dB duck, the ambience to the ocean at section 4; no
+  change to Rook's AI. Details in
+  [Level 10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md), the
+  [Wraith](../../enemies/air/wraith/README.md), the [Mote Swarm](../../enemies/air/mote-swarm/README.md),
+  the [allies](../../allies/README.md), the [schemas](../architecture/README.md#data-file-schemas),
+  the [HUD](../../ui/hud/README.md), [wingmen](../../player/wingmen/README.md),
+  [music](../../audio/music/README.md), [sfx](../../audio/sfx/README.md) and
+  [voice](../../audio/voice/README.md). Part D's concept round is 32.
+- 2026-10-08: M5 part D done, concept round 32 closed (user). After the capture: the Wraith's
+  bursts fly as a fixed 40° fan straight up through the shuttle band, not aimed, and the no-fire
+  distance does not apply to them (user); the capture's bugs fixed (the popcorn routes round the
+  band, the wreck's full 3 s glide, the ferry hatch at 50 HP with a 12 s crate, the rear banner
+  above the band, the home bar in pale mint). Hard keeps 1 of 4 shuttles home on the autopilot
+  (user: hard is meant to be hard). The next part is **E**, Level 11 (round 33).

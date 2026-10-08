@@ -27,7 +27,31 @@ public final class Enemy implements Hashed {
         /** A walker on its ground path. */
         WALK,
         /** A member of a segment chain, placed by its {@link Chain}. */
-        CHAIN
+        CHAIN,
+        /** M5 part D: a {@code rear ambush} unit on its way (design/enemies/air/wraith); see {@link AmbushPhase}. */
+        AMBUSH,
+        /** M5 part D: a member of a swarm, placed by its {@link Flock}. */
+        FLOCK
+    }
+
+    /**
+     * M5 part D: where a {@code rear ambush} unit is on its way (design/enemies/air/wraith), for the
+     * presentation and the tests; {@link #NONE} for any other unit.
+     */
+    public enum AmbushPhase {
+        NONE,
+        /** Cloaked, straight down its lane from the top edge, past the ship and off the bottom edge. */
+        SWOOP,
+        /** Cloaked, below the bottom edge; the edge's warning runs ahead of its re-entry. */
+        GAP,
+        /** Cloaked, back up its lane from below the bottom edge to its hold point. */
+        RISE,
+        /** At its hold point: the decloak flash, on its decloaked layer, its gun silent. */
+        DECLOAK,
+        /** Decloaked, holding at its hold point, its bursts up the screen. */
+        HOLD,
+        /** Decloaked, out up the nearer side lane and off the top edge. */
+        EXIT
     }
 
     /** A walker is at a waypoint this close to it and heads for the next. */
@@ -190,6 +214,35 @@ public final class Enemy implements Hashed {
     /** M5 part C: its wave's tag; "" for none (not hashed: it follows from the plan). */
     private String tag = "";
 
+    /** M5 part D: an ambush unit's plan; null for any other unit (its fields are hashed only with one). */
+    private Spawn.Ambush ambush;
+
+    private AmbushPhase ambushPhase = AmbushPhase.NONE;
+    /** Steps since it entered, until its re-entry. */
+    private int ambushTicks;
+    /** Steps from its entry to its re-entry at the bottom edge (the end of its edge warning). */
+    private int reentryTicks;
+    /** Whether it decloaked in this step (not hashed: set and read within the step). */
+    private boolean decloaked;
+    /** The volleys it started in its hold. */
+    private int ambushVolleys;
+    /**
+     * M5 part D: the volleys of an ambush unit's hold (design/enemies/air/wraith: "twice in its
+     * hold"); hard's longer hold does not add a third.
+     */
+    static final int AMBUSH_VOLLEYS = 2;
+
+    /** M5 part D: the flock it is a member of; null for any other unit (hashed only with one). */
+    private Flock flock;
+    /** Its place in its flock, from 0 in entry order. */
+    private int member;
+
+    /**
+     * M5 part D: the air escort's units its body overlapped in the last step, one bit per unit (bit k
+     * for unit k): a contact hurts a unit once, when it starts (design/allies, evacuation shuttle).
+     */
+    private int allyContacts;
+
     /** A pounce's contact with the ship. */
     static final int TOUCHED_SHIP = 1;
     /** A pounce's contact with the wingman. */
@@ -271,6 +324,13 @@ public final class Enemy implements Hashed {
                 airTo = airFrom + air;
             }
         }
+        if (plan.ambush().isPresent()) {
+            ambush = plan.ambush().get();
+            phase = Phase.AMBUSH;
+            ambushPhase = AmbushPhase.SWOOP;
+            ambushTicks = 0;
+            reentryTicks = Math.max(1, plan.ambushReentryTick() - plan.tick());
+        }
     }
 
     /** The fields of Level 04's spawners, escorts and walkers back to a plain unit's. */
@@ -316,7 +376,16 @@ public final class Enemy implements Hashed {
         leapOverX = 0;
         leapOverY = 0;
         pounceTouched = 0;
+        allyContacts = 0;
         landed = false;
+        ambush = null;
+        ambushPhase = AmbushPhase.NONE;
+        ambushTicks = 0;
+        reentryTicks = 0;
+        decloaked = false;
+        ambushVolleys = 0;
+        flock = null;
+        member = 0;
     }
 
     /**
@@ -447,8 +516,8 @@ public final class Enemy implements Hashed {
         if (ticksSinceHit < Integer.MAX_VALUE) {
             ticksSinceHit++;
         }
-        if (phase == Phase.CHAIN) {
-            // Its chain placed it this step already.
+        if (phase == Phase.CHAIN || phase == Phase.FLOCK) {
+            // Its chain or its flock placed it this step already.
             return true;
         }
         prevX = x;
@@ -457,6 +526,11 @@ public final class Enemy implements Hashed {
             case SPIRAL -> {
                 spiral();
                 return true;
+            }
+            case AMBUSH -> {
+                if (!ambushStep()) {
+                    return false;
+                }
             }
             case GROUND -> {
                 y -= groundScroll;
@@ -544,6 +618,126 @@ public final class Enemy implements Hashed {
         }
         turn();
         return true;
+    }
+
+    /**
+     * One step of a rear ambush unit's way (design/enemies/air/wraith, user decision D6 = a of M5
+     * part D): its swoop down its lane and off the bottom edge, the gap below it, its rise back up to
+     * its hold point, the decloak flash and the hold there (its gun counting its first-shot delay
+     * from the stop), then its exit up the side lane; returns false once it has left the top edge.
+     */
+    private boolean ambushStep() {
+        decloaked = false;
+        switch (ambushPhase) {
+            case SWOOP, GAP -> {
+                if (ambushPhase == AmbushPhase.SWOOP) {
+                    distance += speed * SimStep.SECONDS;
+                    if (distance >= path.length()) {
+                        distance = path.length();
+                        ambushPhase = AmbushPhase.GAP;
+                    }
+                    place();
+                }
+                if (++ambushTicks >= reentryTicks) {
+                    // It re-enters its lane where its swoop left it, below the bottom edge.
+                    ambushPhase = AmbushPhase.RISE;
+                    path = ambush.rise();
+                    segment = 0;
+                    distance = 0;
+                    place();
+                }
+            }
+            case RISE -> {
+                distance += speed * SimStep.SECONDS;
+                if (distance >= path.length()) {
+                    distance = path.length();
+                    place();
+                    decloak();
+                } else {
+                    place();
+                }
+            }
+            case DECLOAK -> {
+                if (--holdTicks <= 0) {
+                    ambushPhase = AmbushPhase.HOLD;
+                    holdTicks = Math.max(1, SimStep.ticks(ambush.holdSeconds()));
+                }
+            }
+            case HOLD -> {
+                if (--holdTicks <= 0) {
+                    ambushPhase = AmbushPhase.EXIT;
+                    burstLeft = 0;
+                    path = ambush.exit();
+                    segment = 0;
+                    distance = 0;
+                    speed = ambush.exitSpeed();
+                }
+            }
+            case EXIT -> {
+                distance += speed * SimStep.SECONDS;
+                if (distance >= path.length()) {
+                    return false;
+                }
+                place();
+            }
+            case NONE -> throw new IllegalStateException("an ambush unit without its phase");
+        }
+        return true;
+    }
+
+    /** It stops at its hold point and decloaks: the flash starts, its gun counts from here. */
+    private void decloak() {
+        decloaked = true;
+        burstLeft = 0;
+        // + 1: the gun already counts down in the step the unit stops, as a hover's (see hold()).
+        volleyTicks = spec.gun().isPresent() ? SimStep.ticks(spec.gun().get().firstShotDelay()) + 1 : 0;
+        int flash = SimStep.ticks(ambush.flashSeconds());
+        if (flash > 0) {
+            ambushPhase = AmbushPhase.DECLOAK;
+            holdTicks = flash;
+        } else {
+            ambushPhase = AmbushPhase.HOLD;
+            holdTicks = Math.max(1, SimStep.ticks(ambush.holdSeconds()));
+        }
+    }
+
+    /** M5 part D: where a rear ambush unit is on its way; {@link AmbushPhase#NONE} for any other unit. */
+    public AmbushPhase ambushPhase() {
+        return ambushPhase;
+    }
+
+    /** M5 part D: whether it decloaked in this step (the {@link SimEvents.Type#DECLOAK} event). */
+    boolean decloakedNow() {
+        return decloaked;
+    }
+
+    /**
+     * M5 part D: whether it flies cloaked (design/enemies/air/wraith): a unit with a cloak before its
+     * decloak, drawn as a shimmer on its stat block's layer; false for any other unit.
+     */
+    public boolean cloaked() {
+        return spec.cloak().isPresent() && !decloakedPhase();
+    }
+
+    /**
+     * M5 part D: how far its decloak is, between the previous and the current step ({@code alpha} in
+     * [0, 1]): 0 while it is cloaked, rising evenly to 1 over the flash, 1 after it and for a unit
+     * without a cloak.
+     */
+    public double decloak(double alpha) {
+        if (spec.cloak().isEmpty() || ambushPhase.compareTo(AmbushPhase.HOLD) >= 0) {
+            return 1;
+        }
+        if (ambushPhase != AmbushPhase.DECLOAK) {
+            return 0;
+        }
+        int flash = Math.max(1, SimStep.ticks(ambush.flashSeconds()));
+        return Math.clamp((flash - holdTicks + alpha) / flash, 0.0, 1.0);
+    }
+
+    /** Whether it is at or past its decloak (an ambush unit's flash, hold and exit). */
+    private boolean decloakedPhase() {
+        return ambushPhase.compareTo(AmbushPhase.DECLOAK) >= 0;
     }
 
     /**
@@ -707,10 +901,18 @@ public final class Enemy implements Hashed {
 
     /**
      * The layer it is on now (M5 part C): its stat block's, except {@link Layer#AIR} in the air
-     * window of a pounce's leap. Every hit, contact and targeting rule reads this.
+     * window of a pounce's leap and (M5 part D) its cloak's layer from its decloak flash's start on.
+     * Every hit, contact and targeting rule reads this.
      */
     public Layer layer() {
-        return leapTicks >= airFrom && leapTicks < airTo ? Layer.AIR : spec.layer();
+        if (leapTicks >= airFrom && leapTicks < airTo) {
+            return Layer.AIR;
+        }
+        // M5 part D: a cloaked unit is on its decloaked layer from its flash's start on.
+        if (spec.cloak().isPresent() && decloakedPhase()) {
+            return spec.cloak().get().layer();
+        }
+        return spec.layer();
     }
 
     /**
@@ -1009,26 +1211,50 @@ public final class Enemy implements Hashed {
         }
         boolean ready = phase == Phase.HOLD
                 || (phase == Phase.GROUND && inArc)
-                || (phase == Phase.ESCORT && y < PlayField.HEIGHT);
+                || (phase == Phase.ESCORT && y < PlayField.HEIGHT)
+                || ambushPhase == AmbushPhase.DECLOAK
+                || ambushPhase == AmbushPhase.HOLD;
         if (!ready || spec.gun().isEmpty()) {
             return false;
         }
         EnemyGun gun = spec.gun().get();
         if (burstLeft > 0) {
+            if (ambushPhase != AmbushPhase.NONE) {
+                // M5 part D: an ambush unit's interval runs from its burst's start (its two bursts
+                // 1.2 s apart in its hold, design/enemies/air/wraith); other units' from its end.
+                volleyTicks--;
+            }
             if (--burstTicks > 0) {
                 return false;
             }
             burstLeft--;
-            burstTicks = SimStep.ticks(EnemyGun.BURST_GAP_SECONDS);
+            burstTicks = SimStep.ticks(gun.burstGapSeconds());
             return true;
         }
         if (--volleyTicks > 0) {
             return false;
         }
+        if (ambushPhase == AmbushPhase.DECLOAK) {
+            // M5 part D: the gun is silent until the decloak flash ends.
+            volleyTicks = 1;
+            return false;
+        }
+        if (ambushPhase != AmbushPhase.NONE && ++ambushVolleys > AMBUSH_VOLLEYS) {
+            volleyTicks = Integer.MAX_VALUE;
+            return false;
+        }
         volleyTicks = SimStep.ticks(gun.intervalSeconds());
         burstLeft = gun.burst() - 1;
-        burstTicks = SimStep.ticks(EnemyGun.BURST_GAP_SECONDS);
+        burstTicks = SimStep.ticks(gun.burstGapSeconds());
         return true;
+    }
+
+    /**
+     * The index of the shot {@link #trigger()} just let go in its burst, from 0 (M5 part D: a burst
+     * fired straight up walks across its fan).
+     */
+    int burstShot() {
+        return spec.gun().isPresent() ? spec.gun().get().burst() - 1 - burstLeft : 0;
     }
 
     /** Takes damage from a shot; returns whether it was destroyed. */
@@ -1125,6 +1351,31 @@ public final class Enemy implements Hashed {
                     .add(leapOverY)
                     .add(pounceTouched);
         }
+        // M5 part D's ambush units and flock members add theirs; earlier units hash as before.
+        if (ambush != null) {
+            hash.add(ambushPhase.ordinal())
+                    .add(ambushTicks)
+                    .add(reentryTicks)
+                    .add(speed)
+                    .add(ambushVolleys);
+        }
+        if (flock != null) {
+            hash.add(flock.serial()).add(member);
+        }
+        if (allyContacts != 0) {
+            // M5 part D: only while it overlaps an air escort's unit, so the other levels hash as before.
+            hash.add(allyContacts);
+        }
+    }
+
+    /** M5 part D: the air escort's units it overlapped in the last step, one bit per unit. */
+    int allyContacts() {
+        return allyContacts;
+    }
+
+    /** M5 part D: the air escort's units it overlaps now, one bit per unit. */
+    void allyContacts(int units) {
+        allyContacts = units;
     }
 
     double x() {
@@ -1377,9 +1628,14 @@ public final class Enemy implements Hashed {
 
     /**
      * The edge its wave entered from; front for a unit that is not a wave's (a chain's member: see
-     * {@link Chain#entry()}).
+     * {@link Chain#entry()}; a flock's member: see {@link Flock#entry()}); M5 part D: a rear ambush
+     * unit's is the front until its re-entry.
      */
     public WaveSpec.Entry entry() {
+        // M5 part D: a rear ambush unit's wave is a rear wave from its re-entry on.
+        if (ambushPhase == AmbushPhase.SWOOP || ambushPhase == AmbushPhase.GAP) {
+            return WaveSpec.Entry.FRONT;
+        }
         return entry;
     }
 
@@ -1411,5 +1667,57 @@ public final class Enemy implements Hashed {
     /** Its place in its chain, 0 the head. */
     public int link() {
         return link;
+    }
+
+    /**
+     * M5 part D: joins {@code into} as member {@code index} at (atX, atY), facing {@code heading}: a
+     * swarm's member, placed by its flock from now on (design/enemies/air/mote-swarm).
+     */
+    void join(Flock into, int index, Spawn plan, int unitSerial, double atX, double atY, double heading) {
+        clearLevel04();
+        flock = into;
+        member = index;
+        spec = plan.enemy();
+        box = spec.hitbox();
+        kind = plan.kind();
+        serial = unitSerial;
+        group = -1;
+        aim = 0;
+        inArc = false;
+        diveTicks = 0;
+        diveFired = false;
+        diveShot = false;
+        path = plan.path();
+        segment = 0;
+        distance = 0;
+        speed = plan.speed();
+        phase = Phase.FLOCK;
+        holdTicks = 0;
+        orbit = Optional.empty();
+        exit = Spawn.Exit.DOWN;
+        hp = spec.hp();
+        ticksSinceHit = Integer.MAX_VALUE;
+        volleyTicks = 0;
+        burstLeft = 0;
+        burstTicks = 0;
+        leadsTarget = false;
+        carried = plan.carried();
+        spiralTicks = 0;
+        ricochetsLeft = 0;
+        vx = 0;
+        vy = 0;
+        x = prevX = atX;
+        y = prevY = atY;
+        facing = heading;
+    }
+
+    /** M5 part D: the flock it is a member of; null for other units. */
+    public Flock flock() {
+        return flock;
+    }
+
+    /** M5 part D: its place in its flock, from 0 in entry order. */
+    public int member() {
+        return member;
     }
 }

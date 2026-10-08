@@ -1,10 +1,10 @@
 ---
 title: Voice
 design: draft
-implementation: done
+implementation: in-progress
 art: chosen
 depends-on: [.., ../../story/characters, ../../ui/hud, ../../ui/options, ../../tech/architecture]
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Voice
@@ -85,7 +85,13 @@ header of `tools/concept/audio/tts_r18.py`; the production renderer reuses it.
    Level 06 perimeter beacon) gets the **public-address filter** instead of the radio filter
    (`pa()` next to `radio()`: a 250 Hz–4 kHz horn band with resonances at 1.1 and 2.6 kHz, a
    driven horn's saturation, a faint mains hum, slap echoes at 0.13, 0.29 and 0.47 s and a 1.4 s
-   hall; no static or clicks), as auditioned in round 23. OGG Vorbis q4, 44.1 kHz mono, with a
+   hall; no static or clicks), as auditioned in round 23. A radio line whose text ends in a
+   **dash** is cut off (Level 10's Lifeline Three, "…What is that—", as auditioned in round 32):
+   Whisper (faster-whisper base.en) times the raw take's words, the take is cut hard (3 ms) where
+   its last word ends (Whisper's end falls inside the word's tail, so the word is clipped), then
+   0.3 s of static as loud as the voice's peak (hiss and dense crackle, breaking up, held 0.12 s
+   and dying) and 0.25 s of fading hiss, all through filter b; the file ends there, without the
+   closing click: the channel goes dead. OGG Vorbis q4, 44.1 kHz mono, with a
    comment tag naming the tool, the speaker and the key.
 5. **Commit.** The rendered OGGs are committed under LFS like the other assets.
 
@@ -124,6 +130,8 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
 | Lifeboat Seven | Tadhg Hynes | `refs/ref-lifeboat-seven.wav` |
 | Civilian (shelter nine) | Faith Abiola-Ellison | `refs/ref-civilian.wav` |
 | Kilo Lead | Aaron Bennett | `refs/ref-kilo-lead.wav` |
+| Lifeline (Lifeline One, Two, Four, Five, the hit line) | KevinS | `refs/ref-lifeline.wav` |
+| Lifeline Three | Maria Kasper | `refs/ref-lifeline-three.wav` |
 
 - **Generic speakers** get readers from the same sources, never a main-cast reader, auditioned in
   [round 19](../../concept-rounds/round-19/README.md). One voice per role, so a role keeps its
@@ -157,6 +165,18 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
   through radio filter b at the neutral settings (`tools/concept/audio/tts_r31.py`), and cast in
   that round: Aaron Bennett (a, clip pitch 129 Hz), at the neutral settings through radio filter
   b, as auditioned; his two lines are voiced.
+  Level 10 adds two shuttle pilots (user decision D12 = a of M5 part D), each auditioned a/b in
+  concept round 32 as the Kilo Lead was (two new candidate readers from the same CC0 and
+  public-domain sources, never a main-cast reader nor a voice already cast, through radio filter b
+  at the neutral settings, `tools/concept/audio/tts_r32.py`; the radio portrait
+  `radio-generic-civilian`): **Lifeline**, Lifeline One's pilot (the t=1 call and the t=196 thanks),
+  who is also the voice of Lifeline Two, Four and Five and of the hit line ("Lifeline {ally}, we're
+  hit!…", one take per shuttle by `{ally}`): one voice under several names, as the docks; and
+  **Lifeline Three**, the lost shuttle's pilot, one line cut off by the lance ("…What is that—";
+  the dash reads as a comma, and the renderer cuts the take off after its last word, see
+  *Offline pipeline*). Both were cast in that round (user, 2026-10-08): Lifeline is KevinS (b, clip
+  pitch 138 Hz), Lifeline Three Maria Kasper (b, 215 Hz), at the neutral settings through radio
+  filter b, as auditioned; their lines are voiced.
 
 ### Speakers and expression
 
@@ -280,6 +300,16 @@ level).
       after his casting (M5 part C; rendered 2026-10-07, 20 lines, four takes pinned; the Kilo
       Lead's two lines rendered 2026-10-07, no pins needed; accepted as rendered when round 31
       closed its voice rows)
+- [x] Lifeline and Lifeline Three (Level 10): reference clips for the round-32 audition under
+      `refs/` and in CREDITS.md, the chosen readers in the speaker table (M5 part D, D12 = a; b,
+      KevinS, `refs/ref-lifeline.wav`; b, Maria Kasper, `refs/ref-lifeline-three.wav`)
+- [x] A line ending in a dash is cut off after its last word into static and a dead channel
+      (`tools/art/voice.py`, Lifeline Three's t=116 line)
+- [x] Level 10's lines (radio, the briefing pages, the ferry's line, the mission failed screen's
+      line, the four level-end lines with the numbers spoken) rendered and reviewed in concept
+      round 32; the Lifeline speakers' after their casting (M5 part D; the cast speakers' rendered
+      2026-10-08, 22 lines, four takes pinned; the Lifeline speakers' eight lines rendered
+      2026-10-08, five takes pinned)
 - [x] A line that is only a stage direction plays its speaker's `stage` sound (speaker table) on
       the voice bus, found by `VoiceLines.radioVoice` for the game and RadioTimelineTest; the
       Choir's is round 29's option b (the sung "ah" F3 to E3), copied by
@@ -336,11 +366,20 @@ Level 09: his two lines (the t=95 call and the secondary objective's thanks, 1 s
 candidate reference voices (`-a`, `-b`), rendered by Chatterbox at the neutral settings through
 radio filter b (`tools/concept/audio/tts_r31.py`). Closed 2026-10-07: **a** chosen (its clip renamed
 `refs/ref-kilo-lead.wav`); b in `concept/rejected/`, its clip deleted.
+Concept [round 32](../../concept-rounds/round-32/README.md) (M5 part D) — casting Level 10's
+Lifeline (three of its lines) and Lifeline Three (its one line, cut off) with two candidate
+reference voices each (`tools/concept/audio/tts_r32.py`). Decided 2026-10-08: **b** for both (the
+clips renamed `refs/ref-lifeline.wav` and `refs/ref-lifeline-three.wav`); the a auditions in
+`concept/rejected/`, their clips deleted.
 
 | File | What | Status |
 |---|---|---|
 | [concept/voice-kilo-lead-r31-a.ogg](concept/voice-kilo-lead-r31-a.ogg) | The Kilo Lead (round 31 audition), reader Aaron Bennett (`tools/concept/audio/tts_r31.py`) | chosen |
 | [concept/rejected/voice-kilo-lead-r31-b.ogg](concept/rejected/voice-kilo-lead-r31-b.ogg) | The Kilo Lead (round 31 audition), reader tombooker (`tools/concept/audio/tts_r31.py`) | rejected |
+| [concept/rejected/voice-lifeline-r32-a.ogg](concept/rejected/voice-lifeline-r32-a.ogg) | Lifeline (round 32 audition: Lifeline One's pilot, also shuttles Two, Four, Five and the hit line), reader Atul Sharma (`tools/concept/audio/tts_r32.py`) | rejected |
+| [concept/voice-lifeline-r32-b.ogg](concept/voice-lifeline-r32-b.ogg) | Lifeline (round 32 audition), reader KevinS (`tools/concept/audio/tts_r32.py`) | chosen |
+| [concept/rejected/voice-lifeline-three-r32-a.ogg](concept/rejected/voice-lifeline-three-r32-a.ogg) | Lifeline Three (round 32 audition; the line cut off by the lance), reader Kehinde (`tools/concept/audio/tts_r32.py`) | rejected |
+| [concept/voice-lifeline-three-r32-b.ogg](concept/voice-lifeline-three-r32-b.ogg) | Lifeline Three (round 32 audition; the line cut off by the lance), reader Maria Kasper (`tools/concept/audio/tts_r32.py`) | chosen |
 
 Concept [round 29](../../concept-rounds/round-29/README.md) — the sound of the Choir's stage
 direction `[the Choir sings]`: a wordless sung sting in the Choir's voice (a, b) or a synthesized
@@ -555,3 +594,54 @@ a, c and d in `concept/rejected/`.
   his audition moved to `concept/rejected/`. The 20 lines of Level 09 accepted as rendered, the four
   pinned takes included; none to re-render. Every item is ticked, so the implementation is `done`
   again.
+- 2026-10-08: M5 part D (user decision D12 = a): two new speakers for Level 10, auditioned a/b in
+  round 32: `lifeline` (names Lifeline, Lifeline One, Two, Four and Five: the lead pilot and the
+  hit line, one voice) and `lifeline-three` (one line, cut off), both `uncast: true` in the speaker
+  table until the pick; rejected: b (one voice for every shuttle, the lost pilot sounding like the
+  lead) and c (reusing Level 08's civilian and Level 07's Lifeboat Seven). The cast speakers' Level
+  10 lines render as soon as the texts are final. The implementation is `in-progress` again.
+- 2026-10-08: M5 part D (step D9): Level 10's lines of the cast speakers rendered by
+  `tools/art/voice.py`'s pipeline (only the missing lines, nothing deleted), 22 lines: its two
+  briefing pages (dry), its spoken radio lines (the `first-decloak`, `first-loop-back`,
+  `scripted-loss` and mission failed lines included; `ally-lost` once per shuttle, Lifeline One to
+  Five, as Level 04's convoy lines; the four level-end lines by shuttles home; no `{side}` line) and
+  the ferry secret's line (Okafor 13, Varga 5, Rook 4). The Lifeline speakers' lines (t=1, t=116,
+  t=196 and the `first-ally-hit` line) stay text until round 32 casts them; the Choir's
+  `[the Choir sings]` plays its stage sound; the hangar teaser and the intel lines are not voiced,
+  as in Levels 08 and 09. Three `ally-lost` takes hit the length cap and kept their second or third
+  seed. Whisper (base.en) read each take back, dry and through the filter; "Eko" reads "Eco",
+  "Vrell" and "Lagos" need a name prompt, and the numbers come back as digits. Four takes were
+  re-rolled (four seeds each) and pinned in the speaker table: Okafor's briefing page 1 (the key's
+  seed read "Fides shuttles"), the four-home level-end line ("eight to hundred and eighty" dry),
+  Varga's briefing page 2 ("The rail hunt" but with a prompt through the filter; the pin reads
+  "Vrell" with a prompt both ways, "rail" without, and "Flock sweep" once through the filter) and
+  the ferry line ("berry's" through the filter; the pin reads the sound-alike "ferries" every way).
+  Okafor's grim lines leave a pause of about 0.6–1 s between "Lifeline" and its number (the
+  `ally-lost` takes and `scripted-loss`): every take does it, so it is left for the ear.
+  VoiceFilesTest now checks Level 10, with the Lifeline speakers in `AUDITIONING` while round 32
+  is open; RadioTimelineTest no longer exempts Level 10 (`UNVOICED` is empty; the Lifeline lines
+  play as text by the uncast rule). With the real lengths no voiced timed line of Level 10 starts
+  more than a second late. For the user's ear in concept round 32.
+- 2026-10-08: Concept round 32 decided (user) for the two voices, **b** and **b**: Lifeline is
+  KevinS (clip pitch 138 Hz), Lifeline Three is Maria Kasper (215 Hz), both at the neutral settings
+  through radio filter b, as auditioned; their clips renamed `refs/ref-lifeline.wav` and
+  `refs/ref-lifeline-three.wav`, `uncast` replaced by the `ref` in the speaker table. Atul Sharma
+  and Kehinde (a) rejected: their auditions moved to `concept/rejected/`, their clips deleted with
+  their CREDITS.md rows. `tools/art/voice.py` now cuts off a radio line whose text ends in a dash
+  (Lifeline Three's, as auditioned: Whisper times the take, the take is cut where its last word
+  ends into 0.3 s of static and 0.25 s of dying hiss, with no closing click; tts_r32's
+  `cut_off()`). The Lifeline speakers' eight lines rendered (only the missing lines, nothing
+  deleted): t=1 (5.4 s), t=196 (4.1 s), the hit line once per shuttle by `{ally}` (4.6–4.9 s; "Lifeline
+  Three, we're hit!" is rendered but never plays, Lifeline Three being untouchable) and Lifeline
+  Three's t=116 line (4.6 s, cut after "that" at 3.88 s of the take: the voice at −14 dB (50 ms
+  RMS) runs into the static at −16 to −20 dB, dying to −40 dB). Every take passed the length check
+  on its first seed and is −16 LUFS. Whisper (base.en) and librosa pyin measured each take raw and
+  filtered: four of the five hit lines jumped to about 450–500 Hz on "hit" or "Still" (Two
+  throughout; the audition's octave jump) and Four read "Lifeline, or"; t=196 read "Core to clear".
+  Five takes re-rolled (six seeds each, Five fourteen) and pinned in the speaker table on takes whose
+  words stay at 70–190 Hz: the hit lines One, Two, Four and Five (read back "Lifeline 1/2/4/5,
+  we're hit. Still flying. Please stay close.") and t=196 (read "Corridor clear" without a prompt).
+  "Eko" still reads "Echo" (the same sound) and "Aegis" "ages" without a prompt; Lifeline Three's
+  hit line reads "Lifeline. Free." through the filter (raw: "Three"), left as it never plays.
+  `AUDITIONING` is empty again; RadioTimelineTest passes with the real lengths (no voiced timed
+  line of Level 10 starts more than a second late). Measured only, not listened to.

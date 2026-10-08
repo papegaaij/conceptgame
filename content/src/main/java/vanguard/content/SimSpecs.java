@@ -459,7 +459,8 @@ public final class SimSpecs {
                 player.pickupSeconds(),
                 player.pickupDriftSpeed(),
                 content.ship().collectionRadius(),
-                pickups.salvage().credits().large());
+                pickups.salvage().credits().large(),
+                content.level(levelKey).crateSeconds().orElse(player.pickupSeconds()));
         int act = levelKey(levelKey, 1);
         double creditFactor = levers.creditIncome().of(difficulty)
                 * Math.pow(content.economy().actFactor(), act - 1);
@@ -518,9 +519,8 @@ public final class SimSpecs {
     /** The level's script at {@code difficulty}; {@code levelKey} as in {@link Content#level(String)}. */
     public static LevelScript level(Content content, String levelKey, Difficulty difficulty) {
         LevelData level = content.level(levelKey);
-        LevelData.Secondary secondary = level.objectives()
-                .secondary()
-                .orElseThrow(() -> new IllegalArgumentException(levelKey + ": needs a secondary objective"));
+        // M5 part D (Level 10, user decision D5 = a): a level may have no secondary objective.
+        Optional<LevelData.Secondary> secondary = level.objectives().secondary();
         Optional<LevelData.Variant> variant =
                 switch (difficulty) {
                     case EASY -> level.difficulty().easy();
@@ -551,10 +551,12 @@ public final class SimSpecs {
                         .toList(),
                 waves,
                 groundObjects(level),
-                groundUnits(content, level, difficulty, secondary, inLevel),
+                groundUnits(content, level, difficulty, inLevel),
                 level.secrets().size(),
                 radio(level, difficulty),
-                LevelRules.secondary(content, level, secondary),
+                secondary
+                        .map(objective -> LevelRules.secondary(content, level, objective))
+                        .orElse(LevelScript.Secondary.NONE),
                 cranes(level, difficulty),
                 debris(level, difficulty),
                 java.util.stream.Stream.concat(
@@ -658,7 +660,10 @@ public final class SimSpecs {
         return new Road(road.width(), distances, xs);
     }
 
-    /** The escort objective's convoy at {@code difficulty}: the ally's spec with the level's HP for it. */
+    /**
+     * The escort objective's convoy at {@code difficulty}: the ally's spec with the level's HP for it;
+     * M5 part D: an air escort's stations, liftoff, climb-out and scripted loss ({@link PartDRules}).
+     */
     static LevelScript.Escort escort(Content content, LevelData.Escort escort, Difficulty difficulty) {
         AlliesData.Ally ally = content.allies().allies().get(escort.ally());
         if (ally == null) {
@@ -678,15 +683,24 @@ public final class SimSpecs {
                 ally.damagedBy().objectiveAimed(),
                 ally.damagedBy().claws(),
                 ally.smokeBelow(),
-                (ally.headings().count() - 1) / 2 * ally.headings().step());
+                (ally.headings().count() - 1) / 2 * ally.headings().step(),
+                ally.damagedBy().hitByBullets(),
+                ally.damagedBy().hitByContact(),
+                ally.banks().map(AlliesData.Banks::frames).orElse(0),
+                ally.banks().map(AlliesData.Banks::full).orElse(0.0),
+                ally.glide().orElse(0.0));
+        if (escort.air()) {
+            return LevelScript.Escort.air(spec, PartDRules.air(escort), escort.credits());
+        }
+        LevelData.Enter enter = escort.enter().orElseThrow();
         return new LevelScript.Escort(
                 spec,
-                escort.y().stream().map(y -> PlayField.HEIGHT - y).toList(),
-                escort.enter().t(),
-                escort.enter().interval(),
-                escort.enter().speed(),
+                escort.y().orElseThrow().stream().map(y -> PlayField.HEIGHT - y).toList(),
+                enter.t(),
+                enter.interval(),
+                enter.speed(),
                 escort.credits(),
-                escort.hook().enemies());
+                escort.hook().orElseThrow().enemies());
     }
 
     /** The level's debris chunks at {@code difficulty}: every second large one left out on easy, faster on hard. */
@@ -1113,7 +1127,7 @@ public final class SimSpecs {
 
     /** The ground enemies of the level's ground targets at {@code difficulty}, each in its group of the secondary objective. */
     private static List<LevelScript.GroundUnit> groundUnits(
-            Content content, LevelData level, Difficulty difficulty, LevelData.Secondary secondary, InLevel inLevel) {
+            Content content, LevelData level, Difficulty difficulty, InLevel inLevel) {
         List<String> groups = level.objectives().groups();
         List<LevelScript.GroundUnit> units = new ArrayList<>();
         for (LevelData.GroundTarget target : level.groundTargets()) {
@@ -1248,7 +1262,10 @@ public final class SimSpecs {
                                     back.after(),
                                     back.path().orElse(List.of()).stream()
                                             .map(point -> new WaveSpec.At(point.x(), point.y()))
-                                            .toList())),
+                                            .toList(),
+                                    // M5 part D: a swarm's loop-backs, a difficulty's loops instead.
+                                    change.flatMap(LevelData.Change::loops)
+                                            .orElse(back.count().orElse(1)))),
                     wave.tag().orElse("")));
         }
     }
@@ -1275,6 +1292,8 @@ public final class SimSpecs {
             case "whirl cluster" -> WaveSpec.Formation.WHIRL_CLUSTER;
             case "carrier + escorts" -> WaveSpec.Formation.CARRIER_ESCORTS;
             case "pack" -> WaveSpec.Formation.PACK;
+            case "swarm" -> WaveSpec.Formation.SWARM;
+            case "rear ambush" -> WaveSpec.Formation.REAR_AMBUSH;
             default -> throw new IllegalArgumentException("the formation '" + name + "' is not implemented yet");
         };
     }
@@ -1442,8 +1461,10 @@ public final class SimSpecs {
                 movement.straight().map(EnemyData.Straight::speed),
                 movement.hover()
                         .map(hover -> new EnemySpec.Hover(
-                                hover.seconds()
-                                        .map(SimSpecs::range)
+                                // M5 part D: the hook's hover time (the Wraith's hard hold) instead.
+                                hook.flatMap(EnemyData.Hook::hoverSeconds)
+                                        .map(seconds -> new Range(seconds, seconds))
+                                        .or(() -> hover.seconds().map(SimSpecs::range))
                                         .orElse(new Range(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)),
                                 range(hover.y()))),
                 movement.orbit().map(orbit -> new EnemySpec.Orbit(orbit.radius(), orbit.turnRate())),
@@ -1483,7 +1504,27 @@ public final class SimSpecs {
                 Optional.empty(),
                 enemy.armour().hardened(),
                 spawner,
-                pounce);
+                pounce,
+                enemy.cloak().map(cloak -> new EnemySpec.Cloak(Layers.of(cloak.layer()), cloak.flash())),
+                movement.ambush()
+                        .map(ambush -> new EnemySpec.Ambush(
+                                ambush.gap(),
+                                ambush.lane(),
+                                movement.straight()
+                                        .map(EnemyData.Straight::speed)
+                                        .orElseThrow(() -> new IllegalArgumentException(
+                                                enemy.name() + ": an ambush leaves at its straight speed")))),
+                movement.flock()
+                        .map(flock -> new EnemySpec.FlockSpec(
+                                flock.separation(),
+                                flock.radius(),
+                                flock.alignment(),
+                                flock.cohesion(),
+                                flock.leader(),
+                                flock.speed(),
+                                flock.diveSpeed(),
+                                Math.toRadians(flock.turnRate()),
+                                flock.max())));
         return enemy.segmentChain().isPresent() ? withChain(content, enemy, spec, difficulty, actHp) : spec;
     }
 
@@ -1761,6 +1802,8 @@ public final class SimSpecs {
         int burst = attack.pattern().equals("aimed")
                 ? change.flatMap(LevelData.EnemyChange::burst)
                         .or(() -> hook.flatMap(EnemyData.Hook::burst))
+                        // M5 part D: the stat block's own burst (the Wraith's 5).
+                        .or(attack::burst)
                         .orElse(1)
                 : 1;
         int fan = attack.count()
@@ -1796,7 +1839,11 @@ public final class SimSpecs {
                 attack.turnRate().map(Math::toRadians).orElse(Double.POSITIVE_INFINITY),
                 attack.arc().map(Math::toRadians).orElse(Double.POSITIVE_INFINITY),
                 mine,
-                mortar);
+                mortar,
+                // M5 part D: the stat block's burst gap (the Wraith's 0.12 s).
+                attack.burstGap().orElse(EnemyGun.BURST_GAP_SECONDS),
+                // M5 part D: its bursts straight up the screen as a fixed fan (the Wraith's).
+                attack.aim().filter("up"::equals).isPresent());
     }
 
     /**
@@ -1871,6 +1918,10 @@ public final class SimSpecs {
                         case HOLD_START -> LevelScript.CueTrigger.HOLD_START;
                         case FIRST_POUNCE -> LevelScript.CueTrigger.FIRST_POUNCE;
                         case COLLAPSE -> LevelScript.CueTrigger.COLLAPSE;
+                        case ALLY_LOST -> LevelScript.CueTrigger.ALLY_LOST;
+                        case SCRIPTED_LOSS -> LevelScript.CueTrigger.SCRIPTED_LOSS;
+                        case FIRST_DECLOAK -> LevelScript.CueTrigger.FIRST_DECLOAK;
+                        case FIRST_LOOP_BACK -> LevelScript.CueTrigger.FIRST_LOOP_BACK;
                     })
                     .orElse(LevelScript.CueTrigger.TIME);
             // Part G (LevelRules): a boss-destroyed cue's subject is the boss, a timeout cue its own

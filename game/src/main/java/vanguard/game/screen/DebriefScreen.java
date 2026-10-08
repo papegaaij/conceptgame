@@ -76,6 +76,9 @@ public final class DebriefScreen implements GameScreen {
     private final GameServices services;
     private final Campaign campaign;
     private final boolean newBest;
+    /** Whether the level has a secondary objective, whose row the credits show. */
+    private final boolean secondary;
+
     private String title;
     private String subtitle;
     private final List<Row> rows = new ArrayList<>();
@@ -104,6 +107,23 @@ public final class DebriefScreen implements GameScreen {
             String name,
             int launchBalance,
             boolean newBest) {
+        this(services, campaign, result, number, name, launchBalance, newBest, true);
+    }
+
+    /**
+     * @param secondary whether the level has a secondary objective (M5 part D: Level 10 has none,
+     *     user decision D5 = a, so its debrief shows no secondary row)
+     */
+    public DebriefScreen(
+            GameServices services,
+            Campaign campaign,
+            LevelResult result,
+            int number,
+            String name,
+            int launchBalance,
+            boolean newBest,
+            boolean secondary) {
+        this.secondary = secondary;
         this.services = services;
         this.campaign = campaign;
         this.newBest = newBest;
@@ -172,13 +192,15 @@ public final class DebriefScreen implements GameScreen {
                     " CR",
                     CREDITS));
         }
-        rows.add(new Row(
-                "SECONDARY OBJECTIVE",
-                result.secondaryMet() ? "MET" : "MISSED",
-                result.secondaryMet() ? result.credits().objectives() - escort.credits() : -1,
-                "+ ",
-                " CR",
-                CREDITS));
+        if (secondary) {
+            rows.add(new Row(
+                    "SECONDARY OBJECTIVE",
+                    result.secondaryMet() ? "MET" : "MISSED",
+                    result.secondaryMet() ? result.credits().objectives() - escort.credits() : -1,
+                    "+ ",
+                    " CR",
+                    CREDITS));
+        }
     }
 
     /** The boss's kill time against its par, "1:42 (PAR 2:00)"; "NOT KILLED (PAR 1:00)" when it got away. */

@@ -28,6 +28,13 @@ Post: the Choir's layering (choir() of tools/concept/audio/tts_r18.py) for a voi
 and more crackle for a distorted one, the public-address filter (pa() there: horn band, slap
 echoes, a hall) for a voice with `filter: pa` (the Level 06 perimeter beacon), and no filter for
 a briefing page (dry: the same mastering, -16 LUFS, -1.5 dBFS ceiling).
+A radio line whose text ends in a dash is cut off (Level 10's Lifeline Three, "…What is that—",
+as auditioned in concept round 32): the dash is spoken as a comma, Whisper (faster-whisper
+base.en, in the Dia venv ~/.cache/tv-tts/venv-dia) times the take's words, and the take is cut hard
+where its last word ends (the word's tail clipped) into a burst of static and a dead channel
+(cut_off() of tools/concept/audio/tts_r32.py: 0.3 s of static as loud as the voice, then 0.25 s of
+fading hiss); the file ends there, without the filter's closing click. The word timings go to
+~/.cache/tv-tts/raw/voice/timings.json.
 
 Rerun: python3 tools/art/voice.py            render what is missing, delete unused files
        python3 tools/art/voice.py --keep     the same, but only list the unused files
@@ -59,6 +66,15 @@ CHUNK_WORDS = 28
 PAUSE = 0.35             # s between the chunks of a long line
 TOKENS_PER_SECOND = 25   # Chatterbox's speech tokens
 SENTENCE_PAUSE = 0.4     # s expected per sentence end
+WHISPER_PY = BASE / "venv-dia" / "bin" / "python"   # faster-whisper, for a cut-off line's word timing
+TIMINGS = RAW / "timings.json"
+
+
+def cut_word(line):
+    """The word a cut-off line ends on (its text ends in a dash), in lower case; None otherwise."""
+    if line["filter"] == "dry" or not re.search(r"[—–]\s*$", line["text"]):
+        return None
+    return re.sub(r"[^\w']", "", line["spoken"].split()[-1]).lower()
 
 
 def expected_seconds(text):
@@ -169,6 +185,18 @@ def worker(jobs_path):
         (RAW / "worker-log.json").write_text(json.dumps(log, indent=1))
 
 
+def whisper(keys_path):
+    """In the Dia venv: the word timings of the raw takes named in keys_path, into TIMINGS."""
+    from faster_whisper import WhisperModel
+    asr = WhisperModel("base.en", device="cpu", compute_type="int8")
+    timings = json.loads(TIMINGS.read_text()) if TIMINGS.exists() else {}
+    for key in json.loads(Path(keys_path).read_text()):
+        segs, _ = asr.transcribe(str(RAW / f"{key}.wav"), language="en", word_timestamps=True)
+        timings[key] = [(w.word.strip(), round(w.start, 3), round(w.end, 3)) for seg in segs for w in seg.words]
+        print("timed", key, ":", " ".join(w for w, _, _ in timings[key]), flush=True)
+    TIMINGS.write_text(json.dumps(timings, indent=1))
+
+
 # ---------------------------------------------------------------- post-process (system Python)
 
 def _filters():
@@ -192,6 +220,27 @@ def distorted(y, s):
     return s.master(x[None, :], target_lufs=-16.0, ceiling_db=-1.5)
 
 
+def cut(line, x, s):
+    """A cut-off line through radio filter b: the take cut where Whisper ends its last word, the
+    static and the dead channel after it (tts_r32's cut_off()), and the file ending there."""
+    import numpy as np
+    r18 = _filters()
+    import tts_r32
+    word = cut_word(line)
+    words = json.loads(TIMINGS.read_text())[line["key"]]
+    hits = [end for w, _, end in words if re.sub(r"[^\w']", "", w).lower() == word]
+    if not hits:
+        print(f"  cut {line['key']}: Whisper did not hear {word!r} ({' '.join(w for w, _, _ in words)}); "
+              "cut at its last word", flush=True)
+    end = hits[-1] if hits else words[-1][2]
+    y = r18.radio(tts_r32.cut_off(x, s.SR, end, np.random.default_rng(32), s))
+    # the channel dies: no closing click, the file ends DEAD s after the static
+    y = y[:, :int((0.15 + end + tts_r32.STATIC + tts_r32.DEAD) * s.SR)]
+    y[:, -int(0.002 * s.SR):] *= np.linspace(1, 0, int(0.002 * s.SR))
+    print(f"  cut {line['key']} after {word!r} at {end:.2f} s of the take", flush=True)
+    return y
+
+
 def post(line, log_entry):
     import numpy as np
     r18 = _filters()
@@ -203,6 +252,8 @@ def post(line, log_entry):
         x = x / max(1e-9, np.max(np.abs(x))) * 0.8
         pad = np.zeros(int(0.1 * s.SR))
         y = s.master(np.concatenate([pad, x, pad])[None, :], target_lufs=-16.0, ceiling_db=-1.5)
+    elif cut_word(line):
+        y = cut(line, x, s)
     else:
         y = r18.pa(x) if line["filter"] == "pa" else r18.radio(x)
         if line["filter"] == "distorted":
@@ -217,6 +268,9 @@ def main(args):
     if args[:1] == ["--worker"]:
         RAW.mkdir(parents=True, exist_ok=True)
         worker(args[1])
+        return
+    if args[:1] == ["--whisper"]:
+        whisper(args[1])
         return
     subprocess.run([str(ROOT / "gradlew"), "-q", ":pipeline:voiceLines"], cwd=ROOT, check=True)
     lines = {line["path"]: line for line in json.loads(LINES.read_text())}
@@ -248,6 +302,11 @@ def main(args):
         log = json.loads(LOG.read_text()) if LOG.exists() else {}
         log.update(worker_log)
         LOG.write_text(json.dumps(log, indent=1))
+        cuts = [line["key"] for line in todo if cut_word(line)]
+        if cuts:
+            (RAW / "cuts.json").write_text(json.dumps(cuts))
+            subprocess.run([str(WHISPER_PY), __file__, "--whisper", str(RAW / "cuts.json")], check=True,
+                           env=dict(os.environ, HF_HOME=str(BASE / "hf")))
         for line in todo:
             post(line, worker_log[line["key"]])
         retried = [k for k, e in worker_log.items() if any(len(c["takes"]) > 1 for c in e["chunks"])]

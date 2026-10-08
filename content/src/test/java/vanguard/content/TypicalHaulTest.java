@@ -46,7 +46,9 @@ class TypicalHaulTest {
         Map<Integer, Integer> perfect = new TreeMap<>();
         hauls().forEach((number, haul) -> perfect.put(number, haul.perfect()));
         assertEquals(
-                Map.of(1, 1_175, 2, 1_184, 3, 1_272, 4, 1_257, 5, 1_334, 6, 1_615, 7, 1_542, 8, 1_738, 9, 1_789),
+                Map.of(
+                        1, 1_175, 2, 1_184, 3, 1_272, 4, 1_257, 5, 1_334, 6, 1_615, 7, 1_542, 8, 1_738, 9, 1_789, 10,
+                        2_113),
                 perfect);
     }
 

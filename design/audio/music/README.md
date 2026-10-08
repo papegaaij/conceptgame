@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../../campaign]
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Music
@@ -98,6 +98,11 @@ for it). Planned (M5 part C): a **run-time hook** from the sortie's state, the m
 `full_on`: `hold` (the full mix while a hold zone runs, 1 s in as it starts, 4 s out after it ends)
 and `collapse` (the full mix from Level 09's collapse to the end).
 
+**Scripted duck** (planned, M5 part D, Level 10's scripted loss): on a level event the theme ducks
+by a set amount for a set time (Level 10: **−6 dB for 3 s** from the lance at t=118, no sting).
+It does not stack with the radio's duck (−4 dB while a voice plays): the lower of the two applies.
+The music data's `duck` (`on`, the event; `db`; `seconds`).
+
 The concept tracks are full mixes; round 11 delivered the first stem pair. A level that asks for
 the base stem until a section (Level 01 until section 3) plays the base stem from its music start
 and crossfades in 1 s to the full mix at that section: both streams are decoded in lockstep and
@@ -130,6 +135,10 @@ B: the chosen concept goes straight to production, reviewed as final in concept 
 - **Review files** for round 30: `homefront-final-r30-a.ogg` and `homefront-base-final-r30-a.ogg`
   (the assets byte for byte) and the loop-seam listening aids `homefront-seam-final-r30-a.ogg` and
   `homefront-base-seam-final-r30-a.ogg`, with a review sheet as round 26's.
+- **Level 10** (planned, M5 part D) plays the megacity ambience alone in section 1, the base stem
+  from section 2 and the full mix from section 3 (t=70), with the scripted duck at the loss; its
+  ambience crossfades over 4 s from the megacity to the ocean at section 4 (an ambience change by
+  section, new; see [sfx](../sfx/README.md#ambience-per-setting)). No new music file.
 - **Level 08** plays the megacity ambience alone in section 1, the base stem from the section 2
   transition and the full mix in section 5 (the finale); the game's track map gets track 6 →
   `homefront` (`homefront-base` by the stem rule). (An intensity rising with the on-screen density,
@@ -319,6 +328,12 @@ chosen `act2-b-theme-r08-a` byte for byte); `SOURCE` comment; both get Afterburn
       sting, boss warning and boss track)
 - [x] Track 6 "Homefront" in the game's track map, with its base stem, played by Level 08 (M5
       part B; `Tracks`, approved as final in concept round 30)
+- [x] The scripted duck (`duck`: −6 dB for 3 s on Level 10's `scripted-loss`, no sting, the lower
+      of it and the radio's duck) and an ambience crossfade by section (Level 10: megacity → ocean
+      over 4 s at section 4) — M5 part D (`LevelMusic.duck`/`duckTarget`, the duck's level moving at
+      the radio duck's rate; `LevelMusic.ambienceChanges`: the new loop rises from silence as the
+      old one falls, linear over the crossfade, the old one stopped at its end, the first ambience
+      back on a restart; `LevelScreen` on the `SCRIPTED_LOSS` event; `Level10SoundsTest`)
 
 ## Open questions
 
@@ -459,3 +474,13 @@ chosen `act2-b-theme-r08-a` byte for byte); `SOURCE` comment; both get Afterburn
   without a concept round of its own, its thin sections A and D, and the 8 transient dips as they
   are). Every item is ticked, so the implementation is `done` again; `art` stays `chosen` (the other
   Act 2 tracks are concepts until their rounds).
+- 2026-10-08: M5 part D (stated defaults with the user's decisions of 2026-10-08): Level 10 plays
+  "Homefront" (track 6) with the base stem from section 2 and the full mix from section 3 (t=70; the
+  draft's "intensity stem from t=82" had no hook, mid-section); at its scripted loss the music ducks
+  −6 dB for 3 s with no sting, a new scripted duck that does not stack with the radio's (the lower
+  wins); the ambience crossfades from the megacity to the ocean at section 4. The implementation is
+  `in-progress` again for the duck and the ambience change.
+- 2026-10-08: M5 part D, game side: the scripted duck and the ambience change by section are built.
+  The duck's target is the lower of the radio's −4 dB and the event's −6 dB while its 3 s run, and
+  the level glides to it at the radio duck's rate (no click); the crossfade is linear over its 4 s.
+  Our reading, for review: a restart goes back to the level's first ambience at once (no crossfade).

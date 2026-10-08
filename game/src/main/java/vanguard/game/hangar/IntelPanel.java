@@ -115,6 +115,18 @@ final class IntelPanel {
         layout(canvas, intel.get(), teaser.get(), levelKey);
     }
 
+    /** The sensor level's chip beside the level's name. */
+    private static final int CHIP_WIDTH = 84;
+    /** The body font's cell, px; the label font's is 8. */
+    private static final int BODY_CELL = 10;
+    /** The least gap between the level's name and the chip. */
+    private static final int NAME_GAP = 4;
+
+    /** Whether the level's name fits beside the sensor chip in the body font. */
+    static boolean nameFits(String name) {
+        return INNER + BODY_CELL * name.length() + NAME_GAP <= RIGHT - CHIP_WIDTH;
+    }
+
     /** The intel on a level with its teaser, laid out on {@code canvas}. */
     static void layout(Canvas canvas, Intel level, BriefingPage teaser, String levelKey) {
         int portraitY = Y + 26;
@@ -127,9 +139,13 @@ final class IntelPanel {
             line += LINE;
         }
         int y = Math.max(portraitY + SPEAKER_PORTRAIT, line) + 10;
-        canvas.text(Names.of(Content.levelName(levelKey)), Glass.WHITE, INNER, y, true);
+        // M5 part D: a name too long for the body font beside the chip (EVACUATION CORRIDOR) takes the
+        // label font, a line's height lower so it stays level with the chip.
+        String name = Names.of(Content.levelName(levelKey));
+        boolean body = nameFits(name);
+        canvas.text(name, Glass.WHITE, INNER, body ? y : y + 2, body);
         String sensor = level.sensor() == 0 ? "NO SENSOR" : "SENSOR L" + level.sensor();
-        canvas.chip(sensor, RIGHT - 84, y + 2, 84, 16);
+        canvas.chip(sensor, RIGHT - CHIP_WIDTH, y + 2, CHIP_WIDTH, 16);
         y += 26;
         y = field(
                 canvas,

@@ -65,6 +65,11 @@ public final class FlightPath {
         return new FlightPath(mirroredXs, ys.clone());
     }
 
+    /** M5 part D: the x of its last point. */
+    double endX() {
+        return xs[xs.length - 1];
+    }
+
     public double length() {
         return distances[distances.length - 1];
     }

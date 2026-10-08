@@ -35,13 +35,16 @@ import vanguard.sim.EnemySpec;
  *   <li>the plan's fit reaches the reference DPS the enemy stat blocks assume (0.75–1.33×), with
  *       Levels 01–03's gentle onboarding (about 1.5×) as the accepted exception;
  *   <li>every enemy's time to kill at its first level and its bounty fit its size class, with the
- *       Coilwyrm's bounty and the Ravager's time to kill as the accepted exceptions ({@link #ACCEPTED}); a boss's bounty as paid
- *       there (its Act 1 terms × the act factor × the level's bounty scale);
+ *       Coilwyrm's bounty and the Ravager's and the Wraith's times to kill as the accepted exceptions
+ *       ({@link #ACCEPTED}); a boss's bounty as paid there (its Act 1 terms × the act factor × the
+ *       level's bounty scale);
  *   <li>a returning {@code medium} or larger unit keeps its time to kill at every Act 2 level after
  *       its first, with the act HP factor (user decision D5 = c of M5 part A);
  *   <li>the plan's anti-ground sources clear every hold zone's hardened cluster in at most {@link
  *       #HOLD_SHARE} of the hold's window at medium (user decision D8 = c of M5 part C; hard's
- *       tighter ratio is accepted, user decision 2026-10-07).
+ *       tighter ratio is accepted, user decision 2026-10-07);
+ *   <li>the plan's rear DPS kills every rear-ambush unit (a Wraith) in at most {@link #REAR_SHARE} of
+ *       its decloak flash and hold at medium (user decision D7 = a of M5 part D).
  * </ul>
  */
 class BalanceTest {
@@ -72,6 +75,13 @@ class BalanceTest {
      */
     static final double HOLD_SHARE = 0.6;
 
+    /**
+     * M5 part D (D7 = a): a rear-ambush unit dies within this share of its decloak flash and hold at
+     * medium, its HP against the plan's rear DPS (the Wraith: 16 HP ÷ the Tail Gun's 10 = 1.6 s of
+     * 0.4 + 2.5 s).
+     */
+    static final double REAR_SHARE = 0.6;
+
     /** A boss's or set piece's bounty may lie this share of its target either side (the basis says "about"). */
     static final double SHARE_TOLERANCE = 1 / 3.0;
 
@@ -86,7 +96,11 @@ class BalanceTest {
                     + " (user decision 2026-10-05)",
             "ravager ttk",
             "16 HP at L09's reference DPS 63 is 0.25 s, below the medium class's 0.4-1.5 s: a fast,"
-                    + " fragile pack hunter (user decision 2026-10-07, M5 part C)");
+                    + " fragile pack hunter (user decision 2026-10-07, M5 part C)",
+            "wraith ttk",
+            "16 HP at L10's reference DPS 66 is 0.24 s, below the medium class's 0.4–1.5 s: set for the plan's"
+                    + " rear DPS (Tail Gun L1, 10) with its rear check instead (user decision D7 = a, 2026-10-08,"
+                    + " M5 part D)");
 
     /**
      * Hard: the static estimate cannot always pay both the plan's purchases and the repairs of its
@@ -198,7 +212,7 @@ class BalanceTest {
         return rows;
     }
 
-    /** The save after the level: its income banked and the estimated damage taken. */
+    /** The save after the level: its income banked and the estimated damage taken; Rook's guns kept. */
     private static SaveGame next(SaveGame save, int credits, double armour) {
         return new SaveGame(
                 save.version(),
@@ -213,6 +227,7 @@ class BalanceTest {
                 save.unlocks(),
                 save.specials(),
                 armour,
+                save.escort(),
                 save.retriesLeft(),
                 save.grades(),
                 save.dataCores(),
@@ -413,6 +428,44 @@ class BalanceTest {
         }
         assertTrue(holds > 0, "Level 09's holds are checked");
         assertTrue(slow.isEmpty(), "the plan's anti-ground is too slow for: " + slow);
+    }
+
+    /**
+     * M5 part D (user decision D7 = a): at every level with a rear ambush, the plan's rear DPS kills
+     * each ambush unit (its HP at medium, with the act HP factor) in at most {@link #REAR_SHARE} of
+     * its window behind the ship: its decloak flash plus its shortest hold. Only rear-slot weapons
+     * count: homing picks targets ahead and Rook fires up the screen.
+     */
+    @Test
+    void thePlansRearGunKillsEveryAmbushInTime() {
+        List<String> slow = new ArrayList<>();
+        int checked = 0;
+        for (Row row : sheet()) {
+            Optional<String> key = CONTENT.levelKey(row.level());
+            if (key.isEmpty()) {
+                continue;
+            }
+            vanguard.sim.LevelScript level = SimSpecs.level(CONTENT, key.get(), Difficulty.MEDIUM);
+            Set<String> seen = new TreeSet<>();
+            for (vanguard.sim.WaveSpec wave : level.waves()) {
+                EnemySpec enemy = wave.enemy();
+                if (wave.formation() != vanguard.sim.WaveSpec.Formation.REAR_AMBUSH || !seen.add(enemy.slug())) {
+                    continue;
+                }
+                checked++;
+                double window = enemy.cloak().map(EnemySpec.Cloak::flashSeconds).orElse(0.0)
+                        + enemy.hover().orElseThrow().seconds().min();
+                double kill = enemy.hp() / row.rear();
+                System.out.printf(
+                        "L%02d %s: %.0f HP / rear %.1f DPS = %.2f s of a %.1f s flash and hold (%.2f, at most %.1f)%n",
+                        row.level(), enemy.slug(), enemy.hp(), row.rear(), kill, window, kill / window, REAR_SHARE);
+                if (!(kill <= REAR_SHARE * window)) {
+                    slow.add(String.format("L%02d %s: %.2f s of %.1f s", row.level(), enemy.slug(), kill, window));
+                }
+            }
+        }
+        assertTrue(checked > 0, "Level 10's Wraiths are checked");
+        assertTrue(slow.isEmpty(), "the plan's rear gun is too slow for: " + slow);
     }
 
     @Test

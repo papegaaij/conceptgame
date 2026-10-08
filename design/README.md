@@ -25,7 +25,7 @@ guided by intel about the next level.
 | [world](world/README.md) | The settings the levels take place in | approved | n/a | chosen |
 | [campaign](campaign/README.md) | Acts and the 50-level outline, pacing and difficulty curve | approved | in-progress | none |
 | [enemies](enemies/README.md) | Enemy roster, behaviours, formations and bosses | approved | in-progress | chosen |
-| [allies](allies/README.md) | Friendly units and structures to escort or defend (crawlers, shuttles, convoy, relay) | approved | done | final |
+| [allies](allies/README.md) | Friendly units and structures to escort or defend (crawlers, shuttles, convoy, relay) | approved | in-progress | final |
 | [player](player/README.md) | The player ship, its loadout slots and all equipment | approved | done | chosen |
 | [systems](systems/README.md) | Economy, scoring, difficulty, retry and saves | approved | not-started | n/a |
 | [ui](ui/README.md) | Main menu, hangar, briefing screen and HUD | approved | done | chosen |

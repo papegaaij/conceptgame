@@ -22,11 +22,11 @@ import vanguard.content.LevelData;
  * enemies of their waves, ground targets, set pieces and boss (and the enemies those spawn), the
  * ground targets' looks, the escorted ally and the level's features the game draws with sprites of
  * its own (cranes, debris, sleds, rocks, the darkness's flares, the tows' lifeboat, pod and cable, the
- * collapse's dust puffs). A
+ * collapse's dust puffs, the scripted loss's glow and lance). A
  * sprite belongs to a root when its name is the root or starts with the root and a hyphen
  * ({@code leviathan} owns {@code leviathan-fin-left}). The shared roots are the weapons, the specials
  * and the game's own effects ({@link #GAME_WIDE}); an enemy no level uses yet goes in its first level's
- * unit atlas (its art can land before its level's data); a sprite no root claims fails the build.
+ * unit atlas (its art can land before its level's data), as does an ally with a {@code first_level}; a sprite no root claims fails the build.
  */
 final class SpriteUse {
     /** The shared atlas, always loaded. */
@@ -63,6 +63,13 @@ final class SpriteUse {
     /** The dust puffs of a level's collapse: {@code collapse-puff_0..7} (Level 09's arcology). */
     static final String COLLAPSE_ROOT = "collapse-puff";
 
+    /**
+     * The look of an escort's scripted loss (M5 part D, Level 10's Lifeline Three, LossLooks): the light
+     * in the cloud deck, {@code cloud-glow_0..5}, and the lance with its flash, {@code lance_*} and
+     * {@code lance-flash_*}.
+     */
+    static final List<String> LOSS_ROOTS = List.of("cloud-glow", "lance");
+
     /** The look of a destructible ground target that names none (Level 01's cargo container). */
     private static final String DEFAULT_LOOK = "cargo-container";
 
@@ -86,6 +93,13 @@ final class SpriteUse {
             if (!used.contains(slug)) {
                 levels.computeIfAbsent(atlasOf(enemy.firstLevel()), level -> new TreeSet<>())
                         .add(slug);
+            }
+        });
+        // An ally likewise, by its optional first_level (Level 10's shuttle before the level's data).
+        content.allies().allies().forEach((slug, ally) -> {
+            if (!used.contains(slug)) {
+                ally.firstLevel().ifPresent(first -> levels.computeIfAbsent(atlasOf(first), level -> new TreeSet<>())
+                        .add(slug));
             }
         });
         Map<String, Set<String>> atlases = new TreeMap<>();
@@ -161,6 +175,8 @@ final class SpriteUse {
         level.rocks().ifPresent(rocks -> roots.add("rock"));
         // M5 part C: a collapse's dust is drawn with its puff sprites (CollapseLooks).
         level.collapse().ifPresent(collapse -> roots.add(COLLAPSE_ROOT));
+        // M5 part D: a scripted loss is drawn with the glow and the lance (LossLooks).
+        level.objectives().escort().flatMap(LevelData.Escort::scriptedLoss).ifPresent(loss -> roots.addAll(LOSS_ROOTS));
         level.darkness().ifPresent(darkness -> {
             roots.add("flare");
             roots.add("headlight");

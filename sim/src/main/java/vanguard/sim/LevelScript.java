@@ -95,7 +95,7 @@ public record LevelScript(
         if (sections.isEmpty()) {
             throw new IllegalArgumentException("a level needs at least one section");
         }
-        if (escort.isPresent() && road.isEmpty()) {
+        if (escort.isPresent() && escort.get().air().isEmpty() && road.isEmpty()) {
             throw new IllegalArgumentException("a convoy follows the level's road");
         }
     }
@@ -654,11 +654,15 @@ public record LevelScript(
      * {@code ally} units, one per station, rolling in from the bottom edge one every
      * {@code enterInterval} seconds from {@code enterSeconds} at {@code enterSpeed} px/s up the
      * screen to their stations, then following the road. Each unit alive at the level end pays
-     * {@code credits} (before the credit factor); the objective fails when every unit is lost.
+     * {@code credits} (before the credit factor); the objective fails when every unit is lost. M5
+     * part D: with {@code air}, an air escort instead (Level 10's shuttles): the units hold stations
+     * in a band with no road, see {@link Air}; then {@code stations} are the stations' heights and
+     * the {@code enter} numbers are not used ({@link #air(AllySpec, Air, int)}).
      *
      * @param stations the units' centre heights, px from the bottom edge (y up), the leading unit first
      * @param targetedBy the enemies whose aimed attacks use the target-the-objective hook in mode
      *     {@code nearest}: each aimed shot goes at the ship or the nearest unit, whichever is closer
+     * @param air M5 part D: the air escort's stations, liftoff, climb-out and scripted loss
      */
     public record Escort(
             AllySpec ally,
@@ -667,12 +671,171 @@ public record LevelScript(
             double enterInterval,
             double enterSpeed,
             int credits,
-            List<String> targetedBy) {
+            List<String> targetedBy,
+            Optional<Air> air) {
         public Escort {
             stations = List.copyOf(stations);
             targetedBy = List.copyOf(targetedBy);
             if (stations.isEmpty() || !(enterSpeed > 0) || enterInterval < 0 || credits < 0) {
                 throw new IllegalArgumentException("a convoy has units that roll in at a speed");
+            }
+            if (air.isPresent() && air.get().stations().size() != stations.size()) {
+                throw new IllegalArgumentException("an air escort has one station per unit");
+            }
+            if (air.isPresent() && !targetedBy.isEmpty()) {
+                throw new IllegalArgumentException("an air escort has no target-the-objective hook");
+            }
+        }
+
+        /** A ground convoy (Level 04). */
+        public Escort(
+                AllySpec ally,
+                List<Double> stations,
+                double enterSeconds,
+                double enterInterval,
+                double enterSpeed,
+                int credits,
+                List<String> targetedBy) {
+            this(ally, stations, enterSeconds, enterInterval, enterSpeed, credits, targetedBy, Optional.empty());
+        }
+
+        /** M5 part D: an air escort of {@code ally} units flying {@code air}, each saveable unit home paying {@code credits}. */
+        public static Escort air(AllySpec ally, Air air, int credits) {
+            return new Escort(
+                    ally,
+                    air.stations().stream().map(Station::y).toList(),
+                    0,
+                    0,
+                    1,
+                    credits,
+                    List.of(),
+                    Optional.of(air));
+        }
+
+        /** The number of units. */
+        public int units() {
+            return stations.size();
+        }
+
+        /** The unit lost in the scripted loss, from 0; -1 for none. */
+        public int scriptedUnit() {
+            return air.flatMap(Air::scriptedLoss).map(ScriptedLoss::unit).orElse(-1);
+        }
+
+        /**
+         * The units the player can save: every unit but the scripted loss's (M5 part D). They pay at
+         * the level end, they count for the level-end cues, and the objective fails when all are lost.
+         */
+        public int saveable() {
+            return units() - (scriptedUnit() >= 0 ? 1 : 0);
+        }
+    }
+
+    /**
+     * M5 part D (design/allies, evacuation shuttle; design/campaign Level 10; user decisions D1, D4
+     * and D5 = a): an air escort. Each unit holds its {@link Station} in the band, drifting on its
+     * lane sway on the level clock and never reacting to threats; there is no road and no hook. With a
+     * {@code liftoff} the units stand on their pads (scrolling with the ground) until it and then
+     * climb to their stations; with a {@code climb} they climb out off the top edge at its end. A
+     * unit is untouchable (enemy fire and contact pass through it) during the liftoff and the
+     * climb-out and, the scripted loss's unit, until its loss.
+     */
+    public record Air(
+            List<Station> stations,
+            Optional<Liftoff> liftoff,
+            Optional<Climb> climb,
+            Optional<ScriptedLoss> scriptedLoss) {
+        public Air {
+            stations = List.copyOf(stations);
+            if (stations.isEmpty()) {
+                throw new IllegalArgumentException("an air escort has at least one station");
+            }
+            if (liftoff.isPresent() && liftoff.get().pads().size() != stations.size()) {
+                throw new IllegalArgumentException("a liftoff has one pad per unit");
+            }
+            if (scriptedLoss.isPresent()
+                    && (scriptedLoss.get().unit() < 0 || scriptedLoss.get().unit() >= stations.size())) {
+                throw new IllegalArgumentException("a scripted loss takes one of the units");
+            }
+        }
+    }
+
+    /**
+     * An air escort unit's station: it flies at ({@code x} + {@code swayX} sin θ, {@code y} −
+     * {@code swayY} sin 2θ), θ = 2π (t ÷ {@code period} + {@code phase}), t the level clock: a lazy
+     * figure-eight round the station (the data's sway is down the screen, so it is subtracted here),
+     * the sines from {@link Trig} (deterministic and allocation-free).
+     *
+     * @param x px from the play field's left edge
+     * @param y px from the bottom edge (y up)
+     * @param swayX px either side
+     * @param swayY px up and down (positive: down the screen at θ = 45°, as in the data)
+     * @param period s of one figure-eight
+     * @param phase 0–1, its start in the figure-eight
+     */
+    public record Station(double x, double y, double swayX, double swayY, double period, double phase) {
+        public Station {
+            if (!(period > 0)) {
+                throw new IllegalArgumentException("a station's sway has a period");
+            }
+        }
+
+        /** The angle θ at {@code seconds} on the level clock. */
+        private double theta(double seconds) {
+            return 2 * StrictMath.PI * (seconds / period + phase);
+        }
+
+        /** Its x at {@code seconds} on the level clock. */
+        public double xAt(double seconds) {
+            return x + swayX * Trig.sin(theta(seconds));
+        }
+
+        /** Its y (up) at {@code seconds} on the level clock. */
+        public double yAt(double seconds) {
+            return y - swayY * Trig.sin(2 * theta(seconds));
+        }
+    }
+
+    /**
+     * The air escort's liftoff: until {@code t} each unit stands on its pad, scrolling with the
+     * ground, so that it is at its pad's screen point at {@code t}; from there its screen position
+     * eases (smoothstep) to its station over {@code seconds}, rising from the ground layer's scale
+     * to the air scale.
+     *
+     * @param pads one screen point per unit at {@code t}
+     */
+    public record Liftoff(double t, double seconds, List<Pad> pads) {
+        public Liftoff {
+            pads = List.copyOf(pads);
+            if (t < 0 || !(seconds > 0)) {
+                throw new IllegalArgumentException("a liftoff starts in the level and takes a while");
+            }
+        }
+    }
+
+    /** A pad's screen point: px from the left edge, px from the bottom edge (y up). */
+    public record Pad(double x, double y) {}
+
+    /** The climb-out: from {@code t} the units alive climb off the top edge over {@code seconds}; each is home. */
+    public record Climb(double t, double seconds) {
+        public Climb {
+            if (t < 0 || !(seconds > 0)) {
+                throw new IllegalArgumentException("a climb-out starts in the level and takes a while");
+            }
+        }
+    }
+
+    /**
+     * The scripted loss (Level 10's Lifeline Three, user decision D4 = a): the unit {@code unit}
+     * (from 0) is untouchable until {@code t}; at {@code t} − {@code glow} the glow starts over it
+     * ({@link SimEvents.Type#LOSS_GLOW}), at {@code t} the lance takes it ({@link
+     * SimEvents.Type#SCRIPTED_LOSS}): it cannot be prevented, costs no pay, does not count toward the
+     * fail and raises no loss cue.
+     */
+    public record ScriptedLoss(int unit, double t, double glow) {
+        public ScriptedLoss {
+            if (glow < 0 || glow > t) {
+                throw new IllegalArgumentException("a scripted loss's glow starts in the level");
             }
         }
     }
@@ -766,6 +929,17 @@ public record LevelScript(
 
         public Secondary(double killRatio, int credits) {
             this(killRatio, credits, List.of(), "");
+        }
+
+        /**
+         * M5 part D (Level 10, user decision D5 = a): no secondary objective. A kill ratio of 0 for no
+         * credits, so it is never met (nor paid, nor cued); the tracker and the briefing show none.
+         */
+        public static final Secondary NONE = new Secondary(0, 0);
+
+        /** M5 part D: whether the level has no secondary objective ({@link #NONE}). */
+        public boolean none() {
+            return killRatio == 0 && credits == 0 && !byGroups() && !byEscapes();
         }
 
         /** Whether the objective is about groups rather than the kill ratio. */
@@ -1360,6 +1534,23 @@ public record LevelScript(
         /** M5 part C: the attempt's first pounce takes off ({@link SimEvents.Type#POUNCE}). No subject. */
         FIRST_POUNCE,
         /** M5 part C: the collapse's shadow starts. No subject. */
-        COLLAPSE
+        COLLAPSE,
+        /**
+         * M5 part D: a convoy unit the player could have saved was lost (every such loss, the first
+         * too, after its {@link #FIRST_ALLY_LOST} cues); its line may name the unit ({@code {ally}},
+         * {@link Sortie#lastAllyLost()}). Unlike the other events it starts again on every loss.
+         */
+        ALLY_LOST,
+        /** M5 part D: the scripted loss's lance took its unit ({@link SimEvents.Type#SCRIPTED_LOSS}). No subject. */
+        SCRIPTED_LOSS,
+        /** M5 part D: the attempt's first decloak ({@link SimEvents.Type#DECLOAK}). No subject. */
+        FIRST_DECLOAK,
+        /** M5 part D: the attempt's first swarm loop-back ({@link SimEvents.Type#LOOP_BACK}). No subject. */
+        FIRST_LOOP_BACK;
+
+        /** Whether its cues start again each time the event happens, not once per attempt. */
+        public boolean repeats() {
+            return this == ALLY_LOST;
+        }
     }
 }

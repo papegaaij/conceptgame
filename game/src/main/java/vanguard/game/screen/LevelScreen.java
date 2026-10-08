@@ -64,6 +64,7 @@ import vanguard.sim.Shot;
 import vanguard.sim.SimEvents;
 import vanguard.sim.SimStep;
 import vanguard.sim.Sortie;
+import vanguard.sim.WarningEdge;
 import vanguard.sim.Wingman;
 import vanguard.sim.WingmanSpec;
 
@@ -282,7 +283,7 @@ public final class LevelScreen implements GameScreen {
                 levelKey);
         warnings = new EdgeWarnings(services.sprites.pixel, services.fonts.body);
         banner = new BossBanner(services.sprites.pixel, services.fonts.heading, services.fonts.body);
-        waveBanners = new WaveBanners(services.sprites.pixel, services.fonts.body);
+        waveBanners = new WaveBanners(services.sprites.pixel, services.fonts.body, sortie.airEscort());
         threatArrows = flight.sensor() >= THREAT_ARROW_SENSOR ? new ThreatArrows() : null;
         renderer.modules(
                 flight.targeting()
@@ -329,6 +330,16 @@ public final class LevelScreen implements GameScreen {
                                 names.warning().map(name -> services.files.internal(Tracks.path(name))),
                                 names.track().map(name -> services.files.internal(Tracks.path(name))),
                                 Tracks.BOSS_WARNING_BARS_SECONDS)));
+        // M5 part D: the ambience crossfading by section (Level 10's ocean from section 4).
+        music.ambienceChanges(ambienceChanges(level.music()));
+    }
+
+    /** M5 part D: the level's {@code music.ambience_changes} as the music's crossfades, each to its setting's loop. */
+    static List<LevelMusic.AmbienceChange> ambienceChanges(LevelData.Music music) {
+        return music.ambienceChangeList().stream()
+                .map(change -> new LevelMusic.AmbienceChange(
+                        change.section(), Sfx.ambience(change.ambience()), change.crossfade()))
+                .toList();
     }
 
     /** A level's act boss music by file name: the warning (track 22) and the boss track (track 18). */
@@ -524,6 +535,10 @@ public final class LevelScreen implements GameScreen {
             sounds.watch(sortie);
             int started = warnings.step(sortie.edgeWarnings(), sortie.tick());
             sounds.edgeWarnings(started);
+            if (barks != null && WarningEdge.BOTTOM.in(started)) {
+                // M5 part D: a re-entry at the bottom edge (a Wraith, a swarm's loop-back) is a rear wave.
+                barks.reentry(SimStep.ticks(sortie.levelSeconds()));
+            }
             waveBanners.step(sortie.edgeWarnings(), started, sortie.tick());
         }
         if (launchPending && sortie.launching()) {
@@ -746,14 +761,10 @@ public final class LevelScreen implements GameScreen {
                         failureLine = Optional.of(failedGroupLine(cue));
                         continue;
                     }
-                    int unit =
-                            switch (cue.trigger()) {
-                                case FIRST_ALLY_HIT -> sortie.firstAllyHit();
-                                case FIRST_ALLY_LOST -> sortie.firstAllyLost();
-                                default -> -1;
-                            };
-                    if (cue.trigger() == LevelScript.CueTrigger.ESCORT_FIRST_KILL && barks != null) {
-                        // Rook's first kill (M5 part B): a scripted Rook line for the barks' spacing.
+                    int unit = cueUnit(cue.trigger(), sortie);
+                    if (barks != null && scriptedForBarks(cue.trigger())) {
+                        // Rook's first kill (M5 part B), the first loop-back (M5 part D): a scripted
+                        // Rook line for the barks' spacing.
                         barks.scripted(cue.speaker(), sortie.realSeconds());
                     }
                     queue(
@@ -765,9 +776,21 @@ public final class LevelScreen implements GameScreen {
                             radioSchedule.priority(events.value(i)));
                 }
                 case ALLY_LOST -> {
-                    // It burns on the road: the blast stays where it was, scrolling with the ground.
-                    blasts.startOnGround(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+                    if (sortie.airEscort()) {
+                        // M5 part D: a shuttle bursts in the air and glides down into far (ShuttleLooks).
+                        effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
+                    } else {
+                        // It burns on the road: the blast stays where it was, scrolling with the ground.
+                        blasts.startOnGround(
+                                explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+                    }
                 }
+                // M5 part D: the scripted loss's lance ducks the theme (the music block's duck, no sting).
+                case SCRIPTED_LOSS ->
+                    level.music()
+                            .duck()
+                            .filter(duck -> duck.on() == LevelData.Music.DuckOn.SCRIPTED_LOSS)
+                            .ifPresent(duck -> music.duck(duck.db(), duck.seconds()));
                 case PRIMARY_FAILED -> {
                     // As a wreck, without the explosion and the slow motion (design/systems/retry).
                     music.cut();
@@ -844,6 +867,27 @@ public final class LevelScreen implements GameScreen {
                         ALLY_HIT -> {}
             }
         }
+    }
+
+    /**
+     * The convoy unit a cue's line names ({@code {ally}}): the first hit's, the first lost's, and (M5
+     * part D) for {@code ally-lost} the one lost last; -1 for a cue about none.
+     */
+    static int cueUnit(LevelScript.CueTrigger trigger, Sortie sortie) {
+        return switch (trigger) {
+            case FIRST_ALLY_HIT -> sortie.firstAllyHit();
+            case FIRST_ALLY_LOST -> sortie.firstAllyLost();
+            case ALLY_LOST -> sortie.lastAllyLost();
+            default -> -1;
+        };
+    }
+
+    /**
+     * Whether a cue's line counts as a scripted line for Rook's barks (their spacing, and a waiting
+     * bark withdrawn): his first kill (M5 part B) and the first loop-back (M5 part D, his flock line).
+     */
+    static boolean scriptedForBarks(LevelScript.CueTrigger trigger) {
+        return trigger == LevelScript.CueTrigger.ESCORT_FIRST_KILL || trigger == LevelScript.CueTrigger.FIRST_LOOP_BACK;
     }
 
     /**
@@ -1178,7 +1222,15 @@ public final class LevelScreen implements GameScreen {
                     .ifPresent(replay -> MissionSelectScreen.keepGrade(
                             services, replay, result.grade().letter()));
         }
-        return new DebriefScreen(services, campaign, result, sortie.script().number(), name, launchBalance, newBest);
+        return new DebriefScreen(
+                services,
+                campaign,
+                result,
+                sortie.script().number(),
+                name,
+                launchBalance,
+                newBest,
+                !sortie.script().secondary().none());
     }
 
     @Override

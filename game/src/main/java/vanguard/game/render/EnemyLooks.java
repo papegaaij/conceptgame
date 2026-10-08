@@ -44,6 +44,11 @@ import vanguard.sim.SimStep;
  * @param leap M5 part C: a pouncer's leap frames (the Ravager), {@value #LEAP_STEPS} lift steps per
  *     heading, indexed {@code heading * 4 + step} ({@link #leapFrame}); empty for none
  * @param leapGlow the leap frames' additive glow, the same order; empty for none
+ * @param cloak M5 part D: a cloaked unit's shimmer (the Wraith, tools/art/wraith.py), additive,
+ *     indexed like {@code frames} and drawn instead of the body while it is cloaked on {@code
+ *     high-air} (already at the high-air scale); empty for none
+ * @param decloak M5 part D: its decloak flash, additive, {@value #DECLOAK_FRAME_TICKS} steps a
+ *     frame from the decloak; empty for none
  */
 public record EnemyLooks(
         Array<AtlasRegion> frames,
@@ -65,7 +70,9 @@ public record EnemyLooks(
         boolean iris,
         Array<AtlasRegion> creep,
         Array<AtlasRegion> leap,
-        Array<AtlasRegion> leapGlow) {
+        Array<AtlasRegion> leapGlow,
+        Array<AtlasRegion> cloak,
+        Array<AtlasRegion> decloak) {
     /** Vrell organic motion runs at 8-12 fps: 10 fps. */
     private static final double ORGANIC_FPS = 10;
     /**
@@ -224,7 +231,57 @@ public record EnemyLooks(
                 iris,
                 sprites.has(slug + "-creep") ? sprites.frames(slug + "-creep") : none,
                 walker && sprites.has(slug + "-leap") ? sprites.frames(slug + "-leap") : none,
-                walker && sprites.has(slug + "-leap-glow") ? sprites.frames(slug + "-leap-glow") : none);
+                walker && sprites.has(slug + "-leap-glow") ? sprites.frames(slug + "-leap-glow") : none,
+                sprites.has(slug + "-cloak") ? sprites.frames(slug + "-cloak") : none,
+                sprites.has(slug + "-decloak") ? sprites.frames(slug + "-decloak") : none);
+    }
+
+    /**
+     * M5 part D: the decloak's steps (tools/art/wraith.py: the 0.4 s flash, 6 frames of {@value
+     * #DECLOAK_FRAME_TICKS} steps): the body fades in over all of them, the shimmer out over the first
+     * {@value #SHIMMER_OUT_TICKS}.
+     */
+    static final int DECLOAK_TICKS = 24;
+
+    static final int DECLOAK_FRAME_TICKS = 4;
+    static final int SHIMMER_OUT_TICKS = 12;
+
+    /** The decloak's age in steps at its progress {@code progress} (0 at the decloak, 1 at the flash's end). */
+    static double decloakAge(double progress) {
+        return Math.clamp(progress, 0, 1) * DECLOAK_TICKS;
+    }
+
+    /** The body's opacity in the decloak: 0 to 1 over its {@value #DECLOAK_TICKS} steps. */
+    static float bodyOpacity(double progress) {
+        return (float) (decloakAge(progress) / DECLOAK_TICKS);
+    }
+
+    /** The shimmer's opacity in the decloak: 1 to 0 over its first {@value #SHIMMER_OUT_TICKS} steps. */
+    static float shimmerOpacity(double progress) {
+        return (float) Math.clamp(1 - decloakAge(progress) / SHIMMER_OUT_TICKS, 0, 1);
+    }
+
+    /** The decloak flash's frame at {@code progress}, -1 once it has played out (or without a flash). */
+    int decloakFrame(double progress) {
+        return decloakFrame(progress, decloak.size);
+    }
+
+    /** The frame of a decloak flash of {@code frames} at {@code progress}; -1 once it has played out. */
+    static int decloakFrame(double progress, int frames) {
+        int frame = (int) Math.floor(decloakAge(progress) / DECLOAK_FRAME_TICKS);
+        return progress >= 1 || frame >= frames ? -1 : frame;
+    }
+
+    /** Whether it has a cloaked shimmer set (the Wraith). */
+    boolean cloaks() {
+        return !cloak.isEmpty();
+    }
+
+    /** The shimmer frame drawn instead of {@link #frame} while cloaked: the same heading and animation frame. */
+    AtlasRegion cloakFrame(double facing, long step) {
+        int phases = cloak.size / headings;
+        int heading = tilt ? tiltHeading(facing, headings) : heading(facing, headings);
+        return cloak.get(heading * phases + (int) (step % phases));
     }
 
     /**

@@ -191,18 +191,29 @@ public final class Hangar {
      */
     public static final Set<String> HARDENED_SPECIALS = Set.of("Airstrike", "Smart Bomb");
 
+    /** M5 part D: the trait of the weapons that fire behind the ship (Level 10's {@code required: [rear]}). */
+    public static final String REAR = "rear";
+
     /**
      * M5 part C (design/ui/hangar, Launch, user decision D7 = a): the traits the next flight brings
      * from every source a level's {@code required} trait counts: the fitted weapons' traits, the
      * traits of Rook's fitted gun while he flies (hired, fitted and not grounded; his Mortar is
      * {@code anti-ground}), and {@value #ANTI_GROUND} for an Airstrike or a Smart Bomb fitted with at
-     * least one charge.
+     * least one charge. M5 part D (user decision D9 = a): {@value #REAR} comes only from the weapon
+     * fitted in the rear slot (homing and Rook's guns do not reach behind the ship).
      */
     public Set<String> sourceTraits() {
-        Set<String> traits = new LinkedHashSet<>(fittedTraits());
-        campaign.escortFlight()
-                .ifPresent(flight ->
-                        traits.addAll(item(ItemKind.ESCORT, flight.gun()).traits()));
+        Set<String> traits = new LinkedHashSet<>();
+        campaign.gear().loadout().forEach((slot, fitted) -> {
+            if (slot.kind().weapon()) {
+                item(slot.kind(), fitted).traits().stream()
+                        .filter(trait -> slot == LoadoutSlot.REAR || !trait.equals(REAR))
+                        .forEach(traits::add);
+            }
+        });
+        campaign.escortFlight().ifPresent(flight -> item(ItemKind.ESCORT, flight.gun()).traits().stream()
+                .filter(trait -> !trait.equals(REAR))
+                .forEach(traits::add));
         Fitted special = campaign.gear().loadout().get(LoadoutSlot.SPECIAL);
         if (special != null
                 && HARDENED_SPECIALS.contains(special.item())

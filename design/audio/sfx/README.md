@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Sound effects
@@ -155,6 +155,9 @@ reused round 02 files marked (r02).
 | Lifeboat tow (Level 07 secret): the amber cable snapping on its third hit — chosen [a](concept/secret-cable-snap-r25-a.ogg) (chain snap, CC-BY; a slowed string twang was rejected), [round 25](../../concept-rounds/round-25/README.md); the hits play the metal hit, the crate the large salvage | P2 |
 | Hive Node (Level 09, M5 part C): the iris opening reuses the Brood Carrier's chosen iris [b](concept/enemy-carrier-iris-r25-b.ogg) (organic morph), the release the Vrell spawn [a](concept/enemy-spawn-r08-a.ogg), its death the `large` rung; no screech (a static mound: its iris is its cue) | P2 |
 | Ravager pounce (Level 09, M5 part C): a short snarl and lunge as it takes off — chosen [a](concept/ravager-pounce-r31-a.ogg) and [b](concept/ravager-pounce-r31-b.ogg) (both kept: the game picks one at random per pounce), [round 31](../../concept-rounds/round-31/README.md); its death the `small` rung; no screech (a pack would screech on top of itself; the pounce is its cue) | P2 |
+| Wraith decloak (Level 10, M5 part D): a short violet shimmer-crack as its 0.4 s flash starts — chosen [b](concept/wraith-decloak-r32-b.ogg) (metallic sci-fi rip over a membrane swish, CC-BY; a glassy ice crack over a synthesized shimmer was rejected), [round 32](../../concept-rounds/round-32/README.md); its death the `medium` rung; no screech (the decloak is its cue) | P2 |
+| Mote Swarm whoosh (Level 10, M5 part D): a rushing flutter of many small wings as a swarm enters and again as it loops back — chosen [b](concept/mote-swarm-r32-b.ogg) (insect chitter over a whoosh; a birdlike rush of pigeon wings was rejected), [round 32](../../concept-rounds/round-32/README.md); a mote's death the `tiny` rung | P2 |
+| Lance strike (Level 10's scripted loss, M5 part D): a thin descending whine into a sharp impact as the lance hits Lifeline Three — chosen [a](concept/lance-r32-a.ogg) (alien falling whine into a thunder crack and its roll, the impact 1.2 s in, so it starts at t 116.8; a whistle into a piercing stab was rejected), [round 32](../../concept-rounds/round-32/README.md); the shuttle's loss reuses the ally loss sound | P2 |
 | Arcology collapse (Level 09, M5 part C): a low rumble under the 1.5 s lean and the 1.5 s drop swelling into a long crash at the impact (about 7 s) — chosen [a](concept/collapse-r31-a.ogg) (stony rumble swelling into a tumbling masonry crash, CC-BY; a steel-frame cave-in was rejected; the production file crashes at 3.0 s, the concept file at 1.5 s), [round 31](../../concept-rounds/round-31/README.md) | P2 |
 | Leviathan whale-song cry (its death, under the large burst) — [a](concept/enemy-leviathan-cry-r16-a.ogg) (synthesized, round 16) | P2 |
 | Polyp Mortar lob — chosen [a](concept/enemy-mortar-lob-r21-a.ogg) (mortar thump; an organic spit was rejected); impact — chosen [a](concept/enemy-mortar-impact-r21-a.ogg) (wet splat; an acid sizzle was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
@@ -189,7 +192,7 @@ gate. P2–P3, one loop per setting in the [world](../../world/README.md).
 | Earth orbit | `earth-orbit` | [a](concept/ambience-orbit-r08-a.ogg) — space drone, 16 s |
 | Luna | `luna` | [a](concept/ambience-luna-r08-a.ogg) — desolate space-wind drone, 16 s |
 | Earth megacity | `earth-megacity` (Level 08, M5 part B) | [a](concept/ambience-city-r08-a.ogg) — night city with distant sirens, 20 s; played as it is (M5 part B default) |
-| Earth ocean | — (M5 part E) | [a](concept/ambience-ocean-r08-a.ogg) — waves at speed, 16 s |
+| Earth ocean | `earth-ocean` (Level 10 from section 4, crossfading in over 4 s from the megacity, M5 part D; then Level 11) | [a](concept/ambience-ocean-r08-a.ogg) — waves at speed, 16 s |
 | Earth ocean storm | — (M5 part F) | [a](concept/ambience-storm-r08-a.ogg) — rain and thunder, 24 s |
 | Earth arctic | — (M5 part G) | [a](concept/ambience-arctic-r08-a.ogg) — cold wind, 16 s |
 
@@ -218,7 +221,6 @@ game may play only `proposed` sounds of an open concept round, provisionally unt
 | [explosion-underwater-r03-a.ogg](concept/explosion-underwater-r03-a.ogg) | Under-water kills: Act 4 |
 | [explosion-underwater-r04-a.ogg](concept/explosion-underwater-r04-a.ogg) | Under-water kills: Act 4 |
 | [explosion-water-r03-a.ogg](concept/explosion-water-r03-a.ogg) | Surface naval kills: Act 2's ocean — later: M5 |
-| [ambience-ocean-r08-a.ogg](concept/ambience-ocean-r08-a.ogg) | Ocean setting: Act 2 — later: M5 |
 | [ambience-storm-r08-a.ogg](concept/ambience-storm-r08-a.ogg) | Ocean storm setting: Act 2 — later: M5 |
 | [ambience-arctic-r08-a.ogg](concept/ambience-arctic-r08-a.ogg) | Arctic setting: Act 2 — later: M5 |
 | [enemy-missile-r08-a.ogg](concept/enemy-missile-r08-a.ogg) | No Act 1 enemy fires missiles (the SAM Nest, L29, and the Hornet, L31, are the first) |
@@ -541,6 +543,24 @@ pounce); collapse b moved to `concept/rejected/`. Briefs and sources:
 | [concept/ravager-pounce-r31-a.ogg](concept/ravager-pounce-r31-a.ogg) | "Goblin Snarl" by qubodup (CC0) — pounce a: rasping dog-like attack snarl over a quick swish (0.7 s) | chosen |
 | [concept/ravager-pounce-r31-b.ogg](concept/ravager-pounce-r31-b.ogg) | "Dragon: Snarl, Roar + Attack" by Breviceps (CC0) — pounce b: snapping attack roar, sped up to hound size, over a heavier whoosh (0.7 s) | chosen |
 
+Concept round 32 (M5 part D) — a/b pairs for the Wraith's decloak, the Mote Swarm (a one-shot at
+its entry and again at its loop-back) and the lance of Level 10's scripted loss (its impact 1.2 s into
+the file, so the game starts it 1.2 s before the hit), cut by `tools/concept/audio/sfx_r32.py` from
+cached Freesound originals (CC0 / CC-BY) with synthesized layers. Not listened to by Claude.
+Outcome (user, 2026-10-08): decloak **b** (CC-BY), swarm **b**, lance **a**; the other three moved
+to `concept/rejected/`. Briefs and sources:
+[concept/prompts.md](concept/prompts.md#round-32--the-wraiths-decloak-the-mote-swarms-whoosh-and-the-lance),
+[CREDITS.md](../../../CREDITS.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/rejected/wraith-decloak-r32-a.ogg](concept/rejected/wraith-decloak-r32-a.ogg) | "ICEBrk_Break04" by InMotionAudio (CC0) + synthesized shimmer — decloak a: violet shimmer breaking into a glassy ice crack (0.7 s) | rejected |
+| [concept/wraith-decloak-r32-b.ogg](concept/wraith-decloak-r32-b.ogg) | "Spacey Teleport Rip" by GameAudio (CC0) + "Swirling Velvet Cloak 2" by F.M.Audio (CC-BY 4.0) — decloak b: metallic sci-fi rip over a membrane swish (0.6 s) | chosen |
+| [concept/rejected/mote-swarm-r32-a.ogg](concept/rejected/mote-swarm-r32-a.ogg) | "Pigeon flock fly away" by TRP (CC0) + synthesized whoosh — swarm a: birdlike rush of small wings (1.7 s) | rejected |
+| [concept/mote-swarm-r32-b.ogg](concept/mote-swarm-r32-b.ogg) | "Insect Superfast Wing Flap" by kalhan (CC0) ×5 + synthesized whoosh — swarm b: insect chitter (1.7 s) | chosen |
+| [concept/lance-r32-a.ogg](concept/lance-r32-a.ogg) | synthesized whine + "Closeup Thunder Strike 01" by loganzsound (CC0) — lance a: alien falling whine into a thunder crack, impact at 1.2 s (3.8 s) | chosen |
+| [concept/rejected/lance-r32-b.ogg](concept/rejected/lance-r32-b.ogg) | "Whistling Firework" by magnuswaker (CC0) + "Piercing impact / Stabbing" by Breviceps (CC0) + synthesized thump — lance b: whistle into a piercing stab, impact at 1.2 s (1.8 s) | rejected |
+
 ## Implementation
 
 - [x] SFX playback with instance limits, stealing by priority, pitch variation: the 32-voice
@@ -586,6 +606,18 @@ pounce); collapse b moved to `concept/rejected/`. Briefs and sources:
   the collapse `Sfx.ARCOLOGY_COLLAPSE` (collapse a) from the warning's start (`COLLAPSE_AT_WARNING`),
   the crash at the impact, 3.0 s in (`COLLAPSE_CRASH_SECONDS`, round 31's look c: the 1.5 s lean
   and the 1.5 s drop)
+- [x] Level 10's sounds wired (M5 part D), with placeholders until round 32's picks: the Wraith's
+  decloak (`Sfx.WRAITH_DECLOAK` on `DECLOAK`, for now the Mantis's telegraph a), the Mote Swarm's
+  whoosh (`Sfx.MOTE_SWARM`, for now the sled's pass b: once as a swarm's first member comes onto
+  the screen, `SwarmCue`, and on each `LOOP_BACK`) and the lance's strike (`Sfx.LANCE_STRIKE`, for
+  now the large crumble a, whose crash also sits 1.2 s in: started on the level clock
+  `FlightSounds.LANCE_IMPACT_SECONDS` = 1.2 s before the scripted loss's hit, 116.8 s); the ocean
+  ambience (`Sfx.AMBIENCE_OCEAN`, `earth-ocean`, brought forward from part E) crossfading in over
+  4 s from the megacity at Level 10's section 4 (`LevelMusic.ambienceChanges`, back to the megacity
+  on a restart); the shuttles' hits and losses on the ally sounds (`Level10SoundsTest`)
+- [x] Round 32's picks for the decloak (b), the swarm (b) and the lance (a) in `assets/sfx/` and in
+  their `Sfx` entries, replacing the placeholders (the lance's impact stays 1.2 s into its file:
+  `Level10SoundsTest` checks the loudest moment against `LANCE_IMPACT_SECONDS`)
 - [ ] Torpedo launch and the water explosion — **later: M5 part E**; the other Act 2 ambiences —
   **later: M5** (parts E, F, G, with their levels)
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
@@ -817,3 +849,24 @@ pounce); collapse b moved to `concept/rejected/`. Briefs and sources:
   `tools/art/sfx_originals.py` into `assets/sfx/collapse-r31-a.ogg` (7.0 s; the same two
   originals, so the credits are unchanged; its check flags the length against the 5.5 s concept
   file, which stays as the record of the choice). `FlightSounds.COLLAPSE_CRASH_SECONDS` is 3.0.
+- 2026-10-08: M5 part D (stated defaults with the user's decisions of 2026-10-08): three new sounds
+  for Level 10, each an a/b in round 32 (CC0 or CC-BY only, recorded in CREDITS.md): the Wraith's
+  decloak, the Mote Swarm's whoosh (on its entry and its loop-back) and the lance's strike; the
+  shuttles reuse the ally hit and loss sounds. Round 08's ocean loop is brought forward from part E
+  as `earth-ocean`, crossfading in over 4 s from the megacity at Level 10's section 4.
+- 2026-10-08: M5 part D, game side: Level 10's three new sounds play from the simulation with
+  existing chosen sounds as placeholders until round 32's picks reach `assets/sfx/` (as part C did):
+  the decloak the Mantis's telegraph a (a short laser charge-up), the swarm the sled's pass b (a
+  rushing flyby), the lance the large crumble a, chosen because its crash lies 1.2 s in, where round
+  32's lance files put their impact, so the timing is already the final one. Our readings, for
+  review: the decloak and the swarm at the Vrell spawns' level, the lance at the player-damage
+  level; a swarm is heard once as its first member comes onto the screen, its later members silent.
+  The ocean loop is played (it leaves the "not played" list).
+- 2026-10-08: Round 32 closed for the sounds (user picks): the Wraith's decloak **b** (a metallic
+  sci-fi rip over a membrane swish; its cloak layer CC-BY 4.0, F.M.Audio, on the credits roll), the
+  Mote Swarm **b** (an insect chitter over a whoosh) and the lance **a** (an alien falling whine into
+  a thunder crack, its impact 1.2 s in); rebuilt from the originals into `assets/sfx/` by
+  `tools/art/sfx_originals.py` with `sfx_r32.py`'s `PRODUCTION` and played by `Sfx.WRAITH_DECLOAK`,
+  `MOTE_SWARM` and `LANCE_STRIKE` in place of the placeholders (the lance still started at t 116.8;
+  the swarm still heard once at its entry by `SwarmCue` and on each loop-back). Decloak a, swarm a
+  and lance b moved to `concept/rejected/`.

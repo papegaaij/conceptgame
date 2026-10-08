@@ -222,3 +222,69 @@ reader is in the cast or was auditioned before.
 Outcome (user, 2026-10-07): **a** cast, Aaron Bennett (`refs/ref-kilo-lead.wav`; the production
 lines by `tools/art/voice.py` at the neutral settings through radio filter b, no pins needed); b
 moved to `concept/rejected/`, its clip deleted with its CREDITS.md row.
+
+## voice-lifeline
+
+Round 32 (the Level 10 auditions, M5 part D, user decision D12 = a), generated with
+`tools/concept/audio/tts_r32.py` the same way as round 31 (seed 32 + 100 × the speaker's index +
+10 × the variant's index + the line's index), each line through radio filter b on its own (its
+clicks, −16 LUFS), joined with 1 s of silence. Lifeline (L10, speaker `lifeline`: Lifeline One's
+pilot, a civilian flying an evacuation shuttle with two hundred and twenty people aboard, also the
+voice of Lifeline Two, Four and Five and of the hit line, one voice under several names as the
+docks; the radio portrait `radio-generic-civilian`), neutral (0.5 / 0.5 / 0.7), three of its lines
+as Level 10's README has them: t=1 "Eko Control, Lifeline One. Five birds, eleven hundred souls.
+We're going.", the first shuttle hit with `{ally}` = Two "Lifeline Two, we're hit! Still flying.
+Please stay close!" and t=196 "Corridor clear. We can see the sky. Thank you, Aegis. Thank you."
+Measured: a 16.66 s, −15.8 LUFS; b 17.18 s, −15.9 LUFS (OGG Vorbis q4, 44.1 kHz mono). Whisper
+(faster-whisper base.en) reads both files back whole: a "Echo control, lifeline one, five birds,
+eleven hundred souls, we're going. Lifeline two, we're hit, still flying. Please stay close. Court
+or clear, we can see the sky. Thank you, Aegis. Thank you."; b "Echo control, lifeline one, five
+birds, eleven hundred souls. We're going. Lifeline two, we're hit. Still flying. Please stay close.
+Corrid are clear. We can see the sky. Thank you, Aegis. Thank you." "Eko" is written "Echo" (the
+same sound); "Corridor clear" is misheard in all four readings, raw and filtered (raw a "Cord or
+clear", raw b "Core it or clear"): check by ear that the word is whole. Measured only, not listened
+to.
+
+Both candidates are male (Lifeline Three's are female, so the two shuttle pilots never sound
+alike, whichever pair is picked), readers of aviation novels, neither in the cast nor auditioned
+before.
+
+| Variant | Reader | Source | Licence | Clip pitch |
+|---|---|---|---|---|
+| a | Atul Sharma | [The Mysterious Aviator (So Disdained), ch. 1 (Shute)](https://archive.org/details/mysteriousaviator_2510_librivox), cut at 60 s | public domain (Public Domain Mark 1.0) | 116 Hz (takes 132 / 119 / 119 Hz); a male voice, lower than the Kilo Lead (129 Hz), above Hammer Lead (99 Hz) |
+| b | KevinS | [Over the Ocean to Paris, ch. 1 (Dixon)](https://archive.org/details/overtheoceantoparis_2404_librivox), cut at 60 s | public domain (Public Domain Mark 1.0) | 138 Hz (takes 121 / 228 / 133 Hz); a male voice near the Kilo Lead's pitch; the hit line's take jumps an octave ("we're hit!") |
+
+Outcome (user, 2026-10-08): **b** cast, KevinS (`refs/ref-lifeline.wav`; the production lines by
+`tools/art/voice.py` at the neutral settings through radio filter b, five takes pinned: four hit
+lines whose key's seed jumped to about 450 Hz, as this audition's did, and the t=196 line for
+"Corridor clear"); a moved to `concept/rejected/`, its clip deleted with its CREDITS.md row.
+
+## voice-lifeline-three
+
+Round 32, generated with `tools/concept/audio/tts_r32.py` as `voice-lifeline` above. Lifeline Three
+(L10, speaker `lifeline-three`: the pilot of the shuttle the lance takes at t=118; one line; the
+radio portrait `radio-generic-civilian`), neutral, its t=116 line "Aegis, there's a light above the
+clouds. What is that—", spoken as the game speaks it (the dash read as a comma: "What is that,").
+**The cut**: the lance cuts the line off. The raw take is cut hard (3 ms) where Whisper's word
+timing ends "that", which falls inside the word (a: in its vowel, 0.14 s before the voice ends; b:
+0.1 s before), then 0.3 s of static as loud as the voice's peak (hiss and dense crackle, on at once,
+breaking up, held 0.12 s and dying) and 0.25 s of fading hiss; the channel goes dead without the
+radio's closing click. Measured: a 4.28 s, b 4.82 s, both −15.9 LUFS. Whisper reads back the files:
+a "Ages. There's a light above the clouds. What is that?" ("Aegis" heard as "Ages", in the raw take
+too); b "Aegis, there's a light above the clouds. What is that?" Whisper completes the clipped
+"that", so the cut is visible only in the envelope: the voice at −17 dBFS (50 ms RMS) runs straight
+into the static at −16 to −19 dBFS, which dies to the −44 dBFS hiss. Measured only, not listened to.
+In production the cut needs the same treatment in `tools/art/voice.py` (a line ending in a dash).
+
+Both candidates are female and higher than every female voice in the cast (Okafor 152, the
+Civilian 149, Varga 193 Hz), neither in the cast nor auditioned before.
+
+| Variant | Reader | Source | Licence | Clip pitch |
+|---|---|---|---|---|
+| a | Kehinde | [Travels in West Africa, ch. 1 (Kingsley)](https://archive.org/details/travels_westafrica_0910_librivox), cut at 60 s | public domain (LibriVox) | 235 Hz (take 271 Hz); a female voice |
+| b | Maria Kasper | [The Curtiss Aviation Book, ch. 1 (Curtiss)](https://archive.org/details/curtissaviationbook_2006_librivox), cut at 60 s | public domain (Public Domain Mark 1.0) | 215 Hz (take 272 Hz); a female voice |
+
+Outcome (user, 2026-10-08): **b** cast, Maria Kasper (`refs/ref-lifeline-three.wav`; the production
+line by `tools/art/voice.py` at the neutral settings through radio filter b, cut off after "that" as
+here: the renderer cuts any radio line ending in a dash, reusing this script's `cut_off()`); a moved
+to `concept/rejected/`, its clip deleted with its CREDITS.md row.

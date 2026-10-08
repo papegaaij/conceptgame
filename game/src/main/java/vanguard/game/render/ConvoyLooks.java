@@ -61,7 +61,11 @@ final class ConvoyLooks {
         texture = !image.isEmpty() && sprites.hasBackdrop(image)
                 ? sprites.backdrop(image, 1).first()
                 : null;
-        String slug = script.escort().map(escort -> escort.ally().slug()).orElse("");
+        // M5 part D: an air escort's units are drawn by ShuttleLooks.
+        String slug = script.escort()
+                .filter(escort -> escort.air().isEmpty())
+                .map(escort -> escort.ally().slug())
+                .orElse("");
         boolean drawn = !slug.isEmpty() && sprites.has(slug) && sprites.has(slug + "-wreck");
         frames = drawn ? sprites.frames(slug) : null;
         wrecks = drawn ? sprites.frames(slug + "-wreck") : null;

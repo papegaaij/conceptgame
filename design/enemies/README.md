@@ -3,7 +3,7 @@ title: Enemies
 design: approved
 implementation: in-progress
 art: chosen
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Enemies
@@ -185,8 +185,8 @@ that move in any direction must read from any angle:
 | `loop` | A full loop-the-loop mid-path, often to turn around and come back from the rear. |
 | `figure-8` | Traces a figure-eight around two points, typically across the whole play field. |
 | `cross` | Crosses the screen diagonally or side to side, entering and leaving through different edges. |
-| `rear-entry` | Enters from the bottom edge (or loops around to it) and attacks up the screen; always edge-warned. |
-| `flock` | Boids-like group movement (separation, alignment, cohesion) steered by a leader or target; produces swirling clouds. |
+| `rear-entry` | Enters from the bottom edge (or loops around to it) and attacks up the screen; always edge-warned, 3 s ahead of the entry or the re-entry. |
+| `flock` | Boids-like group movement (separation, alignment, cohesion) steered by a leader or target; produces swirling clouds. Planned (M5 part D) for the [Mote Swarm](air/mote-swarm/README.md): a leader point flies the wave's authored route, the members steer round it; deterministic (fixed order, `StrictMath`) and allocation-free, at most 24 members. |
 | `walk` | A walker moving along the terrain on its own heading (not just scrolling), turning to face where it goes; the gait follows the walk cycle. |
 | `surface` | Emerges from the ground or water at a telegraphed spot (ripple, dust), acts, and dives again; like `burrow` but it travels while submerged. |
 | `ricochet` | Bounces off the play field edges (and off terrain walls) at equal angles. |
@@ -228,7 +228,7 @@ that move in any direction must read from any angle:
 | `snake` | A column following a curving `path`, each unit delayed by a fixed interval. Readability: the head is on screen at least 1.5 s before it can reach the player, however long the snake. |
 | `stream` | A continuous trickle of single units from alternating edges. |
 | `pincer` | Two groups entering from the left and right edges at the same time. |
-| `rear ambush` | A group entering from the bottom edge (always warned; see readability). |
+| `rear ambush` | A group of 2–4 attacking from the bottom edge, each in its own lane across it (always warned; see readability). A cloaked Wraith enters at the top first and is warned 3 s ahead of its re-entry (M5 part D). |
 | `circle` | Units orbiting a point, then breaking off. |
 | `grid` | A block of units that holds and shifts sideways (a nod to classic arcades). |
 | `wall` | A full-width line with one or two gaps to fly through. |
@@ -238,7 +238,7 @@ that move in any direction must read from any angle:
 | `convoy` | Ground or naval units in a column along a road, river or lane. |
 | `pack` | 3–5 walkers entering together, each on its own ground path, 0.25 s apart (the Ravager). |
 | `submerged ambush` | `sub` units that surface together around the player. |
-| `swarm` | A loose, randomised cloud with flocking behaviour. |
+| `swarm` | A loose cloud of 6–24 units with flocking behaviour round a leader point that flies an authored route, from the top or the bottom edge, often looping back from below (the Mote Swarm, M5 part D). |
 | `solo set piece` | One huge unit on its own, announced by radio (at most one per level). |
 | `whirl cluster` | A burst of 5–8 tiny spinners released from one point, spiralling outward and ricocheting. |
 <!-- /data -->
@@ -501,6 +501,11 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
       whirl cluster, carrier + escorts, convoy, the walkers' paths and the chains' paths).
 - [ ] The other formations with the first level that uses each — **later: M5** (e.g. `swarm`,
       `submerged ambush`) and the acts after it.
+- [ ] M5 part D (Level 10): the `swarm` formation with the `flock` movement (a leader point on an
+      authored route, boids round it, loop-backs warned 3 s ahead of the re-entry; the Mote Swarm),
+      the `rear ambush` formation (2–4 across the bottom edge; a cloaked unit enters at the top and
+      is warned ahead of its re-entry; the Wraith), a cloak (`high-air` until a decloak, then `air`,
+      the per-unit current layer of part C) and authored `paths` on a snake.
 - [ ] M5 part C (Level 09): the `pack` formation (one path per walker, 0.25 s apart), hardened
       enemies (`armour: hardened` flown: the glance, homing shots and Rook skipping them), a
       periodic `spawn` on a ground unit (the Hive Node), a per-unit current layer (the Ravager's
@@ -648,3 +653,14 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
   [Hive Node](ground/hive-node/README.md) and [Ravager](ground/ravager/README.md) stat blocks moved
   into their `data.yaml` with their weak points drawn only; their new keys (a periodic `spawn`, the
   `pounce`) are planned in the [schemas](../tech/architecture/README.md#data-file-schemas).
+- 2026-10-08: M5 part D (user decisions D6, D8 and D9 of 2026-10-08 and the stated defaults): the
+  formations **`swarm`** (a flock of 6–24 round a leader point flying an authored route, from the
+  top or the bottom edge, often looping back; the Mote Swarm, D8 = a: real boids) and **`rear
+  ambush`** (2–4 across the bottom edge, each in its lane; a cloaked Wraith enters at the top first,
+  D6 = a) are planned for Level 10, their vocabulary entries (in [data.yaml](data.yaml)) made
+  precise; every rear entry and re-entry is warned 3 s ahead (the 1.5 s left in the unit and level
+  documents replaced). The [Wraith](air/wraith/README.md) and the
+  [Mote Swarm](air/mote-swarm/README.md) stat blocks moved into their `data.yaml`, the Wraith's
+  veins drawn only; their new keys (the cloak, the ambush path, the flock) are planned in the
+  [schemas](../tech/architecture/README.md#data-file-schemas). A snake wave may give authored
+  `paths` (the Skitter's item; streams keep their shapes).

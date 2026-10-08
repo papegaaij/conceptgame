@@ -479,9 +479,13 @@ public final class HangarState {
 
     /**
      * The launch warning for a {@code required} trait no source brings (M5 part C): {@code NO
-     * ANTI-GROUND SOURCE FITTED} (a weapon, Rook's gun or a special's charge would do).
+     * ANTI-GROUND SOURCE FITTED} (a weapon, Rook's gun or a special's charge would do); M5 part D:
+     * {@code NO REAR WEAPON FITTED} for {@code rear}, which only a rear-slot weapon brings.
      */
     static String requiredWarning(String trait) {
+        if (trait.equals(Hangar.REAR)) {
+            return "NO REAR WEAPON FITTED";
+        }
         return "NO " + trait.toUpperCase(Locale.ROOT) + " SOURCE FITTED";
     }
 

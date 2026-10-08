@@ -80,7 +80,7 @@ public final class Briefings {
                         yield String.format(
                                 Locale.ROOT,
                                 "ESCORT THE %d %sS TO THE END",
-                                escort.y().size(),
+                                escort.units(),
                                 ally.toUpperCase(Locale.ROOT));
                     }
                     case "destroy-targets" -> {

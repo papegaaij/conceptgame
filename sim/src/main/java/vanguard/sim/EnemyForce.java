@@ -12,6 +12,8 @@ final class EnemyForce {
     private static final int ENEMY_CAPACITY = 192;
     /** Segment chains in flight: the waves' and their regrown rear parts. */
     private static final int CHAIN_CAPACITY = 12;
+    /** M5 part D: swarms in flight. */
+    private static final int FLOCK_CAPACITY = 8;
 
     static final int BULLET_CAPACITY = 256;
     /** No enemy bullet spawns this close to the ship (design/enemies, bullet readability rules). */
@@ -55,6 +57,11 @@ final class EnemyForce {
     private final Pool<Mine> mines = new Pool<>(MINE_CAPACITY, Mine::new, Mine[]::new);
     private final Pool<Lob> lobs = new Pool<>(LOB_CAPACITY, Lob::new, Lob[]::new);
     private final Pool<Chain> chains = new Pool<>(CHAIN_CAPACITY, Chain::new, Chain[]::new);
+    private final Pool<Flock> flocks = new Pool<>(FLOCK_CAPACITY, Flock::new, Flock[]::new);
+    /** Flocks started in this attempt, for their serials. */
+    private int flocksSpawned;
+    /** The flock the members entering in this step join (a swarm's members enter together); null for none. */
+    private Flock joining;
     /** Chains started in this attempt, for their serials. */
     private int chainsSpawned;
     /** Per enemy kind, its chain's segment, tail and regrown head kinds; -1 for others. */
@@ -189,6 +196,9 @@ final class EnemyForce {
         Pools.clear(lobs);
         Pools.clear(chains);
         chainsSpawned = 0;
+        Pools.clear(flocks);
+        flocksSpawned = 0;
+        joining = null;
         waves.reset();
         spawned = 0;
         nextGround = 0;
@@ -201,6 +211,10 @@ final class EnemyForce {
         for (Spawn spawn = waves.due(levelTick); spawn != null; spawn = waves.due(levelTick)) {
             if (spawn.enemy().chain().isPresent()) {
                 spawnChain(spawn);
+                continue;
+            }
+            if (spawn.swarm().isPresent()) {
+                spawnMember(spawn);
                 continue;
             }
             Enemy enemy = enemies.obtain();
@@ -227,6 +241,7 @@ final class EnemyForce {
             spawned++;
             nextGround++;
         }
+        joining = null;
     }
 
     /**
@@ -260,6 +275,68 @@ final class EnemyForce {
             chain.member(i, member);
         }
         chain.settle();
+    }
+
+    /**
+     * M5 part D: a swarm's member enters: the first of its wave starts the flock (null when the pool
+     * has none free: then the wave's members are left out), the others join it in entry order.
+     */
+    private void spawnMember(Spawn spawn) {
+        Spawn.Swarm swarm = spawn.swarm().orElseThrow();
+        if (swarm.member() == 0) {
+            joining = flocks.obtain();
+            if (joining != null) {
+                joining.start(spawn.enemy().flock().orElseThrow(), flocksSpawned++, swarm.route(), waves.lastEntry());
+            }
+        }
+        if (joining != null) {
+            Enemy enemy = enemies.obtain();
+            if (enemy != null) {
+                enemy.join(joining, swarm.member(), spawn, spawned, swarm.x(), swarm.y(), joining.startFacing());
+                enemy.entered(waves.lastEntry());
+                enemy.tag(waves.lastTag());
+                joining.member(swarm.member(), enemy, swarm.x(), swarm.y());
+            }
+        }
+        spawned++;
+    }
+
+    /**
+     * M5 part D: the flocks fly a step; a loop-back raises its event; once a flock has flown its
+     * course its members off the play field are gone (escaped), and those still on it a while later
+     * too; a flock without members ends.
+     */
+    void moveFlocks() {
+        for (int f = flocks.size() - 1; f >= 0; f--) {
+            Flock flock = flocks.get(f);
+            flock.advance();
+            if (flock.loopedBackNow() > 0) {
+                events.add(SimEvents.Type.LOOP_BACK, flock.leaderX(), flock.leaderY(), flock.loopedBackNow());
+            }
+            if (flock.finished()) {
+                boolean lingered = flock.lingered();
+                for (int i = 0; i < flock.size(); i++) {
+                    Enemy member = flock.member(i);
+                    if (member != null && (lingered || !PlayField.overlaps(member.x(), member.y(), member.hitbox()))) {
+                        flock.drop(i);
+                        escapes.escaped(member);
+                        free(member);
+                    }
+                }
+            }
+            if (!flock.alive()) {
+                flocks.free(f);
+            }
+        }
+    }
+
+    /** M5 part D: a flock's member was destroyed (before it is freed): it drops out of its flock. */
+    void flockMemberGone(Enemy enemy) {
+        enemy.flock().drop(enemy.member());
+    }
+
+    Pool<Flock> flocks() {
+        return flocks;
     }
 
     /**
@@ -362,6 +439,9 @@ final class EnemyForce {
         if (chains.size() > 0) {
             moveChains(ship);
         }
+        if (flocks.size() > 0) {
+            moveFlocks();
+        }
         for (int g = 0; g < volleyClocks.length; g++) {
             if (volleyClocks[g] > 0) {
                 volleyClocks[g]++;
@@ -372,7 +452,11 @@ final class EnemyForce {
             int target = target(enemy, ship);
             double aimX = target < 0 ? ship.x() : convoy.get(target).x();
             double aimY = target < 0 ? ship.y() : convoy.get(target).y();
-            if (!enemy.move(ship.x(), ship.y(), groundScroll, aimX, aimY)) {
+            boolean flying = enemy.move(ship.x(), ship.y(), groundScroll, aimX, aimY);
+            if (flying && enemy.decloakedNow()) {
+                events.add(SimEvents.Type.DECLOAK, enemy.x(), enemy.y(), enemy.kind());
+            }
+            if (!flying) {
                 if (enemy.spec().brood().isPresent()) {
                     carrierEnded(enemy);
                 }
@@ -398,6 +482,8 @@ final class EnemyForce {
                     dropMine(enemy, gun);
                 } else if (gun.mortar().isPresent()) {
                     lob(enemy, gun, ship);
+                } else if (gun.up()) {
+                    fireUp(enemy, gun);
                 } else {
                     fireAt(enemy, ship, target(enemy, ship));
                 }
@@ -542,6 +628,29 @@ final class EnemyForce {
                 ship,
                 target,
                 false);
+    }
+
+    /**
+     * M5 part D (design/enemies/air/wraith, user decision of 2026-10-08): one shot of a burst fired
+     * straight up the screen as a fixed fan, the burst's shots in turn from the fan's left edge to
+     * its right; aimed at nobody, without the difficulty's aim spread, and fired however close the
+     * ship is (within the bullet budget).
+     */
+    private void fireUp(Enemy enemy, EnemyGun gun) {
+        if (bullets.size() >= rules.bulletBudget()) {
+            return;
+        }
+        int shot = enemy.burstShot();
+        double angle = StrictMath.PI / 2
+                + (gun.burst() == 1 ? 0 : gun.spreadRadians() / 2 - shot * gun.spreadRadians() / (gun.burst() - 1));
+        bullets.obtain()
+                .fire(
+                        enemy.x(),
+                        enemy.y(),
+                        Trig.cos(angle) * gun.bulletSpeed(),
+                        Trig.sin(angle) * gun.bulletSpeed(),
+                        gun.damage());
+        events.add(SimEvents.Type.ENEMY_FIRED, enemy.x(), enemy.y(), (int) gun.damage());
     }
 
     /** Lets in one unit planned outside the waves (a boss's stream), now. */
@@ -783,13 +892,16 @@ final class EnemyForce {
      * The edges whose waves are active (design/player/wingmen): a unit of a wave that entered from
      * the sides ({@link WarningEdge#LEFT} and {@link WarningEdge#RIGHT}) or the rear
      * ({@link WarningEdge#BOTTOM}) is still alive, as {@link WarningEdge} bits. A chain's members
-     * count by their chain's edge: its wave's, the rear once it has looped back.
+     * count by their chain's edge, a flock's by their flock's (M5 part D): its wave's, the rear once
+     * it has looped back; a rear ambush unit is a rear one from its re-entry on.
      */
     int activeEdges() {
         int edges = 0;
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
-            WaveSpec.Entry entry = enemy.chain() != null ? enemy.chain().entry() : enemy.entry();
+            WaveSpec.Entry entry = enemy.chain() != null
+                    ? enemy.chain().entry()
+                    : enemy.flock() != null ? enemy.flock().entry() : enemy.entry();
             if (entry == WaveSpec.Entry.SIDES) {
                 edges |= WarningEdge.LEFT.bit() | WarningEdge.RIGHT.bit();
             } else if (entry == WaveSpec.Entry.REAR) {

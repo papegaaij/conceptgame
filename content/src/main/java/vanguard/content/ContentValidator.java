@@ -8,8 +8,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import vanguard.sim.LevelScript;
 import vanguard.sim.PlayField;
 import vanguard.sim.Road;
+import vanguard.sim.SimStep;
 
 /**
  * The checks across files, after every file has parsed: names resolve (a wave's enemy and
@@ -195,6 +197,7 @@ final class ContentValidator {
         }
         checkParts(enemy);
         checkBoss(enemy);
+        checkPartD(enemy);
         enemy.difficulty()
                 .flatMap(EnemyData.Hooks::hard)
                 .flatMap(EnemyData.Hook::leadsTargetIn)
@@ -413,6 +416,17 @@ final class ContentValidator {
                 problem(level, "objectives.secondary.escapes", "no wave of '" + slug + "' in this level");
             }
         });
+        level.crateSeconds().ifPresent(seconds -> {
+            if (level.secrets().isEmpty()) {
+                problem(level, "crate_seconds", "a level without secrets has no crate");
+            } else if (seconds < content.player().pickupSeconds()) {
+                problem(
+                        level,
+                        "crate_seconds",
+                        "shorter than the player's pickup_seconds ("
+                                + content.player().pickupSeconds() + ")");
+            }
+        });
         Set<String> secrets =
                 level.secrets().stream().map(LevelData.Secret::name).collect(Collectors.toSet());
         for (int i = 0; i < level.groundTargets().size(); i++) {
@@ -507,6 +521,7 @@ final class ContentValidator {
                     .ifPresent(changes -> changes.keySet().forEach(slug -> checkEnemyName(level, "difficulty", slug)));
         }
         checkPartC(level, levelEnemies);
+        checkPartD(level);
         new BackdropCheck(level, (field, message) -> problem(level, field, message)).run();
     }
 
@@ -622,6 +637,202 @@ final class ContentValidator {
                 problem(level, "music.full_on", "collapse in a level without a collapse");
             }
         });
+    }
+
+    /**
+     * M5 part D's units (design/enemies/air/wraith, mote-swarm): a cloak is flown on an ambush's path
+     * and decloaks to another layer; an ambush unit hovers a while (its hold) and leaves at its
+     * straight speed; the hard hook's hover time needs a hover; an ambush unit flies {@code rear
+     * ambush}, a flock {@code swarm}, among its formations.
+     */
+    private void checkPartD(EnemyData enemy) {
+        EnemyData.Movement movement = enemy.movement();
+        enemy.cloak().ifPresent(cloak -> {
+            if (movement.ambush().isEmpty()) {
+                problem(enemy, "cloak", "a cloak is flown on an ambush's path (movement.ambush)");
+            }
+            if (cloak.layer().equals(enemy.layer())) {
+                problem(enemy, "cloak.layer", "it decloaks to another layer than its cloaked " + enemy.layer());
+            }
+        });
+        movement.ambush().ifPresent(ambush -> {
+            if (movement.hover().flatMap(EnemyData.Hover::seconds).isEmpty()) {
+                problem(enemy, "movement.ambush", "an ambush holds its hover's seconds at its hover's y");
+            }
+            if (movement.straight().isEmpty()) {
+                problem(enemy, "movement.ambush", "an ambush leaves at its straight speed");
+            }
+            if (ambush.lane() > PlayField.WIDTH / 2.0) {
+                problem(enemy, "movement.ambush.lane", "its exit lane lies inside the play field's nearer half");
+            }
+            checkFlies(enemy, "rear ambush");
+        });
+        movement.flock().ifPresent(flock -> checkFlies(enemy, "swarm"));
+        for (var hook : List.of(
+                enemy.difficulty().flatMap(EnemyData.Hooks::easy),
+                enemy.difficulty().flatMap(EnemyData.Hooks::hard))) {
+            if (hook.flatMap(EnemyData.Hook::hoverSeconds).isPresent()
+                    && movement.hover().isEmpty()) {
+                problem(enemy, "difficulty.hover_seconds", "a hover time without a hover");
+            }
+        }
+    }
+
+    /** {@code enemy}'s formations list {@code formation}. */
+    private void checkFlies(EnemyData enemy, String formation) {
+        if (enemy.formations().stream().noneMatch(use -> use.name().equals(formation))) {
+            problem(enemy, "formations", "its movement flies '" + formation + "', which its formations do not list");
+        }
+    }
+
+    /**
+     * M5 part D's wave keys (Level 10): a swarm's enemy has a flock, its wave one route ({@code
+     * paths}) and at most the flock's members on every difficulty; a rear ambush's enemy has an
+     * ambush, its wave enters {@code from: rear} with 1–4 units on every difficulty and no paths; a
+     * flock or an ambush unit flies only its own formation; only a swarm loops back more than once
+     * ({@code loop_back.count}, a change's {@code loops}); a snake's {@code paths} is one route, as a
+     * stream's (its left-edge units' route, mirrored for the right-edge ones).
+     */
+    private void checkPartD(LevelData level) {
+        for (int i = 0; i < level.waves().size(); i++) {
+            LevelData.Wave wave = level.waves().get(i);
+            String field = "waves[" + i + "]";
+            boolean swarm = false;
+            for (LevelData.Group group : wave.groupList()) {
+                if (!content.enemies().containsKey(group.enemy())) {
+                    continue;
+                }
+                EnemyData enemy = content.enemy(group.enemy());
+                Optional<EnemyData.Flock> flock = enemy.movement().flock();
+                boolean ambush = enemy.movement().ambush().isPresent();
+                swarm |= group.formation().equals("swarm");
+                if (group.formation().equals("swarm") != flock.isPresent()) {
+                    problem(
+                            level,
+                            field + ".formation",
+                            flock.isPresent()
+                                    ? "'" + group.enemy() + "' flies only a swarm"
+                                    : "a swarm's enemy has a flock (movement.flock), '" + group.enemy() + "' has none");
+                }
+                if (group.formation().equals("rear ambush") != ambush) {
+                    problem(
+                            level,
+                            field + ".formation",
+                            ambush
+                                    ? "'" + group.enemy() + "' flies only a rear ambush"
+                                    : "a rear ambush's enemy has an ambush (movement.ambush), '" + group.enemy()
+                                            + "' has none");
+                }
+                for (Difficulty difficulty : Difficulty.values()) {
+                    if (!wave.fliesOn(difficulty)) {
+                        continue;
+                    }
+                    int count = countOn(wave, group, difficulty);
+                    String on = " on " + difficulty.name().toLowerCase(Locale.ROOT);
+                    if (flock.isPresent() && count > flock.get().max()) {
+                        problem(
+                                level,
+                                field + ".count",
+                                count + " members" + on + ", the flock holds "
+                                        + flock.get().max());
+                    }
+                    if (group.formation().equals("rear ambush") && (count < 1 || count > 4)) {
+                        problem(level, field + ".count", "a rear ambush has 1 to 4 units, not " + count + on);
+                    }
+                }
+                if (group.formation().equals("swarm")
+                        && wave.paths().map(List::size).orElse(0) != 1) {
+                    problem(level, field + ".paths", "a swarm flies one route: one path");
+                }
+                if (group.formation().equals("rear ambush")) {
+                    if (wave.from() != LevelData.Entry.REAR
+                            || wave.easy()
+                                    .flatMap(LevelData.Change::from)
+                                    .filter(f -> f != LevelData.Entry.REAR)
+                                    .isPresent()
+                            || wave.hard()
+                                    .flatMap(LevelData.Change::from)
+                                    .filter(f -> f != LevelData.Entry.REAR)
+                                    .isPresent()) {
+                        problem(level, field + ".from", "a rear ambush is from: rear");
+                    }
+                    if (wave.paths().isPresent()) {
+                        problem(level, field + ".paths", "a rear ambush flies its lanes, no paths");
+                    }
+                }
+                if (group.formation().equals("snake")
+                        && wave.paths().map(List::size).orElse(1) != 1) {
+                    problem(level, field + ".paths", "a snake flies one route: one path");
+                }
+                if (group.formation().equals("stream")
+                        && wave.paths().map(List::size).orElse(1) != 1) {
+                    // M5 part D: a unit from the right flies the route mirrored.
+                    problem(level, field + ".paths", "a stream flies one route (from the left): one path");
+                }
+            }
+            boolean loops = wave.loopBack()
+                            .flatMap(LevelData.LoopBack::count)
+                            .filter(n -> n > 1)
+                            .isPresent()
+                    || wave.easy().flatMap(LevelData.Change::loops).isPresent()
+                    || wave.hard().flatMap(LevelData.Change::loops).isPresent();
+            if (loops && !swarm) {
+                problem(level, field, "only a swarm loops back more than once (loop_back.count, loops)");
+            }
+            if ((wave.easy().flatMap(LevelData.Change::loops).isPresent()
+                            || wave.hard().flatMap(LevelData.Change::loops).isPresent())
+                    && wave.loopBack().isEmpty()) {
+                problem(level, field, "loops change a loop_back the wave does not have");
+            }
+        }
+        checkPartDEvents(level);
+    }
+
+    /**
+     * M5 part D's radio events and music keys have what they name: {@code scripted-loss} and the
+     * music's duck a scripted loss, {@code first-decloak} a cloaked enemy, {@code first-loop-back} a
+     * swarm that loops back; the ambience changes lie in the level's later sections.
+     */
+    private void checkPartDEvents(LevelData level) {
+        boolean scripted = level.objectives()
+                .escort()
+                .flatMap(LevelData.Escort::scriptedLoss)
+                .isPresent();
+        boolean cloaked = level.waves().stream()
+                .flatMap(wave -> wave.groupList().stream())
+                .anyMatch(group -> content.enemies().containsKey(group.enemy())
+                        && content.enemy(group.enemy()).cloak().isPresent());
+        boolean loops = level.waves().stream()
+                .anyMatch(wave -> wave.loopBack().isPresent()
+                        && wave.groupList().stream()
+                                .anyMatch(group -> group.formation().equals("swarm")));
+        for (int i = 0; i < level.radio().size(); i++) {
+            LevelData.CueEvent event = level.radio().get(i).event().orElse(null);
+            String field = "radio[" + i + "].event";
+            if (event == LevelData.CueEvent.SCRIPTED_LOSS && !scripted) {
+                problem(
+                        level,
+                        field,
+                        "scripted-loss in a level without a scripted loss (objectives.escort.scripted_loss)");
+            } else if (event == LevelData.CueEvent.FIRST_DECLOAK && !cloaked) {
+                problem(level, field, "first-decloak in a level without a cloaked enemy");
+            } else if (event == LevelData.CueEvent.FIRST_LOOP_BACK && !loops) {
+                problem(level, field, "first-loop-back in a level without a swarm that loops back");
+            }
+        }
+        LevelData.Music music = level.music();
+        if (music.duck().isPresent() && !scripted) {
+            problem(level, "music.duck.on", "scripted-loss in a level without a scripted loss");
+        }
+        for (int i = 0; i < music.ambienceChangeList().size(); i++) {
+            int section = music.ambienceChangeList().get(i).section();
+            if (section > level.sections().size()) {
+                problem(
+                        level,
+                        "music.ambience_changes[" + i + "].section",
+                        "the level has " + level.sections().size() + " sections, not " + section);
+            }
+        }
     }
 
     /** The units of {@code group} of {@code wave} on {@code difficulty}, as {@link SimSpecs} plans them. */
@@ -853,8 +1064,9 @@ final class ContentValidator {
             LevelData.RadioCue cue = level.radio().get(i);
             String field = "radio[" + i + "]";
             boolean allyEvent = cue.event()
-                    .map(event ->
-                            event == LevelData.CueEvent.FIRST_ALLY_HIT || event == LevelData.CueEvent.FIRST_ALLY_LOST)
+                    .map(event -> event == LevelData.CueEvent.FIRST_ALLY_HIT
+                            || event == LevelData.CueEvent.FIRST_ALLY_LOST
+                            || event == LevelData.CueEvent.ALLY_LOST)
                     .orElse(false);
             if ((allyEvent || cue.allies().isPresent()) && escort.isEmpty()) {
                 problem(level, field, "convoy events and allies ranges need an escort objective");
@@ -866,10 +1078,12 @@ final class ContentValidator {
                         field,
                         "a mission-failed line needs a primary objective that can fail (escort, destroy-targets)");
             }
-            int units = escort.map(e -> e.y().size()).orElse(0);
+            // M5 part D: a level-end cue counts the saveable units home (all but a scripted loss's).
+            int units = escort.map(LevelData.Escort::saveable).orElse(0);
+            String kind = escort.flatMap(LevelData.Escort::scriptedLoss).isPresent() ? " saveable units" : " units";
             cue.allies().ifPresent(range -> {
                 if (range.max() > units) {
-                    problem(level, field + ".allies", "the convoy has " + units + " units");
+                    problem(level, field + ".allies", "the convoy has " + units + kind);
                 }
             });
         }
@@ -889,26 +1103,125 @@ final class ContentValidator {
             problem(level, "objectives.escort.ally", "unknown ally '" + convoy.ally() + "'");
             return;
         }
-        if (ally.follows().equals("road") && level.road().isEmpty()) {
+        if (ally.air() != convoy.air()) {
+            problem(
+                    level,
+                    "objectives.escort",
+                    ally.air()
+                            ? "a " + convoy.ally() + " follows lanes: give its stations, not y"
+                            : "a " + convoy.ally() + " follows the road: give its y, not stations");
+            return;
+        }
+        if (convoy.air()) {
+            checkAirEscort(level, convoy, ally);
+            return;
+        }
+        if (level.road().isEmpty()) {
             problem(level, "objectives.escort", "a " + convoy.ally() + " follows the level's road: give road");
         }
         double length = ally.size().height();
-        for (int k = 0; k < convoy.y().size(); k++) {
-            double y = convoy.y().get(k);
+        List<Double> heights = convoy.y().orElseThrow();
+        for (int k = 0; k < heights.size(); k++) {
+            double y = heights.get(k);
             if (y - length / 2 < 0 || y + length / 2 > PlayField.HEIGHT) {
                 problem(level, "objectives.escort.y[" + k + "]", "y=" + y + " puts the unit off the screen");
             }
-            if (k > 0 && y - convoy.y().get(k - 1) < length) {
+            if (k > 0 && y - heights.get(k - 1) < length) {
                 problem(level, "objectives.escort.y[" + k + "]", "units overlap: less than " + length + " px apart");
             }
         }
-        checkTime(level, "objectives.escort.enter.t", convoy.enter().t());
-        for (String slug : convoy.hook().enemies()) {
+        checkTime(
+                level, "objectives.escort.enter.t", convoy.enter().orElseThrow().t());
+        for (String slug : convoy.hook().orElseThrow().enemies()) {
             checkEnemyName(level, "objectives.escort.hook.enemies", slug);
             if (content.enemies().containsKey(slug) && !levelEnemies.contains(slug)) {
                 problem(level, "objectives.escort.hook.enemies", "no '" + slug + "' in this level");
             }
         }
+    }
+
+    /**
+     * M5 part D (design/allies, evacuation shuttle; Level 10): an air escort. Sampled every step of the
+     * level, each unit's hit box stays inside the play field at its station with the sway and never
+     * overlaps another's; the pads lie on the screen; the liftoff ends before the scripted loss's glow
+     * starts and the climb-out starts after the loss, both inside the level; the level has no road.
+     */
+    private void checkAirEscort(LevelData level, LevelData.Escort convoy, AlliesData.Ally ally) {
+        String field = "objectives.escort";
+        if (level.road().isPresent()) {
+            problem(level, "road", "an air escort follows no road");
+        }
+        List<LevelScript.Station> stations = convoy.stations().orElseThrow().stream()
+                .map(PartDRules::station)
+                .toList();
+        double w = ally.hitbox().width();
+        double h = ally.hitbox().height();
+        int steps = SimStep.ticks(level.seconds());
+        boolean[] reported = new boolean[stations.size()];
+        boolean overlapReported = false;
+        for (int tick = 0; tick <= steps; tick++) {
+            double t = tick * SimStep.SECONDS;
+            for (int k = 0; k < stations.size(); k++) {
+                double x = stations.get(k).xAt(t);
+                double y = stations.get(k).yAt(t);
+                if (!reported[k]
+                        && (x - w / 2 < 0
+                                || x + w / 2 > PlayField.WIDTH
+                                || y - h / 2 < 0
+                                || y + h / 2 > PlayField.HEIGHT)) {
+                    reported[k] = true;
+                    problem(
+                            level,
+                            field + ".stations[" + k + "]",
+                            "its hit box leaves the play field at t=" + round(t));
+                }
+                for (int j = 0; j < k && !overlapReported; j++) {
+                    if (Math.abs(stations.get(j).xAt(t) - x) < w
+                            && Math.abs(stations.get(j).yAt(t) - y) < h) {
+                        overlapReported = true;
+                        problem(
+                                level,
+                                field + ".stations[" + k + "]",
+                                "its hit box overlaps station " + j + "'s at t=" + round(t));
+                    }
+                }
+            }
+        }
+        double liftEnd = 0;
+        if (convoy.liftoff().isPresent()) {
+            LevelData.Liftoff liftoff = convoy.liftoff().get();
+            liftEnd = liftoff.t() + liftoff.seconds();
+            checkTime(level, field + ".liftoff.t", liftEnd);
+            for (int k = 0; k < liftoff.pads().size(); k++) {
+                Point pad = liftoff.pads().get(k);
+                if (pad.x() < 0 || pad.x() > PlayField.WIDTH || pad.y() < 0 || pad.y() > PlayField.HEIGHT) {
+                    problem(level, field + ".liftoff.pads[" + k + "]", "the pad is off the screen");
+                }
+            }
+        }
+        double lossAt = liftEnd;
+        if (convoy.scriptedLoss().isPresent()) {
+            LevelData.ScriptedLoss loss = convoy.scriptedLoss().get();
+            checkTime(level, field + ".scripted_loss.t", loss.t());
+            if (loss.t() - loss.glow() < liftEnd) {
+                problem(
+                        level,
+                        field + ".scripted_loss",
+                        "its glow starts before the liftoff ends at " + liftEnd + " s");
+            }
+            lossAt = loss.t();
+        }
+        if (convoy.climb().isPresent()) {
+            LevelData.Climb climb = convoy.climb().get();
+            checkTime(level, field + ".climb.t", climb.t() + climb.seconds());
+            if (climb.t() <= lossAt) {
+                problem(level, field + ".climb.t", "the climb-out starts after the liftoff and the scripted loss");
+            }
+        }
+    }
+
+    private static double round(double seconds) {
+        return Math.round(seconds * 100) / 100.0;
     }
 
     /** The road's ribbon stays inside the play field and bends no further than the convoy's headings. */

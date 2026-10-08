@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: final
 depends-on: [../weapons, ../../story, ../../systems/saves, ../../ui/hangar, ../../ui/hud]
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Wingmen and drones
@@ -82,7 +82,10 @@ right) is the hangar setting and mirrors the x values.
 
 A wave is active from its first unit's entry until its last unit has died or left the screen. A
 segment chain counts by the edge it entered from last: a Coilwyrm wave from the rear is a rear
-wave, and a chain that loops back is one from its re-entry at the bottom edge.
+wave, and a chain that loops back is one from its re-entry at the bottom edge. Planned (M5 part D,
+Level 10): a Wraith `rear ambush` counts as a rear wave from its re-entry at the bottom edge (its
+cloaked pass from the top before it does not), and a Mote Swarm that loops back from its leader's
+re-entry, as a chain's loop-back; the rear bark (trigger 2) fires 1.5 s ahead of those re-entries.
 When both Trail and Wide apply, **Trail** wins. When the slot lies outside the play field (the
 player flies close to the edge on Rook's side, or near the bottom edge in Trail), he takes the
 **mirrored slot** on the other side, and returns to his own side once it has been inside the
@@ -183,6 +186,14 @@ its shares are about what dies.
 - The gusts of [Level 12](../../campaign/act-2-homefront/level-12-storm-front/README.md) push him
   like the player.
 - Ravager pounces and `air` contacts hit him as designed (his collision rule above).
+- Level 10 (M5 part D): in Trail he sits 90 px behind the ship, in the band where the
+  [Wraiths](../../enemies/air/wraith/README.md) hold 20–70 px above the bottom edge after
+  decloaking. No change to his AI (a stated default of part D): a cloaked Wraith is on `high-air`
+  and touches nobody; a decloaked one is an `air` body his slot keeps its clearance from, and its
+  bursts are bullets he dodges like any other. He fires only up the screen, so he gets a Wraith on
+  its exit up a side lane, not in its hold. A `WingmanTest` case covers Trail near the hold band.
+  The [evacuation shuttles](../../allies/README.md#evacuation-shuttle) are no obstacle to him (he
+  flies through them, as the ship does).
 
 ### Scripted lines about him (user decision D4 of M5 part B)
 
@@ -222,9 +233,11 @@ eject bark, an urgent line: see below), and are voiced like every Act 1 line
   bark replaces it.
 - After he ejects, trigger 5 can no longer fire; the others still do (he watches the scope from
   his pod).
-- The level documents' scripted "Six o'clock" and "flank" lines (L08 t=92, L10 t=50, L12 t=102,
-  L13 t=82 and t=122, L14 t=80) are reviewed by each level's part: they suppress the bark by the
-  spacing rule.
+- The level documents' scripted "Six o'clock" and "flank" lines (L08 t=92, L12 t=102, L13 t=82
+  and t=122, L14 t=80) are reviewed by each level's part: they suppress the bark by the spacing
+  rule. Level 10's t=50 "Six o'clock, Lancer!" is dropped (M5 part D): his rear bark says it, and
+  his event line on the first loop-back (`first-loop-back`) counts as a scripted Rook line for the
+  spacing, as `escort-first-kill`'s does.
 
 | Priority | Trigger | Variants (speaker Rook) |
 |---|---|---|
@@ -371,6 +384,9 @@ built were accepted in concept round 28.
 - [x] His shots in their base weapons' families: drawn with the base weapons' final shot sprites and muzzle flash at his nose (`WeaponLooks` builds his gun's look by its base weapon's slug; `WingmanLooks.drawMuzzle`)
 - [x] The radio event `escort-first-kill`: his first kill per attempt, only while he flies, never after an eject, the flag in the state hash and the boss checkpoint; loader, `SimSpecs` and schema text (M5 part B, D4)
 - [x] `{side}` in a radio line: one take per side in the voice line list, the take and subtitle of his side played (M5 part B, D4)
+- [x] Trail on a Wraith `rear ambush` and a Mote Swarm loop-back from their re-entry, the rear bark
+      1.5 s ahead of it; a Rook event line on `first-loop-back` counting for the bark spacing; a
+      `WingmanTest` case for Trail near the Wraiths' hold band (M5 part D, Level 10)
 - [ ] Warden heavy drone: formation, cannon, draw-fire rule — **later: Act 4** (the Warden unlocks at L22)
 - [ ] Drone behaviours: orbit, trail, block, rebuild — **later: Act 3** (light drone L15, rear-guard drone L20) and **later: Act 5** (hunter drone L29)
 - [ ] Rook missing for L27–L29 (only a heavy drone in the slot), back from L30 — **later: Act 4**
@@ -558,3 +574,10 @@ built were accepted in concept round 28.
 - 2026-10-07: [Concept round 31](../../concept-rounds/round-31/README.md) (user, 2026-10-07): the
   build choice (b) **confirmed**: with a lobbed gun Rook picks ground targets anywhere ahead of him
   within 200 px, not only in his 30° cone (beyond the brief "aim the lobbed gun", kept as built).
+- 2026-10-08: M5 part D (Level 10; stated defaults with the user's decisions D1–D12): no change to
+  Rook's AI. His Trail and rear bark key to a Wraith ambush's and a flock loop-back's **re-entry**
+  at the bottom edge, as a chain's loop-back (their waves enter at the top). Level 10's scripted
+  "Six o'clock, Lancer!" at t=50 is dropped (his bark repeats it word for word); his flock line
+  plays on the new `first-loop-back` event and counts for the bark spacing. A `WingmanTest` case
+  covers Trail near the Wraiths' hold band. The balance plan's L10 visit refits his Autocannon
+  (D7 = a, a `fit` action), as the Mortar has nothing to hit there.

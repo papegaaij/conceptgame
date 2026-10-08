@@ -22,7 +22,7 @@ crunchy, and clearly readable. Radio chatter is spoken (text-to-speech rendered 
 |---|---|---|---|---|
 | [music](music/README.md) | Track list, styles per act, loop and transition rules | approved | done | chosen |
 | [sfx](sfx/README.md) | Full sound-effect list with priorities, mixing rules | approved | in-progress | chosen |
-| [voice](voice/README.md) | Spoken radio lines: Chatterbox text-to-speech rendered offline through the radio filter | draft | done | chosen |
+| [voice](voice/README.md) | Spoken radio lines: Chatterbox text-to-speech rendered offline through the radio filter | draft | in-progress | chosen |
 
 ## Design
 

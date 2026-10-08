@@ -1,7 +1,7 @@
 # Allies: the specs the game reads, one entry per ally slug; README.md's tables are hand-written for
 # now. Schema: ../tech/architecture/README.md#data-file-schemas
-# Only the civilian crawler (Level 04) has data; the other allies get theirs with the levels that
-# use them.
+# The civilian crawler (Level 04) and the evacuation shuttle (Level 10, M5 part D); the other allies
+# get theirs with the levels that use them.
 civilian-crawler:
   name: Civilian crawler
   layer: ground
@@ -14,3 +14,21 @@ civilian-crawler:
   follows: road           # the level's road curve, at the scroll speed
   headings: {count: 7, step: 10}   # ±30° in 10° steps, rendered, not rotated
   smoke_below: 0.5        # share of its HP
+evacuation-shuttle:       # Level 10 (M5 part D, user decisions D1, D2 and D4 of 2026-10-08)
+  name: Evacuation shuttle
+  layer: air
+  size: [64, 40]          # sprite px: 64 wide, 40 long, nose up
+  hitbox: [48, 28]
+  hp: 120                 # armour at medium; the level sets the difficulty variants (180 / 90)
+  damaged_by:             # user decision D2 = a of M5 part D
+    objective_aimed: false
+    claws: 0
+    bullets: true         # every enemy bullet touching its hit box hurts it by its class and is spent
+    contact: true         # an `air` enemy's body hurts it by the enemy's tier once per contact, a `tiny` or
+                          # `small` one destroyed by the impact (and paid, as when it rams the ship)
+  follows: lanes          # its station in the level's band with the lane sway, no road (D1 = a)
+  headings: {count: 1, step: 10}   # always nose up; it banks instead
+  banks: {frames: 5, full: 20}     # rendered banking frames, the full bank at 20 px/s of sideways speed (the lane sway peaks at 8-13 px/s)
+  glide: 3                # s of the lost shuttle's glide into `far` (presentation)
+  smoke_below: 0.5        # share of its HP
+  first_level: 10         # its sprites go in Level 10's atlas until the level's data escorts it

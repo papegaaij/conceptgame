@@ -17,6 +17,9 @@ import vanguard.sim.PlayField;
  * @param launchSeconds the non-playable launch before control starts
  * @param bountyScale multiplies every bounty paid in the level (design/systems/economy), 1 if not
  *     given
+ * @param crateSeconds how long an uncollected secret's crate (or data core) stays, the player's
+ *     {@code pickup_seconds} if not given (Level 10's ferry cache: long enough to drift from the top
+ *     edge to the ship's start line)
  * @param controlPrompts the control prompts shown in the first section
  * @param prompts contextual prompts shown at a time (design/ui/hud: one line, an action and its keys)
  * @param sections back to back from t = 0
@@ -42,6 +45,7 @@ public record LevelData(
         double scrollSpeed,
         double launchSeconds,
         Optional<Double> bountyScale,
+        Optional<Double> crateSeconds,
         List<String> controlPrompts,
         Optional<List<Prompt>> prompts,
         List<Section> sections,
@@ -71,6 +75,7 @@ public record LevelData(
         Check.positive("scroll_speed", scrollSpeed);
         Check.notNegative("launch_seconds", launchSeconds);
         bountyScale.ifPresent(scale -> Check.positive("bounty_scale", scale));
+        crateSeconds.ifPresent(seconds -> Check.positive("crate_seconds", seconds));
         Check.notEmpty("sections", sections);
         for (int i = 1; i < sections.size(); i++) {
             Check.that(
@@ -760,6 +765,8 @@ public record LevelData(
      * A difficulty's changes to a wave.
      *
      * @param hold part G: another hold, s (Level 07's easy Mantis pincer holding 4 s)
+     * @param loops M5 part D: a swarm's loop-backs instead of its {@code loop_back.count} (Level 10's
+     *     hard: 2)
      */
     public record Change(
             Optional<Entry> from,
@@ -767,9 +774,11 @@ public record LevelData(
             Optional<Integer> count,
             Optional<Integer> breakGroup,
             Optional<Double> warning,
-            Optional<Double> hold) {
+            Optional<Double> hold,
+            Optional<Integer> loops) {
         public Change {
             hold.ifPresent(h -> Check.notNegative("hold", h));
+            loops.ifPresent(n -> Check.positive("loops", n));
         }
     }
 
@@ -777,11 +786,14 @@ public record LevelData(
      * Part F: a segment chain's loop-back: {@code after} s past the end of its path (off the
      * screen) its head re-enters on {@code path} ({@code [x, y]} points, y px below the top edge),
      * shifted sideways to start at the head's x; without a path straight up from the bottom edge.
-     * Its bottom-edge warning lasts the wave's {@code warning} (at least the 3 s minimum).
+     * Its bottom-edge warning lasts the wave's {@code warning} (at least the 3 s minimum). M5 part
+     * D: a swarm's leader point loops back {@code count} times (1 when left out), each re-entry
+     * {@code after} s past the previous path's end; a chain loops back once.
      */
-    public record LoopBack(double after, Optional<List<Point>> path) {
+    public record LoopBack(double after, Optional<List<Point>> path, Optional<Integer> count) {
         public LoopBack {
             Check.positive("after", after);
+            count.ifPresent(n -> Check.positive("count", n));
         }
     }
 
@@ -1135,7 +1147,22 @@ public record LevelData(
         FIRST_POUNCE,
         /** M5 part C: the collapse's shadow starts. */
         @JsonProperty("collapse")
-        COLLAPSE
+        COLLAPSE,
+        /**
+         * M5 part D: every loss of a convoy unit the player could have saved (the first too, after the
+         * {@code first-ally-lost} cue); the line may name it as {@code {ally}}.
+         */
+        @JsonProperty("ally-lost")
+        ALLY_LOST,
+        /** M5 part D: the scripted loss's lance took its unit. */
+        @JsonProperty("scripted-loss")
+        SCRIPTED_LOSS,
+        /** M5 part D: the attempt's first decloak (a cloaked enemy). */
+        @JsonProperty("first-decloak")
+        FIRST_DECLOAK,
+        /** M5 part D: the attempt's first swarm loop-back. */
+        @JsonProperty("first-loop-back")
+        FIRST_LOOP_BACK
     }
 
     /**
@@ -1176,22 +1203,124 @@ public record LevelData(
      * rolling in from the bottom edge as {@code enter} says and following the level's road. Each
      * unit alive at the end pays {@code credits}; the objective fails when every unit is lost.
      *
-     * @param hook the target-the-objective hook: which enemies' aimed attacks go for the convoy
+     * <p>M5 part D (Level 10, user decisions D1, D4 and D5 = a): an air escort (an ally that {@code
+     * follows: lanes}) gives {@code stations} instead of {@code y}, an optional {@code liftoff}
+     * instead of {@code enter} and no {@code hook}; an optional {@code climb} (the climb-out) and
+     * {@code scripted_loss}. Then each <em>saveable</em> unit home (every unit but the scripted
+     * loss's) pays {@code credits}, and the objective fails at once when every saveable unit is lost.
+     *
+     * @param y a ground convoy's heights
+     * @param enter a ground convoy's roll-in
+     * @param hook the target-the-objective hook: which enemies' aimed attacks go for the convoy (a
+     *     ground convoy's; required there)
      * @param easy the units' HP on easy
      * @param hard the units' HP on hard
+     * @param stations M5 part D: an air escort's stations, the leading unit first
+     * @param liftoff M5 part D: an air escort's liftoff from its pads
+     * @param climb M5 part D: an air escort's climb-out
+     * @param scriptedLoss M5 part D: the unit lost in a scripted event (Level 10's Lifeline Three)
      */
     public record Escort(
             String ally,
-            List<Double> y,
+            Optional<List<Double>> y,
             int credits,
-            Enter enter,
-            Hook hook,
+            Optional<Enter> enter,
+            Optional<Hook> hook,
             Optional<AllyChange> easy,
-            Optional<AllyChange> hard) {
+            Optional<AllyChange> hard,
+            Optional<List<Station>> stations,
+            Optional<Liftoff> liftoff,
+            Optional<Climb> climb,
+            Optional<ScriptedLoss> scriptedLoss) {
         public Escort {
-            Check.notEmpty("y", y);
             Check.notNegative("credits", credits);
-            y = List.copyOf(y);
+            Check.that(
+                    y.isPresent() != stations.isPresent(),
+                    "give the convoy's y (on the road) or its stations (in the air)");
+            y = y.map(List::copyOf);
+            y.ifPresent(heights -> Check.notEmpty("y", heights));
+            stations = stations.map(List::copyOf);
+            stations.ifPresent(list -> Check.notEmpty("stations", list));
+            if (y.isPresent()) {
+                Check.that(enter.isPresent(), "a convoy on the road gives its enter");
+                Check.that(hook.isPresent(), "a convoy on the road gives its hook");
+                Check.that(
+                        liftoff.isEmpty() && climb.isEmpty() && scriptedLoss.isEmpty(),
+                        "liftoff, climb and scripted_loss belong to an air escort (stations)");
+            } else {
+                Check.that(enter.isEmpty(), "an air escort lifts off (liftoff) instead of rolling in (enter)");
+                Check.that(hook.isEmpty(), "an air escort has no hook: every enemy bullet and contact hurts it");
+                int units = stations.orElseThrow().size();
+                liftoff.ifPresent(l -> Check.that(
+                        l.pads().size() == units,
+                        "liftoff.pads: one per station, " + units + ", not "
+                                + l.pads().size()));
+                scriptedLoss.ifPresent(loss -> Check.that(
+                        loss.unit() >= 1 && loss.unit() <= units,
+                        "scripted_loss.unit: one of the units, 1 to " + units + ", was " + loss.unit()));
+            }
+        }
+
+        /** The number of units. */
+        public int units() {
+            return y.map(List::size).orElseGet(() -> stations.orElseThrow().size());
+        }
+
+        /** Whether it is an air escort (stations in the band). */
+        public boolean air() {
+            return stations.isPresent();
+        }
+
+        /** The units the player can save: every unit but the scripted loss's. */
+        public int saveable() {
+            return units() - (scriptedLoss.isPresent() ? 1 : 0);
+        }
+    }
+
+    /**
+     * M5 part D: an air escort unit's station: {@code at} ({@code [x, y]}, px from the play field's
+     * left edge, px below the top edge) with the lane sway {@code sway} ({@code [ax, ay]} px): the
+     * unit flies at {@code at} + (ax sin θ, ay sin 2θ), θ = 2π (t ÷ {@code period} + {@code phase}),
+     * t the level clock.
+     */
+    public record Station(Point at, Point sway, double period, double phase) {
+        public Station {
+            Check.positive("period", period);
+            Check.that(phase >= 0 && phase <= 1, "phase: 0 to 1, was " + phase);
+            Check.notNegative("sway", sway.x());
+            Check.notNegative("sway", sway.y());
+        }
+    }
+
+    /**
+     * M5 part D: an air escort's liftoff: at {@code t} each unit stands on its pad (one {@code [x, y]}
+     * screen point per unit, px below the top edge) and eases to its station over {@code seconds}.
+     */
+    public record Liftoff(double t, double seconds, List<Point> pads) {
+        public Liftoff {
+            Check.notNegative("t", t);
+            Check.positive("seconds", seconds);
+            pads = List.copyOf(pads);
+        }
+    }
+
+    /** M5 part D: the climb-out: from {@code t} the units alive climb off the top edge over {@code seconds}, home. */
+    public record Climb(double t, double seconds) {
+        public Climb {
+            Check.positive("t", t);
+            Check.positive("seconds", seconds);
+        }
+    }
+
+    /**
+     * M5 part D: the scripted loss: unit {@code unit} (1-based) is untouchable until {@code t}; its
+     * glow starts {@code glow} s before, the lance takes it at {@code t}.
+     */
+    public record ScriptedLoss(int unit, double t, double glow) {
+        public ScriptedLoss {
+            Check.positive("t", t);
+            Check.notNegative("glow", glow);
+            Check.that(glow <= t, "glow: starts in the level, at most t");
         }
     }
 
@@ -1337,6 +1466,8 @@ public record LevelData(
      * @param fullOn M5 part C: run-time events that play the full mix: {@code hold} while a hold zone
      *     runs (fading in over 1 s as it starts, out over 4 s after it ends), {@code collapse} from
      *     the collapse to the level's end
+     * @param duck M5 part D: the theme's duck on a run-time event (Level 10's scripted loss)
+     * @param ambienceChanges M5 part D: the ambience crossfading to another at a section's start
      */
     public record Music(
             int track,
@@ -1351,7 +1482,73 @@ public record LevelData(
             Optional<VoiceLoop> voiceLoop,
             Optional<String> bossWarning,
             Optional<String> bossTrack,
-            Optional<List<FullOn>> fullOn) {
+            Optional<List<FullOn>> fullOn,
+            Optional<Duck> duck,
+            Optional<List<AmbienceChange>> ambienceChanges) {
+        /**
+         * M5 part D: on the event {@code on} the theme ducks by {@code db} for {@code seconds}, no sting;
+         * with the radio's duck the lower applies (they do not add up).
+         */
+        public record Duck(DuckOn on, double db, double seconds) {
+            public Duck {
+                Check.that(db < 0, "db: a duck lowers the theme, below 0, was " + db);
+                Check.positive("seconds", seconds);
+            }
+        }
+
+        /** M5 part D: the run-time events a duck can follow. */
+        public enum DuckOn {
+            @JsonProperty("scripted-loss")
+            SCRIPTED_LOSS
+        }
+
+        /** M5 part D: at section {@code section}'s start (1-based) the ambience crossfades to {@code ambience} over {@code crossfade} s. */
+        public record AmbienceChange(int section, String ambience, double crossfade) {
+            public AmbienceChange {
+                Check.that(section >= 2, "section: a later section than the first, was " + section);
+                Check.that(!ambience.isEmpty(), "ambience: an ambience key");
+                Check.positive("crossfade", crossfade);
+            }
+        }
+
+        /** Without M5 part D's duck and ambience changes. */
+        public Music(
+                int track,
+                int startSection,
+                Optional<Double> startDb,
+                int fullSection,
+                Optional<Map<Integer, Stems>> stems,
+                String ambience,
+                String endJingle,
+                Optional<String> bossSting,
+                Optional<Double> ambienceFrom,
+                Optional<VoiceLoop> voiceLoop,
+                Optional<String> bossWarning,
+                Optional<String> bossTrack,
+                Optional<List<FullOn>> fullOn) {
+            this(
+                    track,
+                    startSection,
+                    startDb,
+                    fullSection,
+                    stems,
+                    ambience,
+                    endJingle,
+                    bossSting,
+                    ambienceFrom,
+                    voiceLoop,
+                    bossWarning,
+                    bossTrack,
+                    fullOn,
+                    Optional.empty(),
+                    Optional.empty());
+        }
+
+        /** The ambience changes, in section order; empty for none. */
+        public List<AmbienceChange> ambienceChangeList() {
+            return ambienceChanges.orElse(List.of());
+        }
+
         /**
          * The timed radio line of {@code speaker} (its first), looping at {@code db} (below full)
          * while section {@code section} (1-based) plays; silent while the speaker has no voice file.
@@ -1398,6 +1595,15 @@ public record LevelData(
             fullOn.ifPresent(events -> {
                 Check.notEmpty("full_on", events);
                 Check.that(events.size() == new java.util.HashSet<>(events).size(), "full_on: each event once");
+            });
+            ambienceChanges = ambienceChanges.map(List::copyOf);
+            ambienceChanges.ifPresent(changes -> {
+                Check.notEmpty("ambience_changes", changes);
+                for (int i = 1; i < changes.size(); i++) {
+                    Check.that(
+                            changes.get(i).section() > changes.get(i - 1).section(),
+                            "ambience_changes: in section order, one per section");
+                }
             });
         }
     }

@@ -21,8 +21,10 @@ inside 0.75-1.33x; Levels 01-03's gentle onboarding (up to 1.75x) is the accepte
 (user decision 2026-10-01). Per level with data: the slowest time to kill among its enemies and its
 boss's at the plan's DPS. Per enemy: the time to kill at its first level and the bounty against
 the balancing basis (design/enemies/README.md); a deviation is listed, marked when it is an
-accepted exception (the Coilwyrm's bounty, user decision 2026-10-05); BalanceTest holds the same
-ACCEPTED list and the ones pending a decision.
+accepted exception (the Coilwyrm's bounty, user decision 2026-10-05; the Ravager's and the Wraith's
+times to kill, M5 parts C and D); BalanceTest holds the same ACCEPTED list and the ones pending a
+decision. Per level with a rear ambush (M5 part D, D7 = a): each ambush unit's HP against the
+plan's rear DPS and its decloak flash plus hold; BalanceTest checks HP / rear DPS <= 0.6 x that.
 
 Exit status: 1 when the plan overspends, exceeds the power, buys an item before its unlock or
 over a special's most charges, or the DPS leaves its band (other than the accepted exception).
@@ -42,8 +44,10 @@ SHARE_TOLERANCE = 1 / 3          # a boss's or set piece's bounty share: "about"
 ACCEPTED = {
     ("coilwyrm", "bounty"): "a multi-part enemy, cutting it up is extra work; a head-first kill pays 40",
     ("ravager", "ttk"): "a fast, fragile pack hunter (user decision 2026-10-07, M5 part C)",
+    ("wraith", "ttk"): "set for the plan's rear DPS with its rear check instead (user decision D7 = a, M5 part D)",
 }
 HOLD_SHARE = 0.6                 # a hold's cluster dies in at most this share of its window (BalanceTest, medium)
+REAR_SHARE = 0.6                 # a rear-ambush unit dies in at most this share of its flash and hold (BalanceTest, medium)
 
 
 def load_all():
@@ -95,7 +99,8 @@ def apply_plan(data):
     """Yield (level, state) for levels 01-14 following the expected-loadout plan."""
     plan, W = data["plan"], data["weapons"]
     state = {"credits": data["economy"]["starting_credits"], "spent": 0, "income": 0, "slots": {},
-             "invested": {}, "core": {}, "utility": {}, "charges": {}, "log": [], "earned": None}
+             "invested": {}, "core": {}, "utility": {}, "charges": {}, "log": [], "earned": None,
+             "owned": {}}   # owned: slot -> {item: level} kept off the loadout (Rook's other guns)
 
     def pay(amount, what, slot=None):
         state["credits"] -= amount
@@ -127,6 +132,8 @@ def apply_plan(data):
                 gun = escort_gun(data, slug)
                 pay(round(data["wingmen"]["guns"]["price_factor"] * W[gun["base"]]["price"]),
                     f"buy Rook's {gun['name']}", slot)
+                fitted = state["slots"].get(slot) or [data["wingmen"]["guns"]["list"][0]["id"], 1]  # his starter
+                state["owned"].setdefault(slot, {})[fitted[0]] = fitted[1]
                 state["slots"][slot] = [slug, 1]
                 continue
             w = W[slug]
@@ -134,6 +141,19 @@ def apply_plan(data):
                 state["log"].append(f"!! {slug} not unlocked before L{key}")
             pay(w["price"], f"buy {w['name']} → {slot}", slot)
             state["slots"][slot] = [slug, 1]
+        for slot, slug in step.get("fit", []):  # an owned item fitted again (M5 part D: Rook's Autocannon)
+            owned = state["owned"].get(slot, {})
+            if slug not in owned:
+                state["log"].append(f"!! fit {slug} ({slot}): not owned")
+                continue
+            fitted = state["slots"].get(slot)
+            if fitted:
+                owned[fitted[0]] = fitted[1]
+            state["slots"][slot] = [slug, owned.pop(slug)]
+            if slot == "escort":
+                state["log"].append(f"fit Rook's {escort_gun(data, slug)['name']} again")
+            else:
+                state["log"].append(f"fit {W[slug]['name']} → {slot} again")
         for slot, lvl in step.get("upgrade", []):
             slug, cur = state["slots"][slot]
             costs = upgrade_costs(W[slug])
@@ -347,6 +367,9 @@ def report(data):
                 line += f"; boss {enemy(boss)['name']} {enemy(boss)['hp'] / (EFFECTIVE * fwd):.0f} s (at 0.6×)"
             ttk_lines.append(line)
             ttk_lines += hold_lines(data, d, st)
+            rear_lines, slow = ambush_lines(d, rear)
+            ttk_lines += rear_lines
+            problems += [f"L{n:02d}: {m}" for m in slow]
     print("\nBefore visit: the credits after the level before it, which earns its typical haul where the "
           "level has data (its credit-budget table), else budget(n).")
     print("\nLevels with data:")
@@ -396,6 +419,23 @@ def hold_lines(data, d, state):
         lines.append(f"  hold {i + 1} ({', '.join(hold['groups'])}): {hp:g} HP / anti-ground {dps:.1f} DPS = "
                      f"{ttk:.1f} s of a {window:.1f} s window ({ttk / window:.2f}, at most {HOLD_SHARE})")
     return lines
+
+
+def ambush_lines(d, rear):
+    """A level's rear-ambush units (M5 part D, D7 = a): each one's HP against the plan's rear DPS and its
+    window behind the ship (its decloak flash and its hold) at medium; BalanceTest checks HP / rear DPS
+    <= 0.6 x window. Returns (lines, the too slow ones)."""
+    level = load(f"{d}/data.yaml")
+    lines, slow = [], []
+    for slug in dict.fromkeys(w["enemy"] for w in level["waves"] if w.get("formation") == "rear ambush"):
+        e = enemy(slug)
+        window = e.get("cloak", {}).get("flash", 0) + e["movement"]["hover"]["seconds"]
+        ttk = e["hp"] / rear if rear else float("inf")
+        lines.append(f"  rear check {e['name']}: {e['hp']:g} HP / rear {rear:.1f} DPS = {ttk:.1f} s of its "
+                     f"{window:.1f} s flash and hold ({ttk / window:.2f}, at most {REAR_SHARE})")
+        if not ttk <= REAR_SHARE * window:
+            slow.append(f"rear DPS {rear:.1f} too low for the {e['name']} ({ttk:.1f} s of {window:.1f} s)")
+    return lines, slow
 
 
 def weapons_dump(data):

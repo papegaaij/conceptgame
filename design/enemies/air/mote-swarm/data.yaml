@@ -1,0 +1,45 @@
+# Mote Swarm stat block at medium (one mote; a swarm is a wave of them): rendered into README.md.
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+# M5 part D (Level 10; user decision D8 = a of 2026-10-08: real flocking): the flock is flown by the
+# simulation.
+name: Mote Swarm
+faction: Vrell
+layer: air
+tier: tiny
+size: [16, 16]    # sprite px, each mote
+hitbox: [10, 10]
+parts: single
+orientation: 16 angles
+hp: 1
+armour: none
+speed: 200        # px/s, the flock's cruise
+movement:
+  path: {speed: 200}   # the leader point flies the wave's authored route (`paths`, with its `loop_back`)
+  flock:
+    separation: 18    # px kept between members
+    radius: 48        # px: the neighbourhood the rules look at
+    alignment: 0.5    # weights of the three rules and of the pull toward the leader point (first values)
+    cohesion: 0.3
+    leader: 0.6
+    speed: 200        # px/s cruise
+    dive_speed: 260   # px/s after a loop-back
+    turn_rate: 360    # °/s
+    max: 24           # members at most (≤ 576 pair checks a step)
+attacks: []       # contact only
+formations:
+  - {name: swarm, size: [6, 24]}
+weak_points: []
+drops: []
+traits: [spread, area, rear]
+bounty: 2
+first_level: 10
+notes:
+  speed: (flock cruise), 260 px/s diving after a loop-back
+  movement: '`flock` (separation 18 px, alignment, cohesion) round a leader point that flies the wave''s authored route at {movement.path.speed} px/s (`path`): it swirls in front, exits at the bottom-left or bottom-right, re-enters from the bottom 1.5 s later (the edge warning 3 s ahead, starting while it exits) and dives up through the player''s lane'
+  attack: '`none` — contact (damage `{tier}` = {contact_damage} per mote; destroyed by the impact)'
+  formations: '(a wave of motes; base 20, easy 16, hard 24 by the formation lever; Level 10 flies smaller ones too)'
+  weak_points: (dies in one hit)
+  bounty: ' per mote; a swarm of 20 pays 40'
+  death: '`tiny` ember puff'
+  used_in: returns in Act 3 (L20)
+  difficulty: 'flock size via the global formation lever; hard: two loop-backs (level data)'

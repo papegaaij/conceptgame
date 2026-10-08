@@ -1,0 +1,536 @@
+# Level 10 backdrop PROPOSAL (tools/art/backdrop_l10.py --proposal; M5 part D batch, round 32).
+# For the level-data step to merge into data.yaml: `backdrop` is the level's block, and the
+# sections take the `tiles` below. Level 10 has no holds, so script time is real time
+# (scroll distance / 190 px/s); the gunships' `path` runs on the real clock from its first waypoint.
+#
+# sections[i].tiles (by section, in order):
+#   Liftoff: [morning-sky, spaceport]
+#   Refugee Roads: [morning-sky, suburbs]
+#   The Corridor: [morning-sky, viaduct]
+#   Coast Road: [morning-sky, coast]
+#   Orbital Corridor: [morning-sky, open-lagoon]
+# Section 4's atmosphere: light, with a medium `peak` from t=160 (the sea mist) to the section's end.
+#
+# What this block was built round (re-run --proposal and the images after moving one):
+#   the shuttles' liftoff pads (escort.liftoff.pads, screen [x, y below the top] at t=1):
+#     [[240, 400], [176, 440], [304, 440], [176, 490], [304, 490]]; the launch-pads piece (268 x 198) is centred at x 240, ground 285.
+#   ferry hatch (sprite ferry-hatch, size [36, 32], section 4): at [[150, 322]]
+#   the ferry piece is placed so the hatch sits on its hull's patched plate (ferry x 312).
+# The hatch's sprites: assets/sprites/ferry-hatch_0..2 (36 x 32: shut, hit, open) and
+#   ferry-hatch-break_0..7 (56 x 56), `python3 tools/art/backdrop_l10.py --props` once the data's
+#   ground target names `sprite: ferry-hatch` (the pipeline refuses unclaimed sprites before that).
+# Motion budget (BackdropCheck, at most 2 moving ids on screen): the gunships (section 2, gone by
+#   t≈64), the drifting banks (light and medium), the fires (section 3, from t≈74), the buoys
+#   (section 5); never more than two at once.
+
+backdrop:
+  # Presentation only: the Nova Lagos evacuation corridor at first light (tools/art/backdrop_l10.py,
+  # Level 08's production kit with Level 09's creep; D10 = a, D11 = a). Towers are scenery in true
+  # perspective (section 3's creep districts and the suburbs' last blocks), clear of the ferry hatch.
+  scroll_factors: {deep: 0.12, far: 0.45, ground: 1, low-air: 1.35, high-air: 2}
+  ramp: 4
+  haze_colour: 54484e  # rose-grey: the dawn haze over the water
+  atmosphere:
+    clear: {wisps: mist, haze: 0}   # sections 2 and 5: thin dawn mist only
+    light: {banks: haze, wisps: mist, haze: 0.05}   # sections 1 and 4: dawn haze, drifting west
+    medium: {banks: smoke-mist, wisps: wisps, haze: 0.12}   # section 3 and section 4's peak: smoke and sea mist, drifting west
+  tile_sets:
+    morning-sky: {layer: deep, height: 480}   # the dawn sky mirrored, gold in the east: seen only in the water
+    spaceport: {layer: ground, height: 960}   # 1: Eko spaceport's apron (x 84-396), taxiways, hangars, the terminal
+    suburbs: {layer: ground, height: 960}   # 2: the jammed motorway (x 176-304), refugee lights, houses, pitches
+    viaduct: {layer: ground, height: 960}   # 3: the maglev viaduct (deck x 214-266) between the creep districts
+    coast: {layer: ground, height: 960}   # 4: the village, the coast road (x 116-146), beach, water from x 168, sandbars
+    open-lagoon: {layer: ground, height: 960}   # 5: the open lagoon (translucent), shoals, fish-trap stakes
+    haze: {layer: low-air, height: 960, drift: -8}   # light: dawn haze and the city's smoke, drifting west
+    smoke-mist: {layer: low-air, height: 960, drift: -14}   # medium: smoke and sea mist, drifting west
+    mist: {layer: high-air, height: 960}   # clear and light: thin dawn mist (additive)
+    wisps: {layer: high-air, height: 960}   # medium: smoke wisps (additive)
+  pieces:
+    cross-highway: {layer: ground, size: [480, 92]}   # an elevated cross highway (a causeway over the water); one over every section seam
+    service-vehicles: {layer: ground, size: [48, 40]}   # a fuel bowser, a tug and a stair truck on the apron
+    cdf-gunship: {layer: low-air, size: [44, 44], headings: 16}   # the CDF gunship (Level 08's model at dawn), 16 headings, 0 nose up, clockwise; scenery
+    burnt-block-a: {layer: ground, size: [72, 82]}   # a collapsed block in the creep districts
+    burnt-block-b: {layer: ground, size: [76, 82]}
+    fire: {layer: ground, size: [40, 40], frames: 4, fps: 8}   # flames on the burnt blocks (section 3)
+    smoke-column-a: {layer: low-air, size: [150, 200]}   # smoke plumes over the burning blocks (static)
+    smoke-column-b: {layer: low-air, size: [130, 180]}
+    maglev-train: {layer: ground, size: [16, 180]}   # a stalled maglev train on the viaduct's west guideway
+    ferry: {layer: ground, size: [132, 264], mid_size: true}   # the capsized ferry on its sandbar; the hatch (a ground target) on its hull
+    fishing-boats: {layer: ground, size: [56, 48]}   # pirogues drawn up on the beach
+    buoy: {layer: ground, size: [16, 16], frames: 4, fps: 2}   # a channel buoy, its lamp blinking
+    launch-pads: {layer: ground, size: [268, 198], mid_size: true}   # the five launch pads round the shuttles' t=1 points (the liftoff's `pads`)
+    tower-56x56-h060-a: {layer: ground, size: [56, 56], tower: {height: 0.6, wall: wall-mid}}
+    tower-56x56-h060-b: {layer: ground, size: [56, 56], tower: {height: 0.6, wall: wall-mid}}
+    tower-56x56-h060-burnt: {layer: ground, size: [56, 56], tower: {height: 0.6, wall: wall-burnt, shade: 0.45}}
+    tower-56x56-h085-a: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-mid}}
+    tower-56x56-h085-b: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-mid}}
+    tower-56x56-h085-burnt: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-burnt, shade: 0.45}}
+    tower-56x56-h085-creep: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-creep-mid}}
+    tower-56x56-h110-a: {layer: ground, size: [56, 56], tower: {height: 1.1, wall: wall-tall}}
+    tower-56x56-h110-b: {layer: ground, size: [56, 56], tower: {height: 1.1, wall: wall-tall}}
+    tower-56x56-h110-creep: {layer: ground, size: [56, 56], tower: {height: 1.1, wall: wall-creep-tall}}
+    tower-56x56-h135-a: {layer: ground, size: [56, 56], tower: {height: 1.35, wall: wall-tall}}
+    tower-56x56-h135-b: {layer: ground, size: [56, 56], tower: {height: 1.35, wall: wall-tall}}
+    tower-56x56-h135-creep: {layer: ground, size: [56, 56], tower: {height: 1.35, wall: wall-creep-tall}}
+    tower-68x64-h035-a: {layer: ground, size: [68, 64], tower: {height: 0.35, wall: wall-low}}
+    tower-68x64-h035-b: {layer: ground, size: [68, 64], tower: {height: 0.35, wall: wall-low}}
+    tower-68x64-h060-a: {layer: ground, size: [68, 64], tower: {height: 0.6, wall: wall-mid}}
+    tower-68x64-h060-b: {layer: ground, size: [68, 64], tower: {height: 0.6, wall: wall-mid}}
+    tower-68x64-h060-burnt: {layer: ground, size: [68, 64], tower: {height: 0.6, wall: wall-burnt, shade: 0.45}}
+    tower-68x64-h085-a: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-mid}}
+    tower-68x64-h085-b: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-mid}}
+    tower-68x64-h085-burnt: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-burnt, shade: 0.45}}
+    tower-68x64-h085-creep: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-creep-mid}}
+    tower-68x64-h110-a: {layer: ground, size: [68, 64], tower: {height: 1.1, wall: wall-tall}}
+    tower-68x64-h110-b: {layer: ground, size: [68, 64], tower: {height: 1.1, wall: wall-tall}}
+    tower-68x64-h110-creep: {layer: ground, size: [68, 64], tower: {height: 1.1, wall: wall-creep-tall}}
+    tower-68x64-h135-a: {layer: ground, size: [68, 64], tower: {height: 1.35, wall: wall-tall}}
+    tower-68x64-h135-b: {layer: ground, size: [68, 64], tower: {height: 1.35, wall: wall-tall}}
+    tower-68x64-h135-creep: {layer: ground, size: [68, 64], tower: {height: 1.35, wall: wall-creep-tall}}
+  placed:
+    # over every section seam, where the ground tiles change (the last two: causeways over the water)
+    - {piece: cross-highway, t: 21.421, x: 240}
+    - {piece: cross-highway, t: 71.421, x: 240}
+    - {piece: cross-highway, t: 131.421, x: 240}
+    - {piece: cross-highway, t: 176.421, x: 240}
+    # 1. Liftoff: Eko spaceport, the five pads
+    - {piece: launch-pads, t: 0.079, x: 240}
+    - {piece: service-vehicles, t: 6.5, x: 128}
+    - {piece: service-vehicles, t: 12.2, x: 352}
+    - {piece: service-vehicles, t: 16.4, x: 110}
+    # 3. The Corridor: the maglev viaduct between the creep districts; the stalled train
+    - {piece: maglev-train, t: 96, x: 226}
+    # 4. Coast Road: the capsized ferry (the hatch's spot)
+    - {piece: ferry, t: 151.606, x: 312}
+    - {piece: fishing-boats, t: 136, x: 156}
+    - {piece: fishing-boats, t: 158.5, x: 154}
+    - {piece: fishing-boats, t: 168, x: 157}
+    # 5. Orbital Corridor: the open lagoon, buoys
+    - {piece: buoy, t: 178, x: 300}
+    - {piece: buoy, t: 181.6, x: 352}
+    - {piece: buoy, t: 186, x: 248}
+    - {piece: buoy, t: 190, x: 300}
+    - {piece: buoy, t: 194.4, x: 356}
+    - {piece: burnt-block-a, t: 72.095, x: 435}
+    - {piece: burnt-block-b, t: 73.611, x: 344}
+    - {piece: burnt-block-a, t: 76.642, x: 45}
+    - {piece: burnt-block-b, t: 79.674, x: 435}
+    - {piece: burnt-block-b, t: 80.684, x: 344}
+    - {piece: burnt-block-b, t: 84.221, x: 344}
+    - {piece: burnt-block-a, t: 84.726, x: 136}
+    - {piece: burnt-block-a, t: 85.737, x: 136}
+    - {piece: burnt-block-a, t: 88.768, x: 136}
+    - {piece: burnt-block-a, t: 89.274, x: 435}
+    - {piece: burnt-block-b, t: 90.284, x: 45}
+    - {piece: burnt-block-b, t: 91.295, x: 45}
+    - {piece: burnt-block-b, t: 91.8, x: 136}
+    - {piece: burnt-block-b, t: 91.8, x: 435}
+    - {piece: burnt-block-b, t: 92.305, x: 136}
+    - {piece: burnt-block-b, t: 94.326, x: 344}
+    - {piece: burnt-block-b, t: 94.326, x: 435}
+    - {piece: burnt-block-b, t: 94.832, x: 45}
+    - {piece: burnt-block-a, t: 94.832, x: 344}
+    - {piece: burnt-block-b, t: 96.347, x: 45}
+    - {piece: burnt-block-a, t: 96.347, x: 136}
+    - {piece: burnt-block-a, t: 97.358, x: 136}
+    - {piece: burnt-block-a, t: 97.358, x: 435}
+    - {piece: burnt-block-a, t: 97.863, x: 136}
+    - {piece: burnt-block-b, t: 98.368, x: 435}
+    - {piece: burnt-block-a, t: 101.905, x: 435}
+    - {piece: burnt-block-a, t: 105.947, x: 45}
+    - {piece: burnt-block-a, t: 106.958, x: 45}
+    - {piece: burnt-block-a, t: 109.989, x: 344}
+    - {piece: burnt-block-b, t: 111, x: 45}
+    - {piece: burnt-block-b, t: 111, x: 136}
+    - {piece: burnt-block-a, t: 112.516, x: 344}
+    - {piece: burnt-block-a, t: 113.021, x: 45}
+    - {piece: burnt-block-b, t: 115.547, x: 435}
+    - {piece: burnt-block-b, t: 116.053, x: 344}
+    - {piece: burnt-block-a, t: 118.074, x: 435}
+    - {piece: burnt-block-b, t: 119.589, x: 136}
+    - {piece: burnt-block-b, t: 119.589, x: 435}
+    - {piece: burnt-block-b, t: 120.095, x: 344}
+    - {piece: burnt-block-b, t: 121.611, x: 344}
+    - {piece: burnt-block-a, t: 123.126, x: 45}
+    - {piece: burnt-block-b, t: 123.126, x: 344}
+    - {piece: burnt-block-a, t: 123.632, x: 344}
+    - {piece: burnt-block-b, t: 124.137, x: 435}
+    - {piece: burnt-block-a, t: 124.642, x: 45}
+    - {piece: burnt-block-b, t: 124.642, x: 435}
+    - {piece: burnt-block-b, t: 125.147, x: 435}
+    - {piece: burnt-block-a, t: 126.663, x: 344}
+    - {piece: burnt-block-a, t: 127.168, x: 45}
+    - {piece: burnt-block-a, t: 128.684, x: 136}
+    - {piece: burnt-block-a, t: 130.2, x: 136}
+    - {piece: fire, t: 76.628, x: 51}
+    - {piece: fire, t: 79.684, x: 429}
+    - {piece: fire, t: 80.715, x: 337}
+    - {piece: fire, t: 84.275, x: 346}
+    - {piece: fire, t: 84.794, x: 143}
+    - {piece: fire, t: 85.814, x: 146}
+    - {piece: fire, t: 90.36, x: 51}
+    - {piece: fire, t: 91.258, x: 44}
+    - {piece: fire, t: 91.889, x: 146}
+    - {piece: fire, t: 91.821, x: 446}
+    - {piece: fire, t: 92.33, x: 132}
+    - {piece: fire, t: 94.301, x: 440}
+    - {piece: fire, t: 96.319, x: 124}
+    - {piece: fire, t: 97.317, x: 145}
+    - {piece: fire, t: 97.251, x: 436}
+    - {piece: fire, t: 97.88, x: 131}
+    - {piece: fire, t: 101.992, x: 430}
+    - {piece: fire, t: 110.962, x: 43}
+    - {piece: fire, t: 111.066, x: 140}
+    - {piece: fire, t: 118.013, x: 433}
+    - {piece: fire, t: 119.604, x: 143}
+    - {piece: fire, t: 123.512, x: 348}
+    - {piece: fire, t: 124.143, x: 426}
+    - {piece: fire, t: 128.686, x: 129}
+    - {piece: tower-68x64-h035-a, t: 57.947, x: 133}
+    - {piece: tower-56x56-h060-b, t: 60.474, x: 133}
+    - {piece: tower-56x56-h060-a, t: 60.979, x: 45}
+    - {piece: tower-56x56-h060-b, t: 60.979, x: 435}
+    - {piece: tower-56x56-h060-a, t: 61.989, x: 133}
+    - {piece: tower-68x64-h060-a, t: 62.495, x: 45}
+    - {piece: tower-68x64-h035-b, t: 62.495, x: 133}
+    - {piece: tower-68x64-h060-a, t: 63.505, x: 45}
+    - {piece: tower-68x64-h035-b, t: 63.505, x: 133}
+    - {piece: tower-68x64-h060-b, t: 63.505, x: 347}
+    - {piece: tower-56x56-h060-a, t: 63.505, x: 435}
+    - {piece: tower-68x64-h060-a, t: 64.011, x: 45}
+    - {piece: tower-56x56-h060-a, t: 64.011, x: 133}
+    - {piece: tower-68x64-h035-b, t: 64.516, x: 45}
+    - {piece: tower-68x64-h060-a, t: 64.516, x: 133}
+    - {piece: tower-68x64-h060-b, t: 64.516, x: 347}
+    - {piece: tower-68x64-h060-b, t: 65.526, x: 133}
+    - {piece: tower-68x64-h035-a, t: 65.526, x: 347}
+    - {piece: tower-56x56-h060-a, t: 66.032, x: 45}
+    - {piece: tower-68x64-h060-b, t: 66.032, x: 133}
+    - {piece: tower-56x56-h060-a, t: 66.032, x: 347}
+    - {piece: tower-68x64-h060-b, t: 66.537, x: 133}
+    - {piece: tower-68x64-h060-b, t: 67.042, x: 347}
+    - {piece: tower-68x64-h035-a, t: 67.042, x: 435}
+    - {piece: tower-68x64-h035-a, t: 67.547, x: 133}
+    - {piece: tower-68x64-h060-a, t: 68.053, x: 347}
+    - {piece: tower-68x64-h035-a, t: 68.053, x: 435}
+    - {piece: tower-68x64-h060-b, t: 68.558, x: 347}
+    - {piece: tower-56x56-h060-a, t: 69.063, x: 45}
+    - {piece: tower-68x64-h060-b, t: 69.063, x: 347}
+    - {piece: tower-56x56-h060-b, t: 69.568, x: 435}
+    - {piece: tower-68x64-h035-a, t: 70.074, x: 45}
+    - {piece: tower-68x64-h060-a, t: 70.074, x: 133}
+    - {piece: tower-68x64-h060-a, t: 70.579, x: 347}
+    - {piece: tower-68x64-h060-a, t: 70.579, x: 435}
+    - {piece: tower-56x56-h135-creep, t: 72.095, x: 45}
+    - {piece: tower-56x56-h110-creep, t: 72.095, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 72.095, x: 344}
+    - {piece: tower-68x64-h085-b, t: 72.6, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 72.6, x: 136}
+    - {piece: tower-56x56-h135-a, t: 72.6, x: 344}
+    - {piece: tower-56x56-h085-burnt, t: 72.6, x: 435}
+    - {piece: tower-56x56-h110-creep, t: 73.105, x: 45}
+    - {piece: tower-68x64-h085-b, t: 73.105, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 73.105, x: 435}
+    - {piece: tower-68x64-h060-burnt, t: 73.611, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 73.611, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 73.611, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 74.116, x: 45}
+    - {piece: tower-68x64-h085-creep, t: 74.116, x: 136}
+    - {piece: tower-68x64-h085-burnt, t: 74.116, x: 435}
+    - {piece: tower-68x64-h060-a, t: 74.621, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 74.621, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 74.621, x: 344}
+    - {piece: tower-68x64-h085-creep, t: 75.126, x: 344}
+    - {piece: tower-56x56-h135-a, t: 75.632, x: 45}
+    - {piece: tower-68x64-h110-b, t: 75.632, x: 136}
+    - {piece: tower-68x64-h135-b, t: 75.632, x: 344}
+    - {piece: tower-68x64-h085-a, t: 76.642, x: 136}
+    - {piece: tower-56x56-h085-creep, t: 76.642, x: 344}
+    - {piece: tower-68x64-h085-burnt, t: 76.642, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 77.147, x: 45}
+    - {piece: tower-68x64-h135-a, t: 77.147, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 77.147, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 77.147, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 77.653, x: 45}
+    - {piece: tower-68x64-h135-b, t: 77.653, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 77.653, x: 344}
+    - {piece: tower-56x56-h085-burnt, t: 78.158, x: 45}
+    - {piece: tower-68x64-h085-a, t: 78.158, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 78.158, x: 344}
+    - {piece: tower-56x56-h110-creep, t: 78.158, x: 435}
+    - {piece: tower-56x56-h085-creep, t: 78.663, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 78.663, x: 435}
+    - {piece: tower-68x64-h110-b, t: 79.168, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 79.168, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 79.168, x: 344}
+    - {piece: tower-56x56-h135-creep, t: 79.168, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 79.674, x: 45}
+    - {piece: tower-56x56-h110-a, t: 80.179, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 80.179, x: 136}
+    - {piece: tower-68x64-h085-burnt, t: 80.179, x: 344}
+    - {piece: tower-68x64-h110-a, t: 80.179, x: 435}
+    - {piece: tower-68x64-h085-creep, t: 80.684, x: 45}
+    - {piece: tower-68x64-h085-b, t: 80.684, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 80.684, x: 435}
+    - {piece: tower-68x64-h110-a, t: 81.189, x: 136}
+    - {piece: tower-68x64-h085-burnt, t: 81.189, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 81.695, x: 45}
+    - {piece: tower-56x56-h135-b, t: 81.695, x: 344}
+    - {piece: tower-56x56-h060-burnt, t: 81.695, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 82.2, x: 45}
+    - {piece: tower-56x56-h060-b, t: 82.2, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 82.2, x: 344}
+    - {piece: tower-68x64-h135-a, t: 82.705, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 82.705, x: 344}
+    - {piece: tower-68x64-h085-burnt, t: 82.705, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 83.211, x: 136}
+    - {piece: tower-56x56-h135-b, t: 83.716, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 83.716, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 83.716, x: 435}
+    - {piece: tower-68x64-h085-b, t: 84.221, x: 136}
+    - {piece: tower-56x56-h110-creep, t: 84.221, x: 435}
+    - {piece: tower-56x56-h085-b, t: 84.726, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 84.726, x: 344}
+    - {piece: tower-56x56-h110-creep, t: 85.232, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 85.232, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 85.737, x: 45}
+    - {piece: tower-56x56-h060-burnt, t: 85.737, x: 435}
+    - {piece: tower-56x56-h085-a, t: 86.242, x: 136}
+    - {piece: tower-68x64-h060-burnt, t: 86.242, x: 344}
+    - {piece: tower-68x64-h110-a, t: 86.242, x: 435}
+    - {piece: tower-68x64-h060-burnt, t: 86.747, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 86.747, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 86.747, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 86.747, x: 435}
+    - {piece: tower-68x64-h060-a, t: 87.253, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 87.253, x: 344}
+    - {piece: tower-56x56-h110-b, t: 87.758, x: 45}
+    - {piece: tower-68x64-h085-b, t: 87.758, x: 136}
+    - {piece: tower-68x64-h085-a, t: 87.758, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 88.263, x: 45}
+    - {piece: tower-68x64-h060-a, t: 88.263, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 88.768, x: 435}
+    - {piece: tower-56x56-h060-b, t: 89.274, x: 45}
+    - {piece: tower-68x64-h085-a, t: 89.274, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 89.274, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 89.779, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 89.779, x: 344}
+    - {piece: tower-68x64-h135-a, t: 89.779, x: 435}
+    - {piece: tower-68x64-h085-creep, t: 90.284, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 90.284, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 90.789, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 90.789, x: 344}
+    - {piece: tower-68x64-h085-creep, t: 91.295, x: 344}
+    - {piece: tower-68x64-h085-creep, t: 91.295, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 91.8, x: 45}
+    - {piece: tower-68x64-h085-burnt, t: 91.8, x: 344}
+    - {piece: tower-68x64-h135-b, t: 92.305, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 92.305, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 92.811, x: 136}
+    - {piece: tower-68x64-h060-b, t: 92.811, x: 344}
+    - {piece: tower-68x64-h060-a, t: 92.811, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 93.316, x: 136}
+    - {piece: tower-56x56-h085-burnt, t: 93.316, x: 344}
+    - {piece: tower-56x56-h135-creep, t: 93.316, x: 435}
+    - {piece: tower-68x64-h085-a, t: 93.821, x: 344}
+    - {piece: tower-68x64-h135-b, t: 93.821, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 94.832, x: 136}
+    - {piece: tower-56x56-h135-b, t: 94.832, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 95.337, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 95.337, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 95.337, x: 344}
+    - {piece: tower-68x64-h110-b, t: 95.337, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 95.842, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 95.842, x: 136}
+    - {piece: tower-68x64-h085-creep, t: 95.842, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 96.347, x: 344}
+    - {piece: tower-56x56-h085-creep, t: 96.347, x: 435}
+    - {piece: tower-56x56-h085-b, t: 96.853, x: 344}
+    - {piece: tower-56x56-h085-creep, t: 97.863, x: 344}
+    - {piece: tower-56x56-h060-burnt, t: 98.368, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 98.368, x: 344}
+    - {piece: tower-68x64-h060-burnt, t: 98.874, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 98.874, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 99.379, x: 45}
+    - {piece: tower-56x56-h110-b, t: 99.379, x: 136}
+    - {piece: tower-68x64-h060-a, t: 99.379, x: 344}
+    - {piece: tower-68x64-h060-burnt, t: 99.379, x: 435}
+    - {piece: tower-68x64-h085-a, t: 99.884, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 99.884, x: 136}
+    - {piece: tower-68x64-h135-b, t: 99.884, x: 344}
+    - {piece: tower-56x56-h110-creep, t: 99.884, x: 435}
+    - {piece: tower-56x56-h135-creep, t: 100.389, x: 45}
+    - {piece: tower-68x64-h085-a, t: 100.389, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 100.389, x: 344}
+    - {piece: tower-56x56-h085-burnt, t: 100.389, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 100.895, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 101.4, x: 45}
+    - {piece: tower-56x56-h085-creep, t: 101.4, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 101.905, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 101.905, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 101.905, x: 344}
+    - {piece: tower-56x56-h085-a, t: 102.411, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 102.411, x: 435}
+    - {piece: tower-68x64-h060-a, t: 102.916, x: 45}
+    - {piece: tower-68x64-h110-b, t: 102.916, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 102.916, x: 344}
+    - {piece: tower-56x56-h135-a, t: 102.916, x: 435}
+    - {piece: tower-56x56-h110-creep, t: 103.421, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 103.926, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 103.926, x: 136}
+    - {piece: tower-56x56-h110-b, t: 103.926, x: 344}
+    - {piece: tower-68x64-h060-b, t: 103.926, x: 435}
+    - {piece: tower-56x56-h135-creep, t: 104.432, x: 344}
+    - {piece: tower-68x64-h060-burnt, t: 104.432, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 104.937, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 104.937, x: 136}
+    - {piece: tower-68x64-h110-a, t: 104.937, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 105.442, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 105.442, x: 136}
+    - {piece: tower-56x56-h135-a, t: 105.442, x: 344}
+    - {piece: tower-68x64-h085-burnt, t: 105.442, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 105.947, x: 136}
+    - {piece: tower-68x64-h110-a, t: 106.453, x: 136}
+    - {piece: tower-68x64-h135-b, t: 106.453, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 106.958, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 106.958, x: 435}
+    - {piece: tower-68x64-h060-b, t: 107.463, x: 45}
+    - {piece: tower-68x64-h085-burnt, t: 107.463, x: 136}
+    - {piece: tower-56x56-h085-a, t: 107.463, x: 344}
+    - {piece: tower-68x64-h060-a, t: 107.968, x: 45}
+    - {piece: tower-68x64-h135-b, t: 107.968, x: 136}
+    - {piece: tower-68x64-h085-b, t: 107.968, x: 344}
+    - {piece: tower-56x56-h110-b, t: 107.968, x: 435}
+    - {piece: tower-56x56-h135-b, t: 108.474, x: 45}
+    - {piece: tower-68x64-h085-b, t: 108.474, x: 136}
+    - {piece: tower-68x64-h085-creep, t: 108.474, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 108.474, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 108.979, x: 45}
+    - {piece: tower-68x64-h135-a, t: 108.979, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 109.484, x: 45}
+    - {piece: tower-68x64-h060-b, t: 109.484, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 109.484, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 109.484, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 109.989, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 109.989, x: 136}
+    - {piece: tower-68x64-h135-a, t: 109.989, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 110.495, x: 45}
+    - {piece: tower-56x56-h060-b, t: 110.495, x: 136}
+    - {piece: tower-68x64-h135-b, t: 110.495, x: 344}
+    - {piece: tower-68x64-h060-a, t: 110.495, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 111, x: 344}
+    - {piece: tower-68x64-h110-a, t: 111, x: 435}
+    - {piece: tower-56x56-h135-a, t: 111.505, x: 136}
+    - {piece: tower-56x56-h060-burnt, t: 111.505, x: 435}
+    - {piece: tower-68x64-h135-b, t: 112.011, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 112.011, x: 344}
+    - {piece: tower-56x56-h110-creep, t: 112.011, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 112.516, x: 45}
+    - {piece: tower-68x64-h060-burnt, t: 112.516, x: 435}
+    - {piece: tower-56x56-h060-b, t: 113.021, x: 136}
+    - {piece: tower-68x64-h085-creep, t: 113.021, x: 344}
+    - {piece: tower-68x64-h085-creep, t: 113.021, x: 435}
+    - {piece: tower-68x64-h110-b, t: 113.526, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 113.526, x: 435}
+    - {piece: tower-68x64-h085-creep, t: 114.032, x: 45}
+    - {piece: tower-68x64-h135-a, t: 114.032, x: 136}
+    - {piece: tower-68x64-h060-b, t: 114.032, x: 344}
+    - {piece: tower-68x64-h135-a, t: 114.032, x: 435}
+    - {piece: tower-68x64-h085-creep, t: 114.537, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 114.537, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 114.537, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 115.042, x: 344}
+    - {piece: tower-56x56-h135-a, t: 115.042, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 115.547, x: 45}
+    - {piece: tower-68x64-h135-a, t: 115.547, x: 136}
+    - {piece: tower-56x56-h060-burnt, t: 115.547, x: 344}
+    - {piece: tower-68x64-h135-b, t: 116.053, x: 45}
+    - {piece: tower-56x56-h110-creep, t: 116.053, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 116.558, x: 45}
+    - {piece: tower-68x64-h060-a, t: 116.558, x: 136}
+    - {piece: tower-68x64-h085-a, t: 116.558, x: 344}
+    - {piece: tower-68x64-h060-burnt, t: 117.063, x: 45}
+    - {piece: tower-68x64-h135-a, t: 117.063, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 117.063, x: 344}
+    - {piece: tower-56x56-h110-creep, t: 117.063, x: 435}
+    - {piece: tower-68x64-h110-a, t: 117.568, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 117.568, x: 136}
+    - {piece: tower-68x64-h085-creep, t: 117.568, x: 344}
+    - {piece: tower-56x56-h085-creep, t: 117.568, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 118.074, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 118.579, x: 45}
+    - {piece: tower-68x64-h085-a, t: 118.579, x: 136}
+    - {piece: tower-56x56-h110-a, t: 118.579, x: 344}
+    - {piece: tower-56x56-h085-burnt, t: 118.579, x: 435}
+    - {piece: tower-68x64-h085-a, t: 119.084, x: 435}
+    - {piece: tower-56x56-h110-creep, t: 120.095, x: 45}
+    - {piece: tower-56x56-h110-creep, t: 120.095, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 120.6, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 120.6, x: 344}
+    - {piece: tower-56x56-h135-creep, t: 120.6, x: 435}
+    - {piece: tower-56x56-h135-creep, t: 121.105, x: 136}
+    - {piece: tower-68x64-h110-b, t: 121.105, x: 344}
+    - {piece: tower-68x64-h085-b, t: 121.105, x: 435}
+    - {piece: tower-68x64-h085-creep, t: 121.611, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 122.116, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 122.116, x: 435}
+    - {piece: tower-56x56-h060-burnt, t: 122.621, x: 45}
+    - {piece: tower-68x64-h060-burnt, t: 122.621, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 123.126, x: 136}
+    - {piece: tower-56x56-h085-creep, t: 123.126, x: 435}
+    - {piece: tower-68x64-h060-a, t: 123.632, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 124.137, x: 45}
+    - {piece: tower-68x64-h060-burnt, t: 124.137, x: 136}
+    - {piece: tower-68x64-h085-burnt, t: 124.137, x: 344}
+    - {piece: tower-68x64-h060-b, t: 124.642, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 125.147, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 125.147, x: 344}
+    - {piece: tower-56x56-h085-burnt, t: 125.653, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 125.653, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 125.653, x: 344}
+    - {piece: tower-56x56-h135-creep, t: 125.653, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 126.158, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 126.158, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 126.158, x: 435}
+    - {piece: tower-56x56-h135-a, t: 126.663, x: 45}
+    - {piece: tower-56x56-h110-a, t: 126.663, x: 136}
+    - {piece: tower-68x64-h110-a, t: 126.663, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 127.168, x: 136}
+    - {piece: tower-68x64-h110-b, t: 127.168, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 127.674, x: 45}
+    - {piece: tower-56x56-h110-creep, t: 127.674, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 127.674, x: 435}
+    - {piece: tower-68x64-h060-burnt, t: 128.179, x: 45}
+    - {piece: tower-68x64-h135-b, t: 128.179, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 128.179, x: 344}
+    - {piece: tower-68x64-h110-b, t: 128.684, x: 45}
+    - {piece: tower-56x56-h110-creep, t: 128.684, x: 344}
+    - {piece: tower-56x56-h110-a, t: 128.684, x: 435}
+    - {piece: tower-68x64-h060-b, t: 129.189, x: 136}
+    - {piece: tower-68x64-h060-a, t: 129.189, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 129.695, x: 136}
+    - {piece: tower-68x64-h085-burnt, t: 129.695, x: 344}
+    - {piece: tower-68x64-h085-creep, t: 130.2, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 130.2, x: 344}
+    - {piece: tower-56x56-h085-creep, t: 130.2, x: 435}
+    - {piece: tower-56x56-h110-creep, t: 130.705, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 130.705, x: 344}
+    - {piece: tower-68x64-h085-a, t: 130.705, x: 435}
+    # smoke plumes on low-air over the fires (static)
+    - {piece: smoke-column-a, t: 77.23, x: 19}
+    - {piece: smoke-column-b, t: 81.31, x: 357}
+    - {piece: smoke-column-a, t: 85.39, x: 118}
+    - {piece: smoke-column-b, t: 90.96, x: 12}
+    - {piece: smoke-column-a, t: 96.92, x: 102}
+    - {piece: smoke-column-b, t: 102.59, x: 461}
+    - {piece: smoke-column-a, t: 111.56, x: 18}
+    - {piece: smoke-column-b, t: 118.61, x: 459}
+    - {piece: smoke-column-a, t: 124.11, x: 385}
+    - {piece: smoke-column-b, t: 129.29, x: 92}
+    # 2. CDF gunships heading south, the other way (scenery, shots pass through)
+    - {piece: cdf-gunship, t: 25.142, x: 120, path: [[24, 0, 0], [27, 54, -270]]}
+    - {piece: cdf-gunship, t: 25.742, x: 160, path: [[24.6, 0, 0], [27.6, 54, -270]]}
+    - {piece: cdf-gunship, t: 37.142, x: 380, path: [[36, 0, 0], [39, -42, -270]]}
+    - {piece: cdf-gunship, t: 48.642, x: 300, path: [[47.5, 0, 0], [50.5, 30, -270]]}
+    - {piece: cdf-gunship, t: 49.242, x: 340, path: [[48.1, 0, 0], [51.1, 30, -270]]}
+    - {piece: cdf-gunship, t: 59.142, x: 96, path: [[58, 0, 0], [61, 66, -270]]}

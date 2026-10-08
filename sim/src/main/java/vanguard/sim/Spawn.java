@@ -19,6 +19,8 @@ import java.util.Optional;
  * @param escort how an escort circles its carrier (the unit of a spawner planned just before it)
  * @param walk a walker's ground path, instead of its flight path
  * @param loop a segment chain's loop-back: the head re-enters on this second path after a gap
+ * @param ambush M5 part D: a {@code rear ambush} unit's way back up after its swoop down {@code path}
+ * @param swarm M5 part D: a {@code swarm} member: its flock's route and its place in the flock
  */
 record Spawn(
         int tick,
@@ -34,7 +36,101 @@ record Spawn(
         Optional<Release> release,
         Optional<Escort> escort,
         Optional<WalkPath> walk,
-        Optional<Loop> loop) {
+        Optional<Loop> loop,
+        Optional<Ambush> ambush,
+        Optional<Swarm> swarm) {
+
+    Spawn(
+            int tick,
+            int kind,
+            EnemySpec enemy,
+            FlightPath path,
+            double speed,
+            double holdSeconds,
+            Optional<Orbit> orbit,
+            Exit exit,
+            boolean leadsTarget,
+            Optional<PickupType> carried,
+            Optional<Release> release,
+            Optional<Escort> escort,
+            Optional<WalkPath> walk,
+            Optional<Loop> loop) {
+        this(
+                tick,
+                kind,
+                enemy,
+                path,
+                speed,
+                holdSeconds,
+                orbit,
+                exit,
+                leadsTarget,
+                carried,
+                release,
+                escort,
+                walk,
+                loop,
+                Optional.empty(),
+                Optional.empty());
+    }
+
+    /**
+     * M5 part D, a {@code rear ambush} unit's way back (design/enemies/air/wraith): after its swoop
+     * down its spawn's path (at the spawn's speed, off the bottom edge) it waits {@code gapSeconds}
+     * below the edge, flies {@code rise} up to its hold point at the same speed, decloaks there over
+     * {@code flashSeconds}, holds {@code holdSeconds} after the flash and leaves along {@code exit}
+     * at {@code exitSpeed} px/s; the bottom edge is warned {@code warningSeconds} ahead of its
+     * re-entry.
+     */
+    record Ambush(
+            FlightPath rise,
+            double gapSeconds,
+            double flashSeconds,
+            double holdSeconds,
+            FlightPath exit,
+            double exitSpeed,
+            double warningSeconds) {}
+
+    /**
+     * M5 part D, a swarm's route (design/enemies/air/mote-swarm): its leader point flies {@code path}
+     * at {@code speed} px/s and on past its end; {@code gapSeconds} after the end of a path it
+     * re-enters on the next of the {@code loops} at {@code diveSpeed} px/s (the bottom edge warned
+     * {@code warningSeconds} ahead), until the loops are flown. Shared by the members of a wave.
+     */
+    record Route(
+            FlightPath path,
+            java.util.List<FlightPath> loops,
+            double speed,
+            double diveSpeed,
+            double gapSeconds,
+            double warningSeconds) {
+        Route {
+            loops = java.util.List.copyOf(loops);
+        }
+
+        /** The steps from the wave's start to loop-back {@code k} (from 0): its re-entry. */
+        int reentryAfter(int k) {
+            double seconds = path.length() / speed + gapSeconds;
+            for (int j = 0; j < k; j++) {
+                seconds += loops.get(j).length() / diveSpeed + gapSeconds;
+            }
+            return SimStep.ticks(seconds);
+        }
+    }
+
+    /**
+     * M5 part D, a swarm's member {@code member} (from 0, in entry order) of a flock flying {@code
+     * route}, starting at ({@code x}, {@code y}) in the seeded cloud round the route's first point.
+     */
+    record Swarm(Route route, int member, double x, double y) {}
+
+    /** M5 part D: the level step an ambush unit re-enters at the bottom edge; -1 for any other unit. */
+    int ambushReentryTick() {
+        if (ambush.isEmpty()) {
+            return -1;
+        }
+        return tick + SimStep.ticks(path.length() / speed + ambush.get().gapSeconds());
+    }
 
     Spawn(
             int tick,

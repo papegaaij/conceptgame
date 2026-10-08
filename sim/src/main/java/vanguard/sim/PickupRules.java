@@ -13,6 +13,8 @@ package vanguard.sim;
  * @param driftSpeed how fast pickups drift down the screen in px/s
  * @param collectionRadius distance from the ship's centre within which pickups are collected
  * @param largeSalvageCredits credits of a large salvage pickup before the credit factor
+ * @param crateSeconds how long an uncollected secret's crate or data core stays: {@code seconds}
+ *     unless the level sets its own (Level 10's ferry cache, which drifts down from the top edge)
  */
 public record PickupRules(
         int smallSalvageCredits,
@@ -23,7 +25,32 @@ public record PickupRules(
         double seconds,
         double driftSpeed,
         double collectionRadius,
-        int largeSalvageCredits) {
+        int largeSalvageCredits,
+        double crateSeconds) {
+    /** Rules whose secrets' crates stay as long as other pickups. */
+    public PickupRules(
+            int smallSalvageCredits,
+            int mediumSalvageCredits,
+            double overdriveSeconds,
+            double shieldCellShare,
+            double armourPatch,
+            double seconds,
+            double driftSpeed,
+            double collectionRadius,
+            int largeSalvageCredits) {
+        this(
+                smallSalvageCredits,
+                mediumSalvageCredits,
+                overdriveSeconds,
+                shieldCellShare,
+                armourPatch,
+                seconds,
+                driftSpeed,
+                collectionRadius,
+                largeSalvageCredits,
+                seconds);
+    }
+
     /** Rules without large salvage. */
     public PickupRules(
             int smallSalvageCredits,

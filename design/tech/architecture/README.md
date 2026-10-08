@@ -1,10 +1,10 @@
 ---
 title: Architecture
 design: approved
-implementation: done
+implementation: in-progress
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Architecture
@@ -98,7 +98,10 @@ README), and the tables in the README are **rendered from the data**:
   `min–max`), so a number inside a sentence still has one source. The game ignores `notes`.
 - **The expected purchases** of a typical player per hangar visit are not a rule: they live in
   `design/player/balance-plan.yaml`, read by the content tests `BalanceTest` and
-  `ActPlaythroughTest` and printed by `tools/balance.py`.
+  `ActPlaythroughTest` and printed by `tools/balance.py`. Planned (M5 part D, D7 = a): a
+  visit's **`fit`** action (`[slot, item]`: fits an item already owned, without buying it; Level
+  10's visit refits Rook's Autocannon, `[escort, autocannon]`) and `BalanceTest`'s **rear check**
+  (the Wraith's HP ÷ the plan's rear DPS at most 0.6 × its decloak flash + hold at medium).
 - **Loading.** `content` reads the files with Jackson 3 (YAML) into Java records, one per file
   (`ShipData`, `EnemyData`, `LevelData`, …), gathered in `Content` by `ContentLoader`. Every
   record component is required unless its type is `Optional`; unknown keys are rejected; ranges
@@ -164,7 +167,7 @@ first entry of a part's model list is the starter (price 0, `start`).
   (`pattern` `aimed`/`fan`/`mine`, an optional `name`, `bullet` class, `interval`, `speed`,
   `first_shot_delay` (for parts sharing an attack: the stagger between them), a fan's `count` and
   `spread`, a mine's `mine` with `arm`, `life`, `drift`, `hp`, `ring`, `ring_bullet`, `credits`;
-  a fan's `aim` (`target`, the default, `down` or `facing`), an aimed attack's
+  a fan's `aim` (`target`, the default, `down` or `facing`; an aimed burst's `up`, see M5 part D), an aimed attack's
   `away` (fires only while the player is more than this many ° off its facing), and the pattern
   `spawn` with no `bullet`, `interval` or `speed` but a `spawn` block: `enemy`, `count`, `after`
   (s from entering to the self-burst), `telegraph` (s), `arc` (°), `speed` (the released units')
@@ -278,11 +281,52 @@ first entry of a part's model list is the starter (price 0, `start`).
   contact of its tier's class with the ship or the escort once per leap; ×1 from air-reaching
   weapons, ground-only blasts miss, mines trigger) and `scale` (the drawn scale at the apex));
   only a walker pounces; and the formation **`pack`** (see *Level*; the planner flies it).
+  M5 part D, for the [Wraith](../../enemies/air/wraith/README.md) and the
+  [Mote Swarm](../../enemies/air/mote-swarm/README.md) (flown in Level 10; user decisions D6–D8 of
+  2026-10-08): a **`cloak`** block (`layer`, the layer from its decloak on, the stat block's `layer`
+  being the cloaked one (`high-air`: only homing hits it, no contact, specials skip it); `flash`, s
+  of the decloak flash at its hold point, on `layer` from the flash's start and its gun silent
+  until the flash ends; only with an `ambush`, to another layer): the unit's **current layer**, as
+  the pounce's, read at every hit, contact and targeting site; the event **`DECLOAK`** at the
+  flash's start (the flash, its sound, the radio event `first-decloak`); the movement **`ambush`**
+  (`gap`, s below the bottom edge; `lane`, px from the nearer side edge; with a `hover` with its
+  `seconds`, a `straight` and `rear ambush` among its formations): the path of a unit of a `rear
+  ambush` wave, cloaked straight down its lane at the stat block's `speed` past the ship and off
+  the bottom edge, `gap` s below it, up to its `hover.y` at that speed (a height in the range per
+  unit, seeded), the flash and its `hover.seconds` hold (its aimed attack's `first_shot_delay`
+  counted from the stop; two volleys in the hold, the `interval` counted from a burst's start, the
+  burst's shots `burst_gap` apart: the attack's own `burst` and `burst_gap`, read for any aimed
+  attack, 0.15 s without one; an aimed attack's **`aim: up`** with a **`spread`** (°; 2026-10-08,
+  the user's choice for the Wraith) sends each burst straight up the screen as a fixed fan, its
+  shots in turn from the fan's left edge to its right, aimed at nobody, without the difficulty's aim
+  spread and without the 72 px no-fire distance), then out to the nearer side lane (`lane` px from that edge, a tie to
+  the left) while it climbs 60 px and straight up it from 120 px above its hold point, at its
+  `straight.speed`, off the top edge; the difficulty hook **`hover_seconds`** (hard's 3.0 s hold);
+  the movement **`flock`** (`separation`, px; `radius`, px of the neighbourhood; the weights
+  `alignment`, `cohesion` and `leader` (the pull toward the leader point); `speed` and `dive_speed`
+  (after a loop-back), px/s; `turn_rate`, °/s; `max` members, at most 24; with `swarm` among its
+  formations): the members of a `swarm` wave steer by the three rules among the members within
+  `radius` and toward a **leader point** that flies the wave's route at the unit's `path.speed` and
+  its loop-backs at `dive_speed` (the point is not a unit: killing members never stops it); each
+  member turns at most `turn_rate` and flies at 0.8–1.3 × the cruise (`speed`, `dive_speed` after a
+  loop-back) as it is near or far from the point, and pairs closer than `separation` also move
+  apart by 0.3 of the shortfall a step (the separation as a soft constraint, so the cloud reads as
+  motes); a fixed iteration order (the members in entry order, every heading from the positions at
+  the step's start), `StrictMath.atan2` and the `Trig` table, fixed arrays sized for 24, no
+  allocation per step (`FlockTest`), a killed member dropping out; members off the play field at a
+  loop-back re-enter with the point as the cloud they flew in; after the route's last path the
+  members off the play field are gone (escaped), those still on it 6 s later too; every member an
+  ordinary unit (a kill, a bounty, a chain step, a unit of the level's density); the event
+  **`LOOP_BACK`** (value: the loop-back's number) when the leader point re-enters below the bottom
+  edge, as its warning ends (the swarm's sound, the radio event `first-loop-back`).
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`, optional
   `bounty_scale` (default 1: a factor on every bounty paid in the level, after the act factor and
-  the difficulty's income, before the one rounding per payout; see the economy),
+  the difficulty's income, before the one rounding per payout; see the economy), optional
+  `crate_seconds` (default the player's `pickup_seconds`: how long an uncollected secret's crate or
+  data core stays, at least `pickup_seconds` and only in a level with secrets; Level 10's ferry cache
+  stays 12 s, enough to drift from the top edge to the ship's start line),
   `control_prompts`, timed `prompts` (`t`, `action`, `keys`, `seconds`, an optional `skip` layer:
   the prompt leaves once an enemy on it is destroyed; `requires: special`: shown only with a special fitted); `sections` back to back from t = 0 (`name`, `end`, `atmosphere`, optional
   `speed`, the backdrop's `tiles` (tile set ids, at most one per layer), `arena: true` for the
@@ -487,6 +531,78 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   the full mix from the collapse to the level's end; each only in a level with it), loaded and
   checked, the simulation telling `holdActive()`, `collapseStarted()` and the `HOLD_START`,
   `HOLD_END` and `COLLAPSE_WARNING` events; planned (M5 part C, the game): the run-time stem hook.
+  M5 part D, for [Level 10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md)
+  (user decisions D1–D12 of 2026-10-08): the formation **`swarm`** (a `flock` enemy's wave: `count`
+  members round the leader point flying the wave's `paths`, one route of `[x, y]` points, y below
+  the top edge, starting outside the play field, below the bottom edge with `from: rear` (then
+  warned as any rear wave); the members placed in a seeded cloud round the route's first point;
+  the chains' **`loop_back`** (`after`, `path`) with a new `count` (the loop-backs, default 1) and
+  a wave's `easy` / `hard` change **`loops`** (Level 10's hard: 2); each re-entry warned at the bottom
+  edge the wave's `warning` ahead, at least 3 s, and counted as a rear entry for Rook's Trail and
+  rear bark, as a chain's; `content` checks that a swarm's enemy has a flock and flies only swarms,
+  one route, at most the flock's `max` on every difficulty, and that only a swarm loops back more
+  than once). The formation **`rear ambush`** (1–4 units, each in its lane across the
+  bottom edge, x = (i + 1) × 480 ÷ (n + 1) from the left, i from 0; a lone unit in the middle): a
+  unit with the `ambush` movement enters at the top at the wave's `t` and flies it; its bottom-edge
+  warning runs the wave's `warning` (at least 3 s) ahead of its **re-entry**, not ahead of `t`, and
+  its wave is a rear wave for Trail and the rear bark from the re-entry on; `from: rear`, so the
+  intel counts it as rear (an `ambush` enemy flies only this formation, `content` checks it).
+  `paths` accepted on a **`snake`** wave (one route that every unit flies, from any edge; the
+  Skitter's authored-paths item; without it the laid-out shape as before); 2026-10-08, for Level
+  10's popcorn round the shuttle band: `paths` also on a **`stream`** wave (one route, flown by its
+  units from the left edge, mirrored by those from the right; without it the stream's shape as
+  before). Built (M5 part D, step D4) for Level 10: the **air escort** (D1, D2, D4, D5;
+  `LevelScript.Air`, flown by `Convoy`): an `escort`
+  block whose ally `follows: lanes` gives **`stations`** instead of `y`, an optional **`liftoff`**
+  instead of `enter`, no `hook` and no road (`content` rejects each mix):
+  `stations`, one per unit, the leading unit first, each `at` `[x, y]` (px from the play field's
+  left edge, px below the top edge), `sway` `[ax, ay]` px, `period` s and `phase` (0–1): the unit
+  flies at `at` + (ax sin θ, ay sin 2θ), θ = 2π (t ÷ `period` + `phase`), t the level clock, its
+  hit box inside the band and never overlapping another's (checked by `content`, sampled), never
+  reacting to threats; `liftoff` (`t`, `seconds`, `pads`: one `[x, y]` screen point per unit at
+  `t`): from its pad the unit eases (smoothstep) to its station over `seconds`, drawn from the
+  ground layer's scale to the air scale; `climb` (`t`, `seconds`): the climb-out, the units leaving
+  the top edge, every unit alive at `t` home; **untouchable** during the liftoff, the climb-out and,
+  for the scripted unit, until its loss: enemy fire and contact **pass through** it (nothing is
+  spent, no rammer dies on it); **`scripted_loss`** (`unit`, 1-based, `t`, `glow` s): the events
+  **`LOSS_GLOW`** at `t − glow` and **`SCRIPTED_LOSS`** at `t` (the lance; the radio event
+  **`scripted-loss`**), then the unit is lost without the cues `ally-lost` and `first-ally-lost`,
+  without counting toward the fail, and outside the escort's pay and the typical haul's stations
+  (`TypicalHaul`); the primary **fails at once when every saveable unit is lost** (the units but the
+  scripted one; without a scripted loss every unit, as before), through the failed primary flow; a
+  level-end cue's `allies` counts the saveable units home. An air ally's hits follow its
+  `damaged_by` (see *Allies*). `content` checks, sampled every step of the level, that each
+  station's hit box stays on the play field and off the others', that the pads are on the screen,
+  that the liftoff ends before the scripted loss's glow starts and the climb-out comes after the
+  loss, inside the level, and that a level-end cue's `allies` names no more than the saveable units.
+  The simulation (built) tells each unit's position, its `lift` (0 on the ground layer's scale to 1
+  on the air layer's), `bankVelocity()`, armour (`hpShare()`), `ticksSinceHit()` (the hit flash;
+  for a lost unit its glide's clock, `ticksSinceLost()`), `untouchable()` and its state (`PAD`,
+  `LIFTING`, `FLYING`, `CLIMBING`, `HOME`, `WRECK` for lost: the simulation keeps a lost unit where
+  it was lost and the game draws the glide), and `Sortie.airEscort()`, `saveableAllies()`,
+  `saveableAlliesAlive()`, `scriptedAlly()` and `lastAllyLost()`; the debrief's `LevelResult.Escort`
+  counts the saveable units (home of 4). With the debug option `--invulnerable` losing every saveable
+  unit does not fail an air escort (so a capture sees the level to its end). A level may have **no
+  secondary objective** (Level 10, D5 = a: `objectives` without `secondary`): the simulation then
+  has `LevelScript.Secondary.NONE` (`none()`: never met, paid or cued). Radio event **`ally-lost`**
+  (every loss the player could have
+  prevented, `{ally}` its number word, `Sortie.lastAllyLost()`, whose `ALLY_LOST` event comes before
+  the cue's `RADIO` event in the same step; also on the first, after `first-ally-lost`'s cue; unlike
+  every other cue it starts again on each loss), built. The
+  threat profile's `required` may name **`rear`** (loaded and checked as one of the `traits`; met by
+  a fitted rear-slot weapon only, homing and Rook's guns do not reach the rear); planned (M5 part D,
+  the hangar): the launch warning at every sensor level. The `music`
+  block's **`duck`** (`on`: the event, `scripted-loss`; `db` below 0; `seconds`: the theme ducks by `db` for
+  `seconds`, no sting; with the radio's duck the lower applies, they do not add up) and
+  **`ambience_changes`** (`section` from 2, in order, `ambience` key, `crossfade` s: the ambience
+  crossfades at that section's start; Level 10: `earth-ocean` at section 4 over 4 s), loaded and
+  checked (the duck needs a scripted loss, a change's section exists); planned (M5 part D, the
+  game): playing them. The ambience key **`earth-ocean`**
+  (round 08's ocean loop, brought forward from part E). The radio events **`first-decloak`** (the
+  attempt's first `DECLOAK`; once; only with a cloaked enemy) and **`first-loop-back`** (the first
+  `LOOP_BACK`; once; only with a looping swarm; a Rook line on it counts as a scripted Rook line for
+  the barks' spacing, as `escort-first-kill`'s), built (`content` checks the cloaked enemy, the
+  looping swarm and, for `scripted-loss`, the scripted loss).
 - **Level backdrop** (`backdrop` in a level's data file; the *Backdrop* table is rendered from it):
   `scroll_factors` per layer (`deep`, `far`, `ground` = 1.0, `low-air`, `high-air`; `deep` may be
   left out on a top-down surface, Level 04's Luna: then the ground is the layer that covers the
@@ -596,9 +712,19 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
 - **Allies** (`allies/data.yaml`): one entry per ally
   slug with `name`, `layer`, `size`, `hitbox`, `hp` (medium; the level sets difficulty variants),
   `damaged_by` (`objective_aimed`: only shots the target-the-objective hook aims at it;
-  `claws`: damage per second while a walker overlaps it), `follows` (`road`), `headings`
-  (`count`, `step` in °, centred on straight up; rendered, not rotated) and `smoke_below` (share
-  of its HP).
+  `claws`: damage per second while a walker overlaps it), `follows` (`road`; `lanes`, M5 part D:
+  its station in the level's band, see *Level*), `headings` (`count`, `step` in °, centred on
+  straight up; rendered, not rotated), `smoke_below` (share of its HP) and optional `first_level`
+  (the level that introduces it: an ally no level's data escorts yet goes in that level's sprite
+  atlas, as an enemy does). M5 part D (the
+  [evacuation shuttle](../../allies/README.md#evacuation-shuttle), D2 = a): `damaged_by`
+  **`bullets`** (every enemy bullet touching its hit box hurts it by its class and is spent) and
+  **`contact`** (an `air` enemy's body hurts it by the enemy's tier once per contact; a `tiny` or
+  `small` enemy is destroyed by the impact and paid as when it rams the ship); **`banks`**
+  (`frames`, the rendered banking frames, and `full`, the sideways px/s of the full bank) and
+  **`glide`** (s of a lost unit's glide into `far`, a presentation effect); built (M5 part D, step
+  D4): read, checked (`lanes` with the `air` layer and only `bullets`/`contact`, `road` with the
+  ground and neither) and in `AllySpec`.
 - **Act** (`campaign/<act>/data.yaml`): `levels` `[first, last]` (global numbers), `title_card`
   (`act`, `name`, `line`), `briefing` (pages as a level's); planned (part G): `outro`, the act-end
   outro after the last level's debrief: `music` (a music file's name, `act-complete`: track 24
@@ -1181,3 +1307,35 @@ Screenshot tests are left out until there is a need.
   simulation's `LevelScript.Collapse` carries the dust's seconds (`settleSeconds`, at least the
   blast's; `content` checks it); the events are unchanged (no settle event: the music's `full_on:
   collapse` stays on to the level's end).
+- 2026-10-08: Schema text for M5 part D (Level 10; user decisions D1–D12 of 2026-10-08 and the
+  stated defaults), marked "planned (M5 part D)" until the loader reads it: for enemies, the
+  `cloak` (`layer`, `flash`; the `DECLOAK` event) with the unit's current layer by phase, the
+  `ambush` movement (`gap`, `lane`) and the hook `hover_seconds`, the `flock` movement and its
+  `LOOP_BACK` event; for levels, the formations `swarm` (a leader route, the `loop_back` `count` and
+  the wave change `loops`) and `rear ambush` (warned ahead of the re-entry), `paths` on a snake, the
+  air escort (`stations` with a lane sway, `liftoff`, `climb`, untouchable windows,
+  `scripted_loss` with `LOSS_GLOW` and `SCRIPTED_LOSS`, the fail on the saveable units), the radio
+  events `ally-lost`, `scripted-loss`, `first-decloak` and `first-loop-back`, `required: [rear]`, the
+  music's `duck` and `ambience_changes`, the ambience key `earth-ocean`; for allies, `follows:
+  lanes` (read), `damaged_by` `bullets` and `contact`, `banks`, `glide`; for the balance plan, the
+  `fit` action and the rear check. The Wraith's, the Mote Swarm's and the shuttle's data files
+  hold only the keys the loader knows; the new ones wait in a comment there (the loader rejects
+  unknown keys). The document is `in-progress` until part D builds them.
+- 2026-10-08: M5 part D step D4, the air escort: `LevelScript.Air` (`Station`, `Liftoff`, `Pad`,
+  `Climb`, `ScriptedLoss`) flown by `Convoy` (no road; the pads scroll with the ground at the
+  sections' speeds until the liftoff), the new `Ally` states and accessors, `AllySpec`'s `bullets`,
+  `contact`, `banks` and `glide`, hits in `Sortie.hitAirAllies` (a contact once per unit while it
+  overlaps, `Enemy.allyContacts`, hashed only while set), the saveable units for the fail, the pay,
+  the level-end cues and the debrief, the events `LOSS_GLOW` and `SCRIPTED_LOSS`, the cues
+  `ALLY_LOST` (repeating), `SCRIPTED_LOSS`, `FIRST_DECLOAK` and `FIRST_LOOP_BACK`, a level without a
+  secondary (`Secondary.NONE`), and in `content` the keys above (`PartDRules`). The lane sway uses
+  `Trig` (StrictMath's sine allocates for |x| > π/4). Everything new is hashed only in a level with
+  an air escort or once a decloak or loop-back happened, so the replay hashes of Levels 01–09 are
+  unchanged; stepping an air escort allocates nothing (`ShuttleEscortTest`).
+- 2026-10-08: Level 10's ferry crate: the level data's optional `crate_seconds`
+  (`LevelData.crateSeconds`, checked by `ContentValidator`) reaches the sim as
+  `PickupRules.crateSeconds` (default `seconds`), which `Sortie` gives every secret's drop (a
+  ground object's, tow's or crane's hidden crate, a data core) instead of the other pickups' life. A
+  shared rule (every crate lives until it leaves the bottom edge) was rejected: it would change the
+  earlier levels' crates and their replay hashes; with the default the hashes of Levels 01–09 are
+  unchanged.

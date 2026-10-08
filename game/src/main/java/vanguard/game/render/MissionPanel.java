@@ -59,8 +59,21 @@ final class MissionPanel {
     private static final int ALLY_HIT_TICKS = 6;
     /** The pip sprite's width (civilian-crawler-pip: 10x18, a line tall). */
     static final int ALLY_PIP_WIDTH = 10;
+    /**
+     * M5 part D: an air escort unit's armour bar (design/ui/hud, Level 10: "about 32 px wide"), five
+     * of them filling the well's text width ({@code 4 × 41 + 32 = 196}).
+     */
+    static final int ALLY_BAR_WIDTH = 32;
+
+    static final int ALLY_BAR_STEP = 41;
+    static final int ALLY_BAR_HEIGHT = 8;
 
     private static final Color ALLY_DARK = Color.valueOf("3A4060");
+    /**
+     * 2026-10-08: a unit that climbed out home: its bar full in a pale mint, brighter than a flying
+     * unit's green, under a green glow (the round 32 capture read a home unit's bar as a lost one's).
+     */
+    static final Color ALLY_HOME = Color.valueOf("C8FFE0");
     /** The convoy's label ("CRAWLERS") and pip, once known. */
     private String alliesLabel;
 
@@ -144,9 +157,13 @@ final class MissionPanel {
         drawPrompts(batch, prompts, two);
         if (targets) {
             drawTargetsTracker(batch, sortie);
+        } else if (sortie.airEscort()) {
+            drawShuttleTracker(batch, sortie);
         } else if (two) {
             drawTwoTrackers(batch, sortie);
-        } else {
+        } else if (!sortie.script().secondary().none()) {
+            // M5 part D: a level without a secondary objective (Secondary.NONE) and no primary
+            // tracker shows none.
             drawTracker(batch, sortie);
         }
 
@@ -319,7 +336,102 @@ final class MissionPanel {
                 kit.fill(batch, pip, left, bottom, ALLY_PIP_WIDTH, LINE);
             }
         }
-        drawSecondary(batch, sortie, wellTop - LINE, MissionLayout.TWO_LINE_WELL - LINE);
+        if (!sortie.script().secondary().none()) {
+            drawSecondary(batch, sortie, wellTop - LINE, MissionLayout.TWO_LINE_WELL - LINE);
+        }
+    }
+
+    /**
+     * M5 part D, the air escort's two-line tracker (design/ui/hud, Level 10, user decision D3 = a):
+     * line one the label and the saveable units still flying of all ({@code SHUTTLES n / 4}), red and
+     * the line flashing red when the last is lost and the mission fails; line two a small armour bar
+     * per unit in order ({@link #allyBarLeft}): green, white for a moment on a hit, amber below half,
+     * a red flash and then dark when lost; the scripted loss's unit goes dark at once, the count
+     * unchanged; home after the climb-out, full in pale mint under a green glow ({@link #ALLY_HOME}).
+     * No secondary objective shares it (the level has none).
+     */
+    private void drawShuttleTracker(SpriteBatch batch, Sortie sortie) {
+        int wellTop = well(batch, MissionLayout.TWO_OBJECTIVES.yTop(), MissionLayout.TWO_LINE_WELL);
+        if (sortie.primaryFailed() && primaryFailedFrame < 0) {
+            primaryFailedFrame = frame;
+        } else if (!sortie.primaryFailed()) {
+            primaryFailedFrame = -1;
+        }
+        boolean failFlash = primaryFailedFrame >= 0
+                && frame - primaryFailedFrame < FLASH_FRAMES
+                && (frame - primaryFailedFrame) / 8 % 2 == 0;
+        if (failFlash) {
+            kit.fill(batch, LOST, X, wellTop - LINE, WIDTH, LINE);
+        }
+        Color colour = failFlash ? HudKit.LCD : sortie.primaryFailed() ? LOST : HudKit.LABEL;
+        int y = wellTop - TEXT_DROP;
+        kit.text(batch, kit.body, alliesLabel, colour, X + PAD, y, TEXT_WIDTH);
+        kit.textRight(
+                batch,
+                kit.body,
+                shuttleCount(sortie.saveableAlliesAlive(), sortie.saveableAllies()),
+                colour,
+                X + PAD,
+                y,
+                TEXT_WIDTH);
+        int count = sortie.allyCount();
+        if (allyLost.length != count) {
+            allyLost = new int[count];
+            Arrays.fill(allyLost, -1);
+        }
+        int scripted = sortie.scriptedAlly();
+        int bottom = wellTop - LINE - (MissionLayout.TWO_LINE_WELL - LINE + ALLY_BAR_HEIGHT) / 2;
+        for (int k = 0; k < count; k++) {
+            Ally ally = sortie.ally(k);
+            int left = X + PAD + allyBarLeft(k);
+            if (ally.alive()) {
+                allyLost[k] = -1;
+                boolean home = ally.state() == Ally.State.HOME;
+                Color bar = shuttleBar(home, ally.ticksSinceHit() < ALLY_HIT_TICKS, ally.hpShare());
+                kit.bar(
+                        batch,
+                        bar,
+                        ALLY_DARK,
+                        left,
+                        bottom,
+                        ALLY_BAR_WIDTH,
+                        ALLY_BAR_HEIGHT,
+                        shuttleBarShare(home, ally.hpShare()));
+                if (home) {
+                    kit.glow(batch, SUCCESS, left - 3, bottom - 3, ALLY_BAR_WIDTH + 6, ALLY_BAR_HEIGHT + 6);
+                }
+                continue;
+            }
+            if (allyLost[k] < 0) {
+                allyLost[k] = frame;
+            }
+            int since = frame - allyLost[k];
+            boolean flash = k != scripted && since < FLASH_FRAMES && since / 8 % 2 == 0;
+            kit.bar(batch, LOST, ALLY_DARK, left, bottom, ALLY_BAR_WIDTH, ALLY_BAR_HEIGHT, flash ? 1 : 0);
+        }
+    }
+
+    /** A flying (or home) unit's bar colour: home pale mint, white on a hit, amber below half, else green. */
+    static Color shuttleBar(boolean home, boolean hit, double share) {
+        if (home) {
+            return ALLY_HOME;
+        }
+        return hit ? Color.WHITE : share < 0.5 ? HudKit.AMBER : SUCCESS;
+    }
+
+    /** How full a unit's bar is: its armour share, full once it is home. */
+    static double shuttleBarShare(boolean home, double share) {
+        return home ? 1 : share;
+    }
+
+    /** The air escort tracker's count, {@code 3 / 4}: the saveable units still flying of all. */
+    static String shuttleCount(int alive, int saveable) {
+        return alive + " / " + saveable;
+    }
+
+    /** Where unit {@code k}'s armour bar starts, px from the text's left edge: {@value #ALLY_BAR_STEP} px apart. */
+    static int allyBarLeft(int k) {
+        return k * ALLY_BAR_STEP;
     }
 
     /**
@@ -383,7 +495,9 @@ final class MissionPanel {
                 kit.fill(batch, letter, left - 1, y - LINE / 2 - 1, step - MARK_GAP, 2);
             }
         }
-        drawSecondary(batch, sortie, wellTop - LINE, MissionLayout.TWO_LINE_WELL - LINE);
+        if (!sortie.script().secondary().none()) {
+            drawSecondary(batch, sortie, wellTop - LINE, MissionLayout.TWO_LINE_WELL - LINE);
+        }
     }
 
     /** The secondary objective's line in a well (or the lower half of one) whose top is at {@code top}. */

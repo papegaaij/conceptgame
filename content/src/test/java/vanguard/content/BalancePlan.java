@@ -84,8 +84,9 @@ public final class BalancePlan {
     public record Visit(int spent, List<String> log, List<String> problems) {}
 
     /**
-     * Buys the plan of the visit before {@code level} in {@code hangar}: sales, weapons, upgrades,
-     * core parts, utility modules, then special charges, as tools/balance.py does; then what the
+     * Buys the plan of the visit before {@code level} in {@code hangar}: sales, weapons, refits of
+     * owned items, upgrades, core parts, utility modules, then special charges, as tools/balance.py
+     * does; then what the
      * plan's {@code difficulties} add on the campaign's difficulty.
      */
     public Visit buy(Hangar hangar, int level) {
@@ -125,6 +126,19 @@ public final class BalancePlan {
             LoadoutSlot slot = slot(buy.get(0).asString());
             String slug = buy.get(1).asString();
             buyItem(hangar, slot, catalogue.item(slot.kind(), slug), log, problems);
+        }
+        for (JsonNode fit : step.path("fit")) {
+            LoadoutSlot slot = slot(fit.get(0).asString());
+            Catalogue.Item item = catalogue.item(slot.kind(), fit.get(1).asString());
+            if (row(hangar, slot, State.FITTED, item).isPresent()) {
+                continue; // fitted already (on hard, where the plan's Mortar was not affordable)
+            }
+            Optional<Offer> owned = row(hangar, slot, State.OWNED, item);
+            if (owned.isEmpty()) {
+                problems.add("fit " + item.name() + " → " + slot + ": not owned");
+                continue;
+            }
+            make(hangar, slot, owned.get(), Action.FIT, "fit " + item.name() + " → " + slot, log, problems);
         }
         for (JsonNode upgrade : step.path("upgrade")) {
             upgradeTo(hangar, slot(upgrade.get(0).asString()), upgrade.get(1).asInt(), log, problems);

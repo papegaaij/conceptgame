@@ -1,0 +1,816 @@
+# Level 10 – Evacuation Corridor: the level script, rendered into README.md (briefing, threat
+# profile, layout, waves, ground targets, radio, credit budget). Times are seconds from the level
+# start; L10 has no hold zones, so script time is real time (the scroll distance ÷ 190 px/s).
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+# The `backdrop` block and the sections' tiles are merged in from the round 32 backdrop proposal
+# (concept/backdrop-proposal.yaml, tools/art/backdrop_l10.py --proposal, which reads this file).
+scroll_speed: 190     # a chase level, the fastest scroll so far
+launch_seconds: 5     # flying in from the bottom edge with Rook in his slot, as in Levels 08 and 09
+bounty_scale: 0.56    # every bounty × 0.56: the typical haul on budget(10) (M5 part D, step D5)
+crate_seconds: 12     # the ferry cache's crate stays 12 s, not 6: at 40 px/s it drifts from the top edge to the ship's start line (2026-10-08)
+control_prompts: []
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Earth megacity
+  layers: [air, high-air]
+  density: 3
+  traits: [rear, spread]
+  required: [rear]   # D9 = a: the launch warning at every sensor level without a rear-slot weapon
+  hazards: []
+  boss: none
+  objective: ESCORT 5 SHUTTLES   # the OBJECTIVE field from sensor L1
+  varga:
+    none: Nova Lagos's outskirts at first light, Lancer. Flyers only, and five shuttles to keep alive.
+    l1: "A third of it comes from behind you, Lancer. Five shuttles in one corridor: keep them flying."
+    l2: "New: the Wraith, cloaked until it strikes from behind, and the Mote Swarm, a flock that turns back."
+    l3: "A rear gun is a must: only homing finds a cloaked Wraith. One cache: a capsized ferry's hatch. Shoot it open."
+  notes:
+    Dominant layers: '`air`, `high-air` (cloaked Wraiths); `low-air` carries smoke, sea mist and CDF helicopters (scenery)'
+    Attack directions: '{directions} by enemy count; **by threat** about a third from behind (the looping Mote Swarms come back from the bottom edge, and the Wraiths strike from it)'
+    Density: '{density}'
+    Recommended traits: '`rear` (**required**, user decision D9 = a), `spread` (`homing` also reaches a cloaked Wraith on its pass overhead)'
+    Hazards: none (enemy fire crossing the shuttle band hurts the shuttles)
+    Boss / mid-boss: 'none (finale: a Wraith ambush as the shuttles climb)'
+    Sensor-suite detail: 'none: Earth megacity at first light, `air` + `high-air`, front and rear · L1: + directions, density {density}, the objective `{objective}` · L2: + Wraith (new), Mote Swarm (new), Skitter, Needler and Stinger portraits; no boss · L3: + `rear` and `spread` highlighted, the wave strip marking the five Wraith ambushes (50, 79, 106, 157 and 187.5 s), 1 secret'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets (tools/art/backdrop_l10.py --proposal); peak: a heavier atmosphere inside the section
+  - name: Liftoff
+    end: 20
+    atmosphere: light
+    tiles: [morning-sky, spaceport]
+    notes:
+      layers:
+        deep: the sprawl at dawn, a pale sky in the east.
+        ground: Eko spaceport, its pads, blast fences and service vehicles.
+        low-air: smoke from the city behind.
+      purpose: The liftoff (the five shuttles rise off their pads, t 1–7); Skitters and Needlers over the pads from t≈8.
+  - name: Refugee Roads
+    end: 70
+    atmosphere: clear
+    tiles: [morning-sky, suburbs]
+    notes:
+      layers:
+        ground: suburbs, highways jammed with stalled traffic and refugee columns (lights only, no figures at this scale), parks and football pitches.
+        low-air: CDF helicopters heading the other way.
+      purpose: Mote Swarm and Wraith introductions, each in a safe situation first; the first rear waves.
+  - name: The Corridor
+    end: 130
+    atmosphere: medium
+    tiles: [morning-sky, viaduct]
+    notes:
+      layers:
+        ground: a maglev viaduct between two infested districts, creep on both sides.
+        low-air: smoke columns.
+        deep: the cloud deck. The loss's glow (the lander) pulses over Lifeline Three at t 116–118, drawn under the air layer.
+        high-air: smoke wisps (≤ 40 %).
+      purpose: Rear pressure builds; the scripted loss at t=118.
+  - name: Coast Road
+    end: 175
+    atmosphere: light
+    peak: {atmosphere: medium, from: 160, to: 175}   # the sea mist rolling in
+    tiles: [morning-sky, coast]
+    notes:
+      layers:
+        ground: the lagoon shore and the coast road, fishing piers, sandbars, the capsized ferry with its blinking hatch.
+        low-air: sea-mist banks rolling in from the right.
+      purpose: Mixed front and rear waves, the crossing swarms; the ferry secret.
+  - name: Orbital Corridor
+    end: 200
+    atmosphere: clear
+    tiles: [morning-sky, open-lagoon]
+    notes:
+      layers:
+        deep: the open lagoon and the sea under the morning sky.
+        ground: shallow water, buoys.
+      purpose: The shuttles' engines flare and they climb off the top of the screen (t 196–198); the finale (a Wraith ambush) and the release.
+
+# Act 2 popcorn (Skitter streams and snakes, Needler lines, small Mote Swarms, rear Skitter lines)
+# round the set pieces, a wave every 2.5-3 s (the act's minimum: at least 50 a minute; the pacing
+# rule: no empty screen over 3 s). Swarm routes: [x, y] points of the leader point, y px below the
+# top edge, starting outside the play field; they keep to the side lanes (x <= 60 or >= 420) where
+# they cross the shuttle band (y 140-300) and sweep across below it, so a loop-back climbs a side
+# lane past the ship (straight up from the bottom edge at the route's end x). The Skitter snakes and
+# streams keep out of the band as well (2026-10-08, the capture's rammed shuttles): a snake comes down
+# the side lane of its edge (x 50 or 430) to y 250, curls across below the band (y 340-400) and leaves
+# at the bottom of the other side; a stream unit from the left comes down x = 70 to y 300 and then
+# runs diagonally to the bottom right (330, 580), one from the right the mirror image. Rear ambushes: lanes
+# x = (i + 1) × 480 ÷ (n + 1), the warning 3 s ahead of the re-entry (about 4.6 s after t).
+waves:
+  - {t: 7.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]], notes: Over the pads as the shuttles climb; the first targets}
+  - {t: 10.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left, paths: [[[50, -40], [50, 250], [90, 340], [200, 380], [330, 400], [400, 470], [390, 580]]], notes: Curls over the blast fences}
+  - {t: 13.5, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 16, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 18.5, formation: snake, enemy: skitter, count: 6, from: front, edge: right, paths: [[[430, -40], [430, 250], [390, 340], [280, 380], [150, 400], [80, 470], [90, 580]]]}
+  - {t: 21, formation: V-wing, enemy: needler, count: 5, from: front, notes: Over the first suburbs}
+  - {t: 24, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - t: 27
+    formation: swarm
+    enemy: mote-swarm
+    count: 10
+    from: front
+    paths: [[[50, -60], [50, 330], [130, 460], [100, 620]]]   # down the left lane, a curl at the ship's height, out at the bottom-left
+    notes: "**New.** Safe first sight: sweeps down the left lane and leaves at the bottom-left without looping back; Rook's line at t=24, Varga's at 32"
+  - {t: 30, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 33, formation: snake, enemy: skitter, count: 6, from: front, edge: left, paths: [[[50, -40], [50, 250], [90, 340], [200, 380], [330, 400], [400, 470], [390, 580]]]}
+  - {t: 36, formation: V-wing, enemy: needler, count: 4, from: front}
+  - {t: 39, formation: line abreast, enemy: skitter, count: 5, from: rear, notes: "The first rear wave: the 3 s bottom-edge warning, Rook's rear bark and his Trail; nothing fires"}
+  - {t: 42, formation: snake, enemy: skitter, count: 6, from: front, edge: right, paths: [[[430, -40], [430, 250], [390, 340], [280, 380], [150, 400], [80, 470], [90, 580]]]}
+  - t: 45
+    formation: swarm
+    enemy: mote-swarm
+    count: 6
+    from: front
+    paths: [[[430, -60], [430, 330], [350, 460], [380, 620]]]   # down the right lane, out at the bottom-right
+    notes: Down the right lane, no loop-back
+  - {t: 48, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 50, formation: rear ambush, enemy: wraith, count: 1, from: rear, notes: "**New.** One Wraith down the centre lane, cloaked; the warning from ≈ 51.6, re-entry ≈ 54.6, decloak ≈ 55 (Varga's `first-decloak` line); its bursts cross the shuttle band"}
+  - {t: 52.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 55.5, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 58.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left, paths: [[[50, -40], [50, 250], [90, 340], [200, 380], [330, 400], [400, 470], [390, 580]]]}
+  - t: 61.5
+    formation: swarm
+    enemy: mote-swarm
+    count: 14
+    from: front
+    paths: [[[60, -60], [45, 300], [160, 430], [330, 450], [430, 620]]]   # down the left lane, across under the band, out at the bottom-right
+    loop_back: {after: 1.5}   # straight back up the right lane
+    hard: {loops: 2}
+    notes: "The full pattern: down the left lane, across below the band, out at the bottom-right, back from the bottom 1.5 s later (≈ t 66) up the right lane past the ship (`loop_back`); Rook's `first-loop-back` line; hard loops back twice"
+  - {t: 64.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 67.5, formation: V-wing, enemy: needler, count: 4, from: front}
+  - {t: 70.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]], notes: Onto the maglev viaduct}
+  - {t: 73, formation: V-wing, enemy: stinger, count: 4, from: front, notes: A rear gun catches them after the dive}
+  - {t: 76, formation: line abreast, enemy: skitter, count: 5, from: rear}
+  - {t: 79, formation: rear ambush, enemy: wraith, count: 2, from: rear, notes: Re-entry ≈ t 83.6}
+  - {t: 81.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 84.5, formation: line abreast, enemy: needler, count: 3, from: front}
+  - t: 87.5
+    formation: swarm
+    enemy: mote-swarm
+    count: 16
+    from: front
+    paths: [[[420, -60], [435, 300], [320, 430], [150, 450], [50, 620]]]   # down the right lane, across under the band, out at the bottom-left
+    loop_back: {after: 1.5}   # straight back up the left lane
+    hard: {loops: 2}
+    notes: Loops back (≈ t 92) up the left lane, past the shuttle column; hard twice
+  - {t: 90.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 93.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left, paths: [[[50, -40], [50, 250], [90, 340], [200, 380], [330, 400], [400, 470], [390, 580]]]}
+  - {t: 96.5, formation: stream, enemy: skitter, count: 6, from: front, edge: alternating, interval: 0.75, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 100, formation: column, enemy: stinger, count: 3, from: front}
+  - {t: 103, formation: line abreast, enemy: skitter, count: 5, from: rear}
+  - {t: 106, formation: rear ambush, enemy: wraith, count: 2, from: rear, easy: {count: 1}, notes: Easy 1}
+  - {t: 108.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 111.5, formation: V-wing, enemy: needler, count: 4, from: front, notes: The last one drops an overdrive}
+  - {t: 114.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]], notes: Under the violet glow (from t=116); the lance strikes Lifeline Three at t=118}
+  - {t: 119, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 122, formation: snake, enemy: skitter, count: 6, from: front, edge: right, paths: [[[430, -40], [430, 250], [390, 340], [280, 380], [150, 400], [80, 470], [90, 580]]]}
+  - t: 125
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[60, -60], [40, 300], [110, 450], [60, 620]]]   # down the left lane, out at the bottom-left
+    loop_back: {after: 1.5}   # straight back up the left lane
+    hard: {loops: 2}
+    notes: Loops back from the bottom-left (≈ t 129.5); hard twice
+  - {t: 128, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 130.5, formation: column, enemy: stinger, count: 4, from: front, notes: Onto the coast road}
+  - {t: 133.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left, paths: [[[50, -40], [50, 250], [90, 340], [200, 380], [330, 400], [400, 470], [390, 580]]]}
+  - {t: 136.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - t: 139.5
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: rear
+    paths: [[[50, 620], [50, -60]]]   # straight up the left lane
+    notes: "Crossing swarms: up from the bottom-left"
+  - t: 139.5
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: rear
+    paths: [[[430, 620], [430, -60]]]   # straight up the right lane
+    notes: Up from the bottom-right at the same time
+  - {t: 142.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 145.5, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, notes: "2 per side, hold {hold} s; Rook's flank bark"}
+  - {t: 148.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left, paths: [[[50, -40], [50, 250], [90, 340], [200, 380], [330, 400], [400, 470], [390, 580]]], notes: Over the capsized ferry}
+  - {t: 151.5, formation: stream, enemy: skitter, count: 6, from: front, edge: alternating, interval: 0.75, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 154.5, formation: V-wing, enemy: needler, count: 4, from: front, notes: The last one drops an armour patch}
+  - {t: 157, formation: rear ambush, enemy: wraith, count: 3, from: rear, easy: {count: 2}, hard: {count: 3}, notes: Easy 2}
+  - {t: 160, formation: line abreast, enemy: skitter, count: 5, from: rear}
+  - {t: 163, formation: snake, enemy: skitter, count: 6, from: front, edge: left, paths: [[[50, -40], [50, 250], [90, 340], [200, 380], [330, 400], [400, 470], [390, 580]]], notes: Into the sea mist}
+  - t: 166
+    formation: swarm
+    enemy: mote-swarm
+    count: 10
+    from: front
+    paths: [[[60, -60], [45, 300], [160, 430], [330, 450], [430, 620]]]   # as the t=61.5 swarm
+    loop_back: {after: 1.5}   # straight back up the right lane
+    hard: {loops: 2}
+    notes: Loops back (≈ t 170.5); hard twice
+  - {t: 169, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 170, formation: rear ambush, enemy: wraith, count: 2, from: rear, skip: [easy, medium], notes: Hard only}
+  - {t: 172, formation: V-wing, enemy: needler, count: 4, from: front}
+  - {t: 175.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]], notes: Over the open lagoon}
+  - t: 178.5
+    formation: circle
+    enemy: needler
+    count: 6
+    from: front
+    hold: 6         # s orbiting before the break
+    break_group: 1  # Needlers that break toward the player together
+    hard: {break_group: 2}
+    notes: "Orbits ahead of the shuttles for {hold} s, then breaks one by one (hard: in pairs)"
+  - {t: 181.5, formation: line abreast, enemy: skitter, count: 5, from: rear}
+  - {t: 184.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, paths: [[[70, -40], [70, 300], [330, 580]]]}
+  - {t: 187.5, formation: rear ambush, enemy: wraith, count: 3, from: rear, easy: {count: 3}, hard: {count: 3}, notes: Decloaks (≈ t 192.5) as the shuttles start to climb; the finale}
+
+ground_targets:  # at: [t, x], when it enters at the top edge and its x (the ferry piece of the backdrop is placed round it)
+  - target: ferry hatch
+    section: 4
+    layer: ground
+    size: [36, 32]
+    sprite: ferry-hatch   # assets/sprites/ferry-hatch_0..2, -break_0..7 (tools/art/backdrop_l10.py --props)
+    hp: 50   # 2026-10-08: 8 → 50, about a second of the plan's forward guns lined up on it (fix of the capture's hatch opened at the top edge)
+    reveals: ferry cache
+    at: [[150, 322]]   # on the capsized ferry's hull, on its sandbar
+    notes:
+      target: "The capsized ferry's hull hatch on a sandbar, blinking: a destructible of {hp} HP (about a second of the forward guns lined up on it, so a passing sweep does not open it at the top edge), no bounty (t≈150)"
+      effect: Releases the hidden crate (secret, see below)
+
+secrets:
+  - name: ferry cache
+    crate: 100   # Act 1 terms: pays 160 with the act factor
+    radio: {speaker: Varga, line: "That ferry's hold had a CDF supply crate in it. Take it, Lancer."}
+
+pickups:  # carried by Needlers high on the screen, where the drop can still be caught (a Wraith dies near the bottom edge)
+  - {pickup: overdrive, dropped_by: {wave: 111.5, unit: last}}      # the last Needler of the V-wing after the t≈106 ambush
+  - {pickup: armour patch, dropped_by: {wave: 154.5, unit: last}}   # the last Needler of the V-wing before the t≈157 ambush
+
+radio:  # trigger: t or event; requires: escort = only while Rook flies (hired, fitted and not ejected)
+  - {t: 1, speaker: Lifeline One, portrait: generic-civilian, line: "Eko Control, Lifeline One. Five birds, eleven hundred souls. We're going."}
+  - {t: 12, speaker: Okafor, line: "Lifeline flight, Aegis has you. Stay in the corridor and stay together."}
+  - {t: 24, speaker: Rook, requires: escort, line: "Something's coming down the left. A lot of somethings."}
+  - {t: 32, speaker: Varga, line: "That's a flock, not a formation. They steer like starlings."}
+  - {event: first-decloak, speaker: Varga, line: "It hid in plain sight! Cloaked, only homing touches it. Rear guns!", notes: {trigger: "First decloak (`first-decloak`)"}}
+  - {event: first-loop-back, speaker: Rook, requires: escort, line: "The flock's turned around. They're coming up behind us!", notes: {trigger: "First loop-back (`first-loop-back`)"}}
+  - {event: first-ally-hit, speaker: Lifeline, portrait: generic-civilian, line: "Lifeline {ally}, we're hit! Still flying. Please stay close!", notes: {trigger: "First shuttle hit (`first-ally-hit`)"}}
+  - {t: 116, speaker: Lifeline Three, portrait: generic-civilian, line: "Aegis, there's a light above the clouds. What is that—"}
+  - {event: scripted-loss, speaker: Okafor, expression: grim, line: "Lifeline Three is down. Keep the others moving, Lancer.", notes: {trigger: "Scripted loss (`scripted-loss`)"}}
+  - {t: 131.5, speaker: Rook, requires: escort, line: "Where did that come from? Nothing on my scope!"}
+  - {t: 139, speaker: Varga, line: "That shot came from above the cloud deck. Something big is sitting up there, out of reach."}
+  - {event: ally-lost, speaker: Okafor, expression: grim, line: "We lost Lifeline {ally}. Stay on the others.", notes: {trigger: "A shuttle is lost (`ally-lost`)"}}
+  - {t: 180, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
+  - {t: 188.5, speaker: Rook, requires: escort, line: "Last one out of Lagos, get the lights."}
+  - {t: 196, speaker: Lifeline One, portrait: generic-civilian, line: "Corridor clear. We can see the sky. Thank you, Aegis. Thank you."}
+  - {event: level-end, allies: [4, 4], speaker: Okafor, line: "Four of five made orbit. Eight hundred and eighty people will see tomorrow. Remember the ones you got home.", notes: {trigger: "Level end, 4 shuttles home"}}
+  - {event: level-end, allies: [3, 3], speaker: Okafor, line: "Three shuttles made orbit. Six hundred and sixty people will see tomorrow. Good work, Lancer.", notes: {trigger: "Level end, 3 shuttles home"}}
+  - {event: level-end, allies: [2, 2], speaker: Okafor, line: "Two shuttles made orbit. Four hundred and forty people will see tomorrow. It's not nothing, Lancer.", notes: {trigger: "Level end, 2 shuttles home"}}
+  - {event: level-end, allies: [1, 1], speaker: Okafor, line: "One shuttle made orbit. Two hundred and twenty people will see tomorrow. Hold on to that.", notes: {trigger: "Level end, 1 shuttle home"}}
+  - {event: mission-failed, speaker: Okafor, expression: grim, line: "We've lost the corridor, Lancer. Pull back.", notes: {trigger: "The four saveable shuttles lost (the failed screen's line)"}}
+
+objectives:
+  primary: escort   # D5 = a: no secondary; the mission fails at once when the four saveable shuttles are lost
+  escort:
+    ally: evacuation-shuttle
+    credits: 25   # per saveable shuttle home (Act 1 terms: pays 40); not Lifeline Three's
+    stations:     # D1 = a: a loose double column in the band y 140-300, Lifeline One leading; the lane sway (x + 16 sin θ, y + 4 sin 2θ)
+      - {at: [240, 165], sway: [16, 4], period: 9, phase: 0}       # Lifeline One
+      - {at: [168, 215], sway: [16, 4], period: 11, phase: 0.25}   # Lifeline Two
+      - {at: [312, 215], sway: [16, 4], period: 10, phase: 0.5}    # Lifeline Three
+      - {at: [168, 270], sway: [16, 4], period: 12, phase: 0.75}   # Lifeline Four
+      - {at: [312, 270], sway: [16, 4], period: 8, phase: 0.1}     # Lifeline Five
+    liftoff: {t: 1, seconds: 6, pads: [[240, 400], [176, 440], [304, 440], [176, 490], [304, 490]]}   # untouchable, pad to station
+    climb: {t: 196, seconds: 2}   # untouchable; every saveable shuttle alive at t=196 is home
+    scripted_loss: {unit: 3, t: 118, glow: 2}   # D4 = a: Lifeline Three, untouchable until the lance
+    easy: {hp: 180}
+    hard: {hp: 90}
+
+music:
+  track: 6            # Act 2 A "Homefront" (audio/music track list)
+  start_section: 2    # the base stem from the Refugee Roads; section 1 has the ambience only
+  full_section: 3     # the full mix from the Corridor (t=70)
+  ambience: earth-megacity
+  end_jingle: mission-complete
+  duck: {on: scripted-loss, db: -6, seconds: 3}   # the lance: −6 dB for 3 s, no sting
+  ambience_changes:
+    - {section: 4, ambience: earth-ocean, crossfade: 4}   # the coast road: the ocean over 4 s
+
+difficulty: {}  # the swarms' loops, the ambushes' sizes and the hard pair at t=170 are in their waves; the shuttles' armour in the escort; the stat blocks' hooks apply (hard: 7-shot bursts, 3.0 s holds)
+
+briefing:
+  pages:
+    - {speaker: Okafor, image: level-10-evacuation-route, line: "Nova Lagos evacuates at first light, Lancer. Five shuttles lift from Eko spaceport with eleven hundred people aboard. You and Rook are their corridor to the lagoon. Every shuttle we lose is two hundred and twenty lives."}
+    - {speaker: Varga, image: level-10-wraith-scan, line: "The Vrell hunt evacuation flights from behind. Cloaked flyers pass overhead, then decloak at your six and fire up the screen. Flocks sweep past and turn back. Fit a rear gun, Lancer."}
+  teaser: {speaker: Rook, line: "Shuttles to babysit and bugs that hit from behind. Bolt a gun on your tail, Lancer."}
+
+backdrop:
+  # Presentation only: the Nova Lagos evacuation corridor at first light (tools/art/backdrop_l10.py,
+  # Level 08's production kit with Level 09's creep; D10 = a, D11 = a). Towers are scenery in true
+  # perspective (section 3's creep districts and the suburbs' last blocks), clear of the ferry hatch.
+  scroll_factors: {deep: 0.12, far: 0.45, ground: 1, low-air: 1.35, high-air: 2}
+  ramp: 4
+  haze_colour: 54484e  # rose-grey: the dawn haze over the water
+  atmosphere:
+    clear: {wisps: mist, haze: 0}   # sections 2 and 5: thin dawn mist only
+    light: {banks: haze, wisps: mist, haze: 0.05}   # sections 1 and 4: dawn haze, drifting west
+    medium: {banks: smoke-mist, wisps: wisps, haze: 0.12}   # section 3 and section 4's peak: smoke and sea mist, drifting west
+  tile_sets:
+    morning-sky: {layer: deep, height: 480}   # the dawn sky mirrored, gold in the east: seen only in the water
+    spaceport: {layer: ground, height: 960}   # 1: Eko spaceport's apron (x 84-396), taxiways, hangars, the terminal
+    suburbs: {layer: ground, height: 960}   # 2: the jammed motorway (x 176-304), refugee lights, houses, pitches
+    viaduct: {layer: ground, height: 960}   # 3: the maglev viaduct (deck x 214-266) between the creep districts
+    coast: {layer: ground, height: 960}   # 4: the village, the coast road (x 116-146), beach, water from x 168, sandbars
+    open-lagoon: {layer: ground, height: 960}   # 5: the open lagoon (translucent), shoals, fish-trap stakes
+    haze: {layer: low-air, height: 960, drift: -8}   # light: dawn haze and the city's smoke, drifting west
+    smoke-mist: {layer: low-air, height: 960, drift: -14}   # medium: smoke and sea mist, drifting west
+    mist: {layer: high-air, height: 960}   # clear and light: thin dawn mist (additive)
+    wisps: {layer: high-air, height: 960}   # medium: smoke wisps (additive)
+  pieces:
+    cross-highway: {layer: ground, size: [480, 92]}   # an elevated cross highway (a causeway over the water); one over every section seam
+    service-vehicles: {layer: ground, size: [48, 40]}   # a fuel bowser, a tug and a stair truck on the apron
+    cdf-gunship: {layer: low-air, size: [44, 44], headings: 16}   # the CDF gunship (Level 08's model at dawn), 16 headings, 0 nose up, clockwise; scenery
+    burnt-block-a: {layer: ground, size: [72, 82]}   # a collapsed block in the creep districts
+    burnt-block-b: {layer: ground, size: [76, 82]}
+    fire: {layer: ground, size: [40, 40], frames: 4, fps: 8}   # flames on the burnt blocks (section 3)
+    smoke-column-a: {layer: low-air, size: [150, 200]}   # smoke plumes over the burning blocks (static)
+    smoke-column-b: {layer: low-air, size: [130, 180]}
+    maglev-train: {layer: ground, size: [16, 180]}   # a stalled maglev train on the viaduct's west guideway
+    ferry: {layer: ground, size: [132, 264], mid_size: true}   # the capsized ferry on its sandbar; the hatch (a ground target) on its hull
+    fishing-boats: {layer: ground, size: [56, 48]}   # pirogues drawn up on the beach
+    buoy: {layer: ground, size: [16, 16], frames: 4, fps: 2}   # a channel buoy, its lamp blinking
+    launch-pads: {layer: ground, size: [268, 198], mid_size: true}   # the five launch pads round the shuttles' t=1 points (the liftoff's `pads`)
+    tower-56x56-h060-a: {layer: ground, size: [56, 56], tower: {height: 0.6, wall: wall-mid}}
+    tower-56x56-h060-b: {layer: ground, size: [56, 56], tower: {height: 0.6, wall: wall-mid}}
+    tower-56x56-h060-burnt: {layer: ground, size: [56, 56], tower: {height: 0.6, wall: wall-burnt, shade: 0.45}}
+    tower-56x56-h085-a: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-mid}}
+    tower-56x56-h085-b: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-mid}}
+    tower-56x56-h085-burnt: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-burnt, shade: 0.45}}
+    tower-56x56-h085-creep: {layer: ground, size: [56, 56], tower: {height: 0.85, wall: wall-creep-mid}}
+    tower-56x56-h110-a: {layer: ground, size: [56, 56], tower: {height: 1.1, wall: wall-tall}}
+    tower-56x56-h110-b: {layer: ground, size: [56, 56], tower: {height: 1.1, wall: wall-tall}}
+    tower-56x56-h110-creep: {layer: ground, size: [56, 56], tower: {height: 1.1, wall: wall-creep-tall}}
+    tower-56x56-h135-a: {layer: ground, size: [56, 56], tower: {height: 1.35, wall: wall-tall}}
+    tower-56x56-h135-b: {layer: ground, size: [56, 56], tower: {height: 1.35, wall: wall-tall}}
+    tower-56x56-h135-creep: {layer: ground, size: [56, 56], tower: {height: 1.35, wall: wall-creep-tall}}
+    tower-68x64-h035-a: {layer: ground, size: [68, 64], tower: {height: 0.35, wall: wall-low}}
+    tower-68x64-h035-b: {layer: ground, size: [68, 64], tower: {height: 0.35, wall: wall-low}}
+    tower-68x64-h060-a: {layer: ground, size: [68, 64], tower: {height: 0.6, wall: wall-mid}}
+    tower-68x64-h060-b: {layer: ground, size: [68, 64], tower: {height: 0.6, wall: wall-mid}}
+    tower-68x64-h060-burnt: {layer: ground, size: [68, 64], tower: {height: 0.6, wall: wall-burnt, shade: 0.45}}
+    tower-68x64-h085-a: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-mid}}
+    tower-68x64-h085-b: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-mid}}
+    tower-68x64-h085-burnt: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-burnt, shade: 0.45}}
+    tower-68x64-h085-creep: {layer: ground, size: [68, 64], tower: {height: 0.85, wall: wall-creep-mid}}
+    tower-68x64-h110-a: {layer: ground, size: [68, 64], tower: {height: 1.1, wall: wall-tall}}
+    tower-68x64-h110-b: {layer: ground, size: [68, 64], tower: {height: 1.1, wall: wall-tall}}
+    tower-68x64-h110-creep: {layer: ground, size: [68, 64], tower: {height: 1.1, wall: wall-creep-tall}}
+    tower-68x64-h135-a: {layer: ground, size: [68, 64], tower: {height: 1.35, wall: wall-tall}}
+    tower-68x64-h135-b: {layer: ground, size: [68, 64], tower: {height: 1.35, wall: wall-tall}}
+    tower-68x64-h135-creep: {layer: ground, size: [68, 64], tower: {height: 1.35, wall: wall-creep-tall}}
+  placed:
+    # over every section seam, where the ground tiles change (the last two: causeways over the water)
+    - {piece: cross-highway, t: 21.421, x: 240}
+    - {piece: cross-highway, t: 71.421, x: 240}
+    - {piece: cross-highway, t: 131.421, x: 240}
+    - {piece: cross-highway, t: 176.421, x: 240}
+    # 1. Liftoff: Eko spaceport, the five pads
+    - {piece: launch-pads, t: 0.079, x: 240}
+    - {piece: service-vehicles, t: 6.5, x: 128}
+    - {piece: service-vehicles, t: 12.2, x: 352}
+    - {piece: service-vehicles, t: 16.4, x: 110}
+    # 3. The Corridor: the maglev viaduct between the creep districts; the stalled train
+    - {piece: maglev-train, t: 96, x: 226}
+    # 4. Coast Road: the capsized ferry (the hatch's spot)
+    - {piece: ferry, t: 151.606, x: 312}
+    - {piece: fishing-boats, t: 136, x: 156}
+    - {piece: fishing-boats, t: 158.5, x: 154}
+    - {piece: fishing-boats, t: 168, x: 157}
+    # 5. Orbital Corridor: the open lagoon, buoys
+    - {piece: buoy, t: 178, x: 300}
+    - {piece: buoy, t: 181.6, x: 352}
+    - {piece: buoy, t: 186, x: 248}
+    - {piece: buoy, t: 190, x: 300}
+    - {piece: buoy, t: 194.4, x: 356}
+    - {piece: burnt-block-a, t: 72.095, x: 435}
+    - {piece: burnt-block-b, t: 73.611, x: 344}
+    - {piece: burnt-block-a, t: 76.642, x: 45}
+    - {piece: burnt-block-b, t: 79.674, x: 435}
+    - {piece: burnt-block-b, t: 80.684, x: 344}
+    - {piece: burnt-block-b, t: 84.221, x: 344}
+    - {piece: burnt-block-a, t: 84.726, x: 136}
+    - {piece: burnt-block-a, t: 85.737, x: 136}
+    - {piece: burnt-block-a, t: 88.768, x: 136}
+    - {piece: burnt-block-a, t: 89.274, x: 435}
+    - {piece: burnt-block-b, t: 90.284, x: 45}
+    - {piece: burnt-block-b, t: 91.295, x: 45}
+    - {piece: burnt-block-b, t: 91.8, x: 136}
+    - {piece: burnt-block-b, t: 91.8, x: 435}
+    - {piece: burnt-block-b, t: 92.305, x: 136}
+    - {piece: burnt-block-b, t: 94.326, x: 344}
+    - {piece: burnt-block-b, t: 94.326, x: 435}
+    - {piece: burnt-block-b, t: 94.832, x: 45}
+    - {piece: burnt-block-a, t: 94.832, x: 344}
+    - {piece: burnt-block-b, t: 96.347, x: 45}
+    - {piece: burnt-block-a, t: 96.347, x: 136}
+    - {piece: burnt-block-a, t: 97.358, x: 136}
+    - {piece: burnt-block-a, t: 97.358, x: 435}
+    - {piece: burnt-block-a, t: 97.863, x: 136}
+    - {piece: burnt-block-b, t: 98.368, x: 435}
+    - {piece: burnt-block-a, t: 101.905, x: 435}
+    - {piece: burnt-block-a, t: 105.947, x: 45}
+    - {piece: burnt-block-a, t: 106.958, x: 45}
+    - {piece: burnt-block-a, t: 109.989, x: 344}
+    - {piece: burnt-block-b, t: 111, x: 45}
+    - {piece: burnt-block-b, t: 111, x: 136}
+    - {piece: burnt-block-a, t: 112.516, x: 344}
+    - {piece: burnt-block-a, t: 113.021, x: 45}
+    - {piece: burnt-block-b, t: 115.547, x: 435}
+    - {piece: burnt-block-b, t: 116.053, x: 344}
+    - {piece: burnt-block-a, t: 118.074, x: 435}
+    - {piece: burnt-block-b, t: 119.589, x: 136}
+    - {piece: burnt-block-b, t: 119.589, x: 435}
+    - {piece: burnt-block-b, t: 120.095, x: 344}
+    - {piece: burnt-block-b, t: 121.611, x: 344}
+    - {piece: burnt-block-a, t: 123.126, x: 45}
+    - {piece: burnt-block-b, t: 123.126, x: 344}
+    - {piece: burnt-block-a, t: 123.632, x: 344}
+    - {piece: burnt-block-b, t: 124.137, x: 435}
+    - {piece: burnt-block-a, t: 124.642, x: 45}
+    - {piece: burnt-block-b, t: 124.642, x: 435}
+    - {piece: burnt-block-b, t: 125.147, x: 435}
+    - {piece: burnt-block-a, t: 126.663, x: 344}
+    - {piece: burnt-block-a, t: 127.168, x: 45}
+    - {piece: burnt-block-a, t: 128.684, x: 136}
+    - {piece: burnt-block-a, t: 130.2, x: 136}
+    - {piece: fire, t: 76.628, x: 51}
+    - {piece: fire, t: 79.684, x: 429}
+    - {piece: fire, t: 80.715, x: 337}
+    - {piece: fire, t: 84.275, x: 346}
+    - {piece: fire, t: 84.794, x: 143}
+    - {piece: fire, t: 85.814, x: 146}
+    - {piece: fire, t: 90.36, x: 51}
+    - {piece: fire, t: 91.258, x: 44}
+    - {piece: fire, t: 91.889, x: 146}
+    - {piece: fire, t: 91.821, x: 446}
+    - {piece: fire, t: 92.33, x: 132}
+    - {piece: fire, t: 94.301, x: 440}
+    - {piece: fire, t: 96.319, x: 124}
+    - {piece: fire, t: 97.317, x: 145}
+    - {piece: fire, t: 97.251, x: 436}
+    - {piece: fire, t: 97.88, x: 131}
+    - {piece: fire, t: 101.992, x: 430}
+    - {piece: fire, t: 110.962, x: 43}
+    - {piece: fire, t: 111.066, x: 140}
+    - {piece: fire, t: 118.013, x: 433}
+    - {piece: fire, t: 119.604, x: 143}
+    - {piece: fire, t: 123.512, x: 348}
+    - {piece: fire, t: 124.143, x: 426}
+    - {piece: fire, t: 128.686, x: 129}
+    - {piece: tower-68x64-h035-a, t: 57.947, x: 133}
+    - {piece: tower-56x56-h060-b, t: 60.474, x: 133}
+    - {piece: tower-56x56-h060-a, t: 60.979, x: 45}
+    - {piece: tower-56x56-h060-b, t: 60.979, x: 435}
+    - {piece: tower-56x56-h060-a, t: 61.989, x: 133}
+    - {piece: tower-68x64-h060-a, t: 62.495, x: 45}
+    - {piece: tower-68x64-h035-b, t: 62.495, x: 133}
+    - {piece: tower-68x64-h060-a, t: 63.505, x: 45}
+    - {piece: tower-68x64-h035-b, t: 63.505, x: 133}
+    - {piece: tower-68x64-h060-b, t: 63.505, x: 347}
+    - {piece: tower-56x56-h060-a, t: 63.505, x: 435}
+    - {piece: tower-68x64-h060-a, t: 64.011, x: 45}
+    - {piece: tower-56x56-h060-a, t: 64.011, x: 133}
+    - {piece: tower-68x64-h035-b, t: 64.516, x: 45}
+    - {piece: tower-68x64-h060-a, t: 64.516, x: 133}
+    - {piece: tower-68x64-h060-b, t: 64.516, x: 347}
+    - {piece: tower-68x64-h060-b, t: 65.526, x: 133}
+    - {piece: tower-68x64-h035-a, t: 65.526, x: 347}
+    - {piece: tower-56x56-h060-a, t: 66.032, x: 45}
+    - {piece: tower-68x64-h060-b, t: 66.032, x: 133}
+    - {piece: tower-56x56-h060-a, t: 66.032, x: 347}
+    - {piece: tower-68x64-h060-b, t: 66.537, x: 133}
+    - {piece: tower-68x64-h060-b, t: 67.042, x: 347}
+    - {piece: tower-68x64-h035-a, t: 67.042, x: 435}
+    - {piece: tower-68x64-h035-a, t: 67.547, x: 133}
+    - {piece: tower-68x64-h060-a, t: 68.053, x: 347}
+    - {piece: tower-68x64-h035-a, t: 68.053, x: 435}
+    - {piece: tower-68x64-h060-b, t: 68.558, x: 347}
+    - {piece: tower-56x56-h060-a, t: 69.063, x: 45}
+    - {piece: tower-68x64-h060-b, t: 69.063, x: 347}
+    - {piece: tower-56x56-h060-b, t: 69.568, x: 435}
+    - {piece: tower-68x64-h035-a, t: 70.074, x: 45}
+    - {piece: tower-68x64-h060-a, t: 70.074, x: 133}
+    - {piece: tower-68x64-h060-a, t: 70.579, x: 347}
+    - {piece: tower-68x64-h060-a, t: 70.579, x: 435}
+    - {piece: tower-56x56-h135-creep, t: 72.095, x: 45}
+    - {piece: tower-56x56-h110-creep, t: 72.095, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 72.095, x: 344}
+    - {piece: tower-68x64-h085-b, t: 72.6, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 72.6, x: 136}
+    - {piece: tower-56x56-h135-a, t: 72.6, x: 344}
+    - {piece: tower-56x56-h085-burnt, t: 72.6, x: 435}
+    - {piece: tower-56x56-h110-creep, t: 73.105, x: 45}
+    - {piece: tower-68x64-h085-b, t: 73.105, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 73.105, x: 435}
+    - {piece: tower-68x64-h060-burnt, t: 73.611, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 73.611, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 73.611, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 74.116, x: 45}
+    - {piece: tower-68x64-h085-creep, t: 74.116, x: 136}
+    - {piece: tower-68x64-h085-burnt, t: 74.116, x: 435}
+    - {piece: tower-68x64-h060-a, t: 74.621, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 74.621, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 74.621, x: 344}
+    - {piece: tower-68x64-h085-creep, t: 75.126, x: 344}
+    - {piece: tower-56x56-h135-a, t: 75.632, x: 45}
+    - {piece: tower-68x64-h110-b, t: 75.632, x: 136}
+    - {piece: tower-68x64-h135-b, t: 75.632, x: 344}
+    - {piece: tower-68x64-h085-a, t: 76.642, x: 136}
+    - {piece: tower-56x56-h085-creep, t: 76.642, x: 344}
+    - {piece: tower-68x64-h085-burnt, t: 76.642, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 77.147, x: 45}
+    - {piece: tower-68x64-h135-a, t: 77.147, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 77.147, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 77.147, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 77.653, x: 45}
+    - {piece: tower-68x64-h135-b, t: 77.653, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 77.653, x: 344}
+    - {piece: tower-56x56-h085-burnt, t: 78.158, x: 45}
+    - {piece: tower-68x64-h085-a, t: 78.158, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 78.158, x: 344}
+    - {piece: tower-56x56-h110-creep, t: 78.158, x: 435}
+    - {piece: tower-56x56-h085-creep, t: 78.663, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 78.663, x: 435}
+    - {piece: tower-68x64-h110-b, t: 79.168, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 79.168, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 79.168, x: 344}
+    - {piece: tower-56x56-h135-creep, t: 79.168, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 79.674, x: 45}
+    - {piece: tower-56x56-h110-a, t: 80.179, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 80.179, x: 136}
+    - {piece: tower-68x64-h085-burnt, t: 80.179, x: 344}
+    - {piece: tower-68x64-h110-a, t: 80.179, x: 435}
+    - {piece: tower-68x64-h085-creep, t: 80.684, x: 45}
+    - {piece: tower-68x64-h085-b, t: 80.684, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 80.684, x: 435}
+    - {piece: tower-68x64-h110-a, t: 81.189, x: 136}
+    - {piece: tower-68x64-h085-burnt, t: 81.189, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 81.695, x: 45}
+    - {piece: tower-56x56-h135-b, t: 81.695, x: 344}
+    - {piece: tower-56x56-h060-burnt, t: 81.695, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 82.2, x: 45}
+    - {piece: tower-56x56-h060-b, t: 82.2, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 82.2, x: 344}
+    - {piece: tower-68x64-h135-a, t: 82.705, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 82.705, x: 344}
+    - {piece: tower-68x64-h085-burnt, t: 82.705, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 83.211, x: 136}
+    - {piece: tower-56x56-h135-b, t: 83.716, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 83.716, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 83.716, x: 435}
+    - {piece: tower-68x64-h085-b, t: 84.221, x: 136}
+    - {piece: tower-56x56-h110-creep, t: 84.221, x: 435}
+    - {piece: tower-56x56-h085-b, t: 84.726, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 84.726, x: 344}
+    - {piece: tower-56x56-h110-creep, t: 85.232, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 85.232, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 85.737, x: 45}
+    - {piece: tower-56x56-h060-burnt, t: 85.737, x: 435}
+    - {piece: tower-56x56-h085-a, t: 86.242, x: 136}
+    - {piece: tower-68x64-h060-burnt, t: 86.242, x: 344}
+    - {piece: tower-68x64-h110-a, t: 86.242, x: 435}
+    - {piece: tower-68x64-h060-burnt, t: 86.747, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 86.747, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 86.747, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 86.747, x: 435}
+    - {piece: tower-68x64-h060-a, t: 87.253, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 87.253, x: 344}
+    - {piece: tower-56x56-h110-b, t: 87.758, x: 45}
+    - {piece: tower-68x64-h085-b, t: 87.758, x: 136}
+    - {piece: tower-68x64-h085-a, t: 87.758, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 88.263, x: 45}
+    - {piece: tower-68x64-h060-a, t: 88.263, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 88.768, x: 435}
+    - {piece: tower-56x56-h060-b, t: 89.274, x: 45}
+    - {piece: tower-68x64-h085-a, t: 89.274, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 89.274, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 89.779, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 89.779, x: 344}
+    - {piece: tower-68x64-h135-a, t: 89.779, x: 435}
+    - {piece: tower-68x64-h085-creep, t: 90.284, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 90.284, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 90.789, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 90.789, x: 344}
+    - {piece: tower-68x64-h085-creep, t: 91.295, x: 344}
+    - {piece: tower-68x64-h085-creep, t: 91.295, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 91.8, x: 45}
+    - {piece: tower-68x64-h085-burnt, t: 91.8, x: 344}
+    - {piece: tower-68x64-h135-b, t: 92.305, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 92.305, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 92.811, x: 136}
+    - {piece: tower-68x64-h060-b, t: 92.811, x: 344}
+    - {piece: tower-68x64-h060-a, t: 92.811, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 93.316, x: 136}
+    - {piece: tower-56x56-h085-burnt, t: 93.316, x: 344}
+    - {piece: tower-56x56-h135-creep, t: 93.316, x: 435}
+    - {piece: tower-68x64-h085-a, t: 93.821, x: 344}
+    - {piece: tower-68x64-h135-b, t: 93.821, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 94.832, x: 136}
+    - {piece: tower-56x56-h135-b, t: 94.832, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 95.337, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 95.337, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 95.337, x: 344}
+    - {piece: tower-68x64-h110-b, t: 95.337, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 95.842, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 95.842, x: 136}
+    - {piece: tower-68x64-h085-creep, t: 95.842, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 96.347, x: 344}
+    - {piece: tower-56x56-h085-creep, t: 96.347, x: 435}
+    - {piece: tower-56x56-h085-b, t: 96.853, x: 344}
+    - {piece: tower-56x56-h085-creep, t: 97.863, x: 344}
+    - {piece: tower-56x56-h060-burnt, t: 98.368, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 98.368, x: 344}
+    - {piece: tower-68x64-h060-burnt, t: 98.874, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 98.874, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 99.379, x: 45}
+    - {piece: tower-56x56-h110-b, t: 99.379, x: 136}
+    - {piece: tower-68x64-h060-a, t: 99.379, x: 344}
+    - {piece: tower-68x64-h060-burnt, t: 99.379, x: 435}
+    - {piece: tower-68x64-h085-a, t: 99.884, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 99.884, x: 136}
+    - {piece: tower-68x64-h135-b, t: 99.884, x: 344}
+    - {piece: tower-56x56-h110-creep, t: 99.884, x: 435}
+    - {piece: tower-56x56-h135-creep, t: 100.389, x: 45}
+    - {piece: tower-68x64-h085-a, t: 100.389, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 100.389, x: 344}
+    - {piece: tower-56x56-h085-burnt, t: 100.389, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 100.895, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 101.4, x: 45}
+    - {piece: tower-56x56-h085-creep, t: 101.4, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 101.905, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 101.905, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 101.905, x: 344}
+    - {piece: tower-56x56-h085-a, t: 102.411, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 102.411, x: 435}
+    - {piece: tower-68x64-h060-a, t: 102.916, x: 45}
+    - {piece: tower-68x64-h110-b, t: 102.916, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 102.916, x: 344}
+    - {piece: tower-56x56-h135-a, t: 102.916, x: 435}
+    - {piece: tower-56x56-h110-creep, t: 103.421, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 103.926, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 103.926, x: 136}
+    - {piece: tower-56x56-h110-b, t: 103.926, x: 344}
+    - {piece: tower-68x64-h060-b, t: 103.926, x: 435}
+    - {piece: tower-56x56-h135-creep, t: 104.432, x: 344}
+    - {piece: tower-68x64-h060-burnt, t: 104.432, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 104.937, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 104.937, x: 136}
+    - {piece: tower-68x64-h110-a, t: 104.937, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 105.442, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 105.442, x: 136}
+    - {piece: tower-56x56-h135-a, t: 105.442, x: 344}
+    - {piece: tower-68x64-h085-burnt, t: 105.442, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 105.947, x: 136}
+    - {piece: tower-68x64-h110-a, t: 106.453, x: 136}
+    - {piece: tower-68x64-h135-b, t: 106.453, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 106.958, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 106.958, x: 435}
+    - {piece: tower-68x64-h060-b, t: 107.463, x: 45}
+    - {piece: tower-68x64-h085-burnt, t: 107.463, x: 136}
+    - {piece: tower-56x56-h085-a, t: 107.463, x: 344}
+    - {piece: tower-68x64-h060-a, t: 107.968, x: 45}
+    - {piece: tower-68x64-h135-b, t: 107.968, x: 136}
+    - {piece: tower-68x64-h085-b, t: 107.968, x: 344}
+    - {piece: tower-56x56-h110-b, t: 107.968, x: 435}
+    - {piece: tower-56x56-h135-b, t: 108.474, x: 45}
+    - {piece: tower-68x64-h085-b, t: 108.474, x: 136}
+    - {piece: tower-68x64-h085-creep, t: 108.474, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 108.474, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 108.979, x: 45}
+    - {piece: tower-68x64-h135-a, t: 108.979, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 109.484, x: 45}
+    - {piece: tower-68x64-h060-b, t: 109.484, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 109.484, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 109.484, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 109.989, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 109.989, x: 136}
+    - {piece: tower-68x64-h135-a, t: 109.989, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 110.495, x: 45}
+    - {piece: tower-56x56-h060-b, t: 110.495, x: 136}
+    - {piece: tower-68x64-h135-b, t: 110.495, x: 344}
+    - {piece: tower-68x64-h060-a, t: 110.495, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 111, x: 344}
+    - {piece: tower-68x64-h110-a, t: 111, x: 435}
+    - {piece: tower-56x56-h135-a, t: 111.505, x: 136}
+    - {piece: tower-56x56-h060-burnt, t: 111.505, x: 435}
+    - {piece: tower-68x64-h135-b, t: 112.011, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 112.011, x: 344}
+    - {piece: tower-56x56-h110-creep, t: 112.011, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 112.516, x: 45}
+    - {piece: tower-68x64-h060-burnt, t: 112.516, x: 435}
+    - {piece: tower-56x56-h060-b, t: 113.021, x: 136}
+    - {piece: tower-68x64-h085-creep, t: 113.021, x: 344}
+    - {piece: tower-68x64-h085-creep, t: 113.021, x: 435}
+    - {piece: tower-68x64-h110-b, t: 113.526, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 113.526, x: 435}
+    - {piece: tower-68x64-h085-creep, t: 114.032, x: 45}
+    - {piece: tower-68x64-h135-a, t: 114.032, x: 136}
+    - {piece: tower-68x64-h060-b, t: 114.032, x: 344}
+    - {piece: tower-68x64-h135-a, t: 114.032, x: 435}
+    - {piece: tower-68x64-h085-creep, t: 114.537, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 114.537, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 114.537, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 115.042, x: 344}
+    - {piece: tower-56x56-h135-a, t: 115.042, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 115.547, x: 45}
+    - {piece: tower-68x64-h135-a, t: 115.547, x: 136}
+    - {piece: tower-56x56-h060-burnt, t: 115.547, x: 344}
+    - {piece: tower-68x64-h135-b, t: 116.053, x: 45}
+    - {piece: tower-56x56-h110-creep, t: 116.053, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 116.558, x: 45}
+    - {piece: tower-68x64-h060-a, t: 116.558, x: 136}
+    - {piece: tower-68x64-h085-a, t: 116.558, x: 344}
+    - {piece: tower-68x64-h060-burnt, t: 117.063, x: 45}
+    - {piece: tower-68x64-h135-a, t: 117.063, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 117.063, x: 344}
+    - {piece: tower-56x56-h110-creep, t: 117.063, x: 435}
+    - {piece: tower-68x64-h110-a, t: 117.568, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 117.568, x: 136}
+    - {piece: tower-68x64-h085-creep, t: 117.568, x: 344}
+    - {piece: tower-56x56-h085-creep, t: 117.568, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 118.074, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 118.579, x: 45}
+    - {piece: tower-68x64-h085-a, t: 118.579, x: 136}
+    - {piece: tower-56x56-h110-a, t: 118.579, x: 344}
+    - {piece: tower-56x56-h085-burnt, t: 118.579, x: 435}
+    - {piece: tower-68x64-h085-a, t: 119.084, x: 435}
+    - {piece: tower-56x56-h110-creep, t: 120.095, x: 45}
+    - {piece: tower-56x56-h110-creep, t: 120.095, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 120.6, x: 136}
+    - {piece: tower-56x56-h135-creep, t: 120.6, x: 344}
+    - {piece: tower-56x56-h135-creep, t: 120.6, x: 435}
+    - {piece: tower-56x56-h135-creep, t: 121.105, x: 136}
+    - {piece: tower-68x64-h110-b, t: 121.105, x: 344}
+    - {piece: tower-68x64-h085-b, t: 121.105, x: 435}
+    - {piece: tower-68x64-h085-creep, t: 121.611, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 122.116, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 122.116, x: 435}
+    - {piece: tower-56x56-h060-burnt, t: 122.621, x: 45}
+    - {piece: tower-68x64-h060-burnt, t: 122.621, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 123.126, x: 136}
+    - {piece: tower-56x56-h085-creep, t: 123.126, x: 435}
+    - {piece: tower-68x64-h060-a, t: 123.632, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 124.137, x: 45}
+    - {piece: tower-68x64-h060-burnt, t: 124.137, x: 136}
+    - {piece: tower-68x64-h085-burnt, t: 124.137, x: 344}
+    - {piece: tower-68x64-h060-b, t: 124.642, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 125.147, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 125.147, x: 344}
+    - {piece: tower-56x56-h085-burnt, t: 125.653, x: 45}
+    - {piece: tower-68x64-h135-creep, t: 125.653, x: 136}
+    - {piece: tower-68x64-h110-creep, t: 125.653, x: 344}
+    - {piece: tower-56x56-h135-creep, t: 125.653, x: 435}
+    - {piece: tower-68x64-h135-creep, t: 126.158, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 126.158, x: 344}
+    - {piece: tower-68x64-h135-creep, t: 126.158, x: 435}
+    - {piece: tower-56x56-h135-a, t: 126.663, x: 45}
+    - {piece: tower-56x56-h110-a, t: 126.663, x: 136}
+    - {piece: tower-68x64-h110-a, t: 126.663, x: 435}
+    - {piece: tower-68x64-h110-creep, t: 127.168, x: 136}
+    - {piece: tower-68x64-h110-b, t: 127.168, x: 435}
+    - {piece: tower-68x64-h085-burnt, t: 127.674, x: 45}
+    - {piece: tower-56x56-h110-creep, t: 127.674, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 127.674, x: 435}
+    - {piece: tower-68x64-h060-burnt, t: 128.179, x: 45}
+    - {piece: tower-68x64-h135-b, t: 128.179, x: 136}
+    - {piece: tower-68x64-h135-creep, t: 128.179, x: 344}
+    - {piece: tower-68x64-h110-b, t: 128.684, x: 45}
+    - {piece: tower-56x56-h110-creep, t: 128.684, x: 344}
+    - {piece: tower-56x56-h110-a, t: 128.684, x: 435}
+    - {piece: tower-68x64-h060-b, t: 129.189, x: 136}
+    - {piece: tower-68x64-h060-a, t: 129.189, x: 344}
+    - {piece: tower-68x64-h110-creep, t: 129.695, x: 136}
+    - {piece: tower-68x64-h085-burnt, t: 129.695, x: 344}
+    - {piece: tower-68x64-h085-creep, t: 130.2, x: 45}
+    - {piece: tower-68x64-h110-creep, t: 130.2, x: 344}
+    - {piece: tower-56x56-h085-creep, t: 130.2, x: 435}
+    - {piece: tower-56x56-h110-creep, t: 130.705, x: 45}
+    - {piece: tower-56x56-h135-creep, t: 130.705, x: 344}
+    - {piece: tower-68x64-h085-a, t: 130.705, x: 435}
+    # smoke plumes on low-air over the fires (static)
+    - {piece: smoke-column-a, t: 77.23, x: 19}
+    - {piece: smoke-column-b, t: 81.31, x: 357}
+    - {piece: smoke-column-a, t: 85.39, x: 118}
+    - {piece: smoke-column-b, t: 90.96, x: 12}
+    - {piece: smoke-column-a, t: 96.92, x: 102}
+    - {piece: smoke-column-b, t: 102.59, x: 461}
+    - {piece: smoke-column-a, t: 111.56, x: 18}
+    - {piece: smoke-column-b, t: 118.61, x: 459}
+    - {piece: smoke-column-a, t: 124.11, x: 385}
+    - {piece: smoke-column-b, t: 129.29, x: 92}
+    # 2. CDF gunships heading south, the other way (scenery, shots pass through)
+    - {piece: cdf-gunship, t: 25.142, x: 120, path: [[24, 0, 0], [27, 54, -270]]}
+    - {piece: cdf-gunship, t: 25.742, x: 160, path: [[24.6, 0, 0], [27.6, 54, -270]]}
+    - {piece: cdf-gunship, t: 37.142, x: 380, path: [[36, 0, 0], [39, -42, -270]]}
+    - {piece: cdf-gunship, t: 48.642, x: 300, path: [[47.5, 0, 0], [50.5, 30, -270]]}
+    - {piece: cdf-gunship, t: 49.242, x: 340, path: [[48.1, 0, 0], [51.1, 30, -270]]}
+    - {piece: cdf-gunship, t: 59.142, x: 96, path: [[58, 0, 0], [61, 66, -270]]}

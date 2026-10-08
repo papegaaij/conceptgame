@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../../story, ../../campaign]
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Briefing screen
@@ -85,6 +85,7 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 | [concept/briefing-images-final-r25-a.png](concept/briefing-images-final-r25-a.png) | Review sheet, M4 part G (round 25): the two 672×240 images of Level 07 (the Brood Carrier holding at L1 with its escort screen, the overrun picket and the pods on Luna traced back to it; the overhead scan: nose-down on high air over the ship with its shadow and a bay pair open, only missiles reaching up, the turn in place, broadside at the ship's level with a pair open and the plate iris open over the lime core) and the four of the Act 1 outro, one per page (the carcass drifting apart at L1 with Earth beyond; Daedalus Rim still empty, lights on, the file open; the second fleet's track from beyond the Moon into Earth's atmosphere; Aegis Wing reassigned to Earth defence, Rook's craft on Lancer's wing) | chosen |
 | [concept/briefing-images-final-r30-a.png](concept/briefing-images-final-r30-a.png) | Review sheet, M5 part B (round 30): the four 672×240 images of the Act 2 intro, one per page (the landers' burning trails coming down through the cloud deck over the Gulf of Guinea with the CDF tracking overlay counting them; the CDF global display with the three landing zones and the act's fronts: the cities, the Atlantic sea lanes, the Arctic relay chain; a Nova Lagos street from rooftop height, people on the low roofs looking up as Lancer passes low; Aegis Wing and Rook's Ember on a coastal airbase at dusk, Nova Lagos burning 40 km off) and the two of Level 08 (the night route over the harbour, the elevated highways, the tower district and the Third Mainland highway to the Ikoyi shelters, the walkers heading for them, Lancer and Rook; the Creeper on a low roof with its aimed five-way fan, a convoy's fans 0.5 s apart, the anti-ground ×2 marker) | chosen |
 | [concept/briefing-images-final-r31-a.png](concept/briefing-images-final-r31-a.png) | Review sheet, M5 part C (round 31): the two 672×240 images of Level 09 (`level-09-arcology-district`: the route over the arcology district with the three node clusters, the Okonjo Bridge and the Ndidi Arcology; `level-09-node-scan`: the Hive Node's iris cycle and the Ravager's pounce, from the production sprites) | chosen |
+| [concept/briefing-images-final-r32-a.png](concept/briefing-images-final-r32-a.png) | Review sheet, M5 part D (round 32): Level 10's two 672×240 images (`level-10-evacuation-route`: the corridor at first light from Eko spaceport's five pads over the suburbs, the viaduct and the coast road with the capsized ferry to the lagoon's climb-out; `level-10-wraith-scan`: the Wraith cloaked and decloaked, its pass, loop and rear entry with the 3 s warning and bursts through the shuttle band, a Mote Swarm's loop-back, from the production sprites) | chosen |
 
 ## Implementation
 
@@ -254,3 +255,9 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
   images (user, 2026-10-07): Level 09's two images, `level-09-arcology-district` (corner label
   "LAST HOUR OF NIGHT") and `level-09-node-scan`, approved as **final** (the small cluster letters
   and the level's numbers on the images as they are). `art` stays `chosen`.
+- 2026-10-08: Level 10's briefing images (M5 part D, straight to production per D10 = a,
+  `tools/art/briefing_images.py`): `level-10-evacuation-route` and `level-10-wraith-scan`; review sheet
+  `briefing-images-final-r32-a` proposed for round 32.
+- 2026-10-08: [Concept round 32](../../concept-rounds/round-32/README.md) closed for the briefing
+  images (user): Level 10's two images, `level-10-evacuation-route` (with shuttle a, the picked one,
+  so no redraw) and `level-10-wraith-scan`, approved as **final**. `art` stays `chosen`.

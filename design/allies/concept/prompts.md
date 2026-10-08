@@ -62,3 +62,42 @@ Round 17, production art (M4 part D batch). Review sheet (`.png`) and loop (`.gi
 - `civilian-crawler-pip` (10×18): the HUD pip, a flat white top-down silhouette (bus with wheel notches, tow bar, four pods), tinted at runtime; the sheet shows it white and tinted green, amber and dark.
 
 The sheet shows the headings at 2×, the wheel frames at 4×, the wrecks at 2×, the pip at 6× and all at 1×; the loop has a column of five at Level 04's spacing (84 px, centres at y = 150 … 486) following a winding road on the Luna regolith of round 16 while the ground scrolls at 120 px/s, each crawler showing the heading nearest the road's direction. The concept's additive glow around the amber beacons is not in the sprites (the beacons themselves are emissive). Not an image-generator prompt: the look is the chosen concept's, whose prompt stays valid; this is the brief for reviewing the production frames.
+
+## evacuation-shuttle-r32-a
+
+Round 32 proposal A, **"Lifting body"**, at production quality (M5 part D batch, user decision
+D10 = a: the shuttle had no concept, so two looks are proposed as finished frame sets; A is in the
+game until the pick). Sheet and loop by `python3 tools/art/shuttle.py` (see `tools/art/README.md`),
+SDF models in the script, 1 model unit = 1 px, rendered at 8× through a mild perspective camera.
+Prompt: `late 1990s pre-rendered CGI game sprite, strict top-down view, a civilian orbital
+evacuation shuttle flying up the screen: a broad white blended-wing lifting body with fine panel
+lines, a dark heat-shield nose cap, a small dark glossy cockpit windscreen, a row of warm lit cabin
+windows down each side of the spine, a thin CDF-blue spine stripe, a rescue-orange evac chevron
+across both wings, two canted tail fins, three engine bells glowing blue-white, a red and a green
+navigation light at the wing tips, glossy highlights from a point light at the top-left, crisp
+palette-limited pixel edges`.
+Frames: `evacuation-shuttle_0..4` (64×40, banks −30/−15/0/+15/+30°), `-damaged_0..4` (scorched,
+left engine dead), `-lift_0..3` (0.70/0.775/0.85/0.925×), `-wreck_0..7` (the glide into far:
+1.0 → 0.35×, rolling to 35°, yawing 15°, darkened to 50 %, lights dead), `-flame_0..2` (6×12) and
+`-flare_0..2` (10×26) blue-white additive, `-pip` (16×10), `pivots/evacuation-shuttle.json`. The
+loop: three shuttles lift off a dawn stand-in (3 s instead of 6), drift along their lanes with the
+bank frames, the middle one is hit, smokes (`ship-smoke` puffs), is lost and glides away; the other
+two climb out on the flare.
+
+Outcome (user, 2026-10-08): **chosen** in round 32; already the game's frames, approved as final.
+
+## evacuation-shuttle-r32-b
+
+Round 32 proposal B, **"Heavy lifter"**, the same frame sets and loop from the same script (its
+frames live only in this sheet and loop until it is picked; `python3 tools/art/shuttle.py
+--variant b` then writes them under the game's names).
+Prompt: `late 1990s pre-rendered CGI game sprite, strict top-down view, a civilian evacuation
+lifter flying up the screen: a long white pressurised cabin fuselage with two rows of warm lit
+windows and a blue-capped nose with a dark windscreen, straight stub wings each carrying a ducted
+lift fan with dark blades and a tip nacelle with a rescue-orange nose, a rescue-orange evac band
+round the fuselage, a thin CDF-blue spine stripe, a T-tail, two engine bells glowing blue-white,
+red and green navigation lights on the nacelles, glossy highlights from a point light at the
+top-left, crisp palette-limited pixel edges`.
+
+Outcome (user, 2026-10-08): **rejected** in round 32 (a picked), moved to `rejected/` (the heading keeps the file's name).
+

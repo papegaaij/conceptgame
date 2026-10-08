@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Hangar
@@ -155,6 +155,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 | [concept/intel-final-r23-a.png](concept/intel-final-r23-a.png) | Review sheet (M4 part F batch, `tools/art/intel.py`, [round 23](../../concept-rounds/round-23/README.md)): the 30×30 intel portraits of Level 06's Mantis (nose down) and Coilwyrm (the head with its first segment), from the production models of `tools/art/mantis.py` and `tools/art/coilwyrm.py`, at 1× and 3× | chosen |
 | [concept/intel-final-r30-a.png](concept/intel-final-r30-a.png) | Review sheet (M5 part B batch, `tools/art/intel.py`, [round 30](../../concept-rounds/README.md)): the 30×30 intel portrait of Level 08's Creeper (walking down), from the production model of `tools/art/creeper.py` with its readability lift, at 1× and 3× | chosen |
 | [concept/intel-final-r31-a.png](concept/intel-final-r31-a.png) | Review sheet (M5 part C batch, `tools/art/intel.py`, [round 31](../../concept-rounds/README.md)): the 30×30 intel portraits of Level 09's Hive Node and Ravager, from the production models of `tools/art/hive_node.py` and `tools/art/ravager.py`, at 1× and 3× | chosen |
+| [concept/intel-final-r32-a.png](concept/intel-final-r32-a.png) | Review sheet (M5 part D batch, `tools/art/intel.py`, [round 32](../../concept-rounds/README.md)): the 30×30 intel portraits of Level 10's Wraith and Mote Swarm, from the production models of `tools/art/wraith.py` and `tools/art/mote_swarm.py`, at 1× and 3× | chosen |
 
 M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game capture, see
 [concept/prompts.md](concept/prompts.md#test-fire-capture-r26-a).
@@ -193,6 +194,13 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
       flies) and the specials' charges as sources (Level 09's `anti-ground`, D7 = a) — M5 part C
       (`Hangar.sourceTraits`/`missingRequired`, `Intel.requiredTraits`, `HangarState.launchWarnings`:
       `NO ANTI-GROUND SOURCE FITTED`; `HangarRequiredTraitTest`, `LaunchRequiredTraitTest`)
+- [x] Level 10's `required: [rear]` (D9 = a): the launch warning `NO REAR WEAPON FITTED` at every
+      sensor level until a rear-firing weapon (Tail Gun, Fan Blaster, Proximity Mines) is in the
+      rear slot; Rook's gun never brings `rear` (`Hangar.REAR`, `sourceTraits`; `HangarState.
+      requiredWarning`; `HangarRearRequiredTest`, `LaunchRearWarningTest`) — M5 part D
+- [x] The intel panel's level name beside the sensor chip: a name too long for the body font
+      (`EVACUATION CORRIDOR`) takes the label font (`IntelPanel.nameFits`, `IntelPanelLayoutTest`)
+      — M5 part D
 
 ## Open questions
 
@@ -416,3 +424,15 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
 - 2026-10-07: [Concept round 31](../../concept-rounds/round-31/README.md) closed for the intel
   portraits (user, 2026-10-07): Level 09's Hive Node (iris half open) and Ravager (running down)
   approved as **final**.
+- 2026-10-08: M5 part D, game side (user decision D9 = a): Level 10's required `rear` is met only by
+  the weapon in the rear slot, and only one that fires behind the ship: the Tail Gun, the Fan
+  Blaster and the Proximity Mines carry the `rear` trait; the Side Splitter (rear slot, trait
+  `side`) fires sideways and does not count; Rook's guns and homing never do. The warning reads `NO
+  REAR WEAPON FITTED` (only a weapon can bring it; shorter than Level 09's line). Our reading, for
+  review in round 32: the Side Splitter does not silence it. The intel panel's level name drops to
+  the label font when it would run into the sensor chip (Level 10's `EVACUATION CORRIDOR`, 19
+  characters).
+- 2026-10-08: [Concept round 32](../../concept-rounds/round-32/README.md) closed for the intel
+  portraits (user): Level 10's Wraith and Mote Swarm approved as **final**; the build choices on the
+  hangar (the Side Splitter not silencing the rear warning, the intel's long level name in the label
+  font) accepted as built.

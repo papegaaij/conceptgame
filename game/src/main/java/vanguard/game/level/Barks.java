@@ -33,7 +33,8 @@ import vanguard.sim.WaveSpec;
  * </ul>
  *
  * The triggers come from the level's events (a boss's arrival, his low armour and ejection, kills),
- * from the level script (a rear wave 1.5 s before it enters, a sides wave as it enters) and from the
+ * from the level script (a rear wave 1.5 s before it enters, a sides wave as it enters; M5 part D: a
+ * re-entry at the bottom edge 1.5 s before it, {@link #reentry}) and from the
  * state the screen reads each step (the player's armour, overdrive pickups on the field). The waves'
  * barks go by the level's clock (script time), so a retry plays the same barks; the spacing and the
  * streak's window are measured in real seconds (M5 part C: in a hold zone the level clock slows to a
@@ -77,6 +78,14 @@ public final class Barks {
     }
 
     private static final double REAR_AHEAD_SECONDS = 1.5;
+    /**
+     * M5 part D: the bottom edge's warning ahead of a re-entry (a Wraith's rear ambush, a swarm's or a
+     * chain's loop-back) runs this long (the sim's 3 s edge warning); the rear bark fires {@link
+     * #REAR_AHEAD_SECONDS} before its end.
+     */
+    static final double REENTRY_WARNING_SECONDS = 3;
+    /** The re-entry barks waiting at once, at most. */
+    private static final int REENTRIES = 8;
 
     private final WingmenData.Barks data;
     private final int level;
@@ -94,6 +103,15 @@ public final class Barks {
     private final int[] rearTicks;
 
     private final int[] sidesTicks;
+    /** M5 part D: the steps at which a re-entry's rear bark is due, {@link #reentryCount} of them. */
+    private final int[] reentryTicks = new int[REENTRIES];
+
+    private int reentryCount;
+    /** The steps between a re-entry's warning start and its bark. */
+    private final int reentryLead;
+    /** The steps of a rear wave's warning: a bottom warning starting this soon before a rear wave's bark is that wave's. */
+    private final int rearWarningTicks;
+
     private final int streakKills;
     private final double streakSeconds;
     private final double playerBelow;
@@ -154,6 +172,8 @@ public final class Barks {
                 .sorted()
                 .toArray();
         sidesTicks = Arrays.stream(sidesWaves).mapToInt(SimStep::ticks).sorted().toArray();
+        reentryLead = SimStep.ticks(Math.max(0, REENTRY_WARNING_SECONDS - ahead));
+        rearWarningTicks = SimStep.ticks(REENTRY_WARNING_SECONDS);
         WingmenData.Bark streak = barks[Trigger.KILL_STREAK.ordinal()];
         streakKills = streak == null ? Integer.MAX_VALUE : streak.kills().orElse(Integer.MAX_VALUE);
         streakSeconds = streak == null ? 0 : streak.seconds().orElse(0.0);
@@ -212,7 +232,12 @@ public final class Barks {
                 script.number(),
                 timed,
                 escortOnly,
-                waves(script.waves(), WaveSpec.Entry.REAR),
+                // M5 part D: a rear ambush enters at the top; its bark keys to its re-entry (reentry()).
+                script.waves().stream()
+                        .filter(wave -> wave.entry() == WaveSpec.Entry.REAR)
+                        .filter(wave -> wave.formation() != WaveSpec.Formation.REAR_AMBUSH)
+                        .mapToDouble(WaveSpec::t)
+                        .toArray(),
                 waves(script.waves(), WaveSpec.Entry.SIDES),
                 radio,
                 queue);
@@ -265,6 +290,7 @@ public final class Barks {
         }
         waiting = null;
         ejected = false;
+        reentryCount = 0;
         playerLow = null;
         overdrives = -1;
         lastTick = levelTick;
@@ -352,6 +378,9 @@ public final class Barks {
             if (due(sidesTicks, levelTick)) {
                 fire(Trigger.SIDES_WAVE, t);
             }
+            if (dueReentry(levelTick)) {
+                fire(Trigger.REAR_WAVE, t);
+            }
         }
         lastTick = levelTick;
         boolean low = playerArmourShare < playerBelow;
@@ -367,6 +396,39 @@ public final class Barks {
             fire(Trigger.OVERDRIVE, t);
         }
         overdrives = overdrivePickups;
+    }
+
+    /**
+     * M5 part D: the bottom edge's warning started at step {@code levelTick} (design/player/wingmen:
+     * a Wraith's rear ambush and a swarm's or chain's loop-back are rear waves from their re-entry at
+     * the bottom edge): unless it is a rear wave's own warning (its bark due within the warning), its
+     * rear bark is due {@link #REAR_AHEAD_SECONDS} before the re-entry, at the warning's end.
+     *
+     * @return whether a bark was planned
+     */
+    public boolean reentry(int levelTick) {
+        for (int tick : rearTicks) {
+            if (tick >= levelTick && tick <= levelTick + rearWarningTicks) {
+                return false;
+            }
+        }
+        if (reentryCount == REENTRIES) {
+            return false;
+        }
+        reentryTicks[reentryCount++] = levelTick + reentryLead;
+        return true;
+    }
+
+    /** Whether a re-entry's bark is due by {@code levelTick}; the due ones are dropped. */
+    private boolean dueReentry(int levelTick) {
+        boolean due = false;
+        for (int i = reentryCount - 1; i >= 0; i--) {
+            if (reentryTicks[i] <= levelTick) {
+                due = true;
+                reentryTicks[i] = reentryTicks[--reentryCount];
+            }
+        }
+        return due;
     }
 
     /** Whether one of the steps lies after the last step seen, up to {@code levelTick}. */

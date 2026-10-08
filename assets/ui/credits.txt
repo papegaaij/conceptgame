@@ -61,15 +61,17 @@ item|“snapping-chain” by CosmicEmbers
 detail|CC-BY 3.0 · freesound.org/people/CosmicEmbers/sounds/161650
 item|“Sortuminen, talo sortuu / Big crash, a house tumbling down, collapse, mix” by YleArkisto
 detail|CC-BY 4.0 · freesound.org/people/YleArkisto/sounds/342891
+item|“Swirling Velvet Cloak 2.wav” by F.M.Audio
+detail|CC-BY 4.0 · freesound.org/people/F.M.Audio/sounds/556759
 gap|
 role|WITH THANKS TO (CC0)
-text|aust_paul, BaggoNotes, bevibeldesign, Bird_man, Breviceps, cobratronik, coolguy244e, craigsmith, cubix, Cyberios, Daleonfire, darcyadam, derplayer, dinodilopho, Division4884, Elektrocell, FlatHill, frankelmedico, GameAudio, Glitchedtones, gprosser, humanoide9000, iwanPlays, Jacco18, Jarusca, Jerimee, JoelAudio, JoMungus, JovianSounds, jvmyka@gmail.com, Kinoton, lorenzgillner, LucasDuff, magnuswaker, mattpavone, michael_grinnell, mitchelk, Mozfoo, NHMWretched, nicktermer, noirenex, Noxdl, peepholecircus, pgi, plasterbrain, qubodup, SamsterBirdies, SecureSubset, Sheyvan, sidohzen, SuperPhat, ThefitzyG, TRP, uagadugu, unfa, wilhellboy, xkeril
+text|aust_paul, BaggoNotes, bevibeldesign, Bird_man, Breviceps, cobratronik, coolguy244e, craigsmith, cubix, Cyberios, Daleonfire, darcyadam, derplayer, dinodilopho, Division4884, Elektrocell, FlatHill, frankelmedico, GameAudio, Glitchedtones, gprosser, humanoide9000, iwanPlays, Jacco18, Jarusca, Jerimee, JoelAudio, JoMungus, JovianSounds, jvmyka@gmail.com, kalhan, Kinoton, loganzsound, lorenzgillner, LucasDuff, magnuswaker, mattpavone, michael_grinnell, mitchelk, Mozfoo, NHMWretched, nicktermer, noirenex, Noxdl, peepholecircus, pgi, plasterbrain, qubodup, SamsterBirdies, SecureSubset, Sheyvan, sidohzen, SuperPhat, ThefitzyG, TRP, uagadugu, unfa, wilhellboy, xkeril
 gap|
 title|VOICES
 text|Spoken by the Chatterbox text-to-speech engine (Resemble AI, MIT licence) in voices cloned from LibriVox recordings
 gap|
 role|READ BY (PUBLIC DOMAIN AND CC0)
-text|Aaron Bennett, Adrian Praetzellis, Alex Foster, Betsie Bush, Cori Samuel, Faith Abiola-Ellison, Gord Mackenzie, Kara Shallenberg, Karen Savage, Kristin Hughes, Mark F. Smith, Mark Nelson, Rick Rodstrom, Ruth Golding, Tadhg Hynes
+text|Aaron Bennett, Adrian Praetzellis, Alex Foster, Betsie Bush, Cori Samuel, Faith Abiola-Ellison, Gord Mackenzie, Kara Shallenberg, Karen Savage, KevinS, Kristin Hughes, Maria Kasper, Mark F. Smith, Mark Nelson, Rick Rodstrom, Ruth Golding, Tadhg Hynes
 gap|
 title|FONTS
 item|“DejaVu Sans Mono Bold” by DejaVu fonts team, after Bitstream Vera (Bitstream)

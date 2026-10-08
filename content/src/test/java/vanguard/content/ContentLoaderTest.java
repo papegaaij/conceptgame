@@ -31,6 +31,7 @@ class ContentLoaderTest {
                         "hive-node",
                         "leviathan",
                         "mantis",
+                        "mote-swarm",
                         "needler",
                         "polyp-mortar",
                         "ravager",
@@ -39,7 +40,8 @@ class ContentLoaderTest {
                         "spine-turret",
                         "spore-bomber",
                         "stinger",
-                        "whirl-seed"),
+                        "whirl-seed",
+                        "wraith"),
                 content.enemies().keySet().stream().sorted().toList());
         assertEquals(
                 180, content.level("act-1-first-contact/level-01-break-at-dawn").seconds());
@@ -145,7 +147,7 @@ class ContentLoaderTest {
                 LEVEL_01,
                 text -> text.replaceFirst("enemy: needler", "enemy: neddler"),
                 "design/" + LEVEL_01
-                        + ": waves[2].enemy: unknown enemy 'neddler' (known: brood-carrier, brood-pod, coilwyrm, creeper, gorgon-frigate, hive-node, leviathan, mantis, needler, polyp-mortar, ravager, scuttler, skitter, spine-turret, spore-bomber, stinger, whirl-seed)");
+                        + ": waves[2].enemy: unknown enemy 'neddler' (known: brood-carrier, brood-pod, coilwyrm, creeper, gorgon-frigate, hive-node, leviathan, mantis, mote-swarm, needler, polyp-mortar, ravager, scuttler, skitter, spine-turret, spore-bomber, stinger, whirl-seed, wraith)");
     }
 
     @Test

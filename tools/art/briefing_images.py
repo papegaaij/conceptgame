@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Production art: the briefings' tactical maps and mission images (design/ui/briefing), one per
-briefing page of the Act 1 intro, Levels 01-07, the Act 1 outro, the Act 2 intro and Level 08, in the chosen briefing-r08-a look: a dark
+briefing page of the Act 1 intro, Levels 01-07, the Act 1 outro, the Act 2 intro and Levels 08-10, in the chosen briefing-r08-a look: a dark
 tactical display with its grid, scan rows and edge ticks, holographic planets, cyan routes and
 labels, red and violet for the Vrell, amber for objectives.
 
@@ -64,12 +64,23 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
   level-08-walker-scan    L08 p2: the Creeper on a low roof (its gland and eye glow added), its aimed
                           five-way fan of orbs, a convoy's fans 0.5 s apart front to back, the
                           anti-ground x2 marker
+  level-09-arcology-district  L09 p1: the arcology district before dawn, the route, clusters A-C
+  level-09-node-scan      L09 p2: the Hive Node (hardened, its iris cycle), the Ravager's pounce arc
+  level-10-evacuation-route  L10 p1: the corridor at first light, west to east: Eko spaceport's five
+                          pads with the shuttles, the jammed suburbs, the maglev viaduct between the
+                          creep districts, the coast road and the capsized ferry, the lagoon and the
+                          climb-out; the route, Lancer and Rook, contacts closing from behind
+  level-10-wraith-scan    L10 p2: the Wraith cloaked (its additive shimmer) and decloaked (over its
+                          flash); its pass overhead, loop and rear entry with the 3 s warning, its
+                          bursts up through the shuttle band; a Mote Swarm's flock and loop-back
   design/ui/briefing/concept/briefing-images-final-r13-a.png   review sheet, Act 1 intro + L01-02
   design/ui/briefing/concept/briefing-images-final-r20-a.png   review sheet, L03-04 (M4 batch)
   design/ui/briefing/concept/briefing-images-final-r21-a.png   review sheet, L05 (M4 part E)
   design/ui/briefing/concept/briefing-images-final-r23-a.png   review sheet, L06 (M4 part F)
   design/ui/briefing/concept/briefing-images-final-r25-a.png   review sheet, L07 + Act 1 outro (part G)
   design/ui/briefing/concept/briefing-images-final-r30-a.png   review sheet, Act 2 intro + L08 (M5 part B)
+  design/ui/briefing/concept/briefing-images-final-r31-a.png   review sheet, L09 (M5 part C)
+  design/ui/briefing/concept/briefing-images-final-r32-a.png   review sheet, L10 (M5 part D)
  Every image is composed
 in layers like the hangar map (tools/art/ui_scenes.py): the display and planets posterized to 24
 colours with ordered dither, the lines, markers and labels to 16 of their own, then the sprites
@@ -80,12 +91,12 @@ additive light (the Mantis's beam parts from assets/, its wedge from mantis_beam
 code; the carrier's core glow, also on its open sacs) added as the game blends it, its pixels to 32 colours of their own.
 The labels use the concept pixel font (render/raster.py), as the chosen mockup does.
 
-Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23|r25|r30] [--review]   (~10 s; after
+Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23|r25|r30|r31|r32] [--review]   (~10 s; after
 stormhawk.py, vrell_air.py, intel.py, vrell_l03.py, leviathan.py, vrell_l04.py, civilian_crawler.py
 airstrike_bomber.py, l05_hazards.py, mantis.py, mantis_beam.py, coilwyrm.py, l06_darkness.py,
 backdrop_l06.py, brood_carrier.py, brood_carrier_death.py, backdrop_l07.py, portraits.py, rook.py,
-creeper.py, enemy_bullets.py and weapon_fx.py, whose sprites it shows); the review sheet written is
-the open round's (r30) unless
+creeper.py, enemy_bullets.py, weapon_fx.py, hive_node.py, ravager.py, wraith.py, mote_swarm.py and
+shuttle.py, whose sprites it shows); the review sheet written is the open round's (r32) unless
 a round is named.
 """
 import json
@@ -109,7 +120,8 @@ SOURCE = artkit.source_note(SCRIPT, "UI batch")
 SOURCE_M4 = artkit.source_note(SCRIPT, "M4 briefing images")
 SOURCE_M5 = artkit.source_note(SCRIPT, "M5 part B batch")
 SOURCE_M5C = artkit.source_note(SCRIPT, "M5 part C batch")
-ROUND = "r31"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23, r25, r30)
+SOURCE_M5D = artkit.source_note(SCRIPT, "M5 part D batch")
+ROUND = "r32"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23, r25, r30, r31)
 OUT = ROOT / "assets" / "ui" / "briefing"
 CONCEPT = DESIGN / "ui" / "briefing" / "concept"
 W, H = 672, 240
@@ -1809,6 +1821,210 @@ def math_sin(s_):
     return float(np.sin(np.pi * s_))
 
 
+def scaled_sprite(name, scale, colours=48):
+    """A production sprite at ``scale`` (box-filtered, alpha stepped), palettised."""
+    img = asset(name)
+    w, h = max(1, round(img.width * scale)), max(1, round(img.height * scale))
+    a = np.array(img.resize((w, h), Image.BOX)).astype(np.float64)
+    a[..., 3] = np.where(a[..., 3] >= 128, 255, 0)
+    return artkit.quantize_set([Image.fromarray(a.astype(np.uint8), "RGBA")], colours)[0]
+
+
+def additive(name, scale=1.0, strength=1.0):
+    """An additive sprite (the Wraith's shimmer, its decloak flash) as an RGB array premultiplied
+    on black, as the game blends it, at ``scale``."""
+    img = asset(name)
+    if scale != 1.0:
+        img = img.resize((max(1, round(img.width * scale)), max(1, round(img.height * scale))), Image.BOX)
+    a = np.array(img).astype(np.float64)
+    return a[..., :3] * a[..., 3:4] / 255 * strength
+
+
+def light_at(b, rgb, cx, cy, layer="over"):
+    b.add_light(rgb, cx - rgb.shape[1] / 2, cy - rgb.shape[0] / 2, layer)
+
+
+DAWN = (70, 52, 40)   # the first light in the east (Level 10)
+
+
+def evacuation_route():
+    """L10 p1: the evacuation corridor at first light, west to east: Eko spaceport with its five
+    pads and the shuttles on them, the suburbs with their jammed highways and refugee lights, the
+    maglev viaduct between the two creep districts, the coast road with the capsized ferry on its
+    sandbar, the lagoon and the climb-out over the sea; the five shuttles' route, Lancer and Rook
+    with them, the contacts closing from behind."""
+    b = Board()
+    b.glow(W + 60, 110, 300, DAWN, 1.0)                           # first light in the east
+    b.glow(W + 20, 40, 120, (60, 44, 46), 0.6)
+    coast = 520 + 16 * np.sin(b.yy / 46) + 0.18 * (b.yy - 120)
+    water = b.xx > coast
+    b.base = np.where(water[..., None], b.base * 0.55 + np.array([4, 12, 30]) + ((b.xx - 520) / 150).clip(0, 1)[..., None]
+                      * np.array([22, 18, 16]), b.base)
+    rng = np.random.default_rng(1010)
+    for _ in range(120):                                          # the sprawl's last lights
+        x, y = rng.uniform(150, 510), rng.uniform(26, 222)
+        if not water[int(y), int(x)]:
+            b.glow(x, y, rng.uniform(2, 4), (80, 64, 32), 0.35)
+    for cx, cy in ((352, 58), (360, 182)):                        # the creep districts either side of the viaduct
+        for _ in range(16):
+            b.glow(cx + rng.uniform(-44, 44), cy + rng.uniform(-22, 22), rng.uniform(6, 12), (40, 12, 56), 0.5)
+    for x, y in ((300, 40), (410, 200), (230, 200)):
+        b.glow(x, y, 22, (56, 50, 52), 0.55)                      # smoke
+    b.title("NOVA LAGOS - EVACUATION CORRIDOR - FIRST LIGHT")
+    px0, py0 = 18, 64                                             # Eko spaceport and its five pads
+    b.draw.rectangle([px0, py0, px0 + 104, py0 + 120], outline=CYAN_DIM + (220,))
+    b.line([(px0 + 4, py0 + 116), (px0 + 100, py0 + 116)], CYAN_DIM, 1, 160)
+    pads = [(70, 86), (44, 116), (96, 116), (44, 154), (96, 154)]  # One leads, Two to Five in a double column
+    for x, y in pads:
+        b.ring(x, y, 13, colour=CYAN, alpha=200)
+        b.ring(x, y, 9, colour=CYAN_DIM, alpha=140)
+    b.label(px0, py0 + 126, "EKO SPACEPORT", CYAN)
+    b.label(px0, py0 + 136, "5 PADS", CYAN_DIM)
+    for y in (100, 136):                                          # the suburbs' jammed highways
+        pts = [(124, y), (180, y - 6), (236, y + 4), (288, y - 2)]
+        for off in (-3, 3):
+            b.line([(x, yy + off) for x, yy in pts], CYAN_DIM, 1, 200)
+        for k in range(26):
+            s_ = k / 26
+            x = 128 + 156 * s_
+            yy = np.interp(x, [p[0] for p in pts], [p[1] for p in pts])
+            b.draw.point((x, yy + rng.choice([-1, 1])), fill=(AMBER if k % 3 else GREEN) + (255,))
+    b.label(150, 74, "SUBURBS", CYAN)
+    b.label(150, 84, "ROADS JAMMED", CYAN_DIM)
+    vy = 118                                                      # the maglev viaduct
+    for off in (-4, 4):
+        b.line([(296, vy + off), (452, vy + off)], CYAN, 1, 230)
+    for x in range(300, 452, 14):
+        b.line([(x, vy - 4), (x, vy + 4)], CYAN_DIM, 1, 140)
+    b.label(318, 100, "MAGLEV VIADUCT", CYAN)
+    b.label(318, 28, "CREEP DISTRICT", VIOLET)
+    b.label(318, 206, "CREEP DISTRICT", VIOLET)
+    cr = [(452, vy), (488, 130), (510, 160), (528, 196)]           # the coast road
+    for off in (-3, 3):
+        b.line([(x + off, y) for x, y in cr], CYAN_DIM, 1, 220)
+    b.label(430, 210, "COAST ROAD", CYAN_DIM)
+    fx, fy = 566, 166                                             # the capsized ferry on its sandbar
+    b.glow(fx, fy + 4, 16, (40, 46, 40), 0.7)
+    ang = np.radians(-28)
+    hull = [(-22, 0), (-17, -6), (14, -6), (24, 0), (14, 6), (-17, 6)]
+    rot = [(fx + x * np.cos(ang) - y * np.sin(ang), fy + x * np.sin(ang) + y * np.cos(ang)) for x, y in hull]
+    b.draw.polygon(rot, outline=CYAN + (230,))
+    b.line([rot[0], ((rot[2][0] + rot[4][0]) / 2, (rot[2][1] + rot[4][1]) / 2)], CYAN_DIM, 1, 200)   # the keel
+    b.label(fx - 24, fy + 18, "CAPSIZED FERRY", CYAN_DIM)
+    shore = [(float(520 + 16 * np.sin(y / 46) + 0.18 * (y - 120)), float(y)) for y in range(22, 232, 6)]
+    b.dashed(shore, CYAN_DIM, 1, 3, 3)
+    b.label(578, 64, "LAGOON", CYAN_DIM)
+    b.label(W - 10, 216, "FIRST LIGHT", GREY, right=True)
+    route = [(70, 70), (120, 104), (180, 112), (236, 120), (296, 118), (452, 118), (500, 126), (560, 120), (620, 96),
+             (640, 50)]
+    b.dashed(route[:-1], AMBER, 2, 7, 4)
+    b.arrow(*route[-2], *route[-1], AMBER, dashed=False)
+    b.label(W - 10, 26, "CLIMB-OUT", AMBER, right=True)
+    b.label(W - 10, 36, "OVER THE SEA", AMBER, right=True)
+    for x, y in ((150, 160), (330, 156), (420, 150)):             # contacts closing from behind
+        b.marker(x, y, "chevron", RED, 4)
+        b.arrow(x + 7, y - 4, x + 27, y - 14, RED, size=3)
+    b.label(170, 214, "CONTACTS FROM BEHIND", RED)
+    shuttle = scaled_sprite("evacuation-shuttle_2", 0.5)
+    for k, (x, y) in enumerate(pads):
+        b.sprite(shuttle, x, y)
+        b.label(x + 12, y - 15, str(k + 1), GREEN)
+    b.sprite(asset("ship_2"), 196, 52)
+    b.sprite(rook_craft(), 236, 66)
+    b.label(176, 22, "LANCER", CYAN)
+    b.label(252, 54, "ROOK", AMBER)
+    b.label(W - 10, 9, "ESCORT 5 SHUTTLES", AMBER, right=True)
+    b.label(px0, 34, "LIFELINE 1-5", GREEN)
+    b.label(px0, 44, "1,100 PEOPLE", GREEN)
+    return b
+
+
+def wraith_scan():
+    """L10 p2: Varga's scan: the Wraith cloaked (its shimmer on high air: only homing finds it) and
+    decloaked; its pass overhead, out the bottom edge, the loop and the rear entry with the 3 s
+    warning, the decloak flash and its bursts up the screen through the shuttle band; a Mote
+    Swarm sweeping down, out the bottom and back up from behind."""
+    b = Board()
+    b.title("SENSOR SCAN - WRAITH / MOTE SWARM")
+    cx, cy = 58, 110                                              # cloaked
+    b.glow(cx, cy, 46, (24, 14, 44), 0.6)
+    light_at(b, additive("wraith-cloak_0"), cx, cy)
+    b.label(14, 26, "WRAITH", WHITE)
+    b.label(14, 36, "CLOAKED: HIGH AIR", VIOLET)
+    b.label(14, 164, "ONLY HOMING", GREEN)
+    b.label(14, 174, "FINDS IT", GREEN)
+    b.sprite(asset("hornet-launcher-shot_0"), 108, 168)
+    dx, dy = 158, 110                                             # decloaked
+    light_at(b, additive("wraith-decloak_1", 1.0, 0.55), dx, dy, "under")
+    b.sprite(asset("wraith_32"), dx, dy)
+    b.arrow(96, 110, 116, 110, CYAN_DIM, size=3)
+    b.label(124, 152, "DECLOAKED", WHITE)
+    b.label(124, 162, "0.4 S FLASH", VIOLET)
+    b.label(124, 202, "THEN EVERY GUN", GREEN)
+    b.label(124, 212, "HITS IT", GREEN)
+    x0, y0, x1, y1 = 232, 28, 404, 192                            # the play field, top down
+    b.draw.rectangle([x0, y0, x1, y1], outline=CYAN_DIM + (200,))
+    band0, band1 = 52, 96                                         # the shuttle band
+    for x in range(x0 + 2, x1 - 1, 6):
+        b.line([(x, band0), (x + 4, band0)], GREEN, 1, 110)
+        b.line([(x, band1), (x + 4, band1)], GREEN, 1, 110)
+    shuttle = scaled_sprite("evacuation-shuttle_2", 0.5)
+    for sx, sy in ((292, 64), (344, 64), (318, 84)):
+        b.sprite(shuttle, sx, sy)
+    b.label(x1 + 6, band0 + 4, "SHUTTLES", GREEN)
+    ship = np.array([300.0, 160])
+    pts = [(262, y0 - 14), (258, 60), (270, 120), (284, y1), (292, y1 + 26), (330, y1 + 32), (352, y1 + 18),
+           (356, y1 - 12)]
+    b.dashed(pts[:4], VIOLET, 1, 4, 3)                            # the pass overhead, cloaked
+    b.dashed(pts[3:], GREY, 1, 2, 3)                              # the loop, off screen
+    light_at(b, additive("wraith-cloak_0", 0.5), 262, 44)
+    b.label(176, 38, "PASSES", VIOLET)
+    b.label(176, 48, "OVERHEAD", VIOLET)
+    b.label(410, y1 + 10, "LOOPS BEHIND", GREY)
+    for k in range(3):                                            # the 3 s warning at the bottom edge
+        b.marker(340 + 12 * k, y1 - 3, "chevron", AMBER, 3)
+    b.label(x1 + 6, y1 - 6, "3 S WARNING", AMBER)
+    wx, wy = 356, 168
+    light_at(b, additive("wraith-decloak_2", 0.5, 0.8), wx, wy, "under")
+    b.sprite(scaled_sprite("wraith_32", 0.5), wx, wy)
+    orb = scaled_sprite("orb-medium_0", 0.6)
+    for k, ang in enumerate((-100, -112, -124)):                  # its bursts up the screen
+        u = np.array([np.cos(np.radians(ang)), np.sin(np.radians(ang))])
+        p0 = np.array([wx, wy - 10.0])
+        b.dashed([tuple(p0), tuple(p0 + u * 128)], RED, 1, 3, 3)
+        for r in (36, 76, 108):
+            b.sprite(orb, *(p0 + u * r))
+    b.label(x1 + 6, 112, "DECLOAKS AT", VIOLET)
+    b.label(x1 + 6, 122, "YOUR SIX", VIOLET)
+    b.label(x1 + 6, 136, "BURSTS UP", RED)
+    b.label(x1 + 6, 146, "THROUGH THE", RED)
+    b.label(x1 + 6, 156, "SHUTTLES", RED)
+    b.sprite(asset("ship_2"), *ship)
+    mx0 = 500                                                     # the Mote Swarm
+    b.label(mx0, 26, "MOTE SWARM", WHITE)
+    b.label(mx0, 36, "A FLOCK, NOT", CYAN_DIM)
+    b.label(mx0, 46, "A FORMATION", CYAN_DIM)
+    path = [(530, 66), (560, 112), (604, 160), (640, 206)]
+    back = [(640, 206), (656, 228), (668, 200), (650, 150), (618, 104)]
+    b.dashed(path, VIOLET, 1, 4, 3)
+    b.dashed(back[:3], GREY, 1, 2, 3)
+    b.arrow(*back[2], *back[3], RED, size=3)
+    b.arrow(*back[3], *back[4], RED, size=4, dashed=False)
+    b.label(mx0, 196, "TURNS BACK", RED)
+    b.label(mx0, 206, "FROM BELOW", RED)
+    mrng = np.random.default_rng(1012)
+    for k in range(16):                                           # the flock, aligned on the route
+        s_ = mrng.uniform(0.15, 0.6)
+        bx = np.interp(s_, [0, 1 / 3, 2 / 3, 1], [p[0] for p in path]) + mrng.normal(0, 9)
+        by = np.interp(s_, [0, 1 / 3, 2 / 3, 1], [p[1] for p in path]) + mrng.normal(0, 7)
+        heading = 14 + int(mrng.integers(-1, 2))                  # flying down and to the right
+        b.sprite(asset(f"mote-swarm_{(heading % 16) * 3 + k % 3}"), bx, by)
+    b.sprite(asset("mote-swarm_25", 2), 646, 72)
+    b.label(W - 10, 9, "FROM BEHIND", AMBER, right=True)
+    b.label(10, H - 16, "FIT A REAR GUN, LANCER", AMBER)
+    return b
+
+
 IMAGES = {
     "act-1-tether-gate": tether_gate,
     "act-1-outer-stations": outer_stations,
@@ -1841,6 +2057,8 @@ IMAGES = {
     "level-08-walker-scan": creeper_walker_scan,
     "level-09-arcology-district": arcology_district,
     "level-09-node-scan": node_scan,
+    "level-10-evacuation-route": evacuation_route,
+    "level-10-wraith-scan": wraith_scan,
 }
 
 # Review sheets per batch: round, the images on it, the batch name.
@@ -1851,7 +2069,8 @@ BATCHES = {
     "r23": (list(IMAGES)[15:17], "M4 PART F"),
     "r25": (list(IMAGES)[17:23], "M4 PART G"),
     "r30": (list(IMAGES)[23:29], "M5 PART B"),
-    "r31": (list(IMAGES)[29:], "M5 PART C"),
+    "r31": (list(IMAGES)[29:31], "M5 PART C"),
+    "r32": (list(IMAGES)[31:], "M5 PART D"),
 }
 
 
@@ -1859,7 +2078,8 @@ def build(names):
     OUT.mkdir(parents=True, exist_ok=True)
     for name in names:
         source = (SOURCE if name in BATCHES["r13"][0] else SOURCE_M5 if name in BATCHES["r30"][0]
-                  else SOURCE_M5C if name in BATCHES["r31"][0] else SOURCE_M4)
+                  else SOURCE_M5C if name in BATCHES["r31"][0] else SOURCE_M5D if name in BATCHES["r32"][0]
+                  else SOURCE_M4)
         artkit.save_png(IMAGES[name]().image(), OUT / f"{name}.png", source)
     print(f"{len(names)} briefing images in {OUT.relative_to(ROOT)}")
 

@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: final
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # HUD
@@ -60,7 +60,7 @@ left panel is about the mission (score, radio), the right panel about the ship.
 | Radio | 72×72 portrait with static on open/close, name, subtitle below the portrait up to 3 lines × 22 chars per page; a longer line is paged: each page typed out, then held 3 s (the last page 5 s), and a spoken line's page at least until its [voice](../../audio/voice/README.md) has reached the page's end (the last page until the voice ends); a radio line is at most **two pages** of word-wrapped lines (writing rule); queued messages: **timed lines go first** (a line at its time in the level script plays before any waiting event line), an **event line** (a reaction to an escaped enemy, a secret, a kill) waits for a gap, a free radio long enough to play it before the next timed line is due, and is dropped as stale once it has waited more than **6 s**; the lines that close a level (its end, a met secondary objective) wait for a gap too but are never dropped; urgent warnings interrupt (and cut the playing voice; the interrupted line replays with its voice): the Airstrike's call and Rook's **eject bark** ([wingmen](../../player/wingmen/README.md#radio-barks): exempt from the barks' spacing, never stale, it cuts his own waiting or playing bark). After a won level the scroll runs on and the debrief waits until the radio has shown its last message (the level-end line and whatever is still queued), at most 15 s after the level end |
 | Progress | Level progress bar with a boss marker at the end |
 | Control prompts | The contextual prompts of the first levels (see [Level 01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md#launch-and-control-prompts)): one line each, the action on the left and its keys on the right (the four arrow keys read `ARROW KEYS`), at most three at once; the box is shown only while a prompt is pending |
-| Objective tracker | Shown for every primary or secondary objective; hidden in levels without one. Compact box above the progress bar: objective icon and short label (e.g. "DOCKS", "CRAWLERS", "BATTERIES", "NODES", "SHUTTLES", "RELAY"), then progress as pips or counters (docks, crawler pips, batteries A–D, hive nodes, shuttles, relay integrity bar). A pip flashes green on success and red on a loss or failure; the whole box flashes when the objective is won or lost. Used by [L02](../../campaign/act-1-first-contact/level-02-shipyard-burning/README.md), [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md) and [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md); the secondary objective of [L01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) shows a `KILLS n / 76` counter that turns `DONE` and flashes green when met; [L03](../../campaign/act-1-first-contact/level-03-spore-drift/README.md)'s "nothing gets through" shows `BOMBERS n / 10` (destroyed of all), `DONE` in green when met or `FAILED` in red once one gets through, the box flashing green or red. **Two objectives** (a primary and a secondary at once: [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md)): a two-line tracker, the primary on line one and the secondary on line two. Level 09 (M5 part C): line one `NODES A1 A2 B1 B2 C1 C2`, one **two-character mark** per named node (the last word of its group's name; dim while it lives, struck through in green when destroyed, red and the line flashing red when one gets past and the mission fails), line two `RAVAGERS n / 8` (the bridge waves' Ravagers destroyed of all; 6 on easy, 10 on hard), then `DONE` or `FAILED`. Level 04: line one `CRAWLERS` with five pips (green; amber below 50 % HP; a white flash on a hit; a red flash, then dark, when lost), line two `PODS n / 6` (pods killed before they burst, of all), then `DONE` or `FAILED` |
+| Objective tracker | Shown for every primary or secondary objective; hidden in levels without one. Compact box above the progress bar: objective icon and short label (e.g. "DOCKS", "CRAWLERS", "BATTERIES", "NODES", "SHUTTLES", "RELAY"), then progress as pips or counters (docks, crawler pips, batteries A–D, hive nodes, shuttles, relay integrity bar). A pip flashes green on success and red on a loss or failure; the whole box flashes when the objective is won or lost. Used by [L02](../../campaign/act-1-first-contact/level-02-shipyard-burning/README.md), [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md) and [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md); the secondary objective of [L01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) shows a `KILLS n / 76` counter that turns `DONE` and flashes green when met; [L03](../../campaign/act-1-first-contact/level-03-spore-drift/README.md)'s "nothing gets through" shows `BOMBERS n / 10` (destroyed of all), `DONE` in green when met or `FAILED` in red once one gets through, the box flashing green or red. **Two objectives** (a primary and a secondary at once: [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md)): a two-line tracker, the primary on line one and the secondary on line two. Level 09 (M5 part C): line one `NODES A1 A2 B1 B2 C1 C2`, one **two-character mark** per named node (the last word of its group's name; dim while it lives, struck through in green when destroyed, red and the line flashing red when one gets past and the mission fails), line two `RAVAGERS n / 8` (the bridge waves' Ravagers destroyed of all; 6 on easy, 10 on hard), then `DONE` or `FAILED`. Level 04: line one `CRAWLERS` with five pips (green; amber below 50 % HP; a white flash on a hit; a red flash, then dark, when lost), line two `PODS n / 6` (pods killed before they burst, of all), then `DONE` or `FAILED`. Level 10 (planned, M5 part D, user decision D3 = a): the two-line tracker with **one** objective, line one `SHUTTLES n / 4` (the saveable shuttles still flying; the count turns red and the box flashes red when the last is lost and the mission fails), line two **five small armour bars** in order, Lifeline One to Five (each about 32 px wide, filled by its armour share: green, a white flash on a hit, amber below 50 %, a red flash then dark when lost; Lifeline Three's bar dark from its scripted loss at t=118, the count unchanged; a shuttle **home** after the climb-out shows a full bar in pale mint under a green glow, unlike both a flying and a lost one's) |
 
 ### Left panel layout
 
@@ -83,7 +83,8 @@ content rules (radio pages of 3 × 22 characters, one-line prompts) keep that fr
 | Objective tracker | 454–482 | one-line well: label left, count right |
 | Progress | 488–524 | plate, progress bar (10 px) |
 
-In a level with two objectives the tracker takes one line from the control prompts' well:
+In a level with two objectives, or an objective with a second line (Level 10's armour bars), the
+tracker takes one line from the control prompts' well:
 control prompts 384–430 (a two-line well, 42 px), objective tracker 436–482 (a two-line well,
 42 px). The layout is fixed per level, so nothing moves during it.
 
@@ -107,7 +108,10 @@ control prompts 384–430 (a two-line well, 42 px), objective tracker 436–482 
 - **Warning** banners ("WARNING — HOSTILES FROM THE REAR") and **edge warnings**: every wave
   that enters from the sides or the rear gets a flashing arrow at that edge of the play field
   at least 3 s ahead, always, often with a radio call (readability rule in
-  [enemies](../../enemies/README.md#bullet-readability-rules)).
+  [enemies](../../enemies/README.md#bullet-readability-rules)). The banner's band sits across the
+  upper play field (its middle 164 px below the top edge); in a level with an air escort
+  (Level 10) it sits higher, 97–127 px below the top edge, so it never covers the shuttle band
+  (stations from 140 px down).
 - With a sensor suite at L2+, extra arrows also track individual off-screen threats (single
   enemies, homing missiles) between waves.
 - Small floating numbers for credits picked up. Can be disabled in options (Gameplay tab,
@@ -191,6 +195,15 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
 - [x] Left panel: mission, score, credits, chain, radio, progress
 - [x] Left panel layout: fixed regions without overlap; texts cut off at their well; a test checks the regions and that every prompt and radio line of the content fits, measured with the font's metrics
 - [x] Two-objective levels (L04, L05, L13): the two-line tracker and the two-line control prompts' well (shown with a convoy: Level 04's `CRAWLERS` line; Level 05's and Level 13's first lines come with them)
+- [x] Level 10's tracker (D3 = a, M5 part D): `SHUTTLES n / 4` over five armour bars (a bar drawer
+      in `MissionPanel`: the hit flash, amber below 50 %, the red flash and dark when lost, Lifeline
+      Three dark after its scripted loss), fitting the 208 px well (`MissionLayoutTest`) — built:
+      `MissionPanel.drawShuttleTracker` (n the saveable shuttles alive of `Sortie.saveableAllies()`,
+      the line red and flashing as Level 04's when the mission fails), five 32×8 bars 41 px apart
+      (`ALLY_BAR_*`, filling the 196 px text width) centred in line two, each in its trough and
+      filled by its armour share; a level without a secondary objective (`Secondary.none()`) shows
+      no secondary line or one-line tracker, and its debrief no secondary row; a shuttle home after
+      the climb-out full in pale mint under a green glow (`MissionPanel.ALLY_HOME`, 2026-10-08)
 - [x] Level 09's tracker: `NODES` with six two-character marks (`A1` … `C2`; the group marks widened from one letter, the line fitting the 208 px well, a layout test) over `RAVAGERS n / 8` — M5 part C (`MissionPanel.markStep`/`markLeft`: a mark's glyph advance + 4 px, 24 px for a pair, right-aligned; Level 05's letters keep their 16 px; `MissionLayoutTest`)
 - [x] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Act 1's done: Level 01's kill counter, Level 02's dock pips, Level 03's bomber counter, Level 04's crawler pips, Level 05's `BATTERIES A B C D` over `NEST n / 30`, Level 06's `MANTISES` escapes and Level 07's bay count; the later levels' trackers are part of those levels' own tickets)
 - [x] Right panel: armour, shield, power (spare-power bar and the regen bonus, glowing in an overdrive), weapons (front, rear, left, right with level pips), overdrive timer
@@ -203,7 +216,8 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
 - [x] Edge-warning arrows and floating credit numbers (M3) and the boss warning banner (M4 part G,
       with track 22 and the klaxon)
 - [x] Wave warning banners ("WARNING — HOSTILES FROM THE REAR"), the sensor suite's threat
-      arrows, the option to hide the credit numbers (M4 part H)
+      arrows, the option to hide the credit numbers (M4 part H); with an air escort the banner
+      above the shuttle band (`WaveBanners.ESCORT_CENTRE_Y`, `WaveBannersTest`, 2026-10-08)
 - [x] Low-armour flash: the armour readout and gauge flash red at 30 % and faster at 15 % (M4 part H)
 
 ## Open questions
@@ -427,3 +441,23 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
   4 px (Level 09's pairs: 24 px, right-aligned so the last ends at the well's text edge, 6 px after
   `NODES`); a one-letter mark keeps the 16 px step and place (Level 05 unchanged). Line two is the
   escapes line scoped to the bridge waves (`RAVAGERS n / 8`, 6 / 10 by difficulty).
+- 2026-10-08: M5 part D (user decision D3 = a): Level 10's escort shows in the two-line tracker,
+  `SHUTTLES n / 4` (the four saveable shuttles) over five small armour bars in order, instead of
+  the five portrait frames with armour bars its draft asked for (no room in the left panel next to
+  the radio and the prompts) or Level 04's pips (three states only for 120 armour). Level 10 has no
+  secondary, so the bars take line two. The document stays `in-progress` for the bar drawer.
+- 2026-10-08: M5 part D, game side: Level 10's tracker built as decided (D3 = a). Our readings, for
+  review in round 32: the bars are 32×8 px, 41 px apart, each filled to its shuttle's armour share
+  (a full bar while it lifts off and while Lifeline Three is untouchable); a lost shuttle's bar
+  flashes red for 1.5 s and then stays an empty dark trough, Lifeline Three's goes dark at once;
+  when the mission fails, line one (the label and the count) flashes red as Level 04's does.
+- 2026-10-08: Fixes from the round 32 capture of Level 10: the rear-warning banner (its middle 376 px
+  above the bottom edge, 150–180 px below the top) covered Lifeline One's station, so with an air
+  escort it sits at 428 px (97–127 px below the top edge), above the shuttle band, with a layout
+  test against Level 10's stations, sway and sprite; and a shuttle home after the climb-out no longer
+  reads like a lost one: its bar is full in pale mint (`C8FFE0`) under a green glow, whatever its
+  armour, where a flying shuttle's is green, white or amber by its armour and a lost one's dark.
+- 2026-10-08: [Concept round 32](../../concept-rounds/round-32/README.md) closed (user): Level 10's
+  tracker bars, the rear-warning banner above the shuttle band and a home shuttle's pale-mint bar
+  accepted as built, and a near-dead shuttle's empty-looking bar in the climb-out kept as it is
+  (build choices 21f, g, m and o).

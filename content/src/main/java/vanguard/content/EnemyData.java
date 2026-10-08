@@ -12,6 +12,7 @@ import java.util.Optional;
  * @param speed the default speed in px/s; movement patterns may set their own
  * @param bounty credits at medium in Act 1 terms
  * @param firstLevel the level it is introduced in
+ * @param cloak M5 part D: its cloak (the Wraith): its {@code layer} is the cloaked one
  */
 public record EnemyData(
         String name,
@@ -37,7 +38,8 @@ public record EnemyData(
         Optional<Hooks> difficulty,
         Optional<List<ChainData>> chains,
         Optional<BossData> boss,
-        Optional<SegmentChain> segmentChain) {
+        Optional<SegmentChain> segmentChain,
+        Optional<Cloak> cloak) {
     public EnemyData {
         Layers.of(layer);
         Check.positive("hp", hp);
@@ -72,6 +74,10 @@ public record EnemyData(
         }
     }
 
+    /**
+     * @param ambush M5 part D: the path of a {@code rear ambush} wave's unit (the Wraith)
+     * @param flock M5 part D: how a {@code swarm} wave's members steer (the Mote Swarm)
+     */
     public record Movement(
             Optional<Snake> snake,
             Optional<Swoop> swoop,
@@ -85,7 +91,65 @@ public record EnemyData(
             Optional<Drift> drift,
             Optional<Sine> sine,
             Optional<Walk> walk,
-            Optional<PathMove> path) {}
+            Optional<PathMove> path,
+            Optional<Ambush> ambush,
+            Optional<Flock> flock) {}
+
+    /**
+     * M5 part D, a cloak (design/enemies/air/wraith): the stat block's {@code layer} is the cloaked
+     * one; from its decloak at its hold point on it is on {@code layer}, the {@code flash} (s) of
+     * its decloak starting there, its gun silent until the flash ends.
+     */
+    public record Cloak(String layer, double flash) {
+        public Cloak {
+            Layers.of(layer);
+            Check.notNegative("flash", flash);
+        }
+    }
+
+    /**
+     * M5 part D, the path of a {@code rear ambush} wave's unit (design/enemies/air/wraith): cloaked
+     * straight down its lane at the stat block's {@code speed} past the ship and off the bottom
+     * edge, {@code gap} s below it, back up to its {@code hover.y} at that speed, the decloak and its
+     * {@code hover.seconds} hold, then out up the nearer side lane ({@code lane} px from that edge, a
+     * tie to the left) at its {@code straight.speed}.
+     */
+    public record Ambush(double gap, double lane) {
+        public Ambush {
+            Check.notNegative("gap", gap);
+            Check.notNegative("lane", lane);
+        }
+    }
+
+    /**
+     * M5 part D, a flock (design/enemies/air/mote-swarm, user decision D8 = a): a {@code swarm}
+     * wave's members keep {@code separation} px apart, steer by {@code alignment} and {@code
+     * cohesion} among the members within {@code radius} px and toward the wave's leader point by
+     * {@code leader} (the weights), at {@code speed} px/s ({@code dive_speed} after a loop-back),
+     * turning at most {@code turn_rate} °/s; at most {@code max} members (24).
+     */
+    public record Flock(
+            double separation,
+            double radius,
+            double alignment,
+            double cohesion,
+            double leader,
+            double speed,
+            double diveSpeed,
+            double turnRate,
+            int max) {
+        public Flock {
+            Check.positive("separation", separation);
+            Check.that(radius >= separation, "radius: the neighbourhood reaches at least the separation");
+            Check.notNegative("alignment", alignment);
+            Check.notNegative("cohesion", cohesion);
+            Check.positive("leader", leader);
+            Check.positive("speed", speed);
+            Check.positive("dive_speed", diveSpeed);
+            Check.positive("turn_rate", turnRate);
+            Check.that(max >= 1 && max <= 24, "max: 1 to 24 members");
+        }
+    }
 
     /** Part F: the head of a segment chain flies the wave's authored path at {@code speed} px/s. */
     public record PathMove(double speed) {
@@ -361,14 +425,18 @@ public record EnemyData(
      * @param speed bullet speed in px/s
      * @param firstShotDelay seconds from stopping to the first shot
      * @param count a {@code fan}'s bullets
-     * @param spread a {@code fan}'s angle from its first to its last bullet, degrees
+     * @param spread a {@code fan}'s angle from its first to its last bullet, degrees; M5 part D: an aimed
+     *     attack's with {@code aim: up}, from its burst's first shot to its last
      * @param turnRate a turret's barrel turn rate, °/s; the shots leave along the barrel
      * @param arc a turret fires while the player is within this many degrees of its facing (down the screen)
      */
     /**
      * @param aim where a fan points, {@code target} (the default), {@code down} or {@code facing}; a walker's fan
      *     (M5 part B) is aimed at the player with {@code target} and along its facing with {@code facing};
-     *     planned (part D) for the other units
+     *     planned (part D) for the other units; M5 part D: an aimed attack's {@code up} (the Wraith, user
+     *     decision of 2026-10-08) sends its bursts straight up the screen as a fixed fan of {@code spread},
+     *     its shots in turn from the left edge to the right, aimed at nobody and fired however close the
+     *     ship is
      * @param away planned (part D): an aimed attack fires only while the player is more than this many ° off its facing
      * @param spawn planned (part D): the {@code spawn} pattern's release, which has no bullet, interval or speed
      * @param mortar the {@code mortar} pattern's lob (its {@code bullet} is the direct hit, its {@code speed} the ring's)
@@ -451,8 +519,8 @@ public record EnemyData(
                     "an attack has a bullet and a speed, a spawn attack neither");
             Check.that(!pattern.equals("spawn") || interval.isEmpty(), "a spawn attack has no interval");
             aim.ifPresent(a -> Check.that(
-                    a.equals("target") || a.equals("down") || a.equals("facing"),
-                    "aim must be target, down or facing, was '" + a + "'"));
+                    a.equals("target") || a.equals("down") || a.equals("facing") || a.equals("up"),
+                    "aim must be target, down, facing or up, was '" + a + "'"));
             away.ifPresent(a -> Check.notNegative("away", a));
             interval.ifPresent(i -> Check.positive("interval", i));
             speed.ifPresent(s -> Check.positive("speed", s));
@@ -460,7 +528,11 @@ public record EnemyData(
             Check.that(
                     (pattern.equals("fan") || pattern.equals("ring")) == count.isPresent(),
                     "a fan or a ring has a count, the others none");
-            Check.that(pattern.equals("fan") == spread.isPresent(), "a fan has a spread, the others none");
+            boolean up = aim.filter("up"::equals).isPresent();
+            Check.that(!up || pattern.equals("aimed"), "only an aimed attack fires straight up");
+            Check.that(
+                    (pattern.equals("fan") || up) == spread.isPresent(),
+                    "a fan or an aimed attack fired up has a spread, the others none");
             count.ifPresent(c -> Check.positive("count", c));
             Check.that(pattern.equals("fan") || stagger.isEmpty(), "only a fan has a stagger");
             stagger.ifPresent(st -> Check.positive("stagger", st));
@@ -796,6 +868,7 @@ public record EnemyData(
      * @param segments a segment chain's segments instead
      * @param regrownFanCount a regrown head's fan bullets instead
      * @param spawns part G: a boss's window spawns' counts instead, by spawn name
+     * @param hoverSeconds M5 part D: the hover's time instead, s (the Wraith's hard hold)
      */
     public record Hook(
             Optional<List<String>> leadsTargetIn,
@@ -811,7 +884,12 @@ public record EnemyData(
             Optional<Double> sweepArc,
             Optional<Integer> segments,
             Optional<Integer> regrownFanCount,
-            Optional<java.util.Map<String, Integer>> spawns) {}
+            Optional<java.util.Map<String, Integer>> spawns,
+            Optional<Double> hoverSeconds) {
+        public Hook {
+            hoverSeconds.ifPresent(h -> Check.positive("hover_seconds", h));
+        }
+    }
 
     /** {@code count} bullets of class {@code bullet} in a ring at {@code speed} px/s. */
     public record DeathBurst(int count, double speed, String bullet) {

@@ -1074,3 +1074,108 @@ swell into it, over a lower, heavier whoosh (250 → 1 500 → 350 Hz, 7 dB unde
 Edit: leading silence trimmed, cut to 0.85 s from 1.55 s, 90 Hz high-pass, 0.35 s fade-out, 20 %
 faster; 0.71 s, levelled to -22 dB, ceiling -6 dBFS (peak -11.7 dBFS, -20.9 LUFS); 93 % of the energy
 in 200 Hz–5 kHz; a 0.1 s swell, loudest at 0.3 s.
+
+## Round 32 — the Wraith's decloak, the Mote Swarm's whoosh and the lance
+
+Brief (M5 part D, user decision D10 = a): Level 10's three new sounds, played from the simulation's
+events. The **Wraith decloak**, as its 0.4 s violet flash starts (behind the ship, low on the
+screen): a short violet shimmer-crack, the Wraith's only cue (no screech); a rear ambush decloaks
+2–4 of them close together, so it is short and sits low. The **Mote Swarm whoosh**, a one-shot
+played as a swarm enters and again as it loops back from the bottom edge (not a loop: the swarm's
+20 motes make their own noise only when they die, on the `tiny` rung): a rushing flutter of many
+small wings, "a flock, not a formation". The **lance**, the scripted loss at t=118: a thin
+descending whine into a sharp impact as a thorn lance drops from the cloud deck onto Lifeline
+Three; the shuttle's loss itself reuses the ally loss sound and the music ducks −6 dB for 3 s under
+it. The impact sits at 1.2 s (`LEAD` in the script), so the game starts the sound 1.2 s before the
+lance hits, inside the glow (t 116–118). Recorded (CC0 / CC-BY, Freesound), found with the Freesound
+API's text search ("cloak", "shimmer", "ice crack", "glass crack", "magic reveal", "teleport";
+"starling murmuration", "starlings", "pigeons flock", "flock flying", "wings flapping", "insect
+swarm"; "falling bomb whistle", "incoming whistle", "dive whine", "thunder crack close", "impact
+pierce", "metal crunch impact") filtered to CC0 and CC-BY, cut from the **Freesound originals**
+cached by `tools/concept/audio/freesound_fetch.py --download`, mixed with synthesized layers. One
+a/b pair each, all from `tools/concept/audio/sfx_r32.py`, deterministic. Levels as the loudest
+100 ms of the 200 Hz–5 kHz band (round 24's measure): the decloak −22 dB, ceiling −6 dBFS (as the
+Ravager's pounce); the swarm −24 dB, ceiling −6 dBFS (as the carrier launch); the lance −17 dB,
+ceiling −1.5 dBFS (as the secret's cable snap: the level's one story beat). Rejected sources: Daleonfire's
+"Falling Bomb" (the player's Bomb Rack already falls on it, `shot-bomb-r03-a`); Artninja's metal
+impact (its licence asks to credit a second person). Not listened to: checked by envelopes, band
+balance and levels only.
+
+Outcome (user, 2026-10-08): decloak **b** (its cloak layer CC-BY 4.0, F.M.Audio on the in-game
+credits roll), swarm **b** and lance **a**; decloak a, swarm a and lance b moved to
+`concept/rejected/` (the headings below keep the files' names). The three files in `assets/sfx/` are
+written by `tools/art/sfx_originals.py` with sfx_r32.py's `PRODUCTION` (the same cuts, with a
+`SOURCE` comment); the game still starts the lance at t 116.8, its impact 1.2 s in.
+
+### wraith-decloak-r32-a — "ICEBrk_Break04" by InMotionAudio + a synthesized shimmer
+Source: <https://freesound.org/people/InMotionAudio/sounds/719973/> — CC0 1.0. Use: a Wraith
+decloaking (its decloak event, the flash's start).
+Why: An ice sheet broken (4.9 stars from 10 ratings): two sharp, glassy cracks 0.2 s apart, read as
+the cloak's refraction shattering. Under it a synthesized violet shimmer: seven high partials
+(1.8–5.2 kHz, jittered) each fluttering at 22–38 Hz like light through a moving membrane, gliding
+down 15 %, swelling over 0.18 s into the crack and ringing out (0.14 s decay), spread across.
+Edit: crack cut to 0.50 s, 150 Hz high-pass, 0.20 s fade-out, entering at 0.18 s; the shimmer 6 dB
+under it. 0.68 s, levelled to −22 dB, ceiling −6 dBFS (peak −6.0 dBFS, band −22.8 dB, −20.2 LUFS);
+78 % of the energy in 200 Hz–5 kHz, none below 200 Hz. The shimmer rises from −53 to −30 dBFS
+(50 ms RMS), the cracks at −21 and −25, gone by 0.6 s.
+
+### wraith-decloak-r32-b — "Spacey Teleport Rip" by GameAudio + "Swirling Velvet Cloak 2" by F.M.Audio
+Source: <https://freesound.org/people/GameAudio/sounds/220164/> — CC0 1.0 (the rip);
+<https://freesound.org/people/F.M.Audio/sounds/556759/> — CC-BY 4.0 (the cloak). Use: a Wraith
+decloaking.
+Why: A quick sci-fi rip with a rough metallic texture (5 stars from 4 ratings), the cloak tearing
+open; under it a velvet cloak swirled (fabric on fabric), its swish played 30 % faster: the manta's
+membrane snapping open. Fully recorded, more sci-fi and less glassy than a.
+Edit: rip cut to 0.60 s, 120 Hz high-pass, 0.25 s fade-out; cloak cut to 0.60 s from 0.35 s, 200 Hz
+high-pass, 0.25 s fade-out, 30 % faster, 5 dB under the rip. 0.60 s, levelled to −22 dB, ceiling
+−6 dBFS (peak −8.5 dBFS, band −22.1 dB, −19.7 LUFS); 66 % of the energy in 200 Hz–5 kHz; loudest at
+0.15–0.2 s, gone by 0.45 s.
+
+### mote-swarm-r32-a — "Pigeon flock fly away, wing flaps, Toronto" by TRP + a synthesized whoosh
+Source: <https://freesound.org/people/TRP/sounds/616623/> — CC0 1.0. Use: a Mote Swarm entering, and
+again on its loop-back.
+Why: A flock of pigeons taking off in the city (4.7 stars from 59 ratings): a swelling rush of many
+wing flaps, played 40 % faster so the wings are small and the flutter higher; birdlike ("they steer
+like starlings"). Under it a whoosh sweeping 600 → 2 400 → 900 Hz, panned left to right.
+Edit: cut to 2.40 s from 0.80 s, 180 Hz high-pass, 0.15 s fade-in, 0.90 s fade-out, 40 % faster;
+the whoosh 9 dB under it. 1.71 s, levelled to −24 dB, ceiling −6 dBFS (peak −6.1 dBFS, band
+−25.0 dB, −19.9 LUFS); 73 % of the energy in 200 Hz–5 kHz. Rises over 0.4 s, holds −21 to −26 dBFS
+for 0.8 s, fades by 1.5 s.
+
+### mote-swarm-r32-b — "Insect Superfast Wing Flap" by kalhan + a synthesized whoosh
+Source: <https://freesound.org/people/kalhan/sounds/482733/> — CC0 1.0. Use: a Mote Swarm entering,
+and again on its loop-back.
+Why: A cicada flapping its wings, recorded very close (4.9 stars from 18 ratings): a fast, dry,
+buzzing flutter. Five copies from different points of the recording, played 0.85–1.3× and panned
+across, make an insect swarm's chitter that swells and fades; under it a lower whoosh (400 → 1 800
+→ 600 Hz) panned right to left. Alien and insect-like where a is birdlike.
+Edit: 250 Hz high-pass, 9 kHz low-pass; copies from 2, 5.5, 9, 12.5 and 16 s, 1.7 s each, swelling
+over 0.35 s and fading over 1.1 s; the whoosh 8 dB under it. 1.70 s, levelled to −24 dB, ceiling
+−6 dBFS (peak −8.1 dBFS, band −24.4 dB, −19.4 LUFS); 50 % of the energy in 200 Hz–5 kHz, the rest
+above (a bright buzz). Loudest at 0.3–0.5 s, fading by 1.3 s.
+
+### lance-r32-a — a synthesized whine + "Closeup Thunder Strike 01" by loganzsound
+Source: <https://freesound.org/people/loganzsound/sounds/840628/> — CC0 1.0. Use: the lance striking
+Lifeline Three (Level 10's scripted loss).
+Why: A synthesized thin whine, a sine falling 3.4 kHz → 700 Hz over 1.2 s with a dissonant partial
+at 1.41× and an 11 Hz vibrato and a breath of band noise, swelling from −20 dB (something alien
+falling closer, energy rather than ordnance), into a close thunder strike (5 stars from 40
+ratings): a sharp crack and a long roll, the lance as a bolt from the cloud deck.
+Edit: whine 1.20 s, 7 dB under the strike; strike cut to 2.60 s from 0.47 s, 40 Hz high-pass,
+1.40 s fade-out, entering at 1.2 s. 3.80 s, levelled to −17 dB, ceiling −1.5 dBFS (peak −3.3 dBFS,
+band −17.0 dB, −19.7 LUFS); 85 % of the energy in 200 Hz–5 kHz, 15 % below. The whine rises from
+−44 to −23 dBFS, the crack −14 at 1.25 s, the roll −15 to −35 over 1.5 s.
+
+### lance-r32-b — "Whistling Firework" by magnuswaker + "Piercing impact / Stabbing" by Breviceps
+Source: <https://freesound.org/people/magnuswaker/sounds/555998/> — CC0 1.0 (the whistle);
+<https://freesound.org/people/Breviceps/sounds/464839/> — CC0 1.0 (the impact). Use: the lance
+striking Lifeline Three.
+Why: A firework's whistler (4.8 stars from 9 ratings), a steady thin whistle falling 2.6 → 1.9 kHz,
+played 25 % faster (about 3.3 → 2.4 kHz, a projectile coming down) and swelling from −14 dB, into an
+anime-style piercing stab (4.8 stars from 88 ratings; an arrow or dart hitting) over a synthesized
+sub thump (95 → 38 Hz): a thorn spike punching through a hull. Shorter and drier than a.
+Edit: whistle cut to 1.50 s from 0.30 s, 400 Hz high-pass, 0.60 s fade-in, 25 % faster (1.20 s), 7 dB
+under the stab; stab cut to 0.65 s from 1.62 s (its third take), 90 Hz high-pass, 0.30 s fade-out,
+entering at 1.2 s; thump 0.6 s, 4 dB under the stab. 1.84 s, levelled to −17 dB, ceiling −1.5 dBFS
+(peak −3.0 dBFS, band −17.2 dB, −15.5 LUFS); 57 % of the energy in 200 Hz–5 kHz, 34 % below. The
+whistle rises from −47 to −19 dBFS, the impact −14 at 1.4 s, gone by 1.75 s.

@@ -87,6 +87,20 @@ public final class SfxBank implements Disposable, Mixer.Listener {
         loopVolumes[sfx.ordinal()] = volume;
     }
 
+    /** Sets a running loop's volume (before the mixer's gain); nothing when it is not looping. */
+    public void loopVolume(Sfx sfx, float volume) {
+        if (loopVolumes[sfx.ordinal()] < 0) {
+            return;
+        }
+        loopVolumes[sfx.ordinal()] = volume;
+        sounds.get(sfx).setVolume(loopIds[sfx.ordinal()], volume * mixer.gain(sfx.bus()));
+    }
+
+    /** A running loop's volume before the mixer's gain; negative when it is not looping. */
+    float loopVolume(Sfx sfx) {
+        return loopVolumes[sfx.ordinal()];
+    }
+
     /** Whether {@code sfx} is looping. */
     public boolean looping(Sfx sfx) {
         return loopVolumes[sfx.ordinal()] >= 0;

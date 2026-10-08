@@ -8,9 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import org.junit.jupiter.api.Test;
+import vanguard.content.AlliesData;
 import vanguard.content.Content;
 import vanguard.content.ContentLoader;
 
@@ -68,6 +70,17 @@ class SpriteUseTest {
         Map<String, Set<String>> atlases = SpriteUse.atlases(content, List.of("collapse-puff"));
 
         assertEquals(Set.of("level-09"), atlases.get("collapse-puff"), "Level 09's arcology");
+    }
+
+    @Test
+    void aScriptedLossClaimsTheGlowAndTheLance() {
+        Map<String, Set<String>> atlases =
+                SpriteUse.atlases(content, List.of("cloud-glow", "lance", "lance-flash", "ferry-hatch-break"));
+
+        assertEquals(Set.of("level-10"), atlases.get("cloud-glow"), "Level 10's Lifeline Three");
+        assertEquals(Set.of("level-10"), atlases.get("lance"));
+        assertEquals(Set.of("level-10"), atlases.get("lance-flash"));
+        assertEquals(Set.of("level-10"), atlases.get("ferry-hatch-break"), "the ferry hatch's look");
     }
 
     @Test
@@ -146,6 +159,36 @@ class SpriteUseTest {
 
         Set<String> atlas = Set.of(SpriteUse.atlasOf(content.enemy(unused).firstLevel()));
         assertEquals(Map.of(unused, atlas, unused + "-husk", atlas), atlases);
+    }
+
+    /**
+     * An ally no level escorts yet goes in the unit atlas of its {@code first_level}, as one only its
+     * first level escorts does (the evacuation shuttle, Level 10's, whose art lands before the
+     * level's data, M5 part D): the same atlas either way.
+     */
+    @Test
+    void anAllyNoLevelUsesYetGoesInItsFirstLevelsUnitAtlas() {
+        Set<String> used = new TreeSet<>();
+        content.levels().forEach((key, level) -> {
+            for (String root : SpriteUse.roots(content, level)) {
+                AlliesData.Ally ally = content.allies().allies().get(root);
+                if (ally == null || !ally.firstLevel().equals(Optional.of(Content.levelNumber(key)))) {
+                    used.add(root);
+                }
+            }
+        });
+        Map.Entry<String, AlliesData.Ally> unused = content.allies().allies().entrySet().stream()
+                .filter(ally -> !used.contains(ally.getKey()))
+                .filter(ally -> ally.getValue().firstLevel().isPresent())
+                .findFirst()
+                .orElseThrow();
+        String slug = unused.getKey();
+
+        Map<String, Set<String>> atlases = SpriteUse.atlases(content, List.of(slug, slug + "-wreck_0"));
+
+        Set<String> atlas =
+                Set.of(SpriteUse.atlasOf(unused.getValue().firstLevel().orElseThrow()));
+        assertEquals(Map.of(slug, atlas, slug + "-wreck_0", atlas), atlases);
     }
 
     @Test

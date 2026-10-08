@@ -16,8 +16,10 @@ import vanguard.sim.WarningEdge;
  * so it needs no data of its own: the warned edges name it. One banner at a time, for 2.5 s: an
  * edge warning that starts while one shows waits for it and gets its own banner after it, if that
  * edge is still warned then. The band opens from its middle over 0.15 s, its frame pulses with the
- * edge warnings and it fades out over its last 0.3 s. Drawn in code until its production art;
- * geometry in play-field pixels, y up.
+ * edge warnings and it fades out over its last 0.3 s. In a level with an air escort (Level 10's
+ * shuttles) it sits higher, above the shuttle band (2026-10-08: the round 32 capture showed it over
+ * Lifeline One's station). Drawn in code until its production art; geometry in play-field pixels,
+ * y up.
  */
 public final class WaveBanners {
     /** How long a banner shows, s; an edge warning lasts at least 3 s. */
@@ -30,6 +32,11 @@ public final class WaveBanners {
     static final double FADE_SECONDS = 0.3;
     /** The band's middle above the play field's bottom edge (above the boss banner's band), its size. */
     static final int CENTRE_Y = 376;
+    /**
+     * Its middle with an air escort: above the shuttle band (design/allies, evacuation shuttle:
+     * stations from 140 px below the top edge), 97–127 px below the top edge.
+     */
+    static final int ESCORT_CENTRE_Y = 428;
 
     static final int HEIGHT = 30;
     static final int WIDTH = PlayField.WIDTH - 40;
@@ -44,16 +51,27 @@ public final class WaveBanners {
 
     private final TextureRegion pixel;
     private final BitmapFont font;
+    private final int centreY;
     private String text = "";
     /** The tick the shown banner opened, or -1 while none shows. */
     private long since = -1;
     /** Edges whose warning started while a banner showed, as {@link WarningEdge} bits. */
     private int pending;
 
-    /** @param pixel a white pixel; @param font the text's font (the 10x20 body font) */
-    public WaveBanners(TextureRegion pixel, BitmapFont font) {
+    /**
+     * @param pixel a white pixel
+     * @param font the text's font (the 10x20 body font)
+     * @param airEscort whether the level has an air escort: the band then sits above its stations
+     */
+    public WaveBanners(TextureRegion pixel, BitmapFont font, boolean airEscort) {
         this.pixel = pixel;
         this.font = font;
+        centreY = centreY(airEscort);
+    }
+
+    /** The band's middle above the play field's bottom edge, px: higher with an air escort. */
+    static int centreY(boolean airEscort) {
+        return airEscort ? ESCORT_CENTRE_Y : CENTRE_Y;
     }
 
     /**
@@ -131,7 +149,7 @@ public final class WaveBanners {
         }
         float open = grow(seconds);
         float half = HEIGHT / 2f * open;
-        float bottom = Math.round(CENTRE_Y - half);
+        float bottom = Math.round(centreY - half);
         float height = Math.max(2, Math.round(2 * half));
         batch.setColor(BAND.r, BAND.g, BAND.b, BAND.a * opacity);
         batch.draw(pixel, X0, bottom, WIDTH, height);
@@ -150,7 +168,7 @@ public final class WaveBanners {
             return;
         }
         float x = Math.round(X0 + (WIDTH - Fonts.width(font, text)) / 2f);
-        float top = Math.round(CENTRE_Y + font.getCapHeight() / 2);
+        float top = Math.round(centreY + font.getCapHeight() / 2);
         font.setColor(SHADOW.r, SHADOW.g, SHADOW.b, opacity);
         font.draw(batch, text, x + 1, top - 1);
         font.setColor(AMBER.r, AMBER.g, AMBER.b, opacity);

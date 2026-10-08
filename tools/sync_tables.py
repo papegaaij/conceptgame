@@ -709,19 +709,25 @@ def credit_budget(d):
                 [(n, bounty(stat_bounty(slug)), layer_rate(slug)) for slug, n in launched.items()])
     escort = level["objectives"].get("escort")
     if escort:
-        units = len(escort["y"])
+        # a convoy on the road gives its y, an air escort its stations (M5 part D); the scripted
+        # loss's unit (Level 10's Lifeline Three) is not one of the units the escort pays for
+        units = len(escort["y"] if "y" in escort else escort["stations"])
         noun = escort["ally"].split("-")[-1]
-        add(f"Primary objective: {units} {noun}s home × {escort['credits']}",
-            [(units, pay(escort["credits"]), rate["primary"])])
+        saveable = units - (1 if "scripted_loss" in escort else 0)
+        unpaid = f" (of {units}: the scripted loss's {noun} is not paid)" if saveable < units else ""
+        add(f"Primary objective: {saveable} {noun}s home × {escort['credits']}{unpaid}",
+            [(saveable, pay(escort["credits"]), rate["primary"])])
     for s in level["secrets"]:
         if "data_core" in s:  # Level 06's settlement log: no credits, an early unlock
             add(f"Data core: {s['name']} (unlocks the {s['data_core']['unlocks']}; no credits)", [(1, 0, 0)])
             continue
         add(f"Secret: {s['name']} (hidden crate, {round(100 * s['crate'] / budget)}% of budget)",
             [(1, pay(s["crate"]), rate["secrets"])])
-    secondary = level["objectives"]["secondary"]
+    secondary = level["objectives"].get("secondary")  # M5 part D: a level may have none (Level 10)
     count = 1
-    if "name" in secondary:  # the objective's own name (Level 09's "Hold the bridge")
+    if secondary is None:
+        source = None
+    elif "name" in secondary:  # the objective's own name (Level 09's "Hold the bridge")
         if "groups" in secondary:
             count = len(secondary["groups"])
         source = f"Secondary: {secondary['name'][0].lower()}{secondary['name'][1:]}"
@@ -740,7 +746,8 @@ def credit_budget(d):
         source = f"Secondary: every {names} destroyed"
     else:
         source = "Secondary objective"
-    add(source, [(count, pay(secondary["credits"]), rate["secondary"])])
+    if secondary is not None:
+        add(source, [(count, pay(secondary["credits"]), rate["secondary"])])
     perfect = sum(r[1] for r in rows)
     typical = sum(r[2] for r in rows)
     cells = [[source, grouped(p, ","), grouped(round(t), ",")] for source, p, t in rows]

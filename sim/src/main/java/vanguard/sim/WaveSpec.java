@@ -21,8 +21,10 @@ import java.util.Optional;
  * @param at a whirl cluster's release point
  * @param paths a walker wave's ground paths, one per unit (a pincer mirrors the first for the
  *     units on the right, a convoy repeats it), in play-field points at {@code t}; a segment
- *     chain's flight paths, one per unit (its head flies it)
- * @param loopBack a segment chain's loop-back after its path
+ *     chain's flight paths, one per unit (its head flies it); M5 part D: a swarm's route (its
+ *     leader point flies it) and a snake's (every unit flies it)
+ * @param loopBack a segment chain's loop-back after its path; M5 part D: a swarm's leader point's
+ *     (with its count)
  * @param tag M5 part C: the wave's tag (Level 09's {@code bridge}), which a secondary {@code escapes}
  *     objective may be scoped to; empty for none
  */
@@ -120,11 +122,21 @@ public record WaveSpec(
     /**
      * A segment chain's loop-back (design/enemies/air/coilwyrm): {@code afterSeconds} after its
      * head reached its path's end (off the screen) it re-enters on {@code path}, shifted sideways
-     * so it starts at the head's x; without points straight up from below the bottom edge.
+     * so it starts at the head's x; without points straight up from below the bottom edge. M5 part
+     * D: a swarm's leader point loops back {@code count} times (each loop-back the next re-entry
+     * {@code afterSeconds} after the previous path's end); a chain loops back once.
      */
-    public record LoopBack(double afterSeconds, List<At> path) {
+    public record LoopBack(double afterSeconds, List<At> path, int count) {
         public LoopBack {
             path = List.copyOf(path);
+            if (count < 1) {
+                throw new IllegalArgumentException("a loop-back comes at least once: " + count);
+            }
+        }
+
+        /** A single loop-back. */
+        public LoopBack(double afterSeconds, List<At> path) {
+            this(afterSeconds, path, 1);
         }
     }
 
@@ -213,7 +225,18 @@ public record WaveSpec(
          * M5 part C: walkers entering together, each on its own ground path, {@link
          * Formations#PACK_INTERVAL_SECONDS} apart (design/enemies/ground/ravager).
          */
-        PACK
+        PACK,
+        /**
+         * M5 part D: a flock round a leader point that flies the wave's route, with its loop-backs
+         * (design/enemies/air/mote-swarm).
+         */
+        SWARM,
+        /**
+         * M5 part D: 1–4 units, each in its own lane across the bottom edge, x = (i + 1) × 480 ÷ (n + 1)
+         * (design/enemies/air/wraith): an {@link EnemySpec.Ambush} unit enters at the top and comes
+         * back up from below.
+         */
+        REAR_AMBUSH
     }
 
     /** The play-field edge a wave enters from. */

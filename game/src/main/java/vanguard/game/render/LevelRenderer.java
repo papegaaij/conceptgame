@@ -102,6 +102,8 @@ public final class LevelRenderer {
      * plane, where it switches below the ship and can collide.
      */
     private static final float HIGH_AIR_OPACITY = 0.75f;
+    /** M5 part D: a cloaked unit without its shimmer set is drawn as its body at this opacity, additive. */
+    private static final float PLACEHOLDER_CLOAK = 0.35f;
     /** The vital part's glow pulses between 55 % and full every 1.2 s (the review loop's). */
     private static final double GLOW_PERIOD_SECONDS = 1.2;
 
@@ -186,6 +188,10 @@ public final class LevelRenderer {
     private final CollapseLooks collapse;
     /** The level's road and convoy, if it has them. */
     private final ConvoyLooks convoy;
+    /** M5 part D: an air escort's units (Level 10's shuttles), if the level has one. */
+    private final ShuttleLooks shuttles;
+    /** M5 part D: a scripted loss's glow and lance (Level 10), if the level has one. */
+    private final LossLooks loss;
 
     private final FlashShader flash;
     /** Level 06's darkness, glows, sweeps and the Smart Bomb's flash and ring. */
@@ -270,6 +276,14 @@ public final class LevelRenderer {
                 .map(spec -> new CollapseLooks(sprites, spec, backdrop, Backdrop.folder(levelKey, level)))
                 .orElse(null);
         this.convoy = new ConvoyLooks(sprites, flash, level, script, levelKey);
+        this.shuttles = new ShuttleLooks(
+                sprites,
+                flash,
+                script,
+                script.escort()
+                        .map(escort -> pivots(files, escort.ally().slug()))
+                        .orElse(null));
+        this.loss = new LossLooks(sprites, script);
         this.flash = flash;
         this.farside = new FarsideLooks(sprites, script);
         this.tows = new TowLooks(sprites);
@@ -303,6 +317,7 @@ public final class LevelRenderer {
     public void restart() {
         clock.reset();
         shipLooks.reset();
+        shuttles.reset();
         wingmanLooks.reset();
         if (bossLooks.hull != null) {
             bossLooks.hull.reset();
@@ -369,6 +384,8 @@ public final class LevelRenderer {
         luna.drawMarkers(batch, sortie, alpha);
         drawGround(batch, sortie, alpha);
         convoy.drawConvoy(batch, sortie, alpha, whiteFlash);
+        // M5 part D: shuttles on their pads and low in their liftoff, lost ones gliding into far.
+        shuttles.drawLow(batch, sortie, alpha, whiteFlash);
         shadows.beginGround(batch);
         backdrop.drawOverhead(batch, scroll, clock);
         shadows.endGround(batch);
@@ -391,7 +408,10 @@ public final class LevelRenderer {
         backdrop.drawLowAir(batch, scroll, clock);
         drawBossShadows(batch, sortie, alpha);
         drawUnitGlows(batch, sortie, alpha);
+        // M5 part D: the scripted loss's glow under the air layer, then the shuttles under the flyers.
+        loss.drawGlow(batch, sortie, alpha, seconds);
         tows.draw(batch, sortie, alpha, seconds);
+        shuttles.drawAir(batch, sortie, alpha, whiteFlash);
         drawEnemies(batch, sortie, alpha, Depth.AIR, overHull ? Launched.NOT : Launched.ANY);
         drawChains(batch, sortie, alpha);
         farside.drawSweeps(batch, sortie, alpha);
@@ -430,6 +450,8 @@ public final class LevelRenderer {
             wingmanLooks.drawMuzzle(batch, rook, weapons, sortie.wingmanMount(), alpha, false);
         }
         effects.draw(batch, scroll);
+        // M5 part D: the lance above the air layer.
+        loss.drawLance(batch, sortie, alpha);
         if (rook != null) {
             // His eject pod over the explosion once it has popped out of it.
             wingmanLooks.drawOver(batch, rook, sortie.tick(), alpha);
@@ -439,6 +461,8 @@ public final class LevelRenderer {
         if (overHull) {
             drawEnemies(batch, sortie, alpha, Depth.AIR, Launched.ONLY);
         }
+        // M5 part D: the cloaked units' shimmer on high-air, above the ship.
+        drawEnemies(batch, sortie, alpha, Depth.HIGH_AIR, Launched.ANY);
         backdrop.drawFront(batch, scroll, clock);
         if (targeting != null) {
             targeting.draw(batch, sortie, alpha);
@@ -647,10 +671,18 @@ public final class LevelRenderer {
         /** The low flyers, below the low-air banks. */
         LOW_AIR,
         /** The flyers on the play plane. */
-        AIR;
+        AIR,
+        /**
+         * M5 part D: a cloaked unit on high-air (the Wraith before its decloak), drawn as its shimmer
+         * above the ship and the effects, under the high-air layer and the bullets.
+         */
+        HIGH_AIR;
 
         /** Its depth by the layer it is on now ({@link Enemy#layer()}: a pounce's air window is air). */
         static Depth of(Enemy enemy) {
+            if (enemy.cloaked()) {
+                return HIGH_AIR;
+            }
             Layer layer = enemy.layer();
             if (enemy.leaping()) {
                 return layer == Layer.AIR ? AIR : LEAP;
@@ -707,8 +739,17 @@ public final class LevelRenderer {
             }
             EnemyLooks look = looks[enemy.kind()];
             AtlasRegion frame = enemyFrame(sortie, enemy, i, alpha);
+            if (depth == Depth.HIGH_AIR) {
+                drawCloaked(batch, sortie, enemy, look, i, alpha, 1);
+                continue;
+            }
             if (LunaLooks.target(sortie, enemy)) {
                 luna.drawOutline(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
+            }
+            double decloak = enemy.decloak(alpha);
+            if (decloak < 1) {
+                drawDecloak(batch, sortie, enemy, look, frame, i, alpha, decloak);
+                continue;
             }
             drawCentred(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
             if (depth == Depth.AIR && enemy.leaping()) {
@@ -721,6 +762,61 @@ public final class LevelRenderer {
                 drawCentred(batch, flare, enemy.renderX(alpha), enemy.renderY(alpha));
                 batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
             }
+        }
+    }
+
+    /**
+     * M5 part D: a cloaked unit's shimmer (the Wraith on high-air; tools/art/wraith.py), additive at
+     * {@code opacity}, already at the high-air scale, a hit flashing it once more; without a shimmer
+     * set its body frame stands in, faint and at the high-air scale.
+     */
+    private void drawCloaked(
+            SpriteBatch batch, Sortie sortie, Enemy enemy, EnemyLooks look, int i, float alpha, float opacity) {
+        if (opacity <= 0) {
+            return;
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        double x = enemy.renderX(alpha);
+        double y = enemy.renderY(alpha);
+        long step = look.step(sortie.tick(), i);
+        if (look.cloaks()) {
+            AtlasRegion shimmer = look.cloakFrame(enemy.facing(), step);
+            batch.setColor(1, 1, 1, opacity);
+            drawCentred(batch, shimmer, x, y);
+            if (enemy.ticksSinceHit() < HIT_FLASH_TICKS) {
+                batch.setColor(1, 1, 1, opacity * whiteFlash);
+                drawCentred(batch, shimmer, x, y);
+            }
+        } else {
+            batch.setColor(1, 1, 1, PLACEHOLDER_CLOAK * opacity);
+            drawScaled(batch, look.frame(enemy.facing(), step), x, y, HIGH_AIR_SCALE);
+        }
+        batch.setColor(Color.WHITE);
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    /**
+     * M5 part D: a unit decloaking on air (its 0.4 s flash, tools/art/wraith.py): the body fading in
+     * over the flash, the shimmer fading out over its first half, the violet flash over both.
+     */
+    private void drawDecloak(
+            SpriteBatch batch,
+            Sortie sortie,
+            Enemy enemy,
+            EnemyLooks look,
+            AtlasRegion frame,
+            int i,
+            float alpha,
+            double progress) {
+        batch.setColor(1, 1, 1, EnemyLooks.bodyOpacity(progress));
+        drawCentred(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
+        batch.setColor(Color.WHITE);
+        drawCloaked(batch, sortie, enemy, look, i, alpha, EnemyLooks.shimmerOpacity(progress));
+        int flashFrame = look.decloakFrame(progress);
+        if (flashFrame >= 0) {
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+            drawCentred(batch, look.decloak().get(flashFrame), enemy.renderX(alpha), enemy.renderY(alpha));
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         }
     }
 
@@ -818,8 +914,13 @@ public final class LevelRenderer {
         for (int i = 0; i < sortie.enemyCount(); i++) {
             Enemy enemy = sortie.enemy(i);
             Depth depth = Depth.of(enemy);
-            if (depth == Depth.GROUND || enemy.chain() != null) {
+            // M5 part D: a cloaked unit casts no shadow; a decloaking one's fades in with its body.
+            if (depth == Depth.GROUND || depth == Depth.HIGH_AIR || enemy.chain() != null) {
                 continue;
+            }
+            float shade = EnemyLooks.bodyOpacity(enemy.decloak(alpha));
+            if (shade < 1) {
+                batch.setColor(0, 0, 0, Shadows.OPACITY * shade);
             }
             if (enemy.leaping()) {
                 EnemyLooks look = looks[enemy.kind()];
@@ -837,6 +938,9 @@ public final class LevelRenderer {
                     low ? Shadows.LOW_AIR_DX : Shadows.AIR_DX,
                     low ? Shadows.LOW_AIR_DY : Shadows.AIR_DY,
                     1);
+            if (shade < 1) {
+                batch.setColor(0, 0, 0, Shadows.OPACITY);
+            }
         }
         for (int c = 0; c < sortie.chainCount(); c++) {
             Chain chain = sortie.chain(c);
@@ -862,6 +966,7 @@ public final class LevelRenderer {
         if (rook != null) {
             wingmanLooks.drawShadow(batch, rook, alpha);
         }
+        shuttles.drawShadows(batch, sortie, alpha);
         shadows.end(batch);
     }
 

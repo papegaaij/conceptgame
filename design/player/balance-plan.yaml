@@ -10,6 +10,7 @@
 #   buy: [slot, weapon]   upgrade: [slot, level]   sell: [slot]   core: [kind, index into its list]
 #   (slot escort: Rook's gun by its id in wingmen/data.yaml, from Level 08 on)
 #   utility: [module, level]   charges: [special, count]
+#   fit: [slot, item]   fits an owned item again in place of the fitted one, which is kept (M5 part D)
 # An optional `difficulties: {hard: {"NN": {...}}}` adds purchases to a visit on another
 # difficulty (ActPlaythroughTest); none are needed today: Act 1 is flown on every difficulty with the
 # medium plan.
@@ -31,7 +32,7 @@ plan:
   "07": {core: [[armor, 1]]}
   "08": {core: [[generator, 1]]}
   "09": {sell: [wing_l], buy: [[wing_l, bomb-rack], [escort, mortar]]}   # anti-ground for the hardened Hive Nodes (D8 = c of M5 part C)
-  "10": {buy: [[rear, tail-gun]]}   # moved from L09 (D8 = c); the wing upgrades and L10's Airstrike charge moved later
+  "10": {buy: [[rear, tail-gun]], fit: [[escort, autocannon]]}   # the Tail Gun moved from L09 (D8 = c of M5 part C) for the Wraiths (rear check, D7 = a of M5 part D); Rook's owned Autocannon again (the Mortar has nothing to hit in L10); the wing upgrades and L10's Airstrike charge moved later
   "11": {upgrade: [[front, 4]]}
   "12": {sell: [wing_l, wing_r], buy: [[wing_l, micro-missile-pod], [wing_r, micro-missile-pod]], charges: [[Airstrike, 1]]}
   "13": {core: [[armor, 2]], upgrade: [[wing_l, 2], [wing_r, 2]]}

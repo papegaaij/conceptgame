@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The level's radio cues (design/campaign, radio chatter): each starts once per attempt, at its
- * time or on its event, as a {@link SimEvents.Type#RADIO} event at the ship. A cue starts only
+ * The level's radio cues (design/campaign, radio chatter): each starts once per attempt (M5 part D:
+ * an {@code ally-lost} cue on every loss), at its time or on its event, as a {@link SimEvents.Type#RADIO} event at the ship. A cue starts only
  * with what it requires fitted and nothing it requires not (a special, a homing weapon; M5 part C: an
  * escort flying, asked when the cue is due), and a level-end cue only with the convoy units home in
  * its range.
@@ -78,11 +78,19 @@ final class Radio {
         }
     }
 
-    /** Starts the cues of an event; {@code subject} is the enemy slug or secret name it is about. */
+    /**
+     * Starts the cues of an event; {@code subject} is the enemy slug or secret name it is about. The
+     * cues of a {@link LevelScript.CueTrigger#repeats() repeating} event (M5 part D: {@code ally-lost})
+     * start every time.
+     */
     void cue(LevelScript.CueTrigger trigger, String subject) {
+        boolean again = trigger.repeats();
         for (int i = 0; i < cues.size(); i++) {
             LevelScript.RadioCue cue = cues.get(i);
-            if (!fired[i] && cue.trigger() == trigger && cue.subject().equals(subject) && allowed(cue)) {
+            if ((again || !fired[i])
+                    && cue.trigger() == trigger
+                    && cue.subject().equals(subject)
+                    && allowed(cue)) {
                 start(i);
             }
         }

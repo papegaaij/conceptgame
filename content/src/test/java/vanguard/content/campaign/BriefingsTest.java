@@ -133,8 +133,31 @@ class BriefingsTest {
         assertEquals("BONUS: HOLD THE BRIDGE", briefing.objectives().getLast(), "the secondary by its name");
     }
 
+    /** Level 10 (M5 part D): Okafor's and Varga's pages with their images, the escort and no bonus line. */
+    @Test
+    void theBriefingBeforeLevel10IsItsOwnTwoPages() {
+        BriefingScript briefing = Briefings.before(content, 10).orElseThrow();
+
+        assertEquals(Optional.empty(), briefing.titleCard(), "no act intro inside the act");
+        assertEquals("EVACUATION CORRIDOR", briefing.missionName());
+        assertEquals(
+                List.of("Okafor", "Varga"),
+                briefing.pages().stream().map(BriefingPage::speaker).toList());
+        assertEquals(
+                List.of("level-10-evacuation-route", "level-10-wraith-scan"),
+                briefing.pages().stream()
+                        .map(page -> page.image().orElseThrow())
+                        .toList());
+        assertEquals("Rook", briefing.teaser().speaker());
+        System.out.println("Level 10 briefing objectives: " + briefing.objectives());
+        assertTrue(briefing.objectives().getFirst().startsWith("ESCORT"), "the escort");
+        assertTrue(
+                briefing.objectives().stream().noneMatch(line -> line.startsWith("BONUS")),
+                "no secondary objective (D5 = a)");
+    }
+
     @Test
     void aLevelThatIsNotBuiltYetHasNoBriefing() {
-        assertEquals(Optional.empty(), Briefings.before(content, 10));
+        assertEquals(Optional.empty(), Briefings.before(content, 11));
     }
 }

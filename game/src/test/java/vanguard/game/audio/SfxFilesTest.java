@@ -129,6 +129,8 @@ class SfxFilesTest {
         assertEquals(Sfx.AMBIENCE_LUNA, Sfx.ambience("luna"));
         // M5 part B: Level 08's megacity.
         assertEquals(Sfx.AMBIENCE_CITY, Sfx.ambience("earth-megacity"));
+        // M5 part D: Level 10's coast road and lagoon from section 4.
+        assertEquals(Sfx.AMBIENCE_OCEAN, Sfx.ambience("earth-ocean"));
         assertEquals(Sfx.Priority.AMBIENCE, Sfx.ambience("earth-megacity").priority());
         org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> Sfx.ambience("europa"));
     }

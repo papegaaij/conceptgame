@@ -191,6 +191,22 @@ public enum Sfx {
      * FlightSounds#COLLAPSE_AT_WARNING}).
      */
     ARCOLOGY_COLLAPSE("sfx/collapse-r31-a.ogg", 1, Bus.EFFECTS, BOSS),
+    /**
+     * M5 part D: a Wraith decloaking, as its 0.4 s flash starts (design/audio/sfx, Level 10; round 32
+     * b): a metallic sci-fi rip over a membrane swish, 0.6 s.
+     */
+    WRAITH_DECLOAK("sfx/wraith-decloak-r32-b.ogg", 2, Bus.EFFECTS, ENEMY_FIRE),
+    /**
+     * M5 part D: a Mote Swarm's rush of wings, one-shot as a swarm enters the screen and again at each
+     * loop-back (round 32 b): an insect chitter over a whoosh, 1.7 s.
+     */
+    MOTE_SWARM("sfx/mote-swarm-r32-b.ogg", 2, Bus.EFFECTS, ENEMY_FIRE),
+    /**
+     * M5 part D: the lance of Level 10's scripted loss (round 32 a): an alien falling whine into a
+     * thunder crack and its roll, 3.8 s, started {@link FlightSounds#LANCE_IMPACT_SECONDS} before the
+     * hit so its impact (1.2 s in) lands on it.
+     */
+    LANCE_STRIKE("sfx/lance-r32-a.ogg", 1, Bus.EFFECTS, BOSS),
     /** A tow's cable snapping as its pod falls free: Level 07's lifeboat (round 25 a, a chain snap). */
     CABLE_SNAP("sfx/secret-cable-snap-r25-a.ogg", 1, Bus.EFFECTS, EXPLOSION),
     /** The Airstrike's jets flyby (round 08 a), as the bombers enter. */
@@ -207,6 +223,11 @@ public enum Sfx {
     AMBIENCE_LUNA("sfx/ambience-luna-r08-a.ogg", 1, Bus.EFFECTS, AMBIENCE),
     /** The Earth megacity ambience (night city, distant sirens), looped: Level 08 (M5 part B). */
     AMBIENCE_CITY("sfx/ambience-city-r08-a.ogg", 1, Bus.EFFECTS, AMBIENCE),
+    /**
+     * The Earth ocean ambience (waves at speed), looped: Level 10 from its section 4 (M5 part D,
+     * brought forward from part E), then Level 11.
+     */
+    AMBIENCE_OCEAN("sfx/ambience-ocean-r08-a.ogg", 1, Bus.EFFECTS, AMBIENCE),
     /** The mission complete jingle (design/audio/music, track 23), played as a one-shot. */
     MISSION_COMPLETE("music/mission-complete.ogg", 1, Bus.MUSIC, WARNING),
     /** The music's failure sting (design/audio/music, track 25), played over the cut music. */
@@ -289,6 +310,7 @@ public enum Sfx {
             case "earth-orbit" -> AMBIENCE_ORBIT;
             case "luna" -> AMBIENCE_LUNA;
             case "earth-megacity" -> AMBIENCE_CITY;
+            case "earth-ocean" -> AMBIENCE_OCEAN;
             default -> throw new IllegalArgumentException("no ambience for " + setting + " yet");
         };
     }

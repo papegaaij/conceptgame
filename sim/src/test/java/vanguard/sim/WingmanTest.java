@@ -389,6 +389,51 @@ class WingmanTest {
         assertEquals(WingmanSpec.Side.LEFT, rook.side(), "his own side");
     }
 
+    /**
+     * M5 part D (Level 10): a Wraith's rear ambush is a rear wave from its bottom-edge warning, so he
+     * flies Trail, 90 px behind the player; with the player low that slot lies in the Wraiths' hold
+     * band (20–70 px above the bottom edge). The player holds 140 px above the bottom edge, his Trail
+     * slot right over the lone Wraith's middle lane: he keeps inside the field and his hit box never
+     * touches the decloaked Wraith's body (its flash, its hold or its way out).
+     */
+    @Test
+    void aWraithAmbushMovesHimToTrailAndHeKeepsClearOfItsHoldBand() {
+        Sortie sortie = new Sortie(
+                1,
+                TestSpecs.LOADOUT.withWingman(rook(WingmanSpec.Side.LEFT)),
+                PartDSpecs.level(30, List.of(PartDSpecs.ambush(1, PartDSpecs.wraith(), 1))),
+                TestSpecs.RULES.withInvulnerableShip(),
+                TestSpecs.FULL_ARMOUR);
+        Wingman rook = wingman(sortie);
+        boolean trail = false;
+        boolean held = false;
+        boolean contact = false;
+        double closest = Double.MAX_VALUE;
+        double lowest = Double.MAX_VALUE;
+        while (sortie.levelSeconds() < 16) {
+            // His Trail slot (40 px aside, 90 px behind) over the middle lane, in the hold band.
+            sortie.step(towards(sortie.ship(), PlayField.WIDTH / 2.0 + 40, 140));
+            contact |= happened(sortie, SimEvents.Type.WINGMAN_HIT);
+            lowest = Math.min(lowest, rook.y());
+            for (int i = 0; i < sortie.enemyCount(); i++) {
+                Enemy wraith = sortie.enemy(i);
+                if (wraith.ambushPhase().compareTo(Enemy.AmbushPhase.DECLOAK) >= 0) {
+                    trail |= rook.formation() == Wingman.Formation.TRAIL;
+                    held |= wraith.ambushPhase() == Enemy.AmbushPhase.HOLD;
+                    closest = Math.min(closest, gap(rook, wraith));
+                }
+            }
+        }
+        System.out.printf(
+                "Trail over a Wraith's hold: closest gap %.1f px, lowest %.1f px above the bottom edge, contact %s%n",
+                closest, lowest, contact);
+
+        assertTrue(held && trail, "in Trail while the Wraith holds behind the player");
+        assertTrue(lowest - rook.spec().craft().hitbox().height() / 2 >= 0, "inside the field: " + lowest);
+        assertFalse(contact, "no contact with the Wraith");
+        assertTrue(closest >= 0, "his hit box never touches its body: " + closest);
+    }
+
     @Test
     void heKeepsFortyPixelsFromThePlayerWhileHeSwapsSidesInABottomCorner() {
         Sortie sortie = sortie(TestSpecs.level(30, List.of()), WingmanSpec.Side.LEFT);

@@ -44,6 +44,7 @@ class VoiceFilesTest {
             "act-1-first-contact outro",
             "act-2-homefront/level-08-neon-skyline",
             "act-2-homefront/level-09-arcology-fall",
+            "act-2-homefront/level-10-evacuation-corridor",
             "act-2-homefront briefing",
             "specials",
             "armour",
@@ -106,15 +107,16 @@ class VoiceFilesTest {
     /**
      * The speakers of a rendered level whose casting round is still open: their lines play as text
      * until it closes (none: Level 08's Civilian was cast in concept round 30, Level 09's Kilo Lead in
-     * round 31). Each must still be marked uncast in the speaker table; once cast, it leaves this set
-     * and its lines need their files.
+     * round 31, Level 10's Lifeline and Lifeline Three in round 32). Each must still be marked uncast
+     * in the speaker table; once cast, it leaves this set and its lines need their files.
      */
     private static final Set<String> AUDITIONING = Set.of();
 
     /**
      * The rendered levels have no uncast speaker left but the ones in an open audition
      * ({@link #AUDITIONING}): Level 07's Lifeboat Seven was cast in round 25, Level 08's Civilian in
-     * round 30 and Level 09's Kilo Lead in round 31, so their lines have a voice (and their files, above) instead of playing as text.
+     * round 30, Level 09's Kilo Lead in round 31 and Level 10's Lifeline and Lifeline Three in round
+     * 32, so their lines have a voice (and their files, above) instead of playing as text.
      */
     @Test
     void everySpeakerOfARenderedLevelIsCast() {
