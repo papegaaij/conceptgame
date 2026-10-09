@@ -27,7 +27,9 @@ class ContentLoaderTest {
                         "brood-pod",
                         "coilwyrm",
                         "creeper",
+                        "driftjelly",
                         "gorgon-frigate",
+                        "harbour-kraken",
                         "hive-node",
                         "leviathan",
                         "mantis",
@@ -35,6 +37,7 @@ class ContentLoaderTest {
                         "needler",
                         "polyp-mortar",
                         "ravager",
+                        "reef-spitter",
                         "scuttler",
                         "skitter",
                         "spine-turret",
@@ -147,7 +150,7 @@ class ContentLoaderTest {
                 LEVEL_01,
                 text -> text.replaceFirst("enemy: needler", "enemy: neddler"),
                 "design/" + LEVEL_01
-                        + ": waves[2].enemy: unknown enemy 'neddler' (known: brood-carrier, brood-pod, coilwyrm, creeper, gorgon-frigate, hive-node, leviathan, mantis, mote-swarm, needler, polyp-mortar, ravager, scuttler, skitter, spine-turret, spore-bomber, stinger, whirl-seed, wraith)");
+                        + ": waves[2].enemy: unknown enemy 'neddler' (known: brood-carrier, brood-pod, coilwyrm, creeper, driftjelly, gorgon-frigate, harbour-kraken, hive-node, leviathan, mantis, mote-swarm, needler, polyp-mortar, ravager, reef-spitter, scuttler, skitter, spine-turret, spore-bomber, stinger, whirl-seed, wraith)");
     }
 
     @Test

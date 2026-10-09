@@ -317,6 +317,25 @@ public final class VoiceLines {
                                 lines,
                                 line(voices, cue.speaker(), groupLine(text, group), expression, shout, filter, source));
                     }
+                } else if (text.contains(ALLY) && level.convoy().isPresent()) {
+                    // M5 part E: a naval convoy's unit is named by its name ("The Mbeki is hit!"); the
+                    // escort frigate (it leaves instead of taking a lane) is never hit or lost
+                    for (LevelData.ConvoyUnit unit :
+                            level.convoy().orElseThrow().units()) {
+                        if (unit.lane().isEmpty()) {
+                            continue;
+                        }
+                        add(
+                                lines,
+                                line(
+                                        voices,
+                                        cue.speaker(),
+                                        text.replace(ALLY, unit.name()),
+                                        expression,
+                                        shout,
+                                        filter,
+                                        source));
+                    }
                 } else if (text.contains(ALLY)) {
                     for (int unit = 0; unit < Math.max(1, units); unit++) {
                         add(

@@ -324,7 +324,9 @@ class BalanceTest {
     /**
      * Hard: the plan's purchases are in the shop and fit the generator at every visit; where the
      * credits fall short, of the repairs or of a purchase after the repairs of the visits before,
-     * the shortfall is printed as accepted ({@link #HARD_REPAIRS}).
+     * the shortfall is printed as accepted ({@link #HARD_REPAIRS}), and so is a later refit of an item
+     * whose purchase it refused (M5 part E: Level 11's Mortar for Rook, refused at Level 09 on hard,
+     * so Rook keeps his Autocannon there).
      */
     @Test
     void onHardThePlanIsInTheShopWithTheShortfallAccepted() {
@@ -334,9 +336,20 @@ class BalanceTest {
                 "Hard (income × %.2f of the hard levels' typical hauls, repairs %d cr a point):%n",
                 CONTENT.difficulty().creditIncome().of(Difficulty.HARD), cost);
         List<String> problems = new ArrayList<>();
+        java.util.Set<String> refused = new java.util.HashSet<>();
+        java.util.regex.Pattern buy =
+                java.util.regex.Pattern.compile("buy (.+ → \\S+): " + Hangar.Refusal.CREDITS.name() + " \\(");
+        java.util.regex.Pattern fit = java.util.regex.Pattern.compile("fit (.+ → \\S+): not owned");
         for (String problem : print(rows)) {
+            java.util.regex.Matcher bought = buy.matcher(problem);
+            java.util.regex.Matcher fitted = fit.matcher(problem);
             if (problem.contains(": " + Hangar.Refusal.CREDITS.name() + " (")) {
                 System.out.println(problem + ": accepted, " + HARD_REPAIRS);
+                if (bought.find()) {
+                    refused.add(bought.group(1));
+                }
+            } else if (fitted.find() && refused.contains(fitted.group(1))) {
+                System.out.println(problem + ": accepted, its purchase was refused for credits before");
             } else {
                 problems.add(problem);
             }
@@ -588,12 +601,89 @@ class BalanceTest {
                     default -> new double[] {20, 40};
                 });
         double dps = reference * (enemy.boss().isPresent() || enemy.tier() == Tier.HUGE ? EFFECTIVE : 1);
+        if (enemy.movement().anchored().isPresent()) {
+            // M5 part E (E6 = a): an arena boss's parts are exposed in windows; its duration counts them.
+            double seconds = arenaSeconds(enemy, dps);
+            return seconds < target[0] || seconds > target[1]
+                    ? Optional.of(String.format(
+                            "window-aware %.1f s at %.1f DPS, target %s-%s s", seconds, dps, target[0], target[1]))
+                    : Optional.empty();
+        }
         if (enemy.hp() < target[0] * dps - 1 || enemy.hp() > target[1] * dps + 1) {
             return Optional.of(String.format(
                     "HP %.0f / %.1f DPS = %.2f s, target %s-%s s",
                     enemy.hp(), dps, enemy.hp() / dps, target[0], target[1]));
         }
         return Optional.empty();
+    }
+
+    /**
+     * M5 part E (design/enemies/bosses/harbour-kraken, user decision E6 = a): an arena boss's fight at
+     * the effective {@code dps}, its exposure windows counted (tools/balance.py prints the same): the
+     * bar appears as the scroll eases into the halt ({@code Sortie.ARENA_RAMP_SECONDS}); a phase that
+     * ends on slams lasts its delay and its slams (each cycle the telegraph, rise, awash and sink; the
+     * last one to its impact), at most its seconds, its parts out of the way (the arms need not die);
+     * a phase that ends on a share of its parts' HP takes that HP in cycles of its surfacing (the rise,
+     * the open window, the dive, and a slam's cycle after the dive): while the window is open the damage
+     * takes the mean of the part's own multiplier and its weak spots' (the eyes and the mantle hit about
+     * equally), while it rises or dives on the surface (half of each) its own, under the water nothing
+     * (the plan has no Torpedo Pod); the last phase takes the rest with its part kept up.
+     */
+    static double arenaSeconds(EnemyData enemy, double dps) {
+        EnemyData.BossData boss = enemy.boss().orElseThrow();
+        EnemyData.SlamData slam = boss.slam().orElseThrow();
+        double cycle = slam.telegraph() + slam.rise() + slam.awash() + slam.sink();
+        List<EnemyData.PartData> parts = enemy.partList().orElseThrow();
+        double[] left = parts.stream().mapToDouble(EnemyData.PartData::hp).toArray();
+        double seconds = vanguard.sim.Sortie.ARENA_RAMP_SECONDS;
+        for (EnemyData.PhaseData phase : boss.phases()) {
+            EnemyData.Until until = phase.until();
+            if (until.slams().isPresent()) {
+                double slams =
+                        phase.delay().orElse(0.0) + (until.slams().get() - 1) * cycle + slam.telegraph() + slam.rise();
+                seconds += Math.min(slams, until.seconds().orElse(Double.POSITIVE_INFINITY));
+                continue;
+            }
+            EnemyData.SurfaceData surface = phase.surface().orElseThrow();
+            EnemyData.PartData part = parts.get(enemy.partIndex(surface.part()));
+            double own = part.multiplier().orElse(1.0);
+            double spot = part.spots().orElse(List.of()).stream()
+                    .mapToDouble(EnemyData.SpotData::multiplier)
+                    .max()
+                    .orElse(own);
+            double open = (own + spot) / 2;
+            List<String> names = until.parts().orElseThrow();
+            double need = 0;
+            double full = 0;
+            for (String name : names) {
+                need += left[enemy.partIndex(name)];
+                full += parts.get(enemy.partIndex(name)).hp();
+            }
+            if (until.below().isPresent()) {
+                need -= until.below().get() * full;
+                double dive = surface.dive().orElseThrow();
+                double round = surface.rise()
+                        + surface.open().orElseThrow()
+                        + dive
+                        + (phase.slamming()
+                                        .filter(s -> s.mode().equals("after_dive"))
+                                        .isPresent()
+                                ? cycle
+                                : 0);
+                double damage = dps * (surface.open().orElseThrow() * open + (surface.rise() + dive) / 2 * own);
+                seconds += need / damage * round;
+                for (String name : names) {
+                    int p = enemy.partIndex(name);
+                    left[p] = until.below().get() * parts.get(p).hp();
+                }
+            } else {
+                seconds += need / (dps * open);
+                for (String name : names) {
+                    left[enemy.partIndex(name)] = 0;
+                }
+            }
+        }
+        return seconds;
     }
 
     /**

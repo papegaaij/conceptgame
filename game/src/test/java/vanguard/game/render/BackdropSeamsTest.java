@@ -228,6 +228,11 @@ class BackdropSeamsTest {
                 if (!level.sections().get(s).isArena()) {
                     continue;
                 }
+                if (level.sections().get(s).speed().filter(speed -> speed == 0).isPresent()) {
+                    // M5 part E: an arena of speed 0 (Level 11's) does not scroll, so the jump to its
+                    // end moves nothing; its anchored boss's platform lies there on purpose.
+                    continue;
+                }
                 double start = level.sectionStart(s);
                 double end = level.sections().get(s).end();
                 for (BackdropData.PlacedPiece placed : backdrop.placements()) {

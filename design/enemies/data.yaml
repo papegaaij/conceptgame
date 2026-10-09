@@ -38,7 +38,8 @@ formations:  # the formation vocabulary: name and description
   turret nest: 3–6 ground turrets in a cluster with overlapping fire.
   convoy: Ground or naval units in a column along a road, river or lane.
   pack: 3–5 walkers entering together, each on its own ground path, 0.25 s apart (the Ravager).
-  submerged ambush: '`sub` units that surface together around the player.'
+  submerged ambush: '`sub` units that surface together around the player (Act 4: no Act 2 level uses it).'
+  field: 'Units scattered over an area that enters with the sea (scroll factor 1, surfaced or submerged) and drifts on the wave''s current: a Driftjelly field of 6–12 (M5 part E).'
   swarm: 'A loose cloud of 6–24 units with flocking behaviour round a leader point that flies an authored route, from the top or the bottom edge, often looping back from below (the Mote Swarm, M5 part D).'
   solo set piece: One huge unit on its own, announced by radio (at most one per level).
   whirl cluster: A burst of 5–8 tiny spinners released from one point, spiralling outward and ricocheting.

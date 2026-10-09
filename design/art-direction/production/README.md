@@ -4,7 +4,7 @@ design: draft
 implementation: in-progress
 art: n/a
 depends-on: [.., ../../tech/roadmap, ../../tech/architecture, ../../audio/music, ../../audio/sfx]
-updated: 2026-10-07
+updated: 2026-10-09
 ---
 
 # Production art plan
@@ -96,6 +96,7 @@ textures of their own in `assets/ui/briefing/` (0.6 MiB each, loaded by the brie
 with the death chunks): about 1.88 M px, about 7.2 MiB of its 16 MiB one-page budget. In M5 part B
 (2026-10-07) the shared atlas is 1 page of 2048² (75 % full, 16 MiB of 32), no longer 2048×1024;
 Level 08's unit atlas 1 page of 2048×1024 (52 %), the level at 3 of 6 pages.
+M5 part E (2026-10-08): the shared page grows to 2048² at about 49 % with the water explosion ladders, the torpedo and the `water-*` sprites (`tools/art/water_fx.py`); still 1 of the 2 shared pages (the 2048² page is 16 MiB of the 32). The Kraken unit takes 1 page (68 %, with the lane effects), the Level 11 units with the convoy ships about 2 pages.
 
 **Sounds**: a final OGG carries a `SOURCE` Vorbis comment; `importPlaceholders`
 (`PlaceholderSounds`) keeps every sound in `assets/sfx/` that has one.
@@ -165,8 +166,9 @@ Game captures of the production batches that span several parts; prompts:
 - [x] M4 part H's batch final (concept round 26: the Act 1 title-card still (`tools/art/act_stills.py`), the Skitter's, Needler's and Scuttler's deaths (`tools/art/vrell_deaths.py`), the Smart Bomb's burst and ring (`tools/art/smart_bomb.py`), the boss bar's plate (`tools/art/boss_bar.py`), the ship's damage frames and the shield ring (`tools/art/ship_fx.py`), the `medium` bullet (`tools/art/bullet_medium.py`), the music finals (`tools/art/themes.py`); the wave banners and the drop shadows drawn in code); approved as final there, so every M4 part is final (a round per M4 part, user decision)
 - [x] A unit used by several levels packed into each of their unit atlases, the shared pages
       keeping only the game-wide sprites (`SpriteUse`, `SpriteUseTest`; D10 = a) — M5 part C
-- [ ] M5 parts final — **later: M5** (a round per level, as in M4; part A's round 28 and part B's
-      round 30 closed)
+- [x] M5 part E (Level 11) units and effects produced and approved as final in round 33 (2026-10-09; the ship pair a and the slam look a picked, b's review files in `concept/rejected/`): the Driftjelly, Reef Spitter and Harbour Kraken (`tools/art/driftjelly.py`, `reef_spitter.py`, `harbour_kraken.py`), the water and torpedo effects with the lane telegraph and slam a/b (`tools/art/water_fx.py`), the convoy ships a/b (`tools/art/convoy_ships.py`) and the props (`tools/art/l11_props.py`); the backdrop (`tools/art/backdrop_l11.py`), the briefing images and the intel pictures (`tools/art/briefing_images.py`, `intel.py`) approved with them
+- [ ] M5 parts final — **later: M5** (a round per level, as in M4; part A's round 28, part B's
+      round 30, part C's round 31, part D's round 32 and part E's round 33 closed)
 
 ## Open questions
 

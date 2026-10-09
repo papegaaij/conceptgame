@@ -9,6 +9,8 @@ sfx: torpedo
 vfx: torpedo
 hits: anti-sub
 speed: [300, 420]
+accelerate: 0.5
+cone: 60
 size: [5, 16]
 range: 500
 pod: true

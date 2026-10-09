@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../architecture, ../../campaign]
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
 # Implementation roadmap
@@ -73,7 +73,7 @@ Hive Node and Ravager and D's Wraith.
 | **B** Level 08 and the Act 2 intro — **done** | Level data (dense, typical haul, four Varga lines, voiced); Creeper; the megacity backdrop with perspective towers (scenery only) and traffic lanes; Act 2's data (title card, briefing pages, images); "Homefront" final and stems; the Act 1 → Act 2 transition | A | 30 (closed): the Creeper, the megacity backdrop and towers, the Act 2 still and briefing images, Rook's briefing portraits, "Homefront" and its base stem, the billboard (a), the traffic (a), the civilian's voice (b) |
 | **C** Level 09 — **done** | Hive Node (hardened, periodic spawn), Ravager (`pack`, the pounce's air window), hardened enemies; hold zones and the level clock in script time; the named-target tracker; a missed node fails at once; the collapse; the bridge secondary (a wave tag); the `required` launch warning; the balance plan's anti-ground (Bomb Rack and Rook's Mortar); multi-level units in each level's atlas; "Firestorm" final and stems with a run-time stem hook; the Kilo Lead's audition | B | 31 (closed): the collapse's look (a and b rejected, the rework c approved with two tweaks and built), the Hive Node, the Ravager, the Level 09 backdrop with the trucks and the cocoon, the briefing images, "Firestorm" and its base stem approved as final; the collapse sound (a), both pounce sounds (picked at random), the Kilo Lead's voice (a); the captures, the voiced lines, the texts, the numbers, the decisions and the build choices accepted |
 | **D** Level 10 — **done** | Wraith (cloak, loop, rear entry, `rear ambush`); Mote Swarm (`flock`, `swarm`, authored paths: the Skitter's item); the air escort (shuttles: stations and lane sway, liftoff and climb-out, every bullet and contact hurting) and the scripted loss with its music duck; the `SHUTTLES` tracker with armour bars; `required: [rear]` and the plan's rear check; the ambience change by section; rear-heavy pacing; the Lifeline voices' auditions | B | 32 (closed): the Wraith, the Mote Swarm, the Level 10 backdrop at first light with the ferry hatch, the briefing images and intel portraits approved as final; the shuttle (a), the loss's look (b, the iris column), the decloak sound (b, CC-BY), the swarm sound (b), the lance sound (a), the Lifeline and Lifeline Three voices (b, b); the captures, the voiced lines, the texts, the numbers, the decisions and the build choices accepted |
-| **E** Level 11 | The `sub` layer and the water rules; the Torpedo Pod and `anti-sub`; Driftjelly, Reef Spitter; convoy ships and frigate; the Harbour Kraken mid-boss; the ocean backdrop; the Bomb Rack over water | A | 33 |
+| **E** Level 11 — **done** | The `sub` layer and the water rules (a `water` level flag; the `sub` pass with pre-rendered collars); the Torpedo Pod and `anti-sub` (torpedoes seeking sunken triggers); Driftjelly (`field`, proximity ring above and below the water), Reef Spitter (rafts on the flanks); the naval convoy (cargo ships and frigate: stations, the glide to the arena lanes, the hold clear of Tiamat) with the `CONVOY` tracker and the `afloat` secondary; the Harbour Kraken mid-boss (anchored arena, lane slams, surfacing head); the ocean backdrop; the Bomb Rack over water; Atlas Control's audition | A | 33 (closed): the Driftjelly, the Reef Spitter, the Harbour Kraken (reworked on the user's feedback), the water and torpedo effects, the props, the ocean backdrop, the briefing images and intel pictures approved as final; the convoy ship pair (a), the lane telegraph and slam (a), Atlas Control's voice (b); the eight sounds, the captures, the voiced lines, the texts, the numbers, the decisions and the build choices accepted, the sunken pod at 3 hits |
 | **F** Level 12 | Weather (rain, lightning reveal, gusts, the eye); Lamprey (chase, latch, drain, shake-off) with `swarm`; sondes; the storm backdrop; the mines' sounds in play | D, E | 34 |
 | **G** Level 13 | `defend` with a timed halt; the Nansen Relay and its integrity bar; hook modes `alternate`, `in-arc`, `always`; Skimmer; `cross`; whiteout; supply drones; the arctic backdrop | E | 35 |
 | **H** Level 14 and the act end | Root bursts; the Siege Spire act boss (root parts, maw launches, ground → air phase); the Geneva backdrop; the daylight section; Act 2's outro pages and act summary; the act-end order | B, C, D | 36 |
@@ -92,7 +92,7 @@ Hive Node and Ravager and D's Wraith.
 - [ ] M5 Act 2 (parts A–I under *M5 parts*; part A done, concept round 28 closed; part B, Level 08
       and the Act 2 intro, done, concept round 30 closed; part C, Level 09, done, concept round 31
       closed; part D, Level 10, done, concept round 32
-      closed)
+      closed; part E, Level 11, done, concept round 33 closed)
 - [ ] M6 Acts 1–2 release
 
 ## Open questions
@@ -281,3 +281,52 @@ Hive Node and Ravager and D's Wraith.
   band, the wreck's full 3 s glide, the ferry hatch at 50 HP with a 12 s crate, the rear banner
   above the band, the home bar in pale mint). Hard keeps 1 of 4 shuttles home on the autopilot
   (user: hard is meant to be hard). The next part is **E**, Level 11 (round 33).
+- 2026-10-08: M5 part E started (Level 11), from its gap check, with the user's decisions E1–E10,
+  all as recommended: **E1 = a** water is a level flag, `water: true` (Levels 11–13; the whole play
+  field), so the Torpedo Pod runs only there and reads `NO WATER` elsewhere; **E2 = a** only
+  `anti-sub` (and the Smart Bomb) reaches the `sub` layer, the weapons README's "and `area`"
+  corrected; **E3 = b** submerged Driftjellies fire their ring too, the pulse showing through the
+  water; **E4 = c** the water drawn as a hybrid, a generic run-time `sub` pass (tint, blur, wave)
+  with pre-rendered collars, ripples and surfacing steps per unit; **E5 = a** each of the Kraken's
+  slam arms owns a half of the four lanes, a severed arm making its half safe; **E6 = a** the
+  Kraken's HP tuned to a ≈ 60 s fight with a window-aware duration in `BalanceTest`; **E7 = a** its
+  two slam arms as runtime chains with authored motion, the gripping arms baked, the idle arms as
+  `sub` shadows, the head pre-rendered; **E8 = a** the secondary all or nothing (no cargo ship sunk),
+  decided at the Kraken's death; **E9 = a** art straight to production, a/b only for the ship pair
+  and the lane telegraph and slam look; **E10 = a** Atlas Control auditioned a/b. The gap check's 28
+  stated defaults apply: data in Act 1 terms with a `bounty_scale` (estimate 0.6–0.8); the Kraken's
+  paid bounty ≈ 15 % of budget(11) ≈ 207 after the scale; no act HP factor; the waves densified to at
+  least 50 a minute with the 3 s pacing rule, no rear waves, the introductions as short quiet
+  windows; the formation `field`; submerged units scrolling with the sea; seeded jelly swap timers;
+  torpedoes hitting `sub` and every `ground` unit over water at full damage; an idle pod drawing its
+  power; ground-only blasts over water unchanged with a water splash; the Smart Bomb hitting `sub`;
+  Rook skipping `sub`, keeping out of telegraphed lanes, hit by slams; the plan's L11 visit refitting
+  Rook's Mortar, no torpedo; lane choice by the player's x; the convoy at screen stations, gliding to
+  lanes 1, 2, 4 at the halt, the frigate dropping back; the frigate's flak presentation only; the
+  arena's jelly field released at the first surfacing; the sting at the arena halt; "Firestorm"'s
+  base stem from section 2 and full mix from section 4, the ocean ambience throughout; the `CONVOY`
+  tracker and `HULLS AFLOAT n / 3`; the sunken pod counting hits (3, hard 5); the boss checkpoint
+  keeping the ships; ship names as `{ally}`; flyers' shadows on the sea; two briefing pages, Rook's
+  teaser, Varga's four lines; the radio retimed with the events `first-telegraph`,
+  `boss-part-destroyed`, `ally-hit`, `ally-lost`, `boss-destroyed` and `secondary-objective`;
+  `submerged ambush` retagged to Act 4. Details in
+  [Level 11](../../campaign/act-2-homefront/level-11-atlantic-convoy/README.md), the
+  [Driftjelly](../../enemies/naval/driftjelly/README.md), the
+  [Reef Spitter](../../enemies/naval/reef-spitter/README.md), the
+  [Harbour Kraken](../../enemies/bosses/harbour-kraken/README.md), the
+  [allies](../../allies/README.md), the [Torpedo Pod](../../player/weapons/torpedo-pod/README.md),
+  the [enemies](../../enemies/README.md#layer-rules), the [art direction](../../art-direction/README.md),
+  the [schemas](../architecture/README.md#data-file-schemas), the [HUD](../../ui/hud/README.md), the
+  [hangar](../../ui/hangar/README.md), [wingmen](../../player/wingmen/README.md),
+  [music](../../audio/music/README.md), [sfx](../../audio/sfx/README.md) and
+  [voice](../../audio/voice/README.md). Part E's concept round is 33.
+- 2026-10-09: M5 part E done, concept round 33 closed (user). During the part: the convoy bonus
+  measured with an arm-first autopilot, then tuned by the cargo ships' HP (four slams at medium) so
+  such a pilot keeps all three most of the time; the four small fixes (the ships hold clear of
+  Tiamat, the Kraken's bounty 216 for its 15 %, torpedoes seeking sunken triggers, the rafts on the
+  flanks); the capture's bugs fixed (the head's hit flash, the torpedo's visibility, the foreshadow,
+  the arms across the mantle). After the round, on the user's feedback: the Kraken's head surfaces
+  and sinks off the deck's south edge with Platform Tiamat raised, hits on it read as flesh, the
+  slamming arms whip and only the hit part flashes; the sunken pod takes 3 torpedo hits (hard 5);
+  four sounds reworked. Hard keeps no ship on the arm-first autopilot (user: hard is supposed to be
+  hard). The next part is **F**, Level 12 (round 34).

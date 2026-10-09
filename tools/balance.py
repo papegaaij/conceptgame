@@ -243,6 +243,56 @@ def boss_or_set_piece(e):
     return "boss" in e or e["tier"] == "huge"
 
 
+ARENA_EASE = 1.0  # s: an arena boss's bar appears as the scroll eases into the halt (Sortie.ARENA_RAMP_SECONDS)
+
+
+def arena_seconds(e, dps):
+    """M5 part E (E6 = a): an arena boss's fight at the effective dps, its exposure windows counted
+    (BalanceTest.arenaSeconds): the ease into the halt; a phase ending on slams lasts its delay and its
+    slams (the last to its impact), at most its seconds; a phase ending on a share of its parts' HP
+    takes that HP in cycles of its surfacing (rise, open, dive, a slam cycle after the dive) at the mean
+    of the part's own and its spots' multiplier while open, its own over half the rise and the dive; the
+    last phase takes the rest with the part kept up."""
+    boss = e["boss"]
+    slam = boss["slam"]
+    cycle = slam["telegraph"] + slam["rise"] + slam["awash"] + slam["sink"]
+    parts = {p["name"]: p for p in e["part_list"]}
+    left = {name: p["hp"] for name, p in parts.items()}
+    seconds = ARENA_EASE
+    for phase in boss["phases"]:
+        until = phase["until"]
+        if "slams" in until:
+            slams = phase.get("delay", 0) + (until["slams"] - 1) * cycle + slam["telegraph"] + slam["rise"]
+            seconds += min(slams, until.get("seconds", float("inf")))
+            continue
+        surface = phase["surface"]
+        part = parts[surface["part"]]
+        own = part.get("multiplier", 1)
+        spot = max([s["multiplier"] for s in part.get("spots", [])] or [own])
+        opened = (own + spot) / 2
+        names = until["parts"]
+        need = sum(left[n] for n in names)
+        full = sum(parts[n]["hp"] for n in names)
+        if "below" in until:
+            need -= until["below"] * full
+            after_dive = phase.get("slamming") == "after_dive"
+            round_s = surface["rise"] + surface["open"] + surface["dive"] + (cycle if after_dive else 0)
+            damage = dps * (surface["open"] * opened + (surface["rise"] + surface["dive"]) / 2 * own)
+            seconds += need / damage * round_s
+            for n in names:
+                left[n] = until["below"] * parts[n]["hp"]
+        else:
+            seconds += need / (dps * opened)
+            for n in names:
+                left[n] = 0
+    return seconds
+
+
+def boss_seconds(e, dps):
+    """A boss's fight at dps: its HP over it, an arena boss's window-aware (arena_seconds)."""
+    return arena_seconds(e, dps) if "anchored" in e.get("movement", {}) else e["hp"] / dps
+
+
 def ttk_problem(e, ref):
     """The time to kill at the first level against the balancing basis, or None (see BalanceTest)."""
     r = ref.get(e["first_level"])
@@ -256,6 +306,11 @@ def ttk_problem(e, ref):
     else:
         lo, hi = {"small": (0, 0.3), "medium": (0.4, 1.5), "large": (1, 3), "huge": (20, 40)}[e["tier"]]
     dps = r * (EFFECTIVE if boss_or_set_piece(e) else 1)
+    if "anchored" in e.get("movement", {}):
+        seconds = arena_seconds(e, dps)
+        if seconds < lo or seconds > hi:
+            return f"window-aware {seconds:.1f} s at {dps:.1f} DPS, target {lo:g}-{hi:g} s"
+        return None
     if e["hp"] < lo * dps - 1 or e["hp"] > hi * dps + 1:  # whole HP: 1 HP of rounding
         return f"HP {e['hp']:g} / {dps:.1f} DPS = {e['hp'] / dps:.2f} s, target {lo:g}-{hi:g} s"
     return None
@@ -319,8 +374,9 @@ def enemy_report(data, ref):
                     for kind, p in found]
         deviations += sum((slug, kind) not in ACCEPTED for kind, _ in found)
         kind = e["boss"]["kind"] if "boss" in e else e["tier"]
+        ttk = (boss_seconds(e, dps) if "boss" in e else e["hp"] / dps) if dps else 0
         print(f"{e['name']:16} | {kind:8} | L{e['first_level']:02d}   | {e['hp']:6g} | "
-              f"{(e['hp'] / dps) if dps else 0:14.2f} | {e['bounty']:6} | " + "; ".join(problems))
+              f"{ttk:14.2f} | {e['bounty']:6} | " + "; ".join(problems))
     if deviations:
         print("A deviation fails BalanceTest unless it is listed there as accepted or pending a decision.")
 
@@ -364,7 +420,7 @@ def report(data):
             line = (f"L{n:02d}: typical haul {income(data, n)[0]} of budget {budget(data, n):.0f}; "
                     f"slowest TTK at the plan's DPS {enemy(slowest)['name']} {enemy(slowest)['hp'] / fwd:.1f} s")
             if boss:
-                line += f"; boss {enemy(boss)['name']} {enemy(boss)['hp'] / (EFFECTIVE * fwd):.0f} s (at 0.6×)"
+                line += f"; boss {enemy(boss)['name']} {boss_seconds(enemy(boss), EFFECTIVE * fwd):.0f} s (at 0.6×)"
             ttk_lines.append(line)
             ttk_lines += hold_lines(data, d, st)
             rear_lines, slow = ambush_lines(d, rear)

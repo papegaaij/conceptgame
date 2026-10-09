@@ -1,0 +1,17 @@
+{
+ "source": "tools/art/convoy_ships.py (production art, M5 part E batch), variant a",
+ "variant": "a",
+ "muzzle": [
+  20,
+  10
+ ],
+ "collar": [
+  -6,
+  -6
+ ],
+ "wake": [
+  -16,
+  -7
+ ],
+ "note": "offsets: the top left of each overlay relative to the hull frame's top left"
+}

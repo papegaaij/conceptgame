@@ -212,6 +212,8 @@ public final class FlightSounds {
     private static Sfx cry(String slug) {
         return switch (slug) {
             case "leviathan" -> Sfx.LEVIATHAN_CRY;
+            // M5 part E: the Kraken's death groan, under the huge water burst (round 33 a).
+            case "harbour-kraken" -> Sfx.KRAKEN_DEATH;
             default -> null;
         };
     }
@@ -235,7 +237,7 @@ public final class FlightSounds {
         return k < bossSounds.length && bossSounds[k] != null ? bossSounds[k].sacBurst() : null;
     }
 
-    /** The sound of a weapon sound family; the families of later weapons (the torpedo) play the pulse until they have theirs. */
+    /** The sound of a weapon sound family; the families of later weapons play the pulse until they have theirs. */
     private static Sfx shot(String family) {
         return switch (family) {
             case "vulcan" -> Sfx.VULCAN_SHOT;
@@ -246,6 +248,7 @@ public final class FlightSounds {
             case "bomb" -> Sfx.BOMB_SHOT;
             case "missile" -> Sfx.MISSILE_SHOT;
             case "mine" -> Sfx.MINE_DROP;
+            case "torpedo" -> Sfx.SHOT_TORPEDO;
             default -> Sfx.PULSE_SHOT;
         };
     }
@@ -347,10 +350,65 @@ public final class FlightSounds {
      */
     static final double COLLAPSE_CRASH_SECONDS = 3.0;
 
+    /**
+     * Where the impact sits in {@link Sfx#KRAKEN_SLAM}, seconds from its start (round 33 a,
+     * tools/concept/audio/sfx_r33.py): the sound starts this long before the slam.
+     */
+    static final double SLAM_IMPACT_SECONDS = 0.5;
+
+    /** The steps from a lane's telegraph to the slam sound's start, and the second lane's lag; 0 without arena. */
+    private int slamSteps;
+
+    private int secondSteps;
+    /** Whether the level's convoy is naval (M5 part E): ships hit and sink, not trucks. */
+    private boolean naval;
+    /** The level's ring-firing enemies' source (M5 part E), from the last {@link #watch}; null before. */
+    private Sortie ringSource;
+
+    /**
+     * M5 part E: the Harbour Kraken's slam cycle (design/enemies/bosses/harbour-kraken): its slam
+     * sound starts {@code telegraph + rise - }{@link #SLAM_IMPACT_SECONDS} after the lane's telegraph,
+     * so its impact lands on the slam, and the second lane of a volley {@code second} s later.
+     */
+    public void slamCycle(double telegraph, double rise, double second) {
+        slamSteps = Math.max(1, SimStep.ticks(telegraph + rise - SLAM_IMPACT_SECONDS));
+        secondSteps = SimStep.ticks(second);
+    }
+
+    /** M5 part E: the level's convoy sails on the water: its hits and losses play the ships' sounds. */
+    public void naval(boolean naval) {
+        this.naval = naval;
+    }
+
+    /**
+     * M5 part E: a kill, a torpedo's impact or a landing blast on the water at {@code x}: the surface
+     * burst, or the under-water one ({@code under}), played over the size rung.
+     */
+    public void waterExplosion(boolean under, double x) {
+        bank.play(under ? Sfx.EXPLOSION_UNDERWATER : Sfx.EXPLOSION_WATER, EXPLOSIONS, pitch(0.04), pan(x));
+    }
+
+    /** Whether a unit with a proximity ring stands at (x, y), where its ring just fired. */
+    private boolean ringAt(double x, double y) {
+        if (ringSource == null) {
+            return false;
+        }
+        for (int e = 0; e < ringSource.enemyCount(); e++) {
+            var enemy = ringSource.enemy(e);
+            if (Math.abs(enemy.renderX(1) - x) < 0.5
+                    && Math.abs(enemy.renderY(1) - y) < 0.5
+                    && enemy.spec().ring().isPresent()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Plays the sounds of one step's events. */
     public void play(SimEvents events) {
         int launches = 0;
         float launchPan = 0;
+        int telegraphs = 0;
         for (int i = 0; i < events.size(); i++) {
             float pan = pan(events.x(i));
             switch (events.type(i)) {
@@ -372,14 +430,20 @@ public final class FlightSounds {
                 }
                 // A heavy shot for a medium bullet: the event's value is the bullet's damage, the same
                 // class boundary as its large orb.
-                case ENEMY_FIRED ->
-                    bank.play(
-                            heavyShot(events.value(i))
-                                    ? alternate(Sfx.ENEMY_HEAVY_SHOT_A, Sfx.ENEMY_HEAVY_SHOT_B)
-                                    : alternate(Sfx.ENEMY_SHOT_A, Sfx.ENEMY_SHOT_B),
-                            ENEMY_FIRE,
-                            pitch(0.05),
-                            pan);
+                case ENEMY_FIRED -> {
+                    if (ringAt(events.x(i), events.y(i))) {
+                        // M5 part E: a Driftjelly's proximity ring (round 33 a), not a gun's report.
+                        bank.play(Sfx.DRIFTJELLY_PULSE, 1, pitch(0.04), pan);
+                    } else {
+                        bank.play(
+                                heavyShot(events.value(i))
+                                        ? alternate(Sfx.ENEMY_HEAVY_SHOT_A, Sfx.ENEMY_HEAVY_SHOT_B)
+                                        : alternate(Sfx.ENEMY_SHOT_A, Sfx.ENEMY_SHOT_B),
+                                ENEMY_FIRE,
+                                pitch(0.05),
+                                pan);
+                    }
+                }
                 case GROUND_HIT -> bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, pitch(0.05), pan);
                 // A destroyed ground target: its blast with its crumble.
                 case GROUND_DESTROYED -> groundBreak(events.value(i), pan);
@@ -440,9 +504,29 @@ public final class FlightSounds {
                 }
                 case SPECIAL_DENIED -> bank.play(Sfx.SPECIAL_DENIED, PICKUPS, 1, 0);
                 // A convoy unit: metal hit and a small explosion; the convoy lost plays the sting as a wreck does.
-                case ALLY_HIT -> bank.play(alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B), HITS, 0.9f * pitch(0.05), pan);
+                // M5 part E: a naval convoy's ship hit by a slam, and a ship sinking from its loss (round 33 a).
+                case ALLY_HIT ->
+                    bank.play(
+                            naval ? Sfx.SHIP_HIT : alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B),
+                            naval ? EXPLOSIONS : HITS,
+                            0.9f * pitch(0.05),
+                            pan);
                 case ALLY_LOST ->
-                    bank.play(alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B), EXPLOSIONS, 1, pan);
+                    bank.play(
+                            naval ? Sfx.SHIP_SINK : alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B),
+                            EXPLOSIONS,
+                            1,
+                            pan);
+                // M5 part E: the frigate's distant flak, quiet (the file is levelled low).
+                case ALLY_FLAK -> bank.play(Sfx.FRIGATE_FLAK, 1, pitch(0.05), pan);
+                // The Harbour Kraken: a lane's churn now and its slam's rush so the impact lands on the
+                // slam; the second lane of a volley 0.5 s after the first; the head's surfacing swell.
+                case TELEGRAPH -> {
+                    bank.play(Sfx.KRAKEN_CHURN, 1, 1, pan);
+                    later(Sfx.KRAKEN_SLAM, 1, 1, pan, slamSteps + telegraphs * secondSteps);
+                    telegraphs++;
+                }
+                case SURFACE -> bank.play(Sfx.KRAKEN_SURFACE, 1, 1, pan);
                 // Rook (M5 part A): a metal hit on his hull, quieter than the ship's; his craft's
                 // medium explosion as he ejects.
                 case WINGMAN_HIT ->
@@ -632,6 +716,7 @@ public final class FlightSounds {
             bank.play(Sfx.MOTE_SWARM, EXPLOSIONS, pitch(0.03), pan(swarms.x()));
         }
         watchLance(sortie);
+        ringSource = sortie;
         if (wasOpen == null) {
             wasOpen = new boolean[pieces][];
             wasWrecked = new boolean[pieces][];

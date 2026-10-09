@@ -1,0 +1,137 @@
+# Level 11 backdrop PROPOSAL (tools/art/backdrop_l11.py --proposal; M5 part E batch, round 33).
+# For the level-data step to merge into data.yaml: `backdrop` is the level's block, and every section
+# takes the `tiles` below (the sea is the same two tile sets throughout: no seams).
+#
+# sections[i].tiles (by section, in order):
+#   Convoy Muster: [swell, chop]
+#   Jelly Fields: [swell, chop]
+#   Reef Line: [swell, chop]
+#   Tiamat Approach: [swell, chop]
+#   Harbour Kraken: [swell, chop]
+#   Open Water: [swell, chop]
+#
+# Built round this timeline (re-run --proposal and the images after the data moves a section end):
+#   Convoy Muster to 20, Jelly Fields to 65, Reef Line to 110, Tiamat Approach to 160, Harbour Kraken to 161 (speed 0, arena), Open Water to 176; 140 px/s.
+# Platform Tiamat (piece platform-tiamat, 256 x 208, centred on the platform's centre; deck 208 x 152,
+#   edges x +-104, y +-76, round 07's model): its centre lies 22,931 px up the ground layer (from the
+#   screen's bottom at the level start), x 240. At the halt (ground scroll 22,468.83 = scrollAt(t 160)
+#   + the ease into the halt, 68.83 px: Sortie.haltScroll)
+#   that is screen (240, 78) from the play field's top left: the deck spans x 136-344,
+#   y 2-154; the lanes run below y 154; the Kraken's head centre (216 px below, off the
+#   deck's south edge) is at (240, 294).
+#   It scrolls in at the top over the last 1.3 s before the halt; at the halt the piece's top edge
+#   is -26 px below the top. The Kraken's anchor uses the same ground position
+#   (the halt scroll + 462). The placement t lies in the open-water section, by the data's scrollAt (speed 0
+#   in the arena): end(arena) + (ground position - 270 - scrollAt(arena start)) / its speed.
+# The convoy's channels: no piece that breaks the surface lies under a station's hull (x 130, 240,
+#   350 +- 28 px, the README's stations); slicks, oil and the reef shelves lie flat or under water.
+# After the halt the platform (x 136-344) scrolls down through Mbeki's and Ruyter's stations (x 240)
+#   in about 3.9 s: the convoy's return to its stations (step E2b) should wait until it has passed.
+# Motion budget (BackdropCheck, at most 2 animated ids on screen): the reef growths (one line on screen
+#   at a time, at most two ids a line), the freighter and its smoke (section 4), the platform's foam;
+#   no tile set drifts. The sea moves by its parallax (deep 0.85 under the ground's chop).
+
+backdrop:
+  # Presentation only: the grey North Atlantic of convoy Atlas-Seven (tools/art/backdrop_l11.py, straight
+  # from scene-ocean-r10-a, E9 = a). The sea is two layers: the long swell on `deep` (0.85, opaque) and the
+  # short chop on `ground` (1.0, translucent), so the swell slides under the chop while the sea streams by.
+  scroll_factors: {deep: 0.85, far: 0.9, ground: 1.0, low-air: 1.3, high-air: 2.0}
+  ramp: 4
+  haze_colour: 70808a  # the overcast's grey light on the water (over the swell only)
+  atmosphere:
+    clear: {wisps: wisps, haze: 0.08}   # the arena and open water: a lighter overcast on the swell
+    light: {banks: sea-mist, wisps: wisps, haze: 0.03}   # sea mist ~15 %, thin wisps
+    medium: {banks: mist-banks, wisps: wisps, haze: 0.06}   # section 3: mist banks ~22 % between the reefs
+  tile_sets:
+    swell: {layer: deep, height: 960}   # the long Atlantic swell and its slow tone field (opaque), every section; the chop slides over it (deep at 0.85)
+    chop: {layer: ground, height: 960}   # the short chop and sparse whitecaps (translucent, alpha >= 3 everywhere: the shadow stencil), every section
+    sea-mist: {layer: low-air, height: 960}   # light: thin sea-mist banks, ~15 % cover, still on their layer
+    mist-banks: {layer: low-air, height: 960}   # medium: mist banks between the reefs, ~22 % cover
+    wisps: {layer: high-air, height: 960}   # thin high wisps (additive, under 16 % alpha)
+  pieces:
+    spawn-slick-a: {layer: ground, size: [168, 112]}   # a Vrell spawn slick: olive film and spawn beads (section 2)
+    spawn-slick-b: {layer: ground, size: [128, 168]}
+    reef-shelf-a: {layer: ground, size: [480, 128]}   # a reef line's mass under the surface, seen through the water
+    reef-shelf-b: {layer: ground, size: [480, 112]}
+    reef-growth-a: {layer: ground, size: [48, 40], frames: 4, fps: 5}   # tools/art/l11_props.py: Vrell reef growths breaking the surface, collar loops
+    reef-growth-b: {layer: ground, size: [64, 48], frames: 4, fps: 5}
+    reef-growth-c: {layer: ground, size: [40, 56], frames: 4, fps: 5}
+    reef-root-a: {layer: ground, size: [64, 48]}   # l11_props.py's root fading into the deep, drawn through the water here
+    oil-slick: {layer: ground, size: [224, 160]}   # the freighter's oil: a dark film with a faint sheen (section 4)
+    flotsam-a: {layer: ground, size: [56, 44]}   # planks, a barrel and a life ring afloat
+    flotsam-b: {layer: ground, size: [52, 48]}   # crates, planks and a fender afloat
+    lifeboat: {layer: ground, size: [32, 64]}   # a capsized orange lifeboat
+    burning-freighter: {layer: ground, size: [72, 136], frames: 4, fps: 8, mid_size: true}   # l11_props.py: the abandoned freighter, listing, its deck fires flickering
+    freighter-smoke: {layer: ground, size: [88, 232], frames: 8, fps: 6}   # its smoke column trailing down the right edge, billowing in place (no travel)
+    platform-tiamat: {layer: ground, size: [256, 208], frames: 4, fps: 5, mid_size: true}   # Platform Tiamat: round 07's deck (208 x 152) at its centre, its shadow, foam lapping at its edges
+  placed:
+    # 2. Jelly Fields: Vrell spawn slicks (flat on the surface, the convoy steams over them)
+    - {piece: spawn-slick-a, t: 26, x: 70}
+    - {piece: spawn-slick-b, t: 31.5, x: 410}
+    - {piece: spawn-slick-a, t: 38, x: 300}
+    - {piece: spawn-slick-b, t: 44.5, x: 96}
+    - {piece: spawn-slick-a, t: 51, x: 196}
+    - {piece: spawn-slick-b, t: 58, x: 380}
+    # 3. Reef Line: seven lines, 7 s apart (one on screen at a time, at most two growth ids each); growths only outside the convoy's channels (x 102-158, 212-268, 322-378)
+    - {piece: reef-shelf-a, t: 67, x: 240}
+    - {piece: reef-root-a, t: 66.79, x: 300}
+    - {piece: reef-growth-b, t: 67.06, x: 30}
+    - {piece: reef-growth-a, t: 66.96, x: 70}
+    - {piece: reef-growth-a, t: 67.03, x: 185}
+    - {piece: reef-growth-a, t: 66.93, x: 410}
+    - {piece: reef-growth-b, t: 67.04, x: 442}
+    - {piece: reef-shelf-b, t: 74, x: 240}
+    - {piece: reef-root-a, t: 74.24, x: 80}
+    - {piece: reef-growth-c, t: 73.96, x: 20}
+    - {piece: reef-growth-a, t: 74.03, x: 60}
+    - {piece: reef-growth-c, t: 73.93, x: 296}
+    - {piece: reef-growth-a, t: 74.04, x: 420}
+    - {piece: reef-growth-c, t: 73.98, x: 458}
+    - {piece: reef-shelf-a, t: 81, x: 240}
+    - {piece: reef-root-a, t: 81.26, x: 410}
+    - {piece: reef-growth-b, t: 81.03, x: 36}
+    - {piece: reef-growth-c, t: 80.93, x: 74}
+    - {piece: reef-growth-c, t: 81.04, x: 185}
+    - {piece: reef-growth-c, t: 80.98, x: 296}
+    - {piece: reef-growth-b, t: 81.06, x: 444}
+    - {piece: reef-shelf-b, t: 88, x: 240}
+    - {piece: reef-root-a, t: 88.19, x: 186}
+    - {piece: reef-growth-a, t: 87.93, x: 24}
+    - {piece: reef-growth-b, t: 88.04, x: 60}
+    - {piece: reef-growth-a, t: 87.98, x: 296}
+    - {piece: reef-growth-b, t: 88.06, x: 420}
+    - {piece: reef-growth-a, t: 87.96, x: 462}
+    - {piece: reef-shelf-a, t: 96, x: 240}
+    - {piece: reef-root-a, t: 95.79, x: 296}
+    - {piece: reef-growth-c, t: 96.04, x: 28}
+    - {piece: reef-growth-b, t: 95.98, x: 64}
+    - {piece: reef-growth-c, t: 96.06, x: 185}
+    - {piece: reef-growth-b, t: 95.96, x: 432}
+    - {piece: reef-growth-c, t: 96.03, x: 468}
+    - {piece: reef-shelf-b, t: 102.5, x: 240}
+    - {piece: reef-root-a, t: 102.31, x: 186}
+    - {piece: reef-growth-a, t: 102.48, x: 40}
+    - {piece: reef-growth-c, t: 102.56, x: 76}
+    - {piece: reef-growth-a, t: 102.46, x: 185}
+    - {piece: reef-growth-c, t: 102.53, x: 406}
+    - {piece: reef-growth-a, t: 102.43, x: 450}
+    - {piece: reef-shelf-a, t: 108, x: 240}
+    - {piece: reef-growth-b, t: 108.06, x: 30}
+    - {piece: reef-growth-a, t: 107.96, x: 70}
+    - {piece: reef-growth-a, t: 108.03, x: 296}
+    - {piece: reef-growth-b, t: 107.93, x: 446}
+    - {piece: reef-growth-a, t: 108.04, x: 412}
+    # 4. Tiamat Approach: the burning freighter at the right edge, its oil and smoke, flotsam; containers and the last raft nest are the level's ground targets
+    - {piece: oil-slick, t: 126.93, x: 404}
+    - {piece: flotsam-a, t: 114, x: 50}
+    - {piece: lifeboat, t: 119.5, x: 296}
+    - {piece: flotsam-b, t: 124, x: 186}
+    - {piece: flotsam-a, t: 134.5, x: 60}
+    - {piece: flotsam-b, t: 139, x: 436}
+    - {piece: lifeboat, t: 145.5, x: 185}
+    - {piece: flotsam-a, t: 150, x: 430}
+    - {piece: lifeboat, t: 153, x: 52}
+    - {piece: freighter-smoke, t: 127.31, x: 450}
+    - {piece: burning-freighter, t: 128, x: 432}
+    # 4-6. Platform Tiamat: at the halt its centre is at (240, 78) (ground position 22,930.83 px, the simulation's halt scroll + 462; t = the open-water speed's time to scroll 260.83 px past the data's scroll at the arena)
+    - {piece: platform-tiamat, t: 162.863, x: 240}

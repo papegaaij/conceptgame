@@ -89,11 +89,33 @@ final class Radio {
             LevelScript.RadioCue cue = cues.get(i);
             if ((again || !fired[i])
                     && cue.trigger() == trigger
-                    && cue.subject().equals(subject)
+                    && (trigger == LevelScript.CueTrigger.BOSS_PART_DESTROYED
+                            ? among(cue.subject(), subject)
+                            : cue.subject().equals(subject))
                     && allowed(cue)) {
                 start(i);
             }
         }
+    }
+
+    /**
+     * Whether {@code name} is one of the names in {@code list}, separated by {@link
+     * LevelScript.CueTrigger#PART_SEPARATOR} (M5 part E: a {@code boss-part-destroyed} cue's parts);
+     * without allocating.
+     */
+    static boolean among(String list, String name) {
+        int from = 0;
+        while (from <= list.length()) {
+            int end = list.indexOf(LevelScript.CueTrigger.PART_SEPARATOR, from);
+            if (end < 0) {
+                end = list.length();
+            }
+            if (end - from == name.length() && list.regionMatches(from, name, 0, name.length())) {
+                return true;
+            }
+            from = end + LevelScript.CueTrigger.PART_SEPARATOR.length();
+        }
+        return false;
     }
 
     /** Starts the level-end cues for {@code home} convoy units at the end (0 without a convoy). */

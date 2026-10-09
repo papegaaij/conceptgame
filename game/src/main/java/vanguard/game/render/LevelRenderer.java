@@ -56,6 +56,14 @@ import vanguard.sim.Wingman;
  * play plane has launched (they leave its sacs downward, so they show over its hull), the high-air layer,
  * then the spore mines and the enemy bullets (small or large orbs, {@link BulletLooks}) above every layer (design/enemies, bullet readability
  * rules), an act boss's death flash, the edge warnings and the credit numbers.
+ *
+ * <p>M5 part E, a level over water: between the deep layer and the ground's tiles the {@code sub}
+ * layer through its {@link WaterLooks} pass (the Kraken's parts under the water or its foreshadowing,
+ * the sunken triggers, the naval units' plain bodies, the torpedoes and the under-water effects);
+ * over the ground's pieces the arena boss ({@link KrakenLooks}: its lanes' churn, its grip, head and
+ * arms); the naval units' surface layers ({@link NavalLooks}) with the ground units; the surface's
+ * water effects (bursts, splashes, ripple trains) with the debris; the lanes' marks and splashes over
+ * the convoy; the frigate's flak puffs on low-air.
  */
 public final class LevelRenderer {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
@@ -67,6 +75,12 @@ public final class LevelRenderer {
     private static final int FLARE_FRAME_TICKS = 6;
 
     private static final int BLINK_FRAME_TICKS = 10;
+    /** M5 part E: a foam collar's flicker loop and a wake's stream show a frame this many steps. */
+    private static final int COLLAR_FRAME_TICKS = 8;
+    /** M5 part E: a freed sunken pod rises a frame every 6 steps; its first four frames are under the water. */
+    private static final int RISE_FRAME_TICKS = 6;
+
+    private static final int RISE_UNDER_FRAMES = 4;
     /** The stuck sled's ore canister (Level 05): beacon dark, beacon lit, clamp shot. */
     private static final String ORE_CANISTER = "ore-canister";
     /** The survey cache's markers twinkle at 10 fps while lit. */
@@ -108,6 +122,8 @@ public final class LevelRenderer {
     private static final double GLOW_PERIOD_SECONDS = 1.2;
 
     private static final Color HIT_WHITE = Color.WHITE;
+    /** M5 part E: the strength a torpedo's lit back is added over the chop with ({@link #drawTorpedoBacks}). */
+    static final float TORPEDO_BACK = 0.9f;
     /** The white flashes' strength with the Gameplay tab's flash reduction on. */
     private static final float REDUCED_FLASH = 0.35f;
 
@@ -157,6 +173,10 @@ public final class LevelRenderer {
     private final Map<String, Array<AtlasRegion>> groundLooks = new HashMap<>();
     /** The looks of the triggers drawn with frames of their own instead of the beacon or trigger light. */
     private final Set<String> triggerLooks = new HashSet<>();
+    /** M5 part E: a ground object's foam collar ({@code <look>-collar}, the floating containers), by its look. */
+    private final Map<String, Array<AtlasRegion>> groundCollars = new HashMap<>();
+    /** M5 part E: a sunken trigger's rise once freed ({@code <look>-rise}), by its look. */
+    private final Map<String, Array<AtlasRegion>> groundRises = new HashMap<>();
     /**
      * A trigger look's {@code -glow} frames (the terminal's LEDs; the billboard's neon flicker, a loop
      * by {@link GroundGlow}), drawn after the light pass until it is spent.
@@ -214,6 +234,33 @@ public final class LevelRenderer {
     private TargetingOverlay targeting;
     /** The Salvage scanner's glint on the secrets' objects; null without one fitted. */
     private SecretGlints secretGlints;
+    /** M5 part E: the {@code sub} pass of a level over water; null over land. */
+    private final WaterLooks water;
+    /** M5 part E: the arena boss (the Harbour Kraken); null without one. */
+    private final KrakenLooks kraken;
+    /**
+     * M5 part E: water effects on the surface (bursts of kills and blasts on the water, splashes,
+     * ripple trains), alpha-blended, scrolling with the sea, under the ground units.
+     */
+    private final Effects surfaceWater = Effects.solid();
+    /** M5 part E: effects under the water, drawn in the {@code sub} pass: under-water bursts. */
+    private final Effects underWater = Effects.solid();
+    /** M5 part E: the torpedoes' bubble trails, over the chop and under the convoy (bubbles rise to the surface). */
+    private final Effects bubbles = Effects.solid();
+    /** M5 part E: solid effects on low-air (the frigate's flak puffs over the convoy). */
+    private final Effects lowAir = Effects.solid();
+    /** M5 part E: each Driftjelly's quickening pulse. */
+    private final PulseClock pulses = new PulseClock();
+    /** M5 part E: the last enemy volleys (x, y, step), for a gun's recoil frame. */
+    private final double[] firedX = new double[FIRED];
+
+    private final double[] firedY = new double[FIRED];
+    private final long[] firedTick = new long[FIRED];
+    private int fired;
+    private static final int FIRED = 16;
+    private static final float[] NO_OFFSET = new float[2];
+    /** A volley belongs to the raft within this distance of where it left, px. */
+    private static final double FIRED_REACH = 24;
 
     /**
      * @param files the assets, for the pivot files of the cranes and set pieces
@@ -244,7 +291,9 @@ public final class LevelRenderer {
                 .filter(LevelScript.SetPieceSpec::isBoss)
                 .findFirst()
                 .orElse(null);
-        bossLooks = new BossLooks(sprites, flash, boss, boss == null ? null : pivots(files, boss.slug()));
+        JsonValue bossPivots = boss == null ? null : pivots(files, boss.slug());
+        bossLooks = new BossLooks(sprites, flash, boss, bossPivots);
+        kraken = KrakenLooks.of(sprites, flash, boss, bossPivots);
         launches =
                 boss == null ? List.of() : boss.boss().map(BossSpec::spawnKinds).orElse(List.of());
         String light = Backdrop.folder(levelKey) + "lifeboat-light";
@@ -252,6 +301,12 @@ public final class LevelRenderer {
         mine = sprites.has("spore-mine") ? sprites.frames("spore-mine") : null;
         for (LevelScript.GroundObjectSpec spec : script.groundObjects()) {
             String look = spec.look();
+            if (sprites.has(look + "-collar")) {
+                groundCollars.computeIfAbsent(look, name -> sprites.frames(name + "-collar"));
+            }
+            if (spec.submerged() && sprites.has(look + "-rise")) {
+                groundRises.computeIfAbsent(look, name -> sprites.frames(name + "-rise"));
+            }
             if (!spec.trigger()) {
                 groundLooks.computeIfAbsent(look, sprites::frames);
             } else if (!look.equals(LevelScript.GroundObjectSpec.CARGO_CONTAINER) && sprites.has(look)) {
@@ -275,7 +330,7 @@ public final class LevelRenderer {
         this.collapse = level.collapse()
                 .map(spec -> new CollapseLooks(sprites, spec, backdrop, Backdrop.folder(levelKey, level)))
                 .orElse(null);
-        this.convoy = new ConvoyLooks(sprites, flash, level, script, levelKey);
+        this.convoy = new ConvoyLooks(sprites, flash, level, script, levelKey, name -> pivots(files, name));
         this.shuttles = new ShuttleLooks(
                 sprites,
                 flash,
@@ -292,6 +347,8 @@ public final class LevelRenderer {
         this.shadows = new Shadows();
         this.bullets = new BulletLooks(sprites);
         this.font = font;
+        this.water = script.water() ? new WaterLooks() : null;
+        java.util.Arrays.fill(firedTick, Long.MIN_VALUE);
     }
 
     /**
@@ -308,6 +365,9 @@ public final class LevelRenderer {
     public void dispose() {
         farside.dispose();
         shadows.dispose();
+        if (water != null) {
+            water.dispose();
+        }
         if (bossLooks.hull != null) {
             bossLooks.hull.dispose();
         }
@@ -322,6 +382,88 @@ public final class LevelRenderer {
         if (bossLooks.hull != null) {
             bossLooks.hull.reset();
         }
+        if (kraken != null) {
+            kraken.reset();
+        }
+        pulses.reset();
+        convoy.reset();
+        surfaceWater.clear();
+        underWater.clear();
+        bubbles.clear();
+        lowAir.clear();
+        java.util.Arrays.fill(firedTick, Long.MIN_VALUE);
+    }
+
+    /** M5 part E: the renderer's own effects advance one simulation step (with the screen's). */
+    public void stepEffects() {
+        surfaceWater.step();
+        underWater.step();
+        bubbles.step();
+        lowAir.step();
+    }
+
+    /** M5 part E: whether the level is over water: its kills and blasts burst on the water ({@link #surfaceWater()}). */
+    public boolean overWater() {
+        return water != null;
+    }
+
+    /** M5 part E: the surface's water effects (bursts, splashes, ripple trains), started on the ground. */
+    public Effects surfaceWater() {
+        return surfaceWater;
+    }
+
+    /** M5 part E: the effects under the water (under-water bursts), through the {@code sub} pass. */
+    public Effects underWater() {
+        return underWater;
+    }
+
+    /** M5 part E: the torpedoes' bubble trails, on the surface over the chop (not through the {@code sub} pass). */
+    public Effects bubbles() {
+        return bubbles;
+    }
+
+    /** M5 part E: solid effects on low-air (the frigate's flak puffs). */
+    public Effects lowAir() {
+        return lowAir;
+    }
+
+    /** M5 part E: the escort frigate (convoy unit {@code k}) fired a flak burst at step {@code tick}: its bow gun flashes. */
+    public void flak(int k, long tick) {
+        convoy.flak(k, tick);
+    }
+
+    /** M5 part E: an enemy fired a volley from (x, y) at step {@code tick} (a gun's recoil frame). */
+    public void enemyFired(double x, double y, long tick) {
+        firedX[fired] = x;
+        firedY[fired] = y;
+        firedTick[fired] = tick;
+        fired = (fired + 1) % FIRED;
+    }
+
+    /** Whether a volley left within reach of (x, y) in the last {@code ticks} steps before {@code tick}. */
+    private boolean firedNear(double x, double y, long tick, int ticks) {
+        for (int i = 0; i < FIRED; i++) {
+            if (firedTick[i] != Long.MIN_VALUE
+                    && tick - firedTick[i] < ticks
+                    && Math.abs(firedX[i] - x) < FIRED_REACH
+                    && Math.abs(firedY[i] - y) < FIRED_REACH) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * M5 part E: where a slam arm's segments lie, px from the boss's centre ({@link KrakenLooks#armPoints}),
+     * for its severed arm's pops; empty without the Kraken's looks.
+     */
+    public static double[] armPoints(SetPiece piece, int part) {
+        return piece.arena().isPresent() ? KrakenLooks.armPoints(piece, part) : new double[0];
+    }
+
+    /** M5 part E: the Kraken's head's offset from its centre, px (y up); 0 without the Kraken's looks. */
+    public double krakenHeadDy() {
+        return kraken == null ? 0 : kraken.headDy();
     }
 
     /** Rook was hit at step {@code tick}: his hull flashes white. */
@@ -372,6 +514,12 @@ public final class LevelRenderer {
             collapse.update(sortie, scroll, lag);
         }
         backdrop.drawBehind(batch, scroll, clock);
+        if (water != null) {
+            // M5 part E: the sub layer between the deep swell and the surface's chop (E4 = c).
+            water.begin(batch);
+            drawSub(batch, sortie, alpha, seconds, wrecks, scroll);
+            water.end(batch, sortie.realSeconds() - lag);
+        }
         // The ground layer marks where the flyers' shadows may fall (not on open space or the far layer).
         shadows.clear(batch);
         shadows.beginGround(batch);
@@ -380,6 +528,15 @@ public final class LevelRenderer {
         // With Level 09's collapse's shadow, heap and base dust under the towers (CollapseLooks).
         backdrop.drawGroundPieces(batch, scroll, clock);
         shadows.endGround(batch);
+        // M5 part E: over the chop and under the convoy: the Kraken's foreshadowing shadow (before it
+        // scrolls in) and the torpedoes' lit backs and bubbles just under the surface.
+        if (kraken != null && !krakenShown(sortie, wrecks)) {
+            kraken.drawForeshadow(batch, seconds, sortie.tick());
+        }
+        drawTorpedoBacks(batch, sortie, alpha);
+        bubbles.draw(batch, scroll);
+        // M5 part E: the Kraken's churn on the lanes, then its grip, head and arms on the platform's sea.
+        drawKraken(batch, sortie, wrecks, alpha, scroll, true);
         luna.drawSled(batch, sortie, scroll, alpha);
         luna.drawMarkers(batch, sortie, alpha);
         drawGround(batch, sortie, alpha);
@@ -391,9 +548,12 @@ public final class LevelRenderer {
         shadows.endGround(batch);
         drawCreep(batch, sortie, alpha);
         debris.draw(batch, scroll);
+        surfaceWater.draw(batch, scroll);
         boolean overHull = bossOffPlane(sortie);
         drawEnemies(batch, sortie, alpha, Depth.GROUND, Launched.ANY);
         drawGlints(batch, sortie, alpha);
+        // M5 part E: the telegraphed lanes' marks and the slams' splashes over the convoy and the rafts.
+        drawKraken(batch, sortie, wrecks, alpha, scroll, false);
         farside.darken(batch, sortie, alpha, scroll, seconds);
         farside.drawGlows(batch, sortie, looks, alpha, seconds);
         drawGroundGlows(batch, sortie, alpha);
@@ -402,6 +562,7 @@ public final class LevelRenderer {
         drawEnemies(batch, sortie, alpha, Depth.LEAP, Launched.ANY);
         drawEnemies(batch, sortie, alpha, Depth.LOW_AIR, Launched.ANY);
         blasts.draw(batch, scroll);
+        lowAir.draw(batch, scroll);
         if (collapse != null) {
             collapse.drawOver(batch);
         }
@@ -479,7 +640,7 @@ public final class LevelRenderer {
     private void drawBossShadows(SpriteBatch batch, Sortie sortie, float alpha) {
         for (int k = 0; k < sortie.setPieceCount(); k++) {
             SetPiece piece = sortie.setPiece(k);
-            if (piece.boss().isPresent() && piece.present()) {
+            if (piece.boss().isPresent() && piece.present() && piece.arena().isEmpty()) {
                 bossLooks.drawShadow(batch, piece, alpha);
             }
         }
@@ -544,6 +705,11 @@ public final class LevelRenderer {
     private void drawGround(SpriteBatch batch, Sortie sortie, float alpha) {
         for (int i = 0; i < sortie.groundObjectCount(); i++) {
             GroundObject object = sortie.groundObject(i);
+            if (object.spec().submerged()) {
+                // M5 part E: a sunken trigger lies on sub (drawSub); freed, its rise breaks the surface.
+                drawRising(batch, object, alpha, false);
+                continue;
+            }
             boolean ownLook = object.spec().trigger()
                     && triggerLooks.contains(object.spec().look());
             if (object.spec().trigger() && !ownLook && triggerLight != null && !sledClamp(sortie, object)) {
@@ -580,6 +746,16 @@ public final class LevelRenderer {
                         whiteFlash);
             } else {
                 drawCentred(batch, frame, object.renderX(), object.renderY(alpha));
+            }
+            Array<AtlasRegion> collar = groundCollars.get(object.spec().look());
+            if (collar != null && !object.spent()) {
+                // M5 part E: an object afloat (the floating containers) in its foam collar.
+                int phase = (int) object.renderX() % collar.size;
+                drawCentred(
+                        batch,
+                        collar.get((int) ((sortie.tick() / COLLAR_FRAME_TICKS + phase) % collar.size)),
+                        object.renderX(),
+                        object.renderY(alpha));
             }
         }
     }
@@ -751,6 +927,11 @@ public final class LevelRenderer {
                 drawDecloak(batch, sortie, enemy, look, frame, i, alpha, decloak);
                 continue;
             }
+            if (depth == Depth.GROUND && look.naval().twoLayers()) {
+                // M5 part E: its surface layer over the body the sub pass drew.
+                drawNaval(batch, sortie, enemy, look, alpha);
+                continue;
+            }
             drawCentred(batch, frame, enemy.renderX(alpha), enemy.renderY(alpha));
             if (depth == Depth.AIR && enemy.leaping()) {
                 // In its air window the leap's glow goes with the body, over the low-air layer.
@@ -840,6 +1021,231 @@ public final class LevelRenderer {
         return enemy.walking()
                 ? look.frames().get(look.walkFrame(enemy.facing(), enemy.walked()))
                 : look.frame(enemy.facing(), look.step(sortie.tick(), i, enemy.burstSeconds()));
+    }
+
+    /**
+     * M5 part E: the {@code sub} layer, in the {@link WaterLooks} pass: the Kraken's parts under the
+     * water (or, before it scrolls in, its foreshadowing shadow), the sunken triggers and the freed
+     * pod's rise, the naval units' plain bodies, the torpedoes and the under-water effects.
+     */
+    private void drawSub(
+            SpriteBatch batch, Sortie sortie, float alpha, double seconds, SetPieceWrecks wrecks, double scroll) {
+        long tick = sortie.tick();
+        if (kraken != null) {
+            for (int k = 0; k < sortie.setPieceCount(); k++) {
+                SetPiece piece = sortie.setPiece(k);
+                int age = wrecks.active(k) ? wrecks.age(k) : -1;
+                if (piece.arena().isEmpty() || !KrakenLooks.shown(piece, age >= 0)) {
+                    continue;
+                }
+                double y = age >= 0 ? kraken.deathY(piece, scroll) : piece.renderY(alpha);
+                double x = age >= 0 ? kraken.deathX() : piece.renderX(alpha);
+                kraken.drawSub(batch, piece, x, y, tick, age);
+            }
+        }
+        for (int i = 0; i < sortie.groundObjectCount(); i++) {
+            GroundObject object = sortie.groundObject(i);
+            if (object.spec().submerged()) {
+                drawRising(batch, object, alpha, true);
+            }
+        }
+        double shipX = sortie.ship().renderX(alpha);
+        double shipY = sortie.ship().renderY(alpha);
+        for (int i = 0; i < sortie.enemyCount(); i++) {
+            Enemy enemy = sortie.enemy(i);
+            EnemyLooks look = looks[enemy.kind()];
+            NavalLooks naval = look.naval();
+            if (!naval.twoLayers() || Depth.of(enemy) != Depth.GROUND) {
+                continue;
+            }
+            double x = enemy.renderX(alpha);
+            double y = enemy.renderY(alpha);
+            if (naval.rafts()) {
+                drawCentred(batch, naval.raftSub().first(), x, y);
+                continue;
+            }
+            int pulse = pulses.frame(
+                    enemy.serial(),
+                    tick,
+                    NavalLooks.jellyFps(Math.hypot(shipX - x, shipY - y)),
+                    NavalLooks.PULSE_FRAMES);
+            boolean swapping = enemy.swap(alpha) >= 0;
+            if (pulses.contracted()
+                    && !swapping
+                    && !enemy.submerged()
+                    && !naval.ripple().isEmpty()) {
+                // A surfaced bell's contraction leaves its ripple train on the sea.
+                surfaceWater.startOnGround(
+                        naval.ripple(), NavalLooks.RIPPLE_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+            }
+            drawCentred(batch, naval.sub().get(swapping ? 0 : pulse % naval.sub().size), x, y);
+        }
+        for (int i = 0; i < sortie.shotCount(); i++) {
+            Shot shot = sortie.shot(i);
+            if (!runsUnder(shot)) {
+                continue;
+            }
+            double left = shot.rangeLeft();
+            batch.setColor(1, 1, 1, left < FADE_SHARE ? (float) (left / FADE_SHARE) : 1);
+            drawCentred(batch, weapons.sprite(shot), shot.renderX(alpha), shot.renderY(alpha));
+            batch.setColor(Color.WHITE);
+        }
+        underWater.draw(batch, scroll);
+    }
+
+    /** Whether the arena boss (the Kraken) is drawn: scrolling in, present or dying. */
+    private static boolean krakenShown(Sortie sortie, SetPieceWrecks wrecks) {
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPiece piece = sortie.setPiece(k);
+            if (piece.arena().isPresent() && KrakenLooks.shown(piece, wrecks.active(k))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * M5 part E: a torpedo's lit back over the chop (its body is drawn in the {@code sub} pass, where
+     * the water's tint takes it to the sea's own colour): the sprite added at {@value #TORPEDO_BACK}
+     * strength, so it reads as a pale streak running just under the surface; fading with its range.
+     */
+    private void drawTorpedoBacks(SpriteBatch batch, Sortie sortie, float alpha) {
+        boolean any = false;
+        for (int i = 0; i < sortie.shotCount(); i++) {
+            Shot shot = sortie.shot(i);
+            if (!runsUnder(shot)) {
+                continue;
+            }
+            if (!any) {
+                batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+                any = true;
+            }
+            double left = shot.rangeLeft();
+            batch.setColor(1, 1, 1, TORPEDO_BACK * (left < FADE_SHARE ? (float) (left / FADE_SHARE) : 1));
+            drawCentred(batch, weapons.sprite(shot), shot.renderX(alpha), shot.renderY(alpha));
+        }
+        if (any) {
+            batch.setColor(Color.WHITE);
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        }
+    }
+
+    /** Whether a shot runs under the water and is drawn in the {@code sub} pass (a torpedo over water). */
+    private boolean runsUnder(Shot shot) {
+        return water != null && shot.weapon().delivery() == WeaponSpec.Delivery.TORPEDO;
+    }
+
+    /**
+     * M5 part E: a sunken trigger (the CDF supply pod snagged on a reef root): under the water
+     * ({@code under}) its snagged, hit or freed frame and, once freed, the first steps of its rise;
+     * on the surface the rise's last steps breaking it (the crate is the pickup's then).
+     */
+    private void drawRising(SpriteBatch batch, GroundObject object, float alpha, boolean under) {
+        Array<AtlasRegion> frames = groundLooks.get(object.spec().look());
+        double x = object.renderX();
+        double y = object.renderY(alpha);
+        if (under && frames != null) {
+            int state = object.spent() ? frames.size - 1 : frames.size > 2 && object.damaged() ? 1 : 0;
+            drawCentred(batch, frames.get(state), x, y);
+        }
+        Array<AtlasRegion> rise = groundRises.get(object.spec().look());
+        if (rise == null || !object.spent()) {
+            return;
+        }
+        int step = object.ticksSinceHit() / RISE_FRAME_TICKS;
+        if (step < rise.size && (step < RISE_UNDER_FRAMES) == under) {
+            drawCentred(batch, rise.get(step), x, y);
+        }
+    }
+
+    /**
+     * M5 part E: a naval unit's surface layer (tools/art/driftjelly.py, reef_spitter.py): a jelly's
+     * surfacing step while it swaps, its dome with its collar while surfaced (a hit flashing it), its
+     * pulse's bloom through the water while submerged (additive); a raft's bob frame with its gun at
+     * the frame's gun point (the recoil frame just after a volley).
+     */
+    private void drawNaval(SpriteBatch batch, Sortie sortie, Enemy enemy, EnemyLooks look, float alpha) {
+        NavalLooks naval = look.naval();
+        double x = enemy.renderX(alpha);
+        double y = enemy.renderY(alpha);
+        long tick = sortie.tick();
+        if (naval.rafts()) {
+            int bob = NavalLooks.raftFrame(tick, enemy.serial(), naval.raft().size);
+            drawCentred(batch, naval.raft().get(bob), x, y);
+            float[] gun = naval.raftGun().length > bob ? naval.raftGun()[bob] : NO_OFFSET;
+            boolean recoil = !naval.recoil().isEmpty() && firedNear(x, y, tick, NavalLooks.RECOIL_TICKS);
+            Array<AtlasRegion> set = recoil ? naval.recoil() : look.frames();
+            AtlasRegion frame =
+                    set.get(EnemyLooks.heading(enemy.facing(), look.headings()) * (set.size / look.headings()));
+            drawUnit(batch, enemy, frame, x + gun[0], y + gun[1]);
+            return;
+        }
+        double share = enemy.swap(alpha);
+        if (share >= 0 && !naval.surface().isEmpty()) {
+            drawCentred(
+                    batch,
+                    naval.surface().get(NavalLooks.swapFrame(share, enemy.diving(), naval.surface().size)),
+                    x,
+                    y);
+            return;
+        }
+        int pulse = pulses.frame(
+                enemy.serial(),
+                tick,
+                NavalLooks.jellyFps(Math.hypot(
+                        sortie.ship().renderX(alpha) - x, sortie.ship().renderY(alpha) - y)),
+                NavalLooks.PULSE_FRAMES);
+        if (enemy.submerged()) {
+            if (!naval.pulse().isEmpty()) {
+                batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+                drawCentred(batch, naval.pulse().get(pulse % naval.pulse().size), x, y);
+                batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            }
+            return;
+        }
+        drawUnit(batch, enemy, look.frames().get(pulse % look.frames().size), x, y);
+    }
+
+    /** A unit's frame at (x, y), flashing white just after a hit. */
+    private void drawUnit(SpriteBatch batch, Enemy enemy, AtlasRegion frame, double x, double y) {
+        if (enemy.ticksSinceHit() < HIT_FLASH_TICKS) {
+            flash.draw(batch, frame, Math.round(X0 + x), Math.round(y), HIT_WHITE, whiteFlash);
+        } else {
+            drawCentred(batch, frame, x, y);
+        }
+    }
+
+    /**
+     * M5 part E: the arena boss (the Harbour Kraken, {@link KrakenLooks}) on the surface: first
+     * ({@code first}) its lanes' churn and its grip, head and arms; second, over the convoy and the
+     * ground units, its lanes' marks and splashes. Scrolling in, alive, or dying where it died.
+     */
+    private void drawKraken(
+            SpriteBatch batch, Sortie sortie, SetPieceWrecks wrecks, float alpha, double scroll, boolean first) {
+        if (kraken == null) {
+            return;
+        }
+        long tick = sortie.tick();
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPiece piece = sortie.setPiece(k);
+            int age = wrecks.active(k) ? wrecks.age(k) : -1;
+            if (piece.arena().isEmpty() || !KrakenLooks.shown(piece, age >= 0)) {
+                continue;
+            }
+            if (!first) {
+                if (age < 0) {
+                    kraken.drawLaneMarks(batch, piece, tick);
+                }
+                continue;
+            }
+            double y = age >= 0 ? kraken.deathY(piece, scroll) : piece.renderY(alpha);
+            double x = age >= 0 ? kraken.deathX() : piece.renderX(alpha);
+            if (age < 0) {
+                kraken.update(piece, tick);
+                kraken.drawLanes(batch, piece, tick);
+            }
+            kraken.drawSurface(batch, piece, x, y, tick, age, whiteFlash);
+        }
     }
 
     /**
@@ -1083,7 +1489,8 @@ public final class LevelRenderer {
     private void drawSetPieces(SpriteBatch batch, Sortie sortie, float alpha, double seconds, boolean high) {
         for (int k = 0; k < sortie.setPieceCount(); k++) {
             SetPiece piece = sortie.setPiece(k);
-            if (!piece.present() || piece.onPlane() == high) {
+            if (!piece.present() || piece.onPlane() == high || piece.arena().isPresent()) {
+                // M5 part E: an arena boss lies on the water ({@link #drawKraken}).
                 continue;
             }
             if (piece.boss().isPresent()) {
@@ -1477,7 +1884,7 @@ public final class LevelRenderer {
     private void drawShots(SpriteBatch batch, Sortie sortie, float alpha, boolean glowing) {
         for (int i = 0; i < sortie.shotCount(); i++) {
             Shot shot = sortie.shot(i);
-            if (weapons.look(shot.mount()).glowingShot != glowing) {
+            if (weapons.look(shot.mount()).glowingShot != glowing || runsUnder(shot)) {
                 continue;
             }
             AtlasRegion sprite = weapons.sprite(shot);
@@ -1494,7 +1901,7 @@ public final class LevelRenderer {
                             y,
                             1 + SHELL_ARC_SCALE * (float) (shot.arc() * Math.sin(Math.PI * shot.airProgress(alpha))));
                 case MINE -> drawCentred(batch, sprite, x, y);
-                case BOLT, HOMING, TURRET -> {
+                case BOLT, HOMING, TURRET, TORPEDO -> {
                     double left = shot.rangeLeft();
                     if (left < FADE_SHARE) {
                         batch.setColor(1, 1, 1, (float) (left / FADE_SHARE));

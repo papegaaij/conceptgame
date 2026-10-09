@@ -40,6 +40,9 @@ import vanguard.sim.PlayField;
  * @param holds M5 part C: the hold zones, where the scroll eases down until their groups are gone
  *     and the level clock (script time) slows with it (Level 09's node clusters)
  * @param collapse M5 part C: the collapse once its groups are cleared (Level 09's arcology)
+ * @param water M5 part E (user decision E1 = a): the whole play field is water (Levels 11–13), where
+ *     the torpedo runs; false if not given
+ * @param convoy M5 part E: a naval convoy outside the objectives (Level 11's cargo ships and frigate)
  */
 public record LevelData(
         double scrollSpeed,
@@ -70,7 +73,9 @@ public record LevelData(
         Optional<Darkness> darkness,
         Optional<List<Tow>> tows,
         Optional<List<Hold>> holds,
-        Optional<Collapse> collapse) {
+        Optional<Collapse> collapse,
+        Optional<Boolean> water,
+        Optional<Convoy> convoy) {
     public LevelData {
         Check.positive("scroll_speed", scrollSpeed);
         Check.notNegative("launch_seconds", launchSeconds);
@@ -92,6 +97,11 @@ public record LevelData(
      * long as the data makes it.
      */
     public static final double OUTRO_SECONDS = 15;
+
+    /** M5 part E: whether the whole play field is water, its {@code water}; false if not given. */
+    public boolean overWater() {
+        return water.orElse(false);
+    }
 
     /** The factor on every bounty paid in the level: its {@code bounty_scale}, 1 if not given. */
     public double bounties() {
@@ -199,7 +209,8 @@ public record LevelData(
             Optional<Boolean> arena) {
         public Section {
             Check.positive("end", end);
-            speed.ifPresent(s -> Check.positive("speed", s));
+            // M5 part E: 0 only on the arena of a level whose boss is anchored (ContentValidator).
+            speed.ifPresent(s -> Check.notNegative("speed", s));
         }
 
         /**
@@ -687,6 +698,13 @@ public record LevelData(
      * @param skip the difficulties the wave is left out on (Level 06's hard-only Coilwyrm pair)
      * @param tag M5 part C: a name a secondary {@code escapes} objective may be scoped to (Level 09's
      *     {@code bridge} packs)
+     * @param x M5 part E, a {@code field} wave: its area's centre, px from the left edge
+     * @param size M5 part E, a {@code field} wave: its area {@code [w, h]}, px; its leading (bottom)
+     *     edge enters at the top edge at {@code t}
+     * @param spacing M5 part E, a {@code field} wave: the least distance between two units, px (1.5 ×
+     *     the enemy's hit box width if not given)
+     * @param current M5 part E, a {@code field} wave: the current its units drift along, ° from
+     *     straight down, positive to the right (0 if not given)
      */
     public record Wave(
             double t,
@@ -707,8 +725,13 @@ public record LevelData(
             Optional<Change> easy,
             Optional<Change> hard,
             Optional<List<String>> skip,
-            Optional<String> tag) {
+            Optional<String> tag,
+            Optional<Double> x,
+            Optional<Size> size,
+            Optional<Double> spacing,
+            Optional<Double> current) {
         public Wave {
+            spacing.ifPresent(d -> Check.positive("spacing", d));
             Check.notNegative("t", t);
             tag.ifPresent(name -> Check.that(!name.isBlank(), "tag: a name"));
             skip.ifPresent(names -> names.forEach(Difficulty::of));
@@ -728,7 +751,18 @@ public record LevelData(
                         enemy.orElseThrow(() -> new IllegalArgumentException("enemy is required")),
                         count.orElseThrow(() -> new IllegalArgumentException("count is required")))));
             }
+            boolean field = groups.orElseThrow().stream()
+                    .anyMatch(group -> group.formation().equals(FIELD));
+            Check.that(
+                    !field || (single && x.isPresent() && size.isPresent()),
+                    "a field wave is one group with its area's x and size");
+            Check.that(
+                    field || (x.isEmpty() && size.isEmpty() && spacing.isEmpty() && current.isEmpty()),
+                    "only a field wave has an x, a size, a spacing or a current");
         }
+
+        /** M5 part E: the formation of units scattered over an area that enters with the sea. */
+        public static final String FIELD = "field";
 
         /** The wave's groups; one for a plain wave. */
         public List<Group> groupList() {
@@ -854,7 +888,10 @@ public record LevelData(
      * {@code reveals} a secret drops its hidden crate when destroyed), a trigger hit
      * {@code hits} times that {@code reveals} a secret, or ground enemies of a stat block
      * ({@code enemy}, such as a Spine Turret nest), which may belong to a {@code group} of the
-     * secondary objective.
+     * secondary objective. M5 part E: a destructible may belong to a {@code group} of its own (not
+     * the objectives'), whose last one destroyed drops a placed pickup ({@code dropped_by: {group,
+     * unit: last}}: Level 11's floating containers), and a trigger's {@code easy} / {@code hard}
+     * change may give its {@code hits} (Level 11's sunken pod: hard 6).
      *
      * @param layer and {@code size}: a destructible's or trigger's layer and hit box in px; an
      *     enemy's come from its stat block
@@ -862,10 +899,12 @@ public record LevelData(
      * @param hardened only {@code anti-ground} weapons damage it (design/enemies, layer rules)
      * @param bonusDrop a second pickup it drops with its {@code drop} (Level 04's supply drop: a
      *     special charge, only with a special fitted)
-     * @param easy another placement list on easy (an enemy nest's size)
-     * @param hard another placement list on hard
+     * @param easy another placement list on easy (an enemy nest's size), or a trigger's hits on easy
+     * @param hard another placement list on hard, or a trigger's hits on hard
      * @param sprite a destructible's sprite set: {@code <sprite>_0..2} (intact, damaged, wrecked)
      *     and {@code <sprite>-break_<n>}; Level 01's cargo container if left out
+     * @param current M5 part E: an enemy nest's current, ° from straight down (positive to the
+     *     right), along which units whose {@code terrain} drifts drift (Level 11's rafts); 0 if not given
      */
     public record GroundTarget(
             String target,
@@ -886,9 +925,11 @@ public record LevelData(
             Optional<Placements> easy,
             Optional<Placements> hard,
             Optional<String> sprite,
-            Optional<Boolean> dark) {
+            Optional<Boolean> dark,
+            Optional<Double> current) {
         public GroundTarget {
             layer.ifPresent(Layers::of);
+            Check.that(current.isEmpty() || enemy.isPresent(), "only an enemy nest has a current");
             Check.that(at.size() == count.orElse(1), "at: one placement per target (count, or 1 for a trigger)");
             if (enemy.isPresent()) {
                 Check.that(
@@ -899,15 +940,38 @@ public record LevelData(
                 Check.that(hp.isPresent() != hits.isPresent(), "give hp (destructible) or hits (trigger)");
                 Check.that(hits.isEmpty() || reveals.isPresent(), "a trigger (hits) reveals a secret");
                 Check.that(bonusDrop.isEmpty() || drop.isPresent(), "a bonus_drop comes with a drop");
-                Check.that(
-                        group.isEmpty() && easy.isEmpty() && hard.isEmpty(),
-                        "only enemies have a group or easy/hard placements");
+                Check.that(group.isEmpty() || hits.isEmpty(), "only enemies and destructibles have a group");
+                for (Optional<Placements> change : List.of(easy, hard)) {
+                    Check.that(
+                            change.isEmpty()
+                                    || (hits.isPresent() && change.get().at().isEmpty()),
+                            "only enemies have easy/hard placements; a trigger's easy/hard gives its hits");
+                }
             }
+            for (Optional<Placements> change : List.of(easy, hard)) {
+                change.ifPresent(c -> Check.that(
+                        c.at().isPresent() != c.hits().isPresent(),
+                        "an easy/hard change gives at (an enemy nest's placements) or hits (a trigger's)"));
+                change.flatMap(Placements::hits).ifPresent(n -> Check.positive("hits", n));
+            }
+            Check.that(
+                    enemy.isPresent()
+                            || easy.flatMap(Placements::at).isEmpty()
+                                    && hard.flatMap(Placements::at).isEmpty(),
+                    "only enemies have easy/hard placements");
         }
     }
 
-    /** A difficulty's placements of a ground target. */
-    public record Placements(List<Placement> at) {}
+    /**
+     * A difficulty's change to a ground target: an enemy nest's placements ({@code at}) or (M5 part
+     * E) a trigger's {@code hits}.
+     */
+    public record Placements(Optional<List<Placement>> at, Optional<Integer> hits) {
+        /** An enemy nest's placements. */
+        public Placements(List<Placement> at) {
+            this(Optional.of(at), Optional.empty());
+        }
+    }
 
     /** A ground object entering at the top edge at {@code t} seconds, {@code x} px from the left. */
     @JsonFormat(shape = JsonFormat.Shape.ARRAY)
@@ -1032,8 +1096,13 @@ public record LevelData(
             Optional<Count> allies,
             Optional<String> phase,
             Optional<String> requiresNot,
-            Optional<Boolean> timeout) {
+            Optional<Boolean> timeout,
+            Optional<List<String>> parts) {
         public RadioCue {
+            Check.that(
+                    parts.isPresent() == (event.orElse(null) == CueEvent.BOSS_PART_DESTROYED),
+                    "a boss-part-destroyed event names its parts, other triggers do not");
+            parts.ifPresent(list -> Check.notEmpty("parts", list));
             Check.that(
                     phase.isPresent() == (event.orElse(null) == CueEvent.BOSS_PHASE),
                     "a boss-phase event names its phase, other triggers do not");
@@ -1162,7 +1231,19 @@ public record LevelData(
         FIRST_DECLOAK,
         /** M5 part D: the attempt's first swarm loop-back. */
         @JsonProperty("first-loop-back")
-        FIRST_LOOP_BACK
+        FIRST_LOOP_BACK,
+        /**
+         * M5 part E: each convoy unit's first hit (it starts again for each unit, as {@code
+         * ally-lost}); the line may name it as {@code {ally}}, a naval convoy unit by its name.
+         */
+        @JsonProperty("ally-hit")
+        ALLY_HIT,
+        /** M5 part E: the attempt's first lane telegraph of the level's arena boss (once). */
+        @JsonProperty("first-telegraph")
+        FIRST_TELEGRAPH,
+        /** M5 part E: the first of the level boss's {@code parts} the cue names shot off (once). */
+        @JsonProperty("boss-part-destroyed")
+        BOSS_PART_DESTROYED
     }
 
     /**
@@ -1385,7 +1466,9 @@ public record LevelData(
      * an {@code escapes} objective's {@code tag} scopes it to the units of the waves with that tag
      * (Level 09's two {@code bridge} packs). An optional {@code name} names the objective where the
      * generated wording would mislead (Level 09's "Hold the bridge": only the bridge packs count):
-     * the briefing's bonus line and the README's credit table use it.
+     * the briefing's bonus line and the README's credit table use it. M5 part E (user decision E8 =
+     * a): {@code afloat: true}, every naval convoy unit that can be damaged afloat at the level boss's
+     * death (Level 11's "Convoy afloat"; the tracker's {@code label}), failed at the first sinking.
      */
     public record Secondary(
             Optional<Double> killRatio,
@@ -1397,7 +1480,23 @@ public record LevelData(
             Optional<String> label,
             int credits,
             Optional<String> tag,
-            Optional<String> name) {
+            Optional<String> name,
+            Optional<Boolean> afloat) {
+        /** Without M5 part E's afloat. */
+        public Secondary(
+                Optional<Double> killRatio,
+                Optional<List<String>> groups,
+                Optional<String> escapes,
+                Optional<List<String>> killAll,
+                Optional<List<String>> parts,
+                Optional<String> before,
+                Optional<String> label,
+                int credits,
+                Optional<String> tag,
+                Optional<String> name) {
+            this(killRatio, groups, escapes, killAll, parts, before, label, credits, tag, name, Optional.empty());
+        }
+
         /** Without M5 part C's wave tag and name. */
         public Secondary(
                 Optional<Double> killRatio,
@@ -1430,17 +1529,72 @@ public record LevelData(
                                     + (escapes.isPresent() ? 1 : 0)
                                     + (killAll.isPresent() ? 1 : 0)
                                     + (parts.isPresent() ? 1 : 0)
+                                    + (afloat.isPresent() ? 1 : 0)
                             == 1,
-                    "give kill_ratio, groups, escapes, kill_all or parts");
+                    "give kill_ratio, groups, escapes, kill_all, parts or afloat");
+            Check.that(afloat.orElse(true), "afloat: true, or leave it out");
             killRatio.ifPresent(r -> Check.share("kill_ratio", r));
             groups.ifPresent(g -> Check.notEmpty("groups", g));
             killAll.ifPresent(k -> Check.notEmpty("kill_all", k));
             parts.ifPresent(p -> Check.notEmpty("parts", p));
             Check.that(parts.isPresent() == before.isPresent(), "a parts objective names the phase they die before");
             Check.that(
-                    killAll.isPresent() || parts.isPresent() ? label.isPresent() : label.isEmpty(),
-                    "a kill_all or parts objective has its tracker label, the others none");
+                    killAll.isPresent() || parts.isPresent() || afloat.isPresent()
+                            ? label.isPresent()
+                            : label.isEmpty(),
+                    "a kill_all, parts or afloat objective has its tracker label, the others none");
             Check.notNegative("credits", credits);
+        }
+    }
+
+    /**
+     * M5 part E: a naval convoy outside the objectives (design/allies, convoy cargo ship and escort
+     * frigate; Level 11): its {@code units} in order; {@code glide} s of the moves at the arena's
+     * halt and after the boss (on the real steps); {@code lane_y} px below the top edge, a unit's
+     * centre in its lane; {@code hold_clear} the px the sea scrolls after the halt before the units
+     * glide back to their stations (Level 11: Platform Tiamat passes them; 0 or absent: at once),
+     * each holding in its lane, away or at its {@code hold} point meanwhile; {@code easy} / {@code
+     * hard} the HP of its units that can be damaged.
+     */
+    public record Convoy(
+            List<ConvoyUnit> units,
+            double glide,
+            Optional<Double> laneY,
+            Optional<Double> holdClear,
+            Optional<AllyChange> easy,
+            Optional<AllyChange> hard) {
+        public Convoy {
+            Check.notEmpty("units", units);
+            units = List.copyOf(units);
+            Check.positive("glide", glide);
+            holdClear.ifPresent(px -> Check.that(px >= 0, "hold_clear: 0 px or more, was " + px));
+            laneY.ifPresent(y -> Check.that(y > 0 && y < PlayField.HEIGHT, "lane_y: on the play field, was " + y));
+            Check.that(
+                    units.stream().noneMatch(unit -> unit.lane().isPresent()) || laneY.isPresent(),
+                    "a convoy whose units take lanes gives their lane_y");
+        }
+    }
+
+    /**
+     * M5 part E: a naval convoy's unit: an {@code ally} slug (one that {@code follows: stations}), its
+     * {@code name} ({@code {ally}} in a radio line: "Halvorsen"), its {@code station} {@code [x, y]}
+     * (px from the play field's left edge, px below the top edge, held at the scroll speed) and either
+     * the arena {@code lane} it glides to at the halt (1-based, of the boss's lanes) or {@code leaves:
+     * true} (it drops back off the bottom edge at the halt and returns after the boss); its {@code
+     * hold} point {@code [x, y]} (as the station's; below the bottom edge for off it) it glides to when
+     * the halt ends, holding where it is without one, until its convoy's {@code hold_clear}.
+     */
+    public record ConvoyUnit(
+            String ally,
+            String name,
+            Point station,
+            Optional<Integer> lane,
+            Optional<Boolean> leaves,
+            Optional<Point> hold) {
+        public ConvoyUnit {
+            Check.that(!name.isBlank(), "name: the unit's name");
+            Check.that(lane.isPresent() != leaves.orElse(false), "give the unit's lane or leaves: true, one of them");
+            lane.ifPresent(l -> Check.positive("lane", l));
         }
     }
 

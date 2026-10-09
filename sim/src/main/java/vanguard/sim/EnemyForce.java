@@ -52,6 +52,10 @@ final class EnemyForce {
     private final List<LevelScript.GroundUnit> groundUnits;
     private final int[] groundKinds;
     private final int[] groundTicks;
+    /** M5 part E: each ground unit's current as a direction (x, y up), for a drifting raft. */
+    private final double[] groundCurrentX;
+
+    private final double[] groundCurrentY;
     private final Pool<Enemy> enemies = new Pool<>(ENEMY_CAPACITY, Enemy::new, Enemy[]::new);
     private final Pool<EnemyBullet> bullets = new Pool<>(BULLET_CAPACITY, EnemyBullet::new, EnemyBullet[]::new);
     private final Pool<Mine> mines = new Pool<>(MINE_CAPACITY, Mine::new, Mine[]::new);
@@ -169,9 +173,13 @@ final class EnemyForce {
         this.groundUnits = groundUnits;
         groundKinds = new int[groundUnits.size()];
         groundTicks = new int[groundUnits.size()];
+        groundCurrentX = new double[groundUnits.size()];
+        groundCurrentY = new double[groundUnits.size()];
         for (int i = 0; i < groundUnits.size(); i++) {
             groundKinds[i] = kinds.indexOf(groundUnits.get(i).enemy());
             groundTicks[i] = SimStep.ticks(groundUnits.get(i).t());
+            groundCurrentX[i] = StrictMath.sin(groundUnits.get(i).currentRadians());
+            groundCurrentY[i] = -StrictMath.cos(groundUnits.get(i).currentRadians());
         }
     }
 
@@ -236,7 +244,14 @@ final class EnemyForce {
             LevelScript.GroundUnit unit = groundUnits.get(nextGround);
             Enemy enemy = enemies.obtain();
             if (enemy != null) {
-                enemy.root(unit.enemy(), groundKinds[nextGround], unit.x(), spawned, unit.group());
+                enemy.root(
+                        unit.enemy(),
+                        groundKinds[nextGround],
+                        unit.x(),
+                        spawned,
+                        unit.group(),
+                        groundCurrentX[nextGround],
+                        groundCurrentY[nextGround]);
             }
             spawned++;
             nextGround++;
@@ -476,6 +491,8 @@ final class EnemyForce {
                 } else if (enemy.sweepStarted()) {
                     events.add(SimEvents.Type.SWEEP_FIRED, enemy.x(), enemy.y(), enemy.kind());
                 }
+            } else if (enemy.spec().ring().isPresent()) {
+                pulse(enemy, ship, firing);
             } else if (enemy.trigger() && firing) {
                 EnemyGun gun = enemy.spec().gun().orElseThrow();
                 if (gun.mine().isPresent()) {
@@ -489,6 +506,28 @@ final class EnemyForce {
                 }
             }
         }
+    }
+
+    /**
+     * M5 part E, a proximity ring (design/enemies/naval/driftjelly, user decision E3 = b): a unit on
+     * the screen whose ring is ready fires it when the ship's centre is within its reach, surfaced or
+     * submerged (the bullets are on the player's plane either way); its cooldown then starts. A ring
+     * due while the ship is closer than the bullets may spawn waits until it is not.
+     */
+    private void pulse(Enemy enemy, Ship ship, boolean firing) {
+        EnemySpec.ProximityRing ring = enemy.spec().ring().get();
+        if (!firing || !enemy.ringReady() || !PlayField.overlaps(enemy.x(), enemy.y(), enemy.hitbox())) {
+            return;
+        }
+        double dx = ship.x() - enemy.x();
+        double dy = ship.y() - enemy.y();
+        double distance = dx * dx + dy * dy;
+        if (distance > ring.within() * ring.within() || distance < NO_FIRE_DISTANCE * NO_FIRE_DISTANCE) {
+            return;
+        }
+        burst(enemy.x(), enemy.y(), ring.count(), ring.bulletSpeed(), ring.damage(), ship);
+        enemy.ringFired();
+        events.add(SimEvents.Type.ENEMY_FIRED, enemy.x(), enemy.y(), (int) ring.damage());
     }
 
     /**

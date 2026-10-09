@@ -99,7 +99,7 @@ field for 1 s. Formation changes and side swaps start after his reaction delay.
 | Dodging | Every 0.1 s he predicts enemy bullets 0.6 s ahead (user decision 2026-10-06; 0.4 s left him too little time against aimed fire); the soonest one that would pass within 14 px he decides on **once**: he **reacts to about 70 %** of them (user decision 2026-10-06), sidestepping up to 48 px at right angles to it after his reaction delay and keeping at it while it is the soonest, then back to his slot; the rest he misses and ignores. The 0.25 s delay inside the 0.6 s look-ahead leaves him 0.25–0.35 s to clear a bullet |
 | Firing cone | 30° ahead of his ship (15° either side of straight up), range 360 px: where he picks his target. His craft never turns (banking frames only), so he fires up the screen. With the Mortar (a lobbed gun) he picks among the ground targets anywhere ahead of him within the lob's 200 px instead (user decision 2026-10-07), so a target beside the player is his while he flies in formation |
 | Fire | Fires whenever the player is firing, at his gun's rate, with a target in his cone or without one; he never fires while the player does not. The target only decides what he aims at: a homing gun's shots start locked onto it (without one they find their own); the Mortar's shells land **on it** at any distance up to the lob's 200 px, their flight time and arc shortened to the distance (user decision 2026-10-07; without a target they land 200 px ahead, snapping to a ground target within 48 px, as the player's) |
-| Target priority | (1) an enemy the player damaged in the last 1.0 s; (2) an enemy within 160 px of him (flank threat); (3) the nearest enemy — all within his cone (the Mortar's: ahead within 200 px). Layers follow his gun's traits (Missiles can hit `high-air`; Mortar only `ground`) |
+| Target priority | (1) an enemy the player damaged in the last 1.0 s; (2) an enemy within 160 px of him (flank threat); (3) the nearest enemy — all within his cone (the Mortar's: ahead within 200 px). Layers follow his gun's traits (Missiles can hit `high-air`; Mortar only `ground`); never `sub` (none of his guns is `anti-sub`) |
 
 Enemies never aim at Rook: aimed attacks and the target-the-objective hook pick the player or the
 objective as before, and Rook is hit by what crosses his path. He collects no pickups and is not
@@ -194,6 +194,15 @@ its shares are about what dies.
   its exit up a side lane, not in its hold. A `WingmanTest` case covers Trail near the hold band.
   The [evacuation shuttles](../../allies/README.md#evacuation-shuttle) are no obstacle to him (he
   flies through them, as the ship does).
+- Level 11 (M5 part E, stated defaults): he **skips `sub` targets** (his pick never lands on a
+  submerged jelly or the Kraken's submerged parts, which none of his guns reach; with the Mortar he
+  lobs at surfaced ones only), flies over the convoy's ships like the ship, and in the Kraken's arena
+  he **keeps out of a telegraphed or slamming lane**: from a lane's telegraph until its arm lies awash,
+  his slot and his dodges stay outside the lane (his slot moves to the nearer point outside it,
+  keeping the 40 px from the player; when the player is in that lane he waits beside it); nothing
+  else about his AI changes. A **slam** hits him like the ship (`heavy` 10 if his hit box overlaps the
+  lane at the impact). The balance plan's L11 visit refits his Mortar for the rafts and the surfaced
+  Kraken.
 
 ### Scripted lines about him (user decision D4 of M5 part B)
 
@@ -387,6 +396,12 @@ built were accepted in concept round 28.
 - [x] Trail on a Wraith `rear ambush` and a Mote Swarm loop-back from their re-entry, the rear bark
       1.5 s ahead of it; a Rook event line on `first-loop-back` counting for the bark spacing; a
       `WingmanTest` case for Trail near the Wraiths' hold band (M5 part D, Level 10)
+- [x] Level 11 (M5 part E, step E2a): his target pick skipping `sub` units, which are no flank
+      threat either (`SubLayerTest`)
+- [x] Level 11 (M5 part E, step E2c): his slot and dodges keeping out of a telegraphed lane until
+      its impact (his goal moved beside the run of telegraphed lanes, on the side nearer him; only the
+      impact hurts, so a slammed lane is safe again); a slam's impact hitting him; the cases in
+      `SlamArenaTest` (`rookKeepsOutOfATelegraphedLane`, `aSlamHitsRookInItsLane`)
 - [ ] Warden heavy drone: formation, cannon, draw-fire rule — **later: Act 4** (the Warden unlocks at L22)
 - [ ] Drone behaviours: orbit, trail, block, rebuild — **later: Act 3** (light drone L15, rear-guard drone L20) and **later: Act 5** (hunter drone L29)
 - [ ] Rook missing for L27–L29 (only a heavy drone in the slot), back from L30 — **later: Act 4**
@@ -581,3 +596,8 @@ built were accepted in concept round 28.
   plays on the new `first-loop-back` event and counts for the bark spacing. A `WingmanTest` case
   covers Trail near the Wraiths' hold band. The balance plan's L10 visit refits his Autocannon
   (D7 = a, a `fit` action), as the Mortar has nothing to hit there.
+- 2026-10-08: M5 part E (Level 11; stated defaults with the user's decisions E1–E10): he skips `sub`
+  targets (E2 = a: none of his guns reaches the layer), keeps out of a telegraphed or slamming lane in
+  the Kraken's arena, and a slam hits him; otherwise no change to his AI. The balance plan's L11 visit
+  refits his Mortar. Our reading, for review in round 33: when the player sits in a telegraphed lane
+  Rook waits beside it rather than following him in.

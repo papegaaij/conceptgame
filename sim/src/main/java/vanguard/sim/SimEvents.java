@@ -245,7 +245,29 @@ public final class SimEvents {
          * the music's duck; the unit is lost (it glides down, a presentation effect) without an
          * {@link #ALLY_LOST} event; value: the unit's index.
          */
-        SCRIPTED_LOSS;
+        SCRIPTED_LOSS,
+        /**
+         * M5 part E: a naval convoy unit's flak burst (design/allies, escort frigate): presentation only,
+         * a puff on {@code low-air} over the convoy and a quiet distant sound, hitting nothing (at the
+         * burst); value: the unit's index.
+         */
+        ALLY_FLAK,
+        /**
+         * M5 part E: an arena boss telegraphs a slam lane (at the lane's top, its centre; design/enemies/
+         * bosses/harbour-kraken): the churn and its sound, the radio event {@code first-telegraph};
+         * value: the lane (1-based). The lane stays telegraphed until its impact ({@link
+         * SlamArena#telegraphed()}).
+         */
+        TELEGRAPH,
+        /**
+         * M5 part E: a slam strikes its lane (at the lane's centre): the impact, its splash and sound;
+         * value: the lane (1-based).
+         */
+        SLAM,
+        /** M5 part E: an arena boss's part starts to surface (at the part); value: the part's index. */
+        SURFACE,
+        /** M5 part E: an arena boss's part starts to dive (at the part); value: the part's index. */
+        DIVE;
 
         private static final Type[] VALUES = values();
     }

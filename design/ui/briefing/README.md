@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: chosen
 depends-on: [../../story, ../../campaign]
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
 # Briefing screen
@@ -86,6 +86,7 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 | [concept/briefing-images-final-r30-a.png](concept/briefing-images-final-r30-a.png) | Review sheet, M5 part B (round 30): the four 672×240 images of the Act 2 intro, one per page (the landers' burning trails coming down through the cloud deck over the Gulf of Guinea with the CDF tracking overlay counting them; the CDF global display with the three landing zones and the act's fronts: the cities, the Atlantic sea lanes, the Arctic relay chain; a Nova Lagos street from rooftop height, people on the low roofs looking up as Lancer passes low; Aegis Wing and Rook's Ember on a coastal airbase at dusk, Nova Lagos burning 40 km off) and the two of Level 08 (the night route over the harbour, the elevated highways, the tower district and the Third Mainland highway to the Ikoyi shelters, the walkers heading for them, Lancer and Rook; the Creeper on a low roof with its aimed five-way fan, a convoy's fans 0.5 s apart, the anti-ground ×2 marker) | chosen |
 | [concept/briefing-images-final-r31-a.png](concept/briefing-images-final-r31-a.png) | Review sheet, M5 part C (round 31): the two 672×240 images of Level 09 (`level-09-arcology-district`: the route over the arcology district with the three node clusters, the Okonjo Bridge and the Ndidi Arcology; `level-09-node-scan`: the Hive Node's iris cycle and the Ravager's pounce, from the production sprites) | chosen |
 | [concept/briefing-images-final-r32-a.png](concept/briefing-images-final-r32-a.png) | Review sheet, M5 part D (round 32): Level 10's two 672×240 images (`level-10-evacuation-route`: the corridor at first light from Eko spaceport's five pads over the suburbs, the viaduct and the coast road with the capsized ferry to the lagoon's climb-out; `level-10-wraith-scan`: the Wraith cloaked and decloaked, its pass, loop and rear entry with the 3 s warning and bursts through the shuttle band, a Mote Swarm's loop-back, from the production sprites) | chosen |
+| [concept/briefing-images-final-r33-a.png](concept/briefing-images-final-r33-a.png) | Review sheet, M5 part E (round 33): Level 11's two 672×240 images (`level-11-convoy-route`: the North Atlantic from above with Convoy Atlas-Seven's four hulls, the seeded sea lanes, the reef line, Platform Tiamat with the Kraken's arms and its hologram under it, the route to open water; `level-11-sub-scan`: a waterline cut-away with a Driftjelly surfaced and submerged, the shots stopping at the waterline, a torpedo's run, a Reef Spitter raft with its roots, the unknown large contact; from the production sprites) | chosen |
 
 ## Implementation
 
@@ -261,3 +262,7 @@ Production art, UI batch part U3: the briefing images, rendered by [tools/art/br
 - 2026-10-08: [Concept round 32](../../concept-rounds/round-32/README.md) closed for the briefing
   images (user): Level 10's two images, `level-10-evacuation-route` (with shuttle a, the picked one,
   so no redraw) and `level-10-wraith-scan`, approved as **final**. `art` stays `chosen`.
+- 2026-10-09: [Concept round 33](../../concept-rounds/round-33/README.md) closed for the briefing
+  images (user): Level 11's two images, `level-11-convoy-route` (with ship pair a, the picked one, so
+  no redraw) and `level-11-sub-scan`, approved as **final**, the weak spots as they are (the faint
+  relief, the small ships and reefs, the route under the platform). `art` stays `chosen`.

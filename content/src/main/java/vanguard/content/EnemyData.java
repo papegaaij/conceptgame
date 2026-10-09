@@ -13,6 +13,7 @@ import java.util.Optional;
  * @param bounty credits at medium in Act 1 terms
  * @param firstLevel the level it is introduced in
  * @param cloak M5 part D: its cloak (the Wraith): its {@code layer} is the cloaked one
+ * @param submerge M5 part E: how it surfaces and submerges (the Driftjelly), a unit on {@code ground}
  */
 public record EnemyData(
         String name,
@@ -39,7 +40,8 @@ public record EnemyData(
         Optional<List<ChainData>> chains,
         Optional<BossData> boss,
         Optional<SegmentChain> segmentChain,
-        Optional<Cloak> cloak) {
+        Optional<Cloak> cloak,
+        Optional<Submerge> submerge) {
     public EnemyData {
         Layers.of(layer);
         Check.positive("hp", hp);
@@ -77,6 +79,7 @@ public record EnemyData(
     /**
      * @param ambush M5 part D: the path of a {@code rear ambush} wave's unit (the Wraith)
      * @param flock M5 part D: how a {@code swarm} wave's members steer (the Mote Swarm)
+     * @param anchored M5 part E: an arena boss's anchored arrival (the Harbour Kraken)
      */
     public record Movement(
             Optional<Snake> snake,
@@ -93,7 +96,36 @@ public record EnemyData(
             Optional<Walk> walk,
             Optional<PathMove> path,
             Optional<Ambush> ambush,
-            Optional<Flock> flock) {}
+            Optional<Flock> flock,
+            Optional<Anchored> anchored) {}
+
+    /**
+     * M5 part E, an arena boss's arrival (design/enemies/bosses/harbour-kraken): no descent and no
+     * hover; its centre stops {@code y} px below the top edge when the scroll halts in its arena. It
+     * lies on the ground layer that far up the scroll from the halt, scrolls in with the ground
+     * (invulnerable, without its bar) and engages at the halt.
+     */
+    public record Anchored(double y) {
+        public Anchored {
+            Check.positive("y", y);
+        }
+    }
+
+    /**
+     * M5 part E, surfacing and submerging (design/enemies/naval/driftjelly; the stated defaults of
+     * 2026-10-08): every {@code every} {@code [min, max]} s, drawn per unit from its own seed on the
+     * simulation's real steps, it swaps between the surface ({@code ground}) and {@code sub} over
+     * {@code swap} s, its layer flipping at the swap's middle; a {@code field} wave starts the share
+     * {@code start} of its units submerged.
+     */
+    public record Submerge(Span every, double swap, double start) {
+        public Submerge {
+            Check.positive("every", every.min());
+            Check.positive("swap", swap);
+            Check.share("start", start);
+            Check.that(swap < every.min(), "swap: shorter than the least time between swaps");
+        }
+    }
 
     /**
      * M5 part D, a cloak (design/enemies/air/wraith): the stat block's {@code layer} is the cloaked
@@ -267,6 +299,9 @@ public record EnemyData(
      *     {@code bounty} (0 here)
      * @param attack the name of the unit's attack it fires
      * @param multiplier the damage it takes is multiplied by this (a weak point); 1 when not given
+     * @param layer M5 part E: an arena boss's part's starting layer ({@code sub} or {@code ground});
+     *     its script moves it
+     * @param spots M5 part E: weak spots on it (the Kraken's eyes)
      */
     public record PartData(
             String name,
@@ -277,9 +312,13 @@ public record EnemyData(
             int bounty,
             Optional<String> attack,
             Optional<Double> multiplier,
-            Optional<Integer> firstBonus) {
+            Optional<Integer> firstBonus,
+            Optional<String> layer,
+            Optional<List<SpotData>> spots) {
         public PartData {
             firstBonus.ifPresent(b -> Check.notNegative("first_bonus", b));
+            layer.ifPresent(l -> Check.that(
+                    l.equals("sub") || l.equals("ground"), "a part's layer is sub or ground, was '" + l + "'"));
             Check.that(
                     kind.equals("destroyable") || kind.equals("vital") || kind.equals("armoured"),
                     "kind must be armoured, destroyable or vital, was '" + kind + "'");
@@ -302,7 +341,9 @@ public record EnemyData(
                 @com.fasterxml.jackson.annotation.JsonProperty("bounty") Optional<Integer> bounty,
                 @com.fasterxml.jackson.annotation.JsonProperty("attack") Optional<String> attack,
                 @com.fasterxml.jackson.annotation.JsonProperty("multiplier") Optional<Double> multiplier,
-                @com.fasterxml.jackson.annotation.JsonProperty("first_bonus") Optional<Integer> firstBonus) {
+                @com.fasterxml.jackson.annotation.JsonProperty("first_bonus") Optional<Integer> firstBonus,
+                @com.fasterxml.jackson.annotation.JsonProperty("layer") Optional<String> layer,
+                @com.fasterxml.jackson.annotation.JsonProperty("spots") Optional<List<SpotData>> spots) {
             Check.that(
                     name != null && offset != null && hitbox != null && kind != null,
                     "a part has a name, an offset, a hit box and a kind");
@@ -322,12 +363,34 @@ public record EnemyData(
                     bountyValue.orElse(0),
                     attack == null ? Optional.empty() : attack,
                     multiplier == null ? Optional.empty() : multiplier,
-                    firstBonus == null ? Optional.empty() : firstBonus);
+                    firstBonus == null ? Optional.empty() : firstBonus,
+                    layer == null ? Optional.empty() : layer,
+                    spots == null ? Optional.empty() : spots);
         }
 
         /** Whether it is a fire-only part. */
         public boolean armoured() {
             return kind.equals("armoured");
+        }
+    }
+
+    /**
+     * M5 part E, a weak spot on a part (the Kraken's eyes): a box of {@code hitbox} at {@code offset}
+     * ({@code [dx, dy]} px from the part's centre, dx right, dy up) that routes the damage to the part
+     * at its {@code multiplier}; with {@code while: open} only while the part's surfacing window is
+     * open (the part's own multiplier elsewhere).
+     */
+    public record SpotData(
+            String name,
+            Point offset,
+            Size hitbox,
+            double multiplier,
+
+            @com.fasterxml.jackson.annotation.JsonProperty("while")
+            Optional<String> during) {
+        public SpotData {
+            Check.positive("multiplier", multiplier);
+            during.ifPresent(w -> Check.that(w.equals("open"), "while must be open, was '" + w + "'"));
         }
     }
 
@@ -347,8 +410,15 @@ public record EnemyData(
         }
     }
 
-    /** Fixed to the ground layer, moving only with the scroll. */
-    public record Terrain() {}
+    /**
+     * Fixed to the ground layer, moving only with the scroll; M5 part E: with a {@code drift}, px/s
+     * along its nest's {@code current} on top of the scroll (a raft on the water, the Reef Spitter).
+     */
+    public record Terrain(Optional<Double> drift) {
+        public Terrain {
+            drift.ifPresent(d -> Check.positive("drift", d));
+        }
+    }
 
     /** Along an authored path, {@code spacing} seconds between two units. */
     public record Snake(double spacing) {
@@ -451,6 +521,9 @@ public record EnemyData(
      *     the first; a unit off the screen skips its turn
      * @param pounce M5 part C, the {@code pounce} pattern's leap (design/enemies/ground/ravager): no
      *     bullet and no speed; its {@code interval} is the s from landing until it may leap again
+     * @param within M5 part E, a {@code ring}'s reach (design/enemies/naval/driftjelly): it fires only
+     *     while the ship's centre is this close, px, on either of its layers; its {@code interval}
+     *     the cooldown from the last ring
      */
     public record Attack(
             String pattern,
@@ -475,8 +548,12 @@ public record EnemyData(
             Optional<Double> duration,
             Optional<Sweep> sweep,
             Optional<Double> stagger,
-            Optional<Pounce> pounce) {
+            Optional<Pounce> pounce,
+            Optional<Double> within) {
         public Attack {
+            Check.that(pattern.equals("ring") || within.isEmpty(), "only a ring fires within a reach");
+            within.ifPresent(w -> Check.positive("within", w));
+            Check.that(within.isEmpty() || interval.isPresent(), "a ring fired within a reach has its interval");
             Check.that(
                     pattern.equals("laser-sweep") == sweep.isPresent(), "a laser-sweep has its sweep, the others none");
             Check.that(
@@ -653,11 +730,25 @@ public record EnemyData(
      * segment follows the one before it {@code lag} s late, and the chain turns at most
      * {@code bend} degrees towards the player.
      */
-    public record ChainData(String name, Point from, String to, int segments, Size hitbox, double lag, double bend) {
+    public record ChainData(
+            String name,
+            Point from,
+            String to,
+            int segments,
+            Size hitbox,
+            double lag,
+            double bend,
+            Optional<String> motion) {
         public ChainData {
             Check.positive("segments", segments);
             Check.positive("lag", lag);
             Check.notNegative("bend", bend);
+            motion.ifPresent(m -> Check.that(m.equals("slam"), "motion must be slam, was '" + m + "'"));
+        }
+
+        /** M5 part E: whether it is a slam arm ({@code motion: slam}): it follows the slam cycle instead of bending. */
+        public boolean slams() {
+            return motion.isPresent();
         }
     }
 
@@ -671,6 +762,8 @@ public record EnemyData(
      *     head); left out, the mid-boss's quick chain
      * @param poses part G: its further part layouts (the {@code part_list} offsets and the
      *     {@code hitbox} are the arrival pose), which a phase's {@code move} turns it into
+     * @param lanes M5 part E: an arena boss's slam lanes (the Harbour Kraken)
+     * @param slam M5 part E: its slam cycle (only with lanes)
      */
     public record BossData(
             String kind,
@@ -679,7 +772,9 @@ public record EnemyData(
             List<PhaseData> phases,
             Optional<Boolean> engagesOnArrival,
             Optional<Double> deathSeconds,
-            Optional<List<PoseData>> poses) {
+            Optional<List<PoseData>> poses,
+            Optional<Lanes> lanes,
+            Optional<SlamData> slam) {
         public BossData {
             Check.that(
                     kind.equals("boss") || kind.equals("mid-boss"),
@@ -687,6 +782,7 @@ public record EnemyData(
             Check.positive("par", par);
             Check.notEmpty("phases", phases);
             deathSeconds.ifPresent(d -> Check.notNegative("death_seconds", d));
+            Check.that(lanes.isPresent() == slam.isPresent(), "a boss with lanes has a slam cycle, and only it");
             poses.ifPresent(list -> list.forEach(pose -> Check.that(
                     list.stream()
                                     .filter(other -> other.name().equals(pose.name()))
@@ -713,6 +809,119 @@ public record EnemyData(
     }
 
     /**
+     * M5 part E, an arena boss's slam lanes (design/enemies/bosses/harbour-kraken, user decision E5 =
+     * a): {@code count} lanes {@code width} px wide from the play field's left edge, lane 1 first;
+     * {@code arms}, each slam arm's part name with the lanes (1-based) it owns.
+     */
+    public record Lanes(int count, double width, Optional<java.util.Map<String, List<Integer>>> arms) {
+        public Lanes {
+            Check.positive("count", count);
+            Check.positive("width", width);
+            Check.that(
+                    count * width <= vanguard.sim.PlayField.WIDTH + 1e-9,
+                    "the lanes lie on the play field: " + count + " × " + width + " px");
+            arms.ifPresent(map -> map.values()
+                    .forEach(owned -> owned.forEach(lane -> Check.that(
+                            lane >= 1 && lane <= count, "arms: lane " + lane + " is not one of the " + count))));
+        }
+    }
+
+    /**
+     * M5 part E, an arena boss's slam cycle (design/enemies/bosses/harbour-kraken): the lane's
+     * {@code telegraph}, the arm's {@code rise}, {@code awash} and {@code sink} times (s); the
+     * impact's {@code damage} class on the ship and the escort in the lane (once per slam); the
+     * {@code splash} bullets from along the arm; {@code choose: alternate} (the ship's lane and the
+     * nearest convoy ship's in turn, the only rule); the hooks {@code telegraph} and {@code lanes} change
+     * the telegraph and the lanes a volley slams (one per arm when not given).
+     */
+    public record SlamData(
+            double telegraph, double rise, double awash, double sink, String damage, Splash splash, String choose) {
+        public SlamData {
+            Check.positive("telegraph", telegraph);
+            Check.positive("rise", rise);
+            Check.positive("awash", awash);
+            Check.positive("sink", sink);
+            Check.that(choose.equals("alternate"), "choose must be alternate, was '" + choose + "'");
+        }
+    }
+
+    /** The slam's splash: {@code count} bullets of class {@code bullet} at {@code speed} px/s. */
+    public record Splash(int count, double speed, String bullet) {
+        public Splash {
+            Check.notNegative("count", count);
+            Check.positive("speed", speed);
+        }
+    }
+
+    /**
+     * M5 part E, how a phase slams: {@code chain} (one at a time, the next telegraph when the arm has
+     * sunk), {@code after_dive} (one after each dive) or {@code volley} with {@code every} s (one per
+     * living arm at once); written as the mode alone or as {@code {mode, every}}.
+     */
+    public record SlammingData(String mode, Optional<Double> every) {
+        public SlammingData {
+            Check.that(
+                    mode.equals("chain") || mode.equals("after_dive") || mode.equals("volley"),
+                    "slamming is chain, after_dive or volley, was '" + mode + "'");
+            Check.that(every.isPresent() == mode.equals("volley"), "a volley, and only it, has its every");
+            every.ifPresent(e -> Check.positive("every", e));
+        }
+
+        @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+        static SlammingData of(
+                @com.fasterxml.jackson.annotation.JsonProperty("mode") String mode,
+                @com.fasterxml.jackson.annotation.JsonProperty("every") Optional<Double> every) {
+            Check.that(mode != null, "slamming has a mode");
+            return new SlammingData(mode, every == null ? Optional.empty() : every);
+        }
+
+        /** The mode written alone. */
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        static SlammingData of(String mode) {
+            return new SlammingData(mode, Optional.empty());
+        }
+    }
+
+    /**
+     * M5 part E, a phase's surfacing part (the Kraken's head): it rises crown first over {@code rise}
+     * s (its layer flipping at the middle), stays {@code open} s (its weak spots open), dives over
+     * {@code dive} s; {@code glow} s is the tell before each of the phase's attacks; {@code stay: true}
+     * keeps it up (no open or dive time then).
+     */
+    public record SurfaceData(
+            String part,
+            double rise,
+            Optional<Double> open,
+            Optional<Double> dive,
+            Optional<Double> glow,
+            Optional<Boolean> stay) {
+        public SurfaceData {
+            Check.positive("rise", rise);
+            boolean stays = stay.orElse(false);
+            Check.that(
+                    stays ? open.isEmpty() && dive.isEmpty() : open.isPresent() && dive.isPresent(),
+                    "a surfacing that stays up has no open or dive time; one that dives has both");
+            open.ifPresent(o -> Check.positive("open", o));
+            dive.ifPresent(d -> Check.positive("dive", d));
+            glow.ifPresent(g -> Check.notNegative("glow", g));
+        }
+    }
+
+    /**
+     * M5 part E, units an arena boss releases once (the arena's Driftjelly field): {@code count}
+     * units of {@code enemy} as a {@code field} over {@code lanes}, {@code on: first-surface} (its
+     * surfacing part's first rise); they count among the level's enemies as they are released.
+     */
+    public record ReleaseData(String enemy, int count, String formation, List<Integer> lanes, String on) {
+        public ReleaseData {
+            Check.positive("count", count);
+            Check.notEmpty("lanes", lanes);
+            Check.that(formation.equals("field"), "a release is a field, was '" + formation + "'");
+            Check.that(on.equals("first-surface"), "a release comes on first-surface, was '" + on + "'");
+        }
+    }
+
+    /**
      * A boss phase: it ends when at most {@code until.left} of {@code until.parts} are alive or
      * {@code until.seconds} after it engaged; it fires its {@code attacks} together or the
      * {@code alternate} ones in turn, sends its {@code streams}, {@code exposes} parts that took no
@@ -725,6 +934,10 @@ public record EnemyData(
      *     turn into a pose
      * @param windows part G: the parts that open and shut in turn (vulnerable only while open), and
      *     what each opening releases
+     * @param slamming M5 part E: how it slams
+     * @param surface M5 part E: its surfacing part
+     * @param release M5 part E: what it releases once
+     * @param drop M5 part E: the pickup dropped as it begins (the shield cell)
      */
     public record PhaseData(
             String name,
@@ -736,7 +949,11 @@ public record EnemyData(
             Optional<Double> bend,
             Optional<Double> delay,
             Optional<MoveData> move,
-            Optional<WindowData> windows) {
+            Optional<WindowData> windows,
+            Optional<SlammingData> slamming,
+            Optional<SurfaceData> surface,
+            Optional<ReleaseData> release,
+            Optional<Pickup> drop) {
         public PhaseData {
             Check.that(attacks.isEmpty() || alternate.isEmpty(), "a phase has attacks or an alternate list, not both");
             bend.ifPresent(b -> Check.notNegative("bend", b));
@@ -747,15 +964,27 @@ public record EnemyData(
     /**
      * The end of a phase: at most {@code left} (0 when left out) of {@code parts} alive, or part G
      * {@code seconds} after the phase engaged (after its move), whichever comes first; at least one
-     * of the two.
+     * of the two. M5 part E: or after {@code slams} impacts, or once {@code parts} hold less than the
+     * share {@code below} of their HP (instead of {@code left}).
      */
-    public record Until(Optional<List<String>> parts, Optional<Integer> left, Optional<Double> seconds) {
+    public record Until(
+            Optional<List<String>> parts,
+            Optional<Integer> left,
+            Optional<Double> seconds,
+            Optional<Integer> slams,
+            Optional<Double> below) {
         public Until {
-            Check.that(parts.isPresent() || seconds.isPresent(), "until has parts or seconds");
+            Check.that(
+                    parts.isPresent() || seconds.isPresent() || slams.isPresent(), "until has parts, seconds or slams");
             parts.ifPresent(list -> Check.notEmpty("parts", list));
             left.ifPresent(l -> Check.notNegative("left", l));
             Check.that(left.isEmpty() || parts.isPresent(), "until has a left only with its parts");
+            Check.that(
+                    below.isEmpty() || (parts.isPresent() && left.isEmpty()),
+                    "until has a below with its parts, not a left");
             seconds.ifPresent(s -> Check.positive("seconds", s));
+            slams.ifPresent(n -> Check.positive("slams", n));
+            below.ifPresent(b -> Check.that(b > 0 && b < 1, "below is a share between 0 and 1, was " + b));
         }
     }
 
@@ -844,9 +1073,14 @@ public record EnemyData(
 
     /** A difficulty's change to one named attack. */
     public record AttackChange(
-            Optional<Integer> burst, Optional<Integer> count, Optional<Double> interval, Optional<Integer> arms) {
+            Optional<Integer> burst,
+            Optional<Integer> count,
+            Optional<Double> interval,
+            Optional<Integer> arms,
+            Optional<Double> within) {
         public AttackChange {
             arms.ifPresent(a -> Check.positive("arms", a));
+            within.ifPresent(w -> Check.positive("within", w));
         }
     }
 
@@ -869,6 +1103,8 @@ public record EnemyData(
      * @param regrownFanCount a regrown head's fan bullets instead
      * @param spawns part G: a boss's window spawns' counts instead, by spawn name
      * @param hoverSeconds M5 part D: the hover's time instead, s (the Wraith's hard hold)
+     * @param telegraph M5 part E: an arena boss's slam telegraph instead, s (hard's 0.8)
+     * @param lanes M5 part E: the lanes an arena boss's volley slams instead (hard's 3)
      */
     public record Hook(
             Optional<List<String>> leadsTargetIn,
@@ -885,9 +1121,13 @@ public record EnemyData(
             Optional<Integer> segments,
             Optional<Integer> regrownFanCount,
             Optional<java.util.Map<String, Integer>> spawns,
-            Optional<Double> hoverSeconds) {
+            Optional<Double> hoverSeconds,
+            Optional<Double> telegraph,
+            Optional<Integer> lanes) {
         public Hook {
             hoverSeconds.ifPresent(h -> Check.positive("hover_seconds", h));
+            telegraph.ifPresent(t -> Check.positive("telegraph", t));
+            lanes.ifPresent(n -> Check.positive("lanes", n));
         }
     }
 

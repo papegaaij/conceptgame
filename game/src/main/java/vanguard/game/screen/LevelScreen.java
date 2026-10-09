@@ -109,6 +109,27 @@ public final class LevelScreen implements GameScreen {
     private static final int DEBRIS_FRAME_TICKS = 3;
     /** A ground unit's remains stay on the ground until they scroll off (at most 10 s). */
     private static final int REMAINS_TICKS = SimStep.ticks(10);
+    /**
+     * M5 part E: the water effects' frames (tools/art/water_fx.py's 20 fps: 3 steps a frame), a ripple
+     * train's (12 frames over 1.6 s) and its start after a burst; the frigate's flak puff (6 steps a
+     * frame); a raft's sinking (6 steps a frame, 1 s); a severed arm's pops (4 steps a frame, each
+     * segment 3 steps after the one rootward of it); the Kraken's death burst (8 steps a frame, centred
+     * 40 px below its head).
+     */
+    private static final int WATER_FRAME_TICKS = 3;
+
+    private static final int RIPPLE_FRAME_TICKS = 8;
+    private static final int RIPPLE_DELAY_TICKS = 12;
+    private static final int FLAK_FRAME_TICKS = 6;
+    private static final int RAFT_SINK_TICKS = 6;
+    private static final int ARM_POP_FRAME_TICKS = 4;
+    private static final int ARM_POP_STEP_TICKS = 3;
+    private static final int KRAKEN_DEATH_FRAME_TICKS = 8;
+    private static final double KRAKEN_DEATH_BELOW_HEAD = 40;
+    /** A torpedo's impact is under the water when a submerged unit lies within this of it, px. */
+    private static final double UNDER_REACH = 24;
+    /** M5 part E: how far beside a surfaced part's hit box a hit still counts as on it, px. */
+    private static final double SOLID_REACH = 8;
 
     private static final float RADIO_VOLUME = 0.5f;
     private static final float TYPING_VOLUME = 0.15f;
@@ -128,6 +149,11 @@ public final class LevelScreen implements GameScreen {
     private final AirborneWalkers airborne = new AirborneWalkers();
 
     private final WeaponLooks weaponLooks;
+    /** M5 part E: the shared ripple train, the frigate's flak puff and a severed arm's pop; empty without them. */
+    private final Array<AtlasRegion> ripple;
+
+    private final Array<AtlasRegion> flak;
+    private final Array<AtlasRegion> armPop;
     /** The layers on which an enemy was destroyed in this attempt: a prompt that skips on one of them has left. */
     private final EnumSet<Layer> layersHit = EnumSet.noneOf(Layer.class);
     /** A set piece's death: a medium burst at each part, one after the other, then a large one at its centre. */
@@ -244,6 +270,9 @@ public final class LevelScreen implements GameScreen {
                 sortie.wingman().map(Wingman::gun));
         glance = services.sprites.frames("ballistic-impact");
         explosionMedium = services.sprites.frames("explosion-medium");
+        ripple = optionalFrames(services, "water-ripple");
+        flak = optionalFrames(services, "escort-frigate-flak");
+        armPop = optionalFrames(services, "harbour-kraken-arm-death");
         deathClouds = sortie.script().setPieces().stream()
                 .map(spec -> services.sprites.has(spec.slug() + "-ichor")
                         ? services.sprites.frames(spec.slug() + "-ichor")
@@ -267,6 +296,15 @@ public final class LevelScreen implements GameScreen {
                         .map(LevelScript.SetPieceSpec::slug)
                         .toList(),
                 sortie.wingman().map(Wingman::gun));
+        // M5 part E: Level 11's sounds: ships on the convoy, the Kraken's slam cycle for its sound's timing.
+        sounds.naval(sortie.navalConvoy());
+        sortie.script().setPieces().stream()
+                .flatMap(piece -> piece.boss().stream())
+                .flatMap(boss -> boss.arena().stream())
+                .map(arena -> arena.slam())
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
+                .ifPresent(slam -> sounds.slamCycle(slam.telegraphSeconds(), slam.riseSeconds(), slam.secondSeconds()));
         sounds.flareSeconds(sortie.script()
                 .darkness()
                 .map(LevelScript.Darkness::flareSeconds)
@@ -514,6 +552,7 @@ public final class LevelScreen implements GameScreen {
             debris.step();
             pieces.step();
             blasts.step();
+            renderer.stepEffects();
             wrecks.step();
             sounds.step();
             creditNumbers.step();
@@ -566,6 +605,10 @@ public final class LevelScreen implements GameScreen {
                 || (collapseStarted && music.fullOn(LevelData.Music.FullOn.COLLAPSE));
     }
 
+    private static Array<AtlasRegion> optionalFrames(GameServices services, String name) {
+        return services.sprites.has(name) ? services.sprites.frames(name) : new Array<>(0);
+    }
+
     /** The ship's armour as a share of its most, for Rook's bark about it. */
     private double armourShare() {
         var defences = sortie.ship().defences();
@@ -596,7 +639,19 @@ public final class LevelScreen implements GameScreen {
         for (int i = 0; i < sortie.shotCount(); i++) {
             Shot shot = sortie.shot(i);
             Array<AtlasRegion> trail = weaponLooks.trail(shot.mount());
-            if (trail != null) {
+            if (trail != null && weaponLooks.trailUnder(shot.mount())) {
+                // M5 part E: a torpedo's bubbles stay on the sea, risen to its surface.
+                if (renderer.overWater()) {
+                    renderer.bubbles()
+                            .startOnGround(
+                                    trail,
+                                    WATER_FRAME_TICKS,
+                                    shot.renderX(1),
+                                    shot.renderY(1),
+                                    0,
+                                    sortie.groundScroll());
+                }
+            } else if (trail != null) {
                 pieces.start(trail, TRAIL_FRAME_TICKS, shot.renderX(1), shot.renderY(1));
             }
         }
@@ -608,14 +663,31 @@ public final class LevelScreen implements GameScreen {
             double x = events.x(i);
             double y = events.y(i);
             switch (events.type(i)) {
-                case ENEMY_HIT -> effects.start(weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y);
-                case GROUND_HIT ->
-                    effects.startOnGround(
-                            weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+                case ENEMY_HIT -> {
+                    if (!waterImpact(events.value(i), x, y)) {
+                        effects.start(weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y);
+                    }
+                }
+                case GROUND_HIT -> {
+                    if (!waterImpact(events.value(i), x, y)) {
+                        effects.startOnGround(
+                                weaponLooks.impact(events.value(i)),
+                                IMPACT_FRAME_TICKS,
+                                x,
+                                y,
+                                0,
+                                sortie.groundScroll());
+                    }
+                }
                 case SHOT_GLANCED -> effects.start(glance, IMPACT_FRAME_TICKS, x, y);
                 case BLAST -> {
                     // A bomb's or shell's burst is the small explosion; a mine bursts in its own blast.
                     Array<AtlasRegion> blast = weaponLooks.blast(events.value(i), services.sprites.explosionSmall);
+                    if (blast == services.sprites.explosionSmall && !arenaSolid(x, y) && waterBurst("small", x, y)) {
+                        // M5 part E: over the water a bomb or shell lands in a splash (it hits surfaced units
+                        // only); on the Kraken's surfaced flesh or Tiamat's deck it bursts as on land.
+                        continue;
+                    }
                     effects.start(
                             blast,
                             blast == services.sprites.explosionSmall
@@ -634,6 +706,11 @@ public final class LevelScreen implements GameScreen {
                     Layer layer =
                             airborne.layerOf(kind, sortie.enemyKinds().get(kind).layer(), x, y);
                     layersHit.add(layer);
+                    if (renderer.overWater() && (layer == Layer.GROUND || layer == Layer.SUB)) {
+                        // M5 part E: a kill on the water bursts and sinks: no crater, no wreck.
+                        waterDeath(kind, x, y, layer == Layer.SUB);
+                        continue;
+                    }
                     death(kind, x, y, layer == Layer.GROUND);
                     if (layer == Layer.GROUND && !withers.get(kind).isEmpty()) {
                         // The Hive Node's creep withers over 2 s under its stump, then lies dry.
@@ -667,21 +744,54 @@ public final class LevelScreen implements GameScreen {
                 case DEBRIS_HIT -> effects.start(weaponLooks.impact(events.value(i)), IMPACT_FRAME_TICKS, x, y);
                 case DEBRIS_DESTROYED, MINE_BURST, MINE_DESTROYED ->
                     effects.start(services.sprites.explosionTiny, TINY_EXPLOSION_FRAME_TICKS, x, y);
-                case PART_DESTROYED -> effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y);
-                case SET_PIECE_DESTROYED -> chainedDeath(events.value(i), deathClouds.get(events.value(i)), x, y);
+                case PART_DESTROYED -> {
+                    if (!arenaPartDown(events.value(i), x, y)) {
+                        effects.start(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y);
+                    }
+                }
+                case SET_PIECE_DESTROYED -> {
+                    if (sortie.setPiece(events.value(i)).arena().isPresent()) {
+                        arenaDeath(events.value(i), x, y);
+                    } else {
+                        chainedDeath(events.value(i), deathClouds.get(events.value(i)), x, y);
+                    }
+                }
+                case SHOT_FIRED -> {
+                    Array<AtlasRegion> splash = weaponLooks.dropSplash(events.value(i));
+                    if (splash != null && renderer.overWater()) {
+                        // M5 part E: a torpedo drops into the water under its pod.
+                        renderer.surfaceWater()
+                                .startOnGround(splash, WATER_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+                    }
+                }
+                case ENEMY_FIRED -> renderer.enemyFired(x, y, sortie.tick());
+                case ALLY_HIT -> {
+                    if (sortie.navalConvoy()) {
+                        // M5 part E: a slam's blast on the hull.
+                        waterBurst("medium", x, y, false);
+                    }
+                }
+                case ALLY_FLAK -> {
+                    renderer.flak(events.value(i), sortie.tick());
+                    if (flak.size > 0) {
+                        renderer.lowAir().start(flak, FLAK_FRAME_TICKS, x, y);
+                    }
+                }
                 case GROUND_DESTROYED -> {
                     int object = events.value(i);
                     if (!groundWrecks.get(object).isEmpty()) {
                         debris.startOnGround(groundWrecks.get(object), REMAINS_TICKS, x, y, 0, sortie.groundScroll());
                     }
                     debris.startOnGround(groundBreaks.get(object), DEBRIS_FRAME_TICKS, x, y, 0, sortie.groundScroll());
-                    effects.startOnGround(
-                            services.sprites.explosionSmall,
-                            TINY_EXPLOSION_FRAME_TICKS,
-                            x,
-                            y,
-                            0,
-                            sortie.groundScroll());
+                    if (!waterBurst("small", x, y)) {
+                        effects.startOnGround(
+                                services.sprites.explosionSmall,
+                                TINY_EXPLOSION_FRAME_TICKS,
+                                x,
+                                y,
+                                0,
+                                sortie.groundScroll());
+                    }
                 }
                 case TRIGGER_SPENT -> {
                     // A trigger whose spent frame is a wreck (Level 08's billboard topples) bursts in a
@@ -752,8 +862,12 @@ public final class LevelScreen implements GameScreen {
                             warning.distorted().orElse(false),
                             RadioQueue.Priority.URGENT);
                 }
-                case AIRSTRIKE_BLAST ->
-                    blasts.startOnGround(explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+                case AIRSTRIKE_BLAST -> {
+                    if (!waterBurst("medium", x, y)) {
+                        blasts.startOnGround(
+                                explosionMedium, MEDIUM_EXPLOSION_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+                    }
+                }
                 case SHIELD_HIT -> shimmer = SHIMMER_TICKS;
                 case RADIO -> {
                     LevelScript.RadioCue cue = sortie.script().radio().get(events.value(i));
@@ -771,12 +885,15 @@ public final class LevelScreen implements GameScreen {
                             cue.speaker(),
                             cue.portrait(),
                             cue.expression(),
-                            RadioSchedule.line(cue.line(), unit, escortSide()),
+                            RadioSchedule.line(cue.line(), unit, allyName(unit), escortSide()),
                             cue.distorted(),
                             radioSchedule.priority(events.value(i)));
                 }
                 case ALLY_LOST -> {
-                    if (sortie.airEscort()) {
+                    if (sortie.navalConvoy()) {
+                        // M5 part E: a hull goes down in a water burst (its sinking is ConvoyLooks').
+                        waterBurst("large", x, y, false);
+                    } else if (sortie.airEscort()) {
                         // M5 part D: a shuttle bursts in the air and glides down into far (ShuttleLooks).
                         effects.start(services.sprites.explosionSmall, TINY_EXPLOSION_FRAME_TICKS, x, y);
                     } else {
@@ -849,9 +966,7 @@ public final class LevelScreen implements GameScreen {
                     music.fadeOut();
                     outro.start();
                 }
-                case SHOT_FIRED,
-                        ENEMY_FIRED,
-                        SECRET_FOUND,
+                case SECRET_FOUND,
                         PICKUP_COLLECTED,
                         SHIELD_BROKEN,
                         ARMOUR_HIT,
@@ -863,8 +978,7 @@ public final class LevelScreen implements GameScreen {
                         MINE_DROPPED,
                         SET_PIECE_DESCENDED,
                         SET_PIECE_ESCAPED,
-                        AIRSTRIKE_INBOUND,
-                        ALLY_HIT -> {}
+                        AIRSTRIKE_INBOUND -> {}
             }
         }
     }
@@ -878,16 +992,264 @@ public final class LevelScreen implements GameScreen {
             case FIRST_ALLY_HIT -> sortie.firstAllyHit();
             case FIRST_ALLY_LOST -> sortie.firstAllyLost();
             case ALLY_LOST -> sortie.lastAllyLost();
+            // M5 part E: each convoy unit's first hit names the unit hit (Level 11's ships).
+            case ALLY_HIT -> sortie.lastAllyHit();
             default -> -1;
         };
     }
 
+    /** M5 part E: the name {@code {ally}} reads for convoy unit {@code unit}: a naval convoy's ship ("Halvorsen"); "" otherwise. */
+    private String allyName(int unit) {
+        return unit >= 0 && sortie.navalConvoy() ? sortie.allyName(unit) : "";
+    }
+
+    /**
+     * M5 part E: a torpedo's impact (mount {@code mount}) at (x, y): under the water when it struck a
+     * unit there, else on the surface; false for a weapon that does not run under the water.
+     */
+    private boolean waterImpact(int mount, double x, double y) {
+        Array<AtlasRegion> surface = weaponLooks.waterImpact(mount, false);
+        if (surface == null || !renderer.overWater()) {
+            return false;
+        }
+        boolean under = airborne.underNear(x, y, UNDER_REACH) || arenaUnder(x, y);
+        if (!under && arenaSolid(x, y)) {
+            // A hit on the Kraken's surfaced head or arm is on flesh: the normal impact (round 33, user).
+            return false;
+        }
+        sounds.waterExplosion(under, x);
+        Array<AtlasRegion> frames = under ? weaponLooks.waterImpact(mount, true) : surface;
+        if (frames != null) {
+            (under ? renderer.underWater() : renderer.surfaceWater())
+                    .startOnGround(frames, WATER_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+        }
+        return true;
+    }
+
+    /**
+     * M5 part E: whether (x, y) lies on what of an arena boss is above the water: its platform's deck,
+     * a surfaced part (the Kraken's head up) or a slam arm's segment out of the water (rising or
+     * awash). A hit there is on flesh or steel and shows the normal impact, not the sea's splash and
+     * ripples (round 33, user, 2026-10-09).
+     */
+    private boolean arenaSolid(double x, double y) {
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPiece piece = sortie.setPiece(k);
+            if (piece.arena().isEmpty() || !piece.present()) {
+                continue;
+            }
+            double cx = piece.renderX(1);
+            double cy = piece.renderY(1);
+            if (Math.abs(x - cx) <= piece.body().width() / 2
+                    && Math.abs(y - cy) <= piece.body().height() / 2) {
+                return true;
+            }
+            for (int p = 0; p < piece.partCount(); p++) {
+                var box = piece.spec().parts().get(p).box();
+                if (piece.partLayer(p) != Layer.SUB
+                        && !piece.partWrecked(p)
+                        && Math.abs(piece.partX(p) - x) <= box.width() / 2 + SOLID_REACH
+                        && Math.abs(piece.partY(p) - y) <= box.height() / 2 + SOLID_REACH) {
+                    return true;
+                }
+            }
+            var chains = piece.boss().orElseThrow().chains();
+            int start = 0;
+            for (var chain : chains) {
+                int part = chain.part();
+                if (piece.partLayer(part) != Layer.SUB && !piece.partWrecked(part)) {
+                    for (int i = start; i < start + chain.segments(); i++) {
+                        if (Math.abs(cx + piece.segmentOffsetX(i) - x)
+                                        <= chain.box().width() / 2 + SOLID_REACH
+                                && Math.abs(cy + piece.segmentOffsetY(i) - y)
+                                        <= chain.box().height() / 2 + SOLID_REACH) {
+                            return true;
+                        }
+                    }
+                }
+                start += chain.segments();
+            }
+        }
+        return false;
+    }
+
+    /** M5 part E: whether (x, y) lies on a submerged part of an arena boss (the Kraken's head or arms under the water). */
+    private boolean arenaUnder(double x, double y) {
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPiece piece = sortie.setPiece(k);
+            if (piece.arena().isEmpty() || !piece.present()) {
+                continue;
+            }
+            for (int p = 0; p < piece.partCount(); p++) {
+                var box = piece.spec().parts().get(p).box();
+                if (piece.partLayer(p) == Layer.SUB
+                        && Math.abs(piece.partX(p) - x) <= box.width() / 2 + UNDER_REACH
+                        && Math.abs(piece.partY(p) - y) <= box.height() / 2 + UNDER_REACH) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * M5 part E: over the water, a burst of the {@code rung} size on its surface at (x, y) with its
+     * ripple train after it; false (nothing started) over land.
+     */
+    private boolean waterBurst(String rung, double x, double y) {
+        return waterBurst(rung, x, y, true);
+    }
+
+    /** As {@link #waterBurst(String, double, double)}, with the water explosion's sound or without (a ship's hit and sinking have their own). */
+    private boolean waterBurst(String rung, double x, double y, boolean sound) {
+        if (!renderer.overWater()) {
+            return false;
+        }
+        if (sound) {
+            sounds.waterExplosion(false, x);
+        }
+        String name = "explosion-water-" + rung;
+        if (services.sprites.has(name)) {
+            renderer.surfaceWater()
+                    .startOnGround(services.sprites.frames(name), WATER_FRAME_TICKS, x, y, 0, sortie.groundScroll());
+        }
+        ripple(x, y, RIPPLE_DELAY_TICKS);
+        return true;
+    }
+
+    /** M5 part E: the shared ripple train on the sea at (x, y), after {@code delay} steps. */
+    private void ripple(double x, double y, int delay) {
+        if (ripple.size > 0) {
+            renderer.surfaceWater().startOnGround(ripple, RIPPLE_FRAME_TICKS, x, y, delay, sortie.groundScroll());
+        }
+    }
+
+    /**
+     * M5 part E: a kill on the water (design/art-direction, Water): on the surface its pieces and glow
+     * with its tier's water burst and a ripple train, a raft sinking under its gun; under the water
+     * ({@code under}) only its under-water burst, through the sub pass. No crater, no wreck.
+     */
+    private void waterDeath(int kind, double x, double y, boolean under) {
+        EnemyLooks look = looks[kind];
+        double scroll = sortie.groundScroll();
+        sounds.waterExplosion(under, x);
+        if (under) {
+            Array<AtlasRegion> burst = look.naval().under();
+            if (!burst.isEmpty()) {
+                renderer.underWater().startOnGround(burst, WATER_FRAME_TICKS, x, y, 0, scroll);
+            }
+            return;
+        }
+        EnemyLooks.DeathEffect deathPieces = look.deathPieces();
+        start(pieces, deathPieces.frames(), deathPieces.ticksPerFrame(), x, y, deathPieces.delayTicks(), true);
+        Array<AtlasRegion> burst = look.naval().water();
+        if (!burst.isEmpty()) {
+            renderer.surfaceWater().startOnGround(burst, WATER_FRAME_TICKS, x, y, 0, scroll);
+        } else {
+            start(effects, look.explosion(), TINY_EXPLOSION_FRAME_TICKS, x, y, 0, true);
+        }
+        EnemyLooks.DeathEffect glow = look.deathGlow();
+        start(effects, glow.frames(), glow.ticksPerFrame(), x, y, glow.delayTicks(), true);
+        if (!look.naval().sink().isEmpty()) {
+            // The gunless raft sinks over its plain body, which fades under the water with it.
+            renderer.surfaceWater().startOnGround(look.naval().sink(), RAFT_SINK_TICKS, x, y, 0, scroll);
+            if (!look.naval().raftSub().isEmpty()) {
+                renderer.underWater().startOnGround(raftSinking(look.naval()), RAFT_SINK_TICKS, x, y, 0, scroll);
+            }
+        }
+        ripple(x, y, RIPPLE_DELAY_TICKS);
+    }
+
+    /** The raft's plain body held for its sinking's frames (the sub pass draws it under the sink frames). */
+    private static Array<AtlasRegion> raftSinking(vanguard.game.render.NavalLooks naval) {
+        Array<AtlasRegion> held = new Array<>(naval.sink().size / 2);
+        for (int i = 0; i < naval.sink().size / 2; i++) {
+            held.add(naval.raftSub().first());
+        }
+        return held;
+    }
+
+    /**
+     * M5 part E: an arena boss's part destroyed (value {@code part}; a severed slam arm): its segments
+     * pop one after the other from the root, crimson, over a water burst; false when no arena boss
+     * holds such a part (the usual medium burst then).
+     */
+    private boolean arenaPartDown(int part, double x, double y) {
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPiece piece = sortie.setPiece(k);
+            if (piece.arena().isEmpty()) {
+                continue;
+            }
+            double[] points = LevelRenderer.armPoints(piece, part);
+            if (points.length == 0 || armPop.size == 0) {
+                return false;
+            }
+            for (int s = 0; s < points.length / 2; s++) {
+                effects.startOnGround(
+                        armPop,
+                        ARM_POP_FRAME_TICKS,
+                        piece.renderX(1) + points[2 * s],
+                        piece.renderY(1) + points[2 * s + 1],
+                        s * ARM_POP_STEP_TICKS,
+                        sortie.groundScroll());
+            }
+            waterBurst("medium", x, y, false);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * M5 part E: an arena boss's death (design/enemies/bosses/harbour-kraken, Death: the {@code huge}
+     * water-surface variant): its wreck's sinking and sliding (KrakenLooks), water bursts at its parts,
+     * a large one at its head with its own lime and crimson burst, spray, then the credit shower.
+     */
+    private void arenaDeath(int k, double x, double y) {
+        SetPiece piece = sortie.setPiece(k);
+        showerDelay = LevelRenderer.chainTicks(piece);
+        wrecks.start(k, x, y, 1, 1, false);
+        double headY = y + renderer.krakenHeadDy();
+        double scroll = sortie.groundScroll();
+        for (int p = 0; p < piece.partCount(); p++) {
+            if (services.sprites.has("explosion-water-medium")) {
+                renderer.surfaceWater()
+                        .startOnGround(
+                                services.sprites.frames("explosion-water-medium"),
+                                WATER_FRAME_TICKS,
+                                piece.partX(p),
+                                piece.partY(p),
+                                p * CHAIN_STEP_TICKS,
+                                scroll);
+            }
+        }
+        if (services.sprites.has("explosion-water-large")) {
+            Array<AtlasRegion> large = services.sprites.frames("explosion-water-large");
+            renderer.surfaceWater().startOnGround(large, WATER_FRAME_TICKS, x, headY, showerDelay / 2, scroll);
+            renderer.surfaceWater().startOnGround(large, WATER_FRAME_TICKS, x - 40, headY + 30, showerDelay, scroll);
+            renderer.surfaceWater().startOnGround(large, WATER_FRAME_TICKS, x + 40, headY - 20, showerDelay, scroll);
+        }
+        if (services.sprites.has(piece.slug() + "-death")) {
+            effects.startOnGround(
+                    services.sprites.frames(piece.slug() + "-death"),
+                    KRAKEN_DEATH_FRAME_TICKS,
+                    x,
+                    headY - KRAKEN_DEATH_BELOW_HEAD,
+                    0,
+                    scroll);
+        }
+        ripple(x, headY, showerDelay);
+    }
+
     /**
      * Whether a cue's line counts as a scripted line for Rook's barks (their spacing, and a waiting
-     * bark withdrawn): his first kill (M5 part B) and the first loop-back (M5 part D, his flock line).
+     * bark withdrawn): his first kill (M5 part B), the first loop-back (M5 part D, his flock line) and
+     * the first boss part shot off (M5 part E, Level 11's severed slam arm).
      */
     static boolean scriptedForBarks(LevelScript.CueTrigger trigger) {
-        return trigger == LevelScript.CueTrigger.ESCORT_FIRST_KILL || trigger == LevelScript.CueTrigger.FIRST_LOOP_BACK;
+        return trigger == LevelScript.CueTrigger.ESCORT_FIRST_KILL
+                || trigger == LevelScript.CueTrigger.FIRST_LOOP_BACK
+                // M5 part E: his line on the first slam arm severed (Level 11's calamari).
+                || trigger == LevelScript.CueTrigger.BOSS_PART_DESTROYED;
     }
 
     /**
@@ -1230,7 +1592,10 @@ public final class LevelScreen implements GameScreen {
                 name,
                 launchBalance,
                 newBest,
-                !sortie.script().secondary().none());
+                !sortie.script().secondary().none(),
+                sortie.navalConvoy()
+                        ? new DebriefScreen.Hulls(sortie.alliesAfloat(), sortie.damageableAllies())
+                        : DebriefScreen.Hulls.NONE);
     }
 
     @Override

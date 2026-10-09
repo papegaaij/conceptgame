@@ -1,0 +1,108 @@
+# Harbour Kraken stat block and boss script at medium: the stat block is rendered into README.md.
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+# M5 part E, step E2c (Level 11's mid-boss; user decisions E5 = a, E6 = a and E7 = a of 2026-10-08):
+# an arena boss. It has no descent: it is anchored to Platform Tiamat (a backdrop piece of the level),
+# scrolls in with it and engages when the scroll halts in its arena. All offsets are px from the
+# platform's centre (its centre is the boss's), dx right, dy up, as assets/pivots/harbour-kraken.json
+# gives them (y down there): the head 216 px below the centre (round 33: in open water off the deck's
+# south edge, not under it), the eyes, the slam arms' roots.
+name: Harbour Kraken
+faction: Vrell
+layer: ground       # the sea's surface; each part has its own current layer (`sub` under the water)
+tier: huge
+size: [344, 424]    # sprite px: the grip overlay and the head in front of it (the arms laid along the lanes reach further)
+hitbox: [208, 152]  # Platform Tiamat's deck: the lanes run from its lower edge down; no armour (shots fly over it)
+parts: multi
+part_list:  # offset [dx, dy] px from the platform's centre; each part's `layer` is the one it starts on
+  - name: head
+    offset: [0, -216]       # its top (the crown's foam) clear of the deck's south edge (y -76)
+    hitbox: [130, 200]      # the mantle; its lower edge is the beak, where the fans leave
+    hp: 1700
+    kind: vital
+    bounty: 144
+    attack: beak-fan
+    multiplier: 0.5         # the mantle
+    layer: sub
+    spots:                  # the lime eyes: px from the head's centre
+      - {name: left eye, offset: [-41.5, -52.5], hitbox: [28, 28], multiplier: 2, while: open}
+      - {name: right eye, offset: [41.5, -52.5], hitbox: [28, 28], multiplier: 2, while: open}
+  - {name: left arm, offset: [-54, -326], hitbox: [26, 26], hp: 350, kind: destroyable, bounty: 36, layer: sub}
+  - {name: right arm, offset: [54, -326], hitbox: [26, 26], hp: 350, kind: destroyable, bounty: 36, layer: sub}
+chains:  # the slam arms: at rest a line from the root to the arm's offset, under the water; laid along a lane while they slam
+  - {name: left slam arm, from: [-12.4, -333], to: left arm, segments: 13, hitbox: [30, 30], lag: 0.1, bend: 0, motion: slam}
+  - {name: right slam arm, from: [12.4, -333], to: right arm, segments: 13, hitbox: [30, 30], lag: 0.1, bend: 0, motion: slam}
+orientation: 32 angles
+hp: 2400            # the parts' sum
+armour: 'submerged parts: only `anti-sub` and the Smart Bomb ([layer rules](../../README.md#layer-rules)); surfaced head: mantle ×0.5, eyes ×2 while open'
+speed: 0            # anchored: it scrolls in with the platform and stays where the scroll halts
+movement:
+  anchored: {y: 78}    # the platform's centre, px below the top edge when the scroll halts (round 33: 110 -> 78, the deck at y 2-154, the head in open water below it)
+attacks:
+  - pattern: fan
+    name: beak-fan
+    bullet: medium
+    count: 7
+    spread: 70          # °
+    interval: 2         # s between fans while the eyes are open (the first one a glow after they open)
+    speed: 140
+    notes:
+      text: 'a {count}-orb `{pattern}` from the beak (spread {spread}°, {speed} px/s, `{bullet}` = {damage}) every {interval} s while the eyes are open, each after a 0.5 s crimson beak glow'
+formations:
+  - {name: solo set piece}
+weak_points:
+  - {name: lime eyes, multiplier: 2}
+drops: []
+traits: [anti-sub, anti-ground, forward]
+bounty: 216         # the parts' sum (each arm 1/6, the head 4/6): ≈ 15 % of budget(11) once paid
+first_level: 11
+difficulty:
+  hard: {telegraph: 0.8, lanes: 3}   # the lane telegraph 0.8 s; phase 3 volleys slam three lanes
+boss:
+  kind: mid-boss
+  bar_name: HARBOUR KRAKEN
+  par: 60           # s from the boss bar appearing to the kill: the Boss rush bonus (the measured fight, E6 = a)
+  lanes:            # four lanes of 120 px under the platform, lane 1 at the left edge (E5 = a: each arm owns a half)
+    count: 4
+    width: 120
+    arms: {left arm: [1, 2], right arm: [3, 4]}
+  slam:
+    telegraph: 1.0  # s of the red churn along the lane before the arm rises
+    rise: 0.5       # s the arm rises base-to-tip out of the water (on `ground` from here)
+    awash: 1.5      # s it lies awash along the lane after the impact (hittable)
+    sink: 0.6       # s it sinks back under the water (`sub`)
+    damage: heavy   # the impact, once per slam, on the ship and Rook in the lane; a convoy ship there takes a hit
+    splash: {count: 6, speed: 120, bullet: small}   # bullets from along the arm, out to either side in turn
+    choose: alternate   # the ship's lane and the lane of the convoy ship nearest the ship's x in turn
+  phases:
+    - name: Slams
+      until: {slams: 3, seconds: 20}
+      slamming: chain   # one at a time: the next telegraph when the arm has sunk
+      delay: 1          # s from the halt to the first telegraph
+    - name: Head up
+      until: {parts: [head], below: 0.4}
+      surface: {part: head, rise: 2, open: 8, dive: 1.5, glow: 0.5}
+      attacks: [beak-fan]
+      slamming: after_dive
+      release: {enemy: driftjelly, count: 6, formation: field, lanes: [1, 4], on: first-surface}
+    - name: Two lanes
+      until: {parts: [head], left: 0}
+      surface: {part: head, rise: 2, stay: true, glow: 0.5}
+      attacks: [beak-fan]
+      slamming: {mode: volley, every: 4}
+      delay: 1          # s from the phase's start to its first volley
+      drop: shield cell
+notes:
+  layer: ' (the sea''s surface); each part''s **current layer**: `sub` while submerged, `ground` while surfaced; the slam arms are `ground` from their rise until they sink'
+  size: '(the grip overlay and the head: the mantle with the arm roots ≈ 250 px long, 130 px wide); the hitbox is Platform Tiamat''s deck (a backdrop piece; no armour: shots fly over it)'
+  parts: 'head/mantle (`vital`; the lime eyes a weak spot on it, ×2 while open), left and right slam arm (`destroyable`; runtime chains of 13 segments, E7 = a), the gripping arms (a drawn overlay on the platform) and the idle arms (`sub` shadows)'
+  orientation: (slam-arm segments; the head pre-rendered surfacing frames)
+  hp: head 1,700 (×0.5 on the mantle, ×2 on the open eyes; tuned to a ≈ 60 s fight, E6 = a); slam arm 350 each; total
+  speed: (anchored)
+  movement: 'anchored: it scrolls in with the platform (invulnerable, without its bar) and engages when the scroll halts, the platform''s centre at y {movement.anchored.y}; the head surfaces and dives, the arms slam (see *Phases* and *Lanes and slams*)'
+  attack_prefix: 'see *Phases*; the slams: telegraph {boss.slam.telegraph} s, rise {boss.slam.rise} s, impact `heavy` = 10 on the ship and Rook in the lane plus 6 `small` splash bullets ({boss.slam.splash.speed} px/s), awash {boss.slam.awash} s, sink {boss.slam.sink} s; '
+  formations: (a Driftjelly field released in the arena)
+  weak_points: (only while open)
+  bounty: ' (arms 36 each, head 144; paid × 1.6 × Level 11''s `bounty_scale` of 0.6: 208, 15 % of budget(11) = 1,377)'
+  death: '`huge` water-surface variant: the head sinks in a churning foam ring, the gripping arms slide off the platform, spray, credit shower'
+  used_in: mid-boss of L11 only
+  difficulty: 'hard: lane telegraph 0.8 s; phase 3 slams three lanes'

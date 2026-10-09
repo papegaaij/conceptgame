@@ -156,8 +156,27 @@ class BriefingsTest {
                 "no secondary objective (D5 = a)");
     }
 
+    /** Level 11 (M5 part E): Okafor's and Varga's pages with their images, the convoy's bonus line. */
+    @Test
+    void theBriefingBeforeLevel11IsItsOwnTwoPages() {
+        BriefingScript briefing = Briefings.before(content, 11).orElseThrow();
+
+        assertEquals(Optional.empty(), briefing.titleCard(), "no act intro inside the act");
+        assertEquals("ATLANTIC CONVOY", briefing.missionName());
+        assertEquals(
+                List.of("Okafor", "Varga"),
+                briefing.pages().stream().map(BriefingPage::speaker).toList());
+        assertEquals(
+                List.of("level-11-convoy-route", "level-11-sub-scan"),
+                briefing.pages().stream()
+                        .map(page -> page.image().orElseThrow())
+                        .toList());
+        assertEquals("Rook", briefing.teaser().speaker());
+        assertEquals(List.of("SURVIVE TO THE END OF THE MISSION", "BONUS: NO CONVOY SHIP SUNK"), briefing.objectives());
+    }
+
     @Test
     void aLevelThatIsNotBuiltYetHasNoBriefing() {
-        assertEquals(Optional.empty(), Briefings.before(content, 11));
+        assertEquals(Optional.empty(), Briefings.before(content, 12));
     }
 }

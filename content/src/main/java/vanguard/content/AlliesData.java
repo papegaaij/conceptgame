@@ -29,6 +29,7 @@ public record AlliesData(Map<String, Ally> allies) {
      *     (its art lands before its level) goes in that level's sprite atlas
      * @param banks M5 part D, presentation: its rendered banking frames
      * @param glide M5 part D, presentation: s of a lost unit's glide into {@code far}
+     * @param flak M5 part E, presentation (the escort frigate): its flak bursts over the convoy
      */
     public record Ally(
             String name,
@@ -42,11 +43,17 @@ public record AlliesData(Map<String, Ally> allies) {
             double smokeBelow,
             Optional<Integer> firstLevel,
             Optional<Banks> banks,
-            Optional<Double> glide) {
+            Optional<Double> glide,
+            Optional<Flak> flak) {
         /** What a ground ally follows. */
         public static final String ROAD = "road";
         /** M5 part D: what an air ally follows, its station in the level's band. */
         public static final String LANES = "lanes";
+        /**
+         * M5 part E: what a naval convoy's ally follows (a level's {@code convoy} block): its
+         * screen-space station at the scroll speed, its arena lane at the halt.
+         */
+        public static final String STATIONS = "stations";
 
         public Ally {
             Layers.of(layer);
@@ -54,11 +61,22 @@ public record AlliesData(Map<String, Ally> allies) {
             Check.share("smoke_below", smokeBelow);
             firstLevel.ifPresent(level -> Check.positive("first_level", level));
             Check.that(
-                    follows.equals(ROAD) || follows.equals(LANES), "follows: 'road' or 'lanes', was '" + follows + "'");
+                    follows.equals(ROAD) || follows.equals(LANES) || follows.equals(STATIONS),
+                    "follows: 'road', 'lanes' or 'stations', was '" + follows + "'");
             boolean air = follows.equals(LANES);
+            boolean naval = follows.equals(STATIONS);
             Check.that(
                     air == layer.equals("air"),
-                    "an ally on the air layer follows lanes, one on the ground follows the road");
+                    "an ally on the air layer follows lanes, one on the ground follows the road or stations");
+            Check.that(naval || damagedBy.slams().isEmpty(), "only a naval convoy's ally (stations) is hurt by slams");
+            Check.that(
+                    !naval
+                            || (!damagedBy.objectiveAimed()
+                                    && damagedBy.claws() == 0
+                                    && !damagedBy.hitByBullets()
+                                    && !damagedBy.hitByContact()),
+                    "a naval convoy's ally (stations) is hurt only by slams");
+            Check.that(naval || flak.isEmpty(), "only a naval convoy's ally (stations) fires flak");
             Check.that(
                     !air || !damagedBy.objectiveAimed() && damagedBy.claws() == 0,
                     "an air ally is hurt by bullets and contact, not by objective-aimed shots or claws");
@@ -71,6 +89,18 @@ public record AlliesData(Map<String, Ally> allies) {
         /** M5 part D: whether it flies in the air (its station in the band), not on the road. */
         public boolean air() {
             return follows.equals(LANES);
+        }
+
+        /** M5 part E: whether it sails in a naval convoy (its screen-space station), not on a road. */
+        public boolean naval() {
+            return follows.equals(STATIONS);
+        }
+    }
+
+    /** M5 part E, presentation (the escort frigate): a flak burst every {@code every} s, hitting nothing. */
+    public record Flak(double every) {
+        public Flak {
+            Check.positive("every", every);
         }
     }
 
@@ -95,11 +125,24 @@ public record AlliesData(Map<String, Ally> allies) {
      *     it by its class and is spent
      * @param contact M5 part D: an {@code air} enemy's body hurts it by the enemy's tier once per
      *     contact, a {@code tiny} or {@code small} one destroyed by the impact
+     * @param slams M5 part E: the hits one boss slam in its lane deals (its {@code hp} then counts
+     *     slams: the cargo ship's {@code hp: 2}, {@code slams: 1}); an ally whose {@code damaged_by}
+     *     names nothing (the frigate) cannot be damaged and is never lost
      */
     public record DamagedBy(
-            boolean objectiveAimed, double claws, Optional<Boolean> bullets, Optional<Boolean> contact) {
+            boolean objectiveAimed,
+            double claws,
+            Optional<Boolean> bullets,
+            Optional<Boolean> contact,
+            Optional<Double> slams) {
         public DamagedBy {
             Check.notNegative("claws", claws);
+            slams.ifPresent(n -> Check.positive("slams", n));
+        }
+
+        /** M5 part E: the hits a slam in its lane deals; 0 when slams do not hurt it. */
+        public double hitsPerSlam() {
+            return slams.orElse(0.0);
         }
 
         /** Whether every enemy bullet hurts it. */

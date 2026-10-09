@@ -1,0 +1,29 @@
+{
+ "source": "tools/art/convoy_ships.py (production art, M5 part E batch), variant a",
+ "variant": "a",
+ "frames": {
+  "cargo-ship": "afloat",
+  "cargo-ship-damaged": "after the first slam"
+ },
+ "smoke": [
+  21,
+  54
+ ],
+ "fire": [
+  35,
+  74
+ ],
+ "collar": [
+  -6,
+  -6
+ ],
+ "wake": [
+  -16,
+  -4
+ ],
+ "sink": [
+  -8,
+  -8
+ ],
+ "note": "offsets: the top left of each overlay relative to the hull frame's top left"
+}

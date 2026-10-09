@@ -1,0 +1,484 @@
+# Level 11 – Atlantic Convoy: the level script, rendered into README.md (briefing, threat profile,
+# layout, waves, ground targets, radio, credit budget). Times are seconds from the level start; the
+# level clock halts at the arena's end (t = 161) while the Harbour Kraken lives, so everything in the
+# fight runs on the simulation's real steps and the arena's radio lines are events (M5 part E).
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+# The `backdrop` block and the sections' tiles are merged in from the round 33 backdrop proposal
+# (concept/backdrop-proposal.yaml, tools/art/backdrop_l11.py --proposal, which reads this file).
+scroll_speed: 140     # the chosen ocean scene's slower swell
+launch_seconds: 5     # flying in from the bottom edge with Rook in his slot, as in Levels 08-10
+bounty_scale: 0.6     # every bounty × 0.6: the typical haul on budget(11) (M5 part E, step E3a)
+water: true           # E1 = a: the whole play field is water (the torpedo runs; kills and landing blasts splash)
+control_prompts: []
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Earth ocean
+  layers: [ground, sub, air]
+  density: 3
+  traits: [spread, anti-ground]   # `anti-sub` is optional (the notes): three traits do not fit the intel panel
+  hazards: [drifting organisms]
+  boss: Harbour Kraken
+  objective: CONVOY TO OPEN WATER   # the OBJECTIVE field from sensor L1
+  varga:
+    none: Open Atlantic, Lancer. Something rides the current out there, on the water and under it.
+    l1: "Mostly from ahead. Drifting organisms on the sea lanes: don't loiter over them."
+    l2: "New: Driftjellies and Reef Spitters. And something huge."
+    l3: Anti-ground for rafts. Torpedoes for the sunken cache.
+  notes:
+    Dominant layers: '`ground` (naval surface: rafts, surfaced jellies, the Kraken''s arms and head when up), `sub` (submerged jellies, the Kraken below, a sunken pod), `air`'
+    Attack directions: '{directions}'
+    Density: '{density}'
+    Recommended traits: '`spread`, `anti-ground`; `anti-sub` optional (submerged jellies, the sunken pod, the Kraken''s head in phase 1), not `required`'
+    Hazards: Driftjelly fields (proximity rings on and under the surface)
+    Boss / mid-boss: 'Mid-boss [Harbour Kraken](../../../enemies/bosses/harbour-kraken/README.md)'
+    Sensor-suite detail: 'none: open ocean, `ground` + `sub` + `air`, front · L1: + directions, density {density}, hazard "drifting organisms", the objective `{objective}` · L2: + Driftjelly (new), Reef Spitter (new), Needler, Stinger, Skitter and Mote Swarm portraits; the mid-boss silhouette "unknown, large, submerged" · L3: + `spread` and `anti-ground` highlighted (`anti-sub` marked optional), the wave strip marking the mid-boss at ≈ 160 s, 1 secret'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets (tools/art/backdrop_l11.py --proposal); peak: a heavier atmosphere inside the section
+  - name: Convoy Muster
+    end: 20
+    atmosphere: light
+    tiles: [swell, chop]
+    notes:
+      layers:
+        deep: slate swell with a slow colour field.
+        ground: the convoy at its stations, wakes and prop-wash.
+        low-air: sea-mist banks (~15%).
+        high-air: thin wisps.
+      purpose: Meet the convoy; the first popcorn from t=7.
+  - name: Jelly Fields
+    end: 65
+    atmosphere: light
+    tiles: [swell, chop]
+    notes:
+      layers:
+        ground: Driftjelly fields drifting in the current, surfaced jellies cut at the waterline; Vrell spawn slicks.
+        sub: submerged jellies under the tint pass; at t≈55 a huge dark shape (≈ 400 px) slides under the convoy and fades into the deep (the Kraken, foreshadowing, scenery).
+      purpose: Driftjellies introduced alone first; the `sub` layer seen.
+  - name: Reef Line
+    end: 110
+    atmosphere: medium
+    tiles: [swell, chop]
+    notes:
+      layers:
+        ground: violet-veined Vrell reef growths breaking the surface in lines, with foam collars; Reef Spitter rafts bobbing on kelp.
+        sub: reef roots fading into the deep, a CDF supply pod snagged on one (the secret).
+        low-air: mist banks (~22%).
+      purpose: Reef Spitters introduced as a lone nest of 3, then combined with a jelly field.
+  - name: Tiamat Approach
+    end: 160
+    atmosphere: light
+    tiles: [swell, chop]
+    notes:
+      layers:
+        ground: debris and floating cargo containers from a burning freighter (smoke at half particle speed, per the motion budget); the overrun fusion platform Tiamat enters at the top at the end, gripped by the Kraken's armoured arms.
+        sub: the Kraken's mantle shadow under the platform.
+      purpose: Mixed waves; the last Reef Spitter nest; the flotsam pickups.
+  - name: Harbour Kraken
+    end: 161   # the scroll eases to a halt over the arena's first second (68.8 px); the level clock halts here while the Kraken lives
+    speed: 0
+    arena: true
+    atmosphere: clear
+    tiles: [swell, chop]
+    notes:
+      layers:
+        ground: platform Tiamat at the top of the play field, four lanes of 120 px below it, the three cargo ships in lanes 1, 2 and 4 in the lower band.
+        sub: the Kraken's mantle, head and idle arms under the surface.
+      purpose: The mid-boss (≈ 60 s at medium); the scroll stays halted while it lives, and section 6 starts at its death.
+  - name: Open Water
+    end: 176
+    atmosphere: clear
+    peak: {atmosphere: light, from: 170, to: 176}   # a lighter overcast giving way to haze at the end
+    tiles: [swell, chop]
+    notes:
+      layers:
+        ground: the convoy steaming north past the abandoned platform.
+        deep: the swell under a lighter overcast.
+      purpose: Release; level end.
+
+boss:  # the mid-boss: anchored to Platform Tiamat, it scrolls in with the platform and engages at the halt
+  enemy: harbour-kraken
+  t: 160
+  x: 240
+  section: 5
+  notes:
+    from: front (anchored to Platform Tiamat, scrolls in with it)
+    waves: 'At the halt (the bar, the sting, the boss checkpoint); releases a Driftjelly field of 6 in lanes 1 and 4 at its first surfacing'
+
+# Act 2 popcorn (Skitter streams and snakes, Needler lines, small Mote Swarms) round the set pieces, a
+# wave every 2.5-3.5 s (the act's minimum: at least 50 a minute; the pacing rule: no empty screen over
+# 3 s). No rear waves (front 90 / sides 10, default). The two introductions keep a quiet window: no
+# other wave enters for 3 s after the first jelly field (t=22) or the first raft nest (t=70). A `field`
+# wave's x and size give its area (its bottom edge enters at the top edge at t), scrolling with the sea
+# and drifting along its current (° from straight down). Swarm routes: [x, y] points of the leader
+# point, y px below the top edge, starting outside the play field.
+waves:
+  - {t: 7, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, notes: Over the convoy at its stations; the first targets}
+  - t: 11.5
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[50, -60], [50, 330], [130, 460], [100, 620]]]   # down the left lane, a curl at the ship's height, out at the bottom-left
+  - {t: 15, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - {t: 18.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1, notes: Gone before the first jelly field}
+  - t: 22
+    formation: field
+    enemy: driftjelly
+    count: 6
+    from: front
+    x: 240
+    size: [400, 200]
+    notes: "**New.** Alone (no other wave until t=25.5); the ring fires only when the ship is within 96 px; about half of them start submerged"
+  - {t: 25.5, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25}
+  - t: 29
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[430, -60], [430, 330], [350, 460], [380, 620]]]   # down the right lane, out at the bottom-right
+  - {t: 32, formation: V-wing, enemy: needler, count: 5, from: front}
+  - {t: 36, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - {t: 40, formation: snake, enemy: skitter, count: 8, from: front, edge: right, notes: Weaves above the jelly field}
+  - t: 44
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[60, -60], [45, 300], [160, 430], [330, 450], [430, 620]]]   # down the left lane, across the lower band, out at the bottom-right
+  - {t: 47, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1.25}
+  - t: 50
+    formation: field
+    enemy: driftjelly
+    count: 8
+    from: front
+    x: 240
+    size: [440, 240]
+    current: 20
+    easy: {count: 6}
+    notes: Denser field, drifting to the right; easy 6
+  - {t: 54, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - t: 55.5
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[50, -60], [50, 330], [130, 460], [100, 620]]]   # down the left lane, a curl at the ship's height, out at the bottom-left
+    notes: Down the left lane as the huge shape slides under the convoy (Rook's line at t=55)
+  - {t: 59, formation: snake, enemy: skitter, count: 6, from: front, edge: right}
+  - {t: 62.5, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 66, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1, notes: Gone before the first raft nest}
+  - {t: 73.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: After the lone raft nest's quiet window}
+  - t: 77
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[430, -60], [430, 330], [350, 460], [380, 620]]]   # down the right lane, out at the bottom-right
+  - {t: 80.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - {t: 84, formation: V-wing, enemy: stinger, count: 4, from: front, notes: The leader drops an overdrive}
+  - {t: 87.5, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25}
+  - t: 91
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[50, -60], [50, 330], [130, 460], [100, 620]]]   # down the left lane, a curl at the ship's height, out at the bottom-left
+    notes: Over the reef line before the sunken pod
+  - {t: 94.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: Over the sunken pod's reef line}
+  - t: 100
+    formation: field
+    enemy: driftjelly
+    count: 8
+    from: front
+    x: 240
+    size: [440, 240]
+    current: -20
+    easy: {count: 6}
+    notes: Between the reef lines, with the second raft nest, drifting to the left; easy 6
+  - t: 103.5
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[420, -60], [435, 300], [320, 430], [150, 450], [50, 620]]]   # down the right lane, across the lower band, out at the bottom-left
+  - {t: 107, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25}
+  - {t: 110.5, formation: snake, enemy: skitter, count: 6, from: front, edge: left, notes: Over the first floating containers}
+  - t: 114
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[50, -60], [50, 330], [130, 460], [100, 620]]]   # down the left lane, a curl at the ship's height, out at the bottom-left
+  - {t: 116.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1, notes: Over the floating containers}
+  - {t: 118, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, notes: "2 per side, hold {hold} s; Rook's flank bark"}
+  - {t: 121.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - t: 125
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[430, -60], [430, 330], [350, 460], [380, 620]]]   # down the right lane, out at the bottom-right
+  - {t: 130.5, formation: line abreast, enemy: needler, count: 3, from: front, notes: Beside the burning freighter}
+  - {t: 134, formation: snake, enemy: skitter, count: 6, from: front, edge: right}
+  - t: 137.5
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[50, -60], [50, 330], [130, 460], [100, 620]]]   # down the left lane, a curl at the ship's height, out at the bottom-left
+  - t: 140
+    formation: field
+    enemy: driftjelly
+    count: 6
+    from: front
+    x: 240
+    size: [400, 220]
+    notes: Among the flotsam
+  - {t: 143.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25}
+  - {t: 146, formation: stream, enemy: skitter, count: 10, from: front, edge: alternating, interval: 0.75}
+  - t: 150.5
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[60, -60], [45, 300], [160, 430], [330, 450], [430, 620]]]   # down the left lane, across the lower band, out at the bottom-right
+  - {t: 154, formation: V-wing, enemy: needler, count: 4, from: front}
+  - {t: 157, formation: stream, enemy: skitter, count: 4, from: front, edge: left, interval: 1, notes: The last wave before Tiamat enters at the top}
+  - {t: 163, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: "Over open water, after the Kraken"}
+  - t: 166.5
+    formation: swarm
+    enemy: mote-swarm
+    count: 8
+    from: front
+    paths: [[[50, -60], [50, 330], [130, 460], [100, 620]]]   # down the left lane, a curl at the ship's height, out at the bottom-left
+    notes: The last wave
+
+ground_targets:  # at: [t, x], when it enters at the top edge and its x; containers keep to the gaps between the convoy's hulls (hulls at x 130, 240, 350, 56 px wide); a raft's 84 px base does not fit a 54 px gap, so the rafts keep to the flanks (x <= 58 or >= 430, drift included)
+  - target: lone raft nest
+    section: 3
+    enemy: reef-spitter
+    count: 3
+    at: [[70, 50], [70.6, 430], [71.2, 46]]   # on the first reef line's kelp, both flanks
+    notes:
+      target: '**New.** A lone [Reef Spitter](../../../enemies/naval/reef-spitter/README.md) nest ×{count} (t≈70): no other wave enters until t=73'
+      effect: Bounty {bounty} each; the raft sinks when the gun dies
+  - target: reef raft nest
+    section: 3
+    enemy: reef-spitter
+    count: 4
+    current: 15
+    at: [[100.5, 50], [101.1, 46], [101.7, 50], [102.3, 46]]   # a column on the left flank, after the sunken pod has passed: nothing on the water draws a torpedo off it
+    notes:
+      target: Reef Spitter nest ×{count} (t≈101), drifting to the right
+      effect: With the t=100 jelly field
+  - target: sunken pod
+    section: 3
+    layer: sub
+    size: [32, 24]
+    sprite: sunken-pod   # tools/art/l11_props.py: the pod on the reef root, sunken-pod-rise as it floats up
+    # round 33 (user): 3 hits (hard 5), so one L1 Torpedo Pod lined up frees it (4 needed a timed first shot)
+    hits: 3
+    hard: {hits: 5}
+    reveals: sunken pod
+    at: [[93.78, 296]]   # on the reef root of the t=96 reef line (its centre passes the middle of the screen at t≈95.8)
+    notes:
+      target: Snagged CDF supply pod on a reef root (`sub` trigger, t≈94)
+      effect: '{hits} torpedo hits (hard 5) or a Smart Bomb free it; floats up as the hidden crate'
+  - target: floating containers
+    section: 4
+    layer: ground
+    size: [32, 24]
+    sprite: floating-container   # tools/art/l11_props.py: on the water with its foam collar
+    hp: 3
+    drop: small salvage
+    group: containers   # the last one destroyed drops the armour patch (pickups)
+    count: 8
+    at: [[112.5, 60], [114.5, 185], [117, 420], [119.5, 296], [122.5, 50], [125, 185], [131.5, 296], [134.5, 60]]
+    notes:
+      target: Floating cargo containers ×{count} from the burning freighter (`ground`, {hp} HP, t≈112–135)
+      effect: Each drops a {drop} pickup ({drop_credits}); the last one destroyed drops an armour patch
+      budget: floating containers {count} × {drop} {drop_credits}
+  - target: freighter raft nest
+    section: 4
+    enemy: reef-spitter
+    count: 5
+    current: -15
+    at: [[128, 54], [128.65, 58], [129.3, 54], [129.95, 58], [130.6, 54]]   # a column on the left flank, across from the freighter's smoke on the right edge
+    notes:
+      target: Reef Spitter nest ×{count} across from the burning freighter (t≈128), drifting to the left
+      effect: Bounty
+  - target: hard raft nest
+    section: 4
+    enemy: reef-spitter
+    count: 0
+    at: []
+    hard: {at: [[140.5, 50], [141, 430], [141.7, 46]]}
+    notes:
+      target: Reef Spitter nest among the flotsam (t≈140), **hard only**
+      effect: Bounty
+
+secrets:
+  - name: sunken pod
+    crate: 100   # Act 1 terms: pays 160 with the act factor
+    radio: {speaker: Varga, line: "A CDF supply pod. Good fishing, Lancer."}
+
+pickups:
+  - {pickup: overdrive, dropped_by: {wave: 84, unit: first}}            # the leader of the t=84 Stinger V-wing
+  - {pickup: armour patch, dropped_by: {group: containers, unit: last}}   # the last floating container destroyed
+
+radio:  # trigger: t or event; requires: escort = only while Rook flies (hired, fitted and not ejected); the arena's lines are events (the level clock is halted)
+  - {t: 1, speaker: Atlas Control, portrait: generic-cdf, line: "Aegis flight, Atlas-Seven. Three hulls of reactor parts for the Arctic grid. We'd like to arrive with all three."}
+  - {t: 14, speaker: Rook, requires: escort, line: "Long way to swim, Atlas. We'll keep you dry."}
+  - {t: 21.5, speaker: Varga, line: "Those jellies drift with the current. Don't hover over them: they pulse when you're close."}
+  - {t: 34, speaker: Varga, line: "Some are under the surface, and they still pulse. Our guns can't reach them there. Torpedoes can."}
+  - {t: 55, speaker: Rook, requires: escort, line: "Lancer... did the sea just move under the convoy?"}
+  - {t: 62.5, speaker: Atlas Control, portrait: generic-cdf, line: "Sonar has a contact. Big. Very big. It's gone deep again."}
+  - {t: 70.5, speaker: Varga, line: "Gun rafts on the reef. Barnacle guns. Anti-ground rounds crack them twice as fast."}
+  - {t: 110, speaker: Atlas Control, portrait: generic-cdf, line: "Platform Tiamat has been silent for six hours. Our route runs right past it."}
+  - {t: 140, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
+  - {t: 146.5, speaker: Varga, line: "The contact is rising under the platform. Lancer, it's holding on to it."}
+  - {t: 158, speaker: Rook, requires: escort, line: "Here comes the big one."}
+  - {event: first-telegraph, speaker: Okafor, line: "Watch the churning water. That's where the arms come down.", notes: {trigger: "First lane telegraph (`first-telegraph`)"}}
+  - {event: boss-part-destroyed, parts: [left arm, right arm], speaker: Rook, requires: escort, line: "Tell the cook we're having calamari.", notes: {trigger: "First slam arm severed (`boss-part-destroyed`, the slam arms)"}}
+  - {event: ally-hit, speaker: Atlas Control, portrait: generic-cdf, line: "The {ally} is hit! Taking on water, but holding!", notes: {trigger: "A cargo ship's first hit (`ally-hit`)"}}
+  - {event: ally-lost, speaker: Atlas Control, portrait: generic-cdf, line: "We've lost the {ally}. Crew in the water. Ruyter is picking them up.", notes: {trigger: "A cargo ship sinks (`ally-lost`)"}}
+  - {event: boss-destroyed, speaker: Varga, line: "It's letting go of the platform. It's sinking. Good.", notes: {trigger: "Kraken destroyed (`boss-destroyed`)"}}
+  - {event: secondary-objective, speaker: Atlas Control, portrait: generic-cdf, line: "All three hulls afloat. Drinks are on Atlas, Aegis."}
+  - {event: level-end, allies: [1, 3], speaker: Okafor, line: "Atlas-Seven is through. The Arctic grid gets its parts. Good work, Aegis.", notes: {trigger: "Level end, 1–3 ships afloat"}}
+  - {event: level-end, allies: [0, 0], speaker: Okafor, expression: grim, line: "We lost Atlas-Seven, but the sea lane is open. Come home, Lancer.", notes: {trigger: "Level end, no ship afloat"}}
+
+objectives:
+  primary: reach-end   # the convoy never fails the mission (no mission-failed line)
+  secondary: {afloat: true, label: CONVOY, credits: 100}   # E8 = a, "Convoy afloat": all three cargo ships afloat at the Kraken's death (100 in Act 1 terms: pays 160)
+
+convoy:  # a naval convoy outside the objectives (design/allies): stations px from the left / below the top edge, held at the scroll speed
+  units:
+    - {ally: cargo-ship, name: Halvorsen, station: [130, 380], lane: 1}
+    - {ally: cargo-ship, name: Mbeki, station: [240, 350], lane: 2, hold: [180, 620]}   # drops back off the bottom edge after the Kraken while Tiamat's deck (x 136-344) passes over lane 2
+    - {ally: cargo-ship, name: Saint-Laurent, station: [350, 380], lane: 4}
+    - {ally: escort-frigate, name: Ruyter, station: [240, 480], leaves: true}   # CDFS Ruyter drops back off the bottom edge at the halt and returns after the Kraken
+  glide: 3       # s to the lanes at the halt and back to the stations after the Kraken, on the real steps
+  lane_y: 450    # a cargo ship's centre in its lane, in the lower band (y 390-510)
+  hold_clear: 552   # px the sea scrolls after the Kraken before the units glide back to their stations: Platform Tiamat's deck (its top edge 538 px above the bottom edge at the halt, round 33) has passed the bottom edge; meanwhile each holds in its lane (lanes 1 and 4 lie clear of the deck), away or at its hold point
+  easy: {hp: 5}  # easy: a cargo ship survives three slams and sinks on the fourth
+  hard: {hp: 2}  # hard: it survives one and sinks on the second
+
+music:
+  track: 7            # Act 2 B "Firestorm" (audio/music track list)
+  start_section: 2    # the base stem from the Jelly Fields; section 1 has the ocean ambience only
+  full_section: 4     # the full mix from the Tiamat approach
+  ambience: earth-ocean
+  end_jingle: mission-complete
+  boss_sting: miniboss-sting   # track 21 at the arena halt, when the boss bar appears, then the track again
+
+difficulty: {}  # the jelly fields' easy sizes and the hard raft nest are in their entries; the sunken pod's hard hits in its own; the convoy's easy HP in `convoy`; the stat blocks' hooks apply (hard: 12-bullet rings within 110 px, 5-way raft fans; the Kraken's 0.8 s telegraph and three lanes)
+
+briefing:
+  pages:
+    - {speaker: Okafor, image: level-11-convoy-route, line: "The Arctic relays are running on reserve power, Lancer. Convoy Atlas-Seven carries their reactor parts across the Atlantic: three cargo hulls and a frigate. Something large has been tracked near Platform Tiamat, right on their route. Get them to open water."}
+    - {speaker: Varga, image: level-11-sub-scan, line: "The Vrell have seeded the sea lanes. Jellies drift on the surface and below it, and gun rafts grow on the reefs. Our guns can't touch what's under the waves. Torpedo pods can, if you buy them."}
+  teaser: {speaker: Rook, line: "Cargo ships to mind and jellyfish that shoot back. Torpedo pods are in the shop, if you fancy fishing."}
+
+backdrop:
+  # Presentation only: the grey North Atlantic of convoy Atlas-Seven (tools/art/backdrop_l11.py, straight
+  # from scene-ocean-r10-a, E9 = a). The sea is two layers: the long swell on `deep` (0.85, opaque) and the
+  # short chop on `ground` (1.0, translucent), so the swell slides under the chop while the sea streams by.
+  scroll_factors: {deep: 0.85, far: 0.9, ground: 1.0, low-air: 1.3, high-air: 2.0}
+  ramp: 4
+  haze_colour: 70808a  # the overcast's grey light on the water (over the swell only)
+  atmosphere:
+    clear: {wisps: wisps, haze: 0.08}   # the arena and open water: a lighter overcast on the swell
+    light: {banks: sea-mist, wisps: wisps, haze: 0.03}   # sea mist ~15 %, thin wisps
+    medium: {banks: mist-banks, wisps: wisps, haze: 0.06}   # section 3: mist banks ~22 % between the reefs
+  tile_sets:
+    swell: {layer: deep, height: 960}   # the long Atlantic swell and its slow tone field (opaque), every section; the chop slides over it (deep at 0.85)
+    chop: {layer: ground, height: 960}   # the short chop and sparse whitecaps (translucent, alpha >= 3 everywhere: the shadow stencil), every section
+    sea-mist: {layer: low-air, height: 960}   # light: thin sea-mist banks, ~15 % cover, still on their layer
+    mist-banks: {layer: low-air, height: 960}   # medium: mist banks between the reefs, ~22 % cover
+    wisps: {layer: high-air, height: 960}   # thin high wisps (additive, under 16 % alpha)
+  pieces:
+    spawn-slick-a: {layer: ground, size: [168, 112]}   # a Vrell spawn slick: olive film and spawn beads (section 2)
+    spawn-slick-b: {layer: ground, size: [128, 168]}
+    reef-shelf-a: {layer: ground, size: [480, 128]}   # a reef line's mass under the surface, seen through the water
+    reef-shelf-b: {layer: ground, size: [480, 112]}
+    reef-growth-a: {layer: ground, size: [48, 40], frames: 4, fps: 5}   # tools/art/l11_props.py: Vrell reef growths breaking the surface, collar loops
+    reef-growth-b: {layer: ground, size: [64, 48], frames: 4, fps: 5}
+    reef-growth-c: {layer: ground, size: [40, 56], frames: 4, fps: 5}
+    reef-root-a: {layer: ground, size: [64, 48]}   # l11_props.py's root fading into the deep, drawn through the water here
+    oil-slick: {layer: ground, size: [224, 160]}   # the freighter's oil: a dark film with a faint sheen (section 4)
+    flotsam-a: {layer: ground, size: [56, 44]}   # planks, a barrel and a life ring afloat
+    flotsam-b: {layer: ground, size: [52, 48]}   # crates, planks and a fender afloat
+    lifeboat: {layer: ground, size: [32, 64]}   # a capsized orange lifeboat
+    burning-freighter: {layer: ground, size: [72, 136], frames: 4, fps: 8, mid_size: true}   # l11_props.py: the abandoned freighter, listing, its deck fires flickering
+    freighter-smoke: {layer: ground, size: [88, 232], frames: 8, fps: 6}   # its smoke column trailing down the right edge, billowing in place (no travel)
+    platform-tiamat: {layer: ground, size: [256, 208], frames: 4, fps: 5, mid_size: true}   # Platform Tiamat: round 07's deck (208 x 152) at its centre, its shadow, foam lapping at its edges
+  placed:
+    # 2. Jelly Fields: Vrell spawn slicks (flat on the surface, the convoy steams over them)
+    - {piece: spawn-slick-a, t: 26, x: 70}
+    - {piece: spawn-slick-b, t: 31.5, x: 410}
+    - {piece: spawn-slick-a, t: 38, x: 300}
+    - {piece: spawn-slick-b, t: 44.5, x: 96}
+    - {piece: spawn-slick-a, t: 51, x: 196}
+    - {piece: spawn-slick-b, t: 58, x: 380}
+    # 3. Reef Line: seven lines, 7 s apart (one on screen at a time, at most two growth ids each); growths only outside the convoy's channels (x 102-158, 212-268, 322-378)
+    - {piece: reef-shelf-a, t: 67, x: 240}
+    - {piece: reef-root-a, t: 66.79, x: 300}
+    - {piece: reef-growth-b, t: 67.06, x: 30}
+    - {piece: reef-growth-a, t: 66.96, x: 70}
+    - {piece: reef-growth-a, t: 67.03, x: 185}
+    - {piece: reef-growth-a, t: 66.93, x: 410}
+    - {piece: reef-growth-b, t: 67.04, x: 442}
+    - {piece: reef-shelf-b, t: 74, x: 240}
+    - {piece: reef-root-a, t: 74.24, x: 80}
+    - {piece: reef-growth-c, t: 73.96, x: 20}
+    - {piece: reef-growth-a, t: 74.03, x: 60}
+    - {piece: reef-growth-c, t: 73.93, x: 296}
+    - {piece: reef-growth-a, t: 74.04, x: 420}
+    - {piece: reef-growth-c, t: 73.98, x: 458}
+    - {piece: reef-shelf-a, t: 81, x: 240}
+    - {piece: reef-root-a, t: 81.26, x: 410}
+    - {piece: reef-growth-b, t: 81.03, x: 36}
+    - {piece: reef-growth-c, t: 80.93, x: 74}
+    - {piece: reef-growth-c, t: 81.04, x: 185}
+    - {piece: reef-growth-c, t: 80.98, x: 296}
+    - {piece: reef-growth-b, t: 81.06, x: 444}
+    - {piece: reef-shelf-b, t: 88, x: 240}
+    - {piece: reef-root-a, t: 88.19, x: 186}
+    - {piece: reef-growth-a, t: 87.93, x: 24}
+    - {piece: reef-growth-b, t: 88.04, x: 60}
+    - {piece: reef-growth-a, t: 87.98, x: 296}
+    - {piece: reef-growth-b, t: 88.06, x: 420}
+    - {piece: reef-growth-a, t: 87.96, x: 462}
+    - {piece: reef-shelf-a, t: 96, x: 240}
+    - {piece: reef-root-a, t: 95.79, x: 296}
+    - {piece: reef-growth-c, t: 96.04, x: 28}
+    - {piece: reef-growth-b, t: 95.98, x: 64}
+    - {piece: reef-growth-c, t: 96.06, x: 185}
+    - {piece: reef-growth-b, t: 95.96, x: 432}
+    - {piece: reef-growth-c, t: 96.03, x: 468}
+    - {piece: reef-shelf-b, t: 102.5, x: 240}
+    - {piece: reef-root-a, t: 102.31, x: 186}
+    - {piece: reef-growth-a, t: 102.48, x: 40}
+    - {piece: reef-growth-c, t: 102.56, x: 76}
+    - {piece: reef-growth-a, t: 102.46, x: 185}
+    - {piece: reef-growth-c, t: 102.53, x: 406}
+    - {piece: reef-growth-a, t: 102.43, x: 450}
+    - {piece: reef-shelf-a, t: 108, x: 240}
+    - {piece: reef-growth-b, t: 108.06, x: 30}
+    - {piece: reef-growth-a, t: 107.96, x: 70}
+    - {piece: reef-growth-a, t: 108.03, x: 296}
+    - {piece: reef-growth-b, t: 107.93, x: 446}
+    - {piece: reef-growth-a, t: 108.04, x: 412}
+    # 4. Tiamat Approach: the burning freighter at the right edge, its oil and smoke, flotsam; containers and the last raft nest are the level's ground targets
+    - {piece: oil-slick, t: 126.93, x: 404}
+    - {piece: flotsam-a, t: 114, x: 50}
+    - {piece: lifeboat, t: 119.5, x: 296}
+    - {piece: flotsam-b, t: 124, x: 186}
+    - {piece: flotsam-a, t: 134.5, x: 60}
+    - {piece: flotsam-b, t: 139, x: 436}
+    - {piece: lifeboat, t: 145.5, x: 185}
+    - {piece: flotsam-a, t: 150, x: 430}
+    - {piece: lifeboat, t: 153, x: 52}
+    - {piece: freighter-smoke, t: 127.31, x: 450}
+    - {piece: burning-freighter, t: 128, x: 432}
+    # 4-6. Platform Tiamat: at the halt its centre is at (240, 78) (ground position 22,930.83 px, the simulation's halt scroll + 462; t = the open-water speed's time to scroll 260.83 px past the data's scroll at the arena; round 33: 32 px higher, the Kraken's head off the deck's south edge)
+    - {piece: platform-tiamat, t: 162.863, x: 240}

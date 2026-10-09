@@ -1,7 +1,8 @@
 # Allies: the specs the game reads, one entry per ally slug; README.md's tables are hand-written for
 # now. Schema: ../tech/architecture/README.md#data-file-schemas
-# The civilian crawler (Level 04) and the evacuation shuttle (Level 10, M5 part D); the other allies
-# get theirs with the levels that use them.
+# The civilian crawler (Level 04), the evacuation shuttle (Level 10, M5 part D) and the naval convoy's
+# cargo ship and escort frigate (Level 11, M5 part E); the other allies get theirs with the levels that
+# use them.
 civilian-crawler:
   name: Civilian crawler
   layer: ground
@@ -32,3 +33,31 @@ evacuation-shuttle:       # Level 10 (M5 part D, user decisions D1, D2 and D4 of
   glide: 3                # s of the lost shuttle's glide into `far` (presentation)
   smoke_below: 0.5        # share of its HP
   first_level: 10         # its sprites go in Level 10's atlas until the level's data escorts it
+cargo-ship:               # Level 11's convoy (M5 part E, user decision E8 = a and the stated defaults of 2026-10-08)
+  name: Convoy cargo ship
+  layer: ground           # naval surface
+  size: [56, 120]         # sprite px: 56 wide, 120 long, bow up (fits one 120 px slam lane)
+  hitbox: [48, 112]       # its stations and lanes; nothing on the player's plane touches it
+  hp: 4                   # counts slams at medium: it survives three and sinks on the fourth (the level's easy: 5, hard: 2; tuned 2026-10-09 so an arm-first pilot keeps the convoy)
+  damaged_by:
+    objective_aimed: false
+    claws: 0
+    slams: 1              # the hits one boss slam in its lane deals; nothing else hurts it
+  follows: stations       # its screen-space station at the scroll speed, its arena lane at the halt (a level's convoy block)
+  headings: {count: 1, step: 10}   # always bow up
+  smoke_below: 0.85       # share of its HP: it smokes and lists from its first hit (easy's 4 of 5 too)
+  first_level: 11         # its sprites go in Level 11's atlas until the level's data sails it
+escort-frigate:           # Level 11's CDFS Ruyter (M5 part E)
+  name: Escort frigate
+  layer: ground           # naval surface
+  size: [40, 110]         # sprite px, bow up
+  hitbox: [32, 102]
+  hp: 1                   # never used: its damaged_by names nothing, so it cannot be damaged and is never lost
+  damaged_by:
+    objective_aimed: false
+    claws: 0
+  follows: stations       # leaves the arena off the bottom edge at the halt and returns after the boss (the level's leaves: true)
+  headings: {count: 1, step: 10}
+  smoke_below: 0.5
+  flak: {every: 2.0}      # presentation: a burst on low-air over the convoy every 2 s while it is on its station, hitting nothing
+  first_level: 11

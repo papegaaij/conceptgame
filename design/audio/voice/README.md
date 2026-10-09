@@ -4,7 +4,7 @@ design: draft
 implementation: in-progress
 art: chosen
 depends-on: [.., ../../story/characters, ../../ui/hud, ../../ui/options, ../../tech/architecture]
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
 # Voice
@@ -23,7 +23,7 @@ speaker's stage sound instead. The engine and the radio filter were chosen in co
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [refs](refs/README.md) | Reference clips the voices are cloned from: LibriVox readings, public domain or CC0 | draft | done | chosen |
+| [refs](refs/README.md) | Reference clips the voices are cloned from: LibriVox readings, public domain or CC0 | draft | in-progress | chosen |
 
 ## Design
 
@@ -177,6 +177,18 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
   *Offline pipeline*). Both were cast in that round (user, 2026-10-08): Lifeline is KevinS (b, clip
   pitch 138 Hz), Lifeline Three Maria Kasper (b, 215 Hz), at the neutral settings through radio
   filter b, as auditioned; their lines are voiced.
+  Level 11 adds **Atlas Control** (user decision E10 = a of M5 part E; speaker `Atlas Control`: the
+  CDF officer of convoy Atlas-Seven; the radio portrait `radio-generic-cdf`), auditioned a/b in
+  concept [round 33](../../concept-rounds/round-33/README.md) as the Kilo Lead and Lifeline were: real lines with two new candidate readers from
+  the same CC0 and public-domain sources, never a main-cast reader nor a voice already cast, through
+  radio filter b at the neutral settings (`tools/concept/audio/tts_r33.py`), marked `uncast: true`
+  in the speaker table until the round picks. The candidates: a, Alister (a male voice, clip pitch
+  106 Hz, below the Kilo Lead's 129 Hz so the two CDF officers differ), and b, MaryAnn (a female
+  voice, 174 Hz, between Dock's 167 Hz and Varga's 193 Hz). Its lines: three timed calls (t=1, t=62.5, t=110), the
+  ship-hit and ship-lost lines once per ship name (`{ally}` becomes a naval convoy unit's name,
+  Halvorsen, Mbeki or Saint-Laurent: three takes each) and the secondary objective's thanks, about
+  ten takes. Cast in round 33 (2026-10-09): Atlas Control is MaryAnn (b), at the neutral settings
+  through radio filter b, as auditioned; her ten takes are voiced.
 
 ### Speakers and expression
 
@@ -310,6 +322,16 @@ level).
       round 32; the Lifeline speakers' after their casting (M5 part D; the cast speakers' rendered
       2026-10-08, 22 lines, four takes pinned; the Lifeline speakers' eight lines rendered
       2026-10-08, five takes pinned)
+- [x] Atlas Control (Level 11): reference clips for the round-33 audition under `refs/` and in
+      CREDITS.md, the chosen reader in the speaker table (M5 part E, E10 = a; steps E1a and E4; b,
+      MaryAnn, `refs/ref-atlas-control.wav`)
+- [x] `{ally}` as a naval convoy unit's name in the line list (one take per cargo ship name;
+      `VoiceLines.radio`, `NavalConvoyLinesTest`; the escort frigate takes no lane, is never hit or
+      lost and has none) (M5 part E, steps E2b and E4)
+- [x] Level 11's lines (radio, the briefing pages, the pod's line, the level-end lines) rendered and
+      reviewed in concept [round 33](../../concept-rounds/round-33/README.md); Atlas Control's after the casting (M5 part E, step E4; the cast
+      speakers' rendered 2026-10-09, 15 lines, three takes pinned, accepted as rendered when round
+      33 closed; Atlas Control's ten takes rendered 2026-10-09 at the close, no pins needed)
 - [x] A line that is only a stage direction plays its speaker's `stage` sound (speaker table) on
       the voice bus, found by `VoiceLines.radioVoice` for the game and RadioTimelineTest; the
       Choir's is round 29's option b (the sung "ah" F3 to E3), copied by
@@ -380,6 +402,20 @@ clips renamed `refs/ref-lifeline.wav` and `refs/ref-lifeline-three.wav`); the a 
 | [concept/voice-lifeline-r32-b.ogg](concept/voice-lifeline-r32-b.ogg) | Lifeline (round 32 audition), reader KevinS (`tools/concept/audio/tts_r32.py`) | chosen |
 | [concept/rejected/voice-lifeline-three-r32-a.ogg](concept/rejected/voice-lifeline-three-r32-a.ogg) | Lifeline Three (round 32 audition; the line cut off by the lance), reader Kehinde (`tools/concept/audio/tts_r32.py`) | rejected |
 | [concept/voice-lifeline-three-r32-b.ogg](concept/voice-lifeline-three-r32-b.ogg) | Lifeline Three (round 32 audition; the line cut off by the lance), reader Maria Kasper (`tools/concept/audio/tts_r32.py`) | chosen |
+
+Concept [round 33](../../concept-rounds/round-33/README.md) (M5 part E, user decision E10 = a) — casting Level 11's Atlas Control, the CDF
+officer of convoy Atlas-Seven: three of its lines (the t=1 call, the `ally-hit` line with `{ally}` =
+Halvorsen and the t=62.5 sonar contact, 1 s apart) with two candidate reference voices, a male (a)
+and a female (b), rendered by Chatterbox at the neutral settings through radio filter b
+(`tools/concept/audio/tts_r33.py`; the readers and pitches in
+[concept/prompts.md](concept/prompts.md#voice-atlas-control)). Closed 2026-10-09: **b** chosen (MaryAnn,
+the clip renamed `refs/ref-atlas-control.wav`); the a audition in `concept/rejected/`, its clip
+deleted.
+
+| File | What | Status |
+|---|---|---|
+| [concept/rejected/voice-atlas-control-r33-a.ogg](concept/rejected/voice-atlas-control-r33-a.ogg) | Atlas Control ([round 33](../../concept-rounds/round-33/README.md) audition), reader Alister (`tools/concept/audio/tts_r33.py`) | rejected |
+| [concept/voice-atlas-control-r33-b.ogg](concept/voice-atlas-control-r33-b.ogg) | Atlas Control ([round 33](../../concept-rounds/round-33/README.md) audition), reader MaryAnn (`tools/concept/audio/tts_r33.py`) | chosen |
 
 Concept [round 29](../../concept-rounds/round-29/README.md) — the sound of the Choir's stage
 direction `[the Choir sings]`: a wordless sung sting in the Choir's voice (a, b) or a synthesized
@@ -645,3 +681,50 @@ a, c and d in `concept/rejected/`.
   hit line reads "Lifeline. Free." through the filter (raw: "Three"), left as it never plays.
   `AUDITIONING` is empty again; RadioTimelineTest passes with the real lengths (no voiced timed
   line of Level 10 starts more than a second late). Measured only, not listened to.
+- 2026-10-08: M5 part E (user decision E10 = a of 2026-10-08): Level 11's CDF convoy officer, speaker
+  `Atlas Control`, gets an audition of two new public-domain or CC0 readers (a/b) in concept [round 33](../../concept-rounds/round-33/README.md),
+  as the Kilo Lead and Lifeline did; rejected: b (reusing an Act 1 secondary voice, Convoy or Yard
+  Control: one voice in two roles, against round 19's "every role its own voice") and c (cast
+  directly: a re-render if disliked). Stated default: `{ally}` in a naval convoy's lines becomes the
+  ship's name, three takes per line.
+- 2026-10-08: [Round 33](../../concept-rounds/round-33/README.md) candidates for Atlas Control (M5 part E, step E1a): a Alister (Sea-Power in the
+  Pacific, Bywater; clip pitch 106 Hz) and b MaryAnn (Eighteen Months in the War Zone, Finzi;
+  174 Hz), a male and a female voice, both new and Public Domain Mark 1.0; `atlas-control` added to
+  the speaker table as `uncast: true` (no Level 11 data yet, so VoiceFilesTest is unchanged). Three
+  of its lines rendered per candidate (`tools/concept/audio/tts_r33.py`, details in
+  [concept/prompts.md](concept/prompts.md#voice-atlas-control)). Measured only, not listened to.
+- 2026-10-09: M5 part E (step E4): Level 11's lines of the cast speakers rendered by
+  `tools/art/voice.py`'s pipeline (only the missing lines, nothing deleted), 15 lines: Okafor 4
+  (briefing page 1, `first-telegraph`, the two level-end lines), Varga 7 (briefing page 2, the
+  t=21.5, 34, 70.5 and 146.5 lines, `boss-destroyed`, the sunken pod's secret) and Rook 4 (t=14, 55,
+  158 and `boss-part-destroyed`); the Choir's `[the Choir sings]` plays its stage sound; the hangar
+  teaser and the intel lines are not voiced, as in Levels 08 to 10. **Atlas Control's** five lines
+  (t=1, t=62.5, t=110, `secondary-objective` and the `ally-hit` and `ally-lost` lines once per
+  ship name) stay text until [round 33](../../concept-rounds/round-33/README.md) casts him: `VoiceLines` now expands `{ally}` in a naval
+  convoy's lines to the three cargo ships' names (Halvorsen, Mbeki, Saint-Laurent), six takes in
+  all, not number words (`NavalConvoyLinesTest` runs it with Atlas Control cast); `Atlas Control`
+  is in VoiceFilesTest's `AUDITIONING` and Level 11 in its `RENDERED`; RadioTimelineTest covers
+  Level 11 (seven runs, with and without Rook, all three difficulties): no voiced timed line
+  starts more than a second late. Whisper (base.en) read each take back through the filter and
+  librosa pyin measured its pitch: three takes re-rolled (four seeds each) and pinned in the speaker
+  table: Rook's `boss-part-destroyed` line and t=55 line (the key's seeds jumped an octave, to about
+  500 Hz, on their first words) and Okafor's end line "Atlas-Seven is through…" (the key's seed read
+  "Good work, ages" without a name prompt; the pin still does, "Aegis" reads right with a prompt:
+  a listening point). Other readings: "Vrell" reads "Vrel" and "ceded" for "seeded" in Varga's
+  briefing page, "Tiamat" reads "Tiamat" in Okafor's; "Atlas-Seven" reads "Atlas, seven" or
+  "Atlas 7". For the user's ear: the names Saint-Laurent, Halvorsen and Mbeki (Atlas Control's
+  takes, after the casting), Tiamat (Okafor's briefing page), Vrell (Varga's), "Atlas-Seven" and
+  "Aegis" (Okafor's level-end lines).
+- 2026-10-09: Concept round 33 decided (user) for Atlas Control, **b**: MaryAnn (clip pitch 174
+  Hz), at the neutral settings through radio filter b, as auditioned; her clip renamed
+  `refs/ref-atlas-control.wav`, `uncast` replaced by the `ref` in the speaker table and `Atlas
+  Control` taken out of VoiceFilesTest's `AUDITIONING`. Alister (a) rejected: his audition moved to
+  `concept/rejected/`, his clip deleted with its CREDITS.md row. Her ten takes rendered by
+  `tools/art/voice.py` (only the missing lines, nothing deleted): t=1 (6.7 s), t=62.5 (4.2 s),
+  t=110 (4.6 s), the `ally-hit` and `ally-lost` lines once per ship name (3.1–4.2 s) and the
+  `secondary-objective` thanks (3.7 s). Whisper (base.en) read every take back whole with a name
+  prompt (without one: "Halbertson", "St. Laurent", "router" for Ruyter, "halls" for "hulls"); librosa
+  pyin on the filtered files read five takes an octave high on single words, but the raw takes of
+  the same seeds measured 140–255 Hz throughout (the radio filter's band limit and crackle fool the
+  pitch tracker), so no pin was needed. For the user's ear: "hulls" (it may sound like "halls") and
+  the three ship names. The cast speakers' 15 lines were accepted as rendered (round 33, user).

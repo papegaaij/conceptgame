@@ -167,6 +167,12 @@ final in concept round 31), in the same method as "Homefront":
 - **Level 09** plays the base stem from the launch, the full mix during each hold and from the
   collapse (`full_on: [hold, collapse]`), over the megacity ambience; the game's track map gets
   track 7 → `firestorm` (`firestorm-base` by the stem rule).
+- **Level 11** (planned, M5 part E, stated defaults): the ocean ambience alone in section 1, the
+  base stem from section 2 and the full mix from section 4 (the Tiamat approach), over the ocean
+  ambience from t=0; the **mini-boss sting** (track 21) at the arena halt, when the Kraken's bar
+  appears (an anchored boss arrives at the halt; the level's draft said "when the Kraken surfaces",
+  which read as "shows itself"), then the theme with the full mix, as at Level 05's frigate. No new
+  music file and no new music key: the level's `music` block.
 
 ## Concept art
 
@@ -484,3 +490,8 @@ chosen `act2-b-theme-r08-a` byte for byte); `SOURCE` comment; both get Afterburn
   The duck's target is the lower of the radio's −4 dB and the event's −6 dB while its 3 s run, and
   the level glides to it at the radio duck's rate (no click); the crossfade is linear over its 4 s.
   Our reading, for review: a restart goes back to the level's first ambience at once (no crossfade).
+- 2026-10-08: M5 part E (stated defaults of 2026-10-08): Level 11 plays "Firestorm" (base stem from
+  section 2, full mix from section 4) over the ocean ambience, with the mini-boss sting at the arena
+  halt as the other mid-bosses (the sting rule: a mid-boss's sting plays when its bar appears; the
+  level draft's "when the Kraken surfaces" reworded); no new music file. The implementation stays
+  `done`: the level's data uses the existing keys.

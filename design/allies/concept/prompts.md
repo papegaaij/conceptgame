@@ -101,3 +101,53 @@ top-left, crisp palette-limited pixel edges`.
 
 Outcome (user, 2026-10-08): **rejected** in round 32 (a picked), moved to `rejected/` (the heading keeps the file's name).
 
+
+## convoy-ships-r33-a
+
+Round 33 proposal A, **"Atlantic line"**, the convoy's ship pair at production quality (M5 part E
+batch, user decision E9 = a: the cargo ship and the frigate had no concept of their own, only the
+models of the chosen ocean scene `scene-ocean-r10-a`, so the pair is proposed as two finished sets;
+A is in the game until the pick). Sheet and loop by `python3 tools/art/convoy_ships.py` (see
+`tools/art/README.md`), SDF models in the script and `tools/concept/render/r08_models.py` (the
+scene's frigate and materials), 1 model unit = 1 px, rendered at 4× through a mild perspective
+camera with the water surface at the hull's waterline (what sinks below it is pre-rendered through
+the water: toward the water colour, darker, stepped translucency); collars, wakes and the sinking's
+foam use the ocean scene's loop-safe streams and collars (`tools/concept/scenes_r08.py`, through
+`tools/art/water_fx.py`).
+Prompt: `late 1990s pre-rendered CGI game sprites, strict top-down view, bow up the screen, on a
+slate-grey overcast Atlantic: a stubby UTC feeder container ship with a dark navy hull, five bays of
+muted red, blue, olive, sand and grey containers stacked one to three high, a white bridge block aft
+with lit windows and a red funnel, a mast light on the forecastle; beside it a grey CDF escort
+frigate with a bow gun, missile cells, a superstructure with a white radar dome and a helipad aft;
+broken white foam collars along both hulls, bow waves peeling off down their sides and a long
+churned prop-wash trail, glossy highlights from a point light at the top-left, crisp
+palette-limited pixel edges`.
+Frames: `cargo-ship_0` (56×120, afloat), `cargo-ship-damaged_0` (listing 12°, scorched, two stacks
+gone, a breach), `-fire_0..3` (12×12 additive), `-collar_0..3` (68×132), `-wake_0..15` (88×208),
+`-sink_0..9` (72×136: listing to 32°, down by the stern, settling through the surface, lights dead,
+a foam ring, bubbles and flotsam), `-pip` (8×18); `escort-frigate_0` (40×110), `-collar_0..3`
+(52×122), `-wake_0..15` (72×200), `-muzzle_0..2` (8×8 additive), `-flak_0..7` (24×24 on low-air);
+`pivots/cargo-ship.json`, `pivots/escort-frigate.json`. The loop: the convoy at Level 11's stations
+on the ocean stand-in scrolling at 140 px/s, the frigate's flak overhead, Mbeki takes a slam (the
+water explosion's large rung), lists, burns and smokes (`ship-smoke` puffs), takes the second slam
+and sinks in its foam ring.
+
+Outcome (user, 2026-10-09): **chosen** in round 33; already the game's frames, approved as final.
+
+## convoy-ships-r33-b
+
+Round 33 proposal B, **"Reactor run"**, the same frame sets and loop from the same script (its
+frames live only in this sheet and loop until it is picked; `python3 tools/art/convoy_ships.py
+--variant b` then writes them under the game's names).
+Prompt: `late 1990s pre-rendered CGI game sprites, strict top-down view, bow up the screen, on a
+slate-grey overcast Atlantic: a UTC heavy-lift carrier with a rust-red hull and its white bridge
+forward, two long grey reactor-vessel segments and a white reactor dome in yellow-and-black
+hazard-striped cradles with small teal status lights, a yellow deck crane, twin funnels aft; beside
+it a CDF stealth trimaran frigate in dark slate: a slim faceted main hull on two outriggers, a wide
+aft deck with a helipad, a faceted gun and missile cells forward, an integrated pyramid mast, a
+CDF-blue stripe down the foredeck; broken white foam collars, bow waves and long churned prop-wash,
+glossy highlights from a point light at the top-left, crisp palette-limited pixel edges`.
+Differences from A: the bridge forward instead of aft, reactor cargo instead of containers (the
+convoy's story cargo), a warmer hull; the frigate a trimaran with a wider, flatter silhouette. When
+damaged its crane topples instead of losing container stacks.
+Outcome (user, 2026-10-09): **rejected** in round 33 (a picked), moved to `rejected/` (the heading keeps the file's name).

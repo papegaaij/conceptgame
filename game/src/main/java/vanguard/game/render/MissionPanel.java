@@ -31,7 +31,9 @@ import vanguard.sim.Sortie;
  * for the secondary objective and the level progress, each in its region of the
  * {@link MissionLayout}; text is cut off at the end of its well rather than run over it. A level
  * with a convoy (an escort primary objective) has a two-line tracker: the convoy's pips over the
- * secondary objective, in a well that takes a line from the control prompts'.
+ * secondary objective, in a well that takes a line from the control prompts'. M5 part E: a naval
+ * convoy outside the objectives (Level 11) has a one-line tracker for its afloat secondary,
+ * {@code CONVOY} with a pip per cargo ship ({@link #drawConvoyTracker}).
  */
 final class MissionPanel {
     private static final int X = HudKit.INSET;
@@ -141,9 +143,20 @@ final class MissionPanel {
                 String pip = escort.ally().slug() + "-pip";
                 allyPip = sprites.has(pip) ? sprites.region(pip) : null;
             });
+            if (sortie.navalConvoy()) {
+                alliesLabel =
+                        secondary.label().isEmpty() ? CONVOY : secondary.label().toUpperCase(Locale.ROOT);
+                for (int k = 0; k < sortie.allyCount() && allyPip == null; k++) {
+                    String pip = sortie.allySpec(k).slug() + "-pip";
+                    if (sortie.allySpec(k).damageable() && sprites.has(pip)) {
+                        allyPip = sprites.region(pip);
+                    }
+                }
+            }
         }
         boolean targets = !sortie.script().targets().isEmpty();
-        boolean two = sortie.allyCount() > 0 || targets;
+        boolean naval = sortie.navalConvoy();
+        boolean two = (sortie.allyCount() > 0 && !naval) || targets;
         kit.leftPanel(batch);
         int top = MissionLayout.MISSION.yTop();
         plate(batch, mission, top);
@@ -157,6 +170,8 @@ final class MissionPanel {
         drawPrompts(batch, prompts, two);
         if (targets) {
             drawTargetsTracker(batch, sortie);
+        } else if (naval) {
+            drawConvoyTracker(batch, sortie);
         } else if (sortie.airEscort()) {
             drawShuttleTracker(batch, sortie);
         } else if (two) {
@@ -409,6 +424,106 @@ final class MissionPanel {
             boolean flash = k != scripted && since < FLASH_FRAMES && since / 8 % 2 == 0;
             kit.bar(batch, LOST, ALLY_DARK, left, bottom, ALLY_BAR_WIDTH, ALLY_BAR_HEIGHT, flash ? 1 : 0);
         }
+    }
+
+    /** M5 part E: the naval convoy tracker's label without one of its own. */
+    static final String CONVOY = "CONVOY";
+
+    /**
+     * M5 part E, the naval convoy's one-line tracker (design/ui/hud, Level 11; the stated default of
+     * 2026-10-08): {@code CONVOY} and a pip per cargo ship in order (green; amber after its first
+     * slam; white for a moment on a hit; a red flash, then dark, when it sinks), the line flashing
+     * green when the afloat secondary is met and red when it fails; {@code DONE} once met, {@code
+     * FAILED} once failed and the boss is down (the pips show until then).
+     */
+    private void drawConvoyTracker(SpriteBatch batch, Sortie sortie) {
+        int wellTop = well(batch, MissionLayout.OBJECTIVE.yTop(), WELL);
+        boolean met = sortie.secondaryMet();
+        boolean failed = sortie.afloatFailed();
+        if (met && metFrame < 0) {
+            metFrame = frame;
+        } else if (!met) {
+            metFrame = -1;
+        }
+        if (failed && failedFrame < 0) {
+            failedFrame = frame;
+        } else if (!failed) {
+            failedFrame = -1;
+        }
+        boolean flash = metFrame >= 0 && frame - metFrame < FLASH_FRAMES && (frame - metFrame) / 8 % 2 == 0;
+        boolean failFlash =
+                failedFrame >= 0 && frame - failedFrame < FLASH_FRAMES && (frame - failedFrame) / 8 % 2 == 0;
+        if (flash || failFlash) {
+            kit.fill(batch, flash ? SUCCESS : LOST, X, wellTop - WELL, WIDTH, WELL);
+        }
+        Color colour = flash || failFlash ? HudKit.LCD : met ? SUCCESS : failed ? LOST : HudKit.LABEL;
+        int y = wellTop - TEXT_DROP;
+        kit.text(batch, kit.body, alliesLabel, colour, X + PAD, y, TEXT_WIDTH);
+        String status = convoyStatus(met, failed, bossDown(sortie));
+        if (status != null) {
+            kit.textRight(batch, kit.body, status, colour, X + PAD, y, TEXT_WIDTH);
+            return;
+        }
+        int count = sortie.damageableAllies();
+        if (allyLost.length != sortie.allyCount()) {
+            allyLost = new int[sortie.allyCount()];
+            Arrays.fill(allyLost, -1);
+        }
+        int pipWidth = allyPip != null ? allyPip.getRegionWidth() : ALLY_PIP_WIDTH;
+        int pipX = X + PAD + TEXT_WIDTH - count * ALLY_PIP_STEP + ALLY_PIP_STEP - pipWidth;
+        int shown = 0;
+        for (int k = 0; k < sortie.allyCount() && shown < count; k++) {
+            if (!sortie.allySpec(k).damageable()) {
+                continue;
+            }
+            Ally ally = sortie.ally(k);
+            if (!ally.lost()) {
+                allyLost[k] = -1;
+            } else if (allyLost[k] < 0) {
+                allyLost[k] = frame;
+            }
+            Color pip = convoyPip(
+                    ally.lost(), ally.ticksSinceHit() < ALLY_HIT_TICKS, ally.hitsTaken() > 0, frame - allyLost[k]);
+            int left = pipX + shown * ALLY_PIP_STEP;
+            int bottom = y - LINE + 3;
+            if (allyPip != null) {
+                batch.setColor(pip);
+                batch.draw(allyPip, left, bottom);
+                batch.setColor(Color.WHITE);
+            } else {
+                kit.fill(batch, pip, left, bottom, ALLY_PIP_WIDTH, LINE);
+            }
+            shown++;
+        }
+    }
+
+    /**
+     * A cargo ship's pip: sunk, a red flash then dark ({@code sinceLost} frames after); a hit white;
+     * amber once it took a slam; else green.
+     */
+    static Color convoyPip(boolean lost, boolean hit, boolean damaged, int sinceLost) {
+        if (lost) {
+            return sinceLost < FLASH_FRAMES && sinceLost / 8 % 2 == 0 ? LOST : ALLY_DARK;
+        }
+        return hit ? Color.WHITE : damaged ? HudKit.AMBER : SUCCESS;
+    }
+
+    /** The convoy tracker's word instead of its pips: {@code DONE} once met, {@code FAILED} once failed with the boss down; null for the pips. */
+    static String convoyStatus(boolean met, boolean failed, boolean bossDown) {
+        if (met) {
+            return "DONE";
+        }
+        return failed && bossDown ? "FAILED" : null;
+    }
+
+    /** Whether the level's arena boss is down (the convoy's secondary is decided then). */
+    private static boolean bossDown(Sortie sortie) {
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            if (sortie.setPiece(k).arena().isPresent() && sortie.setPiece(k).destroyed()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** A flying (or home) unit's bar colour: home pale mint, white on a hit, amber below half, else green. */

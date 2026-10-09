@@ -1179,3 +1179,113 @@ under the stab; stab cut to 0.65 s from 1.62 s (its third take), 90 Hz high-pass
 entering at 1.2 s; thump 0.6 s, 4 dB under the stab. 1.84 s, levelled to −17 dB, ceiling −1.5 dBFS
 (peak −3.0 dBFS, band −17.2 dB, −15.5 LUFS); 57 % of the energy in 200 Hz–5 kHz, 34 % below. The
 whistle rises from −47 to −19 dBFS, the impact −14 at 1.4 s, gone by 1.75 s.
+
+## Round 33 — Level 11's Kraken, convoy ships, flak and jelly
+
+Brief (M5 part E, step E3d; one proposal each, no a/b): the sounds of Level 11 "Atlantic Convoy"
+that the chosen torpedo launch (`shot-torpedo-r03-a`), the water explosion (`explosion-water-r03-a`)
+and the ocean ambience (`ambience-ocean-r08-a`, from t = 0) do not cover. All from
+`tools/concept/audio/sfx_r33.py`, deterministic; recorded layers are cut from the **Freesound
+originals** (cached by `tools/concept/audio/freesound_fetch.py --download`) and every one is CC0, so
+nothing needs the credits roll. Found with the Freesound API's text search ("big splash", "water
+slam", "tentacle", "wave crash", "ship sinking", "hull creak", "bubbles", "distant explosion",
+"underwater rumble", "rising water", "metal impact", "sea monster roar") filtered to CC0 and CC-BY,
+sorted by rating, judged by name, rating and the envelope of the HQ preview. Rejected sources: the
+CC-BY "Underwater Rumble" (EminYILDIRIM) and "UnderWater_ExplosionFar" (Akkaittou), replaced by
+synthesized swells and thumps to keep every layer CC0. Levels as the loudest 100 ms of the
+200 Hz–5 kHz band against the existing set (the script's header). Not listened to by Claude: checked
+by envelopes, band balance and levels only. The offset is the event's moment inside the file.
+
+Outcome (user, 2026-10-09): all eight accepted: the slam, surfacing, ship hit and jelly pulse as first
+made; the churn, the death and the sinking reworked without bubbles (the churn and the sinking now
+with byjoshberry's CC-BY waves, already on the credits roll) and the flak raised twice (to −16 dB)
+after listening. The seven with a recorded layer are written into `assets/sfx/` by
+`tools/art/sfx_originals.py` with sfx_r33.py's `PRODUCTION` (the same cuts, with a `SOURCE`
+comment); the synthesized pulse is copied as it is.
+
+### kraken-slam-r33-a — "Big robot footstep 002" by AudioPapkin + "Big Splash" by Bird_man + synthesis
+Source: <https://freesound.org/people/AudioPapkin/sounds/813053/> and
+<https://freesound.org/people/Bird_man/sounds/316744/> — CC0 1.0. Use: a slam arm hitting its lane.
+Why: A heavy robot step (5 stars, 11 ratings) is a thud with a metallic body, the arm's mass on the water,
+slowed 20 %; a big splash (4.8 stars from 37 ratings) lands with it; under them a synthesized sub
+thump (85 → 32 Hz) and, before, a rising rush (bandpassed noise 300 → 2200 Hz) for the arm rising
+out of the water; after, a synthesized spray tail falling 3.2 → 0.7 kHz over 1.5 s.
+Edit: **impact at 0.5 s** (`SLAM_IMPACT`, the arm's rise as a first value; start the file when the arm
+starts to rise). 2.20 s, levelled to −15 dB, ceiling −1.5 dBFS (peak −1.6 dBFS, band −15.4 dB,
+−14.2 LUFS); 56 % of the energy below 200 Hz. Loudest 0.5–1.1 s, gone by 1.9 s.
+
+### kraken-churn-r33-a — "Ocean waves hitting bow of moving boat" by byjoshberry + a synthesized rumble
+Source: <https://freesound.org/people/byjoshberry/sounds/435668/> — CC-BY 4.0 (already on the credits
+roll). Use: the lane telegraph's churn under the red dashes. Reworked after the user's listening
+("what's with the soap bubbles?"): no bubbles, no water jet.
+Why: Waves breaking against a bow are a rushing, surging lane of water; one take swelled from −14 dB
+to full over the telegraph, a second, slower wash (15 % slower, low-passed at 2.5 kHz, 3 dB under)
+adds weight, and a low synthesized rumble fills it.
+Edit: 1.00 s, ends at its peak so the slam's rush takes over (**hard: the telegraph is 0.8 s, so
+skip the first 0.2 s**); levelled to −24 dB, ceiling −6 dBFS (peak −9.9 dBFS, band −24.1 dB,
+−28.8 LUFS); 19 % below 200 Hz; the envelope climbs from −40 to −22 dBFS over the second.
+
+### kraken-surface-r33-a — "Coming up from underwater" by adviseme333 + synthesized swell
+Source: <https://freesound.org/people/adviseme333/sounds/679410/> — CC0 1.0. Use: the head surfacing
+(2.0 s, with each `SURFACE`).
+Why: A body rising out of the water (4.8 stars from 18 ratings): runs and pours, entering at 0.85 s
+as the crown nears the surface (the layer flips at the midpoint, 1.0 s). Under it a synthesized deep
+swell (noise low-passed 90 → 420 Hz under a 48 Hz sub rising a third) peaking at 1.1 s, and a whoosh
+for the foam.
+Edit: 2.75 s (the tail runs 0.75 s past the 2.0 s surfacing), levelled to −21 dB, ceiling −4 dBFS
+(peak −6.7 dBFS, band −21.0 dB, −23.6 LUFS); 74 % below 200 Hz. Rises from −45 to −17 dBFS at 1.1 s,
+then falls to −37 at the end (cut by the 20 ms fade).
+
+### ship-hit-r33-a — "Metal Shovel Impact" by Sadiquecat + "slightmetallicthud" by profoundsounds + "Splash_002" by jamesabels
+Source: <https://freesound.org/people/Sadiquecat/sounds/718749/>,
+<https://freesound.org/people/profoundsounds/sounds/686282/>,
+<https://freesound.org/people/jamesabels/sounds/166966/> — CC0 1.0. Use: a cargo ship taking a slam
+(the `ALLY_HIT` cue, at the impact).
+Why: Steel struck and ringing (5 stars, 21 ratings), slowed 15 % to hull size, a dull metallic thud
+(5 stars, 13 ratings) slowed 25 % for its body, a splash 60 ms later as the water rushes in, and a
+short synthesized sub thump (78 → 40 Hz).
+Edit: impact at 0 s; 0.94 s, levelled to −18 dB, ceiling −3 dBFS (peak −3.1 dBFS, band −18.3 dB,
+−20.7 LUFS); 39 % below 200 Hz. Starts at −16 dBFS (an impact), gone by 0.7 s.
+
+### ship-sink-r33-a — "…ship hull list2" by kyles + "Ocean waves hitting bow of moving boat" by byjoshberry + synthesis
+Source: <https://freesound.org/people/kyles/sounds/455757/> (CC0 1.0) and
+<https://freesound.org/people/byjoshberry/sounds/435668/> (CC-BY 4.0, already on the credits roll).
+Use: a ship sinking (its sinking steps, from the first). Reworked after the user's listening (water
+from wave sounds, no bubbles).
+Why: Old wood and metal groaning as a hull lists (4.7 stars), its loudest 3 s slowed 10 %; a
+synthesized muffled boom (70 → 28 Hz) 0.15 s in as the hull gives; the water from waves: a breaking
+swell (2.4 s, 10 % slower, from 0.7 s) and the wash rolling over the deck (1.6 s, 20 % slower, from
+1.8 s, 5 dB under the groan); a low synthesized rumble under all.
+Edit: 3.80 s, levelled to −20 dB, ceiling −3 dBFS (peak −4.9 dBFS, band −20.0 dB, −23.2 LUFS); 35 %
+below 200 Hz. The creaks are irregular (−18 to −40 dBFS).
+
+### frigate-flak-r33-a — "Distant Shot 4" and "Distant Shot 2" by HenKonen
+Source: <https://freesound.org/people/HenKonen/sounds/682122/> and
+<https://freesound.org/people/HenKonen/sounds/682120/> — CC0 1.0. Use: the frigate's flak burst (an
+`ALLY_FLAK` event every 2 s while it is on screen), an ambience layer.
+Why: Gunshots from far away: only a dull thump and a long roll-off reach the listener; low-passed at
+4 kHz, the first slowed 8 %, the second 10 % faster, 3 dB under it, panned apart; two pops 0.55 s
+apart, a battery firing, not a cue.
+Edit: 1.64 s, levelled to −16 dB, ceiling −2 dBFS (peak −2.1 dBFS, band −18.1 dB, −22.2 LUFS; the user found
+the first two versions, −33 and −24 dB, too quiet) — well above the ocean ambience (−28 dB band), as loud
+as a ship hit; 6 % below 200 Hz.
+
+### driftjelly-pulse-r33-a — synthesized
+Source: none (synthesized). Use: a Driftjelly's proximity ring as it is released (72–96 px), if
+the user wants one (the default reuses the enemy shot's small sound).
+Why: A soft underwater bloop: a sine falling 520 → 170 Hz with a quiet octave partial, a second, lower
+echo bloop 0.24 s later and a ripple of band noise (1.8 → 0.6 kHz): a pressure pulse, not a shot, so
+it does not read as a threat of its own; up to six rings can sound at once, hence the low level.
+Edit: 0.90 s, levelled to −24 dB, ceiling −8 dBFS (peak −18.3 dBFS, band −24.0 dB, −29.7 LUFS);
+97 % in 200 Hz–5 kHz. A pure tone is quieter than its band level suggests (−30 LUFS against the spawn
+sound's −24), hence −24 dB against the spawn's −27.
+
+### kraken-death-r33-a — "Sea Creature Roar" by Bikkit99 + "CO2 Water Jet" by unfa + a synthesized rumble
+Source: <https://freesound.org/people/Bikkit99/sounds/837799/>,
+<https://freesound.org/people/unfa/sounds/532492/> — CC0 1.0. Use: the Harbour Kraken's
+death, started with the `huge` water burst (which plays on top of it).
+Why: A sea creature's roar (4.7 stars from 60 ratings), its loudest stretch slowed 20 % into a huge
+animal's long groan; churning water (the jet, 6 dB under) around the sinking head (no bubbles, after the
+user's listening); a low synthesized rumble holding it together.
+Edit: 5.20 s, levelled to −17 dB, ceiling −3 dBFS (peak −3.4 dBFS, band −17.1 dB, −16.1 LUFS); 48 %
+below 200 Hz. A plateau at −16 dBFS from 0.5 to 3 s, then falling to −36 at 4.8 s.

@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: final
 depends-on: [../enemies, ../art-direction, ../ui/hud]
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
 # Allies
@@ -36,10 +36,11 @@ equipment, see [wingmen](../player/wingmen/README.md).
 - **No contact damage** to the player: the player can fly over or through every ally.
 - **Art**: the civilian crawler's art is final (rounds 16 and 17; see *Concept art*); the evacuation
   shuttle went straight to production as an a/b in concept round 32 (M5 part D, D10 = a; a, the
-  lifting body, picked and approved as final); the other
-  allies get concept art in a later round. The chosen ocean
-  scene ([scene-ocean-r10-a](../art-direction/concept/scene-ocean-r10-a.png)) already has the
-  container-ship and frigate models the convoy will reuse.
+  lifting body, picked and approved as final); the convoy's cargo ship and frigate go straight to
+  production as one ship pair, an a/b in concept round 33 (M5 part E, E9 = a), starting from the
+  container-ship and frigate models of the chosen ocean scene
+  ([scene-ocean-r10-a](../art-direction/concept/scene-ocean-r10-a.png)); the other allies get
+  concept art in a later round.
 
 ### Civilian crawler
 
@@ -74,27 +75,37 @@ table is hand-written), with the air escort's hits, banking and glide (M5 part D
 
 ### Convoy cargo ship
 
-UTC container ship (naval surface).
+UTC container ship (naval surface). Its numbers live in [data.yaml](data.yaml) (M5 part E, step
+E2b: `follows: stations`, `damaged_by.slams`, the
+[schemas](../tech/architecture/README.md#data-file-schemas)); the table is hand-written. The
+simulation sails it as a unit of a level's `convoy` block.
 
 | Property | Value |
 |---|---|
-| Size / layer | about 56×120 px bow-up, so it fits one 120 px slam lane (first draft); `ground` (naval surface), water rules apply |
-| HP | two hits: survives one boss slam (smoke, listing), sinks on the second |
-| Damaged by | Only the [Harbour Kraken](../enemies/bosses/harbour-kraken/README.md#behaviour)'s slams; no other enemy attacks it |
-| Behaviour | Steams at the scroll speed, so it holds station in the lower half of the screen while the sea streams past; holds a lane when the scroll halts |
-| Destroyed | Sinks with a foam ring; the frigate picks up the crew (radio) |
-| Levels | [L11 Atlantic Convoy](../campaign/act-2-homefront/level-11-atlantic-convoy/README.md) (*Halvorsen*, *Mbeki*, *Saint-Laurent*) |
+| Size / layer | about 56×120 px bow-up, so it fits one 120 px slam lane (first draft); `ground` (naval surface), water rules apply (bow wave, V-wake and prop-wash, a foam collar at the hull) |
+| HP | four hits: survives three boss slams (smoke and a list from the first), sinks on the fourth; the level sets the difficulty variants (Level 11's easy: five, hard: two). Tuned 2026-10-09 so a pilot who cuts the slam arms first keeps the convoy ([Level 11](../campaign/act-2-homefront/level-11-atlantic-convoy/README.md#boss--mid-boss)) |
+| Damaged by | Only the [Harbour Kraken](../enemies/bosses/harbour-kraken/README.md#behaviour)'s slams, one hit per slam in its lane; no other enemy attack, bullet or contact touches it (it lies below the player's plane) |
+| Behaviour | Holds a **screen-space station** set by the level at the scroll speed, so it stays put in the lower half of the screen while the sea streams past (no sway, wakes only); never reacts to threats. When the scroll halts at the arena it glides over ≈ 3 s to the lane the level gives it; after the boss it holds clear (in its lane, or at a hold point the level gives it) until the sea has scrolled the level's `hold_clear` (Level 11: Platform Tiamat's deck has passed), then glides back to its station (on the simulation's real steps) |
+| Destroyed | Lists and sinks in a foam ring (a presentation effect; the simulation marks it sunk at once); the radio names it; the frigate picks up the crew |
+| HUD | A pip in the level's one-line `CONVOY` tracker: green, amber after its first hit, a red flash then dark when sunk ([HUD](../ui/hud/README.md#left-panel-mission)) |
+| Levels | [L11 Atlantic Convoy](../campaign/act-2-homefront/level-11-atlantic-convoy/README.md) (*Halvorsen*, *Mbeki*, *Saint-Laurent*; stations, lanes and the secondary objective there) |
 
 ### Escort frigate
 
-CDF escort frigate (naval surface).
+CDF escort frigate (naval surface). Its numbers live in [data.yaml](data.yaml) (M5 part E, step
+E2b: `follows: stations`, no `damaged_by`, `flak`); the table is hand-written.
 
 | Property | Value |
 |---|---|
-| Size / layer | about 40×110 px (first draft); `ground` (naval surface) |
-| HP | none: it cannot be damaged |
-| Behaviour | Steams with the convoy; its flak bursts are a visual cue only (they hit nothing). Stays out of boss arenas |
+| Size / layer | about 40×110 px (first draft); `ground` (naval surface), water rules apply |
+| HP | none: nothing damages it, and it is never lost |
+| Behaviour | Holds its station with the convoy at the scroll speed; its **flak bursts** are presentation only (puffs on `low-air` over the convoy and a quiet distant flak sound, hitting nothing). Stays out of boss arenas: at the halt it drops back off the bottom edge over ≈ 3 s and returns to its station after the boss, once the convoy's hold is over |
 | Levels | [L11 Atlantic Convoy](../campaign/act-2-homefront/level-11-atlantic-convoy/README.md) (*CDFS Ruyter*) |
+
+**A naval convoy is not an escort** (M5 part E): the level gives it in a `convoy` block of its own,
+outside the objectives, so it never fails the mission; Level 11's secondary objective counts its
+cargo ships afloat. `{ally}` in a radio line becomes the unit's **name** (Halvorsen), where a
+crawler's or shuttle's becomes its number word. The boss checkpoint keeps each ship's state.
 
 ### Nansen Relay
 
@@ -131,6 +142,8 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
 | [concept/civilian-crawler-final-r17-a.gif](concept/civilian-crawler-final-r17-a.gif) | Production art, round 17: a column of five following a winding Luna road, each at the heading nearest the road's direction (motion) | chosen |
 | [concept/evacuation-shuttle-r32-a.png](concept/evacuation-shuttle-r32-a.png), [.gif](concept/evacuation-shuttle-r32-a.gif) | Evacuation shuttle a, "lifting body" (`tools/art/shuttle.py`, production quality, M5 part D, round 32): 64×40, five bank frames (−30…+30°), damaged, liftoff steps, the glide wreck, engine flames and flare, the HUD pip; in the game, approved as final | chosen |
 | [concept/rejected/evacuation-shuttle-r32-b.png](concept/rejected/evacuation-shuttle-r32-b.png), [.gif](concept/rejected/evacuation-shuttle-r32-b.gif) | Evacuation shuttle b, "heavy lifter" (`tools/art/shuttle.py --variant b`, production quality): the same set; review files only | rejected |
+| [concept/convoy-ships-r33-a.png](concept/convoy-ships-r33-a.png), [.gif](concept/convoy-ships-r33-a.gif) | Convoy ship pair a, "Atlantic line" (`tools/art/convoy_ships.py`, production quality, M5 part E, round 33): the ocean scene's feeder container ship (56×120: afloat, damaged and listing with its fire, 10 sinking steps through the surface, collar, wake, HUD pip) and grey CDF frigate (40×110: collar, wake, gun flash, flak burst); in the game until the pick | chosen |
+| [concept/rejected/convoy-ships-r33-b.png](concept/rejected/convoy-ships-r33-b.png), [.gif](concept/rejected/convoy-ships-r33-b.gif) | Convoy ship pair b, "Reactor run" (`tools/art/convoy_ships.py --variant b`, production quality): a rust-red heavy-lift carrier with its bridge forward and reactor cargo, and a CDF stealth trimaran frigate; the same sets; review files only | rejected |
 
 ## Implementation
 
@@ -141,14 +154,25 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
 - [x] Civilian crawler: follows the road curve with 7 headings; hit only by crawler-aimed shots and pass-through claws (10/s)
 - [x] Evacuation shuttle, simulation and data (M5 part D, Level 10; `vanguard.sim.Convoy` with `LevelScript.Air`, `ShuttleEscortTest`): an `air` escort holding stations in a band with the lane sway, no road (D1 = a); hit by every enemy bullet and `air` contact, once per contact, small rammers destroyed and paid (D2 = a); untouchable windows (the pads and the liftoff, the climb-out, a scripted loss: fire and contact pass through); lost units kept where they were lost; the keys `bullets`, `contact`, `banks` and `glide` read
 - [x] Evacuation shuttle, presentation (M5 part D, the game): the liftoff's scale, the banking frames, smoke below 50 %; the glide into `far` when lost; its armour bars in the tracker (D3 = a); production sprite (round 32's a)
-- [ ] Convoy cargo ship (two slams) and escort frigate (flak as a cue only); data and production sprites — **later: M5 part E** (Level 11)
+- [x] Convoy cargo ship and escort frigate, simulation and data (M5 part E, step E2b, Level 11;
+      `vanguard.sim.Convoy` with `LevelScript.Naval`, `NavalConvoyTest`):
+      `follows: stations` (screen-space stations at the scroll speed, the glide to the arena lanes
+      and back, the frigate's exit and return; the hold clear of the boss's platform before the way
+      back, `hold_clear` and `hold`, 2026-10-09); `damaged_by: slams` (one hit per slam in its lane,
+      four hits, the level's easy five and hard two, 2026-10-09); sunk ships kept for the secondary
+      and the boss checkpoint
+- [x] Convoy cargo ship and escort frigate, presentation (M5 part E, steps E1c and E3c): wakes,
+      smoke and listing after a hit, sinking in a foam ring; the frigate's flak as a cue only; the
+      HUD pips; production sprites (round 33's ship pair a/b, E9 = a; variant a under the game's
+      names until the pick) — `ConvoyLooks` (naval), `MissionPanel.drawConvoyTracker`,
+      `Level11LooksTest`, `PartEHudTest`
 - [ ] Nansen Relay: integrity, relay-aimed damage, dark when destroyed; data and production art — **later: M5 part G** (Level 13)
 - [ ] CDF supply drone (roster): arc and armour patch drop — **later: M5 part G** (Level 13) and **part H** (Level 14)
 
 ## Open questions
 
-- Sprites for the cargo ship, frigate and relay: a later concept round. The cargo ship and frigate
-  can reuse the ocean scene's models.
+- Sprites for the relay: a later concept round (the cargo ship and frigate are round 33's a/b,
+  M5 part E).
 
 ## Decisions
 
@@ -211,3 +235,45 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
   per overlap, a bullet passing an untouchable shuttle, a rammer paid, the full bank at 20 px/s, the
   wreck's 64 px slide and glide, `--invulnerable` keeping an air escort from failing) accepted as
   built, so `design: approved`; the shuttle's items are ticked, the rest wait for their M5 parts.
+- 2026-10-08: M5 part E (user decisions of 2026-10-08 for Level 11): **E9 = a** the cargo ship and
+  the frigate go straight to production as one ship pair, an a/b in concept round 33 (the ocean
+  scene's models as the start). Stated defaults: the naval convoy holds screen stations in the lower
+  half at the scroll speed (no sway, wakes only), nothing hurts it before the arena, the cargo ships
+  glide to their lanes over ≈ 3 s at the halt while the frigate drops back off the bottom edge and
+  returns after the boss; the frigate's flak is presentation only; only the Kraken's slams hurt a
+  cargo ship (one hit per slam, two hits, easy three in the level); a naval convoy is a level block
+  of its own, never the primary; ship names as `{ally}`; the boss checkpoint keeps the ships.
+  Our readings, for review in round 33: the ships' glide back to their stations after the boss;
+  the sinking a presentation effect (the simulation marks the ship sunk at once). `design` goes to
+  `review` for the convoy's spec; `implementation` stays `in-progress`.
+- 2026-10-08: M5 part E, step E2b (main-agent choices, first values for review in round 33): the
+  cargo ship's hit box 48×112 and the frigate's 32×102 (they only place the stations and lanes:
+  nothing on the player's plane touches a ship); the cargo ship smokes and lists from its first hit
+  (`smoke_below: 0.75`, so also after easy's first of three); the frigate's `hp: 1` is a placeholder
+  the key needs (nothing damages it); its flak bursts every 2 s while it holds its station (not
+  while it glides or is away), at a place above it over the convoy that follows from the bursts so
+  far (no random draw). A ship is in the lane its centre's x lies in, also while it glides; a sunk
+  ship stays a wreck where it sank and glides nowhere.
+- 2026-10-08: Presentation as built (M5 part E, step E3c; our reading, for review in round 33):
+  each hull bow up with its wake under it (16 frames at 20 fps) and its collar over it (9 steps a
+  frame), registered by `assets/pivots/<ally>.json`; the wakes fade with the scroll's speed, out
+  as the scroll halts at the arena and back as it resumes; a cargo ship that took a slam shows its
+  damaged (listing) frame with its deck fire and three smoke puffs from the pivots, a hit flashes it
+  white, a large water burst marks a slam on it and a sunk ship plays its ten sinking steps over 3 s
+  where it went down (scrolling with the sea), then is gone. The frigate's bow gun flashes with each
+  flak burst; the burst is a puff on low-air over the convoy.
+- 2026-10-09: The cargo ship takes **four** slams at medium (was two; Level 11's easy five, hard
+  two): with two, every slam the left arm lies awash in strikes Halvorsen's or Mbeki's lane, and no
+  pilot could cut it before they sank (measured with an arm-first autopilot; see
+  [Level 11](../campaign/act-2-homefront/level-11-atlantic-convoy/README.md#decisions)). Its
+  `smoke_below` is 0.85 so it still smokes from its first hit. A naval convoy **holds clear** after
+  the boss: the level's `hold_clear` (px of scroll) and a unit's optional `hold` point (the
+  [schemas](../tech/architecture/README.md#data-file-schemas)); Level 11's ships wait while Platform
+  Tiamat's deck scrolls through instead of gliding back under it.
+- 2026-10-09: Concept round 33 closed (user): the convoy ship pair **a** "Atlantic line" (the feeder
+  container ship and the grey CDF frigate, already in the game) approved as **final**, the weak spots
+  as they are (the muted cargo ship, the light list); b "Reactor run" rejected and moved to
+  `concept/rejected/`. The convoy's spec and our readings (the stations and glide, four slams at
+  medium, the hold clear of Tiamat with Mbeki off the bottom edge, the rafts on the flanks, the
+  frigate's flak as presentation) accepted as built, so `design: approved`; the convoy's items are
+  ticked, the rest wait for their M5 parts.

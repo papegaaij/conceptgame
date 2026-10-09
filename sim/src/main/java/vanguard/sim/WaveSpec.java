@@ -27,6 +27,7 @@ import java.util.Optional;
  *     (with its count)
  * @param tag M5 part C: the wave's tag (Level 09's {@code bridge}), which a secondary {@code escapes}
  *     objective may be scoped to; empty for none
+ * @param field M5 part E: a {@code field} wave's area (design/enemies/naval/driftjelly)
  */
 public record WaveSpec(
         double t,
@@ -44,10 +45,73 @@ public record WaveSpec(
         Optional<At> at,
         List<List<At>> paths,
         Optional<LoopBack> loopBack,
-        String tag) {
+        String tag,
+        Optional<Field> field) {
     public WaveSpec {
         carried = List.copyOf(carried);
         paths = paths.stream().map(List::copyOf).toList();
+        if (field.isPresent() != (formation == Formation.FIELD)) {
+            throw new IllegalArgumentException("a field wave has its area, other waves none");
+        }
+    }
+
+    /** A wave without M5 part E's field. */
+    public WaveSpec(
+            double t,
+            Formation formation,
+            EnemySpec enemy,
+            int count,
+            Entry entry,
+            Edge edge,
+            Optional<Double> holdSeconds,
+            Optional<Double> warningSeconds,
+            int breakGroup,
+            Optional<Double> speed,
+            Optional<Double> intervalSeconds,
+            List<Carried> carried,
+            Optional<At> at,
+            List<List<At>> paths,
+            Optional<LoopBack> loopBack,
+            String tag) {
+        this(
+                t,
+                formation,
+                enemy,
+                count,
+                entry,
+                edge,
+                holdSeconds,
+                warningSeconds,
+                breakGroup,
+                speed,
+                intervalSeconds,
+                carried,
+                at,
+                paths,
+                loopBack,
+                tag,
+                Optional.empty());
+    }
+
+    /**
+     * M5 part E, a {@code field} wave's area (design/enemies/naval/driftjelly; the stated default of
+     * 2026-10-08): {@code width} × {@code height} px centred on {@code x} px from the left edge, its
+     * leading (bottom) edge entering at the top edge at the wave's {@code t}; its units scattered in
+     * it by the level's seeded scatter at least {@code spacing} px apart, scrolling with the ground
+     * and drifting at the enemy's speed along the current, {@code currentRadians} from straight down
+     * (positive to the right).
+     */
+    public record Field(double x, double width, double height, double spacing, double currentRadians) {
+        public Field {
+            if (!(width > 0) || !(height > 0) || !(spacing > 0)) {
+                throw new IllegalArgumentException("a field has an area and a spacing");
+            }
+        }
+
+        /** The units a field holds at its spacing: whole cells of the spacing across and down. */
+        public int capacity() {
+            return (int) Math.floor(width / spacing) * (int) Math.floor(height / spacing);
+        }
     }
 
     /** A wave without a tag. */
@@ -236,7 +300,12 @@ public record WaveSpec(
          * (design/enemies/air/wraith): an {@link EnemySpec.Ambush} unit enters at the top and comes
          * back up from below.
          */
-        REAR_AMBUSH
+        REAR_AMBUSH,
+        /**
+         * M5 part E: units scattered over an area that enters with the sea and drifts on the wave's
+         * current (design/enemies/naval/driftjelly), a {@link Field}.
+         */
+        FIELD
     }
 
     /** The play-field edge a wave enters from. */

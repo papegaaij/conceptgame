@@ -49,6 +49,8 @@ import vanguard.sim.SimStep;
  *     high-air} (already at the high-air scale); empty for none
  * @param decloak M5 part D: its decloak flash, additive, {@value #DECLOAK_FRAME_TICKS} steps a
  *     frame from the decloak; empty for none
+ * @param naval M5 part E: how it meets the water ({@link NavalLooks}): a naval unit's under-water body
+ *     and surfacing steps, and every unit's kill bursts on and under the water by its size tier
  */
 public record EnemyLooks(
         Array<AtlasRegion> frames,
@@ -72,7 +74,8 @@ public record EnemyLooks(
         Array<AtlasRegion> leap,
         Array<AtlasRegion> leapGlow,
         Array<AtlasRegion> cloak,
-        Array<AtlasRegion> decloak) {
+        Array<AtlasRegion> decloak,
+        NavalLooks naval) {
     /** Vrell organic motion runs at 8-12 fps: 10 fps. */
     private static final double ORGANIC_FPS = 10;
     /**
@@ -199,11 +202,17 @@ public record EnemyLooks(
         // segment burst (shot or in the chained death's ripple), its heads with the deeper one.
         boolean chain = data.segmentChain().isPresent();
         Sfx chainBurst = tinyPart ? Sfx.COILWYRM_BURST : Sfx.COILWYRM_HEAD_BURST;
+        // M5 part E: a pulsing jelly (its -pulse frames) pulses at its own rate, not a radial spinner's.
+        boolean pulsing = sprites.has(slug + "-pulse");
         return new EnemyLooks(
                 frames,
                 headings,
                 orientation == Orientation.TILT_30,
-                orientation == Orientation.RADIAL ? SPIN_TURNS_PER_SECOND * SPIN_SYMMETRY * frames.size : ORGANIC_FPS,
+                pulsing
+                        ? NavalLooks.JELLY_FPS
+                        : orientation == Orientation.RADIAL
+                                ? SPIN_TURNS_PER_SECOND * SPIN_SYMMETRY * frames.size
+                                : ORGANIC_FPS,
                 switch (tier) {
                     case TINY -> sprites.explosionTiny;
                     case SMALL -> sprites.explosionSmall;
@@ -233,7 +242,8 @@ public record EnemyLooks(
                 walker && sprites.has(slug + "-leap") ? sprites.frames(slug + "-leap") : none,
                 walker && sprites.has(slug + "-leap-glow") ? sprites.frames(slug + "-leap-glow") : none,
                 sprites.has(slug + "-cloak") ? sprites.frames(slug + "-cloak") : none,
-                sprites.has(slug + "-decloak") ? sprites.frames(slug + "-decloak") : none);
+                sprites.has(slug + "-decloak") ? sprites.frames(slug + "-decloak") : none,
+                NavalLooks.of(sprites, slug, tier));
     }
 
     /**

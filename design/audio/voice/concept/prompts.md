@@ -288,3 +288,39 @@ Outcome (user, 2026-10-08): **b** cast, Maria Kasper (`refs/ref-lifeline-three.w
 line by `tools/art/voice.py` at the neutral settings through radio filter b, cut off after "that" as
 here: the renderer cuts any radio line ending in a dash, reusing this script's `cut_off()`); a moved
 to `concept/rejected/`, its clip deleted with its CREDITS.md row.
+
+## voice-atlas-control
+
+Round 33 (the Level 11 audition, M5 part E, user decision E10 = a), generated with
+`tools/concept/audio/tts_r33.py` the same way as round 31 (seed 33 + 10 × the variant's index + the
+line's index), each line through radio filter b on its own (its clicks, −16 LUFS), joined with 1 s
+of silence. Atlas Control (L11, speaker `Atlas Control`: the CDF officer of convoy Atlas-Seven, three
+cargo hulls of reactor parts and the frigate Ruyter; the radio portrait `radio-generic-cdf`), neutral
+(0.5 / 0.5 / 0.7), three of its lines as Level 11's README has them, chosen for range: the order
+(t=1 "Aegis flight, Atlas-Seven. Three hulls of reactor parts for the Arctic grid. We'd like to
+arrive with all three."), a ship-name line (the `ally-hit` line with `{ally}` = Halvorsen: "The
+Halvorsen is hit! Taking on water, but holding!") and the tense one (t=62.5 "Sonar has a contact.
+Big. Very big. It's gone deep again."). Measured: a 18.74 s, −16.1 LUFS; b 18.62 s, −16.0 LUFS (OGG
+Vorbis q4, 44.1 kHz mono); the takes a 7.20 / 3.80 / 4.84 s, b 6.92 / 3.88 / 4.92 s. Whisper
+(faster-whisper base.en) reads both files back whole: a "Aegis flight atlas 7. Three holes of
+reactor parts for the Arctic grid. We'd like to arrive with all three. The Halvorson is hit, taking
+on water but holding. Sonar has a contact. Big, very big, it's gone deep again."; b "Ages flight,
+Atlas 7. Three hulls of reactor parts for the Arctic Grid. We'd like to arrive with all three. The
+Halborson is hit, taking on water but holding. Sonar has a contact. Big. Very big. It's gone deep
+again." The raw takes read "hulls" in a (the filter makes it "holes"), "Halvostin" in a and "Ages"
+for "Aegis" in b; the ship's name is Whisper's spelling of an unknown word in all four. No take
+jumps an octave inside a word (librosa pyin: the few frames above 300 Hz in a's t=1 and b's hit
+line fall in the pauses between sentences, breaths). Measured only, not listened to.
+
+A male and a female candidate, so the round picks between two clearly different officers; both read
+naval or wartime non-fiction, chosen for a measured delivery, neither in the cast nor auditioned
+before.
+
+| Variant | Reader | Source | Licence | Clip pitch |
+|---|---|---|---|---|
+| a | Alister | [Sea-Power in the Pacific, ch. 1 (Bywater)](https://archive.org/details/seapowerpacific_2406_librivox), cut at 60 s | public domain (Public Domain Mark 1.0) | 106 Hz (takes 133 / 136 / 110 Hz); a male voice, below the Kilo Lead (129 Hz), near Lifeboat Seven and the perimeter beacon (105 Hz) |
+| b | MaryAnn | [Eighteen Months in the War Zone: A Record of a Woman's Work, ch. 1 (Finzi)](https://archive.org/details/eighteenmonthsinthewarzone_1409_librivox), cut at 60 s | public domain (Public Domain Mark 1.0) | 174 Hz (takes 167 / 167 / 165 Hz); a female voice, between Dock (167 Hz) and Varga (193 Hz) |
+
+Outcome (user, 2026-10-09): **b** cast, MaryAnn (`refs/ref-atlas-control.wav`; the production lines
+by `tools/art/voice.py` at the neutral settings through radio filter b, ten takes, no pins needed);
+a moved to `concept/rejected/`, its clip deleted with its CREDITS.md row.

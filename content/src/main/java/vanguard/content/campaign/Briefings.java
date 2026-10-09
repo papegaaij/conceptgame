@@ -113,6 +113,8 @@ public final class Briefings {
                                         : "BONUS: NO " + slug.replace('-', ' ').toUpperCase(Locale.ROOT)
                                                 + " GETS THROUGH"))
                         .or(() -> secondary.parts().map(parts -> partsLine(secondary, parts)))
+                        // M5 part E: Level 11's "Convoy afloat" (its data may name it instead).
+                        .or(() -> secondary.afloat().map(afloat -> "BONUS: NO CONVOY SHIP SUNK"))
                         .or(() -> secondary
                                 .killAll()
                                 .map(slugs -> "BONUS: DESTROY EVERY "

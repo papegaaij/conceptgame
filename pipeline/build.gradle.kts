@@ -112,6 +112,9 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
         "enemy-coilwyrm-cut-r27-a.ogg",
         // Concept round 28 (open): the proximity mine's arming beep, option a until the choice.
         "weapon-mine-arm-r28-a.ogg",
+        // Concept round 33's choice: the Driftjelly's pulse (synthesized; the other seven Level 11
+        // sounds are made from their originals by tools/art/sfx_originals.py).
+        "driftjelly-pulse-r33-a.ogg",
     )
 }
 

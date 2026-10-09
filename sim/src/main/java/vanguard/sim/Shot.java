@@ -2,8 +2,9 @@ package vanguard.sim;
 
 /**
  * A projectile of one of the ship's weapons: a bolt flying straight (a turret's shot too), a homing
- * missile, a bomb or shell on its way to the ground, or a proximity mine holding its place (see
- * {@link WeaponSpec.Delivery}). Pooled: {@link #fire} reuses the instance.
+ * missile, a bomb or shell on its way to the ground, a proximity mine holding its place or (M5 part
+ * E) a torpedo running under the water (see {@link WeaponSpec.Delivery}). Pooled: {@link #fire}
+ * reuses the instance.
  */
 public final class Shot implements Hashed {
     /** The most targets a piercing bolt remembers, so it hits each only once. */
@@ -26,7 +27,7 @@ public final class Shot implements Hashed {
     private int pierceLeft;
     private final int[] struck = new int[MAX_STRUCK];
     private int struckCount;
-    /** A homing shot's locked target, a {@link Enemy#serial()}; -1 while it has none. */
+    /** A homing shot's (or a torpedo's) locked target, a {@link Enemy#serial()}; -1 while it has none. */
     private int target;
 
     private double startX;
@@ -37,7 +38,7 @@ public final class Shot implements Hashed {
     /** The share of the full lob it flies, 0..1: its arc's height; 1 for a full lob or a bomb. */
     private double arc = 1;
 
-    /** A bolt, a homing missile or a mine leaving (x, y) at {@code angle}. */
+    /** A bolt, a homing missile, a mine or a torpedo leaving (x, y) at {@code angle}. */
     void fire(WeaponSpec spec, int mountIndex, double startX, double startY, double angle) {
         start(spec, mountIndex, startX, startY);
         heading = angle;
@@ -205,7 +206,7 @@ public final class Shot implements Hashed {
         return --pierceLeft <= 0;
     }
 
-    /** Whether it has flown its range, or its lifetime for a homing shot or a mine. */
+    /** Whether it has flown (or a torpedo run) its range, or its lifetime for a homing shot or a mine. */
     boolean spent() {
         if (weapon.delivery() == WeaponSpec.Delivery.HOMING || weapon.delivery() == WeaponSpec.Delivery.MINE) {
             return ticks * SimStep.SECONDS >= weapon.lifetimeSeconds();

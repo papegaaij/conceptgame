@@ -243,6 +243,27 @@ public final class Enemy implements Hashed {
      */
     private int allyContacts;
 
+    /**
+     * M5 part E: its drift on top of the scroll, px/s (y up): a field unit's along its wave's current
+     * (design/enemies/naval/driftjelly), a raft's along its nest's (design/enemies/naval/reef-spitter);
+     * hashed only while it drifts.
+     */
+    private double driftX;
+
+    private double driftY;
+    /** M5 part E, a submerging unit (the Driftjelly; hashed only with a submerge): whether its current layer is {@link Layer#SUB}. */
+    private boolean submerged;
+    /** Its swap timer's random state, its own seed (a SplitMix64 state stepped by {@link #nextSwap()}). */
+    private long swapSeed;
+    /** Steps until its next swap starts. */
+    private int swapWait;
+    /** Steps into the swap running now; -1 while none runs. */
+    private int swapTicks = -1;
+    /** Whether the swap running now goes down (from the surface). */
+    private boolean swapDown;
+    /** M5 part E, a proximity ring (hashed only with one): steps until it may fire its ring again; 0 ready. */
+    private int ringWait;
+
     /** A pounce's contact with the ship. */
     static final int TOUCHED_SHIP = 1;
     /** A pounce's contact with the wingman. */
@@ -324,6 +345,17 @@ public final class Enemy implements Hashed {
                 airTo = airFrom + air;
             }
         }
+        if (plan.field().isPresent()) {
+            // M5 part E: a field unit lies on the sea from its appearance, scrolling and drifting.
+            Spawn.Field field = plan.field().get();
+            phase = Phase.GROUND;
+            x = prevX = field.x();
+            y = prevY = field.y();
+            driftX = field.vx();
+            driftY = field.vy();
+            facing = 0;
+            submerge(field.submerged(), field.seed(), true);
+        }
         if (plan.ambush().isPresent()) {
             ambush = plan.ambush().get();
             phase = Phase.AMBUSH;
@@ -386,6 +418,14 @@ public final class Enemy implements Hashed {
         ambushVolleys = 0;
         flock = null;
         member = 0;
+        driftX = 0;
+        driftY = 0;
+        submerged = false;
+        swapSeed = 0;
+        swapWait = 0;
+        swapTicks = -1;
+        swapDown = false;
+        ringWait = 0;
     }
 
     /**
@@ -477,6 +517,24 @@ public final class Enemy implements Hashed {
      * gun waits its first-shot delay from here.
      */
     void root(EnemySpec enemySpec, int enemyKind, double atX, int unitSerial, int inGroup) {
+        root(enemySpec, enemyKind, atX, unitSerial, inGroup, 0, -1);
+    }
+
+    /**
+     * As {@link #root(EnemySpec, int, double, int, int)}; M5 part E: a unit whose stat block drifts
+     * (a raft, design/enemies/naval/reef-spitter) drifts at that speed along its nest's current,
+     * given as the current's direction ({@code currentX}, {@code currentY}: its sine and minus its
+     * cosine from straight down, worked out once when the level is set up, since {@link StrictMath}'s
+     * sine allocates).
+     */
+    void root(
+            EnemySpec enemySpec,
+            int enemyKind,
+            double atX,
+            int unitSerial,
+            int inGroup,
+            double currentX,
+            double currentY) {
         clearLevel04();
         spec = enemySpec;
         box = spec.hitbox();
@@ -497,6 +555,92 @@ public final class Enemy implements Hashed {
         volleyTicks = spec.gun().isPresent() ? SimStep.ticks(spec.gun().get().firstShotDelay()) + 1 : 0;
         diveFired = diveShot = false;
         diveTicks = 0;
+        if (spec.drift() > 0) {
+            driftX = spec.drift() * currentX;
+            driftY = spec.drift() * currentY;
+        }
+    }
+
+    /**
+     * M5 part E: a submerging unit starts {@code under} the surface or on it, its swap timer seeded
+     * with {@code seed}; a field's units start at a seeded point of their first wait ({@code
+     * anyPoint}: a wait drawn from 0 to the longest), so a field swaps on the screen and not in step.
+     */
+    private void submerge(boolean under, long seed, boolean anyPoint) {
+        if (spec.submerge().isEmpty()) {
+            return;
+        }
+        EnemySpec.Submerge submerge = spec.submerge().get();
+        submerged = under;
+        swapSeed = seed;
+        swapTicks = -1;
+        swapDown = false;
+        double wait = anyPoint
+                ? nextSwap() * submerge.everyMax()
+                : submerge.everyMin() + nextSwap() * (submerge.everyMax() - submerge.everyMin());
+        swapWait = Math.max(1, SimStep.ticks(wait));
+    }
+
+    /** The next draw of its swap timer, uniform in [0, 1): SplitMix64 on its own state. */
+    private double nextSwap() {
+        long z = (swapSeed += 0x9E3779B97F4A7C15L);
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        return ((z ^ (z >>> 31)) >>> 11) * 0x1.0p-53;
+    }
+
+    /**
+     * M5 part E: one real step of a submerging unit's timer: a running swap goes on (the layer flips
+     * at its middle) or ends, drawing the next wait; otherwise the wait counts down to the next swap.
+     */
+    private void swapStep() {
+        EnemySpec.Submerge submerge = spec.submerge().get();
+        int total = Math.max(2, SimStep.ticks(submerge.swapSeconds()));
+        if (swapTicks >= 0) {
+            if (++swapTicks == total / 2) {
+                submerged = swapDown;
+            }
+            if (swapTicks >= total) {
+                swapTicks = -1;
+                double wait = submerge.everyMin() + nextSwap() * (submerge.everyMax() - submerge.everyMin());
+                swapWait = Math.max(1, SimStep.ticks(wait));
+            }
+        } else if (--swapWait <= 0) {
+            swapTicks = 0;
+            swapDown = !submerged;
+        }
+    }
+
+    /** M5 part E: whether a submerging unit's current layer is {@link Layer#SUB}, under the surface. */
+    public boolean submerged() {
+        return submerged;
+    }
+
+    /**
+     * M5 part E: how far a submerging unit is through the swap running now, between the previous
+     * and the current step, 0 to 1 (its layer flips at 0.5); -1 while none runs (for the looks).
+     */
+    public double swap(double alpha) {
+        if (swapTicks < 0 || spec.submerge().isEmpty()) {
+            return -1;
+        }
+        int total = Math.max(2, SimStep.ticks(spec.submerge().get().swapSeconds()));
+        return Math.min(1, Math.max(0, (swapTicks - 1 + alpha) / total));
+    }
+
+    /** M5 part E: whether the swap running now goes down (it dives); false for one that surfaces or none. */
+    public boolean diving() {
+        return swapTicks >= 0 && swapDown;
+    }
+
+    /** M5 part E: whether its proximity ring may fire now (its cooldown from the last ring is over). */
+    boolean ringReady() {
+        return ringWait == 0;
+    }
+
+    /** M5 part E: it fired its proximity ring: the cooldown starts. */
+    void ringFired() {
+        ringWait = Math.max(1, SimStep.ticks(spec.ring().orElseThrow().cooldownSeconds()));
     }
 
     /**
@@ -516,6 +660,13 @@ public final class Enemy implements Hashed {
         if (ticksSinceHit < Integer.MAX_VALUE) {
             ticksSinceHit++;
         }
+        // M5 part E: the swap timer and the ring's cooldown run on the real steps (a halted arena too).
+        if (spec.submerge().isPresent()) {
+            swapStep();
+        }
+        if (ringWait > 0) {
+            ringWait--;
+        }
         if (phase == Phase.CHAIN || phase == Phase.FLOCK) {
             // Its chain or its flock placed it this step already.
             return true;
@@ -534,6 +685,14 @@ public final class Enemy implements Hashed {
             }
             case GROUND -> {
                 y -= groundScroll;
+                if (driftX != 0 || driftY != 0) {
+                    // M5 part E: a field unit or a raft drifts on the current, on top of the scroll.
+                    x += driftX * SimStep.SECONDS;
+                    y += driftY * SimStep.SECONDS;
+                    if (x + box.width() / 2 < 0 || x - box.width() / 2 > PlayField.WIDTH) {
+                        return false;
+                    }
+                }
                 track(aimX, aimY);
                 return y + box.height() / 2 > 0;
             }
@@ -911,6 +1070,10 @@ public final class Enemy implements Hashed {
         // M5 part D: a cloaked unit is on its decloaked layer from its flash's start on.
         if (spec.cloak().isPresent() && decloakedPhase()) {
             return spec.cloak().get().layer();
+        }
+        // M5 part E: a submerging unit is under the surface from its dive's middle to its rise's.
+        if (submerged) {
+            return Layer.SUB;
         }
         return spec.layer();
     }
@@ -1365,6 +1528,20 @@ public final class Enemy implements Hashed {
         if (allyContacts != 0) {
             // M5 part D: only while it overlaps an air escort's unit, so the other levels hash as before.
             hash.add(allyContacts);
+        }
+        // M5 part E's drifting, submerging and pulsing units add theirs; earlier units hash as before.
+        if (driftX != 0 || driftY != 0) {
+            hash.add(driftX).add(driftY);
+        }
+        if (spec.submerge().isPresent()) {
+            hash.add(submerged ? 1 : 0)
+                    .add(swapSeed)
+                    .add(swapWait)
+                    .add(swapTicks)
+                    .add(swapDown ? 1 : 0);
+        }
+        if (spec.ring().isPresent()) {
+            hash.add(ringWait);
         }
     }
 

@@ -22,6 +22,10 @@ package vanguard.sim;
  * @param bankFrames M5 part D, presentation: its rendered banking frames (0 for none)
  * @param bankFull M5 part D, presentation: the sideways px/s of its full bank
  * @param glideSeconds M5 part D, presentation: how long a lost unit glides down into {@code far}
+ * @param slams M5 part E (design/allies, convoy cargo ship): the hits one boss slam in its lane deals
+ *     ({@code hp} then counts slams); 0 when slams do not hurt it
+ * @param flakSeconds M5 part E, presentation (the escort frigate): s between its flak bursts on
+ *     {@code low-air} over the convoy, hitting nothing; 0 for none
  */
 public record AllySpec(
         String slug,
@@ -36,7 +40,9 @@ public record AllySpec(
         boolean contact,
         int bankFrames,
         double bankFull,
-        double glideSeconds) {
+        double glideSeconds,
+        double slams,
+        double flakSeconds) {
     public AllySpec {
         if (!(hp > 0) || clawsPerSecond < 0) {
             throw new IllegalArgumentException(slug + ": an ally has HP and claws take no less than 0");
@@ -44,6 +50,50 @@ public record AllySpec(
         if (bankFrames < 0 || bankFull < 0 || glideSeconds < 0) {
             throw new IllegalArgumentException(slug + ": banks and the glide take no less than 0");
         }
+        if (!(slams >= 0) || !(flakSeconds >= 0)) {
+            throw new IllegalArgumentException(slug + ": slams and the flak take no less than 0");
+        }
+    }
+
+    /** Without M5 part E's slams and flak. */
+    public AllySpec(
+            String slug,
+            Hitbox size,
+            Hitbox hitbox,
+            double hp,
+            boolean objectiveAimed,
+            double clawsPerSecond,
+            double smokeBelow,
+            double maxHeadingDegrees,
+            boolean bullets,
+            boolean contact,
+            int bankFrames,
+            double bankFull,
+            double glideSeconds) {
+        this(
+                slug,
+                size,
+                hitbox,
+                hp,
+                objectiveAimed,
+                clawsPerSecond,
+                smokeBelow,
+                maxHeadingDegrees,
+                bullets,
+                contact,
+                bankFrames,
+                bankFull,
+                glideSeconds,
+                0,
+                0);
+    }
+
+    /**
+     * M5 part E: whether anything can damage it (an ally whose {@code damaged_by} names nothing, the
+     * escort frigate, cannot be damaged and is never lost).
+     */
+    public boolean damageable() {
+        return objectiveAimed || clawsPerSecond > 0 || bullets || contact || slams > 0;
     }
 
     /** A ground ally (Level 04's crawler): no bullets, no contact, no banks and no glide. */

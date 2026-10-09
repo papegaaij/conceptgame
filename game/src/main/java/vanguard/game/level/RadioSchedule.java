@@ -106,6 +106,16 @@ public final class RadioSchedule {
         return VoiceLines.sideLine(line(line, unit), side == WingmanSpec.Side.LEFT ? "left" : "right");
     }
 
+    /**
+     * As {@link #line(String, int, WingmanSpec.Side)}; M5 part E: a naval convoy's unit is named by its
+     * {@code name} (Level 11's ships, "The {ally} is hit!" reads "The Mbeki is hit!"); an empty name
+     * keeps the number word.
+     */
+    public static String line(String line, int unit, String name, WingmanSpec.Side side) {
+        String named = unit >= 0 && !name.isEmpty() ? line.replace(ALLY, name) : line;
+        return line(named, unit, side);
+    }
+
     /** Seconds from {@code levelSeconds} until the next timed cue starts; infinite after the last. */
     public float untilTimed(double levelSeconds) {
         return untilTimed(levelSeconds, 1, true);

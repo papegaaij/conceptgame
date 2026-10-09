@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: n/a
 depends-on: [../../player, ../difficulty]
-updated: 2026-10-06
+updated: 2026-10-08
 ---
 
 # Economy
@@ -55,9 +55,11 @@ Two budgeting conventions, used by level documents and `tools/balance.py`:
   bounties included. A level document may quote the act-scaled amount the player sees (Level
   08's billboard cache "worth 160"), but its data writes the Act 1 term (100) and the budget table
   counts the scaled one. A boss bounty planned as an absolute amount (15 % / 30 % of the level's
-  budget) is converted the same way when its data is written: the Harbour Kraken's 300 in Act 2 is
-  written 188 (see [enemies](../../enemies/README.md#balancing-basis)). There is no act-factor
-  exemption in the code.
+  budget) is converted the same way when its data is written, through the level's `bounty_scale`
+  too (it applies to a boss's parts as to every bounty): the Harbour Kraken's ≈ 15 % of budget(11)
+  ≈ 207 paid is written ≈ 207 ÷ (1.6 × Level 11's scale) (M5 part E default, replacing the earlier
+  "300, written 188"; see [enemies](../../enemies/README.md#balancing-basis)). There is no
+  act-factor exemption in the code.
 - **Rook's kills pay like the player's** (M5 part A): the same bounty, scale and rounding, see
   [wingmen](../../player/wingmen/README.md#kills-user-decision-d2-of-m5-part-a).
 - **The Salvage scanner's bonus is outside the budget**: +10 / +20 % on salvage and hidden crates
@@ -316,3 +318,8 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   written 188 and pays 301), Rook's prices (60 % of the base weapons') and his repair line at the
   difficulty's cost, and the Salvage scanner's bonus outside the budget. Every item is ticked, so
   the document is `done` again.
+- 2026-10-08: M5 part E (stated default of 2026-10-08): a boss's bounty planned as a share of its
+  level's budget is written so the **paid** amount (× the act factor × the level's `bounty_scale`)
+  is that share: the Harbour Kraken's ≈ 15 % of budget(11) = 1 377 ≈ 207, written ≈ 207 ÷ (1.6 ×
+  the scale), set before the scale in Level 11's data step. The "300 at Act 2, written 188" of
+  2026-10-06 predated the per-level scale and the typical-haul curve.

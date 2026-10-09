@@ -19,7 +19,9 @@ sfx_r27.py's PRODUCTION, the Coilwyrm's chain-cut tear: cut, slowed, levelled on
 originals (an entry's `pages`, in the order its build takes them), levelled to -15 LUFS, and the
 Ravager's two pounces, a snarl over a synthesized whoosh; sfx_r32.py's PRODUCTION, the Wraith's
 decloak, a rip over a velvet cloak, the Mote Swarm's insect chitter, five copies of one original over
-a synthesized whoosh, and the lance, a synthesized whine into a thunder strike). One step comes first: an original whose decoded
+a synthesized whoosh, and the lance, a synthesized whine into a thunder strike; sfx_r33.py's
+PRODUCTION, Level 11's Kraken slam, churn, surfacing and death, the ship hit and sinking and the
+frigate's flak, recordings over synthesized layers). One step comes first: an original whose decoded
 samples exceed full scale (lossy originals and float WAVs, up to +18.7 dBFS for "Machine Gun 001")
 is clipped at full scale, as every integer decoder plays it and as Freesound made the preview the
 user chose from; levelled on its unclipped peak, such a sound came out up to 11 dB quieter. Originals come from the cache that
@@ -49,9 +51,10 @@ from sfx_r25 import PRODUCTION as R25  # noqa: E402  (and round 25)
 from sfx_r27 import PRODUCTION as R27  # noqa: E402  (and round 27's tear)
 from sfx_r31 import PRODUCTION as R31  # noqa: E402  (and round 31's collapse and pounces)
 from sfx_r32 import PRODUCTION as R32  # noqa: E402  (and round 32's decloak, swarm and lance)
+from sfx_r33 import PRODUCTION as R33  # noqa: E402  (and round 33's Kraken, ships and flak)
 from synth import SR, db, decode, write_ogg, write_wav  # noqa: E402
 
-DERIVED = {**R24, **R25, **R27, **R31, **R32}
+DERIVED = {**R24, **R25, **R27, **R31, **R32, **R33}
 ROOT = Path(__file__).resolve().parents[2]
 SFX_DOC = ROOT / "design" / "audio" / "sfx" / "README.md"
 CONCEPT = ROOT / "design" / "audio" / "sfx" / "concept"

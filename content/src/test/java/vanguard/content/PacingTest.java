@@ -68,7 +68,8 @@ class PacingTest {
         // (Level 05), finish hard (Level 06) or bring down the Brood Carrier (Level 07),
         // the balance plan's fit for the level; from Level 08 on the plan's fit with Rook on its wing
         // (Level 09: the Bomb Rack and Rook's Mortar for the hardened nodes, D8 = c of M5 part C;
-        // Level 10: the Tail Gun and Rook's Autocannon, D7 = a of M5 part D).
+        // Level 10: the Tail Gun and Rook's Autocannon, D7 = a of M5 part D; Level 11: the front at L4
+        // and Rook's Mortar again, M5 part E).
         Loadout loadout = key.equals(Level05Test.LEVEL)
                 ? Level05Test.planLoadout(CONTENT, difficulty)
                 : key.equals(Level06Test.LEVEL)
@@ -81,7 +82,9 @@ class PacingTest {
                                                 ? Level09Test.planLoadout(CONTENT, difficulty)
                                                 : key.equals(Level10Test.LEVEL)
                                                         ? Level10Test.planLoadout(CONTENT, difficulty)
-                                                        : SimSpecs.starterLoadout(CONTENT, difficulty);
+                                                        : key.equals(Level11Test.LEVEL)
+                                                                ? Level11Test.planLoadout(CONTENT, difficulty)
+                                                                : SimSpecs.starterLoadout(CONTENT, difficulty);
         Sortie sortie = new Sortie(
                 2185,
                 loadout,

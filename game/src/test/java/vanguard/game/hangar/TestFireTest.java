@@ -27,7 +27,8 @@ import vanguard.sim.WeaponSpec;
  * slot it fits, at every level, loops without errors and hits a dummy where that weapon should: a
  * forward gun ahead of the ship, a rear gun behind it, a side gun beside it (both sides), a bomb at
  * or behind the pod on its line, a mortar shell well ahead, a homing missile or a turret's shot
- * anywhere (a turret's on the dummies either side of its line), a mine's blast behind the ship. The loop is
+ * anywhere (a turret's on the dummies either side of its line), a mine's blast behind the ship, a
+ * torpedo on the submerged dummies ahead. The loop is
  * deterministic and starts over, and stepping it allocates nothing.
  */
 class TestFireTest {
@@ -117,6 +118,8 @@ class TestFireTest {
                         "under the pod: " + where);
             }
             case LOBBED -> assertTrue(hits.stream().anyMatch(hit -> hit.y() > shipY + 100), "well ahead: " + where);
+            // M5 part E: over the test range's water, on the submerged dummies ahead.
+            case TORPEDO -> assertTrue(hits.stream().anyMatch(hit -> hit.y() > shipY + HULL), "ahead: " + where);
         }
     }
 
@@ -198,7 +201,9 @@ class TestFireTest {
         assertEquals(
                 Optional.of(new TestFire.Shown("proximity-mines", Armament.Slot.REAR, 1)),
                 TestFire.of(CONTENT, LoadoutSlot.REAR, "proximity-mines", 1));
-        assertEquals(Optional.empty(), TestFire.of(CONTENT, LoadoutSlot.LEFT_WING, "torpedo-pod", 1));
+        assertEquals(
+                Optional.of(new TestFire.Shown("torpedo-pod", Armament.Slot.LEFT_WING, 1)),
+                TestFire.of(CONTENT, LoadoutSlot.LEFT_WING, "torpedo-pod", 1));
         assertEquals(Optional.empty(), TestFire.of(CONTENT, LoadoutSlot.GENERATOR, "Mk I", 1));
     }
 }

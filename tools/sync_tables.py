@@ -345,6 +345,11 @@ def boss_kind(slug):
     return load(f"{enemy_dir(slug)}/data.yaml")["boss"]["kind"]
 
 
+def boss_name(level):
+    """The level boss's name ("Harbour Kraken")."""
+    return enemy_name(level["boss"]["enemy"])
+
+
 def boss_totals(level):
     return {level["boss"]["enemy"]: 1} if "boss" in level else {}
 
@@ -741,6 +746,10 @@ def credit_budget(d):
     elif "parts" in secondary:
         source = (f"Secondary: all {len(secondary['parts'])} {secondary['label'].lower()} destroyed "
                   f"before the {secondary['before'].lower()} phase ends")
+    elif secondary.get("afloat"):  # M5 part E (Level 11): the convoy's damageable units afloat at the boss's death
+        units = [u for u in level["convoy"]["units"] if not u.get("leaves")]
+        source = (f"Secondary: convoy afloat (all {len(units)} "
+                  f"{units[0]['ally'].replace('-', ' ')}s afloat at the {boss_name(level)}'s death)")
     elif "kill_all" in secondary:
         names = " and ".join(enemy_name(slug) for slug in secondary["kill_all"])
         source = f"Secondary: every {names} destroyed"

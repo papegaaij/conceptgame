@@ -65,13 +65,13 @@ item|“Swirling Velvet Cloak 2.wav” by F.M.Audio
 detail|CC-BY 4.0 · freesound.org/people/F.M.Audio/sounds/556759
 gap|
 role|WITH THANKS TO (CC0)
-text|aust_paul, BaggoNotes, bevibeldesign, Bird_man, Breviceps, cobratronik, coolguy244e, craigsmith, cubix, Cyberios, Daleonfire, darcyadam, derplayer, dinodilopho, Division4884, Elektrocell, FlatHill, frankelmedico, GameAudio, Glitchedtones, gprosser, humanoide9000, iwanPlays, Jacco18, Jarusca, Jerimee, JoelAudio, JoMungus, JovianSounds, jvmyka@gmail.com, kalhan, Kinoton, loganzsound, lorenzgillner, LucasDuff, magnuswaker, mattpavone, michael_grinnell, mitchelk, Mozfoo, NHMWretched, nicktermer, noirenex, Noxdl, peepholecircus, pgi, plasterbrain, qubodup, SamsterBirdies, SecureSubset, Sheyvan, sidohzen, SuperPhat, ThefitzyG, TRP, uagadugu, unfa, wilhellboy, xkeril
+text|adviseme333, AudioPapkin, aust_paul, BaggoNotes, bevibeldesign, Bikkit99, Bird_man, Breviceps, cobratronik, coolguy244e, craigsmith, cubix, Cyberios, Daleonfire, darcyadam, derplayer, dinodilopho, Division4884, Elektrocell, FlatHill, frankelmedico, GameAudio, Glitchedtones, gprosser, HenKonen, humanoide9000, iwanPlays, Jacco18, jamesabels, Jarusca, Jerimee, JoelAudio, JoMungus, JovianSounds, jvmyka@gmail.com, kalhan, Kinoton, kyles, loganzsound, lorenzgillner, LucasDuff, magnuswaker, mattpavone, michael_grinnell, mitchelk, Mozfoo, NHMWretched, nicktermer, noirenex, Noxdl, peepholecircus, pgi, plasterbrain, profoundsounds, qubodup, Sadiquecat, SamsterBirdies, SecureSubset, Sheyvan, sidohzen, SuperPhat, ThefitzyG, TRP, uagadugu, unfa, wilhellboy, xkeril
 gap|
 title|VOICES
 text|Spoken by the Chatterbox text-to-speech engine (Resemble AI, MIT licence) in voices cloned from LibriVox recordings
 gap|
 role|READ BY (PUBLIC DOMAIN AND CC0)
-text|Aaron Bennett, Adrian Praetzellis, Alex Foster, Betsie Bush, Cori Samuel, Faith Abiola-Ellison, Gord Mackenzie, Kara Shallenberg, Karen Savage, KevinS, Kristin Hughes, Maria Kasper, Mark F. Smith, Mark Nelson, Rick Rodstrom, Ruth Golding, Tadhg Hynes
+text|Aaron Bennett, Adrian Praetzellis, Alex Foster, Betsie Bush, Cori Samuel, Faith Abiola-Ellison, Gord Mackenzie, Kara Shallenberg, Karen Savage, KevinS, Kristin Hughes, Maria Kasper, Mark F. Smith, Mark Nelson, MaryAnn, Rick Rodstrom, Ruth Golding, Tadhg Hynes
 gap|
 title|FONTS
 item|“DejaVu Sans Mono Bold” by DejaVu fonts team, after Bitstream Vera (Bitstream)

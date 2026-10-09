@@ -122,6 +122,7 @@ final class Formations {
                         + wave.enemy().slug());
             case SWARM -> planner.swarm();
             case REAR_AMBUSH -> planner.rearAmbush();
+            case FIELD -> planner.field();
         }
     }
 
@@ -774,6 +775,69 @@ final class Formations {
                                 ambush.exitSpeed(),
                                 warning)),
                         Optional.empty()));
+            }
+        }
+
+        /**
+         * M5 part E, a field (design/enemies/naval/driftjelly; the stated defaults of 2026-10-08): {@code
+         * count} units scattered over the wave's area by the level's seeded scatter, a jittered grid:
+         * the area is cut into whole cells of at least the spacing, the units take distinct cells in a
+         * seeded order and sit in them jittered by the room the cell leaves beyond the spacing, so no
+         * two are closer than the spacing. The area's leading (bottom) edge enters at the top edge at
+         * the wave's time: every unit appears then, above the top edge, and scrolls in with the ground,
+         * drifting at the enemy's speed along the current. With a {@link EnemySpec.Submerge} the
+         * share {@code start} of them (rounded) begins submerged, in the seeded order; each unit's swap
+         * timer gets a seed of its own.
+         */
+        void field() {
+            WaveSpec.Field field = required(wave.field(), "a field's area");
+            double spacing = field.spacing();
+            int columns = (int) Math.floor(field.width() / spacing);
+            int rows = (int) Math.floor(field.height() / spacing);
+            if ((long) columns * rows < wave.count()) {
+                throw unsupported("a field of " + field.width() + "×" + field.height() + " px holds at most "
+                        + field.capacity() + " units " + spacing + " px apart, not " + wave.count());
+            }
+            double cellWidth = field.width() / columns;
+            double cellHeight = field.height() / rows;
+            int[] cells = new int[columns * rows];
+            for (int c = 0; c < cells.length; c++) {
+                cells[c] = c;
+            }
+            double speed = enemy().speed();
+            double vx = speed * StrictMath.sin(field.currentRadians());
+            double vy = -speed * StrictMath.cos(field.currentRadians());
+            int submerged = enemy().submerge()
+                    .map(submerge -> (int) Math.round(submerge.start() * wave.count()))
+                    .orElse(0);
+            double left = field.x() - field.width() / 2;
+            for (int i = 0; i < wave.count(); i++) {
+                int pick = i + rng.nextInt(cells.length - i);
+                int cell = cells[pick];
+                cells[pick] = cells[i];
+                cells[i] = cell;
+                double jitterX = (cellWidth - spacing) / 2;
+                double jitterY = (cellHeight - spacing) / 2;
+                double x = left + (cell % columns + 0.5) * cellWidth + rng.range(-jitterX, jitterX);
+                double above = (cell / columns + 0.5) * cellHeight + rng.range(-jitterY, jitterY);
+                out.add(new Spawn(
+                        SimStep.ticks(wave.t()),
+                        kind,
+                        enemy(),
+                        FlightPath.through(x, HEIGHT + above, x, -OUTSIDE),
+                        speed,
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.DOWN,
+                        false,
+                        carried(i),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.of(new Spawn.Field(x, HEIGHT + above, vx, vy, i < submerged, rng.nextLong()))));
             }
         }
 

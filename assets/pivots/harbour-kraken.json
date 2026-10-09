@@ -1,0 +1,171 @@
+{
+ "source": "tools/art/harbour_kraken.py (production art, M5 part E batch)",
+ "origin": "px relative to Platform Tiamat's centre (the backdrop piece; deck edges x -104..104, y -76..76)",
+ "head": [
+  0.0,
+  216.0
+ ],
+ "head_size": [
+  160,
+  276
+ ],
+ "eyes": [
+  [
+   -41.5,
+   268.5
+  ],
+  [
+   41.5,
+   268.5
+  ]
+ ],
+ "eye_radius": 14.1,
+ "beak": [
+  0.0,
+  314.4
+ ],
+ "crown": [
+  0.0,
+  178.5
+ ],
+ "death": [
+  0.0,
+  256.0
+ ],
+ "grip": [
+  0.0,
+  22.0
+ ],
+ "grip_size": [
+  256,
+  156
+ ],
+ "grip_sub": [
+  0.0,
+  184.0
+ ],
+ "grip_sub_size": [
+  344,
+  368
+ ],
+ "idle_left": [
+  -111.3,
+  418.6
+ ],
+ "idle_right": [
+  111.3,
+  418.6
+ ],
+ "idle_size": [
+  100,
+  120
+ ],
+ "shadow_size": [
+  102,
+  235
+ ],
+ "shadow_scale": 2,
+ "slam_arms": {
+  "left": {
+   "root": [
+    -12.4,
+    333.0
+   ],
+   "rest_heading": 3,
+   "rest_path": [
+    [
+     -28.0,
+     352.0
+    ],
+    [
+     -44.0,
+     364.0
+    ],
+    [
+     -58.0,
+     356.0
+    ],
+    [
+     -64.0,
+     340.0
+    ],
+    [
+     -54.0,
+     326.0
+    ]
+   ],
+   "lanes": [
+    1,
+    2
+   ]
+  },
+  "right": {
+   "root": [
+    12.4,
+    333.0
+   ],
+   "rest_heading": 29,
+   "rest_path": [
+    [
+     28.0,
+     352.0
+    ],
+    [
+     44.0,
+     364.0
+    ],
+    [
+     58.0,
+     356.0
+    ],
+    [
+     64.0,
+     340.0
+    ],
+    [
+     54.0,
+     326.0
+    ]
+   ],
+   "lanes": [
+    3,
+    4
+   ]
+  }
+ },
+ "headings": 32,
+ "tapers": [
+  42,
+  37,
+  32,
+  27,
+  22,
+  18,
+  14
+ ],
+ "tips": [
+  34,
+  22
+ ],
+ "arm_index": "heading * tapers + taper (taper 0 = 42 px at the root); tip: heading * 2 + (0: 34 px, 1: 22 px)",
+ "segment_spacing": "0.5 x the segment's size (the concept's), sizes 42 at the root to 14 at the tip",
+ "steps": {
+  "surface": 10,
+  "sink": 12,
+  "collar": 8,
+  "sway": 12,
+  "slide": 12,
+  "death": 8,
+  "arm_death": 4,
+  "foam": 6,
+  "shadow": 15
+ },
+ "surface_flip_frame": 6,
+ "up_frames": [
+  "eyes shut",
+  "eyes half open",
+  "eyes open",
+  "beak glow half",
+  "beak glow full"
+ ]
+}

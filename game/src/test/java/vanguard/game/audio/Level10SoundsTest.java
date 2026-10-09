@@ -75,7 +75,7 @@ class Level10SoundsTest {
     }
 
     /** The start of a file's loudest 50 ms, seconds. */
-    private static double loudest(Sfx sfx) throws IOException {
+    static double loudest(Sfx sfx) throws IOException {
         try (var file = new VorbisFile(Files.readAllBytes(ASSETS.resolve(sfx.path())))) {
             int window = file.sampleRate() / 20;
             short[] block = new short[window * file.channels()];

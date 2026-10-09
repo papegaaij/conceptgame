@@ -3,7 +3,7 @@ title: Act 2 – Homefront
 design: approved
 implementation: in-progress
 art: chosen
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
 # Act 2 – Homefront
@@ -22,7 +22,7 @@ Siege Spire, a Vrell citadel that has rooted itself in the heart of the UTC capi
 | [level-08-neon-skyline](level-08-neon-skyline/README.md) | Night megacity, Rook's first sortie on Lancer's wing, Creeper intro · front · density 3 | approved | done | final |
 | [level-09-arcology-fall](level-09-arcology-fall/README.md) | The act's first `destroy-targets`: six hardened hive nodes, hold zones, Ravager packs, the arcology collapse · front · density 3 | approved | done | final |
 | [level-10-evacuation-corridor](level-10-evacuation-corridor/README.md) | escort` of five shuttles at first light, first rear-heavy level (Wraith, Mote Swarm), one scripted loss · front and rear (a third from behind by threat) · density 3 | approved | done | final |
-| [level-11-atlantic-convoy](level-11-atlantic-convoy/README.md) | Naval layer (Driftjelly, Reef Spitter), `sub` shadows, mid-boss Harbour Kraken · front · density 3 | approved | not-started | chosen |
+| [level-11-atlantic-convoy](level-11-atlantic-convoy/README.md) | Naval layer (Driftjelly, Reef Spitter), `sub` shadows, mid-boss Harbour Kraken · front · density 3 | approved | done | final |
 | [level-12-storm-front](level-12-storm-front/README.md) | Weather (rain, lightning, gusts), Lamprey intro, Varga sees the Vrell herd the storm · all · density 4 | approved | not-started | chosen |
 | [level-13-polar-relay](level-13-polar-relay/README.md) | `defend` the Arctic relay for 180 s, Skimmer intro, whiteout · all edges · density 4 | approved | not-started | chosen |
 | [level-14-siege-spire](level-14-siege-spire/README.md) | Geneva Concord approach through the root field, act boss Siege Spire · front · density 4 | approved | not-started | chosen |
@@ -171,8 +171,9 @@ Every briefing page and radio line is voiced, as in Act 1 ([voice](../../audio/v
 the act briefing's four pages and each level's briefing pages and radio; the hangar teaser is text
 only, by design (round 30). A new speaker is auditioned in the round of the level that introduces
 it (Level 08: the Ikoyi shelter civilian, round 30; Level 09: the Kilo Lead, the CDF officer of the
-truck convoy, round 31; Level 10: the shuttle pilots Lifeline and Lifeline Three, round 32) and
-plays as text until it is cast.
+truck convoy, round 31; Level 10: the shuttle pilots Lifeline and Lifeline Three, round 32; Level
+11: Atlas Control, the CDF officer of convoy Atlas-Seven, round 33) and plays as text until it is
+cast.
 
 ## Concept art
 

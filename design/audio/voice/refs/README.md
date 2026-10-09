@@ -1,10 +1,10 @@
 ---
 title: Reference voices
 design: draft
-implementation: done
+implementation: in-progress
 art: chosen
 depends-on: [..]
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
 # Reference voices
@@ -39,6 +39,7 @@ How the clips are chosen and used: [voice](../README.md#reference-voices).
 | `ref-kilo-lead.wav` | Kilo Lead (Level 09) | Aaron Bennett | [On Mamba Station: U.S. Marines in West Africa, ch. 1 (Antal, Vanden Berghe)](https://archive.org/details/onmambastation_2507_librivox) | public domain (Public Domain Mark 1.0) | chosen (round 31) |
 | `ref-lifeline.wav` | Lifeline: Lifeline One, Two, Four and Five and the hit line (Level 10) | KevinS | [Over the Ocean to Paris, ch. 1 (Dixon)](https://archive.org/details/overtheoceantoparis_2404_librivox) | public domain (Public Domain Mark 1.0) | chosen (round 32) |
 | `ref-lifeline-three.wav` | Lifeline Three (Level 10) | Maria Kasper | [The Curtiss Aviation Book, ch. 1 (Curtiss)](https://archive.org/details/curtissaviationbook_2006_librivox) | public domain (Public Domain Mark 1.0) | chosen (round 32) |
+| `ref-atlas-control.wav` | Atlas Control (Level 11) | MaryAnn | [Eighteen Months in the War Zone: A Record of a Woman's Work, ch. 1 (Finzi)](https://archive.org/details/eighteenmonthsinthewarzone_1409_librivox) | public domain (Public Domain Mark 1.0) | chosen (round 33) |
 
 Round 19's chosen candidates were renamed to `ref-<speaker>.wav`; the rejected candidates and
 round 18's Tranquility Control clip (David Leeson), which no speaker uses any more, were deleted
@@ -62,6 +63,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
 - [x] Lifeline's and Lifeline Three's clips (Level 10), cast in [round 32](../../../concept-rounds/round-32/README.md);
       the chosen candidates renamed `ref-lifeline.wav` and `ref-lifeline-three.wav`, the others
       deleted with their CREDITS.md rows
+- [x] Atlas Control's clip (Level 11), cast in [round 33](../../../concept-rounds/round-33/README.md);
+      the chosen candidate renamed `ref-atlas-control.wav`, the other deleted with its CREDITS.md row
 
 ## Decisions
 
@@ -102,3 +105,8 @@ with their CREDITS.md rows (their sources and cuts stay in `tools/concept/audio/
   Lifeline Three is Maria Kasper (b), renamed `ref-lifeline-three.wav`; Atul Sharma's and Kehinde's
   candidates (a) deleted with their CREDITS.md rows (their sources and cuts stay in
   `tools/concept/audio/tts_r32.py`).
+- 2026-10-08: Round 33 candidates for Atlas Control (Level 11) added (Alister, MaryAnn; licences
+  checked on each archive.org item's `licenseurl`: Public Domain Mark 1.0).
+- 2026-10-09: Round 33 decided (user): Atlas Control is MaryAnn (b), renamed
+  `ref-atlas-control.wav`; Alister's candidate (a) deleted with its CREDITS.md row (its source and
+  cut stay in `tools/concept/audio/tts_r33.py`).

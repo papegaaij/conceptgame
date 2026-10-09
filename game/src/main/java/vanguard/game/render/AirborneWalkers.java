@@ -9,17 +9,20 @@ import vanguard.sim.Sortie;
  * on {@code air} for the middle of its leap; design/enemies/ground/ravager), so the screen can tell
  * that a ground kind's death event belongs to one in the air: its burst then stays on the play field
  * instead of scrolling with the ground, and the layer it was hit on is air. A death event names only
- * the kind and the place, so the place is matched against these, within a step's leap. Allocation-free.
+ * the kind and the place, so the place is matched against these, within a step's leap. M5 part E:
+ * the same for a unit under the water (a submerged Driftjelly, on {@code sub}): its burst is then an
+ * under-water one. Allocation-free.
  */
 public final class AirborneWalkers {
-    /** At most this many at once (a pack of five, all leaping). */
-    static final int CAPACITY = 16;
+    /** At most this many at once (a pack of five, all leaping; M5 part E: a few jelly fields, half submerged). */
+    static final int CAPACITY = 32;
     /** A leap covers at most about 9 px a step (twice the 200 px range in 0.75 s): matched within this. */
     static final double MATCH = 16;
 
     private final double[] xs = new double[CAPACITY];
     private final double[] ys = new double[CAPACITY];
     private final int[] kinds = new int[CAPACITY];
+    private final Layer[] layers = new Layer[CAPACITY];
     private int size;
 
     /** Notes the sortie's ground units that are in the air now; call before each step. */
@@ -28,35 +31,61 @@ public final class AirborneWalkers {
         for (int i = 0; i < sortie.enemyCount() && size < CAPACITY; i++) {
             Enemy enemy = sortie.enemy(i);
             if (enemy.layer() != enemy.spec().layer()) {
-                add(enemy.kind(), enemy.renderX(1), enemy.renderY(1));
+                add(enemy.kind(), enemy.renderX(1), enemy.renderY(1), enemy.layer());
             }
         }
     }
 
-    /** Adds one, for the tests. */
+    /** Adds one in the air, for the tests. */
     void add(int kind, double x, double y) {
+        add(kind, x, y, Layer.AIR);
+    }
+
+    /** Adds one on {@code layer}, for the tests. */
+    void add(int kind, double x, double y, Layer layer) {
         if (size < CAPACITY) {
             kinds[size] = kind;
             xs[size] = x;
             ys[size] = y;
+            layers[size] = layer;
             size++;
         }
     }
 
-    /** Whether a unit of {@code kind} that died at (x, y) was one of those in the air. */
+    /** Whether a unit of {@code kind} that died at (x, y) was one of those off its stat block's layer. */
     public boolean contains(int kind, double x, double y) {
+        return matched(kind, x, y) >= 0;
+    }
+
+    private int matched(int kind, double x, double y) {
         for (int i = 0; i < size; i++) {
             double dx = xs[i] - x;
             double dy = ys[i] - y;
             if (kinds[i] == kind && dx * dx + dy * dy <= MATCH * MATCH) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * The layer a unit of {@code kind} with stat-block layer {@code layer} died on at (x, y): the one
+     * it was on after the last step (air in a pounce; M5 part E: {@code sub} under the water), else its own.
+     */
+    public Layer layerOf(int kind, Layer layer, double x, double y) {
+        int i = matched(kind, x, y);
+        return i >= 0 ? layers[i] : layer;
+    }
+
+    /** M5 part E: whether a unit under the water (on {@code sub}) was within {@code reach} px of (x, y) after the last step. */
+    public boolean underNear(double x, double y, double reach) {
+        for (int i = 0; i < size; i++) {
+            double dx = xs[i] - x;
+            double dy = ys[i] - y;
+            if (layers[i] == Layer.SUB && dx * dx + dy * dy <= reach * reach) {
                 return true;
             }
         }
         return false;
-    }
-
-    /** The layer a unit of {@code kind} with stat-block layer {@code layer} died on at (x, y). */
-    public Layer layerOf(int kind, Layer layer, double x, double y) {
-        return layer != Layer.AIR && contains(kind, x, y) ? Layer.AIR : layer;
     }
 }

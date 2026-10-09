@@ -24,7 +24,7 @@ directories hold the rosters.
 |---|---|---|---|---|
 | [air](air/README.md) | Flying enemies on the `air`, `low-air` and `high-air` layers, incl. serpents, spinners and drone trains (22) | approved | not-started | chosen |
 | [ground](ground/README.md) | Turrets, walkers, tanks, crawlers, bunkers and spawners on the `ground` layer (18) | approved | not-started | chosen |
-| [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | approved | not-started | chosen |
+| [naval](naval/README.md) | Surface vessels and submerged enemies (`ground` on water, `sub`) (9) | approved | in-progress | chosen |
 | [space](space/README.md) | Vacuum-only enemies for space levels, incl. the Leviathan (8) | approved | not-started | chosen |
 | [bosses](bosses/README.md) | 7 act bosses and 5 mid-bosses | approved | done | chosen |
 
@@ -237,7 +237,8 @@ that move in any direction must read from any angle:
 | `turret nest` | 3–6 ground turrets in a cluster with overlapping fire. |
 | `convoy` | Ground or naval units in a column along a road, river or lane. |
 | `pack` | 3–5 walkers entering together, each on its own ground path, 0.25 s apart (the Ravager). |
-| `submerged ambush` | `sub` units that surface together around the player. |
+| `submerged ambush` | `sub` units that surface together around the player (Act 4: no Act 2 level uses it). |
+| `field` | Units scattered over an area that enters with the sea (scroll factor 1, surfaced or submerged) and drifts on the wave's current: a Driftjelly field of 6–12 (M5 part E). |
 | `swarm` | A loose cloud of 6–24 units with flocking behaviour round a leader point that flies an authored route, from the top or the bottom edge, often looping back from below (the Mote Swarm, M5 part D). |
 | `solo set piece` | One huge unit on its own, announced by radio (at most one per level). |
 | `whirl cluster` | A burst of 5–8 tiny spinners released from one point, spiralling outward and ricocheting. |
@@ -283,11 +284,22 @@ promoted to draft. Acts 1 and 2 were rechecked against their level documents on 
 | `low-air` | All weapons | No | Drawn smaller and lower; its bullets rise to the player plane. |
 | `ground` | All weapons; `anti-ground` does ×2 | No; the [Ravager](ground/ravager/README.md)'s pounce is `air` for its middle 0.3 s | **Hardened** ground targets and units (bunkers, the [Hive Node](ground/hive-node/README.md)) can only be damaged by `anti-ground` weapons, the Airstrike and the Smart Bomb; other shots glance off with a spark, and homing shots and Rook do not pick them unless their weapon is `anti-ground` (M5 part C). |
 | `high-air` | `homing` and `beam` only | No | Drawn larger and above the player; drops or deploys things. Descends to `air` to become fully hittable. |
-| `sub` (player above water) | `anti-sub` only | No | Seen as a shadow under the waves. When it surfaces it becomes a `ground` (naval surface) target. |
+| `sub` (player above water) | `anti-sub` (the Torpedo Pod) and the Smart Bomb only | No | Submerged, seen through the surface (the water rules: tinted, darker, blurred, wavy). Nothing else reaches it: no standard shot, homing shot, turret, landing blast (bombs, mortar shells, the Airstrike), mine or Rook (user decision E2 = a of M5 part E); homing shots and Rook never pick it. When it surfaces it becomes a `ground` (naval surface) target. |
 | `sub` (underwater mode, Act 4) | All weapons; without `anti-sub` 50% damage | Yes | The `sub` layer is the play plane; see the [under water rules](../world/europa/README.md#under-water-rules). |
 | `deep` | Nothing | No | Background only. |
 
 Enemy bullets always travel on the player's plane, whatever layer fired them.
+
+**Water** (M5 part E, Level 11): a level whose data sets `water: true` is over water in its whole
+play field (user decision E1 = a: Levels 11–13). There the `ground` layer is the sea surface:
+naval surface units, surfaced parts and floating objects are `ground` targets (and the torpedo
+reaches them, besides `sub`), kills sink with a splash and a ripple train instead of leaving a
+crater or wreck, and landing blasts splash. A unit that surfaces or submerges (the Driftjelly, the
+Harbour Kraken's head and arms) has a **current layer** that flips between `sub` and `ground` at the
+middle of its swap, read at every hit, contact and targeting site (the part C pounce's and part D
+cloak's mechanism). Submerged units scroll with the sea (factor 1); the `sub` layer's 0.8–0.9 in the
+[layer model](../art-direction/README.md#parallax-layer-model) is for sea-floor scenery only, which
+open ocean does not have.
 
 ### Bullet readability rules
 
@@ -385,10 +397,13 @@ play field is 540 px tall).
 hardened and `large` 40–60 · `huge` set pieces ≈ 15 % of their level's budget (sum of part
 bounties). Mid-bosses and act bosses are planned as **absolute** medium credits in their level
 (15 % / 30 % of that level's budget), but their **data holds Act 1 terms like every other
-bounty**: the absolute amount ÷ the act factor (the Harbour Kraken's 300 at Act 2 is written 188),
-and the code multiplies every payout by the act factor, bosses included; there is no exemption
-(M5 part A default, 2026-10-06). The conversion is made when a boss's data is written (the
-Kraken in M5 part E, the Siege Spire in part H). Accepted exception (user
+bounty**: the absolute amount ÷ the act factor, and the code multiplies every payout by the act
+factor, bosses included; there is no exemption (M5 part A default, 2026-10-06). Since a level's
+`bounty_scale` applies to every bounty, a boss's parts included, the amount written is the planned
+paid amount ÷ (the act factor × the level's scale): the Harbour Kraken's ≈ 15 % of budget(11) ≈ 207
+paid is written ≈ 207 ÷ (1.6 × Level 11's scale) (M5 part E default; the "300, written 188" of
+2026-10-06 was planned before the scale existed and before budget(11) was 1 377). The conversion
+is made when a boss's data is written (the Kraken in M5 part E, the Siege Spire in part H). Accepted exception (user
 decision 2026-10-05): the [Coilwyrm](air/coilwyrm/README.md)'s parts total 86, above the `large`
 class, as cutting a multi-part enemy up is extra work (a head-first kill pays 40). Check: level
 01's worked budget (Skitter 5, Needler 12) is unchanged; a typical Act 1 level of 90–120 kills
@@ -499,8 +514,20 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
 - [x] Formation spawner that places enemies by formation name and entry edge (`Formations`): the
       Act 1 formations (single, V-wing, line abreast, column, snake, stream, pincer, circle,
       whirl cluster, carrier + escorts, convoy, the walkers' paths and the chains' paths).
-- [ ] The other formations with the first level that uses each — **later: M5** (e.g. `swarm`,
-      `submerged ambush`) and the acts after it.
+- [ ] The other formations with the first level that uses each — **later: M5** (`field`, part E:
+      built in step E2b)
+      and the acts after it (`submerged ambush` — **later: Act 4**).
+- [x] M5 part E (Level 11): the `sub` layer and its hit rules (E2 = a: only `anti-sub` and the
+      Smart Bomb; no contact; homing shots, turrets, landing blasts, mines, the Airstrike and Rook
+      skipping it) — step E2a (`SubLayerTest`).
+- [x] M5 part E (Level 11): a unit's current layer flipping between `sub` and `ground` as it
+      surfaces and submerges (a seeded per-unit timer on the real steps), the `field` formation
+      (scattered units with the sea and a current), a ground unit's drift on the water (the Reef
+      Spitter's raft), the `ring` fired by proximity (the Driftjelly), the anchored arena boss with
+      its lanes and slams (the Harbour Kraken) — steps E2b–E2c (`DriftjellyTest`, `KrakenTest`);
+      built in step E2b: the swap, `field`, the raft's drift and the proximity ring
+      (`DriftjellyTest`, `ReefSpitterTest`); in step E2c the arena boss: anchored, its parts' own
+      layers, its slam lanes, surfacing and weak spots (`SlamArenaTest`, `KrakenTest`).
 - [ ] M5 part D (Level 10): the `swarm` formation with the `flock` movement (a leader point on an
       authored route, boids round it, loop-backs warned 3 s ahead of the re-entry; the Mote Swarm),
       the `rear ambush` formation (2–4 across the bottom edge; a cloaked unit enters at the top and
@@ -511,7 +538,9 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
       periodic `spawn` on a ground unit (the Hive Node), a per-unit current layer (the Ravager's
       pounce, `air` for its middle 0.3 s) read at every hit, contact and targeting site.
 - [x] Layer rules for hit detection and collision on `ground`, `low-air`, `air` and `high-air`: what each weapon delivery reaches, hardened ground targets, contact on the player's layer.
-- [ ] The `space`, `sub` and `deep` layers — **later: M5** (`sub`, the naval levels) and **later: Act 5** (`space`, the belt's open-space levels from L31; Level 07 flies on `air` like L01–L03).
+- [x] The `sub` layer — M5 part E (Level 11, step E2a; appended to the layers so the existing
+      ordinals and replay hashes stay; its hit rules in `SubLayerTest`).
+- [ ] The `space` and `deep` layers — **later: Act 5** (`space`, the belt's open-space levels from L31; Level 07 flies on `air` like L01–L03).
 - [x] Bullet rendering order, telegraphs, edge warnings and the bullet budget (bullets above every
       layer, the `laser-sweep` wedge and the `mortar` marker, `EdgeWarnings`, `Rules.bulletBudget`).
 - [x] Global difficulty multipliers with per-enemy overrides (the stat blocks' `difficulty:` hooks,
@@ -664,3 +693,16 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
   veins drawn only; their new keys (the cloak, the ambush path, the flock) are planned in the
   [schemas](../tech/architecture/README.md#data-file-schemas). A snake wave may give authored
   `paths` (the Skitter's item; streams keep their shapes).
+- 2026-10-08: M5 part E (user decisions E1–E10 of 2026-10-08 and the stated defaults): **E2 = a**
+  the `sub` layer seen from above water is reached by `anti-sub` and the Smart Bomb only, nothing
+  else (rejected: b, area blasts landing on water also hitting `sub`: a rule per delivery and the
+  torpedo losing its point; c, as b at 50 %: one more multiplier); the layer row made precise
+  (homing shots and Rook skip it, no contact). **E1 = a** a level's `water: true`
+  makes its whole play field water (a *Water* paragraph under the layer rules). Stated defaults: the
+  formation **`field`** (scattered units entering with the sea and drifting on the current; the
+  Driftjelly's "swarm (scattered)") joins the vocabulary in [data.yaml](data.yaml), `swarm` staying
+  part D's flock; submerged units scroll with the sea (factor 1); `submerged ambush` retagged to Act 4
+  (no Act 2 level uses it); a surfacing unit's current layer flips at the middle of its swap; the
+  boss-bounty conversion restated with the level's `bounty_scale` (the Kraken's ≈ 207 paid). The
+  Driftjelly's, Reef Spitter's and Harbour Kraken's new keys are planned in the
+  [schemas](../tech/architecture/README.md#data-file-schemas).

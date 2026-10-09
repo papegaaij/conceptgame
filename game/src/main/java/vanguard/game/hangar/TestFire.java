@@ -30,7 +30,8 @@ import vanguard.sim.WingmanSpec;
  * ahead, a side gun beside the ship, a rear gun behind it, a bomb under its pod, a mortar shell on
  * its snap, a homing missile on its turn and a turret wherever it swings. For proximity mines the
  * dummies fly low ({@code low-air}, which sets mines off) and pass through the mines behind the
- * ship. The dummies take {@value #HITS_TO_KILL} of the weapon's level-1 hits (one level-1 blast of a
+ * ship; for torpedoes (M5 part E) the range is water and the dummies run submerged ({@code sub}).
+ * The dummies take {@value #HITS_TO_KILL} of the weapon's level-1 hits (one level-1 blast of a
  * bomb, shell or mine), so a higher level kills them sooner. When all three are gone the loop starts over
  * from the same state (the sortie's own retry), so every loop is the same. Nothing hits the ship.
  * Stepping allocates nothing beyond the simulation's own rules.
@@ -180,6 +181,7 @@ public final class TestFire {
     /** As {@link #script(WeaponData, double)}, the dummies as tough as {@code scale} of the weapon's hits ask. */
     static LevelScript script(WeaponData weapon, double line, double scale) {
         boolean mines = weapon.hits().equals(WeaponData.MINES);
+        boolean torpedoes = weapon.hits().equals(WeaponData.TORPEDO);
         boolean blasting = mines || weapon.hits().equals("ground-only");
         double hp = (blasting ? BLASTS_TO_KILL : HITS_TO_KILL)
                 * weapon.levels().getFirst().damage()
@@ -188,8 +190,9 @@ public final class TestFire {
                 DUMMY,
                 hp,
                 new Hitbox(TARGET_SIZE, TARGET_SIZE),
-                // Mines burst only for flyers: the dummies fly low, on the scroll like the others.
-                mines ? Layer.LOW_AIR : Layer.GROUND,
+                // Mines burst only for flyers: the dummies fly low, on the scroll like the others;
+                // torpedoes strike them under the water.
+                mines ? Layer.LOW_AIR : torpedoes ? Layer.SUB : Layer.GROUND,
                 0,
                 false,
                 0,
@@ -208,17 +211,18 @@ public final class TestFire {
             dummies.add(new LevelScript.GroundUnit(climb + ENTRIES[i], SHIP_X + line + LANES[i], dummy, -1));
         }
         return new LevelScript(
-                1,
-                1,
-                0,
-                List.of(new LevelScript.Section(LEVEL_SECONDS, SCROLL)),
-                List.of(),
-                List.of(),
-                dummies,
-                0,
-                List.of(),
-                new LevelScript.Secondary(1, 0),
-                List.of());
+                        1,
+                        1,
+                        0,
+                        List.of(new LevelScript.Section(LEVEL_SECONDS, SCROLL)),
+                        List.of(),
+                        List.of(),
+                        dummies,
+                        0,
+                        List.of(),
+                        new LevelScript.Secondary(1, 0),
+                        List.of())
+                .withWater(torpedoes);
     }
 
     /** The ship climbs to its height without firing; the dummies enter right after. */

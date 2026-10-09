@@ -19,8 +19,12 @@ import java.util.List;
  * favouring the flanks and the rear, and fires straight shots its way only while it has a target.
  * Proximity mines hold their screen position, arm, and burst when an enemy on {@code air} or
  * {@code low-air} comes close; the blast hits every {@code air}, {@code low-air} and {@code ground}
- * target within it once (the {@code area} rule). What a hit destroys is handed to {@link Hits},
- * which the {@link Sortie} implements.
+ * target within it once (the {@code area} rule). M5 part E: torpedoes run under the water only in a
+ * level over water (elsewhere their mount fires nothing), seek the nearest {@code sub} or
+ * {@code ground} unit in their cone and strike the first {@code sub} or {@code ground} target they
+ * touch; nothing else reaches the {@code sub} layer (homing missiles and turrets do not seek it,
+ * blasts and mines pass over it), and a sunken trigger is hit by torpedoes only. What a hit destroys
+ * is handed to {@link Hits}, which the {@link Sortie} implements.
  */
 final class PlayerFire {
     private static final int SHOT_CAPACITY = 256;
@@ -60,6 +64,12 @@ final class PlayerFire {
     static final int PART_SERIAL = 1 << 24;
 
     /**
+     * M5 part E: a torpedo's lock on a sunken trigger (a ground object's serial added), above the
+     * parts' serials.
+     */
+    static final int TRIGGER_SERIAL = 1 << 25;
+
+    /**
      * How many times faster than its rate a missile turns while it climbs to a high-air boss's part:
      * an open sac beside the ship (the Brood Carrier's first pair over a ship under it) lies inside
      * the turning circle of the weapon's own rate.
@@ -77,6 +87,9 @@ final class PlayerFire {
     private final SimEvents events;
     private final Hits hits;
     private final SetPiece[] setPieces;
+    /** M5 part E: whether the level is over water, where torpedoes run. */
+    private final boolean water;
+
     private final Pool<Shot> shots = new Pool<>(SHOT_CAPACITY, Shot::new, Shot[]::new);
     private final int[] cooldowns;
     private final int[] sinceShot;
@@ -94,13 +107,22 @@ final class PlayerFire {
     private double targetX;
 
     private double targetY;
+    /** The layer of the target {@link #located} found last. */
+    private Layer targetLayer = Layer.AIR;
 
+    /** Over land: a torpedo pod fires nothing. */
     PlayerFire(Ship ship, Armament armament, SimEvents events, Hits hits, SetPiece[] setPieces) {
+        this(ship, armament, events, hits, setPieces, false);
+    }
+
+    /** @param water whether the level is over water (M5 part E), where torpedoes run */
+    PlayerFire(Ship ship, Armament armament, SimEvents events, Hits hits, SetPiece[] setPieces, boolean water) {
         this.ship = ship;
         this.armament = armament;
         this.events = events;
         this.hits = hits;
         this.setPieces = setPieces;
+        this.water = water;
         cooldowns = new int[armament.size()];
         sinceShot = new int[armament.size()];
         turretHeadings = new double[armament.size()];
@@ -151,16 +173,26 @@ final class PlayerFire {
             }
             if (cooldowns[m] > 0
                     || !held
+                    || idle(weapon)
                     || (weapon.delivery() == WeaponSpec.Delivery.TURRET && turretTargets[m] < 0)
                     || (weapon.delivery() == WeaponSpec.Delivery.MINE
                             && liveMines(m) >= weapon.mines().maxLive())) {
-                // A turret without a target holds fire; at its mine cap a mount waits for one to go.
+                // A turret without a target holds fire; at its mine cap a mount waits for one to go;
+                // a torpedo pod over land fires nothing (M5 part E).
                 continue;
             }
             cooldowns[m] = weapon.intervalTicks();
             sinceShot[m] = 0;
             volley(m, weapon, enemies, ground);
         }
+    }
+
+    /**
+     * M5 part E (user decision E1 = a): whether {@code weapon} fires nothing in this level: a
+     * torpedo over land (its pod still draws its power; the HUD reads NO WATER).
+     */
+    boolean idle(WeaponSpec weapon) {
+        return weapon.delivery() == WeaponSpec.Delivery.TORPEDO && !water;
     }
 
     private void volley(int mount, WeaponSpec weapon, Pool<Enemy> enemies, Pool<GroundObject> ground) {
@@ -180,6 +212,11 @@ final class PlayerFire {
             }
             switch (weapon.delivery()) {
                 case BOLT, HOMING, MINE -> shot.fire(weapon, mount, x, y, muzzle.angle());
+                case TORPEDO -> {
+                    // It picks its target as it is fired; without one it runs straight.
+                    shot.fire(weapon, mount, x, y, muzzle.angle());
+                    shot.lock(nearestInCone(shot, enemies, ground));
+                }
                 case TURRET -> {
                     shot.fire(weapon, mount, x, y, turretHeadings[mount]);
                     // Its lock: a high-air boss's part is hit only by a shot aimed at it.
@@ -224,7 +261,8 @@ final class PlayerFire {
         double flankY = 0;
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
-            if (!onField(enemy)) {
+            // M5 part E: never one under the water.
+            if (!onField(enemy) || !weapon.delivery().reaches(enemy.layer())) {
                 continue;
             }
             double d = distanceSquared(x, y, enemy.x(), enemy.y());
@@ -244,7 +282,8 @@ final class PlayerFire {
         for (int k = 0; k < setPieces.length; k++) {
             SetPiece piece = setPieces[k];
             for (int p = 0; p < piece.partCount(); p++) {
-                if (!partTarget(piece, p)) {
+                // M5 part E: on the part's own layer (an arena boss's part under the water is none).
+                if (!weapon.delivery().reaches(piece.partLayer(p)) || !partTarget(piece, p)) {
                     continue;
                 }
                 double d = distanceSquared(x, y, targetX, targetY);
@@ -324,10 +363,11 @@ final class PlayerFire {
 
     /**
      * Moves every projectile by one step: bolts fly on until their range is flown or they leave
-     * the screen, homing missiles steer at their target first, bombs and shells fall towards their
-     * landing point, which scrolls down with the ground by {@code groundScroll}.
+     * the screen, homing missiles and torpedoes steer at their target first, bombs and shells fall
+     * towards their landing point, which scrolls down with the ground by {@code groundScroll}. A
+     * torpedo also seeks a sunken trigger among the {@code ground} objects (M5 part E).
      */
-    void move(double groundScroll, Pool<Enemy> enemies) {
+    void move(double groundScroll, Pool<Enemy> enemies, Pool<GroundObject> ground) {
         if (sinceHit < Integer.MAX_VALUE) {
             sinceHit++;
         }
@@ -348,8 +388,8 @@ final class PlayerFire {
                 }
                 continue;
             }
-            if (weapon.delivery() == WeaponSpec.Delivery.HOMING) {
-                home(shot, enemies);
+            if (weapon.delivery().seeks()) {
+                home(shot, enemies, ground);
             }
             shot.move();
             if (shot.spent() || !PlayField.overlaps(shot.x(), shot.y(), weapon.size())) {
@@ -360,12 +400,17 @@ final class PlayerFire {
 
     /**
      * Steers at the locked target, or locks onto the nearest enemy (or set-piece part) in range and
-     * in the cone when it has none.
+     * in the cone on a layer it reaches when it has none. A torpedo (M5 part E) picks its target as
+     * it is fired and again only when that target dies (or leaves its reach), a sunken trigger among
+     * them; without one it runs straight.
      */
-    private void home(Shot shot, Pool<Enemy> enemies) {
-        boolean found = locked(shot, enemies);
+    private void home(Shot shot, Pool<Enemy> enemies, Pool<GroundObject> ground) {
+        boolean found = locked(shot, enemies, ground);
+        if (!found && shot.weapon().delivery() == WeaponSpec.Delivery.TORPEDO && shot.target() < 0) {
+            return;
+        }
         if (!found) {
-            int target = nearestInCone(shot, enemies);
+            int target = nearestInCone(shot, enemies, ground);
             shot.lock(target);
             found = target >= 0;
         }
@@ -391,14 +436,48 @@ final class PlayerFire {
         return piece.layer() == Layer.HIGH_AIR && piece.boss().isPresent();
     }
 
-    /** Whether the shot's locked target is still on the field; it is then at the target position. */
-    private boolean locked(Shot shot, Pool<Enemy> enemies) {
-        return located(shot.target(), enemies);
+    /**
+     * Whether the shot's locked target is still on the field, on a layer the shot reaches (M5 part
+     * E: a unit that dives is lost to a missile); it is then at the target position.
+     */
+    private boolean locked(Shot shot, Pool<Enemy> enemies, Pool<GroundObject> ground) {
+        if (shot.target() >= TRIGGER_SERIAL) {
+            return trigger(shot.target() - TRIGGER_SERIAL, ground);
+        }
+        return located(shot.target(), enemies) && shot.weapon().delivery().reaches(targetLayer);
+    }
+
+    /**
+     * M5 part E: whether the sunken trigger with the ground serial {@code serial} is still to be
+     * freed and on the field; it is then at the target position.
+     */
+    private boolean trigger(int serial, Pool<GroundObject> ground) {
+        for (int j = 0; j < ground.size(); j++) {
+            GroundObject object = ground.get(j);
+            if (object.serial() == serial) {
+                if (!sunkenTrigger(object)) {
+                    return false;
+                }
+                targetX = object.x();
+                targetY = object.y();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** M5 part E: a sunken trigger still to be freed, on the field: what a torpedo seeks besides units and parts. */
+    private static boolean sunkenTrigger(GroundObject object) {
+        LevelScript.GroundObjectSpec spec = object.spec();
+        return spec.trigger()
+                && spec.submerged()
+                && object.hittable()
+                && PlayField.overlaps(object.x(), object.y(), spec.size());
     }
 
     /**
      * Whether {@code target} (a serial as the homing locks use, -1 for none) is on the field; it is
-     * then at the target position.
+     * then at the target position, on the target layer.
      */
     private boolean located(int target, Pool<Enemy> enemies) {
         if (target < 0) {
@@ -407,7 +486,11 @@ final class PlayerFire {
         if (target >= PART_SERIAL) {
             int piece = (target - PART_SERIAL) / LevelScript.SetPieceSpec.MAX_PARTS;
             int part = (target - PART_SERIAL) % LevelScript.SetPieceSpec.MAX_PARTS;
-            return piece < setPieces.length && partTarget(setPieces[piece], part);
+            if (piece >= setPieces.length || !partTarget(setPieces[piece], part)) {
+                return false;
+            }
+            targetLayer = setPieces[piece].partLayer(part);
+            return true;
         }
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
@@ -417,6 +500,7 @@ final class PlayerFire {
                 }
                 targetX = enemy.x();
                 targetY = enemy.y();
+                targetLayer = enemy.layer();
                 return true;
             }
         }
@@ -440,9 +524,10 @@ final class PlayerFire {
 
     /**
      * The serial of the nearest target in range and in the cone (a high-air boss's parts in range
-     * all round), -1 for none; the target position is set.
+     * all round; for a torpedo, M5 part E, a sunken trigger too), -1 for none; the target position is
+     * set.
      */
-    private int nearestInCone(Shot shot, Pool<Enemy> enemies) {
+    private int nearestInCone(Shot shot, Pool<Enemy> enemies, Pool<GroundObject> ground) {
         WeaponSpec weapon = shot.weapon();
         double best = weapon.range() * weapon.range();
         int nearest = -1;
@@ -450,8 +535,10 @@ final class PlayerFire {
         double nearestY = 0;
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
-            // M5 part C: a hardened unit is no target unless the weapon is anti-ground.
+            // M5 part C: a hardened unit is no target unless the weapon is anti-ground; M5 part E:
+            // only one on a layer the shot reaches (a torpedo's sub and ground, a missile's the rest).
             if (onField(enemy)
+                    && weapon.delivery().reaches(enemy.layer())
                     && (weapon.antiGround() || !enemy.spec().hardened())
                     && inCone(shot, enemy.x(), enemy.y(), best)) {
                 best = distanceSquared(shot.x(), shot.y(), enemy.x(), enemy.y());
@@ -463,8 +550,10 @@ final class PlayerFire {
         for (int k = 0; k < setPieces.length; k++) {
             SetPiece piece = setPieces[k];
             for (int p = 0; p < piece.partCount(); p++) {
-                // A high-air boss's open parts are sought all round: the missile climbs to them.
-                if (partTarget(piece, p)
+                // A high-air boss's open parts are sought all round: the missile climbs to them; M5
+                // part E: on the part's own layer (a torpedo's sub and ground, a missile's the rest).
+                if (weapon.delivery().reaches(piece.partLayer(p))
+                        && partTarget(piece, p)
                         && (overhead(piece)
                                 ? distanceSquared(shot.x(), shot.y(), targetX, targetY) <= best
                                 : inCone(shot, targetX, targetY, best))) {
@@ -472,6 +561,17 @@ final class PlayerFire {
                     nearest = PART_SERIAL + k * LevelScript.SetPieceSpec.MAX_PARTS + p;
                     nearestX = targetX;
                     nearestY = targetY;
+                }
+            }
+        }
+        if (weapon.delivery() == WeaponSpec.Delivery.TORPEDO) {
+            for (int j = 0; j < ground.size(); j++) {
+                GroundObject object = ground.get(j);
+                if (sunkenTrigger(object) && inCone(shot, object.x(), object.y(), best)) {
+                    best = distanceSquared(shot.x(), shot.y(), object.x(), object.y());
+                    nearest = TRIGGER_SERIAL + object.serial();
+                    nearestX = object.x();
+                    nearestY = object.y();
                 }
             }
         }
@@ -564,7 +664,10 @@ final class PlayerFire {
      * Bolts and missiles that reach a set piece's layer hit its living parts; what touches its
      * armoured body (a boss's in its current pose) instead glances off, as does a shot on a part
      * that takes no damage now (a boss's fire-only turrets, a shut window). A boss on high air is
-     * hit only by a missile on the part it is locked onto; it passes beneath the rest.
+     * hit only by a missile on the part it is locked onto; it passes beneath the rest. M5 part E: an
+     * arena boss's parts are hit on their own layers (a slam arm's segments are its hit boxes, an open
+     * weak spot takes its multiplier, an {@code anti-ground} weapon doubles on a surfaced part), and it
+     * has no armoured body (its platform is scenery: shots fly over it).
      */
     void hitSetPieces() {
         for (int k = 0; k < setPieces.length; k++) {
@@ -574,11 +677,12 @@ final class PlayerFire {
             }
             List<LevelScript.PartSpec> parts = piece.spec().parts();
             boolean overhead = overhead(piece);
+            boolean anchored = piece.arena().isPresent();
             for (int i = shots.size() - 1; i >= 0; i--) {
                 Shot shot = shots.get(i);
                 WeaponSpec weapon = shot.weapon();
                 if (weapon.delivery().landing()
-                        || !weapon.delivery().reaches(piece.layer())
+                        || (!anchored && !weapon.delivery().reaches(piece.layer()))
                         || (overhead && overhead(shot.target()) != k)) {
                     continue;
                 }
@@ -588,12 +692,11 @@ final class PlayerFire {
                     if (overhead && p != lockedPart) {
                         continue;
                     }
-                    double px = piece.partX(p);
-                    double py = piece.partY(p);
+                    Layer partLayer = piece.partLayer(p);
                     if (piece.partWrecked(p)
-                            || !weapon.size()
-                                    .overlaps(shot.x(), shot.y(), parts.get(p).box(), px, py)
-                            || !PlayField.overlaps(px, py, parts.get(p).box())
+                            || (anchored && !weapon.delivery().reaches(partLayer))
+                            || !piece.partTouches(p, weapon.size(), shot.x(), shot.y())
+                            || !piece.partOnField(p)
                             || (weapon.pierce() > 1 && shot.struck(-1 - k * LevelScript.SetPieceSpec.MAX_PARTS - p))) {
                         continue;
                     }
@@ -606,7 +709,13 @@ final class PlayerFire {
                     }
                     events.add(SimEvents.Type.ENEMY_HIT, shot.x(), shot.y(), shot.mount());
                     boolean spent = shot.pierced();
-                    if (piece.damagePart(p, shot.damage())) {
+                    if (piece.damagePartAt(
+                            p,
+                            shot.damage() * groundFactor(weapon, partLayer),
+                            shot.x(),
+                            shot.y(),
+                            Trig.sin(shot.heading()),
+                            Trig.cos(shot.heading()))) {
                         hits.partDestroyed(k, p, shot.mount());
                     }
                     if (spent) {
@@ -617,6 +726,7 @@ final class PlayerFire {
                 }
                 if (!gone
                         && !overhead
+                        && !anchored
                         && piece.present()
                         && ((weapon.size().overlaps(shot.x(), shot.y(), piece.body(), piece.x(), piece.y())
                                         && !partAhead(piece, shot))
@@ -657,7 +767,8 @@ final class PlayerFire {
 
     /**
      * Bolts and missiles that missed the air hit the ground objects below (design/enemies, layer
-     * rules); bombs and shells that have landed burst, and so do armed mines with an enemy close.
+     * rules), torpedoes those they run into, a sunken trigger included (M5 part E: nothing else hits
+     * one); bombs and shells that have landed burst, and so do armed mines with an enemy close.
      */
     void hitGround(Pool<GroundObject> ground, Pool<Enemy> enemies, Pool<Mine> spores) {
         for (int i = shots.size() - 1; i >= 0; i--) {
@@ -681,6 +792,7 @@ final class PlayerFire {
                 GroundObject object = ground.get(j);
                 LevelScript.GroundObjectSpec spec = object.spec();
                 if (!object.hittable()
+                        || (spec.submerged() && weapon.delivery() != WeaponSpec.Delivery.TORPEDO)
                         || !weapon.size().overlaps(shot.x(), shot.y(), spec.size(), object.x(), object.y())
                         || (weapon.pierce() > 1 && shot.struck(2 * object.serial() + 1))) {
                     continue;
@@ -703,8 +815,8 @@ final class PlayerFire {
 
     /**
      * A landed bomb or shell damages every ground object and ground enemy (on the ground now: a
-     * pounce's air window is missed) within its blast once; hardened ones only with anti-ground,
-     * else a hardened enemy sparks.
+     * pounce's air window is missed, M5 part E: so is a unit under the water and a sunken trigger)
+     * within its blast once; hardened ones only with anti-ground, else a hardened enemy sparks.
      */
     private void burst(Shot shot, Pool<GroundObject> ground, Pool<Enemy> enemies) {
         WeaponSpec weapon = shot.weapon();
@@ -715,6 +827,7 @@ final class PlayerFire {
             GroundObject object = ground.get(j);
             LevelScript.GroundObjectSpec spec = object.spec();
             if (object.hittable()
+                    && !spec.submerged()
                     && (weapon.antiGround() || !spec.hardened())
                     && inBlast(x, y, weapon.blast(), object.x(), object.y(), spec.size())) {
                 strike(j, object, shot.damage());
@@ -731,6 +844,20 @@ final class PlayerFire {
                 events.add(SimEvents.Type.SHOT_GLANCED, enemy.x(), enemy.y(), shot.mount());
             } else if (enemy.damage(shot.damage(), true)) {
                 hits.enemyDestroyed(j, shot.mount());
+            }
+        }
+        // M5 part E: a set piece's part on the ground now (an arena boss's surfaced head, an awash arm).
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
+            for (int p = 0; p < piece.partCount() && piece.present(); p++) {
+                if (piece.partLayer(p) == Layer.GROUND
+                        && !piece.partWrecked(p)
+                        && !piece.partShielded(p)
+                        && piece.partOnField(p)
+                        && piece.partInBlast(p, x, y, weapon.blast())
+                        && piece.damagePartAt(p, shot.damage(), x, y)) {
+                    hits.partDestroyed(k, p, shot.mount());
+                }
             }
         }
     }
@@ -779,7 +906,8 @@ final class PlayerFire {
 
     /**
      * A mine's blast (the {@code area} rule): every enemy on {@code air}, {@code low-air} and
-     * {@code ground}, every ground object (hardened ones glance off without {@code anti-ground}),
+     * {@code ground}, every ground object but a sunken trigger (hardened ones glance off without
+     * {@code anti-ground}),
      * every living set-piece part on those layers that takes damage and every armed spore mine within
      * the blast radius takes the damage once.
      */
@@ -793,6 +921,7 @@ final class PlayerFire {
             GroundObject object = ground.get(j);
             LevelScript.GroundObjectSpec spec = object.spec();
             if (object.hittable()
+                    && !spec.submerged()
                     && (weapon.antiGround() || !spec.hardened())
                     && inBlast(x, y, radius, object.x(), object.y(), spec.size())) {
                 strike(j, object, mine.damage());
@@ -800,7 +929,7 @@ final class PlayerFire {
         }
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
-            if (enemy.layer() == Layer.HIGH_AIR
+            if (!blastReaches(enemy.layer())
                     || !onField(enemy)
                     || !inBlast(x, y, radius, enemy.x(), enemy.y(), enemy.hitbox())) {
                 continue;
@@ -814,18 +943,18 @@ final class PlayerFire {
         }
         for (int k = 0; k < setPieces.length; k++) {
             SetPiece piece = setPieces[k];
-            if (!piece.present() || piece.layer() == Layer.HIGH_AIR) {
+            if (!piece.present()) {
                 continue;
             }
             List<LevelScript.PartSpec> parts = piece.spec().parts();
             for (int p = 0; p < parts.size() && piece.present(); p++) {
-                double px = piece.partX(p);
-                double py = piece.partY(p);
-                if (!piece.partWrecked(p)
+                // M5 part E: on the part's own layer (an arena boss's part under the water is out of reach).
+                if (blastReaches(piece.partLayer(p))
+                        && !piece.partWrecked(p)
                         && !piece.partShielded(p)
-                        && PlayField.overlaps(px, py, parts.get(p).box())
-                        && inBlast(x, y, radius, px, py, parts.get(p).box())
-                        && piece.damagePart(p, mine.damage())) {
+                        && piece.partOnField(p)
+                        && piece.partInBlast(p, x, y, radius)
+                        && piece.damagePartAt(p, mine.damage(), x, y)) {
                     hits.partDestroyed(k, p, mine.mount());
                 }
             }
@@ -838,6 +967,15 @@ final class PlayerFire {
                 hits.mineDestroyed(j);
             }
         }
+    }
+
+    /**
+     * The layers a mine's blast reaches (the {@code area} rule): {@code air}, {@code low-air} and
+     * {@code ground}, not {@code high-air} above it nor (M5 part E, user decision E2 = a) {@code sub}
+     * under the water.
+     */
+    private static boolean blastReaches(Layer layer) {
+        return layer != Layer.HIGH_AIR && layer != Layer.SUB;
     }
 
     /** A hit on a ground object: a trigger counts it, a destructible takes the damage. */

@@ -477,3 +477,92 @@ production kit will be the Level 08 backdrop's (`tools/art/backdrop_l08.py`, to 
 Outcome (user, 2026-10-07): accepted in round 30; the production towers are Level 08's
 (`tools/art/backdrop_l08.py`, approved as final in the same round).
 
+
+## water-fx-final-r33-a
+
+Round 33, production art (M5 part E batch, straight to production from the chosen concepts, user
+decision E9 = a). Review sheet (`.png`) and loop (`.gif`) made from the final files in `assets/` by
+`python3 tools/art/water_fx.py --review`; the frames are rendered by `tools/art/water_fx.py` (see
+`tools/art/README.md`). Not an image-generator prompt: the looks are the chosen concepts'
+(`explosions-r09-a`'s water-surface and under-water bursts, `projectiles-r08-a`'s torpedo, the
+ocean scene's foam), whose prompts stay valid; this is the brief for reviewing the production
+frames. Shown: the water-surface explosion ladder (`explosion-water-tiny/small/medium/large`, 24–96
+px, 12–14 frames: white column, spray, patchy foam, broken ripple arcs) and the under-water ladder
+(`explosion-under-*`: cyan flash, pressure ring, dark silt, rising bubbles, drawn through the game's
+`sub` pass), a small splash (`water-splash`), a ripple train (`water-ripple`), foam collars for round
+bodies (`water-collar-24/40/64`), a foam strip tileable along a limb lying awash
+(`water-foam-strip`), a small craft's wake (`water-wake`), the torpedo at 32 headings
+(`torpedo-pod-shot`), its bubble puff and drop splash; at the bottom the effects on the ocean
+stand-in. The loop: kills on the surface leaving ripple trains, under-water kills, a body bobbing in
+its collar, a block drifting with its wake, two torpedoes dropping in, running up with their bubble
+trails and hitting a submerged dummy. Foam and water are alpha-blended with stepped translucency;
+the `sub` look in the reviews is a stand-in for the game's pass (E4 = c).
+
+Outcome (user, 2026-10-09): approved as final in round 33, the weak spots as they are (the faint
+wake, the rectangular container collar).
+
+## slam-r33-a
+
+Round 33 proposal A for the Harbour Kraken's **lane telegraph and slam look**, **"Edge dashes and
+spray sheets"**, at production quality (user decision E9 = a: no concept existed). Sheet and loop by
+`python3 tools/art/water_fx.py` (A is in the game until the pick). Brief: during the 1.0 s telegraph
+(hard 0.8 s) a band of boiling water runs down the lane's centre line
+(`harbour-kraken-lane-churn_0..5`, 40×48, tileable down the lane) and red dashes blink at 5 Hz down
+both lane edges (`harbour-kraken-lane-mark_0..1`, 6×16, additive), so the whole 120 px the impact
+hits is marked; at the impact water is thrown out to both sides as sheets that tear into drops and
+fall back into a foam bed along the arm (`harbour-kraken-lane-splash_0..9`, 120×64, one segment;
+the game lays the segments every 48 px along the arm, base to tip, a frame apart), all inside the
+lane. The loop: two lanes of the arena on the ocean stand-in with a cargo ship in lane 1, the
+telegraph, a stand-in arm (the real one is the Kraken's own art) rising base to tip, the impact, the
+arm awash on foam strips, sinking. Prompt (for an artist): `late 1990s pre-rendered CGI game
+effect, strict top-down view of a grey ocean lane 120 px wide: a churning line of white boiling
+water down its centre, blinking red dashed lines down both edges; then a giant arm slams down the
+lane and white spray sheets burst out to both sides, tearing into droplets and falling back into a
+foam bed, crisp palette-limited pixels`.
+
+Outcome (user, 2026-10-09): **chosen** in round 33; already the game's frames, approved as final.
+
+## slam-r33-b
+
+Round 33 proposal B, **"Lane boil, chevrons and rollers"**, the same frame sets and loop from the
+same script (its frames live only in this sheet and loop until it is picked; `python3
+tools/art/water_fx.py --variant b` then writes them under the game's names). Brief: the whole lane
+boils during the telegraph — bubble rings bursting across its width over the arm's dark rust-violet
+shadow wavering under the surface, a pale seam of churned foam along both edges
+(`harbour-kraken-lane-churn_0..5`, 120×48) — and red chevrons pointing down the lane pulse down its
+centre (`harbour-kraken-lane-mark_0..1`, 22×14, additive); at the impact a heavy white crown bursts
+along the arm and two rolling foam waves run out to the lane edges with a dark trough behind them and
+break white against the edges (`harbour-kraken-lane-splash_0..9`, 120×64). Differences from A: the
+lane is filled rather than outlined, the marks point the direction of the slam, and the splash
+ends on the lane's borders. Prompt (for an artist): `late 1990s pre-rendered CGI game effect,
+strict top-down view of a grey ocean lane 120 px wide: the whole lane boiling with bursting bubble
+rings over a dark shape rising beneath, glowing red chevrons pointing down its centre; then a giant
+arm slams down the lane, a white crown bursts along it and two rolling foam waves run out and break
+against the lane's edges, crisp palette-limited pixels`.
+
+Outcome (user, 2026-10-09): **rejected** in round 33 (a picked), moved to `rejected/` (the heading keeps
+the file's name).
+
+## l11-props-final-r33-a
+
+Round 33, production art (M5 part E batch, straight to production, user decision E9 = a): Level 11's
+props. Review sheet and loop by `python3 tools/art/l11_props.py` (see `tools/art/README.md`). Not an
+image-generator prompt: the floating containers are Level 01's chosen `cargo-container`
+(`tools/art/loot_targets.py`'s model and damage) afloat, the burning freighter is the convoy's hull
+(`tools/art/convoy_ships.py`, variant a) abandoned, the reef growths follow the ocean scene's
+Vrell reef line; the sunken supply pod had no concept and is designed to the level's README (a CDF
+supply pod snagged on a reef root on the `sub` layer, freed by four torpedo hits). Shown:
+`floating-container_0..1` (32×24, a third under the surface), its collar, its sinking when killed
+(`floating-container-break_0..7`, 48×48, a foam ring, no wreck), `sunken-pod_0..2` (48×40:
+snagged, hit, freed) plain and through the `sub` stand-in, its rise to the surface
+(`sunken-pod-rise_0..5`), and the backdrop pieces for step E3b (`pieces()`, written by
+`backdrop_l11.py`): `burning-freighter_0..3` (72×136, fire flicker baked) and `reef-growth-a/b/c`
+(collar loops) with `reef-root-a` (sub). The loop: the reef line scrolling past with its root under
+the surface, the pod taking four torpedo hits, rising and becoming the crate, containers drifting
+in their collars and one sinking, the freighter passing. Prompt for the pod (for an artist): `late
+1990s pre-rendered CGI game sprite, strict top-down view, seen through shallow water: an olive-drab
+CDF supply drum with amber-and-black hazard-striped end caps, two steel handles and an amber beacon
+dome, snagged under a thick rust-brown alien root with faint glowing violet veins and barnacle knobs,
+crisp palette-limited pixel edges`.
+Outcome (user, 2026-10-09): approved as final in round 33, the weak spots as they are (small reefs
+and fires, the pod on its root hard to see, the rectangular container collar).

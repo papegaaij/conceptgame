@@ -1,0 +1,46 @@
+# Reef Spitter stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+# M5 part E (Level 11; the stated defaults of 2026-10-08): the raft's drift along its nest's current is
+# flown by the simulation; the bobbing and the sinking are presentation.
+name: Reef Spitter
+faction: Vrell
+layer: ground     # naval surface
+tier: small
+size: [36, 36]    # sprite px: the gun; its raft is drawn under it (84 px)
+hitbox: [26, 26]
+parts: single (the gun); the raft is its drawn base, scenery that sinks when the gun dies
+orientation: 32 angles
+hp: 7
+armour: none
+speed: 10         # px/s, the raft's drift on top of the sea's scroll
+movement:
+  terrain: {drift: 10}   # px/s along its nest's current (° from straight down; straight down if not given)
+attacks:
+  - pattern: fan
+    bullet: small
+    count: 3
+    spread: 30         # degrees from the first to the last bullet
+    speed: 150         # px/s
+    interval: 2.4      # s
+    first_shot_delay: 1.0  # s after it enters the screen (as the Spine Turret's)
+    notes:
+      text: '{count}-way `{pattern}` every {interval} s (spread {spread}°, {speed} px/s, `{bullet}` = {damage}) toward the player, {first_shot_delay} s after it enters the screen; recoil frame'
+formations:
+  - {name: turret nest, size: [3, 5]}
+weak_points:
+  - {name: violet barrel root}
+drops: []
+traits: [anti-ground, spread]
+bounty: 14
+first_level: 11
+difficulty:
+  hard: {fan_count: 5}
+notes:
+  layer: ' (naval surface)'
+  orientation: (the gun; the raft bobs, drawn only)
+  size: (the gun, on an 84 px raft)
+  speed: (the raft's drift on the current, on top of the sea's scroll)
+  movement: '`terrain` on water (bobbing drawn only) with a drift of {movement.terrain.drift} px/s along its nest''s current'
+  weak_points: (drawn only)
+  death: '`small` burst; the raft sinks with a splash and ripple train'
+  used_in: Act 2
+  difficulty: 'hard: 5-way fan'

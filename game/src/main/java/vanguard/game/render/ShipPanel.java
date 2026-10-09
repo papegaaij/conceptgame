@@ -80,6 +80,11 @@ final class ShipPanel {
     private static final Color POWER = Color.valueOf("40FF80");
     private static final Color POWER_EMPTY = Color.valueOf("0B2A15");
     private static final Color PIP_EMPTY = Color.valueOf("3A3A20");
+    /**
+     * M5 part E: what a weapon that cannot fire in the level reads in its row instead of its pips: a
+     * Torpedo Pod without water (design/ui/hud; it still draws its power).
+     */
+    static final String NO_WATER = "NO WATER";
     /** The slot letters of the mock, front, rear, left and right (design/ui/hud). */
     private static final String[] SLOT_LETTERS = {"F", "R", "L", "R"};
 
@@ -119,6 +124,7 @@ final class ShipPanel {
             SpriteBatch batch,
             Sortie sortie,
             Flight.Weapon[] weapons,
+            boolean[] idle,
             double sparePower,
             double regenBonus,
             List<String> notFlown) {
@@ -142,7 +148,7 @@ final class ShipPanel {
                 !flicker,
                 false);
         power(batch, sparePower, regenBonus, sortie.overdriveSeconds() > 0, x, y - 104);
-        weapons(batch, weapons, sortie.overdriveSeconds(), x, y - 148);
+        weapons(batch, weapons, idle, sortie.overdriveSeconds(), x, y - 148);
         special(batch, sortie.special(), x, y - SPECIAL_TOP);
         if (denied > 0) {
             denied--;
@@ -237,7 +243,8 @@ final class ShipPanel {
         }
     }
 
-    private void weapons(SpriteBatch batch, Flight.Weapon[] weapons, double overdriveSeconds, int x, int y) {
+    private void weapons(
+            SpriteBatch batch, Flight.Weapon[] weapons, boolean[] idle, double overdriveSeconds, int x, int y) {
         kit.label(batch, "WEAPONS", x, y);
         int top = y - 22;
         int height = weapons.length * ROW + ROW + 10;
@@ -251,6 +258,11 @@ final class ShipPanel {
             kit.text(batch, kit.small, SLOT_LETTERS[slot], HudKit.LABEL, x + 6, rowTop);
             String name = weapon == null ? "-" : hudName(weapon.name());
             kit.text(batch, kit.small, name, colour, x + 20, rowTop, pipsX - x - 24);
+            if (weapon != null && idle[slot]) {
+                // M5 part E: it cannot fire here: the reason instead of its pips.
+                kit.textRight(batch, kit.small, NO_WATER, HudKit.LABEL, x, rowTop, HudKit.INNER_WIDTH - 6);
+                continue;
+            }
             int level = weapon == null ? 0 : weapon.level();
             for (int i = 0; i < LEVEL_PIPS; i++) {
                 kit.fill(batch, i < level ? HudKit.AMBER : PIP_EMPTY, pipsX + i * 10, rowTop - 9, 8, 7);

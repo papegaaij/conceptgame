@@ -3,7 +3,7 @@ title: Art direction
 design: approved
 implementation: n/a
 art: chosen
-updated: 2026-10-07
+updated: 2026-10-09
 ---
 
 # Art direction
@@ -140,13 +140,26 @@ All sizes are 1.5× the round 01 values (640×360). The enemy rows match the **s
   - **Surfacing / diving:** the highest parts break the surface first, then the rest follows
     from top to bottom (and the reverse when diving), with a swell and foam ring growing as it
     rises and water streaming off afterwards. Nothing pops in.
+  - **How it is drawn** (user decision E4 = c of M5 part E, the hybrid): everything on the `sub`
+    layer is drawn by one **generic pass** into an off-screen buffer and composited over the sea
+    with a tint toward the water colour, darker, blurred and slightly wavy (Level 10's
+    `FarsideLooks` light map is the precedent for the buffer), so every submerged unit, an arm's
+    under-water stretch and the torpedoes get the same look and Levels 12–13 and Act 4 reuse it;
+    the **foam collars, ripple trains and surfacing/diving steps** are pre-rendered per unit (in its
+    frames, as the round 07 concepts were). Rejected: a (all at run time, collars generated from the
+    sprite's alpha at the waterline: the most code and GL risk) and b (all baked: every unit's frame
+    count ×2–3 and separate under-water segment sets for the Kraken's arms).
+  - **On a water level** (a level's `water: true`, M5 part E): a kill on the play field splashes
+    with a ripple train and sinks, leaving no crater or wreck; landing blasts (bombs, mortar shells,
+    the Airstrike) splash instead of a ground blast; flyers cast their shadows onto the sea (the
+    swell marks the shadow stencil, as the ground does).
   - **Under water** scenes (Europa) must read as under water at a glance: swaying vegetation
     (kelp, sea grass, anemones), rising air-bubble streams, drifting particles, caustic light
     patterns and light shafts, and fish.
 
 - **Explosions.** Pre-rendered volumetric fireball sequences of 12–16 frames (additive), plus
   debris chunks and a shockwave ring for large kills. A 1–2 frame white **hit flash** on every
-  damaged enemy.
+  damaged enemy (a large boss part flashes at most once each 0.25 s, see Decisions 2026-10-09).
 - **Destruction states.** Ground structures and bosses get a damaged and a wrecked frame; wrecks
   stay on the ground layer.
 
@@ -190,7 +203,7 @@ faster.
 | `deep` | sky, planet surface far below, star fields, nebulae (may have sub-layers, e.g. Earth 0.12 with haze wisps 0.2) | 0.05–0.2 (default 0.12) | none | strongest haze towards the setting's atmosphere colour, desaturated, darker, low contrast, may be slightly blurred |
 | `far` | distant structure seen through gaps in the ground: a sister station, a canyon floor, lower city levels, cloud decks | 0.4–0.7 (default 0.5) | none (background set pieces only) | 40–60 % haze towards the setting colour, smaller scale, posterized |
 | `ground` | terrain, sea surface, city, station hulls, asteroid surfaces, capital-ship hulls | **1.0** | stationary: turrets, bunkers, tanks, surface ships, growths | full detail; catches shadows of everything above it |
-| `sub` | under water: sea floor and submerged craft seen through the surface | 0.8–0.9 | submarines, mines, sea creatures (surface to attack) | blue-green tint, caustics, reduced contrast |
+| `sub` | under water: sea floor and submerged craft seen through the surface | 0.8–0.9 for sea-floor scenery; submerged units scroll with the sea (1.0) | submarines, mines, sea creatures (surface to attack) | blue-green tint, caustics, reduced contrast (the generic `sub` pass, see Water) |
 | `low-air` | low flyers, traffic, drifting wreckage, dust plumes, low clouds and smoke | 1.3–1.5 (default 1.35) | low flyers | slightly larger than ground scale; shadow offset (9, 13) |
 | `air` | the **play plane**: player, wingman, most enemies, all bullets, pickups | screen space | most enemies | shadow offset (21, 30) onto the ground layer |
 | `high-air` | clouds, smoke, debris and ice streaks in front of the player; rare huge overhead passes (Leviathan, Brood Carrier) | 2.0–2.5 (default 2.2) | rare huge set-piece enemies only | weather and decoration: larger, blurred or drawn as motion streaks, **at most ~40 % opacity** over the play plane, never hides bullets; enemies: 75 % opacity (so the ship shows under them), scaled per the perspective rule, cast shadows |
@@ -446,6 +459,25 @@ production art; placeholder kit by `tools/concept/towers_r30.py` (prompts:
 |---|---|---|
 | [concept/towers-capture-r30-a.png](concept/towers-capture-r30-a.png) | The runtime tower projection in a scratch copy of Level 04's first section (placeholder streets, roofs and window walls in palette B; 114 towers, *h* 0.3–1.35): roofs leaning out from (240, 297), the walls that face the centre with true-perspective window rows, shaded right and down; the convoy, the ship and a flyer with its shadow drawn over the tower district | chosen |
 
+Concept round 33 (M5 part E, Level 11), production art straight from the chosen concepts and the
+Harbour Kraken's lane telegraph and slam look as an a/b (user decision E9 = a); generators
+`tools/art/water_fx.py` and `tools/art/l11_props.py` (prompts and briefs:
+[concept/prompts.md](concept/prompts.md#water-fx-final-r33-a)). The convoy's ship pair is in
+[allies](../allies/README.md#concept-art). Closed 2026-10-09 (user): the water and torpedo effects and
+the Level 11 props approved as final; the lane telegraph and slam **a** "edge dashes + spray sheets"
+(already in the game) approved as final, b in `concept/rejected/`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/water-fx-final-r33-a.png](concept/water-fx-final-r33-a.png) | Water and torpedo effects, final frames: the water-surface and under-water explosion ladders (24–96 px), splash, ripple train, foam collars, foam strip, small craft wake, the torpedo at 32 headings with its bubble puff and drop splash (sheet) | chosen |
+| [concept/water-fx-final-r33-a.gif](concept/water-fx-final-r33-a.gif) | The same on the ocean stand-in: kills on and under the water, a collar, a wake, torpedoes hitting a submerged dummy (motion) | chosen |
+| [concept/slam-r33-a.png](concept/slam-r33-a.png) | Kraken lane telegraph and slam a, "edge dashes and spray sheets": a boiling band on the lane's centre line, red dashes down both edges, spray sheets thrown to both sides (sheet; in the game until the pick) | chosen |
+| [concept/slam-r33-a.gif](concept/slam-r33-a.gif) | The same in two arena lanes with a cargo ship and a stand-in arm: telegraph, rise, impact, awash, sink (motion) | chosen |
+| [concept/rejected/slam-r33-b.png](concept/rejected/slam-r33-b.png) | Kraken lane telegraph and slam b, "lane boil, chevrons and rollers": the whole lane boiling over the arm's shadow, red chevrons down its centre, a crown and two rollers breaking at the lane edges (sheet; review files only) | rejected |
+| [concept/rejected/slam-r33-b.gif](concept/rejected/slam-r33-b.gif) | The same in the arena (motion) | rejected |
+| [concept/l11-props-final-r33-a.png](concept/l11-props-final-r33-a.png) | Level 11's props, final frames: floating container with collar and its sinking, the sunken supply pod on its reef root (snagged, hit, freed) and its rise, and the backdrop pieces for step E3b: the burning freighter, three reef growths and a reef root (sheet) | chosen |
+| [concept/l11-props-final-r33-a.gif](concept/l11-props-final-r33-a.gif) | The same on the ocean stand-in: the reef line, the pod freed by torpedoes and rising to the crate, containers drifting and one sinking, the freighter passing (motion) | chosen |
+
 ## Implementation
 
 - [x] Renderer draws the screen at 960×540 and scales by integer factors with letterboxing
@@ -453,7 +485,18 @@ production art; placeholder kit by `tools/concept/towers_r30.py` (prompts:
 - [x] Layer stack (deep, far, ground, low-air, air, high-air) with per-layer scroll factors as in
       the table and a ground scroll speed, configurable per level (each level's `backdrop`:
       `scroll_factors`, `BackdropLayer`, `BackdropCheck`).
-- [ ] The `sub` layer — **later: M5** (the naval levels; see [enemies](../enemies/README.md#implementation)).
+- [ ] The `sub` layer (M5 part E, Level 11; E4 = c): drawn deep → `sub` → ground, everything on it
+      through the generic tint, blur and wave pass; checked in the xvfb capture and CI's smoke test
+      on three OSes (step E3c; see [enemies](../enemies/README.md#implementation)). Built in step
+      E3c (the pass and its fallback, see *Decisions*); it ran under xvfb and in the round-33 captures
+      (accepted 2026-10-09), the three-OS check waits for CI's smoke test.
+- [x] The water rules on a water level (M5 part E, Level 11): animated foam collars at every
+      surface contact (jellies, rafts, reefs, the Kraken's parts, ships, containers), ripple trains,
+      splashes with spray, V-wakes and prop-wash on the ships; surfacing and diving top-down from the
+      units' pre-rendered steps; kills on water sinking without a crater or wreck; landing blasts
+      splashing; flyers' shadows on the sea (steps E1b, E1c and E3c; the reefs' collars are the
+      backdrop pieces' own, the shadows fall on the sea's chop, which marks the shadow stencil
+      everywhere).
 - [ ] Perspective geometry between layers for canyon walls and cliffs — **later: Act 3** (the
       canyon walls, L16).
 - [x] Runtime drop shadows from sprite alpha, offset per layer, masked to shadow-catching layers
@@ -603,3 +646,35 @@ production art; placeholder kit by `tools/concept/towers_r30.py` (prompts:
   the perspective towers accepted as built (the test capture `towers-capture-r30-a` and Level 08's
   production towers, roofs leaning out from (240, 297) with the walls turning), so the towers item
   is ticked for Level 08; the canyon walls' perspective geometry stays Act 3.
+- 2026-10-08: M5 part E (user decision E4 = c of 2026-10-08): the water rules are drawn as a hybrid,
+  a generic run-time pass for everything on `sub` (tint, darker, blur, wave) and pre-rendered
+  collars, ripples and surfacing steps per unit; rejected: a (all run time: the waterline mask the
+  hardest part and the most GL risk) and b (all baked: atlas growth and separate under-water segment
+  sets). Stated defaults: submerged units scroll with the sea (the 0.8–0.9 factor is for sea-floor
+  scenery, which open ocean does not have); on a water level kills sink without a crater or wreck,
+  landing blasts splash and flyers' shadows fall on the sea.
+- 2026-10-08: The `sub` pass as built (M5 part E, step E3c; user decision E4 = c): everything on
+  `sub` is drawn plain into a play-field-sized buffer between the deep layer and the ground layer
+  (Level 11: between the swell and the chop), then laid over the field through one shader with the
+  art scripts' stand-in look: colour × 0.55 × 0.85 + water tint (6, 40, 78) × 0.45, opacity 0.85,
+  a 3×3 blur (about 0.7 px) and a row-wise sway of 0.7 px (0.5 rad a row, 5 rad/s). Without a frame
+  buffer it falls back to tinting each sprite with the same sums (no blur, no sway). Kills under the
+  water burst through the pass (`explosion-under-*`); kills and landing blasts on the surface burst
+  in the `explosion-water-*` rung of their size, alpha-blended, with a ripple train after them. The
+  pass ran on Mesa's GL under xvfb; the three-OS check is CI's smoke test and the round's capture.
+- 2026-10-09: Hit flash on a large boss part (the Harbour Kraken's head and slam arms, round 33's
+  capture): under sustained fire the 2-step flash restarted on every hit and turned the head into a
+  white silhouette for seconds. Such a part now flashes at most once each 0.25 s (a hit within 15
+  steps of the last flash's start starts none), and the head only halfway to white, so its eyes and
+  beak stay readable. The other bosses keep the 1–2 frame flash on every hit. Over water, a shape
+  that must read from under the surface (the Kraken's foreshadowing shadow, a torpedo's lit back
+  and its bubbles) is drawn over the chop and under the convoy rather than through the `sub` pass,
+  whose tint takes dark and slate shapes to the sea's own colour.
+- 2026-10-09: Concept round 33 closed (user): the water and torpedo effects (`tools/art/water_fx.py`)
+  and Level 11's props (`tools/art/l11_props.py`) approved as **final**, the weak spots as they are
+  (the faint wake, the rectangular container collar, small reefs and fires, the pod on its root hard
+  to see); the Kraken's lane telegraph and slam **a** "edge dashes + spray sheets" (already in the
+  game) approved as final, its bright spray included; b "lane boil, chevrons, rollers" rejected and
+  moved to `concept/rejected/` (`water_fx.py --variant b` now writes its review there). The quiet
+  `sub` look (build choice a), the faint reef growths (x) and the invisible under-water stretch of
+  the arms at 1:1 (y) kept as built.

@@ -31,7 +31,16 @@ public final class Ally implements Hashed {
         /** M5 part D: an air unit climbing out off the top edge (untouchable). */
         CLIMBING,
         /** M5 part D: an air unit that climbed out off the top edge: home. */
-        HOME
+        HOME,
+        /**
+         * M5 part E: a naval convoy's unit gliding between its station and its arena lane (or, a unit
+         * that leaves, below the bottom edge), either way, on the real steps.
+         */
+        GLIDING,
+        /** M5 part E: a naval convoy's unit in its arena lane while the scroll is halted. */
+        LANE,
+        /** M5 part E: a naval convoy's unit that left the arena, below the bottom edge until the boss is down. */
+        AWAY
     }
 
     private State state = State.WAITING;
@@ -71,6 +80,37 @@ public final class Ally implements Hashed {
         state = first;
         x = prevX = atX;
         lift = prevLift = startLift;
+    }
+
+    /** M5 part E: a naval unit at its station ({@code atX}, {@code atY}) with {@code fullHp}. */
+    void resetNaval(double atX, double atY, double fullHp) {
+        reset(atY, fullHp);
+        state = State.STATION;
+        x = prevX = atX;
+    }
+
+    /** M5 part E: a naval unit sails at ({@code atX}, {@code atY}), straight up the screen. */
+    void sail(double atX, double atY) {
+        x = atX;
+        y = atY;
+    }
+
+    /** M5 part E: takes over {@code other}'s state (a boss checkpoint); both are units of the same convoy. */
+    void copyFrom(Ally other) {
+        state = other.state;
+        x = other.x;
+        y = other.y;
+        prevX = other.prevX;
+        prevY = other.prevY;
+        hp = other.hp;
+        maxHp = other.maxHp;
+        travelled = other.travelled;
+        prevTravelled = other.prevTravelled;
+        ticksSinceHit = other.ticksSinceHit;
+        heading = other.heading;
+        lift = other.lift;
+        prevLift = other.prevLift;
+        untouchable = other.untouchable;
     }
 
     /** Remembers where it was for the interpolation, before a step moves it. */
@@ -144,6 +184,11 @@ public final class Ally implements Hashed {
 
     public State state() {
         return state;
+    }
+
+    /** M5 part E: the hits it took, from its full HP (a naval unit's: the slams it took). */
+    public double hitsTaken() {
+        return maxHp - hp;
     }
 
     /** Whether it is on its way or at its station, not waiting and not a wreck. */

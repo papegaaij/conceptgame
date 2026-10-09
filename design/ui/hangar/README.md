@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
 # Hangar
@@ -63,7 +63,10 @@ illustrative and come from [player](../../player/README.md).)
   [trait pacing table](../../campaign/README.md#loadout-pressure-and-shop-unlock-pacing). Item details show traits, DPS, draw, price, and a **comparison with the
   fitted item** (green/red deltas).
 - **Test fire**: a small looping preview box showing the weapon's pattern at the current level
-  against dummy targets. Quick way to understand spread, rear and side weapons.
+  against dummy targets. Quick way to understand spread, rear and side weapons. The Torpedo Pod
+  (M5 part E) is test-fired over a **water strip** with a **submerged dummy** (on `sub`, drawn
+  through the water look) among the others, so its drop, its run under the surface and its turn
+  show; nothing but the torpedo reaches that dummy.
 - **Intel** (right): the next level's threat profile, presented by Dr. Varga (her 72×72 radio
   portrait with the hangar teaser beside it). How much is shown
   depends on the sensor suite level, see [ship systems](../../player/systems/README.md#sensor-levels-and-hangar-intel).
@@ -156,6 +159,7 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 | [concept/intel-final-r30-a.png](concept/intel-final-r30-a.png) | Review sheet (M5 part B batch, `tools/art/intel.py`, [round 30](../../concept-rounds/README.md)): the 30×30 intel portrait of Level 08's Creeper (walking down), from the production model of `tools/art/creeper.py` with its readability lift, at 1× and 3× | chosen |
 | [concept/intel-final-r31-a.png](concept/intel-final-r31-a.png) | Review sheet (M5 part C batch, `tools/art/intel.py`, [round 31](../../concept-rounds/README.md)): the 30×30 intel portraits of Level 09's Hive Node and Ravager, from the production models of `tools/art/hive_node.py` and `tools/art/ravager.py`, at 1× and 3× | chosen |
 | [concept/intel-final-r32-a.png](concept/intel-final-r32-a.png) | Review sheet (M5 part D batch, `tools/art/intel.py`, [round 32](../../concept-rounds/README.md)): the 30×30 intel portraits of Level 10's Wraith and Mote Swarm, from the production models of `tools/art/wraith.py` and `tools/art/mote_swarm.py`, at 1× and 3× | chosen |
+| [concept/intel-final-r33-a.png](concept/intel-final-r33-a.png) | Review sheet (M5 part E batch, `tools/art/intel.py`, [round 33](../../concept-rounds/README.md)): the 30×30 intel portraits of Level 11's Driftjelly and Reef Spitter, from the production models of `tools/art/driftjelly.py` and `tools/art/reef_spitter.py`, and the 40×40 silhouette of the Harbour Kraken (its head and mantle), at 1× and 3× | chosen |
 
 M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game capture, see
 [concept/prompts.md](concept/prompts.md#test-fire-capture-r26-a).
@@ -190,6 +194,10 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
 - [x] Repair panel: the `ROOK` line at the difficulty's repair cost — M5 part A
 - [x] Launch warnings: Rook's armour below 50 %, Rook grounded — M5 part A
 - [x] Test fire of Rook's guns and of the Proximity Mines (their dummies fly low, `low-air`, which sets mines off) — M5 part A
+- [x] Test fire of the Torpedo Pod over a water strip with a submerged dummy; the "NOT YET IN
+      FLIGHT" label goes (`TestFireTest` flipped) — M5 part E (steps E2a and E3c: the range's
+      water and the dummies under it in `TestFireView`, the torpedo with its bubbles, splash and
+      under-water burst; `TestFirePanel.NOT_IN_FLIGHT` removed)
 - [x] Launch warning for a `required` trait at every sensor level, counting Rook's gun (while he
       flies) and the specials' charges as sources (Level 09's `anti-ground`, D7 = a) — M5 part C
       (`Hangar.sourceTraits`/`missingRequired`, `Intel.requiredTraits`, `HangarState.launchWarnings`:
@@ -436,3 +444,12 @@ M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game captur
   portraits (user): Level 10's Wraith and Mote Swarm approved as **final**; the build choices on the
   hangar (the Side Splitter not silencing the rear warning, the intel's long level name in the label
   font) accepted as built.
+- 2026-10-08: M5 part E (stated defaults with the user's decisions of 2026-10-08): the Torpedo Pod
+  is test-fired over a water strip with a submerged dummy, the last weapon's "NOT YET IN FLIGHT"
+  label going with it. Level 11's threat profile recommends `spread` and `anti-ground` and marks
+  `anti-sub` optional, not `required`, so no new launch warning (the sensor-L3 rule as before).
+- 2026-10-09: [Concept round 33](../../concept-rounds/round-33/README.md) closed for the intel
+  pictures (user): the Driftjelly's and the Reef Spitter's portraits and the Harbour Kraken's
+  silhouette approved as **final**, the weak spots as they are (the dark Reef Spitter, the Kraken's
+  silhouette without arms); Rook's teaser and Varga's four Level 11 lines approved (L2 and L3 as
+  shortened to fit the panel).

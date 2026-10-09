@@ -1,0 +1,50 @@
+# Driftjelly stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+# M5 part E (Level 11; user decisions E2 = a and E3 = b and the stated defaults of 2026-10-08): the
+# surfacing and submerging, the proximity ring and the `field` formation are flown by the simulation.
+name: Driftjelly
+faction: Vrell
+layer: ground     # while surfaced; `sub` while submerged (the `submerge` block: its current layer)
+tier: small
+size: [40, 40]    # sprite px
+hitbox: [28, 28]
+parts: single
+orientation: radial
+hp: 4
+armour: 'submerged: only `anti-sub` (the torpedo) and the Smart Bomb reach it ([layer rules](../../README.md#layer-rules))'
+speed: 15         # px/s, its drift along its wave's current on top of the sea's scroll
+submerge:
+  every: [6, 10]  # s between two swaps, drawn per unit from its own seed on the real steps (a field's first wait from 0 to 10)
+  swap: 0.6       # s a swap takes, the layer flipping at its middle
+  start: 0.5      # the share of a field's units that start submerged
+movement:
+  drift: {speed: 15}
+attacks:
+  - pattern: ring
+    name: pulse
+    bullet: small
+    count: 8
+    speed: 90          # px/s
+    within: 96         # px: it fires only while the ship's centre is this close, surfaced or submerged (E3 = b)
+    interval: 2.5      # s, the cooldown from the last ring
+    notes:
+      text: '{count}-bullet `{pattern}` ({speed} px/s, `{bullet}` = {damage}) when the player is within {within} px; cooldown {interval} s; surfaced **and** submerged'
+formations:
+  - {name: field, size: [6, 12]}
+weak_points:
+  - {name: lime bell veins}
+drops: []
+traits: [spread, anti-sub]
+bounty: 10
+first_level: 11
+difficulty:
+  hard: {attacks: {pulse: {count: 12, within: 110}}}   # a 12-bullet ring within 110 px
+notes:
+  layer: ' while surfaced, `sub` while submerged (its **current layer**, flipping at the middle of each swap)'
+  orientation: (4 pulse frames)
+  speed: drift on the current, on top of the sea's scroll
+  movement: '`drift` with the sea (scroll factor 1, surfaced or not) along its wave''s current; surfaces and submerges on its own seeded timer, every {submerge.every} s, each swap taking {submerge.swap} s (the water rules: crown first, foam collar, ripples)'
+  formations: (scattered fields)
+  weak_points: (drawn only)
+  death: '`small` wet pop; on water a splash and ripple train'
+  used_in: Act 2 oceans; Europa (Act 4)
+  difficulty: 'hard: 12-bullet ring, radius 110 px'

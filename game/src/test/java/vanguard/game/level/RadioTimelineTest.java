@@ -21,7 +21,7 @@ import vanguard.sim.LevelScript.CueTrigger;
 import vanguard.sim.SimStep;
 
 /**
- * The timed radio lines of Levels 01–10 play when the level scripts mean them to: the real queue,
+ * The timed radio lines of Levels 01–11 play when the level scripts mean them to: the real queue,
  * stepped at the simulation's rate at the default text speed, with the event lines a player can
  * set off in between (an escaped Spore Bomber before the Leviathan's first pass, the lifeboat
  * secret, a convoy's first hit and loss, the Brood Carrier's phases, Rook's first kill, …), starts none of them more
@@ -56,6 +56,7 @@ class RadioTimelineTest {
     private static final String LEVEL_08 = "act-2-homefront/level-08-neon-skyline";
     private static final String LEVEL_09 = "act-2-homefront/level-09-arcology-fall";
     private static final String LEVEL_10 = "act-2-homefront/level-10-evacuation-corridor";
+    private static final String LEVEL_11 = "act-2-homefront/level-11-atlantic-convoy";
 
     /** Rook's sides: a {@code {side}} line is played with each one's text. */
     private static final List<String> SIDES = VoiceLines.SIDES;
@@ -128,142 +129,175 @@ class RadioTimelineTest {
     }
 
     /** Per level, the runs to check: each a list of events on top of the timed lines and the level end. */
-    private static final Map<String, List<List<Event>>> RUNS = Map.of(
-            LEVEL_10,
-            List.of(
-                    List.of(),
-                    // as the autopilot's runs see them: the first decloak at 55, the first loop-back at
-                    // 67.6, a shuttle hit early or late, the ferry cache as it passes, a shuttle lost
-                    List.of(
-                            new Event(15, CueTrigger.FIRST_ALLY_HIT, ""),
-                            new Event(55, CueTrigger.FIRST_DECLOAK, ""),
-                            new Event(67.6, CueTrigger.FIRST_LOOP_BACK, "")),
-                    List.of(
-                            new Event(20.1, CueTrigger.FIRST_ALLY_HIT, ""),
-                            new Event(55, CueTrigger.FIRST_DECLOAK, ""),
-                            new Event(67.6, CueTrigger.FIRST_LOOP_BACK, ""),
-                            new Event(150.5, CueTrigger.SECRET, "ferry cache"),
-                            new Event(165.5, CueTrigger.ALLY_LOST, "")),
-                    // a loss just before Lifeline Three's line, and one just after the lance
-                    List.of(new Event(33, CueTrigger.FIRST_ALLY_HIT, ""), new Event(113, CueTrigger.ALLY_LOST, "")),
-                    List.of(new Event(120, CueTrigger.ALLY_LOST, "")),
-                    // a shuttle lost as Varga explains the lance, and the cache found just before
-                    List.of(
-                            new Event(137, CueTrigger.SECRET, "ferry cache"),
-                            new Event(139.5, CueTrigger.ALLY_LOST, ""))),
-            LEVEL_09,
-            List.of(
-                    List.of(),
-                    // the first node dies early or late in the plaza's hold; the first pounce on the boulevard
-                    List.of(
-                            Event.inHold(0, 2, CueTrigger.FIRST_KILL, "hive-node"),
-                            new Event(60, CueTrigger.FIRST_POUNCE, "")),
-                    List.of(
-                            Event.inHold(0, 5, CueTrigger.FIRST_KILL, "hive-node"),
-                            new Event(75, CueTrigger.FIRST_POUNCE, ""),
-                            new Event(88, CueTrigger.SECRET, "cocoon cache")),
-                    // the pounce just after Varga's warning, the cocoon as it passes
-                    List.of(
-                            new Event(58.5, CueTrigger.FIRST_POUNCE, ""),
-                            new Event(86, CueTrigger.SECRET, "cocoon cache"))),
-            LEVEL_08,
-            List.of(
-                    List.of(),
-                    // Rook's first kill as the autopilot flies it with him (the first Skitters at t=12),
-                    // just after his side line, and late, before the t=43 line
-                    List.of(new Event(17.3, CueTrigger.ESCORT_FIRST_KILL, "")),
-                    List.of(new Event(12.5, CueTrigger.ESCORT_FIRST_KILL, "")),
-                    List.of(new Event(36, CueTrigger.ESCORT_FIRST_KILL, "")),
-                    // the billboard toppled as it enters, or late as it passes
-                    List.of(new Event(101, CueTrigger.SECRET, "billboard cache")),
-                    List.of(
-                            new Event(17.3, CueTrigger.ESCORT_FIRST_KILL, ""),
-                            new Event(105, CueTrigger.SECRET, "billboard cache"))),
-            LEVEL_01,
-            List.of(
-                    List.of(),
-                    List.of(new Event(9, CueTrigger.FIRST_KILL, "skitter")),
-                    List.of(new Event(30, CueTrigger.FIRST_KILL, "skitter"))),
-            LEVEL_02,
-            List.of(
-                    List.of(),
-                    List.of(new Event(36, CueTrigger.GROUP_CLEARED, "Dock One")),
-                    List.of(
-                            new Event(40, CueTrigger.GROUP_LOST, "Dock One"),
-                            new Event(40, CueTrigger.FIRST_GROUP_LOST, ""))),
-            LEVEL_03,
-            List.of(
-                    List.of(),
-                    // the run in the capture: a bomber of the t=42 line slips past just before the first pass
-                    List.of(new Event(55, CueTrigger.ENEMY_ESCAPED, "spore-bomber")),
-                    List.of(new Event(20, CueTrigger.ENEMY_ESCAPED, "spore-bomber")),
-                    List.of(new Event(45, CueTrigger.SECRET, "lifeboat rack")),
-                    List.of(
-                            new Event(45, CueTrigger.SECRET, "lifeboat rack"),
-                            new Event(52, CueTrigger.ENEMY_ESCAPED, "spore-bomber")),
-                    List.of(new Event(150, CueTrigger.FIRST_KILL, "leviathan")),
-                    // it leaves alive: up through the top edge 2.7 s after its rise at t=158
-                    List.of(new Event(160.7, CueTrigger.ENEMY_ESCAPED, "leviathan"))),
-            LEVEL_04,
-            List.of(
-                    List.of(),
-                    // the first turret nest hits a crawler, a walker of the pincer claws one to death
-                    List.of(new Event(41, CueTrigger.FIRST_ALLY_HIT, "")),
-                    List.of(
-                            new Event(41, CueTrigger.FIRST_ALLY_HIT, ""),
-                            new Event(91, CueTrigger.FIRST_ALLY_LOST, "")),
-                    // a crawler lost to the bridge turrets, just before Varga's walker line … and after it
-                    List.of(new Event(72, CueTrigger.FIRST_ALLY_LOST, "")),
-                    List.of(new Event(126, CueTrigger.SECRET, "prospector's cache")),
-                    List.of(new Event(23, CueTrigger.FIRST_ALLY_HIT, ""))),
-            LEVEL_05,
-            List.of(
-                    List.of(),
-                    // the batteries cleared as the autopilot clears them, the stuck sled opened between two sleds
-                    List.of(
-                            new Event(57.5, CueTrigger.GROUP_CLEARED, "Battery A"),
-                            new Event(90.5, CueTrigger.GROUP_CLEARED, "Battery B"),
-                            new Event(110.5, CueTrigger.GROUP_CLEARED, "Battery C"),
-                            new Event(137.5, CueTrigger.GROUP_CLEARED, "Battery D")),
-                    List.of(new Event(33, CueTrigger.SECRET, "stuck sled")),
-                    // the frigate's phases in a fast fight (the arena clock runs on), and its death
-                    List.of(
-                            new Event(137.5, CueTrigger.GROUP_CLEARED, "Battery D"),
-                            new Event(170, CueTrigger.BOSS_PHASE, "Core"),
-                            new Event(185, CueTrigger.BOSS_DESTROYED, "gorgon-frigate"))),
-            LEVEL_06,
-            List.of(
-                    List.of(),
-                    // the survey cache lit by the t=112 flare (or found by headlight on the way in)
-                    List.of(new Event(112.5, CueTrigger.SECRET, "survey cache")),
-                    List.of(new Event(111, CueTrigger.SECRET, "survey cache")),
-                    // the data core collected as the terminal passes, before and between the last lines
-                    List.of(new Event(182, CueTrigger.SECRET, "settlement log")),
-                    List.of(new Event(178, CueTrigger.SECRET, "settlement log"))),
-            LEVEL_07,
-            List.of(
-                    List.of(),
-                    // the lifeboat's cable cut as the tow comes in, or late as it drifts out
-                    List.of(new Event(25, CueTrigger.SECRET, "lifeboat tow")),
-                    List.of(new Event(33, CueTrigger.SECRET, "lifeboat tow")),
-                    // the carrier as the autopilot fights it at medium (the broadside 25 s after the
-                    // bar, the core at about 69 s, the kill at about 90 s; the clock then jumps to the
-                    // arena's end), and a fast fight
-                    List.of(
-                            new Event(125, CueTrigger.BOSS_PHASE, "Broadside"),
-                            new Event(169, CueTrigger.BOSS_PHASE, "Core"),
-                            new Event(190, CueTrigger.BOSS_DESTROYED, "brood-carrier")),
-                    List.of(
-                            new Event(33, CueTrigger.SECRET, "lifeboat tow"),
-                            new Event(125, CueTrigger.BOSS_PHASE, "Broadside"),
-                            new Event(150, CueTrigger.BOSS_PHASE, "Core"),
-                            new Event(165, CueTrigger.BOSS_DESTROYED, "brood-carrier")),
-                    // the broadside times out: 70 s after its 4 s move
-                    List.of(
-                            new Event(125, CueTrigger.BOSS_PHASE, "Broadside"),
-                            new Event(199, CueTrigger.BOSS_TIMEOUT, "Core"),
-                            new Event(199, CueTrigger.BOSS_PHASE, "Core"),
-                            new Event(230, CueTrigger.BOSS_DESTROYED, "brood-carrier"))));
+    private static final Map<String, List<List<Event>>> RUNS = runs();
+
+    private static Map<String, List<List<Event>>> runs() {
+        Map<String, List<List<Event>>> runs = new java.util.LinkedHashMap<>(runs01To10());
+        // M5 part E: Level 11's events as a flight sees them: a cargo ship's first hit early (the
+        // popcorn over the muster) or next to Atlas Control's and Varga's lines, a ship lost, the
+        // sunken pod's cache as the reef passes, then the arena's lines after the clock's halt
+        // (every cue before 161 is timed)
+        runs.put(
+                LEVEL_11,
+                List.of(
+                        List.of(),
+                        List.of(new Event(18, CueTrigger.FIRST_ALLY_HIT, "")),
+                        List.of(
+                                new Event(62, CueTrigger.FIRST_ALLY_HIT, ""),
+                                new Event(95, CueTrigger.SECRET, "sunken pod")),
+                        List.of(
+                                new Event(21.5, CueTrigger.FIRST_ALLY_HIT, ""),
+                                new Event(110.5, CueTrigger.ALLY_LOST, "")),
+                        List.of(
+                                new Event(140, CueTrigger.ALLY_LOST, ""),
+                                new Event(147, CueTrigger.FIRST_ALLY_HIT, ""),
+                                new Event(160, CueTrigger.FIRST_TELEGRAPH, "")),
+                        List.of(
+                                new Event(162, CueTrigger.FIRST_TELEGRAPH, ""),
+                                new Event(170, CueTrigger.BOSS_PART_DESTROYED, "left arm"),
+                                new Event(175, CueTrigger.ALLY_LOST, ""),
+                                new Event(190, CueTrigger.BOSS_DESTROYED, "harbour-kraken"))));
+        return runs;
+    }
+
+    private static Map<String, List<List<Event>>> runs01To10() {
+        return Map.of(
+                LEVEL_10,
+                List.of(
+                        List.of(),
+                        // as the autopilot's runs see them: the first decloak at 55, the first loop-back at
+                        // 67.6, a shuttle hit early or late, the ferry cache as it passes, a shuttle lost
+                        List.of(
+                                new Event(15, CueTrigger.FIRST_ALLY_HIT, ""),
+                                new Event(55, CueTrigger.FIRST_DECLOAK, ""),
+                                new Event(67.6, CueTrigger.FIRST_LOOP_BACK, "")),
+                        List.of(
+                                new Event(20.1, CueTrigger.FIRST_ALLY_HIT, ""),
+                                new Event(55, CueTrigger.FIRST_DECLOAK, ""),
+                                new Event(67.6, CueTrigger.FIRST_LOOP_BACK, ""),
+                                new Event(150.5, CueTrigger.SECRET, "ferry cache"),
+                                new Event(165.5, CueTrigger.ALLY_LOST, "")),
+                        // a loss just before Lifeline Three's line, and one just after the lance
+                        List.of(new Event(33, CueTrigger.FIRST_ALLY_HIT, ""), new Event(113, CueTrigger.ALLY_LOST, "")),
+                        List.of(new Event(120, CueTrigger.ALLY_LOST, "")),
+                        // a shuttle lost as Varga explains the lance, and the cache found just before
+                        List.of(
+                                new Event(137, CueTrigger.SECRET, "ferry cache"),
+                                new Event(139.5, CueTrigger.ALLY_LOST, ""))),
+                LEVEL_09,
+                List.of(
+                        List.of(),
+                        // the first node dies early or late in the plaza's hold; the first pounce on the boulevard
+                        List.of(
+                                Event.inHold(0, 2, CueTrigger.FIRST_KILL, "hive-node"),
+                                new Event(60, CueTrigger.FIRST_POUNCE, "")),
+                        List.of(
+                                Event.inHold(0, 5, CueTrigger.FIRST_KILL, "hive-node"),
+                                new Event(75, CueTrigger.FIRST_POUNCE, ""),
+                                new Event(88, CueTrigger.SECRET, "cocoon cache")),
+                        // the pounce just after Varga's warning, the cocoon as it passes
+                        List.of(
+                                new Event(58.5, CueTrigger.FIRST_POUNCE, ""),
+                                new Event(86, CueTrigger.SECRET, "cocoon cache"))),
+                LEVEL_08,
+                List.of(
+                        List.of(),
+                        // Rook's first kill as the autopilot flies it with him (the first Skitters at t=12),
+                        // just after his side line, and late, before the t=43 line
+                        List.of(new Event(17.3, CueTrigger.ESCORT_FIRST_KILL, "")),
+                        List.of(new Event(12.5, CueTrigger.ESCORT_FIRST_KILL, "")),
+                        List.of(new Event(36, CueTrigger.ESCORT_FIRST_KILL, "")),
+                        // the billboard toppled as it enters, or late as it passes
+                        List.of(new Event(101, CueTrigger.SECRET, "billboard cache")),
+                        List.of(
+                                new Event(17.3, CueTrigger.ESCORT_FIRST_KILL, ""),
+                                new Event(105, CueTrigger.SECRET, "billboard cache"))),
+                LEVEL_01,
+                List.of(
+                        List.of(),
+                        List.of(new Event(9, CueTrigger.FIRST_KILL, "skitter")),
+                        List.of(new Event(30, CueTrigger.FIRST_KILL, "skitter"))),
+                LEVEL_02,
+                List.of(
+                        List.of(),
+                        List.of(new Event(36, CueTrigger.GROUP_CLEARED, "Dock One")),
+                        List.of(
+                                new Event(40, CueTrigger.GROUP_LOST, "Dock One"),
+                                new Event(40, CueTrigger.FIRST_GROUP_LOST, ""))),
+                LEVEL_03,
+                List.of(
+                        List.of(),
+                        // the run in the capture: a bomber of the t=42 line slips past just before the first pass
+                        List.of(new Event(55, CueTrigger.ENEMY_ESCAPED, "spore-bomber")),
+                        List.of(new Event(20, CueTrigger.ENEMY_ESCAPED, "spore-bomber")),
+                        List.of(new Event(45, CueTrigger.SECRET, "lifeboat rack")),
+                        List.of(
+                                new Event(45, CueTrigger.SECRET, "lifeboat rack"),
+                                new Event(52, CueTrigger.ENEMY_ESCAPED, "spore-bomber")),
+                        List.of(new Event(150, CueTrigger.FIRST_KILL, "leviathan")),
+                        // it leaves alive: up through the top edge 2.7 s after its rise at t=158
+                        List.of(new Event(160.7, CueTrigger.ENEMY_ESCAPED, "leviathan"))),
+                LEVEL_04,
+                List.of(
+                        List.of(),
+                        // the first turret nest hits a crawler, a walker of the pincer claws one to death
+                        List.of(new Event(41, CueTrigger.FIRST_ALLY_HIT, "")),
+                        List.of(
+                                new Event(41, CueTrigger.FIRST_ALLY_HIT, ""),
+                                new Event(91, CueTrigger.FIRST_ALLY_LOST, "")),
+                        // a crawler lost to the bridge turrets, just before Varga's walker line … and after it
+                        List.of(new Event(72, CueTrigger.FIRST_ALLY_LOST, "")),
+                        List.of(new Event(126, CueTrigger.SECRET, "prospector's cache")),
+                        List.of(new Event(23, CueTrigger.FIRST_ALLY_HIT, ""))),
+                LEVEL_05,
+                List.of(
+                        List.of(),
+                        // the batteries cleared as the autopilot clears them, the stuck sled opened between two sleds
+                        List.of(
+                                new Event(57.5, CueTrigger.GROUP_CLEARED, "Battery A"),
+                                new Event(90.5, CueTrigger.GROUP_CLEARED, "Battery B"),
+                                new Event(110.5, CueTrigger.GROUP_CLEARED, "Battery C"),
+                                new Event(137.5, CueTrigger.GROUP_CLEARED, "Battery D")),
+                        List.of(new Event(33, CueTrigger.SECRET, "stuck sled")),
+                        // the frigate's phases in a fast fight (the arena clock runs on), and its death
+                        List.of(
+                                new Event(137.5, CueTrigger.GROUP_CLEARED, "Battery D"),
+                                new Event(170, CueTrigger.BOSS_PHASE, "Core"),
+                                new Event(185, CueTrigger.BOSS_DESTROYED, "gorgon-frigate"))),
+                LEVEL_06,
+                List.of(
+                        List.of(),
+                        // the survey cache lit by the t=112 flare (or found by headlight on the way in)
+                        List.of(new Event(112.5, CueTrigger.SECRET, "survey cache")),
+                        List.of(new Event(111, CueTrigger.SECRET, "survey cache")),
+                        // the data core collected as the terminal passes, before and between the last lines
+                        List.of(new Event(182, CueTrigger.SECRET, "settlement log")),
+                        List.of(new Event(178, CueTrigger.SECRET, "settlement log"))),
+                LEVEL_07,
+                List.of(
+                        List.of(),
+                        // the lifeboat's cable cut as the tow comes in, or late as it drifts out
+                        List.of(new Event(25, CueTrigger.SECRET, "lifeboat tow")),
+                        List.of(new Event(33, CueTrigger.SECRET, "lifeboat tow")),
+                        // the carrier as the autopilot fights it at medium (the broadside 25 s after the
+                        // bar, the core at about 69 s, the kill at about 90 s; the clock then jumps to the
+                        // arena's end), and a fast fight
+                        List.of(
+                                new Event(125, CueTrigger.BOSS_PHASE, "Broadside"),
+                                new Event(169, CueTrigger.BOSS_PHASE, "Core"),
+                                new Event(190, CueTrigger.BOSS_DESTROYED, "brood-carrier")),
+                        List.of(
+                                new Event(33, CueTrigger.SECRET, "lifeboat tow"),
+                                new Event(125, CueTrigger.BOSS_PHASE, "Broadside"),
+                                new Event(150, CueTrigger.BOSS_PHASE, "Core"),
+                                new Event(165, CueTrigger.BOSS_DESTROYED, "brood-carrier")),
+                        // the broadside times out: 70 s after its 4 s move
+                        List.of(
+                                new Event(125, CueTrigger.BOSS_PHASE, "Broadside"),
+                                new Event(199, CueTrigger.BOSS_TIMEOUT, "Core"),
+                                new Event(199, CueTrigger.BOSS_PHASE, "Core"),
+                                new Event(230, CueTrigger.BOSS_DESTROYED, "brood-carrier"))));
+    }
 
     /** The real seconds each hold lasts to fly a level with: {@link #HOLD_SECONDS}, or NaN for a level without holds. */
     private static double[] holdSeconds(LevelScript script) {
@@ -271,7 +305,7 @@ class RadioTimelineTest {
     }
 
     @Test
-    void theTimedLinesOfLevels01To10StartAtMostASecondLate() {
+    void theTimedLinesOfLevels01To11StartAtMostASecondLate() {
         RUNS.forEach((level, runs) -> {
             for (Difficulty difficulty : Difficulty.values()) {
                 LevelScript script = SimSpecs.level(CONTENT, level, difficulty);

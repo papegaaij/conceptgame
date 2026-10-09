@@ -72,6 +72,11 @@ final class LevelRules {
 
     /** The secondary objective for the simulation; a parts objective's parts and phase as indexes into the boss's. */
     static LevelScript.Secondary secondary(Content content, LevelData level, LevelData.Secondary secondary) {
+        if (secondary.afloat().orElse(false)) {
+            // M5 part E (user decision E8 = a): the naval convoy afloat at the boss's death.
+            return LevelScript.Secondary.afloat(
+                    secondary.credits(), secondary.label().orElseThrow());
+        }
         String partsOf = "";
         List<Integer> parts = List.of();
         int beforePhase = -1;

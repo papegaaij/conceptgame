@@ -1,9 +1,9 @@
 ---
 title: Naval enemies
 design: approved
-implementation: not-started
+implementation: in-progress
 art: chosen
-updated: 2026-10-01
+updated: 2026-10-09
 ---
 
 # Naval enemies
@@ -20,8 +20,8 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
-| [driftjelly](driftjelly/README.md) | Jellyfish mine on or below the surface, proximity ring (L11) | approved | not-started | chosen |
-| [reef-spitter](reef-spitter/README.md) | Barnacle gun on a kelp raft, 3-way fans (L11) | approved | not-started | chosen |
+| [driftjelly](driftjelly/README.md) | Jellyfish mine on or below the surface, proximity ring (L11) | approved | done | final |
+| [reef-spitter](reef-spitter/README.md) | Barnacle gun on a kelp raft, 3-way fans (L11) | approved | done | final |
 | [skimmer](skimmer/README.md) | Flying-fish skiff weaving between floes from every edge (L13) | approved | not-started | chosen |
 
 ## Roster
@@ -37,8 +37,9 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 
 ## Design
 
-- Above water (Act 2), `sub` units are shadows under the waves: hittable only by `anti-sub`,
-  per the [layer rules](../README.md#layer-rules). Surfaced units are ground targets.
+- Above water (Act 2), `sub` units are seen under the waves: hittable only by `anti-sub` and the
+  Smart Bomb, per the [layer rules](../README.md#layer-rules) (its *Water* paragraph: a level's
+  `water: true`, the current layer of a unit that surfaces). Surfaced units are ground targets.
 - Underwater (Act 4), the `sub` layer is the play plane: all weapons hit, but weapons without
   `anti-sub` do 50% damage. Enemy bullets and movement are slowed by the water. All numbers:
   [under water rules](../../world/europa/README.md#under-water-rules).
@@ -68,7 +69,9 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — real waterline (
 ## Implementation
 
 - [ ] Each enemy promoted to its own directory with a stat block before it is implemented.
-- [ ] Surfacing/submerging transition visuals (shadow ⇄ sprite).
+- [ ] Surfacing/submerging transition visuals (top-down, the generic `sub` pass and per-unit
+      surfacing steps, user decision E4 = c) — M5 part E (the Driftjelly and the Harbour Kraken,
+      Level 11)
 
 ## Open questions
 
@@ -85,3 +88,8 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — real waterline (
 - 2026-10-01: Acts 1–2 units promoted to full specs: Driftjelly, Reef Spitter, Skimmer.
 - 2026-10-01: Above-water `sub` targets are hit by `anti-sub` only (`area` removed), matching the layer rules in the enemies README.
 - 2026-10-01: Approved by the user in the [Acts 1–2 design review](../../reviews/acts-1-2/README.md).
+- 2026-10-08: M5 part E (user decisions E2 = a and E4 = c of 2026-10-08): above water the `sub`
+  layer is reached by `anti-sub` and the Smart Bomb only; the surfacing visuals are drawn by a generic
+  `sub` pass with per-unit pre-rendered collars and surfacing steps
+  ([art direction](../../art-direction/README.md#animation-rules)); the Driftjelly's and Reef
+  Spitter's specs reworked for Level 11.

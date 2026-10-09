@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
 # Sound effects
@@ -69,7 +69,7 @@ reused round 02 files marked (r02).
 | `large` | 2.8–3.1 s | [a](concept/explosion-r02-d.ogg) (r02), [b](concept/explosion-r02-e.ogg) (r02), [c](concept/explosion-large-r03-a.ogg) | Hive Node, Sentinel Tower, Rail Bunker, Abyss Ray, Choir Seraph, mid-boss parts, boss phase ends |
 | `huge` | 5–6 s | [a](concept/explosion-huge-r03-b.ogg) (sub-heavy boom), [b](concept/explosion-huge-r04-a.ogg) (recorded 4 kg TNT blast with debris, round 04) | Act-boss deaths, capital ships, Smart Bomb, Iron Sovereign core |
 | `underwater` | 3–3.5 s | [a, recorded](concept/explosion-underwater-r03-a.ogg), [b](concept/explosion-underwater-r04-a.ogg) (round 04) | Everything below the surface in Act 4 (Europa). The derived low-pass variant was rejected, so under-water sounds need recorded sources |
-| `water` | 1.9 s | [a](concept/explosion-water-r03-a.ogg) | Surface naval kills (Act 2 ocean, Europa ice floes), depth-charge hits |
+| `water` | 1.9 s | [a](concept/explosion-water-r03-a.ogg) | Surface naval kills (Act 2 ocean, Europa ice floes), depth-charge hits. In a level with `water: true` (M5 part E, Level 11) every kill on the play field plays it over its size rung, a torpedo's impact plays it, and a landing blast (bomb, mortar shell, the Airstrike) plays it instead of its ground blast |
 
 ### Player weapons
 
@@ -81,7 +81,7 @@ reused round 02 files marked (r02).
 | Hammer Mortar / bomb drop | Hollow thunk, whistle down | P2 |
 | Lance Laser | Sustained zap with tail | P2 |
 | Ion Beam loop | Humming loop with start/stop | P2 |
-| Harpoon torpedo / depth charge | Muffled launch, bubbles; underwater boom; the Torpedo Pod (L11) — **later: M5 part E**, Harpoon Torpedoes and Depth Charges Act 4 | P2 |
+| Harpoon torpedo / depth charge | Muffled launch, bubbles; underwater boom; the Torpedo Pod (L11) — M5 part E (the chosen `torpedo` launch, drier above water; its impact the `water` rung), Harpoon Torpedoes and Depth Charges Act 4 | P2 |
 | Plasma Arc | Crackle | P3 |
 | Tail Gun / Fan Blaster | Like the front guns, a little lower (rear guns play their family 10 % lower, built with the Side Splitter); Tail Gun (L08) and Fan Blaster (L10), built in M5 part A | P1 |
 | Proximity mine drop / arm | Click + beep; Proximity Mines (L12): the drop plays the `mine` family at its own pitch (M5 part A); the arming beep as a mine arms: chosen [a](concept/weapon-mine-arm-r28-a.ogg) "armed chirp" in [round 28](../../concept-rounds/round-28/README.md) (b "sensor ping" rejected) | P2 |
@@ -158,6 +158,9 @@ reused round 02 files marked (r02).
 | Wraith decloak (Level 10, M5 part D): a short violet shimmer-crack as its 0.4 s flash starts — chosen [b](concept/wraith-decloak-r32-b.ogg) (metallic sci-fi rip over a membrane swish, CC-BY; a glassy ice crack over a synthesized shimmer was rejected), [round 32](../../concept-rounds/round-32/README.md); its death the `medium` rung; no screech (the decloak is its cue) | P2 |
 | Mote Swarm whoosh (Level 10, M5 part D): a rushing flutter of many small wings as a swarm enters and again as it loops back — chosen [b](concept/mote-swarm-r32-b.ogg) (insect chitter over a whoosh; a birdlike rush of pigeon wings was rejected), [round 32](../../concept-rounds/round-32/README.md); a mote's death the `tiny` rung | P2 |
 | Lance strike (Level 10's scripted loss, M5 part D): a thin descending whine into a sharp impact as the lance hits Lifeline Three — chosen [a](concept/lance-r32-a.ogg) (alien falling whine into a thunder crack and its roll, the impact 1.2 s in, so it starts at t 116.8; a whistle into a piercing stab was rejected), [round 32](../../concept-rounds/round-32/README.md); the shuttle's loss reuses the ally loss sound | P2 |
+| Harbour Kraken (Level 11, M5 part E), one proposal each in [round 33](../../concept-rounds/round-33/README.md), all accepted (chosen; recordings with synthesized layers, the churn's waves CC-BY, byjoshberry, on the credits roll): the lane telegraph's churn [a](concept/kraken-churn-r33-a.ogg) (a rushing surge of waves over a rumble swelling over the 1.0 s telegraph, reworked without bubbles; hard overruns its 0.8 s telegraph by 0.2 s), the slam [a](concept/kraken-slam-r33-a.ogg) (the arm's rush, then a heavy wet impact and big splash at 0.5 s into the file), the head's surfacing swell [a](concept/kraken-surface-r33-a.ogg) (a deep swell, water streaming off as the crown breaks, with each `SURFACE`), its death [a](concept/kraken-death-r33-a.ogg) (a long wet groan over churning water, reworked without bubbles, under the `huge` water burst) | P2 |
+| Convoy ships (Level 11, M5 part E), chosen in [round 33](../../concept-rounds/round-33/README.md) as the Kraken's: a ship hit [a](concept/ship-hit-r33-a.ogg) (metal struck, water rushing in; on `ALLY_HIT`), a ship sinking [a](concept/ship-sink-r33-a.ogg) (a steel groan, a muffled boom, waves washing over; 3.8 s, reworked without bubbles), the frigate's distant flak [a](concept/frigate-flak-r33-a.ogg) (two dull pops far away, raised twice to −16 dB after listening, one file per `ALLY_FLAK`) | P2 |
+| Driftjelly (Level 11, M5 part E): its ring's pulse chosen in [round 33](../../concept-rounds/round-33/README.md), [a](concept/driftjelly-pulse-r33-a.ogg) (a soft synthesized underwater bloop and ripple, no source; kept over reusing the enemy shot's small sound); its death the `small` rung with the `water` explosion | P3 |
 | Arcology collapse (Level 09, M5 part C): a low rumble under the 1.5 s lean and the 1.5 s drop swelling into a long crash at the impact (about 7 s) — chosen [a](concept/collapse-r31-a.ogg) (stony rumble swelling into a tumbling masonry crash, CC-BY; a steel-frame cave-in was rejected; the production file crashes at 3.0 s, the concept file at 1.5 s), [round 31](../../concept-rounds/round-31/README.md) | P2 |
 | Leviathan whale-song cry (its death, under the large burst) — [a](concept/enemy-leviathan-cry-r16-a.ogg) (synthesized, round 16) | P2 |
 | Polyp Mortar lob — chosen [a](concept/enemy-mortar-lob-r21-a.ogg) (mortar thump; an organic spit was rejected); impact — chosen [a](concept/enemy-mortar-impact-r21-a.ogg) (wet splat; an acid sizzle was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
@@ -192,7 +195,7 @@ gate. P2–P3, one loop per setting in the [world](../../world/README.md).
 | Earth orbit | `earth-orbit` | [a](concept/ambience-orbit-r08-a.ogg) — space drone, 16 s |
 | Luna | `luna` | [a](concept/ambience-luna-r08-a.ogg) — desolate space-wind drone, 16 s |
 | Earth megacity | `earth-megacity` (Level 08, M5 part B) | [a](concept/ambience-city-r08-a.ogg) — night city with distant sirens, 20 s; played as it is (M5 part B default) |
-| Earth ocean | `earth-ocean` (Level 10 from section 4, crossfading in over 4 s from the megacity, M5 part D; then Level 11) | [a](concept/ambience-ocean-r08-a.ogg) — waves at speed, 16 s |
+| Earth ocean | `earth-ocean` (Level 10 from section 4, crossfading in over 4 s from the megacity, M5 part D; Level 11 from t=0 throughout, M5 part E) | [a](concept/ambience-ocean-r08-a.ogg) — waves at speed, 16 s |
 | Earth ocean storm | — (M5 part F) | [a](concept/ambience-storm-r08-a.ogg) — rain and thunder, 24 s |
 | Earth arctic | — (M5 part G) | [a](concept/ambience-arctic-r08-a.ogg) — cold wind, 16 s |
 
@@ -208,7 +211,6 @@ game may play only `proposed` sounds of an open concept round, provisionally unt
 | [player-shot-r02-b.ogg](concept/player-shot-r02-b.ogg) | `pulse` family b ("heavy"): the family plays a, levels differ by pitch; kept for layering a heavy level |
 | [player-shot-r02-c.ogg](concept/player-shot-r02-c.ogg) | `laser` family a: the Lance Laser plays b (r03) |
 | [player-shot-r02-e.ogg](concept/player-shot-r02-e.ogg) | `vulcan` family a: the Scatter Vulcan plays b (r03) |
-| [shot-torpedo-r03-a.ogg](concept/shot-torpedo-r03-a.ogg) | Torpedo Pod, an Act 2 weapon (L11) — later: M5 part E |
 | [shot-tesla-r03-a.ogg](concept/shot-tesla-r03-a.ogg) | Tesla Coil Pod, Plasma Arc, EMP Burst: later acts |
 | [shot-resonator-r03-a.ogg](concept/shot-resonator-r03-a.ogg) | Choir Resonator: a later act |
 | [shot-beam-r04-a.ogg](concept/shot-beam-r04-a.ogg) | Ion Beam loop: a later act |
@@ -218,9 +220,7 @@ game may play only `proposed` sounds of an open concept round, provisionally unt
 | [shot-beam-stop-r04-a.ogg](concept/shot-beam-stop-r04-a.ogg) | Beam stop: a later act |
 | [special-sonar-r04-a.ogg](concept/special-sonar-r04-a.ogg) | Sonar Pulse (L22): Act 4 |
 | [special-flares-r08-a.ogg](concept/special-flares-r08-a.ogg) | Decoy Flares (L27): Act 4 |
-| [explosion-underwater-r03-a.ogg](concept/explosion-underwater-r03-a.ogg) | Under-water kills: Act 4 |
 | [explosion-underwater-r04-a.ogg](concept/explosion-underwater-r04-a.ogg) | Under-water kills: Act 4 |
-| [explosion-water-r03-a.ogg](concept/explosion-water-r03-a.ogg) | Surface naval kills: Act 2's ocean — later: M5 |
 | [ambience-storm-r08-a.ogg](concept/ambience-storm-r08-a.ogg) | Ocean storm setting: Act 2 — later: M5 |
 | [ambience-arctic-r08-a.ogg](concept/ambience-arctic-r08-a.ogg) | Arctic setting: Act 2 — later: M5 |
 | [enemy-missile-r08-a.ogg](concept/enemy-missile-r08-a.ogg) | No Act 1 enemy fires missiles (the SAM Nest, L29, and the Hornet, L31, are the first) |
@@ -561,6 +561,30 @@ to `concept/rejected/`. Briefs and sources:
 | [concept/lance-r32-a.ogg](concept/lance-r32-a.ogg) | synthesized whine + "Closeup Thunder Strike 01" by loganzsound (CC0) — lance a: alien falling whine into a thunder crack, impact at 1.2 s (3.8 s) | chosen |
 | [concept/rejected/lance-r32-b.ogg](concept/rejected/lance-r32-b.ogg) | "Whistling Firework" by magnuswaker (CC0) + "Piercing impact / Stabbing" by Breviceps (CC0) + synthesized thump — lance b: whistle into a piercing stab, impact at 1.2 s (1.8 s) | rejected |
 
+Concept [round 33](../../concept-rounds/round-33/README.md) (M5 part E, Level 11) — one proposal each (no a/b) for the Harbour Kraken's lane
+churn, slam, surfacing swell and death, the convoy ships' hit and sinking, the frigate's distant flak
+and the Driftjelly's pulse, built by `tools/concept/audio/sfx_r33.py` from cached Freesound originals
+(CC0, but for the byjoshberry waves in the churn and the sinking, CC-BY and already on the credits roll) with synthesized layers; the torpedo launch, the water
+explosion and the ocean loop are the existing finals. Levels as the loudest 100 ms of the 200 Hz–5 kHz
+band against the existing set (see the script's header). Closed 2026-10-09 (user): all eight
+accepted, the churn, death, sinking and flak after a rework (no bubbles; the flak raised twice);
+seven rebuilt from their originals into `assets/sfx/` by `tools/art/sfx_originals.py` (`sfx_r33.py`'s
+`PRODUCTION`), the synthesized pulse copied by `:pipeline:copyPlaceholderSounds`. Briefs and sources:
+[concept/prompts.md](concept/prompts.md#round-33--level-11s-kraken-convoy-ships-flak-and-jelly),
+[CREDITS.md](../../../CREDITS.md). The offset is the event's moment inside the file, so the game
+starts the file that long before the event.
+
+| File | What | Status |
+|---|---|---|
+| [concept/kraken-slam-r33-a.ogg](concept/kraken-slam-r33-a.ogg) | "Big robot footstep 002" by AudioPapkin (CC0) + "Big Splash" by Bird_man (CC0) + synthesized rush, thump and spray — slam: the arm's rush, impact and splash at 0.5 s (2.2 s, −15 dB) | chosen |
+| [concept/kraken-churn-r33-a.ogg](concept/kraken-churn-r33-a.ogg) | "Ocean waves hitting bow of moving boat" by byjoshberry (CC-BY) + synthesized rumble — lane churn: a rushing surge of waves swelling for 1.0 s (−24 dB) | chosen |
+| [concept/kraken-surface-r33-a.ogg](concept/kraken-surface-r33-a.ogg) | "Coming up from underwater" by adviseme333 (CC0) + synthesized rumble and whoosh — surfacing: a deep swell peaking as the crown breaks (1.1 s), water streaming off (2.75 s, −21 dB) | chosen |
+| [concept/ship-hit-r33-a.ogg](concept/ship-hit-r33-a.ogg) | "Metal Shovel Impact" by Sadiquecat + "slightmetallicthud" by profoundsounds + "Splash_002" by jamesabels (all CC0) + synthesized thump — ship hit: metal struck, water rushing in, impact at 0 s (0.94 s, −18 dB) | chosen |
+| [concept/ship-sink-r33-a.ogg](concept/ship-sink-r33-a.ogg) | "…ship hull list2" by kyles (CC0) + "Ocean waves hitting bow of moving boat" by byjoshberry (CC-BY) + synthesized boom and rumble — ship sinking: steel groan, muffled boom, wave wash (3.8 s, −20 dB) | chosen |
+| [concept/frigate-flak-r33-a.ogg](concept/frigate-flak-r33-a.ogg) | "Distant Shot 4" and "Distant Shot 2" by HenKonen (CC0) — distant flak: two dull far pops at 0 and 0.55 s, raised twice after listening (1.6 s, −16 dB) | chosen |
+| [concept/driftjelly-pulse-r33-a.ogg](concept/driftjelly-pulse-r33-a.ogg) | synthesized (no source) — jelly pulse: a soft underwater bloop, a lower echo and a ripple (0.9 s, −24 dB) | chosen |
+| [concept/kraken-death-r33-a.ogg](concept/kraken-death-r33-a.ogg) | "Sea Creature Roar" by Bikkit99 + "CO2 Water Jet" by unfa + synthesized rumble (all CC0) — death: a slowed, long wet groan over churning water, under the `huge` burst (5.2 s, −17 dB) | chosen |
+
 ## Implementation
 
 - [x] SFX playback with instance limits, stealing by priority, pitch variation: the 32-voice
@@ -618,10 +642,25 @@ to `concept/rejected/`. Briefs and sources:
 - [x] Round 32's picks for the decloak (b), the swarm (b) and the lance (a) in `assets/sfx/` and in
   their `Sfx` entries, replacing the placeholders (the lance's impact stays 1.2 s into its file:
   `Level10SoundsTest` checks the loudest moment against `LANCE_IMPACT_SECONDS`)
-- [ ] Torpedo launch and the water explosion — **later: M5 part E**; the other Act 2 ambiences —
-  **later: M5** (parts E, F, G, with their levels)
+- [x] Torpedo launch and the water explosion — M5 part E (step E3d: `Sfx.SHOT_TORPEDO`,
+  `EXPLOSION_WATER` and `EXPLOSION_UNDERWATER` from the chosen `shot-torpedo-r03-a`,
+  `explosion-water-r03-a` and `explosion-underwater-r03-a`: the Torpedo Pod's launch plays the
+  `torpedo` family file, and in a water level a kill, a torpedo's impact and a landing blast play
+  the water explosion over their size rung, a submerged kill or impact the under-water one,
+  `LevelScreen.waterBurst`/`waterDeath`/`waterImpact`, `FlightSounds.waterExplosion`); the other
+  Act 2 ambiences — **later: M5** (parts F and G, with their levels)
+- [x] Level 11's sounds (M5 part E, step E3d, [round 33](../../concept-rounds/round-33/README.md)'s sounds, all accepted, played from `assets/sfx/`:
+  seven rebuilt from their originals by `tools/art/sfx_originals.py`, the synthesized pulse copied by
+  `:pipeline:copyPlaceholderSounds`): the Kraken's churn (each `TELEGRAPH`, from the
+  telegraph's start; no seek, so on hard the 1.0 s file overruns the 0.8 s telegraph by 0.2 s), slam
+  (started `telegraph + rise − 0.5 s` after each lane's `TELEGRAPH` so its impact lands on the slam,
+  the second lane 0.5 s later), surfacing (`SURFACE`) and death (the set piece's cry, under the
+  `huge` burst); the ships' hit (`ALLY_HIT`) and sinking (`ALLY_LOST`), the frigate's distant flak
+  (`ALLY_FLAK`), the Driftjelly's ring (the `ENEMY_FIRED` of a unit with a ring); the ocean ambience
+  from t=0, the base stem from section 2, the full mix from 4 and the mini-boss sting at the halt
+  (`Level11SoundsTest`)
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
-  from rounds 02–08, round 21's four, round 23's five, round 24's two, round 25's seven, round 27's one and round 31's three) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
+  from rounds 02–08, round 21's four, round 23's five, round 24's two, round 25's seven, round 27's one, round 31's three, round 32's three and round 33's seven) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
   [`tools/art/sfx_originals.py`](../../../tools/art/README.md); `importPlaceholders` keeps them
   (only the synthesized sounds are still copied). `art: final` waits for the user's round-12 review.
 
@@ -870,3 +909,21 @@ to `concept/rejected/`. Briefs and sources:
   `MOTE_SWARM` and `LANCE_STRIKE` in place of the placeholders (the lance still started at t 116.8;
   the swarm still heard once at its entry by `SwarmCue` and on each loop-back). Decloak a, swarm a
   and lance b moved to `concept/rejected/`.
+- 2026-10-08: M5 part E (user decisions of 2026-10-08; sounds are not an E-question, so one
+  proposal each unless the main agent asks for an a/b): Level 11 plays the chosen torpedo launch and
+  water explosion (round 03), the ocean ambience from t=0, and new sounds for the Kraken (churn, slam,
+  surfacing, death), the ships (hit, sinking) and the frigate's distant flak, CC0 or CC-BY only. In a
+  water level every kill on the play field plays the `water` explosion over its size rung and
+  landing blasts play it instead of their ground blast (a stated default: their impacts splash).
+- 2026-10-08: concept [round 33](../../concept-rounds/round-33/README.md) proposes the Level 11 sounds (one each, all CC0 recordings plus synthesis):
+  the Kraken's churn, slam (impact 0.5 s in), surfacing swell and death, the ships' hit and
+  sinking, the frigate's distant flak and the Driftjelly's pulse
+  (`tools/concept/audio/sfx_r33.py`); awaiting the user's pick, then `tools/art/sfx_originals.py`
+  gets a `PRODUCTION` for the chosen ones and the game wires them.
+- 2026-10-09: Round 33 closed for the sounds (user): all eight accepted, the slam, surfacing, ship
+  hit and jelly pulse as first made; the churn (now a surge of waves over a rumble), the death and the
+  sinking reworked without bubbles, the flak raised twice (to −16 dB, low-passed at 4 kHz) after
+  listening, then accepted. Seven rebuilt from the originals into `assets/sfx/` by
+  `tools/art/sfx_originals.py` with `sfx_r33.py`'s `PRODUCTION` (identical to the concept files by its
+  check), under the concept names, so `Sfx` keeps its paths; their `copyPlaceholderSounds` entries
+  dropped; the Driftjelly's pulse, fully synthesized, stays copied from its concept file.

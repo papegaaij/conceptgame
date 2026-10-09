@@ -9,7 +9,6 @@ import vanguard.content.campaign.Hangar.Action;
 import vanguard.content.campaign.Hangar.Choice;
 import vanguard.content.campaign.Hangar.Offer;
 import vanguard.content.campaign.Hangar.Refusal;
-import vanguard.content.campaign.ItemKind;
 import vanguard.game.render.PixelScreen;
 import vanguard.game.render.TestFireView;
 import vanguard.game.ui.Fonts;
@@ -42,9 +41,10 @@ final class TestFirePanel {
     static final int LABEL_Y = Y + 3;
     /** The label's height with its backing, px. */
     static final int LABEL_HEIGHT = 12;
-    /** The label for a weapon the simulation does not fly yet (Act 2's mines and torpedoes). */
-    static final String NOT_IN_FLIGHT = "TEST FIRE - NOT YET IN FLIGHT";
-    /** The label for any other item. */
+    /**
+     * The label for any item without a loop (M5 part E: every weapon flies now, the torpedo over the
+     * range's water, so the "not yet in flight" label is gone).
+     */
     static final String WEAPONS_ONLY = "TEST FIRE - WEAPONS ONLY";
     /** The most steps one frame catches up on (a stall drops the rest). */
     private static final int MAX_STEPS_PER_FRAME = 4;
@@ -81,7 +81,7 @@ final class TestFirePanel {
                 selected -> TestFire.of(content, state.slot(), selected.item().id(), level(state, selected)));
         String item = offer.map(selected -> selected.item().id()).orElse("");
         if (!wanted.equals(shown) || !item.equals(selectedItem)) {
-            select(wanted, offer, upgrading(state));
+            select(wanted, upgrading(state));
             selectedItem = item;
         }
         if (fire == null) {
@@ -96,7 +96,7 @@ final class TestFirePanel {
         }
     }
 
-    private void select(Optional<TestFire.Shown> wanted, Optional<Offer> offer, boolean upgrade) {
+    private void select(Optional<TestFire.Shown> wanted, boolean upgrade) {
         shown = wanted;
         if (wanted.isPresent()) {
             TestFire.Shown weapon = wanted.get();
@@ -108,8 +108,7 @@ final class TestFirePanel {
         }
         fire = null;
         labelColour = Glass.DIM;
-        boolean weapon = offer.map(selected -> isWeapon(selected.item().kind())).orElse(false);
-        label = weapon ? NOT_IN_FLIGHT : WEAPONS_ONLY;
+        label = WEAPONS_ONLY;
     }
 
     /**
@@ -118,10 +117,6 @@ final class TestFirePanel {
      */
     static String label(int level, boolean upgrade) {
         return "TEST FIRE " + (upgrade ? "L" + (level - 1) + ">" : "") + "L" + level;
-    }
-
-    private static boolean isWeapon(ItemKind kind) {
-        return kind == ItemKind.FRONT || kind == ItemKind.REAR || kind == ItemKind.WING || kind == ItemKind.ESCORT;
     }
 
     /**

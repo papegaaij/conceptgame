@@ -152,8 +152,8 @@ public final class SimSpecs {
 
     /**
      * Whether the simulation flies the weapon: standard bolts, homing missiles and turrets, dropped
-     * and lobbed ground-only shots and proximity mines; the torpedoes follow with the {@code sub}
-     * layer.
+     * and lobbed ground-only shots, proximity mines and (M5 part E) torpedoes, which run only in a
+     * level over water.
      */
     public static boolean flies(Content content, String weapon) {
         return delivery(content.weapon(weapon)).isPresent();
@@ -330,6 +330,7 @@ public final class SimSpecs {
             case "homing" ->
                 Optional.of(weapon.slew().isPresent() ? WeaponSpec.Delivery.TURRET : WeaponSpec.Delivery.HOMING);
             case WeaponData.MINES -> Optional.of(WeaponSpec.Delivery.MINE);
+            case WeaponData.TORPEDO -> Optional.of(WeaponSpec.Delivery.TORPEDO);
             case "ground-only" ->
                 Optional.of(
                         weapon.range().orElseThrow().kind() == WeaponData.Range.Kind.DROP
@@ -417,8 +418,10 @@ public final class SimSpecs {
                 weapon.lifetime().orElse(Double.POSITIVE_INFINITY),
                 level.pierce().orElse(1),
                 level.blast().orElse(0.0),
-                // The one turn rate (a homing missile's or a turret's slew) the Targeting computer's bonus scales.
-                Math.toRadians(level.turn().or(weapon::slew).orElse(0.0) * (1 + turnBonus)),
+                // The one turn rate (a homing missile's or a turret's slew) the Targeting computer's bonus
+                // scales; not a torpedo's, which is not homing (M5 part E).
+                Math.toRadians(level.turn().or(weapon::slew).orElse(0.0)
+                        * (1 + (delivery == WeaponSpec.Delivery.TORPEDO ? 0 : turnBonus))),
                 Math.toRadians(weapon.cone().orElse(360.0) / 2),
                 weapon.fall().or(weapon::flight).orElse(0.0),
                 weapon.snap().orElse(0.0),
@@ -550,7 +553,7 @@ public final class SimSpecs {
                                 section.end(), section.speed().orElse(level.scrollSpeed()), section.isArena()))
                         .toList(),
                 waves,
-                groundObjects(level),
+                groundObjects(level, difficulty, carried),
                 groundUnits(content, level, difficulty, inLevel),
                 level.secrets().size(),
                 radio(level, difficulty),
@@ -577,7 +580,9 @@ public final class SimSpecs {
                 LevelRules.tows(level),
                 LevelRules.partDrops(content, level, carried, SimSpecs::pickup),
                 PartCRules.holds(level, difficulty),
-                PartCRules.collapse(level));
+                PartCRules.collapse(level),
+                level.overWater(),
+                level.convoy().map(convoy -> PartERules.convoy(content, level, convoy, difficulty)));
     }
 
     /** A dark level's light at {@code difficulty} (Level 06): easy's longer headlight and flares, the flares it fires. */
@@ -635,11 +640,14 @@ public final class SimSpecs {
                 rocks.clearance());
     }
 
-    /** The pickups a ground-target group's last unit drops when the group is cleared (Level 05's battery C). */
+    /**
+     * The pickups a ground-target group's last unit drops when the group is cleared (Level 05's
+     * battery C); not a destructible group's (M5 part E, carried by its destructibles).
+     */
     private static List<LevelScript.GroupDrop> groupDrops(LevelData level, List<LevelData.PlacedPickup> carried) {
         List<String> groups = level.objectives().groups();
         return carried.stream()
-                .filter(p -> p.droppedBy().group().isPresent())
+                .filter(p -> p.droppedBy().group().filter(groups::contains).isPresent())
                 .map(p -> new LevelScript.GroupDrop(
                         groups.indexOf(p.droppedBy().group().get()), pickup(p.pickup())))
                 .toList();
@@ -862,7 +870,8 @@ public final class SimSpecs {
                     chain.segments(),
                     hitbox(chain.hitbox()),
                     chain.lag(),
-                    Math.toRadians(chain.bend())));
+                    Math.toRadians(chain.bend()),
+                    chain.slams()));
         }
         List<String> attackNames = new ArrayList<>();
         List<BossSpec.Attack> attacks = new ArrayList<>();
@@ -955,11 +964,14 @@ public final class SimSpecs {
             // A later phase that alternates holds its fire a beat by default (the frigate's crown).
             double delay =
                     phase.delay().orElse(f > 0 && phase.alternate().isPresent() ? BossSpec.PHASE_DELAY_SECONDS : 0.0);
+            // M5 part E: a phase that ends on its parts' HP share names them for the share, not for a count.
+            List<Integer> untilParts = phase.until().parts().orElse(List.of()).stream()
+                    .map(part -> partIndex(enemy, part))
+                    .toList();
+            boolean share = phase.until().below().isPresent();
             phases.add(new BossSpec.Phase(
                     phase.name(),
-                    phase.until().parts().orElse(List.of()).stream()
-                            .map(part -> partIndex(enemy, part))
-                            .toList(),
+                    share ? List.of() : untilParts,
                     phase.until().left().orElse(0),
                     firedIndexes,
                     phase.alternate().isPresent(),
@@ -982,14 +994,18 @@ public final class SimSpecs {
                     delay,
                     Optional.empty(),
                     phase.windows()
-                            .map(windows -> bossWindows(content, enemy, windows, spawnCounts, difficulty, inLevel))));
+                            .map(windows -> bossWindows(content, enemy, windows, spawnCounts, difficulty, inLevel)),
+                    phaseArena(content, enemy, phase, share ? untilParts : List.of(), difficulty, inLevel)));
         }
         EnemyData.Movement movement = enemy.movement();
-        EnemyData.Hover hover =
-                movement.hover().orElseThrow(() -> new IllegalArgumentException(slug + ": a boss hovers"));
+        // M5 part E: an arena boss is anchored (its centre's height at the halt) instead of hovering.
+        double hoverY = movement.anchored()
+                .map(EnemyData.Anchored::y)
+                .or(() -> movement.hover().map(hover -> hover.y().min()))
+                .orElseThrow(() -> new IllegalArgumentException(slug + ": a boss hovers or is anchored"));
         // The moves need the station before them: walk the phases with the place, layer and pose so far.
         double stationX = placement.x();
-        double stationY = PlayField.HEIGHT - hover.y().min();
+        double stationY = PlayField.HEIGHT - hoverY;
         Layer stationLayer = Layers.of(enemy.layer());
         int stationPose = 0;
         for (int f = 0; f < phases.size(); f++) {
@@ -1068,8 +1084,12 @@ public final class SimSpecs {
                 Optional.of(new BossSpec(
                         placement.t(),
                         placement.x(),
-                        PlayField.HEIGHT - hover.y().min(),
-                        movement.straight().map(EnemyData.Straight::speed).orElse(enemy.speed()),
+                        PlayField.HEIGHT - hoverY,
+                        movement.anchored().isPresent()
+                                ? 0
+                                : movement.straight()
+                                        .map(EnemyData.Straight::speed)
+                                        .orElse(enemy.speed()),
                         movement.sine().map(EnemyData.Sine::amplitude).orElse(0.0),
                         movement.sine().map(EnemyData.Sine::period).orElse(1.0),
                         Layers.of(enemy.layer()),
@@ -1082,7 +1102,118 @@ public final class SimSpecs {
                         script.engagesOnArrival().orElse(false),
                         armoured,
                         poses,
-                        script.deathSeconds().orElse(0.0))));
+                        script.deathSeconds().orElse(0.0),
+                        movement.anchored()
+                                .map(anchored -> arena(content, enemy, script, anchored, hook, difficulty)))));
+    }
+
+    /**
+     * M5 part E: an arena boss's lanes (from its hit box's lower edge at the halt, Platform Tiamat's
+     * deck, down to the bottom edge), its slam cycle at {@code difficulty} (the hooks {@code telegraph}
+     * and {@code lanes}, the bullet-speed lever on the splash), its parts' starting layers and their
+     * weak spots.
+     */
+    private static BossSpec.Arena arena(
+            Content content,
+            EnemyData enemy,
+            EnemyData.BossData script,
+            EnemyData.Anchored anchored,
+            Optional<EnemyData.Hook> hook,
+            Difficulty difficulty) {
+        List<EnemyData.PartData> partList = enemy.partList().orElseThrow();
+        BossSpec.Lanes lanes = BossSpec.Lanes.NONE;
+        BossSpec.Slam slam = null;
+        if (script.lanes().isPresent()) {
+            EnemyData.Lanes data = script.lanes().get();
+            List<BossSpec.Arm> arms = new ArrayList<>();
+            data.arms().orElse(Map.of()).forEach((part, owned) -> {
+                int mask = 0;
+                for (int lane : owned) {
+                    mask |= 1 << lane;
+                }
+                arms.add(new BossSpec.Arm(partIndex(enemy, part), mask));
+            });
+            double top = PlayField.HEIGHT - anchored.y() - enemy.hitbox().height() / 2;
+            lanes = new BossSpec.Lanes(data.count(), data.width(), top, arms);
+            EnemyData.SlamData cycle = script.slam().orElseThrow();
+            DifficultyData levers = content.difficulty();
+            slam = new BossSpec.Slam(
+                    hook.flatMap(EnemyData.Hook::telegraph).orElse(cycle.telegraph()),
+                    cycle.rise(),
+                    cycle.awash(),
+                    cycle.sink(),
+                    bulletDamage(content, cycle.damage()),
+                    cycle.splash().count(),
+                    cycle.splash().speed() * levers.enemyBulletSpeed().of(difficulty),
+                    bulletDamage(content, cycle.splash().bullet()),
+                    hook.flatMap(EnemyData.Hook::lanes).orElse(Math.max(1, arms.size())),
+                    BossSpec.Slam.SECOND_SECONDS);
+        }
+        List<Layer> layers = new ArrayList<>();
+        List<BossSpec.Spot> spots = new ArrayList<>();
+        for (int p = 0; p < partList.size(); p++) {
+            EnemyData.PartData part = partList.get(p);
+            layers.add(Layers.of(part.layer().orElse(enemy.layer())));
+            for (EnemyData.SpotData spot : part.spots().orElse(List.of())) {
+                spots.add(new BossSpec.Spot(
+                        spot.name(),
+                        p,
+                        spot.offset().x(),
+                        spot.offset().y(),
+                        hitbox(spot.hitbox()),
+                        spot.multiplier(),
+                        spot.during().isPresent()));
+            }
+        }
+        return new BossSpec.Arena(lanes, slam, layers, spots);
+    }
+
+    /**
+     * M5 part E: a boss phase's arena keys: its slams, its HP share over {@code shareParts}, how it
+     * slams, its surfacing, its release (the units at {@code difficulty}) and its drop.
+     */
+    private static BossSpec.PhaseArena phaseArena(
+            Content content,
+            EnemyData enemy,
+            EnemyData.PhaseData phase,
+            List<Integer> shareParts,
+            Difficulty difficulty,
+            InLevel inLevel) {
+        if (phase.slamming().isEmpty()
+                && phase.surface().isEmpty()
+                && phase.release().isEmpty()
+                && phase.drop().isEmpty()
+                && phase.until().slams().isEmpty()
+                && phase.until().below().isEmpty()) {
+            return BossSpec.PhaseArena.NONE;
+        }
+        BossSpec.Slamming slamming = phase.slamming()
+                .map(data -> switch (data.mode()) {
+                    case "chain" -> BossSpec.Slamming.CHAIN;
+                    case "after_dive" -> BossSpec.Slamming.AFTER_DIVE;
+                    default -> BossSpec.Slamming.VOLLEY;
+                })
+                .orElse(BossSpec.Slamming.NONE);
+        return new BossSpec.PhaseArena(
+                phase.until().slams().orElse(0),
+                shareParts,
+                phase.until().below().orElse(Double.NaN),
+                slamming,
+                phase.slamming().flatMap(EnemyData.SlammingData::every).orElse(0.0),
+                phase.surface()
+                        .map(surface -> new BossSpec.Surface(
+                                partIndex(enemy, surface.part()),
+                                surface.rise(),
+                                surface.open().orElse(0.0),
+                                surface.dive().orElse(0.0),
+                                surface.glow().orElse(0.0),
+                                surface.stay().orElse(false))),
+                phase.release()
+                        .map(release -> new BossSpec.Release(
+                                enemy(content, release.enemy(), difficulty, Optional.empty(), inLevel),
+                                release.count(),
+                                release.lanes())),
+                phase.drop().map(SimSpecs::pickup));
     }
 
     /**
@@ -1138,16 +1269,36 @@ public final class SimSpecs {
             int group = target.group().map(groups::indexOf).orElse(-1);
             List<LevelData.Placement> at =
                     switch (difficulty) {
-                        case EASY -> target.easy().map(LevelData.Placements::at).orElse(target.at());
+                        case EASY ->
+                            target.easy().flatMap(LevelData.Placements::at).orElse(target.at());
                         case MEDIUM -> target.at();
-                        case HARD -> target.hard().map(LevelData.Placements::at).orElse(target.at());
+                        case HARD ->
+                            target.hard().flatMap(LevelData.Placements::at).orElse(target.at());
                     };
+            // M5 part E: a nest's current, along which its drifting units (rafts) drift.
+            double current = Math.toRadians(target.current().orElse(0.0));
             for (LevelData.Placement placement : at) {
-                units.add(new LevelScript.GroundUnit(placement.t(), placement.x(), enemy, group));
+                units.add(new LevelScript.GroundUnit(placement.t(), placement.x(), enemy, group, current));
             }
         }
         units.sort(Comparator.comparingDouble(LevelScript.GroundUnit::t));
         return units;
+    }
+
+    /**
+     * M5 part E: the groups of the level's destructibles (not the objectives' groups of enemies), in
+     * the order they first appear among its ground targets.
+     */
+    static List<String> destructibleGroups(LevelData level) {
+        List<String> groups = new ArrayList<>();
+        for (LevelData.GroundTarget target : level.groundTargets()) {
+            if (target.enemy().isEmpty()
+                    && target.group().isPresent()
+                    && !groups.contains(target.group().get())) {
+                groups.add(target.group().get());
+            }
+        }
+        return groups;
     }
 
     /** The level's cranes at {@code difficulty}. */
@@ -1229,15 +1380,12 @@ public final class SimSpecs {
                                 case LAST -> WaveSpec.Carried.LAST;
                             }))
                     .toList();
+            EnemySpec unit = enemy(
+                    content, group.enemy(), difficulty, Optional.ofNullable(enemyChanges.get(group.enemy())), inLevel);
             out.add(new WaveSpec(
                     wave.t(),
                     formation(group.formation()),
-                    enemy(
-                            content,
-                            group.enemy(),
-                            difficulty,
-                            Optional.ofNullable(enemyChanges.get(group.enemy())),
-                            inLevel),
+                    unit,
                     count,
                     switch (entry) {
                         case FRONT -> WaveSpec.Entry.FRONT;
@@ -1266,8 +1414,32 @@ public final class SimSpecs {
                                     // M5 part D: a swarm's loop-backs, a difficulty's loops instead.
                                     change.flatMap(LevelData.Change::loops)
                                             .orElse(back.count().orElse(1)))),
-                    wave.tag().orElse("")));
+                    wave.tag().orElse(""),
+                    field(wave, unit)));
         }
+    }
+
+    /**
+     * M5 part E: a {@code field} wave's area (design/enemies/naval/driftjelly): its {@code x} and
+     * {@code size}, its {@code spacing} (1.5 × the unit's hit box width if not given) and its
+     * {@code current}; none for another wave.
+     */
+    static Optional<WaveSpec.Field> field(LevelData.Wave wave, EnemySpec unit) {
+        if (wave.size().isEmpty()) {
+            return Optional.empty();
+        }
+        Size size = wave.size().get();
+        return Optional.of(new WaveSpec.Field(
+                wave.x().orElseThrow(),
+                size.width(),
+                size.height(),
+                wave.spacing().orElse(fieldSpacing(unit.hitbox().width())),
+                Math.toRadians(wave.current().orElse(0.0))));
+    }
+
+    /** M5 part E: a field's default spacing for units of hit box width {@code width}: 1.5 × it. */
+    static double fieldSpacing(double width) {
+        return 1.5 * width;
     }
 
     private static WaveSpec.Edge edge(LevelData.Edge edge) {
@@ -1294,6 +1466,7 @@ public final class SimSpecs {
             case "pack" -> WaveSpec.Formation.PACK;
             case "swarm" -> WaveSpec.Formation.SWARM;
             case "rear ambush" -> WaveSpec.Formation.REAR_AMBUSH;
+            case LevelData.Wave.FIELD -> WaveSpec.Formation.FIELD;
             default -> throw new IllegalArgumentException("the formation '" + name + "' is not implemented yet");
         };
     }
@@ -1524,8 +1697,47 @@ public final class SimSpecs {
                                 flock.speed(),
                                 flock.diveSpeed(),
                                 Math.toRadians(flock.turnRate()),
-                                flock.max())));
+                                flock.max())),
+                // M5 part E: surfacing and submerging, a proximity ring and a raft's drift.
+                enemy.submerge()
+                        .map(submerge -> new EnemySpec.Submerge(
+                                submerge.every().min(), submerge.every().max(), submerge.swap(), submerge.start())),
+                proximityRing(content, enemy, difficulty),
+                movement.terrain().flatMap(EnemyData.Terrain::drift).orElse(0.0));
         return enemy.segmentChain().isPresent() ? withChain(content, enemy, spec, difficulty, actHp) : spec;
+    }
+
+    /** M5 part E: whether {@code attack} is a proximity ring (a {@code ring} fired within a reach, the Driftjelly's). */
+    static boolean proximityRing(EnemyData.Attack attack) {
+        return attack.pattern().equals("ring") && attack.within().isPresent();
+    }
+
+    /**
+     * M5 part E, a proximity ring at {@code difficulty} (design/enemies/naval/driftjelly): its count
+     * and reach by the hook's {@code attacks.<name>} (hard's 12 and 110 px), its cooldown as an
+     * attack's interval (the fire-rate lever, or the hook's authored interval), its bullets by the
+     * bullet-speed lever.
+     */
+    private static Optional<EnemySpec.ProximityRing> proximityRing(
+            Content content, EnemyData enemy, Difficulty difficulty) {
+        Optional<EnemyData.Hook> hook = hook(enemy, difficulty);
+        return enemy.attacks().stream()
+                .filter(SimSpecs::proximityRing)
+                .findFirst()
+                .map(attack -> {
+                    Optional<EnemyData.AttackChange> change = attack.name()
+                            .flatMap(name ->
+                                    hook.flatMap(EnemyData.Hook::attacks).map(changes -> changes.get(name)));
+                    return new EnemySpec.ProximityRing(
+                            change.flatMap(EnemyData.AttackChange::count)
+                                    .orElse(attack.count().orElseThrow()),
+                            attack.speed().orElseThrow()
+                                    * content.difficulty().enemyBulletSpeed().of(difficulty),
+                            bulletDamage(content, attack.bullet().orElseThrow()),
+                            change.flatMap(EnemyData.AttackChange::within)
+                                    .orElse(attack.within().orElseThrow()),
+                            interval(content, attack, hook, difficulty));
+                });
     }
 
     /** A walker's fan: its attack with the {@code fan} pattern. */
@@ -1777,6 +1989,8 @@ public final class SimSpecs {
                 .filter(attack -> !attack.pattern().equals("spawn"))
                 .filter(attack -> !attack.pattern().equals("laser-sweep"))
                 .filter(attack -> !attack.pattern().equals("pounce"))
+                // M5 part E: a proximity ring is its own attack (EnemySpec.ring), not a gun.
+                .filter(attack -> !proximityRing(attack))
                 .filter(attack ->
                         attack.away().isEmpty() || enemy.movement().walk().isEmpty())
                 .toList();
@@ -1847,10 +2061,22 @@ public final class SimSpecs {
     }
 
     /**
-     * The level's destructibles and triggers, in time order; triggers that reveal the same secret
-     * reveal it together (Level 03's lifeboat lights: the crate drops when the last is shot).
+     * The level's destructibles and triggers at {@code difficulty}, in time order; triggers that
+     * reveal the same secret reveal it together (Level 03's lifeboat lights: the crate drops when the
+     * last is shot). M5 part E: a trigger's hits on easy or hard (Level 11's sunken pod); a
+     * destructible's group of its own, whose last one destroyed drops the pickup placed on the group
+     * (Level 11's floating containers and their armour patch).
      */
-    private static List<LevelScript.GroundObjectSpec> groundObjects(LevelData level) {
+    private static List<LevelScript.GroundObjectSpec> groundObjects(
+            LevelData level, Difficulty difficulty, List<LevelData.PlacedPickup> carried) {
+        List<String> destructibleGroups = destructibleGroups(level);
+        int[] groupSizes = new int[destructibleGroups.size()];
+        for (LevelData.GroundTarget target : level.groundTargets()) {
+            if (target.enemy().isEmpty() && target.group().isPresent()) {
+                groupSizes[destructibleGroups.indexOf(target.group().get())] +=
+                        target.at().size();
+            }
+        }
         List<String> secretNames =
                 level.secrets().stream().map(LevelData.Secret::name).toList();
         Map<String, Integer> triggersPerSecret = new TreeMap<>();
@@ -1866,6 +2092,19 @@ public final class SimSpecs {
             Optional<LevelData.Secret> secret = target.reveals().flatMap(name -> level.secrets().stream()
                     .filter(s -> s.name().equals(name))
                     .findFirst());
+            Optional<LevelData.Placements> change =
+                    switch (difficulty) {
+                        case EASY -> target.easy();
+                        case MEDIUM -> Optional.empty();
+                        case HARD -> target.hard();
+                    };
+            int hits = change.flatMap(LevelData.Placements::hits)
+                    .orElse(target.hits().orElse(0));
+            int group = target.group().map(destructibleGroups::indexOf).orElse(-1);
+            Optional<PickupType> groupDrop = target.group().flatMap(name -> carried.stream()
+                    .filter(p -> p.droppedBy().group().filter(name::equals).isPresent())
+                    .map(p -> pickup(p.pickup()))
+                    .findFirst());
             for (LevelData.Placement placement : target.at()) {
                 objects.add(new LevelScript.GroundObjectSpec(
                         placement.t(),
@@ -1874,7 +2113,7 @@ public final class SimSpecs {
                         target.hp().orElse(0.0),
                         target.bounty().orElse(0),
                         target.drop().map(SimSpecs::pickup),
-                        target.hits().orElse(0),
+                        hits,
                         secret.map(LevelData.Secret::crate).orElse(0),
                         secret.map(LevelData.Secret::name).orElse(""),
                         target.hardened().orElse(false),
@@ -1884,7 +2123,12 @@ public final class SimSpecs {
                         target.sprite().orElse(LevelScript.GroundObjectSpec.CARGO_CONTAINER),
                         target.dark().orElse(false),
                         secret.flatMap(sec ->
-                                sec.dataCore().map(core -> new LevelResult.DataCore(sec.name(), core.unlocks())))));
+                                sec.dataCore().map(core -> new LevelResult.DataCore(sec.name(), core.unlocks()))),
+                        // M5 part E: a trigger on `sub` (Level 11's sunken pod).
+                        target.layer().map(Layers::of).orElse(Layer.GROUND) == Layer.SUB,
+                        group,
+                        group < 0 ? 0 : groupSizes[group],
+                        groupDrop));
             }
         }
         objects.sort(Comparator.comparingDouble(LevelScript.GroundObjectSpec::t));
@@ -1922,6 +2166,9 @@ public final class SimSpecs {
                         case SCRIPTED_LOSS -> LevelScript.CueTrigger.SCRIPTED_LOSS;
                         case FIRST_DECLOAK -> LevelScript.CueTrigger.FIRST_DECLOAK;
                         case FIRST_LOOP_BACK -> LevelScript.CueTrigger.FIRST_LOOP_BACK;
+                        case ALLY_HIT -> LevelScript.CueTrigger.ALLY_HIT;
+                        case FIRST_TELEGRAPH -> LevelScript.CueTrigger.FIRST_TELEGRAPH;
+                        case BOSS_PART_DESTROYED -> LevelScript.CueTrigger.BOSS_PART_DESTROYED;
                     })
                     .orElse(LevelScript.CueTrigger.TIME);
             // Part G (LevelRules): a boss-destroyed cue's subject is the boss, a timeout cue its own
@@ -1929,7 +2176,10 @@ public final class SimSpecs {
             cues.add(new LevelScript.RadioCue(
                     LevelRules.trigger(cue, trigger),
                     cue.t().orElse(0.0),
-                    LevelRules.subject(level, cue),
+                    // M5 part E: a boss-part-destroyed cue waits for any of its parts.
+                    cue.parts()
+                            .map(parts -> String.join(LevelScript.CueTrigger.PART_SEPARATOR, parts))
+                            .orElseGet(() -> LevelRules.subject(level, cue)),
                     cue.speaker(),
                     change.map(LevelData.RadioChange::line).orElse(cue.line()),
                     cue.distorted().orElse(false),

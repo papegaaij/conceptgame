@@ -13,8 +13,10 @@ import vanguard.sim.WeaponSpec;
  * Straight shots have a sprite per angle their patterns use, homing missiles and a turret's tracers
  * an angle set of 32 headings, and the lance one per level; bombs and shells are single sprites the
  * renderer scales on their way down. A mine shows its sensor dark until it arms, then pulsing, and
- * bursts in its own blast; the Hornet leaves a smoke trail. Weapons without their own art yet (the
- * Torpedo Pod) borrow the family of their delivery.
+ * bursts in its own blast; the Hornet leaves a smoke trail. M5 part E: the Torpedo Pod's torpedo
+ * (tools/art/water_fx.py: 32 headings) runs under the water, drawn in the {@code sub} pass with its
+ * bubble trail; it drops in with a splash and bursts under the water or on its surface. Weapons
+ * without their own art yet borrow the family of their delivery.
  */
 public final class WeaponLooks {
     private static final int MISSILE_HEADINGS = 32;
@@ -44,6 +46,14 @@ public final class WeaponLooks {
         Array<AtlasRegion> blast;
         /** The puffs of its smoke trail (the Hornet's); {@code null} for none. */
         Array<AtlasRegion> trail;
+        /** M5 part E: whether its trail runs under the water (the torpedo's bubbles, in the {@code sub} pass). */
+        boolean trailUnder;
+        /** M5 part E: the splash where its rounds drop into the water (the torpedo's); {@code null} for none. */
+        Array<AtlasRegion> dropSplash;
+        /** M5 part E: its impact under the water and on its surface (the torpedo's); {@code null} for none. */
+        Array<AtlasRegion> underImpact;
+
+        Array<AtlasRegion> waterImpact;
 
         Look(
                 AtlasRegion[] shots,
@@ -133,6 +143,13 @@ public final class WeaponLooks {
                 shots = overdrive = single(sprites.region(slug + "-shot"));
                 glowing = false;
             }
+            case "torpedo-pod" -> {
+                // M5 part E: its own torpedo once it exists, else the bomb's stand-in.
+                shots = overdrive = sprites.has("torpedo-pod-shot")
+                        ? byHeading(sprites.frames("torpedo-pod-shot"))
+                        : single(sprites.region("bomb-rack-shot"));
+                glowing = false;
+            }
             default -> {
                 // A weapon without its own art yet: the family of its delivery.
                 switch (weapon.delivery()) {
@@ -173,8 +190,18 @@ public final class WeaponLooks {
             look.blast = sprites.frames("proximity-mines-blast");
         } else if (slug.equals("hornet-launcher")) {
             look.trail = sprites.frames("hornet-launcher-smoke");
+        } else if (slug.equals("torpedo-pod")) {
+            look.trail = optional(sprites, "torpedo-pod-bubbles");
+            look.trailUnder = true;
+            look.dropSplash = optional(sprites, "torpedo-pod-splash");
+            look.underImpact = optional(sprites, "explosion-under-small");
+            look.waterImpact = optional(sprites, "explosion-water-small");
         }
         return look;
+    }
+
+    private static Array<AtlasRegion> optional(Sprites sprites, String name) {
+        return sprites.has(name) ? sprites.frames(name) : null;
     }
 
     /** The pod sprite type a wing weapon is drawn with (tools/art/stormhawk.py); {@code null} if it has none. */
@@ -270,6 +297,24 @@ public final class WeaponLooks {
     /** The smoke-trail puff of mount {@code m}'s missiles; {@code null} for a weapon without one. */
     public Array<AtlasRegion> trail(int m) {
         return looks[m].trail;
+    }
+
+    /** M5 part E: whether mount {@code m}'s trail runs under the water (the torpedo's bubbles). */
+    public boolean trailUnder(int m) {
+        return looks[m].trailUnder;
+    }
+
+    /** M5 part E: the splash where mount {@code m}'s rounds drop into the water; {@code null} for none. */
+    public Array<AtlasRegion> dropSplash(int m) {
+        return looks[m].dropSplash;
+    }
+
+    /**
+     * M5 part E: mount {@code m}'s impact under the water ({@code under}) or on its surface, for a
+     * weapon that runs under it (the torpedo); {@code null} for any other.
+     */
+    public Array<AtlasRegion> waterImpact(int m, boolean under) {
+        return under ? looks[m].underImpact : looks[m].waterImpact;
     }
 
     /** The mounts on the hull (a wingman's gun is not among them). */

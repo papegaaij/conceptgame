@@ -144,13 +144,28 @@ class CampaignRouteTest {
     }
 
     @Test
-    void afterLevel10TheHangarBeforeLevel11WaitsForItsData() {
+    void afterLevel10ComesLevel11sBriefingAndLaunch() {
         Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
         for (int i = 0; i < 10; i++) {
             campaign.complete(CampaignTest.won("A", 80, 1000), 60);
         }
 
-        // Level 11 has no data yet: the hangar before it, which cannot launch.
+        // M5 part E: Level 11 has its data: its own briefing pages (no act intro), then the launch.
+        var briefing = assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.afterLevel(content, campaign));
+        assertEquals(11, briefing.script().mission());
+        assertTrue(briefing.script().titleCard().isEmpty());
+        assertInstanceOf(CampaignRoute.Step.Briefing.class, CampaignRoute.beforeNextLevel(content, campaign));
+        assertEquals(Optional.of("act-2-homefront/level-11-atlantic-convoy"), CampaignRoute.launch(content, campaign));
+    }
+
+    @Test
+    void afterLevel11TheHangarBeforeLevel12WaitsForItsData() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 11; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
+
+        // Level 12 has no data yet: the hangar before it, which cannot launch.
         assertInstanceOf(CampaignRoute.Step.Hangar.class, CampaignRoute.afterLevel(content, campaign));
         assertInstanceOf(CampaignRoute.Step.Hangar.class, CampaignRoute.beforeNextLevel(content, campaign));
         assertEquals(Optional.empty(), CampaignRoute.launch(content, campaign));

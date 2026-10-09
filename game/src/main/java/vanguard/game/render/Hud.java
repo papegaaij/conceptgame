@@ -19,6 +19,8 @@ public final class Hud {
     private final double regenBonus;
     /** The flown weapons by {@link Armament.Slot}. */
     private final Flight.Weapon[] weapons = new Flight.Weapon[Armament.Slot.values().length];
+    /** M5 part E: per {@link Armament.Slot}, whether its weapon fires nothing in this level (the HUD's NO WATER). */
+    private final boolean[] idle = new boolean[Armament.Slot.values().length];
 
     /**
      * @param number the level number
@@ -56,6 +58,17 @@ public final class Hud {
         }
     }
 
+    /** M5 part E: per slot, whether the weapon there fires nothing in the sortie's level (a torpedo pod over land). */
+    static void idle(Sortie sortie, boolean[] bySlot) {
+        java.util.Arrays.fill(bySlot, false);
+        Armament armament = sortie.armament();
+        for (int m = 0; m < armament.size(); m++) {
+            if (sortie.mountIdle(m)) {
+                bySlot[armament.mount(m).slot().ordinal()] = true;
+            }
+        }
+    }
+
     /** The hangar icon of a special: {@code special-} and its name in lower case, hyphenated (tools/art/icons.py). */
     static String iconName(String special) {
         return "special-" + special.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
@@ -69,7 +82,8 @@ public final class Hud {
     /** @param prompts the control prompts to show */
     public void draw(SpriteBatch batch, Sortie sortie, RadioQueue radio, List<PromptTexts.Text> prompts) {
         mission.draw(batch, sortie, radio, prompts);
-        ship.draw(batch, sortie, weapons, flight.sparePower(), regenBonus, flight.notFlown());
+        idle(sortie, idle);
+        ship.draw(batch, sortie, weapons, idle, flight.sparePower(), regenBonus, flight.notFlown());
         batch.setColor(1, 1, 1, 1);
     }
 }

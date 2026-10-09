@@ -28,6 +28,20 @@ import java.util.List;
  * when the last unit is lost (design/systems/retry, on a failed primary objective): the ship flies
  * on but nothing can hurt it, and the presentation retries the level as after a wreck.
  *
+ * <p>M5 part E: a level with a naval convoy ({@link LevelScript.Naval}, Level 11) has a {@link Convoy}
+ * outside the objectives: it never fails the mission, only the boss's slams hurt it ({@link
+ * #slamAllies(int)}), its glides run on the real steps, and the boss checkpoint keeps its state; an
+ * {@code afloat} secondary is met at the boss's death with no unit sunk and failed at the first sinking.
+ *
+ * <p>M5 part E, step E2c: an arena boss ({@link BossSpec#anchored()}, the Harbour Kraken) has an
+ * arena of speed 0: over the arena's first second ({@link #ARENA_RAMP_SECONDS}) the scroll eases
+ * from the section before's speed to a halt, and the level clock halts at the arena's end while the
+ * boss lives. The boss lies on the ground and scrolls in with it ({@link SetPiece#approaching()}), so
+ * that its centre is its height above the bottom edge at the halt; it arrives at the arena's start (the
+ * bar, the sting, the boss checkpoint) and engages at the halt. Its slams strike the ship, Rook and the
+ * naval convoy's ships in their lane ({@link #slamAllies(int)}); its release lets in units planned
+ * when the sortie is made (the arena's jelly field).
+ *
  * <p>M5 part A: a {@link Wingman} (Rook) flies beside the ship when the loadout has one. His shots
  * share the ship's shot pool with the mount index {@link #wingmanMount()}, and what they destroy
  * pays like the player's kills. He ejects at zero armour without failing anything; a retry starts
@@ -73,6 +87,14 @@ public final class Sortie {
     private final Spawn[] streamFromRight;
     /** The boss whose arrival records the checkpoint (the first boss); -1 without one. */
     private final int checkpointBoss;
+    /** M5 part E: the arena boss (anchored, with lanes); null without one. */
+    private final SetPiece arenaBoss;
+    /** M5 part E: a lane's box (every lane has the same), centred on a lane's middle; null without lanes. */
+    private final Hitbox laneBox;
+    /** M5 part E: the units the arena boss's release lets in, planned when the sortie is made; empty without one. */
+    private final Spawn[] arenaRelease;
+    /** M5 part E: the speed the scroll eases into an arena of speed 0 from (the section before's); 0 without one. */
+    private final double arenaFromSpeed;
     /** The arena section's end and start, steps; -1 without an arena. */
     private final int arenaEndTicks;
 
@@ -84,6 +106,11 @@ public final class Sortie {
     private final PlayerFire.Hits hits;
     /** Per secret, the triggers spent that reveal it together (Level 03's lifeboat lights). */
     private final int[] secretTriggersSpent;
+    /**
+     * M5 part E: per destructible group, its destructibles destroyed (Level 11's floating containers;
+     * empty in a level without one).
+     */
+    private final int[] groupDemolished;
 
     private final SimEvents events = new SimEvents(EVENT_CAPACITY);
     private final Tally tally;
@@ -117,7 +144,7 @@ public final class Sortie {
     private double directHits;
     /** Whether a group's outcome was paid and called in this attempt. */
     private final boolean[] groupCalled;
-    /** The escort objective's convoy; null without one. */
+    /** The escort objective's convoy, or (M5 part E) the naval convoy; null without one. */
     private final Convoy convoy;
 
     private final int launchTicks;
@@ -244,6 +271,7 @@ public final class Sortie {
                 0);
         final boolean[] radioFired = new boolean[radio.size()];
         final int[] secretTriggersSpent = new int[Sortie.this.secretTriggersSpent.length];
+        final int[] groupDemolished = new int[Sortie.this.groupDemolished.length];
         final boolean[] groupCalled = new boolean[Sortie.this.groupCalled.length];
         final int[] towHits = new int[tows.length];
         final int[] towCuts = new int[tows.length];
@@ -278,6 +306,8 @@ public final class Sortie {
         int collapseTicks;
         boolean decloakSeen;
         boolean loopBackSeen;
+        /** M5 part E: the naval convoy's state (afloat, damaged, sunk, where); null without one. */
+        final Convoy naval = script.convoy().map(Convoy::new).orElse(null);
     }
 
     /** @param armour the ship's armour at the level start (design/systems/retry: not full, unless it was full) */
@@ -317,7 +347,32 @@ public final class Sortie {
         arenaEndTicks = arenaEnd;
         arenaStartTicks = arenaStart;
         arenaSpeed = arenaSpeedFound;
+        SetPiece anchored = null;
+        for (SetPiece piece : setPieces) {
+            if (anchored == null && piece.arena().isPresent()) {
+                anchored = piece;
+            }
+        }
+        arenaBoss = anchored;
+        arenaFromSpeed = anchored == null ? 0 : arenaFromSpeed(script);
+        if (anchored != null) {
+            if (arenaStart < 0 || arenaSpeed != 0) {
+                throw new IllegalArgumentException("an anchored boss needs an arena of speed 0");
+            }
+            anchored.anchorAt(haltScroll(script, arenaFromSpeed)
+                    + anchored.boss().orElseThrow().hoverY());
+        }
+        laneBox = anchored == null || anchored.arena().orElseThrow().laneCount() == 0
+                ? null
+                : new Hitbox(
+                        anchored.arena().orElseThrow().laneWidth(),
+                        anchored.arena().orElseThrow().laneTop());
         secretTriggersSpent = new int[script.secrets()];
+        int destructibleGroups = 0;
+        for (LevelScript.GroundObjectSpec object : script.groundObjects()) {
+            destructibleGroups = Math.max(destructibleGroups, object.group() + 1);
+        }
+        groupDemolished = new int[destructibleGroups];
         cores = new LevelResult.DataCore[script.secrets()];
         coresCollected = new boolean[script.secrets()];
         secretNames = new String[script.secrets()];
@@ -395,7 +450,7 @@ public final class Sortie {
             }
         };
         this.hits = hits;
-        fire = new PlayerFire(ship, loadout.armament(), events, hits, setPieces);
+        fire = new PlayerFire(ship, loadout.armament(), events, hits, setPieces, script.water());
         special = new SpecialSlot(loadout.special(), events, ship.defences());
         // The boss streams' units and (part G) the units its windows launch are enemy kinds of the level.
         List<EnemySpec> streamKinds = java.util.stream.Stream.concat(
@@ -423,6 +478,7 @@ public final class Sortie {
                         streamReleased += units;
                     }
                 });
+        arenaRelease = anchored == null ? new Spawn[0] : planRelease(anchored, seed);
         streamFromLeft = new Spawn[streams.length];
         streamFromRight = new Spawn[streams.length];
         for (int i = 0; i < streams.length; i++) {
@@ -470,6 +526,59 @@ public final class Sortie {
                 streamReleased++;
                 events.add(SimEvents.Type.BOSS_LAUNCHED, x, y, force.kinds().indexOf(spawn.enemy()));
             }
+
+            @Override
+            public void telegraph(int lane) {
+                SlamArena arena = arenaBoss.arena().orElseThrow();
+                events.add(SimEvents.Type.TELEGRAPH, arena.laneWidth() * (lane - 0.5), arena.laneTop(), lane);
+                radio.cue(LevelScript.CueTrigger.FIRST_TELEGRAPH, "");
+            }
+
+            @Override
+            public void slam(int lane) {
+                slamLane(lane);
+            }
+
+            @Override
+            public void surface(int part, boolean up) {
+                events.add(
+                        up ? SimEvents.Type.SURFACE : SimEvents.Type.DIVE,
+                        arenaBoss.partX(part),
+                        arenaBoss.partY(part),
+                        part);
+            }
+
+            @Override
+            public void release(BossSpec.Release release) {
+                // The arena's field: its units count among the level's enemies as they come, as a stream's.
+                for (Spawn unit : arenaRelease) {
+                    force.release(unit);
+                }
+                streamReleased += arenaRelease.length;
+            }
+
+            @Override
+            public void drop(PickupType pickup, double x, double y) {
+                double half = EnemyGun.BULLET.width();
+                Sortie.this.drop(
+                        pickup,
+                        Math.clamp(x, half, PlayField.WIDTH - half),
+                        Math.clamp(y, half, PlayField.HEIGHT - half));
+            }
+
+            @Override
+            public int shipLanes() {
+                if (convoy == null || !convoy.naval()) {
+                    return 0;
+                }
+                int mask = 0;
+                for (int k = 0; k < convoy.size(); k++) {
+                    if (convoy.slammable(k) && convoy.lane(k) > 0) {
+                        mask |= 1 << convoy.lane(k);
+                    }
+                }
+                return mask;
+            }
         };
         tally = new Tally(rules.scoring());
         String tag = script.secondary().tag();
@@ -498,8 +607,9 @@ public final class Sortie {
         radio = new Radio(script.radio(), events, ship, Radio.fitted(loadout.armament(), special));
         convoy = script.escort()
                 .map(escort -> new Convoy(escort, script.road().orElse(null), script.sections()))
+                .or(() -> script.convoy().map(Convoy::new))
                 .orElse(null);
-        if (convoy != null) {
+        if (convoy != null && !convoy.naval()) {
             force.hook(convoy, convoy.escort().targetedBy());
         }
         checkpoint = checkpointBoss < 0 ? null : new Checkpoint();
@@ -526,6 +636,139 @@ public final class Sortie {
             }
         }
         return -1;
+    }
+
+    /** Salt for the arena release's own generator, so its planning leaves the sortie's sequence alone. */
+    private static final long RELEASE_SALT = 0x4B52414B454EL;
+    /** The arena release's units lie in rows this far apart down their lane, from this far below its top, px. */
+    private static final double RELEASE_ROW = 70;
+
+    private static final double RELEASE_TOP = 50;
+    /** ... jittered this far sideways and down, px. */
+    private static final double RELEASE_JITTER_X = 30;
+
+    private static final double RELEASE_JITTER_Y = 12;
+
+    /** The speed of the section before the arena: the scroll eases into an arena of speed 0 from it. */
+    private static double arenaFromSpeed(LevelScript script) {
+        List<LevelScript.Section> sections = script.sections();
+        for (int i = 1; i < sections.size(); i++) {
+            if (sections.get(i).arena()) {
+                return sections.get(i - 1).speed();
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * M5 part E: the ground's scroll when it has halted in the arena: the scroll at the arena's start
+     * plus the ease into the halt over {@link #ARENA_RAMP_SECONDS} ({@link #easeDistance(double)}).
+     */
+    static double haltScroll(LevelScript script, double fromSpeed) {
+        double scroll = 0;
+        List<LevelScript.Section> sections = script.sections();
+        for (int i = 0; i < sections.size() && !sections.get(i).arena(); i++) {
+            int start = i == 0 ? 0 : SimStep.ticks(sections.get(i - 1).end());
+            scroll += (SimStep.ticks(sections.get(i).end()) - start)
+                    * sections.get(i).speed()
+                    * SimStep.SECONDS;
+        }
+        return scroll + easeDistance(fromSpeed);
+    }
+
+    /**
+     * M5 part E: how far the ground scrolls while it eases from {@code speed} to a halt at an arena of
+     * speed 0, px: one step at {@code speed} × (n − 1 − j) / n for the arena's step j, n the ease's
+     * steps (about half a second at {@code speed}: 68.8 px at 140 px/s). A level's backdrop pieces that
+     * must lie under the halted boss (Level 11's Platform Tiamat) are placed with it.
+     */
+    public static double easeDistance(double speed) {
+        int n = SimStep.ticks(ARENA_RAMP_SECONDS);
+        double distance = 0;
+        for (int j = 0; j < n - 1; j++) {
+            distance += speed * (n - 1 - j) / n * SimStep.SECONDS;
+        }
+        return distance;
+    }
+
+    /**
+     * M5 part E: the arena boss's release planned once (its first): its units placed over its lanes in
+     * turn, in rows down from near each lane's top, jittered by a generator of its own; the share of a
+     * submerging enemy's start begins under the water.
+     */
+    private Spawn[] planRelease(SetPiece piece, long seed) {
+        BossSpec boss = piece.boss().orElseThrow();
+        SlamArena arena = piece.arena().orElseThrow();
+        BossSpec.Release release = null;
+        for (BossSpec.Phase phase : boss.phases()) {
+            if (release == null && phase.arena().release().isPresent()) {
+                release = phase.arena().release().get();
+            }
+        }
+        if (release == null) {
+            return new Spawn[0];
+        }
+        SplitMix64 luck = new SplitMix64(seed ^ RELEASE_SALT);
+        EnemySpec enemy = release.enemy();
+        int kind = force.kinds().indexOf(enemy);
+        int submerged = enemy.submerge().isPresent()
+                ? (int) Math.round(enemy.submerge().get().start() * release.count())
+                : 0;
+        int[] rows = new int[arena.laneCount() + 1];
+        Spawn[] units = new Spawn[release.count()];
+        for (int i = 0; i < units.length; i++) {
+            int lane = release.lanes().get(i % release.lanes().size());
+            double x = arena.laneWidth() * (lane - 0.5) + luck.range(-RELEASE_JITTER_X, RELEASE_JITTER_X);
+            double y = arena.laneTop()
+                    - RELEASE_TOP
+                    - RELEASE_ROW * rows[lane]++
+                    + luck.range(-RELEASE_JITTER_Y, RELEASE_JITTER_Y);
+            units[i] = new Spawn(
+                    0,
+                    kind,
+                    enemy,
+                    FlightPath.through(x, y, x, -PlayField.HEIGHT),
+                    enemy.speed(),
+                    0,
+                    java.util.Optional.empty(),
+                    Spawn.Exit.DOWN,
+                    false,
+                    java.util.Optional.empty(),
+                    java.util.Optional.empty(),
+                    java.util.Optional.empty(),
+                    java.util.Optional.empty(),
+                    java.util.Optional.empty(),
+                    java.util.Optional.empty(),
+                    java.util.Optional.empty(),
+                    java.util.Optional.of(new Spawn.Field(x, y, 0, -enemy.speed(), i < submerged, luck.nextLong())));
+        }
+        return units;
+    }
+
+    /**
+     * M5 part E: a slam strikes lane {@code lane}: the ship and Rook take its damage when their hull
+     * overlaps the lane (once per slam; not while the ship cannot be hurt), the convoy ships in it a
+     * hit, and the impact's event.
+     */
+    private void slamLane(int lane) {
+        SlamArena arena = arenaBoss.arena().orElseThrow();
+        double laneX = arena.laneWidth() * (lane - 0.5);
+        double laneY = arena.laneTop() / 2;
+        events.add(SimEvents.Type.SLAM, laneX, laneY, lane);
+        double damage =
+                arenaBoss.boss().orElseThrow().arena().orElseThrow().slam().damage();
+        if (flying() && !complete && !failed && !rules.invulnerableShip()) {
+            if (ship.spec().hull().overlaps(ship.x(), ship.y(), laneBox, laneX, laneY)) {
+                double lost = ship.defences().armourLost();
+                damaged(lost, ship.defences().takeShot(damage, events, ship.x(), ship.y()));
+            }
+            if (wingman != null
+                    && !wingman.ejected()
+                    && wingman.hull().overlaps(wingman.x(), wingman.y(), laneBox, laneX, laneY)) {
+                wingman.hit(damage, ship.x(), ship.y(), events);
+            }
+        }
+        slamAllies(lane);
     }
 
     /** Advances the sortie by one step with the given {@link Command} set. */
@@ -601,7 +844,7 @@ public final class Sortie {
         }
         flySetPieces();
         edgeWarnings = complete ? 0 : force.warnings(levelTick);
-        fire.move(scrollStep, force.enemies());
+        fire.move(scrollStep, force.enemies(), ground);
         boolean firing = flying() && !complete;
         force.move(ship, firing, scrollStep);
         fireSetPieces(firing);
@@ -620,8 +863,11 @@ public final class Sortie {
         }
         fire.hitGround(ground, force.enemies(), force.mines());
         special.update(scrollStep, force.enemies(), ground, setPieces, hits);
-        special.bomb(force.enemies(), setPieces, hits, force.bullets(), force.lobs(), force.mines());
-        if (convoy != null) {
+        special.bomb(force.enemies(), ground, setPieces, hits, force.bullets(), force.lobs(), force.mines());
+        if (convoy != null && convoy.naval()) {
+            // M5 part E: the naval convoy glides on the real steps at the arena's halt and after it.
+            convoy.sail(clockHeld(), scrollStep, events);
+        } else if (convoy != null) {
             convoy.update(levelTick, groundScroll, scrollStep);
             if (convoy.air() && !complete && !wrecked && !failed) {
                 scriptedLoss();
@@ -638,7 +884,7 @@ public final class Sortie {
         if (wingman != null && flying() && !complete && !failed && !rules.invulnerableShip()) {
             hitWingman();
         }
-        if (convoy != null && !complete && !wrecked && !failed) {
+        if (convoy != null && !convoy.naval() && !complete && !wrecked && !failed) {
             hitAllies();
         }
         if (flying()) {
@@ -956,6 +1202,17 @@ public final class Sortie {
         return false;
     }
 
+    /**
+     * M5 part E: whether the scroll has come to a halt in an arena of speed 0: its ease is over (or the
+     * level clock is halted at the arena's end).
+     */
+    private boolean scrollHalted() {
+        return clockHeld()
+                || (arenaStartTicks >= 0
+                        && levelTick < arenaEndTicks
+                        && levelTick - arenaStartTicks >= SimStep.ticks(ARENA_RAMP_SECONDS) - 1);
+    }
+
     /** Whether the level clock is halted in the arena now (the boss outlived its arena). */
     public boolean arenaHalted() {
         return clockHeld();
@@ -985,6 +1242,7 @@ public final class Sortie {
         c.objectives.copyFrom(objectives);
         radio.saveFired(c.radioFired);
         System.arraycopy(secretTriggersSpent, 0, c.secretTriggersSpent, 0, secretTriggersSpent.length);
+        System.arraycopy(groupDemolished, 0, c.groupDemolished, 0, groupDemolished.length);
         System.arraycopy(groupCalled, 0, c.groupCalled, 0, groupCalled.length);
         for (int i = 0; i < tows.length; i++) {
             c.towHits[i] = tows[i].hitsLeft();
@@ -1024,6 +1282,9 @@ public final class Sortie {
         c.collapseTicks = collapseTicks;
         c.decloakSeen = decloakSeen;
         c.loopBackSeen = loopBackSeen;
+        if (c.naval != null) {
+            c.naval.copyFrom(convoy);
+        }
         checkpointTaken = true;
     }
 
@@ -1041,6 +1302,7 @@ public final class Sortie {
         }
         rng.state(c.rng);
         System.arraycopy(c.secretTriggersSpent, 0, secretTriggersSpent, 0, secretTriggersSpent.length);
+        System.arraycopy(c.groupDemolished, 0, groupDemolished, 0, groupDemolished.length);
         tally.copyFrom(c.tally);
         objectives.copyFrom(c.objectives);
         radio.restoreFired(c.radioFired);
@@ -1079,6 +1341,10 @@ public final class Sortie {
         collapseTicks = c.collapseTicks;
         decloakSeen = c.decloakSeen;
         loopBackSeen = c.loopBackSeen;
+        if (c.naval != null) {
+            // M5 part E (the stated default): Retry from boss restores the ships as they were.
+            convoy.copyFrom(c.naval);
+        }
         events.add(SimEvents.Type.SORTIE_RESTARTED, ship.x(), ship.y());
         events.add(SimEvents.Type.BOSS_RETRY, ship.x(), ship.y());
     }
@@ -1133,6 +1399,7 @@ public final class Sortie {
             piece.reset();
         }
         Arrays.fill(secretTriggersSpent, 0);
+        Arrays.fill(groupDemolished, 0);
         tally.reset();
         objectives.reset();
         radio.reset();
@@ -1179,6 +1446,11 @@ public final class Sortie {
 
     private double scrollSpeed() {
         double speed = sectionSpeed();
+        if (arenaBoss != null && rampTicks < 0 && levelTick >= arenaStartTicks && levelTick < arenaEndTicks) {
+            // M5 part E: into an arena of speed 0 the scroll eases to a halt over the ramp.
+            int n = SimStep.ticks(ARENA_RAMP_SECONDS);
+            speed = arenaFromSpeed * Math.max(0, n - 1 - (levelTick - arenaStartTicks)) / n;
+        }
         if (rampTicks >= 0) {
             // Out of the arena the scroll ramps up to the section's speed.
             speed = rampFrom + (speed - rampFrom) * rampTicks / SimStep.ticks(ARENA_RAMP_SECONDS);
@@ -1261,6 +1533,9 @@ public final class Sortie {
             SetPiece piece = setPieces[k];
             boolean onPlane = piece.onPlane();
             if (piece.boss().isPresent()) {
+                if (piece.arena().isPresent()) {
+                    piece.ground(groundScroll, scrollHalted());
+                }
                 piece.update(levelTick);
                 if (piece.bossTicks() == 0) {
                     events.add(SimEvents.Type.BOSS_ARRIVED, piece.x(), piece.y(), k);
@@ -1381,6 +1656,12 @@ public final class Sortie {
         if (spec.secretIndex() >= 0) {
             // A destructible that hides a secret (Level 04's dugout) reveals it when destroyed.
             released(object);
+        }
+        if (spec.group() >= 0
+                && ++groupDemolished[spec.group()] == spec.groupSize()
+                && spec.groupDrop().isPresent()) {
+            // M5 part E: the group's last destructible drops its pickup (Level 11's armour patch).
+            drop(spec.groupDrop().get(), object.x(), object.y());
         }
         ground.free(index);
     }
@@ -1594,6 +1875,10 @@ public final class Sortie {
             if (arenaEndTicks >= 0 && levelTick >= arenaStartTicks && levelTick < arenaEndTicks - 1) {
                 arenaJump = true;
             }
+            // M5 part E (user decision E8 = a): an afloat objective is decided at the boss's death.
+            if (objectives.bossDownAfloat()) {
+                paySecondary();
+            }
         }
         if (objectives.escapeDestroyed(spec.slug(), "")) {
             paySecondary();
@@ -1622,6 +1907,12 @@ public final class Sortie {
         }
         if (k == partsPiece && among(script.secondary().parts(), part) && objectives.partShotOff()) {
             paySecondary();
+        }
+        if (piece.spec().isBoss() && !piece.spec().parts().get(part).vital()) {
+            // M5 part E: the radio's boss-part-destroyed (the first of the parts its cue names).
+            radio.cue(
+                    LevelScript.CueTrigger.BOSS_PART_DESTROYED,
+                    piece.spec().parts().get(part).name());
         }
     }
 
@@ -1797,7 +2088,7 @@ public final class Sortie {
             // A running sled stops every shot and bullet that crosses the rail.
             for (int i = shots.size() - 1; i >= 0; i--) {
                 Shot shot = shots.get(i);
-                if (!shot.weapon().delivery().landing()
+                if (!shot.weapon().delivery().passesUnder()
                         && sled.blocks(shot.x(), shot.y(), shot.weapon().size())) {
                     events.add(SimEvents.Type.SHOT_GLANCED, shot.x(), shot.y(), shot.mount());
                     shots.free(i);
@@ -1817,7 +2108,7 @@ public final class Sortie {
             for (int i = shots.size() - 1; i >= 0; i--) {
                 Shot shot = shots.get(i);
                 Hitbox size = shot.weapon().size();
-                if (shot.weapon().delivery().landing()) {
+                if (shot.weapon().delivery().passesUnder()) {
                     continue;
                 }
                 if (crane.clampHit(shot.x(), shot.y(), size)) {
@@ -1854,7 +2145,7 @@ public final class Sortie {
             }
             for (int i = shots.size() - 1; i >= 0; i--) {
                 Shot shot = shots.get(i);
-                if (shot.weapon().delivery().landing()
+                if (shot.weapon().delivery().passesUnder()
                         || !tow.cableHit(shot.x(), shot.y(), shot.weapon().size())) {
                     continue;
                 }
@@ -1910,7 +2201,7 @@ public final class Sortie {
             boolean broken = false;
             for (int i = shots.size() - 1; i >= 0; i--) {
                 Shot shot = shots.get(i);
-                if (shot.weapon().delivery().landing()
+                if (shot.weapon().delivery().passesUnder()
                         || !chunk.touches(shot.x(), shot.y(), shot.weapon().size())) {
                     continue;
                 }
@@ -2271,6 +2562,56 @@ public final class Sortie {
         }
     }
 
+    /**
+     * M5 part E (design/allies, convoy cargo ship): a boss slam in lane {@code lane} (1-based) hits
+     * every naval convoy unit afloat in it that slams hurt, once each (for E2c's slam cycle). Returns
+     * the units hit; nothing without a naval convoy.
+     */
+    int slamAllies(int lane) {
+        if (convoy == null || !convoy.naval() || complete) {
+            return 0;
+        }
+        int hit = 0;
+        for (int k = 0; k < convoy.size(); k++) {
+            if (convoy.slammable(k) && convoy.lane(k) == lane) {
+                hurtNaval(k, convoy.spec(k).slams());
+                hit++;
+            }
+        }
+        return hit;
+    }
+
+    /**
+     * M5 part E: naval convoy unit {@code k} takes {@code damage}: its hit event, its first hit's
+     * {@code ally-hit} line (each unit's, {@link #lastAllyHit()}) and the attempt's first hit's; when
+     * it sinks, the loss's event and lines and the afloat objective's failure. It never fails the
+     * mission, with {@code --invulnerable} or not.
+     */
+    private void hurtNaval(int k, double damage) {
+        Ally ally = convoy.get(k);
+        boolean firstOfUnit = ally.ticksSinceHit() == Integer.MAX_VALUE;
+        boolean first = convoy.firstHit() < 0;
+        boolean sunk = convoy.damage(k, damage);
+        events.add(SimEvents.Type.ALLY_HIT, ally.x(), ally.y(), k);
+        if (first) {
+            radio.cue(LevelScript.CueTrigger.FIRST_ALLY_HIT, "");
+        }
+        if (firstOfUnit) {
+            radio.cue(LevelScript.CueTrigger.ALLY_HIT, "");
+        }
+        if (!sunk) {
+            return;
+        }
+        events.add(SimEvents.Type.ALLY_LOST, ally.x(), ally.y(), k);
+        if (convoy.firstLost() == k && convoy.lostSaveable() == 1) {
+            radio.cue(LevelScript.CueTrigger.FIRST_ALLY_LOST, "");
+        }
+        radio.cue(LevelScript.CueTrigger.ALLY_LOST, "");
+        if (objectives.sunk()) {
+            events.add(SimEvents.Type.OBJECTIVE_FAILED, ally.x(), ally.y());
+        }
+    }
+
     private void collectPickups() {
         double radius = rules.pickups().collectionRadius();
         for (int i = pickups.size() - 1; i >= 0; i--) {
@@ -2318,8 +2659,9 @@ public final class Sortie {
     private void completeLevel() {
         complete = true;
         events.add(SimEvents.Type.LEVEL_COMPLETE, ship.x(), ship.y());
-        int home = convoy == null ? 0 : convoy.saveableAlive();
-        if (convoy != null) {
+        // M5 part E: a naval convoy's level-end cues count its damageable units afloat; it pays nothing.
+        int home = convoy == null ? 0 : convoy.naval() ? convoy.afloat() : convoy.saveableAlive();
+        if (convoy != null && !convoy.naval()) {
             // Each unit home is a payout of its own (design/campaign, Level 04: the escort objective).
             int credits = convoy.escort().credits();
             for (int k = 0; k < home; k++) {
@@ -2349,15 +2691,16 @@ public final class Sortie {
             }
         }
         for (SetPiece piece : setPieces) {
-            if (!piece.present() || !piece.layer().hitByStandardShots()) {
+            if (!piece.present()) {
                 continue;
             }
             List<LevelScript.PartSpec> parts = piece.spec().parts();
             for (int p = 0; p < parts.size(); p++) {
-                if (!piece.partWrecked(p)
+                // M5 part E: on the part's own layer (an arena boss's part under the water is none).
+                if (piece.partLayer(p).hitByStandardShots()
+                        && !piece.partWrecked(p)
                         && !piece.partShielded(p)
-                        && PlayField.overlaps(
-                                piece.partX(p), piece.partY(p), parts.get(p).box())) {
+                        && piece.partOnField(p)) {
                     return true;
                 }
             }
@@ -2395,6 +2738,9 @@ public final class Sortie {
         }
         for (int spent : secretTriggersSpent) {
             hash.add(spent);
+        }
+        for (int demolished : groupDemolished) {
+            hash.add(demolished);
         }
         Pools.addAll(hash, fire.shots());
         Pools.addAll(hash, force.enemies());
@@ -2479,7 +2825,7 @@ public final class Sortie {
                         defences.maxArmour(),
                         objectives.secretsFound(),
                         objectives.secondaryMet(),
-                        convoy == null
+                        convoy == null || convoy.naval()
                                 ? LevelResult.Escort.NONE
                                 : new LevelResult.Escort(
                                         convoy.escort().ally().slug(),
@@ -2531,6 +2877,14 @@ public final class Sortie {
     /** Steps since mount {@code m} last fired, for its muzzle flash; {@link Integer#MAX_VALUE} before its first shot. */
     public int ticksSinceShot(int m) {
         return fire.ticksSinceShot(m);
+    }
+
+    /**
+     * M5 part E: whether mount {@code m} fires nothing in this level, a torpedo pod over land (the HUD's
+     * NO WATER; it still draws its power).
+     */
+    public boolean mountIdle(int m) {
+        return fire.idle(fire.armament().mount(m).weapon());
     }
 
     /** Mount {@code m}'s turret heading (the Swivel Gun's pod), radians clockwise from up. */
@@ -2737,6 +3091,53 @@ public final class Sortie {
      */
     public int lastAllyLost() {
         return convoy == null ? -1 : convoy.lastLost();
+    }
+
+    /**
+     * M5 part E: the convoy unit hit last in this attempt, for the {@code ally-hit} line ({@code
+     * {ally}}); -1 before. That cue's radio event follows the unit's {@link SimEvents.Type#ALLY_HIT}
+     * event in the same step.
+     */
+    public int lastAllyHit() {
+        return convoy == null ? -1 : convoy.lastHit();
+    }
+
+    /** M5 part E: whether the level has a naval convoy outside the objectives (Level 11's ships). */
+    public boolean navalConvoy() {
+        return convoy != null && convoy.naval();
+    }
+
+    /** M5 part E: naval convoy unit {@code k}'s name ({@code {ally}} in its lines: "Halvorsen"); "" for an escort's unit. */
+    public String allyName(int k) {
+        return navalConvoy() ? convoy.navalSpec().units().get(k).name() : "";
+    }
+
+    /** M5 part E: convoy unit {@code k}'s spec (the cargo ship's, the frigate's). */
+    public AllySpec allySpec(int k) {
+        return convoy.spec(k);
+    }
+
+    /** M5 part E: the arena lane (1-based) naval unit {@code k} is in now; 0 for none (off the field, no lanes). */
+    public int allyLane(int k) {
+        return navalConvoy() ? convoy.lane(k) : 0;
+    }
+
+    /**
+     * M5 part E: the naval convoy's units that can be damaged (Level 11's three cargo ships, not the
+     * frigate): the tracker's pips and the debrief's {@code HULLS AFLOAT n / 3}; 0 without one.
+     */
+    public int damageableAllies() {
+        return navalConvoy() ? convoy.saveable() : 0;
+    }
+
+    /** M5 part E: the naval convoy's damageable units still afloat in this attempt; 0 without one. */
+    public int alliesAfloat() {
+        return navalConvoy() ? convoy.afloat() : 0;
+    }
+
+    /** M5 part E: whether an afloat objective failed in this attempt (a unit sank). */
+    public boolean afloatFailed() {
+        return objectives.afloatFailed();
     }
 
     /** M5 part D: whether the escort objective's convoy is an air escort (Level 10's shuttles). */

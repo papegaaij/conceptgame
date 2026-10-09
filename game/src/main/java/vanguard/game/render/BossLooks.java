@@ -24,7 +24,8 @@ import vanguard.sim.SetPiece;
  * top of the play field (design/ui/hud: shorter for a mid-boss). At its death the wreck where it
  * died (crown open, core dark) until its {@link SetPieceDeath break-up} replaces it by the chunks.
  * A boss without the bell (the Brood Carrier) is drawn by its {@link HullBossLooks}: its hull in its
- * pose with the sacs, the iris and the turrets, its shadow off the plane.
+ * pose with the sacs, the iris and the turrets, its shadow off the plane. M5 part E: an arena boss
+ * (the Harbour Kraken) is drawn by {@link KrakenLooks}; only its bar is drawn here.
  */
 final class BossLooks {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
@@ -69,6 +70,16 @@ final class BossLooks {
         this.flash = flash;
         this.bar = new BossBar(sprites);
         String slug = spec == null ? null : spec.slug();
+        if (spec != null && spec.boss().flatMap(BossSpec::arena).isPresent()) {
+            // M5 part E: an arena boss (the Harbour Kraken) is drawn by KrakenLooks; only its bar here.
+            bells = heads = stumps = null;
+            necks = null;
+            coreGlow = null;
+            originX = originY = steps = firstStep = 0;
+            hull = null;
+            death = null;
+            return;
+        }
         if (slug == null || !sprites.has(slug + "-bell")) {
             bells = heads = stumps = null;
             necks = null;

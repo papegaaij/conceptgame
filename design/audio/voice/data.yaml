@@ -21,6 +21,7 @@ speakers:
     names: [Okafor]
     ref: ref-okafor
     pins:
+      c496cbac570f: 206146473   # Level 11 end, ships afloat "Atlas-Seven is through…": the key's seed read "Good work, ages" without a name prompt
       468143d57448: 73929799    # Act 2 briefing page 3 "Until now you fought…": the key's seed said "you've fought"
       d16b2f349c6c: 219591441   # Level 08 t=1 "Aegis, contacts inbound…": the key's seed said "contact inbound"
       e2da9c95df0f: 237873619   # Level 08 end "…The arcologies are next.": the key's seed read "all colleges" through the radio filter
@@ -40,6 +41,8 @@ speakers:
     names: [Rook]
     ref: ref-rook
     pins:
+      4195e4cad552: 68803080    # Level 11 boss-part-destroyed "Tell the cook we're having calamari.": the key's seed jumped an octave (about 500 Hz) on its first four words
+      7a173798109d: 128029288   # Level 11 t=55 "Lancer... did the sea just move under the convoy?": the key's seed jumped an octave on "did the sea just"
       ff3da796bbb8: 267639418   # "Okay. Okay. That was big. We did big.": the key's seed repeated "We did big"
       6dbea988135b: 115075739   # bark "Flank! Watch the edges, Lancer!": the key's seed read "Clank" through the radio filter
       f398f9f266a7: 255430562   # bark "Rook's hurting, Lancer. Hurting bad.": the key's seed said "herding"
@@ -86,3 +89,6 @@ speakers:
   lifeline-three:   # Level 10 (M5 part D, D12 = a): Lifeline Three's pilot, one line, cut off at its dash; cast in round 32 (b, Maria Kasper), neutral as auditioned
     names: [Lifeline Three]
     ref: ref-lifeline-three
+  atlas-control:   # Level 11 (M5 part E, E10 = a): the CDF officer of convoy Atlas-Seven; cast in round 33 (b, MaryAnn), neutral as auditioned
+    names: [Atlas Control]
+    ref: ref-atlas-control

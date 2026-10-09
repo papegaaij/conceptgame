@@ -10,8 +10,9 @@ import java.util.Optional;
  * two bombers enter at the bottom edge left and right of the ship's x at the call and fly up,
  * dropping a bomb every bomb spacing. A bomb bursts after its fall where the ground scroll has
  * carried its release point: it hits the {@code ground} and {@code low-air} targets (hardened
- * included) and the {@code air} targets in its radius, never {@code high-air}, with at most the
- * layer's cap per target in one strike. Its kills pay their bounty and keep the chain, as the
+ * included) and the {@code air} targets in its radius, never {@code high-air} nor (M5 part E)
+ * {@code sub} under the water or a sunken trigger, with at most the layer's cap per target in one
+ * strike. Its kills pay their bounty and keep the chain, as the
  * guns' kills do ({@link PlayerFire.Hits}). A new strike can be called once the bombers have left
  * the screen.
  *
@@ -168,12 +169,14 @@ public final class SpecialSlot {
 
     /**
      * One step of a Smart Bomb: its ring grows; at once every enemy bullet (and mortar blob) goes,
-     * then those the ring passes; the spore mines it passes pop as if shot; every enemy and boss
-     * part on the screen the ring reaches takes its damage once. It is busy until its repeat time
+     * then those the ring passes; the spore mines it passes pop as if shot; every enemy (M5 part E:
+     * those under the water too) and boss part on the screen the ring reaches takes its damage once,
+     * and a sunken trigger it reaches is spent at once (M5 part E). It is busy until its repeat time
      * has passed.
      */
     void bomb(
             Pool<Enemy> enemies,
+            Pool<GroundObject> ground,
             SetPiece[] setPieces,
             PlayerFire.Hits hits,
             Pool<EnemyBullet> bullets,
@@ -213,6 +216,16 @@ public final class SpecialSlot {
             }
             if (strike(2 * enemy.serial()) && enemy.damage(smartBomb.damage(), true)) {
                 hits.enemyDestroyed(j);
+            }
+        }
+        for (int j = ground.size() - 1; j >= 0; j--) {
+            GroundObject object = ground.get(j);
+            if (object.spec().submerged()
+                    && object.hittable()
+                    && PlayField.overlaps(object.x(), object.y(), object.spec().size())
+                    && within(object.x(), object.y(), radius)
+                    && object.spend()) {
+                hits.triggerReleased(j);
             }
         }
         for (int k = 0; k < setPieces.length; k++) {
@@ -373,6 +386,7 @@ public final class SpecialSlot {
             // Its current layer (M5 part C: a pounce's air window takes the air damage).
             Layer layer = enemy.layer();
             if (layer == Layer.HIGH_AIR
+                    || layer == Layer.SUB
                     || !PlayerFire.onField(enemy)
                     || !PlayerFire.inBlast(x, y, radius, enemy.x(), enemy.y(), enemy.hitbox())) {
                 continue;
@@ -385,7 +399,9 @@ public final class SpecialSlot {
         for (int j = ground.size() - 1; j >= 0; j--) {
             GroundObject object = ground.get(j);
             LevelScript.GroundObjectSpec spec = object.spec();
-            if (!object.hittable() || !PlayerFire.inBlast(x, y, radius, object.x(), object.y(), spec.size())) {
+            if (!object.hittable()
+                    || spec.submerged()
+                    || !PlayerFire.inBlast(x, y, radius, object.x(), object.y(), spec.size())) {
                 continue;
             }
             if (spec.trigger()) {
@@ -401,21 +417,22 @@ public final class SpecialSlot {
         }
         for (int k = 0; k < setPieces.length; k++) {
             SetPiece piece = setPieces[k];
-            if (!piece.present() || piece.layer() == Layer.HIGH_AIR) {
+            if (!piece.present()) {
                 continue;
             }
             for (int p = 0; p < piece.partCount() && piece.present(); p++) {
-                Hitbox box = piece.spec().parts().get(p).box();
-                double px = piece.partX(p);
-                double py = piece.partY(p);
-                if (piece.partWrecked(p)
+                // M5 part E: on the part's own layer (an arena boss's part under the water is out of reach).
+                Layer layer = piece.partLayer(p);
+                if (layer == Layer.HIGH_AIR
+                        || layer == Layer.SUB
+                        || piece.partWrecked(p)
                         || piece.partShielded(p)
-                        || !PlayField.overlaps(px, py, box)
-                        || !PlayerFire.inBlast(x, y, radius, px, py, box)) {
+                        || !piece.partOnField(p)
+                        || !piece.partInBlast(p, x, y, radius)) {
                     continue;
                 }
-                double amount = deal(-1 - k * LevelScript.SetPieceSpec.MAX_PARTS - p, piece.layer());
-                if (amount > 0 && piece.damagePart(p, amount)) {
+                double amount = deal(-1 - k * LevelScript.SetPieceSpec.MAX_PARTS - p, layer);
+                if (amount > 0 && piece.damagePartAt(p, amount, x, y)) {
                     hits.partDestroyed(k, p);
                 }
             }

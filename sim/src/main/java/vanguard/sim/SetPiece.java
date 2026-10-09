@@ -46,6 +46,32 @@ public final class SetPiece implements Hashed {
          * spawn says.
          */
         default void launch(BossSpec.Spawn spawn, double x, double y, double angle) {}
+
+        /** M5 part E: lane {@code lane} (1-based) is telegraphed for a slam. */
+        default void telegraph(int lane) {}
+
+        /**
+         * M5 part E: a slam strikes lane {@code lane} (1-based): the impact on the ship, the escort and
+         * the convoy ships in it (the splash bullets come through {@link #bullet}).
+         */
+        default void slam(int lane) {}
+
+        /** M5 part E: part {@code part} starts to surface ({@code up}) or to dive. */
+        default void surface(int part, boolean up) {}
+
+        /** M5 part E: the phase's release (the arena's jelly field) is let in, once. */
+        default void release(BossSpec.Release release) {}
+
+        /** M5 part E: a phase drops {@code pickup} at (x, y) as it begins (the shield cell). */
+        default void drop(PickupType pickup, double x, double y) {}
+
+        /**
+         * M5 part E: the lanes holding a convoy ship a slam hurts, bit {@code n} for lane {@code n}
+         * (the slams' "nearest ship" choice); 0 without.
+         */
+        default int shipLanes() {
+            return 0;
+        }
     }
 
     /** How a boss moves now (design/enemies/bosses, the poses of part G). */
@@ -162,6 +188,19 @@ public final class SetPiece implements Hashed {
     /** The steps from its arrival (the bar appearing) to its kill; -1 while it lives. */
     private int killTicks;
 
+    /** M5 part E: an arena boss's lanes, slams and surfacing; null for any other. */
+    private final SlamArena arena;
+    /** {@link #arena} for the presentation, made once (stepping allocates nothing). */
+    private final java.util.Optional<SlamArena> arenaView;
+    /** M5 part E: where an arena boss's centre lies on the ground layer, px above the screen's bottom at the level start. */
+    private double anchorGround;
+    /** M5 part E: the ground's scroll this step and whether the scroll has halted in the arena. */
+    private double groundScroll;
+
+    private boolean halted;
+    /** M5 part E: an arena boss scrolling in with the ground before it arrives (no bar, no damage). */
+    private boolean approaching;
+
     SetPiece(LevelScript.SetPieceSpec spec) {
         this.spec = spec;
         extent = Math.max(spec.size().width(), spec.size().height()) / 2;
@@ -256,6 +295,10 @@ public final class SetPiece implements Hashed {
                         current.windows().isPresent() && current.windows().get().holds(p);
             }
         }
+        arena = boss != null && boss.arena().isPresent()
+                ? new SlamArena(this, boss, boss.arena().get(), parts)
+                : null;
+        arenaView = java.util.Optional.ofNullable(arena);
         reset();
     }
 
@@ -316,8 +359,31 @@ public final class SetPiece implements Hashed {
             x = prevX = boss.x();
             y = prevY = entryY;
             altitude = prevAltitude = layer == Layer.HIGH_AIR ? 1 : 0;
+            approaching = false;
+            if (arena != null) {
+                arena.reset();
+                y = prevY = anchorGround - groundScroll;
+            }
             placeChains();
         }
+    }
+
+    /**
+     * M5 part E: an arena boss's place on the ground layer: its centre's height above the screen's
+     * bottom edge at the level start, so that it lies {@link BossSpec#hoverY()} above the bottom
+     * edge once the scroll has halted in its arena (the sortie works it out).
+     */
+    void anchorAt(double ground) {
+        anchorGround = ground;
+    }
+
+    /**
+     * M5 part E: the ground's scroll this step and whether the scroll has halted in the arena, read
+     * by an arena boss as it moves (before {@link #update}).
+     */
+    void ground(double scroll, boolean halt) {
+        groundScroll = scroll;
+        halted = halt;
     }
 
     /**
@@ -480,6 +546,10 @@ public final class SetPiece implements Hashed {
             return;
         }
         prevAltitude = altitude;
+        if (arena != null) {
+            moveAnchored(levelTick);
+            return;
+        }
         if (bossTicks < 0) {
             if (levelTick < SimStep.ticks(boss.arriveSeconds())) {
                 return;
@@ -513,6 +583,35 @@ public final class SetPiece implements Hashed {
                     + boss.sineAmplitude()
                             * Trig.sin(
                                     2 * StrictMath.PI * (swayTicks - swayStart) * SimStep.SECONDS / boss.sinePeriod());
+        }
+    }
+
+    /**
+     * M5 part E: an arena boss lies on the ground and scrolls with it: before it arrives it scrolls in
+     * ({@link #approaching()} once a part of it may be over the top edge); it arrives on its time (the
+     * bar), settles and engages when the scroll has halted.
+     */
+    private void moveAnchored(int levelTick) {
+        x = boss.x();
+        y = anchorGround - groundScroll;
+        if (bossTicks < 0) {
+            approaching = y - (entryY - PlayField.HEIGHT) < PlayField.HEIGHT;
+            if (levelTick < SimStep.ticks(boss.arriveSeconds())) {
+                return;
+            }
+            approaching = false;
+            present = true;
+            layer = boss.layer();
+            onPlane = layer.collidesWithPlayer();
+            altitude = prevAltitude = 0;
+        }
+        bossTicks++;
+        if (swayTicks >= 0) {
+            swayTicks++;
+        } else if (halted) {
+            swayTicks = 0;
+            engaged = true;
+            startPhase();
         }
     }
 
@@ -578,18 +677,32 @@ public final class SetPiece implements Hashed {
         }
         phaseTicks++;
         while (phase < boss.phases().size() - 1 && phaseOver(boss.phases().get(phase))) {
-            if (!partsDown(boss.phases().get(phase))) {
+            if (!partsDown(boss.phases().get(phase)) && !arenaOver(boss.phases().get(phase))) {
                 timeouts |= 1L << phase;
                 actions.timeout(phase);
             }
             phase++;
             startPhase();
             actions.phase(phase);
+            dropOnStart(actions);
             if (moveTicks >= 0) {
                 return;
             }
         }
         BossSpec.Phase current = boss.phases().get(phase);
+        if (arena != null) {
+            boolean fans = arena.step(current, shipX, actions, firing);
+            placeChains();
+            if (current.arena().surface().isPresent()) {
+                // The phase's attacks fire from its surfacing part while it is up, each after its tell.
+                if (fans) {
+                    for (int i = 0; i < current.attacks().size(); i++) {
+                        volley(current.attacks().get(i), current, actions, firing);
+                    }
+                }
+                return;
+            }
+        }
         if (current.alternate()) {
             alternate(current, actions, firing);
         } else {
@@ -605,9 +718,48 @@ public final class SetPiece implements Hashed {
         }
     }
 
-    /** Whether the phase is over: its parts are down, or its timer ran out. */
+    /** Whether the phase is over: its parts are down, its timer ran out, or (M5 part E) its slams or its HP share. */
     private boolean phaseOver(BossSpec.Phase current) {
-        return partsDown(current) || (current.timed() && phaseTicks >= SimStep.ticks(current.seconds()));
+        return partsDown(current)
+                || arenaOver(current)
+                || (current.timed() && phaseTicks >= SimStep.ticks(current.seconds()));
+    }
+
+    /**
+     * M5 part E: whether an arena phase is over: it struck its slams (or, ending on slams, every arm
+     * is severed), or its parts hold less than its share of their HP.
+     */
+    private boolean arenaOver(BossSpec.Phase current) {
+        if (arena == null) {
+            return false;
+        }
+        BossSpec.PhaseArena keys = current.arena();
+        if (keys.slams() > 0 && (arena.slams() >= keys.slams() || !arena.armsLeft())) {
+            return true;
+        }
+        if (!keys.onShare()) {
+            return false;
+        }
+        double left = 0;
+        double full = 0;
+        for (int i = 0; i < keys.belowParts().size(); i++) {
+            int p = keys.belowParts().get(i);
+            left += Math.max(0, partHp[p]);
+            full += spec.parts().get(p).hp();
+        }
+        return left < keys.below() * full;
+    }
+
+    /** M5 part E: a phase that drops a pickup as it begins drops it under its surfacing part (or the centre). */
+    private void dropOnStart(BossActions actions) {
+        if (arena == null) {
+            return;
+        }
+        BossSpec.PhaseArena keys = boss.phases().get(phase).arena();
+        if (keys.drop().isPresent()) {
+            int p = keys.surface().isPresent() ? keys.surface().get().part() : -1;
+            actions.drop(keys.drop().get(), p < 0 ? x : partX(p), p < 0 ? y : partY(p));
+        }
     }
 
     /** Whether at most the phase's {@code left} of its parts are alive (never for a phase without parts). */
@@ -626,6 +778,9 @@ public final class SetPiece implements Hashed {
     private void startPhase() {
         java.util.Arrays.fill(openTicks, 0);
         BossSpec.Phase current = boss.phases().get(phase);
+        if (arena != null) {
+            arena.phaseStarted(current);
+        }
         if (current.move().isPresent()) {
             moveTicks = 0;
             moveFromX = x;
@@ -797,11 +952,6 @@ public final class SetPiece implements Hashed {
         }
     }
 
-    /** Whether part {@code p}'s hit box overlaps the play field. */
-    private boolean partOnField(int p) {
-        return PlayField.overlaps(partX(p), partY(p), spec.parts().get(p).box());
-    }
-
     /** An attack fired on its own interval: a volley when it is due, then the rest of its burst. */
     private void runAttack(int a, BossSpec.Phase current, BossActions actions, boolean firing) {
         BossSpec.Attack attack = boss.attacks().get(a);
@@ -868,15 +1018,19 @@ public final class SetPiece implements Hashed {
     }
 
     private void fireFrom(int p, BossSpec.Attack attack, BossActions actions) {
+        // M5 part E: an arena boss's surfacing part fires from its hit box's lower edge (the Kraken's beak).
+        double fireY = arena != null && p == arena.surfacePart()
+                ? partY(p) - spec.parts().get(p).box().height() / 2
+                : partY(p);
         if (attack.pattern() == BossSpec.Pattern.RING) {
             actions.ring(
                     partX(p),
-                    partY(p),
+                    fireY,
                     attack.count(),
                     attack.gun().bulletSpeed(),
                     attack.gun().damage());
         } else {
-            actions.aimed(partX(p), partY(p), attack.gun());
+            actions.aimed(partX(p), fireY, attack.gun());
         }
     }
 
@@ -917,6 +1071,9 @@ public final class SetPiece implements Hashed {
         double phaseBend = !engaged ? Double.NaN : boss.phases().get(phase).bendRadians();
         for (int c = 0; c < chainStart.length; c++) {
             BossSpec.Chain chain = boss.chains().get(c);
+            if (chain.slam()) {
+                continue;
+            }
             LevelScript.PartSpec end = spec.parts().get(chain.part());
             double restX = end.dx() - chain.fromDx();
             double restY = end.dy() - chain.fromDy();
@@ -943,6 +1100,10 @@ public final class SetPiece implements Hashed {
         for (int c = 0; c < chainStart.length; c++) {
             BossSpec.Chain chain = boss.chains().get(c);
             LevelScript.PartSpec end = spec.parts().get(chain.part());
+            if (chain.slam() && arena != null && arena.chainArm(c) >= 0 && arena.armLane(arena.chainArm(c)) > 0) {
+                laySlamChain(c, chain, arena.armLane(arena.chainArm(c)));
+                continue;
+            }
             int pieces = chain.segments() + 1;
             double stepX = (end.dx() - chain.fromDx()) / pieces;
             double stepY = (end.dy() - chain.fromDy()) / pieces;
@@ -962,6 +1123,24 @@ public final class SetPiece implements Hashed {
             tipX[c] = px;
             tipY[c] = py;
         }
+    }
+
+    /**
+     * M5 part E: a slam chain laid along lane {@code lane}: its base just below the lanes' top edge,
+     * its tip {@link SlamArena#TIP_MARGIN} above the bottom edge, its segments evenly between them
+     * from the base.
+     */
+    private void laySlamChain(int c, BossSpec.Chain chain, int lane) {
+        double laneX = arena.laneWidth() * (lane - 0.5) - x;
+        double top = arena.laneTop() - y;
+        double bottom = SlamArena.TIP_MARGIN - y;
+        int n = chain.segments();
+        for (int k = 0; k < n; k++) {
+            segmentX[segmentStart[c] + k] = laneX;
+            segmentY[segmentStart[c] + k] = top + (bottom - top) * k / n;
+        }
+        tipX[c] = laneX;
+        tipY[c] = bottom;
     }
 
     /**
@@ -1008,9 +1187,12 @@ public final class SetPiece implements Hashed {
         return windows.isPresent() ? windows.get().openSeconds() : 0;
     }
 
-    /** Whether a shot of {@code size} at (sx, sy) touches one of its armoured neck segments. */
+    /** Whether a shot of {@code size} at (sx, sy) touches one of its armoured neck segments (not a slam arm's). */
     boolean neckTouches(Hitbox size, double sx, double sy) {
         for (int c = 0; c < chainStart.length; c++) {
+            if (boss.chains().get(c).slam()) {
+                continue;
+            }
             Hitbox box = boss.chains().get(c).box();
             for (int k = 0; k < boss.chains().get(c).segments(); k++) {
                 int i = segmentStart[c] + k;
@@ -1020,6 +1202,113 @@ public final class SetPiece implements Hashed {
             }
         }
         return false;
+    }
+
+    /**
+     * M5 part E: part {@code p}'s current layer: an arena boss's part's own ({@code sub} under the
+     * water, {@code ground} on the surface), else the unit's.
+     */
+    public Layer partLayer(int p) {
+        return arena == null ? layer : arena.layer(p);
+    }
+
+    /**
+     * Whether a shot of {@code size} at (sx, sy) touches part {@code p}: its hit box, and (M5 part E)
+     * a slam arm's segments, which are the arm's own hit boxes.
+     */
+    boolean partTouches(int p, Hitbox size, double sx, double sy) {
+        if (size.overlaps(sx, sy, spec.parts().get(p).box(), partX(p), partY(p))) {
+            return true;
+        }
+        int c = slamChain(p);
+        if (c < 0) {
+            return false;
+        }
+        Hitbox box = boss.chains().get(c).box();
+        for (int k = 0; k < boss.chains().get(c).segments(); k++) {
+            int i = segmentStart[c] + k;
+            if (size.overlaps(sx, sy, box, x + segmentX[i], y + segmentY[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether a blast of {@code radius} at (bx, by) reaches part {@code p} (its hit box or a slam arm's segment). */
+    boolean partInBlast(int p, double bx, double by, double radius) {
+        if (PlayerFire.inBlast(
+                bx, by, radius, partX(p), partY(p), spec.parts().get(p).box())) {
+            return true;
+        }
+        int c = slamChain(p);
+        if (c < 0) {
+            return false;
+        }
+        Hitbox box = boss.chains().get(c).box();
+        for (int k = 0; k < boss.chains().get(c).segments(); k++) {
+            int i = segmentStart[c] + k;
+            if (PlayerFire.inBlast(bx, by, radius, x + segmentX[i], y + segmentY[i], box)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether part {@code p} overlaps the play field (its hit box, or a slam arm's segment). */
+    boolean partOnField(int p) {
+        if (PlayField.overlaps(partX(p), partY(p), spec.parts().get(p).box())) {
+            return true;
+        }
+        int c = slamChain(p);
+        if (c < 0) {
+            return false;
+        }
+        Hitbox box = boss.chains().get(c).box();
+        for (int k = 0; k < boss.chains().get(c).segments(); k++) {
+            int i = segmentStart[c] + k;
+            if (PlayField.overlaps(x + segmentX[i], y + segmentY[i], box)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The slam chain whose arm part {@code p} is; -1 for any other part. */
+    private int slamChain(int p) {
+        int c = partChain[p];
+        return c >= 0 && boss.chains().get(c).slam() ? c : -1;
+    }
+
+    /**
+     * Part {@code p} takes damage from a blast at (hx, hy): times an open weak spot's multiplier there
+     * (M5 part E: the Kraken's eyes), else the part's own; returns whether that destroyed it.
+     */
+    boolean damagePartAt(int p, double amount, double hx, double hy) {
+        return damagePartAt(p, amount, hx, hy, 0, 0);
+    }
+
+    /**
+     * Part {@code p} takes damage from a shot at (hx, hy) flying along (dirX, dirY): times the
+     * multiplier of an open weak spot on its line ahead (M5 part E: the Kraken's eyes), else the
+     * part's own; returns whether that destroyed it.
+     */
+    boolean damagePartAt(int p, double amount, double hx, double hy, double dirX, double dirY) {
+        if (arena == null) {
+            return damagePart(p, amount);
+        }
+        partTicksSinceHit[p] = 0;
+        boolean alive = partHp[p] > 0;
+        partHp[p] -= amount
+                * arena.multiplier(
+                        p,
+                        hx,
+                        hy,
+                        dirX,
+                        dirY,
+                        partX(p),
+                        partY(p),
+                        spec.parts().get(p).multiplier());
+        return alive && partHp[p] <= 0;
     }
 
     /** Part {@code p} takes damage, times its multiplier; returns whether that destroyed it. */
@@ -1119,6 +1408,11 @@ public final class SetPiece implements Hashed {
             for (int ticks : openTicks) {
                 hash.add(ticks);
             }
+            if (arena != null) {
+                // M5 part E: only an arena boss (Level 11) hashes these.
+                hash.add(approaching ? 1 : 0);
+                arena.addTo(hash);
+            }
         }
     }
 
@@ -1142,6 +1436,19 @@ public final class SetPiece implements Hashed {
     /** Whether it is on screen in a pass (not before, between or after its passes, nor once destroyed). */
     public boolean present() {
         return present;
+    }
+
+    /**
+     * M5 part E: whether an arena boss is scrolling in with the ground before it arrives: drawn (on
+     * the water, with its platform) but not {@link #present()}: no bar, no hits, no targets.
+     */
+    public boolean approaching() {
+        return approaching;
+    }
+
+    /** M5 part E: an arena boss's lanes, slams and surfacing; empty for any other. */
+    public java.util.Optional<SlamArena> arena() {
+        return arenaView;
     }
 
     public boolean destroyed() {

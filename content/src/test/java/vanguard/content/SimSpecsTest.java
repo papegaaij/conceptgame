@@ -176,10 +176,32 @@ class SimSpecsTest {
     }
 
     @Test
-    void minesFlyButTorpedoesDoNotYet() {
+    void minesAndTorpedoesFly() {
         assertTrue(SimSpecs.flies(content, "micro-missile-pod"));
         assertTrue(SimSpecs.flies(content, "proximity-mines"));
-        assertFalse(SimSpecs.flies(content, "torpedo-pod"));
+        assertTrue(SimSpecs.flies(content, "torpedo-pod"));
+    }
+
+    @Test
+    void theTorpedoRunsFromItsPodSpeedingUpWithItsConeAndAnUnscaledTurn() {
+        WeaponSpec torpedo = weapon(Armament.Slot.LEFT_WING, "torpedo-pod", 1);
+        assertEquals(WeaponSpec.Delivery.TORPEDO, torpedo.delivery());
+        assertFalse(torpedo.antiGround());
+        assertEquals(300, torpedo.speed());
+        assertEquals(420, torpedo.endSpeed());
+        assertEquals(0.5, torpedo.accelSeconds());
+        assertEquals(500, torpedo.range());
+        assertEquals(Math.toRadians(30), torpedo.coneHalfAngle(), 1e-12);
+        assertEquals(Math.toRadians(60), torpedo.turnRate(), 1e-12);
+        assertEquals(12.5, torpedo.damage());
+        assertEquals(1, torpedo.muzzles().size());
+        assertEquals(28, weapon(Armament.Slot.RIGHT_WING, "torpedo-pod", 6).damage());
+        // The Targeting computer's bonus scales homing turns, not the torpedo's (it is not homing).
+        assertEquals(
+                Math.toRadians(60),
+                SimSpecs.weapon(content, Armament.Slot.LEFT_WING, "torpedo-pod", 1, 0.25)
+                        .turnRate(),
+                1e-12);
     }
 
     @Test

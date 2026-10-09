@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.Array;
 import java.util.Arrays;
 import vanguard.sim.Enemy;
+import vanguard.sim.Layer;
 import vanguard.sim.Ship;
 import vanguard.sim.ShipSpec;
 import vanguard.sim.Shot;
@@ -25,7 +26,10 @@ import vanguard.sim.WeaponSpec;
  * moving with the scroll and the dummy targets as amber target boxes that flash white when hit. The
  * play field is drawn turned a quarter clockwise at half size, so the ship faces right along the
  * wide box: ahead is right, behind is left, the ship's left is up. A transform maps play-field
- * points to the box, a scissor keeps everything inside it. Drawing allocates nothing.
+ * points to the box, a scissor keeps everything inside it. M5 part E: a torpedo's range is water (its
+ * loop's level is over water): a band of sea under the grid, the dummies submerged under it as faint
+ * cyan boxes, the torpedoes with their bubbles running under the surface (dimmed as the {@code sub}
+ * pass would), dropping in with a splash and bursting under the water. Drawing allocates nothing.
  */
 public final class TestFireView {
     /** Play-field px to box px. */
@@ -36,6 +40,8 @@ public final class TestFireView {
     private static final int FLASH_TICKS = 3;
     /** The grid's lines lie this far apart on the ground, px. */
     private static final int GRID = 40;
+    /** M5 part E: the water effects' frames (tools/art/water_fx.py's 20 fps). */
+    private static final int WATER_FRAME_TICKS = 3;
     /** Bolts with a range fade out over its last quarter (the level's rule). */
     private static final double FADE_SHARE = 0.25;
     /** A missile's smoke trail leaves a puff every this many steps (the level's). */
@@ -47,6 +53,12 @@ public final class TestFireView {
     private static final Color DUMMY_FILL = new Color(1, 0.75f, 0, 0.22f);
     private static final Color DUMMY_EDGE = new Color(1, 0.8f, 0.1f, 1);
     private static final Color DUMMY_FLASH = Color.WHITE;
+    /** M5 part E: the range's water, and a submerged dummy and a torpedo seen through it. */
+    private static final Color WATER = new Color(0.02f, 0.16f, 0.3f, 0.75f);
+
+    private static final Color SUB_FILL = new Color(0.2f, 0.75f, 1, 0.14f);
+    private static final Color SUB_EDGE = new Color(0.35f, 0.85f, 1, 0.6f);
+    private static final Color UNDER = new Color(0.62f, 0.72f, 0.82f, 0.85f);
 
     private final Sprites sprites;
     private final PodPivots pods;
@@ -54,6 +66,8 @@ public final class TestFireView {
     private final Effects effects = Effects.glowing();
     /** A missile's smoke trail (the Hornet's), as the level leaves it. */
     private final Effects trails = Effects.solid();
+    /** M5 part E: the torpedo's bubbles, splashes and water bursts (alpha-blended, as the level's water effects). */
+    private final Effects water = Effects.solid();
 
     private final Matrix4 saved = new Matrix4();
     private final Matrix4 transform = new Matrix4();
@@ -88,6 +102,7 @@ public final class TestFireView {
     public void restart() {
         effects.clear();
         trails.clear();
+        water.clear();
         Arrays.fill(flash, 0);
     }
 
@@ -95,12 +110,14 @@ public final class TestFireView {
     public void stepped(Sortie sortie) {
         effects.step();
         trails.step();
+        water.step();
         if (sortie.tick() % TRAIL_TICKS == 0) {
             for (int i = 0; i < sortie.shotCount(); i++) {
                 Shot shot = sortie.shot(i);
                 Array<AtlasRegion> trail = weapons.trail(shot.mount());
                 if (trail != null) {
-                    trails.start(trail, FRAME_TICKS, shot.renderX(1), shot.renderY(1));
+                    (weapons.trailUnder(shot.mount()) ? water : trails)
+                            .start(trail, WATER_FRAME_TICKS, shot.renderX(1), shot.renderY(1));
                 }
             }
         }
@@ -114,8 +131,19 @@ public final class TestFireView {
             double x = events.x(i);
             double y = events.y(i);
             switch (events.type(i)) {
+                case SHOT_FIRED -> {
+                    Array<AtlasRegion> splash = weapons.dropSplash(events.value(i));
+                    if (splash != null && sortie.script().water()) {
+                        water.start(splash, WATER_FRAME_TICKS, x, y);
+                    }
+                }
                 case ENEMY_HIT -> {
-                    effects.start(weapons.impact(events.value(i)), FRAME_TICKS, x, y);
+                    Array<AtlasRegion> under = weapons.waterImpact(events.value(i), true);
+                    if (under != null) {
+                        water.start(under, WATER_FRAME_TICKS, x, y);
+                    } else {
+                        effects.start(weapons.impact(events.value(i)), FRAME_TICKS, x, y);
+                    }
                     int hit = nearest(sortie, x, y);
                     if (hit >= 0 && hit < flash.length) {
                         flash[hit] = FLASH_TICKS;
@@ -171,8 +199,19 @@ public final class TestFireView {
         Gdx.gl.glEnable(GL20.GL_SCISSOR_TEST);
         Gdx.gl.glScissor(boxX + 1, PixelScreen.HEIGHT - boxY - boxHeight + 1, boxWidth - 2, boxHeight - 2);
         batch.setTransformMatrix(transform);
+        boolean sea = sortie.script().water();
+        if (sea) {
+            drawWater(batch, boxWidth / SCALE, boxHeight / SCALE, centreX, centreY);
+        }
         drawGrid(batch, sortie, alpha, boxWidth / SCALE, boxHeight / SCALE, centreX, centreY);
         drawDummies(batch, sortie, alpha);
+        if (sea) {
+            // Under the surface, dimmed toward the water as the level's sub pass draws them.
+            batch.setColor(UNDER);
+            drawUnder(batch, sortie, alpha);
+            batch.setColor(Color.WHITE);
+        }
+        water.draw(batch, 0);
         trails.draw(batch, 0);
         drawShots(batch, sortie, alpha, false);
         drawShip(batch, sortie.ship(), alpha);
@@ -184,6 +223,28 @@ public final class TestFireView {
         effects.draw(batch, 0);
         batch.setTransformMatrix(saved);
         Gdx.gl.glDisable(GL20.GL_SCISSOR_TEST);
+    }
+
+    /** M5 part E: the range's water under the whole box (the loop's level is over water). */
+    private void drawWater(SpriteBatch batch, float along, float across, double centreX, double centreY) {
+        batch.setColor(WATER);
+        batch.draw(
+                sprites.pixel,
+                (float) (PixelScreen.PLAY_FIELD_X + centreX - across / 2),
+                (float) (centreY - along / 2),
+                across,
+                along);
+        batch.setColor(Color.WHITE);
+    }
+
+    /** M5 part E: the torpedoes running under the water (their own heading set). */
+    private void drawUnder(SpriteBatch batch, Sortie sortie, float alpha) {
+        for (int i = 0; i < sortie.shotCount(); i++) {
+            Shot shot = sortie.shot(i);
+            if (shot.weapon().delivery() == WeaponSpec.Delivery.TORPEDO) {
+                drawScaled(batch, weapons.sprite(shot), shot.renderX(alpha), shot.renderY(alpha), 1);
+            }
+        }
     }
 
     /** Lines across the field on the ground, moving with the scroll: the range drifts past the ship. */
@@ -210,9 +271,11 @@ public final class TestFireView {
             float x = (float) (PixelScreen.PLAY_FIELD_X + enemy.renderX(alpha) - w / 2);
             float y = (float) (enemy.renderY(alpha) - h / 2);
             boolean hit = j < flash.length && flash[j] > 0;
-            batch.setColor(hit ? DUMMY_FLASH : DUMMY_FILL);
+            // M5 part E: a submerged dummy (the torpedo's range) is a faint cyan box under the water.
+            boolean under = enemy.layer() == Layer.SUB;
+            batch.setColor(hit ? DUMMY_FLASH : under ? SUB_FILL : DUMMY_FILL);
             batch.draw(pixel, x, y, w, h);
-            batch.setColor(hit ? DUMMY_FLASH : DUMMY_EDGE);
+            batch.setColor(hit ? DUMMY_FLASH : under ? SUB_EDGE : DUMMY_EDGE);
             batch.draw(pixel, x, y, w, 2);
             batch.draw(pixel, x, y + h - 2, w, 2);
             batch.draw(pixel, x, y, 2, h);
@@ -245,7 +308,9 @@ public final class TestFireView {
     private void drawShots(SpriteBatch batch, Sortie sortie, float alpha, boolean glowing) {
         for (int i = 0; i < sortie.shotCount(); i++) {
             Shot shot = sortie.shot(i);
-            if (weapons.look(shot.mount()).glowingShot != glowing) {
+            if (weapons.look(shot.mount()).glowingShot != glowing
+                    || (shot.weapon().delivery() == WeaponSpec.Delivery.TORPEDO
+                            && sortie.script().water())) {
                 continue;
             }
             AtlasRegion sprite = weapons.sprite(shot);
@@ -256,7 +321,7 @@ public final class TestFireView {
                 case LOBBED ->
                     drawScaled(batch, sprite, x, y, 1 + 0.4f * (float) Math.sin(Math.PI * shot.airProgress(alpha)));
                 case MINE -> drawScaled(batch, sprite, x, y, 1);
-                case BOLT, HOMING, TURRET -> {
+                case BOLT, HOMING, TURRET, TORPEDO -> {
                     // Bolts with a range fade out over its last part, as in the level.
                     double left = shot.rangeLeft();
                     batch.setColor(1, 1, 1, left < FADE_SHARE ? (float) (left / FADE_SHARE) : 1);

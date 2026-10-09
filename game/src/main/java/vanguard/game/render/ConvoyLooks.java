@@ -6,7 +6,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.JsonValue;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Function;
 import vanguard.content.LevelData;
 import vanguard.sim.Ally;
 import vanguard.sim.LevelScript;
@@ -22,6 +25,14 @@ import vanguard.sim.Sortie;
  * headings to the road's direction, its wheels turning with the ground it covers, a white flash on
  * a hit and smoke below its smoke share; a wreck shows its heading's wreck frame, burning and
  * smoking (the engine flame and a darkened small explosion stand in for fire and smoke effects).
+ *
+ * <p>M5 part E, a naval convoy (Level 11; design/allies, convoy cargo ship and escort frigate; the
+ * sprites of tools/art/convoy_ships.py registered by assets/pivots/{@code <ally>}.json): each hull
+ * bow up with its wake under it (fading out while the scroll halts, back when it resumes) and its foam
+ * collar over its waterline; a cargo ship after its first slam listing in its damaged frame with its
+ * deck fire (additive) and smoke puffs from the pivots; a hit flashing it white; a sunk one playing its
+ * sinking steps in its foam ring where it went down (scrolling with the sea), then gone. The frigate's
+ * bow gun flashes with each flak burst (the burst itself is an effect on low-air).
  */
 final class ConvoyLooks {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
@@ -49,9 +60,102 @@ final class ConvoyLooks {
     private final FlashShader flash;
     private final int headings;
     private final double step;
+    /** M5 part E: per naval unit its looks; empty without a naval convoy. */
+    private final Ship[] ships;
+    /** The scroll speed the wakes are drawn full at (the level's first section's). */
+    private final double cruise;
+    /** Per naval unit, the step of its last flak burst. */
+    private long[] flakTick;
 
-    ConvoyLooks(Sprites sprites, FlashShader flash, LevelData level, LevelScript script, String levelKey) {
+    private final Array<AtlasRegion> shipSmoke;
+
+    /** A wake streams a frame every 3 steps (20 fps), a collar flickers a frame every 9, a hull sinks a step every 18 (3 s). */
+    static final int WAKE_FRAME_TICKS = 3;
+
+    static final int COLLAR_FRAME_TICKS = 9;
+    static final int SINK_FRAME_TICKS = 18;
+    private static final int FIRE_TICKS = 6;
+    private static final int MUZZLE_FRAME_TICKS = 2;
+    private static final int SHIP_SMOKE_TICKS = 6;
+    /** A damaged hull's smoke: this many puffs drifting down-wind behind its pivot, this far apart. */
+    private static final int PUFFS = 3;
+
+    private static final float PUFF_STEP = 9;
+
+    /**
+     * A naval unit's looks: its hull frames (afloat, damaged), wake, collar, deck fire, sinking steps
+     * and bow gun flash, with the pivots' offsets of each overlay's top left from the hull's (y down).
+     */
+    record Ship(
+            AtlasRegion hull,
+            AtlasRegion damaged,
+            Array<AtlasRegion> wake,
+            Array<AtlasRegion> collar,
+            Array<AtlasRegion> fire,
+            Array<AtlasRegion> sink,
+            Array<AtlasRegion> muzzle,
+            int[] wakeAt,
+            int[] collarAt,
+            int[] sinkAt,
+            int[] fireAt,
+            int[] smokeAt,
+            int[] muzzleAt) {
+        private static final Array<AtlasRegion> NONE = new Array<>(0);
+
+        static Ship of(Sprites sprites, String slug, JsonValue pivots) {
+            Array<AtlasRegion> hull = sprites.has(slug) ? sprites.frames(slug) : NONE;
+            if (hull.isEmpty()) {
+                return null;
+            }
+            return new Ship(
+                    hull.first(),
+                    sprites.has(slug + "-damaged")
+                            ? sprites.frames(slug + "-damaged").first()
+                            : hull.first(),
+                    optional(sprites, slug + "-wake"),
+                    optional(sprites, slug + "-collar"),
+                    optional(sprites, slug + "-fire"),
+                    optional(sprites, slug + "-sink"),
+                    optional(sprites, slug + "-muzzle"),
+                    point(pivots, "wake"),
+                    point(pivots, "collar"),
+                    point(pivots, "sink"),
+                    point(pivots, "fire"),
+                    point(pivots, "smoke"),
+                    point(pivots, "muzzle"));
+        }
+
+        private static Array<AtlasRegion> optional(Sprites sprites, String name) {
+            return sprites.has(name) ? sprites.frames(name) : NONE;
+        }
+
+        private static int[] point(JsonValue pivots, String name) {
+            return pivots != null && pivots.has(name) ? pivots.get(name).asIntArray() : null;
+        }
+    }
+
+    ConvoyLooks(
+            Sprites sprites,
+            FlashShader flash,
+            LevelData level,
+            LevelScript script,
+            String levelKey,
+            Function<String, JsonValue> pivots) {
         this.flash = flash;
+        ships = script.convoy()
+                .map(naval -> naval.units().stream()
+                        .map(unit -> Ship.of(
+                                sprites,
+                                unit.ally().slug(),
+                                pivots.apply(unit.ally().slug())))
+                        .toArray(Ship[]::new))
+                .orElse(new Ship[0]);
+        flakTick = new long[ships.length];
+        Arrays.fill(flakTick, Long.MIN_VALUE);
+        cruise = script.sections().isEmpty()
+                ? 1
+                : Math.max(1, script.sections().getFirst().speed());
+        shipSmoke = sprites.has("ship-smoke") ? sprites.frames("ship-smoke") : null;
         road = script.road();
         pixel = sprites.pixel;
         String image = level.road()
@@ -128,6 +232,10 @@ final class ConvoyLooks {
      * has driven into the terminal (under the overhead hangar, wholly past its door) and is no longer drawn.
      */
     void drawConvoy(SpriteBatch batch, Sortie sortie, float alpha, float whiteFlash) {
+        if (ships.length > 0) {
+            drawShips(batch, sortie, alpha, whiteFlash);
+            return;
+        }
         if (frames == null) {
             return;
         }
@@ -161,6 +269,122 @@ final class ConvoyLooks {
                 drawSmoke(batch, x, y + 12, tick + k * 5L);
             }
         }
+    }
+
+    /** The level restarts: the frigate's gun flashes are forgotten. */
+    void reset() {
+        Arrays.fill(flakTick, Long.MIN_VALUE);
+    }
+
+    /** M5 part E: naval unit {@code k} fired a flak burst at step {@code tick}. */
+    void flak(int k, long tick) {
+        if (k >= 0 && k < flakTick.length) {
+            flakTick[k] = tick;
+        }
+    }
+
+    /** M5 part E: the naval convoy's hulls, the frigate's wake first (it trails the cargo ships). */
+    private void drawShips(SpriteBatch batch, Sortie sortie, float alpha, float whiteFlash) {
+        long tick = sortie.tick();
+        float wake = wakeStrength(sortie.groundSpeed(), cruise);
+        for (int k = ships.length - 1; k >= 0; k--) {
+            Ship ship = ships[k];
+            if (ship == null || k >= sortie.allyCount()) {
+                continue;
+            }
+            Ally ally = sortie.ally(k);
+            double x = ally.renderX(alpha);
+            double y = ally.renderY(alpha);
+            float left = (float) (x - ship.hull().getRegionWidth() / 2.0);
+            float top = (float) (y + ship.hull().getRegionHeight() / 2.0);
+            if (ally.lost()) {
+                int step = sinkStep(ally.ticksSinceLost(), ship.sink().size);
+                if (step >= 0 && ship.sinkAt() != null) {
+                    drawAt(batch, ship.sink().get(step), left, top, ship.sinkAt());
+                }
+                continue;
+            }
+            if (wake > 0 && !ship.wake().isEmpty() && ship.wakeAt() != null) {
+                batch.setColor(1, 1, 1, wake);
+                drawAt(
+                        batch,
+                        ship.wake().get((int) ((tick / WAKE_FRAME_TICKS + 5L * k) % ship.wake().size)),
+                        left,
+                        top,
+                        ship.wakeAt());
+                batch.setColor(Color.WHITE);
+            }
+            boolean damaged = ally.hitsTaken() > 0;
+            AtlasRegion hull = damaged ? ship.damaged() : ship.hull();
+            if (ally.ticksSinceHit() < HIT_FLASH_TICKS) {
+                flash.draw(batch, hull, Math.round(X0 + x), Math.round(y), Color.WHITE, whiteFlash);
+            } else {
+                draw(batch, hull, x, y);
+            }
+            if (!ship.collar().isEmpty() && ship.collarAt() != null) {
+                drawAt(
+                        batch,
+                        ship.collar().get((int) ((tick / COLLAR_FRAME_TICKS + k) % ship.collar().size)),
+                        left,
+                        top,
+                        ship.collarAt());
+            }
+            if (damaged) {
+                drawDamage(batch, ship, left, top, tick + 7L * k);
+            }
+            long sinceFlak = tick - flakTick[k];
+            if (!ship.muzzle().isEmpty()
+                    && ship.muzzleAt() != null
+                    && sinceFlak >= 0
+                    && sinceFlak < (long) MUZZLE_FRAME_TICKS * ship.muzzle().size) {
+                batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+                AtlasRegion muzzle = ship.muzzle().get((int) (sinceFlak / MUZZLE_FRAME_TICKS));
+                batch.draw(
+                        muzzle,
+                        Math.round(X0 + left + ship.muzzleAt()[0] - muzzle.getRegionWidth() / 2f),
+                        Math.round(top - ship.muzzleAt()[1] - muzzle.getRegionHeight() / 2f));
+                batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            }
+        }
+    }
+
+    /** A damaged hull's smoke puffs drifting from its pivot and its deck fire (additive) on its own. */
+    private void drawDamage(SpriteBatch batch, Ship ship, float left, float top, long tick) {
+        if (shipSmoke != null && ship.smokeAt() != null) {
+            for (int p = 0; p < PUFFS; p++) {
+                int frame = (int) ((tick / SHIP_SMOKE_TICKS + 2L * p) % shipSmoke.size);
+                AtlasRegion puff = shipSmoke.get(frame);
+                batch.draw(
+                        puff,
+                        Math.round(X0 + left + ship.smokeAt()[0] + p * 2 - puff.getRegionWidth() / 2f),
+                        Math.round(top - ship.smokeAt()[1] - p * PUFF_STEP - puff.getRegionHeight() / 2f));
+            }
+        }
+        if (!ship.fire().isEmpty() && ship.fireAt() != null) {
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+            AtlasRegion fire = ship.fire().get((int) (tick / FIRE_TICKS % ship.fire().size));
+            batch.draw(
+                    fire,
+                    Math.round(X0 + left + ship.fireAt()[0] - fire.getRegionWidth() / 2f),
+                    Math.round(top - ship.fireAt()[1] - fire.getRegionHeight() / 2f));
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        }
+    }
+
+    /** An overlay whose top left is {@code at} (px right and down) from the hull's top left at ({@code left}, {@code top}). */
+    private static void drawAt(SpriteBatch batch, TextureRegion region, float left, float top, int[] at) {
+        batch.draw(region, Math.round(X0 + left + at[0]), Math.round(top - at[1] - region.getRegionHeight()));
+    }
+
+    /** How strongly the wakes show at the scroll {@code speed}: full at the cruise, fading out as the scroll halts. */
+    static float wakeStrength(double speed, double cruise) {
+        return (float) Math.clamp(speed / cruise, 0, 1);
+    }
+
+    /** The sinking step {@code ticksSinceLost} steps after a hull went down; -1 once it has played out. */
+    static int sinkStep(int ticksSinceLost, int steps) {
+        int step = ticksSinceLost / SINK_FRAME_TICKS;
+        return step < steps ? step : -1;
     }
 
     /** The heading frame for {@code degrees} clockwise from straight up: the nearest one, clamped to the set. */

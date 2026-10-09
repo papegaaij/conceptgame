@@ -207,6 +207,34 @@ public enum Sfx {
      * hit so its impact (1.2 s in) lands on it.
      */
     LANCE_STRIKE("sfx/lance-r32-a.ogg", 1, Bus.EFFECTS, BOSS),
+    /**
+     * M5 part E: the Torpedo Pod's launch and the Harpoon's (design/audio/sfx, weapon family {@code
+     * torpedo}; round 03): a muffled launch with bubbles.
+     */
+    SHOT_TORPEDO("sfx/shot-torpedo-r03-a.ogg", 3, Bus.EFFECTS, PLAYER_FIRE),
+    /** M5 part E: a kill or a landing blast on the water's surface (round 03), over its size rung. */
+    EXPLOSION_WATER("sfx/explosion-water-r03-a.ogg", 3, Bus.EFFECTS, EXPLOSION),
+    /** M5 part E: a kill or a torpedo's impact under the water (round 03 a), over its size rung. */
+    EXPLOSION_UNDERWATER("sfx/explosion-underwater-r03-a.ogg", 2, Bus.EFFECTS, EXPLOSION),
+    /**
+     * M5 part E, the Harbour Kraken (round 33 a, accepted): a slam's rush and impact; the impact is
+     * {@link FlightSounds#SLAM_IMPACT_SECONDS} into the file, so it starts as the arm starts to rise.
+     */
+    KRAKEN_SLAM("sfx/kraken-slam-r33-a.ogg", 2, Bus.EFFECTS, BOSS),
+    /** M5 part E: a lane's telegraph, a surge of waves over a rumble swelling for 1.0 s (round 33 a). */
+    KRAKEN_CHURN("sfx/kraken-churn-r33-a.ogg", 3, Bus.EFFECTS, BOSS),
+    /** M5 part E: the head surfacing, a deep swell peaking 1.1 s in as the crown breaks (round 33 a). */
+    KRAKEN_SURFACE("sfx/kraken-surface-r33-a.ogg", 1, Bus.EFFECTS, BOSS),
+    /** M5 part E: the Kraken's death, a long wet groan under the {@code huge} water burst (round 33 a). */
+    KRAKEN_DEATH("sfx/kraken-death-r33-a.ogg", 1, Bus.EFFECTS, BOSS),
+    /** M5 part E: a convoy ship hit by a slam (round 33 a): metal struck, water rushing in. */
+    SHIP_HIT("sfx/ship-hit-r33-a.ogg", 2, Bus.EFFECTS, EXPLOSION),
+    /** M5 part E: a ship sinking, from its loss (round 33 a): a steel groan, a muffled boom, waves washing over; 3.8 s. */
+    SHIP_SINK("sfx/ship-sink-r33-a.ogg", 3, Bus.EFFECTS, EXPLOSION),
+    /** M5 part E: the escort frigate's distant flak (round 33 a, raised to -16 dB); one file per burst. */
+    FRIGATE_FLAK("sfx/frigate-flak-r33-a.ogg", 2, Bus.EFFECTS, ENEMY_FIRE),
+    /** M5 part E: a Driftjelly's proximity ring firing (round 33 a): a soft underwater bloop. */
+    DRIFTJELLY_PULSE("sfx/driftjelly-pulse-r33-a.ogg", 3, Bus.EFFECTS, ENEMY_FIRE),
     /** A tow's cable snapping as its pod falls free: Level 07's lifeboat (round 25 a, a chain snap). */
     CABLE_SNAP("sfx/secret-cable-snap-r25-a.ogg", 1, Bus.EFFECTS, EXPLOSION),
     /** The Airstrike's jets flyby (round 08 a), as the bombers enter. */

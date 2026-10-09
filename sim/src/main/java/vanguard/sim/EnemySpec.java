@@ -43,6 +43,11 @@ import java.util.Optional;
  * @param ambush M5 part D: the path of a {@code rear ambush} wave's unit (the Wraith)
  * @param flock M5 part D: how the members of a {@code swarm} wave steer round its leader point (the
  *     Mote Swarm)
+ * @param submerge M5 part E: how it surfaces and submerges (design/enemies/naval/driftjelly): its
+ *     current layer swaps between its stat block's ({@code ground}) and {@link Layer#SUB}
+ * @param ring M5 part E: its proximity ring (the Driftjelly), fired instead of a gun
+ * @param drift M5 part E: a ground unit's drift along its nest's current on top of the scroll, px/s
+ *     (the Reef Spitter's raft); 0 for none. A {@code field} wave's units drift at their {@code speed}
  */
 public record EnemySpec(
         String slug,
@@ -75,7 +80,121 @@ public record EnemySpec(
         Optional<Pounce> pounce,
         Optional<Cloak> cloak,
         Optional<Ambush> ambush,
-        Optional<FlockSpec> flock) {
+        Optional<FlockSpec> flock,
+        Optional<Submerge> submerge,
+        Optional<ProximityRing> ring,
+        double drift) {
+    public EnemySpec {
+        if (!(drift >= 0)) {
+            throw new IllegalArgumentException(slug + ": a drift is 0 px/s or more: " + drift);
+        }
+        if (submerge.isPresent() && layer != Layer.GROUND) {
+            throw new IllegalArgumentException(
+                    slug + ": only a unit on the ground layer (the sea's surface) submerges");
+        }
+    }
+
+    /** The constructor of Level 10: without the submerging, proximity rings and drifting rafts of Level 11 (M5 part E). */
+    public EnemySpec(
+            String slug,
+            double hp,
+            Hitbox hitbox,
+            Layer layer,
+            double contactDamage,
+            boolean destroyedByRamming,
+            int bounty,
+            double speed,
+            Optional<Snake> snake,
+            Optional<Double> streamSpeed,
+            Optional<Hover> hover,
+            Optional<Orbit> orbit,
+            Optional<EnemyGun> gun,
+            Optional<Drop> drop,
+            Optional<Dive> dive,
+            boolean terrain,
+            Optional<Spiral> spiral,
+            Optional<Range> strafe,
+            Optional<DeathBurst> deathBurst,
+            Optional<Sine> sine,
+            Optional<Brood> brood,
+            Optional<Walker> walker,
+            Optional<SideHover> sideHover,
+            Optional<Sweep> sweep,
+            Optional<ChainSpec> chain,
+            boolean hardened,
+            Optional<Spawner> spawner,
+            Optional<Pounce> pounce,
+            Optional<Cloak> cloak,
+            Optional<Ambush> ambush,
+            Optional<FlockSpec> flock) {
+        this(
+                slug,
+                hp,
+                hitbox,
+                layer,
+                contactDamage,
+                destroyedByRamming,
+                bounty,
+                speed,
+                snake,
+                streamSpeed,
+                hover,
+                orbit,
+                gun,
+                drop,
+                dive,
+                terrain,
+                spiral,
+                strafe,
+                deathBurst,
+                sine,
+                brood,
+                walker,
+                sideHover,
+                sweep,
+                chain,
+                hardened,
+                spawner,
+                pounce,
+                cloak,
+                ambush,
+                flock,
+                Optional.empty(),
+                Optional.empty(),
+                0);
+    }
+
+    /**
+     * M5 part E, surfacing and submerging (design/enemies/naval/driftjelly; the stated defaults of
+     * 2026-10-08): every {@code everyMin}–{@code everyMax} s, drawn per unit from its own seed on the
+     * simulation's real steps (so it keeps going in a halted arena), the unit swaps between the
+     * surface ({@link Layer#GROUND}) and {@link Layer#SUB} over {@code swapSeconds}, its current
+     * layer flipping at the swap's middle; a {@code field} wave starts the share {@code start} of its
+     * units submerged.
+     */
+    public record Submerge(double everyMin, double everyMax, double swapSeconds, double start) {
+        public Submerge {
+            if (!(everyMin > 0) || !(everyMax >= everyMin) || !(swapSeconds > 0) || !(start >= 0 && start <= 1)) {
+                throw new IllegalArgumentException(
+                        "a submerge swaps every [min, max] s (0 < min <= max) over a swap time, a share starting submerged");
+            }
+        }
+    }
+
+    /**
+     * M5 part E, a proximity ring (design/enemies/naval/driftjelly, user decision E3 = b): while the
+     * ship's centre is within {@code within} px of its centre (on either of its layers) it fires a
+     * ring of {@code count} bullets at {@code bulletSpeed} px/s, each dealing {@code damage}, at most
+     * once every {@code cooldownSeconds} (counted from the last ring). A ring due while the ship is
+     * closer than the bullets may spawn waits (design/enemies, bullet readability rules).
+     */
+    public record ProximityRing(int count, double bulletSpeed, double damage, double within, double cooldownSeconds) {
+        public ProximityRing {
+            if (count < 1 || !(bulletSpeed > 0) || !(within > 0) || !(cooldownSeconds > 0)) {
+                throw new IllegalArgumentException("a proximity ring has bullets, a speed, a reach and a cooldown");
+            }
+        }
+    }
 
     /** The constructor of Level 09: without the cloaks, ambushes and flocks of Level 10 (M5 part D). */
     public EnemySpec(

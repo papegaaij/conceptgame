@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../generator, ../../systems/economy]
-updated: 2026-10-06
+updated: 2026-10-09
 ---
 
 # Weapons
@@ -33,10 +33,10 @@ below.
 | [fan-blaster](fan-blaster/README.md) | Fan Blaster — Rear, rear, spread; DPS 10.2 → 40; 1 200; L10 | approved | done | final |
 | [proximity-mines](proximity-mines/README.md) | Proximity Mines — Rear, rear, area; DPS 20 → 70; 1 500; L12 | approved | done | final |
 | [autocannon-pod](autocannon-pod/README.md) | Autocannon Pod — Wing (per pod), forward; DPS 8 → 25; 500; L02 | approved | done | final |
-| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | approved | done | final |
+| [bomb-rack](bomb-rack/README.md) | Bomb Rack — Wing (per pod), anti-ground; DPS 12 → 40; 900; L03 | approved | in-progress | final |
 | [micro-missile-pod](micro-missile-pod/README.md) | Micro-missile Pod — Wing (per pod), homing; DPS 8 → 28; 800; L06 | approved | done | final |
 | [swivel-gun](swivel-gun/README.md) | Swivel Gun — Wing (per pod), side, homing; DPS 8 → 26; 1 500; L09 | approved | done | final |
-| [torpedo-pod](torpedo-pod/README.md) | Torpedo Pod — Wing (per pod), anti-sub; DPS 10 → 32; 1 000; L11 | approved | not-started | chosen |
+| [torpedo-pod](torpedo-pod/README.md) | Torpedo Pod — Wing (per pod), anti-sub; DPS 10 → 32; 1 000; L11 | approved | done | final |
 
 ## Design
 
@@ -55,8 +55,10 @@ below.
 - **Layers**: which weapons hit which layer is defined once in the enemy
   [layer rules](../../enemies/README.md#layer-rules). In short: all weapons hit `air`,
   `low-air` and `ground`, hardened ground targets need `anti-ground`, `high-air` takes
-  only `homing` and `beam`, and the `sub` layer seen from above water takes only `anti-sub` and
-  `area`. Weapons marked "ground only" (bombs, mortar shells) do not hit flying targets. Under
+  only `homing` and `beam`, and the `sub` layer seen from above water takes only `anti-sub` (the
+  Torpedo Pod) and the Smart Bomb, nothing else (no `area` blast, no homing shot, no Rook; user
+  decision E2 = a of M5 part E). Weapons marked "ground only" (bombs, mortar shells) do not hit
+  flying targets; over water they hit surfaced units only. Under
   water the [Europa rules](../../world/europa/README.md#under-water-rules) apply. The layer
   model itself is in [art direction](../../art-direction/README.md).
 - DPS figures are first-draft balancing values; see *Data and balancing* below.
@@ -150,11 +152,13 @@ are in its own `concept/`); generator `tools/art/act2_weapon_fx.py`.
 - [x] The Act 2 weapons that need no water: Tail Gun, Fan Blaster, Hornet Launcher and Swivel Gun
   with their own effects and sounds, the Proximity Mines with their delivery (M5 part A; the
   Targeting computer's turn bonus and the mine's arming beep are items of their own documents)
-- [ ] The Torpedo Pod — **later: M5 part E** (the `sub` layer and water, Level 11)
+- [ ] The Torpedo Pod — M5 part E (the `sub` layer, the level's `water` flag and the torpedo
+  delivery, Level 11; its own items in [torpedo-pod](torpedo-pod/README.md#implementation))
 - [x] Layer hit rules per trait for the Act 1 arsenal: `anti-ground` (hardened targets, ×2 on the ground for bolts), homing reaching `high-air`, ground-only blasts (`area` of the mortar)
 - [x] The mines' `area` on `air`, `low-air` and `ground` (M5 part A)
-- [ ] `anti-sub` and `area` on the
-  `sub` layer — **later: M5 part E**; `beam` — **later: Act 3** (the Ion Beam, L15)
+- [x] `anti-sub` on the `sub` layer, and nothing else but the Smart Bomb reaching it (E2 = a;
+  `SubLayerTest`) — M5 part E (step E2a)
+- [ ] `beam` — **later: Act 3** (the Ion Beam, L15)
 - [x] Hangar trait markers linked to the level threat profile
 
 ## Open questions
@@ -210,3 +214,10 @@ are in its own `concept/`); generator `tools/art/act2_weapon_fx.py`.
   Launcher, Swivel Gun and Proximity Mines have `art: final` (the Swivel's fixed barrel and the
   mines' weak spots accepted as shown); the mine's arming beep is **a**, the armed chirp. This doc's
   `art` stays `chosen` while the Torpedo Pod has concept art only (part E).
+- 2026-10-08: M5 part E (user decision E2 = a of 2026-10-08): only `anti-sub` reaches the `sub`
+  layer from above water (and the Smart Bomb, a special); `area` does not, so the line above and the
+  open item "`anti-sub` and `area` on the `sub` layer" are corrected to the
+  [layer rules](../../enemies/README.md#layer-rules), which always said so. Rejected: b (mortar and
+  Rook's Mortar blasts landing on water also hitting `sub` units: a blast rule per delivery, the
+  torpedo losing its point, the secret reachable by mortar) and c (as b at 50 %: one more multiplier).
+  The ground-only blasts over water hit surfaced units only (a default).

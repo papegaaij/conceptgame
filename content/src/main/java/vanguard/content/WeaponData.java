@@ -15,17 +15,17 @@ import java.util.stream.Stream;
  * @param unlock the level from whose hangar visit the weapon is in the shop
  * @param draw the power draw at L1 and L5 in MW
  * @param hits which targets it can hit: {@code standard}, {@code homing}, {@code ground-only},
- *     {@code area} (proximity mines), …
+ *     {@code area} (proximity mines), {@code anti-sub} (torpedoes, M5 part E)
  * @param speed the projectile speed in px/s; none for lobbed and dropped projectiles
  * @param size the projectile's hit box
- * @param range how far the projectiles fly; none for mines, which have a lifetime instead; a
- *     homing weapon's seek radius
+ * @param range how far the projectiles fly (or a torpedo runs); none for mines, which have a
+ *     lifetime instead; a homing weapon's (or a torpedo's) seek radius
  * @param lifetime how long a projectile lives, in seconds
  * @param converge degrees a pod's shots turn in towards the ship's centre line
  * @param fall seconds a dropped bomb falls to the ground
  * @param flight seconds a lobbed shell flies to its landing point
  * @param snap how far from its landing point a lobbed shell finds a ground target, px
- * @param cone the angle ahead in which a homing shot picks its target; a turret's forward cone,
+ * @param cone the angle ahead in which a homing shot (or a torpedo) picks its target; a turret's forward cone,
  *     outside which a target wins when it is nearly as close as the nearest, degrees
  * @param accelerate seconds an accelerating shot takes from its start to its end speed
  * @param ports px either side of the muzzle the shots of a volley leave from, in turn (left first)
@@ -98,10 +98,36 @@ public record WeaponData(
                                     level.blast().isPresent() && level.maxLive().isPresent()),
                     "mines (hits: area): every level and the overdrive need a blast and max_live");
         }
+        if (hits.equals(TORPEDO)) {
+            Check.that(
+                    speed.isPresent()
+                            && range.filter(r -> r.kind() == Range.Kind.DISTANCE)
+                                    .isPresent()
+                            && cone.isPresent()
+                            && lifetime.isEmpty(),
+                    "a torpedo (hits: anti-sub) needs a speed, a range in px and a cone, and no lifetime");
+            Check.that(
+                    speed.orElseThrow().start() == speed.orElseThrow().end() || accelerate.isPresent(),
+                    "a torpedo (hits: anti-sub) that speeds up needs accelerate");
+            Check.that(
+                    cone.orElseThrow() > 0 && cone.orElseThrow() <= 360,
+                    "a torpedo's cone (hits: anti-sub) is more than 0 and at most 360 degrees");
+            Check.that(
+                    Stream.concat(levels.stream(), Stream.of(overdrive))
+                            .allMatch(level ->
+                                    level.turn().filter(turn -> turn > 0).isPresent()),
+                    "a torpedo (hits: anti-sub): every level and the overdrive need a turn");
+        }
     }
 
     /** The {@code hits} of proximity mines: they burst in a blast that reaches air, low-air and ground. */
     public static final String MINES = "area";
+
+    /**
+     * M5 part E: the {@code hits} of torpedoes, which run under the water and strike {@code sub} and
+     * {@code ground} targets (design/player/weapons/torpedo-pod), only in a level over water.
+     */
+    public static final String TORPEDO = "anti-sub";
 
     public enum Slot {
         FRONT,

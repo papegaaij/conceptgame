@@ -18,15 +18,15 @@ import java.util.List;
  * @param damage damage per projectile
  * @param speed px/s; 0 for dropped and lobbed projectiles
  * @param size a projectile's hit box
- * @param range px a bolt (or a turret's shot) flies before it is gone ({@link Double#POSITIVE_INFINITY}:
- *     until it leaves the screen); a homing weapon's seek radius and a turret's reach; how far ahead
- *     of the muzzle a lobbed shell lands
+ * @param range px a bolt (or a turret's shot, a torpedo) flies before it is gone ({@link
+ *     Double#POSITIVE_INFINITY}: until it leaves the screen); a homing weapon's seek radius (a
+ *     torpedo's too) and a turret's reach; how far ahead of the muzzle a lobbed shell lands
  * @param lifetimeSeconds how long a homing projectile flies, how long a mine waits before it fizzles
  * @param pierce how many targets a bolt passes through before it is gone (1: the first stops it)
  * @param blast the blast radius of a dropped or lobbed projectile, px
- * @param turnRate a homing projectile's turn rate or a turret's slew rate, radians per second: the one
+ * @param turnRate a homing projectile's (or a torpedo's) turn rate or a turret's slew rate, radians per second: the one
  *     number a turn bonus (the Targeting computer, design/player/systems) scales
- * @param coneHalfAngle a homing projectile picks targets within this angle either side of its heading
+ * @param coneHalfAngle a homing projectile (or a torpedo) picks targets within this angle either side of its heading
  * @param airSeconds how long a dropped bomb falls or a lobbed shell flies
  * @param snap a lobbed shell lands on the nearest destructible ground target this close to its
  *     landing point, px
@@ -139,7 +139,10 @@ public record WeaponSpec(
     public enum Delivery {
         /** Flies straight; hits {@code air}, {@code low-air} and {@code ground}. */
         BOLT,
-        /** Seeks the nearest enemy in its cone; hits every layer a bolt does and {@code high-air}. */
+        /**
+         * Seeks the nearest enemy in its cone; hits every layer a bolt does and {@code high-air}, never
+         * {@code sub}.
+         */
         HOMING,
         /** Falls onto the ground below its release point; hits only the ground layer, in a blast. */
         DROPPED,
@@ -155,15 +158,38 @@ public record WeaponSpec(
          * hits nothing on its way, its blast hits the {@code air}, {@code low-air} and {@code ground}
          * layers (the {@code area} rule).
          */
-        MINE;
+        MINE,
+        /**
+         * M5 part E (design/player/weapons/torpedo-pod; the {@code anti-sub} delivery): dropped from
+         * its pod, it runs under the water's surface, speeding up from its speed to its end speed and
+         * steering at most its turn rate towards the nearest {@code sub} or {@code ground} unit in its
+         * cone, until it has run its range; it strikes the first {@code sub} or {@code ground} target
+         * it touches (units, destructibles, a sunken trigger) at full damage, never a flyer. Only in a
+         * level over water ({@link LevelScript#water()}): elsewhere its mount fires nothing.
+         */
+        TORPEDO;
 
         /** Whether its projectiles hit enemies on {@code layer} on their way (blasts aside). */
         public boolean reaches(Layer layer) {
             return switch (this) {
                 case BOLT -> layer.hitByStandardShots();
-                case HOMING, TURRET -> true;
+                case HOMING, TURRET -> layer != Layer.SUB;
+                case TORPEDO -> layer == Layer.SUB || layer == Layer.GROUND;
                 case DROPPED, LOBBED, MINE -> false;
             };
+        }
+
+        /**
+         * Whether its projectiles pass under what stops shots in flight (crane arms, a running sled,
+         * tow cables, debris): bombs and shells on their way down, torpedoes under the water.
+         */
+        public boolean passesUnder() {
+            return landing() || this == TORPEDO;
+        }
+
+        /** Whether its projectiles seek a target: homing missiles and torpedoes. */
+        public boolean seeks() {
+            return this == HOMING || this == TORPEDO;
         }
 
         /** Whether its projectiles land and burst on the ground rather than fly through. */

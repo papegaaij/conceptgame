@@ -33,6 +33,8 @@ final class Objectives {
     private int groupsCleared;
     private int groupsLost;
     private boolean secondaryMet;
+    /** M5 part E: whether a naval convoy unit sank, which fails an afloat objective. */
+    private boolean afloatFailed;
 
     /**
      * @param groups the groups the ground units belong to: the secondary's or the destroy-targets
@@ -77,6 +79,7 @@ final class Objectives {
         escapesDestroyed = other.escapesDestroyed;
         escapesFailed = other.escapesFailed;
         secondaryMet = other.secondaryMet;
+        afloatFailed = other.afloatFailed;
     }
 
     /** Back to the level start. */
@@ -91,6 +94,33 @@ final class Objectives {
         escapesDestroyed = 0;
         escapesFailed = false;
         secondaryMet = false;
+        afloatFailed = false;
+    }
+
+    /**
+     * M5 part E (user decision E8 = a): a naval convoy unit sank; returns whether that failed an
+     * afloat objective (the first sinking, before the boss's death).
+     */
+    boolean sunk() {
+        if (!secondary.afloat() || afloatFailed || secondaryMet) {
+            return false;
+        }
+        afloatFailed = true;
+        return true;
+    }
+
+    /** M5 part E: the level boss died; returns whether that met an afloat objective (no unit sank). */
+    boolean bossDownAfloat() {
+        if (!secondary.afloat() || afloatFailed || secondaryMet) {
+            return false;
+        }
+        secondaryMet = true;
+        return true;
+    }
+
+    /** M5 part E: whether an afloat objective failed (a unit sank). */
+    boolean afloatFailed() {
+        return afloatFailed;
     }
 
     /**
@@ -239,5 +269,9 @@ final class Objectives {
             hash.add(groupDestroyed[g]).add(groupEscaped[g]).add(groupState[g]);
         }
         hash.add(escapesDestroyed).add(escapesFailed ? 1 : 0);
+        if (secondary.afloat()) {
+            // M5 part E: only with an afloat objective, so the other levels hash as before.
+            hash.add(afloatFailed ? 1 : 0);
+        }
     }
 }

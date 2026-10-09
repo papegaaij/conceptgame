@@ -65,6 +65,19 @@ public final class GroundObject implements Hashed {
         return --hitsLeft == 0;
     }
 
+    /**
+     * M5 part E: a sunken trigger takes all its hits at once (a Smart Bomb's ring); returns whether
+     * that released its secret, false for one already spent.
+     */
+    boolean spend() {
+        if (hitsLeft <= 0) {
+            return false;
+        }
+        ticksSinceHit = 0;
+        hitsLeft = 0;
+        return true;
+    }
+
     @Override
     public void addTo(StateHash hash) {
         hash.add(spec.x()).add(y).add(hp).add(hitsLeft).add(ticksSinceHit);

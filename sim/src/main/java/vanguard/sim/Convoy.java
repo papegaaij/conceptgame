@@ -13,6 +13,15 @@ import java.util.List;
  * LevelScript.Air}): the units stand on their pads until the liftoff, lift off to their stations,
  * fly them with the lane sway on the level clock, and climb out off the top edge; the scripted
  * loss's unit is lost at its time without counting as a loss the player could have prevented.
+ *
+ * <p>M5 part E, a naval convoy outside the objectives (design/allies, convoy cargo ship and escort
+ * frigate; Level 11; {@link LevelScript.Naval}): its units hold screen-space stations from the
+ * start; when the scroll halts in the boss's arena each glides (smoothstep, on the real steps) to its
+ * lane or off the bottom edge; when the halt ends they hold clear (a unit with a hold point glides
+ * there) until the sea has scrolled the convoy's hold, Level 11's Platform Tiamat passing them, and
+ * glide back to their stations. Only the boss's slams hurt
+ * a unit ({@link #slammable(int)}, {@link #lane(int)}); a sunk unit is a wreck at once. The frigate's
+ * flak bursts are timed here on the real steps ({@link SimEvents.Type#ALLY_FLAK}), hitting nothing.
  */
 final class Convoy {
     private final LevelScript.Escort escort;
@@ -48,8 +57,75 @@ final class Convoy {
     private boolean glowStarted;
     private boolean scriptedLost;
 
+    /** M5 part E: the naval convoy; null for an escort's convoy. */
+    private final LevelScript.Naval naval;
+    /** M5 part E: per naval unit, where its glide started (y up). */
+    private final double[] fromX;
+
+    private final double[] fromY;
+    /** M5 part E: per naval unit, the steps into its glide. */
+    private final int[] glideTicks;
+    /** M5 part E: per naval unit, steps to its next flak burst (a unit with flak on its station). */
+    private final int[] flakWait;
+    /** M5 part E: where the arena is for the naval convoy: {@link #BEFORE}, {@link #OUT} or {@link #BACK}. */
+    private int arena;
+    /** M5 part E: the flak bursts so far in this attempt, which place the next one. */
+    private int flakBursts;
+    /** M5 part E: the unit hit last in this attempt (the {@code ally-hit} cue's); -1 before. */
+    private int lastHit = -1;
+    /** M5 part E: px the sea has scrolled since the halt ended, while the units hold clear. */
+    private double heldScroll;
+
+    /** M5 part E: before the halt, the naval units at their stations. */
+    static final int BEFORE = 0;
+    /** M5 part E: the scroll halted: the naval units glide to their lanes or away. */
+    static final int OUT = 1;
+    /** M5 part E: the halt ended (the boss is down): the naval units glide back to their stations. */
+    static final int BACK = 2;
+    /**
+     * M5 part E: the halt ended, the naval units hold clear (in their lanes, away or at their hold
+     * points) until the sea has scrolled the convoy's {@link LevelScript.Naval#holdClear()}.
+     */
+    static final int HOLD = 3;
+    /** M5 part E: a flak burst is this far above its frigate at the least, px. */
+    private static final double FLAK_ABOVE = 80;
+    /** M5 part E: ... and at most this much farther. */
+    private static final double FLAK_RANGE = 160;
+    /** M5 part E: ... and this far to either side of it at the most, px. */
+    private static final double FLAK_SIDE = 100;
+
     Convoy(LevelScript.Escort escort, Road road) {
         this(escort, road, List.of());
+    }
+
+    /** M5 part E: a naval convoy (Level 11), every unit at its station. */
+    Convoy(LevelScript.Naval naval) {
+        this.naval = naval;
+        escort = null;
+        road = null;
+        int units = naval.units().size();
+        allies = new Ally[units];
+        for (int k = 0; k < units; k++) {
+            allies[k] = new Ally();
+        }
+        enterTicks = new int[units];
+        startY = 0;
+        air = null;
+        scripted = -1;
+        saveable = naval.damageable();
+        liftTick = 0;
+        liftTicks = 1;
+        climbTick = Integer.MAX_VALUE;
+        climbTicks = 1;
+        lossTick = Integer.MAX_VALUE;
+        glowTick = Integer.MAX_VALUE;
+        liftScroll = 0;
+        homeY = 0;
+        fromX = new double[units];
+        fromY = new double[units];
+        glideTicks = new int[units];
+        flakWait = new int[units];
+        reset();
     }
 
     /**
@@ -58,6 +134,11 @@ final class Convoy {
      */
     Convoy(LevelScript.Escort escort, Road road, List<LevelScript.Section> sections) {
         this.escort = escort;
+        naval = null;
+        fromX = new double[0];
+        fromY = new double[0];
+        glideTicks = new int[0];
+        flakWait = new int[0];
         this.road = road;
         int units = escort.stations().size();
         allies = new Ally[units];
@@ -114,6 +195,10 @@ final class Convoy {
 
     /** Back to the level start: every unit waiting below the screen (an air unit on its pad or at its station) with full HP. */
     void reset() {
+        if (naval != null) {
+            resetNaval();
+            return;
+        }
         for (int k = 0; k < allies.length; k++) {
             Ally ally = allies[k];
             if (air == null) {
@@ -181,6 +266,224 @@ final class Convoy {
                 case WRECK -> ally.scroll(scrollStep);
             }
         }
+    }
+
+    /** M5 part E: back to the level start, every naval unit at its station, afloat and unhit. */
+    private void resetNaval() {
+        for (int k = 0; k < allies.length; k++) {
+            LevelScript.NavalUnit unit = naval.units().get(k);
+            allies[k].resetNaval(unit.x(), unit.y(), unit.ally().hp());
+            glideTicks[k] = 0;
+            fromX[k] = unit.x();
+            fromY[k] = unit.y();
+            flakWait[k] = flakTicks(unit.ally());
+        }
+        arena = BEFORE;
+        heldScroll = 0;
+        flakBursts = 0;
+        lost = 0;
+        firstHit = -1;
+        firstLost = -1;
+        lostSaveable = 0;
+        lastLost = -1;
+        lastHit = -1;
+    }
+
+    /** A unit's steps between its flak bursts; 0 without flak. */
+    private static int flakTicks(AllySpec ally) {
+        return ally.flakSeconds() > 0 ? Math.max(1, SimStep.ticks(ally.flakSeconds())) : 0;
+    }
+
+    /**
+     * M5 part E: one step of the naval convoy. When the scroll {@code halted} for the first time the
+     * units afloat glide to their lanes (or off the bottom edge); when the halt ends they hold clear
+     * (a unit with a hold point glides there) until the sea has scrolled the convoy's hold, then glide
+     * back to their stations. The glides run on the real steps; wrecks scroll with the ground by
+     * {@code scrollStep}. A unit with flak on its station fires a burst at its interval into {@code
+     * events}.
+     */
+    void sail(boolean halted, double scrollStep, SimEvents events) {
+        for (Ally ally : allies) {
+            ally.remember();
+        }
+        if (arena == BEFORE && halted) {
+            arena = OUT;
+            startGlides();
+        } else if (arena == OUT && !halted) {
+            if (naval.holdClear() > 0) {
+                arena = HOLD;
+                heldScroll = 0;
+                startHolds();
+            } else {
+                arena = BACK;
+                startGlides();
+            }
+        } else if (arena == HOLD) {
+            heldScroll += scrollStep;
+            if (heldScroll >= naval.holdClear()) {
+                arena = BACK;
+                startGlides();
+            }
+        }
+        int glide = Math.max(1, SimStep.ticks(naval.glideSeconds()));
+        for (int k = 0; k < allies.length; k++) {
+            Ally ally = allies[k];
+            LevelScript.NavalUnit unit = naval.units().get(k);
+            switch (ally.state()) {
+                case GLIDING -> {
+                    double s = Math.min(1, (double) ++glideTicks[k] / glide);
+                    double e = s * s * (3 - 2 * s);
+                    ally.sail(fromX[k] + (targetX(k) - fromX[k]) * e, fromY[k] + (targetY(k) - fromY[k]) * e);
+                    if (s >= 1) {
+                        ally.state(
+                                arena == OUT || arena == HOLD
+                                        ? (unit.leaves() ? Ally.State.AWAY : Ally.State.LANE)
+                                        : Ally.State.STATION);
+                    }
+                }
+                case WRECK -> ally.scroll(scrollStep);
+                case STATION -> {
+                    if (flakWait[k] > 0 && --flakWait[k] == 0) {
+                        flakWait[k] = flakTicks(unit.ally());
+                        flak(k, ally, events);
+                    }
+                }
+                default -> {
+                    // In its lane or away: it holds there until the halt ends.
+                }
+            }
+        }
+    }
+
+    /** Every unit afloat starts gliding from where it is toward the arena phase's target. */
+    private void startGlides() {
+        for (int k = 0; k < allies.length; k++) {
+            Ally ally = allies[k];
+            if (ally.lost()) {
+                continue;
+            }
+            fromX[k] = ally.x();
+            fromY[k] = ally.y();
+            glideTicks[k] = 0;
+            ally.state(Ally.State.GLIDING);
+        }
+    }
+
+    /** The units afloat with a hold point start gliding there from where they are; the others hold where they are. */
+    private void startHolds() {
+        for (int k = 0; k < allies.length; k++) {
+            if (!allies[k].lost() && naval.units().get(k).holds()) {
+                fromX[k] = allies[k].x();
+                fromY[k] = allies[k].y();
+                glideTicks[k] = 0;
+                allies[k].state(Ally.State.GLIDING);
+            }
+        }
+    }
+
+    /** Where unit {@code k}'s glide ends: its lane, below the bottom edge, its hold point or (back) its station. */
+    private double targetX(int k) {
+        LevelScript.NavalUnit unit = naval.units().get(k);
+        if (arena == HOLD) {
+            return unit.holdX();
+        }
+        return arena == OUT && !unit.leaves() ? naval.laneX(unit.lane()) : unit.x();
+    }
+
+    private double targetY(int k) {
+        LevelScript.NavalUnit unit = naval.units().get(k);
+        if (arena == HOLD) {
+            return unit.holdY();
+        }
+        if (arena != OUT) {
+            return unit.y();
+        }
+        return unit.leaves() ? -unit.ally().size().height() : naval.laneY();
+    }
+
+    /**
+     * A flak burst of unit {@code k} (presentation, hitting nothing): above it over the convoy, at a
+     * place that follows from the bursts so far (no random draw, so the level's random stream stays).
+     */
+    private void flak(int k, Ally ally, SimEvents events) {
+        flakBursts++;
+        long z = flakBursts * 0x9E3779B97F4A7C15L + k;
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        z ^= z >>> 31;
+        double across = ((z >>> 11) & 0xFFFF) / 65535.0;
+        double up = ((z >>> 32) & 0xFFFF) / 65535.0;
+        double x = Math.clamp(ally.x() + (2 * across - 1) * FLAK_SIDE, 0, PlayField.WIDTH);
+        double y = Math.min(PlayField.HEIGHT, ally.y() + FLAK_ABOVE + up * FLAK_RANGE);
+        events.add(SimEvents.Type.ALLY_FLAK, x, y, k);
+    }
+
+    /** M5 part E: whether this is a naval convoy (Level 11), not an escort's. */
+    boolean naval() {
+        return naval != null;
+    }
+
+    /** M5 part E: the naval convoy's spec; null for an escort's convoy. */
+    LevelScript.Naval navalSpec() {
+        return naval;
+    }
+
+    /** M5 part E: where the arena is for the naval convoy: {@link #BEFORE}, {@link #OUT} or {@link #BACK}. */
+    int arenaPhase() {
+        return arena;
+    }
+
+    /** Unit {@code k}'s spec: the escort's ally, or (M5 part E) the naval unit's own. */
+    AllySpec spec(int k) {
+        return naval != null ? naval.units().get(k).ally() : escort.ally();
+    }
+
+    /**
+     * M5 part E: the arena lane (1-based) naval unit {@code k}'s centre is in now, by its x; 0 when it
+     * is off the play field or the arena has no lanes.
+     */
+    int lane(int k) {
+        Ally ally = allies[k];
+        if (naval == null || naval.lanes() == 0 || ally.y() < 0 || ally.y() > PlayField.HEIGHT) {
+            return 0;
+        }
+        int lane = (int) Math.floor(ally.x() / naval.laneWidth()) + 1;
+        return lane >= 1 && lane <= naval.lanes() ? lane : 0;
+    }
+
+    /** M5 part E: whether naval unit {@code k} is afloat and a slam hurts it. */
+    boolean slammable(int k) {
+        return naval != null && !allies[k].lost() && naval.units().get(k).ally().slams() > 0;
+    }
+
+    /** M5 part E: the naval units that can be damaged still afloat (the afloat objective's and the level-end cues' count). */
+    int afloat() {
+        return saveable() - lostSaveable;
+    }
+
+    /** M5 part E: the unit hit last in this attempt (the {@code ally-hit} line's); -1 before. */
+    int lastHit() {
+        return lastHit;
+    }
+
+    /** M5 part E: takes over {@code other}'s state (a boss checkpoint); both are of the same naval convoy. */
+    void copyFrom(Convoy other) {
+        for (int k = 0; k < allies.length; k++) {
+            allies[k].copyFrom(other.allies[k]);
+        }
+        System.arraycopy(other.fromX, 0, fromX, 0, fromX.length);
+        System.arraycopy(other.fromY, 0, fromY, 0, fromY.length);
+        System.arraycopy(other.glideTicks, 0, glideTicks, 0, glideTicks.length);
+        System.arraycopy(other.flakWait, 0, flakWait, 0, flakWait.length);
+        arena = other.arena;
+        heldScroll = other.heldScroll;
+        flakBursts = other.flakBursts;
+        lost = other.lost;
+        firstHit = other.firstHit;
+        firstLost = other.firstLost;
+        lostSaveable = other.lostSaveable;
+        lastLost = other.lastLost;
+        lastHit = other.lastHit;
     }
 
     /**
@@ -346,6 +649,7 @@ final class Convoy {
         if (firstHit < 0) {
             firstHit = k;
         }
+        lastHit = k;
         if (!allies[k].damage(amount)) {
             return false;
         }
@@ -406,12 +710,25 @@ final class Convoy {
         return firstLost;
     }
 
+    /** The escort objective's spec; null for a naval convoy (M5 part E). */
     LevelScript.Escort escort() {
         return escort;
     }
 
     void addTo(StateHash hash) {
         hash.add(lost).add(firstHit).add(firstLost);
+        if (naval != null) {
+            // M5 part E: only a naval convoy's, so the escorts hash as before.
+            hash.add(lostSaveable)
+                    .add(lastLost)
+                    .add(lastHit)
+                    .add(arena)
+                    .add(flakBursts)
+                    .add(heldScroll);
+            for (int k = 0; k < allies.length; k++) {
+                hash.add(fromX[k]).add(fromY[k]).add(glideTicks[k]).add(flakWait[k]);
+            }
+        }
         if (air != null) {
             // M5 part D: only an air escort's, so Level 04's convoy hashes as before.
             hash.add(lostSaveable).add(lastLost).add(glowStarted ? 1 : 0).add(scriptedLost ? 1 : 0);

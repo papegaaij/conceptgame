@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Production art: the briefings' tactical maps and mission images (design/ui/briefing), one per
-briefing page of the Act 1 intro, Levels 01-07, the Act 1 outro, the Act 2 intro and Levels 08-10, in the chosen briefing-r08-a look: a dark
+briefing page of the Act 1 intro, Levels 01-07, the Act 1 outro, the Act 2 intro and Levels 08-11, in the chosen briefing-r08-a look: a dark
 tactical display with its grid, scan rows and edge ticks, holographic planets, cyan routes and
 labels, red and violet for the Vrell, amber for objectives.
 
@@ -73,6 +73,13 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
   level-10-wraith-scan    L10 p2: the Wraith cloaked (its additive shimmer) and decloaked (over its
                           flash); its pass overhead, loop and rear entry with the 3 s warning, its
                           bursts up through the shuttle band; a Mote Swarm's flock and loop-back
+  level-11-convoy-route   L11 p1: the North Atlantic from above: Convoy Atlas-Seven (three cargo hulls and
+                          the frigate, production ships heading east), the seeded sea lanes with their
+                          Driftjellies, the reef line with its gun rafts, Platform Tiamat on the route
+                          with the Kraken's gripping arms and its hologram under it, open water beyond
+  level-11-sub-scan       L11 p2: a cut-away at the waterline: a Driftjelly surfaced (guns reach it) and
+                          submerged (they do not), the shots stopping at the waterline, a torpedo's run
+                          under the surface, a Reef Spitter raft and its roots, the unknown large contact
   design/ui/briefing/concept/briefing-images-final-r13-a.png   review sheet, Act 1 intro + L01-02
   design/ui/briefing/concept/briefing-images-final-r20-a.png   review sheet, L03-04 (M4 batch)
   design/ui/briefing/concept/briefing-images-final-r21-a.png   review sheet, L05 (M4 part E)
@@ -81,6 +88,7 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
   design/ui/briefing/concept/briefing-images-final-r30-a.png   review sheet, Act 2 intro + L08 (M5 part B)
   design/ui/briefing/concept/briefing-images-final-r31-a.png   review sheet, L09 (M5 part C)
   design/ui/briefing/concept/briefing-images-final-r32-a.png   review sheet, L10 (M5 part D)
+  design/ui/briefing/concept/briefing-images-final-r33-a.png   review sheet, L11 (M5 part E)
  Every image is composed
 in layers like the hangar map (tools/art/ui_scenes.py): the display and planets posterized to 24
 colours with ordered dither, the lines, markers and labels to 16 of their own, then the sprites
@@ -91,12 +99,14 @@ additive light (the Mantis's beam parts from assets/, its wedge from mantis_beam
 code; the carrier's core glow, also on its open sacs) added as the game blends it, its pixels to 32 colours of their own.
 The labels use the concept pixel font (render/raster.py), as the chosen mockup does.
 
-Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23|r25|r30|r31|r32] [--review]   (~10 s; after
+Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23|r25|r30|r31|r32|r33] [--review]   (~10 s; after
 stormhawk.py, vrell_air.py, intel.py, vrell_l03.py, leviathan.py, vrell_l04.py, civilian_crawler.py
 airstrike_bomber.py, l05_hazards.py, mantis.py, mantis_beam.py, coilwyrm.py, l06_darkness.py,
 backdrop_l06.py, brood_carrier.py, brood_carrier_death.py, backdrop_l07.py, portraits.py, rook.py,
 creeper.py, enemy_bullets.py, weapon_fx.py, hive_node.py, ravager.py, wraith.py, mote_swarm.py and
-shuttle.py, whose sprites it shows); the review sheet written is the open round's (r32) unless
+shuttle.py, convoy_ships.py (switch the ship pair: its --variant b, then this script again),
+driftjelly.py, reef_spitter.py, harbour_kraken.py and backdrop_l11.py, whose sprites and pieces it shows); the review
+sheet written is the open round's (r33) unless
 a round is named.
 """
 import json
@@ -121,7 +131,8 @@ SOURCE_M4 = artkit.source_note(SCRIPT, "M4 briefing images")
 SOURCE_M5 = artkit.source_note(SCRIPT, "M5 part B batch")
 SOURCE_M5C = artkit.source_note(SCRIPT, "M5 part C batch")
 SOURCE_M5D = artkit.source_note(SCRIPT, "M5 part D batch")
-ROUND = "r32"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23, r25, r30, r31)
+SOURCE_M5E = artkit.source_note(SCRIPT, "M5 part E batch")
+ROUND = "r33"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23, r25, r30, r31, r32)
 OUT = ROOT / "assets" / "ui" / "briefing"
 CONCEPT = DESIGN / "ui" / "briefing" / "concept"
 W, H = 672, 240
@@ -2024,6 +2035,148 @@ def wraith_scan():
     b.label(10, H - 16, "FIT A REAR GUN, LANCER", AMBER)
     return b
 
+# the convoy's ship pair: variant a's names, which convoy_ships.py writes (``--variant b`` writes b's under the
+# same names, so switching the pair means re-running convoy_ships.py --variant b and this script again)
+CARGO, FRIGATE = "cargo-ship_0", "escort-frigate_0"
+SEA = (10, 44, 62)    # the sea on the display (Level 11)
+SEA_DEEP = (2, 12, 24)
+
+
+def sea_display(b, below=None):
+    """The ocean on the display: the level's swell piece as a faint relief in teal over the dark base;
+    with ``below`` (a y) the water under that line is darker and deeper (the cut-away of Level 11's scan)."""
+    swell = np.array(Image.open(ROOT / "assets" / "backdrop" / "level-11" / "swell.png").convert("L")).astype(float) / 255
+    tile = np.hstack([swell[:H, :], swell[:H, ::-1], swell[:H, :]])[:, :W]
+    relief = (tile - tile.mean()) * 2.2
+    b.base += relief[..., None] * np.array(SEA) * 1.1 + np.array(SEA) * 0.55
+    if below is not None:
+        k = np.clip((b.yy - below) / 50, 0, 1)[..., None]
+        b.base = b.base * (1 - 0.55 * k) + np.array(SEA_DEEP) * 0.5 * k
+
+
+def turned(img, degrees):
+    """A sprite turned clockwise by ``degrees`` (a multiple of 90), its palette kept."""
+    return img.rotate(-degrees, expand=True)
+
+
+def convoy_route():
+    """L11 p1: Okafor's map of the Atlantic from above: Convoy Atlas-Seven (the three cargo hulls and the
+    frigate, production ships) heading east and then to open water, the seeded sea lanes with their
+    Driftjellies, the reef line with its Reef Spitter rafts and Platform Tiamat on the route with the
+    Kraken's gripping arms on it and an unknown large contact under it (the Kraken's hologram)."""
+    b = Board()
+    sea_display(b)
+    b.glow(W + 40, 10, 260, (30, 40, 36), 0.5)
+    b.title("NORTH ATLANTIC - CONVOY ATLAS-SEVEN - ARCTIC RELAY RUN")
+    rng = np.random.default_rng(1101)
+    tx, ty = 478, 84                                                  # Platform Tiamat's centre
+    for x in (196, 252):                                              # the seeded lanes, two bands crossing the route
+        for off in (-22, 22):
+            pts = [(x + off, 46), (x + off + 10, 112), (x + off - 6, 216)]
+            b.dashed(pts, VIOLET, 1, 5, 4)
+    b.label(176, 22, "SEEDED SEA LANES", VIOLET)
+    b.label(176, 32, "DRIFTING JELLIES", CYAN_DIM)
+    jelly = scaled_sprite("driftjelly_0", 0.7)
+    for k in range(11):
+        lane = 196 if k % 2 else 252
+        b.sprite(jelly, lane + rng.uniform(-14, 14), 54 + k * 15 + rng.uniform(-3, 3))
+    chain = [(318, 58), (336, 88), (354, 124), (374, 160), (392, 188)]  # the reef line
+    b.dashed(chain, VIOLET, 1, 3, 3)
+    reef = [backdrop("level-11", f"reef-growth-{c}_0", 0.55) for c in "abc"]
+    for k, (x, y) in enumerate(chain):
+        b.sprite(reef[k % 3], x + (14 if k % 2 else -14), y)
+    raft = scaled_sprite("reef-spitter-raft_0", 0.45)
+    for x, y in ((344, 76), (372, 142), (402, 176)):
+        b.sprite(raft, x, y)
+    b.label(316, 206, "REEF LINE", VIOLET)
+    b.label(316, 216, "GUN RAFTS", CYAN_DIM)
+    route = [(150, 170), (230, 158), (310, 128), (384, 100), (412, 92)]
+    b.dashed(route, AMBER, 2, 7, 4)
+    b.dashed([(544, 80), (590, 70)], AMBER, 2, 7, 4)
+    b.arrow(590, 70, 640, 50, AMBER, dashed=False)
+    b.label(W - 10, 96, "OPEN WATER", AMBER, right=True)
+    b.label(W - 10, 106, "ARCTIC RELAYS BEYOND", CYAN_DIM, right=True)
+    b.sprite(holo(scaled_sprite("harbour-kraken-sub", 0.5), VIOLET), tx, ty + 76)   # under the platform
+    b.sprite(backdrop("level-11", "platform-tiamat_0", 0.5, 64), tx, ty)
+    grip = scaled_sprite("harbour-kraken-grip_0", 0.5)
+    b.sprite(grip, tx, ty + 11)
+    b.marker(tx - 78, ty - 20, "diamond", AMBER, 4)
+    b.label(tx - 66, 22, "PLATFORM TIAMAT", AMBER)
+    b.label(tx - 66, 32, "OVERRUN FUSION PLATFORM", CYAN_DIM)
+    b.label(tx + 52, 166, "UNKNOWN LARGE", RED)
+    b.label(tx + 52, 176, "CONTACT UNDER IT", RED)
+    b.draw.line([(tx + 40, 160), (tx + 50, 168)], fill=RED + (230,))
+    cargo = turned(scaled_sprite(CARGO, 0.6), 90)
+    frigate = turned(scaled_sprite(FRIGATE, 0.6), 90)
+    for x, y in ((112, 134), (140, 170), (112, 206)):
+        b.sprite(cargo, x, y)
+    b.sprite(frigate, 62, 170)
+    b.dashed([(112, 134), (112, 206)], CYAN_DIM, 1, 2, 3)
+    b.bracket(24, 118, 168, 226, CYAN)
+    b.label(30, 80, "ATLAS-SEVEN", CYAN)
+    b.label(30, 90, "3 CARGO + 1 FRIGATE", CYAN_DIM)
+    b.label(30, 100, "REACTOR PARTS", GREEN)
+    b.label(W - 10, 9, "STEAM THEM TO OPEN WATER", AMBER, right=True)
+    b.sprite(asset("ship_2"), 232, 200)
+    b.label(262, 196, "LANCER", CYAN)
+    return b
+
+
+def sub_scan():
+    """L11 p2: Varga's cut-away at the waterline: a Driftjelly surfaced (the guns reach it) and submerged
+    (they don't), the shots stopping at the waterline, a torpedo's run under the surface to a submerged
+    jelly, a Reef Spitter raft (its gun above, its roots below) and the unknown large contact deep under it all."""
+    b = Board()
+    wl = 112                                                          # the waterline
+    sea_display(b, wl)
+    b.title("SENSOR SCAN - DRIFTJELLY / REEF SPITTER - WATERLINE")
+    b.line([(0, wl), (W, wl)], CYAN, 1, 230)
+    for x in range(6, W, 22):
+        b.line([(x, wl + 3), (x + 9, wl + 3)], CYAN_DIM, 1, 140)
+    b.label(W - 10, wl - 12, "SURFACE", CYAN, right=True)
+    b.label(W - 10, wl + 8, "BELOW", CYAN_DIM, right=True)
+    jx = 84                                                           # the jelly, surfaced and submerged
+    b.sprite(asset("driftjelly_0", 2), jx, wl - 36)
+    b.sprite(asset("driftjelly-sub_0", 2), jx, wl + 48)
+    b.label(14, 26, "DRIFTJELLY", WHITE)
+    b.label(14, 36, "SURFACED: ALL GUNS", GREEN)
+    b.label(14, wl + 94, "SUBMERGED: GUNS", RED)
+    b.label(14, wl + 104, "CAN'T REACH IT", RED)
+    b.arrow(jx + 52, wl - 20, jx + 52, wl + 26, VIOLET, size=4)
+    b.arrow(jx + 58, wl + 26, jx + 58, wl - 20, VIOLET, size=4)
+    b.label(jx + 66, wl - 6, "SWAPS EVERY", VIOLET)
+    b.label(jx + 66, wl + 4, "6-10 S", VIOLET)
+    sx = 262                                                          # the guns stop at the waterline
+    b.sprite(asset("ship_2"), sx, 58)
+    for dx in (-10, 10):
+        b.dashed([(sx + dx, 78), (sx + dx, wl - 4)], AMBER, 1, 4, 3)
+        b.marker(sx + dx, wl - 2, "cross", AMBER, 2)
+    b.label(sx + 36, 52, "GUNS STOP AT", AMBER)
+    b.label(sx + 36, 62, "THE WATERLINE", AMBER)
+    ty = wl + 56                                                      # the torpedo's run
+    b.sprite(asset("driftjelly-sub_0", 2), 392, ty)
+    b.sprite(asset("torpedo-pod-shot_8", 2), 252, ty)
+    for k, x in enumerate((236, 224, 212, 202, 194)):
+        b.sprite(asset(f"torpedo-pod-bubbles_{k % 6}", 1), x, ty + (k % 2) * 3 - 1)
+    b.dashed([(272, ty), (356, ty)], GREEN, 2, 6, 4)
+    b.arrow(340, ty, 356, ty, GREEN, size=5, dashed=False)
+    b.label(sx - 30, wl + 22, "TORPEDO POD", GREEN)
+    b.label(sx - 30, wl + 32, "RUNS UNDER", GREEN)
+    b.label(sx - 30, wl + 42, "THE SURFACE", GREEN)
+    b.label(sx - 30, wl + 88, "HITS WHAT DIVES", GREEN)
+    rx = 520                                                          # the Reef Spitter raft
+    b.sprite(holo(scaled_sprite("reef-spitter-raft-sub", 0.9), VIOLET), rx, wl + 38)
+    b.sprite(asset("reef-spitter-raft_0"), rx, wl - 40)
+    b.sprite(asset("reef-spitter_8"), rx, wl - 40)
+    b.label(rx - 40, 26, "REEF SPITTER", WHITE)
+    b.label(rx - 40, 36, "GUN RAFT: ALL GUNS", GREEN)
+    b.label(rx - 38, wl + 86, "ROOTS IN THE REEF", VIOLET)
+    b.sprite(holo(scaled_sprite("harbour-kraken-sub", 0.36), RED, 10), 634, wl + 80)
+    b.label(W - 78, H - 26, "UNKNOWN, LARGE,", RED, right=True)
+    b.label(W - 78, H - 16, "SUBMERGED", RED, right=True)
+    b.label(W - 10, 9, "FIT TORPEDO PODS", AMBER, right=True)
+    return b
+
 
 IMAGES = {
     "act-1-tether-gate": tether_gate,
@@ -2059,6 +2212,8 @@ IMAGES = {
     "level-09-node-scan": node_scan,
     "level-10-evacuation-route": evacuation_route,
     "level-10-wraith-scan": wraith_scan,
+    "level-11-convoy-route": convoy_route,
+    "level-11-sub-scan": sub_scan,
 }
 
 # Review sheets per batch: round, the images on it, the batch name.
@@ -2070,7 +2225,8 @@ BATCHES = {
     "r25": (list(IMAGES)[17:23], "M4 PART G"),
     "r30": (list(IMAGES)[23:29], "M5 PART B"),
     "r31": (list(IMAGES)[29:31], "M5 PART C"),
-    "r32": (list(IMAGES)[31:], "M5 PART D"),
+    "r32": (list(IMAGES)[31:33], "M5 PART D"),
+    "r33": (list(IMAGES)[33:], "M5 PART E"),
 }
 
 
@@ -2079,6 +2235,7 @@ def build(names):
     for name in names:
         source = (SOURCE if name in BATCHES["r13"][0] else SOURCE_M5 if name in BATCHES["r30"][0]
                   else SOURCE_M5C if name in BATCHES["r31"][0] else SOURCE_M5D if name in BATCHES["r32"][0]
+                  else SOURCE_M5E if name in BATCHES["r33"][0]
                   else SOURCE_M4)
         artkit.save_png(IMAGES[name]().image(), OUT / f"{name}.png", source)
     print(f"{len(names)} briefing images in {OUT.relative_to(ROOT)}")

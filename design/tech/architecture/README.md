@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
 # Architecture
@@ -151,6 +151,18 @@ first entry of a part's model list is the starter (price 0, `start`).
   anti-ground bonus. `notes.layers_hit` is the README's *Layers hit* cell. Shared rules
   (`player/weapons/data.yaml`): `upgrade_cost_factors` (L2–L5), `draw_round`,
   `single_target` (`distance`, `width`).
+  M5 part E (the [Torpedo Pod](../../player/weapons/torpedo-pod/README.md); user decisions E1 and E2
+  of 2026-10-08; built in step E2a): `hits: anti-sub` is the **torpedo** delivery
+  (`WeaponSpec.Delivery.TORPEDO`): dropped from its pod, it runs on the `sub` layer from its `speed`
+  start to its end over `accelerate` s, steers at most the level's `turn` (not scaled by the
+  Targeting computer) toward the nearest `sub` or `ground` unit within its `range` in its `cone`
+  (picked as fired and again when the target dies or leaves its reach; without one it runs
+  straight) and lives for its `range`; it strikes the first `sub` or `ground` hit box it touches
+  (units, set-piece parts, destructibles, a `sub` trigger) at full damage, never a flyer, and passes
+  under crane arms, sleds, tow cables and debris; only in a level with `water: true`, elsewhere the
+  pod fires nothing (`Sortie.mountIdle`) but still draws its power; pooled, no allocation per step.
+  `content` requires a speed, a range in px, a `cone`, `accelerate` when the speed rises, a `turn`
+  on every level and no `lifetime`.
 - **Enemy** (`enemies/<category>/<slug>/data.yaml`): the stat block of the
   [enemies](../../enemies/README.md#stat-block-template) template: `name`, `faction`, `layer`,
   `tier`, `size`, `hitbox`, `parts` (`single` or `multi`: a multi-part unit lists its
@@ -319,6 +331,61 @@ first entry of a part's model list is the starter (price 0, `start`).
   ordinary unit (a kill, a bounty, a chain step, a unit of the level's density); the event
   **`LOOP_BACK`** (value: the loop-back's number) when the leader point re-enters below the bottom
   edge, as its warning ends (the swarm's sound, the radio event `first-loop-back`).
+  M5 part E, for the [Driftjelly](../../enemies/naval/driftjelly/README.md), the
+  [Reef Spitter](../../enemies/naval/reef-spitter/README.md) and the
+  [Harbour Kraken](../../enemies/bosses/harbour-kraken/README.md) (flown in Level 11; user decisions
+  E2–E7 of 2026-10-08): the layer **`sub`** (built in step E2a: appended to the layers, so the
+  existing ordinals and replay hashes stay; hit only by `anti-sub` deliveries and the Smart Bomb, no
+  contact, never picked by homing shots, turrets or Rook; `content` rejects it as a stat block's or
+  a cloak's `layer`, a unit only dives to it); built in step E2b (`EnemySpec.Submerge`, `ProximityRing`, `drift`): a **`submerge`** block on a unit
+  whose stat block's `layer` is `ground` (`every` `[min, max]` s between swaps, drawn per unit from
+  its own seed; `swap` s, the layer flipping between `ground` and `sub` at the swap's middle; `start`,
+  the share of a wave's units that begin submerged): the unit's **current layer**, as the pounce's
+  and the cloak's, its timer on the real steps (it keeps going in a halted arena), the simulation
+  telling each unit's swap progress for the looks; a `ring`'s **`within`** (px: it fires only while
+  the ship's centre is this close, on either layer, its `interval` the cooldown from the last ring;
+  the hook `attacks` may set `count` and `within`, hard's 12 and 110); the movement `drift` flying a
+  `field` wave (see *Level*); `terrain`'s **`drift`** (px/s along its nest's `current`: a raft on
+  the water). Built in step E2c (`BossSpec.Arena`, `SlamArena`; `KrakenTest`, `SlamArenaTest`), the
+  `lanes` loaded and checked since step E2b for a level's convoy (`EnemyData.Lanes`): for an arena boss the movement **`anchored`** (`y`, px below the top edge where its
+  centre stops when the scroll halts; no descent, no `hover` or `straight`): it is placed on the ground layer
+  that far up the scroll from the halt (the halt scroll: the scroll at the arena's start plus the
+  ease, `Sortie.easeDistance`), scrolls in with the ground invulnerable and without its bar
+  (`SetPiece.approaching()`), arrives at its `t` (the arena's start: the bar, the sting, the boss
+  checkpoint) and engages at the halt (`BOSS_SETTLED`); its stat block's `layer` is the sea's surface
+  (`ground`), its `hitbox` the platform's deck (no armour: shots fly over it), the lanes running from
+  its lower edge at the halt down to the bottom edge; a part's **`layer`** (`sub` or `ground`, where it starts; the script
+  moves it) and **`spots`** (`name`, `offset` `[dx, dy]` px from the part's centre, `hitbox`, `multiplier`, `while: open`: a sub-box of
+  the part that routes damage to the part's HP at its multiplier, only while the part's surfacing
+  window is open, a shot counting the spot on its line ahead of it; the part's own `multiplier` elsewhere: the Kraken's eyes ×2 on a mantle of ×0.5);
+  a chain's **`motion: slam`** (its segments follow the slam cycle instead of bending toward the
+  player: at rest a line from its anchor to its part under the water, from the rise until the sink
+  ends laid along its lane from the lanes' top to 24 px above the bottom edge, its segments evenly
+  spaced; they are the part's own hit boxes, not armour; only a part an arm of the `lanes` names). In the `boss` block: **`lanes`**
+  (`count`, `width` px from the play field's left edge, lane 1 first; `arms`, each slam arm's part
+  name → the lanes it owns, E5 = a; only for an anchored boss, with a `slam`) and **`slam`** (`telegraph`, `rise`, `awash`, `sink` s;
+  `damage`, the impact's class on the ship and the escort in the lane, once per slam; `splash`
+  `count`, `speed`, `bullet`: from evenly spaced points along the arm, out to either side in turn,
+  15° down; `choose: alternate`, the player's lane and the lane of the convoy unit
+  nearest the player's x in turn, a tie to the lower lane, a choice in a severed arm's half going to
+  the other choice or the living half's lane nearest the player; the hooks `telegraph` and `lanes`,
+  hard's 0.8 s and three lanes a volley, a second lane of one arm 0.5 s after its first; the arm on
+  `ground` from its rise until its sink starts); per phase
+  `until` may give **`slams`** (how many impacts end it) and, with its `parts` instead of a `left`, **`below`** (the share of their
+  HP under which it ends), beside `seconds` and `parts`/`left`, the first met ending it (a phase that
+  ends on slams also ends when every arm is destroyed); a phase's **`slamming`** (`chain`: one at a time,
+  the next telegraph when the arm has sunk, the first after the phase's `delay`; `after_dive`: one after each dive; `{mode: volley,
+  every: s}`: one per living arm at once, the first after the phase's `delay`, an arm still in its
+  cycle sitting one out); **`surface`** (`part`, `rise` s crown first, the layer
+  flipping at its middle; `open` s, the eyes' window; `dive` s; `glow` s, the tell before each of
+  the phase's attacks, which fire only while it is up, from its hit box's lower edge, the first
+  `glow` s after the window opens, then one every interval; `stay: true` keeps it up, without
+  `open` or `dive`, turning a dive round); **`release`** (`enemy`, `count`, `formation: field`,
+  `lanes`, `on: first-surface`: units released once as the part first starts to rise, placed in
+  rows down the lanes, counted as a boss's streams); and **`drop`**
+  (a pickup dropped under the surfacing part as the phase begins: the shield cell). Events **`TELEGRAPH`** (value: the lane;
+  the radio event `first-telegraph`), **`SLAM`** (the impact; value: the lane), **`SURFACE`** and
+  **`DIVE`** (a surfacing part's; value: the part), and the part events the radio's `boss-part-destroyed` reads.
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`, optional
@@ -603,6 +670,60 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   `LOOP_BACK`; once; only with a looping swarm; a Rook line on it counts as a scripted Rook line for
   the barks' spacing, as `escort-first-kill`'s), built (`content` checks the cloaked enemy, the
   looping swarm and, for `scripted-loss`, the scripted loss).
+  M5 part E, for [Level 11](../../campaign/act-2-homefront/level-11-atlantic-convoy/README.md)
+  (user decisions E1–E10 of 2026-10-08 and the stated defaults): **`water: true`** (E1 = a; default
+  false; built in step E2a, `LevelScript.water()`): the whole play field is water (Levels 11–13): the
+  torpedo runs only here, every kill on the play field is a water kill (splash, sinking, no crater or
+  wreck) and landing blasts splash (presentation), and a fitted torpedo pod elsewhere is idle and
+  reads `NO WATER`. Built in step E2c: a section's **`speed: 0`**, only on the `arena` of a level whose boss is
+  **anchored** (see *Enemy*), which needs it: the scroll eases from the section before's speed to a halt over the section's first second (the
+  arena's 1 s ramp, linear; `Sortie.easeDistance`: 68.8 px at 140 px/s) and the level clock halts at its `end` while the boss lives (at least 1 s
+  after its start); such a boss's `t` is the arena's start (its bar, the `boss_sting`, the boss
+  checkpoint), and it engages at the halt; a backdrop piece the boss lies on (Level 11's Platform
+  Tiamat) is placed at the halt scroll. The formation **`field`** (a `drift` enemy's wave): `x` (the
+  field's centre, px from the left edge), `size` `[w, h]` (the area; its top edge enters at the top
+  edge at `t`), optional `spacing` (px, the least distance between two units; default 1.5 × the
+  hit box's width) and `current` (° from straight down, positive to the right, default 0): `count`
+  units placed in the area by the level's seeded scatter (built in step E2b: a jittered grid of
+  cells of at least the spacing, the units in distinct seeded cells; the area's leading, bottom edge
+  enters at the top edge at `t`, so every unit appears above the top edge then), scrolling with the ground and drifting at
+  the enemy's `drift.speed` along `current`; with a `submerge` the share `start` of them begins
+  submerged (seeded); `content` checks that a field's enemy drifts and that the units fit the area
+  at that spacing on every difficulty, and lie across the play field. A ground target nest of an `enemy` may give **`current`** (°) for units whose
+  `terrain` has a `drift` (built in step E2b, `GroundUnit.currentRadians`). A **destructible's `group`** (only for a placed pickup's `dropped_by`
+  `group` and `last`: Level 11's containers; the objectives never count it; built in step E3a). A **trigger on `sub`**
+  (`layer: sub`; built in step E2a, `GroundObjectSpec.submerged()`; `content` allows `sub` only on a
+  trigger in a level with `water: true`, and `ground` for every other destructible or trigger):
+  only `anti-sub` deliveries hit it, and the Smart Bomb's ring spends it at once; a torpedo seeks it
+  while it is still to be freed (in its target pick beside units and parts, 2026-10-09); a
+  trigger's **`easy` / `hard`** change may give its `hits` (Level 11's pod: 3, hard 5; built in step
+  E3a). Built in
+  step E2b (`LevelScript.Naval`, flown by `Convoy`; `Sortie.slamAllies(lane)` for step E2c's slams): a
+  **`convoy`** block, a naval convoy outside the objectives (it never fails the mission and is
+  rejected beside an `escort` primary): `units` in order, each an `ally` slug (one that `follows:
+  stations`), a **`name`** (what `{ally}` becomes in a line: "Halvorsen"), its `station` `[x, y]`
+  (px from the play field's left edge, px below the top edge, held at the scroll speed) and either
+  the arena **`lane`** it glides to at the halt (1-based, of the boss's `lanes`) or **`leaves:
+  true`** (it drops back off the bottom edge at the halt and returns after the boss), and an
+  optional **`hold`** `[x, y]` (as the station's; below the bottom edge for off it) it glides to when
+  the halt ends; `glide` (s of those moves, on the real steps), `lane_y` (px below the top edge: the
+  centre of a unit in its lane), **`hold_clear`** (px the sea scrolls after the halt before the units
+  glide back to their stations, each holding in its lane, away or at its `hold` meanwhile; 0 or
+  absent: at once; Level 11: 552 (520 before round 33), Platform Tiamat's deck passing; built 2026-10-09, `content`
+  checks a `hold` beside the play field's sides and a `hold` without `hold_clear`) and optional
+  `easy` / `hard` `hp`; the units' states (afloat, hits taken, sunk) are in the
+  state hash (only in a level with a convoy) and the boss checkpoint's objective tallies; `content`
+  checks the stations on the play field and apart, the lanes against the boss's, and that only a
+  level with an anchored boss with lanes gives lanes. The secondary kind **`afloat: true`** (E8 =
+  a; with `credits` and the tracker's `label`): met at the level boss's death with every convoy unit
+  that can be damaged afloat, failed at the first sinking; only with a `convoy` and a `boss`; the
+  debrief's row counts the units afloat. Radio events **`ally-hit`** (each convoy unit's first hit,
+  `{ally}` its name; it starts again for each unit, as `ally-lost`), **`first-telegraph`** (the
+  attempt's first lane telegraph, `TELEGRAPH`; once; only with a boss with lanes; built in step E2c) and
+  **`boss-part-destroyed`** (with `parts`, names of the level boss's parts other than its vital one:
+  the first of them shot off; once; built in step E2c); `ally-lost` also for a naval convoy unit sinking; a `level-end` cue's `allies`
+  counts a naval convoy's damageable units afloat. A naval convoy's `{ally}` is the unit's `name`
+  (one voice take per name).
 - **Level backdrop** (`backdrop` in a level's data file; the *Backdrop* table is rendered from it):
   `scroll_factors` per layer (`deep`, `far`, `ground` = 1.0, `low-air`, `high-air`; `deep` may be
   left out on a top-down surface, Level 04's Luna: then the ground is the layer that covers the
@@ -725,6 +846,16 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   **`glide`** (s of a lost unit's glide into `far`, a presentation effect); built (M5 part D, step
   D4): read, checked (`lanes` with the `air` layer and only `bullets`/`contact`, `road` with the
   ground and neither) and in `AllySpec`.
+  Built in step E2b (M5 part E, Level 11's [naval convoy](../../allies/README.md#convoy-cargo-ship); user
+  decisions E8 and E9 and the stated defaults of 2026-10-08): **`follows: stations`** (a `ground` ally
+  of a level's `convoy` block: it holds its screen-space station at the scroll speed, glides to its
+  arena lane at the halt and back after the boss, see *Level*; no road, no lanes, no headings beyond
+  one); `damaged_by` **`slams`** (the hits one boss slam in its lane deals; its `hp` then counts slams:
+  the cargo ship's `hp: 4`, `slams: 1`, retuned from 2 on 2026-10-09; nothing else hurts it); an ally whose `damaged_by` names
+  nothing cannot be damaged and is never lost (the frigate); **`flak`** (presentation: `every` s
+  between bursts, drawn on `low-air` over the convoy with a quiet sound, hitting nothing); a lost
+  naval ally **sinks** (a presentation effect; the simulation marks it sunk at once). `content`
+  checks `stations` with the `ground` layer and only `slams`.
 - **Act** (`campaign/<act>/data.yaml`): `levels` `[first, last]` (global numbers), `title_card`
   (`act`, `name`, `line`), `briefing` (pages as a level's); planned (part G): `outro`, the act-end
   outro after the last level's debrief: `music` (a music file's name, `act-complete`: track 24
@@ -760,6 +891,14 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
 - Rendering into the 960×540 `PixelScreen`, integer-scaled with letterboxing or sharp-bilinear;
   parallax layers per the [art direction](../../art-direction/README.md); shaders stay
   GLES 2 compatible (the ANGLE fallback on macOS).
+- M5 part E, the `sub` pass (`WaterLooks`, user decision E4 = c): on a level with `water: true`
+  everything on the `sub` layer is drawn into a play-field-sized `FrameBuffer` (RGBA8888, no depth)
+  between the deep layer and the ground tiles, with `setBlendFunctionSeparate` so the buffer holds
+  premultiplied colour, then drawn over the field once through a composite shader (row-wise sway,
+  3×3 blur, the water tint) with `GL_ONE, GL_ONE_MINUS_SRC_ALPHA`; both shaders are GLSL 1.10 /
+  GLSL ES 1.00 without `#version`, like the others. The pass saves and restores the bound frame
+  buffer and viewport (the `PixelScreen`'s), as `FarsideLooks`' light map does. When the driver
+  refuses the frame buffer it falls back to a per-sprite tint shader (no blur, no sway).
 - Audio: the streaming music player with intro and loop points, and the SFX bank with 64
   sources. OpenAL Soft sums every source (the effects and the music stream's `AudioDevice`) into
   the device's float mix; it has no limiter on float output by default, so the
@@ -1339,3 +1478,89 @@ Screenshot tests are left out until there is a need.
   shared rule (every crate lives until it leaves the bottom edge) was rejected: it would change the
   earlier levels' crates and their replay hashes; with the default the hashes of Levels 01–09 are
   unchanged.
+- 2026-10-08: Schema text for M5 part E (Level 11; user decisions E1–E10 of 2026-10-08 and the
+  stated defaults), planned until the loader reads it: for weapons, the torpedo delivery of `hits:
+  anti-sub` (only with `water: true`); for enemies, the layer `sub` (appended, the ordinals kept),
+  `submerge` (a seeded swap timer, the current layer flipping at the swap's middle), a ring's
+  `within`, a raft's `terrain.drift`, and for an arena boss the `anchored` movement, a part's `layer`
+  and `spots`, a chain's `motion: slam`, the boss's `lanes` and `slam`, a phase's `until.slams` and
+  `until.below`, `slamming`, `surface`, `release` and `drop`, the events `TELEGRAPH`, `SLAM`,
+  `SURFACE` and `DIVE`; for levels, `water`, an arena's `speed: 0`, the formation `field` (`size`,
+  `spacing`, `current`), a nest's `current`, a destructible's `group`, a `sub` trigger with `easy` /
+  `hard` `hits`, the `convoy` block outside the objectives (`name` per unit, `station`, `lane` or
+  `leaves`, `glide`, `lane_y`), the secondary `afloat`, the radio events `ally-hit`,
+  `first-telegraph` and `boss-part-destroyed`, ship names as `{ally}`; for allies, `follows:
+  stations`, `damaged_by.slams` and `flak`. Rejected for the convoy: an `escort` primary (it would
+  fail the mission; the level's primary is `reach-end`). Everything new is to be hashed only in a
+  level that uses it, so the replay hashes of Levels 01–10 stay.
+- 2026-10-08: M5 part E step E2a built the `sub` layer (`Layer.SUB`, last), the torpedo delivery
+  (`WeaponSpec.Delivery.TORPEDO`, `reaches` `sub` and `ground`; `seeks()`, `passesUnder()`), the
+  level's `water` (`LevelData.overWater()`, `LevelScript.water()` / `withWater`, read by
+  `PlayerFire`) and the `sub` trigger (`GroundObjectSpec.submerged`, `GroundObject.spend()` for the
+  Smart Bomb). Settled on the way: the torpedo's seek radius is its `range`; it seeks set-piece parts
+  on the layers it reaches as homing missiles do; it is not `anti-ground`, so a hardened unit is no
+  target and glances it, as for every other weapon; it runs in screen space like every other shot
+  (the sea's scroll does not carry it) and passes under crane arms, sleds, tow cables and debris;
+  Rook does not count a `sub` unit as a flank threat either; a stat block's or cloak's `layer: sub`
+  is rejected (a unit only dives to it, E2b's `submerge`), as is any destructible's or trigger's
+  layer but `ground` (and `sub` for a trigger over water). Nothing new is hashed: the state a level
+  over land steps through is unchanged, so every replay hash stays.
+- 2026-10-08: M5 part E step E2b built the naval units, the `field` formation, the naval convoy and
+  the `afloat` secondary. `sim`: `EnemySpec.Submerge` (the current layer `sub` while submerged; the
+  timer's own SplitMix64 state per unit, on the real steps), `EnemySpec.ProximityRing` (instead of a
+  gun; `EnemyForce` fires it), a ground unit's `drift` along its `GroundUnit.currentRadians`,
+  `WaveSpec.Field` / `Formation.FIELD` (`Formations.field`, `Spawn.Field`), `LevelScript.Naval` and
+  `NavalUnit` (`withConvoy`), `AllySpec.slams` / `flakSeconds` / `damageable()`, `Ally.State`
+  `GLIDING`, `LANE` and `AWAY`, `Convoy`'s naval mode (`sail`, `lane`, `slammable`, `afloat`,
+  `copyFrom` for the boss checkpoint), `Secondary.afloat`, `Objectives.sunk()` / `bossDownAfloat()`,
+  `CueTrigger.ALLY_HIT` (repeating per unit), `SimEvents.Type.ALLY_FLAK`, and in `Sortie` the
+  package-private `slamAllies(lane)`, `lastAllyHit()`, `navalConvoy()`, `allyName(k)`, `allySpec(k)`,
+  `allyLane(k)`, `damageableAllies()`, `alliesAfloat()` and `afloatFailed()`. `content`: the keys
+  above (`EnemyData.Submerge`, `Attack.within`, `AttackChange.within`, `Terrain.drift`,
+  `BossData.lanes` as `EnemyData.Lanes`, the wave's `x` / `size` / `spacing` / `current`, the nest's
+  `current`, `LevelData.Convoy` / `ConvoyUnit`, `Secondary.afloat`, `CueEvent.ALLY_HIT`,
+  `AlliesData` `stations`, `DamagedBy.slams`, `Flak`), mapped by `SimSpecs` and `PartERules`, checked
+  by `ContentValidator.checkPartE`. Settled on the way: a field's leading (bottom) edge enters at the
+  top edge at `t` (the schema's "top edge" read as the edge that enters first); a field unit's first
+  swap after a seeded 0–`every.max` s, the later ones `every` apart, so a field swaps while it is on
+  the screen; a ring due while the ship is closer than the bullet readability distance (72 px) waits;
+  the convoy glides out in the first step the level clock is halted and back in the first step it
+  runs again (a boss that dies before the halt leaves the convoy at its stations); a ship is in the
+  lane its centre's x lies in, also while it glides; the frigate's flak bursts only while it holds
+  its station, their places following from the burst count (no random draw); a level-end cue's
+  `allies` counts the damageable units afloat. The new state is hashed only for drifting,
+  submerging or pulsing units, a naval convoy and an afloat objective, so every replay hash stays.
+- 2026-10-08: M5 part E step E2c built the arena boss (the Harbour Kraken; E5–E7 = a). `sim`:
+  `BossSpec.Arena` (`Lanes`, `Arm`, `Slam`, `Spot`, the part layers), `BossSpec.PhaseArena`
+  (`Slamming`, `Surface`, `Release`, the drop), `Chain.slam`, `BossSpec.anchored()`; `SlamArena`
+  (per arm a slam cycle on the real steps, the alternate choice with the severed-half redirection,
+  volleys with hard's second lane, the surfacing part's states and its attacks' timer, the current
+  layer per part, the weak spots on the shot's line; a public read-only view for the game: arm
+  states and shares, lanes, telegraphed lanes and the time to an impact, the surfacing state, the
+  glow); `SetPiece` anchored (`anchorAt`, `ground`, `approaching()`, `arena()`, `partLayer`,
+  `partTouches`, `partInBlast`, `partOnField`, `damagePartAt`), the slam chains laid along their
+  lanes and not armour, the fans from the surfacing part's lower edge; `BossActions` `telegraph`,
+  `slam`, `surface`, `release`, `drop`, `shipLanes`; `Sortie` easing into an arena of speed 0
+  (`easeDistance`), anchoring the boss at the halt scroll, the impact on the ship, Rook and the
+  ships in the lane (`slamLane` → `slamAllies`), the release planned once with its own generator,
+  `first-telegraph` and `boss-part-destroyed` (`CueTrigger.FIRST_TELEGRAPH`, `BOSS_PART_DESTROYED`
+  with its parts joined by `|`, `Radio.among`); `PlayerFire`, `SpecialSlot` (the Airstrike) and
+  `Wingman` read each part's current layer (an `anti-ground` shot doubling on a surfaced part, a
+  landing blast hitting a part on `ground`, a sunk part out of reach of all but the torpedo and the
+  Smart Bomb); Rook's goal moves beside the telegraphed lanes; `SimEvents` `TELEGRAPH`, `SLAM`,
+  `SURFACE`, `DIVE`. `content`: `EnemyData.Anchored`, `PartData.layer` / `spots` (`SpotData`),
+  `ChainData.motion`, `BossData.slam` (`SlamData`, `Splash`), `PhaseData.slamming` / `surface` /
+  `release` / `drop`, `Until.slams` / `below`, `Hook.telegraph` / `lanes`, a section's `speed: 0`,
+  `CueEvent.FIRST_TELEGRAPH` / `BOSS_PART_DESTROYED` and the cue's `parts`; mapped by `SimSpecs`,
+  checked by `ContentValidator.checkArenaBoss` / `checkArenaLevel`. Settled on the way (for review in
+  round 33): the bar at the arena's start, the engagement at the halt; the arm on the ground until its
+  sink starts; the splash's points and directions; the eye counted on the shot's line; the volley's
+  first after the phase's delay and a busy arm sitting one out; the field's rows; the halt scroll
+  carrying the ease's 68.8 px. Its state is hashed only for an arena boss, so every replay hash stays.
+- 2026-10-09: M5 part E, Level 11's follow-ups (user, 2026-10-09): the destructible `group` and a
+  trigger's `easy` / `hard` `hits` are marked built (step E3a built them). New and built: the
+  `convoy` block's **`hold_clear`** (px of scroll after the halt) and a unit's **`hold`** point, so a
+  naval convoy waits clear of the boss's platform before gliding back (`Convoy.HOLD`; the hold's
+  scroll is in the state hash, only for a naval convoy); a **sunken trigger** in the torpedo's target
+  pick (`PlayerFire.TRIGGER_SERIAL`, a ground object's serial above the parts'). Every replay hash
+  stays (no recorded level has a naval convoy or a torpedo).

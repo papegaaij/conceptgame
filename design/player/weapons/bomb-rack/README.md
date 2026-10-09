@@ -1,10 +1,10 @@
 ---
 title: Bomb Rack
 design: approved
-implementation: done
+implementation: in-progress
 art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
-updated: 2026-10-05
+updated: 2026-10-08
 ---
 
 # Bomb Rack
@@ -48,7 +48,7 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 
 - Per pod: bombs drop onto the `ground` layer below the pod. Fall time 0.5 s; the impact point is the ground position under the pod at release, which scrolls down with the ground — release slightly ahead of the target.
 - The blast damages every ground unit within the radius once (hardened included; the ×2 bonus is in the damage). Never hits flyers.
-- Over water bombs hit surfaced naval targets only; over space levels (no ground) the rack is idle and its HUD slot reads "NO GROUND".
+- Over water (a level with `water: true`) bombs hit surfaced naval targets only: a submerged unit is on `sub`, not `ground`, so the blast misses it (default of M5 part E; only `anti-sub` and the Smart Bomb reach `sub`, [layer rules](../../../enemies/README.md#layer-rules)); the impact shows a water splash instead of a ground blast. Over space levels (no ground) the rack is idle and its HUD slot reads "NO GROUND".
 
 ## Implementation
 
@@ -58,7 +58,12 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - [x] Muzzle flash, projectile and impact sprites of its VFX family; sound of its family
 - [x] Behaviour as described above, except:
 - [ ] Over a level without ground the rack is idle and its HUD slot reads "NO GROUND" — **later: Act 5** (every Act 1–2 level has a ground layer or water, Level 07's picket wreckage included; the first without one is the Leech Field, L33)
-- [ ] Over water only surfaced naval targets — **later: M5** (the naval levels)
+- [x] Over water only surfaced naval targets: nothing new in the simulation once the `sub` layer
+      exists (a submerged unit is not `ground`), a test pinning it (`SubLayerTest`) — M5 part E
+      (step E2a, Level 11)
+- [x] The water splash at the impact over water — M5 part E (step E3c, Level 11: on a level with
+      `water: true` a bomb's or shell's burst, and the Airstrike's, is the `explosion-water-*` rung
+      on the surface with its ripple train, alpha-blended, scrolling with the sea)
 - [x] Power draw per level counted in the loadout; upgrades priced as listed
 
 ## Decisions
@@ -72,3 +77,8 @@ Generated from [data.yaml](data.yaml) by `tools/sync_tables.py`; do not edit by 
 - 2026-10-05: M4 part G (main-agent default, stated to the user): Level 07 has a ground layer (the
   overrun picket's wreckage) though no ground targets, so it is not "a level without ground"; the
   NO GROUND item moves to Act 5, whose Leech Field (L33) is the first level without one.
+- 2026-10-08: M5 part E (stated default with the user's decisions of 2026-10-08): over water the
+  rack's rules are unchanged, its blasts hit surfaced (`ground`) units only and never a submerged
+  one (E2 = a), and the impact shows a water splash; the same holds for the Hammer Mortar's and
+  Rook's Mortar's shells and the Airstrike's bombs. The over-water item is tagged M5 part E, so the
+  implementation is `in-progress` again until part E pins it.

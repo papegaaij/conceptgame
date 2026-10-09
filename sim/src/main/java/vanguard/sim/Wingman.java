@@ -291,6 +291,7 @@ public final class Wingman {
         dodge(bullets);
         glided = Math.min(glideTicks, glided + 1);
         evading = clearOfBodies(enemies, shipX, shipY, shipX + slotX() + dodgeX, shipY + slotY() + dodgeY);
+        evading |= clearOfLanes(setPieces);
         move(shipX, shipY);
         steerBank();
     }
@@ -319,7 +320,8 @@ public final class Wingman {
         double flankDistance = spec.ai().flankDistance();
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
-            if (!PlayerFire.onField(enemy)) {
+            // M5 part E (default 12): a unit under the water is neither his target nor a flank threat.
+            if (!PlayerFire.onField(enemy) || enemy.layer() == Layer.SUB) {
                 continue;
             }
             double dx = enemy.x() - x;
@@ -345,14 +347,16 @@ public final class Wingman {
         }
         for (int k = 0; k < setPieces.length; k++) {
             SetPiece piece = setPieces[k];
-            if (!piece.present() || !reaches(piece.layer())) {
+            if (!piece.present()) {
                 continue;
             }
             List<LevelScript.PartSpec> parts = piece.spec().parts();
             for (int p = 0; p < parts.size(); p++) {
                 double px = piece.partX(p);
                 double py = piece.partY(p);
-                if (piece.partWrecked(p)
+                // M5 part E: on the part's own layer (an arena boss's part under the water is none of his).
+                if (!reaches(piece.partLayer(p))
+                        || piece.partWrecked(p)
                         || piece.partShielded(p)
                         || !PlayField.overlaps(px, py, parts.get(p).box())
                         || !inCone(px - x, py - y)) {
@@ -384,7 +388,10 @@ public final class Wingman {
         return flank;
     }
 
-    /** Whether his gun's shots reach a target on {@code layer}: a shell or bomb only the ground. */
+    /**
+     * Whether his gun's shots reach a target on {@code layer}: a shell or bomb only the ground; none
+     * of his guns reaches {@code sub} (M5 part E).
+     */
     private boolean reaches(Layer layer) {
         WeaponSpec.Delivery delivery = spec.gun().delivery();
         return delivery.landing() ? layer == Layer.GROUND : delivery.reaches(layer);
@@ -694,6 +701,61 @@ public final class Wingman {
             }
         }
         return shifted;
+    }
+
+    /** He keeps this far beside a telegraphed lane's edge, px (M5 part E). */
+    private static final double LANE_GAP = 6;
+
+    /**
+     * M5 part E (design/player/wingmen, Act 2 hazards; default 12): while an arena boss's lanes are
+     * telegraphed, his goal moves out of them: beside the run of telegraphed lanes it lies in, on the
+     * side nearer him that is inside the play field's margins (he waits there while the player is in
+     * the lane); nothing changes while his goal and he are above the lanes. Returns whether it moved
+     * the goal.
+     */
+    private boolean clearOfLanes(SetPiece[] setPieces) {
+        boolean moved = false;
+        for (SetPiece piece : setPieces) {
+            if (!piece.present() || piece.arena().isEmpty()) {
+                continue;
+            }
+            SlamArena arena = piece.arena().get();
+            int mask = arena.telegraphed();
+            double halfH = spec.craft().hitbox().height() / 2;
+            if (mask == 0 || (goalY - halfH > arena.laneTop() && y - halfH > arena.laneTop())) {
+                continue;
+            }
+            double width = arena.laneWidth();
+            double half = spec.craft().hitbox().width() / 2 + LANE_GAP;
+            for (int lane = 1; lane <= arena.laneCount(); lane++) {
+                double left = (lane - 1) * width;
+                double right = lane * width;
+                if ((mask & (1 << lane)) == 0 || goalX + half <= left || goalX - half >= right) {
+                    continue;
+                }
+                int lo = lane;
+                int hi = lane;
+                while (lo > 1 && (mask & (1 << (lo - 1))) != 0) {
+                    lo--;
+                }
+                while (hi < arena.laneCount() && (mask & (1 << (hi + 1))) != 0) {
+                    hi++;
+                }
+                double toLeft = (lo - 1) * width - half;
+                double toRight = hi * width + half;
+                boolean leftOk = toLeft >= limit;
+                boolean rightOk = toRight <= PlayField.WIDTH - limit;
+                if (leftOk && (!rightOk || Math.abs(toLeft - x) <= Math.abs(toRight - x))) {
+                    goalX = toLeft;
+                    moved = true;
+                } else if (rightOk) {
+                    goalX = toRight;
+                    moved = true;
+                }
+                break;
+            }
+        }
+        return moved;
     }
 
     /**

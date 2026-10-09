@@ -73,11 +73,25 @@ public final class DebriefScreen implements GameScreen {
         }
     }
 
+    /**
+     * M5 part E: a naval convoy's hulls at the level's end (Level 11's cargo ships), the afloat
+     * secondary's row {@code HULLS AFLOAT n / 3}; {@link #NONE} without a naval convoy.
+     */
+    public record Hulls(int afloat, int of) {
+        public static final Hulls NONE = new Hulls(0, 0);
+
+        boolean present() {
+            return of > 0;
+        }
+    }
+
     private final GameServices services;
     private final Campaign campaign;
     private final boolean newBest;
     /** Whether the level has a secondary objective, whose row the credits show. */
     private final boolean secondary;
+    /** M5 part E: the naval convoy's hulls afloat, which the secondary's row shows. */
+    private final Hulls hulls;
 
     private String title;
     private String subtitle;
@@ -107,7 +121,7 @@ public final class DebriefScreen implements GameScreen {
             String name,
             int launchBalance,
             boolean newBest) {
-        this(services, campaign, result, number, name, launchBalance, newBest, true);
+        this(services, campaign, result, number, name, launchBalance, newBest, true, Hulls.NONE);
     }
 
     /**
@@ -122,8 +136,10 @@ public final class DebriefScreen implements GameScreen {
             String name,
             int launchBalance,
             boolean newBest,
-            boolean secondary) {
+            boolean secondary,
+            Hulls hulls) {
         this.secondary = secondary;
+        this.hulls = hulls;
         this.services = services;
         this.campaign = campaign;
         this.newBest = newBest;
@@ -192,7 +208,9 @@ public final class DebriefScreen implements GameScreen {
                     " CR",
                     CREDITS));
         }
-        if (secondary) {
+        if (secondary && hulls.present()) {
+            rows.add(hullsRow(hulls, result.secondaryMet(), result.credits().objectives() - escort.credits()));
+        } else if (secondary) {
             rows.add(new Row(
                     "SECONDARY OBJECTIVE",
                     result.secondaryMet() ? "MET" : "MISSED",
@@ -201,6 +219,14 @@ public final class DebriefScreen implements GameScreen {
                     " CR",
                     CREDITS));
         }
+    }
+
+    /**
+     * M5 part E: the afloat secondary's row (design/ui/debrief, Level 11): {@code HULLS AFLOAT 3 / 3}
+     * with the objective's credits when it was met (all hulls afloat at the boss's death), none when not.
+     */
+    static Row hullsRow(Hulls hulls, boolean met, long credits) {
+        return new Row("HULLS AFLOAT", hulls.afloat() + " / " + hulls.of(), met ? credits : -1, "+ ", " CR", CREDITS);
     }
 
     /** The boss's kill time against its par, "1:42 (PAR 2:00)"; "NOT KILLED (PAR 1:00)" when it got away. */

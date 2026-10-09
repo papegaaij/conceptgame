@@ -12,6 +12,7 @@ final class Layers {
             case "low-air" -> Layer.LOW_AIR;
             case "air" -> Layer.AIR;
             case "high-air" -> Layer.HIGH_AIR;
+            case "sub" -> Layer.SUB;
             default -> throw new IllegalArgumentException("unknown layer '" + name + "'");
         };
     }

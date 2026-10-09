@@ -13,10 +13,14 @@ Outputs (assets/sprites/intel/, packed onto the shared sprite pages as ``intel/<
                      tools/art/hive_node.py, the iris half open, and tools/art/ravager.py);
                      wraith, mote-swarm (Level 10, M5 part D batch: the production models of
                      tools/art/wraith.py, decloaked, nose down in ripple frame 1, and
-                     tools/art/mote_swarm.py, a spike leading down, its slit at the middle glow)
+                     tools/art/mote_swarm.py, a spike leading down, its slit at the middle glow);
+                     driftjelly, reef-spitter (Level 11, M5 part E batch: the production models of
+                     tools/art/driftjelly.py at rest, and tools/art/reef_spitter.py, the gun aiming down
+                     on its kelp raft)
   boss-<boss>.png    40x40 sensor silhouette of a boss of Act 1: gorgon-frigate (L05 mid-boss),
                      brood-carrier (L07) (UI batch); leviathan (L03's set piece, the threat
-                     profile's "unknown huge contact", M4 part C batch)
+                     profile's "unknown huge contact", M4 part C batch); harbour-kraken (L11's
+                     mid-boss, M5 part E batch: the head and mantle of the `harbour-kraken-sub` sprite)
   design/ui/hangar/concept/intel-final-r13-a.png   review sheet of the UI batch's pictures
   design/ui/hangar/concept/intel-final-r16-a.png   review sheet of the M4 part C batch's
   design/ui/hangar/concept/intel-final-r17-a.png   review sheet of the M4 part D batch's
@@ -24,6 +28,7 @@ Outputs (assets/sprites/intel/, packed onto the shared sprite pages as ``intel/<
   design/ui/hangar/concept/intel-final-r30-a.png   review sheet of the M5 part B batch's
   design/ui/hangar/concept/intel-final-r31-a.png   review sheet of the M5 part C batch's
   design/ui/hangar/concept/intel-final-r32-a.png   review sheet of the M5 part D batch's
+  design/ui/hangar/concept/intel-final-r33-a.png   review sheet of the M5 part E batch's
 
 The names are the enemy's or boss's name as a slug (vanguard.game.render.Portraits.slug). A
 portrait is the unit's chosen round-04 model (tools/concept/enemies_r04.py, imported unchanged) in
@@ -60,6 +65,7 @@ from artkit import DESIGN, ROOT, SPRITES, sprite
 
 import coilwyrm  # noqa: E402  (the Coilwyrm's production models)
 import creeper  # noqa: E402  (the Creeper's production model)
+import reef_spitter  # noqa: E402  (the Reef Spitter's production gun and raft models)
 import hive_node  # noqa: E402  (the Hive Node's production model)
 import leviathan  # noqa: E402  (the Leviathan's production model)
 import mantis  # noqa: E402  (the Mantis's production model)
@@ -73,6 +79,7 @@ import bosses_r06  # noqa: E402  (concept scripts, imported unchanged)
 import enemies_r03 as e3  # noqa: E402
 import enemies_r04 as e4  # noqa: E402
 from render import enemy_models as em  # noqa: E402
+from render import r06_models as m6  # noqa: E402
 from render import raster, sdf  # noqa: E402
 from render.enemy_rigs import model_space_materials  # noqa: E402
 from render.sdf import rotate_z  # noqa: E402
@@ -86,10 +93,12 @@ BATCHES = {"spore-bomber": "M4 part C batch", "whirl-seed": "M4 part C batch",
            "mantis": "M4 part F batch", "coilwyrm": "M4 part F batch",
            "creeper": "M5 part B batch",
            "hive-node": "M5 part C batch", "ravager": "M5 part C batch",
-           "wraith": "M5 part D batch", "mote-swarm": "M5 part D batch"}
+           "wraith": "M5 part D batch", "mote-swarm": "M5 part D batch",
+           "driftjelly": "M5 part E batch", "reef-spitter": "M5 part E batch",
+           "boss-harbour-kraken": "M5 part E batch"}
 # the concept round that reviews a batch
 ROUNDS = {UI_BATCH: "r13", "M4 part C batch": "r16", "M4 part D batch": "r17", "M4 part F batch": "r23",
-          "M5 part B batch": "r30", "M5 part C batch": "r31", "M5 part D batch": "r32"}
+          "M5 part B batch": "r30", "M5 part C batch": "r31", "M5 part D batch": "r32", "M5 part E batch": "r33"}
 OUT = SPRITES / "intel"
 CONCEPT = DESIGN / "ui" / "hangar" / "concept"
 PORTRAIT = 30
@@ -112,8 +121,11 @@ ENEMIES = {
     "ravager": lambda: ravager.model(0, 2),
     "wraith": lambda: wraith.model(0, 1),
     "mote-swarm": lambda: mote_swarm.model(0, 1.1),
+    "driftjelly": lambda: m6.driftjelly(0.0),
 }
-BOSSES = ("gorgon-frigate", "brood-carrier", "leviathan")
+BOSSES = ("gorgon-frigate", "brood-carrier", "leviathan", "harbour-kraken")
+# portraits that are not one model: name -> the 8x render (an RGBA array), as sdf.render gives it
+
 PLATE = np.array([4, 16, 28], float)
 GRID = np.array([16, 60, 80], float)
 SCAN = np.array([60, 220, 255], float)
@@ -160,9 +172,30 @@ def plate(n):
     return img
 
 
+def reef_spitter_hi():
+    """The Reef Spitter: its gun (heading 0, aiming down the screen) on the kelp raft, the production
+    models of tools/art/reef_spitter.py rendered together at the raft's scale, the gun over the raft."""
+    size, extent = (PORTRAIT * 8, PORTRAIT * 8), reef_spitter.RAFT_EXTENT * 1.0
+    raft_scene, raft_mats = reef_spitter.raft_model()
+    raft = sdf.render(raft_scene, raft_mats, size, extent)
+    gun_scene, gun_mats = m6.reef_gun(recoil=0.0, glow=1.0)
+    rot = reef_spitter.gun_rotation(0)
+    gun = sdf.render(lambda p: gun_scene(rotate_z(p, rot)), model_space_materials(gun_mats, rot), size, extent)
+    ga, ra = gun[..., 3:4], raft[..., 3:4]
+    alpha = ga + ra * (1 - ga)
+    rgb = (gun[..., :3] * ga + raft[..., :3] * ra * (1 - ga)) / np.maximum(alpha, 1e-6)
+    return np.concatenate([rgb, alpha], axis=-1)
+
+
+HI = {"reef-spitter": reef_spitter_hi}
+
+
 def portrait(slug):
-    scene, mats = ENEMIES[slug]()
-    hi = sdf.render(scene, mats, (PORTRAIT * 8, PORTRAIT * 8), e3.EXTENT * 1.06)
+    if slug in HI:
+        hi = HI[slug]()
+    else:
+        scene, mats = ENEMIES[slug]()
+        hi = sdf.render(scene, mats, (PORTRAIT * 8, PORTRAIT * 8), e3.EXTENT * 1.06)
     unit = np.array(artkit.native(hi, 8)).astype(np.float64)
     a = unit[..., 3:4] / 255
     rgb = unit[..., :3] * 0.82 + SCAN * 0.12 * (unit[..., :3].mean(-1, keepdims=True) / 255 + 0.3)
@@ -195,8 +228,15 @@ def leviathan_mask():
     return hi[..., 3] > 0.5
 
 
+def kraken_mask():
+    """The Harbour Kraken's head and mantle facing down, the production `harbour-kraken-sub` sprite's
+    outline (tools/art/harbour_kraken.py: what lies under the platform), the arms left out."""
+    return np.array(Image.open(SPRITES / "harbour-kraken-sub.png").convert("RGBA"))[..., 3] > 127
+
+
 def silhouette(slug):
-    mask = {"gorgon-frigate": gorgon_mask, "brood-carrier": carrier_mask, "leviathan": leviathan_mask}[slug]()
+    mask = {"gorgon-frigate": gorgon_mask, "brood-carrier": carrier_mask, "leviathan": leviathan_mask,
+            "harbour-kraken": kraken_mask}[slug]()
     ys, xs = np.nonzero(mask)
     mask = mask[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
     inner = SILHOUETTE - 6
@@ -226,7 +266,7 @@ def picture_name(job):
     return f"boss-{slug}" if kind == "boss" else slug
 
 
-JOBS = [("enemy", slug) for slug in ENEMIES] + [("boss", slug) for slug in BOSSES]
+JOBS = [("enemy", slug) for slug in list(ENEMIES) + list(HI)] + [("boss", slug) for slug in BOSSES]
 
 
 def batch_of(name):

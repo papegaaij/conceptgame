@@ -21,6 +21,7 @@ import java.util.Optional;
  * @param loop a segment chain's loop-back: the head re-enters on this second path after a gap
  * @param ambush M5 part D: a {@code rear ambush} unit's way back up after its swoop down {@code path}
  * @param swarm M5 part D: a {@code swarm} member: its flock's route and its place in the flock
+ * @param field M5 part E: a {@code field} unit: where it starts, its drift and its swap timer's seed
  */
 record Spawn(
         int tick,
@@ -38,7 +39,53 @@ record Spawn(
         Optional<WalkPath> walk,
         Optional<Loop> loop,
         Optional<Ambush> ambush,
-        Optional<Swarm> swarm) {
+        Optional<Swarm> swarm,
+        Optional<Field> field) {
+
+    Spawn(
+            int tick,
+            int kind,
+            EnemySpec enemy,
+            FlightPath path,
+            double speed,
+            double holdSeconds,
+            Optional<Orbit> orbit,
+            Exit exit,
+            boolean leadsTarget,
+            Optional<PickupType> carried,
+            Optional<Release> release,
+            Optional<Escort> escort,
+            Optional<WalkPath> walk,
+            Optional<Loop> loop,
+            Optional<Ambush> ambush,
+            Optional<Swarm> swarm) {
+        this(
+                tick,
+                kind,
+                enemy,
+                path,
+                speed,
+                holdSeconds,
+                orbit,
+                exit,
+                leadsTarget,
+                carried,
+                release,
+                escort,
+                walk,
+                loop,
+                ambush,
+                swarm,
+                Optional.empty());
+    }
+
+    /**
+     * M5 part E, a {@code field} wave's unit (design/enemies/naval/driftjelly): it appears at ({@code
+     * x}, {@code y}) on the ground layer (above the top edge), scrolls with the ground and drifts at
+     * ({@code vx}, {@code vy}) px/s (y up); it starts {@code submerged} or surfaced, its swap timer
+     * drawn from {@code seed}.
+     */
+    record Field(double x, double y, double vx, double vy, boolean submerged, long seed) {}
 
     Spawn(
             int tick,

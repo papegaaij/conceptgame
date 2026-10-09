@@ -20,6 +20,9 @@ import vanguard.sim.SimStep;
  * ({@link BackdropCheck}).
  */
 final class ContentValidator {
+    /** M5 part E: the layer under the water's surface. */
+    private static final String SUB = "sub";
+
     private final Content content;
     private final Map<Object, String> paths;
     private final List<String> problems = new ArrayList<>();
@@ -138,6 +141,15 @@ final class ContentValidator {
     }
 
     private void checkEnemy(EnemyData enemy) {
+        // M5 part E: a unit is under the water only in its dives (E2b's submerge), never by its stat block.
+        if (enemy.layer().equals(SUB)) {
+            problem(enemy, "layer", "a unit's stat block is not on sub: it dives from ground");
+        }
+        enemy.cloak().ifPresent(cloak -> {
+            if (cloak.layer().equals(SUB)) {
+                problem(enemy, "cloak.layer", "a unit does not decloak under the water");
+            }
+        });
         for (int i = 0; i < enemy.formations().size(); i++) {
             checkFormation(
                     enemy,
@@ -198,6 +210,7 @@ final class ContentValidator {
         checkParts(enemy);
         checkBoss(enemy);
         checkPartD(enemy);
+        checkPartE(enemy);
         enemy.difficulty()
                 .flatMap(EnemyData.Hooks::hard)
                 .flatMap(EnemyData.Hook::leadsTargetIn)
@@ -464,7 +477,12 @@ final class ContentValidator {
                             "'" + slug + "' does not stand on the ground (no terrain movement)");
                 }
             });
-            target.group().ifPresent(group -> checkGroup(level, field + ".group", group));
+            if (target.enemy().isPresent()) {
+                target.group().ifPresent(group -> checkGroup(level, field + ".group", group));
+            } else {
+                target.group().ifPresent(group -> checkDestructibleGroup(level, field + ".group", group));
+            }
+            checkTargetLayer(level, field, target);
         }
         for (int i = 0; i < level.cranes().orElse(List.of()).size(); i++) {
             LevelData.CraneData crane = level.cranes().get().get(i);
@@ -522,6 +540,8 @@ final class ContentValidator {
         }
         checkPartC(level, levelEnemies);
         checkPartD(level);
+        checkPartE(level);
+        checkArenaLevel(level);
         new BackdropCheck(level, (field, message) -> problem(level, field, message)).run();
     }
 
@@ -678,6 +698,314 @@ final class ContentValidator {
         }
     }
 
+    /**
+     * M5 part E's unit keys (design/enemies/naval): a submerging unit is on the ground layer (the
+     * sea's surface); a proximity ring is its unit's only attack, and only a ring's hook changes its
+     * reach; a {@code field} unit drifts (movement {@code drift}); a boss's lanes are owned by its parts.
+     */
+    private void checkPartE(EnemyData enemy) {
+        if (enemy.submerge().isPresent() && !enemy.layer().equals("ground")) {
+            problem(enemy, "submerge", "only a unit on the ground layer (the sea's surface) submerges");
+        }
+        boolean ring = enemy.attacks().stream().anyMatch(SimSpecs::proximityRing);
+        if (ring && enemy.attacks().size() > 1) {
+            problem(enemy, "attacks", "a ring fired within a reach is its unit's only attack");
+        }
+        for (var hook : List.of(
+                enemy.difficulty().flatMap(EnemyData.Hooks::easy),
+                enemy.difficulty().flatMap(EnemyData.Hooks::hard))) {
+            hook.flatMap(EnemyData.Hook::attacks)
+                    .ifPresent(changes -> changes.forEach((name, change) -> {
+                        if (change.within().isPresent()
+                                && enemy.attack(name)
+                                        .filter(SimSpecs::proximityRing)
+                                        .isEmpty()) {
+                            problem(
+                                    enemy,
+                                    "difficulty.attacks." + name + ".within",
+                                    "only a ring fired within a reach has one");
+                        }
+                    }));
+        }
+        if (enemy.formations().stream().anyMatch(use -> use.name().equals(LevelData.Wave.FIELD))
+                && enemy.movement().drift().isEmpty()) {
+            problem(enemy, "formations", "a field's units drift: give movement.drift");
+        }
+        enemy.boss()
+                .flatMap(EnemyData.BossData::lanes)
+                .flatMap(EnemyData.Lanes::arms)
+                .ifPresent(arms -> arms.keySet().forEach(part -> checkPartName(enemy, "boss.lanes.arms", part)));
+        checkArenaBoss(enemy);
+    }
+
+    /**
+     * M5 part E, step E2c: an arena boss's keys (design/enemies/bosses/harbour-kraken). Only an
+     * anchored boss (movement {@code anchored}, without a hover or a straight descent) has lanes, part
+     * layers, weak spots, slam chains or phases that slam, surface, release or drop; its lanes have
+     * arms that are slam chains' parts and each slam chain's part owns lanes; a phase that slams needs
+     * lanes, one that ends on slams slams; a surfacing names a part, a release a known enemy that forms
+     * fields and lanes of the boss, a drop a pickup.
+     */
+    private void checkArenaBoss(EnemyData enemy) {
+        boolean anchored = enemy.movement().anchored().isPresent();
+        if (anchored
+                && (enemy.boss().isEmpty()
+                        || enemy.movement().hover().isPresent()
+                        || enemy.movement().straight().isPresent())) {
+            problem(enemy, "movement.anchored", "only a boss is anchored, without a hover or a straight descent");
+        }
+        List<EnemyData.PartData> parts = enemy.partList().orElse(List.of());
+        for (int i = 0; i < parts.size(); i++) {
+            EnemyData.PartData part = parts.get(i);
+            if (!anchored && (part.layer().isPresent() || part.spots().isPresent())) {
+                problem(enemy, "part_list[" + i + "]", "only an anchored boss's parts have a layer or spots");
+            }
+        }
+        List<EnemyData.ChainData> chains = enemy.chains().orElse(List.of());
+        Optional<EnemyData.Lanes> lanes = enemy.boss().flatMap(EnemyData.BossData::lanes);
+        if (lanes.isPresent() && !anchored) {
+            problem(enemy, "boss.lanes", "only an anchored boss has lanes");
+        }
+        java.util.Map<String, List<Integer>> arms =
+                lanes.flatMap(EnemyData.Lanes::arms).orElse(java.util.Map.of());
+        for (int i = 0; i < chains.size(); i++) {
+            EnemyData.ChainData chain = chains.get(i);
+            if (chain.slams() && !arms.containsKey(chain.to())) {
+                problem(enemy, "chains[" + i + "].motion", "a slam arm's part owns lanes (boss.lanes.arms)");
+            }
+        }
+        if (lanes.isPresent() && arms.isEmpty()) {
+            problem(enemy, "boss.lanes.arms", "lanes are slammed by arms");
+        }
+        for (String part : arms.keySet()) {
+            boolean slammer = chains.stream()
+                    .anyMatch(chain -> chain.slams() && chain.to().equals(part));
+            if (!slammer) {
+                problem(enemy, "boss.lanes.arms", "'" + part + "' is no slam chain's part (motion: slam)");
+            }
+        }
+        if (enemy.boss().isEmpty()) {
+            return;
+        }
+        List<EnemyData.PhaseData> phases = enemy.boss().get().phases();
+        for (int i = 0; i < phases.size(); i++) {
+            EnemyData.PhaseData phase = phases.get(i);
+            String field = "boss.phases[" + i + "]";
+            boolean arena = phase.slamming().isPresent()
+                    || phase.surface().isPresent()
+                    || phase.release().isPresent()
+                    || phase.drop().isPresent()
+                    || phase.until().slams().isPresent()
+                    || phase.until().below().isPresent();
+            if (arena && !anchored) {
+                problem(enemy, field, "only an anchored boss's phases slam, surface, release or drop");
+            }
+            if (phase.slamming().isPresent() && lanes.isEmpty()) {
+                problem(enemy, field + ".slamming", "a phase slams only with the boss's lanes");
+            }
+            if (phase.until().slams().isPresent() && phase.slamming().isEmpty()) {
+                problem(enemy, field + ".until.slams", "a phase ends on slams only when it slams");
+            }
+            if (phase.slamming()
+                            .filter(slamming -> slamming.mode().equals("after_dive"))
+                            .isPresent()
+                    && phase.surface()
+                            .filter(surface -> !surface.stay().orElse(false))
+                            .isEmpty()) {
+                problem(enemy, field + ".slamming", "after_dive needs a surfacing that dives");
+            }
+            phase.surface().ifPresent(surface -> checkPartName(enemy, field + ".surface.part", surface.part()));
+            phase.release().ifPresent(release -> {
+                checkEnemyName(enemy, field + ".release.enemy", release.enemy());
+                if (content.enemies().containsKey(release.enemy())
+                        && content.enemy(release.enemy()).movement().drift().isEmpty()) {
+                    problem(
+                            enemy,
+                            field + ".release.enemy",
+                            "a field's units drift: '" + release.enemy() + "' does not");
+                }
+                if (phase.surface().isEmpty()) {
+                    problem(enemy, field + ".release.on", "first-surface needs the phase's surfacing");
+                }
+                int count = lanes.map(EnemyData.Lanes::count).orElse(0);
+                release.lanes().stream()
+                        .filter(lane -> lane < 1 || lane > count)
+                        .forEach(lane -> problem(enemy, field + ".release.lanes", "the boss has no lane " + lane));
+            });
+        }
+    }
+
+    /**
+     * M5 part E's level keys (Level 11): a field wave's enemy drifts, its area lies across the play
+     * field and holds its units at its spacing on every difficulty; a nest's current only for units
+     * whose terrain drifts; the naval convoy (beside no escort): its units are allies that follow
+     * stations, named once each, their stations on the play field and apart, their lanes the level
+     * boss's (a boss with lanes), in their lanes on the play field; an afloat objective has a convoy
+     * with a unit that can be damaged and a boss.
+     */
+    private void checkPartE(LevelData level) {
+        for (int i = 0; i < level.waves().size(); i++) {
+            LevelData.Wave wave = level.waves().get(i);
+            if (wave.size().isEmpty()) {
+                continue;
+            }
+            String field = "waves[" + i + "]";
+            LevelData.Group group = wave.groupList().getFirst();
+            if (!content.enemies().containsKey(group.enemy())) {
+                continue;
+            }
+            EnemyData enemy = content.enemy(group.enemy());
+            if (enemy.movement().drift().isEmpty()) {
+                problem(
+                        level,
+                        field + ".enemy",
+                        "a field's units drift: '" + group.enemy() + "' has no movement.drift");
+            }
+            Size size = wave.size().get();
+            double x = wave.x().orElseThrow();
+            if (x - size.width() / 2 < 0 || x + size.width() / 2 > PlayField.WIDTH) {
+                problem(level, field + ".size", "the field reaches beyond the play field's sides");
+            }
+            double spacing =
+                    wave.spacing().orElse(SimSpecs.fieldSpacing(enemy.hitbox().width()));
+            int capacity = (int) Math.floor(size.width() / spacing) * (int) Math.floor(size.height() / spacing);
+            for (Difficulty difficulty : Difficulty.values()) {
+                Optional<LevelData.Change> change =
+                        switch (difficulty) {
+                            case EASY -> wave.easy();
+                            case MEDIUM -> Optional.empty();
+                            case HARD -> wave.hard();
+                        };
+                int count = change.flatMap(LevelData.Change::count)
+                        .orElseGet(() -> content.difficulty().formationSize(group.count(), difficulty));
+                if (count > capacity) {
+                    problem(
+                            level,
+                            field + ".size",
+                            count + " units on " + difficulty.name().toLowerCase(Locale.ROOT) + " do not fit "
+                                    + size.width() + "×" + size.height() + " px " + spacing + " px apart (at most "
+                                    + capacity + ")");
+                }
+            }
+        }
+        for (int i = 0; i < level.groundTargets().size(); i++) {
+            LevelData.GroundTarget target = level.groundTargets().get(i);
+            if (target.current().isPresent()
+                    && target.enemy().filter(content.enemies()::containsKey).isPresent()
+                    && content.enemy(target.enemy().get())
+                            .movement()
+                            .terrain()
+                            .flatMap(EnemyData.Terrain::drift)
+                            .isEmpty()) {
+                problem(level, "ground_targets[" + i + "].current", "its units do not drift (terrain.drift)");
+            }
+        }
+        level.convoy().ifPresent(convoy -> checkConvoy(level, convoy));
+        boolean afloat = level.objectives()
+                .secondary()
+                .flatMap(LevelData.Secondary::afloat)
+                .orElse(false);
+        if (afloat
+                && (level.convoy().isEmpty()
+                        || level.boss().isEmpty()
+                        || level.convoy().map(this::damageable).orElse(0) == 0)) {
+            problem(
+                    level,
+                    "objectives.secondary.afloat",
+                    "an afloat objective needs a convoy with a unit that can be damaged, and a boss");
+        }
+    }
+
+    /** M5 part E: the units of a naval convoy that can be damaged (slams hurt them); unknown allies count none. */
+    private int damageable(LevelData.Convoy convoy) {
+        int count = 0;
+        for (LevelData.ConvoyUnit unit : convoy.units()) {
+            AlliesData.Ally ally = content.allies().allies().get(unit.ally());
+            count += ally != null && ally.damagedBy().hitsPerSlam() > 0 ? 1 : 0;
+        }
+        return count;
+    }
+
+    /** M5 part E: a level's naval convoy (see {@link #checkPartE(LevelData)}). */
+    private void checkConvoy(LevelData level, LevelData.Convoy convoy) {
+        if (level.objectives().escort().isPresent()) {
+            problem(level, "convoy", "a naval convoy is not an escort: give one or the other");
+        }
+        Optional<EnemyData.Lanes> lanes = PartERules.lanes(content, level);
+        Set<String> names = new TreeSet<>();
+        List<double[]> boxes = new ArrayList<>();
+        for (int k = 0; k < convoy.units().size(); k++) {
+            LevelData.ConvoyUnit unit = convoy.units().get(k);
+            String field = "convoy.units[" + k + "]";
+            if (!names.add(unit.name())) {
+                problem(level, field + ".name", "'" + unit.name() + "' names another unit already");
+            }
+            AlliesData.Ally ally = content.allies().allies().get(unit.ally());
+            if (ally == null) {
+                problem(level, field + ".ally", "unknown ally '" + unit.ally() + "'");
+                continue;
+            }
+            if (!ally.naval()) {
+                problem(level, field + ".ally", "a " + unit.ally() + " does not follow stations");
+                continue;
+            }
+            double w = ally.hitbox().width();
+            double h = ally.hitbox().height();
+            Point at = unit.station();
+            if (at.x() - w / 2 < 0
+                    || at.x() + w / 2 > PlayField.WIDTH
+                    || at.y() - h / 2 < 0
+                    || at.y() + h / 2 > PlayField.HEIGHT) {
+                problem(level, field + ".station", "its hit box leaves the play field");
+            }
+            for (double[] other : boxes) {
+                if (Math.abs(other[0] - at.x()) < (other[2] + w) / 2
+                        && Math.abs(other[1] - at.y()) < (other[3] + h) / 2) {
+                    problem(level, field + ".station", "its hit box overlaps another unit's");
+                }
+            }
+            boxes.add(new double[] {at.x(), at.y(), w, h});
+            unit.hold().ifPresent(hold -> {
+                if (hold.x() - w / 2 < 0
+                        || hold.x() + w / 2 > PlayField.WIDTH
+                        || hold.y() - h / 2 < 0
+                        || hold.y() - h / 2 > PlayField.HEIGHT + h) {
+                    problem(level, field + ".hold", "its hit box lies beside the play field or far below it");
+                }
+                if (convoy.holdClear().orElse(0.0) <= 0) {
+                    problem(level, field + ".hold", "a hold point needs the convoy's hold_clear");
+                }
+            });
+            unit.lane().ifPresent(lane -> {
+                if (lanes.isEmpty()) {
+                    problem(level, field + ".lane", "only a level whose boss has lanes gives lanes");
+                } else if (lane > lanes.get().count()) {
+                    problem(
+                            level,
+                            field + ".lane",
+                            "the boss has " + lanes.get().count() + " lanes, not " + lane);
+                } else if (lanes.get().width() < w) {
+                    problem(level, field + ".lane", "a " + unit.ally() + " is wider than a lane");
+                }
+                double y = convoy.laneY().orElseThrow();
+                if (y - h / 2 < 0 || y + h / 2 > PlayField.HEIGHT) {
+                    problem(level, "convoy.lane_y", "a " + unit.ally() + " in its lane leaves the play field");
+                }
+            });
+        }
+        for (int a = 0; a < convoy.units().size(); a++) {
+            for (int b = a + 1; b < convoy.units().size(); b++) {
+                if (convoy.units().get(a).lane().isPresent()
+                        && convoy.units()
+                                .get(a)
+                                .lane()
+                                .equals(convoy.units().get(b).lane())) {
+                    problem(level, "convoy.units[" + b + "].lane", "two units in one lane");
+                }
+            }
+        }
+    }
+
     /** {@code enemy}'s formations list {@code formation}. */
     private void checkFlies(EnemyData enemy, String formation) {
         if (enemy.formations().stream().noneMatch(use -> use.name().equals(formation))) {
@@ -786,6 +1114,84 @@ final class ContentValidator {
             }
         }
         checkPartDEvents(level);
+    }
+
+    /**
+     * M5 part E, step E2c: a section's speed 0 only on the arena of a level whose boss is anchored, and
+     * such a boss has it: its arena of speed 0 lasting at least the ease into the halt, after a moving
+     * section, the boss arriving at the arena's start in it; the radio's {@code first-telegraph} only with
+     * a boss with lanes, {@code boss-part-destroyed} naming parts of the level's boss other than its
+     * vital one.
+     */
+    private void checkArenaLevel(LevelData level) {
+        Optional<EnemyData> boss = level.boss()
+                .map(LevelData.BossPlacement::enemy)
+                .filter(content.enemies()::containsKey)
+                .map(content::enemy);
+        boolean anchored =
+                boss.map(enemy -> enemy.movement().anchored().isPresent()).orElse(false);
+        List<LevelData.Section> sections = level.sections();
+        for (int i = 0; i < sections.size(); i++) {
+            LevelData.Section section = sections.get(i);
+            if (section.speed().filter(speed -> speed == 0).isPresent() && !(section.isArena() && anchored)) {
+                problem(
+                        level,
+                        "sections[" + i + "].speed",
+                        "speed 0 only on the arena of a level whose boss is anchored");
+            }
+        }
+        if (anchored) {
+            LevelData.BossPlacement placement = level.boss().orElseThrow();
+            int arena = -1;
+            for (int i = 0; i < sections.size(); i++) {
+                arena = sections.get(i).isArena() ? i : arena;
+            }
+            if (arena < 1
+                    || sections.get(arena).speed().filter(speed -> speed == 0).isEmpty()) {
+                problem(level, "sections", "an anchored boss's arena has speed 0, after a section that scrolls");
+            } else {
+                double start = level.sectionStart(arena);
+                if (sections.get(arena).end() - start < vanguard.sim.Sortie.ARENA_RAMP_SECONDS) {
+                    problem(
+                            level,
+                            "sections[" + arena + "].end",
+                            "an arena of speed 0 lasts at least the ease into the halt (1 s)");
+                }
+                if (Math.abs(placement.t() - start) > 1e-9 || placement.section() != arena + 1) {
+                    problem(
+                            level,
+                            "boss.t",
+                            "an anchored boss arrives at its arena's start (" + start + ", section " + (arena + 1)
+                                    + ")");
+                }
+            }
+        }
+        boolean lanes =
+                boss.flatMap(EnemyData::boss).flatMap(EnemyData.BossData::lanes).isPresent();
+        for (int i = 0; i < level.radio().size(); i++) {
+            LevelData.RadioCue cue = level.radio().get(i);
+            LevelData.CueEvent event = cue.event().orElse(null);
+            if (event == LevelData.CueEvent.FIRST_TELEGRAPH && !lanes) {
+                problem(level, "radio[" + i + "].event", "first-telegraph in a level without a boss with lanes");
+            }
+            if (event == LevelData.CueEvent.BOSS_PART_DESTROYED) {
+                for (String part : cue.parts().orElse(List.of())) {
+                    int index = boss.map(enemy -> enemy.partIndex(part)).orElse(-1);
+                    if (index < 0
+                            || boss.get()
+                                    .partList()
+                                    .orElseThrow()
+                                    .get(index)
+                                    .kind()
+                                    .equals("vital")) {
+                        problem(
+                                level,
+                                "radio[" + i + "].parts",
+                                "'" + part + "' is no part of the level's boss but its vital one");
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1027,6 +1433,28 @@ final class ContentValidator {
         }
     }
 
+    /**
+     * M5 part E: a destructible's group is its own, not one of the objectives' (they never count it),
+     * and a placed pickup is dropped by its last destructible (Level 11's floating containers).
+     */
+    private void checkDestructibleGroup(LevelData level, String field, String group) {
+        if (level.objectives().groups().contains(group)) {
+            problem(level, field, "'" + group + "' is an objectives' group: a destructible's group is its own");
+        }
+        boolean carried = java.util.stream.Stream.concat(
+                        level.pickups().stream(),
+                        java.util.stream.Stream.of(
+                                        level.difficulty().easy(),
+                                        level.difficulty().hard())
+                                .flatMap(Optional::stream)
+                                .flatMap(variant -> variant.extraPickups().orElse(List.of()).stream()))
+                .anyMatch(pickup ->
+                        pickup.droppedBy().group().filter(group::equals).isPresent());
+        if (!carried) {
+            problem(level, field, "no pickup is dropped by group '" + group + "'");
+        }
+    }
+
     private void checkCarriers(
             LevelData level, String field, List<LevelData.PlacedPickup> pickups, Set<Double> waveTimes) {
         for (int i = 0; i < pickups.size(); i++) {
@@ -1039,10 +1467,12 @@ final class ContentValidator {
                 continue;
             }
             if (carrier.group().isPresent()) {
-                checkGroup(
-                        level,
-                        field + "[" + i + "].dropped_by.group",
-                        carrier.group().get());
+                if (!SimSpecs.destructibleGroups(level).contains(carrier.group().get())) {
+                    checkGroup(
+                            level,
+                            field + "[" + i + "].dropped_by.group",
+                            carrier.group().get());
+                }
                 continue;
             }
             double wave = carrier.waveT();
@@ -1066,10 +1496,13 @@ final class ContentValidator {
             boolean allyEvent = cue.event()
                     .map(event -> event == LevelData.CueEvent.FIRST_ALLY_HIT
                             || event == LevelData.CueEvent.FIRST_ALLY_LOST
-                            || event == LevelData.CueEvent.ALLY_LOST)
+                            || event == LevelData.CueEvent.ALLY_LOST
+                            || event == LevelData.CueEvent.ALLY_HIT)
                     .orElse(false);
-            if ((allyEvent || cue.allies().isPresent()) && escort.isEmpty()) {
-                problem(level, field, "convoy events and allies ranges need an escort objective");
+            if ((allyEvent || cue.allies().isPresent())
+                    && escort.isEmpty()
+                    && level.convoy().isEmpty()) {
+                problem(level, field, "convoy events and allies ranges need an escort objective or a naval convoy");
             }
             boolean canFail = escort.isPresent() || level.objectives().targets().isPresent();
             if (cue.event().orElse(null) == LevelData.CueEvent.MISSION_FAILED && !canFail) {
@@ -1078,8 +1511,10 @@ final class ContentValidator {
                         field,
                         "a mission-failed line needs a primary objective that can fail (escort, destroy-targets)");
             }
-            // M5 part D: a level-end cue counts the saveable units home (all but a scripted loss's).
-            int units = escort.map(LevelData.Escort::saveable).orElse(0);
+            // M5 part D: a level-end cue counts the saveable units home (all but a scripted loss's);
+            // M5 part E: a naval convoy's, its units that can be damaged afloat.
+            int units = escort.map(LevelData.Escort::saveable)
+                    .orElseGet(() -> level.convoy().map(this::damageable).orElse(0));
             String kind = escort.flatMap(LevelData.Escort::scriptedLoss).isPresent() ? " saveable units" : " units";
             cue.allies().ifPresent(range -> {
                 if (range.max() > units) {
@@ -1101,6 +1536,11 @@ final class ContentValidator {
         AlliesData.Ally ally = content.allies().allies().get(convoy.ally());
         if (ally == null) {
             problem(level, "objectives.escort.ally", "unknown ally '" + convoy.ally() + "'");
+            return;
+        }
+        if (ally.naval()) {
+            // M5 part E: a naval ally sails in a level's convoy block, outside the objectives.
+            problem(level, "objectives.escort.ally", "a " + convoy.ally() + " follows stations: give it in convoy");
             return;
         }
         if (ally.air() != convoy.air()) {
@@ -1246,6 +1686,28 @@ final class ContentValidator {
                 return;
             }
         }
+    }
+
+    /**
+     * A destructible or trigger lies on {@code ground}; M5 part E (Level 11's sunken pod): a trigger
+     * may lie on {@code sub}, under the water of a level with {@code water: true}, where only
+     * torpedoes reach it.
+     */
+    private void checkTargetLayer(LevelData level, String field, LevelData.GroundTarget target) {
+        target.layer().ifPresent(layer -> {
+            if (layer.equals(SUB)) {
+                if (target.hits().isEmpty()) {
+                    problem(level, field + ".layer", "only a trigger (hits) lies under the water");
+                } else if (!level.overWater()) {
+                    problem(level, field + ".layer", "a trigger on sub needs a level with water: true");
+                }
+            } else if (!layer.equals("ground")) {
+                problem(
+                        level,
+                        field + ".layer",
+                        "a destructible or trigger lies on ground (or a trigger on sub), not " + layer);
+            }
+        });
     }
 
     private void checkTime(LevelData level, String field, double t) {

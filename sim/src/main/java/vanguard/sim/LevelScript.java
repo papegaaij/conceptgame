@@ -36,6 +36,10 @@ import java.util.Optional;
  * @param holds M5 part C: the hold zones (Level 09's node clusters), where the scroll eases down
  *     until their groups are destroyed and the level clock slows with it
  * @param collapse M5 part C: the collapse (Level 09's arcology) once its groups are cleared
+ * @param water M5 part E (user decision E1 = a): the whole play field is water (Levels 11–13): the
+ *     torpedo ({@link WeaponSpec.Delivery#TORPEDO}) runs only here; elsewhere its mount fires nothing
+ * @param convoy M5 part E: a naval convoy outside the objectives (Level 11's cargo ships and frigate),
+ *     which never fails the mission; never beside an {@code escort}
  */
 public record LevelScript(
         int number,
@@ -61,7 +65,9 @@ public record LevelScript(
         List<TowSpec> tows,
         List<PartDrop> partDrops,
         List<Hold> holds,
-        Optional<Collapse> collapse) {
+        Optional<Collapse> collapse,
+        boolean water,
+        Optional<Naval> convoy) {
     public LevelScript {
         holds = List.copyOf(holds);
         int groupCount = groups(targets, secondary).size();
@@ -98,6 +104,181 @@ public record LevelScript(
         if (escort.isPresent() && escort.get().air().isEmpty() && road.isEmpty()) {
             throw new IllegalArgumentException("a convoy follows the level's road");
         }
+        if (convoy.isPresent() && escort.isPresent()) {
+            throw new IllegalArgumentException("a naval convoy is not an escort: a level has one or the other");
+        }
+    }
+
+    /** A level without M5 part E's naval convoy. */
+    public LevelScript(
+            int number,
+            int act,
+            double launchSeconds,
+            List<Section> sections,
+            List<WaveSpec> waves,
+            List<GroundObjectSpec> groundObjects,
+            List<GroundUnit> groundUnits,
+            int secrets,
+            List<RadioCue> radio,
+            Secondary secondary,
+            List<CraneSpec> cranes,
+            List<DebrisSpec> debris,
+            List<SetPieceSpec> setPieces,
+            Optional<Escort> escort,
+            Optional<Road> road,
+            List<String> targets,
+            Optional<SledSpec> sled,
+            Optional<RockSpec> rocks,
+            List<GroupDrop> groupDrops,
+            Optional<Darkness> darkness,
+            List<TowSpec> tows,
+            List<PartDrop> partDrops,
+            List<Hold> holds,
+            Optional<Collapse> collapse,
+            boolean water) {
+        this(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                holds,
+                collapse,
+                water,
+                Optional.empty());
+    }
+
+    /** A level over land: without M5 part E's water. */
+    public LevelScript(
+            int number,
+            int act,
+            double launchSeconds,
+            List<Section> sections,
+            List<WaveSpec> waves,
+            List<GroundObjectSpec> groundObjects,
+            List<GroundUnit> groundUnits,
+            int secrets,
+            List<RadioCue> radio,
+            Secondary secondary,
+            List<CraneSpec> cranes,
+            List<DebrisSpec> debris,
+            List<SetPieceSpec> setPieces,
+            Optional<Escort> escort,
+            Optional<Road> road,
+            List<String> targets,
+            Optional<SledSpec> sled,
+            Optional<RockSpec> rocks,
+            List<GroupDrop> groupDrops,
+            Optional<Darkness> darkness,
+            List<TowSpec> tows,
+            List<PartDrop> partDrops,
+            List<Hold> holds,
+            Optional<Collapse> collapse) {
+        this(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                holds,
+                collapse,
+                false);
+    }
+
+    /** M5 part E: this level over water ({@code true}) or over land. */
+    public LevelScript withWater(boolean overWater) {
+        return new LevelScript(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                holds,
+                collapse,
+                overWater,
+                convoy);
+    }
+
+    /** M5 part E: this level with the naval convoy {@code naval} (a test's own level). */
+    public LevelScript withConvoy(Naval naval) {
+        return new LevelScript(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                holds,
+                collapse,
+                water,
+                Optional.of(naval));
     }
 
     /** A level without M5 part C's hold zones and collapse. */
@@ -732,6 +913,96 @@ public record LevelScript(
     }
 
     /**
+     * M5 part E (design/allies, convoy cargo ship and escort frigate; design/campaign Level 11; user
+     * decision E8 = a and the stated defaults of 2026-10-08): a naval convoy outside the objectives.
+     * Its units hold screen-space stations at the scroll speed; when the scroll halts in the boss's
+     * arena each glides over {@code glideSeconds} (on the real steps) to its lane, centred at
+     * {@code laneY}, or, a unit that {@code leaves}, off the bottom edge; when the halt ends (the boss
+     * died) they hold there, or at a unit's hold point, until the sea has scrolled {@code holdClear}
+     * px (Level 11: Platform Tiamat's deck has passed the bottom edge), then glide back to their
+     * stations. Only what its {@link AllySpec} lists hurts a unit (the boss's slams); it never fails
+     * the mission.
+     *
+     * @param laneY px from the bottom edge (y up): a unit's centre in its lane
+     * @param holdClear px of scroll after the halt before the units glide back; 0 for at once
+     * @param lanes the arena's lanes (the boss's); 0 without lanes
+     * @param laneWidth px; lane 1 starts at the left edge
+     */
+    public record Naval(
+            List<NavalUnit> units, double glideSeconds, double laneY, int lanes, double laneWidth, double holdClear) {
+        public Naval {
+            units = List.copyOf(units);
+            if (units.isEmpty() || !(glideSeconds > 0) || lanes < 0 || (lanes > 0 && !(laneWidth > 0))) {
+                throw new IllegalArgumentException("a naval convoy has units, a glide and lanes of a width");
+            }
+            if (!(holdClear >= 0)) {
+                throw new IllegalArgumentException("a naval convoy holds clear for 0 px or more");
+            }
+            if (lanes * laneWidth > PlayField.WIDTH + 1e-9) {
+                throw new IllegalArgumentException("the lanes lie on the play field");
+            }
+            for (NavalUnit unit : units) {
+                if (unit.lane() > lanes) {
+                    throw new IllegalArgumentException(unit.name() + ": no lane " + unit.lane());
+                }
+            }
+        }
+
+        /** Without a hold after the halt: the units glide back to their stations when it ends. */
+        public Naval(List<NavalUnit> units, double glideSeconds, double laneY, int lanes, double laneWidth) {
+            this(units, glideSeconds, laneY, lanes, laneWidth, 0);
+        }
+
+        /** The centre x of lane {@code lane} (1-based), px from the left edge. */
+        public double laneX(int lane) {
+            return (lane - 0.5) * laneWidth;
+        }
+
+        /** The units that can be damaged (the frigate cannot): the ones an afloat objective counts. */
+        public int damageable() {
+            int count = 0;
+            for (NavalUnit unit : units) {
+                count += unit.ally().damageable() ? 1 : 0;
+            }
+            return count;
+        }
+    }
+
+    /**
+     * M5 part E: a naval convoy's unit: an {@code ally} named {@code name} (what {@code {ally}} becomes
+     * in a radio line: "Halvorsen") at its station ({@code x} px from the left edge, {@code y} px from
+     * the bottom edge, y up), gliding to its arena {@code lane} (1-based) at the halt, or, with {@code
+     * lane} 0, off the bottom edge ({@code leaves: true}) until the boss is down. When the halt ends it
+     * holds where it is, or glides to its hold point ({@code holdX}, {@code holdY}, y up; NaN for none),
+     * until the sea has scrolled its convoy's {@link Naval#holdClear()}.
+     */
+    public record NavalUnit(AllySpec ally, String name, double x, double y, int lane, double holdX, double holdY) {
+        public NavalUnit {
+            if (name.isBlank() || lane < 0) {
+                throw new IllegalArgumentException("a naval convoy unit has a name and a lane from 1, or 0 to leave");
+            }
+            if (Double.isNaN(holdX) != Double.isNaN(holdY)) {
+                throw new IllegalArgumentException(name + ": a hold point has an x and a y");
+            }
+        }
+
+        /** Without a hold point: it holds where it is after the halt. */
+        public NavalUnit(AllySpec ally, String name, double x, double y, int lane) {
+            this(ally, name, x, y, lane, Double.NaN, Double.NaN);
+        }
+
+        /** Whether it glides to a hold point when the halt ends. */
+        public boolean holds() {
+            return !Double.isNaN(holdX);
+        }
+
+        /** Whether it drops back off the bottom edge at the halt instead of taking a lane. */
+        public boolean leaves() {
+            return lane == 0;
+        }
+    }
+
+    /**
      * M5 part D (design/allies, evacuation shuttle; design/campaign Level 10; user decisions D1, D4
      * and D5 = a): an air escort. Each unit holds its {@link Station} in the band, drifting on its
      * lane sway on the level clock and never reacting to threats; there is no road and no hook. With a
@@ -871,6 +1142,9 @@ public record LevelScript(
      * @param beforePhase the index of the boss phase they must die in or before
      * @param tag M5 part C (user decision D6 = a): scopes {@code escapes} to the units of the waves
      *     with this tag (Level 09's {@code bridge} packs); empty for every unit of the enemy
+     * @param afloat M5 part E (user decision E8 = a, Level 11's "Convoy afloat"): met at the level
+     *     boss's death with every naval convoy unit that can be damaged afloat, failed at the first
+     *     sinking; {@code label} is the tracker's
      */
     public record Secondary(
             double killRatio,
@@ -882,7 +1156,8 @@ public record LevelScript(
             String partsOf,
             List<Integer> parts,
             int beforePhase,
-            String tag) {
+            String tag,
+            boolean afloat) {
         public Secondary {
             groups = List.copyOf(groups);
             killAll = List.copyOf(killAll);
@@ -893,6 +1168,32 @@ public record LevelScript(
             if (!tag.isEmpty() && escapes.isEmpty()) {
                 throw new IllegalArgumentException("only an escapes objective is scoped to a wave tag");
             }
+            if (afloat && (!groups.isEmpty() || !escapes.isEmpty() || !killAll.isEmpty() || !parts.isEmpty())) {
+                throw new IllegalArgumentException("an afloat objective counts the convoy, nothing else");
+            }
+        }
+
+        /** Without M5 part E's afloat. */
+        public Secondary(
+                double killRatio,
+                int credits,
+                List<String> groups,
+                String escapes,
+                List<String> killAll,
+                String label,
+                String partsOf,
+                List<Integer> parts,
+                int beforePhase,
+                String tag) {
+            this(killRatio, credits, groups, escapes, killAll, label, partsOf, parts, beforePhase, tag, false);
+        }
+
+        /**
+         * M5 part E (user decision E8 = a): every naval convoy unit that can be damaged afloat at the
+         * level boss's death, for {@code credits}, with the tracker's {@code label}.
+         */
+        public static Secondary afloat(int credits, String label) {
+            return new Secondary(0, credits, List.of(), "", List.of(), label, "", List.of(), -1, "", true);
         }
 
         /** Without M5 part C's wave tag. */
@@ -939,7 +1240,7 @@ public record LevelScript(
 
         /** M5 part D: whether the level has no secondary objective ({@link #NONE}). */
         public boolean none() {
-            return killRatio == 0 && credits == 0 && !byGroups() && !byEscapes();
+            return killRatio == 0 && credits == 0 && !byGroups() && !byEscapes() && !afloat;
         }
 
         /** Whether the objective is about groups rather than the kill ratio. */
@@ -978,9 +1279,16 @@ public record LevelScript(
 
     /**
      * An enemy fixed to the ground layer (a turret), entering at the top edge at {@code t} at
-     * {@code x}, in the secondary objective's group {@code group} (-1 for none).
+     * {@code x}, in the secondary objective's group {@code group} (-1 for none). M5 part E: a unit
+     * whose stat block drifts (a raft) drifts along its nest's current, {@code currentRadians} from
+     * straight down, positive to the right.
      */
-    public record GroundUnit(double t, double x, EnemySpec enemy, int group) {}
+    public record GroundUnit(double t, double x, EnemySpec enemy, int group, double currentRadians) {
+        /** A unit whose nest gives no current (straight down, with the scroll). */
+        public GroundUnit(double t, double x, EnemySpec enemy, int group) {
+            this(t, x, enemy, group, 0);
+        }
+    }
 
     /**
      * A crane hazard (design/campaign, Level 02: Crane Four): an arm hanging from a pivot above the
@@ -1046,6 +1354,14 @@ public record LevelScript(
      *     drop: a special charge, which drops only with a special fitted)
      * @param look a destructible's sprite set, which the game draws it with (the simulation does not
      *     read it)
+     * @param submerged M5 part E: a trigger on the {@code sub} layer (Level 11's sunken supply pod):
+     *     only torpedoes ({@link WeaponSpec.Delivery#TORPEDO}) hit it, and a Smart Bomb's ring spends
+     *     it at once; every other shot, blast and strike passes over it
+     * @param group M5 part E: a destructible's group (Level 11's floating containers), its index among
+     *     the level's destructible groups, -1 for none
+     * @param groupSize how many destructibles the group has
+     * @param groupDrop the pickup the group's last destructible drops where it is destroyed, once
+     *     every destructible of the group is (the containers' armour patch)
      */
     public record GroundObjectSpec(
             double t,
@@ -1063,9 +1379,93 @@ public record LevelScript(
             Optional<PickupType> bonusDrop,
             String look,
             boolean dark,
-            Optional<LevelResult.DataCore> core) {
+            Optional<LevelResult.DataCore> core,
+            boolean submerged,
+            int group,
+            int groupSize,
+            Optional<PickupType> groupDrop) {
         /** Level 01's cargo container, the look of a destructible that names none. */
         public static final String CARGO_CONTAINER = "cargo-container";
+
+        /** Without M5 part E's destructible group. */
+        public GroundObjectSpec(
+                double t,
+                double x,
+                Hitbox size,
+                double hp,
+                int bounty,
+                Optional<PickupType> drop,
+                int hits,
+                int crateCredits,
+                String secret,
+                boolean hardened,
+                int secretIndex,
+                int secretTriggers,
+                Optional<PickupType> bonusDrop,
+                String look,
+                boolean dark,
+                Optional<LevelResult.DataCore> core,
+                boolean submerged) {
+            this(
+                    t,
+                    x,
+                    size,
+                    hp,
+                    bounty,
+                    drop,
+                    hits,
+                    crateCredits,
+                    secret,
+                    hardened,
+                    secretIndex,
+                    secretTriggers,
+                    bonusDrop,
+                    look,
+                    dark,
+                    core,
+                    submerged,
+                    -1,
+                    0,
+                    Optional.empty());
+        }
+
+        /** On the ground layer: without M5 part E's sunken trigger. */
+        public GroundObjectSpec(
+                double t,
+                double x,
+                Hitbox size,
+                double hp,
+                int bounty,
+                Optional<PickupType> drop,
+                int hits,
+                int crateCredits,
+                String secret,
+                boolean hardened,
+                int secretIndex,
+                int secretTriggers,
+                Optional<PickupType> bonusDrop,
+                String look,
+                boolean dark,
+                Optional<LevelResult.DataCore> core) {
+            this(
+                    t,
+                    x,
+                    size,
+                    hp,
+                    bounty,
+                    drop,
+                    hits,
+                    crateCredits,
+                    secret,
+                    hardened,
+                    secretIndex,
+                    secretTriggers,
+                    bonusDrop,
+                    look,
+                    dark,
+                    core,
+                    false);
+        }
 
         /** Without Level 06's darkness and data core. */
         public GroundObjectSpec(
@@ -1105,6 +1505,15 @@ public record LevelScript(
         public GroundObjectSpec {
             if (hits > 0 && (secretTriggers < 1 || secretIndex < 0)) {
                 throw new IllegalArgumentException("a trigger reveals a secret, alone or with others");
+            }
+            if (submerged && hits <= 0) {
+                throw new IllegalArgumentException("only a trigger lies under the water");
+            }
+            if (group >= 0 && (hits > 0 || groupSize < 1)) {
+                throw new IllegalArgumentException("a group is of destructibles, at least one");
+            }
+            if (group < 0 && groupDrop.isPresent()) {
+                throw new IllegalArgumentException("only a group's last destructible drops the group's pickup");
             }
         }
 
@@ -1546,11 +1955,31 @@ public record LevelScript(
         /** M5 part D: the attempt's first decloak ({@link SimEvents.Type#DECLOAK}). No subject. */
         FIRST_DECLOAK,
         /** M5 part D: the attempt's first swarm loop-back ({@link SimEvents.Type#LOOP_BACK}). No subject. */
-        FIRST_LOOP_BACK;
+        FIRST_LOOP_BACK,
+        /**
+         * M5 part E: a convoy unit's first hit (each unit's; Level 11's cargo ships); its line may name
+         * the unit ({@code {ally}}, {@link Sortie#lastAllyHit()}). It starts again for each unit, as
+         * {@link #ALLY_LOST}.
+         */
+        ALLY_HIT,
+        /**
+         * M5 part E: the attempt's first lane telegraph of an arena boss ({@link SimEvents.Type#TELEGRAPH});
+         * once. No subject.
+         */
+        FIRST_TELEGRAPH,
+        /**
+         * M5 part E: the first of some of the level boss's parts shot off (not lost in its death); once.
+         * The cue's subject names the parts it waits for, separated by {@link #PART_SEPARATOR}; the
+         * event's subject is the part shot off.
+         */
+        BOSS_PART_DESTROYED;
+
+        /** Between the part names of a {@link #BOSS_PART_DESTROYED} cue's subject. */
+        public static final String PART_SEPARATOR = "|";
 
         /** Whether its cues start again each time the event happens, not once per attempt. */
         public boolean repeats() {
-            return this == ALLY_LOST;
+            return this == ALLY_LOST || this == ALLY_HIT;
         }
     }
 }

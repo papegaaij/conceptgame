@@ -36,7 +36,9 @@ final class SpriteUse {
      * The sprites the game draws in any level whatever its data: the ship and its engine flame, Rook's
      * craft with its flame and eject pod (he flies wherever the escort slot does), the pickups,
      * explosions and weapon effects, the wing-mount pods, the enemies' bullets and the loot targets'
-     * beacon and glint.
+     * beacon and glint; M5 part E: the generic water effects ({@code water-splash}, {@code
+     * water-ripple}, {@code water-collar-*}, {@code water-foam-strip}, {@code water-wake}), drawn in every
+     * level over water.
      */
     static final List<String> GAME_WIDE = List.of(
             "ship",
@@ -52,7 +54,8 @@ final class SpriteUse {
             "orb",
             "needle",
             "beacon",
-            "glint");
+            "glint",
+            "water");
 
     /** The sprites an enemy's attack pattern draws besides the enemy (the game's names). */
     private static final Map<String, String> PATTERN_ROOTS = Map.of("mortar", "mortar", "mine", "spore-mine");
