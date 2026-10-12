@@ -69,6 +69,9 @@ The numbers live in [data.yaml](data.yaml). Values are first-draft balancing num
   group (Level 09: `Node A1` … `Node C2`, two per cluster), so a `destroy-targets` primary can name
   it; it never walks. It stands on the ground plane only (a plaza, a bridge approach, a lobby
   plaza), never on a perspective tower ([art direction](../../../art-direction/README.md#parallax-layer-model)).
+- **In Level 14** (M5 part H) it returns with the act HP factor: 81 HP at medium (time to kill
+  unchanged at 1.02 s); each node releases 2 Skitters once, as the density rule counts one
+  release per spawner.
 - **Death.** The `large` organic collapse, then the creep patch around it withers over 2 s (drawn
   by the game from its frames).
 

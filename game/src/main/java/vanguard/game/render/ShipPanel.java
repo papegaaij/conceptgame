@@ -85,6 +85,13 @@ final class ShipPanel {
      * Torpedo Pod without water (design/ui/hud; it still draws its power).
      */
     static final String NO_WATER = "NO WATER";
+    /**
+     * M5 part F: the shield gauge's label while a Lamprey drains the shield (design/ui/hud, Level 12), in
+     * the warning colour; it fits the label plate ({@code PartFHudTest}).
+     */
+    static final String SHIELD_DRAIN = "SHIELD DRAIN";
+
+    static final Color DRAIN_COLOUR = HudKit.AMBER;
     /** The slot letters of the mock, front, rear, left and right (design/ui/hud). */
     private static final String[] SLOT_LETTERS = {"F", "R", "L", "R"};
 
@@ -134,11 +141,25 @@ final class ShipPanel {
         int x = X + HudKit.INSET;
         int y = HudKit.TOP - HudKit.INSET;
         boolean alarm = armourFlash(LowArmour.of(defences), sortie.tick());
-        gauge(batch, "ARMOUR", defences.armour(), defences.maxArmour(), ARMOUR, ARMOUR_EMPTY, x, y, true, alarm);
-        boolean flicker = defences.broken() && frame / FLICKER_FRAMES % 2 == 0;
         gauge(
                 batch,
-                "SHIELD",
+                "ARMOUR",
+                HudKit.LABEL,
+                defences.armour(),
+                defences.maxArmour(),
+                ARMOUR,
+                ARMOUR_EMPTY,
+                x,
+                y,
+                true,
+                alarm);
+        // M5 part F: a Lamprey draining the shield flickers it as a break does, under SHIELD DRAIN.
+        boolean draining = sortie.draining();
+        boolean flicker = (defences.broken() || draining) && frame / FLICKER_FRAMES % 2 == 0;
+        gauge(
+                batch,
+                draining ? SHIELD_DRAIN : "SHIELD",
+                draining ? DRAIN_COLOUR : HudKit.LABEL,
                 defences.shield(),
                 defences.maxShield(),
                 SHIELD,
@@ -309,6 +330,7 @@ final class ShipPanel {
     private void gauge(
             SpriteBatch batch,
             String name,
+            Color nameColour,
             double value,
             double max,
             Color full,
@@ -317,7 +339,7 @@ final class ShipPanel {
             int y,
             boolean lit,
             boolean alarm) {
-        kit.label(batch, name, x, y);
+        kit.label(batch, name, nameColour, x, y);
         kit.textRight(
                 batch,
                 kit.body,

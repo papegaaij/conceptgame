@@ -21,6 +21,10 @@ import vanguard.content.Tier;
  * {@code -recoil} frame for {@value #RECOIL_TICKS} steps after a fan, and at its death the raft's
  * {@code -sink}. Every unit also has its kills on the water: the {@code explosion-water-*} rung of
  * its tier on the surface and the {@code explosion-under-*} one under it (tools/art/water_fx.py).
+ * M5 part G, a skimming boat (the Skimmer, tools/art/skimmer.py): its plain body per heading through
+ * the {@code sub} pass, its {@code -wake} per heading ({@value #WAKE_FRAMES} frames at 20 fps) on the
+ * surface under its body frames, and at its death the {@code -sink}'s flip and sink at the nearest of
+ * {@value #SINK_HEADINGS} headings ({@link #sinkAt}).
  *
  * @param sub the plain body for the {@code sub} pass (a jelly's per pulse frame); empty for none
  * @param surface the surfacing steps; empty for none
@@ -33,6 +37,8 @@ import vanguard.content.Tier;
  * @param raftGun per raft frame, the gun's point, px from the frame's centre (x right, y up)
  * @param water the kill's burst on the water surface (its tier's rung)
  * @param under the kill's burst under the water (its tier's rung)
+ * @param wake M5 part G: a skimming boat's wake per heading, {@value #WAKE_FRAMES} frames each; empty for none
+ * @param sinks M5 part G: a skimming boat's flip and sink per one of {@value #SINK_HEADINGS} headings; empty for none
  */
 public record NavalLooks(
         Array<AtlasRegion> sub,
@@ -45,7 +51,9 @@ public record NavalLooks(
         Array<AtlasRegion> recoil,
         float[][] raftGun,
         Array<AtlasRegion> water,
-        Array<AtlasRegion> under) {
+        Array<AtlasRegion> under,
+        Array<AtlasRegion> wake,
+        Array<Array<AtlasRegion>> sinks) {
     /** A jelly's pulse frames (rest, contracting, contracted, relaxing) and the one its ripple starts at. */
     static final int PULSE_FRAMES = 4;
 
@@ -68,6 +76,12 @@ public record NavalLooks(
     static final int RECOIL_TICKS = 6;
 
     private static final Array<AtlasRegion> NONE = new Array<>(0);
+    /** M5 part G: a skimming boat's wake loop per heading, 8 frames at 20 fps (3 steps a frame). */
+    static final int WAKE_FRAMES = 8;
+
+    static final int WAKE_FRAME_TICKS = 3;
+    /** M5 part G: a skimming boat sinks at 8 headings (every second of its 16). */
+    static final int SINK_HEADINGS = 8;
 
     /** The looks of a unit without water frames: only its kills' water bursts. */
     static NavalLooks none(Sprites sprites, Tier tier) {
@@ -82,12 +96,16 @@ public record NavalLooks(
                 NONE,
                 new float[0][],
                 water(sprites, tier),
-                under(sprites, tier));
+                under(sprites, tier),
+                NONE,
+                new Array<>(0));
     }
 
     /** A unit's water looks from its {@code slug}'s sprites, those it has (none for a unit off the water). */
     static NavalLooks of(Sprites sprites, String slug, Tier tier) {
         Array<AtlasRegion> raft = optional(sprites, slug + "-raft");
+        Array<AtlasRegion> wake = optional(sprites, slug + "-wake");
+        Array<AtlasRegion> sink = optional(sprites, slug + "-sink");
         return new NavalLooks(
                 optional(sprites, slug + "-sub"),
                 optional(sprites, slug + "-surface"),
@@ -99,7 +117,26 @@ public record NavalLooks(
                 optional(sprites, slug + "-recoil"),
                 raft.isEmpty() ? new float[0][] : raftGun(slug, raft),
                 water(sprites, tier),
-                under(sprites, tier));
+                under(sprites, tier),
+                wake,
+                wake.isEmpty() ? new Array<>(0) : sinks(sink));
+    }
+
+    /** M5 part G: a skimming boat's sink split by heading ({@value #SINK_HEADINGS} runs of equal length). */
+    private static Array<Array<AtlasRegion>> sinks(Array<AtlasRegion> sink) {
+        Array<Array<AtlasRegion>> out = new Array<>(SINK_HEADINGS);
+        if (sink.size % SINK_HEADINGS != 0) {
+            return out;
+        }
+        int steps = sink.size / SINK_HEADINGS;
+        for (int h = 0; h < SINK_HEADINGS; h++) {
+            Array<AtlasRegion> run = new Array<>(steps);
+            for (int i = 0; i < steps; i++) {
+                run.add(sink.get(h * steps + i));
+            }
+            out.add(run);
+        }
+        return out;
     }
 
     private static Array<AtlasRegion> optional(Sprites sprites, String name) {
@@ -145,8 +182,30 @@ public record NavalLooks(
     }
 
     /** Whether it is drawn in two layers: a plain body under the water as well as its surface frames. */
-    boolean twoLayers() {
+    public boolean twoLayers() {
         return !sub.isEmpty() || !raftSub.isEmpty();
+    }
+
+    /** M5 part G: whether it is a skimming boat (its body per heading over its wake). */
+    public boolean skims() {
+        return !wake.isEmpty();
+    }
+
+    /** M5 part G: a skimming boat's wake frame at {@code heading} of its set at step {@code tick}, each boat at its {@code phase}. */
+    AtlasRegion wakeFrame(int heading, long tick, int phase) {
+        return wake.get(
+                heading * WAKE_FRAMES + (int) Math.floorMod(tick / WAKE_FRAME_TICKS + phase, (long) WAKE_FRAMES));
+    }
+
+    /**
+     * M5 part G: a skimming boat's flip and sink at the nearest of its {@value #SINK_HEADINGS} headings to
+     * {@code facing} (radians clockwise from straight down); empty without one.
+     */
+    public Array<AtlasRegion> sinkAt(double facing) {
+        if (sinks.isEmpty()) {
+            return NONE;
+        }
+        return sinks.get(EnemyLooks.heading(facing, sinks.size));
     }
 
     /** Whether it is a raft (its gun drawn over a bobbing raft). */

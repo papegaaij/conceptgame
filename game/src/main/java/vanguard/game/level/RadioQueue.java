@@ -16,7 +16,12 @@ import vanguard.game.ui.Words;
  * line. An event line waits for a gap, a free radio long enough to play it before the next timed
  * line is due; one that has waited longer than {@link #STALE_SECONDS} is dropped as stale. The lines
  * that close a level (its end, a met secondary objective) wait for a gap too but never go stale:
- * the outro waits for them. An urgent line (the Airstrike's "Hammer flight, inbound!") interrupts
+ * the outro waits for them; one queued while the radio is free (nothing on it, nothing waiting) goes
+ * ahead at once, and the timed lines that fall due while it plays wait for it (M5 part H, step H9:
+ * Level 14's root-grid line, which otherwise waited out the Choir and Varga and was dropped at the
+ * Siege Spire's warning). A boss phase's lines (M5 part H, step H7b) wait for a gap too but go stale
+ * only after {@link #PHASE_STALE_SECONDS}: a reply queued behind the phase's first line (Rook's after
+ * Okafor's as the Siege Spire tears loose) outlasts that line. An urgent line (the Airstrike's "Hammer flight, inbound!") interrupts
  * the line on the radio and plays at once; the interrupted line plays again from its start right
  * after it. The queue has no clock or randomness of its own, so the same updates always play the
  * same lines.
@@ -39,6 +44,11 @@ public final class RadioQueue {
     static final float GAP_SECONDS = 0.4f;
     /** An event line that has waited this long for a gap is dropped as stale. */
     public static final float STALE_SECONDS = 6f;
+    /**
+     * A boss phase's line that has waited this long is dropped as stale (M5 part H, step H7b): long
+     * enough for the second of two chained lines to wait out the first, voiced, with the gaps.
+     */
+    public static final float PHASE_STALE_SECONDS = 20f;
 
     /** How a line queues. */
     public enum Priority {
@@ -46,6 +56,11 @@ public final class RadioQueue {
         TIMED,
         /** A reaction to an event (an escaped enemy, a secret): waits for a gap, stale after {@link #STALE_SECONDS}. */
         EVENT,
+        /**
+         * A boss phase's line (M5 part H): waits for a gap like an event line, stale after {@link
+         * #PHASE_STALE_SECONDS}, so the lines a phase queues together all play.
+         */
+        PHASE,
         /** A line that closes the level (its end, a met secondary objective): waits for a gap, never stale. */
         CLOSING,
         /** A line that cannot wait (a reply to the player's call): interrupts the current line and plays at once. */
@@ -123,11 +138,19 @@ public final class RadioQueue {
     private static final class Waiting {
         final Message message;
         final Priority priority;
+        /** A closing line queued while the radio was free: it opens without waiting for a gap. */
+        final boolean ahead;
+
         float waited;
 
         Waiting(Message message, Priority priority) {
+            this(message, priority, false);
+        }
+
+        Waiting(Message message, Priority priority, boolean ahead) {
             this.message = message;
             this.priority = priority;
+            this.ahead = ahead;
         }
     }
 
@@ -135,6 +158,8 @@ public final class RadioQueue {
     private Optional<Message> current = Optional.empty();
     /** How the current message queued. */
     private Priority currentPriority = Priority.TIMED;
+    /** Whether the current message is a closing line that went ahead, to go ahead again if interrupted. */
+    private boolean currentAhead;
 
     private int page;
     private float typed;
@@ -170,7 +195,8 @@ public final class RadioQueue {
             Optional<String> voice,
             float voiceSeconds) {
         Message message = new Message(speaker, portrait, expression, wrap(line), distorted, voice, voiceSeconds);
-        queue.add(new Waiting(message, priority));
+        boolean free = current.isEmpty() && queue.isEmpty();
+        queue.add(new Waiting(message, priority, priority == Priority.CLOSING && free));
         return message;
     }
 
@@ -197,6 +223,36 @@ public final class RadioQueue {
         }
     }
 
+    /**
+     * Drops {@code message} if it is no longer worth hearing (M5 part H, step H7b: a secondary
+     * objective's line still waiting as a boss's warning starts, the HUD showing it done): out of the
+     * queue while it waits, or off the radio if it opened less than {@code within} seconds ago.
+     *
+     * @return whether it was cut on the radio (its voice must stop)
+     */
+    public boolean drop(Message message, float within) {
+        withdraw(message);
+        if (current.isPresent() && current.get() == message && opened < within) {
+            cancel(message);
+            return true;
+        }
+        return false;
+    }
+
+    /** Takes every waiting line of {@code priority} out of the queue (a boss phase's lines once the boss is down). */
+    public void withdrawAll(Priority priority) {
+        queue.removeIf(waiting -> waiting.priority == priority);
+    }
+
+    /** How long a line of {@code priority} waits before it is dropped as stale. */
+    static float staleAfter(Priority priority) {
+        return switch (priority) {
+            case EVENT -> STALE_SECONDS;
+            case PHASE -> PHASE_STALE_SECONDS;
+            case TIMED, CLOSING, URGENT -> Float.POSITIVE_INFINITY;
+        };
+    }
+
     /** Drops everything, as when the level restarts. */
     public void clear() {
         queue.clear();
@@ -214,7 +270,7 @@ public final class RadioQueue {
         for (Iterator<Waiting> waiting = queue.iterator(); waiting.hasNext(); ) {
             Waiting next = waiting.next();
             next.waited += seconds;
-            if (next.priority == Priority.EVENT && next.waited > STALE_SECONDS) {
+            if (next.waited > staleAfter(next.priority)) {
                 waiting.remove();
             }
         }
@@ -222,7 +278,7 @@ public final class RadioQueue {
         if (urgent && current.isPresent() && currentPriority != Priority.URGENT) {
             // The interrupted line goes back to the head of the queue, to play again in full once the
             // urgent lines (which go first wherever they wait) are done.
-            queue.addFirst(new Waiting(current.get(), currentPriority));
+            queue.addFirst(new Waiting(current.get(), currentPriority, currentAhead));
             current = Optional.empty();
         }
         if (current.isEmpty()) {
@@ -237,6 +293,7 @@ public final class RadioQueue {
             queue.remove(next.get());
             current = Optional.of(next.get().message);
             currentPriority = next.get().priority;
+            currentAhead = next.get().ahead;
             page = 0;
             typed = 0;
             held = 0;
@@ -268,8 +325,9 @@ public final class RadioQueue {
     }
 
     /**
-     * The message to open now: the oldest urgent line, else the oldest timed line, else the oldest other line if it ends, with
-     * the gap after it, before the next timed line is due.
+     * The message to open now: the oldest urgent line, else a closing line that went ahead (queued
+     * while the radio was free), else the oldest timed line, else the oldest other line if it ends,
+     * with the gap after it, before the next timed line is due.
      */
     private Optional<Waiting> next(float untilTimed) {
         Optional<Waiting> urgent = queue.stream()
@@ -277,6 +335,11 @@ public final class RadioQueue {
                 .findFirst();
         if (urgent.isPresent()) {
             return urgent;
+        }
+        Optional<Waiting> ahead =
+                queue.stream().filter(waiting -> waiting.ahead).findFirst();
+        if (ahead.isPresent()) {
+            return ahead;
         }
         Optional<Waiting> timed = queue.stream()
                 .filter(waiting -> waiting.priority == Priority.TIMED)

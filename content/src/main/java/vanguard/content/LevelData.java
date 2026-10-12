@@ -43,6 +43,18 @@ import vanguard.sim.PlayField;
  * @param water M5 part E (user decision E1 = a): the whole play field is water (Levels 11–13), where
  *     the torpedo runs; false if not given
  * @param convoy M5 part E: a naval convoy outside the objectives (Level 11's cargo ships and frigate)
+ * @param weather M5 part F: the level's wind, lightning, cloud-bank occlusion and rain (Level 12's storm)
+ * @param sondes M5 part F: the weather sondes to fly through (Level 12)
+ * @param dropFactor M5 part F: each enemy's drop {@code every} is divided by it, rounded to the nearest, at
+ *     least 1 (Level 12's shield cells, 1.5); 1 if not given
+ * @param pointDrops M5 part G (design/allies, CDF supply drone; user decision G6 = a): the data's {@code
+ *     drops}, pickups released at a point in the field at a time (Level 13's supply drones' armour
+ *     patches); named so beside {@link #drops()}, the drop factor
+ * @param waterSplash M5 part G (user decision G5 = a): which bursts on a {@code water: true} level play the
+ *     water splash: {@code all} (if not given, Levels 11 and 12) or {@code naval-only} (Level 13's ice: only
+ *     a burst on a naval unit and a naval unit's death); presentation only
+ * @param rootBursts M5 part H (design/campaign Level 14, Hazards; decision H2 = a): the root bursts, ground
+ *     units grown at a point of the field after a telegraph instead of entering at the top edge
  */
 public record LevelData(
         double scrollSpeed,
@@ -75,8 +87,25 @@ public record LevelData(
         Optional<List<Hold>> holds,
         Optional<Collapse> collapse,
         Optional<Boolean> water,
-        Optional<Convoy> convoy) {
+        Optional<Convoy> convoy,
+        Optional<Weather> weather,
+        Optional<SondesData> sondes,
+        Optional<Double> dropFactor,
+        @JsonProperty("drops") Optional<List<Drop>> pointDrops,
+        Optional<String> waterSplash,
+        Optional<RootBursts> rootBursts) {
     public LevelData {
+        dropFactor.ifPresent(factor -> Check.positive("drop_factor", factor));
+        waterSplash.ifPresent(splash -> Check.that(
+                WATER_SPLASH_ALL.equals(splash) || WATER_SPLASH_NAVAL.equals(splash),
+                "water_splash: 'all' or 'naval-only', was '" + splash + "'"));
+        Check.that(waterSplash.isEmpty() || water.orElse(false), "water_splash: only on a water: true level");
+        pointDrops = pointDrops.map(List::copyOf);
+        pointDrops.ifPresent(list -> {
+            for (int i = 1; i < list.size(); i++) {
+                Check.that(list.get(i).t() >= list.get(i - 1).t(), "drops[" + i + "]: listed in time order");
+            }
+        });
         Check.positive("scroll_speed", scrollSpeed);
         Check.notNegative("launch_seconds", launchSeconds);
         bountyScale.ifPresent(scale -> Check.positive("bounty_scale", scale));
@@ -103,6 +132,35 @@ public record LevelData(
         return water.orElse(false);
     }
 
+    /** M5 part G: {@code water_splash: all}, every burst on a water level is the water splash. */
+    public static final String WATER_SPLASH_ALL = "all";
+
+    /** M5 part G: {@code water_splash: naval-only}, only a burst on a naval unit and its death (Level 13). */
+    public static final String WATER_SPLASH_NAVAL = "naval-only";
+
+    /**
+     * M5 part G (user decision G5 = a): whether only a burst on a naval unit (and a naval unit's death)
+     * plays the water splash on this water level, every other burst the ground burst (Level 13's ice).
+     */
+    public boolean navalSplashOnly() {
+        return waterSplash.filter(WATER_SPLASH_NAVAL::equals).isPresent();
+    }
+
+    /** M5 part G: the pickups released at a point in the field (the data's {@code drops}), in time order. */
+    public List<Drop> released() {
+        return pointDrops.orElse(List.of());
+    }
+
+    /** M5 part H: the level's root bursts, in time order; none if not given. */
+    public List<RootBurst> bursts() {
+        return rootBursts.map(RootBursts::bursts).orElse(List.of());
+    }
+
+    /** M5 part F: the level's drop factor, its {@code drop_factor}; 1 if not given. */
+    public double drops() {
+        return dropFactor.orElse(1.0);
+    }
+
     /** The factor on every bounty paid in the level: its {@code bounty_scale}, 1 if not given. */
     public double bounties() {
         return bountyScale.orElse(1.0);
@@ -125,18 +183,59 @@ public record LevelData(
 
     /**
      * The ground layer's scroll distance at {@code t} seconds, px; before the start and after the
-     * end the first and the last section's speed carry on.
+     * end the first and the last section's speed carry on. M5 part G: around a timed halt (a section of
+     * speed 0 without an arena) the scroll eases down to 0 over the halt's {@code ramp} before it and
+     * back up over as long after it (smoothstep, as the simulation's {@code Sortie.timedHaltSpeed}, here
+     * integrated exactly: within a pixel of the simulation's sum over its steps).
      */
     public double scrollAt(double t) {
         double scroll = 0;
         for (int i = 0; i < sections.size(); i++) {
             Section section = sections.get(i);
+            double start = sectionStart(i);
             if (t < section.end() || i == sections.size() - 1) {
-                return scroll + (t - sectionStart(i)) * speedOf(section);
+                return scroll + travelled(i, start, t);
             }
-            scroll += (section.end() - sectionStart(i)) * speedOf(section);
+            scroll += travelled(i, start, section.end());
         }
         throw new IllegalStateException("a level has sections");
+    }
+
+    /** M5 part G: the px section {@code i} scrolls from {@code from} to {@code to} s (inside it, or past its ends). */
+    private double travelled(int i, double from, double to) {
+        Section section = sections.get(i);
+        double speed = speedOf(section);
+        double start = sectionStart(i);
+        double end = section.end();
+        double px = (to - from) * speed;
+        if (speed == 0) {
+            return px;
+        }
+        if (i + 1 < sections.size() && sections.get(i + 1).timedHalt()) {
+            double ramp = Math.min(sections.get(i + 1).rampSeconds(), end - start);
+            // eased down over [end - ramp, end]: speed × (1 - S(u)) instead of speed
+            px -= speed * ramp * (easeIn(clampedU(to, end - ramp, ramp)) - easeIn(clampedU(from, end - ramp, ramp)));
+        }
+        if (i > 0 && sections.get(i - 1).timedHalt()) {
+            double ramp = Math.min(sections.get(i - 1).rampSeconds(), end - start);
+            // eased up over [start, start + ramp]: speed × S(u) instead of speed
+            px -= speed * ramp * (easeOut(clampedU(to, start, ramp)) - easeOut(clampedU(from, start, ramp)));
+        }
+        return px;
+    }
+
+    private static double clampedU(double t, double from, double ramp) {
+        return ramp > 0 ? Math.clamp((t - from) / ramp, 0, 1) : (t >= from ? 1 : 0);
+    }
+
+    /** ∫₀ᵘ S(v) dv for the smoothstep S(v) = 3v² − 2v³: what an ease down loses against the full speed. */
+    private static double easeIn(double u) {
+        return u * u * u - u * u * u * u / 2;
+    }
+
+    /** ∫₀ᵘ (1 − S(v)) dv: what an ease up loses against the full speed. */
+    private static double easeOut(double u) {
+        return u - u * u * u + u * u * u * u / 2;
     }
 
     private double speedOf(Section section) {
@@ -168,15 +267,35 @@ public record LevelData(
 
     /** The atmosphere along the level: every section's, split around its peak, in time order. */
     public List<Stretch> atmosphereStretches() {
+        return atmosphereStretches(false);
+    }
+
+    /**
+     * As {@link #atmosphereStretches()}; on {@code easy} a peak with an {@code easy} length is that long,
+     * centred on its authored stretch (M5 part G: Level 13's whiteout, 6 s on easy; presentation only).
+     */
+    public List<Stretch> atmosphereStretches(boolean easy) {
+        return atmosphereStretches(sections, easy);
+    }
+
+    /** As {@link #atmosphereStretches(boolean)} for back-to-back {@code sections} from t = 0. */
+    public static List<Stretch> atmosphereStretches(List<Section> sections, boolean easy) {
         List<Stretch> out = new ArrayList<>();
         for (int i = 0; i < sections.size(); i++) {
             Section section = sections.get(i);
-            double start = sectionStart(i);
+            double start = i == 0 ? 0 : sections.get(i - 1).end();
             if (section.peak().isPresent()) {
-                Peak peak = section.peak().get();
-                out.add(new Stretch(start, peak.from(), section.atmosphere()));
+                // M5 part G: a peak may run to its section's end (Level 13's fog from t=140, an
+                // atmosphere split at a time); no empty stretch then.
+                Peak peak =
+                        easy ? section.peak().get().onEasy() : section.peak().get();
+                if (peak.from() > start) {
+                    out.add(new Stretch(start, peak.from(), section.atmosphere()));
+                }
                 out.add(new Stretch(peak.from(), peak.to(), peak.atmosphere()));
-                out.add(new Stretch(peak.to(), section.end(), section.atmosphere()));
+                if (peak.to() < section.end()) {
+                    out.add(new Stretch(peak.to(), section.end(), section.atmosphere()));
+                }
             } else {
                 out.add(new Stretch(start, section.end(), section.atmosphere()));
             }
@@ -198,6 +317,8 @@ public record LevelData(
      * A stretch of the scroll; it starts where the one before it ends.
      *
      * @param tiles the backdrop's tile sets in this section, at most one per layer
+     * @param ramp M5 part G, a timed halt's (speed 0 without an arena): s the scroll eases down to 0 before
+     *     it and back up after it ({@link #rampSeconds()}, 2 if not given)
      */
     public record Section(
             String name,
@@ -206,11 +327,30 @@ public record LevelData(
             Atmosphere atmosphere,
             Optional<Peak> peak,
             List<String> tiles,
-            Optional<Boolean> arena) {
+            Optional<Boolean> arena,
+            Optional<Double> ramp) {
         public Section {
             Check.positive("end", end);
-            // M5 part E: 0 only on the arena of a level whose boss is anchored (ContentValidator).
+            // M5 part E: 0 only on the arena of a level whose boss is anchored (ContentValidator);
+            // M5 part G: or on a timed halt, only with a defend primary.
             speed.ifPresent(s -> Check.notNegative("speed", s));
+            ramp.ifPresent(r -> Check.positive("ramp", r));
+            Check.that(
+                    ramp.isEmpty() || (speed.filter(s -> s == 0).isPresent() && !arena.orElse(false)),
+                    "ramp: only on a timed halt (speed 0 without an arena)");
+        }
+
+        /**
+         * M5 part G (design/campaign Level 13, The halt): whether it is a timed halt, a section of speed 0
+         * without an arena, where the level clock runs on and the scroll stands.
+         */
+        public boolean timedHalt() {
+            return speed.filter(s -> s == 0).isPresent() && !isArena();
+        }
+
+        /** M5 part G: a timed halt's eases, s: its {@code ramp}, 2 if not given. */
+        public double rampSeconds() {
+            return ramp.orElse(vanguard.sim.LevelScript.Section.TIMED_HALT_RAMP_SECONDS);
         }
 
         /**
@@ -414,10 +554,40 @@ public record LevelData(
         }
     }
 
-    /** A stretch inside a section whose atmosphere peaks at {@code atmosphere} (Level 02's coolant cloud). */
-    public record Peak(Atmosphere atmosphere, double from, double to) {
+    /**
+     * A stretch inside a section whose atmosphere peaks at {@code atmosphere} (Level 02's coolant cloud).
+     *
+     * @param easy M5 part G: the peak's length on easy, s, centred on {@code from}–{@code to} (Level 13's
+     *     whiteout: 6 s); the authored stretch on every difficulty if not given (presentation only)
+     * @param ambienceDb M5 part G: the setting's ambience is this much louder through the peak, dB, ramping
+     *     in and out with the atmosphere (Level 13's wind in the whiteout, +3); none if not given
+     */
+    public record Peak(
+            Atmosphere atmosphere, double from, double to, Optional<Double> easy, Optional<Double> ambienceDb) {
         public Peak {
             Check.that(to > from, "a peak ends after it starts");
+            easy.ifPresent(seconds -> Check.that(
+                    seconds > 0 && seconds <= to - from, "easy: a peak's easy length is within it, was " + seconds));
+        }
+
+        /** Without M5 part G's easy length and ambience level. */
+        public Peak(Atmosphere atmosphere, double from, double to) {
+            this(atmosphere, from, to, Optional.empty(), Optional.empty());
+        }
+
+        /** The peak as easy shows it: its {@code easy} length centred on it, or itself without one. */
+        public Peak onEasy() {
+            if (easy.isEmpty()) {
+                return this;
+            }
+            double centre = (from + to) / 2;
+            double half = easy.get() / 2;
+            return new Peak(atmosphere, centre - half, centre + half, easy, ambienceDb);
+        }
+
+        /** The ambience's rise through the peak, dB: its {@code ambience_db}, 0 if not given. */
+        public double ambienceRise() {
+            return ambienceDb.orElse(0.0);
         }
     }
 
@@ -429,12 +599,63 @@ public record LevelData(
      *     is destroyed (Level 03's {@code LOW-AIR} prompt); without it, it stays for its seconds
      */
     public record Prompt(
-            double t, String action, String keys, double seconds, Optional<String> skip, Optional<String> requires) {
+            double t,
+            String action,
+            String keys,
+            double seconds,
+            Optional<String> skip,
+            Optional<String> requires,
+            Optional<PromptEvent> event) {
         public Prompt {
-            Check.notNegative("t", t);
+            Check.that(event.isPresent() == Double.isNaN(t), "a prompt is shown at a t or on an event, not both");
+            if (event.isEmpty()) {
+                Check.notNegative("t", t);
+            }
             Check.positive("seconds", seconds);
             skip.ifPresent(Layers::of);
             requires.ifPresent(Requirement::checkPrompt);
+        }
+
+        /** A timed prompt. */
+        public Prompt(
+                double t,
+                String action,
+                String keys,
+                double seconds,
+                Optional<String> skip,
+                Optional<String> requires) {
+            this(t, action, keys, seconds, skip, requires, Optional.empty());
+        }
+
+        /**
+         * From the data: a timed prompt's {@code t}, or (M5 part F) an event prompt's {@code event}
+         * instead, its {@code t} then NaN (it is never due by the clock).
+         */
+        @com.fasterxml.jackson.annotation.JsonCreator
+        public static Prompt of(
+                @JsonProperty("t") Optional<Double> t,
+                @JsonProperty("action") String action,
+                @JsonProperty("keys") String keys,
+                @JsonProperty("seconds") double seconds,
+                @JsonProperty("skip") Optional<String> skip,
+                @JsonProperty("requires") Optional<String> requires,
+                @JsonProperty("event") Optional<PromptEvent> event) {
+            Optional<Double> time = t == null ? Optional.empty() : t;
+            Optional<PromptEvent> on = event == null ? Optional.empty() : event;
+            Check.that(time.isPresent() != on.isPresent(), "a prompt has its t or its event");
+            return new Prompt(
+                    time.orElse(Double.NaN),
+                    action,
+                    keys,
+                    seconds,
+                    skip == null ? Optional.empty() : skip,
+                    requires == null ? Optional.empty() : requires,
+                    on);
+        }
+
+        /** M5 part F: whether it is shown on an event (the shake-off prompt) rather than at its time. */
+        public boolean onEvent() {
+            return event.isPresent();
         }
 
         /** Whether it shows only with a special fitted (Level 04's {@code SPECIAL} · {@code CALL HAMMER}). */
@@ -446,6 +667,13 @@ public record LevelData(
         public Optional<Layer> skipLayer() {
             return skip.map(Layers::of);
         }
+    }
+
+    /** M5 part F: the run-time events a prompt can be shown on (until the event ends or for its seconds). */
+    public enum PromptEvent {
+        /** The attempt's first latch of a Lamprey, shown until the latch ends. */
+        @JsonProperty("first-latch")
+        FIRST_LATCH
     }
 
     /**
@@ -705,6 +933,13 @@ public record LevelData(
      *     the enemy's hit box width if not given)
      * @param current M5 part E, a {@code field} wave: the current its units drift along, ° from
      *     straight down, positive to the right (0 if not given)
+     * @param clockwise M5 part F, a {@code circle} wave: it orbits clockwise on the screen (Level 12's
+     *     eye); counter-clockwise if not given
+     * @param lanes M5 part G (design/enemies/naval/skimmer, user decision G4 = a): a lane walker wave's
+     *     lanes, one list of {@code [x, y]} points each (y below the top edge, at the wave's {@code t};
+     *     outside the play field for an entry from a side or the rear; they scroll with the ground and
+     *     stand still in a timed halt): unit i on lane i, wrapping; a {@code cross} has a lane per unit.
+     *     M5 part G also: a {@code circle}'s {@code at} is its centre (Level 13's Needlers above the relay)
      */
     public record Wave(
             double t,
@@ -729,8 +964,15 @@ public record LevelData(
             Optional<Double> x,
             Optional<Size> size,
             Optional<Double> spacing,
-            Optional<Double> current) {
+            Optional<Double> current,
+            Optional<Boolean> clockwise,
+            Optional<List<List<Point>>> lanes) {
         public Wave {
+            lanes.ifPresent(l -> {
+                Check.that(!l.isEmpty(), "lanes: at least one lane");
+                l.forEach(lane -> Check.that(lane.size() >= 2, "lanes: every lane has two points or more"));
+            });
+            Check.that(lanes.isEmpty() || paths.isEmpty(), "a wave walks paths or lanes, not both");
             spacing.ifPresent(d -> Check.positive("spacing", d));
             Check.notNegative("t", t);
             tag.ifPresent(name -> Check.that(!name.isBlank(), "tag: a name"));
@@ -759,6 +1001,16 @@ public record LevelData(
             Check.that(
                     field || (x.isEmpty() && size.isEmpty() && spacing.isEmpty() && current.isEmpty()),
                     "only a field wave has an x, a size, a spacing or a current");
+            Check.that(
+                    clockwise.isEmpty()
+                            || groups.orElseThrow().stream()
+                                    .allMatch(group -> group.formation().equals("circle")),
+                    "only a circle wave turns clockwise");
+        }
+
+        /** M5 part F: whether a circle wave orbits clockwise on the screen. */
+        public boolean turnsClockwise() {
+            return clockwise.orElse(false);
         }
 
         /** M5 part E: the formation of units scattered over an area that enters with the sea. */
@@ -786,7 +1038,9 @@ public record LevelData(
     public enum Entry {
         FRONT,
         SIDES,
-        REAR
+        REAR,
+        /** M5 part G: a {@code cross} wave's, from all four edges (its units' lanes say which). */
+        ALL
     }
 
     public enum Edge {
@@ -801,6 +1055,8 @@ public record LevelData(
      * @param hold part G: another hold, s (Level 07's easy Mantis pincer holding 4 s)
      * @param loops M5 part D: a swarm's loop-backs instead of its {@code loop_back.count} (Level 10's
      *     hard: 2)
+     * @param pairs M5 part G: a {@code column}'s units enter in pairs side by side, the pairs this many s
+     *     apart (Level 13's hard Stingers at t=210)
      */
     public record Change(
             Optional<Entry> from,
@@ -809,10 +1065,12 @@ public record LevelData(
             Optional<Integer> breakGroup,
             Optional<Double> warning,
             Optional<Double> hold,
-            Optional<Integer> loops) {
+            Optional<Integer> loops,
+            Optional<Double> pairs) {
         public Change {
             hold.ifPresent(h -> Check.notNegative("hold", h));
             loops.ifPresent(n -> Check.positive("loops", n));
+            pairs.ifPresent(p -> Check.positive("pairs", p));
         }
     }
 
@@ -905,6 +1163,12 @@ public record LevelData(
      *     and {@code <sprite>-break_<n>}; Level 01's cargo container if left out
      * @param current M5 part E: an enemy nest's current, ° from straight down (positive to the
      *     right), along which units whose {@code terrain} drifts drift (Level 11's rafts); 0 if not given
+     * @param drift M5 part F: a trigger on {@code low-air} drifting at {@code [x, y]} px/s in screen space
+     *     (y up, as a tow's: negative drifts down the screen) from where it enters at the top edge,
+     *     instead of scrolling with the ground (Level 12's canister)
+     * @param side M5 part G (design/campaign Level 13, Ground targets): an enemy nest entering at a side
+     *     edge and drifting across (the mortar floe); its {@code at} placements are then {@code [t, y]},
+     *     y px from the bottom edge (y up), where each unit crosses the edge
      */
     public record GroundTarget(
             String target,
@@ -926,8 +1190,18 @@ public record LevelData(
             Optional<Placements> hard,
             Optional<String> sprite,
             Optional<Boolean> dark,
-            Optional<Double> current) {
+            Optional<Double> current,
+            Optional<Point> drift,
+            Optional<SideEntry> side) {
         public GroundTarget {
+            Check.that(side.isEmpty() || enemy.isPresent(), "only an enemy nest enters from a side (side)");
+            Check.that(side.isEmpty() || current.isEmpty(), "a nest from a side drifts across it, no current");
+            Check.that(
+                    drift.isEmpty()
+                            || (hits.isPresent()
+                                    && layer.filter("low-air"::equals).isPresent()),
+                    "only a trigger on low-air drifts");
+            drift.ifPresent(d -> Check.that(d.y() < 0, "drift: it drifts down the screen (a negative y)"));
             layer.ifPresent(Layers::of);
             Check.that(current.isEmpty() || enemy.isPresent(), "only an enemy nest has a current");
             Check.that(at.size() == count.orElse(1), "at: one placement per target (count, or 1 for a trigger)");
@@ -981,6 +1255,118 @@ public record LevelData(
         }
     }
 
+    /**
+     * M5 part G (design/campaign Level 13, Ground targets): an enemy nest's entry at a side edge: its units
+     * appear just outside the {@code from} edge ({@code left} or {@code right}) and drift across toward the
+     * other one at {@code drift} px/s on top of the scroll (the mortar floe), warned 3 s ahead as a side
+     * wave's edge.
+     */
+    public record SideEntry(WindSide from, double drift) {
+        public SideEntry {
+            Check.positive("drift", drift);
+        }
+    }
+
+    /**
+     * M5 part G (design/allies, CDF supply drone; user decision G6 = a): a pickup released at the point
+     * ({@code x}, {@code y}) at {@code t} (x px from the left edge, y px from the bottom edge, y up), then an
+     * ordinary pickup; the drone that carries it there is presentation only: its {@code sprite} set (Level
+     * 13's {@code supply-drone}), its arc from the defended ally's helipad ending at the point at {@code t}.
+     */
+    public record Drop(double t, double x, double y, Pickup pickup, Optional<String> sprite) {
+        public Drop {
+            Check.notNegative("t", t);
+            Check.that(x >= 0 && x <= PlayField.WIDTH, "x: on the play field, was " + x);
+            Check.that(y >= 0 && y < PlayField.HEIGHT, "y: inside the play field (below the top edge), was " + y);
+        }
+    }
+
+    /**
+     * M5 part H, a level's root bursts (design/campaign Level 14, Hazards; design/enemies, Boss attacks and
+     * root bursts; decision H2 = a): each burst's paving cracks and its dust rises for {@code telegraph} s
+     * from its {@code t} at its point, then its growths (ground units of its {@code growths} on the
+     * difficulty) stand there {@code spacing} px apart, centred on the point, and scroll with the ground;
+     * a growth takes no damage and fires nothing for {@code first_shot_delay} s after it appeared (hard's
+     * own). The growths count in the objectives' group {@code group}.
+     */
+    public record RootBursts(
+            double telegraph,
+            double firstShotDelay,
+            double spacing,
+            String group,
+            Optional<BurstChange> easy,
+            Optional<BurstChange> hard,
+            List<RootBurst> bursts) {
+        public RootBursts {
+            Check.notNegative("telegraph", telegraph);
+            Check.notNegative("first_shot_delay", firstShotDelay);
+            Check.positive("spacing", spacing);
+            Check.notEmpty("bursts", bursts);
+            bursts = List.copyOf(bursts);
+            for (int i = 1; i < bursts.size(); i++) {
+                Check.that(bursts.get(i).t() >= bursts.get(i - 1).t(), "bursts[" + i + "]: listed in time order");
+            }
+        }
+
+        /** The first shot's delay on {@code difficulty}: hard's own if given. */
+        public double firstShotDelay(Difficulty difficulty) {
+            Optional<BurstChange> change =
+                    switch (difficulty) {
+                        case EASY -> easy;
+                        case MEDIUM -> Optional.empty();
+                        case HARD -> hard;
+                    };
+            return change.flatMap(BurstChange::firstShotDelay).orElse(firstShotDelay);
+        }
+    }
+
+    /** M5 part H: a difficulty's change to the root bursts: the growths' first-shot delay (hard's 1.0 s). */
+    public record BurstChange(Optional<Double> firstShotDelay) {
+        public BurstChange {
+            firstShotDelay.ifPresent(d -> Check.notNegative("first_shot_delay", d));
+        }
+    }
+
+    /**
+     * M5 part H, one root burst: at {@code t} (its telegraph's start) at ({@code x}, {@code y}), px from the
+     * left edge and below the top edge then (100–400 px below it); its {@code growths} by enemy slug, left
+     * to right, and an easy or hard list instead.
+     */
+    public record RootBurst(
+            double t,
+            double x,
+            double y,
+            List<String> growths,
+            Optional<Growths> easy,
+            Optional<Growths> hard,
+            Optional<String> notes) {
+        public RootBurst {
+            Check.notNegative("t", t);
+            Check.that(x >= 0 && x <= PlayField.WIDTH, "x: on the play field, was " + x);
+            Check.notEmpty("growths", growths);
+            growths = List.copyOf(growths);
+        }
+
+        /** Its growths on {@code difficulty}. */
+        public List<String> growthsOn(Difficulty difficulty) {
+            Optional<Growths> change =
+                    switch (difficulty) {
+                        case EASY -> easy;
+                        case MEDIUM -> Optional.empty();
+                        case HARD -> hard;
+                    };
+            return change.map(Growths::growths).orElse(growths);
+        }
+    }
+
+    /** M5 part H: a root burst's growths on a difficulty. */
+    public record Growths(List<String> growths) {
+        public Growths {
+            Check.notEmpty("growths", growths);
+            growths = List.copyOf(growths);
+        }
+    }
+
     /** A hidden crate worth {@code crate} credits, with Rook's (or anyone's) line when found. */
     /**
      * A secret: its hidden crate's credits, or (part F) a {@code data_core} that pays none and
@@ -1007,10 +1393,29 @@ public record LevelData(
      *
      * @param skip part G: the difficulties it is left out on (Level 07's hard: no armour patch
      *     before the boss)
+     * @param at M5 part F: instead of a carrier, where it is placed: it enters at the top edge at
+     *     {@code [t, x]} and drifts like any pickup (Level 12's armour patch in the eye)
      */
-    public record PlacedPickup(Pickup pickup, Carrier droppedBy, Optional<List<String>> skip) {
+    public record PlacedPickup(
+            Pickup pickup, Optional<Carrier> droppedBy, Optional<List<String>> skip, Optional<Placement> at) {
         public PlacedPickup {
             skip.ifPresent(names -> names.forEach(Difficulty::of));
+            Check.that(droppedBy.isPresent() != at.isPresent(), "a pickup is dropped_by a carrier or placed at [t, x]");
+        }
+
+        /** A pickup a carrier drops. */
+        public PlacedPickup(Pickup pickup, Carrier droppedBy, Optional<List<String>> skip) {
+            this(pickup, Optional.of(droppedBy), skip, Optional.empty());
+        }
+
+        /** Its carrier; only for a pickup that is not placed ({@link #carried()}). */
+        public Carrier carrier() {
+            return droppedBy.orElseThrow(() -> new IllegalStateException("a placed pickup has no carrier"));
+        }
+
+        /** Whether a carrier drops it (not placed at a time and x). */
+        public boolean carried() {
+            return droppedBy.isPresent();
         }
 
         /** Whether it drops on {@code difficulty}. */
@@ -1078,6 +1483,8 @@ public record LevelData(
      *     it up there" without a homing weapon)
      * @param timeout part G, a boss-phase cue: true plays it only when the phase before ended on
      *     its timeout with parts it waited for still alive (Level 07's "Forget the sacs")
+     * @param below M5 part G, an {@code ally-below} cue: the share of the defended ally's integrity it
+     *     dropped below (Level 13's 0.5 and 0.25)
      */
     public record RadioCue(
             Optional<Double> t,
@@ -1097,8 +1504,13 @@ public record LevelData(
             Optional<String> phase,
             Optional<String> requiresNot,
             Optional<Boolean> timeout,
-            Optional<List<String>> parts) {
+            Optional<List<String>> parts,
+            Optional<Double> below) {
         public RadioCue {
+            Check.that(
+                    below.isPresent() == (event.orElse(null) == CueEvent.ALLY_BELOW),
+                    "an ally-below event names its share (below), other triggers do not");
+            below.ifPresent(share -> Check.that(share > 0 && share < 1, "below: a share between 0 and 1"));
             Check.that(
                     parts.isPresent() == (event.orElse(null) == CueEvent.BOSS_PART_DESTROYED),
                     "a boss-part-destroyed event names its parts, other triggers do not");
@@ -1243,7 +1655,16 @@ public record LevelData(
         FIRST_TELEGRAPH,
         /** M5 part E: the first of the level boss's {@code parts} the cue names shot off (once). */
         @JsonProperty("boss-part-destroyed")
-        BOSS_PART_DESTROYED
+        BOSS_PART_DESTROYED,
+        /** M5 part F: the attempt's first latch of a Lamprey (once); a scripted escort line for the bark spacing. */
+        @JsonProperty("first-latch")
+        FIRST_LATCH,
+        /**
+         * M5 part G: the defend primary's ally dropped below the cue's {@code below} share of its integrity
+         * for the first time in the attempt (Level 13's relay below 50 % and 25 %; once each).
+         */
+        @JsonProperty("ally-below")
+        ALLY_BELOW
     }
 
     /**
@@ -1253,13 +1674,39 @@ public record LevelData(
      *
      * @param targets the groups (ground targets' {@code group}) a destroy-targets primary needs
      *     destroyed; it fails as soon as a unit of one leaves the screen alive (Level 05)
+     * @param defend M5 part G: a {@code defend} primary's block (Level 13's Nansen Relay)
      */
     public record Objectives(
-            String primary, Optional<Escort> escort, Optional<List<String>> targets, Optional<Secondary> secondary) {
+            String primary,
+            Optional<Escort> escort,
+            Optional<List<String>> targets,
+            Optional<Secondary> secondary,
+            Optional<Defend> defend) {
+        /** M5 part G: the primary that defends an ally for a while (Level 13). */
+        public static final String DEFEND = "defend";
+
+        /** Without M5 part G's defend. */
+        public Objectives(
+                String primary,
+                Optional<Escort> escort,
+                Optional<List<String>> targets,
+                Optional<Secondary> secondary) {
+            this(primary, escort, targets, secondary, Optional.empty());
+        }
+
         public Objectives {
             Check.that(
-                    primary.equals("reach-end") || primary.equals("escort") || primary.equals("destroy-targets"),
-                    "primary: reach-end, escort or destroy-targets, was '" + primary + "'");
+                    primary.equals("reach-end")
+                            || primary.equals("escort")
+                            || primary.equals("destroy-targets")
+                            || primary.equals(DEFEND),
+                    "primary: reach-end, escort, destroy-targets or defend, was '" + primary + "'");
+            Check.that(
+                    defend.isPresent() == primary.equals(DEFEND),
+                    "a defend primary has its defend block, other primaries do not");
+            Check.that(
+                    secondary.flatMap(Secondary::integrity).isEmpty() || defend.isPresent(),
+                    "an integrity secondary needs a defend primary");
             Check.that(
                     escort.isPresent() == primary.equals("escort"),
                     "an escort primary has its escort block, other primaries do not");
@@ -1434,6 +1881,81 @@ public record LevelData(
     }
 
     /**
+     * M5 part G, the {@code defend} primary (design/campaign Level 13, Objective; design/allies, Nansen
+     * Relay; user decisions G1, G2 and G6 = a): one {@code ally} (one that {@code follows: ground}) at
+     * {@code at} {@code [x, y]} (px from the left edge, px from the bottom edge, y up) when the level clock
+     * reaches {@code from}: it scrolls in with the ground before and stands there because the ground halts
+     * (a timed halt). It must survive the {@code duration} s from then (the synchronisation); its loss fails
+     * the mission; it pays no credits and does not regenerate. {@code targeted_by}: per enemy slug the
+     * target-the-objective hook's mode ({@code nearest}, {@code alternate}, {@code in-arc}, {@code always} or
+     * {@code none}; enemies not listed are not hooked); {@code easy} / {@code hard}: its integrity ({@code
+     * hp}) and modes changed on that difficulty (merged over {@code targeted_by}).
+     */
+    public record Defend(
+            String ally,
+            Point at,
+            double from,
+            double duration,
+            Map<String, HookMode> targetedBy,
+            Optional<DefendChange> easy,
+            Optional<DefendChange> hard) {
+        public Defend {
+            Check.notNegative("from", from);
+            Check.positive("duration", duration);
+            Check.that(
+                    at.x() >= 0 && at.x() <= PlayField.WIDTH && at.y() >= 0 && at.y() <= PlayField.HEIGHT,
+                    "at: on the play field, was [" + at.x() + ", " + at.y() + "]");
+            targetedBy = Map.copyOf(targetedBy);
+        }
+
+        /** When the synchronisation completes, s on the level clock. */
+        public double end() {
+            return from + duration;
+        }
+
+        /** The change of {@code difficulty}, if any. */
+        public Optional<DefendChange> change(Difficulty difficulty) {
+            return switch (difficulty) {
+                case EASY -> easy;
+                case MEDIUM -> Optional.empty();
+                case HARD -> hard;
+            };
+        }
+
+        /** Per enemy slug its hook mode on {@code difficulty}: {@code targeted_by} with the difficulty's merged over it. */
+        public Map<String, HookMode> modes(Difficulty difficulty) {
+            Map<String, HookMode> modes = new java.util.TreeMap<>(targetedBy);
+            change(difficulty).flatMap(DefendChange::targetedBy).ifPresent(modes::putAll);
+            return modes;
+        }
+    }
+
+    /** M5 part G: a difficulty's change to a defend primary: the ally's integrity and hook modes. */
+    public record DefendChange(Optional<Double> hp, Optional<Map<String, HookMode>> targetedBy) {
+        public DefendChange {
+            hp.ifPresent(h -> Check.positive("hp", h));
+            targetedBy = targetedBy.map(Map::copyOf);
+        }
+    }
+
+    /**
+     * M5 part G, the target-the-objective hook's modes (design/enemies, Target-the-objective hook; design/
+     * campaign Level 13, What hurts the relay; user decision G1 = a).
+     */
+    public enum HookMode {
+        @JsonProperty("none")
+        NONE,
+        @JsonProperty("nearest")
+        NEAREST,
+        @JsonProperty("alternate")
+        ALTERNATE,
+        @JsonProperty("in-arc")
+        IN_ARC,
+        @JsonProperty("always")
+        ALWAYS
+    }
+
+    /**
      * The road on the ground layer (Level 04): a curve through {@code points}, one {@code [t, x]}
      * each ({@code t} when it passes the middle of the screen, as for placed backdrop pieces),
      * drawn as a ribbon {@code width} px wide with the backdrop image {@code texture}
@@ -1469,6 +1991,9 @@ public record LevelData(
      * the briefing's bonus line and the README's credit table use it. M5 part E (user decision E8 =
      * a): {@code afloat: true}, every naval convoy unit that can be damaged afloat at the level boss's
      * death (Level 11's "Convoy afloat"; the tracker's {@code label}), failed at the first sinking.
+     * M5 part F: {@code collect: sondes}, every weather sonde of the level flown through (Level 12's
+     * "Sondes"; the tracker's {@code label}), met at the last, failed when one leaves the bottom edge
+     * uncollected.
      */
     public record Secondary(
             Optional<Double> killRatio,
@@ -1481,7 +2006,70 @@ public record LevelData(
             int credits,
             Optional<String> tag,
             Optional<String> name,
-            Optional<Boolean> afloat) {
+            Optional<Boolean> afloat,
+            Optional<String> collect,
+            Optional<Double> integrity) {
+        /** M5 part F: what a {@code collect} objective counts, the level's weather sondes. */
+        public static final String SONDES = "sondes";
+
+        /** Without M5 part G's integrity. */
+        public Secondary(
+                Optional<Double> killRatio,
+                Optional<List<String>> groups,
+                Optional<String> escapes,
+                Optional<List<String>> killAll,
+                Optional<List<String>> parts,
+                Optional<String> before,
+                Optional<String> label,
+                int credits,
+                Optional<String> tag,
+                Optional<String> name,
+                Optional<Boolean> afloat,
+                Optional<String> collect) {
+            this(
+                    killRatio,
+                    groups,
+                    escapes,
+                    killAll,
+                    parts,
+                    before,
+                    label,
+                    credits,
+                    tag,
+                    name,
+                    afloat,
+                    collect,
+                    Optional.empty());
+        }
+
+        /** Without M5 part F's collect. */
+        public Secondary(
+                Optional<Double> killRatio,
+                Optional<List<String>> groups,
+                Optional<String> escapes,
+                Optional<List<String>> killAll,
+                Optional<List<String>> parts,
+                Optional<String> before,
+                Optional<String> label,
+                int credits,
+                Optional<String> tag,
+                Optional<String> name,
+                Optional<Boolean> afloat) {
+            this(
+                    killRatio,
+                    groups,
+                    escapes,
+                    killAll,
+                    parts,
+                    before,
+                    label,
+                    credits,
+                    tag,
+                    name,
+                    afloat,
+                    Optional.empty());
+        }
+
         /** Without M5 part E's afloat. */
         public Secondary(
                 Optional<Double> killRatio,
@@ -1530,19 +2118,29 @@ public record LevelData(
                                     + (killAll.isPresent() ? 1 : 0)
                                     + (parts.isPresent() ? 1 : 0)
                                     + (afloat.isPresent() ? 1 : 0)
+                                    + (collect.isPresent() ? 1 : 0)
+                                    + (integrity.isPresent() ? 1 : 0)
                             == 1,
-                    "give kill_ratio, groups, escapes, kill_all, parts or afloat");
+                    "give kill_ratio, groups, escapes, kill_all, parts, afloat, collect or integrity");
+            integrity.ifPresent(share -> Check.that(share > 0 && share < 1, "integrity: a share between 0 and 1"));
+            collect.ifPresent(what -> Check.that(SONDES.equals(what), "collect: sondes, was '" + what + "'"));
             Check.that(afloat.orElse(true), "afloat: true, or leave it out");
             killRatio.ifPresent(r -> Check.share("kill_ratio", r));
             groups.ifPresent(g -> Check.notEmpty("groups", g));
             killAll.ifPresent(k -> Check.notEmpty("kill_all", k));
             parts.ifPresent(p -> Check.notEmpty("parts", p));
             Check.that(parts.isPresent() == before.isPresent(), "a parts objective names the phase they die before");
+            // M5 part H: a groups objective may name its tracker (Level 14's root-burst growths, ROOTS n/8).
             Check.that(
-                    killAll.isPresent() || parts.isPresent() || afloat.isPresent()
+                    killAll.isPresent()
+                                    || parts.isPresent()
+                                    || afloat.isPresent()
+                                    || collect.isPresent()
+                                    || integrity.isPresent()
                             ? label.isPresent()
-                            : label.isEmpty(),
-                    "a kill_all, parts or afloat objective has its tracker label, the others none");
+                            : label.isEmpty() || groups.isPresent(),
+                    "a kill_all, parts, afloat, collect or integrity objective has its tracker label, a groups one"
+                            + " may have one, the others none");
             Check.notNegative("credits", credits);
         }
     }
@@ -1622,6 +2220,12 @@ public record LevelData(
      *     the collapse to the level's end
      * @param duck M5 part D: the theme's duck on a run-time event (Level 10's scripted loss)
      * @param ambienceChanges M5 part D: the ambience crossfading to another at a section's start
+     * @param sectionDb M5 part F: the theme's level by section (1-based section: dB, at most 0), from that
+     *     section until the next entry, over a 1 s ramp (Level 12's eye at -6); full where none is given
+     * @param jingle M5 part G (user decision G8 = a): the {@code end_jingle} plays inside the level at
+     *     {@code jingle.t} instead of at the debrief (Level 13's "Grid sync complete"): the theme fades
+     *     out over {@code fade} s (1 if not given), the jingle plays once, then the ambience alone; the
+     *     debrief then starts without it
      */
     public record Music(
             int track,
@@ -1638,7 +2242,65 @@ public record LevelData(
             Optional<String> bossTrack,
             Optional<List<FullOn>> fullOn,
             Optional<Duck> duck,
-            Optional<List<AmbienceChange>> ambienceChanges) {
+            Optional<List<AmbienceChange>> ambienceChanges,
+            Optional<Map<Integer, Double>> sectionDb,
+            Optional<Jingle> jingle) {
+        /** M5 part G: the jingle inside the level at {@code t}, the theme fading out over {@code fade} s first. */
+        public record Jingle(double t, Optional<Double> fade) {
+            public Jingle {
+                Check.notNegative("t", t);
+                fade.ifPresent(f -> Check.positive("fade", f));
+            }
+
+            /** The theme's fade before it, s: its {@code fade}, 1 if not given. */
+            public double fadeSeconds() {
+                return fade.orElse(1.0);
+            }
+        }
+
+        /** Without M5 part G's mid-level jingle. */
+        public Music(
+                int track,
+                int startSection,
+                Optional<Double> startDb,
+                int fullSection,
+                Optional<Map<Integer, Stems>> stems,
+                String ambience,
+                String endJingle,
+                Optional<String> bossSting,
+                Optional<Double> ambienceFrom,
+                Optional<VoiceLoop> voiceLoop,
+                Optional<String> bossWarning,
+                Optional<String> bossTrack,
+                Optional<List<FullOn>> fullOn,
+                Optional<Duck> duck,
+                Optional<List<AmbienceChange>> ambienceChanges,
+                Optional<Map<Integer, Double>> sectionDb) {
+            this(
+                    track,
+                    startSection,
+                    startDb,
+                    fullSection,
+                    stems,
+                    ambience,
+                    endJingle,
+                    bossSting,
+                    ambienceFrom,
+                    voiceLoop,
+                    bossWarning,
+                    bossTrack,
+                    fullOn,
+                    duck,
+                    ambienceChanges,
+                    sectionDb,
+                    Optional.empty());
+        }
+
+        /** M5 part G: whether the debrief plays the end jingle (not when it played inside the level). */
+        public boolean debriefJingle() {
+            return jingle.isEmpty();
+        }
+
         /**
          * M5 part D: on the event {@code on} the theme ducks by {@code db} for {@code seconds}, no sting;
          * with the radio's duck the lower applies (they do not add up).
@@ -1663,6 +2325,58 @@ public record LevelData(
                 Check.that(!ambience.isEmpty(), "ambience: an ambience key");
                 Check.positive("crossfade", crossfade);
             }
+        }
+
+        /** Without M5 part F's section levels. */
+        public Music(
+                int track,
+                int startSection,
+                Optional<Double> startDb,
+                int fullSection,
+                Optional<Map<Integer, Stems>> stems,
+                String ambience,
+                String endJingle,
+                Optional<String> bossSting,
+                Optional<Double> ambienceFrom,
+                Optional<VoiceLoop> voiceLoop,
+                Optional<String> bossWarning,
+                Optional<String> bossTrack,
+                Optional<List<FullOn>> fullOn,
+                Optional<Duck> duck,
+                Optional<List<AmbienceChange>> ambienceChanges) {
+            this(
+                    track,
+                    startSection,
+                    startDb,
+                    fullSection,
+                    stems,
+                    ambience,
+                    endJingle,
+                    bossSting,
+                    ambienceFrom,
+                    voiceLoop,
+                    bossWarning,
+                    bossTrack,
+                    fullOn,
+                    duck,
+                    ambienceChanges,
+                    Optional.empty());
+        }
+
+        /**
+         * M5 part F: the theme's level in section {@code section} (1-based), dB: the last {@code
+         * section_db} entry at or before it; 0 (full) without one.
+         */
+        public double sectionLevel(int section) {
+            double db = 0;
+            int best = 0;
+            for (Map.Entry<Integer, Double> entry : sectionDb.orElse(Map.of()).entrySet()) {
+                if (entry.getKey() <= section && entry.getKey() > best) {
+                    best = entry.getKey();
+                    db = entry.getValue();
+                }
+            }
+            return db;
         }
 
         /** Without M5 part D's duck and ambience changes. */
@@ -1694,6 +2408,7 @@ public record LevelData(
                     bossWarning,
                     bossTrack,
                     fullOn,
+                    Optional.empty(),
                     Optional.empty(),
                     Optional.empty());
         }
@@ -1749,6 +2464,14 @@ public record LevelData(
             fullOn.ifPresent(events -> {
                 Check.notEmpty("full_on", events);
                 Check.that(events.size() == new java.util.HashSet<>(events).size(), "full_on: each event once");
+            });
+            sectionDb = sectionDb.map(Map::copyOf);
+            sectionDb.ifPresent(levels -> {
+                Check.that(!levels.isEmpty(), "section_db: at least one section");
+                levels.forEach((section, db) -> {
+                    Check.that(section >= 1, "section_db: sections count from 1, was " + section);
+                    Check.that(db <= 0, "section_db: must not be above full level, was " + db);
+                });
             });
             ambienceChanges = ambienceChanges.map(List::copyOf);
             ambienceChanges.ifPresent(changes -> {
@@ -1846,6 +2569,163 @@ public record LevelData(
     public record Briefing(List<BriefingPage> pages, BriefingPage teaser) {
         public Briefing {
             Check.notEmpty("pages", pages);
+        }
+    }
+
+    /**
+     * M5 part F, a level's {@code weather} (design/campaign Level 12, Weather): the wind's {@code
+     * gusts} and the {@code drift} through a section (added to the positions of the ship, the escort,
+     * the units with a latch and the Whirl Seeds; never to shots, mines, spores, pickups, sondes or
+     * drifting triggers), the {@code lightning} flashes (the simulation's {@code LIGHTNING} event, the
+     * banks lit for {@code reveal} s), {@code occlusion} (the banks on {@code low-air} hide that layer's
+     * bodies: draw order only) and {@code rain} ({@code [t, density]} keys, 0–1, linear between them:
+     * presentation only).
+     */
+    public record Weather(
+            Optional<Gusts> gusts,
+            Optional<WallDrift> drift,
+            Optional<Lightning> lightning,
+            Optional<Boolean> occlusion,
+            Optional<List<RainKey>> rain) {
+        public Weather {
+            rain = rain.map(List::copyOf);
+            rain.ifPresent(keys -> {
+                Check.notEmpty("rain", keys);
+                for (int i = 1; i < keys.size(); i++) {
+                    Check.that(keys.get(i).t() > keys.get(i - 1).t(), "rain: keys in time order");
+                }
+            });
+        }
+
+        /** Whether the banks on {@code low-air} hide that layer's bodies ({@code occlusion: true}). */
+        public boolean occludes() {
+            return occlusion.orElse(false);
+        }
+
+        /** The rain's density at {@code t}, 0–1: linear between the keys, the first and last held; 0 without rain. */
+        public double rainAt(double t) {
+            List<RainKey> keys = rain.orElse(List.of());
+            if (keys.isEmpty()) {
+                return 0;
+            }
+            if (t <= keys.getFirst().t()) {
+                return keys.getFirst().density();
+            }
+            for (int i = 1; i < keys.size(); i++) {
+                RainKey a = keys.get(i - 1);
+                RainKey b = keys.get(i);
+                if (t <= b.t()) {
+                    return a.density() + (b.density() - a.density()) * (t - a.t()) / (b.t() - a.t());
+                }
+            }
+            return keys.getLast().density();
+        }
+    }
+
+    /**
+     * M5 part F: the gusts {@code at} their times (each pushing from its side from its {@code t},
+     * telegraphed {@code telegraph} s before), each lasting {@code seconds} including the {@code ramp}
+     * s up and down, pushing {@code push} px/s; {@code easy} / {@code hard} change the push and the
+     * telegraph, and hard's {@code extra} gusts come on top.
+     */
+    public record Gusts(
+            List<GustAt> at,
+            double seconds,
+            double ramp,
+            double push,
+            double telegraph,
+            Optional<GustChange> easy,
+            Optional<GustChange> hard) {
+        public Gusts {
+            at = List.copyOf(at);
+            Check.notEmpty("at", at);
+            Check.notNegative("ramp", ramp);
+            Check.that(seconds > 2 * ramp, "seconds: longer than the ramps up and down");
+            Check.notNegative("push", push);
+            Check.notNegative("telegraph", telegraph);
+            for (int i = 1; i < at.size(); i++) {
+                Check.that(at.get(i).t() >= at.get(i - 1).t(), "at: gusts in time order");
+            }
+        }
+    }
+
+    /** M5 part F: a gust starting to push at {@code t}, blowing {@code from} the left or the right edge. */
+    public record GustAt(double t, WindSide from) {
+        public GustAt {
+            Check.notNegative("t", t);
+        }
+    }
+
+    /** M5 part F: a difficulty's gusts: another push or telegraph, and (hard) {@code extra} gusts on top. */
+    public record GustChange(Optional<Double> push, Optional<Double> telegraph, Optional<List<GustAt>> extra) {
+        public GustChange {
+            push.ifPresent(p -> Check.notNegative("push", p));
+            telegraph.ifPresent(t -> Check.notNegative("telegraph", t));
+        }
+    }
+
+    /**
+     * M5 part F: a steady drift of {@code push} px/s {@code from} a side through section {@code section}
+     * (1-based; Level 12's storm wall), with the gusts' ramps; {@code easy} / {@code hard} another push, 0
+     * for none.
+     */
+    public record WallDrift(
+            int section, double push, WindSide from, Optional<DriftChange> easy, Optional<DriftChange> hard) {
+        public WallDrift {
+            Check.positive("section", section);
+            Check.notNegative("push", push);
+        }
+    }
+
+    /** M5 part F: a difficulty's drift push, px/s; 0 for none. */
+    public record DriftChange(double push) {
+        public DriftChange {
+            Check.notNegative("push", push);
+        }
+    }
+
+    /** M5 part F: the lightning flashes {@code at} their times (in order), each lighting the banks for {@code reveal} s. */
+    public record Lightning(List<Double> at, double reveal) {
+        public Lightning {
+            at = List.copyOf(at);
+            Check.notEmpty("at", at);
+            Check.positive("reveal", reveal);
+            for (int i = 1; i < at.size(); i++) {
+                Check.that(at.get(i) > at.get(i - 1), "at: flashes in time order");
+            }
+        }
+    }
+
+    /** M5 part F: the rain's {@code density} (0–1) at {@code t}. */
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    public record RainKey(double t, double density) {
+        public RainKey {
+            Check.notNegative("t", t);
+            Check.share("density", density);
+        }
+    }
+
+    /** M5 part F: the side a wind blows from. */
+    public enum WindSide {
+        LEFT,
+        RIGHT
+    }
+
+    /**
+     * M5 part F, the weather sondes (design/campaign Level 12, user decision F7 = b): each enters at the
+     * top edge at its {@code [t, x]} and drifts straight down at {@code speed} px/s on the play plane; the
+     * ship collects one when its centre comes within {@code radius} px of the sonde's. Not shot, not
+     * pushed by the wind, not pulled by the magnet, not collected by the escort.
+     */
+    public record SondesData(double speed, double radius, List<Placement> at) {
+        public SondesData {
+            at = List.copyOf(at);
+            Check.positive("speed", speed);
+            Check.positive("radius", radius);
+            Check.notEmpty("at", at);
+            for (int i = 1; i < at.size(); i++) {
+                Check.that(at.get(i).t() >= at.get(i - 1).t(), "at: sondes in time order");
+            }
         }
     }
 

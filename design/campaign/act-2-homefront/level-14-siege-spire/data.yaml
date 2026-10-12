@@ -1,0 +1,332 @@
+# Level 14 – Siege Spire: the level script, rendered into README.md (briefing, threat profile, layout,
+# waves, ground targets, radio, credit budget). Times are seconds from the level start; the level clock
+# halts at the arena's end (t = 250) while the Siege Spire lives and jumps to it at the kill, so
+# everything in the fight runs on the simulation's real steps and the arena's radio lines are events
+# (M5 part H, step H4; decisions H1–H10 = a of 2026-10-11 and the stated defaults, pending the user's
+# review in the combined round 36). Schema: ../../../tech/architecture/README.md#data-file-schemas
+# The `backdrop` block is a placeholder (Level 09's megacity tiles, `images: level-09`) until the
+# Geneva backdrop's proposal (tools/art/backdrop_l14.py --proposal, step H5) replaces it and the
+# sections' tiles.
+scroll_speed: 140     # the chosen Geneva scene's speed
+launch_seconds: 5     # flying in from the bottom edge with Rook in his slot, as in Levels 08-13
+bounty_scale: 0.76    # every bounty × 0.76: the typical haul on budget(14) (M5 part H, step H4)
+control_prompts: []
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Earth megacity
+  layers: [ground, air, high-air]
+  density: 4
+  traits: [anti-ground, piercing]   # `rear` helps against the Wraiths (the notes): three traits do not fit the intel panel
+  hazards: [root bursts]
+  boss: Siege Spire
+  objective: DESTROY THE SIEGE SPIRE   # the OBJECTIVE field from sensor L1
+  varga:
+    none: Geneva Concord, Lancer. Something has grown here for two nights, on the ground and in the air.
+    l1: "Mostly from ahead. Roots break the streets: watch for the dust."
+    l2: Root guns, hive nodes, cloaked Wraiths. And the Spire.
+    l3: Bring anti-ground. When the crown opens, look behind you.
+  notes:
+    Dominant layers: '`ground` (the roots, the root-burst growths, the hive nodes, Creepers, Ravagers), `air`, `high-air` (cloaked Wraiths under the canopy)'
+    Attack directions: '{directions} (the approach by its waves; in the boss fight the maw''s Wraiths loop round to the rear)'
+    Density: '{density}'
+    Recommended traits: '`anti-ground`, `piercing`; `rear` helps against the Wraiths (three traits do not fit the intel panel)'
+    Hazards: Root bursts (telegraphed by dust, ground layer, no collision); low light under the canopy
+    Boss / mid-boss: 'Act boss [Siege Spire](../../../enemies/bosses/siege-spire/README.md)'
+    Sensor-suite detail: '**none**: Geneva Concord, `ground` + `air` + `high-air`, front. **L1**: + the directions, density {density}, hazard "root bursts", the objective `{objective}`. **L2**: + Creeper, Ravager, Hive Node, Wraith, Needler, Skitter, Spine Turret, Polyp Mortar portraits; the boss''s name and silhouette (`siege-spire`). **L3**: + `anti-ground` and `piercing` highlighted; the timeline strip marks the root field (60–95 s) and the boss (108 s); 1 secret.'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets (step H5: tools/art/backdrop_l14.py)
+  - name: Lakefront
+    end: 20
+    atmosphere: light
+    tiles: [lakefront, canopy]
+    notes:
+      layers:
+        deep: Lake Geneva at dusk, dark water.
+        ground: the lakefront quays, the Jet d'Eau plume (leaning away from the screen centre, perspective rule), the Rhône bridges, a CDF armoured car half under creep on the Pont du Mont-Blanc (the secret).
+        low-air: Hammer flight bombers passing below (scenery).
+        high-air: the canopy's edge as a soft shadow (≤ 40 %).
+      purpose: Set-up; light popcorn from t=7.
+  - name: Old Town
+    end: 60
+    atmosphere: light
+    tiles: [old-town, canopy]
+    notes:
+      layers:
+        ground: perimeter blocks of row houses with ridged roofs and courtyards, the cathedral towers (leaning, perspective rule), sodium-lit streets, parks and tree rows, creep veins along the gutters, the Place du Molard with two hive nodes.
+        high-air: canopy shadow.
+      purpose: Creepers in the streets, a turret nest on the cathedral square, the hive-node pair.
+  - name: Root Field
+    end: 95
+    speed: 80   # the scroll slows while the roots break the streets: a growth stands about 3 s on the screen once it fires (at 140 px/s it would have scrolled 350 px from its burst's dust)
+    atmosphere: medium
+    tiles: [root-field, canopy]
+    notes:
+      layers:
+        ground: streets broken by roots as thick as trams; four root bursts split the paving (1 s dust telegraph each) and grow a Spine Turret and a Polyp Mortar; creep over the roofs.
+        low-air: spore-haze banks lit violet from below.
+      purpose: 'The signature set piece: roots growing guns. Ravagers out of a crater; the first Wraiths from behind.'
+  - name: Concord Approach
+    end: 108
+    atmosphere: medium
+    tiles: [root-field, canopy]
+    notes:
+      layers:
+        ground: avenues converging on the Concord rotunda's roundabout; the Spire's trunk rising out of it, leaning away from the centre; roots radiating along the avenues.
+        high-air: the canopy directly overhead.
+      purpose: Last Wraiths; the Choir's song; the trunk grows on the horizon.
+  - name: Siege Spire
+    end: 250   # the scroll eases to a halt over the arena's first second (70 px); the level clock halts here while the Spire lives, a kill jumps it here
+    speed: 0
+    arena: true
+    atmosphere: clear
+    tiles: [root-field, canopy]
+    notes:
+      layers:
+        ground: the arena around the rotunda, the trunk at the top, four turret-pod roots and two mortar roots spread along the avenues, all on the screen. Phase 3 the stump and the ground debris after the tear-free shockwave.
+        high-air: canopy shadow only.
+      purpose: The boss fight (≈ 135 s at medium); the warning, the arrival and the checkpoint at t=108.
+  - name: Daylight
+    end: 262
+    speed: 25   # steps H7b and H9 (pending the user's review): a slow drift, so the stump stays on the screen while the light falls on it (at 140 px/s it left about 4 s after the kill, at 40 px/s about 9 s after, 10 s before the debrief)
+    atmosphere: clear
+    tiles: [daylight, canopy]
+    notes:
+      layers:
+        ground: no enemies, no boss. The canopy withers and tears; low sunlight falls across the old town, the lake and the stump.
+      purpose: Release; act complete.
+
+boss:  # the act boss: anchored at the Concord rotunda, it scrolls in with the ground and engages at the halt
+  enemy: siege-spire
+  t: 108
+  x: 240
+  section: 5
+  notes:
+    from: front (anchored at the rotunda, scrolls in with the ground)
+    waves: 'At the halt (the warning, the bar and the boss checkpoint); phase 2: the maw launches 2 Wraiths every 8 s (hard 3) as ambushes that loop to the rear'
+    spawns: {wraith: 6}   # the maw's launches of a typical fight (the autopilot with the plan's fit at medium: 3 launches of 2), which the credit budget counts
+
+# Act 2 popcorn (Skitter streams, snakes and line abreasts, Needler V-wings and lines) round the set
+# pieces, a wave every 3-3.5 s (the act's minimum: at least 50 a minute; the pacing rule: no empty screen
+# over 3 s), from the front and the sides; the two rear ambushes as authored. The root bursts'
+# introduction keeps a quiet window: no wave enters from t=62 until t=67 (the first burst's dust at 63).
+waves:
+  - {t: 7, formation: stream, enemy: skitter, count: 3, from: front, edge: right, interval: 1.25, notes: Popcorn over the lake}
+  - {t: 10.5, formation: line abreast, enemy: skitter, count: 4, from: front, notes: Popcorn}
+  - {t: 14, formation: V-wing, enemy: needler, count: 3, from: front, notes: Over the bridges}
+  - {t: 16.5, formation: stream, enemy: skitter, count: 4, from: sides, edge: alternating, interval: 1.5, notes: Popcorn from the sides}
+  - {t: 21, formation: V-wing, enemy: needler, count: 5, from: front, notes: Over the rooftops}
+  - {t: 24.5, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 1.25}
+  - t: 28
+    formation: convoy
+    enemy: creeper
+    count: 3
+    from: front
+    paths: [[[150, -40], [150, -150], [220, -240], [220, -800]]]   # along the Rue du Rhône
+    notes: Along the Rue du Rhône
+  - {t: 31, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1.25}
+  - {t: 34, formation: V-wing, enemy: needler, count: 4, from: front}
+  - {t: 37.5, formation: snake, enemy: skitter, count: 5, from: front, edge: left, notes: Weaves between the cathedral towers}
+  - {t: 41, formation: stream, enemy: skitter, count: 3, from: front, edge: right, interval: 1.25, notes: Over the cathedral square's turret nest}
+  - {t: 44.5, formation: line abreast, enemy: needler, count: 3, from: front}
+  - t: 47.5
+    formation: convoy
+    enemy: creeper
+    count: 3
+    from: front
+    paths: [[[330, -40], [330, -160], [260, -250], [260, -800]]]   # down from the cathedral hill
+    notes: Down from the cathedral hill
+  - {t: 51, formation: snake, enemy: skitter, count: 5, from: front, edge: right}
+  - {t: 54.5, formation: V-wing, enemy: needler, count: 3, from: front, notes: Over the Place du Molard}
+  - {t: 59, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1.5, notes: Gone before the first root burst}
+  - {t: 67, formation: stream, enemy: skitter, count: 3, from: front, edge: left, interval: 1.25, notes: After the first burst's quiet window}
+  - {t: 69.5, formation: line abreast, enemy: needler, count: 3, from: front}
+  - t: 72
+    formation: pack
+    enemy: ravager
+    count: 4
+    from: front
+    paths:   # out of a root-burst crater (a backdrop crater at the first burst's x), down the broken street and across it
+      - [[150, -30], [170, 110], [520, -40]]
+      - [[200, -30], [220, 120], [560, -30]]
+      - [[110, -30], [120, 130], [500, -20]]
+      - [[250, -30], [260, 100], [580, -50]]
+      - [[180, -30], [190, 90], [540, -60]]   # hard's fifth
+    notes: Out of a root-burst crater; the leader drops an overdrive
+  - {t: 76, formation: snake, enemy: skitter, count: 5, from: front, edge: right}
+  - {t: 79.5, formation: V-wing, enemy: needler, count: 3, from: front}
+  - {t: 82, formation: rear ambush, enemy: wraith, count: 2, from: rear, skip: [easy], notes: "Cloaked on `high-air` under the canopy; Rook's rear bark (not scripted); easy: a Needler V-wing from the front instead"}
+  - {t: 82, formation: V-wing, enemy: needler, count: 3, from: front, skip: [medium, hard], notes: "Easy only: instead of the rear Wraiths"}
+  - {t: 85.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1.25}
+  - {t: 88.5, formation: line abreast, enemy: skitter, count: 4, from: front}
+  - {t: 91.5, formation: V-wing, enemy: needler, count: 3, from: front}
+  - {t: 95.5, formation: stream, enemy: skitter, count: 4, from: sides, edge: alternating, interval: 1.25, notes: Popcorn from the sides on the avenues}
+  - {t: 99, formation: V-wing, enemy: needler, count: 3, from: front}
+  - {t: 102, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1.25}
+  - {t: 104, formation: rear ambush, enemy: wraith, count: 2, from: rear, notes: The last wave before the Spire}
+
+ground_targets:  # at: [t, x], when it enters at the top edge and its x
+  - target: armoured car
+    section: 1
+    layer: ground
+    size: [40, 60]
+    sprite: armoured-car   # tools/art/l14_props.py: under creep, six blobs cleared hit by hit, the hatch open
+    hits: 6
+    reveals: armoured car
+    at: [[14.5, 330]]   # on the Pont du Mont-Blanc, its centre past the middle of the screen at t≈16.5
+    notes:
+      target: 'A CDF armoured car half under creep on the Pont du Mont-Blanc (trigger, t≈15)'
+      effect: '{hits} hits clear the creep; the cargo hatch pops open as the hidden crate'
+  - target: cathedral nest
+    section: 2
+    enemy: spine-turret
+    count: 3
+    at: [[38, 200], [38.4, 240], [38.8, 280]]
+    notes:
+      target: '[Spine Turret](../../../enemies/ground/spine-turret/README.md) turret nest ×{count} on the cathedral square (t≈38)'
+      effect: Bounty
+  - target: Molard nodes
+    section: 2
+    enemy: hive-node
+    count: 2
+    at: [[55, 150], [55.6, 330]]
+    notes:
+      target: '[Hive Node](../../../enemies/ground/hive-node/README.md) ×{count} in the Place du Molard, hardened (t≈55)'
+      effect: 'Optional: each releases 2 Skitters while alive (the budget counts one release each)'
+  - target: hard Molard nest
+    section: 2
+    enemy: spine-turret
+    count: 0
+    at: []
+    hard: {at: [[55.3, 200], [55.6, 240], [55.9, 280]]}
+    notes:
+      target: Spine Turret nest ×3 beside the hive nodes (t≈55), **hard only**
+      effect: Bounty
+
+root_bursts:  # M5 part H (H2 = a): t = the telegraph's start; x, y the point, px from the left and below the top edge then (100-400); it scrolls with the ground
+  telegraph: 1.0         # s of the cracking paving and the dust
+  first_shot_delay: 0.75  # s the growths grow, invulnerable and silent, before they fire (step H7b: 1.5 fired them ≈220 px above the bottom edge, on the ship; now ≈280, pending the user's review)
+  spacing: 52            # px between a burst's two growths (tools/art/root_burst.py's growth points, ±26)
+  group: roots           # the secondary's group
+  hard: {first_shot_delay: 0.5}
+  bursts:
+    - {t: 63, x: 150, y: 120, growths: [spine-turret, polyp-mortar], easy: {growths: [spine-turret]}, notes: The introduction (Okafor at t=62); no wave enters t=62-67}
+    - {t: 74, x: 330, y: 110, growths: [spine-turret, polyp-mortar], easy: {growths: [spine-turret]}}
+    - {t: 84, x: 170, y: 140, growths: [spine-turret, polyp-mortar], easy: {growths: [spine-turret]}}
+    - {t: 92, x: 320, y: 100, growths: [spine-turret, polyp-mortar], easy: {growths: [spine-turret]}}
+
+secrets:
+  - name: armoured car
+    crate: 88   # Act 1 terms: pays 141 with the act factor
+    radio: {speaker: Okafor, line: "That car's crew left their supplies behind. They'd want you to have them, Lancer."}
+
+drops:  # step H9 (pending the user's review): the CDF supply drone (Level 13's) flies in from the bottom edge, releases its armour patch at [x, y up] at t and leaves the way it came
+  - {t: 100, x: 240, y: 380, pickup: armour patch, sprite: supply-drone}
+
+pickups:
+  - {pickup: overdrive, dropped_by: {wave: 72, unit: first}}         # the Ravager pack's leader
+  - {pickup: overdrive, dropped_by: {parts: [maw], unit: first}}      # the maw's death (phase 2 to 3)
+
+radio:  # trigger: t or event; requires: escort = only while Rook flies (hired, fitted and not ejected); the arena's lines are events (the level clock is halted)
+  - {t: 1, speaker: Okafor, line: "All units, Aegis Actual. Everything the Coalition has left is in the air over Geneva tonight. Make it count."}
+  - {t: 13, speaker: Hammer Lead, portrait: generic-cdf, line: "Hammer flight on station. Call your targets, Aegis."}
+  - {t: 21, speaker: Rook, requires: escort, line: "Lancer, whatever happens in there, I'm on your wing. As usual."}
+  - {t: 31.5, speaker: Varga, line: "The canopy is one organism. The roots feed the trunk. Kill the roots and the trunk starves."}
+  - {t: 54, speaker: Varga, line: "Hive nodes in the Molard. Hardened, like Lagos."}
+  - {t: 62, speaker: Okafor, line: "Roots surfacing in the streets! They're growing guns."}
+  - {t: 96, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
+  - {t: 102, speaker: Varga, line: "It's singing to the whole city. Lancer, that's the Spire."}
+  - {event: boss-phase, phase: Maw, speaker: Varga, line: "The crown is opening. It's launching flyers, and they'll loop behind you.", notes: {trigger: "Phase 2 (`boss-phase` Maw)"}}
+  - {event: boss-phase, phase: Free spire, speaker: Okafor, expression: fierce, line: "It's tearing loose! Stay on it, Lancer!", notes: {trigger: "Phase 3 (`boss-phase` Free spire)"}}
+  - {event: boss-phase, phase: Free spire, speaker: Rook, requires: escort, line: "Roots and all. Somebody call a gardener.", notes: {trigger: "Phase 3, queued after Okafor's line"}}
+  - {event: boss-destroyed, speaker: Varga, line: "The canopy's dying. All of it, all at once.", notes: {trigger: "Spire destroyed (`boss-destroyed`)"}}
+  - {event: secondary-objective, speaker: Okafor, line: "Root grid in the old town destroyed. The engineers will thank you."}
+  - {event: level-end, speaker: Okafor, line: "Every Vrell on Earth just lost its voice. They're scattering. We take the fight to them now.", notes: {trigger: "Level end (the closing line)"}}
+
+objectives:
+  primary: reach-end   # the arena makes the kill a condition of the level's end
+  secondary: {groups: [roots], label: ROOTS, credits: 63, name: Destroy every root-burst growth}   # all 8 growths (easy 4) before they leave the screen (63 in Act 1 terms: pays 101)
+
+music:
+  track: 7            # Act 2 B "Firestorm" (audio/music track list)
+  start_section: 2    # the base stem from the Old Town; section 1 has the ambience only
+  full_section: 4     # the full mix from the Concord approach
+  ambience: earth-canopy   # the canopy's hum instead of the megacity's sirens (round 36 a); at the Spire's death it fades out over 2 s and the megacity's ambience rises over 7 s (step H6)
+  end_jingle: mission-complete
+  boss_warning: boss-warning      # track 22 with the klaxon and the banner at the Spire's arrival
+  boss_track: choir-descends      # track 18 after the warning, fading out at the kill; the daylight without music
+
+difficulty: {}  # easy's Spine-Turret-only bursts and hard's growth delay are in root_bursts; the easy Needlers at t=82 and the hard Molard nest in their entries; the stat blocks' hooks apply (hard: the Spire's ring of 12, 180° sweep and 3 Wraiths a launch)
+
+briefing:
+  pages:   # texts shortened to the 4 lines a page with an image holds (step H5; pending the user's review)
+    - {speaker: Okafor, image: level-14-spire-over-geneva, line: "Lancer, Aegis Actual. Something grew out of Geneva Concord two nights ago: the Siege Spire, three kilometres tall and still growing. Your flight goes in first, along the lakefront and through the old town to the rotunda. Destroy it. Aegis Actual out."}
+    - {speaker: Varga, image: level-14-root-scan, line: "The Vrell fight as one, and I believe the Spire binds them. Its roots run under the old town and grow guns where they break the surface. Kill the roots and the trunk starves. Bring anti-ground and something that pierces. When the crown opens, look behind you."}
+  teaser: {speaker: Rook, line: "Roots first, flyers from behind, then the Spire. I'll take the six o'clock."}
+
+backdrop:
+  # Presentation only: Geneva Concord under the Vrell canopy (tools/art/backdrop_l14.py, straight from
+  # scene-geneva-r10-a, H8 = a; M5 part H, step H5). No deep layer: the ground tiles are opaque (the lake
+  # painted on them); the canopy's shadow is baked into them, its veins on high-air. Sections 4-6 are one
+  # strip of pieces (the arena halts: its own tile set is never drawn); boulevards hide the tile seams.
+  # Motion budget: Hammer flight and the few moving cars (sections 1-2); nothing moves in the arena.
+  scroll_factors: {far: 0.9, ground: 1, low-air: 1.35, high-air: 2}
+  ramp: 4
+  haze_colour: 3a2c48  # unused: no deep or far layer
+  atmosphere:
+    clear: {haze: 0}   # the arena and the daylight: the canopy's veins only
+    light: {banks: haze-light, haze: 0}   # sections 1-2: thin spore haze
+    medium: {banks: spore-haze, haze: 0}   # sections 3-4: spore-haze banks lit violet from below
+  tile_sets:
+    lakefront: {layer: ground, height: 960}   # section 1: Lake Geneva at dusk on the left, the quays and the promenade, the 19th-century blocks; the canopy's shadow lighter (its edge)
+    old-town: {layer: ground, height: 960}   # section 2: perimeter blocks of row houses, tile roofs, sodium-lit streets, parks, creep veins in the gutters, the canopy's mottled shadow
+    root-field: {layer: ground, height: 960}   # section 3 (and under the strip in 4-5): streets broken by roots as thick as trams, cracked paving, collapsed houses, creep over the roofs
+    daylight: {layer: ground, height: 960}   # section 6 after the strip: the old town in the low sun (daylight look a), lamps out, the creep withered
+    haze-light: {layer: low-air, height: 960}   # light: thin spore haze, ~10 %, still on its layer
+    spore-haze: {layer: low-air, height: 960}   # medium: spore-haze banks lit violet from below, ~22 %, spores
+    canopy: {layer: high-air, height: 540}   # the canopy's teal veins (additive at 40 %), every section; period 540 as the game's canopy-tear frames
+  pieces:
+    boulevard: {layer: ground, size: [480, 48]}   # a tree-lined boulevard with tram rails: over every seam between two tile sets (dusk)
+    boulevard-day: {layer: ground, size: [480, 48]}   # the same in the daylight (the strip's top, over the daylight tiles)
+    rhone: {layer: ground, size: [480, 168]}   # the Rhone leaving the lake, the Pont du Mont-Blanc under the armoured car, the Ile Rousseau, the avenue's bridge
+    jet-deau: {layer: ground, size: [112, 144], mid_size: true}   # the Jet d'Eau: its jetty and lighthouse, the plume leaning away from the centre, static
+    cathedral: {layer: ground, size: [480, 232], mid_size: true}   # Saint-Pierre on its cobbled square: nave, transept and apse, the turret nest's square in front; its towers are tower pieces
+    cathedral-tower: {layer: ground, size: [12, 12], tower: {height: 0.42, wall: wall-stone, shade: 0.55}}   # a west tower of Saint-Pierre in perspective: limestone walls, a verdigris pyramid
+    molard: {layer: ground, size: [480, 200], mid_size: true}   # the Place du Molard: the square under the two hive nodes, creep round them
+    root-crater: {layer: ground, size: [128, 112]}   # the Ravager pack's crater: root burst a's last frames (no growths)
+    traffic-car: {layer: ground, size: [14, 28], headings: 2}   # a car with its headlights, up (0) or down (1) the avenue: the few still moving
+    hammer-flight: {layer: low-air, size: [136, 120], headings: 2}   # Hammer flight: three CDF bombers in a vee, heading up (0) or down (1)
+    concord-1: {layer: ground, size: [480, 577]}   # the strip: the approach, the arena round the rotunda, the daylight
+    concord-2: {layer: ground, size: [480, 578]}
+    concord-3: {layer: ground, size: [480, 578]}
+    concord-4: {layer: ground, size: [480, 577]}
+  placed:
+    # 4-6. the strip: ground 11740-14044 (one render cut in 4): the approach, the arena's frame (the halt shows 13088.83-13628.83, the anchor at 13432.83) and the daylight graded by its distance past the frame
+    - {piece: concord-1, t: 98.9893, x: 240}
+    - {piece: concord-2, t: 103.1, x: 240}
+    - {piece: concord-3, t: 107.214, x: 240}
+    - {piece: concord-4, t: 268.62, x: 240}
+    # 1. the Rhone with the Pont du Mont-Blanc under the armoured car (x 330, t 14.5) (cut from the tile under it)
+    - {piece: rhone, t: 16.6429, x: 240}
+    # 2. Saint-Pierre's square under the turret nest [[38, 200], [38.4, 240], [38.8, 280]] (cut from the tile under it)
+    - {piece: cathedral, t: 40.65, x: 240}
+    # 2. the Place du Molard under the hive nodes [[55, 150], [55.6, 330]] (cut from the tile under it)
+    - {piece: molard, t: 57.4286, x: 240}
+    # 2. Saint-Pierre's west towers (perspective)
+    - {piece: cathedral-tower, t: 41.05, x: 331}
+    - {piece: cathedral-tower, t: 41.05, x: 353}
+    # 1. the Jet d'Eau off the quay
+    - {piece: jet-deau, t: 6, x: 60}
+    # 3. the crater the Ravager pack comes out of (t 72, the first burst's x)
+    - {piece: root-crater, t: 74.75, x: 150}
+    # the boulevards over the seams of sections 1-2, 2-3 and the strip's foot
+    - {piece: boulevard, t: 21.9286, x: 240}
+    - {piece: boulevard, t: 63.375, x: 240}
+    - {piece: boulevard, t: 96.9286, x: 240}
+    # 6. the strip's top over the daylight tiles
+    - {piece: boulevard-day, t: 280.16, x: 240}
+    # 1-2. the few cars still moving on the avenue (25 px/s)
+    - {piece: traffic-car, t: 3, x: 306, path: [[0, 0, -75], [15, 0, 300]], repeat: {count: 3, every: 6}}
+    - {piece: traffic-car, t: 6, x: 296, path: [[0, 0, 150], [18, 0, -300]], repeat: {count: 3, every: 6}}
+    - {piece: traffic-car, t: 27, x: 306, path: [[15, 0, -300], [39, 0, 300]], repeat: {count: 4, every: 7}}
+    - {piece: traffic-car, t: 30, x: 296, path: [[18, 0, 300], [42, 0, -300]], repeat: {count: 4, every: 7}}
+    # 1. Hammer flight passing below on low-air over the lake (110 px/s on its own, Hammer Lead's line from t 13 plays as it passes; x 130 clear of the armoured car, step H7b)
+    - {piece: hammer-flight, t: 16, x: 130, path: [[10, 0, -660], [22, 0, 660]]}

@@ -324,3 +324,29 @@ before.
 Outcome (user, 2026-10-09): **b** cast, MaryAnn (`refs/ref-atlas-control.wav`; the production lines
 by `tools/art/voice.py` at the neutral settings through radio filter b, ten takes, no pins needed);
 a moved to `concept/rejected/`, its clip deleted with its CREDITS.md row.
+
+## voice-nansen
+
+Round 35 (the Level 13 audition, M5 part G, decision G9 = a, pending the user's review), generated with
+`tools/concept/audio/tts_r35.py` as round 33 (seed 35 + 10 × the variant's index + the line's index),
+each line through radio filter b on its own (−16 LUFS), joined with 1 s of silence. Nansen (L13, the
+CDF officer of Nansen Relay; the radio portrait `radio-generic-cdf`), neutral (0.5 / 0.5 / 0.7), three
+of its lines from Level 13's README, chosen for range: the arrival (t=36 "Aegis, Nansen. Very glad to
+see you. They come at us from every direction out here."), the tense one (the `ally-below` 0.5 event:
+"Integrity at half! We can't take much more!") and the release (t=218 "Grid sync complete. Every battery
+on Earth just came back online."). Measured: a 15.06 s, −16.0 LUFS; b 17.66 s, −16.0 LUFS; the takes a
+5.28 / 3.12 / 3.76 s, b 6.80 / 3.40 / 4.56 s. Whisper (faster-whisper base.en) reads back a "Aegis,
+Nansen, very glad to see you. They come at us from every direction out here. Integrity at half. We can't
+take much more. Good sync complete. Every battery on Earth just came back online."; b "Ages, Nansen, very
+glad to see you, they come at us from every direction out here. Integrity at half, we can't take much
+more. Grid sync complete, every battery on earth just came back online." No take jumps an octave
+(librosa pyin: a's frames above 300 Hz lie in the leading silence; b's 305 Hz at 2.4 s is the excited
+rise on "very glad"). Measured only, not listened to.
+
+A male and a female candidate, both readers of polar-expedition non-fiction (b reads Nansen's own
+*Farthest North*), neither in the cast nor auditioned before.
+
+| Variant | Reader | Source | Licence | Clip pitch |
+|---|---|---|---|---|
+| a | Patrick Eaton | [In the Arctic Seas, ch. 1 (McClintock)](https://archive.org/details/arctic_seas_pje_1311_librivox), cut at 60 s | public domain (Public Domain Mark 1.0) | 124 Hz (takes 126 / 141 / 140 Hz); a male voice, near the Kilo Lead (129 Hz) |
+| b | Sharon Riskedahl | [Farthest North, Volume 1, ch. 1 part 1 (Nansen)](https://archive.org/details/farthestnorth_vol1_0912_librivox) (file 02; file 01 is the contents), cut at 60 s | public domain | 172 Hz (takes 221 / 188 / 190 Hz); a female voice, near Atlas Control (174 Hz) |

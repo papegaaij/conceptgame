@@ -28,6 +28,17 @@ import java.util.Optional;
  * @param tag M5 part C: the wave's tag (Level 09's {@code bridge}), which a secondary {@code escapes}
  *     objective may be scoped to; empty for none
  * @param field M5 part E: a {@code field} wave's area (design/enemies/naval/driftjelly)
+ * @param clockwise M5 part F: a {@code circle} orbits clockwise on the screen (Level 12's eye); its
+ *     enemy's orbit runs counter-clockwise otherwise
+ * @param lanes M5 part G (design/enemies/naval/skimmer, user decision G4 = a): a lane walker wave's
+ *     lanes, ground-space polylines in play-field points at {@code t} (x, depth below the top edge;
+ *     outside the play field for an entry from a side or the rear) that scroll with the ground: each
+ *     unit follows its lane (a Catmull-Rom curve through the points, as a flight path) at its speed
+ *     with its {@code sine} weave as an offset across it, and straight on past its end. Unit i takes
+ *     lane i (wrapping; a pincer with one lane mirrors it for every second unit; a {@code cross} needs a
+ *     lane per unit); empty for other waves. M5 part G: also a {@code circle}'s centre is {@code at}
+ * @param pairSeconds M5 part G (design/campaign Level 13, hard's t=210 Stingers): a {@code column}'s
+ *     units enter in pairs side by side, the pairs this far apart; empty for one by one
  */
 public record WaveSpec(
         double t,
@@ -46,13 +57,206 @@ public record WaveSpec(
         List<List<At>> paths,
         Optional<LoopBack> loopBack,
         String tag,
-        Optional<Field> field) {
+        Optional<Field> field,
+        boolean clockwise,
+        List<List<At>> lanes,
+        Optional<Double> pairSeconds) {
     public WaveSpec {
         carried = List.copyOf(carried);
         paths = paths.stream().map(List::copyOf).toList();
+        lanes = lanes.stream().map(List::copyOf).toList();
+        if (lanes.stream().anyMatch(List::isEmpty)) {
+            throw new IllegalArgumentException("a lane has points");
+        }
+        if (pairSeconds.isPresent() && !(pairSeconds.get() > 0)) {
+            throw new IllegalArgumentException("pairs enter some time apart: " + pairSeconds.get());
+        }
         if (field.isPresent() != (formation == Formation.FIELD)) {
             throw new IllegalArgumentException("a field wave has its area, other waves none");
         }
+    }
+
+    /** A wave without M5 part G's lanes and pairs. */
+    public WaveSpec(
+            double t,
+            Formation formation,
+            EnemySpec enemy,
+            int count,
+            Entry entry,
+            Edge edge,
+            Optional<Double> holdSeconds,
+            Optional<Double> warningSeconds,
+            int breakGroup,
+            Optional<Double> speed,
+            Optional<Double> intervalSeconds,
+            List<Carried> carried,
+            Optional<At> at,
+            List<List<At>> paths,
+            Optional<LoopBack> loopBack,
+            String tag,
+            Optional<Field> field,
+            boolean clockwise) {
+        this(
+                t,
+                formation,
+                enemy,
+                count,
+                entry,
+                edge,
+                holdSeconds,
+                warningSeconds,
+                breakGroup,
+                speed,
+                intervalSeconds,
+                carried,
+                at,
+                paths,
+                loopBack,
+                tag,
+                field,
+                clockwise,
+                List.of(),
+                Optional.empty());
+    }
+
+    /** M5 part G: this wave with the lane walkers' {@code walkerLanes} (see {@link #lanes()}). */
+    public WaveSpec withLanes(List<List<At>> walkerLanes) {
+        return new WaveSpec(
+                t,
+                formation,
+                enemy,
+                count,
+                entry,
+                edge,
+                holdSeconds,
+                warningSeconds,
+                breakGroup,
+                speed,
+                intervalSeconds,
+                carried,
+                at,
+                paths,
+                loopBack,
+                tag,
+                field,
+                clockwise,
+                walkerLanes,
+                pairSeconds);
+    }
+
+    /** M5 part G: this wave with its units entering in pairs {@code seconds} apart (see {@link #pairSeconds()}). */
+    public WaveSpec withPairs(double seconds) {
+        return new WaveSpec(
+                t,
+                formation,
+                enemy,
+                count,
+                entry,
+                edge,
+                holdSeconds,
+                warningSeconds,
+                breakGroup,
+                speed,
+                intervalSeconds,
+                carried,
+                at,
+                paths,
+                loopBack,
+                tag,
+                field,
+                clockwise,
+                lanes,
+                Optional.of(seconds));
+    }
+
+    /** M5 part G: this wave with {@code point} as its {@link #at()} (a whirl cluster's release point, a circle's centre). */
+    public WaveSpec withAt(At point) {
+        return new WaveSpec(
+                t,
+                formation,
+                enemy,
+                count,
+                entry,
+                edge,
+                holdSeconds,
+                warningSeconds,
+                breakGroup,
+                speed,
+                intervalSeconds,
+                carried,
+                Optional.of(point),
+                paths,
+                loopBack,
+                tag,
+                field,
+                clockwise,
+                lanes,
+                pairSeconds);
+    }
+
+    /** A wave without M5 part F's clockwise circle. */
+    public WaveSpec(
+            double t,
+            Formation formation,
+            EnemySpec enemy,
+            int count,
+            Entry entry,
+            Edge edge,
+            Optional<Double> holdSeconds,
+            Optional<Double> warningSeconds,
+            int breakGroup,
+            Optional<Double> speed,
+            Optional<Double> intervalSeconds,
+            List<Carried> carried,
+            Optional<At> at,
+            List<List<At>> paths,
+            Optional<LoopBack> loopBack,
+            String tag,
+            Optional<Field> field) {
+        this(
+                t,
+                formation,
+                enemy,
+                count,
+                entry,
+                edge,
+                holdSeconds,
+                warningSeconds,
+                breakGroup,
+                speed,
+                intervalSeconds,
+                carried,
+                at,
+                paths,
+                loopBack,
+                tag,
+                field,
+                false);
+    }
+
+    /** This wave with M5 part F's {@code clockwise} (a circle's sense of orbit on the screen). */
+    public WaveSpec clockwise(boolean turning) {
+        return new WaveSpec(
+                t,
+                formation,
+                enemy,
+                count,
+                entry,
+                edge,
+                holdSeconds,
+                warningSeconds,
+                breakGroup,
+                speed,
+                intervalSeconds,
+                carried,
+                at,
+                paths,
+                loopBack,
+                tag,
+                field,
+                turning,
+                lanes,
+                pairSeconds);
     }
 
     /** A wave without M5 part E's field. */
@@ -305,7 +509,14 @@ public record WaveSpec(
          * M5 part E: units scattered over an area that enters with the sea and drifts on the wave's
          * current (design/enemies/naval/driftjelly), a {@link Field}.
          */
-        FIELD
+        FIELD,
+        /**
+         * M5 part G (design/enemies, formation vocabulary; Level 13): groups from all four edges entering
+         * together, each unit on its own lane ({@link #lanes()}: one per unit, its edge where the lane
+         * starts); without lanes, {@code count} ÷ 4 units per edge, unit i from the top, the right, the
+         * bottom and the left edge in turn, flying straight across. Every edge with a unit is warned.
+         */
+        CROSS
     }
 
     /** The play-field edge a wave enters from. */

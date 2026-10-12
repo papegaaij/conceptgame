@@ -1,0 +1,369 @@
+# Level 13 – Polar Relay: the level script, rendered into README.md (briefing, threat profile, layout,
+# waves, ground targets, radio, credit budget). Times are seconds from the level start: the timed halt
+# (sections 2-4, speed 0 without an arena) keeps the level clock running, so every time is the clock's
+# (M5 part G, step G4; user decisions G1–G9 = a of 2026-10-11 and the stated defaults, pending the
+# user's review in the combined round). Schema: ../../../tech/architecture/README.md#data-file-schemas
+# Screen places in the halt are fixed (the ground stands): x px from the left edge, y px below the top
+# edge, except where a key says y up (the defend's `at`, the drops, a side nest's `at`).
+scroll_speed: 140     # the arctic scene's pack ice
+launch_seconds: 5     # flying in from the bottom edge with Rook in his slot, as in Levels 08-12
+bounty_scale: 0.67    # every bounty × 0.67: the typical haul on budget(13) (M5 part G, step G4)
+water: true           # E1 = a: the whole play field is water in the simulation (the torpedo reaches every ground unit)
+water_splash: naval-only   # G5 = a: only a burst on a Skimmer and its death play the water splash; the ice gets the ground burst
+control_prompts: []
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Earth arctic
+  layers: [ground, air]
+  density: 4
+  traits: [spread, rear]   # `side` helps too (the notes): three traits do not fit the intel panel
+  hazards: [whiteout]
+  boss: none
+  objective: DEFEND NANSEN RELAY   # the OBJECTIVE field from sensor L1
+  varga:
+    none: Pack ice, Lancer. Boats in the leads, walkers on the floes, and no front line out there.
+    l1: They'll come from all four edges. Side and rear guns will earn their keep.
+    l2: "New: the Skimmer, a fast boat that weaves. The walkers are back, and the divers."
+    l3: Spread fire for the boats, side shots for the walkers. Hold the relay for three minutes.
+  notes:
+    Dominant layers: '`ground` (Scuttlers on the floes, the Polyp Mortars, the Skimmers on the leads, naval surface), `air`'
+    Attack directions: '{directions} (a `defend` level: **excepted** from the campaign''s "at least ~60 % of waves enter from the top edge" rule; the `cross` waves split evenly over the four edges)'
+    Density: '{density}'
+    Recommended traits: '`spread`, `rear`; `side` helps too (three traits do not fit the intel panel)'
+    Hazards: Whiteout (edge visibility, final push); the relay must survive
+    Boss / mid-boss: 'none (finale: the whiteout push)'
+    Sensor-suite detail: '**none**: arctic, ground + air, all directions. **L1**: + the directions, density {density}, hazard "whiteout", the objective `{objective}`. **L2**: + Skimmer (new), Needler, Scuttler, Mantis, Stinger, Skitter, Polyp Mortar portraits. **L3**: + `spread` and `rear` highlighted; the timeline strip marks the three defend phases and the whiteout (new marks, step G6); 1 secret.'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets (the halt's sections all begin at its top edge, so the halt shows section 1's ground: the strip of pieces)
+  - name: Pack Ice
+    end: 40
+    atmosphere: light
+    tiles: [arctic-water]
+    notes:
+      layers:
+        deep: dark open water under the ice.
+        ground: white-blue ice floes with open leads, teal submerged ice edges, waterline foam (Water rules), an abandoned research hut (the secret), the relay entering at the top at t≈37.
+        low-air: thin fog wisps. Low sun, long cool shadows.
+      purpose: Skimmer introduction during the approach; the scroll eases to 0 over t=38–40, arriving at the relay.
+  - name: First Light
+    end: 100
+    speed: 0          # the timed halt (defend phase 1): the level clock runs on, the ground stands
+    ramp: 2           # s the scroll eases down before the halt (t=38–40)
+    atmosphere: light
+    tiles: [arctic-water]
+    notes:
+      layers:
+        ground: Nansen Relay at the centre on its floe, the lanes (leads) cut round it, loose floes drifting slowly, Skimmer wakes in the leads.
+      purpose: 'Learn to guard a point: boats from all edges.'
+  - name: Floe Walkers
+    end: 160
+    speed: 0          # defend phase 2
+    atmosphere: light
+    peak: {atmosphere: medium, from: 140, to: 160}   # the fog thickening from t=140 (an atmosphere split at a time: the peak runs to the section's end)
+    tiles: [arctic-water]
+    notes:
+      layers:
+        ground: as above, with Scuttlers striding across the floes from the sides.
+        low-air: fog thickening at the edges from t=140.
+      purpose: 'Walkers with armoured fronts: hit them from the side; side attackers.'
+  - name: Whiteout
+    end: 220
+    speed: 0          # defend phase 3
+    ramp: 2           # s the scroll eases back up after the halt (t=220–222)
+    atmosphere: medium
+    peak: {atmosphere: heavy, from: 176, to: 188, easy: 6, ambience_db: 3}   # the whiteout, 4 s ramps (the backdrop's); easy: 6 s centred (presentation), the wind +3 dB (step G6)
+    tiles: [arctic-water]
+    notes:
+      layers:
+        low-air: whiteout banks rolling in from the side edges, 25–40 % coverage at the edges, the centre around the relay kept readable.
+        high-air: snow streaks (≤ 40 %) falling on the real clock.
+      purpose: The final push in poor visibility; edge warnings still show through the whiteout.
+  - name: Grid Online
+    end: 235
+    atmosphere: clear
+    tiles: [arctic-water, open-floes]
+    notes:
+      layers:
+        ground: the relay's lights coming on in sequence, then floes and open sea northward.
+      purpose: Release; level end.
+
+# The hooked and featured waves of the approved draft (retimed only where marked) and the unhooked
+# popcorn (Skitter streams and line abreasts, Needler lines and pincers) from all edges, to the act's
+# minimum of 50 a minute over the whole clock (G3 = a: halted time counts) and the pacing rule (no empty
+# screen over 3 s), the t=20 introduction alone. Skitters reach the rear as a line abreast or on a snake's
+# path (only chasers stream in from the rear); a V-wing enters only from the front.
+# The Skimmers' lanes in the halt run along the leads round the relay's floe: the north lead (y ≈ 95), the
+# south lead (y ≈ 460), the west lead (x ≈ 75) and the east lead (x ≈ 405); the relay stands at (240, 250).
+waves:
+  - {t: 5, formation: stream, enemy: skitter, count: 6, from: front, edge: alternating, interval: 1.5, notes: The first targets over the pack ice}
+  - {t: 11, formation: line abreast, enemy: needler, count: 3, from: front}
+  - t: 20
+    formation: convoy
+    enemy: skimmer
+    count: 3
+    from: front
+    easy: {count: 3}   # all three on easy too: the introduction fills its stretch
+    lanes: [[[40, -40], [300, -80], [440, -200], [240, -400], [20, -560], [-60, -600]]]   # a lead winding across the scrolling ice (its ground places at t=20): an S across the upper screen, off the left edge
+    notes: '**New.** Weaves along a lead between the floes; nothing else on screen'
+  - {t: 24, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2, notes: After the introduction}
+  - {t: 30, formation: V-wing, enemy: needler, count: 5, from: front}
+  - {t: 33, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2}
+  - {t: 37, formation: pincer, enemy: needler, count: 2, from: sides, hold: 4}
+  - {t: 40, formation: stream, enemy: skitter, count: 4, from: sides, edge: alternating, interval: 2.5}
+  - {t: 48, formation: line abreast, enemy: needler, count: 3, from: rear}
+  - {t: 51.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2}
+  - t: 56
+    formation: cross
+    enemy: skimmer
+    count: 4
+    from: all
+    lanes:   # one per unit: top, right, bottom, left, then a second round (hard's fifth)
+      - [[75, -40], [75, 200], [90, 400], [200, 460], [520, 470]]        # top: down the west lead, east along the south lead
+      - [[520, 95], [300, 95], [110, 110], [75, 300], [60, 580]]          # right: west along the north lead, down the west lead
+      - [[405, 580], [405, 330], [390, 140], [240, 95], [-40, 90]]        # bottom: up the east lead, west along the north lead
+      - [[-40, 460], [200, 460], [380, 420], [405, 200], [420, -40]]      # left: east along the south lead, up the east lead
+      - [[405, -40], [405, 200], [420, 330], [520, 360]]                  # top: down the east lead, off the right edge
+    notes: 'First all-edge wave, one from each edge; Rook: "pick a direction"'
+  - {t: 58.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2.5}
+  - {t: 68, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, notes: 2 per side}
+  - {t: 70.5, formation: line abreast, enemy: skitter, count: 6, from: rear}
+  - {t: 74, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2.5}
+  - {t: 81.5, formation: line abreast, enemy: needler, count: 3, from: front}
+  - t: 84
+    formation: convoy
+    enemy: skimmer
+    count: 4
+    from: rear
+    lanes: [[[110, 580], [80, 520], [160, 462], [330, 462], [420, 440], [520, 380]]]   # in from below, along the south lead under the relay, off the right edge
+    notes: Along the lead below the relay
+  - {t: 88, formation: stream, enemy: skitter, count: 4, from: sides, edge: left, interval: 2}
+  - {t: 93, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 95.5, formation: stream, enemy: skitter, count: 4, from: sides, edge: right, interval: 2.5}
+  - {t: 100.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1.5}
+  - t: 104
+    formation: pincer
+    enemy: scuttler
+    count: 4
+    from: sides
+    paths: [[[-40, 60], [115, 170], [110, 330], [80, 580]]]   # mirrored for the units from the right: toward the relay, stopping ≈ 150 px short, then down past it
+    notes: Walk across the floes toward the relay and turn along it, 2 + 2 (the relay in arc for a fan or two); claws armoured from the front
+  - {t: 108, formation: line abreast, enemy: needler, count: 3, from: rear}
+  - {t: 112, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2}
+  - t: 118
+    formation: cross
+    enemy: skimmer
+    count: 4
+    from: all
+    hard: {count: 8}
+    lanes:   # hard: two from each edge
+      - [[240, -40], [240, 70], [150, 95], [-40, 110]]                   # top: down to the north lead, off the left edge
+      - [[520, 460], [240, 465], [-40, 455]]                             # right: west along the south lead
+      - [[75, 580], [75, 300], [90, 100], [60, -40]]                     # bottom: up the west lead
+      - [[-40, 95], [240, 90], [520, 100]]                               # left: east along the north lead
+      - [[405, -40], [405, 200], [420, 330], [520, 360]]                 # top: down the east lead
+      - [[520, 95], [300, 95], [110, 110], [75, 300], [60, 580]]         # right: the north lead, the west lead
+      - [[240, 580], [240, 480], [330, 460], [520, 450]]                 # bottom: to the south lead, off the right edge
+      - [[-40, 460], [200, 460], [380, 420], [405, 200], [420, -40]]     # left: the south lead, up the east lead
+    notes: 'Hard: 2 per edge (8)'
+  - {t: 121, formation: stream, enemy: skitter, count: 4, from: sides, edge: alternating, interval: 2}
+  - {t: 124, formation: pincer, enemy: mantis, count: 2, from: sides, hold: 6, notes: Hold at the edges and sweep; the first one drops an overdrive}
+  - {t: 128, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2}
+  - {t: 132, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 135, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2}
+  - t: 140
+    formation: snake
+    enemy: skitter
+    count: 12
+    from: rear
+    paths: [[[120, 580], [160, 420], [330, 300], [360, 120], [300, -40]]]   # up from the bottom edge, curving past the relay's east side
+    notes: Up from the rear on one path
+  - t: 146
+    formation: convoy
+    enemy: skimmer
+    count: 4
+    from: sides
+    edge: left
+    lanes: [[[-40, 95], [150, 95], [330, 100], [405, 170], [410, 330], [420, 580]]]   # in from the left along the north lead, down the east lead
+  - {t: 150, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2}
+  - {t: 156, formation: V-wing, enemy: stinger, count: 4, from: front, notes: 'They dive at the **relay**, not the player (`always`; easy: at the player)'}
+  - {t: 158.5, formation: stream, enemy: skitter, count: 4, from: sides, edge: alternating, interval: 2}
+  - t: 164
+    formation: pincer
+    enemy: scuttler
+    count: 4
+    from: sides
+    paths: [[[-40, 470], [115, 340], [110, 170], [90, -40]]]   # mirrored: up toward the relay from below, stopping ≈ 150 px short, then north past it
+  - {t: 168, formation: line abreast, enemy: needler, count: 3, from: rear}
+  - {t: 172, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2}
+  - t: 176
+    formation: cross
+    enemy: skimmer
+    count: 8
+    from: all
+    lanes:   # two from each edge, then hard's ninth and tenth
+      - [[75, -40], [75, 200], [90, 400], [200, 460], [520, 470]]
+      - [[520, 95], [300, 95], [110, 110], [75, 300], [60, 580]]
+      - [[405, 580], [405, 330], [390, 140], [240, 95], [-40, 90]]
+      - [[-40, 460], [200, 460], [380, 420], [405, 200], [420, -40]]
+      - [[405, -40], [405, 200], [420, 330], [520, 360]]
+      - [[520, 460], [240, 465], [-40, 455]]
+      - [[75, 580], [75, 300], [90, 100], [60, -40]]
+      - [[-40, 95], [240, 90], [520, 100]]
+      - [[240, -40], [240, 70], [150, 95], [-40, 110]]
+      - [[240, 580], [240, 480], [330, 460], [520, 450]]
+    notes: Into the whiteout, 2 from each edge
+  - {t: 180, formation: line abreast, enemy: skitter, count: 6, from: rear}
+  - {t: 184, formation: pincer, enemy: mantis, count: 2, from: sides, hold: 6}
+  - {t: 188, formation: circle, enemy: needler, count: 6, from: front, at: [240, 150], hold: 6, notes: 'Orbits **above the relay** (a circle centre `at`, 150 px from the top), then breaks toward the player'}
+  - {t: 192, formation: stream, enemy: skitter, count: 4, from: sides, edge: alternating, interval: 2}
+  - t: 196
+    formation: convoy
+    enemy: scuttler
+    count: 3
+    from: front
+    paths: [[[240, -40], [240, 105], [330, 140], [560, 150]]]   # down the main floe toward the relay, stopping ≈ 145 px short, then off the right edge
+    notes: Walks down the main floe
+  - {t: 200, formation: line abreast, enemy: needler, count: 3, from: rear}
+  - t: 204
+    formation: cross
+    enemy: skimmer
+    count: 4
+    from: all
+    lanes:
+      - [[405, -40], [405, 200], [420, 330], [520, 360]]
+      - [[520, 460], [240, 465], [-40, 455]]
+      - [[75, 580], [75, 300], [90, 100], [60, -40]]
+      - [[-40, 95], [240, 90], [520, 100]]
+      - [[75, -40], [75, 200], [90, 400], [200, 460], [520, 470]]
+  - {t: 206, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 2}
+  - {t: 210, formation: column, enemy: stinger, count: 4, from: front, hard: {pairs: 0.4}, notes: 'The last push: diving at the relay one after another; hard: in pairs (0.4 s between pairs)'}
+  - {t: 213, formation: stream, enemy: skitter, count: 4, from: sides, edge: alternating, interval: 2}
+  - {t: 216, formation: line abreast, enemy: skitter, count: 6, from: rear}
+
+ground_targets:  # at: [t, x], when it enters at the top edge and its x; a nest from a side: [t, y up]
+  - target: research hut
+    section: 1
+    layer: ground
+    size: [48, 40]
+    sprite: research-hut   # tools/art/l13_props.py: intact, one hit, two hits, opened; research-hut-glow the hatch beacon
+    hits: 3
+    reveals: research hut cache
+    at: [[12, 380]]
+    notes:
+      target: 'Abandoned research hut, its roof hatch blinking (trigger, t≈12)'
+      effect: '{hits} hits on the hatch release the hidden crate (the secret)'
+  - target: mortar floe
+    section: 2
+    enemy: polyp-mortar
+    count: 2
+    side: {from: left, drift: 10}   # px/s across the screen: the floe takes ≈ 48 s to cross while the ground stands
+    at: [[66, 440], [66, 400]]      # [t, y up]: two mortars on one floe, in from the left edge above the relay
+    notes:
+      target: '[Polyp Mortar](../../../enemies/ground/polyp-mortar/README.md) ×{count} on **one floe** entering from the left edge and drifting right at 10 px/s (t≈66)'
+      effect: 'A nest entering at a side edge with a drift. They target the relay (`always`): each lob''s marker lies on it, the direct hit lands on it; ≈ 13 lobs each while the floe crosses unless killed (the gap analysis''s biggest relay risk; measured in step G4, the guarding autopilot kills the floe before it lands a lob on medium, ≈ 50 damage on hard: the Scuttlers'' fans are the load); side-edge warning; credits'
+
+secrets:
+  - name: research hut cache
+    crate: 110   # Act 1 terms: pays 176 with the act factor
+    radio: {speaker: Varga, line: "A CDF research cache. Somebody left that hut in a hurry."}
+
+drops:  # M5 part G (G6 = a): the supply drones' armour patches, released at [x, y up] at t; the drone's arc from the relay's helipad is presentation
+  - {t: 162, x: 240, y: 380, pickup: armour patch, sprite: supply-drone}
+  - {t: 202, x: 240, y: 380, pickup: armour patch, sprite: supply-drone}
+
+pickups:
+  - {pickup: overdrive, dropped_by: {wave: 124, unit: first}}   # the first Mantis of the t=124 pincer
+
+radio:  # trigger: t or event; requires: escort = only while Rook flies (hired, fitted and not ejected); Nansen is uncast until round 35 (his lines play as text).
+# Retimed in step G4 to the 1 s rule with every line as text (RadioTimelineTest): each timed line starts when the one
+# before has closed; the secondary's line fits between Nansen's t=218 and Okafor's t=233.5. Step G6 rendered the cast
+# speakers' lines (Okafor, Varga, Rook) and checked the times against the voices: no voiced timed line starts more than
+# 1 s late, so none moved (Nansen's lines play as text until round 35 casts him; recheck then).
+  - {t: 1, speaker: Okafor, line: "Nansen Relay coordinates every gun on the planet. If it goes dark, so does the grid."}
+  - {t: 13, speaker: Varga, line: "Fast boats in the leads. They weave. Lead your shots, or spray."}   # before the introduction at t=20
+  - {t: 24, speaker: Rook, requires: escort, line: "Cold enough for you, Lancer? My canopy's frosting on the inside."}
+  - {t: 36, speaker: Nansen, portrait: generic-cdf, line: "Aegis, Nansen. Very glad to see you. They come at us from every direction out here."}
+  - {t: 47.5, speaker: Okafor, line: "Lancer, you're holding station over the relay. Nothing touches it."}
+  - {t: 58.5, speaker: Rook, requires: escort, line: "Contacts, all sides! Pick a direction, any direction."}
+  - {t: 102, speaker: Varga, line: "Walkers on the floes. Their claws are armoured from the front. Hit them from the side."}
+  - {t: 154, speaker: Okafor, line: "Divers inbound. They're going for the relay, not you."}
+  - {t: 162, speaker: Nansen, portrait: generic-cdf, line: "Supply drone away. Catch it, Aegis.", notes: {trigger: "the first drone's release"}}
+  - {t: 172, speaker: Okafor, line: "Weather's turning. Whiteout coming in from the edges."}
+  - {t: 179, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
+  - {event: ally-below, below: 0.5, speaker: Nansen, portrait: generic-cdf, line: "Integrity at half! We can't take much more!", notes: {trigger: "Relay below 50 % (`ally-below` 0.5)"}}
+  - {event: ally-below, below: 0.25, speaker: Okafor, line: "Lancer, the relay is failing. Everything else can wait.", notes: {trigger: "Relay below 25 % (`ally-below` 0.25)"}}
+  - {t: 218, speaker: Nansen, portrait: generic-cdf, line: "Grid sync complete. Every battery on Earth just came back online."}
+  - {event: secondary-objective, speaker: Nansen, portrait: generic-cdf, line: "Integrity holding above half. You kept the lights on, Aegis."}
+  - {t: 233.5, speaker: Okafor, line: "Well held, Aegis. Now we can see the whole board.", notes: {trigger: "t=233.5 (after the secondary's line)"}}
+  - {event: level-end, speaker: Rook, requires: escort, line: "Next time they need a relay defended, I'm asking for one with palm trees."}
+  - {event: mission-failed, speaker: Okafor, line: "Nansen is gone. Pull back, Lancer.", notes: {trigger: "Relay destroyed (`mission-failed`)"}}
+
+objectives:
+  primary: defend
+  defend:   # M5 part G: the first defend primary (G1, G2 = a)
+    ally: nansen-relay
+    at: [240, 290]      # x px from the left edge, y px from the bottom edge (y up): it stands there from t=40 (it enters at the top at t≈37)
+    from: 40            # the synchronisation starts with the halt
+    duration: 178       # s: complete at t=218 (the secondary is judged then), the scroll resumes at t=220
+    targeted_by: {skimmer: alternate, scuttler: in-arc, stinger: always, polyp-mortar: always}   # the hook's modes (G1 = a); the popcorn and the Mantis are never hooked
+    # Integrity (G2 = a, tuned in step G4 with the guarding autopilot over 8 seeds; the draft's 900 / 600 / 450):
+    # medium 240 (the ally's hp: it loses 112–124, the median seed ending at exactly 50 %), easy 340 (loses
+    # 48–56), hard 520 (loses 386–410: hard's 7-way Scuttler fans, larger pincers and tougher walkers make its
+    # load 3.4 × medium's; it never falls, the secondary is never met)
+    easy: {hp: 340, targeted_by: {stinger: none}}   # easy: the Stingers dive at the player
+    hard: {hp: 520}
+  secondary: {integrity: 0.5, label: INTEGRITY, credits: 95, name: Keep the relay at 50 % or more}   # failed at once below half, met at t=218 (95 in Act 1 terms: pays 152)
+
+music:
+  track: 6            # Act 2 A "Homefront" (audio/music track list)
+  start_section: 2    # the arctic ambience alone in section 1, the base stem from the halt
+  full_section: 4     # the full mix in the whiteout
+  ambience: earth-arctic   # AMBIENCE_ARCTIC (ambience-arctic-r08-a.ogg; the game's key in step G6), ≈ +3 dB in the whiteout peak
+  end_jingle: mission-complete
+  jingle: {t: 218, fade: 2.6}   # G8 = a: the jingle once under "Grid sync complete", the theme faded out first; the debrief without it. The fade (step G8: 2.6 s, was 1) lasts grid online's 2.6 s chord, so the jingle starts as the chord ends (t 220.6)
+
+difficulty: {}  # the relay's integrity and easy's unhooked Stingers are in the defend block; the t=118 cross's hard 8 and the t=210 Stingers' hard pairs in their waves; the stat blocks' hooks apply (hard: the Skimmers' 2-shot bursts, the Scuttlers' 7-way fan)
+
+briefing:
+  pages:   # texts shortened to the 4 lines a page with an image holds (step G5; pending the user's review)
+    - {speaker: Okafor, image: level-13-relay-grid, line: "Lancer, Aegis Actual. Nansen Relay ties every gun on the planet into one defence grid, and a Vrell landing force is crossing the pack ice to it. Hold over the relay for three minutes while it synchronises. They will come from every side. Aegis Actual out."}
+    - {speaker: Varga, image: level-13-ice-field, line: "Fast boats weave in the leads: lead your shots or spray. Walkers' claws are armoured in front, so hit them from the side. Shots at the relay are aimed at it: stand in the way. Side and rear guns will earn their keep."}
+  teaser: {speaker: Rook, line: "Defend the Arctic relay for three minutes. Attacks from every edge: rear and side guns pay off."}
+
+backdrop:
+  # Presentation only: the pack ice round Nansen Relay (tools/art/backdrop_l13.py, straight from
+  # scene-arctic-r09-a, G9 = a; M5 part G, step G5). The ground is one unique strip (pack-ice-1..4, the
+  # approach and the halt's frame, the leads cut along the waves' lanes) over the drifting `deep` water;
+  # the exit's `open-floes`; fog and the whiteout (whiteout_l13 look a) as the atmosphere's banks.
+  scroll_factors: {deep: 0.85, far: 0.9, ground: 1.0, low-air: 1.5, high-air: 2.2}
+  ramp: 4
+  haze_colour: a8b8c4  # the arctic's pale grey-blue over the water
+  atmosphere:
+    clear: {haze: 0.0}   # the exit: no fog
+    light: {banks: fog-wisps, haze: 0.04}   # thin fog wisps ~10 %
+    medium: {banks: fog-banks, haze: 0.08}   # the fog thickening at the edges ~20 % (t=140 on)
+    heavy: {banks: whiteout, haze: 0.14}   # the whiteout's peak: banks from both side edges, the centre clear
+  tile_sets:
+    arctic-water: {layer: deep, height: 960, drift: -3.0}   # the dark arctic water under the ice (r09's stops, the swell damped by the pack), opaque, every section; drifting left on the real clock: the leads' water moves in the halt
+    open-floes: {layer: ground, height: 960}   # the exit: looser floes and open sea northward (translucent water, alpha >= 3); open water where it begins at the halt's top edge
+    fog-wisps: {layer: low-air, height: 960}   # light: thin pale fog wisps, ~10 %
+    fog-banks: {layer: low-air, height: 960}   # medium: the fog thickening at the edges, ~20 %, the centre clear
+    whiteout: {layer: low-air, height: 540}   # heavy: the whiteout's banks from both side edges (whiteout_l13 look a), the centre round the relay clear; they hide the ground units at the edges
+  pieces:
+    pack-ice-1: {layer: ground, size: [480, 1536]}
+    pack-ice-2: {layer: ground, size: [480, 1536]}
+    pack-ice-3: {layer: ground, size: [480, 1536]}
+    pack-ice-4: {layer: ground, size: [480, 1536]}
+    loose-ice: {layer: ground, size: [96, 112], headings: 8}   # 8 headings, each a different floe or brash cluster; heading 2 (east) the mortars' floe
+  placed:
+    # the approach and the halt's frame, one render cut in four (the leads along the lanes, the relay's and the hut's floes): ground -144-1392 (exact rows: re-run --proposal after the data moves a section end)
+    - {piece: pack-ice-1, t: 2.5286, x: 240}
+    - {piece: pack-ice-2, t: 13.5, x: 240}
+    - {piece: pack-ice-3, t: 24.4714, x: 240}
+    - {piece: pack-ice-4, t: 35.4429, x: 240}
+    # the mortars' floe (heading east): in from the left at 10 px/s, its centre at the mortars' spawn (-22, 120 below the top) at t 66
+    - {piece: loose-ice, t: 40, x: 240, path: [[62.4, -298, 150], [121.4, 292, 150]]}
+    # the loose ice drifting 6 px/s in the halt's open water, outside the lanes (each direction its own heading frame)
+    - {piece: loose-ice, t: 40, x: 240, path: [[40, 300, -202], [140, -300, -202]], repeat: {count: 2, every: 100}}
+    - {piece: loose-ice, t: 40, x: 240, path: [[46, -174, 330], [156, -174, -330]]}
+    - {piece: loose-ice, t: 40, x: 240, path: [[96, 182, -330], [206, 182, 330]]}
+    - {piece: loose-ice, t: 40, x: 240, path: [[150, -50, -304], [224.953, 268, 14]]}

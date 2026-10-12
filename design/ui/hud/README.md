@@ -1,10 +1,10 @@
 ---
 title: HUD
-design: approved
+design: review
 implementation: in-progress
 art: final
 depends-on: [../../player, ../../systems/scoring, ../../art-direction]
-updated: 2026-10-08
+updated: 2026-10-12
 ---
 
 # HUD
@@ -57,10 +57,10 @@ left panel is about the mission (score, radio), the right panel about the ship.
 | Score | 8 digits, counts up quickly |
 | Credits | Earned so far, including level-start balance |
 | Chain | Chain count, multiplier and draining window bar (see [scoring](../../systems/scoring/README.md)) |
-| Radio | 72×72 portrait with static on open/close, name, subtitle below the portrait up to 3 lines × 22 chars per page; a longer line is paged: each page typed out, then held 3 s (the last page 5 s), and a spoken line's page at least until its [voice](../../audio/voice/README.md) has reached the page's end (the last page until the voice ends); a radio line is at most **two pages** of word-wrapped lines (writing rule); queued messages: **timed lines go first** (a line at its time in the level script plays before any waiting event line), an **event line** (a reaction to an escaped enemy, a secret, a kill) waits for a gap, a free radio long enough to play it before the next timed line is due, and is dropped as stale once it has waited more than **6 s**; the lines that close a level (its end, a met secondary objective) wait for a gap too but are never dropped; urgent warnings interrupt (and cut the playing voice; the interrupted line replays with its voice): the Airstrike's call and Rook's **eject bark** ([wingmen](../../player/wingmen/README.md#radio-barks): exempt from the barks' spacing, never stale, it cuts his own waiting or playing bark). After a won level the scroll runs on and the debrief waits until the radio has shown its last message (the level-end line and whatever is still queued), at most 15 s after the level end |
+| Radio | 72×72 portrait with static on open/close, name, subtitle below the portrait up to 3 lines × 22 chars per page; a longer line is paged: each page typed out, then held 3 s (the last page 5 s), and a spoken line's page at least until its [voice](../../audio/voice/README.md) has reached the page's end (the last page until the voice ends); a radio line is at most **two pages** of word-wrapped lines (writing rule); queued messages: **timed lines go first** (a line at its time in the level script plays before any waiting event line), an **event line** (a reaction to an escaped enemy, a secret, a kill) waits for a gap, a free radio long enough to play it before the next timed line is due, and is dropped as stale once it has waited more than **6 s**; a boss phase's lines wait the same way but go stale only after **20 s**, so a reply queued behind the phase's first line still plays (dropped at the boss's kill); the lines that close a level (its end, a met secondary objective, a boss's death) wait for a gap too but are never dropped, and one queued while the radio is free (nothing on it, nothing waiting) **goes ahead at once**, the timed lines that fall due waiting for it, except a secondary's line still waiting (or only just opened) when a boss's warning starts, which is dropped (the HUD shows the objective done); urgent warnings interrupt (and cut the playing voice; the interrupted line replays with its voice): the Airstrike's call and Rook's **eject bark** ([wingmen](../../player/wingmen/README.md#radio-barks): exempt from the barks' spacing, never stale, it cuts his own waiting or playing bark). After a won level the scroll runs on and the debrief waits until the radio has shown its last message (the level-end line and whatever is still queued), at most 15 s after the level end |
 | Progress | Level progress bar with a boss marker at the end |
-| Control prompts | The contextual prompts of the first levels (see [Level 01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md#launch-and-control-prompts)): one line each, the action on the left and its keys on the right (the four arrow keys read `ARROW KEYS`), at most three at once; the box is shown only while a prompt is pending |
-| Objective tracker | Shown for every primary or secondary objective; hidden in levels without one. Compact box above the progress bar: objective icon and short label (e.g. "DOCKS", "CRAWLERS", "BATTERIES", "NODES", "SHUTTLES", "CONVOY", "RELAY"), then progress as pips or counters (docks, crawler pips, batteries A–D, hive nodes, shuttles, ship pips, relay integrity bar). A pip flashes green on success and red on a loss or failure; the whole box flashes when the objective is won or lost. Used by [L02](../../campaign/act-1-first-contact/level-02-shipyard-burning/README.md), [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md), [L11](../../campaign/act-2-homefront/level-11-atlantic-convoy/README.md) and [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md); the secondary objective of [L01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) shows a `KILLS n / 76` counter that turns `DONE` and flashes green when met; [L03](../../campaign/act-1-first-contact/level-03-spore-drift/README.md)'s "nothing gets through" shows `BOMBERS n / 10` (destroyed of all), `DONE` in green when met or `FAILED` in red once one gets through, the box flashing green or red. **Two objectives** (a primary and a secondary at once: [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md)): a two-line tracker, the primary on line one and the secondary on line two. Level 09 (M5 part C): line one `NODES A1 A2 B1 B2 C1 C2`, one **two-character mark** per named node (the last word of its group's name; dim while it lives, struck through in green when destroyed, red and the line flashing red when one gets past and the mission fails), line two `RAVAGERS n / 8` (the bridge waves' Ravagers destroyed of all; 6 on easy, 10 on hard), then `DONE` or `FAILED`. Level 04: line one `CRAWLERS` with five pips (green; amber below 50 % HP; a white flash on a hit; a red flash, then dark, when lost), line two `PODS n / 6` (pods killed before they burst, of all), then `DONE` or `FAILED`. Level 10 (planned, M5 part D, user decision D3 = a): the two-line tracker with **one** objective, line one `SHUTTLES n / 4` (the saveable shuttles still flying; the count turns red and the box flashes red when the last is lost and the mission fails), line two **five small armour bars** in order, Lifeline One to Five (each about 32 px wide, filled by its armour share: green, a white flash on a hit, amber below 50 %, a red flash then dark when lost; Lifeline Three's bar dark from its scripted loss at t=118, the count unchanged; a shuttle **home** after the climb-out shows a full bar in pale mint under a green glow, unlike both a flying and a lost one's). Level 11 (planned, M5 part E, a stated default): the one-line tracker for its secondary objective, `CONVOY` with **three ship pips** right, one per cargo ship in order (Halvorsen, Mbeki, Saint-Laurent: green; amber after the ship's first slam; a red flash, then dark, when it sinks, the box flashing red as the objective fails), turning `DONE` (green) or `FAILED` (red) at the Kraken's death; the debrief's secondary row `HULLS AFLOAT n / 3` |
+| Control prompts | The contextual prompts of the first levels (see [Level 01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md#launch-and-control-prompts)): one line each, the action on the left and its keys on the right (the four arrow keys read `ARROW KEYS`), at most three at once; the box is shown only while a prompt is pending. An **event prompt** (M5 part F, shown on a level event instead of a time: Level 12's `SHAKE OFF` · `LEFT-RIGHT`) is a warning and stands in the play field instead (see *In the play field*) |
+| Objective tracker | Shown for every primary or secondary objective; hidden in levels without one. Compact box above the progress bar: objective icon and short label (e.g. "DOCKS", "CRAWLERS", "BATTERIES", "NODES", "SHUTTLES", "CONVOY", "RELAY"), then progress as pips or counters (docks, crawler pips, batteries A–D, hive nodes, shuttles, ship pips, relay integrity bar). A pip flashes green on success and red on a loss or failure; the whole box flashes when the objective is won or lost. Used by [L02](../../campaign/act-1-first-contact/level-02-shipyard-burning/README.md), [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L10](../../campaign/act-2-homefront/level-10-evacuation-corridor/README.md), [L11](../../campaign/act-2-homefront/level-11-atlantic-convoy/README.md) and [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md); the secondary objective of [L01](../../campaign/act-1-first-contact/level-01-break-at-dawn/README.md) shows a `KILLS n / 76` counter that turns `DONE` and flashes green when met; [L03](../../campaign/act-1-first-contact/level-03-spore-drift/README.md)'s "nothing gets through" shows `BOMBERS n / 10` (destroyed of all), `DONE` in green when met or `FAILED` in red once one gets through, the box flashing green or red. **Two objectives** (a primary and a secondary at once: [L04](../../campaign/act-1-first-contact/level-04-tranquility-run/README.md), [L05](../../campaign/act-1-first-contact/level-05-crater-nest/README.md), [L09](../../campaign/act-2-homefront/level-09-arcology-fall/README.md), [L13](../../campaign/act-2-homefront/level-13-polar-relay/README.md)): a two-line tracker, the primary on line one and the secondary on line two. Level 09 (M5 part C): line one `NODES A1 A2 B1 B2 C1 C2`, one **two-character mark** per named node (the last word of its group's name; dim while it lives, struck through in green when destroyed, red and the line flashing red when one gets past and the mission fails), line two `RAVAGERS n / 8` (the bridge waves' Ravagers destroyed of all; 6 on easy, 10 on hard), then `DONE` or `FAILED`. Level 04: line one `CRAWLERS` with five pips (green; amber below 50 % HP; a white flash on a hit; a red flash, then dark, when lost), line two `PODS n / 6` (pods killed before they burst, of all), then `DONE` or `FAILED`. Level 10 (planned, M5 part D, user decision D3 = a): the two-line tracker with **one** objective, line one `SHUTTLES n / 4` (the saveable shuttles still flying; the count turns red and the box flashes red when the last is lost and the mission fails), line two **five small armour bars** in order, Lifeline One to Five (each about 32 px wide, filled by its armour share: green, a white flash on a hit, amber below 50 %, a red flash then dark when lost; Lifeline Three's bar dark from its scripted loss at t=118, the count unchanged; a shuttle **home** after the climb-out shows a full bar in pale mint under a green glow, unlike both a flying and a lost one's). Level 11 (planned, M5 part E, a stated default): the one-line tracker for its secondary objective, `CONVOY` with **three ship pips** right, one per cargo ship in order (Halvorsen, Mbeki, Saint-Laurent: green; amber after the ship's first slam; a red flash, then dark, when it sinks, the box flashing red as the objective fails), turning `DONE` (green) or `FAILED` (red) at the Kraken's death; the debrief's secondary row `HULLS AFLOAT n / 3`. Level 12 (planned, M5 part F, a stated default): the one-line tracker for its `collect` secondary, `SONDES n / 3` (the weather sondes collected of all), the count flashing green at each collection, turning `DONE` (green) at the third or `FAILED` (red, the box flashing red) when a sonde leaves the screen uncollected; the debrief's secondary row `SONDES n / 3`. Level 13 (M5 part G, stated defaults of the gap check, pending the user's review; built in step G6): the two-line tracker with the **primary** `defend`: line one `RELAY` with the Nansen Relay's **integrity bar** (green; a white flash per hit; amber below 50 %, a tick marking 50 %; a red flash, then dark, at 0, when the mission fails) and, on the right from the halt's start, the **sync countdown** `2:58 … 0:00` (the synchronisation's 178 s, rounded up); line two the secondary `INTEGRITY ≥ 50 %`, turning `DONE` (green) at the sync's end or `FAILED` (red) the moment the relay drops below half; the debrief's secondary row `RELAY n %` (the relay's integrity at the end; pays when met). Level 14 (M5 part H, a stated default, pending the user's review; built in step H6): the one-line tracker for its secondary, `ROOTS n / 8` (the root-burst growths destroyed of all; `n / 4` on easy), then `DONE` or `FAILED`; the debrief's secondary row `ROOTS n / 8` and its **BOSS TIME** row with the Siege Spire's par (the [debrief](../debrief/README.md) rule) |
 
 ### Left panel layout
 
@@ -93,7 +93,7 @@ control prompts 384–430 (a two-line well, 42 px), objective tracker 436–482 
 | Element | Notes |
 |---|---|
 | Armour | Bar + number; flashes red at 30 % and 15 % |
-| Shield | Bar + number; flickers while down after a break |
+| Shield | Bar + number; flickers while down after a break. Planned (M5 part F, Level 12): while a [Lamprey](../../enemies/air/lamprey/README.md) drains it, the label reads `SHIELD DRAIN` in the warning colour and the bar flickers the same way (if the label does not fit the row, `DRAIN` replaces `SHIELD`; a layout test) |
 | Power | Spare power as pips and the resulting regen bonus; glows during overdrive. Output drained by enemies (Void Leech) shows in a warning colour and the gauge flashes when load exceeds output (see [generator](../../player/generator/README.md#enemy-drain-effects)) |
 | Weapons | Front, rear, left, right with level pips (5); overdrive timer bar. A weapon that cannot fire in the level reads so in its row instead of its pips: a Torpedo Pod in a level without water reads `NO WATER` (M5 part E; it still draws its power), as the Bomb Rack's `NO GROUND` will in a level without ground |
 | Special | Icon, charges or cooldown ring; greyed out if unavailable in this setting |
@@ -112,6 +112,17 @@ control prompts 384–430 (a two-line well, 42 px), objective tracker 436–482 
   upper play field (its middle 164 px below the top edge); in a level with an air escort
   (Level 10) it sits higher, 97–127 px below the top edge, so it never covers the shuttle band
   (stations from 140 px down).
+- Level 12's **gust telegraph** (planned, M5 part F) is a weather look, not an edge warning: the
+  wind streaks brighten and an arrow shows at the upwind edge 1.0 s ahead (easy 1.5 s), drawn
+  unlike the flashing edge-warning arrows so the two are never confused
+  ([Level 12](../../campaign/act-2-homefront/level-12-storm-front/README.md#weather)).
+- Level 12's **shake-off prompt** (an event prompt, M5 part F): a warning where the player looks
+  while a Lamprey drains the shield. `SHAKE OFF` in amber and `LEFT-RIGHT` in the label colour on
+  a one-line box in the wave banner's look (dark band, amber frame pulsing with the edge
+  warnings), sized to its line (19 px tall), centred across the play field (so the shake's jolts
+  do not move it) with its middle 80 px below the ship's centre, under the hull and a Lamprey at
+  its tail, at least 16 px above the bottom edge. It shows on every latch that lasts at least
+  0.3 s, at most 6 s each time, until the attempt's first shake-off; then not again that attempt.
 - With a sensor suite at L2+, extra arrows also track individual off-screen threats (single
   enemies, homing missiles) between waves.
 - Small floating numbers for credits picked up. Can be disabled in options (Gameplay tab,
@@ -213,6 +224,20 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
 - [x] The weapon row's `NO WATER` for a Torpedo Pod in a level without `water: true` (M5 part E,
       step E3c: `ShipPanel.NO_WATER` right-aligned in place of the pips, `Hud.idle` from
       `Sortie.mountIdle`; `PartEHudTest`)
+- [x] Level 12's tracker (M5 part F, step 6): `SONDES n / 3`, the green flash per collection,
+      `DONE` or `FAILED`, fitting the one-line well (`MissionLayoutTest`); the debrief's row
+      `SONDES n / 3`; `PartFHudTest` — built: the escapes tracker's line (the `collect: sondes`
+      objective counts as one), `MissionPanel.collectFlash` (the well green for a blink, 32 frames, per
+      sonde), `DebriefScreen.hullsRow` with the `SONDES` label (`LevelScreen.debriefCount`;
+      `LevelScreenPartFTest`)
+- [x] `SHIELD DRAIN` and the shield bar's flicker while a Lamprey drains (M5 part F, step 6;
+      `PartFHudTest`) — built: `ShipPanel.SHIELD_DRAIN` in amber on the label plate (it fits, so
+      `DRAIN` alone is not needed), the bar flickering as after a break while `Sortie.draining()`
+- [x] The event prompt (`SHAKE OFF` · `LEFT-RIGHT`) in the play field below the ship, its box
+      sized to its line, on every latch of at least 0.3 s for at most 6 s until the attempt's
+      first shake-off (M5 part F, steps 4 and 6, moved out of the control prompts' well after the
+      round 34 capture) — built: `EventPrompt`, driven by `LevelScreen` from `LAMPREY_LATCHED`,
+      `LAMPREY_SHAKEN` and `Sortie.latched()` (`PartFHudTest`)
 - [x] Level 09's tracker: `NODES` with six two-character marks (`A1` … `C2`; the group marks widened from one letter, the line fitting the 208 px well, a layout test) over `RAVAGERS n / 8` — M5 part C (`MissionPanel.markStep`/`markLeft`: a mark's glyph advance + 4 px, 24 px for a pair, right-aligned; Level 05's letters keep their 16 px; `MissionLayoutTest`)
 - [x] Objective tracker: icon, label, pips/counters or integrity bar per level, success/fail flash; hidden in levels without an objective (Act 1's done: Level 01's kill counter, Level 02's dock pips, Level 03's bomber counter, Level 04's crawler pips, Level 05's `BATTERIES A B C D` over `NEST n / 30`, Level 06's `MANTISES` escapes and Level 07's bay count; the later levels' trackers are part of those levels' own tickets)
 - [x] Right panel: armour, shield, power (spare-power bar and the regen bonus, glowing in an overdrive), weapons (front, rear, left, right with level pips), overdrive timer
@@ -228,6 +253,20 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
       arrows, the option to hide the credit numbers (M4 part H); with an air escort the banner
       above the shuttle band (`WaveBanners.ESCORT_CENTRE_Y`, `WaveBannersTest`, 2026-10-08)
 - [x] Low-armour flash: the armour readout and gauge flash red at 30 % and faster at 15 % (M4 part H)
+
+- [x] Level 13's `RELAY` line with the integrity bar and its 50 % tick, the sync countdown, the
+      `INTEGRITY ≥ 50 %` line and the debrief's `RELAY n %` row (M5 part G, step G6; `PartGHudTest`,
+      `LevelScreenPartGTest`)
+- [x] Level 14's `ROOTS n / 8` tracker and debrief row, the BOSS TIME row with the Spire's par and
+      the Act 2 summary page `ACT II COMPLETE · HOMEFRONT` (seven rows, Levels 08–14; the act's data
+      cores are checked against L08–L14: none of them hides one, the page reads `NONE FOUND`), as the
+      Act 1 summary of the [debrief](../debrief/README.md) (M5 part H, step H6; `PartHHudTest`,
+      `LevelScreenPartHTest`, `DebriefActEndTest`)
+- [ ] The hangar intel for Levels 13 and 14 (M5 parts G and H): Varga's lines (Level 13's four,
+      Level 14's five), the Siege Spire's boss silhouette (`intel/boss-siege-spire`), and the L3
+      wave strip's marks: Level 13's three defend phases and the whiteout (new marks, done in M5 part
+      G, step G6: `Intel.marks`, `PartGHudTest`), Level 14's root field (t=60–95) and the boss at 108
+      ([hangar](../hangar/README.md))
 
 ## Open questions
 
@@ -480,3 +519,59 @@ Production art for concept round 26 (M4 part H batch): the boss bar's plate, ren
   33): the line flashes green when the afloat secondary is met (`DONE` replaces the pips) and red
   the moment a ship sinks (the label red, the sunk pip flashing then dark); the pips stay until the
   Kraken is down, then `FAILED` replaces them. `NO WATER` is drawn in the label's dim colour.
+- 2026-10-09: M5 part F (stated defaults of the part's gap check): Level 12's `SONDES n / 3`
+  tracker for the `collect` secondary with its debrief row, `SHIELD DRAIN` with the shield bar's
+  flicker while a Lamprey drains, and an event prompt for the shake-off on the first latch; the gust
+  telegraph is a weather look in the play field, distinct from the edge warnings.
+- 2026-10-11: M5 part F step 6 (pending the user's review in the combined round 34): `SHIELD
+  DRAIN` in amber (the warning colour of the HUD's readouts) fits the 120 px label plate, so the
+  short `DRAIN` is not used; the bar flickers as after a break while any Lamprey drains. The
+  `SONDES n / 3` tracker is the escapes tracker's line (label and count, `DONE` / `FAILED`) with a
+  green blink of the well for each sonde collected; the debrief's row `SONDES n / 3` pays the
+  secondary's credits when all three were collected. The shake-off's event prompt shows once an
+  attempt, from the first latch until no Lamprey is latched or 6 s.
+- 2026-10-11: M5 parts G and H (the user is on vacation; the main agent took the gap analyses'
+  recommendations, **pending the user's review** in the combined round): Level 13's tracker is
+  `RELAY` with an integrity bar, a 50 % tick and the sync countdown, over `INTEGRITY ≥ 50 %`;
+  Level 14's is `ROOTS n / 8` (easy `n / 4`); the debrief gets the rows `RELAY n %` and
+  `ROOTS n / 8`, Level 14's BOSS TIME row and the Act 2 summary; the intel gets the L3 strip marks.
+  The tracker texts are in the table above, defined once.
+- 2026-10-11: M5 part F, after the round 34 capture (the user is on vacation; **pending the user's
+  review in the combined round**): the shake-off's event prompt was barely seen in the control
+  prompts' well (far from the ship, a three-line box for one line, once an attempt, so the real
+  shake-off had none). It moves into the play field as a warning: a one-line box in the wave
+  banner's look below the ship, on every latch of at least 0.3 s, at most 6 s each time, until the
+  attempt's first shake-off. Level 12's gust arrow moves above the side edge warnings (it was
+  drawn under them).
+- 2026-10-12: M5 part G, step G6 (the user is on vacation; **pending the user's review in the combined
+  round**): Level 13's tracker built as specified, with these readings of the spec: the countdown
+  shows the synchronisation's 178 s (t=40–218), so it starts at `2:58`, not `2:59`, rounds up (`0:00`
+  only at the end), shows from the halt's start and stays at `0:00` after it; the bar's tick sits at
+  the secondary's share (50 %) and the bar turns amber below it; the font has no `≥`, so line two
+  draws `> 50 %` with a one-pixel bar under the `>`; the debrief's `RELAY n %` rounds the integrity
+  left down, so a relay under half never reads `50 %`. The hangar intel's L3 wave strip marks a defend
+  level's three halt sections as dim bands under the wave ticks and its whiteout as a pale bar along
+  their foot.
+- 2026-10-12: M5 part H, step H6 (the user is on vacation; **pending the user's review** in round 36):
+  Level 14's `ROOTS n / 8` is the one-line tracker of a groups secondary that has its own `label`: it
+  counts the group's units destroyed of all (easy `n / 4`), turning `DONE` or `FAILED` as the other
+  counters; a groups secondary without a label (Level 02's docks) keeps its pips. The debrief's row is
+  `ROOTS n / 8`, paid when met. The Act 2 summary page lists Levels 08–14 and reads `NONE FOUND` under
+  DATA CORES (no Act 2 level hides one).
+- 2026-10-12: M5 part H, step H7b (after the H7 capture of Level 14; **pending the user's review**):
+  a `boss-phase` cue queues as a `PHASE` line, stale after 20 s instead of 6 s
+  (`RadioQueue.PHASE_STALE_SECONDS`), so Rook's phase-3 reply behind Okafor's line plays; the phase
+  lines still waiting at the boss's death are dropped. A secondary objective's line that waits out the
+  timed lines before a boss is dropped when the boss's warning starts, or cut if it opened less than
+  1.5 s before (`RadioQueue.drop`, `LevelScreen`): Level 14's root-grid line otherwise played over the
+  Spire's arrival and made Rook's warning bark go stale. Tests: `RadioQueueTest`,
+  `RadioTimelineTest.theSpiresPhaseLinesPlayOneAfterTheOther`.
+- 2026-10-12: M5 part H, step H9 (pending the user's review): a closing line (`RadioQueue.Priority.CLOSING`)
+  queued while the radio is free goes ahead at once, and the timed lines that fall due while it plays wait
+  for it (they may then start more than 1 s late); queued while a line plays or waits, it waits for a gap
+  as before. Level 14's root-grid line (about 10 s at the default text speed) found no gap before the
+  Choir's t=96 line 2.5 s later and was dropped at the Spire's warning; now it plays as the roots die
+  (`RadioQueueTest`, `RadioTimelineTest`).
+- 2026-10-12: `design` back to `review` (from `approved`) for the radio rule changes of steps H7b and
+  H9 above, which apply to every level; listed for the user as C10 in the combined
+  [concept round 34](../../concept-rounds/round-34/README.md#changes-to-approved-specs).

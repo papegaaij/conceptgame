@@ -211,6 +211,8 @@ final class ContentValidator {
         checkBoss(enemy);
         checkPartD(enemy);
         checkPartE(enemy);
+        checkPartF(enemy);
+        PartHChecks.enemy(content, enemy, (field, message) -> problem(enemy, field, message));
         enemy.difficulty()
                 .flatMap(EnemyData.Hooks::hard)
                 .flatMap(EnemyData.Hook::leadsTargetIn)
@@ -394,12 +396,20 @@ final class ContentValidator {
                 }
             }
             wave.at().ifPresent(at -> {
-                if (at.x() < 0 || at.x() > PlayField.WIDTH || at.y() < 0 || at.y() > PlayField.HEIGHT) {
+                // M5 part F: a whirl cluster on the wind is released just outside its side edge (Level 12).
+                if (!sideRelease(wave)
+                        && (at.x() < 0 || at.x() > PlayField.WIDTH || at.y() < 0 || at.y() > PlayField.HEIGHT)) {
                     problem(level, field + ".at", "[" + at.x() + ", " + at.y() + "] is outside the play field");
                 }
             });
         }
         checkSetPieces(level, levelEnemies);
+        // M5 part H: the root bursts' growths fly in the level too (Level 14).
+        for (LevelData.RootBurst burst : level.bursts()) {
+            for (Difficulty difficulty : Difficulty.values()) {
+                levelEnemies.addAll(burst.growthsOn(difficulty));
+            }
+        }
         level.boss().ifPresent(boss -> {
             checkEnemyName(level, "boss.enemy", boss.enemy());
             levelEnemies.add(boss.enemy());
@@ -421,7 +431,9 @@ final class ContentValidator {
         checkLevelRules(level);
         level.prompts().ifPresent(prompts -> {
             for (int i = 0; i < prompts.size(); i++) {
-                checkTime(level, "prompts[" + i + "].t", prompts.get(i).t());
+                if (!prompts.get(i).onEvent()) {
+                    checkTime(level, "prompts[" + i + "].t", prompts.get(i).t());
+                }
             }
         });
         level.objectives().secondary().flatMap(LevelData.Secondary::escapes).ifPresent(slug -> {
@@ -456,7 +468,8 @@ final class ContentValidator {
                                 field + ".at[" + p + "]",
                                 "t=" + placement.t() + " is not in section " + target.section());
                     }
-                    if (placement.x() < 0 || placement.x() > PlayField.WIDTH) {
+                    // M5 part G: a nest from a side gives its units' y there instead of an x (PartGChecks).
+                    if (target.side().isEmpty() && (placement.x() < 0 || placement.x() > PlayField.WIDTH)) {
                         problem(level, field + ".at[" + p + "]", "x=" + placement.x() + " is outside the play field");
                     }
                 }
@@ -541,6 +554,9 @@ final class ContentValidator {
         checkPartC(level, levelEnemies);
         checkPartD(level);
         checkPartE(level);
+        checkPartF(level, levelEnemies);
+        new PartGChecks(content, level, (field, message) -> problem(level, field, message)).run(levelEnemies);
+        PartHChecks.level(content, level, (field, message) -> problem(level, field, message));
         checkArenaLevel(level);
         new BackdropCheck(level, (field, message) -> problem(level, field, message)).run();
     }
@@ -1007,6 +1023,167 @@ final class ContentValidator {
     }
 
     /** {@code enemy}'s formations list {@code formation}. */
+    /**
+     * M5 part F's unit keys (design/enemies/air/lamprey): a latch comes with a chase and a drain attack,
+     * a drain only with a latch, the hooks {@code drain} and {@code latch_slots} only on a unit that
+     * latches; its hull spots lie near the ship (within 60 px of its centre).
+     */
+    private void checkPartF(EnemyData enemy) {
+        boolean drain =
+                enemy.attacks().stream().anyMatch(attack -> attack.pattern().equals(PartFRules.DRAIN));
+        enemy.latch().ifPresent(latch -> {
+            if (enemy.movement().chase().isEmpty()) {
+                problem(enemy, "latch", "a unit that latches chases the ship first (movement.chase)");
+            }
+            if (!drain) {
+                problem(enemy, "latch", "a unit that latches drains the shield (an attack with pattern drain)");
+            }
+            EnemyData.Spots spots = latch.spots();
+            for (var spot : java.util.Map.of("left", spots.left(), "right", spots.right(), "tail", spots.tail())
+                    .entrySet()) {
+                if (Math.hypot(spot.getValue().x(), spot.getValue().y()) > 60) {
+                    problem(enemy, "latch.spots." + spot.getKey(), "lies more than 60 px from the ship's centre");
+                }
+            }
+        });
+        if (drain && enemy.latch().isEmpty()) {
+            problem(enemy, "attacks", "only a unit that latches drains (a latch block)");
+        }
+        if (drain && enemy.attacks().size() > 1) {
+            problem(enemy, "attacks", "a drain is its unit's only attack");
+        }
+        for (var hook : List.of(
+                enemy.difficulty().flatMap(EnemyData.Hooks::easy),
+                enemy.difficulty().flatMap(EnemyData.Hooks::hard))) {
+            if ((hook.flatMap(EnemyData.Hook::drain).isPresent()
+                            || hook.flatMap(EnemyData.Hook::latchSlots).isPresent())
+                    && enemy.latch().isEmpty()) {
+                problem(enemy, "difficulty", "drain and latch_slots change a latch the unit does not have");
+            }
+        }
+    }
+
+    /** M5 part F: a whirl cluster on the wind, released from its {@code at} just outside the side edge it names. */
+    private static boolean sideRelease(LevelData.Wave wave) {
+        if (wave.from() != LevelData.Entry.SIDES
+                || wave.edge().isEmpty()
+                || wave.edge().get() == LevelData.Edge.ALTERNATING
+                || wave.groupList().stream()
+                        .noneMatch(group -> group.formation().equals("whirl cluster"))) {
+            return false;
+        }
+        return wave.at()
+                .filter(point -> point.y() >= 0 && point.y() <= PlayField.HEIGHT)
+                .filter(point -> wave.edge().get() == LevelData.Edge.LEFT
+                        ? point.x() < 0 && point.x() >= -SIDE_RELEASE
+                        : point.x() > PlayField.WIDTH && point.x() <= PlayField.WIDTH + SIDE_RELEASE)
+                .isPresent();
+    }
+
+    /** M5 part F: how far outside its side edge a whirl cluster on the wind may be released, px. */
+    private static final double SIDE_RELEASE = 40;
+
+    /**
+     * M5 part F's level keys (Level 12): the weather's times lie in the level and its drift's section
+     * exists; the sondes lie in the play field during the level, not in a level with a boss (the
+     * checkpoint), and a {@code collect: sondes} objective has them; a placed pickup's time and x; a
+     * rear stream and the {@code first-latch} radio event and prompt only with a chaser that latches;
+     * the music's section levels name sections.
+     */
+    private void checkPartF(LevelData level, Set<String> levelEnemies) {
+        level.weather().ifPresent(weather -> {
+            weather.gusts().ifPresent(gusts -> {
+                List<LevelData.GustAt> all = new ArrayList<>(gusts.at());
+                gusts.hard().flatMap(LevelData.GustChange::extra).ifPresent(all::addAll);
+                for (int i = 0; i < all.size(); i++) {
+                    checkTime(level, "weather.gusts.at[" + i + "].t", all.get(i).t());
+                }
+            });
+            weather.drift().ifPresent(drift -> {
+                if (drift.section() > level.sections().size()) {
+                    problem(level, "weather.drift.section", "no section " + drift.section());
+                }
+            });
+            weather.lightning().ifPresent(lightning -> {
+                for (int i = 0; i < lightning.at().size(); i++) {
+                    checkTime(
+                            level,
+                            "weather.lightning.at[" + i + "]",
+                            lightning.at().get(i));
+                }
+                List<Double> at = lightning.at();
+                for (int i = 3; i < at.size(); i++) {
+                    if (at.get(i) - at.get(i - 3) < 1) {
+                        // design/campaign Level 12 (flash safety): never more than 3 flashes a second.
+                        problem(level, "weather.lightning.at[" + i + "]", "a fourth flash within a second");
+                    }
+                }
+            });
+        });
+        boolean collect = level.objectives()
+                .secondary()
+                .flatMap(LevelData.Secondary::collect)
+                .isPresent();
+        if (collect && level.sondes().isEmpty()) {
+            problem(level, "objectives.secondary.collect", "a collect: sondes objective needs the level's sondes");
+        }
+        level.sondes().ifPresent(sondes -> {
+            if (level.boss().isPresent()) {
+                problem(level, "sondes", "weather sondes in a level with a boss (its checkpoint) are not supported");
+            }
+            for (int i = 0; i < sondes.at().size(); i++) {
+                LevelData.Placement at = sondes.at().get(i);
+                checkTime(level, "sondes.at[" + i + "]", at.t());
+                if (at.x() < 0 || at.x() > PlayField.WIDTH) {
+                    problem(level, "sondes.at[" + i + "]", "x=" + at.x() + " is outside the play field");
+                }
+            }
+        });
+        for (int i = 0; i < level.pickups().size(); i++) {
+            LevelData.PlacedPickup pickup = level.pickups().get(i);
+            if (pickup.carried()) {
+                continue;
+            }
+            LevelData.Placement at = pickup.at().orElseThrow();
+            checkTime(level, "pickups[" + i + "].at", at.t());
+            if (at.x() < 0 || at.x() > PlayField.WIDTH) {
+                problem(level, "pickups[" + i + "].at", "x=" + at.x() + " is outside the play field");
+            }
+        }
+        boolean latches = levelEnemies.stream()
+                .filter(content.enemies()::containsKey)
+                .anyMatch(slug -> content.enemy(slug).latch().isPresent());
+        for (int i = 0; i < level.waves().size(); i++) {
+            LevelData.Wave wave = level.waves().get(i);
+            for (LevelData.Group group : wave.groupList()) {
+                boolean chaser = content.enemies().containsKey(group.enemy())
+                        && content.enemy(group.enemy()).movement().chase().isPresent();
+                boolean rear = wave.from() == LevelData.Entry.REAR
+                        || wave.easy().flatMap(LevelData.Change::from).orElse(null) == LevelData.Entry.REAR
+                        || wave.hard().flatMap(LevelData.Change::from).orElse(null) == LevelData.Entry.REAR;
+                if (rear && group.formation().equals("stream") && !chaser) {
+                    problem(level, "waves[" + i + "].from", "only chasers stream in from the rear");
+                }
+            }
+        }
+        for (int i = 0; i < level.radio().size(); i++) {
+            if (level.radio().get(i).event().orElse(null) == LevelData.CueEvent.FIRST_LATCH && !latches) {
+                problem(level, "radio[" + i + "].event", "first-latch needs a unit that latches in the level");
+            }
+        }
+        List<LevelData.Prompt> prompts = level.prompts().orElse(List.of());
+        for (int i = 0; i < prompts.size(); i++) {
+            if (prompts.get(i).event().orElse(null) == LevelData.PromptEvent.FIRST_LATCH && !latches) {
+                problem(level, "prompts[" + i + "].event", "first-latch needs a unit that latches in the level");
+            }
+        }
+        level.music().sectionDb().ifPresent(levels -> levels.keySet().forEach(section -> {
+            if (section > level.sections().size()) {
+                problem(level, "music.section_db", "no section " + section);
+            }
+        }));
+    }
+
     private void checkFlies(EnemyData enemy, String formation) {
         if (enemy.formations().stream().noneMatch(use -> use.name().equals(formation))) {
             problem(enemy, "formations", "its movement flies '" + formation + "', which its formations do not list");
@@ -1033,8 +1210,10 @@ final class ContentValidator {
                 EnemyData enemy = content.enemy(group.enemy());
                 Optional<EnemyData.Flock> flock = enemy.movement().flock();
                 boolean ambush = enemy.movement().ambush().isPresent();
-                swarm |= group.formation().equals("swarm");
-                if (group.formation().equals("swarm") != flock.isPresent()) {
+                // M5 part F (F9 = a): a swarm of chasers needs no flock and flies no route.
+                boolean chasers = enemy.movement().chase().isPresent() && flock.isEmpty();
+                swarm |= group.formation().equals("swarm") && !chasers;
+                if (!chasers && group.formation().equals("swarm") != flock.isPresent()) {
                     problem(
                             level,
                             field + ".formation",
@@ -1069,8 +1248,12 @@ final class ContentValidator {
                     }
                 }
                 if (group.formation().equals("swarm")
+                        && !chasers
                         && wave.paths().map(List::size).orElse(0) != 1) {
                     problem(level, field + ".paths", "a swarm flies one route: one path");
+                }
+                if (group.formation().equals("swarm") && chasers && wave.paths().isPresent()) {
+                    problem(level, field + ".paths", "a swarm of chasers flies straight in, no paths");
                 }
                 if (group.formation().equals("rear ambush")) {
                     if (wave.from() != LevelData.Entry.REAR
@@ -1133,11 +1316,15 @@ final class ContentValidator {
         List<LevelData.Section> sections = level.sections();
         for (int i = 0; i < sections.size(); i++) {
             LevelData.Section section = sections.get(i);
-            if (section.speed().filter(speed -> speed == 0).isPresent() && !(section.isArena() && anchored)) {
+            // M5 part G: or on a timed halt (no arena) of a level with a defend primary (PartGChecks).
+            if (section.speed().filter(speed -> speed == 0).isPresent()
+                    && !(section.isArena() && anchored)
+                    && !(section.timedHalt() && level.objectives().defend().isPresent())) {
                 problem(
                         level,
                         "sections[" + i + "].speed",
-                        "speed 0 only on the arena of a level whose boss is anchored");
+                        "speed 0 only on the arena of a level whose boss is anchored, or on a timed halt with a"
+                                + " defend primary");
             }
         }
         if (anchored) {
@@ -1448,8 +1635,9 @@ final class ContentValidator {
                                         level.difficulty().hard())
                                 .flatMap(Optional::stream)
                                 .flatMap(variant -> variant.extraPickups().orElse(List.of()).stream()))
-                .anyMatch(pickup ->
-                        pickup.droppedBy().group().filter(group::equals).isPresent());
+                .filter(LevelData.PlacedPickup::carried)
+                .anyMatch(
+                        pickup -> pickup.carrier().group().filter(group::equals).isPresent());
         if (!carried) {
             problem(level, field, "no pickup is dropped by group '" + group + "'");
         }
@@ -1458,7 +1646,11 @@ final class ContentValidator {
     private void checkCarriers(
             LevelData level, String field, List<LevelData.PlacedPickup> pickups, Set<Double> waveTimes) {
         for (int i = 0; i < pickups.size(); i++) {
-            LevelData.Carrier carrier = pickups.get(i).droppedBy();
+            if (!pickups.get(i).carried()) {
+                // M5 part F: a placed pickup (PartFRules checks its time and x).
+                continue;
+            }
+            LevelData.Carrier carrier = pickups.get(i).carrier();
             if (carrier.parts().isPresent()) {
                 checkBossParts(
                         level,
@@ -1504,12 +1696,16 @@ final class ContentValidator {
                     && level.convoy().isEmpty()) {
                 problem(level, field, "convoy events and allies ranges need an escort objective or a naval convoy");
             }
-            boolean canFail = escort.isPresent() || level.objectives().targets().isPresent();
+            // M5 part G: a defend primary fails at its ally's loss.
+            boolean canFail = escort.isPresent()
+                    || level.objectives().targets().isPresent()
+                    || level.objectives().defend().isPresent();
             if (cue.event().orElse(null) == LevelData.CueEvent.MISSION_FAILED && !canFail) {
                 problem(
                         level,
                         field,
-                        "a mission-failed line needs a primary objective that can fail (escort, destroy-targets)");
+                        "a mission-failed line needs a primary objective that can fail (escort, destroy-targets,"
+                                + " defend)");
             }
             // M5 part D: a level-end cue counts the saveable units home (all but a scripted loss's);
             // M5 part E: a naval convoy's, its units that can be damaged afloat.
@@ -1701,11 +1897,15 @@ final class ContentValidator {
                 } else if (!level.overWater()) {
                     problem(level, field + ".layer", "a trigger on sub needs a level with water: true");
                 }
+            } else if (layer.equals("low-air") && target.drift().isPresent()) {
+                // M5 part F: a trigger drifting on low-air (Level 12's canister), the record checks it is one.
+                return;
             } else if (!layer.equals("ground")) {
                 problem(
                         level,
                         field + ".layer",
-                        "a destructible or trigger lies on ground (or a trigger on sub), not " + layer);
+                        "a destructible or trigger lies on ground (or a trigger on sub, or a drifting one on low-air),"
+                                + " not " + layer);
             }
         });
     }

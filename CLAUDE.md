@@ -121,7 +121,8 @@ design tree; this list is only a reminder.
 - `python3 tools/balance.py` – balancing report for levels 01–14 from the data files and the
   expected purchases in `design/player/balance-plan.yaml` (`--weapons` prints every weapon's
   per-level numbers); the same checks run as JUnit tests (`BalanceTest`, `ActPlaythroughTest`).
-  It exits 0; the L01–L03 DPS gap and the Coilwyrm's bounty are printed as accepted exceptions.
+  It exits 0; the L01–L03 DPS gap, the Coilwyrm's bounty and the Level 12 Wraith rear check (pending
+  the user's review) are printed as accepted exceptions.
 - `tools/concept/` – reproducible generators for concept mockups (Python 3 + PIL + numpy,
   ffmpeg for audio/GIF encoding). Each script documents its outputs at the top.
 - `tools/art/` – production generators for final assets (see
@@ -153,7 +154,9 @@ versions in `gradle/libs.versions.toml`.
   end, e.g. with `--bench` for captures);
   `--loadout front=scatter-vulcan:3,left=bomb-rack,right=micro-missile-pod:2,rear=side-splitter`
   fits weapons (slot `front`/`rear`/`left`/`right`, level 1 if left out, the power cap unchecked)
-  and utility modules (`utility=targeting-computer,utility2=salvage-scanner:2`)
+  and utility modules (`utility=targeting-computer,utility2=salvage-scanner:2`) and core parts
+  (`generator=mk-ii,shield=mk-iii,armor=composite-ii`: the name in lower case, hyphenated, the
+  nickname optional, or the balance plan's tier, `armor=2`; plating flies at its full armour)
   and starts in the level; `--special airstrike:2` fits a special with its charges (its name in
   lower case, hyphenated; 1 charge if left out, at most its most) and starts in the level;
   `--escort rook:<gun>:<level>[,side=left|right]` flies Rook in the escort slot with that gun
@@ -181,6 +184,13 @@ versions in `gradle/libs.versions.toml`.
 - Give each agent its own files so parallel agents never edit the same file; the main agent
   merges shared files (READMEs, `data.yaml`, the parent Contents tables) afterwards.
 - Keep a few agents running at a time (token budget), and stop an agent only at a safe spot.
+- Brief each step from a short file (`briefs/<step>.md` in the repo root, untracked: only the
+  facts, APIs, numbers and paths that step needs) instead of pointing the agent at whole working
+  notes and long READMEs.
+- Agents send Gradle output to a log file and read only the failures; module or class tests while
+  iterating, the full `check` once at the end.
+- Never run two code steps in the same module (`sim/`, `content/`, `game/`, `pipeline/`) at once;
+  an art or doc step may run next to a code step.
 
 ## Git
 

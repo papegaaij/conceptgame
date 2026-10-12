@@ -48,6 +48,10 @@ import java.util.Optional;
  * @param ring M5 part E: its proximity ring (the Driftjelly), fired instead of a gun
  * @param drift M5 part E: a ground unit's drift along its nest's current on top of the scroll, px/s
  *     (the Reef Spitter's raft); 0 for none. A {@code field} wave's units drift at their {@code speed}
+ * @param chase M5 part F: it homes on the ship after its entry (design/enemies/air/lamprey), then flies
+ *     straight on
+ * @param latch M5 part F: it latches onto the ship's hull on contact and drains the shield (the
+ *     Lamprey); a unit with a latch takes the level's wind in every state but latched
  */
 public record EnemySpec(
         String slug,
@@ -83,8 +87,13 @@ public record EnemySpec(
         Optional<FlockSpec> flock,
         Optional<Submerge> submerge,
         Optional<ProximityRing> ring,
-        double drift) {
+        double drift,
+        Optional<Chase> chase,
+        Optional<Latch> latch) {
     public EnemySpec {
+        if (latch.isPresent() && chase.isEmpty()) {
+            throw new IllegalArgumentException(slug + ": a unit that latches chases the ship first");
+        }
         if (!(drift >= 0)) {
             throw new IllegalArgumentException(slug + ": a drift is 0 px/s or more: " + drift);
         }
@@ -93,6 +102,190 @@ public record EnemySpec(
                     slug + ": only a unit on the ground layer (the sea's surface) submerges");
         }
     }
+
+    /** The constructor of Level 11: without the chasers and latches of Level 12 (M5 part F). */
+    public EnemySpec(
+            String slug,
+            double hp,
+            Hitbox hitbox,
+            Layer layer,
+            double contactDamage,
+            boolean destroyedByRamming,
+            int bounty,
+            double speed,
+            Optional<Snake> snake,
+            Optional<Double> streamSpeed,
+            Optional<Hover> hover,
+            Optional<Orbit> orbit,
+            Optional<EnemyGun> gun,
+            Optional<Drop> drop,
+            Optional<Dive> dive,
+            boolean terrain,
+            Optional<Spiral> spiral,
+            Optional<Range> strafe,
+            Optional<DeathBurst> deathBurst,
+            Optional<Sine> sine,
+            Optional<Brood> brood,
+            Optional<Walker> walker,
+            Optional<SideHover> sideHover,
+            Optional<Sweep> sweep,
+            Optional<ChainSpec> chain,
+            boolean hardened,
+            Optional<Spawner> spawner,
+            Optional<Pounce> pounce,
+            Optional<Cloak> cloak,
+            Optional<Ambush> ambush,
+            Optional<FlockSpec> flock,
+            Optional<Submerge> submerge,
+            Optional<ProximityRing> ring,
+            double drift) {
+        this(
+                slug,
+                hp,
+                hitbox,
+                layer,
+                contactDamage,
+                destroyedByRamming,
+                bounty,
+                speed,
+                snake,
+                streamSpeed,
+                hover,
+                orbit,
+                gun,
+                drop,
+                dive,
+                terrain,
+                spiral,
+                strafe,
+                deathBurst,
+                sine,
+                brood,
+                walker,
+                sideHover,
+                sweep,
+                chain,
+                hardened,
+                spawner,
+                pounce,
+                cloak,
+                ambush,
+                flock,
+                submerge,
+                ring,
+                drift,
+                Optional.empty(),
+                Optional.empty());
+    }
+
+    /** This unit with M5 part F's {@code chase} and {@code latch} (a test's own Lamprey). */
+    public EnemySpec withChase(Chase withChase, Optional<Latch> withLatch) {
+        return new EnemySpec(
+                slug,
+                hp,
+                hitbox,
+                layer,
+                contactDamage,
+                destroyedByRamming,
+                bounty,
+                speed,
+                snake,
+                streamSpeed,
+                hover,
+                orbit,
+                gun,
+                drop,
+                dive,
+                terrain,
+                spiral,
+                strafe,
+                deathBurst,
+                sine,
+                brood,
+                walker,
+                sideHover,
+                sweep,
+                chain,
+                hardened,
+                spawner,
+                pounce,
+                cloak,
+                ambush,
+                flock,
+                submerge,
+                ring,
+                drift,
+                Optional.of(withChase),
+                withLatch);
+    }
+
+    /**
+     * M5 part F, the {@code chase} movement (design/enemies/air/lamprey): from its entry (its centre
+     * inside the play field, then a swarm member's start delay) it steers toward the ship's centre at
+     * {@code speed} px/s, turning at most {@code turnRate} radians a second, for {@code seconds}; then
+     * it flies straight on along its heading at its speed and leaves the screen.
+     */
+    public record Chase(double speed, double turnRate, double seconds) {
+        public Chase {
+            if (!(speed > 0) || !(turnRate > 0) || !(seconds > 0)) {
+                throw new IllegalArgumentException("a chase has a speed, a turn rate and a time");
+            }
+        }
+    }
+
+    /**
+     * M5 part F, the {@code latch} block with the {@code drain} attack (design/enemies/air/lamprey; user
+     * decisions F3 and F4 = a). Touching the ship while it chases or flies on, with fewer than
+     * {@code slots} units latched, it latches at a hull spot ({@link #spots}, indexed by {@link #LEFT},
+     * {@link #RIGHT} and {@link #TAIL}: the tail for a touch within 45 degrees of straight down from the
+     * ship's centre, else the side by its x, a tie to the left) and moves with the ship, draining
+     * {@code drainRate} shield points a second (the shield only, its regeneration paused, nothing once
+     * it broke) and taking {@code damageFactor} times the damage. {@code reversals} reversals of the
+     * commanded horizontal direction within {@code withinSeconds} throw off every latched unit: thrown
+     * outward from its spot at {@code throwSpeed} px/s, slowing to a stop over {@code stunSeconds}, it
+     * then flees at its speed to the nearer side edge and never latches again.
+     *
+     * @param spots the offsets of the left, right and tail spots from the ship's centre, px, y up
+     */
+    public record Latch(
+            int slots,
+            java.util.List<Spot> spots,
+            double damageFactor,
+            int reversals,
+            double withinSeconds,
+            double stunSeconds,
+            double throwSpeed,
+            double drainRate) {
+        /** The spot on the hull's left side. */
+        public static final int LEFT = 0;
+        /** The spot on the hull's right side. */
+        public static final int RIGHT = 1;
+        /** The spot at the hull's tail. */
+        public static final int TAIL = 2;
+
+        public Latch {
+            spots = java.util.List.copyOf(spots);
+            if (slots < 1 || spots.size() != 3 || reversals < 2 || !(withinSeconds > 0) || !(stunSeconds > 0)) {
+                throw new IllegalArgumentException("a latch has slots, the left, right and tail spots, a shake of at"
+                        + " least two reversals within a time, and a stun");
+            }
+            if (!(damageFactor > 0) || throwSpeed < 0 || drainRate < 0) {
+                throw new IllegalArgumentException(
+                        "a latch's damage factor is positive, its throw and drain not negative");
+            }
+        }
+
+        /** The hull spot for a touch at ({@code dx}, {@code dy}) from the ship's centre, y up. */
+        public static int spotFor(double dx, double dy) {
+            if (dy < 0 && Math.abs(dx) <= -dy) {
+                return TAIL;
+            }
+            return dx <= 0 ? LEFT : RIGHT;
+        }
+    }
+
+    /** A hull spot's offset from the ship's centre, px, y up. */
+    public record Spot(double dx, double dy) {}
 
     /** The constructor of Level 10: without the submerging, proximity rings and drifting rafts of Level 11 (M5 part E). */
     public EnemySpec(

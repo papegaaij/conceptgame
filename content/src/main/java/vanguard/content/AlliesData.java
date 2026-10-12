@@ -23,7 +23,9 @@ public record AlliesData(Map<String, Ally> allies) {
      * @param size the sprite, px
      * @param hp at medium; the level sets the difficulty variants
      * @param follows what it moves along ({@code road}: the level's road at the scroll speed; M5
-     *     part D, {@code lanes}: its station in the level's band with the lane sway)
+     *     part D, {@code lanes}: its station in the level's band with the lane sway; M5 part E, {@code
+     *     stations}: a naval convoy's; M5 part G, {@code ground}: a defend primary's ally, standing on the
+     *     ground)
      * @param smokeBelow the share of its HP under which it smokes
      * @param firstLevel the level it is introduced in, optional: an ally no level's data escorts yet
      *     (its art lands before its level) goes in that level's sprite atlas
@@ -54,6 +56,11 @@ public record AlliesData(Map<String, Ally> allies) {
          * screen-space station at the scroll speed, its arena lane at the halt.
          */
         public static final String STATIONS = "stations";
+        /**
+         * M5 part G: what a defend primary's ally follows (Level 13's Nansen Relay): the ground, with which
+         * it scrolls in and where it stands while the ground halts.
+         */
+        public static final String GROUND = "ground";
 
         public Ally {
             Layers.of(layer);
@@ -61,10 +68,21 @@ public record AlliesData(Map<String, Ally> allies) {
             Check.share("smoke_below", smokeBelow);
             firstLevel.ifPresent(level -> Check.positive("first_level", level));
             Check.that(
-                    follows.equals(ROAD) || follows.equals(LANES) || follows.equals(STATIONS),
-                    "follows: 'road', 'lanes' or 'stations', was '" + follows + "'");
+                    follows.equals(ROAD) || follows.equals(LANES) || follows.equals(STATIONS) || follows.equals(GROUND),
+                    "follows: 'road', 'lanes', 'stations' or 'ground', was '" + follows + "'");
             boolean air = follows.equals(LANES);
             boolean naval = follows.equals(STATIONS);
+            boolean standing = follows.equals(GROUND);
+            Check.that(
+                    standing || (damagedBy.dives().isEmpty() && damagedBy.lobs().isEmpty()),
+                    "only a defended ally (follows: ground) is hurt by dives and lobs");
+            Check.that(
+                    !standing
+                            || (damagedBy.claws() == 0
+                                    && !damagedBy.hitByBullets()
+                                    && !damagedBy.hitByContact()
+                                    && damagedBy.slams().isEmpty()),
+                    "a defended ally (follows: ground) is hurt only by objective-aimed attacks, dives and lobs");
             Check.that(
                     air == layer.equals("air"),
                     "an ally on the air layer follows lanes, one on the ground follows the road or stations");
@@ -94,6 +112,11 @@ public record AlliesData(Map<String, Ally> allies) {
         /** M5 part E: whether it sails in a naval convoy (its screen-space station), not on a road. */
         public boolean naval() {
             return follows.equals(STATIONS);
+        }
+
+        /** M5 part G: whether it is a defend primary's ally, standing on the ground (Level 13's relay). */
+        public boolean standing() {
+            return follows.equals(GROUND);
         }
     }
 
@@ -128,16 +151,34 @@ public record AlliesData(Map<String, Ally> allies) {
      * @param slams M5 part E: the hits one boss slam in its lane deals (its {@code hp} then counts
      *     slams: the cargo ship's {@code hp: 2}, {@code slams: 1}); an ally whose {@code damaged_by}
      *     names nothing (the frigate) cannot be damaged and is never lost
+     * @param dives M5 part G (design/allies, Nansen Relay; user decision G1 = a): the damage a diver the
+     *     hook sends at it deals once as it crosses its hit box (the relay's 10)
+     * @param lobs M5 part G: a mortar's lob the hook aims at it deals its direct hit to it when it lands on
+     *     it (the ring hurts only the ship)
      */
     public record DamagedBy(
             boolean objectiveAimed,
             double claws,
             Optional<Boolean> bullets,
             Optional<Boolean> contact,
-            Optional<Double> slams) {
+            Optional<Double> slams,
+            Optional<Double> dives,
+            Optional<Boolean> lobs) {
         public DamagedBy {
             Check.notNegative("claws", claws);
             slams.ifPresent(n -> Check.positive("slams", n));
+            dives.ifPresent(d -> Check.positive("dives", d));
+            Check.that(lobs.orElse(true), "lobs: true, or leave it out");
+        }
+
+        /** M5 part G: the damage of a hooked diver crossing it; 0 when dives do not hurt it. */
+        public double diveDamage() {
+            return dives.orElse(0.0);
+        }
+
+        /** M5 part G: whether a hooked mortar's lob landing on it hurts it. */
+        public boolean hitByLobs() {
+            return lobs.orElse(false);
         }
 
         /** M5 part E: the hits a slam in its lane deals; 0 when slams do not hurt it. */

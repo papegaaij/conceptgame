@@ -59,6 +59,25 @@ class BarksReentryTest {
         assertEquals(1, queued.size(), "once");
     }
 
+    /**
+     * M5 part H: in a halted arena (Level 14's Siege Spire launching Wraiths from its maw) the level clock
+     * stands still while the warnings run on real steps: the bark is due on the real clock.
+     */
+    @Test
+    void aReentrysBarkFiresWhileTheLevelClockIsHalted() {
+        Barks barks = new Barks(DATA, 14, new double[0], new double[0], new double[0], radio, this::queue);
+        int halted = SimStep.ticks(250);
+        int warning = SimStep.ticks(300);
+        barks.step(halted, warning * SimStep.SECONDS, 1, 0);
+        assertTrue(barks.reentry(halted, warning));
+        int due = warning + SimStep.ticks(Barks.REENTRY_WARNING_SECONDS - 1.5);
+        barks.step(halted, (due - 1) * SimStep.SECONDS, 1, 0);
+        assertEquals(0, queued.size(), "not before 1.5 s ahead of the re-entry");
+        barks.step(halted, due * SimStep.SECONDS, 1, 0);
+        assertEquals(1, queued.size(), "the level clock still at 250 s");
+        assertEquals(Barks.Trigger.REAR_WAVE, queued.getFirst().trigger());
+    }
+
     @Test
     void aRearWavesOwnWarningIsNotBarkedTwice() {
         double rearWave = 60;

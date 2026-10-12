@@ -10,6 +10,8 @@ story variants) come from the round README: every markdown link to a .md file in
 shown as a table whose links to audio files become players (e.g. before / after comparisons).
 
 Usage: python3 tools/concept/board.py 01
+       python3 tools/concept/board.py 34 35 36   a combined round: round-34's board also shows the
+                                                 files named for rounds 35 and 36
 """
 import html
 import os
@@ -63,7 +65,7 @@ NAME = re.compile(r"^(?P<subject>.+)-r(?P<round>\d\d)-(?P<variant>[a-z])\.(?P<ex
 LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
 
 
-def collect(round_no):
+def collect(rounds):
     items = {}
     for f in sorted(DESIGN.rglob("*")):
         if not f.is_file():
@@ -75,9 +77,9 @@ def collect(round_no):
         else:
             continue
         m = NAME.match(f.name)
-        if not m or m["round"] != round_no:
+        if not m or m["round"] not in rounds:
             continue
-        key = (owner, m["subject"])
+        key = (owner, m["subject"], m["round"])
         items.setdefault(key, []).append((m["variant"], f))
     return items
 
@@ -131,10 +133,11 @@ def listening_table(readme):
 
 
 def main():
-    if len(sys.argv) != 2 or not re.fullmatch(r"\d\d", sys.argv[1]):
+    if len(sys.argv) < 2 or not all(re.fullmatch(r"\d\d", a) for a in sys.argv[1:]):
         print(__doc__)
         return 2
     round_no = sys.argv[1]
+    rounds = set(sys.argv[1:])
     out_dir = DESIGN / "concept-rounds" / f"round-{round_no}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -142,8 +145,10 @@ def main():
         return html.escape(os.path.relpath(p, out_dir).replace(os.sep, "/"))
 
     parts, toc = [], {}
-    for (owner, subject), variants in sorted(collect(round_no).items(),
-                                              key=lambda kv: (str(kv[0][0]), kv[0][1])):
+    for (owner, subject, rnd), variants in sorted(collect(rounds).items(),
+                                                   key=lambda kv: (str(kv[0][0]), kv[0][2], kv[0][1])):
+        # a combined round names each subject's own round
+        tag = f"-r{rnd}" if len(rounds) > 1 else ""
         doc = owner / "README.md"
         cards = []
         for variant, f in sorted(variants):
@@ -159,10 +164,10 @@ def main():
             cards.append(f'<div class="card {word}"><h3>Variant {variant.upper()}'
                          f'<span class="status {word}">{html.escape(status)}</span></h3>{media}'
                          f'<div class="file">{html.escape(f.name)}</div></div>')
-        anchor = f"{owner.relative_to(DESIGN).as_posix().replace('/', '-')}-{subject}"
-        toc.setdefault(owner.relative_to(DESIGN).as_posix(), []).append((anchor, subject))
+        anchor = f"{owner.relative_to(DESIGN).as_posix().replace('/', '-')}-{subject}{tag}"
+        toc.setdefault(owner.relative_to(DESIGN).as_posix(), []).append((anchor, subject + tag))
         parts.append(
-            f'<section id="{html.escape(anchor)}"><h2>{html.escape(subject.replace("-", " "))}</h2>'
+            f'<section id="{html.escape(anchor)}"><h2>{html.escape((subject + tag).replace("-", " "))}</h2>'
             f'<div class="doc">Part: <a href="{link(doc)}">{html.escape(owner.relative_to(DESIGN).as_posix())}</a>'
             f' · prompts: <a href="{link(owner / "concept" / "prompts.md")}">prompts.md</a></div>'
             f'<div class="grid">{"".join(cards)}</div></section>')
@@ -192,7 +197,7 @@ def main():
 <a href="README.md" style="color:var(--accent)">README.md</a>.</p></header>
 <nav>{nav}</nav>
 {''.join(parts)}
-<footer>Regenerate: <code>python3 tools/concept/board.py {round_no}</code></footer>
+<footer>Regenerate: <code>python3 tools/concept/board.py {' '.join(sys.argv[1:])}</code></footer>
 </body></html>
 """
     (out_dir / "index.html").write_text(page, encoding="utf-8")

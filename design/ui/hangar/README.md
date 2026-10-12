@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../systems/economy, ../../campaign]
-updated: 2026-10-09
+updated: 2026-10-12
 ---
 
 # Hangar
@@ -160,6 +160,9 @@ Production art, UI batch part U2 (for concept round 13, opened by part U3): the 
 | [concept/intel-final-r31-a.png](concept/intel-final-r31-a.png) | Review sheet (M5 part C batch, `tools/art/intel.py`, [round 31](../../concept-rounds/README.md)): the 30×30 intel portraits of Level 09's Hive Node and Ravager, from the production models of `tools/art/hive_node.py` and `tools/art/ravager.py`, at 1× and 3× | chosen |
 | [concept/intel-final-r32-a.png](concept/intel-final-r32-a.png) | Review sheet (M5 part D batch, `tools/art/intel.py`, [round 32](../../concept-rounds/README.md)): the 30×30 intel portraits of Level 10's Wraith and Mote Swarm, from the production models of `tools/art/wraith.py` and `tools/art/mote_swarm.py`, at 1× and 3× | chosen |
 | [concept/intel-final-r33-a.png](concept/intel-final-r33-a.png) | Review sheet (M5 part E batch, `tools/art/intel.py`, [round 33](../../concept-rounds/README.md)): the 30×30 intel portraits of Level 11's Driftjelly and Reef Spitter, from the production models of `tools/art/driftjelly.py` and `tools/art/reef_spitter.py`, and the 40×40 silhouette of the Harbour Kraken (its head and mantle), at 1× and 3× | chosen |
+| [concept/intel-final-r34-a.png](concept/intel-final-r34-a.png) | Review sheet (M5 part F batch, `tools/art/intel.py`, round 34): the 30×30 intel portrait of Level 12's Lamprey, from the production model of `tools/art/lamprey.py` nose down in swim frame 1, at 1× and 3× | proposed |
+| [concept/intel-final-r35-a.png](concept/intel-final-r35-a.png) | Review sheet (M5 part G batch, `tools/art/intel.py`, round 35): the 30×30 intel portrait of Level 13's Skimmer, from the production model of `tools/art/skimmer.py`, the whole hull at heading 0 moving down the screen, at 1× and 3× | proposed |
+| [concept/intel-final-r36-a.png](concept/intel-final-r36-a.png) | Review sheet (M5 part H batch, `tools/art/intel.py`, round 36): the 40×40 boss silhouette of Level 14's Siege Spire (`boss-siege-spire`), the rooted body as the arena first shows it (the production trunk, six roots and pods of `tools/art/siege_spire.py` placed by its pivots), at 1× and 3× | proposed |
 
 M4 part H, test fire ([round 26](../../concept-rounds/README.md)): a game capture, see
 [concept/prompts.md](concept/prompts.md#test-fire-capture-r26-a).

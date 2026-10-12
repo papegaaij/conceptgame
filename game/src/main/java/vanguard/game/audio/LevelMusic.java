@@ -6,7 +6,9 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Disposable;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.IntPredicate;
+import java.util.function.IntToDoubleFunction;
 
 /**
  * A level's music cues (design/audio/music): the setting's ambience from the start, the level
@@ -27,6 +29,18 @@ import java.util.function.IntPredicate;
  * −6 dB for 3 s, no sting), the lower of it and the radio's duck applying; and the ambience may
  * crossfade to another at a section's start ({@link #ambienceChanges}: the megacity to the ocean
  * at section 4 over 4 s).
+ *
+ * <p>M5 part F (Level 12): the theme's level by section ({@link #sectionLevels}: the base stem at
+ * −6 dB in the eye), moving to a section's level over {@value #SECTION_RAMP_SECONDS} s as it starts.
+ *
+ * <p>M5 part G (Level 13): the mission-complete jingle inside the level ({@link #jingle}: at its time the
+ * theme fades out over its fade, then the jingle plays once and the ambience goes on alone; the debrief
+ * then starts without it), and the ambience's level by the level time ({@link #ambienceLevels}: the
+ * arctic wind 3 dB louder through the whiteout).
+ *
+ * <p>M5 part H (Level 14): an ambience that dies with the boss ({@link Sfx#afterBoss}: the canopy's
+ * hum) fades out over {@value #BOSS_AMBIENCE_OUT_SECONDS} s at the kill while the megacity's own
+ * ambience rises over {@value #BOSS_AMBIENCE_IN_SECONDS} s.
  *
  * <p>An act boss (Level 07) has its own music: at its arrival the theme crossfades out over 0.5 s
  * while the boss warning (track 22) starts, and the boss track (track 18) comes in on the downbeat
@@ -131,10 +145,44 @@ public final class LevelMusic implements Disposable {
     private double crossfade;
 
     private double crossfadeLeft;
+    /**
+     * M5 part H: the fading ambience's own fade-out, s, when it is shorter than the crossfade (Level 14's
+     * canopy hum at the Spire's death); NaN for the plain crossfade.
+     */
+    private double fadeOutSeconds = Double.NaN;
+    /** M5 part H: the canopy's hum dies over this long at the boss's death (design/audio/sfx, Level 14). */
+    static final double BOSS_AMBIENCE_OUT_SECONDS = 2;
+    /** M5 part H: the megacity's own ambience rises over this long after it, under the canopy's withering. */
+    static final double BOSS_AMBIENCE_IN_SECONDS = 7;
     /** M5 part D: a run-time duck's level (linear) and the seconds left of it; 0 left for none. */
     private float eventDuck = 1;
 
     private double eventDuckLeft;
+    /** M5 part F: a section's level ramps in over this long (design/audio/music, {@code section_db}). */
+    static final double SECTION_RAMP_SECONDS = 1;
+    /** M5 part F: the theme's level by section (1-based), dB; 0 (full) everywhere by default. */
+    private IntToDoubleFunction sectionDb = section -> 0;
+    /** M5 part F: the section level now (linear), where its ramp started, where it goes, the ramp's seconds left. */
+    private float sectionGain = 1;
+
+    private float sectionFrom = 1;
+    private float sectionTarget = 1;
+    private double sectionLeft;
+    /** M5 part G: the ambience's level by the level time, dB; 0 everywhere by default. */
+    private DoubleUnaryOperator ambienceDb = t -> 0;
+    /** M5 part G: the ambience's level (linear) at the last update. */
+    private float ambienceGain = 1;
+    /** M5 part G: the mission-complete jingle's level, the debrief's. */
+    static final float JINGLE_VOLUME = 0.8f;
+    /** M5 part G: the level time the jingle's fade starts, NaN for none; the theme's fade before it, s. */
+    private double jingleAt = Double.NaN;
+
+    private float jingleFade = FADE_SECONDS;
+    /** M5 part G: whether the jingle has played in this attempt. */
+    private boolean jinglePlayed;
+    /** The running fade's length, s: {@link #FADE_SECONDS}, or the jingle's fade. */
+    private float fadeLength = FADE_SECONDS;
+
     private Sound loopSound;
     private long loopId = -1;
 
@@ -209,6 +257,56 @@ public final class LevelMusic implements Disposable {
         return this;
     }
 
+    /** M5 part F: the theme's level by section (1-based), dB (the level's {@code music.section_db}). */
+    public LevelMusic sectionLevels(IntToDoubleFunction db) {
+        sectionDb = db;
+        return this;
+    }
+
+    /**
+     * M5 part G: the mission-complete jingle inside the level (the level's {@code music.jingle}): at level
+     * time {@code t} the theme fades out over {@code fade} s, then the jingle plays once and only the
+     * ambience goes on; the theme does not come back in this attempt.
+     */
+    public LevelMusic jingle(double t, double fade) {
+        jingleAt = t;
+        jingleFade = (float) fade;
+        return this;
+    }
+
+    /** M5 part G: the ambience's level by the level time, dB (Level 13's whiteout peak, +3). */
+    public LevelMusic ambienceLevels(DoubleUnaryOperator db) {
+        ambienceDb = db;
+        return this;
+    }
+
+    /** M5 part G: the ambience's level now, linear (1 its own), for the tests. */
+    float ambienceGain() {
+        return ambienceGain;
+    }
+
+    /** M5 part G: whether the jingle has played in this attempt, for the tests. */
+    boolean jinglePlayed() {
+        return jinglePlayed;
+    }
+
+    /** M5 part F: the section level now, linear (1 full), for the tests. */
+    float sectionGain() {
+        return sectionGain;
+    }
+
+    /** M5 part F: the section level moves toward {@code section}'s over {@value #SECTION_RAMP_SECONDS} s. */
+    private void sectionLevel(int section, float seconds) {
+        float target = (float) Math.pow(10, sectionDb.applyAsDouble(section) / 20);
+        if (target != sectionTarget) {
+            sectionFrom = sectionGain;
+            sectionTarget = target;
+            sectionLeft = SECTION_RAMP_SECONDS;
+        }
+        sectionLeft = Math.max(0, sectionLeft - seconds);
+        sectionGain = (float) (sectionTarget + (sectionFrom - sectionTarget) * (sectionLeft / SECTION_RAMP_SECONDS));
+    }
+
     /**
      * M5 part D: a run-time event ducks the theme by {@code db} (below 0) for {@code seconds} (Level
      * 10's scripted loss: −6 dB for 3 s, no sting); with the radio's duck the lower applies.
@@ -243,26 +341,44 @@ public final class LevelMusic implements Disposable {
             if (change.ambience() == currentAmbience) {
                 continue;
             }
-            if (fadingAmbience != null) {
-                sfx.stop(fadingAmbience);
-            }
-            fadingAmbience = currentAmbience;
-            currentAmbience = change.ambience();
-            sfx.loop(currentAmbience, 0);
-            crossfade = Math.max(1e-3, change.seconds());
-            crossfadeLeft = crossfade;
+            swapAmbience(change.ambience(), change.seconds(), Double.NaN);
         }
         if (fadingAmbience == null) {
             return;
         }
         crossfadeLeft = Math.max(0, crossfadeLeft - seconds);
         float in = (float) (1 - crossfadeLeft / crossfade);
-        sfx.loopVolume(currentAmbience, AMBIENCE_VOLUME * in);
-        sfx.loopVolume(fadingAmbience, AMBIENCE_VOLUME * (1 - in));
+        float out = Double.isNaN(fadeOutSeconds)
+                ? 1 - in
+                : (float) Math.max(0, 1 - (crossfade - crossfadeLeft) / fadeOutSeconds);
+        sfx.loopVolume(currentAmbience, AMBIENCE_VOLUME * ambienceGain * in);
+        sfx.loopVolume(fadingAmbience, AMBIENCE_VOLUME * ambienceGain * out);
         if (crossfadeLeft == 0) {
             sfx.stop(fadingAmbience);
             fadingAmbience = null;
+            fadeOutSeconds = Double.NaN;
         }
+    }
+
+    /**
+     * The ambience starts its crossfade to {@code next}: the new loop rises from silence over {@code
+     * seconds} as the old one falls, over the same time or (M5 part H) over its own {@code outSeconds}.
+     */
+    private void swapAmbience(Sfx next, double seconds, double outSeconds) {
+        if (fadingAmbience != null) {
+            sfx.stop(fadingAmbience);
+        }
+        fadingAmbience = currentAmbience;
+        currentAmbience = next;
+        sfx.loop(currentAmbience, 0);
+        crossfade = Math.max(1e-3, seconds);
+        crossfadeLeft = crossfade;
+        fadeOutSeconds = outSeconds;
+    }
+
+    /** M5 part H: the ambience fading out under a crossfade, null for none, for the tests. */
+    Sfx fadingAmbience() {
+        return fadingAmbience;
     }
 
     /**
@@ -291,12 +407,15 @@ public final class LevelMusic implements Disposable {
         if (levelSeconds >= ambienceFrom && fade < 0 && music.isPresent()) {
             fadeOut();
         }
+        playJingle(levelSeconds);
+        ambienceLevel(levelSeconds);
         loop(section);
         if (music.isEmpty()
                 && !cut
                 && fade < 0
                 && bossState == BossState.WAITING
                 && levelSeconds < ambienceFrom
+                && !(levelSeconds >= jingleAt)
                 && section >= startSection
                 && MusicStreamer.available(audio)) {
             StemMix mix = StemMix.of(
@@ -317,11 +436,12 @@ public final class LevelMusic implements Disposable {
             rise = Math.min(1, rise + seconds * (1 - startLevel) / RISE_SECONDS);
         }
         ambience(section, seconds);
+        sectionLevel(section, seconds);
         float target = duckTarget(radio, eventDuckLeft > 0 ? eventDuck : 1);
         eventDuckLeft = Math.max(0, eventDuckLeft - seconds);
         duck += (target - duck) * Math.min(1, DUCK_RATE * seconds);
-        float faded = fade >= 0 ? fade / FADE_SECONDS : 1;
-        float level = rise * faded * stingDip() * (themeOut >= 0 ? themeOut / BOSS_CROSSFADE : 1);
+        float faded = fade >= 0 ? fade / fadeLength : 1;
+        float level = rise * sectionGain * faded * stingDip() * (themeOut >= 0 ? themeOut / BOSS_CROSSFADE : 1);
         if (sting >= 0) {
             sting -= seconds;
         }
@@ -348,6 +468,36 @@ public final class LevelMusic implements Disposable {
                 stopTheme();
                 stopBoss();
             }
+        }
+    }
+
+    /**
+     * M5 part G: from the jingle's time the theme fades out over the jingle's fade (once, unless a fade
+     * already runs); after it the jingle plays once, unless the music was cut (a lost sortie).
+     */
+    private void playJingle(double levelSeconds) {
+        if (!(levelSeconds >= jingleAt) || jinglePlayed || cut) {
+            return;
+        }
+        if (fade < 0 && music.isPresent()) {
+            fade = jingleFade;
+            fadeLength = jingleFade;
+        }
+        if (levelSeconds >= jingleAt + jingleFade) {
+            jinglePlayed = true;
+            sfx.play(Sfx.MISSION_COMPLETE, JINGLE_VOLUME, 1, 0);
+        }
+    }
+
+    /** M5 part G: the ambience follows its level by the level time (only when that level changes). */
+    private void ambienceLevel(double levelSeconds) {
+        float gain = (float) Math.pow(10, ambienceDb.applyAsDouble(levelSeconds) / 20);
+        if (gain == ambienceGain) {
+            return;
+        }
+        ambienceGain = gain;
+        if (fadingAmbience == null) {
+            sfx.loopVolume(currentAmbience, AMBIENCE_VOLUME * gain);
         }
     }
 
@@ -409,6 +559,11 @@ public final class LevelMusic implements Disposable {
 
     /** The act boss is down: its music fades out in a second; the ambience plays on and the theme stays out. */
     public void bossDown() {
+        Sfx after = Sfx.afterBoss(currentAmbience);
+        if (after != null) {
+            // M5 part H: the canopy's hum dies with the Siege Spire, the megacity's ambience comes back.
+            swapAmbience(after, BOSS_AMBIENCE_IN_SECONDS, BOSS_AMBIENCE_OUT_SECONDS);
+        }
         if (boss.isEmpty() || bossState != BossState.FIGHT) {
             return;
         }
@@ -491,8 +646,12 @@ public final class LevelMusic implements Disposable {
         sting = -1;
         eventDuckLeft = 0;
         restartAmbience();
+        sectionGain = sectionFrom = sectionTarget = (float) Math.pow(10, sectionDb.applyAsDouble(1) / 20);
+        sectionLeft = 0;
         rise = startLevel;
         fade = -1;
+        fadeLength = FADE_SECONDS;
+        jinglePlayed = false;
         themeOut = -1;
         bossOut = -1;
         bossState = BossState.WAITING;
@@ -504,6 +663,7 @@ public final class LevelMusic implements Disposable {
     /** The level restarts at its start: its first ambience again, at full. */
     private void restartAmbience() {
         changesMade = 0;
+        fadeOutSeconds = Double.NaN;
         if (fadingAmbience != null) {
             sfx.stop(fadingAmbience);
             fadingAmbience = null;
@@ -512,12 +672,16 @@ public final class LevelMusic implements Disposable {
             sfx.stop(currentAmbience);
             currentAmbience = ambience;
             sfx.loop(ambience, AMBIENCE_VOLUME);
+        } else if (ambienceGain != 1) {
+            sfx.loopVolume(ambience, AMBIENCE_VOLUME);
         }
+        ambienceGain = 1;
     }
 
     /** The level is won: the theme (or the boss music) fades out. */
     public void fadeOut() {
         fade = FADE_SECONDS;
+        fadeLength = FADE_SECONDS;
     }
 
     private void stopTheme() {
@@ -537,6 +701,10 @@ public final class LevelMusic implements Disposable {
         stopTheme();
         stopBoss();
         stopLoop();
+        if (jinglePlayed) {
+            // M5 part G: leaving the level mid-jingle (the pause menu's quit) must not leave it playing.
+            sfx.stop(Sfx.MISSION_COMPLETE);
+        }
         sfx.stop(currentAmbience);
         if (fadingAmbience != null) {
             sfx.stop(fadingAmbience);

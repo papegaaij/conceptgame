@@ -8,6 +8,7 @@ import java.util.Optional;
 import vanguard.content.ActData;
 import vanguard.content.BriefingPage;
 import vanguard.content.Content;
+import vanguard.content.EnemyData;
 import vanguard.content.LevelData;
 
 /**
@@ -41,7 +42,7 @@ public final class Briefings {
                 number,
                 Content.levelName(key.get()).toUpperCase(Locale.ROOT),
                 pages,
-                objectives(content, level.objectives()),
+                objectives(content, level),
                 level.briefing().teaser()));
     }
 
@@ -69,10 +70,30 @@ public final class Briefings {
      * by its name where the data gives one ("BONUS: HOLD THE BRIDGE").
      */
     static List<String> objectives(Content content, LevelData.Objectives objectives) {
+        return objectives(content, objectives, Optional.empty());
+    }
+
+    /**
+     * The objective lines of {@code level}'s briefing; M5 part H: an anchored act boss that holds a {@code
+     * reach-end} level's end (Level 14's Siege Spire, the arena halting the scroll) reads "DESTROY THE SIEGE
+     * SPIRE", the boss's bar name.
+     */
+    static List<String> objectives(Content content, LevelData level) {
+        Optional<String> boss = level.boss()
+                .map(placement -> content.enemy(placement.enemy()))
+                .filter(enemy -> enemy.movement().anchored().isPresent())
+                .flatMap(EnemyData::boss)
+                .filter(script -> !script.midBoss())
+                .map(EnemyData.BossData::barName);
+        return objectives(content, level.objectives(), boss);
+    }
+
+    private static List<String> objectives(Content content, LevelData.Objectives objectives, Optional<String> actBoss) {
         List<String> lines = new ArrayList<>();
         lines.add(
                 switch (objectives.primary()) {
-                    case "reach-end" -> "SURVIVE TO THE END OF THE MISSION";
+                    case "reach-end" ->
+                        actBoss.map(name -> "DESTROY THE " + name).orElse("SURVIVE TO THE END OF THE MISSION");
                     case "escort" -> {
                         // "ESCORT THE 5 CRAWLERS TO THE END": the ally slug's last word
                         LevelData.Escort escort = objectives.escort().orElseThrow();
@@ -92,6 +113,14 @@ public final class Briefings {
                                 targets.size(),
                                 plural(firstWord(targets.getFirst())));
                     }
+                    // M5 part G: "DEFEND NANSEN RELAY", the defended ally's name (Level 13).
+                    case LevelData.Objectives.DEFEND ->
+                        "DEFEND "
+                                + content.allies()
+                                        .allies()
+                                        .get(objectives.defend().orElseThrow().ally())
+                                        .name()
+                                        .toUpperCase(Locale.ROOT);
                     default ->
                         throw new IllegalArgumentException("no briefing line for objective " + objectives.primary());
                 });
@@ -115,6 +144,13 @@ public final class Briefings {
                         .or(() -> secondary.parts().map(parts -> partsLine(secondary, parts)))
                         // M5 part E: Level 11's "Convoy afloat" (its data may name it instead).
                         .or(() -> secondary.afloat().map(afloat -> "BONUS: NO CONVOY SHIP SUNK"))
+                        // M5 part F: Level 12's sondes (its data names the objective instead).
+                        .or(() ->
+                                secondary.collect().map(what -> "BONUS: COLLECT ALL " + what.toUpperCase(Locale.ROOT)))
+                        // M5 part G: Level 13's relay integrity (its data names the objective instead).
+                        .or(() -> secondary
+                                .integrity()
+                                .map(share -> String.format(Locale.ROOT, "BONUS: KEEP %.0f %% INTEGRITY", 100 * share)))
                         .or(() -> secondary
                                 .killAll()
                                 .map(slugs -> "BONUS: DESTROY EVERY "

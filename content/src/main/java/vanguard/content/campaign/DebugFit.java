@@ -3,6 +3,7 @@ package vanguard.content.campaign;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -16,7 +17,12 @@ import vanguard.sim.WingmanSpec;
  * a slot ({@code front}, {@code rear}, {@code left}, {@code right}), a weapon's slug and its level
  * (1 if left out); a utility module goes into a utility bay the same way, {@code
  * utility=targeting-computer} or {@code utility2=salvage-scanner:2} (its name in lower case,
- * hyphenated). The power cap is not checked. The {@code --special} debug option adds a special
+ * hyphenated). A core part replaces the starting one the same way (M5 part H, step H7b, so a capture
+ * flies the balance plan's ship): {@code generator=mk-ii}, {@code shield=mk-iii}, {@code
+ * armor=composite-ii} (or {@code armour=}), its name in lower case, hyphenated, its nickname left out
+ * if it likes ({@code mk-ii} for Mk II "Arc"), or its tier as the balance plan counts it, {@code
+ * armor=2} (0 the starting part); a core part has one level, so its {@code :1} is optional. The power
+ * cap is not checked. The {@code --special} debug option adds a special
  * with its charges, written {@code airstrike:2} (the special's name in lower case, hyphenated; 1
  * charge if left out, at most its most charges). The {@code --escort} debug option flies Rook
  * (design/player/wingmen) with a gun at a level and full armour on any level, written
@@ -35,7 +41,11 @@ public record DebugFit(Map<LoadoutSlot, Fitted> weapons, Optional<Fitted> specia
             "left", LoadoutSlot.LEFT_WING,
             "right", LoadoutSlot.RIGHT_WING,
             "utility", LoadoutSlot.UTILITY_1,
-            "utility2", LoadoutSlot.UTILITY_2);
+            "utility2", LoadoutSlot.UTILITY_2,
+            "generator", LoadoutSlot.GENERATOR,
+            "shield", LoadoutSlot.SHIELD,
+            "armor", LoadoutSlot.ARMOUR,
+            "armour", LoadoutSlot.ARMOUR);
     private static final int MAX_LEVEL = 5;
 
     public DebugFit {
@@ -99,8 +109,8 @@ public record DebugFit(Map<LoadoutSlot, Fitted> weapons, Optional<Fitted> specia
             String[] slotAndItem = part.trim().split("=", 2);
             LoadoutSlot slot = SLOTS.get(slotAndItem[0].trim().toLowerCase(Locale.ROOT));
             if (slot == null || slotAndItem.length < 2) {
-                throw new IllegalArgumentException(
-                        "--loadout: '" + part + "' is not <front|rear|left|right|utility|utility2>=<item>[:<level>]");
+                throw new IllegalArgumentException("--loadout: '" + part
+                        + "' is not <front|rear|left|right|utility|utility2|generator|shield|armor>=<item>[:<level>]");
             }
             String[] itemAndLevel = slotAndItem[1].trim().split(":", 2);
             int level = itemAndLevel.length > 1 ? Integer.parseInt(itemAndLevel[1].trim()) : 1;
@@ -150,6 +160,13 @@ public record DebugFit(Map<LoadoutSlot, Fitted> weapons, Optional<Fitted> specia
         Map<LoadoutSlot, Fitted> loadout = new EnumMap<>(LoadoutSlot.class);
         loadout.putAll(gear.loadout());
         weapons.forEach((slot, fitted) -> {
+            if (slot.kind() == ItemKind.GENERATOR
+                    || slot.kind() == ItemKind.SHIELD
+                    || slot.kind() == ItemKind.PLATING) {
+                loadout.put(
+                        slot, new Fitted(core(catalogue, slot.kind(), fitted).id(), 1));
+                return;
+            }
             if (slot.kind() == ItemKind.UTILITY) {
                 // A utility module by its name in lower case, hyphenated (its id is its name).
                 Catalogue.Item item = catalogue.items(ItemKind.UTILITY).stream()
@@ -174,14 +191,48 @@ public record DebugFit(Map<LoadoutSlot, Fitted> weapons, Optional<Fitted> specia
             charges.put(item.id(), Math.min(fitted.level(), most));
         });
         campaign.gear(new Gear(gear.credits(), loadout, gear.inventory(), charges, gear.armour(), gear.escort()));
+        if (weapons.containsKey(LoadoutSlot.ARMOUR)) {
+            // Fitted plating flies at its full armour.
+            campaign.gear(campaign.gear().withArmour(campaign.maxArmour()));
+        }
         escort.ifPresent(fit -> {
             fit.gun().ifPresent(gun -> catalogue.item(ItemKind.ESCORT, gun.item()));
             campaign.debugEscort(fit.gun(), fit.side());
         });
     }
 
-    /** A name in lower case, hyphenated: "Smart Bomb" is {@code smart-bomb}. */
+    /**
+     * A core part by its name in lower case, hyphenated (its nickname may be left out: {@code mk-ii} is
+     * Mk II "Arc"), or by its tier, 0 the starting part; it has one level.
+     */
+    static Catalogue.Item core(Catalogue catalogue, ItemKind kind, Fitted fitted) {
+        String name = slug(fitted.item());
+        String usage = "--loadout: no " + kind.name().toLowerCase(Locale.ROOT) + " '" + fitted.item() + "'";
+        if (fitted.level() != 1) {
+            throw new IllegalArgumentException("--loadout: a core part has one level, not " + fitted.level());
+        }
+        List<Catalogue.Item> parts = catalogue.items(kind);
+        if (name.matches("[0-9]+")) {
+            int tier = Integer.parseInt(name);
+            if (tier >= parts.size()) {
+                throw new IllegalArgumentException(usage);
+            }
+            return parts.get(tier);
+        }
+        return parts.stream()
+                .filter(part -> slug(part.id()).equals(name))
+                .findFirst()
+                .or(() -> parts.stream()
+                        .filter(part -> slug(part.id()).startsWith(name + "-"))
+                        .findFirst())
+                .orElseThrow(() -> new IllegalArgumentException(usage));
+    }
+
+    /** A name in lower case, hyphenated: "Smart Bomb" is {@code smart-bomb}, Mk II "Arc" {@code mk-ii-arc}. */
     private static String slug(String name) {
-        return name.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
+        return name.trim()
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("^-|-$", "");
     }
 }

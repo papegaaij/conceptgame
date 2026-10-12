@@ -69,6 +69,9 @@ The numbers live in [data.yaml](data.yaml). Values are first-draft balancing num
   pounce again **3 s** after landing (hard 2 s). It pounces only while it is on the screen.
 - **Weak point drawn only** (single-part rule, M5 part C default as for the Creeper): the teal maw
   glows but takes no extra damage; the draft's ×1.5 is struck.
+- **In Level 14** (M5 part H) it returns with the act HP factor: 20 HP at medium (time to kill
+  unchanged at 0.25 s); the t=72 pack's leader drops an overdrive, and the pack's crater is a
+  burst effect without growths at its entry point (a [root burst](../../README.md#boss-attacks-and-root-bursts)).
 - **Death.** A `small` organic burst; no husk.
 - Ground units never collide with the player otherwise; the pounce's air window is the one
   deliberate exception, shown by the scale-up and the shadow's separation.

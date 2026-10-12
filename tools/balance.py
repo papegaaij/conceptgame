@@ -6,7 +6,7 @@ difficulty levers, the enemies and the levels); the expected purchases per hanga
 design/player/balance-plan.yaml. The weapon tables are rendered by tools/sync_tables.py.
 
 The checks themselves are content tests (design/tech/architecture, balance checks as JUnit tests):
-BalanceTest (this sheet's plan, DPS and enemy checks) and ActPlaythroughTest (Act 1 flown with the
+BalanceTest (this sheet's plan, DPS and enemy checks) and ActPlaythroughTest (Acts 1-2 flown with the
 plan on every difficulty). This script prints the same sheet for reading:
 
 Usage:
@@ -32,7 +32,7 @@ over a special's most charges, or the DPS leaves its band (other than the accept
 import re
 import sys
 
-from design_data import DESIGN, draw, enemy_dir, load, stats, upgrade_costs, weapons
+from design_data import DESIGN, difficulty_hp, draw, enemy_dir, load, stats, upgrade_costs, weapons
 from sync_tables import credit_budget, level_rows
 
 ONBOARDING = {1, 2, 3}           # accepted: about 1.5x the reference DPS (design/enemies, Balancing basis)
@@ -48,6 +48,10 @@ ACCEPTED = {
 }
 HOLD_SHARE = 0.6                 # a hold's cluster dies in at most this share of its window (BalanceTest, medium)
 REAR_SHARE = 0.6                 # a rear-ambush unit dies in at most this share of its flash and hold (BalanceTest, medium)
+# M5 part F: rear checks over REAR_SHARE pending the user's decision (BalanceTest.REAR_PENDING), printed as accepted
+REAR_PENDING = {(12, "wraith"): "the act HP factor on the Wraith, the rear still the Tail Gun L1 until L14; "
+                                "pending the user's review in the combined round (M5 part F)"}
+LATCHED_SHARE = 0.25             # a latched Lamprey dies in at most this share of its shake-off time (BalanceTest)
 
 
 def load_all():
@@ -117,6 +121,9 @@ def apply_plan(data):
             if sp["unlock"] == n and sp.get("free_charges"):
                 state["charges"][name] = state["charges"].get(name, 0) + sp["free_charges"]
                 state["log"].append(f"{sp['free_charges']}× {name} charge free")
+        if n >= data["wingmen"]["rook"]["joins"] and "escort" not in state["slots"]:
+            # Rook joins (M5 part A): the starter gun, free, fitted at L1
+            state["slots"]["escort"] = [data["wingmen"]["guns"]["list"][0]["id"], 1]
         step = plan["plan"].get(key, {})
         if "start" in step:
             s = step["start"]
@@ -193,6 +200,17 @@ def escort_gun(data, gun_id):
     return next(g for g in data["wingmen"]["guns"]["list"] if g["id"] == gun_id)
 
 
+def escort_dps(data, state):
+    """Rook's single-target DPS (M5 part I, BalanceTest.escort): his gun's scale x its base weapon's
+    single-target DPS at the gun's level; 0 before he has a gun. Not part of the forward DPS."""
+    if "escort" not in state["slots"]:
+        return 0.0
+    slug, lvl = state["slots"]["escort"]
+    gun = escort_gun(data, slug)
+    w = data["weapons"][gun["base"]]
+    return gun["scale"] * stats(w, w["levels"][lvl - 1])[1]
+
+
 def loadout_numbers(data, state):
     W, core = data["weapons"], data["core"]
     load_mw, fwd, rear, volley = 0.0, 0.0, 0.0, 0.0
@@ -254,6 +272,8 @@ def arena_seconds(e, dps):
     of the part's own and its spots' multiplier while open, its own over half the rise and the dive; the
     last phase takes the rest with the part kept up."""
     boss = e["boss"]
+    if "slam" not in boss:
+        return laneless_seconds(e, dps)
     slam = boss["slam"]
     cycle = slam["telegraph"] + slam["rise"] + slam["awash"] + slam["sink"]
     parts = {p["name"]: p for p in e["part_list"]}
@@ -285,6 +305,19 @@ def arena_seconds(e, dps):
             seconds += need / (dps * opened)
             for n in names:
                 left[n] = 0
+    return seconds
+
+
+def laneless_seconds(e, dps):
+    """M5 part H (H10 = a): an arena boss without lanes (the Siege Spire) at the effective dps
+    (BalanceTest.lanelessSeconds): the ease into the halt, then each phase its delay, its move (the lift)
+    and its parts' HP at their own multipliers (the weak spots' x2; anti-ground on the roots not counted)."""
+    parts = {p["name"]: p for p in e["part_list"]}
+    seconds = ARENA_EASE
+    for phase in e["boss"]["phases"]:
+        seconds += phase.get("delay", 0) + phase.get("move", {}).get("descend", 0)
+        for name in phase["until"].get("parts", []):
+            seconds += parts[name]["hp"] / (dps * parts[name].get("multiplier", 1))
     return seconds
 
 
@@ -386,7 +419,7 @@ def enemy_report(data, ref):
 def report(data):
     ref = load("enemies/data.yaml")["reference_dps"]
     print("Lvl | Budget | Before visit | Spent here | Left | Load/Out | Fwd DPS | Ref DPS | Fwd/Ref | Rear DPS "
-          "| Volley DPS | Purchases")
+          "| Volley DPS | Rook DPS | Purchases")
     problems, accepted, ttk_lines = [], [], []
     prev_spent = 0
     for n, st in apply_plan(data):
@@ -408,7 +441,7 @@ def report(data):
                 flags.append(f"DPS {fwd:.0f} vs enemy reference {r:.0f}")
         print(f"{n:02d}  | {budget(data, n):6.0f} | {st['credits'] + spent_here:12.0f} | {spent_here:10.0f} | "
               f"{st['credits']:4.0f} | {load_mw:4.1f}/{out:<3g} | {fwd:7.1f} | {(r or 0):7.0f} | {ratio} | "
-              f"{rear:8.1f} | {volley:10.1f} | "
+              f"{rear:8.1f} | {volley:10.1f} | {escort_dps(data, st):8.1f} | "
               + "; ".join(st["log"]) + (("  <-- " + ", ".join(flags)) if flags else ""))
         for f in flags:
             problems.append(f"L{n:02d}: {f}")
@@ -423,11 +456,13 @@ def report(data):
                 line += f"; boss {enemy(boss)['name']} {boss_seconds(enemy(boss), EFFECTIVE * fwd):.0f} s (at 0.6×)"
             ttk_lines.append(line)
             ttk_lines += hold_lines(data, d, st)
-            rear_lines, slow = ambush_lines(d, rear)
+            rear_lines, slow, pending = ambush_lines(d, rear, n, ref)
             ttk_lines += rear_lines
             problems += [f"L{n:02d}: {m}" for m in slow]
+            accepted += [f"L{n:02d}: {m}" for m in pending]
     print("\nBefore visit: the credits after the level before it, which earns its typical haul where the "
-          "level has data (its credit-budget table), else budget(n).")
+          "level has data (its credit-budget table), else budget(n). Rook DPS: his gun's single-target DPS "
+          "(from Level 08), not in the forward DPS.")
     print("\nLevels with data:")
     for line in ttk_lines:
         print("  " + line)
@@ -477,21 +512,47 @@ def hold_lines(data, d, state):
     return lines
 
 
-def ambush_lines(d, rear):
-    """A level's rear-ambush units (M5 part D, D7 = a): each one's HP against the plan's rear DPS and its
-    window behind the ship (its decloak flash and its hold) at medium; BalanceTest checks HP / rear DPS
-    <= 0.6 x window. Returns (lines, the too slow ones)."""
+def level_hp(e, n, ref):
+    """A unit's HP at medium in Level n: with the act HP factor for a returning medium-or-larger unit in
+    Act 2 (reference DPS at the level / at its first level), rounded as the game does."""
+    factor = 1
+    if n in ACT_2 and e["tier"] not in ("tiny", "small") and n > e["first_level"] and n in ref \
+            and e["first_level"] in ref:
+        factor = ref[n] / ref[e["first_level"]]
+    return difficulty_hp(e["hp"] * factor, 1)
+
+
+def ambush_lines(d, rear, n, ref):
+    """A level's rear-ambush units (M5 part D, D7 = a): each one's HP (with the act HP factor) against the
+    plan's rear DPS and its window behind the ship (its decloak flash and its hold) at medium;
+    BalanceTest checks HP / rear DPS <= 0.6 x window. M5 part F: a unit that latches (the Lamprey), its HP
+    against the rear DPS x its damage factor, within 0.25 of its shake-off time. Returns (lines, the too
+    slow ones, the too slow ones pending a decision)."""
     level = load(f"{d}/data.yaml")
-    lines, slow = [], []
+    lines, slow, pending = [], [], []
     for slug in dict.fromkeys(w["enemy"] for w in level["waves"] if w.get("formation") == "rear ambush"):
         e = enemy(slug)
+        hp = level_hp(e, n, ref)
         window = e.get("cloak", {}).get("flash", 0) + e["movement"]["hover"]["seconds"]
-        ttk = e["hp"] / rear if rear else float("inf")
-        lines.append(f"  rear check {e['name']}: {e['hp']:g} HP / rear {rear:.1f} DPS = {ttk:.1f} s of its "
+        ttk = hp / rear if rear else float("inf")
+        lines.append(f"  rear check {e['name']}: {hp:g} HP / rear {rear:.1f} DPS = {ttk:.1f} s of its "
                      f"{window:.1f} s flash and hold ({ttk / window:.2f}, at most {REAR_SHARE})")
         if not ttk <= REAR_SHARE * window:
-            slow.append(f"rear DPS {rear:.1f} too low for the {e['name']} ({ttk:.1f} s of {window:.1f} s)")
-    return lines, slow
+            text = f"rear DPS {rear:.1f} too low for the {e['name']} ({ttk:.1f} s of {window:.1f} s)"
+            if (n, slug) in REAR_PENDING:
+                pending.append(f"{text}: {REAR_PENDING[(n, slug)]}")
+            else:
+                slow.append(text)
+    for slug in dict.fromkeys(g["enemy"] for w in level["waves"] for g in w.get("groups", [w]) if "latch" in enemy(g["enemy"])):
+        e = enemy(slug)
+        latch = e["latch"]
+        ttk = e["hp"] / (rear * latch["damage_factor"]) if rear else float("inf")
+        within = latch["shake"]["within"]
+        lines.append(f"  latched check {e['name']}: {e['hp']:g} HP / (rear {rear:.1f} DPS x {latch['damage_factor']:g}) "
+                     f"= {ttk:.2f} s of its {within:g} s shake-off ({ttk / within:.2f}, at most {LATCHED_SHARE})")
+        if not ttk <= LATCHED_SHARE * within:
+            slow.append(f"rear DPS {rear:.1f} too low for a latched {e['name']} ({ttk:.2f} s)")
+    return lines, slow, pending
 
 
 def weapons_dump(data):

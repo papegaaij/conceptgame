@@ -1,10 +1,10 @@
 ---
 title: Skitter
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-08
+updated: 2026-10-12
 ---
 
 # Skitter
@@ -65,7 +65,7 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
 
 ## Implementation
 
-- [ ] Snake and swarm entry paths authored as data — **M5 part D** (user decision D8 = a of
+- [x] Snake and swarm entry paths authored as data — **M5 part D** (user decision D8 = a of
   2026-10-08): a `snake` wave's `paths` (one route of `[x, y]` points, as a chain's) and a `swarm`
   wave's leader route, with the Mote Swarm's flock (Level 10) as the first swarm; streams keep the
   shapes `vanguard.sim.Formations` lays out (no level needs authored streams). Act 1's snakes keep
@@ -111,3 +111,4 @@ Production art for concept round 12 (the Level 01 batch; part P2 opens the round
   them) and the `swarm` formation's leader route is
   data (the Mote Swarm); streams keep their laid-out shapes. Ticked when the simulation reads them;
   the document is `in-progress` again until then.
+- 2026-10-12: M5 part I (close-out): the authored `paths` of a snake and the swarm's leader route ticked as built in part D (Level 10, `PartDFormationsTest`, `FlockTest`); every item is ticked, so the document is `done`.

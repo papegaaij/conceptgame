@@ -1,0 +1,51 @@
+# Level 13 backdrop PROPOSAL (tools/art/backdrop_l13.py --proposal; M5 part G batch, round 35, step G5).
+# `backdrop` is the level's block; every section takes the `tiles` below.
+#
+# sections[i].tiles (by section, in order):
+#   Pack Ice: [arctic-water]
+#   First Light: [arctic-water]
+#   Floe Walkers: [arctic-water]
+#   Whiteout: [arctic-water]
+#   Grid Online: [arctic-water, open-floes]
+#
+# Built round this timeline: the halt from t 40 to 220 at ground scroll 5460.00; every
+#   section from the halt on begins at ground 6000 (the halt's top edge), so the halt shows the strip.
+
+backdrop:
+  # Presentation only: the pack ice round Nansen Relay (tools/art/backdrop_l13.py, straight from
+  # scene-arctic-r09-a, G9 = a; M5 part G, step G5). The ground is one unique strip (pack-ice-1..4, the
+  # approach and the halt's frame, the leads cut along the waves' lanes) over the drifting `deep` water;
+  # the exit's `open-floes`; fog and the whiteout (whiteout_l13 look a) as the atmosphere's banks.
+  scroll_factors: {deep: 0.85, far: 0.9, ground: 1.0, low-air: 1.5, high-air: 2.2}
+  ramp: 4
+  haze_colour: a8b8c4  # the arctic's pale grey-blue over the water
+  atmosphere:
+    clear: {haze: 0.0}   # the exit: no fog
+    light: {banks: fog-wisps, haze: 0.04}   # thin fog wisps ~10 %
+    medium: {banks: fog-banks, haze: 0.08}   # the fog thickening at the edges ~20 % (t=140 on)
+    heavy: {banks: whiteout, haze: 0.14}   # the whiteout's peak: banks from both side edges, the centre clear
+  tile_sets:
+    arctic-water: {layer: deep, height: 960, drift: -3.0}   # the dark arctic water under the ice (r09's stops, the swell damped by the pack), opaque, every section; drifting left on the real clock: the leads' water moves in the halt
+    open-floes: {layer: ground, height: 960}   # the exit: looser floes and open sea northward (translucent water, alpha >= 3); open water where it begins at the halt's top edge
+    fog-wisps: {layer: low-air, height: 960}   # light: thin pale fog wisps, ~10 %
+    fog-banks: {layer: low-air, height: 960}   # medium: the fog thickening at the edges, ~20 %, the centre clear
+    whiteout: {layer: low-air, height: 540}   # heavy: the whiteout's banks from both side edges (whiteout_l13 look a), the centre round the relay clear; they hide the ground units at the edges
+  pieces:
+    pack-ice-1: {layer: ground, size: [480, 1536]}
+    pack-ice-2: {layer: ground, size: [480, 1536]}
+    pack-ice-3: {layer: ground, size: [480, 1536]}
+    pack-ice-4: {layer: ground, size: [480, 1536]}
+    loose-ice: {layer: ground, size: [96, 112], headings: 8}   # 8 headings, each a different floe or brash cluster; heading 2 (east) the mortars' floe
+  placed:
+    # the approach and the halt's frame, one render cut in four (the leads along the lanes, the relay's and the hut's floes): ground -144-1392 (exact rows: re-run --proposal after the data moves a section end)
+    - {piece: pack-ice-1, t: 2.5286, x: 240}
+    - {piece: pack-ice-2, t: 13.5, x: 240}
+    - {piece: pack-ice-3, t: 24.4714, x: 240}
+    - {piece: pack-ice-4, t: 35.4429, x: 240}
+    # the mortars' floe (heading east): in from the left at 10 px/s, its centre at the mortars' spawn (-22, 120 below the top) at t 66
+    - {piece: loose-ice, t: 40, x: 240, path: [[62.4, -298, 150], [121.4, 292, 150]]}
+    # the loose ice drifting 6 px/s in the halt's open water, outside the lanes (each direction its own heading frame)
+    - {piece: loose-ice, t: 40, x: 240, path: [[40, 300, -202], [140, -300, -202]], repeat: {count: 2, every: 100}}
+    - {piece: loose-ice, t: 40, x: 240, path: [[46, -174, 330], [156, -174, -330]]}
+    - {piece: loose-ice, t: 40, x: 240, path: [[96, 182, -330], [206, 182, 330]]}
+    - {piece: loose-ice, t: 40, x: 240, path: [[150, -50, -304], [224.953, 268, 14]]}

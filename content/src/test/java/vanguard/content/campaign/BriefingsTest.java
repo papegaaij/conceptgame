@@ -175,8 +175,87 @@ class BriefingsTest {
         assertEquals(List.of("SURVIVE TO THE END OF THE MISSION", "BONUS: NO CONVOY SHIP SUNK"), briefing.objectives());
     }
 
+    /**
+     * Level 12 (M5 part F): Okafor's and Varga's pages with their images, the sondes' bonus line by the
+     * objective's name.
+     */
+    @Test
+    void theBriefingBeforeLevel12IsItsOwnTwoPages() {
+        BriefingScript briefing = Briefings.before(content, 12).orElseThrow();
+
+        assertEquals(Optional.empty(), briefing.titleCard(), "no act intro inside the act");
+        assertEquals("STORM FRONT", briefing.missionName());
+        assertEquals(
+                List.of("Okafor", "Varga"),
+                briefing.pages().stream().map(BriefingPage::speaker).toList());
+        assertEquals(
+                List.of("level-12-storm-front", "level-12-sonde-scan"),
+                briefing.pages().stream()
+                        .map(page -> page.image().orElseThrow())
+                        .toList());
+        assertEquals("Rook", briefing.teaser().speaker());
+        assertEquals(
+                List.of("SURVIVE TO THE END OF THE MISSION", "BONUS: FLY THROUGH ALL THREE SONDES"),
+                briefing.objectives());
+    }
+
+    /**
+     * Level 13 (M5 part G): Okafor's and Varga's pages (their images come with step G5), the defend
+     * primary's line by the relay's name, the integrity bonus by the objective's name.
+     */
+    @Test
+    void theBriefingBeforeLevel13IsItsOwnTwoPages() {
+        BriefingScript briefing = Briefings.before(content, 13).orElseThrow();
+
+        assertEquals(Optional.empty(), briefing.titleCard(), "no act intro inside the act");
+        assertEquals("POLAR RELAY", briefing.missionName());
+        assertEquals(
+                List.of("Okafor", "Varga"),
+                briefing.pages().stream().map(BriefingPage::speaker).toList());
+        assertEquals("Rook", briefing.teaser().speaker());
+        assertEquals(List.of("DEFEND NANSEN RELAY", "BONUS: KEEP THE RELAY AT 50 % OR MORE"), briefing.objectives());
+    }
+
+    /**
+     * Level 14 (M5 part H): Okafor's and Varga's pages (their images come with step H5), the anchored act
+     * boss's line by its bar name, the roots bonus by the objective's name.
+     */
+    @Test
+    void theBriefingBeforeLevel14IsItsOwnTwoPages() {
+        BriefingScript briefing = Briefings.before(content, 14).orElseThrow();
+
+        assertEquals(Optional.empty(), briefing.titleCard(), "no act intro inside the act");
+        assertEquals("SIEGE SPIRE", briefing.missionName());
+        assertEquals(
+                List.of("Okafor", "Varga"),
+                briefing.pages().stream().map(BriefingPage::speaker).toList());
+        assertEquals("Rook", briefing.teaser().speaker());
+        assertEquals(
+                List.of("DESTROY THE SIEGE SPIRE", "BONUS: DESTROY EVERY ROOT-BURST GROWTH"), briefing.objectives());
+    }
+
+    /** M5 part H (H7 = a): Act 2's outro, four pages by Okafor with their images, track 24 under the first. */
+    @Test
+    void theAct2OutroHasFourPagesEachWithItsImageAndTrack24() {
+        var act = content.acts().get("act-2-homefront");
+        OutroScript outro = Briefings.outro(new CampaignRoute.ActEnd("act-2-homefront", act, 14), 15)
+                .orElseThrow();
+
+        assertEquals("ACT II - HOMEFRONT", outro.act());
+        assertEquals(8, outro.first());
+        assertEquals(14, outro.last());
+        assertEquals(Optional.of("act-complete"), outro.music());
+        assertEquals(
+                List.of("Okafor", "Okafor", "Okafor", "Okafor"),
+                outro.pages().stream().map(BriefingPage::speaker).toList());
+        assertEquals(
+                List.of("act-2-outro-stump", "act-2-outro-names", "act-2-outro-mars", "act-2-outro-aegis"),
+                outro.pages().stream().map(page -> page.image().orElseThrow()).toList());
+        assertTrue(outro.pages().getFirst().line().startsWith("The Siege Spire is dead."));
+    }
+
     @Test
     void aLevelThatIsNotBuiltYetHasNoBriefing() {
-        assertEquals(Optional.empty(), Briefings.before(content, 12));
+        assertEquals(Optional.empty(), Briefings.before(content, 15));
     }
 }

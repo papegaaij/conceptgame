@@ -31,7 +31,35 @@ public final class Enemy implements Hashed {
         /** M5 part D: a {@code rear ambush} unit on its way (design/enemies/air/wraith); see {@link AmbushPhase}. */
         AMBUSH,
         /** M5 part D: a member of a swarm, placed by its {@link Flock}. */
-        FLOCK
+        FLOCK,
+        /** M5 part F: a chaser steering toward the ship (design/enemies/air/lamprey). */
+        CHASE,
+        /** M5 part F: latched onto the ship's hull, placed at its spot. */
+        LATCHED,
+        /** M5 part F: thrown off the hull, slowing to a stop. */
+        STUNNED,
+        /** M5 part G: a lane walker on its lane in ground space (design/enemies/naval/skimmer). */
+        LANE
+    }
+
+    /**
+     * M5 part F: where a chaser is in its life (design/enemies/air/lamprey, user decision F4 = a), for
+     * the presentation and the tests; {@link #NONE} for any other unit.
+     */
+    public enum LatchPhase {
+        NONE,
+        /** Flying in along its path, until its chase starts (a swarm member's delay after its entry). */
+        ENTER,
+        /** Steering toward the ship. */
+        CHASE,
+        /** Flying straight on after its chase. */
+        ON,
+        /** Latched onto the ship's hull at its {@link #spot()}, draining the shield. */
+        LATCHED,
+        /** Thrown off the hull: stunned, slowing to a stop, drifting with the wind. */
+        STUNNED,
+        /** Fleeing to the nearer side edge; it never latches again. */
+        FLEE
     }
 
     /**
@@ -263,6 +291,54 @@ public final class Enemy implements Hashed {
     private boolean swapDown;
     /** M5 part E, a proximity ring (hashed only with one): steps until it may fire its ring again; 0 ready. */
     private int ringWait;
+    /** M5 part F: a chaser's state (design/enemies/air/lamprey); {@link LatchPhase#NONE} for other units. */
+    private LatchPhase latchPhase = LatchPhase.NONE;
+    /** M5 part F: steps left after its entry before its chase starts. */
+    private int chaseWait;
+    /** M5 part F: steps into its chase. */
+    private int chaseTicks;
+    /** M5 part F: its heading while it chases, radians clockwise from straight down. */
+    private double heading;
+    /** M5 part F: the hull spot it latched onto ({@link EnemySpec.Latch#LEFT} ...); -1 before. */
+    private int spot = -1;
+    /** M5 part F: steps into its stun. */
+    private int stunTicks;
+
+    /**
+     * M5 part G: a lane walker (design/enemies/naval/skimmer, user decision G4 = a): {@link #path} is its
+     * lane at its entry, scrolled by {@link #scrolled}; hashed only for one.
+     */
+    private boolean lane;
+    /**
+     * M5 part G, the {@code alternate} hook (user decision G1 = a): the attacks it started (a burst is
+     * one) and whom the running one goes at (a convoy unit, -1 the ship); hashed once it attacked.
+     */
+    private int attacks;
+
+    private int attackTarget = -1;
+    /**
+     * M5 part G, the {@code always} hook: whether its dive went at the objective, and whether its body
+     * crossing the objective dealt the dive's hit (once); hashed only once it dove at it.
+     */
+    private boolean divedAtObjective;
+
+    private boolean diveHit;
+
+    /**
+     * M5 part H, a root burst's growth (design/campaign Level 14, Hazards; decision H2 = a): steps left
+     * of its growth, in which it takes no damage and fires nothing; 0 once grown (and for every other
+     * unit). Its growth's length and its burst's index (-1 for a unit no burst grew); hashed only for a
+     * growth.
+     */
+    private int growTicks;
+
+    private int growTotal;
+    private int rootBurst = -1;
+    /**
+     * M5 part H: whether a boss's window launched it as an ambush (the Siege Spire's maw: at most a
+     * number of them alive at once); hashed only when set.
+     */
+    private boolean launched;
 
     /** A pounce's contact with the ship. */
     static final int TOUCHED_SHIP = 1;
@@ -356,6 +432,22 @@ public final class Enemy implements Hashed {
             facing = 0;
             submerge(field.submerged(), field.seed(), true);
         }
+        if (spec.chase().isPresent() && phase == Phase.ENTER) {
+            // M5 part F: a chaser flies in along its path; its chase starts its delay after its entry.
+            latchPhase = LatchPhase.ENTER;
+            chaseWait = SimStep.ticks(plan.chaseDelay());
+        }
+        if (plan.lane()) {
+            // M5 part G: a lane walker starts on its lane, facing along it; its gun counts down on the screen.
+            lane = true;
+            phase = Phase.LANE;
+            placeLane();
+            prevX = x;
+            prevY = y;
+            facing = heading(path.dx(0), path.dy(0));
+            volleyTicks =
+                    spec.gun().isPresent() ? SimStep.ticks(spec.gun().get().firstShotDelay()) + 1 : 0;
+        }
         if (plan.ambush().isPresent()) {
             ambush = plan.ambush().get();
             phase = Phase.AMBUSH;
@@ -426,6 +518,21 @@ public final class Enemy implements Hashed {
         swapTicks = -1;
         swapDown = false;
         ringWait = 0;
+        latchPhase = LatchPhase.NONE;
+        chaseWait = 0;
+        chaseTicks = 0;
+        heading = 0;
+        spot = -1;
+        stunTicks = 0;
+        lane = false;
+        attacks = 0;
+        attackTarget = -1;
+        divedAtObjective = false;
+        diveHit = false;
+        growTicks = 0;
+        growTotal = 0;
+        rootBurst = -1;
+        launched = false;
     }
 
     /**
@@ -562,6 +669,68 @@ public final class Enemy implements Hashed {
     }
 
     /**
+     * M5 part G (design/campaign Level 13, the mortar floe): a ground unit entering just outside a side
+     * edge at its {@code side}'s height and drifting across at its drift on top of the scroll; its wave
+     * counts as a side entry (the wingman's formation).
+     */
+    void rootAtSide(EnemySpec enemySpec, int enemyKind, LevelScript.SideEntry side, int unitSerial, int inGroup) {
+        root(enemySpec, enemyKind, 0, unitSerial, inGroup);
+        double half = box.width() / 2;
+        x = prevX = side.fromLeft() ? -half : PlayField.WIDTH + half;
+        y = prevY = side.y();
+        driftX = side.fromLeft() ? side.drift() : -side.drift();
+        driftY = 0;
+        entry = WaveSpec.Entry.SIDES;
+    }
+
+    /**
+     * M5 part H (design/campaign Level 14, Hazards; decision H2 = a): a ground unit just {@link #root
+     * rooted} is a growth of root burst {@code burst}: it stands at ({@code atX}, {@code atY}) instead of
+     * the top edge and grows for {@code ticks} steps, taking no damage and firing nothing; its gun fires
+     * as soon as it can once it has grown.
+     */
+    void grow(int burst, double atX, double atY, int ticks) {
+        rootBurst = burst;
+        x = prevX = atX;
+        y = prevY = atY;
+        growTotal = Math.max(0, ticks);
+        // + 1: it counts down in the step it appears already, which is step 0 of its growth.
+        growTicks = growTotal + 1;
+        volleyTicks = 1;
+    }
+
+    /** M5 part H: whether it is a root burst's growth still growing (it takes no damage and fires nothing). */
+    public boolean growing() {
+        return growTicks > 0;
+    }
+
+    /**
+     * M5 part H: how far a root burst's growth has grown, between the previous and the current step
+     * ({@code alpha} in [0, 1]): from 0 as it appears to 1 once grown; 1 for every other unit.
+     */
+    public double growShare(double alpha) {
+        if (growTotal == 0) {
+            return 1;
+        }
+        return Math.clamp((growTotal - growTicks + alpha) / growTotal, 0.0, 1.0);
+    }
+
+    /** M5 part H: the index of the root burst that grew it; -1 for a unit no burst grew. */
+    public int rootBurst() {
+        return rootBurst;
+    }
+
+    /** M5 part H: a boss's window launched it as an ambush (the Siege Spire's maw). */
+    void launchedByBoss() {
+        launched = true;
+    }
+
+    /** M5 part H: whether a boss's window launched it as an ambush (the Siege Spire's maw's Wraiths). */
+    public boolean launched() {
+        return launched;
+    }
+
+    /**
      * M5 part E: a submerging unit starts {@code under} the surface or on it, its swap timer seeded
      * with {@code seed}; a field's units start at a seeded point of their first wait ({@code
      * anyPoint}: a wait drawn from 0 to the longest), so a field swaps on the screen and not in step.
@@ -657,6 +826,59 @@ public final class Enemy implements Hashed {
      * {@code aimY}): the ship, or the convoy unit the target-the-objective hook chose this step.
      */
     boolean move(double shipX, double shipY, double groundScroll, double aimX, double aimY) {
+        return move(shipX, shipY, groundScroll, aimX, aimY, 0);
+    }
+
+    /**
+     * As {@link #move(double, double, double, double, double)}, then (M5 part F) pushed sideways by the
+     * level's {@code wind}, px/s (design/campaign Level 12, Weather): a unit with a latch in every
+     * state but latched, a Whirl Seed (a unit with a spiral) with its spiral's centre. The push adds
+     * to its position after its own movement, so its facing does not turn with it; a wind of exactly
+     * 0 changes nothing.
+     */
+    boolean move(double shipX, double shipY, double groundScroll, double aimX, double aimY, double wind) {
+        return move(shipX, shipY, groundScroll, aimX, aimY, wind, shipX, shipY, false);
+    }
+
+    /**
+     * As {@link #move(double, double, double, double, double, double)}; M5 part G: a diver whose pause
+     * ends dives at ({@code diveX}, {@code diveY}), which is {@code objective} (the {@code always} hook's)
+     * or the ship; it fires as its stat block says (passing the ship's height or its time into the dive).
+     */
+    boolean move(
+            double shipX,
+            double shipY,
+            double groundScroll,
+            double aimX,
+            double aimY,
+            double wind,
+            double diveX,
+            double diveY,
+            boolean objective) {
+        boolean flying = fly(shipX, shipY, groundScroll, aimX, aimY, diveX, diveY, objective);
+        if (flying && wind != 0) {
+            if (spec.spiral().isPresent()) {
+                double push = wind * SimStep.SECONDS;
+                x += push;
+                if (phase == Phase.SPIRAL) {
+                    releaseX += push;
+                }
+            } else if (spec.latch().isPresent() && phase != Phase.LATCHED) {
+                x += wind * SimStep.SECONDS;
+            }
+        }
+        return flying;
+    }
+
+    private boolean fly(
+            double shipX,
+            double shipY,
+            double groundScroll,
+            double aimX,
+            double aimY,
+            double diveX,
+            double diveY,
+            boolean objective) {
         if (ticksSinceHit < Integer.MAX_VALUE) {
             ticksSinceHit++;
         }
@@ -678,13 +900,46 @@ public final class Enemy implements Hashed {
                 spiral();
                 return true;
             }
+            case CHASE -> {
+                chase(shipX, shipY);
+                return true;
+            }
+            case LATCHED -> {
+                EnemySpec.Spot at = spec.latch().orElseThrow().spots().get(spot);
+                x = shipX + at.dx();
+                y = shipY + at.dy();
+                return true;
+            }
+            case STUNNED -> {
+                stun();
+                return true;
+            }
             case AMBUSH -> {
                 if (!ambushStep()) {
                     return false;
                 }
             }
+            case LANE -> {
+                // M5 part G: along its lane, which scrolls with the ground; its facing is its velocity over it.
+                scrolled += groundScroll;
+                distance += speed * SimStep.SECONDS;
+                placeLane();
+                double dx = x - prevX;
+                double dy = y - prevY + groundScroll;
+                if (dx != 0 || dy != 0) {
+                    facing = heading(dx, dy);
+                }
+                boolean on = PlayField.overlaps(x, y, box);
+                entered |= on;
+                return on || (!entered && distance < path.length());
+            }
             case GROUND -> {
                 y -= groundScroll;
+                if (growTicks > 0 && --growTicks == 0) {
+                    // M5 part H: grown: its gun fires as soon as it can (in its arc).
+                    volleyTicks = 1;
+                    burstLeft = 0;
+                }
                 if (driftX != 0 || driftY != 0) {
                     // M5 part E: a field unit or a raft drifts on the current, on top of the scroll.
                     x += driftX * SimStep.SECONDS;
@@ -738,6 +993,9 @@ public final class Enemy implements Hashed {
                 } else {
                     place();
                 }
+                if (latchPhase == LatchPhase.ENTER) {
+                    awaitChase();
+                }
                 if (spec.brood().isPresent() && (broodTicks >= 0 || y <= PlayField.HEIGHT)) {
                     broodTicks++;
                 }
@@ -750,7 +1008,13 @@ public final class Enemy implements Hashed {
                     sweep(shipX, shipY);
                 }
                 if (--holdTicks <= 0) {
-                    leave(shipX, shipY);
+                    if (spec.dive().isPresent()) {
+                        // M5 part G: a diver dives at the point it is given (the objective under the always hook).
+                        divedAtObjective = objective;
+                        leave(diveX, diveY);
+                    } else {
+                        leave(shipX, shipY);
+                    }
                 }
             }
             case LEAVE -> {
@@ -766,6 +1030,7 @@ public final class Enemy implements Hashed {
                 }
                 if (spec.dive().isPresent() && !diveFired) {
                     EnemySpec.Dive dive = spec.dive().get();
+                    // Its stat block's timing, also under the always hook (its fan then turns back at the objective).
                     boolean passed = prevY > shipY && y <= shipY;
                     if (passed || ++diveTicks >= SimStep.ticks(dive.fireAfterSeconds())) {
                         diveFired = true;
@@ -777,6 +1042,123 @@ public final class Enemy implements Hashed {
         }
         turn();
         return true;
+    }
+
+    /**
+     * M5 part F: a chaser flying in counts its delay down from its entry (its centre inside the play
+     * field), then starts its chase along its path's heading.
+     */
+    private void awaitChase() {
+        entered |= x >= 0 && x <= PlayField.WIDTH && y >= 0 && y <= PlayField.HEIGHT;
+        if (!entered || chaseWait-- > 0) {
+            return;
+        }
+        phase = Phase.CHASE;
+        latchPhase = LatchPhase.CHASE;
+        chaseTicks = 0;
+        heading = heading(path.dx(segment), path.dy(segment));
+    }
+
+    /**
+     * One step of a chase (design/enemies/air/lamprey): its heading turns toward the ship's centre by at
+     * most its turn rate and it flies along it at its chase speed; after its time it flies straight on.
+     */
+    private void chase(double shipX, double shipY) {
+        EnemySpec.Chase chase = spec.chase().orElseThrow();
+        double delta = Math.IEEEremainder(heading(shipX - x, shipY - y) - heading, 2 * StrictMath.PI);
+        double most = chase.turnRate() * SimStep.SECONDS;
+        heading = Math.IEEEremainder(heading + Math.clamp(delta, -most, most), 2 * StrictMath.PI);
+        vx = -Trig.sin(heading) * chase.speed();
+        vy = -Trig.cos(heading) * chase.speed();
+        x += vx * SimStep.SECONDS;
+        y += vy * SimStep.SECONDS;
+        facing = heading;
+        if (++chaseTicks >= SimStep.ticks(chase.seconds())) {
+            phase = Phase.LEAVE;
+            latchPhase = LatchPhase.ON;
+        }
+    }
+
+    /**
+     * M5 part F: it latches onto the ship at {@code ship}'s centre plus its {@code at} spot's offset;
+     * it moves with the ship from now on.
+     */
+    void latch(int at, double shipX, double shipY) {
+        EnemySpec.Spot offset = spec.latch().orElseThrow().spots().get(at);
+        spot = at;
+        phase = Phase.LATCHED;
+        latchPhase = LatchPhase.LATCHED;
+        vx = vy = 0;
+        x = shipX + offset.dx();
+        y = shipY + offset.dy();
+    }
+
+    /**
+     * M5 part F: thrown off the hull (the shake-off): outward from its spot at the latch's throw speed,
+     * slowing to a stop over its stun.
+     */
+    void shakeOff() {
+        EnemySpec.Latch latch = spec.latch().orElseThrow();
+        EnemySpec.Spot offset = latch.spots().get(spot);
+        double length = Math.sqrt(offset.dx() * offset.dx() + offset.dy() * offset.dy());
+        double ux = length > 0 ? offset.dx() / length : 0;
+        double uy = length > 0 ? offset.dy() / length : -1;
+        vx = ux * latch.throwSpeed();
+        vy = uy * latch.throwSpeed();
+        facing = heading(ux, uy);
+        phase = Phase.STUNNED;
+        latchPhase = LatchPhase.STUNNED;
+        stunTicks = 0;
+    }
+
+    /** One step of its stun; at its end it flees at its speed to the nearer side edge. */
+    private void stun() {
+        EnemySpec.Latch latch = spec.latch().orElseThrow();
+        int total = Math.max(1, SimStep.ticks(latch.stunSeconds()));
+        double left = 1 - (double) ++stunTicks / total;
+        x += vx * left * SimStep.SECONDS;
+        y += vy * left * SimStep.SECONDS;
+        if (stunTicks >= total) {
+            phase = Phase.LEAVE;
+            latchPhase = LatchPhase.FLEE;
+            vx = (x <= PlayField.WIDTH / 2.0 ? -1 : 1)
+                    * spec.chase().orElseThrow().speed();
+            vy = 0;
+        }
+    }
+
+    /** M5 part F: where a chaser is in its life; {@link LatchPhase#NONE} for any other unit. */
+    public LatchPhase latchPhase() {
+        return latchPhase;
+    }
+
+    /** M5 part F: whether it is latched onto the ship. */
+    public boolean latched() {
+        return phase == Phase.LATCHED;
+    }
+
+    /**
+     * M5 part F: whether it may latch onto the ship when it touches it: a chaser flying in, chasing or
+     * flying on that never latched (stunned or fleeing it does not even collide with the ship).
+     */
+    boolean latchable() {
+        return latchPhase == LatchPhase.ENTER || latchPhase == LatchPhase.CHASE || latchPhase == LatchPhase.ON;
+    }
+
+    /** M5 part F: the hull spot it latched onto ({@link EnemySpec.Latch#LEFT} ...); -1 before it latched. */
+    public int spot() {
+        return spot;
+    }
+
+    /** M5 part F: how far into its stun it is, 0 to 1 (1 outside a stun). */
+    public double stunProgress() {
+        if (phase != Phase.STUNNED) {
+            return 1;
+        }
+        return Math.min(
+                1,
+                (double) stunTicks
+                        / Math.max(1, SimStep.ticks(spec.latch().orElseThrow().stunSeconds())));
     }
 
     /**
@@ -1255,6 +1637,42 @@ public final class Enemy implements Hashed {
         return phase == Phase.WALK;
     }
 
+    /** M5 part G: whether it is a lane walker (the Skimmer); its {@link #facing()} is its velocity's heading. */
+    public boolean laneWalking() {
+        return lane;
+    }
+
+    /**
+     * M5 part G, the {@code alternate} hook: it starts an attack; returns how many it has started, this
+     * one included.
+     */
+    int startAttack() {
+        return ++attacks;
+    }
+
+    /** M5 part G: whom its running attack goes at: a convoy unit, -1 for the ship. */
+    int attackTarget() {
+        return attackTarget;
+    }
+
+    void attackTarget(int target) {
+        attackTarget = target;
+    }
+
+    /** M5 part G: whether its dive went at the objective (the {@code always} hook). */
+    public boolean divedAtObjective() {
+        return divedAtObjective;
+    }
+
+    /** M5 part G: whether its crossing of the objective already dealt the dive's hit. */
+    boolean diveHit() {
+        return diveHit;
+    }
+
+    void markDiveHit() {
+        diveHit = true;
+    }
+
     /** A spiralled-out unit bounces off the side edges, up to its ricochets. */
     private void ricochet() {
         if (ricochetsLeft == 0) {
@@ -1304,6 +1722,30 @@ public final class Enemy implements Hashed {
         }
     }
 
+    /**
+     * M5 part G: a lane walker's place: {@link #distance} along its lane (straight on past its end along
+     * the last direction), the lane scrolled by {@link #scrolled}, and its {@code sine} weave as an offset
+     * across the lane (to the right of its direction for a positive swing).
+     */
+    private void placeLane() {
+        double along = Math.min(distance, path.length());
+        segment = path.segmentAt(along, segment);
+        double dx = path.dx(segment);
+        double dy = path.dy(segment);
+        double norm = Math.sqrt(dx * dx + dy * dy);
+        double ux = norm > 0 ? dx / norm : 0;
+        double uy = norm > 0 ? dy / norm : -1;
+        double past = distance - along;
+        x = path.x(segment, along) + ux * past;
+        y = path.y(segment, along) + uy * past - scrolled;
+        if (spec.sine().isPresent()) {
+            EnemySpec.Sine sine = spec.sine().get();
+            double offset = sine.amplitude() * Trig.sin(2 * StrictMath.PI * distance / (speed * sine.periodSeconds()));
+            x += uy * offset;
+            y -= ux * offset;
+        }
+    }
+
     private void hold() {
         phase = Phase.HOLD;
         // No Optional.map here: it would allocate in the step loop.
@@ -1343,6 +1785,10 @@ public final class Enemy implements Hashed {
      * it fires a shot this step. A diver fires once, in its dive.
      */
     boolean trigger() {
+        if (growTicks > 0) {
+            // M5 part H: a root burst's growth fires nothing while it grows.
+            return false;
+        }
         if (phase == Phase.CHAIN) {
             // A chain's head fires its fan while it is on the screen.
             if (spec.gun().isEmpty() || !PlayField.overlaps(x, y, box) || --volleyTicks > 0) {
@@ -1375,6 +1821,7 @@ public final class Enemy implements Hashed {
         boolean ready = phase == Phase.HOLD
                 || (phase == Phase.GROUND && inArc)
                 || (phase == Phase.ESCORT && y < PlayField.HEIGHT)
+                || (phase == Phase.LANE && PlayField.overlaps(x, y, box))
                 || ambushPhase == AmbushPhase.DECLOAK
                 || ambushPhase == AmbushPhase.HOLD;
         if (!ready || spec.gun().isEmpty()) {
@@ -1432,9 +1879,17 @@ public final class Enemy implements Hashed {
      * armour exists.
      */
     boolean damage(double amount, boolean fromAbove) {
+        if (growTicks > 0) {
+            // M5 part H: a root burst's growth takes no damage while it grows.
+            return false;
+        }
         // A segment chain's original head is a weak point (its spec carries the chain); a set
         // piece's parts multiply theirs in SetPiece.damagePart.
         hp -= spec.chain().isPresent() ? amount * spec.chain().get().headMultiplier() : amount;
+        if (phase == Phase.LATCHED) {
+            // M5 part F: a latched Lamprey takes its latch's damage factor on top (x2).
+            hp -= amount * (spec.latch().orElseThrow().damageFactor() - 1);
+        }
         ticksSinceHit = 0;
         return hp <= 0;
     }
@@ -1543,6 +1998,33 @@ public final class Enemy implements Hashed {
         if (spec.ring().isPresent()) {
             hash.add(ringWait);
         }
+        // M5 part G's lane walkers and hooked attacks add theirs; earlier units hash as before.
+        if (lane) {
+            hash.add(scrolled).add(facing).add(entered ? 1 : 0);
+        }
+        if (attacks > 0) {
+            hash.add(attacks).add(attackTarget);
+        }
+        if (divedAtObjective) {
+            hash.add(diveHit ? 1 : 0);
+        }
+        // M5 part H's root-burst growths and boss-launched ambushes add theirs; earlier units hash as before.
+        if (rootBurst >= 0) {
+            hash.add(rootBurst).add(growTicks).add(growTotal);
+        }
+        if (launched) {
+            hash.add(1);
+        }
+        // M5 part F's chasers add theirs; earlier units hash as before.
+        if (spec.chase().isPresent()) {
+            hash.add(latchPhase.ordinal())
+                    .add(chaseWait)
+                    .add(chaseTicks)
+                    .add(heading)
+                    .add(spot)
+                    .add(stunTicks)
+                    .add(entered ? 1 : 0);
+        }
     }
 
     /** M5 part D: the air escort's units it overlapped in the last step, one bit per unit. */
@@ -1589,6 +2071,16 @@ public final class Enemy implements Hashed {
     /** Whether it is a ground unit. */
     public boolean grounded() {
         return phase == Phase.GROUND;
+    }
+
+    /** M5 part G: its drift across on top of the scroll, px/s (a field unit, a raft, a side entry's floe); 0 for none. */
+    public double driftX() {
+        return driftX;
+    }
+
+    /** M5 part G: its drift up on top of the scroll, px/s; 0 for none. */
+    public double driftY() {
+        return driftY;
     }
 
     /** Whether it is a diver in its pause before the dive (its telegraph). */

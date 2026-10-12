@@ -70,7 +70,7 @@ public final class SecretGlints {
                 sparkle(
                         batch,
                         tick,
-                        object.renderX(),
+                        object.renderX(alpha),
                         object.renderY(alpha),
                         (int) object.spec().x() * 11);
             }

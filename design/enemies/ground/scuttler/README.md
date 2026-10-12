@@ -1,10 +1,10 @@
 ---
 title: Scuttler
-design: approved
+design: review
 implementation: done
 art: final
 depends-on: [../../../systems/difficulty, ../../../systems/economy]
-updated: 2026-10-05
+updated: 2026-10-12
 ---
 
 # Scuttler
@@ -56,6 +56,12 @@ The numbers live in [data.yaml](data.yaml). The table is still hand-written: `to
 - **Convoys** (Level 04): its facing `fan` is not an aimed attack, so it never hurts a crawler;
   the acid spit goes at whichever is nearer under the target-the-objective hook, and its claws
   hurt a crawler they overlap (see the [civilian crawler](../../../allies/README.md#civilian-crawler)).
+- **Under the `in-arc` hook** (Level 13, M5 part G, G1 = a; [rules](../../../campaign/act-2-homefront/level-13-polar-relay/README.md#what-hurts-the-relay-the-hook-modes-g1--a)): while the relay lies
+  within **±45° of its facing** (the armour's arc), the fan is **centred on the relay** and is a
+  relay-aimed attack that hurts it; otherwise the fan fires along the facing as before. The acid spit stays
+  on the ship. The fan's bullets still hurt the ship, so the player can body-block. In Level 13 the
+  Scuttlers walk lanes on the floes that end 100–140 px short of the relay and turn along it, so the
+  relay stays in arc for a few fans; the walk does not depend on the scroll in the halt.
 - **Death.** A 16-frame death burst, then a legless husk at its last heading (16 husk frames)
   that scrolls away with the ground.
 
@@ -83,6 +89,8 @@ Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pen
 - [x] Stat block values loaded from data; global difficulty multipliers applied
 - [x] Bounty and score per this spec; the husk at its last heading
 - [x] Death effect: the 16-frame organic burst (production frames approved as final in round 26), with the medium explosion
+- [x] `in-arc` hook: the fan centred on the relay while it lies within ±45° of the facing, relay-aimed, per difficulty (M5 part G, steps G3 and G4, Level 13) — simulation done in G3 (`EnemyForce`, `HookModesTest`); the level's table is G4's
+- [x] Level 13 lanes: walker paths that end short of the relay and do not depend on the scroll in the halt (M5 part G, G4)
 
 ## Decisions
 
@@ -113,3 +121,6 @@ Production art proposal for concept round 16 (M4 part D, the Level 04 batch; pen
   ground (the `-husk` frames are its remains for a walker, not death pieces).
 - 2026-10-05: M4 part H (round 26 batch): the 16-frame organic burst rendered by `tools/art/vrell_deaths.py` (legs and claws torn off and shell fragments scattering, a lime flash, ichor spray and olive mist; 4 steps a frame with the medium burst) and played by the game by name (`scuttler-death`, `scuttler-tatters`; the husk stays the remains); review files proposed for [round 26](../../../concept-rounds/README.md), `art` unchanged until the user approves them. Seen in play: the burst and pieces are drawn in screen space while the husk scrolls with the ground (120 px/s in Level 04), so the pieces drift up off the husk over the burst's second; drawing a ground unit's death in the ground's scroll is a LevelScreen hook.
 - 2026-10-05: Concept round 26 closed (user: the round accepted as proposed): the 16-frame organic burst approved as **final**, with the fix made after the batch (a ground unit's burst and pieces now scroll with the ground, `Effects`, so they stay on the husk) and the lime glow on Luna grey as it is; the part's art stays `final`.
+- 2026-10-11: M5 part G, step G1a (the user is on vacation, the main agent took the gap analysis's recommendations; **pending the user's review** in the combined round at the end of M5): **G1 = a** the `in-arc` hook made exact: within ±45° of the facing the fan is centred on the relay and relay-aimed, the spit stays on the ship; Level 13's lanes end 100–140 px short of the relay. `design: review` for this behaviour, `implementation: in-progress` for its build.
+- 2026-10-11: M5 part G, step G3 (the simulation; pending the user's review): the `in-arc` arc is the walker's own `front_arc` (the Scuttler's 45°), measured from its facing to the bearing of the relay's centre; the fan then goes at the relay's centre with the difficulty's aim spread, its bullets relay-aimed (they still hurt the ship they cross). The spit stays on the ship under `in-arc` (only Level 04's `nearest` sends it at a convoy unit). A walker's path in a timed halt does not move, since it scrolls with the ground.
+- 2026-10-12: M5 part I (close-out): the `in-arc` hook and Level 13's walker paths ticked as built in part G (Level 13's data: `targeted_by`, the pincers' `paths`; `HookModesTest`, `Level13Test`); every item is ticked, so the document is `done`.

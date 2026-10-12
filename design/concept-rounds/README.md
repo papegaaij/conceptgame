@@ -3,7 +3,7 @@ title: Concept rounds
 design: review
 implementation: n/a
 art: chosen
-updated: 2026-10-09
+updated: 2026-10-12
 ---
 
 # Concept rounds
@@ -52,6 +52,7 @@ they belong to; a round only collects them.
 | [round-31](round-31/README.md) | M5 part C, Level 09 Arcology Fall: the Hive Node, the Ravager, the arcology backdrop with the Kilo trucks and the cocoon, the collapse look (a/b rejected, c approved and built), briefing images, Firestorm final and base stem, collapse and pounce sounds (a/b), Kilo Lead audition (a/b), capture, voiced lines, texts, part C numbers, decisions and build choices | approved | n/a | chosen |
 | [round-32](round-32/README.md) | M5 part D, Level 10 Evacuation Corridor: the Wraith, the Mote Swarm, their intel portraits, the first-light backdrop with the ferry hatch, briefing images (all final), evacuation shuttle a, the scripted loss's look b, decloak b, swarm b and lance a sounds, Lifeline b and Lifeline Three b, captures, voiced lines, texts, part D numbers, decisions and build choices | approved | n/a | chosen |
 | [round-33](round-33/README.md) | M5 part E, Level 11 Atlantic Convoy: the Driftjelly, Reef Spitter, Harbour Kraken, water effects, props, ocean backdrop, briefing images and intel pictures (all final), convoy ship pair a, lane telegraph and slam a, Atlas Control b, eight sounds, captures, voiced lines, texts, part E numbers, decisions and build choices | approved | n/a | chosen |
+| [round-34](round-34/README.md) | M5 parts F–I combined (Levels 12–14, the Act 2 end, the close-out): changes to approved specs and open problems first; eye, latch, relay, whiteout, root burst and daylight a/b; the Lamprey, Skimmer, Siege Spire, three backdrops, props, outro, briefing and intel art (final review); captures; thunder, gust, latch, drain, relay, alarm, grid, burst, roar and withering a/b and seven more sounds; Nansen's audition; 53 voiced lines; texts, numbers, decisions and build choices | review | n/a | proposed |
 
 ## Design
 
@@ -105,3 +106,4 @@ How a round works:
 | 31 | 2026-10-07 | closed | M5 part C: Level 09 (final art review of the Hive Node, Ravager, backdrop, briefing images and Firestorm, all approved; collapse sound a, both pounce sounds kept, Kilo Lead a; capture, voiced lines, texts, part C numbers, decisions and build choices accepted; the collapse look: a and b rejected, the rework c approved with two tweaks and built in the game, hold C lasting until the dust settles) |
 | 32 | 2026-10-08 | closed | M5 part D: Level 10 (final art review of the Wraith, Mote Swarm, intel portraits, backdrop, ferry hatch and briefing images, all approved; evacuation shuttle a, the scripted loss's look b; decloak sound b, swarm b, lance a; Lifeline b and Lifeline Three b; captures, voiced lines, texts, part D numbers, decisions and build choices accepted, the night-navy sections and the climb-out bar kept) |
 | 33 | 2026-10-09 | closed | M5 part E: Level 11 (final art review of the Driftjelly, Reef Spitter, Harbour Kraken, water effects, props, backdrop, briefing images and intel pictures, all approved, the Kraken after a rework; convoy ship pair a, slam look a, Atlas Control b; the eight sounds accepted, four after a rework; captures, voiced lines, texts, part E numbers, decisions and build choices accepted, the sunken pod at 3 hits, hard kept) |
+| 34 | 2026-10-12 | open | M5 parts F–I combined (replaces rounds 34–37): Levels 12–14 and the Act 2 end (final art review, eye/latch/relay/whiteout/root burst/daylight a/b, sounds, Nansen audition, captures, voiced lines, texts, numbers, decisions and build choices pending the user's review), changes to approved specs, open problems, the voice listen-through and the Act 2 playthrough |

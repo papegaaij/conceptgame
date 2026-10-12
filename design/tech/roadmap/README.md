@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [../architecture, ../../campaign]
-updated: 2026-10-09
+updated: 2026-10-12
 ---
 
 # Implementation roadmap
@@ -74,10 +74,10 @@ Hive Node and Ravager and D's Wraith.
 | **C** Level 09 — **done** | Hive Node (hardened, periodic spawn), Ravager (`pack`, the pounce's air window), hardened enemies; hold zones and the level clock in script time; the named-target tracker; a missed node fails at once; the collapse; the bridge secondary (a wave tag); the `required` launch warning; the balance plan's anti-ground (Bomb Rack and Rook's Mortar); multi-level units in each level's atlas; "Firestorm" final and stems with a run-time stem hook; the Kilo Lead's audition | B | 31 (closed): the collapse's look (a and b rejected, the rework c approved with two tweaks and built), the Hive Node, the Ravager, the Level 09 backdrop with the trucks and the cocoon, the briefing images, "Firestorm" and its base stem approved as final; the collapse sound (a), both pounce sounds (picked at random), the Kilo Lead's voice (a); the captures, the voiced lines, the texts, the numbers, the decisions and the build choices accepted |
 | **D** Level 10 — **done** | Wraith (cloak, loop, rear entry, `rear ambush`); Mote Swarm (`flock`, `swarm`, authored paths: the Skitter's item); the air escort (shuttles: stations and lane sway, liftoff and climb-out, every bullet and contact hurting) and the scripted loss with its music duck; the `SHUTTLES` tracker with armour bars; `required: [rear]` and the plan's rear check; the ambience change by section; rear-heavy pacing; the Lifeline voices' auditions | B | 32 (closed): the Wraith, the Mote Swarm, the Level 10 backdrop at first light with the ferry hatch, the briefing images and intel portraits approved as final; the shuttle (a), the loss's look (b, the iris column), the decloak sound (b, CC-BY), the swarm sound (b), the lance sound (a), the Lifeline and Lifeline Three voices (b, b); the captures, the voiced lines, the texts, the numbers, the decisions and the build choices accepted |
 | **E** Level 11 — **done** | The `sub` layer and the water rules (a `water` level flag; the `sub` pass with pre-rendered collars); the Torpedo Pod and `anti-sub` (torpedoes seeking sunken triggers); Driftjelly (`field`, proximity ring above and below the water), Reef Spitter (rafts on the flanks); the naval convoy (cargo ships and frigate: stations, the glide to the arena lanes, the hold clear of Tiamat) with the `CONVOY` tracker and the `afloat` secondary; the Harbour Kraken mid-boss (anchored arena, lane slams, surfacing head); the ocean backdrop; the Bomb Rack over water; Atlas Control's audition | A | 33 (closed): the Driftjelly, the Reef Spitter, the Harbour Kraken (reworked on the user's feedback), the water and torpedo effects, the props, the ocean backdrop, the briefing images and intel pictures approved as final; the convoy ship pair (a), the lane telegraph and slam (a), Atlas Control's voice (b); the eight sounds, the captures, the voiced lines, the texts, the numbers, the decisions and the build choices accepted, the sunken pod at 3 hits |
-| **F** Level 12 | Weather (rain, lightning reveal, gusts, the eye); Lamprey (chase, latch, drain, shake-off) with `swarm`; sondes; the storm backdrop; the mines' sounds in play | D, E | 34 |
-| **G** Level 13 | `defend` with a timed halt; the Nansen Relay and its integrity bar; hook modes `alternate`, `in-arc`, `always`; Skimmer; `cross`; whiteout; supply drones; the arctic backdrop | E | 35 |
-| **H** Level 14 and the act end | Root bursts; the Siege Spire act boss (root parts, maw launches, ground → air phase); the Geneva backdrop; the daylight section; Act 2's outro pages and act summary; the act-end order | B, C, D | 36 |
-| **I** Close-out | `ActPlaythroughTest` and `BalanceTest` for Act 2 with Rook and the Act 2 plan; the variety checklist as built; the later tags (drones and the other utility modules to Acts 3–6); leftover sounds and the voice listen-through; the user's playthrough | all | 37 |
+| **F** Level 12 — **built, pending the user's review in the combined round** | Weather (rain, lightning reveal of the `low-air` banks, gusts and the wall's drift, the eye); Lamprey (chase, latch, drain, shake-off) with the chaser `swarm` and the rear `stream`; the sondes and the `collect` secondary; the drifting canister; the storm backdrop; the eye's music level; the mines' sounds in play | D, E | 34 |
+| **G** Level 13 — **built, pending the user's review in the combined round** | `defend` with a timed halt; the Nansen Relay and its integrity bar; hook modes `alternate`, `in-arc`, `always`; Skimmer; `cross`; whiteout; supply drones; the arctic backdrop | E | 35 |
+| **H** Level 14 and the act end — **built, pending the user's review in the combined round** | Root bursts; the Siege Spire act boss (root parts, maw launches, ground → air phase); the Geneva backdrop; the daylight section; Act 2's outro pages and act summary; the act-end order | B, C, D | 36 |
+| **I** Close-out — **built, pending the user's review in the combined round** (the voice listen-through and the playthrough are the user's) | `ActPlaythroughTest` and `BalanceTest` for Act 2 with Rook and the Act 2 plan; the variety checklist as built; the later tags (drones and the other utility modules to Acts 3–6); leftover sounds and the voice listen-through; the user's playthrough | all | 37 |
 
 ## Implementation
 
@@ -92,7 +92,9 @@ Hive Node and Ravager and D's Wraith.
 - [ ] M5 Act 2 (parts A–I under *M5 parts*; part A done, concept round 28 closed; part B, Level 08
       and the Act 2 intro, done, concept round 30 closed; part C, Level 09, done, concept round 31
       closed; part D, Level 10, done, concept round 32
-      closed; part E, Level 11, done, concept round 33 closed)
+      closed; part E, Level 11, done, concept round 33 closed; parts F, Level 12, G, Level 13, H,
+      Level 14 and the act end, and I, the close-out, built, pending the user's review in the combined
+      concept round (rounds 34–37), with the voice listen-through and the user's playthrough)
 - [ ] M6 Acts 1–2 release
 
 ## Open questions
@@ -330,3 +332,83 @@ Hive Node and Ravager and D's Wraith.
   slamming arms whip and only the hit part flashes; the sunken pod takes 3 torpedo hits (hard 5);
   four sounds reworked. Hard keeps no ship on the arm-first autopilot (user: hard is supposed to be
   hard). The next part is **F**, Level 12 (round 34).
+- 2026-10-09: M5 part F started (Level 12), from its gap check, with the user's decisions F1–F9,
+  all as recommended: **F1 = a** the cloud banks hide only `low-air` bodies (draw order, a level
+  flag), the lightning lighting them for 0.5 s, air waves "out of the banks" entering at the edge
+  with a flash; **F2 = a** the drifting canister always hittable, under its bank with a glint, fully
+  seen in two authored flashes; **F3 = a** a latched Lamprey is hit only by rear-mount shots, `side`
+  or `rear` weapons and blasts, homing and Rook skipping it; **F4 = a** one latch per Lamprey, then
+  stun and flee; **F5 = a** "Firestorm"'s base stem at −6 dB in the eye; **F6 = a** a rain-only bed
+  cut from the chosen storm ambience's source with thunder one-shots after the flashes; **F7 = b**
+  the sondes on the play plane, drifting down at 60 px/s, not pulled by the magnet; **F8 = a** art
+  straight to production, a/b only for the eye and the latch, sounds a/b for thunder, gust, latch
+  and drain; **F9 = a** a Lamprey swarm is a swarm of chasers. The gap check's stated defaults
+  apply: data in Act 1 terms with a `bounty_scale` (the canister 130, the secondary 75); the waves
+  densified to at least 50 a minute with the 3 s pacing rule and L12's own popcorn, the t=32
+  introduction alone; the act HP factor for the returning `medium` units; the wind in the data
+  (gusts from the left, 2.5 s, 40 px/s, easy 25, hard 55, telegraph 1.0 s, easy 1.5 s; the wall's
+  20 px/s drift, none on easy; hard's extra gusts; none in the eye), added to positions of the ship,
+  Rook, Lampreys and Whirl Seeds only; lightning times in the data with a simulation event; the
+  Lamprey's chase, latch slots (hard 2), drain on the shield only with the regen paused, the
+  shake-off by four commanded reversals in 1.2 s; shield cells ×1.5 as a level drop factor; the
+  eye's armour patch as a placed pickup; the `SONDES n / 3` tracker; the radio retimed to the 1 s
+  rule with the events `first-latch` (with the shake-off event prompt) and `secondary-objective`,
+  Rook's t=102 dropped; voiced with the cast speakers, Varga's four intel lines, two briefing pages,
+  Rook's teaser; the storm bed with the ocean in the eye; L12's own atlas; the plan's L12 visit
+  refitting Rook's Autocannon with the Lamprey's checks in `BalanceTest`; the eye calm, its cloud
+  wall turning clockwise; the mines' stale `sub` item struck. The new state is hashed only in a
+  level that uses it, so the replay hashes stay. Details in
+  [Level 12](../../campaign/act-2-homefront/level-12-storm-front/README.md), the
+  [Lamprey](../../enemies/air/lamprey/README.md), the
+  [schemas](../architecture/README.md#data-file-schemas), the [HUD](../../ui/hud/README.md),
+  [wingmen](../../player/wingmen/README.md), the
+  [Proximity Mines](../../player/weapons/proximity-mines/README.md),
+  [music](../../audio/music/README.md), [sfx](../../audio/sfx/README.md) and
+  [voice](../../audio/voice/README.md). Part F's concept round is 34.
+- 2026-10-11: M5 part G started (Level 13), from its gap check (**the user is on vacation: G1–G9 = a
+  are the gap check's recommendations, pending the user's review** in the combined round at the end
+  of M5): **G1 = a** the hook's `alternate`, `in-arc` and `always` made exact on the relay-aimed rule
+  (a Stinger dives at the relay, crosses it for one 10-point hit and flies on); **G2 = a** the
+  relay's integrity 600 / 900 / 450 tuned with the defend autopilot over several seeds, the measured
+  numbers recorded; **G3 = a** the halt counts for the density rule, filled with unhooked popcorn;
+  **G4 = a** Skimmers as lane walkers with the weave, the leads cut along the lanes; **G5 = a**
+  `water: true` over the whole field with the water splash only on naval units; **G6 = a** the
+  supply drone is presentation, the patch a pickup released at a point; **G7 = a** the whiteout banks
+  hide only `ground` units; **G8 = a** the mission-complete jingle at t=218, none at the debrief;
+  **G9 = a** straight to production but for a/b of the relay, the whiteout peak, three sounds and
+  the Nansen voice. The stated defaults apply (the halt as a section of speed 0 without an arena, the
+  `defend` primary reusing the escort's machinery, the `integrity` secondary, data in Act 1 terms,
+  the waves densified to ≥ 50 a minute, Rook not guarding the relay). The steps are G1a–G8, G1b
+  being this shared-doc text; the schema text is marked "planned (M5 part G)" in the
+  [schemas](../architecture/README.md#data-file-schemas) until built. Details in
+  [Level 13](../../campaign/act-2-homefront/level-13-polar-relay/README.md), the
+  [hook](../../enemies/README.md#target-the-objective-hook), the [HUD](../../ui/hud/README.md),
+  [wingmen](../../player/wingmen/README.md), [music](../../audio/music/README.md),
+  [sfx](../../audio/sfx/README.md) and [voice](../../audio/voice/README.md). Part G's concept round
+  is 35.
+- 2026-10-11: M5 part H started (Level 14 and the act end), from its gap check (**the user is on
+  vacation: H1–H10 = a are the gap check's recommendations, pending the user's review**; **H1 is a
+  change to an approved spec**): **H1 = a** no creep in phase 1 (the Spire's arena is a halt with all
+  six roots in range; the approved README's creep and its section table are corrected); **H2 = a**
+  data-driven root bursts; **H3 = a** the maw's Wraiths fly the ambush path with a 3 s bottom-edge
+  warning; **H4 = a** the Spire lifts off its anchor by a phase `move`, one boss and one bar, the
+  stump drawn from the boss's state; **H5 = a** the boss attacks `lob` and `sweep` built from the
+  enemy code; **H6 = a** the act-end order of Act 1 (kill, daylight, debrief with the act summary,
+  outro, hangar), the Act 2 README corrected; **H7 = a** four voiced outro pages, the approved text
+  unchanged; **H8 = a** straight to production but for a/b of the root burst, the daylight and two
+  sounds; **H9 = a** the outro ends at the hangar (M6 owns the release's end); **H10 = a** the
+  fight's HP measured on the autopilot and tuned to a ≈ 135 s mean, the par set to it, the bounty
+  ≈ 30 % of the budget. The steps are H1a–H8, H1b being this shared-doc text. Details in
+  [Level 14](../../campaign/act-2-homefront/level-14-siege-spire/README.md), the
+  [Siege Spire](../../enemies/bosses/siege-spire/README.md), [Act 2](../../campaign/act-2-homefront/README.md),
+  the [boss rules](../../enemies/README.md#boss-attacks-and-root-bursts), the
+  [schemas](../architecture/README.md#data-file-schemas), the [HUD](../../ui/hud/README.md),
+  [wingmen](../../player/wingmen/README.md), [music](../../audio/music/README.md),
+  [sfx](../../audio/sfx/README.md) and [voice](../../audio/voice/README.md). Part H's concept round
+  is 36.
+- 2026-10-12: M5 part I (close-out) built: `ActPlaythroughTest` flies Acts 1 and 2 as one campaign
+  with Rook on every difficulty (every level won at the first attempt), `BalanceTest` and
+  `tools/balance.py` print Rook's DPS, Act 2 passes the variety checklist as built, and the Act 2
+  items of the cross-cutting documents are ticked or retagged to Acts 3–7 (or M6). Parts F–I are
+  built and wait for the combined concept round; M5 is not done until the user has reviewed them,
+  listened to the voices and played the act.

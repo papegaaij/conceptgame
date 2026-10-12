@@ -1,0 +1,134 @@
+# Siege Spire stat block and boss script at medium: the stat block is rendered into README.md.
+# Schema: ../../../tech/architecture/README.md#data-file-schemas
+# M5 part H, step H4 (Level 14's act boss; decisions H1, H3, H4, H5 and H10 = a of 2026-10-11, pending
+# the user's review in the combined round): an arena boss without lanes. It has no descent: it is
+# anchored at the Concord rotunda, scrolls in with the ground and engages when the scroll halts in its
+# arena, all six roots on the field from the start (H1 = a: no creep). All offsets are px from the
+# anchor (the trunk's foot, the boss's position), dx right, dy up, as assets/pivots/siege-spire.json
+# gives them (y down there; tools/art/siege_spire.py): the four turret pods and the two mortar pods at
+# the root tips, the maw at the crown, the core inside the trunk (the free spire's centre from the lift).
+# part_list order matters: a shot touching several parts hits the first, so the maw comes before the
+# core (shut until phase 3) and the armoured trunk (the upper trunk, above the maw) comes last.
+name: Siege Spire
+faction: Vrell
+layer: ground       # rooted; the lift (phase 3's move) takes it and its core to `air`
+tier: huge
+size: [440, 440]    # sprite px: the rooted body (the trunk and the six roots)
+hitbox: [380, 380]  # the rooted body (no armour: an arena boss's shots fly over it; its parts take the hits)
+parts: multi
+part_list:  # offset [dx, dy] px from the anchor, dy up; the pods and mortars sit on the root tips
+  - {name: pod 1, offset: [-160.6, 24.3], hitbox: [36, 36], hp: 665, kind: destroyable, bounty: 31, attack: orbs}        # root 3, the left (24 px above the anchor, as the pivots' pod; step H6 fixed the sign)
+  - {name: pod 2, offset: [-59.3, 151.2], hitbox: [36, 36], hp: 665, kind: destroyable, bounty: 31, attack: orbs}        # root 2, upper left
+  - {name: pod 3, offset: [59.3, -151.2], hitbox: [36, 36], hp: 665, kind: destroyable, bounty: 31, attack: orbs}        # root 5, lower right
+  - {name: pod 4, offset: [160.6, -24.3], hitbox: [36, 36], hp: 665, kind: destroyable, bounty: 31, attack: orbs}        # root 0, the right
+  - {name: mortar left, offset: [-101.3, -126.9], hitbox: [36, 36], hp: 775, kind: destroyable, bounty: 31, attack: acid}   # root 4
+  - {name: mortar right, offset: [101.3, 126.9], hitbox: [36, 36], hp: 775, kind: destroyable, bounty: 31, attack: acid}    # root 1
+  - {name: maw, offset: [0, 68], hitbox: [60, 44], hp: 2880, kind: destroyable, bounty: 62, attack: spit, multiplier: 2}   # the lime maw in the claw crown (×2)
+  - {name: core, offset: [0, 110], hitbox: [60, 60], hp: 4950, kind: vital, bounty: 124, multiplier: 2}   # the lime core, inside the trunk until the lift (×2)
+  - {name: trunk, offset: [0, 125], hitbox: [80, 90], kind: armoured}   # the upper trunk above the maw: shots glance off it; it stays at the anchor (the stump)
+orientation: 32 angles
+hp: 12040            # the parts' sum; the trunk is armoured
+armour: 'trunk armoured (shots glance off it; it stays as the stump); the roots and the maw are ground parts (all weapons, `anti-ground` ×2); the maw ×2 and the core ×2; invulnerable during the lift'
+speed: 0            # anchored: it scrolls in with the ground and stays where the scroll halts; 50 px/s at most once free
+movement:
+  anchored: {y: 196}   # the anchor (the trunk's foot), px below the top edge when the scroll halts (the concept's)
+  sine: {amplitude: 100, period: 12.566}   # the free spire's sway after the lift: ±100 px, 2π × 100 / 50 s, so 50 px/s at most
+attacks:
+  - pattern: aimed
+    name: orbs
+    bullet: medium
+    interval: 1.6       # s between two orbs of one pod
+    speed: 150
+    staggered: true     # each pod on its own clock, pod k of 4 k × 0.4 s after the first
+    notes:
+      text: 'phase 1: each turret pod fires an `{pattern}` violet orb ({speed} px/s, `{bullet}` = {damage}) every {interval} s, the four staggered'
+  - pattern: mortar
+    name: acid
+    bullet: heavy       # the blob's direct hit
+    interval: 4         # s between two lobs of one mortar root
+    speed: 110          # px/s, the ring's bullets
+    staggered: true     # the two mortar roots 2 s apart
+    mortar: {marker: 1.0, impact: 40, ring: 10, ring_bullet: small}
+    notes:
+      text: 'the two mortar roots `lob` acid every {interval} s each, staggered: a lime marker on the ship''s position {mortar.marker} s ahead, a ship inside the {mortar.impact} px impact circle takes `{bullet}` = {damage}, then a ring of {mortar.ring} bullets ({speed} px/s, `{mortar.ring_bullet}` = 4)'
+  - pattern: fan
+    name: spit
+    bullet: medium
+    count: 9
+    spread: 80
+    interval: 2.5
+    speed: 140
+    notes:
+      text: 'phase 2: the maw spits a {count}-way `{pattern}` (spread {spread}°, {speed} px/s, `{bullet}` = {damage}) every {interval} s'
+  - pattern: laser-sweep
+    name: sweep
+    bullet: laser       # once per sweep
+    interval: 2.5       # s of its turn in the alternation with the ring: a sweep every 5 s
+    sweep: {arc: 120, duration: 1.2, telegraph: 0.6, length: 300, width: 8, origin: [0, 0]}   # °, s, s, px, px; from the core, centred on the ship's bearing at the telegraph
+    notes:
+      text: 'phase 3: the free spire''s `{pattern}` from the core, a beam {sweep.length} px long sweeping a {sweep.arc}° arc over {sweep.duration} s, centred on the ship''s bearing when the {sweep.telegraph} s telegraph starts (the six crimson emitters charge), `{bullet}` = {damage} once per sweep, every 5 s'
+  - pattern: ring
+    name: ring
+    bullet: small
+    count: 14
+    interval: 2.5
+    speed: 120
+    notes:
+      text: 'between the sweeps a {count}-bullet `{pattern}` ({speed} px/s, `{bullet}` = {damage})'
+formations:
+  - {name: solo set piece}
+weak_points:
+  - {name: lime maw, multiplier: 2}
+  - {name: lime spire core, multiplier: 2}
+drops: []           # the maw's overdrive is Level 14's (dropped_by parts); the lift's armour patch is phase 3's drop
+traits: [anti-ground, rear, piercing]
+bounty: 372         # the parts' sum (the spec's ratios 60:60:120:240): 26.8 % of budget(14) once paid (the perfect-run rule caps it, see the README)
+first_level: 14
+difficulty:
+  hard: {ring: 12, sweep_arc: 180, spawns: {wraiths: 3}}   # the lob's ring of 12, a 180° sweep, 3 Wraiths a launch
+boss:
+  kind: boss        # the act boss: the long bar
+  bar_name: SIEGE SPIRE
+  par: 130          # s from the boss bar appearing to the kill: the Boss rush bonus (the measured mean, H10 = a; 129.5 s after step H6's pod 1 fix)
+  death_seconds: 3  # the chain: the spire cracks open (part_list order)
+  poses:            # the free spire (the lift's pose); the part_list offsets are the rooted pose
+    - name: free
+      hitbox: [160, 200]   # the airborne body (contact on `air`)
+      offsets:
+        core: [0, 0]       # the free spire's centre
+  phases:
+    - name: Roots
+      until: {parts: [pod 1, pod 2, pod 3, pod 4, mortar left, mortar right]}
+      attacks: [orbs, acid]
+    - name: Maw
+      until: {parts: [maw]}
+      exposes: [maw]
+      attacks: [spit]
+      windows:      # the claw crown opens and stays open (every = open): a launch every 8 s, the first at the phase's start
+        groups: [[maw]]
+        every: 8
+        open: 8
+        spawns:
+          - {name: wraiths, enemy: wraith, count: 2, speed: 200, ambush: {most: 4}}   # ambush launches (H3 = a): cloaked down a lane, back in at the bottom edge; at most 4 alive
+    - name: Free spire
+      until: {parts: [core]}
+      exposes: [core]
+      move: {to: [240, 120], layer: air, descend: 3, pose: free}   # the lift: 3 s off the anchor to its station in the upper half (x 240, y 120 below the top edge), the core onto `air`
+      delay: 1      # s after the lift to the first sweep
+      alternate: [sweep, ring]
+      drop: armour patch   # the tear-free shockwave throws one up from the debris
+notes:
+  layer: ' (the roots, the trunk and the maw) → `air` (the free spire after the lift, phase 3: a ship touching it takes the `huge` contact damage)'
+  size: '(the rooted body: the trunk ≈ 180 × 240 px with its lean, the roots ≈ 380 px across); the free spire {boss.poses.0.hitbox.0}×{boss.poses.0.hitbox.1} hitbox, drawn 244 px'
+  parts: '4 root turret pods (`destroyable`, `ground`), 2 acid-mortar roots (`destroyable`, `ground`), the launch maw (`destroyable`, ×2, exposed in phase 2 only), the spire core (`vital`, ×2, exposed in phase 3, `air` after the lift), the trunk (`armoured`: shots glance, no HP, not in the bar; it stays at the anchor as the stump)'
+  orientation: (the turret pods; the free spire 16 pre-rendered headings over its six-fold symmetry)
+  hp: 'turret pod 665 each (2,660); mortar root 775 each (1,550); maw 2,880 (×2); core 4,950 (×2); the spec''s ×1.8, tuned to the measured fight (H10 = a); total'
+  speed: '(anchored); the free spire sways ±{movement.sine.amplitude} px, 50 px/s at most'
+  movement: 'anchored at the Concord rotunda: it scrolls in with the ground (invulnerable, without its bar) and engages when the scroll halts, the anchor at y {movement.anchored.y}; phase 3 lifts it off the anchor in 3 s (invulnerable, eased) to x 240, y 120, where it sways; the stump stays (see *Phases*)'
+  attack_prefix: 'see *Phases*: '
+  formations: (the maw launches Wraiths in phase 2)
+  weak_points: (the maw in phase 2, the core in phase 3)
+  bounty: ' (pods and mortar roots 31 each, maw 62, core 124: the spec''s ratios; × 1.6 × Level 14''s `bounty_scale` 0.76 it pays 452, 26.8 % of budget(14) = 1,687)'
+  death: '`huge`: the spire cracks open, chained explosions over {boss.death_seconds} s, the canopy above withers and light breaks through (the `boss-destroyed` event starts the level''s daylight); credit shower'
+  used_in: L14 only (an echo version in the L49 boss rush)
+  difficulty: 'hard: the lob''s ring of 12, the sweep 180°, the maw launches 3 Wraiths'

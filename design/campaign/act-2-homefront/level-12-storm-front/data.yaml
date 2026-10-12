@@ -1,0 +1,282 @@
+# Level 12 – Storm Front: the level script, rendered into README.md (briefing, threat profile, layout,
+# waves, ground targets, radio, credit budget). Times are seconds from the level start (no holds, no
+# arena: the level clock runs with the scroll). M5 part F, step 4 (user decisions F1–F9 of 2026-10-09
+# and the stated defaults). Schema: ../../../tech/architecture/README.md#data-file-schemas
+# The `backdrop` block and the sections' tiles are merged in from the round 34 backdrop proposal
+# (concept/backdrop-proposal.yaml, tools/art/backdrop_l12.py --proposal, which reads this file).
+scroll_speed: 140     # the chosen storm scene's swell
+launch_seconds: 5     # flying in from the bottom edge with Rook in his slot, as in Levels 08-11
+bounty_scale: 0.75    # every bounty × 0.75: the typical haul on budget(12) (M5 part F, step 4)
+water: true           # open sea throughout: kills on the play field play the water burst (no `sub` units here)
+drop_factor: 1.5      # shield cells: each enemy's drop `every` ÷ 1.5 (the Needler's 4th kill → 3rd) against the Lamprey drain
+control_prompts: []
+prompts:  # an event prompt (M5 part F): shown on every latch of 0.3 s or more, at most its seconds each time, until the attempt's first shake-off
+  - {event: first-latch, action: SHAKE OFF, keys: 'LEFT-RIGHT', seconds: 6}
+threat_profile:  # the hangar intel panel (design/ui/hangar) and the README's Threat profile table
+  setting: Earth ocean storm
+  layers: [air, low-air]
+  density: 4
+  traits: [homing, spread]   # `side`, `rear` and `area` help against a latched Lamprey (the notes)
+  hazards: [wind, low visibility]
+  boss: none
+  objective: SONDES 3   # the OBJECTIVE field from sensor L1: the secondary's three sondes
+  varga:
+    none: A storm off the Azores, Lancer, and it grew in hours. Air contacts inside it.
+    l1: "From every side. Gusts will push you sideways: watch for the wind arrows."
+    l2: "New: an eel that drains your shield. Shake it off."
+    l3: Homing sees through the rain. Spread for the seeds.
+  notes:
+    Dominant layers: '`air`, `low-air` (Spore Bombers and the canister under the cloud banks)'
+    Attack directions: '{directions}'
+    Density: '{density}'
+    Recommended traits: '`homing`, `spread`; `side` / `rear` / `area` help against a latched Lamprey'
+    Hazards: Wind gusts (sideways push), low visibility (rain, cloud banks), lightning flashes
+    Boss / mid-boss: 'none (finale: breakout from the storm, attacks from all sides)'
+    Sensor-suite detail: '**none**: ocean storm, `air` + `low-air`, front. **L1**: + the directions, density {density}, hazards "wind, low visibility", the objective `{objective}`. **L2**: + Lamprey (new), Whirl Seed, Needler, Wraith, Mantis, Spore Bomber, Skitter portraits. **L3**: + `homing` and `spread` highlighted; the timeline strip marks the storm wall (125–150 s) and the eye (150–175 s); 1 secret.'
+
+sections:  # back to back from t = 0; tiles: the backdrop's tile sets (tools/art/backdrop_l12.py --proposal); peak: another atmosphere inside the section
+  - name: Squall Line
+    end: 25
+    atmosphere: light
+    tiles: [swell, chop]
+    notes:
+      layers:
+        deep: dark grey swell.
+        low-air: the first scud banks at the edges.
+        high-air: rain starts at t=10 (faint, motion-blurred streaks). One demonstration gust at t=16.
+      purpose: Weather introduced over light popcorn; the gust telegraph learned.
+  - name: Rain Wall
+    end: 75
+    atmosphere: medium
+    tiles: [swell, chop]
+    notes:
+      layers:
+        deep: heaving swell, sparse torn crests.
+        low-air: scud banks (~20–25%), opaque, below the play plane.
+        high-air: steady rain (≤ 40%). The first sonde blinks in the rain at t≈60.
+      purpose: Lamprey introduction; seeds on the wind.
+  - name: Lightning Field
+    end: 125
+    atmosphere: medium
+    tiles: [swell, chop]
+    notes:
+      layers:
+        low-air: as section 2, plus lightning every 6–10 s; each flash lights the cloud banks from inside for 0.5 s and shows what flies under them. The drifting canister at t≈99; the second sonde at t≈110.
+      purpose: Low visibility; attacks from the sides and rear.
+  - name: Storm Wall
+    end: 150
+    atmosphere: medium
+    peak: {atmosphere: heavy, from: 130, to: 145}   # the single heavy peak, 5 s ramps each side
+    tiles: [swell, chop]
+    notes:
+      layers:
+        low-air: banks at 30–40% leaving the centre lane readable.
+        high-air: dense rain (≤ 40%). A steady 20 px/s drift to the right plus gusts.
+      purpose: 'The single heavy peak: dense whirl clusters and a Lamprey swarm.'
+  - name: The Eye
+    end: 175
+    atmosphere: clear
+    tiles: [swell, chop-calm]
+    notes:
+      layers:
+        deep: calm dark sea with a shaft of pale light.
+        far: the storm's cloud wall all round, turning slowly clockwise (≈ 3°/s). No rain, no gusts. The armour patch at t≈152; the third sonde at t≈165.
+      purpose: Calm; Varga sees the Needlers circling with the storm.
+  - name: Breakout
+    end: 205
+    atmosphere: medium
+    peak: {atmosphere: light, from: 198, to: 205}   # the storm thinning toward the end
+    tiles: [swell, chop]
+    notes:
+      layers:
+        high-air: back through the wall into rain, which thins toward the end; the sky lightens at the top edge.
+      purpose: Last waves from all sides, then out of the storm.
+
+weather:  # M5 part F: the first level with weather; the eye (section 5) has none of it
+  gusts:   # every gust from the left (the storm's wind); its push starts at t, telegraphed `telegraph` s ahead
+    at:
+      - {t: 16, from: left}    # the demonstration
+      - {t: 52, from: left}
+      - {t: 90, from: left}
+      - {t: 118, from: left}
+      - {t: 126, from: left}   # every 6 s in the storm wall, on top of its drift
+      - {t: 132, from: left}
+      - {t: 138, from: left}
+      - {t: 144, from: left}
+      - {t: 182, from: left}
+    seconds: 2.5      # including the ramps
+    ramp: 0.25        # s up and down
+    push: 40          # px/s, added to the positions of the ship, Rook, the Lampreys and the Whirl Seeds
+    telegraph: 1.0    # s ahead: the wind streaks brighten and an arrow shows at the upwind edge
+    easy: {push: 25, telegraph: 1.5}
+    hard: {push: 55, extra: [{t: 34, from: left}, {t: 72, from: left}]}
+  drift: {section: 4, push: 20, from: left, easy: {push: 0}}   # the storm wall's steady drift to the right; none on easy
+  lightning:   # flash times (the LIGHTNING event for the thunder); two while the canister is on the screen (99.5, 103.5); one at t=87 as the side swarm enters
+    at: [78, 87, 93, 99.5, 103.5, 111, 117, 123, 129, 135, 141, 147, 180, 189]
+    reveal: 0.5   # s the banks stay lit from inside
+  occlusion: true   # F1 = a: the banks on low-air hide that layer's bodies (draw order only)
+  rain: [[0, 0], [10, 0], [13, 0.25], [25, 0.4], [125, 0.4], [130, 1], [145, 1], [150, 0], [175, 0], [178, 0.4], [190, 0.3], [200, 0.1], [205, 0]]   # [t, density]: presentation only
+
+# Act 2 popcorn (Skitter streams of 4 and snakes of 6, Whirl clusters of 6, Needler lines of 3) round the set
+# pieces, from t=7 (the act's minimum: at least 50 a minute; the pacing rule: no empty screen over 3 s).
+# The t=32 introduction alone: the popcorn before it leaves the screen first and nothing enters until t=40.
+# Skitters cannot stream in from the rear (only chasers do), so the rear share is the Wraiths' and the
+# Lampreys'. A whirl cluster on the wind is released just outside the left edge (at: x < 0).
+waves:
+  - {t: 7, formation: stream, enemy: skitter, count: 4, from: front, edge: right, interval: 1.25, notes: The first targets in the squall}
+  - {t: 11, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - {t: 15, formation: line abreast, enemy: needler, count: 3, from: front, notes: Through the demonstration gust at t=16}
+  - {t: 18.5, formation: stream, enemy: skitter, count: 4, from: sides, edge: left, interval: 1.25}
+  - {t: 23, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [300, 110]}
+  - {t: 26.5, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1, notes: Gone before the Lamprey introduction}
+  - {t: 32, formation: stream, enemy: lamprey, count: 3, from: front, interval: 1.5, notes: "**New.** One at a time, 1.5 s apart, nothing else on screen; the first latch shows the shake-off prompt"}
+  - {t: 38, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1, notes: 6 s after the introduction}
+  - {t: 40, formation: V-wing, enemy: needler, count: 5, from: front}
+  - {t: 43, formation: stream, enemy: skitter, count: 4, from: sides, edge: right, interval: 1.25}
+  - {t: 46, formation: whirl cluster, enemy: whirl-seed, count: 6, from: sides, edge: left, at: [-16, 150], notes: Released just outside the left edge; the wind bends their spiral to the right}
+  - {t: 50, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - {t: 54, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 58, formation: swarm, enemy: lamprey, count: 4, from: front}
+  - {t: 61, formation: stream, enemy: skitter, count: 4, from: sides, edge: right, interval: 1.25}
+  - {t: 64, formation: line abreast, enemy: spore-bomber, count: 2, from: front, notes: 'Under the scud banks (`low-air`); spores rise to the play plane'}
+  - {t: 70, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 73, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [140, 120]}
+  - {t: 76, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1}
+  - {t: 80, formation: stream, enemy: skitter, count: 10, from: front, edge: alternating, interval: 0.75}
+  - {t: 84, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 88, formation: swarm, enemy: lamprey, count: 5, from: sides, notes: Entering with the lightning flash at t=87}
+  - {t: 92, formation: snake, enemy: skitter, count: 6, from: front, edge: left}
+  - {t: 96, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [240, 110]}
+  - {t: 98.5, formation: stream, enemy: skitter, count: 4, from: sides, edge: right, interval: 1.25, notes: Beside the drifting canister}
+  - {t: 104, formation: rear ambush, enemy: wraith, count: 2, from: rear, notes: The first one drops an overdrive}
+  - {t: 108, formation: snake, enemy: skitter, count: 6, from: front, edge: right}
+  - {t: 112, formation: stream, enemy: lamprey, count: 4, from: rear, interval: 1.5}
+  - {t: 117, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 120, formation: pincer, enemy: needler, count: 4, from: sides, hold: 4, notes: '2 per side, hold {hold} s'}
+  - {t: 122, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1}
+  - {t: 124, formation: pincer, enemy: mantis, count: 2, from: sides, hold: 6, notes: Laser sweeps across the rain}
+  - {t: 128, formation: stream, enemy: skitter, count: 4, from: sides, edge: alternating, interval: 1.25}
+  - {t: 132, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [240, 100]}
+  - {t: 136, formation: swarm, enemy: lamprey, count: 6, from: front, easy: {count: 4}, notes: Out of the heavy rain; easy 4}
+  - {t: 140, formation: whirl cluster, enemy: whirl-seed, count: 6, from: sides, edge: left, at: [-16, 140], notes: On the wind with the wall's drift}
+  - {t: 143, formation: snake, enemy: skitter, count: 6, from: front, edge: right}
+  - {t: 146, formation: line abreast, enemy: spore-bomber, count: 2, from: front, notes: '`low-air`'}
+  - {t: 150, formation: stream, enemy: skitter, count: 4, from: front, edge: alternating, interval: 1.25, notes: Into the eye}
+  - {t: 155, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 158, formation: circle, enemy: needler, count: 8, from: front, hold: 8, clockwise: true, notes: "Orbits the eye's centre clockwise with the storm for {hold} s before breaking; the leader drops an overdrive"}
+  - {t: 162.5, formation: stream, enemy: skitter, count: 3, from: front, edge: alternating, interval: 1, notes: As the circle breaks}
+  - {t: 166, formation: rear ambush, enemy: wraith, count: 3, from: rear}
+  - {t: 169.5, formation: stream, enemy: skitter, count: 5, from: sides, edge: alternating, interval: 1.25}
+  - {t: 170, formation: pincer, enemy: mantis, count: 2, from: sides, hold: 6, skip: [easy, medium], notes: '**Hard only**'}
+  - {t: 176, formation: snake, enemy: skitter, count: 8, from: front, edge: left}
+  - {t: 180, formation: stream, enemy: skitter, count: 4, from: sides, edge: alternating, interval: 1.25}
+  - {t: 183, formation: line abreast, enemy: needler, count: 3, from: front}
+  - {t: 186, formation: swarm, enemy: lamprey, count: 5, from: rear}
+  - {t: 190, formation: snake, enemy: skitter, count: 6, from: front, edge: right}
+  - {t: 194, formation: whirl cluster, enemy: whirl-seed, count: 6, from: front, at: [240, 110]}
+  - {t: 196, formation: V-wing, enemy: needler, count: 5, from: front}
+  - {t: 199.5, formation: stream, enemy: skitter, count: 4, from: sides, edge: alternating, interval: 1.25, notes: The last wave}
+
+ground_targets:  # at: [t, x], when it enters at the top edge and its x
+  - target: drifting canister
+    section: 3
+    layer: low-air
+    size: [32, 24]
+    sprite: supply-canister   # tools/art/l12_props.py: intact, hit, spent; supply-canister-glow over the bank
+    hits: 3
+    hard: {hits: 5}
+    reveals: drifting canister
+    drift: [-24, -70]   # px/s, y up: slowly across and down the screen inside a cloud bank on the right (≈ 8 s on screen), not pushed by the wind
+    at: [[99, 420]]
+    notes:
+      target: 'A CDF supply canister drifting on `low-air` inside a cloud bank on the right (trigger, t≈99): drawn under the bank with a faint glint, fully seen in the flashes at t=99.5 and 103.5'
+      effect: '{hits} hits (hard 5) by anything that reaches `low-air` break it open as the hidden crate'
+
+secrets:
+  - name: drifting canister
+    crate: 130   # Act 1 terms: pays 208 with the act factor
+    radio: {speaker: Varga, line: "A CDF supply canister. Lucky find in this soup."}
+
+sondes:  # F7 = b: on the play plane, entering at the top edge at [t, x], drifting straight down; x off the waves' main lanes
+  speed: 60     # px/s (≈ 9 s on the screen)
+  radius: 36    # px from the ship's centre that collects one
+  at: [[60, 400], [110, 70], [165, 390]]
+
+pickups:
+  - {pickup: overdrive, dropped_by: {wave: 104, unit: first}}   # the first Wraith of the t=104 ambush
+  - {pickup: overdrive, dropped_by: {wave: 158, unit: first}}   # the t=158 Needler circle's leader
+  - {pickup: armour patch, at: [152, 300]}                      # placed: floating in the eye
+
+radio:  # trigger: t or event; requires: escort = only while Rook flies (hired, fitted and not ejected)
+  - {t: 2, speaker: Okafor, line: "Weather service calls it the worst Atlantic storm in forty years. It formed in six hours. Stay together."}
+  - {t: 14, speaker: Rook, requires: escort, line: "Feel that? The wind's trying to take the stick off me."}
+  - {t: 30, speaker: Varga, line: "Eel-shaped contacts. They latch on and drain your shield. Shake hard to throw them off."}
+  - {event: first-latch, speaker: Rook, requires: escort, line: "You've got a passenger! Shake it off!", notes: {trigger: "The attempt's first latch (`first-latch`)"}}
+  - {t: 44, speaker: Rook, requires: escort, line: "Seeds on the wind, left side!"}
+  - {t: 58, speaker: Varga, line: "There's a CDF sonde out there. Fly through it and I can read its data.", notes: {trigger: first sonde in view}}
+  - {t: 86, speaker: Varga, line: "Lightning shows what's in the clouds. Watch the flashes."}
+  - {t: 128, speaker: Okafor, line: "Storm wall ahead. Instruments will be useless in there. Fly by eye."}
+  - {t: 149.5, speaker: Rook, requires: escort, line: "Blue sky. I'd almost forgotten what it looks like."}
+  - {t: 157, speaker: Varga, line: "Lancer, look at them. They're circling with the wind. They aren't caught in this storm. They're steering it."}
+  - {t: 169.5, speaker: The Choir, distorted: true, line: "[the Choir sings]"}
+  - {t: 176, speaker: Okafor, line: "Say again, Doctor?"}
+  - {t: 182.5, speaker: Varga, line: "They're herding the weather, Commander. They understand our climate better than we do."}
+  - {t: 200, speaker: Rook, requires: escort, line: "Next time, I'm bringing an umbrella."}
+  - {event: level-end, speaker: Okafor, line: "You're through. The storm is breaking up behind you, as if someone let it go."}
+  - {event: secondary-objective, speaker: Varga, line: "Three sondes, full data. They fed the storm, Commander. I'll have the pattern by morning."}
+
+objectives:
+  primary: reach-end
+  secondary: {collect: sondes, label: SONDES, credits: 75, name: Fly through all three sondes}   # all or nothing: met at the third, failed when one leaves the bottom edge uncollected (75 in Act 1 terms: pays 120)
+
+music:
+  track: 7            # Act 2 B "Firestorm" (audio/music track list)
+  start_section: 2    # F5 = a: the storm ambience alone in the squall, the base stem from the rain wall
+  full_section: 4     # the full mix in the storm wall
+  stems: {5: base, 6: full}   # the base stem in the eye, the full mix again for the breakout
+  section_db: {5: -6, 6: 0}   # the eye's base stem at -6 dB (the Choir's stage sound on top), full level again at the breakout
+  ambience: earth-storm       # F6 = a: the rain-only storm bed
+  ambience_changes:           # the ocean in the eye, the storm bed again at the breakout
+    - {section: 5, ambience: earth-ocean, crossfade: 4}
+    - {section: 6, ambience: earth-storm, crossfade: 4}
+  end_jingle: mission-complete
+
+difficulty: {}  # the t=136 swarm's easy 4 and the hard Mantis pincer are in their waves, the canister's hard hits in its own; the weather's easy/hard pushes in `weather`; the stat blocks' hooks apply (hard: two latched Lampreys draining 12/s)
+
+briefing:
+  pages:
+    - {speaker: Okafor, image: level-12-storm-front, line: "Lancer, Aegis Actual. A storm system has formed off the Azores, and it's moving onto the convoy lanes faster than any storm should. Vrell flyers are using it as cover. Clear the storm front so the next convoy can follow. Expect contacts from every side."}
+    - {speaker: Varga, image: level-12-sonde-scan, line: "The pressure readings make no sense. Three CDF weather sondes are still transmitting inside the front. Fly through them for me and I can tell you why."}
+  teaser: {speaker: Rook, line: "A storm that blew up in six hours, and things in it that bite. Homing missiles, Lancer: you won't see much in there."}
+
+backdrop:
+  # Presentation only: the Atlantic storm (tools/art/backdrop_l12.py, straight from scene-storm-r10-a, F8 = a,
+  # on Level 11's ocean kit). The sea is two layers: the long swell on `deep` (0.85, opaque) and the short
+  # chop on `ground` (1.0, translucent); the eye has its own calm chop. Opaque scud banks on `low-air` (1.5).
+  scroll_factors: {deep: 0.85, far: 0.9, ground: 1.0, low-air: 1.5, high-air: 2.2}
+  ramp: 5
+  haze_colour: 5a6670  # the rain's grey over the sea (none in the eye)
+  atmosphere:
+    clear: {haze: 0.0}   # the eye: no banks, no haze (the calm dark sea)
+    light: {banks: scud-light, haze: 0.05}   # the squall line: scud at the edges ~12 %
+    medium: {banks: scud-banks, haze: 0.1}   # rain wall, lightning field, breakout: scud banks ~22 %
+    heavy: {banks: storm-banks, haze: 0.18}   # the wall's peak: banks ~35 %, the centre lane clear, the sea hazed
+  tile_sets:
+    swell: {layer: deep, height: 960}   # the storm's long swell and its slow tone field (opaque), every section; the chop slides over it (deep at 0.85)
+    chop: {layer: ground, height: 960}   # the short chop, torn whitecaps and wind streaks from the left (translucent, alpha >= 3 everywhere: the shadow stencil), sections 1-4 and 6
+    chop-calm: {layer: ground, height: 960}   # the eye's calm chop: the same chop at 30 %, no caps, no streaks
+    scud-light: {layer: low-air, height: 960}   # light: the squall line's first scud at the edges, ~12 % cover, opaque cores
+    scud-banks: {layer: low-air, height: 960}   # medium: dark scud banks ~22 %, opaque cores (they hide low-air bodies)
+    storm-banks: {layer: low-air, height: 960}   # heavy: the wall's banks ~35 %, the centre lane kept clear
+  pieces:
+    sea-calm-in: {layer: ground, size: [480, 320]}   # on the eye's first seam: the storm's chop fading out over the calm one (320 px)
+    sea-calm-out: {layer: ground, size: [480, 320]}   # on the eye's last seam: the storm's chop fading back in
+    bank-tall-a: {layer: low-air, size: [256, 704]}   # a tall scud bank on the right: the drifting canister's cover
+    bank-tall-b: {layer: low-air, size: [256, 704]}
+  placed:
+    # 3. Lightning Field: the canister's bank on the right (the canister enters at t 99, x 420, drifting -24, -70 px/s y up; it is under one of the two until it leaves at t 107.1)
+    - {piece: bank-tall-a, t: 101.63, x: 380}
+    - {piece: bank-tall-b, t: 104.31, x: 283}
+    # 5. The Eye: the chop fades into the calm over the eye's first seam (ground position 21540) and back out of it under the last one (25040); exact rows, re-run after the data moves a section end
+    - {piece: sea-calm-in, t: 153.071, x: 240}
+    - {piece: sea-calm-out, t: 175.786, x: 240}

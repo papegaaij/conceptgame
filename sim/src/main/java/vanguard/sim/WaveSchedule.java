@@ -43,6 +43,7 @@ final class WaveSchedule {
         this.kinds = kinds;
         List<Spawn> planned = new ArrayList<>();
         List<WaveSpec> warned = new ArrayList<>();
+        List<Integer> warnedEdges = new ArrayList<>();
         Map<Spawn, WaveSpec.Entry> entryOf = new IdentityHashMap<>();
         Map<Spawn, int[]> volleyOf = new IdentityHashMap<>();
         Map<Spawn, String> tagOf = new IdentityHashMap<>();
@@ -50,8 +51,13 @@ final class WaveSchedule {
         for (WaveSpec wave : waves) {
             int before = planned.size();
             Formations.plan(wave, kinds.indexOf(wave.enemy()), rng, planned);
+            boolean cross = wave.formation() == WaveSpec.Formation.CROSS;
+            int crossEdges = 0;
             for (int i = before; i < planned.size(); i++) {
-                entryOf.put(planned.get(i), wave.entry());
+                // M5 part G: a cross's unit enters from the edge its path (its lane) starts beyond.
+                int edge = cross ? startEdge(planned.get(i).path()) : 0;
+                crossEdges |= edge;
+                entryOf.put(planned.get(i), cross ? entryAt(edge) : wave.entry());
                 tagOf.put(planned.get(i), wave.tag());
             }
             if (staggered(wave)) {
@@ -61,8 +67,14 @@ final class WaveSchedule {
                 clocks++;
             }
             // M5 part D: a rear ambush enters at the top; it is warned ahead of its re-entry instead.
-            if (wave.entry() != WaveSpec.Entry.FRONT && wave.formation() != WaveSpec.Formation.REAR_AMBUSH) {
+            if (cross) {
+                if (crossEdges != 0) {
+                    warned.add(wave);
+                    warnedEdges.add(crossEdges);
+                }
+            } else if (wave.entry() != WaveSpec.Entry.FRONT && wave.formation() != WaveSpec.Formation.REAR_AMBUSH) {
                 warned.add(wave);
+                warnedEdges.add(edges(wave));
             }
         }
         planned.sort(Comparator.comparingInt(Spawn::tick));
@@ -107,7 +119,7 @@ final class WaveSchedule {
             double lead = Math.max(EDGE_WARNING_SECONDS, wave.warningSeconds().orElse(0.0));
             warningStarts[i] = SimStep.ticks(wave.t() - lead);
             warningEnds[i] = SimStep.ticks(wave.t());
-            warningEdges[i] = edges(wave);
+            warningEdges[i] = warnedEdges.get(i);
         }
         for (int i = 0; i < loops.size(); i++) {
             Spawn spawn = loops.get(i);
@@ -143,6 +155,28 @@ final class WaveSchedule {
                     + " s apart does not fit its " + interval + " s volley interval");
         }
         return true;
+    }
+
+    /**
+     * M5 part G: the edge a path starts beyond, as a {@link WarningEdge} bit: the left or right edge, the
+     * bottom one, or 0 for the top edge (or a start inside the play field).
+     */
+    static int startEdge(FlightPath path) {
+        if (path.startX() < 0) {
+            return WarningEdge.LEFT.bit();
+        }
+        if (path.startX() > PlayField.WIDTH) {
+            return WarningEdge.RIGHT.bit();
+        }
+        return path.startY() < 0 ? WarningEdge.BOTTOM.bit() : 0;
+    }
+
+    /** M5 part G: the entry a unit starting beyond {@code edge} ({@link #startEdge(FlightPath)}) has. */
+    private static WaveSpec.Entry entryAt(int edge) {
+        if (edge == WarningEdge.BOTTOM.bit()) {
+            return WaveSpec.Entry.REAR;
+        }
+        return edge == 0 ? WaveSpec.Entry.FRONT : WaveSpec.Entry.SIDES;
     }
 
     private static int edges(WaveSpec wave) {

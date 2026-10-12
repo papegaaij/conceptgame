@@ -115,6 +115,31 @@ val copyPlaceholderSounds = tasks.register<JavaExec>("copyPlaceholderSounds") {
         // Concept round 33's choice: the Driftjelly's pulse (synthesized; the other seven Level 11
         // sounds are made from their originals by tools/art/sfx_originals.py).
         "driftjelly-pulse-r33-a.ogg",
+        // Concept round 34 (open, M5 part F): Level 12's sounds, option a until the choice; the
+        // rain-only storm bed (F6 = a) beside round 08's chosen storm ambience, which stays.
+        "ambience-storm-rain-r34-a.ogg",
+        "thunder-1-r34-a.ogg",
+        "thunder-2-r34-a.ogg",
+        "thunder-3-r34-a.ogg",
+        "gust-r34-a.ogg",
+        "lamprey-latch-r34-a.ogg",
+        "lamprey-drain-r34-a.ogg",
+        "lamprey-shake-r34-a.ogg",
+        "sonde-chime-r34-a.ogg",
+        // Concept round 35 (open, M5 part G): Level 13's sounds, option a until the choice (the drone
+        // launch and the relay destroyed have one proposal each).
+        "relay-hit-r35-a.ogg",
+        "integrity-alarm-r35-a.ogg",
+        "relay-destroyed-r35-a.ogg",
+        "drone-launch-r35-a.ogg",
+        "grid-online-r35-a.ogg",
+        // Concept round 36 (open, M5 part H): Level 14's sounds, option a until the choice (the root
+        // growth and the canopy hum have one proposal each).
+        "root-burst-r36-a.ogg",
+        "root-growth-r36-a.ogg",
+        "tear-free-roar-r36-a.ogg",
+        "canopy-withering-r36-a.ogg",
+        "canopy-hum-r36-a.ogg",
     )
 }
 

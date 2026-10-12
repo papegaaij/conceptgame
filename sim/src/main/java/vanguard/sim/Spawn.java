@@ -22,6 +22,10 @@ import java.util.Optional;
  * @param ambush M5 part D: a {@code rear ambush} unit's way back up after its swoop down {@code path}
  * @param swarm M5 part D: a {@code swarm} member: its flock's route and its place in the flock
  * @param field M5 part E: a {@code field} unit: where it starts, its drift and its swap timer's seed
+ * @param chaseDelay M5 part F: a chaser's wait between its entry and its chase, s (a swarm member's
+ *     seeded start delay); 0 for others
+ * @param lane M5 part G: a lane walker (design/enemies/naval/skimmer): {@code path} is its lane in
+ *     ground space at its entry, scrolling with the ground, followed at {@code speed} with its weave
  */
 record Spawn(
         int tick,
@@ -40,7 +44,90 @@ record Spawn(
         Optional<Loop> loop,
         Optional<Ambush> ambush,
         Optional<Swarm> swarm,
-        Optional<Field> field) {
+        Optional<Field> field,
+        double chaseDelay,
+        boolean lane) {
+
+    /** Without M5 part G's lane. */
+    Spawn(
+            int tick,
+            int kind,
+            EnemySpec enemy,
+            FlightPath path,
+            double speed,
+            double holdSeconds,
+            Optional<Orbit> orbit,
+            Exit exit,
+            boolean leadsTarget,
+            Optional<PickupType> carried,
+            Optional<Release> release,
+            Optional<Escort> escort,
+            Optional<WalkPath> walk,
+            Optional<Loop> loop,
+            Optional<Ambush> ambush,
+            Optional<Swarm> swarm,
+            Optional<Field> field,
+            double chaseDelay) {
+        this(
+                tick,
+                kind,
+                enemy,
+                path,
+                speed,
+                holdSeconds,
+                orbit,
+                exit,
+                leadsTarget,
+                carried,
+                release,
+                escort,
+                walk,
+                loop,
+                ambush,
+                swarm,
+                field,
+                chaseDelay,
+                false);
+    }
+
+    Spawn(
+            int tick,
+            int kind,
+            EnemySpec enemy,
+            FlightPath path,
+            double speed,
+            double holdSeconds,
+            Optional<Orbit> orbit,
+            Exit exit,
+            boolean leadsTarget,
+            Optional<PickupType> carried,
+            Optional<Release> release,
+            Optional<Escort> escort,
+            Optional<WalkPath> walk,
+            Optional<Loop> loop,
+            Optional<Ambush> ambush,
+            Optional<Swarm> swarm,
+            Optional<Field> field) {
+        this(
+                tick,
+                kind,
+                enemy,
+                path,
+                speed,
+                holdSeconds,
+                orbit,
+                exit,
+                leadsTarget,
+                carried,
+                release,
+                escort,
+                walk,
+                loop,
+                ambush,
+                swarm,
+                field,
+                0);
+    }
 
     Spawn(
             int tick,

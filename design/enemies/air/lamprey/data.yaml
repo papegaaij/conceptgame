@@ -1,0 +1,51 @@
+# Lamprey stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+# M5 part F (Level 12; user decisions F3, F4 and F9 = a of 2026-10-09 and the stated defaults): the
+# chase, the latch and the drain are flown by the simulation (step 3), read by the loader from step 4.
+name: Lamprey
+faction: Vrell
+layer: air
+tier: small
+size: [36, 36]    # sprite px
+hitbox: [20, 28]
+parts: single
+orientation: 16 angles
+hp: 3             # ×2 damage taken while latched (latch.damage_factor)
+armour: none
+speed: 220        # px/s: its way in and on, the chase's and the flight to the edge after a shake-off
+movement:
+  chase: {speed: 220, turn_rate: 180, seconds: 4}   # px/s, °/s, s: it steers toward the ship's centre from its entry, then flies straight on
+latch:
+  slots: 1                  # latched at once (hard 2, the hook latch_slots)
+  spots:                    # [dx, dy] px from the ship's centre, y up (as the muzzles): tools/art/lamprey.py's pivots/lamprey.json, y flipped
+    left: [-22, -13]
+    right: [21, -13]
+    tail: [0, -35]          # for a touch within 45° of straight down from the ship's centre
+  damage_factor: 2          # the damage it takes while latched
+  shake: {reversals: 4, within: 1.2}   # reversals of the commanded horizontal direction (neutral steps ignored) throw off every latched one
+  stun: 1                   # s thrown off: outward from its spot, slowing to a stop, then it flees to the nearer side edge
+  throw: 120                # px/s, its outward start speed
+attacks:
+  - pattern: drain
+    rate: 8                 # shield points a second while latched (hard 12, the hook drain)
+    notes:
+      text: '`{pattern}`: {rate} shield points/s while latched, on the shield only (its regeneration paused, stopping at the break; no armour damage, no speed penalty)'
+formations:
+  - {name: stream}
+  - {name: swarm, size: [3, 6]}
+weak_points:
+  - {name: mouth disc, multiplier: 1.5}
+drops: []
+traits: [homing, side, rear, area]
+bounty: 12
+first_level: 12
+difficulty:
+  hard: {drain: 12, latch_slots: 2}
+notes:
+  orientation: (16 headings × 4 swim frames; a latched pose per hull spot, a stunned pose)
+  speed: (its chase at 180°/s turn rate)
+  movement: '`chase` the ship for up to {movement.chase.seconds} s at {movement.chase.speed} px/s (turning {movement.chase.turn_rate}°/s), then straight on; `latch` on contact at the side or tail spot it came from ({latch.slots} at once; hard 2); {latch.shake.reversals} reversals of the commanded direction within {latch.shake.within} s throw it off, stunned {latch.stun} s, then it flees to the nearer side edge and never latches again; ×{latch.damage_factor} damage taken while latched'
+  formations: (front, sides or rear; a swarm of chasers with seeded 0–0.6 s start delays)
+  weak_points: (drawn only)
+  death: '`small` wet pop'
+  used_in: Act 2
+  difficulty: 'hard: drain 12/s; up to 2 latched at once (easy and medium: 1)'

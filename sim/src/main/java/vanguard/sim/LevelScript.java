@@ -40,6 +40,15 @@ import java.util.Optional;
  *     torpedo ({@link WeaponSpec.Delivery#TORPEDO}) runs only here; elsewhere its mount fires nothing
  * @param convoy M5 part E: a naval convoy outside the objectives (Level 11's cargo ships and frigate),
  *     which never fails the mission; never beside an {@code escort}
+ * @param weather M5 part F: the level's wind and lightning (Level 12's storm)
+ * @param sondes M5 part F: the weather sondes to fly through (Level 12)
+ * @param dropFactor M5 part F: each enemy's drop {@code every} is divided by it, rounded to the nearest,
+ *     at least 1 (Level 12's shield cells, 1.5); 1 for none
+ * @param placedPickups M5 part F: pickups entering at the top edge at their time (Level 12's armour
+ *     patch in the eye); M5 part G: or released at a point in the field (Level 13's supply drones'
+ *     patches), in time order
+ * @param defend M5 part G: the {@code defend} primary objective (Level 13's Nansen Relay): one ally on
+ *     the ground that must survive its synchronisation; never beside an escort or a naval convoy
  */
 public record LevelScript(
         int number,
@@ -67,8 +76,24 @@ public record LevelScript(
         List<Hold> holds,
         Optional<Collapse> collapse,
         boolean water,
-        Optional<Naval> convoy) {
+        Optional<Naval> convoy,
+        Optional<Weather> weather,
+        Optional<Sondes> sondes,
+        double dropFactor,
+        List<PlacedPickup> placedPickups,
+        Optional<Defend> defend) {
     public LevelScript {
+        // M5 part G: the drones' point drops and the top edge's placed pickups in one time order.
+        placedPickups = placedPickups.stream()
+                .sorted(java.util.Comparator.comparingDouble(PlacedPickup::t))
+                .toList();
+        checkDefend(sections, holds, radio, secondary, escort, convoy, defend);
+        if (!(dropFactor > 0)) {
+            throw new IllegalArgumentException("a drop factor is positive: " + dropFactor);
+        }
+        if (secondary.sondes() && sondes.isEmpty()) {
+            throw new IllegalArgumentException("a collect: sondes objective needs the level's sondes");
+        }
         holds = List.copyOf(holds);
         int groupCount = groups(targets, secondary).size();
         for (Hold hold : holds) {
@@ -107,6 +132,321 @@ public record LevelScript(
         if (convoy.isPresent() && escort.isPresent()) {
             throw new IllegalArgumentException("a naval convoy is not an escort: a level has one or the other");
         }
+    }
+
+    /** A level without M5 part G's defend primary. */
+    public LevelScript(
+            int number,
+            int act,
+            double launchSeconds,
+            List<Section> sections,
+            List<WaveSpec> waves,
+            List<GroundObjectSpec> groundObjects,
+            List<GroundUnit> groundUnits,
+            int secrets,
+            List<RadioCue> radio,
+            Secondary secondary,
+            List<CraneSpec> cranes,
+            List<DebrisSpec> debris,
+            List<SetPieceSpec> setPieces,
+            Optional<Escort> escort,
+            Optional<Road> road,
+            List<String> targets,
+            Optional<SledSpec> sled,
+            Optional<RockSpec> rocks,
+            List<GroupDrop> groupDrops,
+            Optional<Darkness> darkness,
+            List<TowSpec> tows,
+            List<PartDrop> partDrops,
+            List<Hold> holds,
+            Optional<Collapse> collapse,
+            boolean water,
+            Optional<Naval> convoy,
+            Optional<Weather> weather,
+            Optional<Sondes> sondes,
+            double dropFactor,
+            List<PlacedPickup> placedPickups) {
+        this(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                holds,
+                collapse,
+                water,
+                convoy,
+                weather,
+                sondes,
+                dropFactor,
+                placedPickups,
+                Optional.empty());
+    }
+
+    /** M5 part G: this level with the defend primary {@code objective} and the secondary {@code secondaryObjective} (a test's own level). */
+    public LevelScript withDefend(Defend objective, Secondary secondaryObjective) {
+        return new LevelScript(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondaryObjective,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                holds,
+                collapse,
+                water,
+                convoy,
+                weather,
+                sondes,
+                dropFactor,
+                placedPickups,
+                Optional.of(objective));
+    }
+
+    /**
+     * M5 part G (design/campaign Level 13, The halt): the rules of a timed halt and the {@code defend}
+     * primary the simulation needs. A timed halt (a section of speed 0 without an arena) and a defend
+     * primary never come with hold zones or a boss arena; a defend primary has no escort or naval convoy
+     * beside it; an integrity secondary and the {@code ally-below} radio cues need a defend primary. The
+     * content's rules (a timed halt only with a defend primary; nothing entering at the top edge with the
+     * scroll inside one, {@link #timedHaltAt(double)}) are the level validator's.
+     */
+    private static void checkDefend(
+            List<Section> sections,
+            List<Hold> holds,
+            List<RadioCue> radio,
+            Secondary secondary,
+            Optional<Escort> escort,
+            Optional<Naval> convoy,
+            Optional<Defend> defend) {
+        boolean arena = sections.stream().anyMatch(Section::arena);
+        boolean halt = sections.stream().anyMatch(Section::timedHalt);
+        if (halt && (!holds.isEmpty() || arena)) {
+            throw new IllegalArgumentException("a timed halt comes without hold zones or a boss arena");
+        }
+        if (defend.isPresent() && (!holds.isEmpty() || arena)) {
+            throw new IllegalArgumentException("a defend primary comes without hold zones or a boss arena");
+        }
+        if (defend.isPresent() && (escort.isPresent() || convoy.isPresent())) {
+            throw new IllegalArgumentException("a defend primary has no escort or naval convoy beside it");
+        }
+        if (secondary.integrity() > 0 && defend.isEmpty()) {
+            throw new IllegalArgumentException("an integrity secondary needs a defend primary");
+        }
+        for (RadioCue cue : radio) {
+            if (cue.trigger() == CueTrigger.ALLY_BELOW) {
+                if (defend.isEmpty()) {
+                    throw new IllegalArgumentException("an ally-below radio cue needs a defend primary");
+                }
+                double share = CueTrigger.share(cue.subject());
+                if (!(share > 0 && share < 1)) {
+                    throw new IllegalArgumentException(
+                            "an ally-below cue's subject is a share between 0 and 1: " + cue.subject());
+                }
+            }
+        }
+    }
+
+    /** A level without M5 part F's weather, sondes, drop factor and placed pickups. */
+    public LevelScript(
+            int number,
+            int act,
+            double launchSeconds,
+            List<Section> sections,
+            List<WaveSpec> waves,
+            List<GroundObjectSpec> groundObjects,
+            List<GroundUnit> groundUnits,
+            int secrets,
+            List<RadioCue> radio,
+            Secondary secondary,
+            List<CraneSpec> cranes,
+            List<DebrisSpec> debris,
+            List<SetPieceSpec> setPieces,
+            Optional<Escort> escort,
+            Optional<Road> road,
+            List<String> targets,
+            Optional<SledSpec> sled,
+            Optional<RockSpec> rocks,
+            List<GroupDrop> groupDrops,
+            Optional<Darkness> darkness,
+            List<TowSpec> tows,
+            List<PartDrop> partDrops,
+            List<Hold> holds,
+            Optional<Collapse> collapse,
+            boolean water,
+            Optional<Naval> convoy) {
+        this(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                holds,
+                collapse,
+                water,
+                convoy,
+                Optional.empty(),
+                Optional.empty(),
+                1,
+                List.of());
+    }
+
+    /** M5 part F: this level with the weather {@code storm} (a test's own level). */
+    public LevelScript withWeather(Weather storm) {
+        return new LevelScript(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                holds,
+                collapse,
+                water,
+                convoy,
+                Optional.of(storm),
+                sondes,
+                dropFactor,
+                placedPickups,
+                defend);
+    }
+
+    /** M5 part F: this level with the weather sondes {@code buoys} and the secondary objective {@code objective} (a test's own level). */
+    public LevelScript withSondes(Sondes buoys, Secondary objective) {
+        return new LevelScript(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                objective,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                holds,
+                collapse,
+                water,
+                convoy,
+                weather,
+                Optional.of(buoys),
+                dropFactor,
+                placedPickups,
+                defend);
+    }
+
+    /** M5 part F: this level with the drop factor {@code factor} and the placed pickups {@code placed}. */
+    public LevelScript withPickups(double factor, List<PlacedPickup> placed) {
+        return new LevelScript(
+                number,
+                act,
+                launchSeconds,
+                sections,
+                waves,
+                groundObjects,
+                groundUnits,
+                secrets,
+                radio,
+                secondary,
+                cranes,
+                debris,
+                setPieces,
+                escort,
+                road,
+                targets,
+                sled,
+                rocks,
+                groupDrops,
+                darkness,
+                tows,
+                partDrops,
+                holds,
+                collapse,
+                water,
+                convoy,
+                weather,
+                sondes,
+                factor,
+                placed,
+                defend);
     }
 
     /** A level without M5 part E's naval convoy. */
@@ -247,7 +587,12 @@ public record LevelScript(
                 holds,
                 collapse,
                 overWater,
-                convoy);
+                convoy,
+                weather,
+                sondes,
+                dropFactor,
+                placedPickups,
+                defend);
     }
 
     /** M5 part E: this level with the naval convoy {@code naval} (a test's own level). */
@@ -278,7 +623,12 @@ public record LevelScript(
                 holds,
                 collapse,
                 water,
-                Optional.of(naval));
+                Optional.of(naval),
+                weather,
+                sondes,
+                dropFactor,
+                placedPickups,
+                defend);
     }
 
     /** A level without M5 part C's hold zones and collapse. */
@@ -700,6 +1050,33 @@ public record LevelScript(
                 List.of());
     }
 
+    /** M5 part G: whether a section is a timed halt (speed 0 without an arena, Level 13's defend phase). */
+    public boolean timedHalts() {
+        for (int i = 0; i < sections.size(); i++) {
+            if (sections.get(i).timedHalt()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * M5 part G: whether level time {@code t} s lies in a timed halt section (from the section before's
+     * end, inclusive, to its own end): what enters at the top edge with the scroll then would wait there
+     * for the whole halt.
+     */
+    public boolean timedHaltAt(double t) {
+        double start = 0;
+        for (int i = 0; i < sections.size(); i++) {
+            Section section = sections.get(i);
+            if (section.timedHalt() && t >= start && t < section.end()) {
+                return true;
+            }
+            start = section.end();
+        }
+        return false;
+    }
+
     /** The level's length in seconds. */
     public double seconds() {
         return sections.getLast().end();
@@ -1112,13 +1489,212 @@ public record LevelScript(
     }
 
     /**
+     * M5 part F, a level's {@code weather} at one difficulty (design/campaign Level 12, Weather): the
+     * wind and the lightning. The wind is a push sideways, px/s, added to the positions (not the
+     * velocities) of the ship, the escort, the units with a latch and the Whirl Seeds (their spiral's
+     * centre too): each gust blows {@code push} from its side for {@code gustSeconds} from its time,
+     * including {@code rampSeconds} up and down, telegraphed {@code telegraphSeconds} ahead; each
+     * drift blows steadily over its span with the same ramps; they add up. A lightning flash raises
+     * {@link SimEvents.Type#LIGHTNING} at its time and changes nothing else.
+     *
+     * @param gusts in time order
+     * @param lightning the flash times, s, in order
+     */
+    public record Weather(
+            List<Gust> gusts,
+            double gustSeconds,
+            double rampSeconds,
+            double push,
+            double telegraphSeconds,
+            List<Drift> drifts,
+            List<Double> lightning) {
+        public Weather {
+            gusts = List.copyOf(gusts);
+            drifts = List.copyOf(drifts);
+            lightning = List.copyOf(lightning);
+            if (!(gustSeconds > 2 * rampSeconds) || rampSeconds < 0 || push < 0 || telegraphSeconds < 0) {
+                throw new IllegalArgumentException(
+                        "a gust lasts longer than its ramps, its push and telegraph not negative");
+            }
+            for (int i = 1; i < gusts.size(); i++) {
+                if (gusts.get(i).t() < gusts.get(i - 1).t()) {
+                    throw new IllegalArgumentException("gusts in time order");
+                }
+            }
+            for (int i = 1; i < lightning.size(); i++) {
+                if (lightning.get(i) < lightning.get(i - 1)) {
+                    throw new IllegalArgumentException("lightning in time order");
+                }
+            }
+        }
+    }
+
+    /** M5 part F: a gust starting to push at {@code t}, blowing from the left edge (to the right) or the right. */
+    public record Gust(double t, boolean fromLeft) {}
+
+    /**
+     * M5 part F: a steady drift of {@code push} px/s from the left or the right from {@code start} to
+     * {@code end} (Level 12's storm wall; the section's span), with the weather's ramps inside it.
+     */
+    public record Drift(double start, double end, double push, boolean fromLeft) {
+        public Drift {
+            if (!(end > start) || push < 0) {
+                throw new IllegalArgumentException("a drift spans some time and pushes");
+            }
+        }
+    }
+
+    /**
+     * M5 part F, the weather sondes (design/campaign Level 12, user decision F7 = b): each enters at
+     * the top edge at its time and x and drifts straight down at {@code speed} px/s on the play plane,
+     * its x held; it is not shot, not pushed by the wind, not pulled by the magnet and not collected by
+     * the escort. The ship collects one when its centre comes within {@code radius} px of the sonde's.
+     */
+    public record Sondes(double speed, double radius, List<Sonde> at) {
+        public Sondes {
+            at = List.copyOf(at);
+            if (!(speed > 0) || !(radius > 0) || at.isEmpty()) {
+                throw new IllegalArgumentException("sondes drift down, are collected within a radius and are placed");
+            }
+            for (int i = 1; i < at.size(); i++) {
+                if (at.get(i).t() < at.get(i - 1).t()) {
+                    throw new IllegalArgumentException("sondes in time order");
+                }
+            }
+        }
+    }
+
+    /** M5 part F: a weather sonde entering at the top edge at {@code t} at {@code x}. */
+    public record Sonde(double t, double x) {}
+
+    /**
+     * M5 part F: a pickup placed in the level instead of dropped (Level 12's armour patch): it enters at
+     * the top edge at {@code t} at {@code x} and drifts and expires like any pickup. M5 part G (design/
+     * allies, CDF supply drone; user decision G6 = a): released at the point ({@code x}, {@code y}) in
+     * the field (y px from the bottom edge, y up; the drone's arc to it is presentation only), then an
+     * ordinary pickup; {@code y} = {@link PlayField#HEIGHT} is the top edge.
+     */
+    public record PlacedPickup(double t, double x, double y, PickupType pickup) {
+        public PlacedPickup {
+            if (!(y >= 0 && y <= PlayField.HEIGHT) || !(x >= 0 && x <= PlayField.WIDTH)) {
+                throw new IllegalArgumentException("a placed pickup lies on the play field: (" + x + ", " + y + ")");
+            }
+        }
+
+        /** Entering at the top edge (M5 part F). */
+        public PlacedPickup(double t, double x, PickupType pickup) {
+            this(t, x, PlayField.HEIGHT, pickup);
+        }
+
+        /** M5 part G: whether it is released at a point in the field rather than entering at the top edge. */
+        public boolean atPoint() {
+            return y < PlayField.HEIGHT;
+        }
+    }
+
+    /**
      * A stretch of the scroll ending at {@code end} seconds, scrolling at {@code speed} px/s. In a
      * boss {@code arena} the level clock halts at the section's end while the boss lives, and jumps
      * to that end when the boss dies earlier (design/enemies/bosses, the arena).
+     *
+     * <p>M5 part G (design/campaign Level 13, The halt): a section of speed 0 without an arena is a
+     * <em>timed halt</em>: the level clock runs on (one step per step, so the waves keep their times),
+     * the scroll eases from the section before's speed to 0 over that section's last {@code
+     * rampSeconds} and back up to the next section's speed over its first {@code rampSeconds}
+     * (smoothstep, on the level clock); the {@code ramp} is read only on a timed halt.
      */
-    public record Section(double end, double speed, boolean arena) {
+    public record Section(double end, double speed, boolean arena, double rampSeconds) {
+        /** M5 part G: a timed halt's eases when its data gives no {@code ramp}, s. */
+        public static final double TIMED_HALT_RAMP_SECONDS = 2;
+
+        public Section {
+            if (!(rampSeconds >= 0)) {
+                throw new IllegalArgumentException("a section's ramp is 0 s or more: " + rampSeconds);
+            }
+        }
+
+        /** A section with the timed halt's default ramp ({@link #TIMED_HALT_RAMP_SECONDS}, read only on one). */
+        public Section(double end, double speed, boolean arena) {
+            this(end, speed, arena, TIMED_HALT_RAMP_SECONDS);
+        }
+
         public Section(double end, double speed) {
             this(end, speed, false);
+        }
+
+        /** M5 part G: whether it is a timed halt (speed 0 without an arena). */
+        public boolean timedHalt() {
+            return speed == 0 && !arena;
+        }
+    }
+
+    /**
+     * M5 part G, the target-the-objective hook's modes (design/enemies, Target-the-objective hook;
+     * design/campaign Level 13, What hurts the relay; user decision G1 = a). Only an attack aimed at the
+     * objective hurts it; its bullets still hurt the ship they cross.
+     */
+    public enum HookMode {
+        /** Not hooked: every attack goes at the ship. */
+        NONE,
+        /** Level 04's: each aimed single shot goes at the ship or the nearest objective unit, whichever is closer. */
+        NEAREST,
+        /**
+         * The unit counts its attacks (a burst is one); every second one goes at the objective while it
+         * is closer than the ship, the others at the ship (the Skimmer).
+         */
+        ALTERNATE,
+        /**
+         * A walker's fan is centred on the objective, aimed at it, while the objective lies within its
+         * armour's arc of its facing; otherwise along its facing. Its spit stays on the ship (the Scuttler).
+         */
+        IN_ARC,
+        /**
+         * Every attack goes at the objective while it is on the screen: a diver dives at its centre (its
+         * crossing deals the ally's {@link AllySpec#dives()} once) and fires its fan at it, a mortar lobs at
+         * it (the direct hit on it, the ring only at the ship), an aimed gun or fan fires at it (the
+         * Stinger, the Polyp Mortar).
+         */
+        ALWAYS
+    }
+
+    /**
+     * M5 part G, the {@code defend} primary (design/campaign Level 13, Objective; design/allies, Nansen
+     * Relay; user decisions G1, G2 and G6 = a): one {@code ally} on the ground at ({@code x}, {@code y}),
+     * y px from the bottom edge (y up), where it stands when the level clock reaches {@code start}: it
+     * scrolls with the ground before and after (Level 13: it enters at the top edge in the approach and
+     * stops there because the ground halts). It must survive until {@code start} + {@code duration} (the
+     * synchronisation): its loss fails the mission (not with the debug option {@code --invulnerable});
+     * then it is defended, nothing aims at it any more and nothing hurts it. It pays no credits and has
+     * no regeneration.
+     *
+     * @param targetedBy per enemy slug its hook mode (the level's {@code targeted_by} at the difficulty);
+     *     enemies not listed are not hooked
+     */
+    public record Defend(
+            AllySpec ally,
+            double x,
+            double y,
+            double start,
+            double duration,
+            java.util.Map<String, HookMode> targetedBy) {
+        public Defend {
+            targetedBy = java.util.Map.copyOf(targetedBy);
+            if (!(start >= 0) || !(duration > 0)) {
+                throw new IllegalArgumentException("a defend primary starts in the level and lasts a while");
+            }
+            if (!(x >= 0 && x <= PlayField.WIDTH) || !(y >= 0 && y <= PlayField.HEIGHT)) {
+                throw new IllegalArgumentException("a defended ally stands on the play field: (" + x + ", " + y + ")");
+            }
+        }
+
+        /** When the synchronisation completes, s on the level clock. */
+        public double end() {
+            return start + duration;
+        }
+
+        /** The hook mode of the enemy {@code slug}: {@link HookMode#NONE} when not listed. */
+        public HookMode mode(String slug) {
+            return targetedBy.getOrDefault(slug, HookMode.NONE);
         }
     }
 
@@ -1145,6 +1721,9 @@ public record LevelScript(
      * @param afloat M5 part E (user decision E8 = a, Level 11's "Convoy afloat"): met at the level
      *     boss's death with every naval convoy unit that can be damaged afloat, failed at the first
      *     sinking; {@code label} is the tracker's
+     * @param integrity M5 part G (Level 13's "Integrity ≥ 50 %"): with more than 0, the defend
+     *     primary's ally must keep this share of its integrity: failed at once below it, met when its
+     *     synchronisation completes ({@link #integrity(double, int, String)}); 0 for none
      */
     public record Secondary(
             double killRatio,
@@ -1157,8 +1736,27 @@ public record LevelScript(
             List<Integer> parts,
             int beforePhase,
             String tag,
-            boolean afloat) {
+            boolean afloat,
+            boolean sondes,
+            double integrity) {
         public Secondary {
+            if (!(integrity >= 0 && integrity < 1)) {
+                throw new IllegalArgumentException("an integrity objective's share is from 0 to below 1: " + integrity);
+            }
+            if (integrity > 0
+                    && (killRatio > 0
+                            || afloat
+                            || sondes
+                            || !groups.isEmpty()
+                            || !escapes.isEmpty()
+                            || !killAll.isEmpty()
+                            || !parts.isEmpty())) {
+                throw new IllegalArgumentException("an integrity objective judges the defended ally, nothing else");
+            }
+            if (sondes
+                    && (afloat || !groups.isEmpty() || !escapes.isEmpty() || !killAll.isEmpty() || !parts.isEmpty())) {
+                throw new IllegalArgumentException("a collect: sondes objective counts the sondes, nothing else");
+            }
             groups = List.copyOf(groups);
             killAll = List.copyOf(killAll);
             parts = List.copyOf(parts);
@@ -1171,6 +1769,80 @@ public record LevelScript(
             if (afloat && (!groups.isEmpty() || !escapes.isEmpty() || !killAll.isEmpty() || !parts.isEmpty())) {
                 throw new IllegalArgumentException("an afloat objective counts the convoy, nothing else");
             }
+        }
+
+        /** Without M5 part G's integrity. */
+        public Secondary(
+                double killRatio,
+                int credits,
+                List<String> groups,
+                String escapes,
+                List<String> killAll,
+                String label,
+                String partsOf,
+                List<Integer> parts,
+                int beforePhase,
+                String tag,
+                boolean afloat,
+                boolean sondes) {
+            this(
+                    killRatio,
+                    credits,
+                    groups,
+                    escapes,
+                    killAll,
+                    label,
+                    partsOf,
+                    parts,
+                    beforePhase,
+                    tag,
+                    afloat,
+                    sondes,
+                    0);
+        }
+
+        /**
+         * M5 part G (design/campaign Level 13, user decisions G1 and G2 = a): {@code integrity: share}, the
+         * defend primary's ally at or above {@code share} of its integrity when its synchronisation
+         * completes, for {@code credits}, with the tracker's {@code label}: failed at once when it drops
+         * below (it does not regenerate), met at the completion.
+         */
+        public static Secondary integrity(double share, int credits, String label) {
+            if (!(share > 0)) {
+                throw new IllegalArgumentException("an integrity objective has a share above 0: " + share);
+            }
+            return new Secondary(
+                    0, credits, List.of(), "", List.of(), label, "", List.of(), -1, "", false, false, share);
+        }
+
+        /** M5 part G: whether it is an integrity objective. */
+        public boolean byIntegrity() {
+            return integrity > 0;
+        }
+
+        /** Without M5 part F's sondes. */
+        public Secondary(
+                double killRatio,
+                int credits,
+                List<String> groups,
+                String escapes,
+                List<String> killAll,
+                String label,
+                String partsOf,
+                List<Integer> parts,
+                int beforePhase,
+                String tag,
+                boolean afloat) {
+            this(killRatio, credits, groups, escapes, killAll, label, partsOf, parts, beforePhase, tag, afloat, false);
+        }
+
+        /**
+         * M5 part F (design/campaign Level 12): {@code collect: sondes}, every weather sonde collected, for
+         * {@code credits}, with the tracker's {@code label}: met at the last, failed when one leaves the
+         * bottom edge uncollected.
+         */
+        public static Secondary sondes(int credits, String label) {
+            return new Secondary(0, credits, List.of(), "", List.of(), label, "", List.of(), -1, "", false, true);
         }
 
         /** Without M5 part E's afloat. */
@@ -1240,7 +1912,7 @@ public record LevelScript(
 
         /** M5 part D: whether the level has no secondary objective ({@link #NONE}). */
         public boolean none() {
-            return killRatio == 0 && credits == 0 && !byGroups() && !byEscapes() && !afloat;
+            return killRatio == 0 && credits == 0 && !byGroups() && !byEscapes() && !afloat && !byIntegrity();
         }
 
         /** Whether the objective is about groups rather than the kill ratio. */
@@ -1255,7 +1927,7 @@ public record LevelScript(
          * destroyed of all, met when the last is destroyed, failed when one gets away (survives).
          */
         public boolean byEscapes() {
-            return !escapes.isEmpty() || !killAll.isEmpty() || byParts();
+            return !escapes.isEmpty() || !killAll.isEmpty() || byParts() || sondes;
         }
 
         /** Whether the objective is to shoot off a boss's parts before a phase ends (Level 07's "Gut the bays"). */
@@ -1281,12 +1953,120 @@ public record LevelScript(
      * An enemy fixed to the ground layer (a turret), entering at the top edge at {@code t} at
      * {@code x}, in the secondary objective's group {@code group} (-1 for none). M5 part E: a unit
      * whose stat block drifts (a raft) drifts along its nest's current, {@code currentRadians} from
-     * straight down, positive to the right.
+     * straight down, positive to the right. M5 part H: a unit grown by a {@link RootBurst} appears at
+     * its burst's point instead ({@link #fromBurst}): {@code t} is then when it appears (the burst's
+     * time plus its telegraph) and {@code x} its own x (the burst's x plus its place in the burst).
      */
-    public record GroundUnit(double t, double x, EnemySpec enemy, int group, double currentRadians) {
+    public record GroundUnit(
+            double t,
+            double x,
+            EnemySpec enemy,
+            int group,
+            double currentRadians,
+            Optional<SideEntry> side,
+            Optional<RootBurst> burst) {
+        public GroundUnit {
+            if (side.isPresent() && burst.isPresent()) {
+                throw new IllegalArgumentException("a ground unit enters at a side or grows in a root burst, not both");
+            }
+        }
+
+        /** Without M5 part H's root burst. */
+        public GroundUnit(
+                double t, double x, EnemySpec enemy, int group, double currentRadians, Optional<SideEntry> side) {
+            this(t, x, enemy, group, currentRadians, side, Optional.empty());
+        }
+
+        /** Entering at the top edge (without M5 part G's side entry). */
+        public GroundUnit(double t, double x, EnemySpec enemy, int group, double currentRadians) {
+            this(t, x, enemy, group, currentRadians, Optional.empty());
+        }
+
         /** A unit whose nest gives no current (straight down, with the scroll). */
         public GroundUnit(double t, double x, EnemySpec enemy, int group) {
             this(t, x, enemy, group, 0);
+        }
+
+        /**
+         * M5 part G: a unit entering at a side edge ({@code from: left|right}) at {@code y} px from the
+         * bottom edge (y up), drifting across at {@code drift} px/s (Level 13's mortar floe); {@code x} is
+         * not read.
+         */
+        public static GroundUnit fromSide(double t, EnemySpec enemy, int group, SideEntry side) {
+            return new GroundUnit(t, side.fromLeft() ? 0 : PlayField.WIDTH, enemy, group, 0, Optional.of(side));
+        }
+
+        /**
+         * M5 part H (design/campaign Level 14, Hazards; decision H2 = a): a growth of {@code burst}, {@code
+         * dx} px right of the burst's centre; it appears {@code burst.telegraphSeconds()} after the burst's
+         * time {@code burst.t()}.
+         */
+        public static GroundUnit fromBurst(RootBurst burst, double dx, EnemySpec enemy, int group) {
+            return new GroundUnit(
+                    burst.t() + burst.telegraphSeconds(),
+                    burst.x() + dx,
+                    enemy,
+                    group,
+                    0,
+                    Optional.empty(),
+                    Optional.of(burst));
+        }
+    }
+
+    /**
+     * M5 part H, a root burst (design/campaign Level 14, Hazards; design/enemies, Boss attacks and root
+     * bursts; decision H2 = a): at {@code t} the paving cracks and dust rises for {@code
+     * telegraphSeconds} at the ground point ({@code x}, {@code depth} px below the top edge at {@code
+     * t}), which scrolls with the ground from then on; then its growths ({@link GroundUnit#fromBurst})
+     * stand there and scroll with the ground. A growth takes no damage and fires nothing for {@code
+     * firstShotSeconds} after it appeared, then fires as soon as its gun can (its own first-shot delay is
+     * not read). A burst whose centre lies within {@link #SHIP_CLEARANCE} px of the ship's x at its
+     * telegraph moves sideways, away from the ship, to that distance (to the other side when the field
+     * has no room there): its growths with it. No hit and no collision. The units of one burst share its
+     * {@code index}, which its events carry.
+     *
+     * @param index the burst's number in its level, from 0
+     */
+    public record RootBurst(
+            int index, double t, double x, double depth, double telegraphSeconds, double firstShotSeconds) {
+        /** A burst lies at least this far below the top edge at its telegraph, px. */
+        public static final double MIN_DEPTH = 100;
+        /** ... and at most this far, px. */
+        public static final double MAX_DEPTH = 400;
+        /** Its centre lies at least this far from the ship's x at its telegraph, px. */
+        public static final double SHIP_CLEARANCE = 60;
+
+        public RootBurst {
+            if (index < 0
+                    || !(t >= 0)
+                    || !(x >= 0 && x <= PlayField.WIDTH)
+                    || !(depth >= MIN_DEPTH && depth <= MAX_DEPTH)
+                    || !(telegraphSeconds >= 0)
+                    || !(firstShotSeconds >= 0)) {
+                throw new IllegalArgumentException("a root burst lies on the field "
+                        + MIN_DEPTH
+                        + "–"
+                        + MAX_DEPTH
+                        + " px below the top edge with a telegraph and a growth time: burst "
+                        + index
+                        + " at depth "
+                        + depth);
+            }
+        }
+    }
+
+    /**
+     * M5 part G (design/campaign Level 13, Ground targets): a ground unit's entry at a side edge: it
+     * appears just outside the left ({@code fromLeft}) or the right edge at {@code y} px from the bottom
+     * edge (y up), drifts across toward the other edge at {@code drift} px/s on top of the scroll, and is
+     * gone once it has drifted off the other edge or scrolled off the bottom one. Its edge is warned
+     * {@link WaveSchedule#EDGE_WARNING_SECONDS} ahead, as a side wave's.
+     */
+    public record SideEntry(boolean fromLeft, double y, double drift) {
+        public SideEntry {
+            if (!(drift > 0) || !(y >= 0 && y <= PlayField.HEIGHT)) {
+                throw new IllegalArgumentException("a side entry drifts across the play field: y " + y + ", " + drift);
+            }
         }
     }
 
@@ -1383,9 +2163,97 @@ public record LevelScript(
             boolean submerged,
             int group,
             int groupSize,
-            Optional<PickupType> groupDrop) {
+            Optional<PickupType> groupDrop,
+            boolean lowAir,
+            double driftX,
+            double driftY) {
         /** Level 01's cargo container, the look of a destructible that names none. */
         public static final String CARGO_CONTAINER = "cargo-container";
+
+        /** Without M5 part F's drifting trigger on {@code low-air}. */
+        public GroundObjectSpec(
+                double t,
+                double x,
+                Hitbox size,
+                double hp,
+                int bounty,
+                Optional<PickupType> drop,
+                int hits,
+                int crateCredits,
+                String secret,
+                boolean hardened,
+                int secretIndex,
+                int secretTriggers,
+                Optional<PickupType> bonusDrop,
+                String look,
+                boolean dark,
+                Optional<LevelResult.DataCore> core,
+                boolean submerged,
+                int group,
+                int groupSize,
+                Optional<PickupType> groupDrop) {
+            this(
+                    t,
+                    x,
+                    size,
+                    hp,
+                    bounty,
+                    drop,
+                    hits,
+                    crateCredits,
+                    secret,
+                    hardened,
+                    secretIndex,
+                    secretTriggers,
+                    bonusDrop,
+                    look,
+                    dark,
+                    core,
+                    submerged,
+                    group,
+                    groupSize,
+                    groupDrop,
+                    false,
+                    0,
+                    0);
+        }
+
+        /**
+         * M5 part F (design/campaign Level 12's canister, user decision F2 = a): this trigger on
+         * {@code low-air}, drifting at ({@code vx}, {@code vy}) px/s in screen space (y up) from where it
+         * enters at the top edge instead of scrolling with the ground; never pushed by the wind, always
+         * hittable by what reaches {@code low-air} (not by bombs or shells bursting on the ground, nor by
+         * torpedoes).
+         */
+        public GroundObjectSpec drifting(double vx, double vy) {
+            if (!trigger() || submerged || !(vy < 0)) {
+                throw new IllegalArgumentException("only a trigger above the water drifts, down the screen");
+            }
+            return new GroundObjectSpec(
+                    t,
+                    x,
+                    size,
+                    hp,
+                    bounty,
+                    drop,
+                    hits,
+                    crateCredits,
+                    secret,
+                    hardened,
+                    secretIndex,
+                    secretTriggers,
+                    bonusDrop,
+                    look,
+                    dark,
+                    core,
+                    submerged,
+                    group,
+                    groupSize,
+                    groupDrop,
+                    true,
+                    vx,
+                    vy);
+        }
 
         /** Without M5 part E's destructible group. */
         public GroundObjectSpec(
@@ -1972,10 +2840,30 @@ public record LevelScript(
          * The cue's subject names the parts it waits for, separated by {@link #PART_SEPARATOR}; the
          * event's subject is the part shot off.
          */
-        BOSS_PART_DESTROYED;
+        BOSS_PART_DESTROYED,
+        /**
+         * M5 part F: the attempt's first latch of a Lamprey ({@link SimEvents.Type#LAMPREY_LATCHED}); once.
+         * No subject.
+         */
+        FIRST_LATCH,
+        /**
+         * M5 part G: the defend primary's ally dropped below a share of its integrity for the first time
+         * in the attempt (Level 13's relay below 50 % and 25 %); the subject is the share as a decimal
+         * ("0.5"), and each share's cues start once.
+         */
+        ALLY_BELOW;
 
         /** Between the part names of a {@link #BOSS_PART_DESTROYED} cue's subject. */
         public static final String PART_SEPARATOR = "|";
+
+        /** M5 part G: the share an {@link #ALLY_BELOW} cue's subject names; NaN when it names none. */
+        public static double share(String subject) {
+            try {
+                return Double.parseDouble(subject);
+            } catch (NumberFormatException e) {
+                return Double.NaN;
+            }
+        }
 
         /** Whether its cues start again each time the event happens, not once per attempt. */
         public boolean repeats() {

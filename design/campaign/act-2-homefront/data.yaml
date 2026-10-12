@@ -1,5 +1,5 @@
 # Act 2 – Homefront: its levels and the act intro (title card and act briefing), rendered into
-# README.md (Act intro and outro). The act-end outro after Level 14 follows with M5 part H.
+# README.md (Act intro and outro), and its act-end outro (after Level 14; M5 part H, H7 = a, pending the user's review).
 # Schema: ../../tech/architecture/README.md#data-file-schemas
 levels: [8, 14]
 
@@ -13,3 +13,11 @@ briefing:  # Commander Okafor, full screen; one page per paragraph, each with it
   - {speaker: Okafor, image: act-2-front-lines, line: "The landers came down on the cities. The army holds the streets where it can; the sky is ours to hold. Aegis Wing goes where the line is breaking: the cities first, then the sea lanes, then the Arctic relays that tie the planetary defence grid together."}
   - {speaker: Okafor, image: act-2-over-home, line: "Until now you fought over shipyards and craters, in vacuum. From today you fly over home: over streets you know, and over people who will be watching the sky for you. Fly accordingly."}
   - {speaker: Okafor, expression: fierce, image: act-2-scramble, line: "We could not stop them landing. We can stop them staying. Mission briefing follows. Aegis Actual out."}
+
+outro:  # after the Level 14 debrief with the act summary (M5 part H, H6 = a, H7 = a: four pages, the approved text unchanged, one paragraph each, each with its image)
+  music: act-complete  # track 24 under the first page, played once
+  pages:
+    - {speaker: Okafor, expression: grim, image: act-2-outro-stump, line: "The Siege Spire is dead. Within the hour every Vrell force on Earth lost its coordination. Some are digging in, most are scattering, and the army is clearing them city by city."}
+    - {speaker: Okafor, expression: grim, image: act-2-outro-names, line: "Nova Lagos is counting its losses. So is Geneva. So are we. Remember the names, then get some sleep."}
+    - {speaker: Okafor, expression: grim, image: act-2-outro-mars, line: "An hour ago Ares Landing sent a priority signal. Mars is under siege, and the colonies have been holding alone for three weeks."}
+    - {speaker: Okafor, expression: fierce, image: act-2-outro-aegis, line: "We take the fight to them now. Aegis Wing ships out for Mars in seventy-two hours. Aegis Actual out."}

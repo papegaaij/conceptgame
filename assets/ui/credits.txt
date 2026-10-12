@@ -63,9 +63,13 @@ item|“Sortuminen, talo sortuu / Big crash, a house tumbling down, collapse, mi
 detail|CC-BY 4.0 · freesound.org/people/YleArkisto/sounds/342891
 item|“Swirling Velvet Cloak 2.wav” by F.M.Audio
 detail|CC-BY 4.0 · freesound.org/people/F.M.Audio/sounds/556759
+item|“inhuman screech.wav” by Wolfsinger
+detail|CC-BY 4.0 · freesound.org/people/Wolfsinger/sounds/25713
+item|“Tearing Flesh” by dereklieu
+detail|CC-BY 3.0 · freesound.org/people/dereklieu/sounds/241822
 gap|
 role|WITH THANKS TO (CC0)
-text|adviseme333, AudioPapkin, aust_paul, BaggoNotes, bevibeldesign, Bikkit99, Bird_man, Breviceps, cobratronik, coolguy244e, craigsmith, cubix, Cyberios, Daleonfire, darcyadam, derplayer, dinodilopho, Division4884, Elektrocell, FlatHill, frankelmedico, GameAudio, Glitchedtones, gprosser, HenKonen, humanoide9000, iwanPlays, Jacco18, jamesabels, Jarusca, Jerimee, JoelAudio, JoMungus, JovianSounds, jvmyka@gmail.com, kalhan, Kinoton, kyles, loganzsound, lorenzgillner, LucasDuff, magnuswaker, mattpavone, michael_grinnell, mitchelk, Mozfoo, NHMWretched, nicktermer, noirenex, Noxdl, peepholecircus, pgi, plasterbrain, profoundsounds, qubodup, Sadiquecat, SamsterBirdies, SecureSubset, Sheyvan, sidohzen, SuperPhat, ThefitzyG, TRP, uagadugu, unfa, wilhellboy, xkeril
+text|adviseme333, AudioPapkin, aust_paul, BaggoNotes, bevibeldesign, Bikkit99, Bird_man, Breviceps, cobratronik, coolguy244e, craigsmith, cubix, Cyberios, Daleonfire, darcyadam, derplayer, dinodilopho, Division4884, Elektrocell, FlatHill, frankelmedico, GameAudio, Glitchedtones, gprosser, HenKonen, humanoide9000, InMotionAudio, iwanPlays, Jacco18, jamesabels, Jarusca, Jerimee, JoelAudio, JoMungus, JovianSounds, jvmyka@gmail.com, kalhan, Kinoton, kyles, loganzsound, lorenzgillner, LucasDuff, magnuswaker, mattpavone, michael_grinnell, mitchelk, Mozfoo, NHMWretched, nicktermer, noahpardo, noirenex, Noxdl, peepholecircus, pgi, plasterbrain, profoundsounds, qubodup, RutgerMuller, Sadiquecat, SamsterBirdies, SecureSubset, Sheyvan, sidohzen, SuperPhat, ThefitzyG, TRP, uagadugu, unfa, wilhellboy, xkeril
 gap|
 title|VOICES
 text|Spoken by the Chatterbox text-to-speech engine (Resemble AI, MIT licence) in voices cloned from LibriVox recordings

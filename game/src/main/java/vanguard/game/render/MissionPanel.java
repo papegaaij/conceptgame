@@ -33,7 +33,8 @@ import vanguard.sim.Sortie;
  * with a convoy (an escort primary objective) has a two-line tracker: the convoy's pips over the
  * secondary objective, in a well that takes a line from the control prompts'. M5 part E: a naval
  * convoy outside the objectives (Level 11) has a one-line tracker for its afloat secondary,
- * {@code CONVOY} with a pip per cargo ship ({@link #drawConvoyTracker}).
+ * {@code CONVOY} with a pip per cargo ship ({@link #drawConvoyTracker}). M5 part G: a defend primary
+ * (Level 13) has the two-line {@code RELAY} tracker ({@link #drawRelayTracker}).
  */
 final class MissionPanel {
     private static final int X = HudKit.INSET;
@@ -104,6 +105,11 @@ final class MissionPanel {
     private final int launchBalance;
     private int frame;
     private int metFrame = -1;
+    /** M5 part F: the frame of the last sonde collected, for its green flash; -1 for none yet. */
+    private int collectFrame = -1;
+    /** M5 part F: the sondes collected at the last frame. */
+    private int collectedSeen;
+
     private int failedFrame = -1;
     /** An escapes objective's label: its enemy's last word in plural ("BOMBERS"). */
     private String escapesLabel;
@@ -156,6 +162,7 @@ final class MissionPanel {
         }
         boolean targets = !sortie.script().targets().isEmpty();
         boolean naval = sortie.navalConvoy();
+        boolean defend = sortie.defending();
         boolean two = (sortie.allyCount() > 0 && !naval) || targets;
         kit.leftPanel(batch);
         int top = MissionLayout.MISSION.yTop();
@@ -170,6 +177,8 @@ final class MissionPanel {
         drawPrompts(batch, prompts, two);
         if (targets) {
             drawTargetsTracker(batch, sortie);
+        } else if (defend) {
+            drawRelayTracker(batch, sortie);
         } else if (naval) {
             drawConvoyTracker(batch, sortie);
         } else if (sortie.airEscort()) {
@@ -426,6 +435,164 @@ final class MissionPanel {
         }
     }
 
+    /** M5 part G: the defend tracker's label (design/ui/hud, Level 13). */
+    static final String RELAY = "RELAY";
+    /** M5 part G: the integrity bar's height and the gap between it and the label and the countdown. */
+    static final int RELAY_BAR_HEIGHT = 8;
+
+    static final int RELAY_GAP = 6;
+    /** M5 part G: the widest countdown, its width reserved at the line's right ({@code 0:00} in the body font). */
+    static final String COUNTDOWN_WIDEST = "0:00";
+    /** M5 part G: the frame the relay was first drawn destroyed in; -1 while it stands. */
+    private int relayLostFrame = -1;
+    /** M5 part G: the integrity secondary's met and failed frames, for its line's flash. */
+    private int integrityMetFrame = -1;
+
+    private int integrityFailedFrame = -1;
+
+    /**
+     * M5 part G, the defend tracker (design/ui/hud, Level 13): line one {@code RELAY}, the relay's
+     * integrity bar ({@link #relayBar}: green, white for a moment on a hit, amber below half, a tick at
+     * the secondary's share; at 0 a red flash, then dark) and the synchronisation's countdown ({@code
+     * 2:58} … {@code 0:00}) on the right from its start; the line flashing red as the relay falls. Line two
+     * the integrity secondary: its label and {@code ≥ 50 %} (the font has no ≥: a > with a bar under it),
+     * {@code DONE} in green once met (the sync's end), {@code FAILED} in red at once below the share.
+     */
+    private void drawRelayTracker(SpriteBatch batch, Sortie sortie) {
+        int wellTop = well(batch, MissionLayout.TWO_OBJECTIVES.yTop(), MissionLayout.TWO_LINE_WELL);
+        Ally ally = sortie.ally(0);
+        boolean lost = ally.lost();
+        if (lost && relayLostFrame < 0) {
+            relayLostFrame = frame;
+        } else if (!lost) {
+            relayLostFrame = -1;
+        }
+        int since = lost ? frame - relayLostFrame : -1;
+        boolean failFlash = lost && since < FLASH_FRAMES && since / 8 % 2 == 0;
+        if (failFlash) {
+            kit.fill(batch, LOST, X, wellTop - LINE, WIDTH, LINE);
+        }
+        Color colour = failFlash ? HudKit.LCD : lost ? LOST : HudKit.LABEL;
+        int y = wellTop - TEXT_DROP;
+        kit.text(batch, kit.body, RELAY, colour, X + PAD, y, TEXT_WIDTH);
+        measure.setText(kit.body, RELAY);
+        int barLeft = X + PAD + (int) Math.ceil(measure.width) + RELAY_GAP;
+        measure.setText(kit.body, COUNTDOWN_WIDEST);
+        int countdownWidth = (int) Math.ceil(measure.width);
+        int barWidth = X + PAD + TEXT_WIDTH - countdownWidth - RELAY_GAP - barLeft;
+        int barBottom = y - Math.round(kit.body.getCapHeight() / 2) - RELAY_BAR_HEIGHT / 2;
+        double share = lost ? 0 : ally.hpShare();
+        double tick = sortie.script().secondary().integrity();
+        Color bar = relayBar(lost, ally.ticksSinceHit() < ALLY_HIT_TICKS, share, tick, since);
+        kit.bar(
+                batch,
+                bar,
+                ALLY_DARK,
+                barLeft,
+                barBottom,
+                barWidth,
+                RELAY_BAR_HEIGHT,
+                lost ? (failFlash ? 1 : 0) : share);
+        if (tick > 0) {
+            int tickX = barLeft + (int) Math.round(barWidth * tick);
+            batch.setColor(HudKit.LABEL);
+            batch.draw(sprites.pixel, tickX, barBottom - 2, 1, RELAY_BAR_HEIGHT + 4);
+            batch.setColor(Color.WHITE);
+        }
+        if (sortie.defendStarted() || sortie.defendComplete()) {
+            kit.textRight(batch, kit.body, countdown(sortie.defendSecondsLeft()), colour, X + PAD, y, TEXT_WIDTH);
+        }
+        if (tick > 0) {
+            drawIntegrity(batch, sortie, tick, wellTop - LINE, MissionLayout.TWO_LINE_WELL - LINE);
+        }
+    }
+
+    /** M5 part G: the integrity secondary's line, as the other secondaries' with its own status. */
+    private void drawIntegrity(SpriteBatch batch, Sortie sortie, double share, int wellTop, int height) {
+        boolean met = sortie.secondaryMet();
+        boolean failed = sortie.integrityFailed();
+        if (met && integrityMetFrame < 0) {
+            integrityMetFrame = frame;
+        } else if (!met) {
+            integrityMetFrame = -1;
+        }
+        if (failed && integrityFailedFrame < 0) {
+            integrityFailedFrame = frame;
+        } else if (!failed) {
+            integrityFailedFrame = -1;
+        }
+        boolean flash = integrityMetFrame >= 0
+                && frame - integrityMetFrame < FLASH_FRAMES
+                && (frame - integrityMetFrame) / 8 % 2 == 0;
+        boolean failFlash = integrityFailedFrame >= 0
+                && frame - integrityFailedFrame < FLASH_FRAMES
+                && (frame - integrityFailedFrame) / 8 % 2 == 0;
+        if (flash || failFlash) {
+            kit.fill(batch, flash ? SUCCESS : LOST, X, wellTop - height, WIDTH, height);
+        }
+        Color colour = flash || failFlash ? HudKit.LCD : met ? SUCCESS : failed ? LOST : HudKit.LABEL;
+        int y = wellTop - TEXT_DROP;
+        String label = sortie.script().secondary().label();
+        kit.text(
+                batch,
+                kit.body,
+                label.isEmpty() ? INTEGRITY : label.toUpperCase(Locale.ROOT),
+                colour,
+                X + PAD,
+                y,
+                TEXT_WIDTH);
+        String status = integrityStatus(met, failed, share);
+        kit.textRight(batch, kit.body, status, colour, X + PAD, y, TEXT_WIDTH);
+        if (status.startsWith(AT_LEAST)) {
+            // The ≥: the > of the status with a bar under it.
+            measure.setText(kit.body, status);
+            float left = X + PAD + TEXT_WIDTH - measure.width;
+            measure.setText(kit.body, AT_LEAST);
+            batch.setColor(colour);
+            batch.draw(
+                    sprites.pixel,
+                    Math.round(left),
+                    y - Math.round(kit.body.getCapHeight()) - 2,
+                    Math.round(measure.width) - 1,
+                    1);
+            batch.setColor(Color.WHITE);
+        }
+    }
+
+    /** M5 part G: the integrity line's label without one of its own. */
+    static final String INTEGRITY = "INTEGRITY";
+    /** The ≥ is drawn as this with a bar under it. */
+    static final String AT_LEAST = ">";
+
+    /** M5 part G: the integrity line's status: {@code DONE}, {@code FAILED}, or the share to keep ({@code > 50 %}, drawn as ≥). */
+    static String integrityStatus(boolean met, boolean failed, double share) {
+        if (met) {
+            return "DONE";
+        }
+        if (failed) {
+            return "FAILED";
+        }
+        return AT_LEAST + " " + Math.round(share * 100) + " %";
+    }
+
+    /**
+     * M5 part G: the integrity bar's colour: lost, a red flash then dark ({@code sinceLost} frames after);
+     * white on a hit; amber below {@code amberBelow} (the secondary's share, half without one); else green.
+     */
+    static Color relayBar(boolean lost, boolean hit, double share, double amberBelow, int sinceLost) {
+        if (lost) {
+            return sinceLost < FLASH_FRAMES && sinceLost / 8 % 2 == 0 ? LOST : ALLY_DARK;
+        }
+        double amber = amberBelow > 0 ? amberBelow : 0.5;
+        return hit ? Color.WHITE : share < amber ? HudKit.AMBER : SUCCESS;
+    }
+
+    /** M5 part G: the synchronisation's countdown, {@code m:ss}, the seconds left rounded up. */
+    static String countdown(double secondsLeft) {
+        int left = (int) Math.ceil(Math.max(0, secondsLeft) - 1e-9);
+        return String.format(Locale.ROOT, "%d:%02d", left / 60, left % 60);
+    }
+
     /** M5 part E: the naval convoy tracker's label without one of its own. */
     static final String CONVOY = "CONVOY";
 
@@ -632,6 +799,17 @@ final class MissionPanel {
         boolean flash = metFrame >= 0 && frame - metFrame < FLASH_FRAMES && (frame - metFrame) / 8 % 2 == 0;
         boolean failFlash =
                 failedFrame >= 0 && frame - failedFrame < FLASH_FRAMES && (frame - failedFrame) / 8 % 2 == 0;
+        if (sortie.script().secondary().sondes()) {
+            // M5 part F: each sonde collected flashes the tracker green once (Level 12's SONDES n / 3).
+            int collected = sortie.escapesDestroyed();
+            if (collected > collectedSeen) {
+                collectFrame = frame;
+            } else if (collected < collectedSeen) {
+                collectFrame = -1;
+            }
+            collectedSeen = collected;
+            flash |= collectFrame >= 0 && collectFlash(frame - collectFrame);
+        }
         if (flash || failFlash) {
             kit.fill(batch, flash ? SUCCESS : LOST, X, wellTop - height, WIDTH, height);
         }
@@ -658,11 +836,37 @@ final class MissionPanel {
         kit.textRight(batch, kit.body, count, colour, X + PAD, y, TEXT_WIDTH);
     }
 
+    /** M5 part F: a sonde's collection flashes the tracker green for this many frames, switching every 8. */
+    static final int COLLECT_FLASH_FRAMES = 32;
+
+    /** M5 part F: whether the tracker shows its green flash {@code since} frames after a sonde was collected. */
+    static boolean collectFlash(int since) {
+        return since >= 0 && since < COLLECT_FLASH_FRAMES && since / 8 % 2 == 0;
+    }
+
     /**
      * A group objective (Level 02's docks): its name and a pip per group, dim while open, green
      * when cleared, red when lost.
      */
     private void drawGroups(SpriteBatch batch, Sortie sortie, Color colour, int y) {
+        String label = sortie.script().secondary().label();
+        if (!label.isEmpty() && sortie.groupUnits(0) > 0) {
+            // M5 part H: a group of units with its own label counts them (Level 14's ROOTS n / 8).
+            kit.text(batch, kit.body, label.toUpperCase(Locale.ROOT), colour, X + PAD, y, TEXT_WIDTH);
+            kit.textRight(
+                    batch,
+                    kit.body,
+                    unitsCount(
+                            sortie.groupUnitsDestroyed(0),
+                            sortie.groupUnits(0),
+                            sortie.secondaryMet(),
+                            sortie.secondaryFailed()),
+                    colour,
+                    X + PAD,
+                    y,
+                    TEXT_WIDTH);
+            return;
+        }
         kit.text(batch, kit.body, groupsLabel, colour, X + PAD, y, TEXT_WIDTH);
         int count = sortie.groupCount();
         if (groupStates.length != count) {
@@ -687,6 +891,14 @@ final class MissionPanel {
                     };
             kit.fill(batch, blink ? HudKit.LCD : pip, pipX + g * GROUP_PIP_STEP, y - 14, GROUP_PIP_STEP - 4, 10);
         }
+    }
+
+    /**
+     * M5 part H: a group of units' count (design/ui/hud, Level 14): {@code DONE} once met, {@code FAILED}
+     * once failed, else the units destroyed of all, {@code 3 / 8}.
+     */
+    static String unitsCount(int destroyed, int of, boolean met, boolean failed) {
+        return met ? "DONE" : failed ? "FAILED" : destroyed + " / " + of;
     }
 
     /** The advance of a text's glyphs (as the layout test measures it: each glyph's full step, the last one's too). */

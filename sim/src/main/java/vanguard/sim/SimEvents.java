@@ -156,7 +156,7 @@ public final class SimEvents {
         SWEEP_TELEGRAPH,
         /** A laser sweep's beam started (at the unit); value: its kind. */
         SWEEP_FIRED,
-        /** A laser sweep's beam hit the ship (at the ship). */
+        /** A laser sweep's beam hit the ship (at the ship); M5 part H: a boss sweep's too. */
         SWEEP_HIT,
         /** A Smart Bomb went off (at the ship). */
         SMART_BOMB,
@@ -267,7 +267,88 @@ public final class SimEvents {
         /** M5 part E: an arena boss's part starts to surface (at the part); value: the part's index. */
         SURFACE,
         /** M5 part E: an arena boss's part starts to dive (at the part); value: the part's index. */
-        DIVE;
+        DIVE,
+        /**
+         * M5 part F: a lightning flash of the level's weather (at the top edge's middle; design/campaign
+         * Level 12): the sky flash, the banks lit, the thunder after it; value: the flash's index in the
+         * level's {@code lightning} list. Nothing else in play changes.
+         */
+        LIGHTNING,
+        /**
+         * M5 part F: a Lamprey latched onto the ship (at the Lamprey, on the hull; design/enemies/air/
+         * lamprey): its latch sound, the first one's prompt and radio line; value: the spot ({@link
+         * EnemySpec.Latch#LEFT}, {@link EnemySpec.Latch#RIGHT}, {@link EnemySpec.Latch#TAIL}).
+         */
+        LAMPREY_LATCHED,
+        /**
+         * M5 part F: the shake-off threw every latched Lamprey off (at the ship): the shake sound; value:
+         * how many were thrown off.
+         */
+        LAMPREY_SHAKEN,
+        /**
+         * M5 part F: the ship collected a weather sonde (at the sonde; design/campaign Level 12): the
+         * chime and the tracker; value: the sondes collected in this attempt, this one included.
+         */
+        SONDE_COLLECTED,
+        /**
+         * M5 part G: the defend primary's ally dropped below one of the shares its {@code ally-below} radio
+         * cues name, for the first time in the attempt (at the ally; design/campaign Level 13: the
+         * integrity alarm at 50 % and 25 %); value: the share in whole percent.
+         */
+        ALLY_BELOW,
+        /**
+         * M5 part G: the defend primary's synchronisation completed with its ally standing (at the ally;
+         * Level 13's "Grid sync complete"); value: the ally's integrity left in whole percent.
+         */
+        DEFEND_COMPLETE,
+        /**
+         * M5 part G: a lane walker was destroyed (at the unit; design/enemies/naval/skimmer: the hull flips
+         * and sinks); value: as {@link #WALKER_DOWN}'s, its kind and its facing ({@link
+         * SimEvents#walkerKind(int)}, {@link SimEvents#walkerFacing(int)}).
+         */
+        LANE_WALKER_DOWN,
+        /**
+         * M5 part G: a placed pickup came into the field (at it: the top edge, or the point a supply
+         * drone releases it; design/allies, CDF supply drone); value: its {@link PickupType} ordinal.
+         */
+        PICKUP_PLACED,
+        /**
+         * M5 part H: a root burst's telegraph starts (at its ground point then, after the move away from
+         * the ship; design/campaign Level 14, Hazards): the paving cracks and dust rises; value: the
+         * burst's {@link LevelScript.RootBurst#index()}. The point scrolls with the ground ({@link
+         * Sortie#burstCount()} and its accessors).
+         */
+        ROOT_BURST_TELEGRAPH,
+        /**
+         * M5 part H: a root burst's growths appeared (at the burst's point now): the root breaks out and
+         * they start to grow in ({@link Enemy#growing()}); value: the burst's index.
+         */
+        ROOT_BURST_GREW,
+        /**
+         * M5 part H: an anchored boss entered a phase whose windows launch ambushes (at each window
+         * part: the Siege Spire's claw crown opens, its maw exposed); value: the part's index.
+         */
+        SPIRE_MAW_OPENED,
+        /**
+         * M5 part H: an anchored boss lifts off its anchor (at the anchor: the tear-free shockwave, the
+         * stump left behind; design/enemies/bosses/siege-spire, decision H4 = a); value: the phase.
+         */
+        SPIRE_LIFT,
+        /** M5 part H: the lift is over, the boss holds at its new station and engages (at the boss); value: the phase. */
+        SPIRE_LIFTED,
+        /**
+         * M5 part H: a boss sweep's telegraph starts (at the beam's origin; the line along its first edge);
+         * value: the attack's index in {@link BossSpec#attacks()}.
+         */
+        SPIRE_SWEEP_TELEGRAPH,
+        /** M5 part H: a boss sweep's beam starts to sweep (at its origin); value: the attack's index. */
+        SPIRE_SWEEP,
+        /**
+         * A destroyed ground unit was drifting on top of the scroll (Level 13's mortar floe), right after
+         * its {@link #ENEMY_DESTROYED} (at it): its remains drift on with what carried it; value:
+         * {@link #driftValue(double, double)}.
+         */
+        WRECK_DRIFT;
 
         private static final Type[] VALUES = values();
     }
@@ -306,6 +387,27 @@ public final class SimEvents {
     }
 
     private static final int CHAIN_POP_KIND = 1_000;
+
+    /** A {@link Type#WRECK_DRIFT} value: the drift across and up, px/s (to 0.1 px/s, within ±499.9). */
+    static int driftValue(double driftX, double driftY) {
+        return driftTenths(driftX) * DRIFT_SPAN + driftTenths(driftY);
+    }
+
+    private static int driftTenths(double drift) {
+        return (int) Math.max(0, Math.min(DRIFT_SPAN - 1, Math.round(drift * 10) + DRIFT_SPAN / 2));
+    }
+
+    /** The drift across of a {@link Type#WRECK_DRIFT} value, px/s (positive to the right). */
+    public static double driftX(int value) {
+        return (value / DRIFT_SPAN - DRIFT_SPAN / 2) / 10.0;
+    }
+
+    /** The drift up of a {@link Type#WRECK_DRIFT} value, px/s. */
+    public static double driftY(int value) {
+        return (value % DRIFT_SPAN - DRIFT_SPAN / 2) / 10.0;
+    }
+
+    private static final int DRIFT_SPAN = 10_000;
 
     private final int[] types;
     private final double[] xs;

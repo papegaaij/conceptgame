@@ -1,6 +1,7 @@
 package vanguard.game.level;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -117,6 +118,105 @@ class RadioQueueTest {
 
         assertEquals(RadioQueue.Change.OPENED, radio.update(0.01f));
         assertEquals("Okafor", radio.current().orElseThrow().speaker(), "the stale event line is gone");
+    }
+
+    @Test
+    void aClosingLineQueuedOnAFreeRadioGoesAheadOfTheNextTimedLine() {
+        // M5 part H, step H9: Level 14's root-grid line 2.5 s before the Choir's timed line.
+        radio.add("Okafor", "Okafor", "neutral", "Root grid destroyed.", false, RadioQueue.Priority.CLOSING);
+        assertEquals(RadioQueue.Change.OPENED, radio.update(0.01f, 2.5f), "it opens at once");
+        radio.add("The Choir", "neutral", "[the Choir sings]", true);
+        run(2);
+        assertEquals("Okafor", radio.current().orElseThrow().speaker(), "the timed line waits for it");
+        assertEquals(RadioQueue.Change.CLOSED, run(4), "Okafor's line closes about 5.7 s after it opened");
+        assertEquals(RadioQueue.Change.OPENED, run(1));
+        assertEquals("The Choir", radio.current().orElseThrow().speaker());
+
+        // Queued while a line plays, it waits for a gap as before.
+        radio.clear();
+        radio.add("Varga", "neutral", "It's singing.", false);
+        radio.update(0.01f, 2.5f);
+        radio.add("Okafor", "Okafor", "neutral", "Root grid destroyed.", false, RadioQueue.Priority.CLOSING);
+        radio.add("The Choir", "neutral", "[the Choir sings]", true);
+        RadioQueue.Change change = RadioQueue.Change.NONE;
+        for (int i = 0; i < 700 && change != RadioQueue.Change.OPENED; i++) {
+            change = radio.update(0.01f, 1);
+        }
+        assertEquals("The Choir", radio.current().orElseThrow().speaker(), "no gap: the timed line goes first");
+    }
+
+    @Test
+    void aBossPhasesSecondLineOutlastsTheFirstButNotTheLongerStaleTime() {
+        // M5 part H, step H7b: Okafor's and Rook's lines as the Siege Spire tears loose queue together.
+        radio.add(
+                "Okafor",
+                "Okafor",
+                "fierce",
+                "It's tearing loose! Stay on it, Lancer!",
+                false,
+                RadioQueue.Priority.PHASE);
+        radio.add(
+                "Rook",
+                "Rook",
+                "neutral",
+                "Roots and all. Somebody call a gardener.",
+                false,
+                RadioQueue.Priority.PHASE);
+        assertEquals(RadioQueue.Change.OPENED, radio.update(0.01f));
+        // Okafor's line holds the radio about 6.4 s, the gap 0.4 s: Rook's waits longer than an event line may.
+        assertEquals(RadioQueue.Change.OPENED, run(RadioQueue.STALE_SECONDS + 2));
+        assertEquals("Rook", radio.current().orElseThrow().speaker(), "the reply waited out the first line");
+        assertTrue(radio.sinceOpened() < 2, "it opened after an event line would have gone stale");
+
+        radio.clear();
+        radio.add("Rook", "Rook", "neutral", "Roots and all.", false, RadioQueue.Priority.PHASE);
+        for (int i = 0; i < (RadioQueue.PHASE_STALE_SECONDS + 1) * 100; i++) {
+            radio.update(0.01f, 1);
+        }
+        assertTrue(radio.idle(), "a phase line that never found a gap is dropped at last");
+    }
+
+    @Test
+    void aDroppedLineLeavesTheQueueOrTheRadioIfItHasJustOpened() {
+        RadioQueue.Message secondary = radio.add(
+                "Okafor",
+                "Okafor",
+                "neutral",
+                "Root grid in the old town destroyed.",
+                false,
+                RadioQueue.Priority.CLOSING,
+                java.util.Optional.empty(),
+                0);
+        assertFalse(radio.drop(secondary, 1.5f));
+        assertTrue(radio.idle(), "dropped while it waits");
+
+        secondary = radio.add(
+                "Okafor",
+                "Okafor",
+                "neutral",
+                "Root grid in the old town destroyed.",
+                false,
+                RadioQueue.Priority.CLOSING,
+                java.util.Optional.empty(),
+                0);
+        assertEquals(RadioQueue.Change.OPENED, radio.update(0.01f));
+        run(1);
+        assertTrue(radio.drop(secondary, 1.5f), "cut on the radio a second after it opened");
+        assertTrue(radio.idle());
+
+        secondary = radio.add(
+                "Okafor",
+                "Okafor",
+                "neutral",
+                "Root grid in the old town destroyed.",
+                false,
+                RadioQueue.Priority.CLOSING,
+                java.util.Optional.empty(),
+                0);
+        radio.update(0.01f);
+        run(2);
+        assertFalse(radio.drop(secondary, 1.5f), "a line well under way plays on");
+        assertTrue(radio.current().isPresent());
     }
 
     /** Updates in 10 ms frames for {@code seconds}; returns the last change that was not NONE. */

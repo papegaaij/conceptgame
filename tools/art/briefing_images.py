@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Production art: the briefings' tactical maps and mission images (design/ui/briefing), one per
-briefing page of the Act 1 intro, Levels 01-07, the Act 1 outro, the Act 2 intro and Levels 08-11, in the chosen briefing-r08-a look: a dark
+briefing page of the Act 1 intro, Levels 01-07, the Act 1 outro, the Act 2 intro and Levels 08-12, in the chosen briefing-r08-a look: a dark
 tactical display with its grid, scan rows and edge ticks, holographic planets, cyan routes and
 labels, red and violet for the Vrell, amber for objectives.
 
@@ -80,6 +80,19 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
   level-11-sub-scan       L11 p2: a cut-away at the waterline: a Driftjelly surfaced (guns reach it) and
                           submerged (they do not), the shots stopping at the waterline, a torpedo's run
                           under the surface, a Reef Spitter raft and its roots, the unknown large contact
+  level-12-storm-front    L12 p1: the storm system from above off the Azores, its cloud bands winding
+                          clockwise into the eye, moving east onto the convoy lanes, Vrell flyers in it;
+                          Lancer and Rook's route in through the wall, across the eye and out
+  level-12-sonde-scan     L12 p2: a CDF weather sonde (the production sprite) blinking in the rain, the
+                          fly-through ring and the SONDES tracker; the pressure plot that makes no sense
+                          (a regular saw where a storm's curve should be)
+  level-14-spire-over-geneva  L14 p1: Geneva Concord from the lake as a hologram elevation: the lake
+                          and the Jet d'Eau, the old town's skyline and Saint-Pierre, the Siege Spire's
+                          trunk three kilometres into the canopy over the old town, the route in along
+                          the lakefront to the Concord rotunda, Lancer and Rook
+  level-14-root-scan      L14 p2: the final backdrop's Root Field as a scan, its roots traced and the
+                          burst points marked; one burst from the production frames (the 1 s of dust,
+                          the root with its Spine Turret and Polyp Mortar); a Wraith from behind
   design/ui/briefing/concept/briefing-images-final-r13-a.png   review sheet, Act 1 intro + L01-02
   design/ui/briefing/concept/briefing-images-final-r20-a.png   review sheet, L03-04 (M4 batch)
   design/ui/briefing/concept/briefing-images-final-r21-a.png   review sheet, L05 (M4 part E)
@@ -89,6 +102,9 @@ Outputs (assets/ui/briefing/<name>.png, 672x240, textures of their own like the 
   design/ui/briefing/concept/briefing-images-final-r31-a.png   review sheet, L09 (M5 part C)
   design/ui/briefing/concept/briefing-images-final-r32-a.png   review sheet, L10 (M5 part D)
   design/ui/briefing/concept/briefing-images-final-r33-a.png   review sheet, L11 (M5 part E)
+  design/ui/briefing/concept/briefing-images-final-r34-a.png   review sheet, L12 (M5 part F)
+  design/ui/briefing/concept/briefing-images-final-r35-a.png   review sheet, L13 (M5 part G)
+  design/ui/briefing/concept/briefing-images-final-r36-a.png   review sheet, L14 (M5 part H)
  Every image is composed
 in layers like the hangar map (tools/art/ui_scenes.py): the display and planets posterized to 24
 colours with ordered dither, the lines, markers and labels to 16 of their own, then the sprites
@@ -99,14 +115,15 @@ additive light (the Mantis's beam parts from assets/, its wedge from mantis_beam
 code; the carrier's core glow, also on its open sacs) added as the game blends it, its pixels to 32 colours of their own.
 The labels use the concept pixel font (render/raster.py), as the chosen mockup does.
 
-Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23|r25|r30|r31|r32|r33] [--review]   (~10 s; after
+Run: python3 tools/art/briefing_images.py [name ...] [r13|r20|r21|r23|r25|r30|r31|r32|r33|r34|r35|r36] [--review]   (~10 s; after
 stormhawk.py, vrell_air.py, intel.py, vrell_l03.py, leviathan.py, vrell_l04.py, civilian_crawler.py
 airstrike_bomber.py, l05_hazards.py, mantis.py, mantis_beam.py, coilwyrm.py, l06_darkness.py,
 backdrop_l06.py, brood_carrier.py, brood_carrier_death.py, backdrop_l07.py, portraits.py, rook.py,
 creeper.py, enemy_bullets.py, weapon_fx.py, hive_node.py, ravager.py, wraith.py, mote_swarm.py and
 shuttle.py, convoy_ships.py (switch the ship pair: its --variant b, then this script again),
-driftjelly.py, reef_spitter.py, harbour_kraken.py and backdrop_l11.py, whose sprites and pieces it shows); the review
-sheet written is the open round's (r33) unless
+driftjelly.py, reef_spitter.py, harbour_kraken.py, backdrop_l11.py, l12_props.py and backdrop_l12.py, skimmer.py,
+relay.py, backdrop_l13.py, siege_spire.py, root_burst.py --assets and backdrop_l14.py, whose sprites
+and pieces it shows); the review sheet written is the open round's (r36) unless
 a round is named.
 """
 import json
@@ -132,7 +149,10 @@ SOURCE_M5 = artkit.source_note(SCRIPT, "M5 part B batch")
 SOURCE_M5C = artkit.source_note(SCRIPT, "M5 part C batch")
 SOURCE_M5D = artkit.source_note(SCRIPT, "M5 part D batch")
 SOURCE_M5E = artkit.source_note(SCRIPT, "M5 part E batch")
-ROUND = "r33"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23, r25, r30, r31, r32)
+SOURCE_M5F = artkit.source_note(SCRIPT, "M5 part F batch")
+SOURCE_M5G = artkit.source_note(SCRIPT, "M5 part G batch")
+SOURCE_M5H = artkit.source_note(SCRIPT, "M5 part H batch")
+ROUND = "r36"  # the open round; the sheet of an earlier batch: name its round (r13, r20, r21, r23, r25, r30, r31, r32, r33, r34, r35)
 OUT = ROOT / "assets" / "ui" / "briefing"
 CONCEPT = DESIGN / "ui" / "briefing" / "concept"
 W, H = 672, 240
@@ -2178,6 +2198,427 @@ def sub_scan():
     return b
 
 
+STORM = (120, 140, 160)   # the storm's cloud on the display (Level 12)
+
+
+def storm_sea(b):
+    """Level 12's storm swell as a faint relief on the display."""
+    swell = np.array(Image.open(ROOT / "assets" / "backdrop" / "level-12" / "swell.png").convert("L")).astype(float) / 255
+    tile = np.hstack([swell[:H, :], swell[:H, ::-1], swell[:H, :]])[:, :W]
+    b.base += (tile - tile.mean())[..., None] * np.array(SEA) * 1.6 + np.array(SEA) * 0.45
+
+
+def storm_spiral(b, cx, cy, radius, eye, seed=1212):
+    """A storm system from above on the display: cloud bands along spiral arms that wind in
+    clockwise toward the eye (the tell: a northern storm turns the other way), denser toward the
+    wall, the eye clear; a hologram's grey-cyan."""
+    dx, dy = b.xx - cx, b.yy - cy
+    r = np.hypot(dx, dy)
+    th = np.arctan2(dy, dx)
+    n = raster.fbm(W, H, 16, seed, octaves=4, period=False)
+    arms = 0.5 + 0.5 * np.cos(3 * (th + 1.6 * np.log(np.maximum(r, 1) / radius)) + 3 * (n - 0.5))
+    fall = np.clip(1 - r / radius, 0, 1)
+    wall = np.exp(-((r - eye * 1.5) / (eye * 0.9)) ** 2)
+    cloud = np.clip((arms * 1.0 + n * 0.45) * fall ** 0.5 + wall * 0.8 - 0.5, 0, 1) * (r > eye)
+    cloud *= np.clip((r - eye) / 6, 0, 1)
+    b.base += (cloud ** 1.2)[..., None] * np.array(STORM) * 1.1
+    return cloud
+
+
+def storm_front():
+    """L12 p1: Okafor's map: the storm system from above off the Azores, its cloud bands winding
+    into the eye, moving east onto the convoy lanes; Vrell contacts inside it; Lancer and Rook's
+    route in through the wall, across the eye and out (the breakout)."""
+    b = Board()
+    storm_sea(b)
+    cx, cy, radius, eye = 392, 128, 150, 26
+    storm_spiral(b, cx, cy, radius, eye)
+    b.glow(cx, cy, eye * 0.9, (70, 90, 110), 0.5)                  # the calm in the eye
+    b.title("NORTH ATLANTIC - OFF THE AZORES - STORM FRONT")
+    for x, y, r in ((70, 132, 3), (88, 140, 2), (104, 128, 2), (128, 152, 3), (150, 166, 2)):   # the Azores
+        b.draw.ellipse([x - r, y - r, x + r, y + r], outline=CYAN + (230,))
+    b.label(58, 172, "AZORES", CYAN_DIM)
+    for y in (66, 206):                                            # the convoy lanes, west to east
+        b.dashed([(20, y), (W - 20, y + 6)], GREEN, 1, 8, 6)
+    b.label(W - 10, 54, "CONVOY LANES", GREEN, right=True)
+    b.arrow(cx + radius - 12, cy + 30, cx + radius + 40, cy + 44, CYAN, size=5)
+    b.label(cx + radius - 34, cy + 56, "MOVING EAST", CYAN)
+    b.label(cx + radius - 34, cy + 66, "FORMED IN 6 H", CYAN_DIM)
+    b.ring(cx, cy, eye, colour=CYAN_DIM, alpha=160)
+    b.label(cx - 10, cy - 4, "EYE", WHITE)
+    for a in (40, 160, 280):                                       # the sense of rotation
+        a0 = np.radians(a)
+        rr = radius * 0.72
+        b.arc(cx, cy, rr, rr, a, a + 28, CYAN, 200)
+        tip = (cx + rr * np.cos(a0 + np.radians(30)), cy + rr * np.sin(a0 + np.radians(30)))
+        tang = np.array([-np.sin(a0 + np.radians(30)), np.cos(a0 + np.radians(30))])
+        n_ = np.array([-tang[1], tang[0]])
+        tip = np.array(tip)
+        b.draw.polygon([tuple(tip + tang * 6), tuple(tip - tang * 2 + n_ * 4), tuple(tip - tang * 2 - n_ * 4)],
+                       fill=CYAN + (230,))
+    rng = np.random.default_rng(1213)
+    for _ in range(9):                                             # flyers in the cloud
+        a, rr = rng.uniform(0, 2 * np.pi), rng.uniform(eye * 1.8, radius * 0.8)
+        b.marker(cx + np.cos(a) * rr, cy + np.sin(a) * rr * 0.9, "chevron", RED, 3)
+    b.label(cx - 150, 26, "VRELL FLYERS IN COVER", RED)
+    route = [(196, 200), (268, 176), (cx - 50, cy + 24), (cx, cy), (cx + 60, cy - 30), (cx + 120, cy - 70)]
+    b.dashed(route[:-1], AMBER, 2, 7, 4)
+    b.arrow(*route[-2], *route[-1], AMBER, dashed=False)
+    b.label(cx + 60, 26, "BREAKOUT", AMBER)
+    b.label(214, 120, "STORM WALL", WHITE)
+    b.line([(262, 126), (cx - eye * 2.2, cy + 8)], WHITE, 1, 140)
+    b.sprite(asset("ship_2"), 186, 204)
+    b.sprite(rook_craft(), 160, 216)
+    b.label(206, 214, "LANCER, ROOK", CYAN)
+    b.label(W - 10, 9, "CLEAR THE FRONT", AMBER, right=True)
+    return b
+
+
+def pressure_plot(b, x0, y0, w, h):
+    """Varga's plot: pressure against distance to the eye, the curve a storm makes (grey, dashed)
+    and what the sondes send: a regular saw that repeats like a signal (amber)."""
+    b.line([(x0, y0), (x0, y0 + h), (x0 + w, y0 + h)], CYAN_DIM, 1, 220)
+    for k in range(1, 5):
+        b.line([(x0 - 3, y0 + h * k / 5), (x0, y0 + h * k / 5)], CYAN_DIM, 1, 200)
+        b.dashed([(x0 + 2, y0 + h * k / 5), (x0 + w, y0 + h * k / 5)], CYAN_DIM, 1, 1, 5)
+    u = np.linspace(0, 1, 160)
+    expected = y0 + h * (0.15 + 0.7 * (1 - np.exp(-((u - 1.0) / 0.35) ** 2)))
+    b.dashed([(x0 + w * a, e) for a, e in zip(u[::8], expected[::8])], GREY, 1, 4, 3)
+    saw = (u * 7) % 1.0
+    measured = y0 + h * (0.2 + 0.55 * saw + 0.04 * np.sin(u * 60)) + (expected - (y0 + h * 0.5)) * 0.25
+    b.line([(x0 + w * a, m) for a, m in zip(u, measured)], AMBER, 2, 240)
+    b.label(x0, y0 - 14, "PRESSURE, HPA", CYAN_DIM)
+    b.label(x0 + w, y0 + h + 6, "TO THE EYE", CYAN_DIM, right=True)
+    b.label(x0 + w - 90, y0 - 14, "EXPECTED", GREY, right=True)
+    b.label(x0 + w, y0 - 14, "MEASURED", AMBER, right=True)
+
+
+def sonde_scan():
+    """L12 p2: Varga's scan: a CDF weather sonde blinking in the rain (the production sprite, its
+    strobe), fly-through ring and the SONDES tracker; beside it the pressure plot that makes no sense:
+    a regular saw where a storm's curve should be."""
+    b = Board()
+    storm_sea(b)
+    b.base *= 0.7
+    b.title("SENSOR SCAN - CDF WEATHER SONDE - PRESSURE")
+    sx, sy = 112, 124
+    rng = np.random.default_rng(1220)
+    rain = [asset(f"weather-rain_{k}") for k in range(4)]
+    for _ in range(70):                                            # the rain round it
+        x, y = rng.uniform(10, 236), rng.uniform(24, 228)
+        light_at(b, additive(f"weather-rain_{int(rng.integers(0, 4))}", 1.0, 0.8), x, y, "under")
+    del rain
+    b.sprite(asset("weather-sonde_0", 3), sx, sy)
+    light_at(b, additive("weather-sonde-collect_1", 2.0, 0.5), sx, sy, "under")
+    b.ring(sx, sy, 56, colour=GREEN, alpha=150)
+    b.label(sx + 40, sy + 54, "FLY THROUGH", GREEN)
+    b.label(14, 26, "CDF WEATHER SONDE", WHITE)
+    b.label(14, 36, "3 STILL TRANSMITTING", CYAN)
+    b.label(14, 214, "SONDES 0 / 3", GREEN)
+    b.label(14, 202, "CAN'T BE SHOT", CYAN_DIM)
+    pressure_plot(b, 300, 52, 330, 140)
+    b.label(300, 214, "A STORM DOESN'T REPEAT ITSELF", RED)
+    b.label(W - 10, 9, "COLLECT ALL THREE", AMBER, right=True)
+    return b
+
+
+ICE_HOLO = [(0.0, (2, 8, 22)), (0.3, (6, 26, 48)), (0.65, (24, 70, 100)), (1.0, (96, 160, 186))]   # Level 13's ice
+
+
+def halt_frame():
+    """Level 13's halted frame from its final backdrop (assets/backdrop/level-13): the top 540 rows of
+    pack-ice-4 (the halt's screen) over the arctic water, as RGB floats 540 x 480."""
+    folder = ROOT / "assets" / "backdrop" / "level-13"
+    water = np.array(Image.open(folder / "arctic-water.png").convert("RGB")).astype(np.float64)[:540]
+    ice = np.array(Image.open(folder / "pack-ice-4.png").convert("RGBA")).astype(np.float64)[:540]
+    k = ice[..., 3:4] / 255
+    return water * (1 - k) + ice[..., :3] * k
+
+
+def ice_display(b, x0, y0, scale, gain=1.0):
+    """The halted frame on the display: its brightness through the ice hologram's ramp, ``scale`` x,
+    with its top left at (x0, y0); returns the box (x0, y0, x1, y1)."""
+    rgb = halt_frame()
+    img = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB")
+    img = img.resize((round(480 * scale), round(540 * scale)), Image.BOX)
+    lum = np.array(img.convert("L")).astype(np.float64) / 255
+    body = raster.ramp(ICE_HOLO, np.clip(lum * 1.15 * gain, 0, 1))
+    h_, w_ = body.shape[:2]
+    ys, xs = slice(max(0, y0), min(H, y0 + h_)), slice(max(0, x0), min(W, x0 + w_))
+    b.base[ys, xs] = body[ys.start - y0:ys.stop - y0, xs.start - x0:xs.stop - x0]
+    return x0, y0, x0 + w_, y0 + h_
+
+
+def polar(cx, cy, r, lon, lat, turn=-100):
+    """The north polar view: latitude 90 at the centre, 20 at the rim, longitude ``turn`` down."""
+    rho = (90 - lat) / 70 * r
+    a = np.radians(lon - turn + 90)
+    return cx + rho * np.cos(a), cy + rho * np.sin(a)
+
+
+def relay_grid():
+    """L13 p1: Okafor's map: the Arctic from above the pole, Nansen Relay on the pack ice north of
+    Svalbard and the defence grid it ties together (the Arctic relays, guns, radar, satellites on their
+    orbit); the inset: the relay on its floe, the landing force's approach over the pack ice from every
+    edge, Lancer and Rook holding over it; three minutes to synchronise."""
+    b = Board()
+    cx, cy, r = 150, 132, 96
+    mask = Image.new("L", (W, H), 0)
+    md = ImageDraw.Draw(mask)
+    for poly in CONTINENTS:
+        pts = [polar(cx, cy, r, lon, max(lat, 14)) for lon, lat in poly]
+        md.polygon(pts, fill=255)
+    disc = np.hypot(b.xx - cx, b.yy - cy) < r
+    land = (np.array(mask) > 0) & disc
+    tex = 0.55 + 0.5 * raster.fbm(W, H, 16, 1301, octaves=4, period=False)
+    b.base = np.where(disc[..., None], b.base * 0.6 + np.array((4, 16, 34)), b.base)
+    b.base = np.where(land[..., None], raster.ramp(ui_scenes.HOLO, np.clip(tex, 0, 1)), b.base)
+    pack = disc & ~land & (np.hypot(b.xx - cx, b.yy - cy) < r * 0.33)
+    b.base = np.where(pack[..., None], b.base + (raster.fbm(W, H, 6, 1302, octaves=3, period=False)[..., None] > 0.45)
+                      * np.array((26, 54, 70)), b.base)                      # the pack ice round the pole
+    b.title("HIGH ARCTIC - NANSEN RELAY - THE DEFENCE GRID")
+    for lat in (80, 60, 40):
+        rr = (90 - lat) / 70 * r
+        b.ring(cx, cy, rr, colour=CYAN_DIM, alpha=70)
+    b.ring(cx, cy, r, colour=CYAN_DIM, alpha=160)
+    for lon in range(0, 360, 30):
+        b.line([polar(cx, cy, r, lon, 88), polar(cx, cy, r, lon, 20)], CYAN_DIM, 1, 45)
+    relay = polar(cx, cy, r, 18, 83)
+    relays = [(-70, 74), (-40, 76), (-10, 75), (20, 76), (50, 75), (80, 76), (110, 75), (150, 72)]
+    for lon, lat in relays:
+        p = polar(cx, cy, r, lon, lat)
+        b.line([relay, p], GREEN, 1, 150)
+        b.marker(*p, "square", GREEN, 2)
+    for lon, lat in ((-77, 39), (2, 49), (37, 56), (116, 40), (139, 36), (-122, 38), (6, 46)):   # the guns and radars
+        p = polar(cx, cy, r, lon, lat)
+        b.dashed([relay, p], GREEN, 1, 3, 3)
+        b.marker(*p, "dot", GREEN, 1)
+    for k in range(7):                                                          # the satellites on their orbit
+        a = np.radians(k * 360 / 7 + 12)
+        p = (cx + (r + 14) * np.cos(a), cy + (r + 14) * np.sin(a) * 0.96)
+        b.dashed([relay, p], CYAN_DIM, 1, 2, 4)
+        b.marker(*p, "square", CYAN, 2)
+    b.arc(cx, cy, r + 14, r + 13, 0, 360, CYAN_DIM, 110)
+    b.marker(*relay, "diamond", AMBER, 4)
+    b.ring(*relay, 9, colour=AMBER, alpha=200)
+    b.label(14, 26, "EVERY GUN, RADAR", GREEN)
+    b.label(14, 36, "AND SATELLITE: ONE GRID", GREEN)
+    b.label(14, H - 16, "NORTH POLE VIEW", CYAN_DIM)
+    x0, y0, x1, y1 = ice_display(b, 418, 20, 0.40)                              # the inset: the halt's frame
+    b.bracket(x0 - 4, y0 - 4, x1 + 4, y1 + 4, CYAN)
+    b.line([(relay[0] + 10, relay[1] - 4), (x0 - 6, y0 + 2)], AMBER, 1, 160)
+    rx, ry = x0 + 240 * 0.40, y0 + 250 * 0.40
+    b.sprite(scaled_sprite("nansen-relay_0", 0.42), rx, ry)
+    for (ax, ay), (bx, by) in (((x0 - 2, y0 + 30), (x0 + 30, y0 + 50)), ((x1 + 2, y0 + 120), (x1 - 30, y0 + 116)),
+                               ((rx - 20, y0 - 2), (rx - 12, y0 + 26)), ((rx + 30, y1 + 2), (rx + 20, y1 - 26)),
+                               ((x0 - 2, y1 - 30), (x0 + 30, y1 - 50))):
+        b.arrow(ax, ay, bx, by, RED, size=4)
+    for x, y in ((x0 + 22, y0 + 40), (x1 - 22, y0 + 104), (rx + 16, y1 - 18), (x0 + 24, y1 - 40), (rx - 16, y0 + 18)):
+        b.marker(x, y, "chevron", RED, 3)
+    b.label(262, 100, "NANSEN RELAY", AMBER)
+    b.label(262, 110, "BACK AT FULL POWER", CYAN_DIM)
+    b.label(260, 160, "LANDING FORCE", RED)
+    b.label(260, 170, "OVER THE PACK ICE,", RED)
+    b.label(260, 180, "FROM EVERY SIDE", RED)
+    b.sprite(asset("ship_2"), rx + 6, ry + 52)
+    b.sprite(rook_craft(), rx - 22, ry + 58)
+    b.label(260, 204, "LANCER, ROOK: HOLD", CYAN)
+    b.label(260, 214, "OVER THE RELAY", CYAN)
+    b.label(W - 10, 9, "HOLD 3 MINUTES", AMBER, right=True)
+    return b
+
+
+def ice_field():
+    """L13 p2: Varga's scan of the halt from above: the relay's floe and the leads round it (the final
+    backdrop's frame), a Skimmer weaving along its lead (the lane, the weave either side: lead your shots
+    or spray), a Scuttler walking the floe with its claws' armoured arc to the front and the side shots
+    that get in; shots aimed at the relay that the ship can stand in."""
+    b = Board()
+    x0, y0, x1, y1 = ice_display(b, 224, 0, 0.444, 0.9)
+    b.title("SENSOR SCAN - PACK ICE - SKIMMER / SCUTTLER")
+    sc = 0.444
+    rx, ry = x0 + 240 * sc, y0 + 250 * sc
+    b.sprite(scaled_sprite("nansen-relay_0", 0.46), rx, ry)
+    b.marker(rx, ry - 30, "diamond", AMBER, 3)
+    # the Skimmer's lane along the south lead (screen y 462 in the halt) and its weave
+    ly = y0 + 462 * sc
+    b.dashed([(x0, ly), (x1, ly)], VIOLET, 1, 6, 4)
+    u = np.linspace(0, 1, 120)
+    weave = [(x0 + (x1 - x0) * a, ly + 40 * sc * np.sin(a * 2 * np.pi * 3.2)) for a in u]
+    b.line(weave, RED, 1, 220)
+    sk = asset("skimmer_24", 1)                                                  # heading 12 (moving right), tail frame 0
+    b.sprite(sk, x0 + (x1 - x0) * 0.62, ly + 40 * sc * np.sin(0.62 * 2 * np.pi * 3.2))
+    b.label(14, 26, "SKIMMER", WHITE)
+    b.label(14, 36, "WEAVES ALONG THE LEADS", RED)
+    b.sprite(asset("skimmer_24", 2), 62, 92)
+    b.ring(62, 92, 30, colour=RED, alpha=140)
+    b.label(14, 132, "180 PX/S, 40 EITHER SIDE", CYAN_DIM)
+    b.label(14, 146, "LEAD YOUR SHOTS", GREEN)
+    b.label(14, 156, "OR SPRAY", GREEN)
+    b.line([(98, 100), (x0 + 120, ly - 6)], RED, 1, 120)
+    # the Scuttler on the floe: its claws' armoured front, the side shots that get in
+    wx, wy = W - 90, 112
+    b.sprite(asset("scuttler_72", 2), wx, wy)                                   # heading 12 (walking right)
+    b.arc(wx, wy, 56, 56, -45, 45, RED, 230)
+    b.arc(wx, wy, 60, 60, -45, 45, RED, 160)
+    b.label(wx + 4, 40, "ARMOURED FRONT", RED)
+    for ax, ay, bx_, by in ((wx - 6, 22, wx - 6, wy - 46), (wx - 6, H - 20, wx - 6, wy + 46)):
+        b.arrow(ax, ay, bx_, by, GREEN, size=4)
+    b.label(W - 10, H - 26, "HIT IT FROM THE SIDE", GREEN, right=True)
+    b.label(W - 10, 26, "SCUTTLER", WHITE, right=True)
+    sx, sy = x0 + 82 * sc, y0 + 250 * sc
+    b.sprite(asset("scuttler_72"), sx, sy)
+    # stand in the way: a shot aimed at the relay, the ship across its line
+    b.dashed([(x1 - 6, y0 + 22), (rx + 20, ry - 16)], RED, 1, 4, 3)
+    b.marker(x1 - 6, y0 + 22, "chevron", RED, 3)
+    b.sprite(asset("ship_2"), x1 - 46, y0 + 50)
+    b.label(x1 + 6, 36, "AIMED AT THE RELAY:", AMBER)
+    b.label(x1 + 6, 46, "STAND IN THE WAY", AMBER)
+    b.label(W - 10, 9, "SIDE AND REAR GUNS PAY", AMBER, right=True)
+    return b
+
+
+GENEVA_HOLO = [(0.0, (3, 8, 22)), (0.35, (10, 36, 60)), (0.7, (34, 96, 130)), (1.0, (120, 196, 220))]   # Level 14
+
+
+def spire_over_geneva():
+    """L14 p1: Okafor's picture: Geneva Concord seen from the lake: the water in front with the Jet d'Eau,
+    the old town's roofs and the cathedral's towers, the Siege Spire's trunk rising out of the Concord
+    rotunda three kilometres into the canopy, which spreads over the whole old town; the route in along
+    the lakefront and through the old town to the rotunda, Lancer and Rook going in first."""
+    b = Board()
+    b.title("GENEVA CONCORD - THE SIEGE SPIRE")
+    rng = np.random.default_rng(1401)
+    ss = 4
+    shape = Image.new("L", (W * ss, H * ss), 0)            # the lit structures, as brightness
+    d = ImageDraw.Draw(shape)
+    horizon = 188
+    # the old town's skyline: row houses with ridged roofs, the cathedral's two towers and spire
+    x = 0
+    while x < W:
+        w = int(rng.integers(10, 26))
+        h = int(rng.integers(8, 20)) + (6 if 330 < x < 600 else 0)
+        d.rectangle([x * ss, (horizon - h) * ss, (x + w - 1) * ss, horizon * ss], fill=int(rng.integers(70, 110)))
+        d.polygon([(x * ss, (horizon - h) * ss), ((x + w / 2) * ss, (horizon - h - 5) * ss),
+                   ((x + w - 1) * ss, (horizon - h) * ss)], fill=int(rng.integers(110, 150)))
+        x += w + int(rng.integers(0, 3))
+    for tx in (258, 274):                                  # Saint-Pierre's towers
+        d.rectangle([tx * ss, (horizon - 44) * ss, (tx + 9) * ss, horizon * ss], fill=125)
+        d.polygon([(tx * ss, (horizon - 44) * ss), ((tx + 4.5) * ss, (horizon - 54) * ss),
+                   ((tx + 9) * ss, (horizon - 44) * ss)], fill=160)
+    d.polygon([(268 * ss, (horizon - 38) * ss), (270 * ss, (horizon - 64) * ss), (272 * ss, (horizon - 38) * ss)], fill=150)
+    # the trunk out of the rotunda, its ridges, the crown's claws in the canopy
+    tx0, tw0, tw1, top = 470, 46, 14, 34
+    d.polygon([((tx0 - tw0) * ss, horizon * ss), ((tx0 - tw1) * ss, top * ss), ((tx0 + tw1) * ss, top * ss),
+               ((tx0 + tw0) * ss, horizon * ss)], fill=150)
+    d.polygon([((tx0 + 4) * ss, horizon * ss), ((tx0 + 2) * ss, top * ss), ((tx0 + tw1) * ss, top * ss),
+               ((tx0 + tw0) * ss, horizon * ss)], fill=105)             # its shaded side (the light from the left)
+    for k in range(-2, 3):
+        d.line([((tx0 + k * tw0 / 3) * ss, horizon * ss), ((tx0 + k * tw1 / 3) * ss, top * ss)], fill=190, width=ss)
+    for a in (-1.0, -0.55, 0.55, 1.0):                     # the claw petals
+        d.polygon([((tx0 + a * 10) * ss, (top + 4) * ss), ((tx0 + a * 40) * ss, (top - 18) * ss),
+                   ((tx0 + a * 18) * ss, (top + 2) * ss)], fill=140)
+    for a in (-1, 1):                                      # roots arching into the city
+        for k, (ln, hh) in enumerate(((90, 26), (150, 16), (60, 34))):
+            pts = [((tx0 + a * (tw0 - 4 + ln * u)) * ss, (horizon - hh * math_sin(u * 3.14159)) * ss) for u in np.linspace(0, 1, 16)]
+            d.line(pts, fill=105, width=5 * ss // 2)
+    lum = np.array(shape.resize((W, H), Image.BOX)).astype(np.float64) / 255
+    # the canopy: a veined lens over the old town, the trunk under its middle
+    cx, cy, rx, ry = tx0, 30, 330, 34
+    nx, ny = (b.xx - cx) / rx, (b.yy - cy) / ry
+    lens = (nx ** 2 + ny ** 2 < 1) & (b.yy < cy + ry * 0.55)
+    cells = raster.fbm(W, H, 18, 1402, octaves=2, period=False)
+    vein = np.abs(cells - 0.5) < 0.035
+    lum = np.where(lens, np.maximum(lum, 0.32 + 0.25 * (1 - np.abs(ny))), lum)
+    lum = np.where(lens & vein, 0.85, lum)
+    shade = (b.xx > cx - rx) & (b.xx < cx + rx) & (b.yy > cy + ry * 0.5) & (b.yy < horizon)
+    b.base = np.where(shade[..., None], b.base * 0.65, b.base)          # under the canopy: dusk
+    # the lake in front, its ripples, the Jet d'Eau
+    lake = b.yy > horizon
+    ripple = (np.sin(b.xx / 9 + b.yy * 1.7) > 0.93) & lake
+    body = raster.ramp(GENEVA_HOLO, np.clip(lum, 0, 1))
+    b.base = np.where((lum > 0.02)[..., None], body, b.base)
+    b.base = np.where(lake[..., None], b.base * 0.6 + np.array((4, 18, 40)), b.base)
+    b.base = np.where(ripple[..., None], b.base + np.array((20, 60, 80)), b.base)
+    b.line([(96, horizon + 30), (92, horizon - 60)], WHITE, 1, 140)
+    b.line([(94, horizon + 30), (90, horizon - 52)], CYAN, 1, 110)
+    b.label(102, horizon - 58, "JET D'EAU", CYAN_DIM)
+    # labels: the height, the canopy, the rotunda
+    b.line([(tx0 + 58, top), (tx0 + 58, horizon)], AMBER, 1, 200)
+    for yy_ in (top, horizon):
+        b.line([(tx0 + 54, yy_), (tx0 + 62, yy_)], AMBER, 1, 220)
+    b.label(tx0 + 66, 100, "3 KM", AMBER)
+    b.label(tx0 + 66, 110, "STILL GROWING", AMBER)
+    b.label(250, 70, "THE CANOPY", VIOLET)
+    b.label(250, 80, "OVER THE OLD TOWN", VIOLET)
+    b.marker(tx0, horizon + 4, "diamond", AMBER, 4)
+    b.label(tx0 - 30, horizon + 14, "CONCORD ROTUNDA", AMBER)
+    b.label(244, horizon + 14, "OLD TOWN", CYAN)
+    # the route: along the lakefront, through the old town, to the rotunda
+    b.dashed([(20, H - 14), (150, H - 14), (300, horizon + 26), (tx0 - 12, horizon + 8)], GREEN, 2)
+    b.arrow(tx0 - 60, horizon + 14, tx0 - 10, horizon + 7, GREEN, size=4, dashed=False)
+    b.label(14, H - 30, "LAKEFRONT", GREEN)
+    b.sprite(scaled_sprite("ship_2", 0.6), 40, H - 46)
+    b.sprite(scaled_sprite("rook_2", 0.6), 22, H - 40)
+    b.label(14, 26, "TWO NIGHTS:", WHITE)
+    b.label(14, 36, "IT GREW OUT OF THE CITY", WHITE)
+    b.label(W - 10, 9, "EVERYTHING WE HAVE LEFT", AMBER, right=True)
+    return b
+
+
+def root_scan():
+    """L14 p2: Varga's scan of the root grid under the old town: the Root Field from the final backdrop
+    (assets/backdrop/level-14/root-field) through the hologram's ramp, its roots traced (the backdrop's
+    own courses), the burst points marked; one burst in detail: the 1 s of cracking paving and dust, then
+    the root and its two growths, a Spine Turret and a Polyp Mortar; anti-ground for the roots. And when
+    the crown opens, the Wraiths it launches come from behind."""
+    import backdrop_l14 as l14
+    b = Board()
+    b.title("SENSOR SCAN - ROOT GRID UNDER THE OLD TOWN")
+    tile = np.array(Image.open(ROOT / "assets" / "backdrop" / "level-14" / "root-field.png").convert("RGB"))[:540]
+    sc = 0.444
+    img = Image.fromarray(tile).resize((round(480 * sc), round(540 * sc)), Image.BOX)
+    lumi = np.array(img.convert("L")).astype(np.float64) / 255
+    body = raster.ramp(GENEVA_HOLO, np.clip(lumi * 1.25, 0, 1))
+    x0, y0 = 214, 0
+    h_, w_ = body.shape[:2]
+    b.base[y0:y0 + h_, x0:x0 + w_] = body[:H - y0]
+    # the roots' courses (the backdrop plan's), traced violet
+    for pts, width in l14.plan_root_field()["roots"]:
+        line = [(x0 + x * sc, y0 + y * sc) for x, y in pts if 0 <= y <= 540]
+        b.line(line, VIOLET, 2, 200)
+    bursts = [(110, 120), (330, 230), (150, 330), (300, 440)]          # the scan's burst points (screen px)
+    for i, (bx, by) in enumerate(bursts):
+        px_, py_ = x0 + bx * sc, y0 + by * sc
+        b.marker(px_, py_, "diamond", AMBER, 3)
+        b.ring(px_, py_, 9, colour=AMBER, alpha=160)
+    b.label(x0 + w_ + 8, 26, "BURST POINTS", AMBER)
+    b.line([(x0 + 330 * sc + 10, y0 + 230 * sc), (x0 + w_ + 6, 30)], AMBER, 1, 140)
+    # one burst in detail: dust, then the root and its growths
+    dx = 560
+    b.sprite(asset("root-burst-decal_5"), dx - 70, 100)
+    b.label(dx - 112, 150, "1 S: PAVING CRACKS,", CYAN)
+    b.label(dx - 112, 160, "DUST RISES", CYAN)
+    b.arrow(dx - 28, 100, dx - 4, 100, CYAN, size=4, dashed=False)
+    b.sprite(asset("root-burst-root_5"), dx + 50, 96)
+    b.sprite(asset("spine-turret_0"), dx + 24, 100)
+    b.sprite(asset("polyp-mortar_0"), dx + 76, 95)
+    b.label(dx - 112, 180, "THEN THE ROOT GROWS", RED)
+    b.label(dx - 112, 190, "A TURRET AND A MORTAR", RED)
+    b.label(W - 10, 9, "ANTI-GROUND X2 ON ROOTS", GREEN, right=True)
+    # left: what to bring, and behind you
+    b.label(14, 26, "KILL THE ROOTS", WHITE)
+    b.label(14, 36, "AND THE TRUNK STARVES", WHITE)
+    b.label(14, 56, "BRING ANTI-GROUND", GREEN)
+    b.label(14, 66, "AND SOMETHING THAT PIERCES", GREEN)
+    b.sprite(scaled_sprite("wraith_0", 0.75), 60, 150)
+    b.sprite(scaled_sprite("ship_2", 0.7), 150, 128)
+    b.arrow(60, 190, 140, 146, RED, size=4)
+    b.label(14, 202, "WHEN THE CROWN OPENS,", RED)
+    b.label(14, 212, "LOOK BEHIND YOU", RED)
+    return b
+
+
 IMAGES = {
     "act-1-tether-gate": tether_gate,
     "act-1-outer-stations": outer_stations,
@@ -2214,6 +2655,12 @@ IMAGES = {
     "level-10-wraith-scan": wraith_scan,
     "level-11-convoy-route": convoy_route,
     "level-11-sub-scan": sub_scan,
+    "level-12-storm-front": storm_front,
+    "level-12-sonde-scan": sonde_scan,
+    "level-13-relay-grid": relay_grid,
+    "level-13-ice-field": ice_field,
+    "level-14-spire-over-geneva": spire_over_geneva,
+    "level-14-root-scan": root_scan,
 }
 
 # Review sheets per batch: round, the images on it, the batch name.
@@ -2226,7 +2673,10 @@ BATCHES = {
     "r30": (list(IMAGES)[23:29], "M5 PART B"),
     "r31": (list(IMAGES)[29:31], "M5 PART C"),
     "r32": (list(IMAGES)[31:33], "M5 PART D"),
-    "r33": (list(IMAGES)[33:], "M5 PART E"),
+    "r33": (list(IMAGES)[33:35], "M5 PART E"),
+    "r34": (list(IMAGES)[35:37], "M5 PART F"),
+    "r35": (list(IMAGES)[37:39], "M5 PART G"),
+    "r36": (list(IMAGES)[39:], "M5 PART H"),
 }
 
 
@@ -2236,6 +2686,9 @@ def build(names):
         source = (SOURCE if name in BATCHES["r13"][0] else SOURCE_M5 if name in BATCHES["r30"][0]
                   else SOURCE_M5C if name in BATCHES["r31"][0] else SOURCE_M5D if name in BATCHES["r32"][0]
                   else SOURCE_M5E if name in BATCHES["r33"][0]
+                  else SOURCE_M5F if name in BATCHES["r34"][0]
+                  else SOURCE_M5G if name in BATCHES["r35"][0]
+                  else SOURCE_M5H if name in BATCHES["r36"][0]
                   else SOURCE_M4)
         artkit.save_png(IMAGES[name]().image(), OUT / f"{name}.png", source)
     print(f"{len(names)} briefing images in {OUT.relative_to(ROOT)}")

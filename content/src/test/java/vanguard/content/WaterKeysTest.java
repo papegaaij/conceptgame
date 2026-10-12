@@ -67,12 +67,15 @@ class WaterKeysTest {
     void aLevelIsOverLandUnlessItSaysWater() {
         Content content = ContentLoader.fromClasspath();
         for (String key : content.levels().keySet()) {
-            // M5 part E: Level 11 is the first level over water (its sunken pod lies under it).
-            boolean water = key.equals(Level11Test.LEVEL);
+            // M5 part E: Level 11 is the first level over water (its sunken pod lies under it); M5 part F:
+            // Level 12's open sea too, with nothing under it.
+            // M5 part G: Level 13's pack ice is water in the simulation too (G5 = a).
+            boolean water =
+                    key.equals(Level11Test.LEVEL) || key.equals(Level12Test.LEVEL) || key.equals(Level13Test.LEVEL);
             assertEquals(water, content.level(key).overWater(), key);
             assertEquals(water, SimSpecs.level(content, key, Difficulty.MEDIUM).water(), key);
             assertEquals(
-                    water,
+                    key.equals(Level11Test.LEVEL),
                     SimSpecs.level(content, key, Difficulty.MEDIUM).groundObjects().stream()
                             .anyMatch(LevelScript.GroundObjectSpec::submerged),
                     key);

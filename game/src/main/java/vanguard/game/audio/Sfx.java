@@ -235,6 +235,65 @@ public enum Sfx {
     FRIGATE_FLAK("sfx/frigate-flak-r33-a.ogg", 2, Bus.EFFECTS, ENEMY_FIRE),
     /** M5 part E: a Driftjelly's proximity ring firing (round 33 a): a soft underwater bloop. */
     DRIFTJELLY_PULSE("sfx/driftjelly-pulse-r33-a.ogg", 3, Bus.EFFECTS, ENEMY_FIRE),
+    /**
+     * M5 part F, Level 12's thunder (round 34 a, provisional until the round closes: the storm bed's
+     * own source low-passed with a sub rumble): three variants, one 0.3 to 1.5 s after each lightning
+     * flash ({@link FlightSounds}); one of each at a time.
+     */
+    THUNDER_1("sfx/thunder-1-r34-a.ogg", 1, Bus.EFFECTS, EXPLOSION),
+
+    THUNDER_2("sfx/thunder-2-r34-a.ogg", 1, Bus.EFFECTS, EXPLOSION),
+    THUNDER_3("sfx/thunder-3-r34-a.ogg", 1, Bus.EFFECTS, EXPLOSION),
+    /**
+     * M5 part F: a gust's wind, started with its telegraph and panned from the upwind side (round 34 a,
+     * synthesized: it rises over the 1.0 s telegraph, holds through the gust and falls; 3.6 s).
+     */
+    GUST("sfx/gust-r34-a.ogg", 2, Bus.EFFECTS, WARNING),
+    /** M5 part F: a Lamprey latching onto the hull (round 34 a, suck and bite). */
+    LAMPREY_LATCH("sfx/lamprey-latch-r34-a.ogg", 2, Bus.EFFECTS, WARNING),
+    /** M5 part F: the drain's loop while a Lamprey drains the shield (round 34 a, a 2.4 s hum in 0.4 s gulps). */
+    LAMPREY_DRAIN("sfx/lamprey-drain-r34-a.ogg", 1, Bus.EFFECTS, WARNING),
+    /** M5 part F: the shake-off throwing the latched Lampreys off (round 34 a, a wet slap and a squeal). */
+    LAMPREY_SHAKE("sfx/lamprey-shake-r34-a.ogg", 1, Bus.EFFECTS, WARNING),
+    /** M5 part F: a weather sonde collected (round 34 a, a telemetry chirp into two bell tones). */
+    SONDE_CHIME("sfx/sonde-chime-r34-a.ogg", 1, Bus.EFFECTS, PICKUP),
+    /**
+     * M5 part G, Level 13's Nansen Relay (round 35 a, provisional until the round closes): a relay-aimed
+     * hit on it, struck plating with a spark (0.55 s; every hit, so short).
+     */
+    RELAY_HIT("sfx/relay-hit-r35-a.ogg", 2, Bus.EFFECTS, EXPLOSION),
+    /**
+     * M5 part G: the relay's integrity alarm, a hi-lo station alert three times (round 35 a, 1.5 s), once
+     * as it drops below 50 % and once below 25 % (the {@code ally-below} events), under the radio's line.
+     */
+    INTEGRITY_ALARM("sfx/integrity-alarm-r35-a.ogg", 1, Bus.EFFECTS, WARNING),
+    /** M5 part G: the relay destroyed, a power-down over a blast and collapsing metal (round 35 a, 3.7 s). */
+    RELAY_DESTROYED("sfx/relay-destroyed-r35-a.ogg", 1, Bus.EFFECTS, BOSS),
+    /** M5 part G: a supply drone lifting off the relay's helipad, rotors spinning up and receding (round 35 a, 2.2 s). */
+    DRONE_LAUNCH("sfx/drone-launch-r35-a.ogg", 1, Bus.EFFECTS, PICKUP),
+    /**
+     * M5 part G: grid online, a chain of breakers closing into a bright chord (round 35 a, 2.6 s), as the
+     * relay's lights come on in sequence when the synchronisation completes.
+     */
+    GRID_ONLINE("sfx/grid-online-r35-a.ogg", 1, Bus.EFFECTS, WARNING),
+    /**
+     * M5 part H, Level 14's root burst (round 36 a, provisional until the round closes): the paving
+     * under stress through the 1 s telegraph, then the root breaking out at 1.0 s (2.1 s), from the
+     * burst's telegraph event.
+     */
+    ROOT_BURST("sfx/root-burst-r36-a.ogg", 2, Bus.EFFECTS, WARNING),
+    /** M5 part H: a burst's growths growing in, a stretching creak set with a dull knock at 1.45 s (round 36 a, one proposal). */
+    ROOT_GROWTH("sfx/root-growth-r36-a.ogg", 2, Bus.EFFECTS, ENEMY_FIRE),
+    /**
+     * M5 part H: the Siege Spire tearing free at phase 3's lift, the ground ripping, roots snapping and
+     * the shockwave at 0.35 s under a deep roar (round 36 a, 3.4 s).
+     */
+    TEAR_FREE_ROAR("sfx/tear-free-roar-r36-a.ogg", 1, Bus.EFFECTS, BOSS),
+    /**
+     * M5 part H: the canopy withering after the Spire's death, a dry crackle spreading over the city and
+     * the membrane tearing far above, settling into a soft wind (round 36 a, 7.0 s).
+     */
+    CANOPY_WITHERING("sfx/canopy-withering-r36-a.ogg", 1, Bus.EFFECTS, BOSS),
     /** A tow's cable snapping as its pod falls free: Level 07's lifeboat (round 25 a, a chain snap). */
     CABLE_SNAP("sfx/secret-cable-snap-r25-a.ogg", 1, Bus.EFFECTS, EXPLOSION),
     /** The Airstrike's jets flyby (round 08 a), as the bombers enter. */
@@ -256,6 +315,23 @@ public enum Sfx {
      * brought forward from part E), then Level 11.
      */
     AMBIENCE_OCEAN("sfx/ambience-ocean-r08-a.ogg", 1, Bus.EFFECTS, AMBIENCE),
+    /**
+     * M5 part F: the Earth ocean storm's rain-only bed (user decision F6 = a; round 34 a, provisional:
+     * the CC0 source of round 08's chosen storm ambience after its thunder, a seamless 10 s loop), so
+     * the thunder can follow the lightning: Level 12 but in the eye.
+     */
+    AMBIENCE_STORM("sfx/ambience-storm-rain-r34-a.ogg", 1, Bus.EFFECTS, AMBIENCE),
+    /**
+     * M5 part G: the Earth arctic ambience (round 08 a, chosen: cold wind over the pack ice, CC0), looped:
+     * Level 13, about 3 dB louder in the whiteout ({@link LevelMusic#ambienceLevels}).
+     */
+    AMBIENCE_ARCTIC("sfx/ambience-arctic-r08-a.ogg", 1, Bus.EFFECTS, AMBIENCE),
+    /**
+     * M5 part H: the Vrell canopy's hum over Geneva (round 36 a, one proposal: a seamless 8 s loop, 3 dB
+     * under the megacity's bed), Level 14's ambience instead of the megacity's sirens until the Siege
+     * Spire dies; then the megacity's own ambience comes back ({@link #afterBoss}).
+     */
+    AMBIENCE_CANOPY("sfx/canopy-hum-r36-a.ogg", 1, Bus.EFFECTS, AMBIENCE),
     /** The mission complete jingle (design/audio/music, track 23), played as a one-shot. */
     MISSION_COMPLETE("music/mission-complete.ogg", 1, Bus.MUSIC, WARNING),
     /** The music's failure sting (design/audio/music, track 25), played over the cut music. */
@@ -339,8 +415,20 @@ public enum Sfx {
             case "luna" -> AMBIENCE_LUNA;
             case "earth-megacity" -> AMBIENCE_CITY;
             case "earth-ocean" -> AMBIENCE_OCEAN;
+            case "earth-storm" -> AMBIENCE_STORM;
+            case "earth-arctic" -> AMBIENCE_ARCTIC;
+            case "earth-canopy" -> AMBIENCE_CANOPY;
             default -> throw new IllegalArgumentException("no ambience for " + setting + " yet");
         };
+    }
+
+    /**
+     * M5 part H: the ambience that takes over from {@code ambience} when the level's boss dies, or null
+     * when it plays on: the canopy's hum dies with the Siege Spire and the megacity's own ambience comes
+     * back (Level 14's daylight).
+     */
+    public static Sfx afterBoss(Sfx ambience) {
+        return ambience == AMBIENCE_CANOPY ? AMBIENCE_CITY : null;
     }
 
     /**

@@ -3,7 +3,7 @@ title: Enemies
 design: approved
 implementation: in-progress
 art: chosen
-updated: 2026-10-08
+updated: 2026-10-12
 ---
 
 # Enemies
@@ -144,6 +144,25 @@ most one on screen, announced by radio, with a bounty close to a mid-boss.
 - **Hits and collision:** only parts on the player's layer collide. A part flashes when hit; an
   armoured part flashes grey so players learn where not to shoot.
 
+### Boss attacks and root bursts
+
+Planned (M5 part H, decisions H2 and H5 = a, pending the user's review; the schema is in
+[architecture](../tech/architecture/README.md#data-file-schemas)):
+
+- **Boss `lob`.** The enemy `mortar` attack with a part as its origin (the Polyp Mortar's lob
+  generalised): the impact marker shows on the ground layer for 1.0 s, then a ring of 10 bullets
+  (hard 12), every 4 s per mortar root. Used by the [Siege Spire](bosses/siege-spire/README.md).
+- **Boss `sweep`.** The `laser-sweep` geometry of the Mantis with a part as its origin: a 120° arc
+  (hard 180°), shown for 0.6 s, then a `laser` beam of 8 once per sweep, every 5 s, with `ring`s
+  between. Used by the airborne Siege Spire.
+- **Root burst entry.** A level's `root_bursts` place ground units at a point of the screen
+  instead of the top edge: the paving cracks and dust rises for the 1.0 s telegraph, then the
+  growths (a [Spine Turret](ground/spine-turret/README.md) and a
+  [Polyp Mortar](ground/polyp-mortar/README.md) per burst) stand there and scroll with the
+  ground from then on. A growth is invulnerable and silent while it grows and fires first
+  1.5 s (hard 1.0 s) after it appeared; a burst lies 100–400 px below the top edge and never
+  within 60 px of the ship's x at the telegraph; it has no hit and no collision.
+
 ### Orientation and rotation
 
 The first enemies all have a clear nose and tail and only work flying down the screen. Enemies
@@ -232,14 +251,14 @@ that move in any direction must read from any angle:
 | `circle` | Units orbiting a point, then breaking off. |
 | `grid` | A block of units that holds and shifts sideways (a nod to classic arcades). |
 | `wall` | A full-width line with one or two gaps to fly through. |
-| `cross` | Groups from all four edges converging. |
+| `cross` | Groups from all four edges converging, n per edge, each unit on its own lane, entering together and warned on every edge (M5 part G, Level 13). |
 | `carrier + escorts` | A large unit (often `spawn`) with escorts in `orbit`. |
 | `turret nest` | 3–6 ground turrets in a cluster with overlapping fire. |
 | `convoy` | Ground or naval units in a column along a road, river or lane. |
 | `pack` | 3–5 walkers entering together, each on its own ground path, 0.25 s apart (the Ravager). |
 | `submerged ambush` | `sub` units that surface together around the player (Act 4: no Act 2 level uses it). |
 | `field` | Units scattered over an area that enters with the sea (scroll factor 1, surfaced or submerged) and drifts on the wave's current: a Driftjelly field of 6–12 (M5 part E). |
-| `swarm` | A loose cloud of 6–24 units with flocking behaviour round a leader point that flies an authored route, from the top or the bottom edge, often looping back from below (the Mote Swarm, M5 part D). |
+| `swarm` | A loose cloud of 6–24 units with flocking behaviour round a leader point that flies an authored route, from the top or the bottom edge, often looping back from below (the Mote Swarm, M5 part D). Planned (M5 part F): a swarm of chasers (the Lamprey, 3–6) is a cloud at its entry edge (front, sides or rear) whose members each start their own chase after a seeded 0–0.6 s delay, without flocking. |
 | `solo set piece` | One huge unit on its own, announced by radio (at most one per level). |
 | `whirl cluster` | A burst of 5–8 tiny spinners released from one point, spiralling outward and ricocheting. |
 <!-- /data -->
@@ -266,7 +285,7 @@ Current coverage (✓ = passes):
 | Act | Size tiers | Multi-part | Walker / ground mover | Spinner / radial | Non-front entry | Insectoid share | Pass |
 |---|---|---|---|---|---|---|---|
 | 1 First Contact | tiny, small, medium, large, huge | Coilwyrm (L06), Leviathan (L03), Gorgon Frigate (L05), Brood Carrier (L07) | Scuttler (L04) | Whirl Seed (L03) | Mantis sides (L06, L07), Coilwyrm rear loops (L06), Brood Pod Skitter bursts | 3 of 14 (Skitter, Stinger, Mantis); the 14 used in L01–L07: Skitter, Needler, Stinger, Spine Turret, Spore Bomber, Whirl Seed, Leviathan, Brood Pod, Scuttler, Polyp Mortar, Gorgon Frigate, Coilwyrm, Mantis, Brood Carrier | ✓ |
-| 2 Homefront | tiny, small, medium, large, huge | Harbour Kraken (L11), Siege Spire (L14) | Creeper (L08), Ravager packs (L09, L14), Scuttler returns (L13) | Whirl Seed returns (L12) | Wraith and Mote Swarm rear (L10), Mantis sides (L12, L13), Skimmers from all edges (L13), maw Wraiths (L14) | 5 of 20 (Skitter, Stinger, Creeper, Wraith, Mantis); the 20 used in L08–L14: Needler, Skitter, Stinger, Spine Turret, Polyp Mortar, Creeper, Hive Node, Ravager, Mote Swarm, Wraith, Driftjelly, Reef Spitter, Harbour Kraken, Lamprey, Mantis, Spore Bomber, Whirl Seed, Scuttler, Skimmer, Siege Spire | ✓ |
+| 2 Homefront | tiny, small, medium, huge (as built: no `large` unit) | Harbour Kraken (L11), Siege Spire (L14) | Creeper (L08), Ravager packs (L09, L14), Scuttler returns (L13) | Whirl Seed returns (L12) | Wraith and Mote Swarm rear (L10), Mantis sides (L12, L13), Skimmers from all edges (L13), maw Wraiths (L14) | 5 of 20 (Skitter, Stinger, Creeper, Wraith, Mantis); the 20 used in L08–L14: Needler, Skitter, Stinger, Spine Turret, Polyp Mortar, Creeper, Hive Node, Ravager, Mote Swarm, Wraith, Driftjelly, Reef Spitter, Harbour Kraken, Lamprey, Mantis, Spore Bomber, Whirl Seed, Scuttler, Skimmer, Siege Spire | ✓ |
 | 3 Red Dust | tiny, small, medium, large, huge | Threadcrawler, Revenant Walker, Dust Colossus | Burrower, Threadcrawler, Shellback (L17), Warden Tank | Dust Devil (L18) | L19 rear, L20 reverse scroll, L21 breaches | 3 of 11 (Burrower, Choir Herald, Threadcrawler) | ✓ |
 | 4 Deep Water | small, medium, large, huge | Eel Swarm, Abyssal Maw | Scuttler on the sea floor (L24) | Spiral Nautilus (L25) | Siren side caves, L27 rear | 0 of 10 | ✓ |
 | 5 The Belt | tiny, small, medium, large, huge | Rail Serpent, Shard Drone links, Iron Sovereign | Strider (L32), Crawler Tank (L34) | Buzzsaw Drone (L31), Sovereign rings | Minelayer and Rail Serpent rear (L30), Void Leech rear | 1 of 15 (Asteroid Mite) | ✓ |
@@ -274,7 +293,10 @@ Current coverage (✓ = passes):
 | 7 Beyond the Gate | tiny, small, medium, large, huge | Leviathan and Coilwyrm return, Choir Heart | Threadcrawler returns (L45) | Whirl Seed returns (L45) | all-direction levels (L44, L46–50) | 3 of 10 (Rift Skater, Choir Seraph, Threadcrawler) | ✓ |
 
 When a level's waves are written, keep the act passing; the check is repeated when levels are
-promoted to draft. Acts 1 and 2 were rechecked against their level documents on 2026-10-01.
+promoted to draft. Acts 1 and 2 were rechecked against their level documents on 2026-10-01; Act 2
+was checked as built against Levels 08–14's data on 2026-10-12 (M5 part I): the 20 units of the
+row, all three-plus tiers, both multi-part bosses, three walkers, the Whirl Seed, rear, side and
+all-edge entries, 5 of 20 insectoid.
 
 ### Layer rules
 
@@ -450,6 +472,20 @@ which mode. Units without it ignore the objective.
 - Telegraphs still apply (mortar impact markers on the objective, edge warnings).
 - Difficulty: a level may drop the hook on easy (e.g. divers go back to the player) or add
   units to it on hard.
+- **Exact rules of the three modes (M5 part G, decision G1 = a, pending the user's review; the
+  bullets still hurt the ship, so the player can body-block).** `alternate`: each unit counts its
+  attacks; every second one goes at the objective while it is closer than the player; a hard
+  2-shot burst is one attack. `in-arc`: while the objective lies within ±45° of the unit's facing
+  (its armour's arc), the unit's fan is centred on it and aimed at it, otherwise it fires as
+  usual; a spit stays on the ship. `always`: a diver dives at the objective's centre, its fan is
+  centred on it, and crossing the objective's footprint deals the ally's diver hit once (the
+  diver then flies on and stays shootable); a mortar lobs at it (the marker on it, the direct hit
+  `heavy` on the objective, the ring hurts only the ship). What each unit does to the relay is
+  written once, in Level 13's
+  [What hurts the relay](../campaign/act-2-homefront/level-13-polar-relay/README.md#what-hurts-the-relay-the-hook-modes-g1--a).
+- **Who is hooked.** The level's `targeted_by` names kinds, never waves of popcorn: the small
+  popcorn kinds (Skitter, Needler) and the Mantis are never hooked. In Level 13 the Stingers are
+  hooked on medium and hard only (**easy: unhooked**, they go back to the ship).
 
 ## Concept art
 
@@ -504,19 +540,32 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
 - [x] Data-driven enemy definitions using the stat block fields.
 - [x] Movement patterns from the vocabulary implemented as reusable behaviours: those the Act 1
       units fly (their stat blocks and Levels 01–07; `EnemySpec`, `FlightPath`, `Formations`).
-- [ ] The other movement patterns with the first unit that flies each — **later: M5** (the Act 2
-      units) and **later: Act 3** to Act 7 (e.g. `burrow`, `latch`, `teleport`, `mirror`).
+- [x] The Act 2 units' movement patterns with the first unit that flies each (M5 parts B–H): the
+      Creeper's crawl, the Ravager's pounce, the Wraith's cloak, loop and rear entry, the Mote
+      Swarm's flock, the Driftjelly's and the rafts' drift, the Kraken's surfacing, the Lamprey's
+      chase and latch, the Skimmer's lanes, the Spire's lift (`CreeperTest`, `RavagerPounceTest`,
+      `WraithTest`, `FlockTest`, `DriftjellyTest`, `ReefSpitterTest`, `SlamArenaTest`,
+      `LampreyTest`, `SkimmerTest`, `SpireLiftTest`).
+- [ ] The other movement patterns with the first unit that flies each — **later: Act 3** to Act 7
+      (e.g. `burrow`, `teleport`, `mirror`).
 - [x] Attack patterns from the vocabulary implemented as reusable emitters: those the Act 1 units
       and bosses use (`aimed`, `burst`, `fan`, `ring`, `spiral`, `laser-sweep`, `mine`, `mortar`,
       `spawn`, `death-burst`, `none`; `EnemyGun`, `Lob`, `Mine`).
-- [ ] The other attack patterns with the first unit that uses each — **later: M5** (the Act 2
-      units) and **later: Act 3** to Act 7 (e.g. `laser-line`, `link`, `aura`, `drain`, `reflect`).
+- [x] The Act 2 units' attack patterns with the first unit that uses each (M5 parts C–H): the Hive
+      Node's periodic `spawn`, the Driftjelly's proximity `ring`, the Kraken's lane slams, the
+      Lamprey's `drain`, the Siege Spire's `lob`, `sweep` and maw launches (`HiveNodeTest`,
+      `DriftjellyTest`, `SlamArenaTest`, `LampreyTest`, `BossLobTest`, `BossSweepTest`,
+      `MawLaunchTest`).
+- [ ] The other attack patterns with the first unit that uses each — **later: Act 3** to Act 7
+      (e.g. `laser-line`, `link`, `aura`, `reflect`).
 - [x] Formation spawner that places enemies by formation name and entry edge (`Formations`): the
       Act 1 formations (single, V-wing, line abreast, column, snake, stream, pincer, circle,
       whirl cluster, carrier + escorts, convoy, the walkers' paths and the chains' paths).
-- [ ] The other formations with the first level that uses each — **later: M5** (`field`, part E:
-      built in step E2b)
-      and the acts after it (`submerged ambush` — **later: Act 4**).
+- [x] The Act 2 formations with the first level that uses each (M5 parts C–G): `pack` (L09),
+      `swarm` and `rear ambush` (L10), `field` (L11), `cross` (L13) (`PackFormationTest`,
+      `PartDFormationsTest`, `DriftjellyTest`, `CrossTest`).
+- [ ] The other formations with the first level that uses each — **later: Act 3** to Act 7
+      (`submerged ambush` — **later: Act 4**).
 - [x] M5 part E (Level 11): the `sub` layer and its hit rules (E2 = a: only `anti-sub` and the
       Smart Bomb; no contact; homing shots, turrets, landing blasts, mines, the Airstrike and Rook
       skipping it) — step E2a (`SubLayerTest`).
@@ -528,15 +577,17 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
       built in step E2b: the swap, `field`, the raft's drift and the proximity ring
       (`DriftjellyTest`, `ReefSpitterTest`); in step E2c the arena boss: anchored, its parts' own
       layers, its slam lanes, surfacing and weak spots (`SlamArenaTest`, `KrakenTest`).
-- [ ] M5 part D (Level 10): the `swarm` formation with the `flock` movement (a leader point on an
+- [x] M5 part D (Level 10): the `swarm` formation with the `flock` movement (a leader point on an
       authored route, boids round it, loop-backs warned 3 s ahead of the re-entry; the Mote Swarm),
       the `rear ambush` formation (2–4 across the bottom edge; a cloaked unit enters at the top and
       is warned ahead of its re-entry; the Wraith), a cloak (`high-air` until a decloak, then `air`,
-      the per-unit current layer of part C) and authored `paths` on a snake.
-- [ ] M5 part C (Level 09): the `pack` formation (one path per walker, 0.25 s apart), hardened
+      the per-unit current layer of part C) and authored `paths` on a snake (`FlockTest`,
+      `PartDFormationsTest`, `WraithTest`).
+- [x] M5 part C (Level 09): the `pack` formation (one path per walker, 0.25 s apart), hardened
       enemies (`armour: hardened` flown: the glance, homing shots and Rook skipping them), a
       periodic `spawn` on a ground unit (the Hive Node), a per-unit current layer (the Ravager's
-      pounce, `air` for its middle 0.3 s) read at every hit, contact and targeting site.
+      pounce, `air` for its middle 0.3 s) read at every hit, contact and targeting site
+      (`PackFormationTest`, `HardenedEnemyTest`, `HiveNodeTest`, `RavagerPounceTest`).
 - [x] Layer rules for hit detection and collision on `ground`, `low-air`, `air` and `high-air`: what each weapon delivery reaches, hardened ground targets, contact on the player's layer.
 - [x] The `sub` layer — M5 part E (Level 11, step E2a; appended to the layers so the existing
       ordinals and replay hashes stay; its hit rules in `SubLayerTest`).
@@ -552,8 +603,11 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
       `tools/balance.py` prints the returning units' HP and time to kill at Levels 08–14)
 - [x] Target-the-objective hook: per-level unit/wave configuration, mode `nearest` (Level 04's
       convoy; `LevelScript`, `EnemyBullet`).
-- [ ] The modes `alternate`, `in-arc` and `always` — **later: M5** (Level 13, the first level that
-      uses them).
+- [x] The modes `alternate`, `in-arc` and `always` (M5 part G, Level 13, the first level that uses
+      them): the exact rules above, the per-kind and per-difficulty `targeted_by` and the `cross`
+      formation (`HookModesTest`, `CrossTest`, `Level13Test`).
+- [x] Root bursts, the boss `lob` and `sweep` and the Wraith's maw launches (M5 part H; `RootBurstTest`,
+      `BossLobTest`, `BossSweepTest`, `MawLaunchTest`, `Level14Test`).
 - [x] Multi-part enemies: segment chains following the head's path history, articulated parts,
       per-part HP and destroyable/armoured/vital parts, chain splitting (the Coilwyrm's `Chain`, the
       Gorgon Frigate's necks, the Leviathan's and the Brood Carrier's parts).
@@ -562,7 +616,9 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
 - [x] Angle-set sprites (16/32 angles, nearest frame) and radial spinners (16 for the Skitter and
       the needle, 32 for turrets, 48 for the Coilwyrm; the Whirl Seed spinning; `EnemyLooks`).
 - [x] Act 1 passes the variety checklist (as built: [act 1](../campaign/act-1-first-contact/README.md#enemy-use-per-level)).
-- [ ] Acts 2–7 pass it as built — **later: M5** (Act 2) and **later: Act 3** to Act 7.
+- [x] Act 2 passes the variety checklist as built (M5 part I, 2026-10-12, from Levels 08–14's
+      data: the table's row above; tiny, small, medium and huge, no `large` unit).
+- [ ] Acts 3–7 pass it as built — **later: Act 3** to Act 7.
 
 ## Open questions
 
@@ -706,3 +762,8 @@ Production art for concept round 26 (the M4 part H batch), review files built fr
   boss-bounty conversion restated with the level's `bounty_scale` (the Kraken's ≈ 207 paid). The
   Driftjelly's, Reef Spitter's and Harbour Kraken's new keys are planned in the
   [schemas](../tech/architecture/README.md#data-file-schemas).
+- 2026-10-12: M5 part I (close-out): Act 2 checked against the variety checklist as built, from
+  Levels 08–14's data: it passes. Correction: Act 2 has no `large` unit as built (the Kraken and the
+  Siege Spire are `huge`), so its tiers are tiny, small, medium and huge (still at least three,
+  with tiny and huge). The Act 2 movement patterns, attack patterns, formations and hook modes
+  ticked with their tests; the remaining items of those kinds retagged to Acts 3–7.

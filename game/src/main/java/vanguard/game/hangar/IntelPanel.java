@@ -319,6 +319,17 @@ final class IntelPanel {
         canvas.text("WAVES", Glass.LABEL, INNER, y, false);
         int width = RIGHT - VALUE_X;
         canvas.inset(VALUE_X - 2, y - 2, width + 4, 12);
+        // M5 part G: a defend level's phases as dim bands under the waves (a pixel apart, so the three read
+        // as three), its whiteout as a pale band over them.
+        for (Intel.Mark mark : intel.marks()) {
+            float left = (float) (VALUE_X + width * mark.from() / intel.seconds());
+            float right = (float) (VALUE_X + width * mark.to() / intel.seconds());
+            if (mark.hazard()) {
+                canvas.fill(Glass.TRIM_LIGHT, left, y + 7, right - left, 2);
+            } else {
+                canvas.fill(Glass.TRIM, left + 1, y - 1, right - left - 2, 10);
+            }
+        }
         for (double t : intel.waves()) {
             canvas.fill(Glass.AMBER, (float) (VALUE_X + width * t / intel.seconds()), y, 2, 8);
         }

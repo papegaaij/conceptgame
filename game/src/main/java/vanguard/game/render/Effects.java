@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.utils.Array;
+import vanguard.sim.SimStep;
 
 /**
  * Short animations at fixed play-field positions, started by simulation events and advanced with
@@ -12,7 +13,8 @@ import com.badlogic.gdx.utils.Array;
  * impact sparks, a Vrell's spore cloud) or solid ones (debris of a destroyed ground target, a flyer's
  * membrane tatters); an animation can be drawn scaled and faded, as a set piece off the play plane.
  * An animation started on the ground (a ground unit's death, a bomb's blast, a wreck's debris) moves
- * with the ground's scroll, so it stays on what it marks; the others keep their play-field position.
+ * with the ground's scroll, so it stays on what it marks (and with what carried it, when that drifted:
+ * a wreck on Level 13's mortar floe); the others keep their play-field position.
  * Pure presentation: they are not part of the game state. All instances exist up front.
  */
 public final class Effects {
@@ -27,6 +29,10 @@ public final class Effects {
         double y;
 
         boolean onGround;
+        /** M5 part G: its drift on top of the ground's scroll, px per step (remains on a drifting floe). */
+        float driftX;
+
+        float driftY;
         float scale;
         float opacity;
     }
@@ -85,7 +91,31 @@ public final class Effects {
         start(frames, ticksPerFrame, x, y + groundScroll, delayTicks, 1, 1, true);
     }
 
-    private void start(
+    /**
+     * M5 part G: as {@link #startOnGround(Array, int, double, double, int, double)}, on something that
+     * drifts on top of the ground's scroll (Level 13's mortar floe): it drifts on with it.
+     *
+     * @param driftX the drift across, px/s (positive to the right)
+     * @param driftY the drift up, px/s
+     */
+    public void startOnGround(
+            Array<AtlasRegion> frames,
+            int ticksPerFrame,
+            double x,
+            double y,
+            int delayTicks,
+            double groundScroll,
+            double driftX,
+            double driftY) {
+        Effect effect = start(frames, ticksPerFrame, x, y + groundScroll, delayTicks, 1, 1, true);
+        if (effect != null) {
+            effect.driftX = (float) (driftX * SimStep.SECONDS);
+            effect.driftY = (float) (driftY * SimStep.SECONDS);
+        }
+    }
+
+    /** The started animation, or null when all are in use. */
+    private Effect start(
             Array<AtlasRegion> frames,
             int ticksPerFrame,
             double x,
@@ -104,7 +134,11 @@ public final class Effects {
             effect.scale = scale;
             effect.opacity = opacity;
             effect.onGround = onGround;
+            effect.driftX = 0;
+            effect.driftY = 0;
+            return effect;
         }
+        return null;
     }
 
     /** Advances every animation by one simulation step and drops the finished ones. */
@@ -130,7 +164,18 @@ public final class Effects {
     /** Where the {@code i}th running animation's centre is drawn, in play-field y, at that ground scroll. */
     double y(int i, double groundScroll) {
         Effect effect = effects[i];
-        return effect.onGround ? effect.y - groundScroll : effect.y;
+        return (effect.onGround ? effect.y - groundScroll : effect.y) + effect.driftY * drifted(effect);
+    }
+
+    /** Where the {@code i}th running animation's centre is drawn across, in play-field x. */
+    double x(int i) {
+        Effect effect = effects[i];
+        return effect.x + effect.driftX * drifted(effect);
+    }
+
+    /** The steps it has drifted for: since it showed (a delayed one waits where it starts). */
+    private static int drifted(Effect effect) {
+        return Math.max(0, effect.age);
     }
 
     /**
@@ -149,7 +194,7 @@ public final class Effects {
             AtlasRegion frame = effect.frames.get(effect.age / effect.ticksPerFrame);
             float width = frame.getRegionWidth();
             float height = frame.getRegionHeight();
-            float left = Math.round(PixelScreen.PLAY_FIELD_X + effect.x - width / 2);
+            float left = Math.round(PixelScreen.PLAY_FIELD_X + x(i) - width / 2);
             float bottom = Math.round(y(i, groundScroll) - height / 2);
             if (effect.scale == 1 && effect.opacity == 1) {
                 batch.draw(frame, left, bottom);

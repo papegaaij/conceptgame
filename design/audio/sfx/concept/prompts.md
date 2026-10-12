@@ -1289,3 +1289,218 @@ animal's long groan; churning water (the jet, 6 dB under) around the sinking hea
 user's listening); a low synthesized rumble holding it together.
 Edit: 5.20 s, levelled to −17 dB, ceiling −3 dBFS (peak −3.4 dBFS, band −17.1 dB, −16.1 LUFS); 48 %
 below 200 Hz. A plateau at −16 dBFS from 0.5 to 3 s, then falling to −36 at 4.8 s.
+
+## Round 34 — Level 12's storm and the Lamprey
+
+Brief (M5 part F, step F2; user decisions F6 = a and F8 = a): the storm's thunder as one-shots
+synced with the lightning (2–3 variants per proposal; the game plays variant *flash index mod 3*
+0.3–1.5 s after each flash), the gust that rises with each gust's 1.0 s telegraph (wind from the
+left), the Lamprey's latch and its drain loop a/b; the shake-off and the sonde chime one proposal each;
+and a rain-only bed cut from the chosen storm bed's own source so the thunder can follow the flashes
+(the chosen `ambience-storm-r08-a` kept). All from `tools/concept/audio/sfx_r34.py`, deterministic,
+from the **Freesound originals** already cached for earlier rounds (every source is in CREDITS.md
+already; the CC-BY ones are on the credits roll) plus synthesized layers. No bubble or popping
+recordings (the user's round-33 note). Levels as the loudest 100 ms of the 200 Hz–5 kHz band against
+the existing set (the script's header); not listened to by Claude: checked by envelopes, band balance,
+levels and, for the loops, the seam.
+
+### thunder-{1,2,3}-r34-a — "Rain and Thunder 4" by FlatHill + a synthesized sub rumble
+Source: <https://freesound.org/people/FlatHill/sounds/237729/> — CC0 1.0 (the chosen storm bed's
+source). Use: thunder after a lightning flash, look a "the storm's own thunder".
+Why: The recording's one big clap and roll (2.3–8.8 s) and two later distant rolls (12.0 and 17.6 s)
+are the thunder the player already hears in the chosen bed, so the synced one-shots match the rain bed
+cut from the same take. Low-passed at 1.8 kHz (the rain's hiss stays in the bed), a soft synthesized
+sub rumble 9 dB under for weight. No crack: a heavy, distant roll.
+Edit: 1 6.5 s at −14 dB (−14.4 LUFS); 2 3.6 s at −16 dB, panned right (−20.4 LUFS); 3 3.6 s at −19 dB
+(its roll is nearly all below 200 Hz: −16.3 LUFS); ceiling −1.5 dBFS.
+
+### thunder-{1,2,3}-r34-b — "Closeup Thunder Strike 01" by loganzsound + a synthesized sub rumble
+Source: <https://freesound.org/people/loganzsound/sounds/840628/> — CC0 1.0 (the lance's crack in
+round 32). Use: thunder after a lightning flash, look b "close strikes".
+Why: A close strike's sharp crack and long roll reads as lightning right over the convoy lane; three
+speeds (1.0, 0.86, 0.74) move it from near to far, with a pan each and a sub rumble 8 dB under.
+Edit: 1 7.0 s at −14 dB; 2 6.0 s at −16 dB; 3 5.5 s at −17 dB; ceiling −1.5 dBFS. The crack sets the
+level, so the roll after it is quieter than look a's (−22 to −23 LUFS against −14 to −20).
+
+### gust-r34-a — synthesized
+Source: none. Use: a wind gust (`GUST` telegraph; it starts with the 1.0 s telegraph).
+Why: Two bands of noise whose centres wander with a slow random flutter, a hollow howl (a narrow band
+near 600 Hz gliding up with the gust), rising over the telegraph, holding 2.0 s, falling; panned from
+the left (upwind) to the right.
+Edit: 3.6 s, −19 dB, ceiling −4 dBFS (peak −4.2, −15.6 LUFS); no energy below 200 Hz.
+
+### gust-r34-b — "Wind__Artic__Cold.wav" by cobratronik + a synthesized rumble
+Source: <https://freesound.org/people/cobratronik/sounds/117136/> — CC0 1.0 (the arctic ambience's
+source). Use: as gust a.
+Why: A real wind's buffeting from its loudest stretch (14.6 s), in gust a's envelope and pan, a low
+rumble 10 dB under.
+Edit: 3.6 s, −19 dB, ceiling −4 dBFS (peak −5.1, −19.0 LUFS).
+
+### lamprey-latch-r34-a — "Slime Attack 1" by qubodup + "rip_tear FLESH!!!!.wav" by aust_paul + synthesis
+Source: <https://freesound.org/people/qubodup/sounds/751338/> and
+<https://freesound.org/people/aust_paul/sounds/30928/> — CC0 1.0. Use: `LAMPREY_LATCHED`.
+Why: "Suck and bite": a synthesized inhaling rush (band noise 3.2 → 0.7 kHz, swelling and cut off by
+the bite, no pop), the wet slime attack slowed 15 % as the bite at 0.16 s, the flesh tear 7 dB under
+as teeth grinding in, a small thump.
+Edit: 0.67 s, −16.7 dB, ceiling −2 dBFS (−15.0 LUFS). The bite is 0.16 s into the file: start it that
+much before the latch for a tight sync, or at the latch (the rush then trails the touch).
+
+### lamprey-latch-r34-b — "Wet Splat" by JustInvoke + "slightmetallicthud.mp3" by profoundsounds + "rip_tear FLESH!!!!.wav" by aust_paul + synthesis
+Source: <https://freesound.org/people/JustInvoke/sounds/446115/> (CC-BY 4.0, on the credits roll),
+<https://freesound.org/people/profoundsounds/sounds/686282/> and
+<https://freesound.org/people/aust_paul/sounds/30928/> (CC0 1.0). Use: `LAMPREY_LATCHED`.
+Why: "Clamp on the hull": the bite lands at once — a wet splat on a metallic thud (the hull), the tear
+6 dB under as teeth gnawing in, a thump.
+Edit: 0.68 s, −17.5 dB, ceiling −2 dBFS (−13.9 LUFS); the impact at 0 s.
+
+### lamprey-drain-r34-a — synthesized
+Source: none. Use: the drain loop while any Lamprey drains (stops at the break or the shake-off).
+Why: A 55 Hz electric hum (saw partials) through a low-pass that opens with each 0.4 s gulp (latch
+look a's swallow at 10 fps), sparse electric crackle and a faint 1.1 kHz whine. Every frequency has a
+whole number of cycles in the loop; built over three periods, the middle kept.
+Edit: seamless 2.4 s loop (`LOOPSTART`/`LOOPLENGTH` tags), −22 dB, ceiling −6 dBFS (−16.9 LUFS);
+76 % of the energy below 200 Hz; the seam's jump 0.7 × the median sample step.
+
+### lamprey-drain-r34-b — "SonicDeathRay_1.2KHzWithCrackle.wav" by zimbot + a synthesized sub
+Source: <https://freesound.org/people/zimbot/sounds/177099/> — CC-BY 4.0 (on the credits roll, the
+Mantis sweep's source). Use: as drain a.
+Why: The ray's crackling tone slowed to 0.45 (≈ 540 Hz) and band-limited (150 Hz–3.2 kHz) is a
+siphoning whine; a 50 Hz sub swelling twice a loop under it.
+Edit: seamless 2.4 s loop (a 0.3 s cross-fade), −22 dB, ceiling −6 dBFS (−18.0 LUFS); the seam's jump
+1.8 × the median step.
+
+### lamprey-shake-r34-a — "Wet Splat" by JustInvoke + "inhuman screech.wav" by Wolfsinger + a synthesized whoosh
+Source: <https://freesound.org/people/JustInvoke/sounds/446115/> and
+<https://freesound.org/people/Wolfsinger/sounds/25713/> — CC-BY 4.0 (both on the credits roll). Use:
+`LAMPREY_SHAKEN`.
+Why: A wet slap (10 % faster) as it is torn off, the screech sped up 35 % and cut to 0.6 s as its
+squeal, panned away to the left, and a whoosh falling 2.6 → 0.6 kHz as it is thrown.
+Edit: 0.82 s, −13.5 dB, ceiling −2 dBFS (−12.1 LUFS; −17 dB and −16.1 LUFS until 2026-10-12, raised
+3.5 dB because it was marginal in Level 12's busy mix: step G8, pending the user's review).
+
+### sonde-chime-r34-a — synthesized
+Source: none. Use: `SONDE_COLLECTED`.
+Why: A weather sonde's telemetry: three soft square blips rising (2.4, 2.8, 3.2 kHz, 28 ms, 40 ms
+apart), then two bright bell tones (E6 at 0.13 s, B6 at 0.22 s; inharmonic partials 1, 2.76, 5.4,
+8.93 decaying fast to slow).
+Edit: 0.95 s, −16 dB, ceiling −4 dBFS (−13.4 LUFS), like the pickups (−15 to −17).
+
+### ambience-storm-rain-r34-a — "Rain and Thunder 4" by FlatHill
+Source: <https://freesound.org/people/FlatHill/sounds/237729/> — CC0 1.0 (the chosen bed's source).
+Use: the `earth-storm` bed of Level 12 (sections 1–4 and 6), the thunder now played as the one-shots
+above.
+Why: The take's last 11.9 s (from 21.0 s) are rain after its thunder has rolled away; a 90 Hz
+high-pass removes the faint far rumble left in it.
+Edit: seamless 10.0 s loop from 21.0 s with a 1.5 s equal-power cross-fade (import_sfx.py's
+`make_loop`), normalised as round 08's ambiences (200 Hz–5 kHz band RMS −36 dB, peak ceiling −10 dBFS:
+the ceiling holds it at −38.8 dB); −32.1 LUFS; the seam's jump 0.2 × the median step. The same rain
+is at −51 to −55 dB inside the chosen bed (whose normalisation its thunder set): this bed is the rain
+~14 dB louder, at the other ambiences' level (the ocean's).
+
+## Round 35 — Level 13's relay and the supply drone
+
+Brief (M5 part G, step G2; decision G9 = a, pending the user's review): a/b for the relay hit (every
+relay-aimed hit, so short), the integrity alarm (once at 50 %, once at 25 %, under Nansen's or Okafor's
+line) and grid online (t=220, the lights coming on in sequence, after the mid-level jingle); one
+proposal each for the supply drone's launch and the relay destroyed (a power-down; the mission fails on
+it). All from `tools/concept/audio/sfx_r35.py`, deterministic, from **Freesound originals** already
+cached and credited for earlier rounds (all CC0) plus synthesized layers. No bubble or popping
+recordings. Levels as the loudest 100 ms of the 200 Hz–5 kHz band against the existing set (ship hit
+−18.3, edge warning −16, low-armour beep −20.3, overdrive −20); not listened to by Claude: checked by
+envelopes, band balance and levels.
+
+### relay-hit-r35-a — "Impact on metal" by JoMungus + "ELECTRIC_ZAP_001" by JoelAudio + a synthesized thump
+Source: <https://freesound.org/people/JoMungus/sounds/726486/> and
+<https://freesound.org/people/JoelAudio/sounds/136542/> — CC0 1.0. Use: a relay-aimed hit on the relay.
+Why: Struck plating: the impact cut to 0.55 s, a spark from the zap 8 dB under (high-passed at 900 Hz),
+a sub thump.
+Edit: 0.57 s, −19.1 dB, ceiling −3 dBFS (peak −4.4, −15.7 LUFS).
+
+### relay-hit-r35-b — "slightmetallicthud.mp3" by profoundsounds + synthesized glitch and thump
+Source: <https://freesound.org/people/profoundsounds/sounds/686282/> — CC0 1.0. Use: as a.
+Why: A dull thud with the relay's link glitching: a 0.9–2.1 kHz data chirp stepping every 30 ms,
+stuttered, bit-crushed to 5 bits and decaying.
+Edit: 0.45 s, −19.0 dB, ceiling −3 dBFS (peak −4.3, −16.9 LUFS).
+
+### integrity-alarm-r35-a — synthesized
+Source: none. Use: `ally-below` 0.5 and 0.25.
+Why: A station alert: a soft square alternating 988 / 740 Hz, 0.22 s a tone, three times, through a
+small speaker's band (450 Hz–3.5 kHz).
+Edit: 1.5 s, −16.9 dB, ceiling −3 dBFS (peak −12.2, −14.6 LUFS).
+
+### integrity-alarm-r35-b — synthesized
+Source: none. Use: as a.
+Why: Three rising whoops (a buzzy saw with an octave under it, 420 → 1050 Hz), 0.45 s apart.
+Edit: 1.5 s, −17.0 dB, ceiling −3 dBFS (peak −13.5, −15.5 LUFS).
+
+### grid-online-r35-a — synthesized
+Source: none. Use: grid online (t=220), with the lights sequence.
+Why: A breaker chain: five heavy breakers closing 0.2 s apart (a clunk and a click each, rising, panned
+left to right), a 50 Hz mains hum swelling up under them, an A-major chord (A4 C♯5 E5 A5) blooming at
+1.05 s.
+Edit: 2.6 s, −17.3 dB, ceiling −2 dBFS (peak −2.2, −18.7 LUFS).
+
+### grid-online-r35-b — "Machine Charge.wav" by Glitchedtones + synthesized clunk, whine and chord
+Source: <https://freesound.org/people/Glitchedtones/sounds/375925/> — CC0 1.0. Use: as a.
+Why: A spin-up: the recorded charge (from 0.25 s, 1.25 s) with a thin whine rising 300 → 1400 Hz under
+it, cut by a big contact clunk at 1.2 s, the chord 5 dB under.
+Edit: 2.6 s, −17.1 dB, ceiling −2 dBFS (peak −4.6, −17.8 LUFS).
+
+### drone-launch-r35-a — synthesized
+Source: none. Use: a supply drone lifting off the relay's helipad (t=160, t=200).
+Why: Four ducted rotors (soft pulses at the blade rate, slightly detuned so they beat) spinning up from
+40 to ~190 Hz in 0.5 s, a breath of downwash; then climbing away duller and quieter, panned centre →
+right → left over its arc.
+Edit: 2.2 s, −20.5 dB, ceiling −4 dBFS (peak −4.4, −19.4 LUFS).
+
+### relay-destroyed-r35-a — "Big Boom" by unfa + "Sounds For Earthquakes - Radiator Metal Rumbling.wav" by RutgerMuller + synthesized power-down and thump
+Source: <https://freesound.org/people/unfa/sounds/189779/> and
+<https://freesound.org/people/RutgerMuller/sounds/51097/> — CC0 1.0. Use: the relay destroyed
+(`mission-failed`), before Okafor's "Nansen is gone".
+Why: A power-down (a 60 Hz hum and a 1.3 kHz whine slowing to nothing over 2.4 s) under the blast at
+0.12 s, the radiator recording's loud metal crash at 0.55 s, a heavy thump.
+Edit: 3.7 s, −15.2 dB, ceiling −1.5 dBFS (peak −1.6, −15.0 LUFS; 75 % of the energy below 200 Hz).
+
+## Round 36 — Level 14's root field, the Siege Spire's tear-free and the canopy
+
+Brief (M5 part H, step H2; H8 = a, pending the user's review): a/b for the root burst (the 1 s dust telegraph and the root breaking out), the tear-free roar (the Spire tearing out of the ground at phase 3 and lifting over ≈ 3 s, the shockwave) and the canopy withering (after the kill, at the start of the 12 s daylight section, no music); one proposal each for the root growth (a Spine Turret and a Polyp Mortar growing out of the root over 1.5 s) and the canopy hum (a loop that replaces the megacity ambience's sirens and cuts out when the Spire dies). All from `tools/concept/audio/sfx_r36.py`, deterministic, from **Freesound originals** already cached and credited for earlier rounds plus synthesized layers. No bubble or popping recordings. Levels as the loudest 100 ms of the 200 Hz–5 kHz band against the existing set (edge warning −16.2, Kraken slam −15.4, large explosion −11.2, ship sinking −20.0); the hum by band RMS as the ambience loops (−36); not listened to by Claude: checked by envelopes, spectrograms, band balance and levels.
+
+### root-burst-r36-a — "Cracking Earthquake" by uagadugu + "cracking.wav" by smidoid + "building_collapse02_close.wav" by onteca + "Gravel Falling" by iwanPlays + synthesized cracks and thump
+Source: <https://freesound.org/people/uagadugu/sounds/222521/>, <https://freesound.org/people/iwanPlays/sounds/567249/> — CC0 1.0; <https://freesound.org/people/smidoid/sounds/49139/> — CC-BY 4.0; <https://freesound.org/people/onteca/sounds/197772/> — CC-BY 3.0. Use: a root burst (t≈64, 74, 84, 92), from the telegraph's start.
+Why: Stone gives way: a ground rumble swelling 14 dB over the 1 s telegraph, 26 synthesized cracks coming faster and a slowed crack at 0.62 s; at 1.0 s the root breaks out: a masonry crunch, a sub thump, stones raining down.
+Edit: 2.07 s, −17.1 dB, ceiling −2 dBFS (peak −2.0, −17.2 LUFS).
+
+### root-burst-r36-b — "Squelch.mp3" by LucasDuff + "…ship hull list2" by kyles + "Tearing Flesh" by dereklieu + "rip_tear FLESH!!!!.wav" by aust_paul + synthesized slosh, creak and thump
+Source: <https://freesound.org/people/LucasDuff/sounds/516643/>, <https://freesound.org/people/kyles/sounds/455757/>, <https://freesound.org/people/aust_paul/sounds/30928/> — CC0 1.0; <https://freesound.org/people/dereklieu/sounds/241822/> — CC-BY 3.0. Use: as a.
+Why: The creep surges: a slow slurry swell (a slowly drifting band, nothing bubbly) with the squelch slowed to 0.8, a stick-slip creak rising 45 → 140 Hz and the recorded creak slowed; at 1.0 s the root tears up wet (Tearing Flesh at 0.75, the rip at 0.85) over a softer thump; little stone.
+Edit: 1.97 s, −17.2 dB, ceiling −2 dBFS (peak −2.3, −15.5 LUFS).
+
+### root-growth-r36-a — "…ship hull list2" by kyles + synthesized swell, creak and knock
+Source: <https://freesound.org/people/kyles/sounds/455757/> — CC0 1.0. Use: the growths growing out of a burst's root (1.5 s).
+Why: A stretching creak (the recording slowed to 0.82, 5 kHz low-pass, plus a synthesized creak rising 40 → 110 Hz) over a low tone gliding 55 → 95 Hz and a breath of noise opening; a dull knock and a dry click at 1.45 s, the growth set; no bubbles, no pops.
+Edit: 1.75 s, −20.2 dB, ceiling −4 dBFS (peak −4.2, −18.9 LUFS).
+
+### tear-free-roar-r36-a — "Cracking Earthquake" by uagadugu + "building_collapse02_close.wav" by onteca + "cracking.wav" by smidoid + "ICEBrk_Break04" by InMotionAudio + "Big Boom" by unfa + "Deep Roar Echo 2.wav" by noahpardo + "Gravel Falling" by iwanPlays + synthesized thump and lift
+Source: <https://freesound.org/people/uagadugu/sounds/222521/>, <https://freesound.org/people/InMotionAudio/sounds/719973/>, <https://freesound.org/people/unfa/sounds/189779/>, <https://freesound.org/people/noahpardo/sounds/345735/>, <https://freesound.org/people/iwanPlays/sounds/567249/> — CC0 1.0; <https://freesound.org/people/smidoid/sounds/49139/> — CC-BY 4.0; <https://freesound.org/people/onteca/sounds/197772/> — CC-BY 3.0. Use: the Siege Spire's phase-3 tear-free, from the lift's start.
+Why: A tectonic rip: the earth and stone tearing (slowed to 0.85 / 0.8), roots snapping (the crack at 0.6, the ice break at 0.55), the shockwave at 0.35 s (Big Boom at 0.85 and a sub thump), a deep roar slowed to 0.78 under it, a rumble rising 60 → 220 Hz with the lift, debris from 1.5 s.
+Edit: 3.41 s, −15.0 dB (dense, held by the ceiling), ceiling −1.5 dBFS (peak −1.6, −11.5 LUFS; 61 % of the energy below 200 Hz).
+
+### tear-free-roar-r36-b — "Sea Creature Roar" by Bikkit99 + "Dragon: Snarl, Roar + Attack" by Breviceps + "Tearing Flesh" by dereklieu + "rip_tear FLESH!!!!.wav" by aust_paul + synthesized shockwave and thump
+Source: <https://freesound.org/people/Bikkit99/sounds/837799/>, <https://freesound.org/people/Breviceps/sounds/466830/>, <https://freesound.org/people/aust_paul/sounds/30928/> — CC0 1.0; <https://freesound.org/people/dereklieu/sounds/241822/> — CC-BY 3.0. Use: as a.
+Why: The creature bellows: the roar's speed gliding 0.7 → 1.0 so it rises with the lift, the dragon's roar at 0.6 under it, the roots tearing wet (Tearing Flesh at 0.62 and 0.5, the rip at 0.7), an air shockwave at 0.3 s (a noise blast closing from 2.5 kHz to 120 Hz and a sub thump); no stone.
+Edit: 3.36 s, −14.3 dB, ceiling −1.5 dBFS (peak −1.6, −12.2 LUFS).
+
+### canopy-withering-r36-a — "rip_tear FLESH!!!!.wav" by aust_paul + "Tearing Flesh" by dereklieu + "Wind__Artic__Cold.wav" by cobratronik + synthesized crackle
+Source: <https://freesound.org/people/aust_paul/sounds/30928/>, <https://freesound.org/people/cobratronik/sounds/117136/> — CC0 1.0; <https://freesound.org/people/dereklieu/sounds/241822/> — CC-BY 3.0. Use: the canopy withering after the Spire's death, at the start of the daylight section.
+Why: A dry shrivel: a synthesized crackle of leaves and paper drying (short trains of 1–4 ms bursts across the stereo field, densest at 1–3 s, gone by ≈ 5 s), the membrane tearing slowly far above (the rip at half speed, Tearing Flesh at 0.45, low-passed), settling into a soft low-passed wind.
+Edit: 7.00 s, −19.5 dB, ceiling −2 dBFS (peak −2.1, −16.6 LUFS).
+
+### canopy-withering-r36-b — "Simple Mutate (Monster)" by Division4884 + "Wind__Artic__Cold.wav" by cobratronik + synthesized sigh and groan
+Source: <https://freesound.org/people/Division4884/sounds/342336/>, <https://freesound.org/people/cobratronik/sounds/117136/> — CC0 1.0. Use: as a.
+Why: A dying exhale: a deep groan descending (the monster's speed gliding 0.62 → 0.4, 2.5 kHz low-pass), a vast sigh (breath noise through formants falling 650 → 330 and 1150 → 700 Hz), a sub sinking 62 → 31 Hz, fading into the wind.
+Edit: 7.50 s, −19.1 dB, ceiling −2 dBFS (peak −3.0, −18.1 LUFS).
+
+### canopy-hum-r36-a — synthesized
+Source: none. Use: Level 14's ambience layer in place of the sirens, cut when the Spire dies; a loop.
+Why: A low organic hum: two harmonic voices on 46.00 / 46.25 Hz (beating slowly; harmonics peaking around 200 Hz so small speakers carry it), a throb six times a loop (0.75 Hz), a 4 s breath swelling the upper harmonics, an organic noise band (90–500 Hz); every frequency a multiple of 1/8 Hz and the noise circular, so it loops with no crossfade.
+Edit: seamless 8.00 s loop, band RMS −39.0 dB (3 dB under the ambience loops' −36; loudest 100 ms −33.7), peak −20.3 dBFS, −31.0 LUFS; the seam's step +2.4 dB against its neighbours after encoding (no click).

@@ -21,7 +21,7 @@ import vanguard.sim.LevelScript.CueTrigger;
 import vanguard.sim.SimStep;
 
 /**
- * The timed radio lines of Levels 01–11 play when the level scripts mean them to: the real queue,
+ * The timed radio lines of Levels 01–14 play when the level scripts mean them to: the real queue,
  * stepped at the simulation's rate at the default text speed, with the event lines a player can
  * set off in between (an escaped Spore Bomber before the Leviathan's first pass, the lifeboat
  * secret, a convoy's first hit and loss, the Brood Carrier's phases, Rook's first kill, …), starts none of them more
@@ -37,7 +37,9 @@ import vanguard.sim.SimStep;
  * reached its time, and a line that requires the escort plays only with him flying (both fits).
  * M5 part D: Level 10's scripted loss sets off its {@code scripted-loss} line at its time in every
  * run; its other events (the first decloak and loop-back, a shuttle hit or lost, the ferry cache)
- * where the autopilot's runs see them.
+ * where the autopilot's runs see them. M5 part H, step H9: a met secondary objective's line is set
+ * off where a run lists it (Level 12's sondes); a closing line queued on a free radio goes ahead of
+ * the timed lines (Level 14's root-grid line, its own test).
  */
 class RadioTimelineTest {
     private static final Content CONTENT = ContentLoader.fromClasspath();
@@ -57,16 +59,21 @@ class RadioTimelineTest {
     private static final String LEVEL_09 = "act-2-homefront/level-09-arcology-fall";
     private static final String LEVEL_10 = "act-2-homefront/level-10-evacuation-corridor";
     private static final String LEVEL_11 = "act-2-homefront/level-11-atlantic-convoy";
+    private static final String LEVEL_12 = "act-2-homefront/level-12-storm-front";
+    private static final String LEVEL_13 = "act-2-homefront/level-13-polar-relay";
+    private static final String LEVEL_14 = "act-2-homefront/level-14-siege-spire";
 
     /** Rook's sides: a {@code {side}} line is played with each one's text. */
     private static final List<String> SIDES = VoiceLines.SIDES;
 
     /**
-     * Levels whose lines are not rendered yet (none: Level 10's were rendered in M5 part D's voice
-     * step, Level 09's in M5 part C's, Level 08's in M5 part B's step B9, Level 07's in M4 part G):
+     * Levels whose lines are not rendered yet (none: Level 14's were rendered in M5 part H's step H6,
+     * Level 13's in M5 part G's step G6,
+     * Level 12's in M5 part F's voice step, step 6, Level 11's in part E's, Level 10's in part D's,
+     * Level 09's in part C's, Level 08's in M5 part B's step B9, Level 07's in M4 part G):
      * their voiced runs play the lines as text and list the late ones, without asking for the files.
-     * An uncast speaker's line (marked {@code uncast} in the speaker table; none since round 32 cast
-     * Level 10's Lifeline and Lifeline Three) plays as text in any level.
+     * An uncast speaker's line (marked {@code uncast} in the speaker table: Level 13's Nansen until
+     * concept round 35 casts him) plays as text in any level.
      */
     private static final Set<String> UNVOICED = Set.of();
 
@@ -157,6 +164,71 @@ class RadioTimelineTest {
                                 new Event(170, CueTrigger.BOSS_PART_DESTROYED, "left arm"),
                                 new Event(175, CueTrigger.ALLY_LOST, ""),
                                 new Event(190, CueTrigger.BOSS_DESTROYED, "harbour-kraken"))));
+        // M5 part F: Level 12's events as a flight sees them: the first latch at the introduction (just
+        // after Varga's warning) or at a later swarm, the canister's cache in the lightning field, the
+        // sondes' secondary as the third one reaches the ship in the eye (every cue is timed or an event)
+        runs.put(
+                LEVEL_12,
+                List.of(
+                        List.of(),
+                        List.of(
+                                new Event(33.5, CueTrigger.FIRST_LATCH, ""),
+                                new Event(101, CueTrigger.SECRET, "drifting canister")),
+                        List.of(
+                                new Event(36, CueTrigger.FIRST_LATCH, ""),
+                                new Event(104, CueTrigger.SECRET, "drifting canister"),
+                                new Event(172.5, CueTrigger.SECONDARY_OBJECTIVE, "")),
+                        List.of(
+                                new Event(59, CueTrigger.FIRST_LATCH, ""),
+                                new Event(171, CueTrigger.SECONDARY_OBJECTIVE, "")),
+                        List.of(
+                                new Event(89, CueTrigger.FIRST_LATCH, ""),
+                                new Event(103.5, CueTrigger.SECRET, "drifting canister"),
+                                new Event(174, CueTrigger.SECONDARY_OBJECTIVE, ""))));
+        // M5 part G: Level 13's events as the guarding autopilot's runs see them: the hut's cache early in
+        // the approach, the relay below half late in the whiteout (medium) or in the walkers' phase and
+        // below a quarter in the whiteout (hard), the secondary at the synchronisation's end with Nansen's
+        // t=218 line (every other cue is timed)
+        runs.put(
+                LEVEL_13,
+                List.of(
+                        List.of(),
+                        List.of(
+                                new Event(14, CueTrigger.SECRET, "research hut cache"),
+                                new Event(218, CueTrigger.SECONDARY_OBJECTIVE, "")),
+                        List.of(
+                                new Event(15.5, CueTrigger.SECRET, "research hut cache"),
+                                new Event(201, CueTrigger.ALLY_BELOW, "0.5")),
+                        List.of(
+                                new Event(13, CueTrigger.SECRET, "research hut cache"),
+                                new Event(131, CueTrigger.ALLY_BELOW, "0.5"),
+                                new Event(198, CueTrigger.ALLY_BELOW, "0.25")),
+                        List.of(
+                                new Event(108, CueTrigger.ALLY_BELOW, "0.5"),
+                                new Event(161.5, CueTrigger.ALLY_BELOW, "0.25"))));
+        // M5 part H: Level 14's events: the armoured car's cache as it passes under Rook's and Hammer
+        // Lead's lines (early, late, just after Rook's), then the arena's lines after the halt at t=108 (every
+        // cue before it is timed; the level clock runs on here, as the test's clock does): the Spire's phases
+        // and its death in a fast, a medium (about 135 s) and a slow fight
+        runs.put(
+                LEVEL_14,
+                List.of(
+                        List.of(),
+                        List.of(
+                                new Event(14.5, CueTrigger.SECRET, "armoured car"),
+                                new Event(135, CueTrigger.BOSS_PHASE, "Maw"),
+                                new Event(165, CueTrigger.BOSS_PHASE, "Free spire"),
+                                new Event(190, CueTrigger.BOSS_DESTROYED, "siege-spire")),
+                        List.of(
+                                new Event(18, CueTrigger.SECRET, "armoured car"),
+                                new Event(150, CueTrigger.BOSS_PHASE, "Maw"),
+                                new Event(195, CueTrigger.BOSS_PHASE, "Free spire"),
+                                new Event(243, CueTrigger.BOSS_DESTROYED, "siege-spire")),
+                        List.of(
+                                new Event(9, CueTrigger.SECRET, "armoured car"),
+                                new Event(160, CueTrigger.BOSS_PHASE, "Maw"),
+                                new Event(215, CueTrigger.BOSS_PHASE, "Free spire"),
+                                new Event(249, CueTrigger.BOSS_DESTROYED, "siege-spire"))));
         return runs;
     }
 
@@ -305,7 +377,7 @@ class RadioTimelineTest {
     }
 
     @Test
-    void theTimedLinesOfLevels01To11StartAtMostASecondLate() {
+    void theTimedLinesOfLevels01To14StartAtMostASecondLate() {
         RUNS.forEach((level, runs) -> {
             for (Difficulty difficulty : Difficulty.values()) {
                 LevelScript script = SimSpecs.level(CONTENT, level, difficulty);
@@ -499,6 +571,76 @@ class RadioTimelineTest {
     }
 
     /**
+     * M5 part H, step H9: Level 14's root-grid line (the secondary's, a closing line) plays as the
+     * roots are cleared in a normal run (the last growth dies at about t=93.5, the radio free since
+     * Okafor's t=62 line): it goes ahead of the Choir's t=96 line, which waits for it, and every timed
+     * line still plays. If the roots finish late, while the Choir sings, it waits for a gap as before
+     * and is still waiting when the Spire's warning starts (t=108), where the game drops it.
+     */
+    @Test
+    void level14sRootGridLinePlaysWhenTheRootsAreClearedAndDropsWhenLate() {
+        double warning = 108;
+        for (Difficulty difficulty : Difficulty.values()) {
+            LevelScript script = SimSpecs.level(CONTENT, LEVEL_14, difficulty);
+            for (boolean voiced : new boolean[] {false, true}) {
+                String where = difficulty + (voiced ? ", voiced" : "") + ": ";
+                List<Played> played =
+                        play(script, List.of(new Event(93.5, CueTrigger.SECONDARY_OBJECTIVE, "")), ESCORT, voiced);
+                for (Played line : played) {
+                    if (line.cue().trigger() == CueTrigger.SECONDARY_OBJECTIVE) {
+                        double opened = line.opened().orElse(Double.NaN);
+                        assertTrue(
+                                opened >= 93.5 && opened <= 94, where + "the root-grid line opens at once: " + opened);
+                    } else if (line.cue().trigger() == CueTrigger.TIME) {
+                        assertTrue(
+                                line.opened().isPresent(),
+                                where + "the timed line at t=" + line.cue().t() + " plays");
+                    }
+                }
+                for (Played line :
+                        play(script, List.of(new Event(97, CueTrigger.SECONDARY_OBJECTIVE, "")), ESCORT, voiced)) {
+                    if (line.cue().trigger() == CueTrigger.SECONDARY_OBJECTIVE) {
+                        assertTrue(
+                                line.opened().map(opened -> opened >= warning).orElse(true),
+                                where + "late roots: the line still waits at the warning: " + line.opened());
+                    } else if (line.cue().trigger() == CueTrigger.TIME) {
+                        assertTrue(line.late() <= MAX_LATE_SECONDS, where + "late roots push no timed line back");
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * M5 part H, step H7b: the lines a Siege Spire phase queues together all play, voiced: Rook's reply
+     * after Okafor's as it tears loose, in a fast and a slow fight, on every difficulty.
+     */
+    @Test
+    void theSpiresPhaseLinesPlayOneAfterTheOther() {
+        for (Difficulty difficulty : Difficulty.values()) {
+            LevelScript script = SimSpecs.level(CONTENT, LEVEL_14, difficulty);
+            for (double phase3 : new double[] {130, 165, 215}) {
+                List<Played> played = play(
+                        script,
+                        List.of(
+                                new Event(phase3 - 30, CueTrigger.BOSS_PHASE, "Maw"),
+                                new Event(phase3, CueTrigger.BOSS_PHASE, "Free spire")),
+                        ESCORT,
+                        true);
+                for (Played line : played) {
+                    if (line.cue().trigger() == CueTrigger.BOSS_PHASE) {
+                        assertTrue(
+                                line.opened().isPresent(),
+                                difficulty + ", phase 3 at " + phase3 + ": "
+                                        + line.cue().speaker() + "'s "
+                                        + line.cue().line() + " plays");
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Whether one of {@code events} has set off the event cue by {@code scriptTick} (the level
      * clock), an event in a hold by {@code realTick} with hold {@code k} started at {@code holdStarts[k]}.
      */
@@ -659,7 +801,6 @@ class RadioTimelineTest {
                         switch (cue.trigger()) {
                             case TIME -> scriptTick <= end && SimStep.ticks(cue.t()) <= scriptTick;
                             case LEVEL_END -> scriptTick >= end;
-                            case SECONDARY_OBJECTIVE -> false;
                             case HOLD_START -> holdStarts.length > 0 && holdStarts[0] >= 0;
                             case COLLAPSE -> collapsing;
                             // M5 part D: the lance comes at its time in every run (Level 10)

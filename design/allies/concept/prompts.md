@@ -151,3 +151,37 @@ Differences from A: the bridge forward instead of aft, reactor cargo instead of 
 convoy's story cargo), a warmer hull; the frigate a trimaran with a wider, flatter silhouette. When
 damaged its crane topples instead of losing container stacks.
 Outcome (user, 2026-10-09): **rejected** in round 33 (a picked), moved to `rejected/` (the heading keeps the file's name).
+
+## relay-r35-a
+
+Round 35 proposal A, **"Ice station"**, Nansen Relay at production quality (M5 part G batch, step G2;
+decision G9 = a, pending the user's review: the relay had no concept of its own, only the station of
+the chosen arctic scene `scene-arctic-r09-a`, so it is proposed as two finished sets; A goes into the
+game until the pick). Sheet and loop by `python3 tools/art/relay.py` (see `tools/art/README.md`); SDF
+models in the script with the station kit's materials (`tools/concept/render/station.py`), 1 model unit
+= 1 px, rendered at 4×; scorch and char in 2D; lights, fire and smoke are 2D additive or stepped-alpha
+frames. The ground is the halted frame's stand-in (`tools/art/l13_props.py`).
+Prompt: `late 1990s pre-rendered CGI game sprite, strict top-down view, a compact polar research and
+grid relay station on a grey steel foundation deck on white pack ice: two glass habitat domes with warm
+interior lights, a large up-tilted satellite dish with a red feed light, a lattice radio mast with a red
+beacon, a control block with a lit window strip and a blue roof stripe, a radiator bank, fuel tanks, a
+helipad with a yellow ring and a white H; glossy highlights from a point light at the top-left, crisp
+palette-limited pixel edges`.
+Frames: `nansen-relay_0..3` (96×96; hit box 80×80: intact; damaged below 50 %, a breach, the dish
+askew; critical below 25 %, a dome smashed, the mast leaning; destroyed, dark and charred, the mast
+down), `-lights_0..9` (additive: the pad's edge lights, the windows, the dish's cyan status lights, the
+mast strobe and a cyan sync ring, then the loop), `-fire_0..3` (16×16 additive), `-smoke_0..7` (32×32
+column puff), `-pip` (12×12), `pivots/nansen-relay.json` (smoke, fire and column points per state, the
+helipad). The loop: hits with flashes, smoke below 50 %, fires below 25 %, the power-down with its smoke
+column, then grid online on the intact relay.
+
+## relay-r35-b
+
+Round 35 proposal B, **"Grid node"**, same frame sets and loop from the same script (its frames are
+written only with `--assets --variant b`).
+Prompt: `late 1990s pre-rendered CGI game sprite, strict top-down view, a hardened military grid relay
+on a hexagonal steel deck with low blast walls and a yellow hazard edge on white pack ice: a slate
+octagonal blockhouse with a blue band, three dark blue phased-array radar faces tilted outward to the
+north, south-west and south-east, a central mast with a red beacon and a crossbar, a prefab crew module
+with warm windows, fuel tanks and an orange generator, a helipad with a yellow ring and white H to the
+south; glossy highlights from a point light at the top-left, crisp palette-limited pixel edges`.

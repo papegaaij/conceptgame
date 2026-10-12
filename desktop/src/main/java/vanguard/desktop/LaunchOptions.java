@@ -36,8 +36,13 @@ record LaunchOptions(
         boolean actEnd) {
     /**
      * Parses {@code [--bench <seconds>] [--settings <file>] [--difficulty easy|medium|hard] [--debug-speed <factor>]
-     * [--invulnerable] [--start title|level] [--loadout <slot>=<weapon>[:<level>],...] [--special <special>[:<charges>]]
+     * [--invulnerable] [--start title|level] [--loadout <slot>=<item>[:<level>],...] [--special <special>[:<charges>]]
      * [--escort rook:<gun>[:<level>][,side=left|right]|none] [--level <n>] [--act-end]}.
+     *
+     * <p>{@code --loadout}'s slots ({@link DebugFit}): the weapon slots {@code front}, {@code rear}, {@code
+     * left}, {@code right}, the utility bays {@code utility}, {@code utility2} and the core parts {@code
+     * generator}, {@code shield}, {@code armor} (or {@code armour}), e.g. {@code
+     * front=scatter-vulcan:3,utility=targeting-computer,generator=mk-ii,armor=composite-ii}.
      */
     static LaunchOptions parse(String... args) {
         Boolean start = null;

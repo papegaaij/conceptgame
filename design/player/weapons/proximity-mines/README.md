@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: final
 depends-on: [.., ../../generator, ../../../systems/economy]
-updated: 2026-10-06
+updated: 2026-10-09
 ---
 
 # Proximity Mines
@@ -20,7 +20,7 @@ Drops mines behind the ship that detonate when an enemy comes close. Area denial
 |---|---|
 | Slot | Rear gun |
 | Traits | `rear`, `area` |
-| Layers hit | `air`, `low-air`, `ground` (hardened targets glance off) and the `sub` layer from above water (area rule) ([layer rules](../../../enemies/README.md#layer-rules)) |
+| Layers hit | `air`, `low-air`, `ground` (hardened targets glance off); not the `sub` layer, which only `anti-sub` and the Smart Bomb reach ([layer rules](../../../enemies/README.md#layer-rules), user decision E2 = a of M5 part E) |
 | Price | 1 500 cr |
 | Upgrade cost L2 / L3 / L4 / L5 | 750 / 1 500 / 3 000 / 6 000 cr (sell-back per [economy](../../../systems/economy/README.md)) |
 | Unlock | L12 (in the shop from the hangar visit before it) |
@@ -74,7 +74,6 @@ M5 part A: the Proximity Mines get their delivery (none flew before: the hangar 
 - [x] Behaviour as described above
 - [x] Power draw per level counted in the loadout; upgrades priced as listed
 - [x] The mine delivery: the drop with its decaying drift, holding its screen position on `air`, arming, the proximity trigger on `air` and `low-air`, one blast, the fizzle and the *max live* cap
-- [ ] The `area` blast on the `sub` layer from above water — **later: M5 part E** (the `sub` layer, Level 11)
 - [x] Test fire in the hangar with dummies flying low (`low-air`), so its mines trigger behind the ship
 
 ## Decisions
@@ -90,3 +89,7 @@ M5 part A: the Proximity Mines get their delivery (none flew before: the hangar 
   arms (`PROXIMITY_MINE_ARMED`, at the mine, the mount as its value) and the game plays option a
   there until the round closes, at most two at a time.
 - 2026-10-06: Concept round 28 closed (user: accepted): its effects (`tools/art/act2_weapon_fx.py`) approved as **final**, `art: final`: the 12 px mine dark while unarmed and pulsing once armed, the 12-frame blast with its blue ring to the 48 px radius and the launcher muzzle flash, accepted with the weak spots the round named (the sensor light reads only at 1–2 px, the blast may draw over the ship's tail, a fizzle is not marked); the arming beep is **a**, the armed chirp (b, the sensor ping, rejected; see [sound effects](../../../audio/sfx/README.md#decisions)).
+- 2026-10-09: M5 part F: the item "the `area` blast on the `sub` layer from above water (later: M5
+  part E)" is struck and the *Layers hit* row corrected (its `notes.layers_hit` in data.yaml): by E2 = a of M5 part E only `anti-sub` and
+  the Smart Bomb reach `sub`, so the mines never do. The mines unlock at Level 12; their drop and
+  arm sounds (played since part A) are checked in play in Level 12's capture (M5 part F, step 7).

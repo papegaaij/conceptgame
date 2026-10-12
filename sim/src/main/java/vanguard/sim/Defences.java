@@ -114,6 +114,29 @@ public final class Defences {
         return armour <= 0;
     }
 
+    /**
+     * M5 part F, a latched Lamprey's drain (design/enemies/air/lamprey): {@code points} off the shield
+     * only, never the armour, and the regeneration paused (the step counts as a hit for its delay, also
+     * once the shield is down, so it stays down while anything is latched). At zero the break rule
+     * applies and nothing more is drained. In the mercy time after an armour hit it drains nothing.
+     */
+    void drain(double points, SimEvents events, double x, double y) {
+        if (armour <= 0) {
+            return;
+        }
+        regenWait = Math.max(regenWait, delayTicks);
+        if (mercy > 0 || shield <= 0) {
+            return;
+        }
+        shield -= Math.min(shield, points);
+        if (shield <= 0) {
+            shield = 0;
+            broken = true;
+            regenWait = breakTicks + delayTicks;
+            events.add(SimEvents.Type.SHIELD_BROKEN, x, y);
+        }
+    }
+
     /** A shield cell: adds {@code points} up to the capacity. */
     void restoreShield(double points) {
         shield = Math.min(model.capacity(), shield + points);

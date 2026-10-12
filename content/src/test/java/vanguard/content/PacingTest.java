@@ -69,7 +69,8 @@ class PacingTest {
         // the balance plan's fit for the level; from Level 08 on the plan's fit with Rook on its wing
         // (Level 09: the Bomb Rack and Rook's Mortar for the hardened nodes, D8 = c of M5 part C;
         // Level 10: the Tail Gun and Rook's Autocannon, D7 = a of M5 part D; Level 11: the front at L4
-        // and Rook's Mortar again, M5 part E).
+        // and Rook's Mortar again, M5 part E; Level 12: two Micro-missile Pods and Rook's Autocannon, M5 part F;
+        // Level 13: Armour Mk III and the pods at level 2, M5 part G; Level 14: the Tail Gun at L2, M5 part H).
         Loadout loadout = key.equals(Level05Test.LEVEL)
                 ? Level05Test.planLoadout(CONTENT, difficulty)
                 : key.equals(Level06Test.LEVEL)
@@ -84,7 +85,16 @@ class PacingTest {
                                                         ? Level10Test.planLoadout(CONTENT, difficulty)
                                                         : key.equals(Level11Test.LEVEL)
                                                                 ? Level11Test.planLoadout(CONTENT, difficulty)
-                                                                : SimSpecs.starterLoadout(CONTENT, difficulty);
+                                                                : key.equals(Level12Test.LEVEL)
+                                                                        ? Level12Test.planLoadout(CONTENT, difficulty)
+                                                                        : key.equals(Level13Test.LEVEL)
+                                                                                ? Level13Test.planLoadout(
+                                                                                        CONTENT, difficulty)
+                                                                                : key.equals(Level14Test.LEVEL)
+                                                                                        ? Level14Test.planLoadout(
+                                                                                                CONTENT, difficulty)
+                                                                                        : SimSpecs.starterLoadout(
+                                                                                                CONTENT, difficulty);
         Sortie sortie = new Sortie(
                 2185,
                 loadout,

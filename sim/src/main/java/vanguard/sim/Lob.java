@@ -13,9 +13,17 @@ public final class Lob implements Hashed {
     private double toY;
     private int age;
     private int flightTicks;
+    /** M5 part G: the convoy unit it was aimed at by the always hook (Level 13's relay); -1 for the ship. */
+    private int target = -1;
 
     /** Lobbed by a mortar with {@code mortarGun} at (x, y) toward (targetX, targetY). */
     void launch(EnemyGun mortarGun, double x, double y, double targetX, double targetY) {
+        launch(mortarGun, x, y, targetX, targetY, -1);
+    }
+
+    /** As {@link #launch(EnemyGun, double, double, double, double)}, aimed at convoy unit {@code aimedAt} (-1: the ship). */
+    void launch(EnemyGun mortarGun, double x, double y, double targetX, double targetY, int aimedAt) {
+        target = aimedAt;
         gun = mortarGun;
         fromX = x;
         fromY = y;
@@ -39,6 +47,19 @@ public final class Lob implements Hashed {
     @Override
     public void addTo(StateHash hash) {
         hash.add(fromX).add(fromY).add(toX).add(toY).add(age);
+        if (target >= 0) {
+            hash.add(target);
+        }
+    }
+
+    /** M5 part G: the convoy unit it is aimed at (its marker on it); -1 for the ship. */
+    int target() {
+        return target;
+    }
+
+    /** M5 part G: whether the target-the-objective hook aimed it at the objective (Level 13's relay), not the ship. */
+    public boolean objectiveAimed() {
+        return target >= 0;
     }
 
     EnemyGun gun() {

@@ -3,7 +3,7 @@ title: Campaign
 design: approved
 implementation: in-progress
 art: none
-updated: 2026-10-07
+updated: 2026-10-12
 ---
 
 # Campaign
@@ -21,7 +21,7 @@ consecutive levels.
 | Part | Summary | Design | Impl | Art |
 |---|---|---|---|---|
 | [act-1-first-contact](act-1-first-contact/README.md) | Levels 01–07 · Earth orbit & Luna · the Vrell strike · boss Brood Carrier | approved | done | final |
-| [act-2-homefront](act-2-homefront/README.md) | Levels 08–14 · Earth surface: megacities, oceans, arctic · boss Siege Spire | approved | in-progress | chosen |
+| [act-2-homefront](act-2-homefront/README.md) | Levels 08–14 · Earth surface: megacities, oceans, arctic · boss Siege Spire | review | in-progress | chosen |
 | [act-3-red-dust](act-3-red-dust/README.md) | Levels 15–21 · Mars · first hints of human involvement · boss Dust Colossus | draft | not-started | none |
 | [act-4-deep-water](act-4-deep-water/README.md) | Levels 22–28 · Europa ice & under-ice ocean · underwater play · boss Abyssal Maw | draft | not-started | none |
 | [act-5-the-belt](act-5-the-belt/README.md) | Levels 29–35 · asteroid belt & stations · the betrayal · boss Iron Sovereign | draft | not-started | none |
@@ -201,24 +201,29 @@ criteria), Open questions, Decisions. The worked example is
 ## Implementation
 
 - [x] Campaign sequence 01→07 plays in order; the hangar opens between levels (Act 1, M4)
-- [ ] Level 08 after Act 1: the Level 07 debrief with the act summary, the Act 1 outro, Act 2's
-      title card and act briefing, Level 08's briefing, the hangar before it, Level 08 (M5 part B)
-- [ ] Campaign sequence 09→50 in order — **later: M5** (Levels 09–14, parts C–H) and **later:
-      Act 3** to Act 7 (Levels 15–50), each level with its milestone or act
+- [x] Level 08 after Act 1: the Level 07 debrief with the act summary, the Act 1 outro, Act 2's
+      title card and act briefing, Level 08's briefing, the hangar before it, Level 08 (M5 part B;
+      `DebriefActEndTest`, `OutroOnwardTest`, the route in `ActPlaythroughTest`)
+- [x] Campaign sequence 08→14 in order, Act 2's outro after Level 14 (M5 parts B–H;
+      `ActPlaythroughTest` flies Levels 01–14 as one campaign on every difficulty, M5 part I)
+- [ ] Campaign sequence 15→50 in order — **later: Act 3** to Act 7 (Levels 15–50), each level with
+      its act
 - [x] Act transitions show an act title card and the act's opening briefing.
 - [x] Each level's threat profile is available as data for the hangar intel panel: Levels 01–07
       (`threat_profile` in each level's data.yaml, read by `LevelData` and `Intel`)
-- [ ] Level 08's threat profile in its data file, with Dr. Varga's four lines (M5 part B)
-- [ ] The threat profiles of Levels 09–50 — **later: M5** (Levels 09–14) and **later: Act 3** to
-      Act 7, in each level's data file as it is written
+- [x] The threat profiles of Levels 08–14 in their data files, with Dr. Varga's intel lines (M5
+      parts B–H; `Intel`, `IntelPanelLayoutTest`, each level's `LevelNNTest`)
+- [ ] The threat profiles of Levels 15–50 — **later: Act 3** to Act 7, in each level's data file as
+      it is written
 - [x] Shop unlocks follow the *Loadout pressure* table (data-driven, per level): each item's
       `unlock` or `available` in its data (`Hangar.available`, `Catalogue`); the Act 1 rows
       (`forward` to `area`) checked against the weapons' data
 - [x] The `rear` row checked with its weapon in play: the Tail Gun (`rear` slot and trait,
       `unlock: 8`), built in M5 part A
-- [ ] The later rows checked with their weapons in play: `anti-sub` (L11) — **later: M5 part
-      E**; `beam` (L15) and `shield-breaker` (L29) with their weapons — **later: Act 3** and
-      **later: Act 5**
+- [x] The `anti-sub` row (L11) checked with its weapon in play: the Torpedo Pod (M5 part E;
+      `TorpedoTest`, `SubLayerTest`)
+- [ ] The later rows checked with their weapons in play: `beam` (L15) and `shield-breaker` (L29) —
+      **later: Act 3** and **later: Act 5**
 - [x] Campaign progress (current level, unlocks) is stored in the save game
       ([systems](../systems/README.md)).
 
@@ -277,3 +282,6 @@ criteria), Open questions, Decisions. The worked example is
   The document goes back to `in-progress` for part B. Accepted with the user's decisions (a gap
   default): a save written at the hangar before Level 08 by the M4 build opens straight in that
   hangar and never shows the Act 2 intro; a new campaign or `--level 7` shows it.
+- 2026-10-12: M5 part I (close-out): the Act 2 items ticked as built (Level 08 after Act 1, the
+  sequence 08→14 flown by `ActPlaythroughTest` as one campaign with Act 1, the threat profiles of
+  Levels 08–14, the `anti-sub` row); the rest retagged to Acts 3–7.

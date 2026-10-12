@@ -1,0 +1,29 @@
+{
+ "source": "tools/art/lamprey.py (production art, M5 part F batch)",
+ "headings": 16,
+ "swim_frames": 4,
+ "latched_index": "spot * 4 + frame (spots left, right, tail)",
+ "latch_look": "a",
+ "gulp_pulse": [
+  0.55,
+  0.3,
+  0.12,
+  0.0
+ ],
+ "stunned_frames": 8,
+ "ship_frame": "ship_2",
+ "spots": {
+  "left": [
+   -22,
+   13
+  ],
+  "right": [
+   21,
+   13
+  ],
+  "tail": [
+   0,
+   35
+  ]
+ }
+}

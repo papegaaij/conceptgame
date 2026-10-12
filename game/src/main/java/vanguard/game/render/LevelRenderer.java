@@ -36,6 +36,7 @@ import vanguard.sim.Ship;
 import vanguard.sim.ShipSpec;
 import vanguard.sim.Shot;
 import vanguard.sim.SimStep;
+import vanguard.sim.Sondes;
 import vanguard.sim.Sortie;
 import vanguard.sim.SpecialSlot;
 import vanguard.sim.WeaponSpec;
@@ -238,6 +239,10 @@ public final class LevelRenderer {
     private final WaterLooks water;
     /** M5 part E: the arena boss (the Harbour Kraken); null without one. */
     private final KrakenLooks kraken;
+    /** M5 part H: the anchored boss without lanes (the Siege Spire) and its canopy's death; null without it. */
+    private final SpireLooks spire;
+    /** M5 part H: the level's root bursts (Level 14); null without them. */
+    private final RootBurstLooks rootBursts;
     /**
      * M5 part E: water effects on the surface (bursts of kills and blasts on the water, splashes,
      * ripple trains), alpha-blended, scrolling with the sea, under the ground units.
@@ -261,6 +266,26 @@ public final class LevelRenderer {
     private static final float[] NO_OFFSET = new float[2];
     /** A volley belongs to the raft within this distance of where it left, px. */
     private static final double FIRED_REACH = 24;
+    /** M5 part F: the level's weather looks (Level 12's rain, lightning, gusts, hidden glows and eye). */
+    private final WeatherLooks weather;
+    /** M5 part F: per enemy kind its latch poses (the Lamprey's), null for a kind without; built at the first draw. */
+    private LampreyLooks[] lampreys;
+    /** M5 part F: the weather sonde's blink loop (tools/art/l12_props.py); empty without sondes. */
+    private final Array<AtlasRegion> sonde;
+    /** The sonde's blink: 4 frames at 6 fps. */
+    private static final double SONDE_FPS = 6;
+
+    static final String SONDE = "weather-sonde";
+
+    private final Files files;
+    /** M5 part G: a defend primary's ally (Level 13's Nansen Relay); null without one. */
+    private final RelayLooks relay;
+    /** M5 part G: the supply drones carrying the drops; null without them. */
+    private final DroneLooks drones;
+    /** M5 part G: the arctic setting's snow on high-air; null in another setting. */
+    private SnowLooks snow;
+
+    private final LevelData level;
 
     /**
      * @param files the assets, for the pivot files of the cranes and set pieces
@@ -294,6 +319,19 @@ public final class LevelRenderer {
         JsonValue bossPivots = boss == null ? null : pivots(files, boss.slug());
         bossLooks = new BossLooks(sprites, flash, boss, bossPivots);
         kraken = KrakenLooks.of(sprites, flash, boss, bossPivots);
+        String folder = Backdrop.folder(levelKey, level);
+        spire = SpireLooks.of(
+                sprites,
+                flash,
+                boss,
+                bossPivots,
+                sprites.hasBackdrop(folder + "canopy-tear")
+                        ? sprites.backdrop(folder + "canopy-tear", SpireLooks.TEAR_TIMES.length)
+                        : new Array<>(0),
+                sprites.hasBackdrop(folder + "daylight-beams")
+                        ? sprites.backdrop(folder + "daylight-beams", 2)
+                        : new Array<>(0));
+        rootBursts = RootBurstLooks.of(sprites, script);
         launches =
                 boss == null ? List.of() : boss.boss().map(BossSpec::spawnKinds).orElse(List.of());
         String light = Backdrop.folder(levelKey) + "lifeboat-light";
@@ -349,6 +387,22 @@ public final class LevelRenderer {
         this.font = font;
         this.water = script.water() ? new WaterLooks() : null;
         java.util.Arrays.fill(firedTick, Long.MIN_VALUE);
+        this.files = files;
+        this.weather = new WeatherLooks(sprites, level, levelKey);
+        this.sonde = script.sondes().isPresent() && sprites.has(SONDE) ? sprites.frames(SONDE) : new Array<>(0);
+        this.level = level;
+        this.relay = RelayLooks.of(sprites, flash, script, name -> pivots(files, name));
+        this.drones = DroneLooks.of(sprites, level);
+        this.snow = SnowLooks.of(level, false, sprites.pixel);
+    }
+
+    /**
+     * M5 part G: the difficulty's presentation: on {@code easy} a peak with an easy length (Level 13's
+     * whiteout, 6 s) in the backdrop and the snow.
+     */
+    public void easy(boolean easy) {
+        backdrop.easy(easy);
+        snow = SnowLooks.of(level, easy, sprites.pixel);
     }
 
     /**
@@ -385,8 +439,14 @@ public final class LevelRenderer {
         if (kraken != null) {
             kraken.reset();
         }
+        if (spire != null) {
+            spire.reset();
+        }
         pulses.reset();
         convoy.reset();
+        if (relay != null) {
+            relay.reset();
+        }
         surfaceWater.clear();
         underWater.clear();
         bubbles.clear();
@@ -513,6 +573,10 @@ public final class LevelRenderer {
         if (collapse != null) {
             collapse.update(sortie, scroll, lag);
         }
+        if (lampreys == null) {
+            lampreys = lampreyLooks(sortie);
+        }
+        weather.at(seconds);
         backdrop.drawBehind(batch, scroll, clock);
         if (water != null) {
             // M5 part E: the sub layer between the deep swell and the surface's chop (E4 = c).
@@ -528,6 +592,8 @@ public final class LevelRenderer {
         // With Level 09's collapse's shadow, heap and base dust under the towers (CollapseLooks).
         backdrop.drawGroundPieces(batch, scroll, clock);
         shadows.endGround(batch);
+        // M5 part F: the eye's light shaft on the calm sea, under the ground objects.
+        weather.drawShaft(batch, seconds);
         // M5 part E: over the chop and under the convoy: the Kraken's foreshadowing shadow (before it
         // scrolls in) and the torpedoes' lit backs and bubbles just under the surface.
         if (kraken != null && !krakenShown(sortie, wrecks)) {
@@ -537,10 +603,19 @@ public final class LevelRenderer {
         bubbles.draw(batch, scroll);
         // M5 part E: the Kraken's churn on the lanes, then its grip, head and arms on the platform's sea.
         drawKraken(batch, sortie, wrecks, alpha, scroll, true);
+        // M5 part H: the root bursts' cracks and roots, then the Siege Spire's rooted body (or its stump).
+        if (rootBursts != null) {
+            rootBursts.drawGround(batch, sortie, seconds, scroll);
+        }
+        drawSpire(batch, sortie, wrecks, alpha, scroll, SpirePass.GROUND);
         luna.drawSled(batch, sortie, scroll, alpha);
         luna.drawMarkers(batch, sortie, alpha);
         drawGround(batch, sortie, alpha);
         convoy.drawConvoy(batch, sortie, alpha, whiteFlash);
+        if (relay != null) {
+            // M5 part G: the defended relay on its floe, its damage and, once online, its lights.
+            relay.draw(batch, sortie, alpha, whiteFlash, seconds, clock.real());
+        }
         // M5 part D: shuttles on their pads and low in their liftoff, lost ones gliding into far.
         shuttles.drawLow(batch, sortie, alpha, whiteFlash);
         shadows.beginGround(batch);
@@ -551,6 +626,11 @@ public final class LevelRenderer {
         surfaceWater.draw(batch, scroll);
         boolean overHull = bossOffPlane(sortie);
         drawEnemies(batch, sortie, alpha, Depth.GROUND, Launched.ANY);
+        // M5 part H: the root bursts' dust and the tear-free shockwave over the ground units.
+        if (rootBursts != null) {
+            rootBursts.drawDust(batch, sortie, seconds, scroll);
+        }
+        drawSpire(batch, sortie, wrecks, alpha, scroll, SpirePass.SHOCKWAVE);
         drawGlints(batch, sortie, alpha);
         // M5 part E: the telegraphed lanes' marks and the slams' splashes over the convoy and the rafts.
         drawKraken(batch, sortie, wrecks, alpha, scroll, false);
@@ -559,6 +639,14 @@ public final class LevelRenderer {
         drawGroundGlows(batch, sortie, alpha);
         drawBomberShadows(batch, sortie, alpha);
         drawShadows(batch, sortie, alpha);
+        if (relay != null) {
+            // M5 part G: a destroyed relay's smoke column over the ground units.
+            relay.drawColumn(batch, sortie, alpha, clock.real());
+        }
+        if (drones != null) {
+            // M5 part G: the supply drones low over the relay, under the air units.
+            drones.draw(batch, sortie, relay, alpha, seconds);
+        }
         drawEnemies(batch, sortie, alpha, Depth.LEAP, Launched.ANY);
         drawEnemies(batch, sortie, alpha, Depth.LOW_AIR, Launched.ANY);
         blasts.draw(batch, scroll);
@@ -566,7 +654,12 @@ public final class LevelRenderer {
         if (collapse != null) {
             collapse.drawOver(batch);
         }
-        backdrop.drawLowAir(batch, scroll, clock);
+        drawLowAir(batch, scroll);
+        // M5 part F: the eye's turning wall, a flash's bolt and lit cloud, the bodies a flash reveals
+        // under the banks, the hidden bodies' glows.
+        weather.drawOverBanks(batch, seconds, whiteFlash);
+        drawRevealed(batch, sortie, alpha);
+        drawHiddenGlows(batch, sortie, alpha);
         drawBossShadows(batch, sortie, alpha);
         drawUnitGlows(batch, sortie, alpha);
         // M5 part D: the scripted loss's glow under the air layer, then the shuttles under the flyers.
@@ -579,6 +672,8 @@ public final class LevelRenderer {
         luna.drawBlobs(batch, sortie, alpha);
         drawAirstrike(batch, sortie, alpha);
         drawSetPieces(batch, sortie, alpha, seconds, false);
+        // M5 part H: the free spire tearing loose, airborne or dying.
+        drawSpire(batch, sortie, wrecks, alpha, scroll, SpirePass.AIR);
         drawWrecks(batch, sortie, wrecks, alpha, seconds);
         pieces.draw(batch, scroll);
         drawDebris(batch, sortie, alpha);
@@ -586,6 +681,7 @@ public final class LevelRenderer {
         if (secretGlints != null) {
             secretGlints.draw(batch, sortie, alpha);
         }
+        drawSondes(batch, sortie, alpha);
         drawPickups(batch, sortie, alpha);
         drawShots(batch, sortie, alpha, false);
         Wingman rook = sortie.wingman().orElse(null);
@@ -594,6 +690,7 @@ public final class LevelRenderer {
         }
         if (sortie.flying()) {
             drawShip(batch, sortie, alpha, shieldShimmer);
+            drawLatched(batch, sortie, alpha);
         }
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         drawShots(batch, sortie, alpha, true);
@@ -624,16 +721,171 @@ public final class LevelRenderer {
         }
         // M5 part D: the cloaked units' shimmer on high-air, above the ship.
         drawEnemies(batch, sortie, alpha, Depth.HIGH_AIR, Launched.ANY);
+        double canopyDeath = spireDeathSeconds(sortie, wrecks, alpha);
+        if (spire != null) {
+            // M5 part H: the canopy's veins die with the Siege Spire.
+            backdrop.frontFade(SpireLooks.veins(canopyDeath));
+        }
         backdrop.drawFront(batch, scroll, clock);
+        if (spire != null) {
+            // M5 part H: the canopy tearing and the low sun's beams after the Spire's death.
+            spire.drawDaylight(batch, canopyDeath, backdrop.highAirScroll(scroll));
+        }
+        if (snow != null) {
+            // M5 part G: the arctic snow on high-air, falling on the real clock in the halt.
+            snow.draw(batch, seconds, clock.real());
+        }
+        // M5 part F: the rain, the breakout's light, the gust telegraph and the sky flash, under the bullets.
+        weather.drawFront(
+                batch, seconds, clock.real(), sortie.wind(), SimStep.ticks(sortie.levelSeconds()), whiteFlash);
         if (targeting != null) {
             targeting.draw(batch, sortie, alpha);
         }
         drawMines(batch, sortie, alpha);
+        // M5 part H: the Spire's sweep, its telegraph line and beam, with the bullets.
+        drawSpire(batch, sortie, wrecks, alpha, scroll, SpirePass.SWEEP);
         drawBullets(batch, sortie, alpha);
         screenFlash.draw(batch, sprites.pixel, alpha, whiteFlash);
         warnings.draw(batch, sortie.tick(), alpha);
         credits.draw(batch, font);
         drawBossBar(batch, sortie);
+    }
+
+    /** M5 part F: the latch poses of the sortie's enemy kinds (the Lamprey's), null where a kind has none. */
+    private LampreyLooks[] lampreyLooks(Sortie sortie) {
+        List<EnemySpec> kinds = sortie.enemyKinds();
+        LampreyLooks[] found = new LampreyLooks[kinds.size()];
+        for (int k = 0; k < found.length; k++) {
+            EnemySpec kind = kinds.get(k);
+            if (kind.latch().isPresent()) {
+                found[k] = LampreyLooks.of(sprites, kind.slug(), pivots(files, kind.slug()));
+            }
+        }
+        return found;
+    }
+
+    /**
+     * M5 part F: the low-air layer (its tiles, banks and pieces); in a level with weather, during a
+     * lightning flash's reveal, lit from inside toward a pale blue and seen through, so the bodies
+     * under the banks show (F1 = a). The tint follows the flash reduction; the see-through does not.
+     */
+    private void drawLowAir(SpriteBatch batch, double scroll) {
+        float tint = weather.bankTint(whiteFlash);
+        float opacity = weather.bankOpacity();
+        if (tint <= 0 && opacity >= 1) {
+            backdrop.drawLowAir(batch, scroll, clock);
+            return;
+        }
+        flash.begin(batch, WeatherLooks.LIT, tint);
+        batch.setColor(1, 1, 1, opacity);
+        backdrop.drawLowAir(batch, scroll, clock);
+        batch.setColor(Color.WHITE);
+        flash.end(batch);
+    }
+
+    /**
+     * M5 part F, a lightning flash's reveal (F1 = a): the {@code low-air} units and low-air triggers
+     * under the banks drawn again over them at {@link WeatherLooks#revealed}, so wherever they are on
+     * the screen they show through every bank layer over them as the banks are seen through.
+     */
+    private void drawRevealed(SpriteBatch batch, Sortie sortie, float alpha) {
+        float opacity = weather.revealed();
+        if (opacity <= 0) {
+            return;
+        }
+        batch.setColor(1, 1, 1, opacity);
+        for (int i = 0; i < sortie.enemyCount(); i++) {
+            Enemy enemy = sortie.enemy(i);
+            if (Depth.of(enemy) == Depth.LOW_AIR && enemy.chain() == null && !enemy.latched()) {
+                drawCentred(batch, enemyFrame(sortie, enemy, i, alpha), enemy.renderX(alpha), enemy.renderY(alpha));
+            }
+        }
+        for (int i = 0; i < sortie.groundObjectCount(); i++) {
+            GroundObject object = sortie.groundObject(i);
+            Array<AtlasRegion> frames = groundLooks.get(object.spec().look());
+            if (object.spent()
+                    || !object.spec().lowAir()
+                    || frames == null
+                    || !triggerLooks.contains(object.spec().look())) {
+                continue;
+            }
+            int state = frames.size > 2 && object.damaged() ? 1 : 0;
+            drawCentred(batch, frames.get(state), object.renderX(alpha), object.renderY(alpha));
+        }
+        batch.setColor(Color.WHITE);
+    }
+
+    /**
+     * M5 part F, over the banks that hide them (F1 = a): each {@code low-air} unit's faint glow and a
+     * low-air trigger's own glow (the canister's amber beacon, its "faint glint").
+     */
+    private void drawHiddenGlows(SpriteBatch batch, Sortie sortie, float alpha) {
+        if (!weather.occludes()) {
+            return;
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        if (weather.glows()) {
+            for (int i = 0; i < sortie.enemyCount(); i++) {
+                Enemy enemy = sortie.enemy(i);
+                if (Depth.of(enemy) == Depth.LOW_AIR) {
+                    weather.drawGlow(batch, enemy.renderX(alpha), enemy.renderY(alpha), clock.real());
+                }
+            }
+        }
+        for (int i = 0; i < sortie.groundObjectCount(); i++) {
+            GroundObject object = sortie.groundObject(i);
+            Array<AtlasRegion> glow = groundGlows.get(object.spec().look());
+            if (object.spent() || !object.spec().lowAir() || glow == null) {
+                continue;
+            }
+            int frame = GroundGlow.frame(
+                    sortie.tick(), glow.size, groundLooks.get(object.spec().look()).size, object.damaged());
+            drawCentred(batch, glow.get(frame), object.renderX(alpha), object.renderY(alpha));
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    /** M5 part F: the weather sondes drifting down the play plane, blinking (collected ones pop, LevelScreen). */
+    private void drawSondes(SpriteBatch batch, Sortie sortie, float alpha) {
+        if (sonde.isEmpty()) {
+            return;
+        }
+        Sondes sondes = sortie.sondes();
+        int frame = (int) Math.floorMod((long) Math.floor(clock.real() * SONDE_FPS), (long) sonde.size);
+        for (int i = 0; i < sondes.count(); i++) {
+            if (sondes.state(i) == Sondes.DRIFTING) {
+                drawCentred(batch, sonde.get((frame + i) % sonde.size), sondes.x(i), sondes.renderY(i, alpha));
+            }
+        }
+    }
+
+    /**
+     * M5 part F: the Lampreys latched onto the ship, over the hull at their spots (the ship's position
+     * plus the spot's offset, so they ride with it between the steps), gulping; with each gulp the
+     * ship's shield ring pulses (latch look a).
+     */
+    private void drawLatched(SpriteBatch batch, Sortie sortie, float alpha) {
+        if (lampreys == null) {
+            return;
+        }
+        Ship craft = sortie.ship();
+        double shipX = craft.renderX(alpha);
+        double shipY = craft.renderY(alpha);
+        float gulp = 0;
+        for (int i = 0; i < sortie.enemyCount(); i++) {
+            Enemy enemy = sortie.enemy(i);
+            LampreyLooks look = lampreys[enemy.kind()];
+            if (!enemy.latched() || look == null) {
+                continue;
+            }
+            int spot = enemy.spot();
+            EnemySpec.Spot offset = enemy.spec().latch().orElseThrow().spots().get(spot);
+            int phase = enemy.serial();
+            AtlasRegion frame = look.latched().get(LampreyLooks.latchedIndex(spot, sortie.tick(), phase));
+            drawUnit(batch, enemy, frame, shipX + offset.dx(), shipY + offset.dy());
+            gulp = Math.max(gulp, look.gulpStrength(LampreyLooks.gulpFrame(sortie.tick(), phase)));
+        }
+        shipLooks.drawGulp(batch, Math.round(X0 + shipX), Math.round(shipY), gulp);
     }
 
     /** A hull boss's shadow on the play plane while it flies above it (design/art-direction, high-air rule). */
@@ -721,7 +973,11 @@ public final class LevelRenderer {
             if (ownLook) {
                 // Its own frames: hit after the first hit (with three frames), the last once spent.
                 Array<AtlasRegion> frames = groundLooks.get(object.spec().look());
-                int state = object.spent() ? frames.size - 1 : frames.size > 2 ? damaged : 0;
+                int hits = object.spec().hits();
+                int state = TriggerBreak.hitByHit(frames.size, hits)
+                        // M5 part H: a frame per hit (Level 14's armoured car's creep cleared blob by blob).
+                        ? TriggerBreak.hitFrame(hits, object.hitsLeft(), object.ticksSinceHit())
+                        : object.spent() ? frames.size - 1 : frames.size > 2 ? damaged : 0;
                 frame = frames.get(state);
             } else if (object.spec().trigger() && sledClamp(sortie, object)) {
                 // The stuck sled (Level 05): the ore canister, its clamp's beacon lit while it can be
@@ -740,12 +996,13 @@ public final class LevelRenderer {
                 flash.draw(
                         batch,
                         frame,
-                        Math.round(X0 + object.renderX()),
+                        Math.round(X0 + object.renderX(alpha)),
                         Math.round(object.renderY(alpha)),
                         HIT_WHITE,
                         whiteFlash);
             } else {
-                drawCentred(batch, frame, object.renderX(), object.renderY(alpha));
+                // M5 part F: a drifting trigger (Level 12's canister) moves sideways between the steps.
+                drawCentred(batch, frame, object.renderX(alpha), object.renderY(alpha));
             }
             Array<AtlasRegion> collar = groundCollars.get(object.spec().look());
             if (collar != null && !object.spent()) {
@@ -817,7 +1074,8 @@ public final class LevelRenderer {
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         for (int i = 0; i < sortie.groundObjectCount(); i++) {
             GroundObject object = sortie.groundObject(i);
-            if (object.spent()) {
+            if (object.spent() || (weather.occludes() && object.spec().lowAir())) {
+                // M5 part F: a low-air trigger's glow under occluding banks is drawn over them (drawHiddenGlows).
                 continue;
             }
             Array<AtlasRegion> glow = groundGlows.get(object.spec().look());
@@ -863,7 +1121,9 @@ public final class LevelRenderer {
             if (enemy.leaping()) {
                 return layer == Layer.AIR ? AIR : LEAP;
             }
-            if (enemy.grounded() || enemy.walking()) {
+            // M5 part G: a lane walker (the Skimmer) is a boat on the water: its sub body, wake and
+            // surface frames are drawn with the ground units, under the low-air banks, without a drop shadow.
+            if (enemy.grounded() || enemy.walking() || enemy.laneWalking()) {
                 return GROUND;
             }
             return layer == Layer.LOW_AIR ? LOW_AIR : AIR;
@@ -910,7 +1170,9 @@ public final class LevelRenderer {
             Enemy enemy = sortie.enemy(i);
             if (Depth.of(enemy) != depth
                     || enemy.chain() != null
+                    || enemy.latched()
                     || (which != Launched.ANY && launched(enemy) != (which == Launched.ONLY))) {
+                // M5 part F: a latched Lamprey is drawn over the ship (drawLatched).
                 continue;
             }
             EnemyLooks look = looks[enemy.kind()];
@@ -925,6 +1187,11 @@ public final class LevelRenderer {
             double decloak = enemy.decloak(alpha);
             if (decloak < 1) {
                 drawDecloak(batch, sortie, enemy, look, frame, i, alpha, decloak);
+                continue;
+            }
+            if (enemy.growing()) {
+                // M5 part H: a root burst's growth grows in, scaled and tinted (it takes no hits yet).
+                RootBurstLooks.drawGrowing(batch, enemy, frame, enemy.renderX(alpha), enemy.renderY(alpha), alpha);
                 continue;
             }
             if (depth == Depth.GROUND && look.naval().twoLayers()) {
@@ -1018,7 +1285,13 @@ public final class LevelRenderer {
         if (step >= 0) {
             return look.leap().get(look.leapFrame(enemy.facing(), step));
         }
-        return enemy.walking()
+        LampreyLooks lamprey = lampreys == null ? null : lampreys[enemy.kind()];
+        if (lamprey != null && enemy.latchPhase() == Enemy.LatchPhase.STUNNED) {
+            // M5 part F: thrown off, tumbling a full turn over the stun.
+            return lamprey.stunned().get(LampreyLooks.stunnedIndex(enemy.stunProgress(), lamprey.stunned().size));
+        }
+        // M5 part G: a lane walker (the Skimmer) shows its heading's tail beat, not a walk cycle.
+        return enemy.walking() && !enemy.laneWalking()
                 ? look.frames().get(look.walkFrame(enemy.facing(), enemy.walked()))
                 : look.frame(enemy.facing(), look.step(sortie.tick(), i, enemy.burstSeconds()));
     }
@@ -1062,6 +1335,11 @@ public final class LevelRenderer {
             double y = enemy.renderY(alpha);
             if (naval.rafts()) {
                 drawCentred(batch, naval.raftSub().first(), x, y);
+                continue;
+            }
+            if (naval.skims()) {
+                // M5 part G: a Skimmer's plain body at its heading, under the surface.
+                drawCentred(batch, naval.sub().get(EnemyLooks.heading(enemy.facing(), naval.sub().size)), x, y);
                 continue;
             }
             int pulse = pulses.frame(
@@ -1169,6 +1447,13 @@ public final class LevelRenderer {
         double x = enemy.renderX(alpha);
         double y = enemy.renderY(alpha);
         long tick = sortie.tick();
+        if (naval.skims()) {
+            // M5 part G: a Skimmer's wake on the surface under its body above the waterline.
+            int heading = EnemyLooks.heading(enemy.facing(), look.headings());
+            drawCentred(batch, naval.wakeFrame(heading, tick, enemy.serial()), x, y);
+            drawUnit(batch, enemy, look.frame(enemy.facing(), look.step(tick, enemy.serial())), x, y);
+            return;
+        }
         if (naval.rafts()) {
             int bob = NavalLooks.raftFrame(tick, enemy.serial(), naval.raft().size);
             drawCentred(batch, naval.raft().get(bob), x, y);
@@ -1321,7 +1606,8 @@ public final class LevelRenderer {
             Enemy enemy = sortie.enemy(i);
             Depth depth = Depth.of(enemy);
             // M5 part D: a cloaked unit casts no shadow; a decloaking one's fades in with its body.
-            if (depth == Depth.GROUND || depth == Depth.HIGH_AIR || enemy.chain() != null) {
+            // M5 part F: a latched Lamprey lies on the hull, the ship's shadow is its own.
+            if (depth == Depth.GROUND || depth == Depth.HIGH_AIR || enemy.chain() != null || enemy.latched()) {
                 continue;
             }
             float shade = EnemyLooks.bodyOpacity(enemy.decloak(alpha));
@@ -1373,7 +1659,91 @@ public final class LevelRenderer {
             wingmanLooks.drawShadow(batch, rook, alpha);
         }
         shuttles.drawShadows(batch, sortie, alpha);
+        if (spire != null) {
+            for (int k = 0; k < sortie.setPieceCount(); k++) {
+                if (SpireLooks.drawn(sortie.setPiece(k))) {
+                    // M5 part H: the free spire's shadow, sliding out as it lifts.
+                    spire.drawShadow(batch, sortie.setPiece(k), alpha, sortie.tick());
+                }
+            }
+        }
         shadows.end(batch);
+    }
+
+    /** M5 part H: the Siege Spire's passes ({@link SpireLooks}). */
+    private enum SpirePass {
+        GROUND,
+        SHOCKWAVE,
+        AIR,
+        SWEEP
+    }
+
+    /**
+     * M5 part H: one of the Siege Spire's passes ({@link SpireLooks}): scrolling in, present, or after
+     * its death (its death frames, its stump scrolling away).
+     */
+    private void drawSpire(
+            SpriteBatch batch, Sortie sortie, SetPieceWrecks wrecks, float alpha, double scroll, SpirePass pass) {
+        if (spire == null) {
+            return;
+        }
+        long tick = sortie.tick();
+        double lag = sortie.groundScroll() - scroll;
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            SetPiece piece = sortie.setPiece(k);
+            int age = wrecks.active(k) ? wrecks.age(k) : -1;
+            if (!SpireLooks.drawn(piece) || !SpireLooks.shown(piece, age >= 0)) {
+                continue;
+            }
+            switch (pass) {
+                case GROUND -> {
+                    spire.update(piece, tick);
+                    Ship ship = sortie.ship();
+                    spire.drawGround(
+                            batch, piece, alpha, tick, ship.renderX(alpha), ship.renderY(alpha), lag, whiteFlash);
+                }
+                case SHOCKWAVE -> spire.drawShockwave(batch, piece, tick, lag);
+                case AIR -> spire.drawAir(batch, piece, alpha, tick, age, whiteFlash);
+                case SWEEP -> spire.drawSweep(batch, piece, alpha, tick);
+            }
+        }
+    }
+
+    /** M5 part H: whether a set piece is the Siege Spire, drawn by its own looks (its death too). */
+    public static boolean spire(SetPiece piece) {
+        return SpireLooks.drawn(piece);
+    }
+
+    /** M5 part H: seconds since the Siege Spire's death at the render time (its wreck's age); -1 while it lives. */
+    private double spireDeathSeconds(Sortie sortie, SetPieceWrecks wrecks, float alpha) {
+        if (spire == null) {
+            return -1;
+        }
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            if (SpireLooks.drawn(sortie.setPiece(k)) && wrecks.active(k)) {
+                return (wrecks.age(k) + alpha) * SimStep.SECONDS;
+            }
+        }
+        return -1;
+    }
+
+    /** M5 part H: a mortar lobbed from (x, y) at step {@code tick}: the Siege Spire's mortar pod opens. */
+    public void lobbed(Sortie sortie, double x, double y, long tick) {
+        if (spire == null) {
+            return;
+        }
+        for (int k = 0; k < sortie.setPieceCount(); k++) {
+            if (SpireLooks.drawn(sortie.setPiece(k))) {
+                spire.lobbed(sortie.setPiece(k), x, y, tick);
+            }
+        }
+    }
+
+    /** M5 part H: a boss's window launched a unit at step {@code tick}: the Siege Spire's maw flares. */
+    public void bossLaunched(long tick) {
+        if (spire != null) {
+            spire.launched(tick);
+        }
     }
 
     /**

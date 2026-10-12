@@ -52,7 +52,7 @@ final class LevelRules {
             Function<Pickup, PickupType> pickupType) {
         List<LevelScript.PartDrop> drops = new ArrayList<>();
         for (LevelData.PlacedPickup placed : carried) {
-            Optional<List<String>> parts = placed.droppedBy().parts();
+            Optional<List<String>> parts = placed.carrier().parts();
             if (parts.isEmpty()) {
                 continue;
             }
@@ -60,7 +60,7 @@ final class LevelRules {
             drops.add(new LevelScript.PartDrop(
                     boss,
                     partIndexes(content.enemy(boss), parts.get()),
-                    switch (placed.droppedBy().unit()) {
+                    switch (placed.carrier().unit()) {
                         case FIRST -> 1;
                         case SECOND -> 2;
                         case LAST -> LevelScript.PartDrop.LAST;
@@ -75,6 +75,18 @@ final class LevelRules {
         if (secondary.afloat().orElse(false)) {
             // M5 part E (user decision E8 = a): the naval convoy afloat at the boss's death.
             return LevelScript.Secondary.afloat(
+                    secondary.credits(), secondary.label().orElseThrow());
+        }
+        if (secondary.integrity().isPresent()) {
+            // M5 part G: the defended ally's integrity kept at or above the share (Level 13's relay).
+            return LevelScript.Secondary.integrity(
+                    secondary.integrity().get(),
+                    secondary.credits(),
+                    secondary.label().orElseThrow());
+        }
+        if (secondary.collect().isPresent()) {
+            // M5 part F: every weather sonde flown through (Level 12's "Sondes").
+            return LevelScript.Secondary.sondes(
                     secondary.credits(), secondary.label().orElseThrow());
         }
         String partsOf = "";

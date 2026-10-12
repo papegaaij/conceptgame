@@ -76,6 +76,13 @@ User decision D6 = a of M5 part D: it flies as its stat block says.
   0.24 s, below the `medium` class's 0.4–1.5 s: an accepted exception like the Ravager's (homing
   and forward guns reach it only cloaked or on its exit). Where it returns (L12, L14) it gets the
   act HP factor of a `medium` unit.
+- **Launched by the Siege Spire's maw (Level 14, M5 part H, decision H3 = a, pending the user's
+  review).** The maw launches 2 Wraiths every 8 s (hard 3), at most 4 alive from it at once. A
+  launched Wraith starts cloaked at the maw, swoops down a lane past the ship, re-enters from the
+  bottom edge after the 1.5 s gap, decloaks, holds 2.5 s and exits up a side lane, as in Level 10.
+  Every re-entry is warned 3 s ahead on the bottom edge, which counts as a rear wave for Rook
+  ([Trail formation and bark](../../../player/wingmen/README.md)). It has the L14 act HP factor
+  (19 HP at medium).
 - **Weak point drawn only** (single-part rule, as part C did for the Hive Node and the Ravager):
   the blue-violet veins glow but take no extra damage; the draft's ×1.5 is struck.
 - Its colours are rust chitin with blue-violet veins everywhere (user decision, round 06),

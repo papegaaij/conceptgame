@@ -1,8 +1,9 @@
 # Allies: the specs the game reads, one entry per ally slug; README.md's tables are hand-written for
 # now. Schema: ../tech/architecture/README.md#data-file-schemas
-# The civilian crawler (Level 04), the evacuation shuttle (Level 10, M5 part D) and the naval convoy's
-# cargo ship and escort frigate (Level 11, M5 part E); the other allies get theirs with the levels that
-# use them.
+# The civilian crawler (Level 04), the evacuation shuttle (Level 10, M5 part D), the naval convoy's
+# cargo ship and escort frigate (Level 11, M5 part E) and the Nansen Relay (Level 13, M5 part G); the
+# other allies get theirs with the levels that use them. The CDF supply drone is presentation only (no
+# entry: Level 13's `drops`).
 civilian-crawler:
   name: Civilian crawler
   layer: ground
@@ -61,3 +62,18 @@ escort-frigate:           # Level 11's CDFS Ruyter (M5 part E)
   smoke_below: 0.5
   flak: {every: 2.0}      # presentation: a burst on low-air over the convoy every 2 s while it is on its station, hitting nothing
   first_level: 11
+nansen-relay:             # Level 13's defend primary (M5 part G, user decisions G1, G2 = a and the stated defaults of 2026-10-11; pending the user's review)
+  name: Nansen Relay
+  layer: ground
+  size: [96, 96]          # sprite px: the footprint (dish array, mast, prefab modules, the helipad)
+  hitbox: [80, 80]        # inside the footprint
+  hp: 240                 # integrity at medium (600 in the draft; tuned in M5 part G, step G4, G2 = a: the guarding autopilot's median seed ends at half of it); the level sets the difficulty variants
+  damaged_by:             # only attacks the target-the-objective hook aims at it (G1 = a)
+    objective_aimed: true # relay-aimed shots and fans (alternate, in-arc, always); shots aimed at the ship pass over it
+    claws: 0
+    dives: 10             # a hooked diver crossing its hit box, once per dive (the Stinger flies on)
+    lobs: true            # a hooked mortar's direct hit landing on it (the ring hurts only the ship)
+  follows: ground         # scrolls in with the ground and stands where it halts (a defend's timed halt)
+  headings: {count: 1, step: 10}   # it never turns
+  smoke_below: 0.5        # share of its integrity
+  first_level: 13

@@ -21,4 +21,26 @@ public final class TriggerBreak {
     public static boolean breaks(LevelScript.GroundObjectSpec spec) {
         return spec.trigger() && WRECKED_WHEN_SPENT.contains(spec.look());
     }
+
+    /** M5 part H: a hit-by-hit trigger shows its cleared frame this long after its last hit, then its open one. */
+    static final int CLEARED_TICKS = 12;
+
+    /**
+     * M5 part H: whether a trigger look of {@code frames} frames shows its hits one by one: a frame per
+     * hit taken, then cleared and opened (Level 14's armoured car: 6 hits, 8 frames, tools/art/l14_props.py).
+     */
+    static boolean hitByHit(int frames, int hits) {
+        return hits > 1 && frames == hits + 2;
+    }
+
+    /**
+     * M5 part H: a hit-by-hit trigger's frame: one per hit taken ({@code hits - hitsLeft}), its
+     * cleared frame for {@value #CLEARED_TICKS} steps after the hit that spends it, then its last (open).
+     */
+    static int hitFrame(int hits, int hitsLeft, int ticksSinceHit) {
+        if (hitsLeft > 0) {
+            return Math.clamp(hits - hitsLeft, 0, hits - 1);
+        }
+        return ticksSinceHit < CLEARED_TICKS ? hits : hits + 1;
+    }
 }

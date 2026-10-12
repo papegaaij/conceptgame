@@ -204,6 +204,22 @@ public final class ShipLooks {
      * Over the hull, additive: a spark burst while one plays (below 15 % armour), and the shield
      * ring while the shimmer of a shield hit lasts ({@code shimmer} 1 at the hit down to 0).
      */
+    /**
+     * M5 part F: a latched Lamprey's gulp (latch look a, tools/art/lamprey.py): the shield ring's first
+     * frame over the ship at (x, y), additive at {@code strength}, a gulp of shield light drawn in.
+     */
+    public void drawGulp(SpriteBatch batch, float x, float y, float strength) {
+        if (strength <= 0) {
+            return;
+        }
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        AtlasRegion region = ring.first();
+        batch.setColor(1, 1, 1, strength);
+        batch.draw(region, x - region.getRegionWidth() / 2f, y - region.getRegionHeight() / 2f);
+        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    }
+
     public void drawAbove(SpriteBatch batch, long tick, float alpha, float x, float y, float shimmer) {
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         int spark = (int) ((tick - sparkStart + alpha) / SPARK_FRAME_TICKS);

@@ -75,10 +75,44 @@ final class EnemyForce {
     private final int[] regrownKinds;
     private int spawned;
     private int nextGround;
+    /** M5 part F: the level's wind this step, px/s to the right; exactly 0 without weather. */
+    private double wind;
     /** The convoy the target-the-objective hook aims at; null without one. */
     private Convoy convoy;
-    /** Per enemy kind, whether its aimed attacks use the hook (mode {@code nearest}). */
-    private boolean[] hooked;
+    /**
+     * Per enemy kind, its hook mode ({@code nearest} for an escort's hooked kinds; M5 part G: a defend
+     * primary's modes); null without a convoy.
+     */
+    private LevelScript.HookMode[] modes;
+    /** M5 part G: the direct hits of the lobs aimed at the objective that landed on it in the last {@link #moveLobs}. */
+    private double objectiveDamage;
+    /** M5 part G: per ground unit entering from a side, the steps its edge warning starts and ends, and its edge bit. */
+    private final int[] sideWarningStarts;
+
+    private final int[] sideWarningEnds;
+    private final int[] sideWarningEdges;
+    /**
+     * M5 part H, the root bursts (design/campaign Level 14, Hazards; decision H2 = a): per ground unit
+     * its slot in the burst arrays, -1 for a unit no burst grows; per slot its ground unit, the level
+     * step its telegraph starts, whether it started in this attempt, the burst's move away from the ship
+     * (px, the same for every growth of a burst), its point's height in ground space (the screen height
+     * plus the ground's scroll at the telegraph), the half width its growths need from the field's edges,
+     * and whether it is its burst's first growth (which raises the burst's events).
+     */
+    private final int[] burstSlot;
+
+    private final int[] burstUnit;
+    private final int[] burstTelegraphTicks;
+    private final boolean[] burstTelegraphed;
+    private final double[] burstShift;
+    private final double[] burstBase;
+    private final double[] burstFoot;
+    private final boolean[] burstFirst;
+    /** M5 part H: the ship's x, the ground's scroll and its last step, as {@link #bursts} last saw them. */
+    private double burstShipX = PlayField.WIDTH / 2.0;
+
+    private double burstScroll;
+    private double burstScrollStep;
     /** Per enemy kind, the kind a spawner releases; -1 for others. */
     private final int[] broodKinds;
     /** The spawner that entered last, which the escorts entering after it circle. */
@@ -181,6 +215,57 @@ final class EnemyForce {
             groundCurrentX[i] = StrictMath.sin(groundUnits.get(i).currentRadians());
             groundCurrentY[i] = -StrictMath.cos(groundUnits.get(i).currentRadians());
         }
+        burstSlot = new int[groundUnits.size()];
+        java.util.Arrays.fill(burstSlot, -1);
+        int bursting = (int)
+                groundUnits.stream().filter(unit -> unit.burst().isPresent()).count();
+        burstUnit = new int[bursting];
+        burstTelegraphTicks = new int[bursting];
+        burstTelegraphed = new boolean[bursting];
+        burstShift = new double[bursting];
+        burstBase = new double[bursting];
+        burstFoot = new double[bursting];
+        burstFirst = new boolean[bursting];
+        int b = 0;
+        for (int i = 0; i < groundUnits.size(); i++) {
+            LevelScript.GroundUnit unit = groundUnits.get(i);
+            if (unit.burst().isEmpty()) {
+                continue;
+            }
+            LevelScript.RootBurst burst = unit.burst().get();
+            burstSlot[i] = b;
+            burstUnit[b] = i;
+            burstTelegraphTicks[b] = SimStep.ticks(burst.t());
+            boolean first = true;
+            double foot = 0;
+            for (int j = 0; j < groundUnits.size(); j++) {
+                LevelScript.GroundUnit other = groundUnits.get(j);
+                if (other.burst().isPresent() && other.burst().get().index() == burst.index()) {
+                    first &= j >= i;
+                    foot = Math.max(
+                            foot,
+                            Math.abs(other.x() - burst.x())
+                                    + other.enemy().hitbox().width() / 2);
+                }
+            }
+            burstFirst[b] = first;
+            burstFoot[b] = foot;
+            b++;
+        }
+        int sides = (int)
+                groundUnits.stream().filter(unit -> unit.side().isPresent()).count();
+        sideWarningStarts = new int[sides];
+        sideWarningEnds = new int[sides];
+        sideWarningEdges = new int[sides];
+        int w = 0;
+        for (LevelScript.GroundUnit unit : groundUnits) {
+            if (unit.side().isPresent()) {
+                sideWarningStarts[w] = SimStep.ticks(unit.t() - WaveSchedule.EDGE_WARNING_SECONDS);
+                sideWarningEnds[w] = SimStep.ticks(unit.t());
+                sideWarningEdges[w] = unit.side().get().fromLeft() ? WarningEdge.LEFT.bit() : WarningEdge.RIGHT.bit();
+                w++;
+            }
+        }
     }
 
     /**
@@ -190,10 +275,36 @@ final class EnemyForce {
      */
     void hook(Convoy target, List<String> slugs) {
         convoy = target;
-        hooked = new boolean[kinds.size()];
+        modes = new LevelScript.HookMode[kinds.size()];
         for (int k = 0; k < kinds.size(); k++) {
-            hooked[k] = slugs.contains(kinds.get(k).slug());
+            modes[k] = slugs.contains(kinds.get(k).slug()) ? LevelScript.HookMode.NEAREST : LevelScript.HookMode.NONE;
         }
+    }
+
+    /**
+     * M5 part G (design/campaign Level 13, What hurts the relay; user decision G1 = a): the hook of a
+     * defend primary, {@code target} its ally, each enemy kind in its {@link LevelScript.Defend#mode
+     * mode}.
+     */
+    void hook(Convoy target, LevelScript.Defend defend) {
+        convoy = target;
+        modes = new LevelScript.HookMode[kinds.size()];
+        for (int k = 0; k < kinds.size(); k++) {
+            modes[k] = defend.mode(kinds.get(k).slug());
+        }
+    }
+
+    /** The hook mode of enemy kind {@code kind}; {@link LevelScript.HookMode#NONE} without a convoy. */
+    private LevelScript.HookMode mode(int kind) {
+        return modes == null ? LevelScript.HookMode.NONE : modes[kind];
+    }
+
+    /**
+     * M5 part F: the level's wind for the next {@link #move}, px/s to the right (design/campaign Level
+     * 12, Weather): it pushes the units with a latch and the Whirl Seeds.
+     */
+    void wind(double pxPerSecond) {
+        wind = pxPerSecond;
     }
 
     /** Back to the level start: no enemies or bullets, the schedule at its first unit. */
@@ -212,6 +323,64 @@ final class EnemyForce {
         nextGround = 0;
         lastCarrier = null;
         java.util.Arrays.fill(volleyClocks, 0);
+        java.util.Arrays.fill(burstTelegraphed, false);
+        java.util.Arrays.fill(burstShift, 0);
+        java.util.Arrays.fill(burstBase, 0);
+    }
+
+    /**
+     * M5 part H, the root bursts' telegraphs (design/campaign Level 14, Hazards; decision H2 = a), before
+     * {@link #spawn} in a step: every burst whose time has come and whose telegraph has not started in
+     * this attempt starts it now, moved away from the ship at {@code shipX} when its centre lies closer
+     * than {@link LevelScript.RootBurst#SHIP_CLEARANCE} (its event once per burst); {@code groundScroll}
+     * is the ground's scroll after this step's {@code scrollStep}.
+     */
+    void bursts(int levelTick, double shipX, double groundScroll, double scrollStep) {
+        burstShipX = shipX;
+        burstScroll = groundScroll;
+        burstScrollStep = scrollStep;
+        for (int b = 0; b < burstUnit.length; b++) {
+            if (!burstTelegraphed[b] && burstUnit[b] >= nextGround && levelTick >= burstTelegraphTicks[b]) {
+                telegraph(b);
+            }
+        }
+    }
+
+    /** M5 part H: burst slot {@code b}'s telegraph starts: its move away from the ship, its point, its event. */
+    private void telegraph(int b) {
+        LevelScript.RootBurst burst = groundUnits.get(burstUnit[b]).burst().orElseThrow();
+        burstShift[b] = clearOfShip(burst.x(), burstFoot[b], burstShipX);
+        burstBase[b] = PlayField.HEIGHT - burst.depth() + burstScroll;
+        burstTelegraphed[b] = true;
+        if (burstFirst[b]) {
+            events.add(
+                    SimEvents.Type.ROOT_BURST_TELEGRAPH,
+                    burst.x() + burstShift[b],
+                    PlayField.HEIGHT - burst.depth(),
+                    burst.index());
+        }
+    }
+
+    /**
+     * M5 part H: how far a burst centred at {@code x}, its growths reaching {@code foot} px either side,
+     * moves sideways so that it lies {@link LevelScript.RootBurst#SHIP_CLEARANCE} px from the ship at
+     * {@code shipX}: 0 when it does already; else away from the ship (a burst right under it toward the
+     * field's middle), to the other side when the field has no room there, kept on the field.
+     */
+    static double clearOfShip(double x, double foot, double shipX) {
+        double clearance = LevelScript.RootBurst.SHIP_CLEARANCE;
+        double d = x - shipX;
+        if (Math.abs(d) >= clearance) {
+            return 0;
+        }
+        double away = d > 0 ? 1 : d < 0 ? -1 : shipX <= PlayField.WIDTH / 2.0 ? 1 : -1;
+        double low = Math.min(foot, PlayField.WIDTH / 2.0);
+        double high = PlayField.WIDTH - low;
+        double to = shipX + away * clearance;
+        if (to < low || to > high) {
+            to = shipX - away * clearance;
+        }
+        return Math.clamp(to, low, high) - x;
     }
 
     /** Lets in every unit due at {@code levelTick}, flying and on the ground. */
@@ -243,7 +412,30 @@ final class EnemyForce {
         while (nextGround < groundTicks.length && groundTicks[nextGround] <= levelTick) {
             LevelScript.GroundUnit unit = groundUnits.get(nextGround);
             Enemy enemy = enemies.obtain();
-            if (enemy != null) {
+            if (enemy != null && unit.burst().isPresent()) {
+                // M5 part H: a root burst's growth stands at its burst's point, which scrolled since the telegraph.
+                int b = burstSlot[nextGround];
+                if (!burstTelegraphed[b]) {
+                    // Its telegraph fell before a boss checkpoint the attempt restarted from: it starts now.
+                    telegraph(b);
+                }
+                LevelScript.RootBurst burst = unit.burst().get();
+                enemy.root(unit.enemy(), groundKinds[nextGround], unit.x(), spawned, unit.group());
+                // The ground units scroll by this step's distance after they are let in.
+                double y = burstBase[b] - burstScroll + burstScrollStep;
+                enemy.grow(burst.index(), unit.x() + burstShift[b], y, SimStep.ticks(burst.firstShotSeconds()));
+                if (burstFirst[b]) {
+                    events.add(
+                            SimEvents.Type.ROOT_BURST_GREW,
+                            burst.x() + burstShift[b],
+                            burstBase[b] - burstScroll,
+                            burst.index());
+                }
+            } else if (enemy != null && unit.side().isPresent()) {
+                // M5 part G: in from a side edge, drifting across (Level 13's mortar floe).
+                enemy.rootAtSide(
+                        unit.enemy(), groundKinds[nextGround], unit.side().get(), spawned, unit.group());
+            } else if (enemy != null) {
                 enemy.root(
                         unit.enemy(),
                         groundKinds[nextGround],
@@ -467,7 +659,20 @@ final class EnemyForce {
             int target = target(enemy, ship);
             double aimX = target < 0 ? ship.x() : convoy.get(target).x();
             double aimY = target < 0 ? ship.y() : convoy.get(target).y();
-            boolean flying = enemy.move(ship.x(), ship.y(), groundScroll, aimX, aimY);
+            // M5 part G: a diver under the always hook dives at the objective while it can be aimed at.
+            int dive = mode(enemy.kind()) == LevelScript.HookMode.ALWAYS ? convoy.objective() : -1;
+            boolean flying = dive < 0
+                    ? enemy.move(ship.x(), ship.y(), groundScroll, aimX, aimY, wind)
+                    : enemy.move(
+                            ship.x(),
+                            ship.y(),
+                            groundScroll,
+                            aimX,
+                            aimY,
+                            wind,
+                            convoy.get(dive).x(),
+                            convoy.get(dive).y(),
+                            true);
             if (flying && enemy.decloakedNow()) {
                 events.add(SimEvents.Type.DECLOAK, enemy.x(), enemy.y(), enemy.kind());
             }
@@ -501,6 +706,8 @@ final class EnemyForce {
                     lob(enemy, gun, ship);
                 } else if (gun.up()) {
                     fireUp(enemy, gun);
+                } else if (mode(enemy.kind()) == LevelScript.HookMode.ALTERNATE) {
+                    fireAt(enemy, ship, alternate(enemy, ship));
                 } else {
                     fireAt(enemy, ship, target(enemy, ship));
                 }
@@ -550,11 +757,17 @@ final class EnemyForce {
         }
         if (fan) {
             boolean atShip = enemy.spec().walker().orElseThrow().fanAtShip();
-            fire(enemy.x(), enemy.y(), enemy.spec().gun().orElseThrow(), false, enemy.facing(), ship, -1, !atShip);
+            int inArc = mode(enemy.kind()) == LevelScript.HookMode.IN_ARC ? inArc(enemy) : -1;
+            if (inArc >= 0) {
+                // M5 part G: the objective within its armour's arc: the fan centred on it, aimed at it.
+                fire(enemy.x(), enemy.y(), enemy.spec().gun().orElseThrow(), false, 0, ship, inArc, false);
+            } else {
+                fire(enemy.x(), enemy.y(), enemy.spec().gun().orElseThrow(), false, enemy.facing(), ship, -1, !atShip);
+            }
         }
         if (spit) {
             EnemyGun gun = enemy.spec().walker().orElseThrow().spit().orElseThrow();
-            int target = convoy != null && hooked[enemy.kind()]
+            int target = mode(enemy.kind()) == LevelScript.HookMode.NEAREST
                     ? convoy.nearest(enemy.x(), enemy.y(), ship.x(), ship.y())
                     : -1;
             fire(enemy.x(), enemy.y(), gun, false, 0, ship, target, false);
@@ -624,6 +837,85 @@ final class EnemyForce {
         spawned++;
     }
 
+    /**
+     * M5 part H (design/enemies/bosses/siege-spire, the maw's Wraiths; decision H3 = a): a unit a boss's
+     * window launches as an ambush, flying {@code plan}'s rear path from where it starts; a rear unit from
+     * its re-entry on (Rook's Trail). Returns whether the pool had room for it.
+     */
+    boolean launchAmbush(Spawn plan) {
+        Enemy unit = enemies.obtain();
+        if (unit != null) {
+            unit.spawn(plan, spawned);
+            unit.entered(WaveSpec.Entry.REAR);
+            unit.launchedByBoss();
+        }
+        spawned++;
+        return unit != null;
+    }
+
+    /** M5 part H: the units a boss launched as ambushes alive now (the Siege Spire's maw's Wraiths). */
+    int launchedAlive() {
+        int alive = 0;
+        for (int j = 0; j < enemies.size(); j++) {
+            alive += enemies.get(j).launched() ? 1 : 0;
+        }
+        return alive;
+    }
+
+    /**
+     * M5 part H (design/enemies, Boss attacks and root bursts; decision H5 = a): a boss part at (x, y)
+     * lobs {@code gun}'s mortar at where the ship is now (the marker does not follow it).
+     */
+    void bossLob(double x, double y, EnemyGun gun, Ship ship) {
+        Lob lob = lobs.obtain();
+        if (lob != null) {
+            lob.launch(gun, x, y, ship.x(), ship.y());
+            events.add(SimEvents.Type.MORTAR_LOBBED, x, y);
+        }
+    }
+
+    /** M5 part H: the root bursts' state, hashed only in a level with them (Act 1's and Levels 08–13's hashes stay). */
+    void addBurstsTo(StateHash hash) {
+        for (int b = 0; b < burstUnit.length; b++) {
+            hash.add(burstTelegraphed[b] ? 1 : 0).add(burstShift[b]).add(burstBase[b]);
+        }
+    }
+
+    /** M5 part H: the root bursts' growths in the level (each growth a slot; a burst's first is its burst's). */
+    int burstSlots() {
+        return burstUnit.length;
+    }
+
+    /** M5 part H: whether slot {@code b} is its burst's first growth (the burst's own state and events go by it). */
+    boolean burstFirst(int b) {
+        return burstFirst[b];
+    }
+
+    /** M5 part H: slot {@code b}'s burst. */
+    LevelScript.RootBurst burstOf(int b) {
+        return groundUnits.get(burstUnit[b]).burst().orElseThrow();
+    }
+
+    /** M5 part H: whether slot {@code b}'s telegraph has started in this attempt. */
+    boolean burstTelegraphed(int b) {
+        return burstTelegraphed[b];
+    }
+
+    /** M5 part H: whether slot {@code b}'s growth has appeared in this attempt (or the attempt restarted past it). */
+    boolean burstGrown(int b) {
+        return burstUnit[b] < nextGround;
+    }
+
+    /** M5 part H: slot {@code b}'s burst's centre x after its move away from the ship. */
+    double burstX(int b) {
+        return burstOf(b).x() + burstShift[b];
+    }
+
+    /** M5 part H: slot {@code b}'s burst's point's height in ground space: minus the ground's scroll, its screen height. */
+    double burstBase(int b) {
+        return burstBase[b];
+    }
+
     /** The escorts circling {@code carrier} break off: it is gone. */
     private void carrierEnded(Enemy carrier) {
         for (int i = 0; i < enemies.size(); i++) {
@@ -642,7 +934,15 @@ final class EnemyForce {
      * (units without the hook, fans and mines always aim at the ship).
      */
     private int target(Enemy enemy, Ship ship) {
-        if (convoy == null || !hooked[enemy.kind()] || enemy.spec().gun().isEmpty()) {
+        LevelScript.HookMode mode = mode(enemy.kind());
+        if (mode == LevelScript.HookMode.ALWAYS) {
+            // M5 part G: every attack of the unit (a fan, a lob, a turret's barrel) at the objective.
+            return enemy.spec().gun().isPresent()
+                            && enemy.spec().gun().get().mine().isEmpty()
+                    ? convoy.objective()
+                    : -1;
+        }
+        if (mode != LevelScript.HookMode.NEAREST || enemy.spec().gun().isEmpty()) {
             return -1;
         }
         EnemyGun gun = enemy.spec().gun().get();
@@ -650,6 +950,47 @@ final class EnemyForce {
             return -1;
         }
         return convoy.nearest(enemy.x(), enemy.y(), ship.x(), ship.y());
+    }
+
+    /**
+     * M5 part G, the {@code alternate} hook (user decision G1 = a): whom the shot {@link Enemy#trigger()}
+     * let go goes at. A burst's first shot starts an attack: every second attack goes at the objective
+     * while it is closer than the ship (centre to centre), the others at the ship; the burst's other
+     * shots go where its first went.
+     */
+    private int alternate(Enemy enemy, Ship ship) {
+        if (enemy.burstShot() == 0) {
+            int target = -1;
+            if (enemy.startAttack() % 2 == 0) {
+                int objective = convoy.objective();
+                if (objective >= 0) {
+                    Ally ally = convoy.get(objective);
+                    double ox = ally.x() - enemy.x();
+                    double oy = ally.y() - enemy.y();
+                    double sx = ship.x() - enemy.x();
+                    double sy = ship.y() - enemy.y();
+                    target = ox * ox + oy * oy < sx * sx + sy * sy ? objective : -1;
+                }
+            }
+            enemy.attackTarget(target);
+        }
+        return enemy.attackTarget();
+    }
+
+    /**
+     * M5 part G, the {@code in-arc} hook: the objective a walker's fan goes at, when it can be aimed at
+     * and lies within the walker's armour's arc of its facing (design/enemies/ground/scuttler: ±45°);
+     * -1 otherwise.
+     */
+    private int inArc(Enemy enemy) {
+        int objective = convoy.objective();
+        if (objective < 0) {
+            return -1;
+        }
+        Ally ally = convoy.get(objective);
+        double bearing = StrictMath.atan2(-(ally.x() - enemy.x()), -(ally.y() - enemy.y()));
+        double off = Math.abs(Math.IEEEremainder(bearing - enemy.facing(), 2 * StrictMath.PI));
+        return off <= enemy.spec().walker().orElseThrow().frontArc() ? objective : -1;
     }
 
     /**
@@ -833,11 +1174,25 @@ final class EnemyForce {
         }
     }
 
-    /** A mortar lobs a blob at where the ship is now (the marker does not follow it). */
+    /**
+     * A mortar lobs a blob at where the ship is now (the marker does not follow it); M5 part G: under
+     * the always hook at the objective while it can be aimed at.
+     */
     private void lob(Enemy enemy, EnemyGun gun, Ship ship) {
         Lob lob = lobs.obtain();
         if (lob != null) {
-            lob.launch(gun, enemy.x(), enemy.y(), ship.x(), ship.y());
+            int target = mode(enemy.kind()) == LevelScript.HookMode.ALWAYS ? convoy.objective() : -1;
+            if (target >= 0) {
+                lob.launch(
+                        gun,
+                        enemy.x(),
+                        enemy.y(),
+                        convoy.get(target).x(),
+                        convoy.get(target).y(),
+                        target);
+            } else {
+                lob.launch(gun, enemy.x(), enemy.y(), ship.x(), ship.y());
+            }
             events.add(SimEvents.Type.MORTAR_LOBBED, enemy.x(), enemy.y());
         }
     }
@@ -850,6 +1205,7 @@ final class EnemyForce {
      */
     double moveLobs(Ship ship, double groundScroll) {
         double direct = 0;
+        objectiveDamage = 0;
         for (int i = lobs.size() - 1; i >= 0; i--) {
             Lob lob = lobs.get(i);
             lob.scroll(groundScroll);
@@ -881,6 +1237,10 @@ final class EnemyForce {
             if (hit) {
                 direct += gun.damage();
             }
+            // M5 part G: a lob aimed at the objective deals its direct hit to it when it lands on it.
+            if (lob.target() >= 0 && convoy.touches(lob.target(), x, y, EnemyGun.BULLET)) {
+                objectiveDamage += gun.damage();
+            }
             events.add(SimEvents.Type.MORTAR_IMPACT, x, y, hit ? 1 : 0);
             lobs.free(i);
         }
@@ -889,6 +1249,11 @@ final class EnemyForce {
 
     Pool<Lob> lobs() {
         return lobs;
+    }
+
+    /** M5 part G: the direct hits the lobs aimed at the objective dealt it in the last {@link #moveLobs}. */
+    double objectiveLobDamage() {
+        return objectiveDamage;
     }
 
     /** A destroyed unit with a death burst pops into its puff of bullets. */
@@ -952,7 +1317,14 @@ final class EnemyForce {
 
     /** The edges showing an edge warning at {@code levelTick}, as {@link WarningEdge} bits. */
     int warnings(int levelTick) {
-        return waves.warnings(levelTick);
+        int edges = waves.warnings(levelTick);
+        // M5 part G: and a ground unit entering from a side (Level 13's mortar floe).
+        for (int w = 0; w < sideWarningStarts.length; w++) {
+            if (levelTick >= sideWarningStarts[w] && levelTick < sideWarningEnds[w]) {
+                edges |= sideWarningEdges[w];
+            }
+        }
+        return edges;
     }
 
     Pool<Enemy> enemies() {

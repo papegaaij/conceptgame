@@ -18,7 +18,7 @@ final class Formations {
     private static final double WIDTH = PlayField.WIDTH;
     private static final double HEIGHT = PlayField.HEIGHT;
     /** Units enter this far outside the edge, so they fly in rather than appear. */
-    private static final double OUTSIDE = 40;
+    static final double OUTSIDE = 40;
 
     /** Enters top left, curls towards the centre and leaves through the bottom. */
     private static final FlightPath CURL =
@@ -32,7 +32,14 @@ final class Formations {
     private static final FlightPath FRONT_STREAM = FlightPath.through(90, HEIGHT + OUTSIDE, 330, -OUTSIDE);
     /** A side stream unit from the left: across and down to the right edge. */
     private static final FlightPath SIDE_STREAM = FlightPath.through(-OUTSIDE, 430, WIDTH + OUTSIDE, 170);
+    /**
+     * M5 part F: a rear stream unit from the left (chasers only, design/enemies/air/lamprey): up and
+     * across to the right, the front stream's path turned upside down.
+     */
+    private static final FlightPath REAR_STREAM = FlightPath.through(90, -OUTSIDE, 330, HEIGHT + OUTSIDE);
 
+    /** M5 part G: the gap between the two units of a column's pair (Level 13's hard Stingers), px. */
+    static final double PAIR_SPACING = 50;
     /** Horizontal gap between the ranks of a V. */
     private static final double V_SPACING = 50;
     /** The largest height step between the ranks of a V. */
@@ -66,9 +73,13 @@ final class Formations {
      * M5 part D: how far a leaving ambush unit climbs while it slides out to its side lane, px; it
      * is straight in its lane from twice this above its hold point.
      */
-    private static final double AMBUSH_EXIT_RISE = 60;
+    static final double AMBUSH_EXIT_RISE = 60;
     /** The sunflower's turn between two points of a swarm's starting cloud. */
     private static final double GOLDEN_ANGLE = StrictMath.PI * (3 - Math.sqrt(5));
+    /** M5 part F: about this far apart, px, the members of a swarm of chasers start in their cloud. */
+    static final double CHASER_SPACING = 32;
+    /** M5 part F: the most of a swarm of chasers' start delays, s (user decision F9 = a). */
+    static final double CHASER_DELAY_MOST = 0.6;
 
     private Formations() {}
 
@@ -93,6 +104,10 @@ final class Formations {
     /** Adds the units of {@code wave} to {@code out}; {@code kind} is the wave's enemy kind. */
     static void plan(WaveSpec wave, int kind, SplitMix64 rng, List<Spawn> out) {
         Planner planner = new Planner(wave, kind, rng, out);
+        if (!wave.lanes().isEmpty()) {
+            planner.lanes();
+            return;
+        }
         if (wave.enemy().walker().isPresent()) {
             planner.walkers();
             return;
@@ -123,6 +138,7 @@ final class Formations {
             case SWARM -> planner.swarm();
             case REAR_AMBUSH -> planner.rearAmbush();
             case FIELD -> planner.field();
+            case CROSS -> planner.cross();
         }
     }
 
@@ -277,6 +293,10 @@ final class Formations {
                 return;
             }
             requireFront();
+            if (wave.pairSeconds().isPresent()) {
+                pairs(wave.pairSeconds().get());
+                return;
+            }
             double x = frontColumn();
             for (int i = 0; i < wave.count(); i++) {
                 if (stops()) {
@@ -296,6 +316,116 @@ final class Formations {
                             Optional.empty(),
                             Spawn.Exit.DOWN);
                 }
+            }
+        }
+
+        /**
+         * M5 part G (design/campaign Level 13, hard's t=210 Stingers): a column from the front in pairs:
+         * the units of a pair side by side {@link #PAIR_SPACING} apart about the column's x (a last unit
+         * on its own on it), entering together, the pairs {@code gap} s apart; each stops (or flies
+         * through) as in a column.
+         */
+        private void pairs(double gap) {
+            double centre = frontColumn();
+            for (int i = 0; i < wave.count(); i++) {
+                boolean alone = i % 2 == 0 && i == wave.count() - 1;
+                double x = alone ? centre : centre + (i % 2 == 0 ? -PAIR_SPACING / 2 : PAIR_SPACING / 2);
+                double t = wave.t() + (i / 2) * gap;
+                if (stops()) {
+                    stopAt(
+                            i,
+                            t,
+                            FlightPath.through(
+                                    x, HEIGHT + OUTSIDE, x, HEIGHT - stopDepth().at(0.5)),
+                            x);
+                } else {
+                    add(
+                            i,
+                            t,
+                            FlightPath.through(x, HEIGHT + OUTSIDE, x, -OUTSIDE),
+                            speed(enemy().speed()),
+                            0,
+                            Optional.empty(),
+                            Spawn.Exit.DOWN);
+                }
+            }
+        }
+
+        /**
+         * M5 part G (design/enemies/naval/skimmer, user decision G4 = a): lane walkers, each on its lane
+         * of the wave ({@link WaveSpec#lanes()}): unit i on lane i (wrapping); a pincer with one lane
+         * mirrors it for every second unit and sends each further pair {@link #CONVOY_INTERVAL_SECONDS}
+         * later, a pack sends them {@link #PACK_INTERVAL_SECONDS} apart, a {@code cross} together (a lane
+         * per unit), any other formation one after another {@link #CONVOY_INTERVAL_SECONDS} apart. A lane
+         * is in ground space: it scrolls with the ground from the unit's entry.
+         */
+        void lanes() {
+            if (enemy().layer() != Layer.GROUND
+                    || enemy().walker().isPresent()
+                    || enemy().chain().isPresent()) {
+                throw unsupported("only a ground unit that is not a walker follows lanes");
+            }
+            int lanes = wave.lanes().size();
+            if (wave.formation() == WaveSpec.Formation.CROSS && lanes < wave.count()) {
+                throw unsupported("a cross needs a lane per unit: " + lanes + " for " + wave.count());
+            }
+            double speed = speed(enemy().speed());
+            for (int i = 0; i < wave.count(); i++) {
+                boolean mirror = wave.formation() == WaveSpec.Formation.PINCER && lanes == 1 && i % 2 == 1;
+                FlightPath lane = FlightPath.through(points(wave.lanes().get(i % lanes), mirror));
+                double delay =
+                        switch (wave.formation()) {
+                            case CROSS -> 0;
+                            case PINCER -> (i / 2) * CONVOY_INTERVAL_SECONDS;
+                            case PACK -> i * PACK_INTERVAL_SECONDS;
+                            default -> i * CONVOY_INTERVAL_SECONDS;
+                        };
+                out.add(new Spawn(
+                        SimStep.ticks(wave.t() + delay),
+                        kind,
+                        enemy(),
+                        lane,
+                        speed,
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.DOWN,
+                        false,
+                        carried(i),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        0,
+                        true));
+            }
+        }
+
+        /**
+         * M5 part G, a {@code cross} without lanes (design/enemies, formation vocabulary): {@code count}
+         * ÷ 4 units from each edge, unit i from the top, the right, the bottom and the left edge in turn,
+         * evenly spaced along its edge and flying straight across the play field together.
+         */
+        void cross() {
+            if (wave.count() % 4 != 0) {
+                throw unsupported("a cross sends as many units from each of the four edges: " + wave.count());
+            }
+            int perEdge = wave.count() / 4;
+            double speed = speed(enemy().speed());
+            for (int i = 0; i < wave.count(); i++) {
+                int slot = i / 4;
+                double x = (slot + 1) * WIDTH / (perEdge + 1);
+                double y = (slot + 1) * HEIGHT / (perEdge + 1);
+                FlightPath path =
+                        switch (i % 4) {
+                            case 0 -> FlightPath.through(x, HEIGHT + OUTSIDE, x, -OUTSIDE);
+                            case 1 -> FlightPath.through(WIDTH + OUTSIDE, y, -OUTSIDE, y);
+                            case 2 -> FlightPath.through(x, -OUTSIDE, x, HEIGHT + OUTSIDE);
+                            default -> FlightPath.through(-OUTSIDE, y, WIDTH + OUTSIDE, y);
+                        };
+                add(i, wave.t(), path, speed, 0, Optional.empty(), Spawn.Exit.DOWN);
             }
         }
 
@@ -396,7 +526,13 @@ final class Formations {
                     switch (wave.entry()) {
                         case FRONT -> FRONT_STREAM;
                         case SIDES -> SIDE_STREAM;
-                        case REAR -> throw unsupported("streams do not enter from the rear");
+                        case REAR -> {
+                            // M5 part F: only chasers stream in from the rear (Level 12's Lampreys).
+                            if (enemy().chase().isEmpty()) {
+                                throw unsupported("only chasers stream in from the rear");
+                            }
+                            yield REAR_STREAM;
+                        }
                     };
             if (!wave.paths().isEmpty()) {
                 // M5 part D (Level 10, around the shuttle band): a unit from the left flies the wave's
@@ -443,16 +579,19 @@ final class Formations {
             EnemySpec.Orbit orbit = required(enemy().orbit(), "orbit");
             double hold = required(wave.holdSeconds(), "hold");
             double radius = orbit.radius();
-            double rate = StrictMath.toRadians(orbit.degreesPerSecond());
-            double centreX = WIDTH / 2;
+            // M5 part F: a clockwise circle (Level 12's eye) turns the other way round (y is up).
+            double rate = StrictMath.toRadians(orbit.degreesPerSecond()) * (wave.clockwise() ? -1 : 1);
+            // M5 part G: a circle's centre is its wave's at (Level 13's Needlers above the relay).
+            double centreX = wave.at().isPresent() ? wave.at().get().x() : WIDTH / 2;
+            double centreY = wave.at().isPresent() ? HEIGHT - wave.at().get().depth() : CIRCLE_Y;
             // Every unit flies the same distance straight down to its place, so the circle arrives whole.
-            double drop = HEIGHT + OUTSIDE - (CIRCLE_Y - radius);
+            double drop = HEIGHT + OUTSIDE - (centreY - radius);
             for (int i = 0; i < wave.count(); i++) {
                 double angle = StrictMath.PI / 2 + 2 * StrictMath.PI * i / wave.count();
                 double x = centreX + radius * StrictMath.cos(angle);
-                double y = CIRCLE_Y + radius * StrictMath.sin(angle);
+                double y = centreY + radius * StrictMath.sin(angle);
                 double breakDelay = (double) (i / wave.breakGroup()) * BREAK_INTERVAL_SECONDS;
-                var place = Optional.of(new Spawn.Orbit(centreX, CIRCLE_Y, radius, angle, rate));
+                var place = Optional.of(new Spawn.Orbit(centreX, centreY, radius, angle, rate));
                 add(
                         i,
                         wave.t(),
@@ -665,6 +804,10 @@ final class Formations {
          * point, about the flock's separation apart.
          */
         void swarm() {
+            if (enemy().chase().isPresent() && enemy().flock().isEmpty()) {
+                chasers();
+                return;
+            }
             EnemySpec.FlockSpec flock = required(enemy().flock(), "a flock");
             if (wave.paths().isEmpty()) {
                 throw unsupported("a swarm flies its wave's route (paths)");
@@ -714,6 +857,81 @@ final class Formations {
                         Optional.empty(),
                         Optional.empty(),
                         Optional.of(new Spawn.Swarm(route, i, x, y))));
+            }
+        }
+
+        /**
+         * M5 part F, a swarm of chasers (design/enemies/air/lamprey, user decision F9 = a): no flock; the
+         * members start together at the wave's time in a seeded sunflower cloud about
+         * {@link #CHASER_SPACING} apart just outside the entry edge (the front or the rear: a quarter
+         * of the width in from the wave's edge, the middle without one; a side: two thirds up it, both
+         * sides taking turns without an edge) and fly straight in at their path speed; each starts its
+         * chase a seeded 0 to {@link #CHASER_DELAY_MOST} s after its centre crossed the edge.
+         */
+        private void chasers() {
+            int count = wave.count();
+            double reach = CHASER_SPACING * 0.6 * Math.sqrt(count);
+            double laneX =
+                    switch (wave.edge()) {
+                        case LEFT -> WIDTH / 4;
+                        case RIGHT -> WIDTH * 3 / 4;
+                        case NONE, ALTERNATING -> WIDTH / 2;
+                    };
+            double across = HEIGHT + 2 * (OUTSIDE + reach);
+            double speed = speed(enemy().speed());
+            for (int i = 0; i < count; i++) {
+                double r = CHASER_SPACING * 0.6 * Math.sqrt(i + 0.5);
+                double angle = i * GOLDEN_ANGLE + rng.range(-0.3, 0.3);
+                double delay = rng.range(0, CHASER_DELAY_MOST);
+                double cx;
+                double cy;
+                double dx = 0;
+                double dy = 0;
+                switch (wave.entry()) {
+                    case FRONT -> {
+                        cx = laneX;
+                        cy = HEIGHT + OUTSIDE + reach;
+                        dy = -1;
+                    }
+                    case REAR -> {
+                        cx = laneX;
+                        cy = -OUTSIDE - reach;
+                        dy = 1;
+                    }
+                    case SIDES -> {
+                        boolean left =
+                                switch (wave.edge()) {
+                                    case LEFT -> true;
+                                    case RIGHT -> false;
+                                    case NONE, ALTERNATING -> i % 2 == 0;
+                                };
+                        cx = left ? -OUTSIDE - reach : WIDTH + OUTSIDE + reach;
+                        cy = HEIGHT * 2 / 3;
+                        dx = left ? 1 : -1;
+                    }
+                    default -> throw unsupported("a swarm enters from an edge");
+                }
+                double x = cx + r * StrictMath.cos(angle);
+                double y = cy + r * StrictMath.sin(angle);
+                out.add(new Spawn(
+                        SimStep.ticks(wave.t()),
+                        kind,
+                        enemy(),
+                        FlightPath.through(x, y, x + dx * across, y + dy * across),
+                        speed,
+                        0,
+                        Optional.empty(),
+                        Spawn.Exit.DOWN,
+                        false,
+                        carried(i),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        delay));
             }
         }
 

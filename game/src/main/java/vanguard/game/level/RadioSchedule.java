@@ -85,6 +85,9 @@ public final class RadioSchedule {
             case TIME -> RadioQueue.Priority.TIMED;
             // A boss's closing lines (Level 07's four after the kill) queue together and must not go stale.
             case LEVEL_END, SECONDARY_OBJECTIVE, BOSS_DESTROYED -> RadioQueue.Priority.CLOSING;
+            // M5 part H, step H7b: a phase's lines queue together (Okafor's, then Rook's reply as the
+            // Siege Spire tears loose); the second must not go stale behind the first.
+            case BOSS_PHASE -> RadioQueue.Priority.PHASE;
             default -> RadioQueue.Priority.EVENT;
         };
     }

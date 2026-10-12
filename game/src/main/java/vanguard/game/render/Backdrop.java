@@ -31,11 +31,13 @@ public final class Backdrop {
     private static final float X0 = PixelScreen.PLAY_FIELD_X;
     /** Weather on high-air may cover the play plane at no more than 40 % opacity. */
     private static final float HIGH_AIR_OPACITY = 0.4f;
+    /** M5 part H: the high-air layer's strength ({@link #frontFade}), 1 by default. */
+    private float frontFade = 1;
 
     private final LevelData level;
     private final double ramp;
-    /** The atmosphere along the level, each with its look in {@link #looks}. */
-    private final List<LevelData.Stretch> stretches;
+    /** The atmosphere along the level, each with its look in {@link #looks} (M5 part G: easy's, {@link #easy}). */
+    private List<LevelData.Stretch> stretches;
 
     private final TextureRegion pixel;
     private final Color haze;
@@ -147,6 +149,14 @@ public final class Backdrop {
                                 .orElse(null),
                         (float) look.haze()))
                 .orElse(null);
+    }
+
+    /**
+     * M5 part G: the atmosphere as the difficulty shows it: on {@code easy} a peak with an easy length
+     * that long (Level 13's whiteout, 6 s); the same stretches, only their times differ.
+     */
+    public void easy(boolean easy) {
+        stretches = level.atmosphereStretches(easy);
     }
 
     /**
@@ -305,12 +315,25 @@ public final class Backdrop {
         drawPieces(batch, BackdropLayer.LOW_AIR, scroll, clock, false);
     }
 
+    /**
+     * M5 part H: the high-air layer's strength, 1 (its own) to 0 (gone): Level 14's canopy veins fading
+     * out after the Siege Spire's death.
+     */
+    public void frontFade(float fade) {
+        frontFade = Math.clamp(fade, 0, 1);
+    }
+
+    /** M5 part H: the high-air layer's scroll at the ground's {@code groundScroll}, px (Level 14's canopy tear tiles on it). */
+    public long highAirScroll(double groundScroll) {
+        return scroll(BackdropLayer.HIGH_AIR, groundScroll);
+    }
+
     /** The high-air layer above the play plane, additive and at most 40 % opaque. */
     public void drawFront(SpriteBatch batch, double groundScroll, BackdropClock clock) {
         blend(clock.script());
         batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         long scroll = scroll(BackdropLayer.HIGH_AIR, groundScroll);
-        batch.setColor(1, 1, 1, HIGH_AIR_OPACITY);
+        batch.setColor(1, 1, 1, HIGH_AIR_OPACITY * frontFade);
         drawSectionTiles(batch, BackdropLayer.HIGH_AIR, scroll, clock);
         drawPieces(batch, BackdropLayer.HIGH_AIR, scroll, clock, false);
         drawAtmosphere(batch, from.wisps(), to.wisps(), scroll, clock.real());

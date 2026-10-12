@@ -3,7 +3,7 @@ title: Naval enemies
 design: approved
 implementation: in-progress
 art: chosen
-updated: 2026-10-09
+updated: 2026-10-12
 ---
 
 # Naval enemies
@@ -22,7 +22,7 @@ Promoted to their own documents for the Acts 1–2 wrap-up; the remaining units 
 |---|---|---|---|---|
 | [driftjelly](driftjelly/README.md) | Jellyfish mine on or below the surface, proximity ring (L11) | approved | done | final |
 | [reef-spitter](reef-spitter/README.md) | Barnacle gun on a kelp raft, 3-way fans (L11) | approved | done | final |
-| [skimmer](skimmer/README.md) | Flying-fish skiff weaving between floes from every edge (L13) | approved | not-started | chosen |
+| [skimmer](skimmer/README.md) | Flying-fish skiff weaving between floes from every edge (L13) | review | in-progress | chosen |
 
 ## Roster
 
@@ -69,7 +69,7 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — real waterline (
 ## Implementation
 
 - [ ] Each enemy promoted to its own directory with a stat block before it is implemented.
-- [ ] Surfacing/submerging transition visuals (top-down, the generic `sub` pass and per-unit
+- [x] Surfacing/submerging transition visuals (top-down, the generic `sub` pass and per-unit
       surfacing steps, user decision E4 = c) — M5 part E (the Driftjelly and the Harbour Kraken,
       Level 11)
 
@@ -93,3 +93,4 @@ Concept [round 07](../../concept-rounds/round-07/README.md) — real waterline (
   `sub` pass with per-unit pre-rendered collars and surfacing steps
   ([art direction](../../art-direction/README.md#animation-rules)); the Driftjelly's and Reef
   Spitter's specs reworked for Level 11.
+- 2026-10-12: M5 part I (close-out): the surfacing and submerging visuals ticked as built in part E (the `sub` pass and the units' surfacing steps, approved in round 33).

@@ -34,6 +34,8 @@ import java.util.List;
  * @param endSpeed px/s an accelerating projectile reaches ({@code speed} when it does not accelerate)
  * @param accelSeconds how long it takes to get from {@code speed} to {@code endSpeed}; 0 for none
  * @param mines a {@link Delivery#MINE} weapon's mine numbers; {@link Mines#NONE} for other weapons
+ * @param flanking M5 part F: it has the {@code side} or the {@code rear} trait: its shots hit a latched
+ *     Lamprey (design/enemies/air/lamprey, user decision F3 = a), as a rear mount's do
  */
 public record WeaponSpec(
         String slug,
@@ -56,7 +58,8 @@ public record WeaponSpec(
         List<Muzzle> muzzles,
         double endSpeed,
         double accelSeconds,
-        Mines mines) {
+        Mines mines,
+        boolean flanking) {
     public WeaponSpec {
         muzzles = List.copyOf(muzzles);
         if (muzzles.isEmpty()) {
@@ -68,6 +71,81 @@ public record WeaponSpec(
         if (accelSeconds < 0 || (delivery == Delivery.MINE) == mines.equals(Mines.NONE)) {
             throw new IllegalArgumentException(slug + ": a mine weapon has mine numbers, others none");
         }
+    }
+
+    /** A weapon without M5 part F's {@code side} or {@code rear} trait. */
+    public WeaponSpec(
+            String slug,
+            String vfx,
+            String sfx,
+            Delivery delivery,
+            boolean antiGround,
+            double rate,
+            double damage,
+            double speed,
+            Hitbox size,
+            double range,
+            double lifetimeSeconds,
+            int pierce,
+            double blast,
+            double turnRate,
+            double coneHalfAngle,
+            double airSeconds,
+            double snap,
+            List<Muzzle> muzzles,
+            double endSpeed,
+            double accelSeconds,
+            Mines mines) {
+        this(
+                slug,
+                vfx,
+                sfx,
+                delivery,
+                antiGround,
+                rate,
+                damage,
+                speed,
+                size,
+                range,
+                lifetimeSeconds,
+                pierce,
+                blast,
+                turnRate,
+                coneHalfAngle,
+                airSeconds,
+                snap,
+                muzzles,
+                endSpeed,
+                accelSeconds,
+                mines,
+                false);
+    }
+
+    /** This weapon with M5 part F's {@code side} or {@code rear} trait ({@code flanking}) or without it. */
+    public WeaponSpec flanking(boolean sideOrRear) {
+        return new WeaponSpec(
+                slug,
+                vfx,
+                sfx,
+                delivery,
+                antiGround,
+                rate,
+                damage,
+                speed,
+                size,
+                range,
+                lifetimeSeconds,
+                pierce,
+                blast,
+                turnRate,
+                coneHalfAngle,
+                airSeconds,
+                snap,
+                muzzles,
+                endSpeed,
+                accelSeconds,
+                mines,
+                sideOrRear);
     }
 
     /** A weapon of the Act 1 kind: no acceleration, no mines. */
@@ -224,7 +302,8 @@ public record WeaponSpec(
                 from,
                 endSpeed,
                 accelSeconds,
-                mines);
+                mines,
+                flanking);
     }
 
     int intervalTicks() {

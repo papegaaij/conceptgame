@@ -261,8 +261,9 @@ final class PlayerFire {
         double flankY = 0;
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
-            // M5 part E: never one under the water.
-            if (!onField(enemy) || !weapon.delivery().reaches(enemy.layer())) {
+            // M5 part E: never one under the water; M5 part F: nor a Lamprey latched onto the hull, which
+            // a turret's shots pass unless its mount may hit it.
+            if (!onField(enemy) || !weapon.delivery().reaches(enemy.layer()) || (enemy.latched() && !hitsLatched(m))) {
                 continue;
             }
             double d = distanceSquared(x, y, enemy.x(), enemy.y());
@@ -495,7 +496,8 @@ final class PlayerFire {
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
             if (enemy.serial() == target) {
-                if (!onField(enemy)) {
+                // M5 part F (user decision F3 = a): a homing shot loses a target that latched onto the hull.
+                if (!onField(enemy) || enemy.latched()) {
                     return false;
                 }
                 targetX = enemy.x();
@@ -538,6 +540,7 @@ final class PlayerFire {
             // M5 part C: a hardened unit is no target unless the weapon is anti-ground; M5 part E:
             // only one on a layer the shot reaches (a torpedo's sub and ground, a missile's the rest).
             if (onField(enemy)
+                    && !enemy.latched()
                     && weapon.delivery().reaches(enemy.layer())
                     && (weapon.antiGround() || !enemy.spec().hardened())
                     && inCone(shot, enemy.x(), enemy.y(), best)) {
@@ -605,13 +608,16 @@ final class PlayerFire {
                 Layer layer = enemy.layer();
                 if (!weapon.delivery().reaches(layer)
                         || !onField(enemy)
+                        || (enemy.latched() && !hitsLatched(shot.mount()))
                         || !weapon.size().overlaps(shot.x(), shot.y(), enemy.hitbox(), enemy.x(), enemy.y())
                         || (weapon.pierce() > 1 && shot.struck(2 * enemy.serial()))) {
                     continue;
                 }
-                if ((enemy.spec().hardened() && !weapon.antiGround()) || enemy.glances(shot.vx(), shot.vy())) {
+                if ((enemy.spec().hardened() && !weapon.antiGround())
+                        || enemy.glances(shot.vx(), shot.vy())
+                        || enemy.growing()) {
                     // A hardened unit (M5 part C) without anti-ground, or a walker's frontal armour
-                    // for a direct shot from ahead: it sparks off.
+                    // for a direct shot from ahead, or (M5 part H) a root burst's growth still growing: it sparks off.
                     events.add(SimEvents.Type.SHOT_GLANCED, shot.x(), shot.y(), shot.mount());
                     shots.free(i);
                     break;
@@ -631,6 +637,21 @@ final class PlayerFire {
                 }
             }
         }
+    }
+
+    /**
+     * M5 part F (design/enemies/air/lamprey, user decision F3 = a): whether the shots of {@code mount}
+     * hit a Lamprey latched onto the hull: the rear mount's and those of a weapon with the {@code side}
+     * or {@code rear} trait; front and forward wing shots pass it, and so do the wingman's.
+     */
+    private boolean hitsLatched(int mount) {
+        if (mount >= armament.size()) {
+            return false;
+        }
+        Armament.Mount fitted = armament.mount(mount);
+        return fitted.slot() == Armament.Slot.REAR
+                || fitted.weapon().flanking()
+                || fitted.overdrive().flanking();
     }
 
     /** Bolts and missiles hit the armed spore mines on the player's layer. */
@@ -793,6 +814,8 @@ final class PlayerFire {
                 LevelScript.GroundObjectSpec spec = object.spec();
                 if (!object.hittable()
                         || (spec.submerged() && weapon.delivery() != WeaponSpec.Delivery.TORPEDO)
+                        // M5 part F: a drifting trigger on low-air is above the water a torpedo runs in.
+                        || (spec.lowAir() && weapon.delivery() == WeaponSpec.Delivery.TORPEDO)
                         || !weapon.size().overlaps(shot.x(), shot.y(), spec.size(), object.x(), object.y())
                         || (weapon.pierce() > 1 && shot.struck(2 * object.serial() + 1))) {
                     continue;
@@ -828,6 +851,7 @@ final class PlayerFire {
             LevelScript.GroundObjectSpec spec = object.spec();
             if (object.hittable()
                     && !spec.submerged()
+                    && !spec.lowAir()
                     && (weapon.antiGround() || !spec.hardened())
                     && inBlast(x, y, weapon.blast(), object.x(), object.y(), spec.size())) {
                 strike(j, object, shot.damage());
@@ -840,7 +864,7 @@ final class PlayerFire {
                     || !inBlast(x, y, weapon.blast(), enemy.x(), enemy.y(), enemy.hitbox())) {
                 continue;
             }
-            if (enemy.spec().hardened() && !weapon.antiGround()) {
+            if ((enemy.spec().hardened() && !weapon.antiGround()) || enemy.growing()) {
                 events.add(SimEvents.Type.SHOT_GLANCED, enemy.x(), enemy.y(), shot.mount());
             } else if (enemy.damage(shot.damage(), true)) {
                 hits.enemyDestroyed(j, shot.mount());
@@ -934,8 +958,8 @@ final class PlayerFire {
                     || !inBlast(x, y, radius, enemy.x(), enemy.y(), enemy.hitbox())) {
                 continue;
             }
-            if (enemy.spec().hardened() && !weapon.antiGround()) {
-                // M5 part C: a hardened unit glances off as a hardened ground object does.
+            if ((enemy.spec().hardened() && !weapon.antiGround()) || enemy.growing()) {
+                // M5 part C: a hardened unit glances off as a hardened ground object does (M5 part H: and a growth).
                 events.add(SimEvents.Type.SHOT_GLANCED, enemy.x(), enemy.y(), mine.mount());
             } else if (enemy.damage(mine.damage(), true)) {
                 hits.enemyDestroyed(j, mine.mount());

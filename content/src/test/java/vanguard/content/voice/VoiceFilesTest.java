@@ -46,7 +46,11 @@ class VoiceFilesTest {
             "act-2-homefront/level-09-arcology-fall",
             "act-2-homefront/level-10-evacuation-corridor",
             "act-2-homefront/level-11-atlantic-convoy",
+            "act-2-homefront/level-12-storm-front",
+            "act-2-homefront/level-13-polar-relay",
+            "act-2-homefront/level-14-siege-spire",
             "act-2-homefront briefing",
+            "act-2-homefront outro",
             "specials",
             "armour",
             VoiceLines.BARKS);
@@ -107,12 +111,12 @@ class VoiceFilesTest {
 
     /**
      * The speakers of a rendered level whose casting round is still open: their lines play as text
-     * until it closes (none: Level 08's Civilian was cast in concept round 30, Level 09's Kilo Lead in
-     * round 31, Level 10's Lifeline and Lifeline Three in round 32, Level 11's Atlas Control in round
-     * 33). Each must still be marked uncast in the speaker table; once cast, it leaves this set and its
-     * lines need their files.
+     * until it closes (Level 13's Nansen while concept round 35 is open; Level 08's Civilian was cast in
+     * concept round 30, Level 09's Kilo Lead in round 31, Level 10's Lifeline and Lifeline Three in round
+     * 32, Level 11's Atlas Control in round 33). Each must still be marked uncast in the speaker table;
+     * once cast, it leaves this set and its lines need their files.
      */
-    private static final Set<String> AUDITIONING = Set.of();
+    private static final Set<String> AUDITIONING = Set.of("Nansen");
 
     /**
      * The rendered levels have no uncast speaker left but the ones in an open audition

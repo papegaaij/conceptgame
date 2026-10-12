@@ -147,6 +147,8 @@ Outputs go to `design/audio/sfx/concept/` and `design/audio/music/concept/`.
 
 `board.py RR` scans `design/**/concept/` for round `RR` files and writes
 `design/concept-rounds/round-RR/index.html` (see `design/concept-rounds/README.md`).
+`board.py RR SS TT` builds a combined round: `round-RR/index.html` also shows the files named for
+rounds `SS` and `TT`, each section titled with its own round (round 34 holds rounds 35 and 36).
 
 ## The `render/` package
 

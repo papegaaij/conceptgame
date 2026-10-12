@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: n/a
 depends-on: [.., ../../player, ../../enemies, ../../campaign]
-updated: 2026-10-09
+updated: 2026-10-12
 ---
 
 # Architecture
@@ -386,6 +386,24 @@ first entry of a part's model list is the starter (price 0, `start`).
   (a pickup dropped under the surfacing part as the phase begins: the shield cell). Events **`TELEGRAPH`** (value: the lane;
   the radio event `first-telegraph`), **`SLAM`** (the impact; value: the lane), **`SURFACE`** and
   **`DIVE`** (a surfacing part's; value: the part), and the part events the radio's `boss-part-destroyed` reads.
+  M5 part F, for the [Lamprey](../../enemies/air/lamprey/README.md) (flown in Level 12;
+  user decisions F3, F4 and F9 = a of 2026-10-09; the simulation built in step 3, the loader's
+  mapping built in step 4): the movement **`chase`** (`speed` px/s,
+  `turn_rate` °/s, `seconds`: it steers toward the ship's centre from its entry for that long, then
+  flies straight on at `speed` along its heading); a **`latch`** block (`slots`, how many may be
+  latched at once; `spots`, the hull offsets `left`, `right` and `tail`, each `[dx, dy]` px from the
+  ship's centre, y up as the muzzles' (Level 12: left `[-22, -13]`, right `[21, -13]`, tail `[0, -35]`), the tail for a touch within 45° of straight down, else the side by x;
+  `damage_factor`, the damage it takes while latched (2); `shake`, `reversals` and `within` s: that
+  many reversals of the commanded horizontal direction, neutral steps ignored, throw off every
+  latched one; `stun` s and `throw` px/s, its outward start speed slowing to 0 over the stun; it
+  then flees at its `speed` to the nearer side edge, never latching again, and neither stunned nor
+  fleeing collides with the ship); and the attack pattern **`drain`** (`rate`, shield points a
+  second while latched, on the shield only, pausing its regeneration, stopping at the break; no
+  `bullet`); the hooks `drain` (a rate) and `latch_slots`. While latched it is hit only by rear-mount
+  shots, shots of a `side` or `rear` weapon and blasts that reach `air`; homing shots and the escort's
+  pick skip it. With every slot taken a touch is its tier's contact. A unit with a `latch` takes the
+  wind (a level's `weather`) in every state but latched. Events **`LAMPREY_LATCHED`** (value: the
+  spot) and **`LAMPREY_SHAKEN`** (the count thrown off), and the ship's draining flag for the HUD.
   Basis (`enemies/data.yaml`): `reference_dps` per level, `bullet_damage`, `contact_damage`
   per tier, `formations` (name: description).
 - **Level** (`campaign/<act>/<level>/data.yaml`): `scroll_speed`, `launch_seconds`, optional
@@ -396,7 +414,11 @@ first entry of a part's model list is the starter (price 0, `start`).
   stays 12 s, enough to drift from the top edge to the ship's start line),
   `control_prompts`, timed `prompts` (`t`, `action`, `keys`, `seconds`, an optional `skip` layer:
   the prompt leaves once an enemy on it is destroyed; `requires: special`: shown only with a special fitted); `sections` back to back from t = 0 (`name`, `end`, `atmosphere`, optional
-  `speed`, the backdrop's `tiles` (tile set ids, at most one per layer), `arena: true` for the
+  `speed`, the backdrop's `tiles` (tile set ids, at most one per layer), an optional `peak`
+  (`atmosphere`, `from`, `to`: another atmosphere inside the section, to its end at the latest; M5 part
+  G: `easy` (s, at most the peak's length: easy's shorter peak, centred on it) and `ambience_db` (dB on
+  the ambience in the peak, ramped with the backdrop's atmosphere ramp), Level 13's whiteout `peak:
+  {atmosphere: heavy, from: 176, to: 188, easy: 6, ambience_db: 3}`), `arena: true` for the
   boss's arena (the level clock halts at its end while the boss lives and jumps to its end at an
   earlier death; at most one, only with a `boss`); scroll distances are derived); `boss` (`enemy`
   with a `boss` script, `t` it arrives, `x` of its centre, `section`); `waves` in time order, one row each (`t`,
@@ -499,7 +521,8 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   rising to full at the next), `full_section`, optional `stems` (section: `base` or `full`,
   overriding it), `ambience` (the setting's loop by its key in the
   [sfx](../../audio/sfx/README.md#ambience-per-setting) *Ambience* table: `earth-orbit`, `luna`,
-  `earth-megacity`), `end_jingle`, optional `boss_sting` (`miniboss-sting`: track 21 over
+  `earth-megacity`; M5 part H: `earth-canopy`, the canopy's hum, which dies with the level's boss
+  and hands over to `earth-megacity`), `end_jingle`, optional `boss_sting` (`miniboss-sting`: track 21 over
   a 0.5 s crossfade when the boss arrives, the theme returning after it), optional `ambience_from`
   (the level time from which only the ambience plays: the theme fades out as at a won level) and
   `voice_loop` (`speaker`, `section`, `db`: that speaker's first timed radio line loops at `db`
@@ -724,6 +747,114 @@ optional `skip` list of the difficulties it is left out on (Level 06's hard-only
   the first of them shot off; once; built in step E2c); `ally-lost` also for a naval convoy unit sinking; a `level-end` cue's `allies`
   counts a naval convoy's damageable units afloat. A naval convoy's `{ally}` is the unit's `name`
   (one voice take per name).
+  M5 part F, Level 12 (user decisions F1–F9 of 2026-10-09 and the stated defaults; the simulation's
+  side built in step 3: the wind, the lightning event, `clockwise`, the side whirl release points,
+  the chaser waves, the sondes and their secondary, the drifting trigger, `drop_factor`, the placed
+  pickups and `first-latch`; the loader's mapping and checks built in step 4 (`PartFRules`,
+  `PartFLevelKeysTest`); the game's side of the event prompt, `occlusion`, `rain`, `section_db` and
+  `earth-storm` in step 6): a
+  **`weather`** block: `gusts` (`at`, a list of `{t, from}` with `from` `left` or `right`, the
+  push's start, its telegraph `telegraph` s before; `seconds` including the `ramp` s up and down;
+  `push` px/s; `telegraph` s; `easy` / `hard` changes of `push` and `telegraph` and hard's `extra`
+  gust times), `drift` (`section`, `push` px/s, `from`; `easy` / `hard` `push`, 0 for none; the same
+  ramps), `lightning` (`at`, the flash times; `reveal`, s the banks stay lit; the event
+  **`LIGHTNING`**, value: the flash's index; nothing else in the simulation), **`occlusion: true`**
+  (the banks on `low-air` hide that layer's bodies, drawn under the bank tiles with a glow; draw
+  order only) and `rain` (`[t, density]` keys, 0–1, linear between them; presentation only). The
+  wind adds to positions, not velocities, of the ship, the escort, units with a `latch` and Whirl
+  Seeds (a whirl cluster's spiral centre too), clamped at the edges as now; never shots, mines,
+  spores, pickups, sondes or drifting triggers; exactly zero, and not hashed, in a level without
+  `weather`. A wave's **`clockwise`** (a `circle`'s sense of orbit on the screen) and a whirl
+  cluster's `at` just outside a side edge with `from: sides` and an `edge`; a `stream` and a
+  `swarm` **`from: rear`** for units with a `chase` (a `swarm` of chasers needs no `flock`: the
+  cloud at its entry edge, each member's chase starting after a seeded `delay` `[0, 0.6]` s).
+  **`sondes`** (`speed` px/s down the screen, `radius` px from the ship's centre that collects one,
+  `at`: one `[t, x]` each, entering at the top edge; not shot, not pushed, not pulled by the magnet,
+  not collected by the escort; the event **`SONDE_COLLECTED`**, value: the count) and the secondary
+  kind **`collect: sondes`** (with `credits` and the tracker's `label`: met at the last sonde,
+  failed when one leaves the bottom edge uncollected; the debrief's row counts the collected). A
+  trigger on **`low-air`** with a **`drift`** `[x, y]` px/s in screen space instead of scrolling
+  with the ground (Level 12's canister; y up as a tow's `drift`, negative down the screen; with `hits`, `easy` / `hard` `hits`, `reveals`), not pushed
+  by the wind. A level **`drop_factor`** (default 1): each enemy's drop `every` is divided by it,
+  rounded to the nearest, at least 1. A placed pickup's **`at`** `[t, x]` instead of `dropped_by`:
+  it enters at the top edge at `t` and drifts like any pickup. An **event prompt**: a `prompts`
+  entry with `event: first-latch` instead of `t`, shown (by the game, in the play field) on every
+  latch of at least 0.3 s, for at most its `seconds` each time, until the attempt's first shake-off.
+  The radio event **`first-latch`** (the attempt's first latch, once; it counts as a scripted
+  escort line for the bark spacing). The music's **`section_db`** (section: dB, the theme's level
+  from that section until the next entry, a 1 s ramp; Level 12's eye −6) and the ambience key
+  **`earth-storm`** (the rain-only storm bed). The new state (the wind, latches, sondes, the
+  drifting trigger) is to be hashed only in a level that uses it, so the replay hashes of Levels
+  01–11 stay.
+  M5 part G (Level 13 and the decisions G1–G9 = a, pending the user's review in the combined round;
+  the simulation's side built in step G3, the loader's mapping and checks in step G4: `PartGRules`,
+  `PartGChecks`, `PartGLevelKeysTest`, `PartGUnitsDataTest`; javadoc "M5 part G", M4's part G is
+  `LevelRules`; the game's side in step G6): a level **`primary: defend`** with its **`defend`** block:
+  `ally` (an ally that `follows: ground`, see *Allies*), `at` `[x, y]` (px from the left edge, px from the
+  bottom edge, **y up**: where it stands while the ground halts; it scrolls in with the ground before),
+  `from` (s: the synchronisation's start) and `duration` (s; its end judges an `integrity` secondary),
+  **`targeted_by`** `{<enemy slug>: <mode>}` with the modes `nearest`, `alternate`, `in-arc`, `always` and
+  `none` (the rules are in the [hook](../../enemies/README.md#target-the-objective-hook); enemies not
+  listed are not hooked) and `easy` / `hard` changes of `hp` (the ally's integrity) and `targeted_by`
+  (merged over it); the ally has no regeneration, pays no credits and fails the mission at 0 (the
+  escort's failed-primary flow). A **timed halt**: sections of **`speed: 0` without an `arena`**, allowed
+  only with a `defend` primary, between sections that scroll; the level clock runs on (no boss, no
+  script-time slowing), the scroll eases into the halt over its first section's **`ramp`** s and out of it
+  over its last section's (default 2; smoothstep; a section inside the halt has none); `LevelData.scrollAt`
+  (the backdrop's places) eases as the simulation does; `content` checks that the defend's
+  synchronisation lies inside the halt and that nothing waits to scroll in at the top edge during it (a
+  ground target, a placed pickup at `[t, x]` or a wave of ground units without lanes or paths timed inside
+  it is rejected: use a nest from a side, walkers, lanes or `drops`). A wave's **`lanes`** (lists of
+  `[x, y]` points, y below the top edge at the wave's `t`, outside the field for an entry from a side or
+  the rear; ground space: they scroll with the ground and stand still in a halt) for a lane walker (a
+  `ground` unit that does not walk: the Skimmer), unit i on lane i; the formation **`cross`** with
+  **`from: all`** (and only it), a lane per unit on every difficulty (without lanes, as many units from
+  each edge); a `circle`'s **`at`** is its centre; a `column` wave's `easy` / `hard` **`pairs`** (s
+  between pairs entering side by side; hard's Stingers). A ground target nest's **`side`** `{from: left |
+  right, drift}` (px/s across the screen; its `at` placements are then `[t, y]`, y up, where each unit
+  crosses the edge; the mortar floe). A secondary **`integrity: <share>`** (with the tracker's `label`;
+  failed at once below the share, met at the synchronisation's end; only with a `defend`). **`drops`**
+  (`[{t, x, y, pickup, sprite}]`, y up: a pickup released at a point, the supply drone's patch; `sprite`
+  names the drone's sprite set, presentation; the loader's name `pointDrops` beside `drop_factor`'s
+  `drops()`). The radio event **`ally-below`** with **`below`** (the share, between 0 and 1; once each).
+  The music's **`jingle`** `{t, fade}` (the `end_jingle` plays inside the level at `t`, the theme fading
+  out over `fade` s, 1 if not given, and the debrief starts without it; the plan's `end_jingle: false` is
+  this key). A level's **`water_splash`** (`all`, the default, or `naval-only`: only a burst on a naval
+  unit and a naval unit's death play the water splash; only with `water: true`; presentation). An
+  atmosphere split at a time is a section's `peak` running to the section's end (no new key). Allies:
+  **`follows: ground`**, `damaged_by` **`dives`** (the damage of a hooked diver crossing it, once a dive)
+  and **`lobs`** (`true`: a hooked mortar's direct hit landing on it). New state is hashed only in a
+  level that uses it.
+  Built (M5 part H, Level 14 and the act end, steps H3 and H4; decisions H1–H10 = a, pending the
+  user's review; H1 changes an approved spec), final names: a level's **`root_bursts`** block
+  (`telegraph` 1.0 s, `first_shot_delay` 1.5 s with `hard: {first_shot_delay: 1.0}`, `spacing` px
+  between a burst's growths, `group`: the objectives' group the growths count in, and `bursts`, in time
+  order: `t` the telegraph's start, `x`, `y` px below the top edge then (100–400), `growths` by enemy
+  slug left to right with `easy` / `hard` `{growths}`): the growths are ground units (`terrain`) placed
+  `spacing` apart centred on the point `telegraph` s after `t`, scrolling with the ground; they take no
+  damage and fire nothing for the first-shot delay; the point moves sideways to keep 60 px from the ship's
+  x at the telegraph; a burst is timed in a section that scrolls and grown before the arena
+  (`PartHChecks`); a burst without growths (the Ravager crater) is the backdrop's, not data. Boss
+  attacks from parts: the enemy **`mortar`** pattern is the boss lob (`BossSpec.Pattern.LOB`: its
+  `mortar` block, the hook `ring`), **`laser-sweep`** the boss sweep (`Pattern.SWEEP`: its `sweep` block,
+  the hook `sweep_arc`; its `interval` the turn in an alternation; fired by the part its phase ends on),
+  an attack's **`staggered: true`** (aimed or mortar, only a boss's fired by several parts: part k of n
+  k × interval ÷ n after the first; `Attack.stagger`); a window spawn's **`ambush: {most}`** (an ambush
+  launch flying its enemy's rear-ambush path: only a unit with the `ambush` and `hover` movements; no
+  `arc` or `glide`; `Spawn.ambushMost`); an anchored boss without `lanes` (`Lanes.NONE`), its parts'
+  layers `sub`/`ground` as before (the core reaches `air` by the move), its phase **`move`** a lift
+  (`to`, `layer`, `descend` = the lift's seconds, `pose`), its `movement.sine` the sway after the lift
+  (only with a move, `PartHChecks`); a phase's `drop` with a move kept (the shockwave's patch). A `groups`
+  secondary may name its tracker `label` (`ROOTS n/8`). The stump is presentation (the boss's state), not
+  a key. A **daylight section after an arena** is an ordinary section (no new key). The act end needs no
+  new key: the Act 2 `outro` is the Act 1 schema (`music`, `pages`). M5 part H (H3) in the simulation:
+  `LevelScript.RootBurst` + `GroundUnit.fromBurst` (telegraph point in ground space, 60 px ship
+  clearance, invulnerable silent growth, groups counted from the script); boss patterns `LOB` (mortar
+  gun) and `SWEEP` (`EnemySpec.Sweep` on the attack), `Attack.stagger`; window `Spawn.ambushMost`
+  (planned rear paths in `Launches`, a ring of 8 real-step bottom warnings, entry REAR from re-entry,
+  cap alive); an anchored boss without lanes, its phase `move` = lift (smoothstep, layer at the end,
+  stump = parts destroyed/armoured at the lift); events ROOT_BURST_TELEGRAPH/GREW, SPIRE_MAW_OPENED,
+  SPIRE_LIFT/LIFTED, SPIRE_SWEEP_TELEGRAPH, SPIRE_SWEEP; new state hashed only when used.
 - **Level backdrop** (`backdrop` in a level's data file; the *Backdrop* table is rendered from it):
   `scroll_factors` per layer (`deep`, `far`, `ground` = 1.0, `low-air`, `high-air`; `deep` may be
   left out on a top-down surface, Level 04's Luna: then the ground is the layer that covers the
@@ -1564,3 +1695,67 @@ Screenshot tests are left out until there is a need.
   scroll is in the state hash, only for a naval convoy); a **sunken trigger** in the torpedo's target
   pick (`PlayerFire.TRIGGER_SERIAL`, a ground object's serial above the parts'). Every replay hash
   stays (no recorded level has a naval convoy or a torpedo).
+- 2026-10-09: Schema text for M5 part F (Level 12; user decisions F1–F9 of 2026-10-09 and the
+  stated defaults), planned until the loader reads it: for enemies, the `chase` movement, the
+  `latch` block (`slots`, `spots`, `damage_factor`, `shake`, `stun`, `throw`), the `drain` attack,
+  the hooks `drain` and `latch_slots`, the events `LAMPREY_LATCHED` and `LAMPREY_SHAKEN`; for
+  levels, the `weather` block (`gusts`, `drift`, `lightning` with the `LIGHTNING` event,
+  `occlusion`, `rain`), a circle's `clockwise`, side release points for whirl clusters, chaser
+  `swarm` and `stream` waves from the rear, `sondes` with `SONDE_COLLECTED` and the secondary
+  `collect: sondes`, a drifting `low-air` trigger, `drop_factor`, a placed pickup's `at`, the event
+  prompt, the radio event `first-latch`, the music's `section_db` and the ambience key
+  `earth-storm`. The F5 switch needs no new stem key: the built `stems` (section: `base` or `full`)
+  already switch by section; only the eye's level is new. Everything new is to be hashed only in a
+  level that uses it (the wind exactly zero elsewhere), so the replay hashes of Levels 01–11 stay
+  and `ReplayTest` needs no re-recording.
+- 2026-10-11: M5 part F step 3, Level 12's simulation (pending the user's review in the combined
+  round): `LevelScript.Weather` (gusts sharing one push, seconds, ramp and telegraph; drifts as time
+  spans the loader takes from their section; the lightning times) read by `Wind`, a pure function of
+  the level step plus the next flash; `EnemySpec.Chase` and `EnemySpec.Latch` (the `drain` rate inside
+  the latch); `WeaponSpec.flanking` for the `side` and `rear` traits; `WaveSpec.clockwise`;
+  `LevelScript.Sondes`, `Secondary.sondes`, `GroundObjectSpec.drifting`, `dropFactor`,
+  `PlacedPickup`; events `LIGHTNING`, `LAMPREY_LATCHED`, `LAMPREY_SHAKEN`, `SONDE_COLLECTED` and the
+  radio trigger `FIRST_LATCH`. The new state is hashed only in a level that uses it, so every replay
+  hash stays and `ReplayTest` needs no re-recording; nothing new allocates per step.
+- 2026-10-11: M5 part F step 4, Level 12's loader (pending the user's review in the combined round):
+  the part F keys are read strictly and checked (`PartFRules`, `ContentValidator`): an enemy's
+  `movement.chase`, the top-level `latch` block and the `drain` attack (only with a latch, its unit's
+  only attack), the hooks `drain` and `latch_slots`; a level's `weather` (no simulation weather for
+  a block with only rain and occlusion; a drift's push 0 leaves it out; hard's `extra` gusts merged
+  by time; never more than 3 flashes a second), `sondes` (not in a level with a boss), the secondary
+  `collect: sondes` (with its `label`, optionally a `name`), a `low-air` trigger's `drift` (y up), a
+  pickup's `at` (exactly one of `at` and `dropped_by`), a wave's `clockwise` (circles only), a whirl
+  cluster's `at` up to 40 px outside the side edge its `from: sides` wave names, a `stream` from the
+  rear only for chasers and a swarm of chasers without `paths`, an event prompt (`event` instead of
+  `t`, never due by the clock), the radio's `first-latch` and the prompt's only with a unit that
+  latches, `drop_factor` and `music.section_db` (sections that exist, at most 0 dB). A weapon with
+  the `side` or `rear` trait flies `WeaponSpec.flanking`.
+- 2026-10-11: Schema text for M5 parts G and H (Levels 13 and 14; decisions G1–G9 and H1–H10 = a,
+  the gap checks' recommendations, **pending the user's review** in the combined round), planned
+  until the loader reads it: part G (sim in progress) the `defend` primary, the halted section
+  without an arena and its `ramp`, `targeted_by` modes, `cross`, `lanes`, side-entry ground units
+  with a `drift`, the `integrity` secondary, `drops`, `ally-below`, `end_jingle` / `jingle`,
+  `water_splash`; part H `root_bursts`, the boss `lob` and `sweep`, `launch` with `ambush`, a phase
+  `move` with `stump`, `part_layers` on an anchored boss and a daylight section after an arena. New
+  state is hashed only in a level that uses it, so the replay hashes stay.
+- 2026-10-12: M5 part G step G4, Level 13's loader (pending the user's review in the combined round):
+  the part G keys are read strictly, checked (`PartGChecks`) and mapped (`PartGRules`) with their final
+  names: `objectives.defend` (`ally`, `at` y up, `from`, `duration`, `targeted_by`, `easy` / `hard` `hp`
+  and `targeted_by`), a section's `ramp` (only on a timed halt; the ease in from the halt's first section,
+  out from its last), `lanes`, `from: all` for a `cross`, a change's `pairs`, a nest's `side` (`from`,
+  `drift`; `at` `[t, y]` y up), the secondary `integrity`, the top-level `drops` (Java `pointDrops`), the
+  radio's `ally-below` with `below`, the music's `jingle` (`t`, `fade`) instead of the planned `end_jingle:
+  false`, `water_splash`; the allies' `follows: ground`, `dives` and `lobs`. An atmosphere split at a time
+  is a `peak` to the section's end (`atmosphereStretches` drops the empty stretch after it, so the backdrop
+  does not dip). Rejected: a level-wide `targeted_by` (it is the defend's ally's hook, as the escort's
+  `hook`), a per-wave `pairs` (a difficulty's change, as hard's Stingers need), `end_jingle: false` (a YAML
+  boolean in a file-name key).
+- 2026-10-12: M5 part H step H4, Level 14's loader (pending the user's review in the combined round):
+  the part H keys are read strictly, checked (`PartHChecks`) and mapped (`PartHRules`) with their final
+  names: `root_bursts` (`telegraph`, `first_shot_delay`, `spacing`, `group`, `easy` / `hard`, `bursts`
+  with `t`, `x`, `y`, `growths` and `easy` / `hard` growths), a boss's `mortar` (the lob) and
+  `laser-sweep` (the sweep) attacks, `staggered`, a window spawn's `ambush: {most}`, the sway after a
+  lift, a `groups` secondary's tracker `label`. Rejected: a new `lob` / `sweep` pattern name (the enemy
+  patterns from a part say the same), `part_layers` `air` (the core reaches `air` by the lift's
+  `layer`), a `stump` key (the stump is the boss's state) and `ambush` on a window (the spawn's). A phase
+  with a `move` now keeps its arena keys (its `drop`); Level 07's carrier has none, so nothing else moves.

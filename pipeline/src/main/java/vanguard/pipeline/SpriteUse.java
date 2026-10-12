@@ -22,7 +22,8 @@ import vanguard.content.LevelData;
  * enemies of their waves, ground targets, set pieces and boss (and the enemies those spawn), the
  * ground targets' looks, the escorted ally and the level's features the game draws with sprites of
  * its own (cranes, debris, sleds, rocks, the darkness's flares, the tows' lifeboat, pod and cable, the
- * collapse's dust puffs, the scripted loss's glow and lance). A
+ * collapse's dust puffs, the scripted loss's glow and lance, the weather's looks and sondes, the root
+ * bursts' cracks, dust and roots). A
  * sprite belongs to a root when its name is the root or starts with the root and a hyphen
  * ({@code leviathan} owns {@code leviathan-fin-left}). The shared roots are the weapons, the specials
  * and the game's own effects ({@link #GAME_WIDE}); an enemy no level uses yet goes in its first level's
@@ -72,6 +73,22 @@ final class SpriteUse {
      * {@code lance-flash_*}.
      */
     static final List<String> LOSS_ROOTS = List.of("cloud-glow", "lance");
+
+    /**
+     * The weather looks of a level with a {@code weather} block (M5 part F, Level 12's storm, WeatherLooks):
+     * the rain streaks, the gust telegraph's arrow and streaks, the lightning bolts, the cloud lit from
+     * inside, the glow of a hidden low-air body and the weather sondes with their collect pop, all
+     * {@code weather-*} (tools/art/l12_props.py).
+     */
+    static final String WEATHER_ROOT = "weather";
+
+    /**
+     * M5 part H: the look of a level's root bursts (Level 14, RootBurstLooks): the cracking paving's decal,
+     * the dust puffs and the root erupting into its crater, {@code root-burst-decal_*}, {@code
+     * root-burst-puff_*} and {@code root-burst-root_*} (tools/art/root_burst.py); the growths are their
+     * enemies' own sprites.
+     */
+    static final String ROOT_BURST_ROOT = "root-burst";
 
     /** The look of a destructible ground target that names none (Level 01's cargo container). */
     private static final String DEFAULT_LOOK = "cargo-container";
@@ -145,6 +162,7 @@ final class SpriteUse {
         level.waves().forEach(wave -> wave.groupList().forEach(group -> enemies.add(group.enemy())));
         level.setPieces().ifPresent(pieces -> pieces.forEach(piece -> enemies.add(piece.enemy())));
         level.boss().ifPresent(boss -> enemies.add(boss.enemy()));
+        level.bursts().forEach(burst -> enemies.addAll(burst.growths())); // M5 part H: the root bursts' growths
         Set<String> roots = new TreeSet<>();
         for (LevelData.GroundTarget target : level.groundTargets()) {
             target.enemy().ifPresent(enemies::add);
@@ -169,6 +187,9 @@ final class SpriteUse {
         }
         roots.addAll(enemies);
         level.objectives().escort().ifPresent(escort -> roots.add(escort.ally()));
+        // M5 part G: a defend primary's ally (Level 13's relay) and the supply drones carrying the drops.
+        level.objectives().defend().ifPresent(defend -> roots.add(defend.ally()));
+        level.released().forEach(drop -> drop.sprite().ifPresent(roots::add));
         level.cranes().ifPresent(cranes -> roots.add("crane-four"));
         level.debris().ifPresent(debris -> debris.chunks().keySet().forEach(chunk -> roots.add("debris-" + chunk)));
         level.sleds().ifPresent(sleds -> {
@@ -186,6 +207,12 @@ final class SpriteUse {
         });
         // A tow is drawn as the lifeboat, its cargo pod and the cable (TowLooks), whatever its data.
         level.tows().filter(tows -> !tows.isEmpty()).ifPresent(tows -> roots.add(TOW_ROOT));
+        // M5 part F: a level with weather draws its rain, gusts, lightning, hidden bodies' glow and sondes.
+        level.weather().ifPresent(weather -> roots.add(WEATHER_ROOT));
+        // M5 part H: a level with root bursts draws their cracks, dust and roots.
+        if (!level.bursts().isEmpty()) {
+            roots.add(ROOT_BURST_ROOT);
+        }
         return roots;
     }
 

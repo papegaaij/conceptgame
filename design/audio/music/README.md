@@ -1,10 +1,10 @@
 ---
 title: Music
 design: approved
-implementation: done
+implementation: in-progress
 art: chosen
 depends-on: [../../campaign]
-updated: 2026-10-08
+updated: 2026-10-12
 ---
 
 # Music
@@ -102,6 +102,14 @@ and `collapse` (the full mix from Level 09's collapse to the end).
 by a set amount for a set time (Level 10: **−6 dB for 3 s** from the lance at t=118, no sting).
 It does not stack with the radio's duck (−4 dB while a voice plays): the lower of the two applies.
 The music data's `duck` (`on`, the event; `db`; `seconds`).
+
+**Level by section** (planned, M5 part F, Level 12's eye; user decision F5 = a): a level's music
+can set the theme's level per section (`section_db`: from that section until the next entry, a
+1 s ramp), as `start_db` does for the start. Level 12: the ambience alone in section 1, the base
+stem from section 2, the full mix in the storm wall (section 4), the **base stem at −6 dB in the
+eye** (section 5, under the Choir's stage sound) and the full mix at full level again for the
+breakout (section 6); the switches themselves are the existing `stems` by section. The radio's duck
+applies on top, as on a `start_db` start. No new stem or render (a third "eye" stem was rejected).
 
 The concept tracks are full mixes; round 11 delivered the first stem pair. A level that asks for
 the base stem until a section (Level 01 until section 3) plays the base stem from its music start
@@ -341,6 +349,22 @@ chosen `act2-b-theme-r08-a` byte for byte); `SOURCE` comment; both get Afterburn
       old one falls, linear over the crossfade, the old one stopped at its end, the first ambience
       back on a restart; `LevelScreen` on the `SCRIPTED_LOSS` event; `Level10SoundsTest`)
 
+- [x] Level 13's music (M5 part G, G8 = a, pending the user's review): the ambience alone in
+      section 1, "Homefront"'s base stem from section 2, the full mix in section 4, and the
+      mission-complete jingle at t=218 (the theme fades out over 2.6 s, grid online's chord, then the
+      jingle plays once under the radio line, then the ambience to the end), with no jingle at the debrief (the music block's
+      `jingle: {t, fade}`; `LevelMusic.jingle`, `DebriefScreen`'s `jingle` flag; step G6,
+      `Level13SoundsTest`)
+- [x] Level 14's music (M5 part H, pending the user's review; step H6, `Level14SoundsTest`): "Firestorm"'s base stem from section 2,
+      the full mix from section 4, the boss warning at the arena start (t=108) and the boss theme
+      after it, no music in the daylight section, `act-complete` (track 24) under the first outro
+      page, no mid-level jingle
+- [x] The theme's level by section (`section_db`): Level 12's base stem at −6 dB in the eye, with
+      its `stems` switches (base from section 2, full in 4, base in 5, full in 6) (M5 part F, step 6;
+      `Level12SoundsTest`) — built: `LevelMusic.sectionLevels`, the level moving linearly to a
+      section's over 1 s as it starts, multiplied with the start level, the ducks and the fades; a
+      restart starts at the first section's
+
 ## Open questions
 
 - 28 tracks is a lot of production. If needed, drop the B variants of acts (−7 tracks) or reuse
@@ -495,3 +519,26 @@ chosen `act2-b-theme-r08-a` byte for byte); `SOURCE` comment; both get Afterburn
   halt as the other mid-bosses (the sting rule: a mid-boss's sting plays when its bar appears; the
   level draft's "when the Kraken surfaces" reworded); no new music file. The implementation stays
   `done`: the level's data uses the existing keys.
+- 2026-10-09: M5 part F, **F5 = a** (user): Level 12 plays "Firestorm"'s base stem at −6 dB in the
+  eye and the full mix again at the breakout (the level document's "base stem drops out in the eye"
+  would have left the loud half); a per-section level (`section_db`) is the only new key, the
+  section switches use the built `stems`. Rejected: b (a third, sparse "eye" stem and a
+  three-stream mixer) and c (the theme fading out in the eye). The implementation is `in-progress`
+  until part F builds it.
+- 2026-10-11: M5 part F step 6 (pending the user's review in the combined round 34): a section's
+  `section_db` level is reached linearly over 1 s from its start (Level 12: down to −6 dB as the eye
+  begins, back to full as the breakout begins); it multiplies the theme's other levels (the start
+  level's rise, the radio's and the scripted ducks, the fades), so the radio's duck in the eye lands
+  at −10 dB.
+- 2026-10-11: M5 parts G and H (the user is on vacation; the main agent took the gap analyses' recommendations, **pending the user's review** in the combined round): Level 13 plays "Homefront" from section 2 with a mid-level jingle at t=218 and none at the debrief (G8 = a); Level 14 plays "Firestorm" with the boss warning and theme from t=108, no music in the daylight and `act-complete` under the outro's first page (H6 = a).
+- 2026-10-12: M5 part G, step G6 (**pending the user's review in the combined round**): Level 13's jingle
+  starts after the theme's 1 s fade (t=219, under Nansen's line; the theme does not return in that
+  attempt, a lost relay's cut music plays none); the debrief of a level whose jingle played inside it
+  starts silent. Grid online's sound (round 35) plays at the synchronisation's end (t=218), under the
+  fade, so its chord leads into the jingle.
+- 2026-10-12: M5 part G, step G8 (**pending the user's review in the combined round**): grid online's
+  chord (2.6 s from t=218, about as loud as the jingle) sat on the jingle's first second. Level 13's
+  `jingle` is now `{t: 218, fade: 2.6}`: the theme still starts fading with the chord, over its length,
+  and the jingle starts as the chord ends (t=220.6, still under Nansen's line). Rejected: moving
+  `jingle.t` to 219.6 with the 1 s fade (the theme would play on at full under the chord) and a separate
+  jingle delay in the game (the fade models it already).

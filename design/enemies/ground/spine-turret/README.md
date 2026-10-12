@@ -49,6 +49,12 @@ Values are first-draft balancing numbers at **medium** (see the [balancing basis
   player at 90°/s and it fires along the barrel; once the player is more than 100° off its facing
   (above and behind it, after the ground has carried it past), it stops turning and firing, so a
   turret that has been passed is harmless (Varga's tip in Level 02).
+- **Grown by a root burst (Level 14, M5 part H, decision H2 = a, pending the user's review).** In
+  [Level 14](../../../campaign/act-2-homefront/level-14-siege-spire/README.md) the turrets are
+  placed by `root_bursts` ([entry rules](../../README.md#boss-attacks-and-root-bursts)): the paving
+  cracks for the 1.0 s telegraph, the turret stands there, invulnerable and silent while it grows,
+  and fires first 1.5 s (hard 1.0 s) after it appeared. On easy a burst grows a turret only (the
+  secondary counts 4 of the 8 growths).
 
 ### Concept art
 

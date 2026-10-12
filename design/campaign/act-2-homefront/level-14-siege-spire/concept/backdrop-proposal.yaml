@@ -1,0 +1,91 @@
+# Level 14 backdrop PROPOSAL (tools/art/backdrop_l14.py --proposal; M5 part H batch, round 36, step H5).
+# For the main agent to merge into data.yaml: `backdrop` is the level's block, and the sections
+# take the `tiles` below.
+#
+# sections[i].tiles (by section, in order):
+#   Lakefront: [lakefront, canopy]
+#   Old Town: [old-town, canopy]
+#   Root Field: [root-field, canopy]
+#   Concord Approach: [root-field, canopy]
+#   Siege Spire: [root-field, canopy]
+#   Daylight: [daylight, canopy]
+#
+# Built round this timeline: Lakefront to 20, Old Town to 60, Root Field to 95, Concord Approach to 108, Siege Spire to 250, Daylight to 262;
+#   the halt at ground scroll 13088.83 (scrollAt(108) + the 1 s ease, Sortie.haltScroll); the
+#   anchor (the trunk's foot) at x 240, 196 px below the top edge then (ground 13432.83);
+#   the units laid out round: armoured car [14.5, 330], turret nest [[38, 200], [38.4, 240], [38.8, 280]], hive nodes [[55, 150], [55.6, 330]],
+#   root bursts [(63.0, 150.0, 120.0), (74.0, 330.0, 110.0), (84.0, 170.0, 140.0), (92.0, 320.0, 100.0)] (t, x, depth). Re-run --proposal (and the
+#   images) after the data moves a section end, a target or the anchor: the strip, the overlays and the
+#   boulevards are cut at exact rows.
+# The game's daylight looks are not in the block: assets/backdrop/level-14/canopy-tear_0..3 (straight
+#   alpha, 480x540, at 1.5, 3.5, 5.5, 7.5 s after the Spire's death; tile them on the high-air scroll)
+#   and daylight-beams_0..1 (additive, 480x540, at 5, 7.5 s), step H6.
+
+backdrop:
+  # Presentation only: Geneva Concord under the Vrell canopy (tools/art/backdrop_l14.py, straight from
+  # scene-geneva-r10-a, H8 = a; M5 part H, step H5). No deep layer: the ground tiles are opaque (the lake
+  # painted on them); the canopy's shadow is baked into them, its veins on high-air. Sections 4-6 are one
+  # strip of pieces (the arena halts: its own tile set is never drawn); boulevards hide the tile seams.
+  # Motion budget: Hammer flight and the few moving cars (sections 1-2); nothing moves in the arena.
+  scroll_factors: {far: 0.9, ground: 1, low-air: 1.35, high-air: 2}
+  ramp: 4
+  haze_colour: 3a2c48  # unused: no deep or far layer
+  atmosphere:
+    clear: {haze: 0}   # the arena and the daylight: the canopy's veins only
+    light: {banks: haze-light, haze: 0}   # sections 1-2: thin spore haze
+    medium: {banks: spore-haze, haze: 0}   # sections 3-4: spore-haze banks lit violet from below
+  tile_sets:
+    lakefront: {layer: ground, height: 960}   # section 1: Lake Geneva at dusk on the left, the quays and the promenade, the 19th-century blocks; the canopy's shadow lighter (its edge)
+    old-town: {layer: ground, height: 960}   # section 2: perimeter blocks of row houses, tile roofs, sodium-lit streets, parks, creep veins in the gutters, the canopy's mottled shadow
+    root-field: {layer: ground, height: 960}   # section 3 (and under the strip in 4-5): streets broken by roots as thick as trams, cracked paving, collapsed houses, creep over the roofs
+    daylight: {layer: ground, height: 960}   # section 6 after the strip: the old town in the low sun (daylight look a), lamps out, the creep withered
+    haze-light: {layer: low-air, height: 960}   # light: thin spore haze, ~10 %, still on its layer
+    spore-haze: {layer: low-air, height: 960}   # medium: spore-haze banks lit violet from below, ~22 %, spores
+    canopy: {layer: high-air, height: 540}   # the canopy's teal veins (additive at 40 %), every section; period 540 as the game's canopy-tear frames
+  pieces:
+    boulevard: {layer: ground, size: [480, 48]}   # a tree-lined boulevard with tram rails: over every seam between two tile sets (dusk)
+    boulevard-day: {layer: ground, size: [480, 48]}   # the same in the daylight (the strip's top, over the daylight tiles)
+    rhone: {layer: ground, size: [480, 168]}   # the Rhone leaving the lake, the Pont du Mont-Blanc under the armoured car, the Ile Rousseau, the avenue's bridge
+    jet-deau: {layer: ground, size: [112, 144], mid_size: true}   # the Jet d'Eau: its jetty and lighthouse, the plume leaning away from the centre, static
+    cathedral: {layer: ground, size: [480, 232], mid_size: true}   # Saint-Pierre on its cobbled square: nave, transept and apse, the turret nest's square in front; its towers are tower pieces
+    cathedral-tower: {layer: ground, size: [12, 12], tower: {height: 0.42, wall: wall-stone, shade: 0.55}}   # a west tower of Saint-Pierre in perspective: limestone walls, a verdigris pyramid
+    molard: {layer: ground, size: [480, 200], mid_size: true}   # the Place du Molard: the square under the two hive nodes, creep round them
+    root-crater: {layer: ground, size: [128, 112]}   # the Ravager pack's crater: root burst a's last frames (no growths)
+    traffic-car: {layer: ground, size: [14, 28], headings: 2}   # a car with its headlights, up (0) or down (1) the avenue: the few still moving
+    hammer-flight: {layer: low-air, size: [136, 120], headings: 2}   # Hammer flight: three CDF bombers in a vee, heading up (0) or down (1)
+    concord-1: {layer: ground, size: [480, 577]}   # the strip: the approach, the arena round the rotunda, the daylight
+    concord-2: {layer: ground, size: [480, 578]}
+    concord-3: {layer: ground, size: [480, 578]}
+    concord-4: {layer: ground, size: [480, 577]}
+  placed:
+    # 4-6. the strip: ground 11740-14044 (one render cut in 4): the approach, the arena's frame (the halt shows 13088.83-13628.83, the anchor at 13432.83) and the daylight graded by its distance past the frame
+    - {piece: concord-1, t: 98.9893, x: 240}
+    - {piece: concord-2, t: 103.1, x: 240}
+    - {piece: concord-3, t: 107.214, x: 240}
+    - {piece: concord-4, t: 268.62, x: 240}
+    # 1. the Rhone with the Pont du Mont-Blanc under the armoured car (x 330, t 14.5) (cut from the tile under it)
+    - {piece: rhone, t: 16.6429, x: 240}
+    # 2. Saint-Pierre's square under the turret nest [[38, 200], [38.4, 240], [38.8, 280]] (cut from the tile under it)
+    - {piece: cathedral, t: 40.65, x: 240}
+    # 2. the Place du Molard under the hive nodes [[55, 150], [55.6, 330]] (cut from the tile under it)
+    - {piece: molard, t: 57.4286, x: 240}
+    # 2. Saint-Pierre's west towers (perspective)
+    - {piece: cathedral-tower, t: 41.05, x: 331}
+    - {piece: cathedral-tower, t: 41.05, x: 353}
+    # 1. the Jet d'Eau off the quay
+    - {piece: jet-deau, t: 6, x: 60}
+    # 3. the crater the Ravager pack comes out of (t 72, the first burst's x)
+    - {piece: root-crater, t: 74.75, x: 150}
+    # the boulevards over the seams of sections 1-2, 2-3 and the strip's foot
+    - {piece: boulevard, t: 21.9286, x: 240}
+    - {piece: boulevard, t: 63.375, x: 240}
+    - {piece: boulevard, t: 96.9286, x: 240}
+    # 6. the strip's top over the daylight tiles
+    - {piece: boulevard-day, t: 280.16, x: 240}
+    # 1-2. the few cars still moving on the avenue (25 px/s)
+    - {piece: traffic-car, t: 3, x: 306, path: [[0, 0, -75], [15, 0, 300]], repeat: {count: 3, every: 6}}
+    - {piece: traffic-car, t: 6, x: 296, path: [[0, 0, 150], [18, 0, -300]], repeat: {count: 3, every: 6}}
+    - {piece: traffic-car, t: 27, x: 306, path: [[15, 0, -300], [39, 0, 300]], repeat: {count: 4, every: 7}}
+    - {piece: traffic-car, t: 30, x: 296, path: [[18, 0, 300], [42, 0, -300]], repeat: {count: 4, every: 7}}
+    # 1. Hammer flight passing below on low-air over the lake (110 px/s on its own, Hammer Lead's line from t 13 plays as it passes; x 130 clear of the armoured car, step H7b)
+    - {piece: hammer-flight, t: 16, x: 130, path: [[10, 0, -660], [22, 0, 660]]}

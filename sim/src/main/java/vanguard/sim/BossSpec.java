@@ -240,16 +240,35 @@ public record BossSpec(
         /** {@link Attack#arms()} arms turning at {@link Attack#turnRadiansPerSecond()}, a bullet per arm every interval. */
         SPIRAL,
         /** An n-way fan centred on the ship: {@link Attack#gun()}'s fan and spread, once per interval. */
-        FAN
+        FAN,
+        /**
+         * M5 part H (design/enemies, Boss attacks and root bursts; decision H5 = a): the Polyp Mortar's
+         * lob from a part: {@link Attack#gun()}'s {@link EnemyGun.MortarSpec} (its marker's time, its impact
+         * circle, its ring) lobbed at the ship's position at the throw, once per interval.
+         */
+        LOB,
+        /**
+         * M5 part H: the Mantis's laser sweep from a part (the airborne Siege Spire's core): {@link
+         * Attack#sweep()}'s arc, centred on the ship's bearing at the telegraph's start, shown for its
+         * telegraph, then the beam sweeps it, hurting the ship and Rook once each per sweep.
+         */
+        SWEEP
     }
 
     /**
      * A boss attack, with the difficulty's levers and changes applied.
      *
-     * @param gun its interval, burst, bullet speed and damage (a fan's bullets and spread)
+     * @param gun its interval, burst, bullet speed and damage (a fan's bullets and spread; M5 part H: a
+     *     lob's mortar)
      * @param rotate the parts that fire it take turns: one volley every interval among the living ones
      * @param durationSeconds how long a spiral runs in an alternation (a ring's turn is its interval)
      * @param parts the parts that fire it; empty: the living parts the phase ends on
+     * @param stagger M5 part H: each of its parts fires once per interval on its own clock, part k of n
+     *     {@code k × interval ÷ n} after the first; a destroyed part's turn passes silently (the Siege
+     *     Spire's pods "every 1.6 s each, staggered"); not with {@code rotate}
+     * @param sweep M5 part H: a {@link Pattern#SWEEP}'s arc, sweep and telegraph times, beam length and
+     *     width, damage and its origin below the part ({@link EnemySpec.Sweep#originDown()}); its interval
+     *     and first delay are not read (the gun's interval is); empty for other patterns
      */
     public record Attack(
             String name,
@@ -261,9 +280,47 @@ public record BossSpec(
             int arms,
             double turnRadiansPerSecond,
             double durationSeconds,
-            List<Integer> parts) {
+            List<Integer> parts,
+            boolean stagger,
+            Optional<EnemySpec.Sweep> sweep) {
         public Attack {
             parts = List.copyOf(parts);
+            if (pattern == Pattern.LOB && gun.mortar().isEmpty()) {
+                throw new IllegalArgumentException(name + ": a lob fires a mortar");
+            }
+            if ((pattern == Pattern.SWEEP) != sweep.isPresent()) {
+                throw new IllegalArgumentException(name + ": a sweep, and only a sweep, has a sweep block");
+            }
+            if (stagger && rotate) {
+                throw new IllegalArgumentException(name + ": an attack rotates or staggers, not both");
+            }
+        }
+
+        /** An attack without M5 part H's stagger and sweep. */
+        public Attack(
+                String name,
+                Pattern pattern,
+                EnemyGun gun,
+                double burstGapSeconds,
+                boolean rotate,
+                int count,
+                int arms,
+                double turnRadiansPerSecond,
+                double durationSeconds,
+                List<Integer> parts) {
+            this(
+                    name,
+                    pattern,
+                    gun,
+                    burstGapSeconds,
+                    rotate,
+                    count,
+                    arms,
+                    turnRadiansPerSecond,
+                    durationSeconds,
+                    parts,
+                    false,
+                    Optional.empty());
         }
 
         /** How long its turn lasts in an alternation. */
@@ -393,6 +450,11 @@ public record BossSpec(
      * rises to {@code layer}; then over {@code turnSeconds} it turns in place into pose
      * {@code pose} (an index into {@link BossSpec#poses()}), the renderer stepping through the
      * turn's pre-rendered frames. It then holds there (swaying around the new x).
+     *
+     * <p>M5 part H: on an anchored arena boss it is the lift (design/enemies/bosses/siege-spire,
+     * decision H4 = a): the glide eases out of the anchor (smoothstep) and the layer changes at its end,
+     * for the boss and its lifting parts (not before: it takes no contact while it lifts); the parts
+     * destroyed or armoured when it starts stay at the anchor (the stump).
      */
     public record Move(double x, double y, Layer layer, double descendSeconds, int pose, double turnSeconds) {
         public Move {
@@ -449,12 +511,41 @@ public record BossSpec(
      * direction to the ship, flying straight out at {@code speed} px/s. A unit that glides
      * ({@code glideSeconds} above 0) then holds for its hover time, its gun firing, and leaves
      * down the screen; otherwise it flies on until it leaves the play field.
+     *
+     * <p>M5 part H (design/enemies/bosses/siege-spire, the maw's Wraiths; decision H3 = a): with
+     * {@code ambushMost} above 0 each unit is an <em>ambush launch</em> instead: it flies its enemy's
+     * {@link EnemySpec.Ambush} rear path from the part (cloaked down its lane at {@code speed}, past the
+     * ship and off the bottom edge, the gap, back up to its hold point, the decloak, the hold, out up the
+     * nearer side lane), the bottom edge warned {@link WaveSchedule#EDGE_WARNING_SECONDS} ahead of its
+     * re-entry, a rear unit from its re-entry on (Rook's Trail); a launch that would put more than
+     * {@code ambushMost} of the boss's launched units on the field leaves the rest out. The arc and the
+     * glide are not read.
      */
-    public record Spawn(String name, EnemySpec enemy, int count, double speed, double arcRadians, double glideSeconds) {
+    public record Spawn(
+            String name,
+            EnemySpec enemy,
+            int count,
+            double speed,
+            double arcRadians,
+            double glideSeconds,
+            int ambushMost) {
         public Spawn {
-            if (count < 0 || !(speed > 0) || arcRadians < 0 || glideSeconds < 0) {
+            if (count < 0 || !(speed > 0) || arcRadians < 0 || glideSeconds < 0 || ambushMost < 0) {
                 throw new IllegalArgumentException(name + ": a spawn has a count, a speed, an arc and a glide");
             }
+            if (ambushMost > 0 && (enemy.ambush().isEmpty() || enemy.hover().isEmpty())) {
+                throw new IllegalArgumentException(name + ": an ambush launch flies its enemy's ambush path and hover");
+            }
+        }
+
+        /** A spawn flying straight out (without M5 part H's ambush launch). */
+        public Spawn(String name, EnemySpec enemy, int count, double speed, double arcRadians, double glideSeconds) {
+            this(name, enemy, count, speed, arcRadians, glideSeconds, 0);
+        }
+
+        /** M5 part H: whether its units are ambush launches. */
+        public boolean ambush() {
+            return ambushMost > 0;
         }
     }
 
@@ -464,10 +555,15 @@ public record BossSpec(
      * bottom edge once the scroll has halted in its arena, it scrolls in with the ground before it
      * arrives and engages at the halt.
      *
+     * <p>M5 part H (design/enemies/bosses/siege-spire; decisions H1 and H4 = a): an arena boss may have
+     * no lanes ({@link Lanes#NONE}); a phase's {@link Move} on it is a <em>lift</em>: the boss leaves its
+     * anchor (the parts destroyed or armoured by then stay there as the stump), glides to the move's
+     * station, its lifting parts take the move's layer at the glide's end, and then it sways there.
+     *
      * @param lanes its slam lanes; {@link Lanes#NONE} without
      * @param slam its slam cycle; null without lanes
-     * @param partLayers per part, the layer it starts on ({@code sub} or {@code ground}); its script
-     *     moves it
+     * @param partLayers per part, the layer it starts on ({@code sub} or {@code ground}; M5 part H: or
+     *     {@code air}); its script moves it
      * @param spots the weak spots on its parts
      */
     public record Arena(Lanes lanes, Slam slam, List<Layer> partLayers, List<Spot> spots) {

@@ -21,6 +21,8 @@ speakers:
     names: [Okafor]
     ref: ref-okafor
     pins:
+      db5a71987932: 152259044   # Act 2 outro page 4 "We take the fight to them now…": the key's seed said "ships out from Mars"
+      602de261bd41: 100874995   # Level 12 t=176 "Say again, Doctor?": the key's seed opened with a "Hmm," and said "Doctor" twice
       c496cbac570f: 206146473   # Level 11 end, ships afloat "Atlas-Seven is through…": the key's seed read "Good work, ages" without a name prompt
       468143d57448: 73929799    # Act 2 briefing page 3 "Until now you fought…": the key's seed said "you've fought"
       d16b2f349c6c: 219591441   # Level 08 t=1 "Aegis, contacts inbound…": the key's seed said "contact inbound"
@@ -34,6 +36,13 @@ speakers:
     names: [Varga]
     ref: ref-varga
     pins:
+      b0a8f0d09999: 126672783   # Level 14 t=54 "Hive nodes in the Molard…": the key's seed read "five notes" every way; the pin reads "hive nodes" through the filter
+      240e8b557207: 45813701    # Level 13 t=13 "Fast boats in the leads…": the key's seed jumped an octave (about 400 Hz) throughout
+      bc756d169e74: 234717555   # Level 13 secret "A CDF research cache…": the key's seed read "hot" for "hut" and ran high (about 290 Hz)
+      c7a82e12794e: 209379246   # Level 12 secondary "Three sondes, full data…": the key's seed jumped an octave on "full data"
+      cda9d1e479a9: 215661581   # Level 12 t=58 "There's a CDF sonde out there…": the key's seed jumped an octave on "data"
+      dd97a15d5b15: 232364292   # Level 12 t=30 "Eel-shaped contacts…": the key's seed jumped an octave on "shaped contacts"
+      de6dd3e53a7a: 233249564   # Level 12 canister pickup "A CDF supply canister…": the key's seed ended in seven mumbled "Mm"s and a pitch jump
       febdaf698bba: 267115454   # Level 09 briefing page 2 "The nodes are hardened…": the key's seed read "the streets and packs" both ways
       a86c85a4cc53: 77391054    # Level 10 briefing page 2 "The Vrell hunt…": the key's seed read "The rail hunt" but with a prompt through the filter; the pin reads "Vrell" with a prompt both ways
       ec548c3af77b: 118220431   # Level 10 secret "That ferry's hold…": the key's seed read "berry's" through the filter; the pin "ferries" every way
@@ -41,6 +50,8 @@ speakers:
     names: [Rook]
     ref: ref-rook
     pins:
+      c2a515c7fc87: 113898164   # Level 13 t=58.5 "Contacts, all sides!…": the key's seed jumped an octave (about 430 Hz) throughout
+      0d795fb668a6: 14168230    # Level 12 first-latch "You've got a passenger!…": the key's seed said "You got a passenger" and ran unvoiced then high (about 230 Hz)
       4195e4cad552: 68803080    # Level 11 boss-part-destroyed "Tell the cook we're having calamari.": the key's seed jumped an octave (about 500 Hz) on its first four words
       7a173798109d: 128029288   # Level 11 t=55 "Lancer... did the sea just move under the convoy?": the key's seed jumped an octave on "did the sea just"
       ff3da796bbb8: 267639418   # "Okay. Okay. That was big. We did big.": the key's seed repeated "We did big"
@@ -60,7 +71,11 @@ speakers:
   tranquility-control: {names: [Tranquility Control], ref: ref-tranquility-control}
   crawler-one: {names: [Crawler One], ref: ref-crawler-one}
   convoy: {names: [Convoy], ref: ref-convoy}
-  hammer-lead: {names: [Hammer Lead], ref: ref-hammer-lead}
+  hammer-lead:
+    names: [Hammer Lead]
+    ref: ref-hammer-lead
+    pins:
+      4a0877190476: 193779577   # Level 14 t=16 "Hammer flight on station…": the key's seed read "Hammer flat" through the radio filter
   driver-control: {names: [Driver Control], ref: ref-driver-control}   # Level 05; cast in round 21 (a)
   perimeter-beacon:   # Level 06; cast in round 23 (a, Mark F. Smith): flat and even, through the PA filter
     names: [Perimeter beacon]
@@ -92,3 +107,6 @@ speakers:
   atlas-control:   # Level 11 (M5 part E, E10 = a): the CDF officer of convoy Atlas-Seven; cast in round 33 (b, MaryAnn), neutral as auditioned
     names: [Atlas Control]
     ref: ref-atlas-control
+  nansen:   # Level 13 (M5 part G, G9 = a): the CDF officer at Nansen Relay; auditioned a/b in round 35 (tools/concept/audio/tts_r35.py), uncast until the round picks: the lines play as text
+    names: [Nansen]
+    uncast: true

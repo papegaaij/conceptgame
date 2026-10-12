@@ -4,7 +4,7 @@ design: draft
 implementation: in-progress
 art: chosen
 depends-on: [.., ../../story/characters, ../../ui/hud, ../../ui/options, ../../tech/architecture]
-updated: 2026-10-09
+updated: 2026-10-12
 ---
 
 # Voice
@@ -189,6 +189,16 @@ generic speakers; the speaker table in [data.yaml](data.yaml) maps the speakers'
   Halvorsen, Mbeki or Saint-Laurent: three takes each) and the secondary objective's thanks, about
   ten takes. Cast in round 33 (2026-10-09): Atlas Control is MaryAnn (b), at the neutral settings
   through radio filter b, as auditioned; her ten takes are voiced.
+  Level 13 adds **Nansen** (M5 part G, G9 = a, pending the user's review; speaker `Nansen`: the
+  CDF officer of the Nansen Relay; the radio portrait `radio-generic-cdf`), auditioned a/b in
+  concept round 35 as Atlas Control was
+  (`tools/concept/audio/tts_r35.py`): a, Patrick Eaton (male, clip pitch 124 Hz), b, Sharon Riskedahl
+  (female, 172 Hz), marked `uncast: true` until the round picks. Level 13 plans about 20 radio lines,
+  about six of them Nansen's, the radio events `ally-below` (50 % Nansen, 25 % Okafor),
+  `secondary-objective` and `mission-failed` (Okafor), Varga's four intel lines and two briefing pages
+  (the teaser is text only). Level 14 (M5 part H) adds no speaker: about 15 radio lines (Okafor,
+  Rook three, Hammer Lead, Varga five, the Choir's stage sound), four intel lines and the four outro
+  pages of [Act 2](../../campaign/act-2-homefront/README.md#act-intro-and-outro), voiced by Okafor.
 
 ### Speakers and expression
 
@@ -332,6 +342,24 @@ level).
       reviewed in concept [round 33](../../concept-rounds/round-33/README.md); Atlas Control's after the casting (M5 part E, step E4; the cast
       speakers' rendered 2026-10-09, 15 lines, three takes pinned, accepted as rendered when round
       33 closed; Atlas Control's ten takes rendered 2026-10-09 at the close, no pins needed)
+- [x] Level 12's lines (radio, the briefing pages, the canister's line, the level-end and
+      secondary lines; Rook's `first-latch` line) rendered with the cast speakers (Okafor, Varga,
+      Rook; the Choir's stage sound), no new speaker and no audition; RadioTimelineTest covering
+      Level 12 with and without Rook (M5 part F, step 6; rendered 2026-10-11, 18 lines, six takes
+      pinned; pending the user's review in the combined round)
+- [ ] Nansen (Level 13): reference clips for the round-35 audition under `refs/` and in CREDITS.md,
+      the chosen reader in the speaker table (M5 part G, step G2 done; the casting and the lines'
+      rendering with the content step)
+- [x] Level 13's lines of the cast speakers (radio with the events `ally-below` 25 % and
+      `mission-failed`, the briefing pages, the hut's line, the level-end line) rendered (Okafor, Varga,
+      Rook; the Choir's stage sound); Nansen's six lines play as text until round 35 casts him
+      (VoiceFilesTest's `AUDITIONING`); RadioTimelineTest covering Level 13 voiced (M5 part G, step G6;
+      rendered 2026-10-12, 15 lines, three takes pinned; pending the user's review in the combined round)
+- [x] Level 14's lines (radio, the briefing pages, the armoured car's line; the intel lines and the
+      teaser are text) and the four Act 2 outro pages rendered with the cast speakers (Okafor, Varga,
+      Rook, Hammer Lead; the Choir's stage sound); RadioTimelineTest covering Level 14 voiced, with
+      and without Rook (M5 part H, step H6; rendered 2026-10-12, 20 lines, three takes pinned; pending
+      the user's review in the combined round)
 - [x] A line that is only a stage direction plays its speaker's `stage` sound (speaker table) on
       the voice bus, found by `VoiceLines.radioVoice` for the game and RadioTimelineTest; the
       Choir's is round 29's option b (the sung "ah" F3 to E3), copied by
@@ -402,6 +430,18 @@ clips renamed `refs/ref-lifeline.wav` and `refs/ref-lifeline-three.wav`); the a 
 | [concept/voice-lifeline-r32-b.ogg](concept/voice-lifeline-r32-b.ogg) | Lifeline (round 32 audition), reader KevinS (`tools/concept/audio/tts_r32.py`) | chosen |
 | [concept/rejected/voice-lifeline-three-r32-a.ogg](concept/rejected/voice-lifeline-three-r32-a.ogg) | Lifeline Three (round 32 audition; the line cut off by the lance), reader Kehinde (`tools/concept/audio/tts_r32.py`) | rejected |
 | [concept/voice-lifeline-three-r32-b.ogg](concept/voice-lifeline-three-r32-b.ogg) | Lifeline Three (round 32 audition; the line cut off by the lance), reader Maria Kasper (`tools/concept/audio/tts_r32.py`) | chosen |
+
+Concept round 35 (M5 part G, decision G9 = a, pending the user's review) — casting Level 13's new speaker
+Nansen, the CDF officer of Nansen Relay: three of its lines (the t=36 arrival, the `ally-below` 0.5 line and
+the t=218 grid sync) with two candidate reference voices, a male (a) and a female (b), rendered by
+Chatterbox at the neutral settings through radio filter b (`tools/concept/audio/tts_r35.py`; the readers
+and pitches in [concept/prompts.md](concept/prompts.md#voice-nansen)); the candidates' clips
+`refs/ref-nansen-r35-a/b.wav`.
+
+| File | What | Status |
+|---|---|---|
+| [concept/voice-nansen-r35-a.ogg](concept/voice-nansen-r35-a.ogg) | Nansen (round 35 audition), reader Patrick Eaton (`tools/concept/audio/tts_r35.py`) | proposed |
+| [concept/voice-nansen-r35-b.ogg](concept/voice-nansen-r35-b.ogg) | Nansen (round 35 audition), reader Sharon Riskedahl (`tools/concept/audio/tts_r35.py`) | proposed |
 
 Concept [round 33](../../concept-rounds/round-33/README.md) (M5 part E, user decision E10 = a) — casting Level 11's Atlas Control, the CDF
 officer of convoy Atlas-Seven: three of its lines (the t=1 call, the `ally-hit` line with `{ally}` =
@@ -728,3 +768,76 @@ a, c and d in `concept/rejected/`.
   the same seeds measured 140–255 Hz throughout (the radio filter's band limit and crackle fool the
   pitch tracker), so no pin was needed. For the user's ear: "hulls" (it may sound like "halls") and
   the three ship names. The cast speakers' 15 lines were accepted as rendered (round 33, user).
+- 2026-10-09: M5 part F (a stated default of the part's gap check): Level 12 is voiced with the cast
+  speakers only (Okafor, Varga, Rook, the Choir's stage sound): no new speaker, no audition. Its
+  radio script is retimed to the 1 s rule (the eye's lines spread over 150.5–175.5 s, Rook's t=102
+  dropped for his rear bark), see [Level 12](../../campaign/act-2-homefront/level-12-storm-front/README.md#radio-chatter).
+- 2026-10-11: M5 part F (step 6): Level 12's lines of the cast speakers rendered by
+  `tools/art/voice.py`'s pipeline (only the missing lines, nothing deleted), 18 lines: Okafor 5
+  (briefing page 1, t=2, t=128, t=176 "Say again, Doctor?" and the level-end line), Varga 8
+  (briefing page 2, t=30, t=58, t=86, t=157, t=182.5, the canister pickup and the secondary
+  objective) and Rook 5 (t=14, `first-latch`, t=44, t=149.5, t=200); the Choir's t=169.5
+  `[the Choir sings]` plays its stage sound; the hangar teaser and the intel lines are not voiced,
+  as in Levels 08 to 11. No new speaker, so no audition and no `AUDITIONING` entry; Level 12 is in
+  VoiceFilesTest's `RENDERED` and no longer in RadioTimelineTest's `UNVOICED`. Whisper (base.en,
+  with a name prompt) read each take back and librosa pyin measured the raw take's pitch: six takes
+  re-rolled (six seeds each) and pinned in the speaker table: Okafor's t=176 "Say again, Doctor?"
+  (the key's seed opened with "Hmm," and said "Doctor" twice), Varga's t=30 "Eel-shaped contacts",
+  t=58 sonde line and secondary line (the key's seeds jumped an octave, to about 450 Hz, on one or
+  two words) and the canister line (the key's seed ended in seven mumbled "Mm"s), and Rook's
+  `first-latch` line (the key's seed said "You got a passenger" and ran unvoiced, then high). Other
+  readings, listening points pending the user's review in the combined round: Varga's "They're
+  herding the weather" reads "hurting" in Whisper in every one of 24 seeds, so it is probably the
+  voice's "herding" and was left at the key's seed; "sonde" reads "sondays", "signed" or "sound" in
+  Whisper without the name prompt; "Vrell" reads right in Okafor's briefing page; a few takes end
+  in a short breath or murmur after the last word that Whisper hears as a repeated word. Measured
+  only, not listened to.
+- 2026-10-11: M5 parts G and H (the user is on vacation; the main agent took the gap analyses' recommendations, **pending the user's review** in the combined round): the new speaker is Nansen (Level 13, a/b audition in round 35, G9 = a); Level 14 and the Act 2 outro add no speaker (H7 = a: four voiced pages, Okafor).
+- 2026-10-12: M5 part G (step G6): Level 13's lines of the cast speakers rendered by
+  `tools/art/voice.py`'s pipeline (only Level 13's missing lines, nothing deleted; the Act 2 outro's
+  four pages left to part H), 15 lines: Okafor 8 (briefing page 1, t=1, 47.5, 154, 172, 233.5, the
+  `ally-below` 25 % line, `mission-failed`), Varga 4 (briefing page 2, t=13, t=102, the hut's cache)
+  and Rook 3 (t=24, t=58.5, `level-end`); the Choir's t=179 plays its stage sound. **Nansen** stays
+  `uncast` (his t=36, t=162, t=218, `ally-below` 50 % and `secondary-objective` lines play as text, the
+  generic CDF portrait) until round 35 picks a or b; `Nansen` is in VoiceFilesTest's `AUDITIONING` and
+  Level 13 in its `RENDERED`; RadioTimelineTest no longer exempts Level 13 (`UNVOICED` is empty): with
+  the real lengths no voiced timed line starts more than a second late (three difficulties, every fit,
+  with and without Rook), so no line moved. Whisper (base.en) read every take back and librosa pyin
+  measured its pitch: three takes re-rolled and pinned in the speaker table: Varga's t=13 "Fast boats in
+  the leads…" (the key's seed sat about an octave up, 406 Hz median; ten seeds tried, the pin at 225 Hz
+  is the closest to her 190–210 Hz and reads back word for word without a prompt), Rook's t=58.5
+  "Contacts, all sides!…" (the key's seed about 430 Hz; the pin at 174 Hz, word for word) and Varga's
+  hut line (the key's seed read "hot" and ran at 287 Hz; the pin reads "hut" both ways at 204 Hz).
+  Other readings: "floes" reads "flows" (the same sound), "armoured" "armored", "Divers" once
+  "Difers" without a prompt, "Atlas-Seven" "Atlas 7". For the user's ear: Varga's t=13 pin still has
+  a few high syllables (30 % of its frames above 300 Hz). Measured only, not listened to. When round
+  35 casts Nansen, render his lines and rerun RadioTimelineTest's voiced run (his t=36 line runs
+  into Okafor's t=47.5 only if it is longer than about 10 s). The same day the main agent shortened
+  both briefing pages (so they fit one screen beside their images): re-rendered (Okafor 22.3 s, Varga
+  13.3 s, both read back word for word with the name prompt, at 154 and 207 Hz), the old files deleted.
+- 2026-10-12: M5 part H (step H6; **pending the user's review** in the combined round): Level 14's and
+  the Act 2 outro's lines rendered by `tools/art/voice.py`'s pipeline (only the missing lines, nothing
+  deleted), 20 lines with the cast speakers, no new speaker and no audition: Okafor 11 (the outro's four
+  pages, 14.3, 9.2, 10.6 and 8.8 s; briefing page 1, 24.6 s; t=1, t=62, the phase-3 line, the
+  secondary objective, the level-end line and the armoured car's cache), Varga 6 (briefing page 2,
+  14.9 s; t=31.5, t=54, t=102, the phase-2 line and `boss-destroyed`), Rook 2 (t=21 and his phase-3
+  line) and Hammer Lead 1 (t=13); the Choir's t=96 plays its stage sound; Rook's hangar teaser and the
+  intel lines are not voiced. Level 14 and `act-2-homefront outro` are in VoiceFilesTest's `RENDERED`;
+  RadioTimelineTest covers Level 14 (the armoured car's cache early or late, the arena's phase lines
+  and the Spire's death in a fast, a medium and a slow fight). The draft's opening did not fit the 1 s
+  rule even as text (Okafor's t=1 line holds the radio about 12 s), so the radio is retimed in
+  [Level 14's data](../../campaign/act-2-homefront/level-14-siege-spire/data.yaml): Hammer Lead
+  16 → 13 (before Rook, still over Hammer flight's pass at t=16), Rook 7.5 → 21, Varga's canopy line
+  22 → 31.5 (into the old town) and the Choir 98 → 96 (its text holds 5.6 s, so Varga's t=102 starts
+  on time); with the voices no timed line starts late (three difficulties, every fit, with and without
+  Rook). Whisper (base.en, with and without a name prompt, raw and through the filter) read every take
+  back and librosa pyin (frames with a voicing probability over 0.5; Hammer Lead's low voice by yin)
+  measured its pitch: no octave jump. Three takes re-rolled (six seeds each) and pinned in the speaker
+  table: Hammer Lead's t=13 (the key's seed read "Hammer flat" through the filter), Varga's t=54 "Hive
+  nodes in the Molard" (the key's seed read "five notes" every way; the pin reads "hive nodes" through
+  the filter, raw still "five") and the outro's last page (the key's seed said "ships out from Mars").
+  Other readings: "Vrell" reads "rail" or "rel" without a prompt, "Ares" "air is", "Root grid" "route
+  grid" (the reader's vowel), "seventy-two" as digits. For the user's ear: Varga's t=102 "It's singing
+  to the whole city" sits higher than her other lines (259 Hz median against her 190–210 Hz, no jump;
+  most seeds tried read it 230–270 Hz, so it was left at the key's seed), and Hammer Lead's "flight".
+  Measured only, not listened to.

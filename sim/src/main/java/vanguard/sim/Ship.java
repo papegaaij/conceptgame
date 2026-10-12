@@ -61,6 +61,16 @@ public final class Ship {
 
     /** Steers towards the commanded velocity, moves, banks and regenerates the shield. */
     void fly(int commands) {
+        fly(commands, 0);
+    }
+
+    /**
+     * As {@link #fly(int)}, pushed sideways by the level's {@code wind}, px/s to the right (M5 part F,
+     * design/campaign Level 12, Weather): the push adds to the position, not the velocity, so the
+     * ship's steering and banking are unchanged and the play field's edges clamp as ever; a wind of
+     * exactly 0 changes nothing.
+     */
+    void fly(int commands, double wind) {
         double dx = (Command.RIGHT.in(commands) ? 1 : 0) - (Command.LEFT.in(commands) ? 1 : 0);
         double dy = (Command.UP.in(commands) ? 1 : 0) - (Command.DOWN.in(commands) ? 1 : 0);
         double speed = spec.speed() * (Command.PRECISION.in(commands) ? spec.precisionFactor() : 1);
@@ -71,6 +81,9 @@ public final class Ship {
         vy = approach(vy, dy * speed);
         x += vx * SimStep.SECONDS;
         y += vy * SimStep.SECONDS;
+        if (wind != 0) {
+            x += wind * SimStep.SECONDS;
+        }
         double margin = spec.edgeLimit();
         if (x < margin || x > PlayField.WIDTH - margin) {
             x = Math.clamp(x, margin, PlayField.WIDTH - margin);

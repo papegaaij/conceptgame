@@ -65,6 +65,8 @@ The numbers live in [data.yaml](data.yaml). Values are first-draft balancing num
   never overlaps the next volley (the simulation rejects a wave whose ripple would).
 - **Hard.** A 7-way fan every 2.6 s: an authored interval (the hook's `attacks.fan.interval`), so
   the difficulty's fire-rate lever does not apply on top of it, as for the Mantis's beam.
+- **In Level 14** (M5 part H) it returns with the act HP factor: 40 HP at medium (time to kill
+  unchanged at 0.50 s).
 - **Death.** A 16-frame `medium` organic burst, then a legless husk at its last heading (16 husk
   frames) that scrolls away with the ground, as the Scuttler's. As a large Vrell unit it
   screeches once as it first comes onto the screen ([sfx](../../../audio/sfx/README.md#enemies)).

@@ -4,7 +4,7 @@ design: approved
 implementation: done
 art: n/a
 depends-on: [../../player, ../difficulty]
-updated: 2026-10-08
+updated: 2026-10-12
 ---
 
 # Economy
@@ -197,8 +197,9 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   shop at every visit, levels 01–14; the accepted exceptions to the
   [balancing basis](../../enemies/README.md#balancing-basis), Levels 01–03's DPS gap and the
   Coilwyrm's bounty, are listed there and in the sheet; on hard it prints the credit shortfall as
-  accepted) and `ActPlaythroughTest` (Act 1 flown by the test autopilot on every difficulty with
-  the plan's purchases, credits carried from level to level)
+  accepted) and `ActPlaythroughTest` (Acts 1–2 flown as one campaign by the test autopilot on every
+  difficulty with the plan's purchases, credits carried from level to level, Rook from Level 08 with
+  his repairs after the ship's; Act 2 added in M5 part I)
 
 ## Open questions
 
@@ -323,3 +324,8 @@ formula is in [weapons](../../player/weapons/README.md#common-rules).
   is that share: the Harbour Kraken's ≈ 15 % of budget(11) = 1 377 ≈ 207, written ≈ 207 ÷ (1.6 ×
   the scale), set before the scale in Level 11's data step. The "300 at Act 2, written 188" of
   2026-10-06 predated the per-level scale and the typical-haul curve.
+- 2026-10-12: M5 part I (close-out): `ActPlaythroughTest` carries Act 1's campaign on through Act 2
+  (Levels 08–14, Rook flown and repaired) on every difficulty; every level is won at the first
+  attempt, and the autopilot ends Act 2 with about 18 300 (easy), 14 700 (medium) and 10 900 (hard)
+  credits after the plan's purchases, well above the static sheet's estimate (it earns A and A+
+  grades). `BalanceTest` and `tools/balance.py` print Rook's DPS.

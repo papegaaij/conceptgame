@@ -1,6 +1,6 @@
 # The expected purchases of a typical medium player at each hangar visit, for Acts 1-2.
 # Read by the content tests BalanceTest (affordability, power load and DPS per visit) and
-# ActPlaythroughTest (Act 1 flown with these purchases on every difficulty), and printed by
+# ActPlaythroughTest (Acts 1-2 flown with these purchases on every difficulty), and printed by
 # tools/balance.py as the balancing sheet; not a rule, and not read by the game. Every other number
 # comes from the parts' data.yaml files. The free charges a special gives at its unlock (the
 # Airstrike's first, at L04) come on top of the charges bought here.
@@ -12,8 +12,8 @@
 #   utility: [module, level]   charges: [special, count]
 #   fit: [slot, item]   fits an owned item again in place of the fitted one, which is kept (M5 part D)
 # An optional `difficulties: {hard: {"NN": {...}}}` adds purchases to a visit on another
-# difficulty (ActPlaythroughTest); none are needed today: Act 1 is flown on every difficulty with the
-# medium plan.
+# difficulty (ActPlaythroughTest); none are needed today: Acts 1-2 are flown on every difficulty with
+# the medium plan (M5 part I; on easy a charge the plan buys while the special carries its most is skipped).
 # Hard (BalanceTest prints the sheet on hard too: income × 0.9, repairs 10 cr a point): after the
 # plan's purchases the credits do not always pay the repairs of repair_points_per_level; accepted,
 # hard is meant to be tighter: a typical player there takes less damage or skips some repairs
@@ -34,6 +34,6 @@ plan:
   "09": {sell: [wing_l], buy: [[wing_l, bomb-rack], [escort, mortar]]}   # anti-ground for the hardened Hive Nodes (D8 = c of M5 part C)
   "10": {buy: [[rear, tail-gun]], fit: [[escort, autocannon]]}   # the Tail Gun moved from L09 (D8 = c of M5 part C) for the Wraiths (rear check, D7 = a of M5 part D); Rook's owned Autocannon again (the Mortar has nothing to hit in L10); the wing upgrades and L10's Airstrike charge moved later
   "11": {upgrade: [[front, 4]], fit: [[escort, mortar]]}   # M5 part E (stated default): Rook's owned Mortar again, for the rafts and the surfaced Kraken; no Torpedo Pod, it stays optional
-  "12": {sell: [wing_l, wing_r], buy: [[wing_l, micro-missile-pod], [wing_r, micro-missile-pod]], charges: [[Airstrike, 1]]}
-  "13": {core: [[armor, 2]], upgrade: [[wing_l, 2], [wing_r, 2]]}
-  "14": {upgrade: [[rear, 2]], charges: [[Airstrike, 1]]}  # with the free charge at L04 it carries its most, 4
+  "12": {sell: [wing_l, wing_r], buy: [[wing_l, micro-missile-pod], [wing_r, micro-missile-pod]], charges: [[Airstrike, 1]], fit: [[escort, autocannon]]}  # M5 part F (stated default): Rook's owned Autocannon again (the Mortar from L11 has no ground target in L12); BalanceTest checks the rear gun against a latched Lamprey, Level12Test the drain on the autopilot
+  "13": {core: [[armor, 2]], upgrade: [[wing_l, 2], [wing_r, 2]]}  # unchanged for M5 part G (pending the user's review): Rook keeps his Autocannon (the Skimmers and Scuttlers fall to standard shots); BalanceTest gets the Skimmer's time to kill and the relay outcome on the autopilot
+  "14": {upgrade: [[rear, 2]], charges: [[Airstrike, 1]]}  # unchanged for M5 part H (pending the user's review): rear L2 for the Wraiths, one Airstrike, Rook's Autocannon; the measured Siege Spire fight re-checks the fit (BalanceTest: the boss share of the budget ≈ 30 %); with the free charge at L04 it carries its most, 4

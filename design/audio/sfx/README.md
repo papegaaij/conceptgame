@@ -4,7 +4,7 @@ design: approved
 implementation: in-progress
 art: chosen
 depends-on: [../../player, ../../enemies, ../../ui]
-updated: 2026-10-09
+updated: 2026-10-12
 ---
 
 # Sound effects
@@ -126,6 +126,7 @@ reused round 02 files marked (r02).
 | Special charge — [a](concept/pickup-special-charge-r08-a.ogg) | P2 |
 | Overdrive pickup — [pickup-r01-a](concept/pickup-r01-a.ogg); start/end cues [a](concept/overdrive-start-r08-a.ogg), [a](concept/overdrive-end-r08-a.ogg) | P1 |
 | Data core (distinct, rewarding) — [pickup-r01-b](concept/pickup-r01-b.ogg) | P2 |
+| Weather sonde collected (Level 12, planned, M5 part F): a short bright chime as the ship flies through a sonde, on `SONDE_COLLECTED`; one proposal in round 34 | P1 |
 
 ### Specials
 
@@ -161,6 +162,10 @@ reused round 02 files marked (r02).
 | Harbour Kraken (Level 11, M5 part E), one proposal each in [round 33](../../concept-rounds/round-33/README.md), all accepted (chosen; recordings with synthesized layers, the churn's waves CC-BY, byjoshberry, on the credits roll): the lane telegraph's churn [a](concept/kraken-churn-r33-a.ogg) (a rushing surge of waves over a rumble swelling over the 1.0 s telegraph, reworked without bubbles; hard overruns its 0.8 s telegraph by 0.2 s), the slam [a](concept/kraken-slam-r33-a.ogg) (the arm's rush, then a heavy wet impact and big splash at 0.5 s into the file), the head's surfacing swell [a](concept/kraken-surface-r33-a.ogg) (a deep swell, water streaming off as the crown breaks, with each `SURFACE`), its death [a](concept/kraken-death-r33-a.ogg) (a long wet groan over churning water, reworked without bubbles, under the `huge` water burst) | P2 |
 | Convoy ships (Level 11, M5 part E), chosen in [round 33](../../concept-rounds/round-33/README.md) as the Kraken's: a ship hit [a](concept/ship-hit-r33-a.ogg) (metal struck, water rushing in; on `ALLY_HIT`), a ship sinking [a](concept/ship-sink-r33-a.ogg) (a steel groan, a muffled boom, waves washing over; 3.8 s, reworked without bubbles), the frigate's distant flak [a](concept/frigate-flak-r33-a.ogg) (two dull pops far away, raised twice to −16 dB after listening, one file per `ALLY_FLAK`) | P2 |
 | Driftjelly (Level 11, M5 part E): its ring's pulse chosen in [round 33](../../concept-rounds/round-33/README.md), [a](concept/driftjelly-pulse-r33-a.ogg) (a soft synthesized underwater bloop and ripple, no source; kept over reusing the enemy shot's small sound); its death the `small` rung with the `water` explosion | P3 |
+| Lamprey (Level 12, planned, M5 part F): the **latch**, a wet suck-and-bite as it latches (`LAMPREY_LATCHED`); the **drain**, a quiet looping hum-and-crackle while any Lamprey drains (stopping at the break or the shake-off); the **shake-off**, a slap and a squeal as they are thrown off (`LAMPREY_SHAKEN`); its death the `small` rung (a wet pop). Latch and drain a/b in round 34 (user decision F8 = a), the shake-off one proposal | P1 |
+| Weather (Level 12, planned, M5 part F): **thunder** one-shots, 2–3 variants, 0.3–1.5 s after each lightning flash (`LIGHTNING`; the delay and variant fixed by the flash's index), F6 = a; a **gust** whoosh rising with each gust's telegraph. Thunder and gust a/b in round 34 (F8 = a); CC0 or CC-BY recordings or synthesis | P2 |
+| Nansen Relay (Level 13, M5 part G; G9 = a, pending the user's review; the game plays round 35's **a** of each as a placeholder until the round closes, `Sfx.RELAY_HIT`, `INTEGRITY_ALARM`, `RELAY_DESTROYED`, `DRONE_LAUNCH`, `GRID_ONLINE`): the relay's **hit** (a short metallic thud with a zap, on the relay-aimed hit event; relay hit [a](concept/relay-hit-r35-a.ogg) / [b](concept/relay-hit-r35-b.ogg)), the **integrity alarm** (a two-tone alarm once at 50 % and once at 25 %, on `ALLY_BELOW`; [a](concept/integrity-alarm-r35-a.ogg) / [b](concept/integrity-alarm-r35-b.ogg)), **relay destroyed** (a power-down and rumble, [a](concept/relay-destroyed-r35-a.ogg), one version), the **drone launch** (rotors spinning up, [a](concept/drone-launch-r35-a.ogg), one version) and **grid online** (the lights coming on in sequence at t=218, a power-up chain; [a](concept/grid-online-r35-a.ogg) / [b](concept/grid-online-r35-b.ogg)); the Skimmer's flip-and-sink reuses the water explosion | P2 |
+| Siege Spire (Level 14, planned, M5 part H; H8 = a, pending the user's review): the **canopy hum**, a seamless loop [a](concept/canopy-hum-r36-a.ogg) while the canopy lives (cut at the Spire's death, no hum in the daylight), the **root burst** crack as the paving breaks (the telegraph's end; [a](concept/root-burst-r36-a.ogg) / [b](concept/root-burst-r36-b.ogg)), the **growth** swell [a](concept/root-growth-r36-a.ogg) under a growing turret or mortar (one version), the **tear-free roar** (phase 3's lift-off; [a](concept/tear-free-roar-r36-a.ogg) / [b](concept/tear-free-roar-r36-b.ogg)) and the **canopy withering** after the Spire's death ([a](concept/canopy-withering-r36-a.ogg) / [b](concept/canopy-withering-r36-b.ogg)); the sac, the lob and the sweep reuse the existing sounds | P2 |
 | Arcology collapse (Level 09, M5 part C): a low rumble under the 1.5 s lean and the 1.5 s drop swelling into a long crash at the impact (about 7 s) — chosen [a](concept/collapse-r31-a.ogg) (stony rumble swelling into a tumbling masonry crash, CC-BY; a steel-frame cave-in was rejected; the production file crashes at 3.0 s, the concept file at 1.5 s), [round 31](../../concept-rounds/round-31/README.md) | P2 |
 | Leviathan whale-song cry (its death, under the large burst) — [a](concept/enemy-leviathan-cry-r16-a.ogg) (synthesized, round 16) | P2 |
 | Polyp Mortar lob — chosen [a](concept/enemy-mortar-lob-r21-a.ogg) (mortar thump; an organic spit was rejected); impact — chosen [a](concept/enemy-mortar-impact-r21-a.ogg) (wet splat; an acid sizzle was rejected), [round 21](../../concept-rounds/round-21/README.md) | P2 |
@@ -196,15 +201,16 @@ gate. P2–P3, one loop per setting in the [world](../../world/README.md).
 | Luna | `luna` | [a](concept/ambience-luna-r08-a.ogg) — desolate space-wind drone, 16 s |
 | Earth megacity | `earth-megacity` (Level 08, M5 part B) | [a](concept/ambience-city-r08-a.ogg) — night city with distant sirens, 20 s; played as it is (M5 part B default) |
 | Earth ocean | `earth-ocean` (Level 10 from section 4, crossfading in over 4 s from the megacity, M5 part D; Level 11 from t=0 throughout, M5 part E) | [a](concept/ambience-ocean-r08-a.ogg) — waves at speed, 16 s |
-| Earth ocean storm | — (M5 part F) | [a](concept/ambience-storm-r08-a.ogg) — rain and thunder, 24 s |
-| Earth arctic | — (M5 part G) | [a](concept/ambience-arctic-r08-a.ogg) — cold wind, 16 s |
+| Earth ocean storm | `earth-storm` (M5 part F: Level 12 in sections 1–4 and 6, crossfading to `earth-ocean` in the eye and back over 4 s; user decision F6 = a: the game plays round 34's **rain-only bed** [ambience-storm-rain-r34-a](concept/ambience-storm-rain-r34-a.ogg), 10 s, cut from the same CC0 source, until the round closes; the chosen a kept) | [a](concept/ambience-storm-r08-a.ogg) — rain and thunder, 24 s |
+| Earth arctic | `earth-arctic` (M5 part G: `Sfx.AMBIENCE_ARCTIC` under all of Level 13, +3 dB in the whiteout peak, ramping with it) | [a](concept/ambience-arctic-r08-a.ogg) — cold wind, 16 s |
+| Earth megacity under the canopy | `earth-canopy` (M5 part H: `Sfx.AMBIENCE_CANOPY` under Level 14 instead of the megacity's sirens; at the Siege Spire's death it fades out over 2 s while `earth-megacity` rises over 7 s under the canopy's withering, pending the user's review) | [a](concept/canopy-hum-r36-a.ogg) — the canopy's hum, round 36's one proposal, a seamless 8 s loop |
 
 ### Chosen sounds the game does not play
 
 Every other chosen sound in the Concept art tables below is played by the game (an entry of
 `vanguard.game.audio.Sfx`; `SfxFilesTest` checks both lists against this README). Besides them the
 game may play only `proposed` sounds of an open concept round, provisionally until the user's choice
-(none at present).
+(round 34's and round 35's a, until those rounds close).
 
 | File | Why not |
 |---|---|
@@ -221,8 +227,7 @@ game may play only `proposed` sounds of an open concept round, provisionally unt
 | [special-sonar-r04-a.ogg](concept/special-sonar-r04-a.ogg) | Sonar Pulse (L22): Act 4 |
 | [special-flares-r08-a.ogg](concept/special-flares-r08-a.ogg) | Decoy Flares (L27): Act 4 |
 | [explosion-underwater-r04-a.ogg](concept/explosion-underwater-r04-a.ogg) | Under-water kills: Act 4 |
-| [ambience-storm-r08-a.ogg](concept/ambience-storm-r08-a.ogg) | Ocean storm setting: Act 2 — later: M5 |
-| [ambience-arctic-r08-a.ogg](concept/ambience-arctic-r08-a.ogg) | Arctic setting: Act 2 — later: M5 |
+| [ambience-storm-r08-a.ogg](concept/ambience-storm-r08-a.ogg) | Ocean storm setting: its baked-in thunder cannot follow Level 12's flashes, so the game plays round 34's rain-only bed from the same source (F6 = a); kept for the round's review |
 | [enemy-missile-r08-a.ogg](concept/enemy-missile-r08-a.ogg) | No Act 1 enemy fires missiles (the SAM Nest, L29, and the Hornet, L31, are the first) |
 | [enemy-lock-r08-a.ogg](concept/enemy-lock-r08-a.ogg) | No Act 1 turret locks on (the SAM Nest, L29, is the first) |
 | [enemy-laser-warning-r08-a.ogg](concept/enemy-laser-warning-r08-a.ogg) | Act 1's only laser, the Mantis, has its own telegraph (round 23) |
@@ -585,6 +590,51 @@ starts the file that long before the event.
 | [concept/driftjelly-pulse-r33-a.ogg](concept/driftjelly-pulse-r33-a.ogg) | synthesized (no source) — jelly pulse: a soft underwater bloop, a lower echo and a ripple (0.9 s, −24 dB) | chosen |
 | [concept/kraken-death-r33-a.ogg](concept/kraken-death-r33-a.ogg) | "Sea Creature Roar" by Bikkit99 + "CO2 Water Jet" by unfa + synthesized rumble (all CC0) — death: a slowed, long wet groan over churning water, under the `huge` burst (5.2 s, −17 dB) | chosen |
 
+Concept round 34 (M5 part F, Level 12; the round's README is written in step 8) — user decisions
+F6 = a and F8 = a: a/b for the thunder (three variants per proposal, played 0.3–1.5 s after each
+lightning flash), the gust, the Lamprey's latch and its drain loop; one proposal for the shake-off
+and the sonde chime; and the rain-only storm bed cut from the chosen bed's source (the chosen
+`ambience-storm-r08-a` kept). Built by `tools/concept/audio/sfx_r34.py` from cached Freesound originals
+(all already credited in earlier rounds; the CC-BY ones — Wet Splat, inhuman screech, the sonic death
+ray — already on the credits roll) with synthesized layers; levels as the loudest 100 ms of the
+200 Hz–5 kHz band against the existing set (the script's header). Briefs and sources:
+[concept/prompts.md](concept/prompts.md#round-34--level-12s-storm-and-the-lamprey),
+[CREDITS.md](../../../CREDITS.md).
+
+| File | What | Status |
+|---|---|---|
+| [concept/thunder-1-r34-a.ogg](concept/thunder-1-r34-a.ogg) | "Rain and Thunder 4" by FlatHill (CC0) + synthesized sub rumble — thunder a 1 (the storm's own thunder, the bed's source): its big clap and roll, low-passed at 1.8 kHz to drop the rain (6.5 s, −14 dB, −14.4 LUFS) | proposed |
+| [concept/thunder-2-r34-a.ogg](concept/thunder-2-r34-a.ogg) | "Rain and Thunder 4" by FlatHill (CC0) + synthesized sub rumble — thunder a 2: a shorter distant roll, panned right (3.6 s, −16 dB, −20.4 LUFS) | proposed |
+| [concept/thunder-3-r34-a.ogg](concept/thunder-3-r34-a.ogg) | "Rain and Thunder 4" by FlatHill (CC0) + synthesized sub rumble — thunder a 3: a deep low roll, nearly all below 200 Hz (3.6 s, −19 dB, −16.3 LUFS) | proposed |
+| [concept/thunder-1-r34-b.ogg](concept/thunder-1-r34-b.ogg) | "Closeup Thunder Strike 01" by loganzsound (CC0) + synthesized sub rumble — thunder b 1 (close strikes): a sharp crack, then the roll (7.0 s, −14 dB, −22.1 LUFS) | proposed |
+| [concept/thunder-2-r34-b.ogg](concept/thunder-2-r34-b.ogg) | "Closeup Thunder Strike 01" by loganzsound (CC0) + synthesized sub rumble — thunder b 2: the strike 14 % slower, farther, panned right (6.0 s, −16 dB, −22.7 LUFS) | proposed |
+| [concept/thunder-3-r34-b.ogg](concept/thunder-3-r34-b.ogg) | "Closeup Thunder Strike 01" by loganzsound (CC0) + synthesized sub rumble — thunder b 3: the strike 26 % slower, the farthest (5.5 s, −17 dB, −22.5 LUFS) | proposed |
+| [concept/gust-r34-a.ogg](concept/gust-r34-a.ogg) | synthesized (no source) — gust a: band-passed wind rising over the 1.0 s telegraph with a hollow howl, holding through the gust with a flutter, falling; from the left to the right (3.6 s, −19 dB) | proposed |
+| [concept/gust-r34-b.ogg](concept/gust-r34-b.ogg) | "Wind__Artic__Cold.wav" by cobratronik (CC0) + synthesized rumble — gust b: a recorded gust in the same envelope and pan (3.6 s, −19 dB) | proposed |
+| [concept/lamprey-latch-r34-a.ogg](concept/lamprey-latch-r34-a.ogg) | "Slime Attack 1" by qubodup + "rip_tear FLESH!!!!.wav" by aust_paul (both CC0) + synthesized suction and thump — latch a, suck and bite: an inhaling rush, the bite at 0.16 s, teeth grinding in (0.67 s, −16.7 dB) | proposed |
+| [concept/lamprey-latch-r34-b.ogg](concept/lamprey-latch-r34-b.ogg) | "Wet Splat" by JustInvoke (CC-BY) + "slightmetallicthud.mp3" by profoundsounds + "rip_tear FLESH!!!!.wav" by aust_paul (CC0) + synthesized thump — latch b, clamp on the hull: a wet splat on a metallic thud at 0 s, teeth gnawing in (0.68 s, −17.5 dB) | proposed |
+| [concept/lamprey-drain-r34-a.ogg](concept/lamprey-drain-r34-a.ogg) | synthesized (no source) — drain a, seamless 2.4 s loop: a low electric hum throbbing in 0.4 s gulps (latch look a's swallow), sparse crackle, a faint whine (−22 dB) | proposed |
+| [concept/lamprey-drain-r34-b.ogg](concept/lamprey-drain-r34-b.ogg) | "SonicDeathRay_1.2KHzWithCrackle.wav" by zimbot (CC-BY, slowed to 0.45) + synthesized sub hum — drain b, seamless 2.4 s loop: a siphoning whine with crackle over a sub swelling twice a loop (−22 dB) | proposed |
+| [concept/lamprey-shake-r34-a.ogg](concept/lamprey-shake-r34-a.ogg) | "Wet Splat" by JustInvoke + "inhuman screech.wav" by Wolfsinger (both CC-BY) + synthesized whoosh — shake-off: a wet slap and a short squeal whooshing away (0.82 s, −13.5 dB; −17 dB until step G8) | proposed |
+| [concept/sonde-chime-r34-a.ogg](concept/sonde-chime-r34-a.ogg) | synthesized (no source) — sonde collected: a three-blip telemetry chirp into two bright bell tones, E6 and B6 (0.95 s, −16 dB) | proposed |
+| [concept/ambience-storm-rain-r34-a.ogg](concept/ambience-storm-rain-r34-a.ogg) | "Rain and Thunder 4" by FlatHill (CC0) — the rain-only storm bed (F6 = a): the source's stretch after its thunder, 90 Hz high-pass, seamless 10.0 s loop, at the ambiences' level (band RMS −38.8 dB under the −10 dBFS ceiling; the same rain is ~14 dB quieter inside the chosen bed) | proposed |
+| [concept/relay-hit-r35-a.ogg](concept/relay-hit-r35-a.ogg) | "Impact on metal" by JoMungus + "ELECTRIC_ZAP_001" by JoelAudio (CC0) + synthesized thump — relay hit a: struck plating and a spark (0.57 s, −19 dB) | proposed |
+| [concept/relay-hit-r35-b.ogg](concept/relay-hit-r35-b.ogg) | "slightmetallicthud" by profoundsounds (CC0) + synthesized glitch and thump — relay hit b: a dull thud and the link glitching (0.45 s, −19 dB) | proposed |
+| [concept/integrity-alarm-r35-a.ogg](concept/integrity-alarm-r35-a.ogg) | synthesized (no source) — integrity alarm a: hi-lo two-tone (988/740 Hz) ×3 (1.5 s, −17 dB) | proposed |
+| [concept/integrity-alarm-r35-b.ogg](concept/integrity-alarm-r35-b.ogg) | synthesized (no source) — integrity alarm b: three rising whoops 420→1050 Hz (1.5 s, −17 dB) | proposed |
+| [concept/grid-online-r35-a.ogg](concept/grid-online-r35-a.ogg) | synthesized (no source) — grid online a: five breakers closing, a mains hum swelling, an A-major bloom (2.6 s, −17 dB) | proposed |
+| [concept/grid-online-r35-b.ogg](concept/grid-online-r35-b.ogg) | "Machine Charge" by Glitchedtones (CC0) + synthesized clunk, whine and chord — grid online b: spin-up into a contact clunk (2.6 s, −17 dB) | proposed |
+| [concept/drone-launch-r35-a.ogg](concept/drone-launch-r35-a.ogg) | synthesized (no source) — drone launch: four rotors spinning up, climbing away with a pan (2.2 s, −20 dB) | proposed |
+| [concept/relay-destroyed-r35-a.ogg](concept/relay-destroyed-r35-a.ogg) | "Big Boom" by unfa + "Sounds For Earthquakes - Radiator Metal Rumbling" by RutgerMuller (CC0) + synthesized power-down and thump — relay destroyed (3.7 s, −15 dB) | proposed |
+| [concept/root-burst-r36-a.ogg](concept/root-burst-r36-a.ogg) | "Cracking Earthquake" by uagadugu + "Gravel Falling" by iwanPlays (CC0) + "cracking.wav" by smidoid + "building_collapse02_close" by onteca (CC-BY) + synthesized cracks and thump — root burst a (round 36): paving cracking under a swelling rumble for 1 s, a masonry crunch and falling stones at 1.0 s (2.1 s, −17 dB) | proposed |
+| [concept/root-burst-r36-b.ogg](concept/root-burst-r36-b.ogg) | "Squelch" by LucasDuff + "…ship hull list2" by kyles + "rip_tear FLESH!!!!" by aust_paul (CC0) + "Tearing Flesh" by dereklieu (CC-BY) + synthesized slosh, creak and thump — root burst b (round 36): a wet creep surge and a root creaking for 1 s, a wet tear at 1.0 s (2.0 s, −17 dB) | proposed |
+| [concept/root-growth-r36-a.ogg](concept/root-growth-r36-a.ogg) | "…ship hull list2" by kyles (CC0) + synthesized swell, creak and knock — root growth (round 36): stretching creak and a swelling over 1.5 s, a knock as it sets (1.75 s, −20 dB) | proposed |
+| [concept/tear-free-roar-r36-a.ogg](concept/tear-free-roar-r36-a.ogg) | "Cracking Earthquake" by uagadugu + "ICEBrk_Break04" by InMotionAudio + "Big Boom" by unfa + "Deep Roar Echo 2" by noahpardo + "Gravel Falling" by iwanPlays (CC0) + "building_collapse02_close" by onteca + "cracking.wav" by smidoid (CC-BY) + synthesized thump and lift — tear-free a (round 36): a tectonic rip, root snaps, a shockwave boom at 0.35 s, a deep roar under the lift (3.4 s, −15 dB) | proposed |
+| [concept/tear-free-roar-r36-b.ogg](concept/tear-free-roar-r36-b.ogg) | "Sea Creature Roar" by Bikkit99 + "Dragon: Snarl, Roar + Attack" by Breviceps + "rip_tear FLESH!!!!" by aust_paul (CC0) + "Tearing Flesh" by dereklieu (CC-BY) + synthesized shockwave and thump — tear-free b (round 36): a creature bellow rising in pitch with the lift, wet tearing roots, an air shockwave (3.4 s, −14 dB) | proposed |
+| [concept/canopy-withering-r36-a.ogg](concept/canopy-withering-r36-a.ogg) | "rip_tear FLESH!!!!" by aust_paul + "Wind__Artic__Cold" by cobratronik (CC0) + "Tearing Flesh" by dereklieu (CC-BY) + synthesized crackle — withering a (round 36): a dry crackling shrivel and a slow far tear settling into wind (7.0 s, −19 dB) | proposed |
+| [concept/canopy-withering-r36-b.ogg](concept/canopy-withering-r36-b.ogg) | "Simple Mutate (Monster)" by Division4884 + "Wind__Artic__Cold" by cobratronik (CC0) + synthesized sigh and groan — withering b (round 36): a dying exhale, a deep groan and sigh descending into wind (7.5 s, −19 dB) | proposed |
+| [concept/canopy-hum-r36-a.ogg](concept/canopy-hum-r36-a.ogg) | synthesized (no source) — canopy hum (round 36), seamless 8.0 s loop: two slowly beating harmonic voices on 46 Hz, a 0.75 Hz throb and a 4 s breath (band RMS −39 dB, 3 dB under the ambiences) | proposed |
+
 ## Implementation
 
 - [x] SFX playback with instance limits, stealing by priority, pitch variation: the 32-voice
@@ -648,7 +698,8 @@ starts the file that long before the event.
   `torpedo` family file, and in a water level a kill, a torpedo's impact and a landing blast play
   the water explosion over their size rung, a submerged kill or impact the under-water one,
   `LevelScreen.waterBurst`/`waterDeath`/`waterImpact`, `FlightSounds.waterExplosion`); the other
-  Act 2 ambiences — **later: M5** (parts F and G, with their levels)
+  Act 2 ambiences with their levels (the storm in Level 12's sounds, part F; the arctic in Level 13's,
+  part G: their items below)
 - [x] Level 11's sounds (M5 part E, step E3d, [round 33](../../concept-rounds/round-33/README.md)'s sounds, all accepted, played from `assets/sfx/`:
   seven rebuilt from their originals by `tools/art/sfx_originals.py`, the synthesized pulse copied by
   `:pipeline:copyPlaceholderSounds`): the Kraken's churn (each `TELEGRAPH`, from the
@@ -659,6 +710,27 @@ starts the file that long before the event.
   (`ALLY_FLAK`), the Driftjelly's ring (the `ENEMY_FIRED` of a unit with a ring); the ocean ambience
   from t=0, the base stem from section 2, the full mix from 4 and the mini-boss sting at the halt
   (`Level11SoundsTest`)
+- [x] Level 12's sounds (M5 part F, steps 2 and 6): the rain-only storm bed (`earth-storm`) with
+  the ocean in the eye, thunder after the flashes, the gust, the Lamprey's latch, drain loop and
+  shake-off, the sonde chime; auditioned in round 34, then played from `assets/sfx/`
+  (`Level12SoundsTest`) — built with round 34's variant a copied as placeholders
+  (`copyPlaceholderSounds`; `Sfx.AMBIENCE_STORM`, `THUNDER_1`–`3`, `GUST`, `LAMPREY_LATCH`,
+  `LAMPREY_DRAIN`, `LAMPREY_SHAKE`, `SONDE_CHIME`; `FlightSounds`), swapped for the user's picks when
+  the round closes
+- [ ] The Proximity Mines' drop and arm heard in Level 12's capture (M5 part F, step 7)
+- [x] Level 13's sounds (M5 part G, step G6): `AMBIENCE_ARCTIC` (key `earth-arctic`) with its whiteout
+  peak (the section peak's `ambience_db`, ramping with the atmosphere; `LevelMusic.ambienceLevels`), the
+  relay hit, the integrity alarm, relay destroyed, the drone launch and grid online as round 35's **a**
+  placeholders (`copyPlaceholderSounds`; `Sfx.RELAY_HIT`, `INTEGRITY_ALARM`, `RELAY_DESTROYED`,
+  `DRONE_LAUNCH`, `GRID_ONLINE`; `FlightSounds`), swapped for the user's picks when the round closes; the
+  Skimmer's sink on the water explosion (`Level13SoundsTest`)
+- [x] Level 14's sounds (M5 part H, step H6; round 36's variant a until the round closes, pending the
+  user's review): the canopy hum as the ambience `earth-canopy` (`Sfx.AMBIENCE_CANOPY`; at the Spire's
+  death it fades out over 2 s while the megacity's ambience rises over 7 s, `LevelMusic`), the root burst at
+  each burst's telegraph (`ROOT_BURST`), the growth as its growths appear (`ROOT_GROWTH`), the tear-free
+  roar at the lift (`TEAR_FREE_ROAR`), the canopy withering 3 s after the Spire's death (step H7b)
+  (`CANOPY_WITHERING`); the maw opening reuses the carrier's sac open, the launches its launch, the lobs
+  the Polyp Mortar's, the sweep the Mantis's telegraph and beam (`FlightSounds`, `Level14SoundsTest`)
 - [x] Recorded sounds rebuilt from the Freesound originals: every chosen recorded concept sound (75
   from rounds 02–08, round 21's four, round 23's five, round 24's two, round 25's seven, round 27's one, round 31's three, round 32's three and round 33's seven) in `assets/sfx/` under its concept name, with a `SOURCE` comment, by
   [`tools/art/sfx_originals.py`](../../../tools/art/README.md); `importPlaceholders` keeps them
@@ -927,3 +999,56 @@ starts the file that long before the event.
   `tools/art/sfx_originals.py` with `sfx_r33.py`'s `PRODUCTION` (identical to the concept files by its
   check), under the concept names, so `Sfx` keeps its paths; their `copyPlaceholderSounds` entries
   dropped; the Driftjelly's pulse, fully synthesized, stays copied from its concept file.
+- 2026-10-09: M5 part F (user decisions F6 = a and F8 = a of 2026-10-09): Level 12's storm bed is a
+  new rain-only cut of the chosen round-08 source ("Rain and Thunder 4", FlatHill, CC0), the chosen
+  file kept, and thunder plays as one-shots after each lightning flash (rejected: b, thunder on top
+  of the bed's own, muddy; c, flashes timed to the bed's thunder, coupling the schedule to an audio
+  loop). New sounds for round 34: thunder, gust, the Lamprey's latch and drain loop a/b, the
+  shake-off and the sonde chime one each; CC0 or CC-BY only.
+- 2026-10-11: M5 part F step 6 (pending the user's review in the combined round 34): the game plays
+  round 34's **a** sounds as placeholders until the round closes. The thunder: the three variants in
+  turn, each 0.3–1.5 s after its flash (spread by the golden ratio over the flash index, so a replay
+  sounds alike), panned 0.2 to the bolt's side, at the explosions' level; the gust as its telegraph
+  starts, panned 0.3 to the upwind side (the upwind cue) at −4 dB; the latch's bite at the player
+  damage level; the drain loop at −6 dB while a Lamprey drains in flight (stopped with the latch, the
+  ship's loss, the level's end and the screen); the shake-off at −2 dB; the sonde chime at −4 dB. The
+  rain-only bed is `earth-storm`; the ocean ambience crossfades in for the eye and back (the level's
+  `ambience_changes`).
+- 2026-10-11: M5 parts G and H (the user is on vacation; the main agent took the gap analyses' recommendations, **pending the user's review** in the combined round): Level 13's sounds are the relay hit, the integrity alarm, relay destroyed, the drone launch and grid online, with the arctic ambience (`AMBIENCE_ARCTIC`, +3 dB in the whiteout peak); Level 14's are the canopy hum, the root burst, the growth, the tear-free roar and the canopy withering; the rest reuse existing sounds. Auditions in rounds 35 and 36 (a/b where the rows say so).
+- 2026-10-11: M5 part F, after the round 34 capture (the user is on vacation; **pending the user's
+  review in the combined round**): the latch, the shake-off and the gust could not be heard in the
+  storm's mix, though their files are as loud as the shield hit's (about −15 LUFS). The gust (from
+  −4 dB) and the shake-off (from −2 dB) now play at the warnings' level with the latch, the edge
+  warning and the shield hit; a latch and a shake-off also duck the theme by 6 dB for 1 s (as Level
+  10's scripted loss does), since the latch was at that level already. The drain loop (−6 dB) and
+  the chime (−4 dB) stay.
+- 2026-10-12: M5 part G, step G6 (**pending the user's review in the combined round**): Level 13's sounds
+  wired as round 35's a until the round closes. Levels over the files' own (sfx_r35.py levelled them
+  against the set): the relay hit with the explosions (−2 dB; it plays often), the integrity alarm,
+  grid online and relay destroyed at the warnings' level (0 dB), the drone launch with the explosions
+  (−2 dB, not a quiet pickup cue: the round 34 capture could not hear the quiet one-shots). The alarm
+  plays once on each `ALLY_BELOW` (50 % and 25 %), grid online on `DEFEND_COMPLETE` (t=218), the drone
+  launch 4 s before each drop as its arc starts (only while the relay stands), relay destroyed on its
+  `ALLY_LOST`. The arctic wind rises 3 dB through the whiteout by the peak's `ambience_db`. On the ice
+  only a burst on a naval unit (the Skimmer) plays the water explosion (G5 = a); every other burst on
+  Level 13 plays the ground's.
+- 2026-10-12: M5 part H, step H6 (the user is on vacation; **pending the user's review** in round 36):
+  Level 14 plays round 36's variant a (the root burst, the tear-free roar, the canopy withering) and the
+  one proposals (the root growth, the canopy hum) from `assets/sfx/` under their concept names, at the
+  files' own levels; the canopy hum replaces the megacity's sirens as the level's ambience and hands
+  back to them at the Spire's death (out over 2 s, the city in over 7 s); the withering starts 0.5 s
+  after the death, with the canopy's first tear frame. The maw opening reuses the Brood Carrier's sac
+  open (the user's round 25 pick, played at 0.85 pitch) as the spec says; no bubbly or popping layer
+  was added.
+- 2026-10-12: M5 part G, step G8 (**pending the user's review in the combined round**): the Lamprey's
+  shake-off (round 34's placeholder) measured about 6 dB under Level 12's busy mix and was marginal at one
+  of its two shake-offs, though it already plays at the warnings' level (0 dB, the game's ceiling). The
+  file itself is now 3.5 dB louder (`sfx_r34.py`: −13.5 dB instead of −17, the same −2 dBFS ceiling;
+  −12.1 LUFS instead of −16.1); the latch, the gust and the theme's 6 dB duck stay as they were.
+- 2026-10-12: M5 part H, step H7b (**pending the user's review**): the canopy withering starts 3 s
+  after the Siege Spire's death, at the end of its death chain (`FlightSounds.WITHERING_DELAY_SECONDS`
+  0.5 → 3.0): at 0.5 s, with the tear's first frame, the chain's bursts masked it in the H7 capture.
+- 2026-10-12: M5 part I, after step CF (**pending the user's review**): a Proximity Mine's drop plays at
+  the arming beep's −10 dB instead of the shots' −14 dB (`FlightSounds.MINE_DROPPING`): in the CF capture
+  the front gun firing on the same tick masked the drop completely (10–20 dB under the mix); the arming
+  beep was heard. Not re-captured.

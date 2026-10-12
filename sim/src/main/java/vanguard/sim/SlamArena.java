@@ -24,6 +24,10 @@ import java.util.List;
  * phase's attacks fire, each after a tell), then it dives (back to {@code sub} at the middle); a
  * phase that {@code stay}s keeps it up. Its first rise releases the phase's {@link BossSpec.Release}.
  *
+ * <p>M5 part H (design/enemies/bosses/siege-spire, decisions H1 and H4 = a): an arena without lanes
+ * ({@link BossSpec.Lanes#NONE}) only keeps its parts' layers ({@code air} among them) and its weak spots;
+ * a lift moves its lifting parts onto the move's layer ({@link #lift}).
+ *
  * <p>Everything is allocated here; stepping does not allocate. Its state is hashed with its boss.
  */
 public final class SlamArena implements Hashed {
@@ -550,6 +554,14 @@ public final class SlamArena implements Hashed {
     /** Part {@code p}'s layer now. */
     Layer layer(int p) {
         return layers[p];
+    }
+
+    /**
+     * M5 part H: part {@code p} lifts with the boss onto {@code layer} (the Siege Spire's core onto
+     * {@code air}, decision H4 = a); a retry puts it back on its starting layer.
+     */
+    void lift(int p, Layer layer) {
+        layers[p] = layer;
     }
 
     /**

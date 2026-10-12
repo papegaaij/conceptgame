@@ -1,0 +1,46 @@
+# Skimmer stat block at medium: rendered into README.md. Schema: ../../../tech/architecture/README.md#data-file-schemas
+# M5 part G (Level 13; user decisions G1, G4 and G5 = a of 2026-10-11 and the stated defaults, pending the
+# user's review): the lane walk with its weave and the `alternate` hook are flown by the simulation (step
+# G3), read by the loader from step G4. A Skimmer is a lane walker by its waves' `lanes`.
+name: Skimmer
+faction: Vrell
+layer: ground     # naval surface
+tier: small
+size: [40, 40]    # sprite px
+hitbox: [22, 32]
+parts: single
+orientation: 16 angles
+hp: 5
+armour: none
+speed: 180        # px/s along its lane
+movement:
+  sine: {amplitude: 40, period: 1.2}   # px to each side of its lane, s per full swing: the weave
+attacks:
+  - pattern: aimed
+    bullet: small
+    interval: 1.8      # s
+    speed: 190         # px/s
+    first_shot_delay: 0.5   # s after it comes onto the screen
+    notes:
+      text: '`{pattern}` shot every {interval} s ({speed} px/s, `{bullet}` = {damage}), {first_shot_delay} s after it comes on; under the level''s `alternate` hook every second attack goes at the objective while it is closer than the ship'
+formations:
+  - {name: convoy}
+  - {name: cross}
+weak_points:
+  - {name: violet fin glow}
+drops: []
+traits: [anti-ground, side, rear, spread]
+bounty: 14
+first_level: 13
+difficulty:
+  hard: {burst: 2}
+notes:
+  layer: ' (naval surface)'
+  orientation: (16 headings × 2 tail frames, from its velocity)
+  speed: (along its lane, on top of the scroll)
+  movement: '**lane walker**: follows its wave''s lane (a ground-space polyline that scrolls with the ground and stands still in a halt) with a `sine` weave across it (amplitude {movement.sine.amplitude} px, {movement.sine.period} s per swing); enters from any edge, incl. the rear and the sides (3 s edge warning)'
+  formations: (from all edges)
+  weak_points: (drawn only)
+  death: '`small` burst; the hull flips and sinks with the water splash (a presentation event)'
+  used_in: Act 2
+  difficulty: 'hard: 2-shot bursts (one attack for the hook''s count)'

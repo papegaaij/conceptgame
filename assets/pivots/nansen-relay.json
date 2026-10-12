@@ -1,0 +1,78 @@
+{
+ "source": "tools/art/relay.py (production art, M5 part G batch)",
+ "variant": "a",
+ "smoke": [
+  [],
+  [
+   [
+    54,
+    50
+   ]
+  ],
+  [
+   [
+    54,
+    50
+   ],
+   [
+    60,
+    80
+   ],
+   [
+    30,
+    34
+   ]
+  ],
+  [
+   [
+    54,
+    50
+   ],
+   [
+    60,
+    80
+   ],
+   [
+    30,
+    34
+   ],
+   [
+    44,
+    52
+   ]
+  ]
+ ],
+ "fire": [
+  [],
+  [],
+  [
+   [
+    55,
+    52
+   ],
+   [
+    61,
+    79
+   ]
+  ],
+  [
+   [
+    55,
+    52
+   ],
+   [
+    44,
+    53
+   ]
+  ]
+ ],
+ "column": [
+  50,
+  48
+ ],
+ "helipad": [
+  27.0,
+  69.0
+ ],
+ "note": "px from the frame's top left; per state 0 intact, 1 damaged, 2 critical, 3 destroyed"
+}

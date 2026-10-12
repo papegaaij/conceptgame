@@ -45,6 +45,8 @@ public final class FlightSounds {
     private static final float PLAYER_FIRE = decibels(-14);
     /** A proximity mine's arming beep: a quiet tick above the shots' level, below the hits'. */
     private static final float MINE_ARMING = decibels(-10);
+    /** A proximity mine's drop: at the arming beep's level, or the front gun firing on the same tick masks it. */
+    private static final float MINE_DROPPING = MINE_ARMING;
 
     private static final float MAX_PAN = 0.4f;
     private static final PickupType[] PICKUP_TYPES = PickupType.values();
@@ -362,6 +364,24 @@ public final class FlightSounds {
     private int secondSteps;
     /** Whether the level's convoy is naval (M5 part E): ships hit and sink, not trucks. */
     private boolean naval;
+    /** M5 part H: the level is under the Vrell canopy (Level 14): the canopy withers at the boss's death. */
+    private boolean canopy;
+    /**
+     * M5 part H: the canopy's withering starts this long after the Siege Spire's death: at the end of its
+     * 3 s death chain (step H7b; at 0.5 s, with the tear's first frame, the chain's bursts masked it).
+     */
+    static final double WITHERING_DELAY_SECONDS = 3.0;
+    /** M5 part G: whether the level's convoy is a defend primary's ally (the relay). */
+    private boolean defend;
+    /** M5 part G: the level steps the supply drones lift off at, and the level step of the last watch. */
+    private long[] launchTicks = new long[0];
+
+    /** M5 part G: the level steps the supply drones lift off at, for the tests. */
+    long[] launchTicks() {
+        return launchTicks.clone();
+    }
+
+    private long watchedTick = -1;
     /** The level's ring-firing enemies' source (M5 part E), from the last {@link #watch}; null before. */
     private Sortie ringSource;
 
@@ -375,9 +395,30 @@ public final class FlightSounds {
         secondSteps = SimStep.ticks(second);
     }
 
+    /**
+     * M5 part H: the level is under the Vrell canopy (Level 14's {@code earth-canopy} ambience): the
+     * boss's death plays the canopy's withering.
+     */
+    public void canopy(boolean canopy) {
+        this.canopy = canopy;
+    }
+
     /** M5 part E: the level's convoy sails on the water: its hits and losses play the ships' sounds. */
     public void naval(boolean naval) {
         this.naval = naval;
+    }
+
+    /**
+     * M5 part G: the level's convoy is a defend primary's ally (Level 13's Nansen Relay): its hits, its
+     * loss, its integrity alarm and grid online play the relay's sounds; its supply drones lift off
+     * {@code arcSeconds} before the drops at {@code dropTimes} (level seconds) with the launch's sound.
+     */
+    public void defend(boolean defend, double[] dropTimes, double arcSeconds) {
+        this.defend = defend;
+        this.launchTicks = new long[dropTimes.length];
+        for (int i = 0; i < dropTimes.length; i++) {
+            launchTicks[i] = SimStep.ticks(Math.max(0, dropTimes[i] - arcSeconds));
+        }
     }
 
     /**
@@ -414,7 +455,8 @@ public final class FlightSounds {
             switch (events.type(i)) {
                 case SHOT_FIRED -> {
                     int mount = events.value(i);
-                    bank.play(shots[mount], PLAYER_FIRE, shotPitch[mount] * pitch(0.05), pan);
+                    float level = shots[mount] == Sfx.MINE_DROP ? MINE_DROPPING : PLAYER_FIRE;
+                    bank.play(shots[mount], level, shotPitch[mount] * pitch(0.05), pan);
                 }
                 case PROXIMITY_MINE_ARMED -> bank.play(Sfx.MINE_ARM, MINE_ARMING, pitch(0.03), pan);
                 case SHOT_GLANCED ->
@@ -494,6 +536,15 @@ public final class FlightSounds {
                     pendingCount = 0;
                     resync = true;
                 }
+                // M5 part F, Level 12 (round 34 a, provisional): the thunder after each flash, the latch,
+                // the shake-off and the sonde's chime; the gust and the drain loop follow the state (watch).
+                case LIGHTNING -> {
+                    int flash = events.value(i);
+                    later(thunder(flash), EXPLOSIONS, pitch(0.04), thunderPan(flash), thunderSteps(flash));
+                }
+                case LAMPREY_LATCHED -> bank.play(Sfx.LAMPREY_LATCH, LAMPREY_LATCH_LEVEL, pitch(0.04), pan);
+                case LAMPREY_SHAKEN -> bank.play(Sfx.LAMPREY_SHAKE, LAMPREY_SHAKE_LEVEL, pitch(0.04), pan);
+                case SONDE_COLLECTED -> bank.play(Sfx.SONDE_CHIME, SONDE_LEVEL, 1, pan);
                 // The Airstrike (design/audio/sfx, Specials): the jets' flyby as the bombers enter,
                 // the bomb carpet from the first blast; its single blasts play no sound of their own.
                 case AIRSTRIKE_INBOUND -> bank.play(Sfx.AIRSTRIKE_JETS, EXPLOSIONS, 1, pan);
@@ -505,18 +556,33 @@ public final class FlightSounds {
                 case SPECIAL_DENIED -> bank.play(Sfx.SPECIAL_DENIED, PICKUPS, 1, 0);
                 // A convoy unit: metal hit and a small explosion; the convoy lost plays the sting as a wreck does.
                 // M5 part E: a naval convoy's ship hit by a slam, and a ship sinking from its loss (round 33 a).
-                case ALLY_HIT ->
-                    bank.play(
-                            naval ? Sfx.SHIP_HIT : alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B),
-                            naval ? EXPLOSIONS : HITS,
-                            0.9f * pitch(0.05),
-                            pan);
-                case ALLY_LOST ->
-                    bank.play(
-                            naval ? Sfx.SHIP_SINK : alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B),
-                            EXPLOSIONS,
-                            1,
-                            pan);
+                // M5 part G: the defended relay struck (round 35 a), and destroyed: its power-down.
+                case ALLY_HIT -> {
+                    if (defend) {
+                        bank.play(Sfx.RELAY_HIT, RELAY_HIT_LEVEL, pitch(0.04), pan);
+                    } else {
+                        bank.play(
+                                naval ? Sfx.SHIP_HIT : alternate(Sfx.HIT_METAL_A, Sfx.HIT_METAL_B),
+                                naval ? EXPLOSIONS : HITS,
+                                0.9f * pitch(0.05),
+                                pan);
+                    }
+                }
+                case ALLY_LOST -> {
+                    if (defend) {
+                        bank.play(Sfx.RELAY_DESTROYED, RELAY_DESTROYED_LEVEL, 1, pan);
+                    } else {
+                        bank.play(
+                                naval ? Sfx.SHIP_SINK : alternate(Sfx.EXPLOSION_SMALL_A, Sfx.EXPLOSION_SMALL_B),
+                                EXPLOSIONS,
+                                1,
+                                pan);
+                    }
+                }
+                // M5 part G (round 35 a): the relay's integrity alarm at 50 % and 25 %, and grid online as
+                // its synchronisation completes and its lights come on.
+                case ALLY_BELOW -> bank.play(Sfx.INTEGRITY_ALARM, ALARM_LEVEL, 1, 0);
+                case DEFEND_COMPLETE -> bank.play(Sfx.GRID_ONLINE, GRID_ONLINE_LEVEL, 1, pan);
                 // M5 part E: the frigate's distant flak, quiet (the file is levelled low).
                 case ALLY_FLAK -> bank.play(Sfx.FRIGATE_FLAK, 1, pitch(0.05), pan);
                 // The Harbour Kraken: a lane's churn now and its slam's rush so the impact lands on the
@@ -554,7 +620,22 @@ public final class FlightSounds {
                     launches++;
                     launchPan += pan;
                 }
-                case BOSS_DESTROYED -> bank.play(Sfx.SALVAGE_LARGE, PICKUPS, 1, pan);
+                case BOSS_DESTROYED -> {
+                    bank.play(Sfx.SALVAGE_LARGE, PICKUPS, 1, pan);
+                    if (canopy) {
+                        // M5 part H (round 36 a): the canopy withers over the city as it tears.
+                        later(Sfx.CANOPY_WITHERING, 1, 1, 0, SimStep.ticks(WITHERING_DELAY_SECONDS));
+                    }
+                }
+                // M5 part H, Level 14 (round 36 a): a root burst's stone giving way from its telegraph,
+                // its growths growing in; the Siege Spire's crown opening (the carrier's sac), its
+                // tear-free roar at the lift, its sweep's telegraph and beam (the Mantis's).
+                case ROOT_BURST_TELEGRAPH -> bank.play(Sfx.ROOT_BURST, 1, pitch(0.03), pan);
+                case ROOT_BURST_GREW -> bank.play(Sfx.ROOT_GROWTH, 1, pitch(0.04), pan);
+                case SPIRE_MAW_OPENED -> bank.play(Sfx.CARRIER_SAC_OPEN, EXPLOSIONS, 0.85f, pan);
+                case SPIRE_LIFT -> bank.play(Sfx.TEAR_FREE_ROAR, 1, 1, pan);
+                case SPIRE_SWEEP_TELEGRAPH -> bank.play(Sfx.MANTIS_TELEGRAPH, PLAYER_DAMAGE, pitch(0.03), pan);
+                case SPIRE_SWEEP -> bank.play(Sfx.MANTIS_SWEEP, HITS, pitch(0.03), pan);
                 // Level 05's sounds (round 21): the Polyp Mortar's lob and impact; the rail's charge
                 // hum, its loop played twice over the lights' 1.5 s chase, and the sled's pass.
                 case MORTAR_LOBBED -> bank.play(Sfx.MORTAR_LOB, 0.6f * EXPLOSIONS, pitch(0.05), pan);
@@ -639,6 +720,8 @@ public final class FlightSounds {
                         SET_PIECE_ESCAPED,
                         SLED_HIT,
                         ROCK_THROWN,
+                        LANE_WALKER_DOWN,
+                        PICKUP_PLACED,
                         SPECIAL_CALLED -> {}
             }
         }
@@ -647,6 +730,76 @@ public final class FlightSounds {
             later(Sfx.CARRIER_LAUNCH, EXPLOSIONS, pitch(0.06), launchPan / launches, (n + 1) * LAUNCH_STEPS);
         }
     }
+
+    /**
+     * M5 part F: Level 12's levels over the files' own (round 34 a): the chime and the drain loop under
+     * the warnings; the latch, the shake-off and the gust with them at the loudest group's level (the
+     * round 34 capture could not hear them at -2 and -4 dB).
+     */
+    static final float SONDE_LEVEL = decibels(-4);
+
+    static final float LAMPREY_LATCH_LEVEL = PLAYER_DAMAGE;
+    static final float LAMPREY_SHAKE_LEVEL = PLAYER_DAMAGE;
+    static final float GUST_LEVEL = PLAYER_DAMAGE;
+    static final float DRAIN_LEVEL = decibels(-6);
+    /** The warnings' level (the edge warning's and the shield hit's), for the tests. */
+    static final float WARNING_LEVEL = PLAYER_DAMAGE;
+    /**
+     * M5 part F: a latch and a shake-off duck the level's theme by this much for this long (the level
+     * screen), so their one-shots cut through the storm's mix as the radio's lines do.
+     */
+    public static final double CUE_DUCK_DB = -6;
+
+    public static final double CUE_DUCK_SECONDS = 1.0;
+    /** M5 part F: the thunder follows its flash after 0.3 to 1.5 s (design/campaign Level 12, Weather). */
+    static final double THUNDER_MIN_SECONDS = 0.3;
+
+    static final double THUNDER_MAX_SECONDS = 1.5;
+    /** M5 part F: the gust's wind comes from the upwind side, this far to it. */
+    static final float GUST_PAN = 0.3f;
+
+    /**
+     * M5 part F: the thunder after flash {@code flash} (its index in the level's lightning): the three
+     * variants in turn, so no two flashes in a row roll alike.
+     */
+    static Sfx thunder(int flash) {
+        return switch (Math.floorMod(flash, 3)) {
+            case 0 -> Sfx.THUNDER_1;
+            case 1 -> Sfx.THUNDER_2;
+            default -> Sfx.THUNDER_3;
+        };
+    }
+
+    /**
+     * M5 part F: the steps from flash {@code flash} to its thunder, 0.3 to 1.5 s: spread by the golden
+     * ratio over the flash index, so the delays differ from flash to flash but replay alike.
+     */
+    static int thunderSteps(int flash) {
+        double share = (flash * 0.6180339887498949) % 1;
+        return SimStep.ticks(THUNDER_MIN_SECONDS + (THUNDER_MAX_SECONDS - THUNDER_MIN_SECONDS) * share);
+    }
+
+    /** M5 part F: the thunder's side, the bolt's ({@code LevelRenderer}: even flashes strike on the left). */
+    static float thunderPan(int flash) {
+        return flash % 2 == 0 ? -MAX_PAN / 2 : MAX_PAN / 2;
+    }
+
+    /**
+     * M5 part G: Level 13's levels over the files' own (round 35 a, levelled by sfx_r35.py against the
+     * set): the relay's hit with the explosions (it plays often), its alarm and grid online with the
+     * warnings, its destruction at the loudest group's level, the drone's launch with the warnings too
+     * (the user found quiet layers too quiet; the G7 capture measured it about 3–5 dB under the rest of the
+     * mix with the explosions' level, so it went up 2 dB).
+     */
+    static final float RELAY_HIT_LEVEL = EXPLOSIONS;
+
+    static final float ALARM_LEVEL = PLAYER_DAMAGE;
+    static final float GRID_ONLINE_LEVEL = PLAYER_DAMAGE;
+    static final float RELAY_DESTROYED_LEVEL = PLAYER_DAMAGE;
+    static final float DRONE_LEVEL = PLAYER_DAMAGE;
+
+    /** M5 part F: the gust telegraph seen at the last {@link #watch}: 1 from the left, -1 from the right, 0 none. */
+    private int lastGust;
 
     /** M5 part D: the sound of a Level 10 event: the Wraith's decloak, the swarm's loop-back; null for another. */
     static Sfx eventSound(SimEvents.Type type) {
@@ -716,6 +869,8 @@ public final class FlightSounds {
             bank.play(Sfx.MOTE_SWARM, EXPLOSIONS, pitch(0.03), pan(swarms.x()));
         }
         watchLance(sortie);
+        watchWeather(sortie);
+        watchDrones(sortie);
         ringSource = sortie;
         if (wasOpen == null) {
             wasOpen = new boolean[pieces][];
@@ -743,6 +898,56 @@ public final class FlightSounds {
             wasHolding[i] = holding;
         }
         resync = false;
+    }
+
+    /**
+     * M5 part F (Level 12): a gust's wind as its telegraph starts, from the upwind side (not after a
+     * restart that skipped into one); the drain's loop while a Lamprey drains the shield in flight.
+     */
+    private void watchWeather(Sortie sortie) {
+        int gust = sortie.wind().present() ? sortie.wind().telegraph(SimStep.ticks(sortie.levelSeconds())) : 0;
+        if (gust != 0 && lastGust == 0 && !resync) {
+            bank.play(Sfx.GUST, GUST_LEVEL, 1, -gust * GUST_PAN);
+        }
+        lastGust = gust;
+        boolean draining = sortie.draining() && sortie.flying() && !sortie.complete();
+        if (draining && !bank.looping(Sfx.LAMPREY_DRAIN)) {
+            bank.loop(Sfx.LAMPREY_DRAIN, DRAIN_LEVEL);
+        } else if (!draining && bank.looping(Sfx.LAMPREY_DRAIN)) {
+            bank.stop(Sfx.LAMPREY_DRAIN);
+        }
+    }
+
+    /**
+     * M5 part G: a supply drone's launch as it lifts off the relay's helipad, its arc's length before its
+     * drop, while the relay stands (not after a restart that skipped past it).
+     */
+    private void watchDrones(Sortie sortie) {
+        long now = SimStep.ticks(sortie.levelSeconds());
+        if (!resync && sortie.allyCount() > 0 && sortie.ally(0).alive() && launched(watchedTick, now, launchTicks)) {
+            bank.play(Sfx.DRONE_LAUNCH, DRONE_LEVEL, 1, pan(sortie.ally(0).x()));
+        }
+        watchedTick = now;
+    }
+
+    /** M5 part G: whether a drone lifts off after level step {@code watched} up to {@code now} (none before the first watch). */
+    static boolean launched(long watched, long now, long[] launchTicks) {
+        if (watched < 0) {
+            return false;
+        }
+        for (long launch : launchTicks) {
+            if (watched < launch && launch <= now) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** M5 part F: stops the loops the flight started (the drain's), as the level screen closes. */
+    public void stopLoops() {
+        if (bank.looping(Sfx.LAMPREY_DRAIN)) {
+            bank.stop(Sfx.LAMPREY_DRAIN);
+        }
     }
 
     /**

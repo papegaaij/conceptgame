@@ -171,6 +171,8 @@ public final class Wingman {
 
     /** His target: an enemy's serial, or a set-piece part's as the homing locks use; -1 for none. */
     private int target;
+    /** M5 part F: the level's wind this step, px/s to the right. */
+    private double wind;
 
     private int targetWait;
     private int cooldown;
@@ -296,6 +298,14 @@ public final class Wingman {
         steerBank();
     }
 
+    /**
+     * M5 part F: the level's wind for his next {@link #fly}, px/s to the right (design/campaign Level
+     * 12, Weather); exactly 0 without weather.
+     */
+    void wind(double pxPerSecond) {
+        wind = pxPerSecond;
+    }
+
     /** His generator's state, for a boss checkpoint. */
     long luck() {
         return luck.state();
@@ -321,7 +331,8 @@ public final class Wingman {
         for (int j = 0; j < enemies.size(); j++) {
             Enemy enemy = enemies.get(j);
             // M5 part E (default 12): a unit under the water is neither his target nor a flank threat.
-            if (!PlayerFire.onField(enemy) || enemy.layer() == Layer.SUB) {
+            // M5 part F (user decision F3 = a): a Lamprey latched onto the player is not his target.
+            if (!PlayerFire.onField(enemy) || enemy.layer() == Layer.SUB || enemy.latched()) {
                 continue;
             }
             double dx = enemy.x() - x;
@@ -815,6 +826,10 @@ public final class Wingman {
         vy += dvy;
         x += vx * SimStep.SECONDS;
         y += vy * SimStep.SECONDS;
+        if (wind != 0) {
+            // M5 part F: the level's wind pushes him as it pushes the player (design/player/wingmen).
+            x += wind * SimStep.SECONDS;
+        }
         keepClear(shipX, shipY);
     }
 

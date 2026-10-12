@@ -75,10 +75,35 @@ public final class DebriefScreen implements GameScreen {
 
     /**
      * M5 part E: a naval convoy's hulls at the level's end (Level 11's cargo ships), the afloat
-     * secondary's row {@code HULLS AFLOAT n / 3}; {@link #NONE} without a naval convoy.
+     * secondary's row {@code HULLS AFLOAT n / 3}; M5 part F: the weather sondes collected (Level 12),
+     * {@code SONDES n / 3}; M5 part G: the defended relay's integrity left (Level 13), {@code RELAY n %};
+     * {@link #NONE} without any.
+     *
+     * @param label the row's label
+     * @param percent M5 part G: whether {@code afloat} is a share in whole percent ({@code n %}), not a count of {@code of}
      */
-    public record Hulls(int afloat, int of) {
+    public record Hulls(String label, int afloat, int of, boolean percent) {
         public static final Hulls NONE = new Hulls(0, 0);
+
+        /** A count of {@code of}, {@code n / of}. */
+        public Hulls(String label, int afloat, int of) {
+            this(label, afloat, of, false);
+        }
+
+        /** A naval convoy's hulls afloat, {@code HULLS AFLOAT}. */
+        public Hulls(int afloat, int of) {
+            this(HULLS_AFLOAT, afloat, of);
+        }
+
+        /** M5 part G: a share in whole percent, {@code n %} (the relay's integrity left). */
+        public static Hulls share(String label, int percent) {
+            return new Hulls(label, percent, 100, true);
+        }
+
+        /** The row's middle column: {@code n / of}, or {@code n %}. */
+        String middle() {
+            return percent ? afloat + " %" : afloat + " / " + of;
+        }
 
         boolean present() {
             return of > 0;
@@ -138,6 +163,24 @@ public final class DebriefScreen implements GameScreen {
             boolean newBest,
             boolean secondary,
             Hulls hulls) {
+        this(services, campaign, result, number, name, launchBalance, newBest, secondary, hulls, true);
+    }
+
+    /**
+     * @param jingle M5 part G: whether the debrief plays the mission-complete jingle (not when it played
+     *     inside the level, Level 13's "Grid sync complete": the level's {@code music.jingle})
+     */
+    public DebriefScreen(
+            GameServices services,
+            Campaign campaign,
+            LevelResult result,
+            int number,
+            String name,
+            int launchBalance,
+            boolean newBest,
+            boolean secondary,
+            Hulls hulls,
+            boolean jingle) {
         this.secondary = secondary;
         this.hulls = hulls;
         this.services = services;
@@ -155,7 +198,9 @@ public final class DebriefScreen implements GameScreen {
         }
         summary = CampaignRoute.actEnd(services.content, campaign)
                 .map(end -> ActSummary.of(services.content, campaign, end));
-        services.sfx.play(Sfx.MISSION_COMPLETE, JINGLE_VOLUME, 1, 0);
+        if (jingle) {
+            services.sfx.play(Sfx.MISSION_COMPLETE, JINGLE_VOLUME, 1, 0);
+        }
     }
 
     private void addTally(LevelResult result) {
@@ -221,12 +266,19 @@ public final class DebriefScreen implements GameScreen {
         }
     }
 
+    /** The rows' labels: M5 part E's hulls afloat, M5 part F's weather sondes collected. */
+    static final String HULLS_AFLOAT = "HULLS AFLOAT";
+
+    public static final String SONDES = "SONDES";
+    /** M5 part G: the defended relay's row (Level 13). */
+    public static final String RELAY = "RELAY";
+
     /**
      * M5 part E: the afloat secondary's row (design/ui/debrief, Level 11): {@code HULLS AFLOAT 3 / 3}
      * with the objective's credits when it was met (all hulls afloat at the boss's death), none when not.
      */
     static Row hullsRow(Hulls hulls, boolean met, long credits) {
-        return new Row("HULLS AFLOAT", hulls.afloat() + " / " + hulls.of(), met ? credits : -1, "+ ", " CR", CREDITS);
+        return new Row(hulls.label(), hulls.middle(), met ? credits : -1, "+ ", " CR", CREDITS);
     }
 
     /** The boss's kill time against its par, "1:42 (PAR 2:00)"; "NOT KILLED (PAR 1:00)" when it got away. */

@@ -1,10 +1,10 @@
 ---
 title: Wingmen and drones
 design: approved
-implementation: in-progress
+implementation: done
 art: final
 depends-on: [../weapons, ../../story, ../../systems/saves, ../../ui/hangar, ../../ui/hud]
-updated: 2026-10-08
+updated: 2026-10-12
 ---
 
 # Wingmen and drones
@@ -182,9 +182,13 @@ its shares are about what dies.
 
 ### Act 2 hazards
 
-- [Lampreys](../../enemies/air/lamprey/README.md) latch only on the player.
-- The gusts of [Level 12](../../campaign/act-2-homefront/level-12-storm-front/README.md) push him
-  like the player.
+- [Lampreys](../../enemies/air/lamprey/README.md) latch only on the player. Level 12 (M5 part F,
+  user decision F3 = a): his shots pass a **latched** Lamprey and his target pick skips it (it sits
+  on the player's hull); a chasing, stunned or fleeing one is an ordinary `air` target and body.
+- The gusts and the storm wall's drift of [Level 12](../../campaign/act-2-homefront/level-12-storm-front/README.md#weather)
+  push him like the player (M5 part F, stated defaults): the push adds to his position, not his
+  steering, and the play field's edges clamp him as now; no change to his AI. He does not collect
+  the weather sondes (only the ship does).
 - Ravager pounces and `air` contacts hit him as designed (his collision rule above).
 - Level 10 (M5 part D): in Trail he sits 90 px behind the ship, in the band where the
   [Wraiths](../../enemies/air/wraith/README.md) hold 20–70 px above the bottom edge after
@@ -242,11 +246,23 @@ eject bark, an urgent line: see below), and are voiced like every Act 1 line
   bark replaces it.
 - After he ejects, trigger 5 can no longer fire; the others still do (he watches the scope from
   his pod).
-- The level documents' scripted "Six o'clock" and "flank" lines (L08 t=92, L12 t=102, L13 t=82
-  and t=122, L14 t=80) are reviewed by each level's part: they suppress the bark by the spacing
-  rule. Level 10's t=50 "Six o'clock, Lancer!" is dropped (M5 part D): his rear bark says it, and
-  his event line on the first loop-back (`first-loop-back`) counts as a scripted Rook line for the
-  spacing, as `escort-first-kill`'s does.
+- The level documents' scripted "Six o'clock" and "flank" lines (L08 t=92, L13 t=82 and t=122,
+  L14 t=80) are reviewed by each level's part: they suppress the bark by the spacing rule. Level
+  10's t=50 "Six o'clock, Lancer!" is dropped (M5 part D): his rear bark says it, and his event
+  line on the first loop-back (`first-loop-back`) counts as a scripted Rook line for the spacing,
+  as `escort-first-kill`'s does. Level 12's t=102 is dropped the same way (M5 part F), its t=44
+  "Seeds on the wind" kept (it suppresses the side bark of the t=46 cluster), and his line on the
+  first latch (`first-latch`) counts as a scripted Rook line.
+- **Level 13 (planned, M5 part G, pending the user's review):** he does not guard the Nansen Relay
+  (no change to his AI) and keeps his Autocannon (the plan's L13 visit changes nothing for him); the
+  level document's t=82 "Six o'clock" and t=122 "Contacts on your flank" are dropped for his rear
+  and side barks, and his t=3, t=54 and t=230 lines carry `requires: escort`.
+- **Level 14 (planned, M5 part H, pending the user's review):** in the Siege Spire's fight he flies
+  Trail for each of the maw's Wraith re-entries (the bottom edge counts as a rear wave, warned 3 s
+  ahead) and his rear bark calls each launch; his boss-warning bark plays at t=108 (not scripted);
+  the level document's t=80 "Six o'clock" is dropped, his t=3 line carries `requires: escort`, and
+  his phase-3 line "Roots and all. Somebody call a gardener." is an event line 5 s after the phase
+  starts. No change to his AI.
 
 | Priority | Trigger | Variants (speaker Rook) |
 |---|---|---|
@@ -387,8 +403,8 @@ built were accepted in concept round 28.
 - [x] His craft in the level: banking frames, engine flames, runtime shadow, muzzle flash, hit flash, smoke when low, the eject (see *In the game*); the placeholder Ember frames, glow and drawn pod remain as fallbacks
 - [x] Debug option `--escort rook:<gun>:<level>[,side=left|right]` and `--escort none` (`DebugFit.withEscort`, never saved; `LaunchOptionsTest.aDebugEscortFliesRookWithHisGun`, `EscortTest.theEscortDebugOptionFliesHimOnAnyLevelOrKeepsHimHome`, `theEscortDebugOptionIsNeverSavedNorKept`)
 - [x] His data in [data.yaml](data.yaml) with its loader and validator (`WingmenData`, `ContentValidator.checkWingmen`; `WingmenDataTest`)
-- [ ] The guns and barks tables above rendered from [data.yaml](data.yaml) by `tools/sync_tables.py` (still hand-written, see *Data*)
-- [ ] `BalanceTest` prints his DPS; the balance plan buys his guns and repairs from L08; the autopilot and `ActPlaythroughTest` fly with him — **later: M5 part I** (the close-out's `BalanceTest` and `ActPlaythroughTest` for Act 2 with Rook and the Act 2 plan, [roadmap](../../tech/roadmap/README.md#m5-parts); not built in part A)
+- [ ] The guns and barks tables above rendered from [data.yaml](data.yaml) by `tools/sync_tables.py` (still hand-written, see *Data*) — **later: M6** (tooling polish; the tables match the data as of 2026-10-12)
+- [x] `BalanceTest` prints his DPS (the sheet's `Rook` column, his gun's single-target DPS, not in the forward DPS; `tools/balance.py` prints the same `Rook DPS`); the balance plan buys his guns from L08 and `ActPlaythroughTest` pays his repairs at every visit from L08 after the ship's; the autopilot and `ActPlaythroughTest` fly with him (Acts 1–2 as one campaign on every difficulty, his armour kept between levels, his retries with the armour floor) — M5 part I
 - [x] Production sprites of Rook's craft (5 banking frames, Ember, 42×42), his engine flame, the eject pod and the engine mounts (`tools/art/rook.py`, approved as final in concept round 28)
 - [x] His shots in their base weapons' families: drawn with the base weapons' final shot sprites and muzzle flash at his nose (`WeaponLooks` builds his gun's look by its base weapon's slug; `WingmanLooks.drawMuzzle`)
 - [x] The radio event `escort-first-kill`: his first kill per attempt, only while he flies, never after an eject, the flag in the state hash and the boss checkpoint; loader, `SimSpecs` and schema text (M5 part B, D4)
@@ -405,6 +421,16 @@ built were accepted in concept round 28.
 - [ ] Warden heavy drone: formation, cannon, draw-fire rule — **later: Act 4** (the Warden unlocks at L22)
 - [ ] Drone behaviours: orbit, trail, block, rebuild — **later: Act 3** (light drone L15, rear-guard drone L20) and **later: Act 5** (hunter drone L29)
 - [ ] Rook missing for L27–L29 (only a heavy drone in the slot), back from L30 — **later: Act 4**
+
+- [x] Level 12 (M5 part F, step 3): the wind pushing him (positions, edges clamped); his shots
+      passing a latched Lamprey and his pick skipping it; no sonde collection; a test case in a gust
+      (`WindTest`)
+- [x] Level 12: the plan's L12 visit refitting his Autocannon; the autopilot flies the level with him
+      on every difficulty (`Level12Test`) (M5 part F, step 4)
+
+- [x] Level 13 and Level 14 with him: the lines above, Trail for the maw's Wraiths, the autopilot
+      flying both levels with him on every difficulty (`Level13Test`, `Level14Test`, `MawLaunchTest`)
+      (M5 parts G and H)
 
 ## Open questions
 
@@ -601,3 +627,16 @@ built were accepted in concept round 28.
   the Kraken's arena, and a slam hits him; otherwise no change to his AI. The balance plan's L11 visit
   refits his Mortar. Our reading, for review in round 33: when the player sits in a telegraphed lane
   Rook waits beside it rather than following him in.
+- 2026-10-09: M5 part F (user decision F3 = a and the part's stated defaults): Level 12's wind
+  pushes Rook like the ship, adding to his position with no change to his AI; a latched Lamprey is
+  out of his reach (his shots pass, his pick skips it); he does not collect sondes; his t=102 line
+  is dropped for the rear bark, his t=44 line kept, and the `first-latch` line counts for the bark
+  spacing. The balance plan's L12 visit refits his Autocannon (the Mortar has nothing to hit).
+- 2026-10-11: M5 parts G and H (the user is on vacation; the main agent took the gap analyses' recommendations, **pending the user's review** in the combined round): in Level 13 Rook does not guard the relay and keeps his Autocannon, his draft rear and side lines give way to the barks; in Level 14 he flies Trail for the maw's Wraiths (H3 = a) and has one event line in phase 3.
+- 2026-10-12: M5 part I (close-out): the balance item is built — `BalanceTest`'s sheet and
+  `tools/balance.py` print his DPS (12 with the Autocannon L1, 15 with the Mortar L1), and
+  `ActPlaythroughTest` flies Acts 1 and 2 as one campaign with him on every difficulty, paying his
+  repairs after the ship's. Seen there: he ejects in Level 14's Spire fight on medium and hard and on
+  hard also in Levels 10 and 11 (80-point repairs at the visits after), with every level still won at
+  the first attempt. The guns and barks tables' rendering is retagged **later: M6** (tooling); with
+  the drone items tagged Acts 3–5 the document is `done`.

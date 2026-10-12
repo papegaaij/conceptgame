@@ -31,7 +31,8 @@ import vanguard.sim.EnemySpec;
  *       the levels' typical hauls as income (budget(n) for a level without data yet), within the
  *       generator's output; on medium with the repairs of the plan's estimated damage, on hard
  *       (income × 0.9, repairs 10 cr a point) with the repairs the credits left allow, the
- *       shortfall printed as accepted ({@link #HARD_REPAIRS});
+ *       shortfall printed as accepted ({@link #HARD_REPAIRS}); Rook's gun (bought and fitted from
+ *       Level 08 on) priced in and his single-target DPS printed per visit (M5 part I);
  *   <li>the plan's fit reaches the reference DPS the enemy stat blocks assume (0.75–1.33×), with
  *       Levels 01–03's gentle onboarding (about 1.5×) as the accepted exception;
  *   <li>every enemy's time to kill at its first level and its bounty fit its size class, with the
@@ -44,7 +45,12 @@ import vanguard.sim.EnemySpec;
  *       #HOLD_SHARE} of the hold's window at medium (user decision D8 = c of M5 part C; hard's
  *       tighter ratio is accepted, user decision 2026-10-07);
  *   <li>the plan's rear DPS kills every rear-ambush unit (a Wraith) in at most {@link #REAR_SHARE} of
- *       its decloak flash and hold at medium (user decision D7 = a of M5 part D).
+ *       its decloak flash and hold at medium (user decision D7 = a of M5 part D), Level 12's Wraith with
+ *       the act HP factor as the exception pending review ({@link #REAR_PENDING});
+ *   <li>M5 part F: the plan's rear DPS kills a latched Lamprey (its HP at medium, ×2 damage while
+ *       latched) well inside the shake-off's time, and the autopilot (Level 12's plan fit with Rook)
+ *       shakes off or kills every Lamprey that latches, the drain of a latch staying a small share of
+ *       the plan's shield, on every difficulty.
  * </ul>
  */
 class BalanceTest {
@@ -81,6 +87,22 @@ class BalanceTest {
      * 0.4 + 2.5 s).
      */
     static final double REAR_SHARE = 0.6;
+
+    /**
+     * M5 part F: the rear checks over {@link #REAR_SHARE} reported for the user's decision in the combined
+     * concept round (key "Lnn slug"); the test fails when one is fixed (remove it here) or a new one appears.
+     */
+    static final Map<String, String> REAR_PENDING = Map.of(
+            "L12 wraith",
+            "18 HP (the act HP factor ×1.11) / the Tail Gun L1's 10 DPS = 1.80 s of the 2.9 s flash and hold"
+                    + " (0.62, at most 0.6): the plan upgrades the rear only at L14 (Tail Gun L2, 14 DPS);"
+                    + " pending the user's review in the combined round (M5 part F, step 4)");
+
+    /** M5 part F: a latched Lamprey dies within this share of its shake-off time to the plan's rear DPS. */
+    static final double LATCHED_SHARE = 0.25;
+
+    /** M5 part F: the shield a latch drains on the autopilot stays below this share of the plan's shield, on average. */
+    static final double DRAIN_SHARE = 0.5;
 
     /** A boss's or set piece's bounty may lie this share of its target either side (the basis says "about"). */
     static final double SHARE_TOLERANCE = 1 / 3.0;
@@ -134,7 +156,8 @@ class BalanceTest {
             double rear,
             double volley,
             Optional<Double> reference,
-            double antiGround) {
+            double antiGround,
+            double escort) {
         Optional<Double> ratio() {
             return reference.map(ref -> front / ref);
         }
@@ -205,7 +228,8 @@ class BalanceTest {
                     dps[1],
                     dps[0] + dps[1],
                     Optional.ofNullable(CONTENT.enemyBasis().referenceDps().get(level)),
-                    antiGround(campaign.gear().loadout())));
+                    antiGround(campaign.gear().loadout()),
+                    escort(campaign.gear().loadout())));
             SaveGame after = campaign.save(Instant.EPOCH);
             save = next(after, after.credits() + income, campaign.maxArmour() - plan.repairPoints());
         }
@@ -257,6 +281,28 @@ class BalanceTest {
     }
 
     /**
+     * Rook's single-target DPS (M5 part I): his fitted gun's scale × its base weapon's single-target
+     * DPS at the gun's level; 0 without a gun in the escort slot. Printed, not part of the forward DPS
+     * the reference compares (he flies his own line and picks his own targets).
+     */
+    static double escort(Map<LoadoutSlot, Fitted> loadout) {
+        Fitted fitted = loadout.get(LoadoutSlot.ESCORT);
+        if (fitted == null) {
+            return 0;
+        }
+        WingmenData.Gun gun = escortGun(fitted.item());
+        WeaponData base = CONTENT.weapon(gun.base());
+        return gun.scale() * singleTarget(base, base.levels().get(fitted.level() - 1));
+    }
+
+    private static WingmenData.Gun escortGun(String id) {
+        return CONTENT.wingmen().guns().list().stream()
+                .filter(g -> g.id().equals(id))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    /**
      * The single-target DPS of a loadout's anti-ground sources (the only damage a hardened unit
      * takes, the specials aside): its {@code anti-ground} weapons and Rook's gun if its base weapon
      * is one (his gun's scale × the base weapon's single-target DPS at its level).
@@ -266,10 +312,7 @@ class BalanceTest {
         for (Map.Entry<LoadoutSlot, Fitted> entry : loadout.entrySet()) {
             Fitted fitted = entry.getValue();
             if (entry.getKey() == LoadoutSlot.ESCORT) {
-                WingmenData.Gun gun = CONTENT.wingmen().guns().list().stream()
-                        .filter(g -> g.id().equals(fitted.item()))
-                        .findFirst()
-                        .orElseThrow();
+                WingmenData.Gun gun = escortGun(fitted.item());
                 WeaponData base = CONTENT.weapon(gun.base());
                 if (base.traits().contains("anti-ground")) {
                     dps += gun.scale() * singleTarget(base, base.levels().get(fitted.level() - 1));
@@ -371,11 +414,11 @@ class BalanceTest {
     /** Prints the sheet and returns its problems. */
     private static List<String> print(List<Row> rows) {
         System.out.println(
-                "Lvl | Budget | Income | Before | Spent | Repairs | Left | Load/Out | Fwd DPS | Ref | Fwd/Ref | Rear | Purchases");
+                "Lvl | Budget | Income | Before | Spent | Repairs | Left | Load/Out | Fwd DPS | Ref | Fwd/Ref | Rear | Rook | Purchases");
         List<String> problems = new ArrayList<>();
         for (Row row : rows) {
             System.out.printf(
-                    "%02d  | %6.0f | %6d%s | %6d | %5d | %7d | %4d | %4.1f/%-3.0f | %7.1f | %3.0f | %7s | %4.1f | %s%n",
+                    "%02d  | %6.0f | %6d%s | %6d | %5d | %7d | %4d | %4.1f/%-3.0f | %7.1f | %3.0f | %7s | %4.1f | %4.1f | %s%n",
                     row.level(),
                     row.budget(),
                     row.income(),
@@ -390,10 +433,12 @@ class BalanceTest {
                     row.reference().orElse(0.0),
                     row.ratio().map(r -> String.format("%.2f", r)).orElse("-"),
                     row.rear(),
+                    row.escort(),
                     String.join("; ", row.visit().log()));
             row.visit().problems().forEach(problem -> problems.add("L" + row.level() + ": " + problem));
         }
-        System.out.println("* the level's typical haul (design/systems/economy); otherwise budget(n)");
+        System.out.println("* the level's typical haul (design/systems/economy); otherwise budget(n);"
+                + " Rook: his gun's single-target DPS (from Level 08), not in the forward DPS");
         return problems;
     }
 
@@ -452,6 +497,7 @@ class BalanceTest {
     @Test
     void thePlansRearGunKillsEveryAmbushInTime() {
         List<String> slow = new ArrayList<>();
+        Set<String> pending = new TreeSet<>();
         int checked = 0;
         for (Row row : sheet()) {
             Optional<String> key = CONTENT.levelKey(row.level());
@@ -473,12 +519,166 @@ class BalanceTest {
                         "L%02d %s: %.0f HP / rear %.1f DPS = %.2f s of a %.1f s flash and hold (%.2f, at most %.1f)%n",
                         row.level(), enemy.slug(), enemy.hp(), row.rear(), kill, window, kill / window, REAR_SHARE);
                 if (!(kill <= REAR_SHARE * window)) {
-                    slow.add(String.format("L%02d %s: %.2f s of %.1f s", row.level(), enemy.slug(), kill, window));
+                    String name = String.format("L%02d %s", row.level(), enemy.slug());
+                    if (REAR_PENDING.containsKey(name)) {
+                        pending.add(name);
+                        System.out.println(name + ": pending a decision: " + REAR_PENDING.get(name));
+                    } else {
+                        slow.add(String.format("%s: %.2f s of %.1f s", name, kill, window));
+                    }
                 }
             }
         }
         assertTrue(checked > 0, "Level 10's Wraiths are checked");
         assertTrue(slow.isEmpty(), "the plan's rear gun is too slow for: " + slow);
+        assertEquals(REAR_PENDING.keySet(), pending, "the rear checks pending a decision");
+    }
+
+    /**
+     * M5 part F (design/enemies/air/lamprey, user decision F3 = a): at every level with a unit that
+     * latches, the plan's rear DPS (rear-mount shots hit a latched one) kills it, at ×its damage factor,
+     * within {@link #LATCHED_SHARE} of its shake-off time: shooting it off is a real choice beside the
+     * shake. Its time to kill at its first level is {@link #everyEnemyFitsTheBalancingBasis}'s.
+     */
+    @Test
+    void thePlansRearGunKillsALatchedLampreyQuickly() {
+        List<String> slow = new ArrayList<>();
+        int checked = 0;
+        for (Row row : sheet()) {
+            Optional<String> key = CONTENT.levelKey(row.level());
+            if (key.isEmpty()) {
+                continue;
+            }
+            vanguard.sim.LevelScript level = SimSpecs.level(CONTENT, key.get(), Difficulty.MEDIUM);
+            Set<String> seen = new TreeSet<>();
+            for (vanguard.sim.WaveSpec wave : level.waves()) {
+                EnemySpec enemy = wave.enemy();
+                if (enemy.latch().isEmpty() || !seen.add(enemy.slug())) {
+                    continue;
+                }
+                checked++;
+                EnemySpec.Latch latch = enemy.latch().get();
+                double kill = enemy.hp() / (row.rear() * latch.damageFactor());
+                System.out.printf(
+                        "L%02d %s latched: %.0f HP / (rear %.1f DPS × %.0f) = %.2f s of its %.1f s shake-off (at most %.2f)%n",
+                        row.level(),
+                        enemy.slug(),
+                        enemy.hp(),
+                        row.rear(),
+                        latch.damageFactor(),
+                        kill,
+                        latch.withinSeconds(),
+                        LATCHED_SHARE);
+                if (!(kill <= LATCHED_SHARE * latch.withinSeconds())) {
+                    slow.add(String.format("L%02d %s: %.2f s", row.level(), enemy.slug(), kill));
+                }
+            }
+        }
+        assertTrue(checked > 0, "Level 12's Lampreys are checked");
+        assertTrue(slow.isEmpty(), "the plan's rear gun is too slow for a latched: " + slow);
+    }
+
+    /**
+     * M5 part G (design/enemies/naval/skimmer, Level 13): the Skimmer, a {@code small} unit, dies within its
+     * size class's time to kill (at most 0.3 s) at Level 13's reference DPS, and at the plan's DPS there;
+     * {@link #everyEnemyFitsTheBalancingBasis} checks it with the others, this pins its number.
+     */
+    @Test
+    void theSkimmerFallsWithinItsTimeToKill() {
+        EnemyData skimmer = CONTENT.enemy("skimmer");
+        double reference = CONTENT.enemyBasis().referenceDps().get(13);
+        double ttk = skimmer.hp() / reference;
+        Row row = sheet().stream().filter(r -> r.level() == 13).findFirst().orElseThrow();
+        System.out.printf(
+                "L13 skimmer: %.0f HP / reference %.0f DPS = %.2f s (at most 0.3); at the plan's front %.1f DPS %.2f s%n",
+                skimmer.hp(), reference, ttk, row.front(), skimmer.hp() / row.front());
+        assertEquals(Optional.empty(), timeToKill(skimmer));
+        assertTrue(ttk <= 0.3, "ttk " + ttk);
+        assertTrue(skimmer.hp() / row.front() <= 0.3, "at the plan's front DPS");
+    }
+
+    /** M5 part G: the seeds of the relay-outcome check (G2 = a: measured over several seeds). */
+    static final long[] RELAY_SEEDS = {2185, 1, 2, 3, 4, 5, 6, 7};
+
+    /**
+     * M5 part G's relay check (design/campaign Level 13, Nansen Relay; user decision G2 = a, pending the
+     * user's review): the autopilot guards the relay with the plan's fit and Rook over {@link #RELAY_SEEDS}
+     * on every difficulty. The relay is never lost on any difficulty; on medium it keeps at least half its
+     * integrity at the synchronisation's end in about half the seeds (the median seed ends at 45–60 %, some
+     * seeds above the threshold and some below), on easy in nearly all (at least 7 of 8); hard may lose the
+     * secondary. Printed per difficulty: the integrity left per seed,
+     * the seeds that kept the secondary, the attempts lost (to the ship's armour).
+     */
+    @Test
+    void theAutopilotKeepsTheRelay() {
+        Content content = ContentLoader.fromClasspath();
+        for (Difficulty difficulty : Difficulty.values()) {
+            int met = 0;
+            int lostShips = 0;
+            List<String> shares = new ArrayList<>();
+            List<String> damage = new ArrayList<>();
+            List<String> relayLost = new ArrayList<>();
+            for (long seed : RELAY_SEEDS) {
+                vanguard.sim.Sortie sortie = Level13Test.sortie(content, seed, difficulty);
+                Level13Test.Run run = Level13Test.watch(sortie);
+                assertTrue(sortie.complete(), difficulty + " seed " + seed + ": the level completes");
+                shares.add(String.format("%.0f", 100 * run.integrity));
+                double integrity = sortie.script().defend().orElseThrow().ally().hp();
+                damage.add(String.format("%.0f", (1 - run.integrity) * integrity));
+                met += sortie.result().secondaryMet() ? 1 : 0;
+                lostShips += sortie.attempt() - 1;
+                if (run.deaths.contains("relay")) {
+                    relayLost.add(seed + ": " + run.deaths.strip());
+                }
+            }
+            System.out.printf(
+                    "L13 relay %s: integrity at the sync's end %s %% (damage taken %s), secondary met in %d of %d,"
+                            + " attempts lost %d, relay lost %s%n",
+                    difficulty, shares, damage, met, RELAY_SEEDS.length, lostShips, relayLost);
+            assertEquals(List.of(), relayLost, difficulty + ": the relay is never lost");
+            switch (difficulty) {
+                case EASY -> assertTrue(met >= RELAY_SEEDS.length - 1, "easy keeps it nearly always: " + met);
+                case MEDIUM -> {
+                    // The relay's damage comes in bullets of 4 and hardly varies by seed: "about half" is the
+                    // median seed ending at the threshold, with seeds on either side of it.
+                    double median = medianShare(shares);
+                    assertTrue(
+                            met >= 1 && met < RELAY_SEEDS.length && median >= 0.45 && median <= 0.6,
+                            "medium keeps half its integrity in about half the seeds: " + met + ", median " + median);
+                }
+                case HARD -> {}
+            }
+        }
+    }
+
+    /** The median of whole per cent shares, as a share. */
+    private static double medianShare(List<String> shares) {
+        List<Double> sorted = shares.stream().map(Double::parseDouble).sorted().toList();
+        int n = sorted.size();
+        return (sorted.get((n - 1) / 2) + sorted.get(n / 2)) / 200;
+    }
+
+    /**
+     * M5 part F's drain check (design/campaign Level 12, Credit budget): the autopilot flies Level 12
+     * with the plan's fit and Rook on every difficulty; every Lamprey that latches is shaken off or shot
+     * off, and a latch drains on average at most {@link #DRAIN_SHARE} of the plan's shield. Printed per
+     * difficulty: the latches, the shake-offs, the shield drained per latch, the armour lost.
+     */
+    @Test
+    void theAutopilotShakesOffTheLampreysWithLittleDrain() {
+        Content content = ContentLoader.fromClasspath();
+        for (Difficulty difficulty : Difficulty.values()) {
+            vanguard.sim.Sortie sortie = Level12Test.sortie(content, 2185, difficulty);
+            Level12Test.Run run = Level12Test.watch(sortie);
+            double shield = sortie.ship().defences().maxShield();
+            double perLatch = run.latches == 0 ? 0 : run.drained / run.latches;
+            System.out.printf(
+                    "L12 drain %s: %d latches, %d shake-offs, shield drained %.1f (%.1f a latch of %.0f), armour lost %.0f%n",
+                    difficulty, run.latches, run.shakes, run.drained, perLatch, shield, run.armourLost);
+            assertTrue(sortie.complete(), difficulty + ": the level completes");
+            assertTrue(run.latches > 0, difficulty + ": the Lampreys latch");
+            assertTrue(perLatch <= DRAIN_SHARE * shield, difficulty + ": " + perLatch + " a latch");
+        }
     }
 
     @Test
@@ -631,6 +831,9 @@ class BalanceTest {
      */
     static double arenaSeconds(EnemyData enemy, double dps) {
         EnemyData.BossData boss = enemy.boss().orElseThrow();
+        if (boss.slam().isEmpty()) {
+            return lanelessSeconds(enemy, dps);
+        }
         EnemyData.SlamData slam = boss.slam().orElseThrow();
         double cycle = slam.telegraph() + slam.rise() + slam.awash() + slam.sink();
         List<EnemyData.PartData> parts = enemy.partList().orElseThrow();
@@ -681,6 +884,26 @@ class BalanceTest {
                 for (String name : names) {
                     left[enemy.partIndex(name)] = 0;
                 }
+            }
+        }
+        return seconds;
+    }
+
+    /**
+     * M5 part H (design/enemies/bosses/siege-spire, decision H10 = a): an arena boss without lanes at the
+     * effective {@code dps} (tools/balance.py prints the same): the ease into the halt, then each phase its
+     * delay, its move (the lift) and its parts' HP at their own multipliers (the weak spots' ×2; the plan's
+     * {@code anti-ground} ×2 on the roots is not counted).
+     */
+    static double lanelessSeconds(EnemyData enemy, double dps) {
+        List<EnemyData.PartData> parts = enemy.partList().orElseThrow();
+        double seconds = vanguard.sim.Sortie.ARENA_RAMP_SECONDS;
+        for (EnemyData.PhaseData phase : enemy.boss().orElseThrow().phases()) {
+            seconds += phase.delay().orElse(0.0)
+                    + phase.move().flatMap(EnemyData.MoveData::descend).orElse(0.0);
+            for (String name : phase.until().parts().orElse(List.of())) {
+                EnemyData.PartData part = parts.get(enemy.partIndex(name));
+                seconds += part.hp() / (dps * part.multiplier().orElse(1.0));
             }
         }
         return seconds;

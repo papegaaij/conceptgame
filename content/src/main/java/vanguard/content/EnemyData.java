@@ -14,6 +14,8 @@ import java.util.Optional;
  * @param firstLevel the level it is introduced in
  * @param cloak M5 part D: its cloak (the Wraith): its {@code layer} is the cloaked one
  * @param submerge M5 part E: how it surfaces and submerges (the Driftjelly), a unit on {@code ground}
+ * @param latch M5 part F: it latches onto the ship's hull and drains the shield (the Lamprey; with its
+ *     {@code chase} movement and its {@code drain} attack)
  */
 public record EnemyData(
         String name,
@@ -41,7 +43,8 @@ public record EnemyData(
         Optional<BossData> boss,
         Optional<SegmentChain> segmentChain,
         Optional<Cloak> cloak,
-        Optional<Submerge> submerge) {
+        Optional<Submerge> submerge,
+        Optional<Latch> latch) {
     public EnemyData {
         Layers.of(layer);
         Check.positive("hp", hp);
@@ -80,6 +83,7 @@ public record EnemyData(
      * @param ambush M5 part D: the path of a {@code rear ambush} wave's unit (the Wraith)
      * @param flock M5 part D: how a {@code swarm} wave's members steer (the Mote Swarm)
      * @param anchored M5 part E: an arena boss's anchored arrival (the Harbour Kraken)
+     * @param chase M5 part F: it homes on the ship from its entry, then flies straight on (the Lamprey)
      */
     public record Movement(
             Optional<Snake> snake,
@@ -97,7 +101,60 @@ public record EnemyData(
             Optional<PathMove> path,
             Optional<Ambush> ambush,
             Optional<Flock> flock,
-            Optional<Anchored> anchored) {}
+            Optional<Anchored> anchored,
+            Optional<Chase> chase) {}
+
+    /**
+     * M5 part F, the {@code chase} movement (design/enemies/air/lamprey): from its entry it steers
+     * toward the ship's centre at {@code speed} px/s, turning at most {@code turn_rate} °/s, for
+     * {@code seconds}; then it flies straight on along its heading at its speed.
+     */
+    public record Chase(double speed, double turnRate, double seconds) {
+        public Chase {
+            Check.positive("speed", speed);
+            Check.positive("turn_rate", turnRate);
+            Check.positive("seconds", seconds);
+        }
+    }
+
+    /**
+     * M5 part F, the {@code latch} block (design/enemies/air/lamprey; user decisions F3 and F4 = a):
+     * {@code slots} units may be latched at once (the hook {@code latch_slots} instead); the hull
+     * {@code spots} it sits at; the {@code damage_factor} on the damage it takes while latched; the
+     * {@code shake} that throws every latched unit off; the {@code stun} s and the {@code throw} px/s
+     * of its way off the hull, after which it flees to the nearer side edge.
+     */
+    public record Latch(
+            int slots,
+            Spots spots,
+            double damageFactor,
+            Shake shake,
+            double stun,
+
+            @com.fasterxml.jackson.annotation.JsonProperty("throw")
+            double throwSpeed) {
+        public Latch {
+            Check.positive("slots", slots);
+            Check.positive("damage_factor", damageFactor);
+            Check.positive("stun", stun);
+            Check.notNegative("throw", throwSpeed);
+        }
+    }
+
+    /**
+     * M5 part F: a latch's hull spots, each {@code [dx, dy]} px from the ship's centre with y up (as the
+     * weapons' muzzles): {@code left} and {@code right} for a touch from the side, {@code tail} for one
+     * within 45° of straight down.
+     */
+    public record Spots(Point left, Point right, Point tail) {}
+
+    /** M5 part F: {@code reversals} reversals of the commanded horizontal direction within {@code within} s. */
+    public record Shake(int reversals, double within) {
+        public Shake {
+            Check.that(reversals >= 2, "reversals: at least 2, was " + reversals);
+            Check.positive("within", within);
+        }
+    }
 
     /**
      * M5 part E, an arena boss's arrival (design/enemies/bosses/harbour-kraken): no descent and no
@@ -524,6 +581,11 @@ public record EnemyData(
      * @param within M5 part E, a {@code ring}'s reach (design/enemies/naval/driftjelly): it fires only
      *     while the ship's centre is this close, px, on either of its layers; its {@code interval}
      *     the cooldown from the last ring
+     * @param rate M5 part F, the {@code drain} pattern (design/enemies/air/lamprey): shield points a
+     *     second it drains while latched, no bullet
+     * @param staggered M5 part H, a boss's {@code aimed} or {@code mortar} attack fired by several parts
+     *     (design/enemies/bosses/siege-spire: the pods' orbs, the mortar roots' lobs): each part on its own
+     *     clock, part k of n {@code k × interval ÷ n} after the first; not with {@code rotate}
      */
     public record Attack(
             String pattern,
@@ -549,8 +611,23 @@ public record EnemyData(
             Optional<Sweep> sweep,
             Optional<Double> stagger,
             Optional<Pounce> pounce,
-            Optional<Double> within) {
+            Optional<Double> within,
+            Optional<Double> rate,
+            Optional<Boolean> staggered) {
         public Attack {
+            Check.that(
+                    staggered.isEmpty() || pattern.equals("aimed") || pattern.equals("mortar"),
+                    "only an aimed or a mortar attack is staggered");
+            Check.that(
+                    !staggered.orElse(false) || !rotate.orElse(false), "an attack rotates or is staggered, not both");
+            // M5 part F: a drain (the Lamprey's, while latched) has its rate of shield points a second and nothing
+            // else.
+            Check.that(pattern.equals("drain") == rate.isPresent(), "a drain has its rate, the others none");
+            rate.ifPresent(r -> Check.positive("rate", r));
+            Check.that(
+                    !pattern.equals("drain")
+                            || (bullet.isEmpty() && speed.isEmpty() && interval.isEmpty() && count.isEmpty()),
+                    "a drain has no bullet, speed, interval or count");
             Check.that(pattern.equals("ring") || within.isEmpty(), "only a ring fires within a reach");
             within.ifPresent(w -> Check.positive("within", w));
             Check.that(within.isEmpty() || interval.isPresent(), "a ring fired within a reach has its interval");
@@ -568,8 +645,9 @@ public record EnemyData(
                             || pattern.equals("ring")
                             || pattern.equals("spiral")
                             || pattern.equals("laser-sweep")
-                            || pattern.equals("pounce"),
-                    "pattern must be aimed, fan, mine, spawn, mortar, ring, spiral, laser-sweep or pounce, was '"
+                            || pattern.equals("pounce")
+                            || pattern.equals("drain"),
+                    "pattern must be aimed, fan, mine, spawn, mortar, ring, spiral, laser-sweep, pounce or drain, was '"
                             + pattern + "'");
             Check.that(pattern.equals("pounce") == pounce.isPresent(), "a pounce has its pounce, the others none");
             Check.that(
@@ -592,6 +670,7 @@ public record EnemyData(
             Check.that(
                     pattern.equals("laser-sweep")
                             || pattern.equals("pounce")
+                            || pattern.equals("drain")
                             || pattern.equals("spawn") != (bullet.isPresent() && speed.isPresent()),
                     "an attack has a bullet and a speed, a spawn attack neither");
             Check.that(!pattern.equals("spawn") || interval.isEmpty(), "a spawn attack has no interval");
@@ -1046,12 +1125,34 @@ public record EnemyData(
      * {@code spawns} changes the count by {@code name}.
      */
     public record SpawnData(
-            String name, String enemy, int count, double speed, Optional<Double> arc, Optional<Double> glide) {
+            String name,
+            String enemy,
+            int count,
+            double speed,
+            Optional<Double> arc,
+            Optional<Double> glide,
+            Optional<AmbushLaunch> ambush) {
         public SpawnData {
             Check.notNegative("count", count);
             Check.positive("speed", speed);
             arc.ifPresent(a -> Check.notNegative("arc", a));
             glide.ifPresent(g -> Check.notNegative("glide", g));
+            Check.that(
+                    ambush.isEmpty() || (arc.isEmpty() && glide.isEmpty()),
+                    "an ambush launch flies its enemy's rear path: no arc or glide");
+        }
+    }
+
+    /**
+     * M5 part H, a window spawn's ambush launch (design/enemies/bosses/siege-spire, the maw's Wraiths;
+     * decision H3 = a): each unit flies its enemy's rear-ambush path from the part (cloaked down its lane
+     * past the ship, back in at the bottom edge after its gap, warned 3 s ahead, the decloak, the hold,
+     * out up a side lane); a launch that would put more than {@code most} of the boss's launched units on
+     * the field leaves the rest out.
+     */
+    public record AmbushLaunch(int most) {
+        public AmbushLaunch {
+            Check.positive("most", most);
         }
     }
 
@@ -1105,6 +1206,8 @@ public record EnemyData(
      * @param hoverSeconds M5 part D: the hover's time instead, s (the Wraith's hard hold)
      * @param telegraph M5 part E: an arena boss's slam telegraph instead, s (hard's 0.8)
      * @param lanes M5 part E: the lanes an arena boss's volley slams instead (hard's 3)
+     * @param drain M5 part F: a drain's rate instead, shield points a second (the Lamprey's hard 12)
+     * @param latchSlots M5 part F: a latch's slots instead (the Lamprey's hard 2)
      */
     public record Hook(
             Optional<List<String>> leadsTargetIn,
@@ -1123,8 +1226,12 @@ public record EnemyData(
             Optional<java.util.Map<String, Integer>> spawns,
             Optional<Double> hoverSeconds,
             Optional<Double> telegraph,
-            Optional<Integer> lanes) {
+            Optional<Integer> lanes,
+            Optional<Double> drain,
+            Optional<Integer> latchSlots) {
         public Hook {
+            drain.ifPresent(d -> Check.positive("drain", d));
+            latchSlots.ifPresent(n -> Check.positive("latch_slots", n));
             hoverSeconds.ifPresent(h -> Check.positive("hover_seconds", h));
             telegraph.ifPresent(t -> Check.positive("telegraph", t));
             lanes.ifPresent(n -> Check.positive("lanes", n));

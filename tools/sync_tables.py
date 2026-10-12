@@ -285,12 +285,44 @@ EVENTS = {"level-end": "Level end", "secondary-objective": "Secondary objective 
 PORTRAITS = {"generic-cdf": "Generic CDF", "generic-civilian": "Generic civilian"}  # the generic portraits of unnamed speakers
 
 
+def timed_halt(section):
+    """M5 part G: a section of speed 0 without an arena (Level 13's defend phase)."""
+    return section.get("speed") == 0 and not section.get("arena")
+
+
+def travelled(level, i, a, b):
+    """The px section i scrolls from a to b s; around a timed halt the scroll eases (smoothstep) down to 0
+    over the halt's ramp before it and back up over as long after it (LevelData.scrollAt)."""
+    secs = level["sections"]
+    s = secs[i]
+    speed = s.get("speed", level["scroll_speed"])
+    start = secs[i - 1]["end"] if i else 0
+    px = (b - a) * speed
+
+    def u(t, origin, ramp):
+        return min(1.0, max(0.0, (t - origin) / ramp))
+
+    def ease_in(x):   # ∫ S, lost against full speed while easing down
+        return x ** 3 - x ** 4 / 2
+
+    def ease_out(x):  # ∫ (1 - S), lost while easing up
+        return x - x ** 3 + x ** 4 / 2
+
+    if speed and i + 1 < len(secs) and timed_halt(secs[i + 1]):
+        ramp = min(secs[i + 1].get("ramp", 2), s["end"] - start)
+        px -= speed * ramp * (ease_in(u(b, s["end"] - ramp, ramp)) - ease_in(u(a, s["end"] - ramp, ramp)))
+    if speed and i > 0 and timed_halt(secs[i - 1]):
+        ramp = min(secs[i - 1].get("ramp", 2), s["end"] - start)
+        px -= speed * ramp * (ease_out(u(b, start, ramp)) - ease_out(u(a, start, ramp)))
+    return px
+
+
 def sections(level):
     """(start s, end s, start px, end px, speed) per section."""
     out, t, px = [], 0, 0
-    for s in level["sections"]:
+    for i, s in enumerate(level["sections"]):
         speed = s.get("speed", level["scroll_speed"])
-        end_px = px + (s["end"] - t) * speed
+        end_px = px + travelled(level, i, t, s["end"])
         out.append((t, s["end"], px, end_px, speed))
         t, px = s["end"], end_px
     return out
@@ -361,8 +393,11 @@ def boss_streams(slug):
 
 
 def entry(wave):
-    """Where a wave enters: `sides` alone means both side edges, one side reads "left side"."""
+    """Where a wave enters: `sides` alone means both side edges, one side reads "left side"; M5 part G: a
+    cross's `all` reads "all edges"."""
     edge = wave.get("edge")
+    if wave["from"] == "all":
+        return "all edges"
     if wave["from"] == "sides" and edge in ("left", "right"):
         return f"{edge} side"
     return wave["from"] + (f" ({EDGES[edge]})" if edge else "")
@@ -372,7 +407,13 @@ def directions(level):
     """The share of the level's enemies (medium) per entry direction, front · sides · rear."""
     counts = {"front": 0, "sides": 0, "rear": 0}
     for wave in medium_waves(level):
-        counts[wave["from"]] += sum(g["count"] for g in groups(wave))
+        n = sum(g["count"] for g in groups(wave))
+        if wave["from"] == "all":  # M5 part G: a cross from all four edges, split evenly (two are the sides)
+            counts["front"] += n / 4
+            counts["sides"] += n / 2
+            counts["rear"] += n / 4
+        else:
+            counts[wave["from"]] += n
     total = sum(counts.values())
     return " · ".join(f"{name} {round(100 * n / total)}%" for name, n in counts.items() if n)
 
@@ -401,16 +442,22 @@ BACKDROP_LAYERS = ["deep", "far", "ground", "low-air", "high-air"]
 
 def scroll_at(level, t):
     """The ground's scroll distance at t s (the first and last section's speed carry on outside)."""
-    for start, end, px0, _, speed in sections(level):
+    for i, (start, end, px0, _, speed) in enumerate(sections(level)):
         if t < end or end == level["sections"][-1]["end"]:
-            return px0 + (t - start) * speed
+            return px0 + travelled(level, i, start, t)
 
 
 def time_at(level, px):
-    """The time the ground has scrolled px."""
+    """The time the ground has scrolled px (the first moment, a timed halt's start for its scroll)."""
     for start, end, px0, px1, speed in sections(level):
         if px < px1 or end == level["sections"][-1]["end"]:
-            return start + (px - px0) / speed
+            if not speed:
+                return start
+            lo, hi = start - 1e4, end + 1e4
+            for _ in range(80):  # the scroll grows with t: bisect (M5 part G's eases)
+                mid = (lo + hi) / 2
+                lo, hi = (mid, hi) if scroll_at(level, mid) < px else (lo, mid)
+            return (lo + hi) / 2
 
 
 def on_screen(level, backdrop, placed):
@@ -509,11 +556,26 @@ def placements(target):
 
 
 def ground_targets(d):
+    level = data(d)
     rows = []
-    for g in data(d)["ground_targets"]:
+    for g in level["ground_targets"]:
         values = ground_values(g)
         rows.append([str(g["section"]), fill(g["notes"]["target"], values) + placements(g),
                      fill(g["notes"]["effect"], values)])
+    bursts = level.get("root_bursts")
+    if bursts:  # M5 part H: the root bursts' growths (Level 14), one row
+        times = ", ".join(num(b["t"]) for b in bursts["bursts"])
+        first = bursts["bursts"][0]
+        growths = " + ".join(enemy_link(d, slug) for slug in first["growths"])
+        easy = first.get("easy", {}).get("growths")
+        easy_text = f"; easy {' + '.join(enemy_name(slug) for slug in easy)}" if easy else ""
+        hard = bursts.get("hard", {}).get("first_shot_delay")
+        hard_text = f" (hard {num(hard)} s)" if hard is not None else ""
+        rows.append([", ".join(sorted({str(section_of(level, b["t"])) for b in bursts["bursts"]})),
+                     f"Root bursts ×{len(bursts['bursts'])} (t≈{times}), each growing {growths} after a "
+                     f"{num(bursts['telegraph'])} s dust telegraph{easy_text}",
+                     f"Invulnerable and silent for {num(bursts['first_shot_delay'])} s{hard_text}; the secondary's "
+                     f"group `{bursts['group']}`"])
     return table(["Section", "Target", "Effect"], rows)
 
 
@@ -672,6 +734,9 @@ def credit_budget(d):
     for g in level["ground_targets"]:
         if "enemy" in g:
             enemies[g["enemy"]] = enemies.get(g["enemy"], 0) + ground_values(g)["count"]
+    for burst in level.get("root_bursts", {}).get("bursts", []):  # M5 part H: the growths (Level 14)
+        for slug in burst["growths"]:
+            enemies[slug] = enemies.get(slug, 0) + 1
     paying = [ground_values(g) for g in level["ground_targets"]
               if "enemy" not in g and ("bounty" in g or g.get("drop", "").endswith("salvage"))]
     parts = [f"{enemy_name(slug)} {n} × {stat_bounty(slug)}" for slug, n in enemies.items()]

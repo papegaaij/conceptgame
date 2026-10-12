@@ -89,6 +89,11 @@ public final class Ally implements Hashed {
         x = prevX = atX;
     }
 
+    /** M5 part G: a standing ally (Level 13's relay) at ({@code atX}, {@code atY}) with {@code fullHp}, unhit. */
+    void resetStanding(double atX, double atY, double fullHp) {
+        resetNaval(atX, atY, fullHp);
+    }
+
     /** M5 part E: a naval unit sails at ({@code atX}, {@code atY}), straight up the screen. */
     void sail(double atX, double atY) {
         x = atX;

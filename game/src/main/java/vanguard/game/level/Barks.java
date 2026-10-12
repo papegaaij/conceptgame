@@ -378,9 +378,11 @@ public final class Barks {
             if (due(sidesTicks, levelTick)) {
                 fire(Trigger.SIDES_WAVE, t);
             }
-            if (dueReentry(levelTick)) {
-                fire(Trigger.REAR_WAVE, t);
-            }
+        }
+        // M5 part H: a re-entry's bark is due on the real clock, so it fires while the level clock is
+        // halted (the Siege Spire's maw launches in its arena).
+        if (dueReentry(SimStep.ticks(realSeconds))) {
+            fire(Trigger.REAR_WAVE, t);
         }
         lastTick = levelTick;
         boolean low = playerArmourShare < playerBelow;
@@ -407,6 +409,14 @@ public final class Barks {
      * @return whether a bark was planned
      */
     public boolean reentry(int levelTick) {
+        return reentry(levelTick, levelTick);
+    }
+
+    /**
+     * As {@link #reentry(int)}, with the real clock's step {@code realTick} the bark is timed from (M5
+     * part H: in a halted arena the level clock stands still while the warnings run on real steps).
+     */
+    public boolean reentry(int levelTick, int realTick) {
         for (int tick : rearTicks) {
             if (tick >= levelTick && tick <= levelTick + rearWarningTicks) {
                 return false;
@@ -415,15 +425,15 @@ public final class Barks {
         if (reentryCount == REENTRIES) {
             return false;
         }
-        reentryTicks[reentryCount++] = levelTick + reentryLead;
+        reentryTicks[reentryCount++] = realTick + reentryLead;
         return true;
     }
 
-    /** Whether a re-entry's bark is due by {@code levelTick}; the due ones are dropped. */
-    private boolean dueReentry(int levelTick) {
+    /** Whether a re-entry's bark is due by {@code realTick}; the due ones are dropped. */
+    private boolean dueReentry(int realTick) {
         boolean due = false;
         for (int i = reentryCount - 1; i >= 0; i--) {
-            if (reentryTicks[i] <= levelTick) {
+            if (reentryTicks[i] <= realTick) {
                 due = true;
                 reentryTicks[i] = reentryTicks[--reentryCount];
             }

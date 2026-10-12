@@ -57,6 +57,20 @@ public final class FlashShader implements Disposable {
         batch.setShader(null);
     }
 
+    /**
+     * M5 part F: every draw until {@link #end} blended by {@code amount} towards {@code colour} (Level
+     * 12's cloud banks lit from inside by a lightning flash).
+     */
+    public void begin(SpriteBatch batch, Color colour, float amount) {
+        batch.setShader(program);
+        program.setUniformf("u_flash", colour.r, colour.g, colour.b, amount);
+    }
+
+    /** Back to the batch's own shader after {@link #begin}. */
+    public void end(SpriteBatch batch) {
+        batch.setShader(null);
+    }
+
     @Override
     public void dispose() {
         program.dispose();

@@ -37,6 +37,27 @@ class ActSummaryTest {
         assertEquals(List.of(), summary.dataCores());
     }
 
+    /** M5 part H (H6 = a): Level 14 ends Act 2: its summary lists Levels 08–14, seven rows as Act 1's. */
+    @Test
+    void theAct2SummaryListsLevels08To14() {
+        Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);
+        for (int i = 0; i < 14; i++) {
+            campaign.complete(CampaignTest.won("A", 80, 1000), 60);
+        }
+
+        ActSummary summary = ActSummary.of(
+                content, campaign, CampaignRoute.actEnd(content, campaign).orElseThrow());
+
+        assertEquals("ACT II", summary.act());
+        assertEquals("HOMEFRONT", summary.name());
+        assertEquals(
+                List.of(8, 9, 10, 11, 12, 13, 14),
+                summary.missions().stream().map(ActSummary.Mission::number).toList());
+        assertEquals("SIEGE SPIRE", summary.missions().getLast().name());
+        assertEquals(7 * 80, summary.kills());
+        assertEquals(List.of(), summary.dataCores());
+    }
+
     @Test
     void theDataCoresFoundInTheActShowWithTheirLevel() {
         Campaign campaign = Campaign.start(CampaignTest.RULES, Difficulty.MEDIUM);

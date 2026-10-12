@@ -1,9 +1,9 @@
 ---
 title: Act 2 – Homefront
-design: approved
+design: review
 implementation: in-progress
 art: chosen
-updated: 2026-10-09
+updated: 2026-10-12
 ---
 
 # Act 2 – Homefront
@@ -23,9 +23,9 @@ Siege Spire, a Vrell citadel that has rooted itself in the heart of the UTC capi
 | [level-09-arcology-fall](level-09-arcology-fall/README.md) | The act's first `destroy-targets`: six hardened hive nodes, hold zones, Ravager packs, the arcology collapse · front · density 3 | approved | done | final |
 | [level-10-evacuation-corridor](level-10-evacuation-corridor/README.md) | escort` of five shuttles at first light, first rear-heavy level (Wraith, Mote Swarm), one scripted loss · front and rear (a third from behind by threat) · density 3 | approved | done | final |
 | [level-11-atlantic-convoy](level-11-atlantic-convoy/README.md) | Naval layer (Driftjelly, Reef Spitter), `sub` shadows, mid-boss Harbour Kraken · front · density 3 | approved | done | final |
-| [level-12-storm-front](level-12-storm-front/README.md) | Weather (rain, lightning, gusts), Lamprey intro, Varga sees the Vrell herd the storm · all · density 4 | approved | not-started | chosen |
-| [level-13-polar-relay](level-13-polar-relay/README.md) | `defend` the Arctic relay for 180 s, Skimmer intro, whiteout · all edges · density 4 | approved | not-started | chosen |
-| [level-14-siege-spire](level-14-siege-spire/README.md) | Geneva Concord approach through the root field, act boss Siege Spire · front · density 4 | approved | not-started | chosen |
+| [level-12-storm-front](level-12-storm-front/README.md) | Weather (rain, lightning, gusts), Lamprey intro, Varga sees the Vrell herd the storm · all · density 4 | review | in-progress | proposed |
+| [level-13-polar-relay](level-13-polar-relay/README.md) | defend` the Arctic relay for 180 s, Skimmer intro, whiteout · all edges · density 4 | review | in-progress | proposed |
+| [level-14-siege-spire](level-14-siege-spire/README.md) | Geneva Concord approach through the root field, act boss Siege Spire · front · density 4 | review | in-progress | proposed |
 
 ## Design
 
@@ -65,8 +65,7 @@ act briefing in front of the briefing of the act's first level; they live in the
 [architecture](../../tech/architecture/README.md#data-file-schemas) schema text) and are rendered
 here. A save written at the L08 hangar by an M4 build skips this intro (a default of M5 part B, accepted by the user);
 `--level 7` shows it, since winning Level 07 plays the outro and then this intro. After the Siege
-Spire falls, the act complete fanfare plays over L14's daylight outro, followed by the act debrief
-(M5 part H).
+Spire falls, the act ends as the *Act-end order* below says (M5 part H).
 
 **Title card** (held 3.5 s over the act's still, `ui/act-2-homefront-still.png`: Nova Lagos at
 night seen from low orbit, fires along the coast, the landing trails of the second fleet cutting
@@ -107,21 +106,40 @@ it opens on the landfall twelve days later and does not repeat them.
 > briefing follows. Aegis Actual out."
 <!-- /data -->
 
-**Act debrief** (after L14; still image: the withered stump of the Spire in Geneva at sunrise,
-the lake bright behind it)
+**Act-end order** (M5 part H, decision H6 = a, pending the user's review; the flow of
+[Act 1](../act-1-first-contact/README.md#act-intro-and-outro) for any act, the same code): the
+Siege Spire's kill → the daylight section (the boss theme fades, no music) → the debrief with the
+act summary `ACT II COMPLETE · HOMEFRONT` (the `mission-complete` jingle, the
+[summary](../../ui/debrief/README.md)) → the four outro pages with track 24 *act complete* under
+page 1 → autosave into the hangar, which reads `BEFORE L15 - NOT BUILT YET` until Act 3 (H9 = a;
+M6 owns the end of the release).
 
-> **Commander Okafor:** "The Siege Spire is dead. Within the hour every Vrell force on Earth lost
-> its coordination. Some are digging in, most are scattering, and the army is clearing them city
-> by city.
+**Act-end outro** (four pages in the briefing format, each voiced and with its own image in
+`assets/ui/briefing/`; H7 = a: the approved text of the former single act debrief, one paragraph
+per page, unchanged). The pages are in the act's [data.yaml](data.yaml) (`outro`) and rendered
+here.
+
+| Page | Speaker | Image |
+|---|---|---|
+| 1 | Commander Okafor (grim) | `act-2-outro-stump`: the withered stump of the Spire in Geneva at sunrise, the lake bright behind it |
+| 2 | Commander Okafor (grim) | `act-2-outro-names`: a Nova Lagos / Geneva street at dawn, a wall of candles and names |
+| 3 | Commander Okafor (grim) | `act-2-outro-mars`: Ares Landing's priority signal on a CDF plot, Mars at its edge |
+| 4 | Commander Okafor (fierce) | `act-2-outro-aegis`: Aegis Wing's Stormhawks and Rook's Ember craft on the apron at dusk, a Mars-bound transport behind them |
+
+<!-- data: act-outro -->
+> **Commander Okafor:** "The Siege Spire is dead. Within the hour every Vrell force on Earth
+> lost its coordination. Some are digging in, most are scattering, and the army is clearing them
+> city by city."
 >
-> Nova Lagos is counting its losses. So is Geneva. So are we. Remember the names, then get some
-> sleep.
+> **Commander Okafor:** "Nova Lagos is counting its losses. So is Geneva. So are we. Remember
+> the names, then get some sleep."
 >
-> An hour ago Ares Landing sent a priority signal. Mars is under siege, and the colonies have been
-> holding alone for three weeks.
+> **Commander Okafor:** "An hour ago Ares Landing sent a priority signal. Mars is under siege,
+> and the colonies have been holding alone for three weeks."
 >
-> We take the fight to them now. Aegis Wing ships out for Mars in seventy-two hours. Aegis Actual
-> out."
+> **Commander Okafor:** "We take the fight to them now. Aegis Wing ships out for Mars in
+> seventy-two hours. Aegis Actual out."
+<!-- /data -->
 
 ### Settings
 
@@ -152,7 +170,9 @@ L13, L14), Spore Bomber (L12), Mantis (L12, L13), Whirl Seed (L12), Scuttler (L1
 returning `medium` and larger units get the act HP factor from the
 [balancing basis](../../enemies/README.md#balancing-basis) (D5 = c of M5 part A): here the Spore
 Bomber, the Mantis and the Scuttler, and the act's own units in the levels after their first: the
-Creeper (L08) in L09 (30 → 32 HP) and L14 (40), the Hive Node and the Ravager (L09) in L14. The
+Creeper (L08) in L09 (30 → 32 HP) and L14 (40), the Hive Node (L09) in L14 (81 HP), the Ravager
+(L09) in L14 (20) and the Wraith (L10) in L14 (19; the Spire's maw launches it too). The Skimmer
+(L13) is new there and has no factor. The
 `tiny` and `small` ones (Skitter, Whirl Seed, Needler, Stinger, Spine Turret, Polyp Mortar) keep
 their HP, so none of Level 08's returning units changes.
 The level documents list the waves.
@@ -162,8 +182,11 @@ The level documents list the waves.
 Per level, from the [track list](../../audio/music/README.md#track-list): L08, L10 and L13 use the
 Act 2 A theme "Homefront"; L09, L11, L12 and the L14 approach use the Act 2 B theme "Firestorm"
 (L12 has no separate storm variant); the Kraken (L11) gets the mini-boss sting; the Siege Spire
-uses the boss warning and the Vrell boss theme "The Choir Descends", then the act complete
-fanfare.
+uses the boss warning and the Vrell boss theme "The Choir Descends"; the act complete fanfare
+plays under the first outro page, after the debrief (M5 part H, H6 = a). L13 keeps ambience only
+in its first section and plays its own jingle at the sync's end (M5 part G, G8 = a; the
+[music](../../audio/music/README.md) README has the cues), and L14 has no music in its daylight
+section.
 
 ### Voice
 
@@ -172,8 +195,8 @@ the act briefing's four pages and each level's briefing pages and radio; the han
 only, by design (round 30). A new speaker is auditioned in the round of the level that introduces
 it (Level 08: the Ikoyi shelter civilian, round 30; Level 09: the Kilo Lead, the CDF officer of the
 truck convoy, round 31; Level 10: the shuttle pilots Lifeline and Lifeline Three, round 32; Level
-11: Atlas Control, the CDF officer of convoy Atlas-Seven, round 33) and plays as text until it is
-cast.
+11: Atlas Control, the CDF officer of convoy Atlas-Seven, round 33; Level 13: Nansen, the CDF
+officer of the relay, round 35) and plays as text until it is cast.
 
 ## Concept art
 
@@ -189,14 +212,18 @@ the [briefing screen](../../ui/briefing/README.md)'s. Prompts: [concept/prompts.
 
 ## Implementation
 
-- [ ] All 7 levels promoted to draft level documents and implemented.
-- [ ] Weather system (rain, lightning, wind drift) for L12.
-- [ ] Halted-scroll `defend` mode for L13.
+- [ ] All 7 levels promoted to draft level documents and implemented: Levels 08–11 done; Levels
+      12–14 built, pending the user's review in the combined concept round (M5 parts F–H).
+      Acts 1–2 flown as one campaign on every difficulty by `ActPlaythroughTest` (M5 part I).
+- [x] Weather system (rain, lightning, wind gusts and drift) for L12 — M5 part F ([Level 12](level-12-storm-front/README.md#weather); `WindTest`, `Level12Test`, `Level12LooksTest`).
+- [x] Halted-scroll `defend` mode for L13 — M5 part G ([Level 13](level-13-polar-relay/README.md#the-halt); `TimedHaltTest`, `DefendTest`, `Level13Test`).
 - [x] Act title card over its still (`ui/act-2-homefront-still.png`, `tools/art/act_stills.py`) with
       its lettering (`ui/act-2-homefront-title.png`, `tools/concept/ui_assets.py`), then the four
       voiced act briefing pages with their images, before the L08 briefing at the act's start
       ([data.yaml](data.yaml); M5 part B).
-- [ ] Act debrief as in *Act intro and outro* (M5 part H).
+- [x] Act outro (four voiced pages with their images, `act-complete` under page 1) and the
+      act-end order as in *Act intro and outro* (M5 part H, H6 and H7 = a; step H6: the pages voiced,
+      `OutroOnwardTest`, `DebriefActEndTest`; the flow seen in step H7's capture).
 
 ## Open questions
 
@@ -251,3 +278,17 @@ the [briefing screen](../../ui/briefing/README.md)'s. Prompts: [concept/prompts.
   the sides, and by threat about a third comes from behind (the looping Mote Swarms enter at the
   top). Level 10 flies at first light (D11 = a), as Level 09's end line says; its texts go to
   `review` for round 32.
+- 2026-10-11: M5 parts G and H (the user is on vacation; the main agent took the gap analyses'
+  recommendations, **pending the user's review** in the combined round at the end of M5): Level 13
+  and Level 14 go to `review`/`in-progress` as their rows say; **H6 = a** the act-end order is
+  Act 1's (kill, daylight, debrief with the act summary, outro, hangar), so the old "fanfare over
+  the daylight, then the act debrief" is corrected; **H7 = a** the act debrief becomes the four-page
+  voiced outro in [data.yaml](data.yaml), the approved text unchanged, one paragraph per page;
+  **H9 = a** the outro ends at the hangar with Level 15 not built (M6 owns the release's end); the
+  HP-factor list names the Hive Node (81), the Ravager (20) and the Wraith (19) in L14.
+- 2026-10-12: M5 part I (close-out): the weather (part F) and the halted `defend` mode (part G)
+  ticked as built; the levels item stays open until Levels 12–14 pass the combined concept round.
+  `ActPlaythroughTest` now flies Acts 1 and 2 as one campaign with Rook on every difficulty.
+- 2026-10-12: `design` back to `review` (from `approved`) for the act-end order (H6 = a corrects the
+  approved "fanfare over the daylight") and the outro split into four pages (H7 = a), both pending the
+  user's review: C13 in the combined [concept round 34](../../concept-rounds/round-34/README.md#changes-to-approved-specs).

@@ -37,7 +37,7 @@ final class HudKit {
     /** The glow behind a readout is this opaque. */
     private static final float GLOW_ALPHA = 28 / 255f;
     /** A plate's text sits this far right of the plate's left edge. */
-    private static final int PLATE_INDENT = 4;
+    static final int PLATE_INDENT = 4;
 
     /** The 8x12 label font. */
     final BitmapFont small;
@@ -74,8 +74,13 @@ final class HudKit {
 
     /** A label plate with its text's left at {@code x} and the plate's top 4 px above {@code y}. */
     void label(SpriteBatch batch, String text, int x, int y) {
+        label(batch, text, LABEL, x, y);
+    }
+
+    /** As {@link #label(SpriteBatch, String, int, int)} in {@code colour} (M5 part F: {@code SHIELD DRAIN}). */
+    void label(SpriteBatch batch, String text, Color colour, int x, int y) {
         batch.draw(plate, x - PLATE_INDENT, y + 4 - plate.getRegionHeight());
-        text(batch, small, text, LABEL, x, y - 4);
+        text(batch, small, text, colour, x, y - 4);
     }
 
     /** An LCD well whose glass is {@code width} x {@code height} with its bottom at {@code y}. */

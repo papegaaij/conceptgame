@@ -8,6 +8,10 @@ package vanguard.sim;
 public final class GroundObject implements Hashed {
     private LevelScript.GroundObjectSpec spec;
     private int serial;
+    /** M5 part F: where it is across; only a drifting trigger on {@code low-air} moves sideways. */
+    private double x;
+
+    private double prevX;
     private double y;
     private double prevY;
     private double hp;
@@ -20,6 +24,7 @@ public final class GroundObject implements Hashed {
     void place(LevelScript.GroundObjectSpec objectSpec, int index) {
         serial = index;
         spec = objectSpec;
+        x = prevX = objectSpec.x();
         y = prevY = PlayField.HEIGHT + objectSpec.size().height() / 2;
         hp = objectSpec.hp();
         hitsLeft = objectSpec.hits();
@@ -29,11 +34,18 @@ public final class GroundObject implements Hashed {
 
     /** Scrolls down by {@code distance}; returns false once it has left the bottom edge. */
     boolean scroll(double distance) {
+        prevX = x;
         prevY = y;
-        y -= distance;
         if (ticksSinceHit < Integer.MAX_VALUE) {
             ticksSinceHit++;
         }
+        if (spec.lowAir()) {
+            // M5 part F: a drifting trigger on low-air drifts in screen space, not with the ground.
+            x += spec.driftX() * SimStep.SECONDS;
+            y += spec.driftY() * SimStep.SECONDS;
+            return PlayField.overlaps(x, y, spec.size()) || y - spec.size().height() / 2 >= PlayField.HEIGHT;
+        }
+        y -= distance;
         return y + spec.size().height() / 2 > 0;
     }
 
@@ -81,10 +93,14 @@ public final class GroundObject implements Hashed {
     @Override
     public void addTo(StateHash hash) {
         hash.add(spec.x()).add(y).add(hp).add(hitsLeft).add(ticksSinceHit);
+        if (spec.lowAir()) {
+            // M5 part F: only a drifting trigger, so the other levels hash as before.
+            hash.add(x);
+        }
     }
 
     double x() {
-        return spec.x();
+        return x;
     }
 
     int serial() {
@@ -104,6 +120,14 @@ public final class GroundObject implements Hashed {
         return spec.trigger() && hitsLeft <= 0;
     }
 
+    /**
+     * M5 part H: the hits a trigger still needs to release its secret (Level 14's armoured car shows one
+     * creep blob cleared per hit); 0 once spent. Read-only, for the presentation.
+     */
+    public int hitsLeft() {
+        return Math.max(0, hitsLeft);
+    }
+
     /** Simulation steps since the last hit; {@link Integer#MAX_VALUE} before the first. */
     public int ticksSinceHit() {
         return ticksSinceHit;
@@ -115,7 +139,12 @@ public final class GroundObject implements Hashed {
     }
 
     public double renderX() {
-        return spec.x();
+        return x;
+    }
+
+    /** M5 part F: position between the previous and the current step (a drifting trigger moves sideways). */
+    public double renderX(double alpha) {
+        return prevX + (x - prevX) * alpha;
     }
 
     /** Position between the previous and the current step; {@code alpha} in [0, 1]. */

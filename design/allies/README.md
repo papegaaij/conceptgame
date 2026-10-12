@@ -1,10 +1,10 @@
 ---
 title: Allies
-design: approved
+design: review
 implementation: in-progress
-art: final
+art: proposed
 depends-on: [../enemies, ../art-direction, ../ui/hud]
-updated: 2026-10-09
+updated: 2026-10-12
 ---
 
 # Allies
@@ -109,22 +109,40 @@ crawler's or shuttle's becomes its number word. The boss checkpoint keeps each s
 
 ### Nansen Relay
 
-The Arctic grid relay, a friendly `defend` structure.
+The Arctic grid relay, a friendly `defend` structure (M5 part G, Level 13; reworked 2026-10-11, G1 and
+G2 = a, pending the user's review). Its numbers are in [data.yaml](data.yaml) (M5 part G, step G4: `follows:
+ground`, `damaged_by` `objective_aimed`, `dives: 10` and `lobs: true`); the table is hand-written.
 
 | Property | Value |
 |---|---|
-| Size / layer | footprint 96×96 px on `ground`: dish array, mast, prefab modules, a helipad |
-| Integrity | 600 at medium, no regeneration (difficulty variants in the level); a bar in the objective tracker |
-| Damaged by | Only attacks **aimed at the relay** through the [target-the-objective hook](../enemies/README.md#target-the-objective-hook) (normal damage class of the attack; a diver's hit is 10). Shots aimed at the player that cross it do nothing. Relay-aimed bullets have the normal enemy look |
-| Behaviour | Stationary; launches supply drones (see Roster) |
-| Destroyed | Goes dark with a smoke column; the level's mission fails |
-| Levels | [L13 Polar Relay](../campaign/act-2-homefront/level-13-polar-relay/README.md) |
+| Size / layer | footprint 96×96 px on `ground`: dish array, mast, prefab modules, a helipad; **hit box 80×80** inside the footprint |
+| Integrity | **240** at medium (the draft's 600), **340 easy / 520 hard** (the draft's 900 / 450): tuned in Level 13's content step with the guarding autopilot over 8 seeds (G2 = a: medium never loses it and keeps half in about half the seeds, easy nearly always, hard never loses it; hard's hook load is 3.4 × medium's), pending the user's review; no regeneration; a bar in the objective tracker |
+| Follows | `follows: ground` (new): it scrolls with the ground, enters at the top edge during the approach and stops where the ground halts |
+| Damaged by | Only attacks **aimed at the relay** through the [target-the-objective hook](../enemies/README.md#target-the-objective-hook) (the attack's normal damage class; a diver's hit is 10, once as it crosses the footprint). Shots aimed at the player that cross it do nothing, and the relay-aimed bullets still hurt the ship, so the player can body-block. Relay-aimed bullets have the normal enemy look. Keys: `damaged_by: objective-aimed, dives, lobs` |
+| Feedback | a white hit flash per hit; **smoke below 50 %**; at grid online (t=220) its lights come on in sequence |
+| Behaviour | Stationary; player fire, Rook's fire and the specials pass over it, no contact with the ship; the crew launch supply drones (see below) |
+| Destroyed | Goes dark with a smoke column; the level's mission fails (the `defend` primary) |
+| Levels | [L13 Polar Relay](../campaign/act-2-homefront/level-13-polar-relay/README.md) (at play-field x = 240) |
+
+The relay is not an escort: it never moves, nothing of the player's escorts it. Its sprite has
+**states** (intact, hit flash, smoke below 50 %, dark with the smoke column, the lights coming on in
+sequence) and a HUD icon; it has no concept of its own yet, so round 35 shows an a/b (G9 = a).
+
+### CDF supply drone
+
+A small `air` drone of the Nansen Relay's crew (promoted from the roster, M5 part G, G6 = a;
+Level 14 reuses it, part H). **Presentation only**: it lifts off the relay's helipad, flies a slow arc
+(≈ 4 s) over the relay and **releases an armour patch at the arc's top**, a point in the field (Level
+13: ≈ (240, 380 y-up)). In Level 14 (no relay, step H9, pending the user's review) it flies in from
+below the bottom edge under its point, releases the patch at (240, 380 y-up) at t=100 and leaves the
+same way, without the launch sound (a helipad's lift-off). The patch is then an ordinary pickup: it drifts down, the magnet pulls it and it
+expires as pickups do. **Nobody can hit the drone** and it hurts nobody; in the simulation there is
+only a pickup released at (time, x, y). One version of the look, no a/b.
 
 ## Roster
 
 | Name | Summary | Design |
 |---|---|---|
-| CDF supply drone | Small `air` drone flying a slow arc and dropping an armour patch; cannot be hit by anyone. L13 (from the relay), L14 | idea |
 | CDF lifeboat | Drifting friendly lifeboat towing a cargo pod; shots pass through it, only its tow cable is hittable (hidden crate). L07 | idea |
 | Crewed drydock | `ground` structure carrying enemy turrets; saved when its turrets die before it leaves the screen. It is scenery and cannot be damaged itself. L02 | idea |
 
@@ -144,6 +162,8 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
 | [concept/rejected/evacuation-shuttle-r32-b.png](concept/rejected/evacuation-shuttle-r32-b.png), [.gif](concept/rejected/evacuation-shuttle-r32-b.gif) | Evacuation shuttle b, "heavy lifter" (`tools/art/shuttle.py --variant b`, production quality): the same set; review files only | rejected |
 | [concept/convoy-ships-r33-a.png](concept/convoy-ships-r33-a.png), [.gif](concept/convoy-ships-r33-a.gif) | Convoy ship pair a, "Atlantic line" (`tools/art/convoy_ships.py`, production quality, M5 part E, round 33): the ocean scene's feeder container ship (56×120: afloat, damaged and listing with its fire, 10 sinking steps through the surface, collar, wake, HUD pip) and grey CDF frigate (40×110: collar, wake, gun flash, flak burst); in the game until the pick | chosen |
 | [concept/rejected/convoy-ships-r33-b.png](concept/rejected/convoy-ships-r33-b.png), [.gif](concept/rejected/convoy-ships-r33-b.gif) | Convoy ship pair b, "Reactor run" (`tools/art/convoy_ships.py --variant b`, production quality): a rust-red heavy-lift carrier with its bridge forward and reactor cargo, and a CDF stealth trimaran frigate; the same sets; review files only | rejected |
+| [concept/relay-r35-a.png](concept/relay-r35-a.png), [.gif](concept/relay-r35-a.gif) | Nansen Relay a "ice station" (`tools/art/relay.py`, production quality, M5 part G, round 35): 96×96 intact / damaged / critical / destroyed, the grid-online light sequence, fire, smoke column, HUD pip; the loop: hits, smoke, fire, power-down, grid online | proposed |
+| [concept/relay-r35-b.png](concept/relay-r35-b.png), [.gif](concept/relay-r35-b.gif) | Nansen Relay b "grid node" (hardened blockhouse, three phased-array faces): as a | proposed |
 
 ## Implementation
 
@@ -166,13 +186,30 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
       HUD pips; production sprites (round 33's ship pair a/b, E9 = a; variant a under the game's
       names until the pick) — `ConvoyLooks` (naval), `MissionPanel.drawConvoyTracker`,
       `Level11LooksTest`, `PartEHudTest`
-- [ ] Nansen Relay: integrity, relay-aimed damage, dark when destroyed; data and production art — **later: M5 part G** (Level 13)
-- [ ] CDF supply drone (roster): arc and armour patch drop — **later: M5 part G** (Level 13) and **part H** (Level 14)
+- [x] Nansen Relay, simulation and data (M5 part G, steps G3 and G4, Level 13): `follows: ground`,
+      integrity without regeneration (tuned in G4: 240 / 340 / 520), hit box 80×80, `damaged_by:
+      objective_aimed, dives, lobs` with the hook's exact modes, the failed `defend` primary, the 50 % smoke
+      state, the threshold events; in [data.yaml](data.yaml) — simulation in G3 (`LevelScript.Defend`,
+      `Convoy`'s defend mode, `AllySpec.dives`/`lobs`, `DefendTest`, `HookModesTest`), the data and loader
+      in G4 (`AlliesData`, `PartGRules.ally`, `PartGUnitsDataTest`, `BalanceTest.theAutopilotKeepsTheRelay`)
+- [x] Nansen Relay, presentation (M5 part G, steps G5 and G6): the sprite with its states (a/b in
+      round 35), the hit flash, the smoke below 50 %, dark with the smoke column, the lights sequence at
+      grid online, the HUD icon and integrity bar — in the game in G6 (`RelayLooks`, variant a until the
+      round's pick; fire below 25 %; the lights from the synchronisation's end, t=218; the HUD's `RELAY`
+      line has the integrity bar and no room for the `-pip` icon, which stays unused; `Level13LooksTest`,
+      `PartGHudTest`)
+- [x] CDF supply drone (M5 part G, steps G3 to G6, Level 13; part H, Level 14): a pickup released at a
+      point in the field, the drone's arc from the helipad as presentation, the sprite (one version) —
+      the point drop in the simulation done in G3 (`LevelScript.PlacedPickup` with a y,
+      `SimEvents.Type.PICKUP_PLACED`), the level's `drops` with the drone's `sprite` and its sprites in
+      `assets/` (claimed by the drops) in G4; Level 13's drone arc in G6 (`DroneLooks`: 4 s up from the
+      relay's helipad to the drop, the patch in its bay, back with its clamps open; its launch sound);
+      Level 14's in H9 (its `drops`, the drone in from below the bottom edge and back, `Level14LooksTest`)
 
 ## Open questions
 
-- Sprites for the relay: a later concept round (the cargo ship and frigate are round 33's a/b,
-  M5 part E).
+- The relay's sprite (states and the lights sequence): an a/b in concept round 35 (M5 part G, G9 =
+  a, taken as recommended while the user is on vacation; pending the user's review).
 
 ## Decisions
 
@@ -277,3 +314,29 @@ Prompts and briefs: [concept/prompts.md](concept/prompts.md). Generator:
   medium, the hold clear of Tiamat with Mbeki off the bottom edge, the rafts on the flanks, the
   frigate's flak as presentation) accepted as built, so `design: approved`; the convoy's items are
   ticked, the rest wait for their M5 parts.
+- 2026-10-11: M5 part G, step G1a (the user is on vacation: the main agent took the gap analysis's
+  recommendations, **all pending the user's review** in the combined concept round at the end of M5):
+  **G1 = a** the relay is hurt only by relay-aimed attacks, made exact per hook mode (a diver's 10 once
+  as it crosses the footprint; the mortar's direct hit; the Skimmer's and Scuttler's aimed shots and
+  fans, see [Level 13](../campaign/act-2-homefront/level-13-polar-relay/README.md#what-hurts-the-relay-the-hook-modes-g1--a)).
+  **G2 = a** integrity 600 / 900 / 450 are starting values, tuned by the defend autopilot. **G6 = a**
+  the supply drone is presentation only and releases an ordinary pickup, promoted from the roster to a
+  spec section. Stated defaults: hit box 80×80, `follows: ground`, smoke below 50 %, the lights at grid
+  online, the relay and the drone `first_level: 13`. `design: review` for the reworked specs.
+- 2026-10-11: M5 part G, step G3 (the simulation; pending the user's review, the user is on vacation):
+  the Nansen Relay is a `defend` primary's ally (a `Convoy` of one): `follows: ground`, it stands at its
+  place when the level clock reaches the defend's start and scrolls with the ground before and after;
+  `damaged_by: dives` deals the spec's 10 once as a hooked diver's hit box crosses the relay's hit box,
+  `lobs` a relay-aimed lob's direct hit when it lands on the hit box; once its synchronisation is over
+  nothing aims at it and nothing hurts it; `--invulnerable` keeps its loss from failing the level, as
+  an escort's. The supply drone's patch is a placed pickup with a point (y up) instead of the top edge.
+- 2026-10-12: M5 part G, step G4 (pending the user's review): the Nansen Relay in [data.yaml](data.yaml)
+  (`follows: ground`, `damaged_by` `objective_aimed`, `dives: 10`, `lobs: true`, `first_level: 13`), its
+  integrity tuned with the guarding autopilot to 240 at medium (Level 13's 340 easy / 520 hard; the draft's
+  600 / 900 / 450 left the medium relay at 81–83 % in every seed); its production sprites (variant a)
+  written to `assets/` (`tools/art/relay.py --assets`, b's stay review files until the pick); the supply
+  drone stays presentation only (no allies entry: Level 13's `drops` name its sprite).
+- 2026-10-12: M5 part H, step H9 (pending the user's review): Level 14's t=100 armour patch, which simply
+  entered at the top edge, is carried in by the supply drone: the level's `drops`; without a defended
+  ally the drone flies in from 24 px below the bottom edge under its point and leaves the same way
+  (`DroneLooks`; Level 13's arcs from the helipad are unchanged).

@@ -33,7 +33,7 @@ class SpriteUseTest {
                         "ore-canister"));
 
         assertEquals(Set.of("level-03"), atlases.get("leviathan-fin-left"));
-        assertEquals(Set.of("level-03"), atlases.get("whirl-seed-husk"));
+        assertEquals(levelsUsing("whirl-seed"), atlases.get("whirl-seed-husk"));
         assertEquals(Set.of("level-03"), atlases.get("debris-large-a"));
         assertEquals(Set.of("level-02"), atlases.get("crane-four-arm"));
         assertEquals(Set.of("level-04"), atlases.get("civilian-crawler-pip"));
@@ -81,6 +81,51 @@ class SpriteUseTest {
         assertEquals(Set.of("level-10"), atlases.get("lance"));
         assertEquals(Set.of("level-10"), atlases.get("lance-flash"));
         assertEquals(Set.of("level-10"), atlases.get("ferry-hatch-break"), "the ferry hatch's look");
+    }
+
+    /** M5 part F: the weather looks and sondes go in the unit atlas of each level with a weather block only. */
+    @Test
+    void aLevelsWeatherClaimsTheWeatherLooks() {
+        Set<String> withWeather = new TreeSet<>();
+        content.levels()
+                .forEach((key, level) -> level.weather().ifPresent(weather -> withWeather.add(SpriteUse.atlasOf(key))));
+        Map<String, Set<String>> atlases = SpriteUse.atlases(
+                content, List.of("weather-rain", "weather-sonde", "weather-sonde-collect", "weather-bolt"));
+
+        assertTrue(withWeather.contains("level-12"), "Level 12 has a weather block: " + withWeather);
+        assertEquals(withWeather, atlases.get("weather-rain"));
+        assertEquals(withWeather, atlases.get("weather-sonde"));
+        assertEquals(withWeather, atlases.get("weather-sonde-collect"));
+        assertEquals(withWeather, atlases.get("weather-bolt"));
+    }
+
+    /** M5 part H: the root bursts' looks go in the unit atlas of each level with root bursts only. */
+    @Test
+    void aLevelsRootBurstsClaimTheirLooks() {
+        Set<String> withBursts = new TreeSet<>();
+        content.levels().forEach((key, level) -> {
+            if (!level.bursts().isEmpty()) {
+                withBursts.add(SpriteUse.atlasOf(key));
+            }
+        });
+        Map<String, Set<String>> atlases =
+                SpriteUse.atlases(content, List.of("root-burst-decal", "root-burst-puff", "root-burst-root"));
+
+        assertTrue(withBursts.contains("level-14"), "Level 14 has root bursts: " + withBursts);
+        assertEquals(withBursts, atlases.get("root-burst-decal"));
+        assertEquals(withBursts, atlases.get("root-burst-puff"));
+        assertEquals(withBursts, atlases.get("root-burst-root"));
+    }
+
+    /**
+     * M5 part G: the ship's damage smoke, which Level 13's relay also trails (RelayLooks), is a game-wide
+     * sprite (the {@code ship} root), so every level, Level 13 included, finds it in the shared pages.
+     */
+    @Test
+    void theShipSmokeIsSharedForTheRelayToo() {
+        assertEquals(
+                Set.of(SpriteUse.SHARED),
+                SpriteUse.atlases(content, List.of("ship-smoke")).get("ship-smoke"));
     }
 
     @Test

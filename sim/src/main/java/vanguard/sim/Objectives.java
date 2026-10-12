@@ -35,6 +35,8 @@ final class Objectives {
     private boolean secondaryMet;
     /** M5 part E: whether a naval convoy unit sank, which fails an afloat objective. */
     private boolean afloatFailed;
+    /** M5 part G: whether the defended ally dropped below an integrity objective's share. */
+    private boolean integrityFailed;
 
     /**
      * @param groups the groups the ground units belong to: the secondary's or the destroy-targets
@@ -80,6 +82,7 @@ final class Objectives {
         escapesFailed = other.escapesFailed;
         secondaryMet = other.secondaryMet;
         afloatFailed = other.afloatFailed;
+        integrityFailed = other.integrityFailed;
     }
 
     /** Back to the level start. */
@@ -95,6 +98,34 @@ final class Objectives {
         escapesFailed = false;
         secondaryMet = false;
         afloatFailed = false;
+        integrityFailed = false;
+    }
+
+    /**
+     * M5 part G (design/campaign Level 13, user decision G2 = a): the defended ally took a hit and has
+     * {@code share} of its integrity left; returns whether that failed an integrity objective (the first
+     * drop below its share: the ally does not regenerate, so it cannot recover).
+     */
+    boolean integrityLeft(double share) {
+        if (!secondary.byIntegrity() || integrityFailed || secondaryMet || share >= secondary.integrity()) {
+            return false;
+        }
+        integrityFailed = true;
+        return true;
+    }
+
+    /** M5 part G: the defend's synchronisation completed; returns whether that met an integrity objective. */
+    boolean defended() {
+        if (!secondary.byIntegrity() || integrityFailed || secondaryMet) {
+            return false;
+        }
+        secondaryMet = true;
+        return true;
+    }
+
+    /** M5 part G: whether an integrity objective failed (the ally dropped below its share). */
+    boolean integrityFailed() {
+        return integrityFailed;
     }
 
     /**
@@ -150,6 +181,28 @@ final class Objectives {
             return true;
         }
         return false;
+    }
+
+    /** M5 part F: a weather sonde was collected; returns whether that met a collect: sondes objective. */
+    boolean sondeCollected() {
+        if (!secondary.sondes() || escapesFailed || secondaryMet) {
+            return false;
+        }
+        escapesDestroyed++;
+        if (escapesDestroyed == escapesTotal) {
+            secondaryMet = true;
+            return true;
+        }
+        return false;
+    }
+
+    /** M5 part F: a weather sonde left the bottom edge uncollected; returns whether that failed the objective. */
+    boolean sondeLost() {
+        if (!secondary.sondes() || escapesFailed || secondaryMet) {
+            return false;
+        }
+        escapesFailed = true;
+        return true;
     }
 
     /** A parts objective's phase ended (or its boss died) with a part alive; returns whether that failed the objective. */
@@ -222,6 +275,16 @@ final class Objectives {
         return groupState.length;
     }
 
+    /** M5 part H: the ground units in group {@code g} (the tracker's {@code ROOTS n / 8}). */
+    int groupUnits(int g) {
+        return groupUnits[g];
+    }
+
+    /** M5 part H: the units of group {@code g} destroyed in this attempt. */
+    int groupDestroyed(int g) {
+        return groupDestroyed[g];
+    }
+
     int groupState(int g) {
         return groupState[g];
     }
@@ -272,6 +335,10 @@ final class Objectives {
         if (secondary.afloat()) {
             // M5 part E: only with an afloat objective, so the other levels hash as before.
             hash.add(afloatFailed ? 1 : 0);
+        }
+        if (secondary.byIntegrity()) {
+            // M5 part G: only with an integrity objective, so the other levels hash as before.
+            hash.add(integrityFailed ? 1 : 0);
         }
     }
 }

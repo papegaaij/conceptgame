@@ -1,10 +1,10 @@
 ---
 title: Weapons
 design: approved
-implementation: in-progress
+implementation: done
 art: chosen
 depends-on: [../generator, ../../systems/economy]
-updated: 2026-10-09
+updated: 2026-10-12
 ---
 
 # Weapons
@@ -152,7 +152,7 @@ are in its own `concept/`); generator `tools/art/act2_weapon_fx.py`.
 - [x] The Act 2 weapons that need no water: Tail Gun, Fan Blaster, Hornet Launcher and Swivel Gun
   with their own effects and sounds, the Proximity Mines with their delivery (M5 part A; the
   Targeting computer's turn bonus and the mine's arming beep are items of their own documents)
-- [ ] The Torpedo Pod — M5 part E (the `sub` layer, the level's `water` flag and the torpedo
+- [x] The Torpedo Pod — M5 part E (the `sub` layer, the level's `water` flag and the torpedo
   delivery, Level 11; its own items in [torpedo-pod](torpedo-pod/README.md#implementation))
 - [x] Layer hit rules per trait for the Act 1 arsenal: `anti-ground` (hardened targets, ×2 on the ground for bolts), homing reaching `high-air`, ground-only blasts (`area` of the mortar)
 - [x] The mines' `area` on `air`, `low-air` and `ground` (M5 part A)
@@ -221,3 +221,5 @@ are in its own `concept/`); generator `tools/art/act2_weapon_fx.py`.
   Rook's Mortar blasts landing on water also hitting `sub` units: a blast rule per delivery, the
   torpedo losing its point, the secret reachable by mortar) and c (as b at 50 %: one more multiplier).
   The ground-only blasts over water hit surfaced units only (a default).
+- 2026-10-12: M5 part I (close-out): the Torpedo Pod item ticked (built in part E, its own document
+  `done`); every other item is ticked or tagged later (`beam`, Act 3), so the document is `done`.

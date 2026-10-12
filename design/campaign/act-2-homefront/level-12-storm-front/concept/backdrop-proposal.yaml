@@ -1,0 +1,74 @@
+# Level 12 backdrop PROPOSAL (tools/art/backdrop_l12.py --proposal; M5 part F batch, round 34).
+# For the level-data step to merge into data.yaml: `backdrop` is the level's block, and every section
+# takes the `tiles` below. `weather_looks` at the end is NOT a data key yet: the screen-fixed looks
+# the game (step 6) draws from the backdrop images, written down here so the merge and step 6 agree.
+#
+# sections[i].tiles (by section, in order):
+#   Squall Line: [swell, chop]
+#   Rain Wall: [swell, chop]
+#   Lightning Field: [swell, chop]
+#   Storm Wall: [swell, chop]
+#   The Eye: [swell, chop-calm]
+#   Breakout: [swell, chop]
+#
+# Built round this timeline (re-run --proposal and the images after the data moves a section end):
+#   Squall Line to 25 (light), Rain Wall to 75 (medium), Lightning Field to 125 (medium), Storm Wall to 150 (medium, heavy 130-145), The Eye to 175 (clear), Breakout to 205 (medium, light 198-205); 140 px/s.
+# Sections' atmosphere as assumed: the Storm Wall `medium` with a `heavy` peak 130-145 (the 5 s ramp
+#   centred on each end, README), the Breakout `medium` with a `light` peak from 198 (light by t=200).
+# The eye's seams: its chop-calm tile set begins at ground position 21540 and ends at
+#   25040; the two sea-calm pieces lie exactly on them (t to 4 decimals on purpose).
+# The drifting canister (the data's ground target, or the default): enters at t 99 at x 420
+#   (centre on the top edge), drifting 24 px/s left and 70 px/s down (the data's
+#   drift [-24, -70], y up), off the bottom at t 107.1; the bank-tall pieces are
+#   placed round it: re-run --proposal after the data moves it. Its sprite: `sprite: supply-canister`
+#   (tools/art/l12_props.py: 0 intact, 1 hit, 2 spent; supply-canister-glow, the beacon over the bank).
+# Occlusion (F1 = a): the game draws `low-air` bodies (Spore Bombers, the canister) before the whole
+#   low-air layer (tiles, banks and these pieces), their glow after it.
+# Motion budget (BackdropCheck): no animated pieces, no drifting tile sets; the sea moves by its
+#   parallax, the rain is the game's.
+
+backdrop:
+  # Presentation only: the Atlantic storm (tools/art/backdrop_l12.py, straight from scene-storm-r10-a, F8 = a,
+  # on Level 11's ocean kit). The sea is two layers: the long swell on `deep` (0.85, opaque) and the short
+  # chop on `ground` (1.0, translucent); the eye has its own calm chop. Opaque scud banks on `low-air` (1.5).
+  scroll_factors: {deep: 0.85, far: 0.9, ground: 1.0, low-air: 1.5, high-air: 2.2}
+  ramp: 5
+  haze_colour: 5a6670  # the rain's grey over the sea (none in the eye)
+  atmosphere:
+    clear: {haze: 0.0}   # the eye: no banks, no haze (the calm dark sea)
+    light: {banks: scud-light, haze: 0.05}   # the squall line: scud at the edges ~12 %
+    medium: {banks: scud-banks, haze: 0.1}   # rain wall, lightning field, breakout: scud banks ~22 %
+    heavy: {banks: storm-banks, haze: 0.18}   # the wall's peak: banks ~35 %, the centre lane clear, the sea hazed
+  tile_sets:
+    swell: {layer: deep, height: 960}   # the storm's long swell and its slow tone field (opaque), every section; the chop slides over it (deep at 0.85)
+    chop: {layer: ground, height: 960}   # the short chop, torn whitecaps and wind streaks from the left (translucent, alpha >= 3 everywhere: the shadow stencil), sections 1-4 and 6
+    chop-calm: {layer: ground, height: 960}   # the eye's calm chop: the same chop at 30 %, no caps, no streaks
+    scud-light: {layer: low-air, height: 960}   # light: the squall line's first scud at the edges, ~12 % cover, opaque cores
+    scud-banks: {layer: low-air, height: 960}   # medium: dark scud banks ~22 %, opaque cores (they hide low-air bodies)
+    storm-banks: {layer: low-air, height: 960}   # heavy: the wall's banks ~35 %, the centre lane kept clear
+  pieces:
+    sea-calm-in: {layer: ground, size: [480, 320]}   # on the eye's first seam: the storm's chop fading out over the calm one (320 px)
+    sea-calm-out: {layer: ground, size: [480, 320]}   # on the eye's last seam: the storm's chop fading back in
+    bank-tall-a: {layer: low-air, size: [256, 704]}   # a tall scud bank on the right: the drifting canister's cover
+    bank-tall-b: {layer: low-air, size: [256, 704]}
+  placed:
+    # 3. Lightning Field: the canister's bank on the right (the canister enters at t 99, x 420, drifting -24, -70 px/s y up; it is under one of the two until it leaves at t 107.1)
+    - {piece: bank-tall-a, t: 101.63, x: 380}
+    - {piece: bank-tall-b, t: 104.31, x: 283}
+    # 5. The Eye: the chop fades into the calm over the eye's first seam (ground position 21540) and back out of it under the last one (25040); exact rows, re-run after the data moves a section end
+    - {piece: sea-calm-in, t: 153.071, x: 240}
+    - {piece: sea-calm-out, t: 175.786, x: 240}
+
+# NOT level data (yet): the screen-fixed weather looks step 6 draws (WeatherLooks), images in
+# assets/backdrop/level-12/<id>.png, packed with the backdrop (nearest). `from`/`to` are level times, faded
+# in and out over the backdrop's ramp centred on them; positions are the play field's (centre 240, 270).
+weather_looks:
+  eye-wall: {size: [760, 760], layer: low-air, from: 150, to: 175, centre: [240, 270], spin: 3, blend: alpha}
+    # the cloud wall all round, drawn after the low-air layer and before the play plane, turned CLOCKWISE
+    # on the screen at 3 deg/s from 0 at `from` (libGDX: rotation = -3 * (t - 150), t the
+    # script clock); lit radially, so any turn keeps its light. Nearest sampling crawls a little on the
+    # stepped edge: draw it with the backdrop page's filter switched to Linear for this one draw call.
+  eye-shaft: {size: [480, 540], layer: ground, from: 150, to: 175, blend: additive}
+    # the light on the calm sea, after the ground layer's tiles and pieces, before the ground objects
+  breakout-light: {size: [480, 200], layer: high-air, top: 0, from: 190, to: 220, blend: additive}
+    # the sky lightening at the top edge, fading in over 190-200 and held into the outro; at 40 % like high-air

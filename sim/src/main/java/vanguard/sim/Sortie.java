@@ -58,6 +58,21 @@ import java.util.List;
  * {@link LevelScript.Collapse collapse} runs on the real steps once its groups are cleared; a hold
  * over its groups stays active until its dust has settled, so what falls and the heap it leaves
  * stay on the screen.
+ *
+ * <p>M5 part G (design/campaign Level 13, user decisions G1–G6 = a): a <em>timed halt</em> is a
+ * section of speed 0 without an arena: the level clock runs on one step per step while the scroll
+ * eases into it and out of it ({@link #timedHaltSpeed}). A {@code defend} primary ({@link
+ * LevelScript.Defend}) has a {@link Convoy} of one ally standing on the ground, placed so it stands at
+ * its place at the defend's start ({@link #scrollAt}); the hook's modes aim at it, only what they aim
+ * at it hurts it, its loss fails the mission (as an escort's), its {@code ally-below} cues and an
+ * {@code integrity} secondary follow its share, and it is defended when its synchronisation is over.
+ *
+ * <p>M5 part H (design/campaign Level 14 and design/enemies/bosses/siege-spire; decisions H1–H5 = a):
+ * root bursts place their growths at a point of the screen after their telegraph ({@link
+ * LevelScript.RootBurst}); an anchored boss without lanes lobs and sweeps from its parts, its windows'
+ * ambush launches fly planned rear paths ({@link Launches}) with the bottom edge warned ahead of each
+ * re-entry on the real steps (a fixed ring of warnings, {@link #WARNINGS}), and a phase's move lifts it
+ * off its anchor, the stump staying behind. New state is hashed only in a level that uses it.
  */
 public final class Sortie {
     private static final int GROUND_CAPACITY = 32;
@@ -254,6 +269,47 @@ public final class Sortie {
     private int rampTicks = -1;
     /** The phase a boss entered in this step, for its event; -1 for none. */
     private int bossPhase = -1;
+    /** M5 part F: the level's wind and lightning (exactly no push without weather). */
+    private final Wind wind;
+    /** M5 part F: the weather sondes (none in most levels). */
+    private final Sondes sondes;
+    /** M5 part F: the latch of the level's first unit with one (the Lamprey); null without one. */
+    private final EnemySpec.Latch latch;
+    /** M5 part F: the steps of the last reversals of the commanded horizontal direction while latched, a ring. */
+    private final int[] reversals;
+
+    private int reversalNext;
+    /** M5 part F: the last commanded horizontal direction, -1 left, 1 right, 0 none yet. */
+    private int lastDirection;
+    /** M5 part F: the units latched onto the ship now. */
+    private int latchedCount;
+    /** M5 part F: whether this attempt's first latch has happened (the radio's first-latch line). */
+    private boolean latchSeen;
+    /** M5 part F: the steps the placed pickups enter at, in time order. */
+    private final int[] placedTicks;
+
+    private int nextPlaced;
+    /** M5 part G: whether the level has a timed halt: its scroll then follows {@link #timedHaltSpeed}. */
+    private final boolean timedHalts;
+    /** M5 part G: the step the defend primary's synchronisation completes at; -1 without one. */
+    private final int defendEndTicks;
+    /** M5 part H: the arena boss's ambush launches planned once; null without them. */
+    private final Launches launches;
+    /** M5 part H: the ambush launches' openings in this attempt (they take the planned sets in turn). */
+    private int ambushOpenings;
+    /** M5 part H: the bottom edge's warnings ahead of the launched units' re-entries, a ring of real steps [start, end). */
+    static final int WARNINGS = 8;
+
+    private final int[] warningStarts;
+    private final int[] warningEnds;
+    private int warningNext;
+    /** M5 part H: per root burst (in the level's order), its first growth's slot in the force's burst arrays. */
+    private final int[] burstSlots;
+    /** M5 part G: the shares the {@code ally-below} cues name, the cues' subjects, and which fired in this attempt. */
+    private final double[] belowShares;
+
+    private final String[] belowSubjects;
+    private final boolean[] belowFired;
 
     /**
      * The state recorded just before the boss arrives (design/systems/retry, the boss checkpoint),
@@ -579,6 +635,21 @@ public final class Sortie {
                 }
                 return mask;
             }
+
+            @Override
+            public void lob(double x, double y, EnemyGun gun) {
+                force.bossLob(x, y, gun, ship);
+            }
+
+            @Override
+            public void ambush(BossSpec.Spawn spawn, int part, int unit, int units, double x, double y) {
+                launchAmbush(spawn, part, unit, units, x, y);
+            }
+
+            @Override
+            public void sweep(int a, boolean telegraph, double x, double y) {
+                events.add(telegraph ? SimEvents.Type.SPIRE_SWEEP_TELEGRAPH : SimEvents.Type.SPIRE_SWEEP, x, y, a);
+            }
         };
         tally = new Tally(rules.scoring());
         String tag = script.secondary().tag();
@@ -592,6 +663,9 @@ public final class Sortie {
             escapers += script.secondary().counts(piece.slug()) ? 1 : 0;
         }
         escapers += partsPiece >= 0 ? script.secondary().parts().size() : 0;
+        // M5 part F: a collect: sondes objective counts the level's sondes.
+        escapers +=
+                script.secondary().sondes() ? script.sondes().orElseThrow().at().size() : 0;
         objectives = new Objectives(
                 script.secondary(),
                 script.groups().size(),
@@ -608,10 +682,28 @@ public final class Sortie {
         convoy = script.escort()
                 .map(escort -> new Convoy(escort, script.road().orElse(null), script.sections()))
                 .or(() -> script.convoy().map(Convoy::new))
+                .or(() -> script.defend().map(defend -> new Convoy(defend, scrollAt(script, defend.start()))))
                 .orElse(null);
-        if (convoy != null && !convoy.naval()) {
+        if (convoy != null && convoy.defend()) {
+            force.hook(convoy, convoy.defendSpec());
+        } else if (convoy != null && !convoy.naval()) {
             force.hook(convoy, convoy.escort().targetedBy());
         }
+        timedHalts = script.timedHalts();
+        defendEndTicks =
+                script.defend().map(defend -> SimStep.ticks(defend.end())).orElse(-1);
+        List<String> subjects = new java.util.ArrayList<>();
+        for (LevelScript.RadioCue cue : script.radio()) {
+            if (cue.trigger() == LevelScript.CueTrigger.ALLY_BELOW && !subjects.contains(cue.subject())) {
+                subjects.add(cue.subject());
+            }
+        }
+        belowSubjects = subjects.toArray(String[]::new);
+        belowShares = new double[belowSubjects.length];
+        for (int i = 0; i < belowShares.length; i++) {
+            belowShares[i] = LevelScript.CueTrigger.share(belowSubjects[i]);
+        }
+        belowFired = new boolean[belowShares.length];
         checkpoint = checkpointBoss < 0 ? null : new Checkpoint();
         launchTicks = SimStep.ticks(script.launchSeconds());
         endTicks = SimStep.ticks(script.seconds());
@@ -625,7 +717,84 @@ public final class Sortie {
         wingmanMount = loadout.armament().size();
         wingmanStart = loadout.wingman().map(WingmanSpec::armour).orElse(0.0);
         radio.escort(wingman);
+        wind = new Wind(script.weather());
+        sondes = new Sondes(script.sondes());
+        if (sondes.count() > 0 && checkpoint != null) {
+            throw new IllegalArgumentException("weather sondes in a level with a boss checkpoint are not supported");
+        }
+        if (script.defend().isPresent() && checkpoint != null) {
+            throw new IllegalArgumentException("a defend primary in a level with a boss checkpoint is not supported");
+        }
+        EnemySpec.Latch firstLatch = null;
+        for (EnemySpec kind : force.kinds()) {
+            if (firstLatch == null && kind.latch().isPresent()) {
+                firstLatch = kind.latch().get();
+            }
+        }
+        latch = firstLatch;
+        reversals = new int[latch == null ? 0 : latch.reversals()];
+        clearReversals();
+        placedTicks = new int[script.placedPickups().size()];
+        for (int i = 0; i < placedTicks.length; i++) {
+            placedTicks[i] = SimStep.ticks(script.placedPickups().get(i).t());
+        }
+        launches = anchored == null ? null : Launches.plan(anchored, force.kinds(), seed);
+        warningStarts = new int[launches == null ? 0 : WARNINGS];
+        warningEnds = new int[warningStarts.length];
+        int bursts = 0;
+        for (int b = 0; b < force.burstSlots(); b++) {
+            bursts += force.burstFirst(b) ? 1 : 0;
+        }
+        burstSlots = new int[bursts];
+        for (int b = 0, k = 0; b < force.burstSlots(); b++) {
+            if (force.burstFirst(b)) {
+                burstSlots[k++] = b;
+            }
+        }
         startAttempt(armour);
+    }
+
+    /**
+     * M5 part H (design/enemies/bosses/siege-spire, the maw's Wraiths; decision H3 = a): unit {@code
+     * unit} of {@code units} of an ambush launch from window part {@code part} at (x, y): it flies its
+     * planned rear path unless the boss's launched units alive reach the spawn's most already (then it is
+     * left out); it counts among the level's enemies, and the bottom edge is warned ahead of its re-entry.
+     */
+    private void launchAmbush(BossSpec.Spawn spawn, int part, int unit, int units, double x, double y) {
+        if (unit == 0) {
+            ambushOpenings++;
+        }
+        if (launches == null || force.launchedAlive() >= spawn.ambushMost()) {
+            return;
+        }
+        Spawn plan = launches.plan(spawn, part, ambushOpenings - 1, unit, units);
+        if (plan == null || !force.launchAmbush(plan)) {
+            return;
+        }
+        streamReleased++;
+        events.add(SimEvents.Type.BOSS_LAUNCHED, x, y, plan.kind());
+        int reentry = realTick + launches.reentry(spawn, part, ambushOpenings - 1, unit, units);
+        warningStarts[warningNext] = Math.max(realTick, reentry - SimStep.ticks(WaveSchedule.EDGE_WARNING_SECONDS));
+        warningEnds[warningNext] = reentry;
+        warningNext = (warningNext + 1) % warningStarts.length;
+    }
+
+    /** M5 part H: the bottom edge's bit while a launched unit's re-entry warning runs, else 0. */
+    private int launchWarnings() {
+        for (int w = 0; w < warningStarts.length; w++) {
+            if (realTick >= warningStarts[w] && realTick < warningEnds[w]) {
+                return WarningEdge.BOTTOM.bit();
+            }
+        }
+        return 0;
+    }
+
+    /** M5 part H: no launched unit's warning runs (a new attempt, a retry from the boss on an empty field). */
+    private void clearLaunchWarnings() {
+        Arrays.fill(warningStarts, 0);
+        Arrays.fill(warningEnds, 0);
+        warningNext = 0;
+        ambushOpenings = 0;
     }
 
     /** The index of the set piece {@code slug} among the level's; -1 for none. */
@@ -813,22 +982,35 @@ public final class Sortie {
         }
         groundScroll += scrollStep;
         ship.rememberPosition();
+        // M5 part F: the level's wind this step; exactly 0 without weather.
+        double push = wind.push(levelTick);
         if (launching()) {
             ship.launch((double) levelTick / launchTicks);
         } else if (flying()) {
-            ship.fly(commands);
+            ship.fly(commands, push);
+            if (latch != null) {
+                shake(commands);
+            }
             fire.fire(commands, force.enemies(), ground);
         }
         if (wingman != null) {
+            wingman.wind(push);
             flyWingman(commands);
         }
+        force.wind(push);
         special.command(commands, !launching() && flying() && !complete, ship.x(), ship.y());
         tally.step(chainTargets());
         if (!complete) {
+            if (burstSlots.length > 0) {
+                // M5 part H: the root bursts' telegraphs, before their growths are let in.
+                force.bursts(levelTick, ship.x(), groundScroll, scrollStep);
+            }
             force.spawn(levelTick);
             placeGroundObjects();
             placeDebris();
             radio.byTime(levelTick);
+            wind.flash(levelTick, events);
+            placePickups();
         }
         for (Crane crane : cranes) {
             crane.update(levelTick);
@@ -843,7 +1025,7 @@ public final class Sortie {
             updateSled();
         }
         flySetPieces();
-        edgeWarnings = complete ? 0 : force.warnings(levelTick);
+        edgeWarnings = complete ? 0 : force.warnings(levelTick) | launchWarnings();
         fire.move(scrollStep, force.enemies(), ground);
         boolean firing = flying() && !complete;
         force.move(ship, firing, scrollStep);
@@ -880,6 +1062,9 @@ public final class Sortie {
             hitBySled();
             hitByDebris();
             hitBySetPieces();
+            if (latch != null) {
+                drainShield();
+            }
         }
         if (wingman != null && flying() && !complete && !failed && !rules.invulnerableShip()) {
             hitWingman();
@@ -887,8 +1072,14 @@ public final class Sortie {
         if (convoy != null && !convoy.naval() && !complete && !wrecked && !failed) {
             hitAllies();
         }
+        if (defendEndTicks >= 0 && !complete && !wrecked && !failed) {
+            defendStep();
+        }
         if (flying()) {
             collectPickups();
+        }
+        if (sondes.count() > 0) {
+            updateSondes();
         }
         if (!pounced && events.count(SimEvents.Type.POUNCE) > 0) {
             pounced = true;
@@ -1131,6 +1322,10 @@ public final class Sortie {
         if (wingman.ejected()) {
             return;
         }
+        bossBeamsHitWingman();
+        if (wingman.ejected()) {
+            return;
+        }
         Hull hull = wingman.hull();
         double x = wingman.x();
         double y = wingman.y();
@@ -1163,8 +1358,10 @@ public final class Sortie {
             Enemy enemy = enemies.get(j);
             EnemySpec spec = enemy.spec();
             // A pounce (M5 part C) touches him once per leap, in its air window.
+            // M5 part F: a Lamprey latched onto the player's hull does not touch him.
             if (!enemy.layer().collidesWithPlayer()
                     || Chain.doomed(enemy)
+                    || enemy.latched()
                     || !hull.overlaps(x, y, enemy.hitbox(), enemy.x(), enemy.y())
                     || !wingman.touch(enemy.serial())
                     || (enemy.leaping() && !enemy.pounceTouch(Enemy.TOUCHED_WINGMAN))) {
@@ -1319,6 +1516,7 @@ public final class Sortie {
         nextDebris = c.nextDebris;
         streamReleased = c.streamReleased;
         resetArena();
+        clearLaunchWarnings();
         complete = false;
         wrecked = false;
         failed = false;
@@ -1389,6 +1587,7 @@ public final class Sortie {
         bossRetry = false;
         streamReleased = 0;
         resetArena();
+        clearLaunchWarnings();
         fire.reset();
         special.reset();
         force.reset();
@@ -1414,6 +1613,16 @@ public final class Sortie {
         }
         rocksThrown = 0;
         Arrays.fill(groupCalled, false);
+        wind.reset();
+        sondes.reset();
+        if (latch != null) {
+            clearReversals();
+        }
+        lastDirection = 0;
+        latchedCount = 0;
+        latchSeen = false;
+        nextPlaced = 0;
+        Arrays.fill(belowFired, false);
         levelTick = 0;
         tickFraction = 0;
         clockStep = CLOCK_ONE;
@@ -1445,6 +1654,10 @@ public final class Sortie {
     }
 
     private double scrollSpeed() {
+        if (timedHalts) {
+            // M5 part G: a level with a timed halt has no holds or arena (LevelScript checks it).
+            return timedHaltSpeed(script.sections(), levelTick);
+        }
         double speed = sectionSpeed();
         if (arenaBoss != null && rampTicks < 0 && levelTick >= arenaStartTicks && levelTick < arenaEndTicks) {
             // M5 part E: into an arena of speed 0 the scroll eases to a halt over the ramp.
@@ -1470,6 +1683,70 @@ public final class Sortie {
 
     /** Out of the arena the scroll ramps up to the next section's speed over this time. */
     public static final double ARENA_RAMP_SECONDS = 1;
+
+    /**
+     * M5 part G (design/campaign Level 13, The halt): the scroll's speed in px/s at level step {@code
+     * tick} of a level without hold zones or an arena: its section's speed, 0 in a timed halt, eased
+     * (smoothstep) down to 0 over the last {@link LevelScript.Section#rampSeconds()} of a timed halt
+     * before the halt and back up to its section's speed over as long after it (the halt's ramp): step k
+     * of an ease of n steps runs at the speed × (1 − s) going in and × s coming out, s = smoothstep((k +
+     * 1) ÷ n), so the last step before the halt is at 0. Without a timed halt it is the section's speed.
+     * A section's steps are [its start's ticks, its end's ticks).
+     */
+    public static double timedHaltSpeed(List<LevelScript.Section> sections, int tick) {
+        int start = 0;
+        int last = sections.size() - 1;
+        for (int i = 0; i <= last; i++) {
+            LevelScript.Section section = sections.get(i);
+            int end = SimStep.ticks(section.end());
+            if (tick >= end && i < last) {
+                start = end;
+                continue;
+            }
+            if (section.timedHalt()) {
+                return 0;
+            }
+            double speed = section.speed();
+            if (i < last && sections.get(i + 1).timedHalt()) {
+                int n = Math.max(1, SimStep.ticks(sections.get(i + 1).rampSeconds()));
+                int k = tick - (end - n);
+                if (k >= 0) {
+                    speed *= 1 - smoothstep(Math.min(1, (k + 1.0) / n));
+                }
+            }
+            if (i > 0 && sections.get(i - 1).timedHalt()) {
+                int n = Math.max(1, SimStep.ticks(sections.get(i - 1).rampSeconds()));
+                int k = tick - start;
+                if (k < n) {
+                    speed *= smoothstep((k + 1.0) / n);
+                }
+            }
+            return speed;
+        }
+        return 0;
+    }
+
+    private static double smoothstep(double s) {
+        return s * s * (3 - 2 * s);
+    }
+
+    /**
+     * M5 part G: how far the ground has scrolled when the level clock reaches {@code t} s in a level
+     * without hold zones or an arena, px: the sum of {@link #timedHaltSpeed} × a step over the steps
+     * before it, added up as the sortie scrolls. A defend primary's ally stands at its place at its
+     * start; Level 13's backdrop places the relay's floe with it.
+     */
+    public static double scrollAt(LevelScript script, double t) {
+        if (!script.holds().isEmpty() || script.sections().stream().anyMatch(LevelScript.Section::arena)) {
+            throw new IllegalArgumentException("the scroll of a level with holds or an arena depends on play");
+        }
+        double scroll = 0;
+        int ticks = SimStep.ticks(t);
+        for (int tick = 0; tick < ticks; tick++) {
+            scroll += timedHaltSpeed(script.sections(), tick) * SimStep.SECONDS;
+        }
+        return scroll;
+    }
 
     private void placeGroundObjects() {
         List<LevelScript.GroundObjectSpec> objects = script.groundObjects();
@@ -1542,6 +1819,10 @@ public final class Sortie {
                 } else if (piece.swayTicks() == 0) {
                     events.add(SimEvents.Type.BOSS_SETTLED, piece.x(), piece.y(), k);
                 }
+                if (piece.liftEndedNow()) {
+                    // M5 part H: the lift is over: it holds at its new station and engages.
+                    events.add(SimEvents.Type.SPIRE_LIFTED, piece.x(), piece.y(), piece.phase());
+                }
                 continue;
             }
             if (piece.update(levelTick)) {
@@ -1585,8 +1866,25 @@ public final class Sortie {
      */
     private void phaseEntered(int k, SetPiece piece) {
         BossSpec boss = piece.boss().orElseThrow();
-        String name = boss.phases().get(bossPhase).name();
+        BossSpec.Phase entered = boss.phases().get(bossPhase);
+        String name = entered.name();
         events.add(SimEvents.Type.BOSS_PHASE, piece.x(), piece.y(), bossPhase);
+        if (piece.arena().isPresent()
+                && entered.windows().isPresent()
+                && launchesAmbushes(entered.windows().get())) {
+            // M5 part H: the Siege Spire's claw crown opens: its maw is exposed and launches.
+            List<List<Integer>> groups = entered.windows().get().groups();
+            for (int g = 0; g < groups.size(); g++) {
+                for (int i = 0; i < groups.get(g).size(); i++) {
+                    int p = groups.get(g).get(i);
+                    events.add(SimEvents.Type.SPIRE_MAW_OPENED, piece.partX(p), piece.partY(p), p);
+                }
+            }
+        }
+        if (piece.lifting()) {
+            // M5 part H: the tear-free: the shockwave at the anchor, the stump left behind.
+            events.add(SimEvents.Type.SPIRE_LIFT, piece.stumpX(), piece.stumpY(), bossPhase);
+        }
         if (timedOut(piece, boss, bossPhase - 1)) {
             radio.cue(LevelScript.CueTrigger.BOSS_TIMEOUT, name);
         }
@@ -1594,6 +1892,17 @@ public final class Sortie {
         if (k == partsPiece && bossPhase > script.secondary().beforePhase() && objectives.partsSurvived()) {
             events.add(SimEvents.Type.OBJECTIVE_FAILED, piece.x(), piece.y());
         }
+    }
+
+    /** M5 part H: whether {@code windows} launch ambushes (the Siege Spire's maw). */
+    private static boolean launchesAmbushes(BossSpec.Windows windows) {
+        List<BossSpec.Spawn> spawns = windows.spawns();
+        for (int i = 0; i < spawns.size(); i++) {
+            if (spawns.get(i).ambush()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1719,6 +2028,14 @@ public final class Sortie {
         Enemy enemy = enemies.get(index);
         EnemySpec spec = enemy.spec();
         events.add(SimEvents.Type.ENEMY_DESTROYED, enemy.x(), enemy.y(), enemy.kind());
+        if (enemy.grounded() && (enemy.driftX() != 0 || enemy.driftY() != 0)) {
+            // M5 part G: its remains drift on with its floe (Level 13's mortars).
+            events.add(
+                    SimEvents.Type.WRECK_DRIFT,
+                    enemy.x(),
+                    enemy.y(),
+                    SimEvents.driftValue(enemy.driftX(), enemy.driftY()));
+        }
         if (enemy.chain() != null) {
             // A segment chain counts as one enemy, its wave's head: the other parts pay their bounty only.
             boolean kill = enemy.link() == 0 && enemy.chain().original();
@@ -1743,7 +2060,7 @@ public final class Sortie {
         if (enemy.carried().isPresent()) {
             drop(enemy.carried().get(), enemy.x(), enemy.y());
         }
-        if (spec.drop().isPresent() && kills % spec.drop().get().every() == 0) {
+        if (spec.drop().isPresent() && kills % dropEvery(spec.drop().get().every()) == 0) {
             drop(spec.drop().get().pickup(), enemy.x(), enemy.y());
         }
         if (spec.deathBurst().isPresent()) {
@@ -1755,6 +2072,14 @@ public final class Sortie {
         if (enemy.walking()) {
             events.add(
                     SimEvents.Type.WALKER_DOWN,
+                    enemy.x(),
+                    enemy.y(),
+                    SimEvents.walkerValue(enemy.kind(), enemy.facing()));
+        }
+        if (enemy.laneWalking()) {
+            // M5 part G: a lane walker's hull flips and sinks at its heading (the Skimmer).
+            events.add(
+                    SimEvents.Type.LANE_WALKER_DOWN,
                     enemy.x(),
                     enemy.y(),
                     SimEvents.walkerValue(enemy.kind(), enemy.facing()));
@@ -1773,6 +2098,15 @@ public final class Sortie {
         if (objectives.escapeDestroyed(spec.slug(), tag)) {
             paySecondary();
         }
+    }
+
+    /**
+     * M5 part F: an enemy's drop {@code every} with the level's drop factor: divided by it, rounded to
+     * the nearest, at least 1 (Level 12's shield cells; the factor 1 elsewhere leaves it).
+     */
+    private int dropEvery(int every) {
+        double factor = script.dropFactor();
+        return factor == 1 ? every : Math.max(1, (int) Math.round(every / factor));
     }
 
     /**
@@ -2056,28 +2390,39 @@ public final class Sortie {
      * damage}, as a gun does; package-private for the tests (M5 part D's shuttle hits).
      */
     void fireEnemyBullet(double x, double y, double vx, double vy, double damage) {
+        fireEnemyBullet(x, y, vx, vy, damage, -1);
+    }
+
+    /** As {@link #fireEnemyBullet(double, double, double, double, double)}, aimed at convoy unit {@code target} (-1: the ship). */
+    void fireEnemyBullet(double x, double y, double vx, double vy, double damage, int target) {
         EnemyBullet bullet = force.bullets().obtain();
         if (bullet != null) {
-            bullet.fire(x, y, vx, vy, damage);
+            bullet.fire(x, y, vx, vy, damage, target);
         }
     }
 
-    /** Drops a pickup of {@code type} at ({@code x}, {@code y}), as a kill or a destroyed object does; package-private for the tests. */
-    void drop(PickupType type, double x, double y) {
+    /**
+     * Drops a pickup of {@code type} at ({@code x}, {@code y}), as a kill or a destroyed object does;
+     * package-private for the tests. Returns whether it dropped (a special charge without a special
+     * fitted does not, nor one the pool has no room for).
+     */
+    boolean drop(PickupType type, double x, double y) {
         if (type == PickupType.SPECIAL_CHARGE && !special.fitted()) {
-            return;
+            return false;
         }
         Pickup pickup = pickups.obtain();
-        if (pickup != null) {
-            int credits =
-                    switch (type) {
-                        case SMALL_SALVAGE -> rules.pickups().smallSalvageCredits();
-                        case MEDIUM_SALVAGE -> rules.pickups().mediumSalvageCredits();
-                        case LARGE_SALVAGE -> rules.pickups().largeSalvageCredits();
-                        default -> 0;
-                    };
-            pickup.drop(type, credits, x, y, pickupTicks);
+        if (pickup == null) {
+            return false;
         }
+        int credits =
+                switch (type) {
+                    case SMALL_SALVAGE -> rules.pickups().smallSalvageCredits();
+                    case MEDIUM_SALVAGE -> rules.pickups().mediumSalvageCredits();
+                    case LARGE_SALVAGE -> rules.pickups().largeSalvageCredits();
+                    default -> 0;
+                };
+        pickup.drop(type, credits, x, y, pickupTicks);
+        return true;
     }
 
     /** The cranes' arms stop every shot that touches them; the player's hits on a swinging arm's clamp count. */
@@ -2326,7 +2671,7 @@ public final class Sortie {
                 }
             }
         }
-        if (beamsHit(hull)) {
+        if (beamsHit(hull) || bossBeamsHit(hull)) {
             return;
         }
         // An armed spore bursts on contact with the hull, dealing its layer's attack damage.
@@ -2375,15 +2720,102 @@ public final class Sortie {
     }
 
     /**
+     * M5 part H (design/enemies, Boss attacks and root bursts; decision H5 = a): a boss's sweeping beam
+     * touching the hull deals its damage, at most once per sweep; returns whether it wrecked the ship.
+     */
+    private boolean bossBeamsHit(Hull hull) {
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
+            if (!piece.present() || piece.boss().isEmpty()) {
+                continue;
+            }
+            for (int a = 0; a < piece.attackCount(); a++) {
+                if (!piece.sweepBeaming(a)
+                        || piece.sweepHit(a, SetPiece.SWEPT_SHIP)
+                        || !beamTouches(piece, a, hull, ship.x(), ship.y())) {
+                    continue;
+                }
+                piece.markSweepHit(a, SetPiece.SWEPT_SHIP);
+                events.add(SimEvents.Type.SWEEP_HIT, ship.x(), ship.y());
+                double lost = ship.defences().armourLost();
+                double damage = piece.boss()
+                        .get()
+                        .attacks()
+                        .get(a)
+                        .sweep()
+                        .orElseThrow()
+                        .damage();
+                if (damaged(lost, ship.defences().takeShot(damage, events, ship.x(), ship.y()))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** M5 part H: a boss's sweeping beam touching Rook's hull deals its damage to him, at most once per sweep. */
+    private void bossBeamsHitWingman() {
+        for (int k = 0; k < setPieces.length; k++) {
+            SetPiece piece = setPieces[k];
+            if (!piece.present() || piece.boss().isEmpty()) {
+                continue;
+            }
+            for (int a = 0; a < piece.attackCount(); a++) {
+                if (!piece.sweepBeaming(a)
+                        || piece.sweepHit(a, SetPiece.SWEPT_WINGMAN)
+                        || !beamTouches(piece, a, wingman.hull(), wingman.x(), wingman.y())) {
+                    continue;
+                }
+                piece.markSweepHit(a, SetPiece.SWEPT_WINGMAN);
+                double damage = piece.boss()
+                        .get()
+                        .attacks()
+                        .get(a)
+                        .sweep()
+                        .orElseThrow()
+                        .damage();
+                if (wingman.hit(damage, ship.x(), ship.y(), events)) {
+                    return;
+                }
+            }
+        }
+    }
+
+    /** M5 part H: whether attack {@code a}'s beam of {@code piece} touches {@code hull} at (x, y) now. */
+    private static boolean beamTouches(SetPiece piece, int a, Hull hull, double x, double y) {
+        EnemySpec.Sweep sweep =
+                piece.boss().orElseThrow().attacks().get(a).sweep().orElseThrow();
+        double heading = piece.sweepBeam(a, 0);
+        double fromX = piece.sweepOriginX(a);
+        double fromY = piece.sweepOriginY(a);
+        double endX = fromX - Trig.sin(heading) * sweep.length();
+        double endY = fromY - Trig.cos(heading) * sweep.length();
+        return hull.touchesSegment(x, y, fromX, fromY, endX, endY, sweep.width() / 2);
+    }
+
+    /**
      * A rammer on the player's layer deals its contact damage; a small one is destroyed by the
      * impact. A pounce (M5 part C) touches the ship once per leap, in its air window.
      */
     private void ramShip() {
         Pool<Enemy> enemies = force.enemies();
         Hull hull = ship.spec().hull();
+        if (latch != null) {
+            countLatched();
+        }
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
             EnemySpec spec = enemy.spec();
+            // M5 part F: a latched, stunned or fleeing Lamprey does not collide with the ship.
+            if (spec.latch().isPresent() && !enemy.latchable()) {
+                continue;
+            }
+            if (spec.latch().isPresent()
+                    && latchedCount < spec.latch().get().slots()
+                    && hull.overlaps(ship.x(), ship.y(), enemy.hitbox(), enemy.x(), enemy.y())) {
+                latchOn(enemy);
+                continue;
+            }
             if (enemy.layer().collidesWithPlayer()
                     && !Chain.doomed(enemy)
                     && hull.overlaps(ship.x(), ship.y(), enemy.hitbox(), enemy.x(), enemy.y())
@@ -2397,6 +2829,133 @@ public final class Sortie {
                     return;
                 }
             }
+        }
+    }
+
+    /**
+     * M5 part F (design/enemies/air/lamprey): {@code enemy} latches onto the hull at the spot it touched
+     * from: its event, and the attempt's first latch's radio line. Reversals count from the first latch
+     * on while anything stays latched.
+     */
+    private void latchOn(Enemy enemy) {
+        int spot = EnemySpec.Latch.spotFor(enemy.x() - ship.x(), enemy.y() - ship.y());
+        if (latchedCount == 0) {
+            clearReversals();
+        }
+        enemy.latch(spot, ship.x(), ship.y());
+        latchedCount++;
+        events.add(SimEvents.Type.LAMPREY_LATCHED, enemy.x(), enemy.y(), spot);
+        if (!latchSeen) {
+            latchSeen = true;
+            radio.cue(LevelScript.CueTrigger.FIRST_LATCH, "");
+        }
+    }
+
+    /** M5 part F: counts the units latched onto the ship now. */
+    private void countLatched() {
+        Pool<Enemy> enemies = force.enemies();
+        int count = 0;
+        for (int j = 0; j < enemies.size(); j++) {
+            if (enemies.get(j).latched()) {
+                count++;
+            }
+        }
+        latchedCount = count;
+    }
+
+    /**
+     * M5 part F, the shake-off (design/enemies/air/lamprey): a reversal of the commanded horizontal
+     * direction ({@code LEFT} against {@code RIGHT}; neutral steps, and both at once, ignored) while
+     * something is latched is remembered; the latch's number of them within its time throws off every
+     * latched unit. It reads the commands, so recorded inputs replay it.
+     */
+    private void shake(int commands) {
+        boolean left = Command.LEFT.in(commands);
+        boolean right = Command.RIGHT.in(commands);
+        if (left == right) {
+            return;
+        }
+        int direction = left ? -1 : 1;
+        boolean reversal = lastDirection != 0 && direction != lastDirection;
+        lastDirection = direction;
+        if (!reversal) {
+            return;
+        }
+        countLatched();
+        if (latchedCount == 0) {
+            return;
+        }
+        reversals[reversalNext] = realTick;
+        reversalNext = (reversalNext + 1) % reversals.length;
+        // The oldest of the last reversals is the next to be overwritten.
+        if (realTick - reversals[reversalNext] > SimStep.ticks(latch.withinSeconds())) {
+            return;
+        }
+        Pool<Enemy> enemies = force.enemies();
+        int thrown = 0;
+        for (int j = 0; j < enemies.size(); j++) {
+            Enemy enemy = enemies.get(j);
+            if (enemy.latched()) {
+                enemy.shakeOff();
+                thrown++;
+            }
+        }
+        latchedCount = 0;
+        clearReversals();
+        events.add(SimEvents.Type.LAMPREY_SHAKEN, ship.x(), ship.y(), thrown);
+    }
+
+    /** M5 part F: forgets the remembered reversals. */
+    private void clearReversals() {
+        Arrays.fill(reversals, Integer.MIN_VALUE / 2);
+        reversalNext = 0;
+    }
+
+    /** M5 part F: every latched unit drains the shield at its rate (design/enemies/air/lamprey). */
+    private void drainShield() {
+        Pool<Enemy> enemies = force.enemies();
+        int count = 0;
+        for (int j = 0; j < enemies.size(); j++) {
+            Enemy enemy = enemies.get(j);
+            if (enemy.latched()) {
+                count++;
+                double rate = enemy.spec().latch().orElseThrow().drainRate();
+                ship.defences().drain(rate * SimStep.SECONDS, events, ship.x(), ship.y());
+            }
+        }
+        latchedCount = count;
+    }
+
+    /**
+     * M5 part F: the placed pickups due now enter at the top edge (Level 12's armour patch); M5 part G:
+     * or appear at their point (Level 13's supply drones' patches), with their event.
+     */
+    private void placePickups() {
+        while (nextPlaced < placedTicks.length && placedTicks[nextPlaced] <= levelTick) {
+            LevelScript.PlacedPickup placed = script.placedPickups().get(nextPlaced++);
+            if (drop(placed.pickup(), placed.x(), placed.y())) {
+                events.add(
+                        SimEvents.Type.PICKUP_PLACED,
+                        placed.x(),
+                        placed.y(),
+                        placed.pickup().ordinal());
+            }
+        }
+    }
+
+    /**
+     * M5 part F: the weather sondes drift; the ship collects those it flies through (while it flies), and
+     * a collect: sondes objective is met at the last and failed at the first one lost.
+     */
+    private void updateSondes() {
+        sondes.update(levelTick, flying() && !complete, ship.x(), ship.y(), events);
+        for (int k = 0; k < sondes.collectedNow(); k++) {
+            if (objectives.sondeCollected()) {
+                paySecondary();
+            }
+        }
+        if (sondes.lostNow() > 0 && objectives.sondeLost()) {
+            events.add(SimEvents.Type.OBJECTIVE_FAILED, ship.x(), ship.y());
         }
     }
 
@@ -2422,7 +2981,7 @@ public final class Sortie {
      * claws every unit its hit box overlaps, per second.
      */
     private void hitAllies() {
-        AllySpec spec = convoy.escort().ally();
+        AllySpec spec = convoy.spec(0);
         if (convoy.air()) {
             hitAirAllies(spec);
             return;
@@ -2456,6 +3015,70 @@ public final class Sortie {
                     }
                 }
             }
+        }
+        if (convoy.defend()) {
+            hitDefended(spec);
+        }
+    }
+
+    /**
+     * M5 part G (design/allies, Nansen Relay; user decision G1 = a): the defend primary's ally takes a
+     * diver's dive the always hook sent at it, once as its body crosses the ally's hit box ({@link
+     * AllySpec#dives()}), and the direct hits of the lobs aimed at it that landed on it this step.
+     */
+    private void hitDefended(AllySpec spec) {
+        if (spec.dives() > 0) {
+            Pool<Enemy> enemies = force.enemies();
+            for (int j = 0; j < enemies.size() && !failed; j++) {
+                Enemy enemy = enemies.get(j);
+                if (enemy.divedAtObjective()
+                        && !enemy.diveHit()
+                        && convoy.touches(0, enemy.x(), enemy.y(), enemy.hitbox())) {
+                    enemy.markDiveHit();
+                    hurt(0, spec.dives(), true);
+                }
+            }
+        }
+        if (spec.lobs()
+                && force.objectiveLobDamage() > 0
+                && !failed
+                && convoy.get(0).alive()) {
+            hurt(0, force.objectiveLobDamage(), true);
+        }
+    }
+
+    /**
+     * M5 part G: the defend primary's synchronisation completes at its end with the ally standing: its
+     * event, an integrity secondary met (its credits and line, after the timed lines of this step); from
+     * now on nothing aims at the ally or hurts it.
+     */
+    private void defendStep() {
+        if (convoy.defended() || levelTick < defendEndTicks) {
+            return;
+        }
+        convoy.defended(true);
+        Ally ally = convoy.get(0);
+        events.add(SimEvents.Type.DEFEND_COMPLETE, ally.x(), ally.y(), (int) Math.round(ally.hpShare() * 100));
+        if (objectives.defended()) {
+            paySecondary();
+        }
+    }
+
+    /**
+     * M5 part G: after a hit on the defend primary's ally, the shares its {@code ally-below} cues name that
+     * it dropped below for the first time (their event and cues), and an integrity secondary failed by it.
+     */
+    private void belowShares(Ally ally) {
+        double share = ally.hpShare();
+        for (int i = 0; i < belowShares.length; i++) {
+            if (!belowFired[i] && share < belowShares[i]) {
+                belowFired[i] = true;
+                events.add(SimEvents.Type.ALLY_BELOW, ally.x(), ally.y(), (int) Math.round(belowShares[i] * 100));
+                radio.cue(LevelScript.CueTrigger.ALLY_BELOW, belowSubjects[i]);
+            }
+        }
+        if (objectives.integrityLeft(share)) {
+            events.add(SimEvents.Type.OBJECTIVE_FAILED, ally.x(), ally.y());
         }
     }
 
@@ -2543,6 +3166,9 @@ public final class Sortie {
         if (first) {
             radio.cue(LevelScript.CueTrigger.FIRST_ALLY_HIT, "");
         }
+        if (convoy.defend()) {
+            belowShares(ally);
+        }
         if (!destroyed) {
             return;
         }
@@ -2552,7 +3178,8 @@ public final class Sortie {
         }
         radio.cue(LevelScript.CueTrigger.ALLY_LOST, "");
         if (convoy.allLost()) {
-            if (convoy.air() && rules.invulnerableShip()) {
+            // M5 part G: a defend primary's too.
+            if ((convoy.air() || convoy.defend()) && rules.invulnerableShip()) {
                 // The debug option that lets a capture see the level to its end keeps it going too.
                 return;
             }
@@ -2661,7 +3288,7 @@ public final class Sortie {
         events.add(SimEvents.Type.LEVEL_COMPLETE, ship.x(), ship.y());
         // M5 part E: a naval convoy's level-end cues count its damageable units afloat; it pays nothing.
         int home = convoy == null ? 0 : convoy.naval() ? convoy.afloat() : convoy.saveableAlive();
-        if (convoy != null && !convoy.naval()) {
+        if (convoy != null && !convoy.naval() && !convoy.defend()) {
             // Each unit home is a payout of its own (design/campaign, Level 04: the escort objective).
             int credits = convoy.escort().credits();
             for (int k = 0; k < home; k++) {
@@ -2804,6 +3431,36 @@ public final class Sortie {
             // M5 part D: only once a unit decloaked or a swarm looped back, so the other levels hash as before.
             hash.add(decloakSeen ? 1 : 0).add(loopBackSeen ? 1 : 0);
         }
+        // M5 part F: only in a level that uses them, so the other levels hash as before.
+        if (wind.present()) {
+            wind.addTo(hash);
+        }
+        if (latch != null) {
+            hash.add(lastDirection).add(latchedCount).add(latchSeen ? 1 : 0).add(reversalNext);
+            for (int reversal : reversals) {
+                hash.add(reversal);
+            }
+        }
+        if (sondes.count() > 0) {
+            sondes.addTo(hash);
+        }
+        if (placedTicks.length > 0) {
+            hash.add(nextPlaced);
+        }
+        // M5 part H: only in a level with root bursts or ambush launches, so the other levels hash as before.
+        if (burstSlots.length > 0) {
+            force.addBurstsTo(hash);
+        }
+        if (launches != null) {
+            hash.add(ambushOpenings).add(warningNext);
+            for (int w = 0; w < warningStarts.length; w++) {
+                hash.add(warningStarts[w]).add(warningEnds[w]);
+            }
+        }
+        // M5 part G: only with ally-below cues (a defend primary), so the other levels hash as before.
+        for (boolean fired : belowFired) {
+            hash.add(fired ? 1 : 0);
+        }
         if (wingman != null) {
             // Only with a wingman, so the hashes of sorties without one stay as they were.
             wingman.addTo(hash);
@@ -2825,7 +3482,7 @@ public final class Sortie {
                         defences.maxArmour(),
                         objectives.secretsFound(),
                         objectives.secondaryMet(),
-                        convoy == null || convoy.naval()
+                        convoy == null || convoy.naval() || convoy.defend()
                                 ? LevelResult.Escort.NONE
                                 : new LevelResult.Escort(
                                         convoy.escort().ally().slug(),
@@ -3407,5 +4064,138 @@ public final class Sortie {
     /** Whether a unit of an escapes objective's enemy got away: the objective failed for this attempt. */
     public boolean secondaryFailed() {
         return objectives.escapesFailed();
+    }
+
+    /** M5 part F: the level's wind and lightning (its push, the gust telegraph, the next flash). */
+    public Wind wind() {
+        return wind;
+    }
+
+    /** M5 part F: the wind's push this step, px/s to the right; 0 without weather. */
+    public double windPush() {
+        return wind.push(levelTick);
+    }
+
+    /** M5 part F: the weather sondes (none in most levels). */
+    public Sondes sondes() {
+        return sondes;
+    }
+
+    /** M5 part F: the Lampreys latched onto the ship after the last step. */
+    public int latched() {
+        return latchedCount;
+    }
+
+    /** M5 part F: whether something drains the shield: the HUD's {@code SHIELD DRAIN} and the bar's flicker. */
+    public boolean draining() {
+        return latchedCount > 0;
+    }
+
+    /**
+     * M5 part G: whether the level has a defend primary (Level 13's Nansen Relay): {@link #ally(int)} 0 is
+     * its ally ({@link #allySpec(int)} its spec, {@link Ally#hpShare()} its integrity), {@link
+     * #primaryFailed()} its loss.
+     */
+    public boolean defending() {
+        return convoy != null && convoy.defend();
+    }
+
+    /**
+     * M5 part G: the defend's synchronisation's seconds left on the level clock (the HUD's countdown): its
+     * duration until its start, then down to 0 at its end; 0 without a defend primary.
+     */
+    public double defendSecondsLeft() {
+        if (!defending()) {
+            return 0;
+        }
+        LevelScript.Defend defend = convoy.defendSpec();
+        return Math.clamp(defend.end() - levelSeconds(), 0, defend.duration());
+    }
+
+    /** M5 part G: whether the defend's synchronisation has started (the level clock is past its start). */
+    public boolean defendStarted() {
+        return defending() && levelSeconds() >= convoy.defendSpec().start();
+    }
+
+    /** M5 part G: whether the defend's synchronisation completed in this attempt ({@link SimEvents.Type#DEFEND_COMPLETE}). */
+    public boolean defendComplete() {
+        return defending() && convoy.defended();
+    }
+
+    /** M5 part G: whether an integrity secondary failed in this attempt (the ally dropped below its share). */
+    public boolean integrityFailed() {
+        return objectives.integrityFailed();
+    }
+
+    /** M5 part G: whether the scroll is in a timed halt now (Level 13's defend phase), its eases not counted. */
+    public boolean timedHalted() {
+        return timedHalts && scrollSpeed() == 0;
+    }
+
+    /**
+     * M5 part H: the ground units in group {@code g} of a groups objective (Level 14's {@code ROOTS}: its
+     * eight root-burst growths, easy four), counted from the level's script: the tracker's {@code n / 8}.
+     */
+    public int groupUnits(int g) {
+        return objectives.groupUnits(g);
+    }
+
+    /** M5 part H: the units of group {@code g} destroyed in this attempt: the tracker's {@code n}. */
+    public int groupUnitsDestroyed(int g) {
+        return objectives.groupDestroyed(g);
+    }
+
+    /** M5 part H: the level's root bursts (design/campaign Level 14, Hazards), in the level's order; 0 without. */
+    public int burstCount() {
+        return burstSlots.length;
+    }
+
+    /** M5 part H: root burst {@code k}'s {@link LevelScript.RootBurst#index()} (its events' value). */
+    public int burstIndex(int k) {
+        return force.burstOf(burstSlots[k]).index();
+    }
+
+    /** M5 part H: whether root burst {@code k}'s telegraph runs now (the cracking paving and the dust), until its growths appear. */
+    public boolean burstTelegraphing(int k) {
+        return force.burstTelegraphed(burstSlots[k]) && !force.burstGrown(burstSlots[k]);
+    }
+
+    /** M5 part H: whether root burst {@code k}'s growths have appeared in this attempt (its crater stays on the ground). */
+    public boolean burstGrown(int k) {
+        return force.burstGrown(burstSlots[k]);
+    }
+
+    /**
+     * M5 part H: how far root burst {@code k}'s telegraph is, 0 at its start to 1 as its growths appear
+     * (on the level clock); 0 before it, 1 after.
+     */
+    public double burstTelegraphShare(int k) {
+        LevelScript.RootBurst burst = force.burstOf(burstSlots[k]);
+        if (!force.burstTelegraphed(burstSlots[k])) {
+            return 0;
+        }
+        if (force.burstGrown(burstSlots[k]) || !(burst.telegraphSeconds() > 0)) {
+            return 1;
+        }
+        return Math.clamp((levelSeconds() - burst.t()) / burst.telegraphSeconds(), 0.0, 1.0);
+    }
+
+    /** M5 part H: root burst {@code k}'s centre, px from the left (after its move away from the ship once its telegraph started). */
+    public double burstX(int k) {
+        return force.burstTelegraphed(burstSlots[k])
+                ? force.burstX(burstSlots[k])
+                : force.burstOf(burstSlots[k]).x();
+    }
+
+    /** M5 part H: root burst {@code k}'s point now, px up from the bottom edge: it scrolls with the ground from its telegraph on. */
+    public double burstY(int k) {
+        return force.burstTelegraphed(burstSlots[k])
+                ? force.burstBase(burstSlots[k]) - groundScroll
+                : PlayField.HEIGHT - force.burstOf(burstSlots[k]).depth();
+    }
+
+    /** M5 part H: the units the arena boss launched as ambushes alive now (the Siege Spire's maw's Wraiths, at most 4). */
+    public int launchedAlive() {
+        return force.launchedAlive();
     }
 }
